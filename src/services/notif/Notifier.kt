@@ -66,29 +66,29 @@ class Notifier: ServiceBase(true) {
                         .map { it.nameGui() }
                         .append("Normal", "Normal - no cover")
                         .toList()
-            }
-    ) { v ->
-        when (v) {
-            "Normal" -> {
-                val ii = ItemInfo(true)
-                songNotificationInfo = ii
-                songNotificationGui = ii
-                (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
-            }
-            "Normal - no cover" -> {
-                val ii = ItemInfo(false)
-                songNotificationInfo = ii
-                songNotificationGui = ii
-                (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
-            }
-            else -> APP.widgetManager.find(v, NEW, true).ifPresent { wf ->
-                songNotificationGui = wf.load()
-                songNotificationInfo = wf.controller as SongReader
-                (songNotificationGui as Pane).setPrefSize(700.0, 300.0)
-            }
-        // TODO: fix possible null ?
-        }
-    }
+            },
+            { v ->
+                when (v) {
+                    "Normal" -> {
+                        val ii = ItemInfo(true)
+                        songNotificationInfo = ii
+                        songNotificationGui = ii
+                        (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
+                    }
+                    "Normal - no cover" -> {
+                        val ii = ItemInfo(false)
+                        songNotificationInfo = ii
+                        songNotificationGui = ii
+                        (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
+                    }
+                    else -> APP.widgetManager.find(v, NEW, true).ifPresent { wf ->
+                        songNotificationGui = wf.load()
+                        songNotificationInfo = wf.controller as SongReader
+                        (songNotificationGui as Pane).setPrefSize(700.0, 300.0)
+                    }
+                // TODO: fix possible null ?
+                }
+            })
     private val onStop = Disposer()
     private var running = false
     private var n: Notification? = null

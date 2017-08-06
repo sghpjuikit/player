@@ -7,6 +7,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
+import util.graphics.image.ImageSize;
 import util.validation.Constraint;
 import static main.App.APP;
 
@@ -130,12 +131,4 @@ public abstract class ImageNode {
 		getView().setCache(val);
 	}
 
-	public static class ImageSize {
-		public final double width, height;
-
-		public ImageSize(double width, double height) {
-			this.width = width;
-			this.height = height;
-		}
-	}
 }

@@ -29,6 +29,7 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static main.App.APP;
 import static util.async.Async.FX;
 import static util.async.Async.runNew;
+import static util.async.Async.threadFactory;
 import static util.async.executor.EventReducer.toLast;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
@@ -37,12 +38,7 @@ import static util.functional.Util.list;
 public class Player {
 
 	// TODO: tweak thread pool to always have 1-2 threads on, but dispose of it entirely when this "service" is not used
-	public static final ExecutorService IO_THREAD = new ThreadPoolExecutor(0, 8, 10, MINUTES, new LinkedBlockingQueue<>(), r -> {
-		Thread t = new Thread(r);
-		t.setDaemon(true); // do not prevent application closing
-		t.setName("tagging-thread");
-		return t;
-	});
+	public static final ExecutorService IO_THREAD = new ThreadPoolExecutor(0, 8, 10, MINUTES, new LinkedBlockingQueue<>(), threadFactory("tagging-thread", true));
 
 /********************************************* STATE **********************************************/
 

@@ -55,6 +55,7 @@ public final class WidgetManager {
 	 * Factories can be removed, added or swapped for new one in runtime. This happens when
 	 * widgets files are discovered/deleted/modified.
 	 */
+	private final MapSet<String,ComponentFactory<?>> factoriesC = new MapSet<>(ComponentFactory::nameGui);
 	public final MapSet<String,WidgetFactory<?>> factories = new MapSet<>(WidgetFactory::name);
 	private final MapSet<String,WidgetDir> monitors = new MapSet<>(wd -> wd.widgetName);
 	private boolean initialized = false;
@@ -88,11 +89,9 @@ public final class WidgetManager {
 			FileMonitor.monitorDirsFiles(dirW, File::isDirectory, (type, widget_dir) -> {
 				String name = capitalize(getName(widget_dir));
 				if (type == ENTRY_CREATE) {
-					LOGGER.info("Discovered widget type: {}", name);
 					monitors.computeIfAbsent(name, n -> new WidgetDir(name, widget_dir)).registerExternalFactory();
 				}
 				if (type == ENTRY_DELETE) {
-					LOGGER.info("Disposing widget type: {}", name);
 					WidgetDir wd = monitors.get(name);
 					if (wd != null) wd.dispose();
 				}
@@ -104,22 +103,20 @@ public final class WidgetManager {
 		if (!Util.isValidatedDirectory(dirL)) {
 			LOGGER.error("External .fxwl widgets registration failed.");
 		} else {
-			listFiles(dirL).filter(f -> f.getPath().endsWith(".fxwl"))
-						   .filter(f ->  readFileLines(f).limit(1).filter(line -> line.startsWith("<Widget")).count() > 0)
-						   .forEach(fxwl -> {
-				String name = capitalize(getName(fxwl));
-				factories.computeIfAbsent(name, key -> new WidgetFactory<>(fxwl));
-			});
+			listFiles(dirL)
+				.filter(f -> f.getPath().endsWith(".fxwl"))
+				.forEach(fxwl -> registerFactory(new DeserializingFactory(fxwl)));
 
 			FileMonitor.monitorDirsFiles(dirL, f -> f.getPath().endsWith(".fxwl"), (type, fxwl) -> {
-				String name = capitalize(getName(fxwl));
-				if (type == ENTRY_CREATE && !factories.containsKey(name)) {
-					LOGGER.info("Discovered widget type: {}", name);
-					factories.computeIfAbsent(name, () -> new WidgetFactory<>(fxwl));
+				if (type == ENTRY_CREATE) {
+					registerFactory(new DeserializingFactory(fxwl));
 				}
-				if (type == ENTRY_DELETE && factories.get(name)!=null && factories.get(name).isDelegated) {
-					LOGGER.info("Disposing widget type: {}", name);
-					factories.removeKey(name);
+				if (type == ENTRY_DELETE) {
+					stream(factoriesC)
+						.select(DeserializingFactory.class)
+						.filter(f -> f.getLauncher().equals(fxwl))
+						.toSet()    // materialize iteration to avoid concurrent modification
+						.forEach(this::unregisterFactory);
 				}
 			});
 		}
@@ -127,29 +124,27 @@ public final class WidgetManager {
 		initialized = true;
 	}
 
-	private void constructFactory(Class<?> controller_class, File dir) {
-		if (controller_class==null) {
+	@SuppressWarnings("unchecked")
+	private void constructFactory(Class<?> controllerType, File dir) {
+		if (controllerType==null) {
 			LOGGER.warn("Widget class {} is null", dir);
 			return;
 		}
-		if (!Controller.class.isAssignableFrom(controller_class)) {
-			LOGGER.warn("Widget class {} {} does not implement Controller", controller_class,dir);
+		if (!Controller.class.isAssignableFrom(controllerType)) {
+			LOGGER.warn("Widget class {} {} does not implement Controller", controllerType,dir);
 			return;
 		}
 
-		WidgetFactory<?> wf = new WidgetFactory<>((Class<Controller<?>>) controller_class, dir);
-		boolean was_replaced = factories.containsValue(wf);
-		factories.removeValue(wf);
-		factories.add(wf);
-		LOGGER.info("Registering widget factory: {}", wf.name());
+		WidgetFactory<?> f = new WidgetFactory<>((Class<Controller<?>>) controllerType, dir);
+		boolean was_replaced = registerFactory(f);
 
 		if (was_replaced) {
-			LOGGER.info("Reloading all open widgets of {}", wf.name());
+			LOGGER.info("Reloading all open widgets of {}", f);
 			findAll(OPEN)
-			.filter(w -> w.getInfo().name().equals(wf.name())) // can not rely on type since we just reloaded the class!
+			.filter(w -> w.getInfo().name().equals(f.name())) // can not rely on type since we just reloaded the class!
 			.collect(toList()) // guarantees no concurrency problems due to forEach side effects
 			.forEach(w -> {
-				Widget<?> nw = wf.create();
+				Widget<?> nw = f.create();
 				nw.setStateFrom((Widget)w);
 				// TODO: actually this can still be null as widget is not guaranteed to be within layout (i.e. FileInfo
 				// in notification). It MUST be wrapped within container!
@@ -159,6 +154,24 @@ public final class WidgetManager {
 				c.addChild(i, nw);
 			});
 		}
+	}
+
+	private boolean registerFactory(ComponentFactory<?> factory) {
+		LOGGER.info("Registering {}", factory);
+		if (factory instanceof WidgetFactory) {
+			factories.add((WidgetFactory) factory);
+		}
+		boolean exists = factoriesC.containsValue(factory);
+		factoriesC.add(factory);
+		return exists;
+	}
+
+	private void unregisterFactory(ComponentFactory<?> factory) {
+		LOGGER.info("Unregistering {}", factory);
+		if (factory instanceof WidgetFactory) {
+			factories.remove(factory);
+		}
+		factoriesC.remove(factory);
 	}
 
 	private class WidgetDir {
@@ -394,7 +407,7 @@ public final class WidgetManager {
 	private static Class<?> loadClass(String widgetName, File classFile, Stream<File> libFiles) {
 		try {
 			File dir = classFile.getParentFile();
-			String classname = widgetName + "." + Util.getName(classFile);
+			String className = widgetName + "." + Util.getName(classFile);
 
 			ClassLoader controllerClassloader = createControllerClassLoader(dir, libFiles);
 
@@ -404,7 +417,7 @@ public final class WidgetManager {
 			//         createControllerClassLoader(dir, name_widget).loadClass(name_class);
 			// System.out.println(isDifferentClassInstance);
 
-			return controllerClassloader.loadClass(classname);
+			return controllerClassloader.loadClass(className);
 		} catch (ClassNotFoundException e) {
 			LOGGER.info("FXML widget factory controller class loading failed for: " + classFile, e);
 			return null;
@@ -431,13 +444,18 @@ public final class WidgetManager {
 		return new URLClassLoader(classpath);
 	}
 
-	/**
-	 * @return read only list of registered widget factories
-	 */
+	// TODO: return read-only collection and make backing field private
+	/** @return all widget factories */
 	public StreamEx<WidgetFactory<?>> getFactories() {
 		return StreamEx.of(factories.streamV());
 	}
 
+	/** @return all component factories (including widget factories) */
+	public StreamEx<ComponentFactory<?>> getComponentFactories() {
+		return StreamEx.of(APP.widgetManager.factoriesC.stream()).append(getFactories()).distinct();
+	}
+
+	/** @return all features implemented by at least one widget */
 	public Stream<Feature> getFeatures() {
 		return getFactories().flatMap(f -> f.getFeatures().stream()).distinct();
 	}

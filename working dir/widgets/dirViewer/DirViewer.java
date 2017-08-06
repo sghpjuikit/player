@@ -2,7 +2,7 @@ package dirViewer;
 
 import gui.objects.grid.GridFileThumbCell;
 import gui.objects.grid.GridFileThumbCell.AnimateOn;
-import gui.objects.grid.GridFileThumbCell.ImageLoader;
+import gui.objects.grid.GridFileThumbCell.Loader;
 import gui.objects.grid.GridView;
 import gui.objects.grid.GridView.CellSize;
 import gui.objects.hierarchy.Item;
@@ -45,6 +45,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_P
 import static gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static gui.objects.grid.GridView.CellSize.NORMAL;
 import static java.util.Comparator.nullsLast;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -98,9 +99,9 @@ public class DirViewer extends ClassController {
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width, cellSize.get().width/cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT, 5, 5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
-    private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
-    private final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // TODO: experiment with multiple threads
-    private final ImageLoader imageLoader = new ImageLoader(executorThumbs, executorImage);
+    private final ExecutorService executorThumbs = newThreadPoolExecutor(8, 1, MINUTES, threadFactory("dirView-img-thumb", true));
+    private final ExecutorService executorImage = newThreadPoolExecutor(8, 1, MINUTES, threadFactory("dirView-img-full", true));
+    private final Loader imageLoader = new Loader(executorThumbs, executorImage);
     boolean initialized = false;
     private AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
@@ -360,11 +361,7 @@ public class DirViewer extends ClassController {
 
         @Override
         protected Runnable computeTask(Runnable r) {
-            final long id = visitId.get();
-            return () -> {
-                if (id == visitId.get())
-                    r.run();
-            };
+            return onlyIfMatches(r, visitId);
         }
     }
 

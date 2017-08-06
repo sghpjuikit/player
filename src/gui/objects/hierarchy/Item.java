@@ -1,6 +1,5 @@
 package gui.objects.hierarchy;
 
-import gui.objects.image.ImageNode.ImageSize;
 import gui.objects.image.Thumbnail;
 import java.io.File;
 import java.util.ArrayList;
@@ -8,16 +7,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 import javafx.scene.image.Image;
-import unused.TriConsumer;
 import util.HierarchicalBase;
 import util.file.FileType;
 import util.file.ImageFileFormat;
+import util.functional.Try;
 import util.graphics.IconExtractor;
-import static util.Util.loadImageFull;
-import static util.Util.loadImageThumb;
+import util.graphics.image.Image2PassLoader;
+import util.graphics.image.ImageSize;
 import static util.dev.Util.throwIfFxThread;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.getName;
@@ -139,7 +137,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return null;
 	}
 
-	public void loadCover(boolean full, ImageSize size, TriConsumer<Boolean,File,Image> action, Consumer<Image> afterwards) {
+	public Try<LoadResult,Void> loadCover(boolean full, ImageSize size) {
 		throwIfFxThread();
 
 		boolean wasCoverFile_loaded = coverFile_loaded;
@@ -149,7 +147,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 				cover = IconExtractor.getFileIcon(val);
 				cover_loadedFull.set(true);
 				cover_loadedThumb.set(true);
-				action.accept(false, null, cover);
+				return Try.ok(new LoadResult(false, null, cover));
 			}
 		} else {
 			if (full) {
@@ -157,24 +155,24 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 				// but that would cause animation to be played again, which we do not want
 				boolean wasLoaded = cover_loadedThumb.get() || cover_loadedFull.get();
 				if (!cover_loadedFull.get()) {
-					Image img = loadImageFull(file, size.width, size.height);
+					Image img = Image2PassLoader.INSTANCE.getHq().invoke(file, size);
 					if (img!=null) {
 						cover = img;
-						action.accept(wasLoaded, file, cover);
+						return Try.ok(new LoadResult(wasLoaded, file, cover));
 					}
 					cover_loadedFull.set(true);
 				}
 			} else {
 				boolean wasLoaded = cover_loadedThumb.get();
 				if (!wasLoaded) {
-					Image imgCached = Thumbnail.getCached(file, size.width, size.height);
-					cover = imgCached!=null ? imgCached : loadImageThumb(file, size.width, size.height);
+					Image imgCached = Thumbnail.getCached(file, size.getWidth(), size.getHeight());
+					cover = imgCached!=null ? imgCached : Image2PassLoader.INSTANCE.getLq().invoke(file, size);
 					cover_loadedThumb.set(true);
 				}
-				action.accept(wasLoaded, file, cover);
+				return Try.ok(new LoadResult(wasLoaded, file, cover));
 			}
 		}
-		afterwards.accept(cover);
+		return Try.error();
 	}
 
 	// guaranteed to execute only once
@@ -211,4 +209,17 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	private static boolean file_exists(Item c, File f) {
 		return c!=null && f!=null && c.all_children.contains(f.getPath().toLowerCase());
 	}
+
+	public static class LoadResult {
+		public final boolean wasLoaded;
+		public final File file;
+		public final Image cover;
+
+		public LoadResult(boolean wasLoaded, File file, Image cover) {
+			this.wasLoaded = wasLoaded;
+			this.file = file;
+			this.cover = cover;
+		}
+	}
+
 }

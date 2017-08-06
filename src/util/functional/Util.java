@@ -563,7 +563,7 @@ public interface Util {
 	 * @param s delimiter/separator
 	 * @return s separated representation of the array
 	 */
-	static <T> String toS(T[] a, Function<T,String> m, String s) {
+	static <T> String toS(T[] a, Function<? super T, ? extends String> m, String s) {
 		return Stream.of(a).map(m).collect(joining(s));
 	}
 
@@ -588,7 +588,7 @@ public interface Util {
 	 * @param s delimiter/separator
 	 * @return s separated representation of the collection
 	 */
-	static <T> String toS(Collection<T> c, Function<T,String> m, String s) {
+	static <T> String toS(Collection<T> c, Function<? super T, ? extends String> m, String s) {
 		return c.stream().map(m).collect(joining(s));
 	}
 
@@ -611,7 +611,7 @@ public interface Util {
 	 * @param m element to string mapper
 	 * @return comma separated string representation of the objects in the collection
 	 */
-	static <T> String toS(Collection<T> c, Function<T,String> m) {
+	static <T> String toS(Collection<T> c, Function<? super T, ? extends String> m) {
 		return c.stream().map(m).collect(toCSList);
 	}
 
@@ -1175,14 +1175,6 @@ public interface Util {
 		List<T> l = new ArrayList<>(i);
 		for (int j = 0; j<i; j++) l.add(factory.apply(j));
 		return l;
-	}
-
-	@SafeVarargs
-	static <T> Optional<T> optional(Supplier<Optional<T>>... suppliers) {
-		return StreamEx.of(suppliers)
-				.map(Supplier::get)
-				.findAny(Optional::isPresent)
-				.orElseGet(Optional::empty);
 	}
 
 	static <T> StreamEx<T> stream() {

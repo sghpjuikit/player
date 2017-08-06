@@ -1,12 +1,13 @@
 package gui.objects.grid;
 
 import gui.objects.hierarchy.Item;
-import gui.objects.image.ImageNode.ImageSize;
+import util.graphics.image.ImageSize;
 import gui.objects.image.Thumbnail;
 import java.io.File;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -24,8 +25,7 @@ import util.async.executor.EventReducer;
 import util.async.future.Fut;
 import util.file.Util;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static util.async.Async.runFX;
-import static util.async.Async.sleep;
+import static util.async.Async.*;
 import static util.dev.Util.*;
 import static util.reactive.Util.doOnceIfImageLoaded;
 
@@ -37,11 +37,11 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	protected Pane root;
 	protected Label name;
 	protected Thumbnail thumb;
-	protected final ImageLoader loader;
+	protected final Loader loader;
 	protected final EventReducer<Item> setCoverLater;	// TODO: is this necessary?
 	protected Anim imgLoadAnimation;
 
-	public GridFileThumbCell(ImageLoader imgLoader) {
+	public GridFileThumbCell(Loader imgLoader) {
 		noØ(imgLoader);
 		loader = imgLoader;
 		setCoverLater = EventReducer.toLast(100, this::setCoverNow);
@@ -198,46 +198,63 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		if (isInvalidItem(item) || isInvalidVisibility()) return;
 
 		if (item.cover_loadedThumb.get()) {
-			setCoverPost(item, true, item.cover_file, item.cover);
+			setCoverPost(item, true, item.cover_file, item.cover, null);
 		} else {
 			ImageSize size = thumb.calculateImageLoadSize();
-			throwIf(size.width<0 || size.height<0);
+			throwIf(size.getWidth()<0 || size.getHeight()<0);
 
 			// load thumbnail
 			if (loader.executorThumbs!=null)
 				loader.executorThumbs.execute(computeTask(() -> {
-					if (isInvalidItem(item) || isInvalidVisibility()) return;
+					RunnableLocked then = new RunnableLocked();
+					loader.loadSynchronizerThumb.execute(then);
+
+					if (isInvalidItem(item) || isInvalidVisibility()) {
+						then.runNothing();
+						return;
+					}
 
 					ImageSize IS = computeImageSize(item);
-					boolean isInvisible = IS.width==-1 && IS.height==-1;
-					if (isInvisible) return;
+					boolean isInvisible = IS.getWidth()==-1 && IS.getHeight()==-1;
+					if (isInvisible) {
+						then.runNothing();
+						return;
+					}
 
-					loader.isImageLoading.set(true);
-					item.loadCover(false, IS,
-						(was_loaded, file, img) -> {
-							setCoverPost(item, was_loaded, file, img);
-						},
-						img -> {
-							if (img==null) loader.isImageLoading.set(false);
-							else doOnceIfImageLoaded(img, () -> loader.isImageLoading.set(false));
-						}
-					);
-					while(loader.isImageLoading.get())
-						sleep(2);
-				}));
+					item.loadCover(false, IS)
+						.ifOk(result -> then.run(() -> setCoverPost(item, result.wasLoaded, result.file, result.cover, then)))
+						.ifError(e -> then.runNothing());
+				}
+			));
 
 			// load high quality thumbnail
-			if (loader.executorImage!=null)
+			if (loader.executorImage!=null && loader.twoPass.get())
 				loader.executorImage.execute(computeTask(() -> {
-					if (isInvalidItem(item) || isInvalidVisibility()) return;
+						RunnableLocked then = new RunnableLocked();
+						loader.loadSynchronizerFull.execute(then);
 
-					ImageSize IS = computeImageSize(item);
-					boolean isInvisible = IS.width==-1 && IS.height==-1;
-					if (isInvisible) return;
+						if (isInvalidItem(item) || isInvalidVisibility())  {
+							then.runNothing();
+							return;
+						};
 
-					if (isInvalidItem(item) || isInvalidVisibility()) return;
-					item.loadCover(true, size, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img), img -> {});
-				}));
+						ImageSize IS = computeImageSize(item);
+						boolean isInvisible = IS.getWidth()==-1 && IS.getHeight()==-1;
+						if (isInvisible)  {
+							then.runNothing();
+							return;
+						};
+
+						if (isInvalidItem(item) || isInvalidVisibility())  {
+							then.runNothing();
+							return;
+						};
+
+						item.loadCover(true, size)
+							.ifOk(result -> then.run(() -> setCoverPost(item, result.wasLoaded, result.file, result.cover, then)))
+							.ifError(e -> then.runNothing());
+					}
+				));
 		}
 	}
 
@@ -249,9 +266,9 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 					ImageSize is =  Fut.fut()
 							.supply(Async.FX, () -> thumb.calculateImageLoadSize())
 							.getDone();
-					boolean isReady = is.width>0 || is.height>0;
+					boolean isReady = is.getWidth()>0 || is.getHeight()>0;
 					if (!isReady && getIndex()<0 || getIndex()>=gridView.get().getItemsShown().size()) return new ImageSize(-1,-1);
-					if (!isReady) new RuntimeException("Image request size=" + is.width + "x" + is.height + " not valid").printStackTrace();
+					if (!isReady) new RuntimeException("Image request size=" + is.getWidth() + "x" + is.getHeight() + " not valid").printStackTrace();
 					if (!isReady) sleep(20);
 					return isReady ? is : null;
 				})
@@ -266,30 +283,68 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		setCoverLater.push(item);
 	}
 
-	/** Finished loading of the cover. */
-	private void setCoverPost(Item item, boolean imgAlreadyLoaded, File imgFile, Image img) {
+	private void setCoverPost(Item item, boolean imgAlreadyLoaded, File imgFile, Image img, RunnableLocked then) {
 		runFX(() -> {
-			if (isInvalidItem(item)) return;
+			if (isInvalidItem(item) || isInvalidVisibility() || img==null) {
+				if (then!=null) then.finish();
+				return;
+			}
+
 			boolean animate = computeAnimateOn().needsAnimation(this, imgAlreadyLoaded, img);
 			thumb.loadImage(img, imgFile);
+			if (then!=null) {
+				if (img==null) then.finish();
+				else doOnceIfImageLoaded(img, then::finish);
+			}
 
 			// stop any previous animation & revert visuals to normal
 			imgLoadAnimation.stop();
 			imgLoadAnimation.applier.accept(1);
 
 			// animate when image appears
-			if (animate) doOnceIfImageLoaded(img, imgLoadAnimation::play);
+			if (animate && img!=null) doOnceIfImageLoaded(img, imgLoadAnimation::play);
 		});
 	}
 
-	public static class ImageLoader {
+	public static class Loader {
 		public final ExecutorService executorThumbs;
 		public final ExecutorService executorImage;
-		public final AtomicBoolean isImageLoading = new AtomicBoolean(false);
+		public final AtomicBoolean twoPass = new AtomicBoolean(false);
+		public final ExecutorService loadSynchronizerThumb = newSingleDaemonThreadExecutor();
+		public final ExecutorService loadSynchronizerFull = newSingleDaemonThreadExecutor();
 
-		public ImageLoader(ExecutorService executorThumbs, ExecutorService executorImage) {
+		public Loader(ExecutorService executorThumbs, ExecutorService executorImage) {
 			this.executorThumbs = executorThumbs;
 			this.executorImage = executorImage;
+		}
+	}
+
+	public static class RunnableLocked implements Runnable {
+		private final AtomicReference<Runnable> action = new AtomicReference<>(null);
+		private final AtomicBoolean waitPre = new AtomicBoolean(true);
+		private final AtomicBoolean waitPost = new AtomicBoolean(true);
+
+		public void runNothing() {
+			run(null);
+			finish();
+		}
+
+		public void run(Runnable r) {
+			action.set(r);
+			waitPre.set(false);
+		}
+
+		public void finish() {
+			waitPost.set(false);
+		}
+
+		@Override
+		public void run() {
+			while(waitPre.get()) sleep(2);
+			Runnable r = action.get();
+			if (r!=null) r.run();
+			while(waitPost.get()) sleep(2);
+//			if (r!=null) sleep(5);
 		}
 	}
 
@@ -307,4 +362,5 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 				throw new SwitchException(this);
 		}
 	}
+
 }

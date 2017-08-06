@@ -7,7 +7,6 @@ import gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.grid.GridView.CellSize;
-import gui.objects.image.ImageNode.ImageSize;
 import gui.objects.image.Thumbnail;
 import gui.objects.image.cover.Cover;
 import java.io.File;
@@ -38,20 +37,27 @@ import util.conf.IsConfig.EditMode;
 import util.functional.Util;
 import util.graphics.Resolution;
 import util.graphics.drag.DragUtil;
+import util.graphics.image.Image2PassLoader;
+import util.graphics.image.ImageSize;
+import static albumView.AlbumView.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static audio.tagging.Metadata.Field.ALBUM;
 import static audio.tagging.MetadataGroup.Field.VALUE;
 import static gui.objects.grid.GridView.CellSize.NORMAL;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static albumView.AlbumView.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static main.App.APP;
-import static util.Util.loadImageFull;
-import static util.Util.loadImageThumb;
-import static util.async.Async.*;
+import static util.async.Async.newSingleDaemonThreadExecutor;
+import static util.async.Async.runFX;
+import static util.async.Async.runLater;
+import static util.async.Async.sleep;
 import static util.async.future.Fut.fut;
 import static util.dev.Util.throwIfNotFxThread;
-import static util.functional.Util.*;
+import static util.functional.Util.by;
+import static util.functional.Util.forEachWithI;
+import static util.functional.Util.listRO;
+import static util.functional.Util.map;
+import static util.functional.Util.stream;
 import static util.graphics.Util.setAnchor;
 import static util.reactive.Util.doOnceIfNonNull;
 
@@ -258,7 +264,7 @@ public class AlbumView extends ClassController {
 			this.name = items.getValueS("");
 		}
 
-		public void loadCover(boolean full, double width, double height, TriConsumer<Boolean,File,Image> action) {
+		public void loadCover(boolean full, ImageSize size, TriConsumer<Boolean,File,Image> action) {
 			File file = getCoverFile();
 			if (file!=null) {
 				if (full) {
@@ -266,7 +272,7 @@ public class AlbumView extends ClassController {
 					// but that would cause animation to be played again, which we do not want
 					boolean was_loaded = cover_loadedThumb || cover_loadedFull;
 					if (!cover_loadedFull) {
-						Image img = loadImageFull(file, width, height);
+						Image img = Image2PassLoader.INSTANCE.getLq().invoke(file, size);
 						if (img!=null) {
 							cover = img;
 							action.accept(was_loaded,file,cover);
@@ -276,8 +282,8 @@ public class AlbumView extends ClassController {
 				} else {
 					boolean was_loaded = cover_loadedThumb;
 					if (!cover_loadedThumb) {
-						Image imgc = Thumbnail.getCached(file, width, height);
-						cover = imgc!=null ? imgc : loadImageThumb(file, width, height);
+						Image imgc = Thumbnail.getCached(file, size.getWidth(), size.getHeight());
+						cover = imgc!=null ? imgc : Image2PassLoader.INSTANCE.getHq().invoke(file, size);
 						cover_loadedThumb = true;
 					}
 					action.accept(was_loaded,file,cover);
@@ -408,14 +414,13 @@ public class AlbumView extends ClassController {
 		        setCoverPost(item, true, item.cover_file, item.cover);
 	        } else {
 				ImageSize size = thumb.calculateImageLoadSize();
-				double w = size.width, h = size.height;
 	            // load thumbnail
 	            executorThumbs.execute(() ->
-	                item.loadCover(false, w, h, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
+	                item.loadCover(false, size, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
 	            );
 	            // load high quality thumbnail
 	            executorImage.execute(() ->
-	                item.loadCover(true, w, h, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
+	                item.loadCover(true, size, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))
 	            );
 	        }
 		}

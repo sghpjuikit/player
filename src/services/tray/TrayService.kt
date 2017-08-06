@@ -20,7 +20,6 @@ import javafx.stage.StageStyle.TRANSPARENT
 import javafx.stage.StageStyle.UTILITY
 import main.App.APP
 import services.ServiceBase
-import util.Util.loadBufferedImage
 import util.access.v
 import util.conf.IsConfig
 import util.conf.IsConfig.EditMode
@@ -28,6 +27,7 @@ import util.conf.IsConfigurable
 import util.functional.Functors.Ƒ1
 import util.functional.Try
 import util.graphics.Util.menuItem
+import util.graphics.image.loadBufferedImage
 import util.reactive.Disposer
 import util.reactive.onFalse
 import java.awt.EventQueue
@@ -91,7 +91,7 @@ class TrayService : ServiceBase(true) {
         // build tray
         EventQueue.invokeLater {
             tray = SystemTray.getSystemTray().apply {
-                val image = loadBufferedImage(trayIconImage).getOr(null)!!
+                val image = loadBufferedImage(trayIconImage).getOr(null)!!  // TODO: avoid !!
                         .getScaledInstance(this.trayIconSize.width, -1, Image.SCALE_SMOOTH)
                 trayIcon = TrayIcon(image).apply {
                     toolTip = APP.name

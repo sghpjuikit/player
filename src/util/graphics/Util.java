@@ -59,6 +59,7 @@ import static util.dev.Util.noØ;
 /**
  * Graphic utility methods.
  */
+@SuppressWarnings("unused")
 public interface Util {
 
 	/** Constructs ordinary {@link javafx.scene.layout.HBox}. Convenience constructor for more fluent style. */
@@ -628,7 +629,7 @@ public interface Util {
 	@SuppressWarnings("unchecked")
 	static <T, O> Ƒ1<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Pos a, String no_val_text) {
 		Ƒ1<TableColumn<T,O>,TableCell<T,O>> f = Util.<T,O>EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text)::call;
-		return (Ƒ1) f.andApply(cell -> cell.setAlignment(a));
+		return f.andApply(cell -> cell.setAlignment(a));
 	}
 
 	/**
@@ -891,12 +892,13 @@ public interface Util {
 	 */
 	static void screenCaptureRawAndDo(int x, int y, int w, int h, Consumer<BufferedImage> action) {
 		EventQueue.invokeLater(() -> {
+			Rectangle area = new Rectangle(x, y, w, h);
 			try {
 				Robot robot = new Robot();
-				BufferedImage img = robot.createScreenCapture(new Rectangle(x, y, w, h));
+				BufferedImage img = robot.createScreenCapture(area);
 				action.accept(img);
-			} catch (Exception ex) {
-				log(Util.class).error("Failed to screenshot the screen {}");
+			} catch (Exception e) {
+				log(Util.class).error("Failed to screenshot the screen {}", area, e);
 				action.accept(null);
 			}
 		});

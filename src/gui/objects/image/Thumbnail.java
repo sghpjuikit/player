@@ -31,11 +31,16 @@ import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.dev.Dependency;
 import util.file.ImageFileFormat;
+import util.graphics.image.ImageSize;
+import util.graphics.image.ImageStandardLoader;
 import static java.lang.Double.min;
 import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.util.Duration.millis;
 import static util.functional.Util.ISNTØ;
@@ -236,7 +241,7 @@ public class Thumbnail extends ImageNode {
 		imageFile = img;
 		ImageSize size = calculateImageLoadSize();
 		Image c = getCached(img, size);
-		Image i = c!=null ? c : util.Util.loadImage(img, size.width, size.height);
+		Image i = c!=null ? c : ImageStandardLoader.INSTANCE.invoke(img, size);
 		setImgA(i);
 	}
 
@@ -260,7 +265,7 @@ public class Thumbnail extends ImageNode {
 	}
 
 	public static Image getCached(File file, ImageSize size) {
-		return getCached(file, size.width, size.height);
+		return getCached(file, size.getWidth(), size.getHeight());
 	}
 
 	public static Image getCached(File file, double w, double h) {

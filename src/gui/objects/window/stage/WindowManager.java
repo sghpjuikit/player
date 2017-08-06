@@ -558,7 +558,7 @@ public class WindowManager implements Configurable<Object> {
 		launchComponent(w);
 	}
 
-	private void launchComponent(Component w) {
+	public void launchComponent(Component w) {
 		if (w!=null) {
 			if (APP.windowManager.windows.isEmpty()) {
 				APP.windowManager.getActiveOrNew().setContent(w);
@@ -573,8 +573,9 @@ public class WindowManager implements Configurable<Object> {
 			WidgetFactory<?> wf;
 			Component w = null;
 
-			// simple launcher version, contains widget name on 1st line
-			String wn = Util.readFileLines(launcher).limit(1).findAny().orElse("");
+			// try to build widget using just launcher filename
+			boolean isLauncherEmpty = Util.readFileLines(launcher).count()==0;
+			String wn = isLauncherEmpty ? Util.getName(launcher) : "";
 			wf = APP.widgetManager.factories.get(wn);
 			if (wf!=null)
 				w = wf.create();
@@ -582,14 +583,8 @@ public class WindowManager implements Configurable<Object> {
 			// try to deserialize normally
 			if (w==null)
 				w = App.APP.serializators.fromXML(Component.class, launcher)
-					.ifError(e -> LOGGER.error("Could not load component", e))
+					.ifError(e -> LOGGER.error("Could not load component from file=", launcher, e))
 					.get();
-
-			// try to build widget using just launcher filename
-			if (w==null) {
-				wf = APP.widgetManager.factories.get(getName(launcher));
-				if (wf!=null) w = wf.create();
-			}
 
 			return w;
 		} catch (Exception x) {

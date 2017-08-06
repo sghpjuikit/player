@@ -36,12 +36,12 @@ import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
 import gui.pane.ActionPane.SlowColAction;
 import java.io.File;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.logging.LogManager;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -104,10 +104,11 @@ import static gui.pane.ActionPane.collectionWrap;
 import static java.util.stream.Collectors.toList;
 import static layout.widget.WidgetManager.WidgetSource.*;
 import static org.atteo.evo.inflector.English.plural;
-import static util.Util.getImageDim;
+import static util.graphics.image.UtilKt.getImageDim;
 import static util.async.Async.FX;
 import static util.async.Async.run;
 import static util.async.future.Fut.fut;
+import static util.dev.Util.log;
 import static util.file.Environment.chooseFile;
 import static util.file.Environment.chooseFiles;
 import static util.file.FileType.DIRECTORY;
@@ -235,6 +236,7 @@ public class App extends Application implements Configurable {
 	/**
 	 * Observable {@link System#out}
 	 */ public final SystemOutListener systemout = new SystemOutListener();
+	public final UncaughtExceptionHandler uncaughtExceptionHandler = (thread,ex) -> log(App.class).error("Uncaught exception", ex);
 
 	public final ClassName className = new ClassName();
 	public final InstanceName instanceName = new InstanceName();
@@ -475,21 +477,11 @@ public class App extends Application implements Configurable {
 				f -> widgetManager.use(Opener.class, ANY, o -> o.open(f))
 			)
 		);
-		actionPane.register(Widget.class,
-			new FastAction<>("Create launcher (def)",
-				"Creates a launcher for this widget with default (no predefined) settings. \n"
-				+ "Opening the launcher with this application will open this "
-				+ "widget as if it were a standalone application.",
-				EXPORT,
-				w -> Environment
-					.chooseFile("Export to...", DIRECTORY, DIR_APP, APP.actionPane.getScene().getWindow())
-					.ifOk(w::exportFxwlDefault)
-			)
-		);
 		actionPane.register(Component.class,
 			new FastAction<>("Export",
-				  "Creates a launcher for this component with current settings. \n"
-				+ "Opening the launcher with this application will open this component as if it were a standalone application.",
+				  "Creates a launcher for this component. \n"
+				+ "Opening the launcher with this application will open this component with current settings "
+				+ "as if it were a standalone application.",
 				EXPORT,
 				w -> Environment
 					.chooseFile("Export to...", DIRECTORY, DIR_LAYOUTS, APP.actionPane.getScene().getWindow())
@@ -577,7 +569,7 @@ public class App extends Application implements Configurable {
 					ConvertListTask<Item,Metadata> task = MetadataReader.buildAddItemsToLibTask();
 					ConvertTaskInfo info = new ConvertTaskInfo(null, new Label(), new Label(), new Label(), new Spinner().hidingOnIdle(true));
 									info.bind(task);
-					SingleR<Widget,Void> tagger = new SingleR<>(() -> stream(APP.widgetManager.factories)
+					SingleR<Widget,Void> tagger = new SingleR<>(() -> APP.widgetManager.getFactories()
 								.findFirst(f -> f.name().equals("Tagger"))
 								.get().create());
 					return layHorizontally(50, Pos.CENTER,
@@ -674,7 +666,7 @@ public class App extends Application implements Configurable {
 		// add search sources
 		search.getSources().addAll(list(
 			() -> APP.configuration.getFields().stream().map(ConfigSearch.Entry::of),
-			() -> APP.widgetManager.factories.streamV().map(ConfigSearch.Entry::of),
+			() -> APP.widgetManager.getComponentFactories().map(ConfigSearch.Entry::of),
 			() -> Gui.skin.streamValues().map(s -> ConfigSearch.Entry.of(() -> "Open skin: " + s, () -> Gui.skin.setNapplyValue(s), () -> new Icon(MaterialIcon.BRUSH)))
 		));
 
@@ -965,7 +957,7 @@ public class App extends Application implements Configurable {
 		StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
 
 		// log uncaught thread termination exceptions
-		Thread.setDefaultUncaughtExceptionHandler((thread,ex) -> LOGGER.error("Uncaught exception", ex));
+		Thread.setDefaultUncaughtExceptionHandler(uncaughtExceptionHandler);
 	}
 
 	/** @return number of instances of this application (including this one) running at this moment */

@@ -204,7 +204,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	private C instantiateController() {
 		// instantiate controller
 		@SuppressWarnings("unchecked")
-		Class<C> cc = (Class) factory.getControllerClass(); // TODO: make factory type safe and avoid cast
+		Class<C> cc = (Class) factory.getControllerType(); // TODO: make factory type safe and avoid cast
 		C c;
 		try {
 			c = cc.getConstructor().newInstance();
@@ -304,12 +304,12 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
 	@Override
 	public File getLocation() {
-		return factory.location;
+		return factory.getLocation();
 	}
 
 	@Override
 	public File getUserLocation() {
-		return factory.locationUser;
+		return factory.getLocationUser();
 	}
 
 	@NotNull

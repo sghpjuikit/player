@@ -3,7 +3,7 @@ package appLauncher;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.objects.grid.GridFileThumbCell;
 import gui.objects.grid.GridFileThumbCell.AnimateOn;
-import gui.objects.grid.GridFileThumbCell.ImageLoader;
+import gui.objects.grid.GridFileThumbCell.Loader;
 import gui.objects.grid.GridView;
 import gui.objects.grid.GridView.CellSize;
 import gui.objects.hierarchy.Item;
@@ -45,6 +45,7 @@ import static util.functional.Util.by;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.drag.DragUtil.installDrag;
 
+// TODO: remove this widget, use DirViewer instead
 @Widget.Info(
     author = "Martin Polakovic",
     name = "AppLauncher",
@@ -71,7 +72,7 @@ public class AppLauncher extends ClassController {
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width,cellSize.get().width*cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT,5,5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
     private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
-    private final ImageLoader imageLoader = new ImageLoader(executorThumbs, null);
+    private final Loader imageLoader = new Loader(executorThumbs, null);
     boolean initialized = false;
     private volatile boolean isResizing = false;
 	private final AtomicLong visitId = new AtomicLong(0);

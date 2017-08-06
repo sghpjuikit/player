@@ -5,10 +5,8 @@
  */
 package util.async;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -225,23 +223,45 @@ public interface Async {
 		Platform.runLater(r);
 	}
 
+	static Runnable onlyIfMatches(Runnable r, AtomicLong counter) {
+		long c = counter.get();
+		return () -> {
+			if (c==counter.get())
+				r.run();
+		};
+	}
+
 	static ExecutorService newSingleDaemonThreadExecutor() {
 		return Executors.newSingleThreadExecutor(threadFactory(true));
+	}
+
+	/**
+	 * Resolves:<br/>
+	 * https://stackoverflow.com/questions/19528304/how-to-get-the-threadpoolexecutor-to-increase-threads-to-max-before-queueing/19528305#19528305
+	 */
+	static ExecutorService newThreadPoolExecutor(int maxPoolSize, long keepAliveTime, TimeUnit unit, ThreadFactory threadFactory) {
+		// TODO: implement properly
+		ThreadPoolExecutor tpe = new ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime, unit, new LinkedBlockingQueue<>(), threadFactory);
+		tpe.allowCoreThreadTimeOut(true);
+		return tpe;
 	}
 
 	static ThreadFactory threadFactory(boolean daemon) {
 		return r -> {
 			Thread t = new Thread(r);
 			t.setDaemon(daemon);
+			t.setUncaughtExceptionHandler((thread,e) -> log(Async.class).error("Uncaught exception", e));
 			return t;
 		};
 	}
 
 	static ThreadFactory threadFactory(String name, boolean daemon) {
+		AtomicLong id = new AtomicLong(0);
 		return r -> {
 			Thread t = new Thread(r);
-			t.setName(name);
+			t.setName(name + "-" + id.getAndIncrement());
 			t.setDaemon(daemon);
+			t.setUncaughtExceptionHandler((thread,e) -> log(Async.class).error("Uncaught exception", e));
 			return t;
 		};
 	}

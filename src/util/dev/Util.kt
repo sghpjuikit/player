@@ -78,23 +78,18 @@ fun <T> measureTime(r: () -> T): T {
     return t
 }
 
-/**
- * Returns [org.slf4j.Logger] for the class of this object or this object if it is of type class.
- *
- * Equivalent to: org.slf4j.LoggerFactory.getLogger(class);
- */
+/** @return [org.slf4j.Logger] for the class of this object or this object if it is of type class. */
 fun Any.log() = (when {
         this is KClass<*> -> this
         this is Class<*> -> this.kotlin
         else -> this::class
     }).log()
 
-/**
- * Returns [org.slf4j.Logger] for the class.
- *
- * Equivalent to: org.slf4j.LoggerFactory.getLogger(class);
- */
+/** @return [org.slf4j.Logger] for the class. */
 fun KClass<*>.log() = LoggerFactory.getLogger(this.java)!!
+
+/** @return logger for top level file with specified name */
+fun logFile(loggerName: String) = LoggerFactory.getLogger(loggerName)!!
 
 /** @return all running threads. Incurs performance penalty, use for debugging purposes. */
 fun activeThreads() = Thread.getAllStackTraces().keys.asSequence()

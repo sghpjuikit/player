@@ -156,7 +156,7 @@ public abstract class Component {
 	 */
 	public void exportFxwl(File dir) {
 		String name = this instanceof Widget ? ((Widget<?>)this).custom_name.getValue() : getName();
-		File f = new File(dir,name + ".fxwl");
+		File f = new File(dir, name + ".fxwl");
 		App.APP.serializators.toXML(this, f)
 			.ifError(e -> log(Component.class).error("Failed to export component {}", getName(), e));
 	}
@@ -169,6 +169,7 @@ public abstract class Component {
 
 //*************************************** SERIALIZATION *******************************************/
 
+	@SuppressWarnings("ConstantConditions")
 	protected Object readResolve() throws ObjectStreamException {
 		// Special case. The class at hand (LockedProperty) is inner class (due to unavoidable
 		// dependency on this one) and can not be deserialized since we can not create an

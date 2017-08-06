@@ -9,13 +9,19 @@ import java.util.stream.Stream;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.OverrunStyle;
+import javafx.scene.control.Skin;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
-import layout.widget.WidgetFactory;
+import layout.widget.ComponentFactory;
 import util.action.Action;
 import util.conf.Config;
 import util.functional.Functors.Ƒ0;
@@ -199,11 +205,11 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 			return new ConfigEntry(config);
 		}
 
-		static Entry of(WidgetFactory f) {
+		static Entry of(ComponentFactory<?> f) {
 			return new SimpleEntry(
 				"Open widget " + f.nameGui(),
 				"Open widget " + f.nameGui() + "\n\n" + "Opens the widget in new window.",
-				() -> APP.windowManager.launchComponent(f.name())
+				() -> APP.windowManager.launchComponent(f.create())
 			);
 		}
 

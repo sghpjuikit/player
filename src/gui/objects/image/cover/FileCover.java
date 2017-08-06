@@ -4,7 +4,8 @@ import gui.objects.image.Thumbnail;
 import java.io.File;
 import java.util.Objects;
 import javafx.scene.image.Image;
-import util.Util;
+import util.graphics.image.ImageSize;
+import util.graphics.image.ImageStandardLoader;
 import static util.dev.Util.noØ;
 
 /**
@@ -37,7 +38,7 @@ public class FileCover implements Cover {
 		Image cached = Thumbnail.getCached(file, width, width);
 		if (cached!=null) return cached;
 
-		return Util.loadImage(file, width, height);
+		return ImageStandardLoader.INSTANCE.invoke(file, new ImageSize(width, height));
 	}
 
 	@Override

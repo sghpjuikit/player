@@ -3,34 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="e9053a26-14a4-4be7-b9c2-77386f4fce26" name="Default" comment="">
       <change beforePath="" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/src/gui/itemnode/textfield/EffectItemNode.java" afterPath="$PROJECT_DIR$/src/gui/itemnode/textfield/EffectItemNode.java" />
-      <change beforePath="$PROJECT_DIR$/src/gui/objects/grid/GridFileThumbCell.java" afterPath="$PROJECT_DIR$/src/gui/objects/grid/GridFileThumbCell.java" />
-      <change beforePath="$PROJECT_DIR$/src/gui/objects/hierarchy/Item.java" afterPath="$PROJECT_DIR$/src/gui/objects/hierarchy/Item.java" />
-      <change beforePath="$PROJECT_DIR$/src/gui/objects/icon/Icon.java" afterPath="$PROJECT_DIR$/src/gui/objects/icon/Icon.java" />
-      <change beforePath="$PROJECT_DIR$/src/gui/objects/image/cover/Cover.java" afterPath="$PROJECT_DIR$/src/gui/objects/image/cover/Cover.java" />
-      <change beforePath="$PROJECT_DIR$/src/gui/objects/popover/PopOver.java" afterPath="$PROJECT_DIR$/src/gui/objects/popover/PopOver.java" />
-      <change beforePath="$PROJECT_DIR$/src/gui/objects/popover/PopOverSkin.java" afterPath="$PROJECT_DIR$/src/gui/objects/popover/PopOverSkin.java" />
-      <change beforePath="$PROJECT_DIR$/src/gui/objects/tablecell/RatingRatingCellFactory.kt" afterPath="$PROJECT_DIR$/src/gui/objects/tablecell/RatingRatingCellFactory.kt" />
-      <change beforePath="$PROJECT_DIR$/src/gui/objects/textfield/autocomplete/ConfigSearch.java" afterPath="$PROJECT_DIR$/src/gui/objects/textfield/autocomplete/ConfigSearch.java" />
-      <change beforePath="$PROJECT_DIR$/src/gui/objects/window/stage/Window.java" afterPath="$PROJECT_DIR$/src/gui/objects/window/stage/Window.java" />
-      <change beforePath="$PROJECT_DIR$/src/gui/pane/InfoPane.java" afterPath="$PROJECT_DIR$/src/gui/pane/InfoPane.java" />
-      <change beforePath="$PROJECT_DIR$/src/layout/widget/EmptyWidget.kt" afterPath="$PROJECT_DIR$/src/layout/widget/EmptyWidget.kt" />
-      <change beforePath="$PROJECT_DIR$/src/layout/widget/Factory.kt" afterPath="$PROJECT_DIR$/src/layout/widget/Factory.kt" />
-      <change beforePath="$PROJECT_DIR$/src/layout/widget/WidgetManager.java" afterPath="$PROJECT_DIR$/src/layout/widget/WidgetManager.java" />
-      <change beforePath="$PROJECT_DIR$/src/main/App.java" afterPath="$PROJECT_DIR$/src/main/App.java" />
-      <change beforePath="$PROJECT_DIR$/src/main/AppActions.java" afterPath="$PROJECT_DIR$/src/main/AppActions.java" />
-      <change beforePath="$PROJECT_DIR$/src/main/AppBuilders.kt" afterPath="$PROJECT_DIR$/src/main/AppBuilders.kt" />
-      <change beforePath="$PROJECT_DIR$/src/main/Search.kt" afterPath="$PROJECT_DIR$/src/main/Search.kt" />
-      <change beforePath="$PROJECT_DIR$/src/plugin/DirSearchPlugin.kt" afterPath="$PROJECT_DIR$/src/plugin/DirSearchPlugin.kt" />
-      <change beforePath="$PROJECT_DIR$/src/plugin/Plugin.kt" afterPath="$PROJECT_DIR$/src/plugin/Plugin.kt" />
-      <change beforePath="$PROJECT_DIR$/src/services/notif/Notifier.kt" afterPath="$PROJECT_DIR$/src/services/notif/Notifier.kt" />
-      <change beforePath="$PROJECT_DIR$/src/util/LazyR.java" afterPath="$PROJECT_DIR$/src/util/LazyR.java" />
-      <change beforePath="$PROJECT_DIR$/src/util/Locatable.java" afterPath="$PROJECT_DIR$/src/util/Locatable.java" />
-      <change beforePath="$PROJECT_DIR$/src/util/SingleR.java" afterPath="$PROJECT_DIR$/src/util/SingleR.java" />
-      <change beforePath="$PROJECT_DIR$/src/util/Sort.kt" afterPath="$PROJECT_DIR$/src/util/Sort.kt" />
-      <change beforePath="$PROJECT_DIR$/src/util/file/mimetype/MimeTypes.kt" afterPath="$PROJECT_DIR$/src/util/file/mimetype/MimeTypes.kt" />
-      <change beforePath="$PROJECT_DIR$/src/util/functional/Functors.java" afterPath="$PROJECT_DIR$/src/util/functional/Functors.java" />
-      <change beforePath="$PROJECT_DIR$/src/util/graphics/image/ImageLoader.kt" afterPath="$PROJECT_DIR$/src/util/graphics/image/ImageLoader.kt" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -1069,7 +1041,14 @@
       <option name="project" value="LOCAL" />
       <updated>1509391253596</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Merge branch 'hickup/full' into jigsaw&#10;&#10;# Conflicts:&#10;#&#9;extra/lib/dev/kotlin-reflect.jar&#10;#&#9;extra/lib/dev/kotlin-stdlib-jre7-sources.jar&#10;#&#9;extra/lib/dev/kotlin-stdlib-jre7.jar&#10;#&#9;extra/lib/dev/kotlin-stdlib-jre8-sources.jar&#10;#&#9;extra/lib/dev/kotlin-stdlib-jre8.jar&#10;#&#9;extra/lib/dev/kotlin-stdlib-sources.jar&#10;#&#9;extra/lib/dev/kotlin-stdlib.jar&#10;#&#9;extra/lib/dev/kotlin-test.jar&#10;#&#9;src/TODO.txt&#10;#&#9;src/gui/itemnode/ChainValueNode.java&#10;#&#9;src/gui/itemnode/ConfigField.java&#10;#&#9;src/gui/itemnode/textfield/EffectItemNode.java&#10;#&#9;src/gui/itemnode/textfield/MoodItemNode.java&#10;#&#9;src/gui/objects/ImprovedScrollBarSkin.kt&#10;#&#9;src/gui/objects/ImprovedSliderSkin.kt&#10;#&#9;src/gui/objects/contextmenu/ImprovedContextMenu.java&#10;#&#9;src/gui/objects/grid/GridFileThumbCell.java&#10;#&#9;src/gui/objects/hierarchy/Item.java&#10;#&#9;src/gui/objects/icon/Icon.java&#10;#&#9;src/gui/objects/image/ImageNode.java&#10;#&#9;src/gui/objects/image/Thumbnail.java&#10;#&#9;src/gui/objects/image/cover/Cover.java&#10;#&#9;src/gui/objects/popover/Notification.java&#10;#&#9;src/gui/objects/popover/PopOver.java&#10;#&#9;src/gui/objects/popover/PopOverSkin.java&#10;#&#9;src/gui/objects/rating/Rating.kt&#10;#&#9;src/gui/objects/rating/RatingSkin.kt&#10;#&#9;src/gui/objects/spinner/Spinner.kt&#10;#&#9;src/gui/objects/table/FieldedTable.java&#10;#&#9;src/gui/objects/tablecell/RatingRatingCellFactory.java&#10;#&#9;src/gui/objects/textfield/autocomplete/ConfigSearch.java&#10;#&#9;src/gui/objects/window/stage/UiContext.java&#10;#&#9;src/gui/objects/window/stage/Window.java&#10;#&#9;src/gui/objects/window/stage/WindowBase.java&#10;#&#9;src/gui/objects/window/stage/WindowManager.java&#10;#&#9;src/gui/pane/OverlayPane.java&#10;#&#9;src/layout/widget/WidgetManager.java&#10;#&#9;src/main/App.java&#10;#&#9;src/main/Search.kt&#10;#&#9;src/plugin/AppSearchPlugin.kt&#10;#&#9;src/plugin/DirSearchPlugin.kt&#10;#&#9;src/plugin/Plugin.kt&#10;#&#9;src/plugin/PluginBase.kt&#10;#&#9;src/services/Service.kt&#10;#&#9;src/services/ServiceManager.kt&#10;#&#9;src/services/notif/Notifier.kt&#10;#&#9;src/services/playcount/PlaycountIncrementer.kt&#10;#&#9;src/services/tray/TrayService.kt&#10;#&#9;src/util/Util.java&#10;#&#9;src/util/access/Properties.kt&#10;#&#9;src/util/action/Action.java&#10;#&#9;src/util/dev/Util.kt&#10;#&#9;src/util/graphics/Util.java&#10;#&#9;src/util/reactive/Util.kt&#10;#&#9;src/util/type/InstanceMap.kt&#10;#&#9;src/util/validation/Constraint.java&#10;#&#9;working dir/widgets/AlbumView/AlbumView.java&#10;#&#9;working dir/widgets/comet/Comet.java&#10;#&#9;working dir/widgets/dirViewer/DirViewer.java&#10;#&#9;working dir/widgets/fileInfo/FileInfo.java&#10;#&#9;working dir/widgets/gameLib/GameLib.java&#10;#&#9;working dir/widgets/playerControls/PlayerControls.java&#10;#&#9;working dir/widgets/playlistView/PlaylistView.java&#10;#&#9;working dir/widgets/terminal/Terminal.java">
+      <created>1509391265006</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1509391265006</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TodoView">

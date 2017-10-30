@@ -1,11 +1,13 @@
 ########################
 ## Project Specific
 ##########################
-working dir/user/*
-working dir/**/*class
+.idea
+out
+private
 working dir/log/*zip
 working dir/log/*log
-private
+working dir/user
+working dir/widgets/**class
 
 #####################
 # NetBeans specific #
@@ -237,4 +239,3 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
-working dir/log/log_old1.zip

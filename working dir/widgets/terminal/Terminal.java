@@ -32,7 +32,7 @@ public class Terminal extends ClassController {
 	private final TabPane tabPane = new TabPane();
 
 	public Terminal() {
-		tConfig.setWindowsTerminalStarter("C:\\Program Files\\Git\\usr\\bin\\bash"); // TODO: make configurable
+		tConfig.setWindowsTerminalStarter("C:\\software\\Git\\usr\\bin\\bash"); // TODO: make configurable
 		tConfig.setBackgroundColor(Color.rgb(16, 16, 16));
 		tConfig.setForegroundColor(Color.rgb(240, 240, 240));
 		tConfig.setCursorColor(Color.rgb(255, 0, 0, 0.1));

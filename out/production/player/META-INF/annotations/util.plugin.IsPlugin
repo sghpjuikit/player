@@ -1,9 +1,0 @@
-gui.objects.tablecell.BarRatingCellFactory
-gui.objects.tablecell.HyphenRatingCellFactory
-gui.objects.tablecell.NumberRatingCellFactory
-gui.objects.tablecell.RatingRatingCellFactory
-gui.objects.tablecell.TextStarRatingCellFactory
-web.BingImageSearchQBuilder
-web.DuckDuckGoImageQBuilder
-web.GoogleImageQBuilder
-web.WikipediaQBuilder

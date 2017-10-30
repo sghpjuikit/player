@@ -6,8 +6,6 @@ working dir/**/*class
 working dir/log/*zip
 working dir/log/*log
 private
-.idea
-*.iml
 
 #####################
 # NetBeans specific #

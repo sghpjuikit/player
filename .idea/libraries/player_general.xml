@@ -1,0 +1,44 @@
+<component name="libraryTable">
+  <library name="player_general">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/extra/lib/evo-inflector-1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/exp4j-0.4.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/extfx-0.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/fontawesomefx-8.8.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/jaad-0.8.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/jna-4.2.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/jnativehook-2.0.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/jspeex-0.9.7.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/jspiff-1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/lastfm-java-0.1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/Medusa-7.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/objectdb.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/reactfx-2.0-M3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/streamex-0.5.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/thumbnailator-0.4.8.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/tilesfx-1.3.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/tritonus_share.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/xstream-1.4.10.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/extra/lib/exp4j-0.4.5-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/extfx-0.3-apidocs.zip!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/fontawesomefx-8.8-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/Medusa-7.5-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/streamex-0.5.3-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/thumbnailator-0.4.8-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/tilesfx-1.3.1-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/objectdb-javadoc.zip!/api-javadoc" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/extra/lib/exp4j-0.4.5-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/fontawesomefx-8.8-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/Medusa-7.5-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/streamex-0.5.3-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/thumbnailator-0.4.8-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/tilesfx-1.3.1-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/xstream-1.4.8-sources.zip!/xstream/src/java" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/xstream-1.4.8-sources.zip!/xstream/src/test" />
+    </SOURCES>
+  </library>
+</component>

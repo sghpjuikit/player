@@ -17,7 +17,7 @@ import web.SearchUriBuilder;
 import web.WebBarInterpreter;
 import static main.App.APP;
 import static util.dev.Util.log;
-import static util.file.Util.childOf;
+import static util.file.UtilKt.childOf;
 import static util.reactive.Util.maintain;
 import static util.type.Util.getFieldValue;
 import static util.type.Util.invokeMethodP1;

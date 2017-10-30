@@ -6,10 +6,9 @@ import java.util.function.Supplier;
 /**
  * Mutable lazy singleton object implementation.
  * <p/>
- * Provides access to single object instance, which can be created lazily -
- * when requested for the first time. Additionally, the the object can be
- * mutated (its state changed) before it is accessed. This allows a reuse of
- * the object across different objects that use it.
+ * Provides access to single object instance, which can be created lazily - when requested for the first time.
+ * Additionally, the the object can be mutated (its state changed) before it is accessed. This allows a reuse of the
+ * object across different objects that use it.
  *
  * @param <V> type of instance
  * @param <M> type of object the instance relies on
@@ -51,4 +50,5 @@ public class SingleR<V, M> extends LazyR<V> {
 		if (isSet) throw new IllegalArgumentException("Singleton instance already set.");
 		super.set(val);
 	}
+
 }

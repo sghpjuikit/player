@@ -317,30 +317,24 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		int iMax = itemCount - 1;
 		if (itemCount==0 || i==selectedCI || !isInRangeInc(i, iMin, iMax)) return;
 
-		selectNone();
-
-		// find index
 		int rows = flow.computeRowCount();
 		int cols = flow.computeMaxCellsInRow();
 		int row = i/cols;
 
 		if (row<0 || row>rows) return;
 
-		// show row & cell to select
 		flow.scrollToRow(row);
 
-		runLater(() -> {
-			// find row & cell to select
-			GridCell<T,F> c = flow.getVisibleCellAtIndex(i);
-			if (c==null) return;
+		GridCell<T,F> c = flow.getVisibleCellAtIndex(i);
+		if (c==null) return;
 
-			selectedCI = i;
-			selectedC = c;
-			selectedC.requestFocus();
-			selectedC.updateSelected(true);
-			grid.selectedItem.set(c.getItem());
-			flow.requestFocus();
-		});
+		selectedCI = i;
+		if (selectedC!=null) selectedC.updateSelected(false);
+		selectedC = c;
+		selectedC.requestFocus();
+		selectedC.updateSelected(true);
+		grid.selectedItem.set(c.getItem());
+		flow.requestFocus();
 	}
 
 	/**
@@ -385,7 +379,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			scrollbar = new FlowScrollBar(this);
 			scrollbar.setOrientation(Orientation.VERTICAL);
 			scrollbar.setMin(0);
-			scrollbar.setMin(1);
+			scrollbar.setMax(1);
 			scrollbar.setValue(0);
 			scrollbar.addEventHandler(MouseEvent.ANY, Event::consume);
 			scrollbar.setVisible(false);
@@ -483,7 +477,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			scrollbar.updating = true;
 			scrollbar.setVisible(computeMaxFullyVisibleCells()<=itemsAllCount);
 			scrollbar.setMin(0);
-			scrollbar.setMax(scrollableHeight);
+			scrollbar.setMax(scrollableHeight-viewHeight);
 			scrollbar.setValue(viewStart);
 			scrollbar.setVisibleAmount(viewHeight);
 			scrollbar.updating = false;
@@ -496,7 +490,6 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 					visibleCells.forEach(cachedCells::addLast);
 					visibleCells.clear();
 				} else {
-//					System.out.println(indexStart + " -> " + indexEnd + " " + itemsAllCount);
 					throwIf(indexStart>indexEnd);
 					throwIf(itemsAllCount<=indexStart);
 					throwIf(itemsAllCount<=indexEnd);
@@ -514,16 +507,6 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 					// If the cell count increased, populate cells with new ones
 					repeat(itemsVisibleCount - visibleCells.size(), () -> visibleCells.add(cachedCells.isEmpty() ? createCell() : cachedCells.removeLast()));
 					throwIf(visibleCells.size()!=itemsVisibleCount);
-
-//					int i = 0;
-//					for (int cellI=indexStart; cellI<=indexEnd; cellI++, i++) {
-//						GridCell<T,F> cell = visibleCells.get(i);
-////						cell.setItem(null);
-//						cell.updateIndex(-1);
-////						cell.setItem(items.get(cellI));
-//						cell.updateIndex(cellI);
-////						cell.updateSelected(skin.selectedCI==cellI);
-//					}
 				}
 			}
 

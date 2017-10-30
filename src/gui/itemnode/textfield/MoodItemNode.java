@@ -3,7 +3,7 @@ package gui.itemnode.textfield;
 import audio.tagging.Metadata;
 import gui.objects.picker.MoodPicker;
 import gui.objects.popover.PopOver;
-import gui.objects.popover.PopOver.NodePos;
+import gui.objects.popover.NodePos;
 import util.access.V;
 import util.parsing.Parser;
 import static gui.objects.textfield.autocomplete.AutoCompletion.autoComplete;
@@ -21,7 +21,7 @@ import static util.functional.Util.filter;
 public class MoodItemNode extends TextFieldItemNode<String> {
 
 	/** The position for the picker to show on. */
-	public final V<NodePos> pos = new V<>(PopOver.NodePos.RightCenter);
+	public final V<NodePos> pos = new V<>(NodePos.RightCenter);
 
 	public MoodItemNode() {
 		super(Parser.DEFAULT.toConverterOf(String.class));

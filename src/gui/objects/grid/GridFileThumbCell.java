@@ -1,7 +1,6 @@
 package gui.objects.grid;
 
 import gui.objects.hierarchy.Item;
-import util.graphics.image.ImageSize;
 import gui.objects.image.Thumbnail;
 import java.io.File;
 import java.util.Objects;
@@ -23,10 +22,16 @@ import util.animation.Anim;
 import util.async.Async;
 import util.async.executor.EventReducer;
 import util.async.future.Fut;
-import util.file.Util;
+import util.graphics.image.ImageSize;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static util.async.Async.*;
-import static util.dev.Util.*;
+import static util.async.Async.newSingleDaemonThreadExecutor;
+import static util.async.Async.runFX;
+import static util.async.Async.sleep;
+import static util.dev.Util.noØ;
+import static util.dev.Util.throwIf;
+import static util.dev.Util.throwIfFxThread;
+import static util.dev.Util.throwIfNotFxThread;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static util.reactive.Util.doOnceIfImageLoaded;
 
 /**
@@ -48,7 +53,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	}
 
 	protected String computeName(Item item) {
-		return Util.getName(item.val);
+		return getNameWithoutExtensionOrRoot(item.val);
 	}
 
 	protected AnimateOn computeAnimateOn() {

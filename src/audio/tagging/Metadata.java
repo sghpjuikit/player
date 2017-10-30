@@ -17,7 +17,12 @@ import java.net.URI;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.Year;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import javafx.beans.binding.ListExpression;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -32,7 +37,11 @@ import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagField;
 import org.jaudiotagger.tag.flac.FlacTag;
-import org.jaudiotagger.tag.id3.*;
+import org.jaudiotagger.tag.id3.AbstractID3Tag;
+import org.jaudiotagger.tag.id3.AbstractID3v1Tag;
+import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
+import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
+import org.jaudiotagger.tag.id3.ID3v24Frames;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.images.Artwork;
 import org.jaudiotagger.tag.mp4.Mp4FieldKey;
@@ -59,8 +68,13 @@ import static util.Util.emptyOr;
 import static util.Util.localDateTimeFromMillis;
 import static util.dev.Util.log;
 import static util.file.Util.EMPTY_URI;
-import static util.file.Util.listFiles;
-import static util.functional.Util.*;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
+import static util.file.UtilKt.listChildren;
+import static util.functional.Util.equalNull;
+import static util.functional.Util.list;
+import static util.functional.Util.setRO;
+import static util.functional.Util.split;
+import static util.functional.Util.stream;
 
 /**
  * Information about audio file.
@@ -826,9 +840,9 @@ public final class Metadata extends MetaItem<Metadata> {
 	private Optional<File> getCoverOfDir() {
 		if (!isFileBased()) return Optional.empty();
 
-		List<File> fs = listFiles(getLocation()).collect(toList());
+		List<File> fs = listChildren(getLocation()).collect(toList());
 		return stream(getFilename(), getTitle(), getAlbum(), "cover", "folder")
-				.flatMap(filename -> fs.stream().filter(f -> Util.getName(f).equalsIgnoreCase(filename)))
+				.flatMap(filename -> fs.stream().filter(f -> getNameWithoutExtensionOrRoot(f).equalsIgnoreCase(filename)))
 				.filter(ImageFileFormat::isSupported)
 				.findFirst();
 	}

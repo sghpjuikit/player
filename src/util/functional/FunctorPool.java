@@ -1,40 +1,60 @@
 package util.functional;
 
-import java.io.File;
-import java.nio.charset.Charset;
-import java.time.LocalDateTime;
-import java.time.Year;
-import java.util.*;
-import java.util.regex.Pattern;
-
-import javafx.util.Duration;
-
-import org.atteo.evo.inflector.English;
-
 import audio.Item;
 import audio.playlist.PlaylistItem;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataGroup;
 import gui.itemnode.StringSplitParser;
 import gui.itemnode.StringSplitParser.SplitData;
-import main.App;
+import java.io.File;
+import java.nio.charset.Charset;
+import java.time.LocalDateTime;
+import java.time.Year;
+import java.util.Base64;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.regex.Pattern;
+import javafx.util.Duration;
+import org.atteo.evo.inflector.English;
 import util.collections.list.PrefList;
 import util.collections.map.PrefListMap;
 import util.file.AudioFileFormat;
 import util.file.FileType;
 import util.file.Util;
+import util.file.UtilKt;
 import util.file.WindowsShortcut;
 import util.file.mimetype.MimeType;
-import util.functional.Functors.*;
-import util.units.*;
-
+import util.functional.Functors.Parameter;
+import util.functional.Functors.PƑ;
+import util.functional.Functors.PƑ0;
+import util.functional.Functors.PƑ1;
+import util.functional.Functors.PƑ2;
+import util.functional.Functors.PƑ3;
+import util.functional.Functors.Ƒ1;
+import util.functional.Functors.Ƒ2;
+import util.functional.Functors.Ƒ3;
+import util.functional.Functors.Ƒ4;
+import util.units.Bitrate;
+import util.units.FileSize;
+import util.units.NofX;
+import util.units.RangeYear;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static util.Util.StringDirection;
 import static util.Util.StringDirection.FROM_START;
 import static util.file.AudioFileFormat.Use.APP;
 import static util.file.AudioFileFormat.Use.PLAYBACK;
-import static util.functional.Util.*;
-import static util.type.Util.*;
+import static util.file.mimetype.MimeTypesKt.mimeType;
+import static util.functional.Util.IDENTITY;
+import static util.functional.Util.IS;
+import static util.functional.Util.ISØ;
+import static util.functional.Util.stream;
+import static util.functional.Util.toS;
+import static util.type.Util.getEnumConstants;
+import static util.type.Util.getSuperClassesInc;
+import static util.type.Util.isEnum;
+import static util.type.Util.unPrimitivize;
 
 // TODO: fix all warnings
 public class FunctorPool {
@@ -132,15 +152,15 @@ public class FunctorPool {
 
 		add("Path",         File.class,String.class, File::getAbsolutePath);
 		add("Size",         File.class,FileSize.class, FileSize::new);
-		add("Name",         File.class,String.class, Util::getName, true,true,true);
-		add("Name.Suffix",  File.class,String.class, File::getName);
+		add("Name",         File.class,String.class, UtilKt::getNameWithoutExtensionOrRoot, true,true,true);
+		add("Name.Suffix",  File.class,String.class, UtilKt::getNameOrRoot);
 		add("Suffix",       File.class,String.class, Util::getSuffix);
-		add("MimeType",     File.class,MimeType.class, f -> App.APP.mimeTypes.ofFile(f));
-		add("MimeGroup",    File.class,String.class, f -> App.APP.mimeTypes.ofFile(f).getGroup());
+		add("MimeType",     File.class,MimeType.class, f -> mimeType(f));
+		add("MimeGroup",    File.class,String.class, f -> mimeType(f).getGroup());
 		add("Shortcut of",  File.class,File.class, f -> WindowsShortcut.targetedFile(f).orElse(null));
 		add("Type",         File.class,FileType.class, FileType::of);
 		add("Exists",       File.class,B,File::exists);
-		add("Anime",        File.class,S, f -> util.Util.renameAnime(Util.getName(f)));
+		add("Anime",        File.class,S, f -> util.Util.renameAnime(UtilKt.getNameWithoutExtensionOrRoot(f)));
 
 		add("Group",        MimeType.class,String.class, MimeType::getGroup);
 		add("Extensions",   MimeType.class,String.class, m -> toS(", ", m.getExtensions()));

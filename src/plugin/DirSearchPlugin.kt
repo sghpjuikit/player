@@ -34,7 +34,8 @@ private const val INDEX_FILE_NAME = "dirs.txt"
 class DirSearchPlugin: PluginBase(NAME) {
 
     @Constraint.FileType(DIRECTORY)
-    @IsConfig(name = "Location", group = GROUP, info = "Root directories to search through")
+    @IsConfig(name = "Location", group = GROUP, info = "Root directory the contents of to display "
+            +"This is not a file system browser, and it is not possible to visit parent of this directory.")
     private val searchDirs = VarList(File::class.java, Elements.NOT_NULL)
 
     @IsConfig(name = "Search depth", group = GROUP)
@@ -47,8 +48,8 @@ class DirSearchPlugin: PluginBase(NAME) {
     private val cacheFile = getUserResource(INDEX_FILE_NAME)
     private val cacheUpdate = AtomicLong(0)
 
-    private var searchSource: List<File> = emptyList()
-    private val searchProvider = Supplier { searchSource.stream().map { it.toOpenDirEntry() } }
+    private var dirs: List<File> = emptyList()
+    private val searchProvider = Supplier { dirs.stream().map { it.toOpenDirEntry() } }
 
     override fun onStart() {
         computeFiles()
@@ -68,7 +69,7 @@ class DirSearchPlugin: PluginBase(NAME) {
     }
 
     private fun readCache() {
-        searchSource = readFileLines(cacheFile).asSequence()
+        dirs = readFileLines(cacheFile).asSequence()
                 .map {
                     try {
                         Paths.get(it).toFile()
@@ -96,7 +97,7 @@ class DirSearchPlugin: PluginBase(NAME) {
                             .toList()
                 })
                 .use(Player.IO_THREAD, Consumer { writeCache(it) })
-                .use(FX, Consumer { searchSource = it })
+                .use(FX, Consumer { dirs = it })
                 .showProgressOnActiveWindow()
     }
 
@@ -105,13 +106,13 @@ class DirSearchPlugin: PluginBase(NAME) {
             { "Opens directory: $absolutePath" },
             { "Open directory: $absolutePath" },
             { Environment.browse(this) },
-            { Icon<Icon<*>>(FontAwesomeIcon.FOLDER) }
+            { Icon(FontAwesomeIcon.FOLDER) }
     )
 
     private fun findDirectories(rootDir: File, id: Long) =
         rootDir.walkTopDown()
                 .onEnter { file -> cacheUpdate.get()==id && file.isDirectory }
-                .onFail { file, e -> log().warn("Ignoring file={}. No read/access permission", file, e) }
+                .onFail { file, e -> log().warn("Couldn't not properly read/access file={}", file, e) }
                 .maxDepth(searchDepth.value)
 
 }

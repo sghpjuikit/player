@@ -1,18 +1,5 @@
 package playlistView;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
-import javafx.event.Event;
-import javafx.fxml.FXML;
-import javafx.geometry.NodeOrientation;
-import javafx.scene.control.Menu;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.AnchorPane;
-
 import audio.Item;
 import audio.Player;
 import audio.playlist.Playlist;
@@ -22,8 +9,20 @@ import audio.playlist.PlaylistManager;
 import gui.Gui;
 import gui.objects.icon.Icon;
 import gui.objects.popover.PopOver;
+import gui.objects.popover.ScreenPos;
 import gui.objects.table.PlaylistTable;
 import gui.objects.table.TableColumnInfo;
+import java.io.File;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import javafx.event.Event;
+import javafx.fxml.FXML;
+import javafx.geometry.NodeOrientation;
+import javafx.scene.control.Menu;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.AnchorPane;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.Output;
@@ -39,7 +38,6 @@ import util.conf.ValueConfig;
 import util.type.Util;
 import util.units.Dur;
 import util.validation.Constraint.StringNonEmpty;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FILTER_OUTLINE;
 import static gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
@@ -49,9 +47,11 @@ import static layout.widget.Widget.Group.PLAYLIST;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static layout.widget.WidgetManager.WidgetSource.OPEN;
 import static main.App.APP;
-import static main.AppBuilders.appTooltip;
+import static main.AppBuildersKt.appTooltip;
 import static util.dev.Util.log;
-import static util.functional.Util.*;
+import static util.functional.Util.ISNTØ;
+import static util.functional.Util.list;
+import static util.functional.Util.stream;
 import static util.graphics.Util.menuItem;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
@@ -226,7 +226,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
     @Override
     public void refresh() {
         columnInitializer.execute(() -> {
-            String c = getWidget().properties.getSorThrow("columns");
+            String c = getWidget().properties.getS("columns");
             table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
         });
         filter_for_playback.applyValue();
@@ -253,7 +253,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         });
         PopOver p = new PopOver<>(sc);
                 p.title.set("Save playlist as...");
-                p.show(PopOver.ScreenPos.App_Center);
+                p.show(ScreenPos.APP_CENTER);
     }
 
     void saveSelectedAsPlaylist() {
@@ -269,7 +269,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         });
         PopOver p = new PopOver<>(sc);
                 p.title.set("Save selected items as...");
-                p.show(PopOver.ScreenPos.App_Center);
+                p.show(ScreenPos.APP_CENTER);
     }
 
     private void setUseFilterForPlayback(boolean v) {

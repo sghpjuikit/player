@@ -35,7 +35,7 @@ import static javafx.scene.layout.Priority.NEVER;
 import static util.functional.Util.by;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
-import static util.reactive.Util.unsubscribe;
+import static util.reactive.Util.unsubscribeTry;
 
 @IsConfigurable("Shortcuts.Viewer")
 public class ShortcutPane extends OverlayPane<Collection<Action>> {
@@ -58,8 +58,8 @@ public class ShortcutPane extends OverlayPane<Collection<Action>> {
 		Icon helpI = createInfoIcon("Shortcut viewer\n\nDisplays available shortcuts. " +
 									"Optionally also those that have not been assigned yet.");
 		Icon hideI = new CheckIcon(HIDE_EMPTY_SHORTCUTS)
-				.tooltip(HE_TITLE+"\n\n"+HE_INFO)
-				.icons(CHECKBOX_BLANK_CIRCLE_OUTLINE,CLOSE_CIRCLE_OUTLINE);
+				.icons(CHECKBOX_BLANK_CIRCLE_OUTLINE,CLOSE_CIRCLE_OUTLINE)
+				.tooltip(HE_TITLE+"\n\n"+HE_INFO);
 
 		ScrollPane sp = new ScrollPane();
 				   sp.setOnScroll(Event::consume);
@@ -85,7 +85,7 @@ public class ShortcutPane extends OverlayPane<Collection<Action>> {
 
 	@Override
 	public void show(Collection<Action> actions) {
-		rebuilding = unsubscribe(rebuilding);
+		rebuilding = unsubscribeTry(rebuilding);
 		rebuilding = maintain(HIDE_EMPTY_SHORTCUTS, v -> build(actions));
 		super.show();
 	}

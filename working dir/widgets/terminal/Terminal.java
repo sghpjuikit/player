@@ -36,7 +36,7 @@ public class Terminal extends ClassController {
 	private final Placeholder p = new Placeholder(FontAwesomeIcon.TERMINAL, "New terminal", this::openTerminal);
 
 	public Terminal() {
-		tConfig.setWindowsTerminalStarter("C:\\software\\Git\\usr\\bin\\bash"); // TODO: make configurable, TODO: handle dir not existing
+		tConfig.setWindowsTerminalStarter("C:\\software\\Git\\usr\\bin\\bash"); // TODO: make configurable
 		tConfig.setBackgroundColor(Color.rgb(16, 16, 16));
 		tConfig.setForegroundColor(Color.rgb(240, 240, 240));
 		tConfig.setCursorColor(Color.rgb(255, 0, 0, 0.1));

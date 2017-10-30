@@ -10,9 +10,7 @@ import javafx.animation.SequentialTransition;
 import javafx.animation.Transition;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.scene.Node;
 import javafx.util.Duration;
-import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ2;
 import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
@@ -306,31 +304,6 @@ public class Anim extends Transition {
 
 	public static double mapConcave(double x) {
 		return 1 - abs(2*(x*x - 0.5));
-	}
-
-	/**
-	 * Animation appliers.
-	 * Consumers of animation position value - double of range 0-1, applying it
-	 * in some arbitrary way.
-	 */
-	public interface Applier {
-
-		/** Applier that scales node's x and y. */
-		static DoubleConsumer scaleXY(Node n) {
-			return x -> util.graphics.Util.setScaleXY(n, x);
-		}
-
-		/**
-		 * Text interpolator for 'text typing effect'. Creates function returning string substrings
-		 * of all lengths from 0 to string length. Linear and uses rounding (Math.floor).
-		 *
-		 * @return function transforming {@code <0,1>} double input into substrings of the provided string, from
-		 * beginning to character at the position best reflected by the input.
-		 */
-		static Ƒ1<Double,String> typeText(String text) {
-			int length = text.length();
-			return x -> text.substring(0, (int) Math.floor(length*x));
-		}
 	}
 
 	/**

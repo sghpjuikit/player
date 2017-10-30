@@ -5,10 +5,10 @@ import audio.playback.PLAYBACK
 import audio.tagging.Metadata
 import gui.infonode.ItemInfo
 import gui.objects.Text
-import gui.objects.popover.Notification
-import gui.objects.popover.PopOver
-import gui.objects.popover.PopOver.ScreenPos.Screen_Bottom_Right
-import gui.objects.popover.PopOver.ScreenUse.APP_WINDOW
+import gui.objects.popover.ScreenPos
+import gui.objects.popover.ScreenPos.SCREEN_BOTTOM_RIGHT
+import gui.objects.popover.ScreenUse
+import gui.objects.popover.ScreenUse.APP_WINDOW
 import javafx.scene.Node
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
@@ -49,11 +49,11 @@ class Notifier: ServiceBase(true) {
     @IsConfig(name = "Animate", info = "Use animations on the notification")
     var notificationAnimated = true
     @IsConfig(name = "Animation duration")
-    var notificationFadeTime = millis(500)
+    var notificationFadeTime = millis(250)
     @IsConfig(name = "Position", info = "Position within the virtual bounding box, which is relative to screen or window")
-    var notificationPos: PopOver.ScreenPos = Screen_Bottom_Right
+    var notificationPos: ScreenPos = SCREEN_BOTTOM_RIGHT
     @IsConfig(name = "Position relative to", info = "Determines screen for positioning. Main screen, application window screen or all screens as one")
-    var notificationScr: PopOver.ScreenUse = APP_WINDOW
+    var notificationScr: ScreenUse = APP_WINDOW
     @IsConfig(name = "On click left", info = "Left click action")
     val onClickL = VarAction("Show application", Action.EMPTY)
     @IsConfig(name = "On click right", info = "Right click action")
@@ -84,7 +84,7 @@ class Notifier: ServiceBase(true) {
                     else -> APP.widgetManager.find(v, NEW, true).ifPresent { wf ->
                         songNotificationGui = wf.load()
                         songNotificationInfo = wf.controller as SongReader
-                        (songNotificationGui as Pane).setPrefSize(700.0, 300.0)
+                        (songNotificationGui as Pane).setPrefSize(750.0, 400.0)
                     }
                 // TODO: fix possible null ?
                 }
@@ -122,8 +122,8 @@ class Notifier: ServiceBase(true) {
             n!!.run {
                 setContent(content, title)
                 isAutoHide = notificationAutohide
-                isAnimated = notificationAnimated
-                animDuration = notificationFadeTime
+                animated.set(notificationAnimated)
+                animationDuration.set(notificationFadeTime)
                 duration = notificationDuration
                 focusOnShow.set(false)
                 lClickAction = onClickL.valueAction
@@ -159,7 +159,7 @@ class Notifier: ServiceBase(true) {
 
     private fun songChange(m: Metadata) {
         if (showSongNotification) {
-            val title = "Now playing \t"+m.playlistIndexInfo
+            val title = "Now playing \t${m.playlistIndexInfo}"
             songNotificationInfo!!.read(m)
 
             showNotification(songNotificationGui!!, title)
@@ -168,7 +168,7 @@ class Notifier: ServiceBase(true) {
 
     private fun playbackChange(s: Status?) {
         if (showStatusNotification && s!=null) {
-            val title = "Playback change : "+s
+            val title = "Playback change : $s"
             val i = ItemInfo(false)
             i.read(Player.playingItem.get())
 

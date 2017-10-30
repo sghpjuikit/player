@@ -217,7 +217,7 @@ fun <T> listChangeHandler(addedHandler: Consumer<List<T>>, removedHandler: Consu
  * @param s subscription to unsubscribe or null
  * @return null
  */
-fun unsubscribe(s: Subscription?): Subscription? {
-    s?.unsubscribe()
+fun Subscription?.unsubscribeTry(): Subscription? {
+    this?.unsubscribe()
     return null
 }

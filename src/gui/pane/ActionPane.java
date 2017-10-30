@@ -5,7 +5,6 @@ import gui.Gui;
 import gui.objects.Text;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
-import gui.objects.spinner.Spinner;
 import gui.objects.table.FilteredTable;
 import gui.objects.table.ImprovedTable.PojoV;
 import java.util.ArrayList;
@@ -23,7 +22,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableColumn;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -48,26 +50,44 @@ import util.functional.Try;
 import util.type.ClassName;
 import util.type.InstanceInfo;
 import util.type.InstanceName;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_CIRCLE_OUTLINE;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.RESIZE_BOTTOM_RIGHT;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.objects.table.FieldedTable.defaultCell;
-import static gui.pane.ActionPane.GroupApply.*;
+import static gui.pane.ActionPane.GroupApply.FOR_ALL;
+import static gui.pane.ActionPane.GroupApply.FOR_EACH;
+import static gui.pane.ActionPane.GroupApply.NONE;
 import static java.util.stream.Collectors.joining;
 import static javafx.beans.binding.Bindings.min;
-import static javafx.geometry.Pos.*;
+import static javafx.geometry.Pos.BOTTOM_CENTER;
+import static javafx.geometry.Pos.CENTER;
+import static javafx.geometry.Pos.CENTER_RIGHT;
+import static javafx.geometry.Pos.TOP_LEFT;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
-import static util.async.Async.*;
+import static main.AppBuildersKt.appProgressIndicator;
+import static util.async.Async.FX;
+import static util.async.Async.runLater;
+import static util.async.Async.sleeping;
 import static util.async.future.Fut.fut;
 import static util.async.future.Fut.futAfter;
 import static util.dev.Util.throwIfNotFxThread;
-import static util.functional.Util.*;
-import static util.graphics.Util.*;
-import static util.reactive.Util.maintain;
-import static util.type.Util.build;
+import static util.functional.Util.IS;
+import static util.functional.Util.ISNT;
+import static util.functional.Util.by;
+import static util.functional.Util.list;
+import static util.functional.Util.listRO;
+import static util.functional.Util.stream;
+import static util.graphics.Util.layHeaderTopBottom;
+import static util.graphics.Util.layHorizontally;
+import static util.graphics.Util.layScrollVTextCenter;
+import static util.graphics.Util.layStack;
+import static util.graphics.Util.layVertically;
+import static util.graphics.UtilKt.setScaleXY;
 
 /**
  * Action chooser pane. Displays icons representing certain actions.
@@ -180,10 +200,10 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 	  + "display progress indicator."
 	);
 	private final Icon hideI = new CheckIcon(closeOnDone)
-									.tooltip(COD_TITLE+"\n\n"+COD_INFO)
-									.icons(CLOSE_CIRCLE_OUTLINE, CHECKBOX_BLANK_CIRCLE_OUTLINE);
-	private final ProgressIndicator dataProgress = build(new Spinner(1), s -> maintain(s.progressProperty(), p -> p.doubleValue()<1, s.visibleProperty()));
-	public final ProgressIndicator actionProgress = build(new Spinner(1), s -> maintain(s.progressProperty(), p -> p.doubleValue()<1, s.visibleProperty()));
+									.icons(CLOSE_CIRCLE_OUTLINE, CHECKBOX_BLANK_CIRCLE_OUTLINE)
+									.tooltip(COD_TITLE+"\n\n"+COD_INFO);
+	private final ProgressIndicator dataProgress = appProgressIndicator();
+	public final ProgressIndicator actionProgress = appProgressIndicator();
 	private final HBox controls = layHorizontally(5,CENTER_RIGHT, actionProgress, dataProgress,hideI,helpI);
 
 /* ---------- DATA -------------------------------------------------------------------------------------------------- */
@@ -369,6 +389,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 		tableContentGap.set(gap);
 	}
 
+	// TODO: remove
 	private String computeDataInfo(Object data, boolean computed) {
 		Class<?> type = data==null ? Void.class : data.getClass();
 		Object d = computed ? data instanceof Fut ? ((Fut)data).getDoneOrNull() : data : null;
@@ -417,7 +438,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 		stream(actionsData)
 			.sorted(by(a -> a.name))
 			.map(action -> {
-				Icon i = new Icon<>()
+				Icon i = new Icon()
 					  .icon(action.icon)
 					  .styleclass(ICON_STYLECLASS)
 					  .onClick(e -> runAction(action, getData()));

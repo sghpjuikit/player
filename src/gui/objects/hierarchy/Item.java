@@ -18,8 +18,8 @@ import util.graphics.image.Image2PassLoader;
 import util.graphics.image.ImageSize;
 import static util.dev.Util.throwIfFxThread;
 import static util.file.FileType.DIRECTORY;
-import static util.file.Util.getName;
-import static util.file.Util.listFiles;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
+import static util.file.UtilKt.listChildren;
 import static util.functional.Util.list;
 
 /**
@@ -94,7 +94,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	protected Stream<File> children_files() {
-		return listFiles(val);
+		return listChildren(val);
 	}
 
 	protected boolean filterChildFile(File f) {
@@ -189,7 +189,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			if (ImageFileFormat.isSupported(val)) {
 				cover_file = val;
 			} else {
-				File i = getImage(val.getParentFile(), getName(val));
+				File i = getImage(val.getParentFile(), getNameWithoutExtensionOrRoot(val));
 				if (i==null && parent!=null) cover_file = parent.getCoverFile(); // needs optimize?
 				else cover_file = i;
 			}

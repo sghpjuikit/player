@@ -10,15 +10,20 @@ import javafx.util.Duration.millis
 import util.animation.Anim
 import util.type.Util.getFieldValue
 
-/** SliderSkin skin that adds animations & improved usability. */
+
+/** SliderSkin skin that adds animations & improved usability - track expands on mouse hover. */
 class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
 
     init {
-        // install hover animation
-        val track = getFieldValue<StackPane>(this, "track")!!
-        val ah = Anim(millis(350.0)) { track.scaleY = 1+it*it }
-        val av = Anim(millis(350.0)) { track.scaleX = 1+it*it }
-        slider.addEventHandler(MOUSE_ENTERED) { (if (slider.orientation==VERTICAL) av else ah).playOpen() }
-        slider.addEventHandler(MOUSE_EXITED) { (if (slider.orientation==VERTICAL) av else ah).playClose() }
+        initHoverAnimation()
     }
+
+    fun initHoverAnimation() {
+        val track = getFieldValue<StackPane>(this, "track")!!
+        val v = Anim(millis(350.0)) { track.scaleX = 1+it*it }
+        val h = Anim(millis(350.0)) { track.scaleY = 1+it*it }
+        skinnable.addEventHandler(MOUSE_ENTERED) { (if (skinnable.orientation==VERTICAL) v else h).playOpen() }
+        skinnable.addEventHandler(MOUSE_EXITED) { (if (skinnable.orientation==VERTICAL) v else h).playClose() }
+    }
+
 }

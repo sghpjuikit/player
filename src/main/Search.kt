@@ -6,7 +6,6 @@ import gui.objects.textfield.DecoratedTextField
 import gui.objects.textfield.autocomplete.ConfigSearch
 import javafx.animation.FadeTransition
 import javafx.beans.InvalidationListener
-import javafx.beans.Observable
 import javafx.scene.Cursor
 import javafx.scene.Node
 import javafx.scene.layout.Region
@@ -32,27 +31,24 @@ class Search {
         val fade = FadeTransition(millis(250), clearB)
         val tf = DecoratedTextField().apply {
             right.value = clearB
-            left.value = Icon<Icon<*>>(FontAwesomeIcon.SEARCH).apply { isMouseTransparent = true }
+            left.value = Icon(FontAwesomeIcon.SEARCH).apply { isMouseTransparent = true }
             clearB.setOnMouseReleased { clear() }
             clearB.managedProperty().bind(editableProperty())
             clearB.visibleProperty().bind(editableProperty())
-            textProperty().addListener(object: InvalidationListener {
-                override fun invalidated(arg0: Observable) {
-                    val text = text
-                    val isTextEmpty = text==null || text.isEmpty()
-                    val isButtonVisible = fade.node.opacity>0
-
-                    if (isTextEmpty && isButtonVisible) {
-                        setButtonVisible(false)
-                    } else if (!isTextEmpty && !isButtonVisible) {
-                        setButtonVisible(true)
-                    }
-                }
-
-                private fun setButtonVisible(visible: Boolean) {
+            textProperty().addListener(InvalidationListener {
+                val text = text
+                val isTextEmpty = text==null || text.isEmpty()
+                val isButtonVisible = fade.node.opacity>0
+                fun setButtonVisible(visible: Boolean) {
                     fade.fromValue = if (visible) 0.0 else 1.0
                     fade.toValue = if (visible) 1.0 else 0.0
                     fade.play()
+                }
+
+                if (isTextEmpty && isButtonVisible) {
+                    setButtonVisible(false)
+                } else if (!isTextEmpty && !isButtonVisible) {
+                    setButtonVisible(true)
                 }
             })
         }
@@ -61,4 +57,5 @@ class Search {
         return tf
 
     }
+
 }

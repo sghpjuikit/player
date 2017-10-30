@@ -14,25 +14,27 @@ import util.type.Util.getFieldValue
 
 /** ScrollBar skin that adds animations & improved usability - thumb expands on mouse hover. */
 class ImprovedScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar) {
-    private var isDragOn = false
 
     init {
+        initHoverAnimation()
+    }
 
-        // install hover animation
+    fun initHoverAnimation() {
         val thumb = getFieldValue<StackPane>(this, "thumb")!!
-        val ah = Anim(millis(350.0)) { thumb.scaleY = 1+it*it }
-        val av = Anim(millis(350.0)) { thumb.scaleX = 1+it*it }
-        scrollbar.addEventHandler(MOUSE_ENTERED) { (if (scrollbar.orientation==VERTICAL) av else ah).playOpen() }
-        scrollbar.addEventHandler(MOUSE_EXITED) {
-            if (!isDragOn) {
-                (if (scrollbar.orientation==VERTICAL) av else ah).playClose()
+        val v = Anim(millis(350.0)) { p -> thumb.scaleX = 1+p*p }
+        val h = Anim(millis(350.0)) { p -> thumb.scaleY = 1+p*p }
+        var isDragged = false
+        skinnable.addEventHandler(MOUSE_ENTERED) { (if (skinnable.orientation==VERTICAL) v else h).playOpen() }
+        skinnable.addEventHandler(MOUSE_EXITED) {
+            if (!isDragged) {
+                (if (skinnable.orientation==VERTICAL) v else h).playClose()
             }
         }
-        scrollbar.addEventHandler(DRAG_DETECTED) { isDragOn = true }
-        scrollbar.addEventHandler(MOUSE_RELEASED) {
-            if (isDragOn) {
-                isDragOn = false
-                (if (scrollbar.orientation==VERTICAL) av else ah).playClose()
+        skinnable.addEventHandler(DRAG_DETECTED) { isDragged = true }
+        skinnable.addEventHandler(MOUSE_RELEASED) {
+            if (isDragged) {
+                isDragged = false
+                (if (skinnable.orientation==VERTICAL) v else h).playClose()
             }
         }
     }

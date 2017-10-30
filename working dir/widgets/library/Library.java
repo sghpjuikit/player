@@ -9,7 +9,6 @@ import audio.tagging.MetadataReader;
 import gui.Gui;
 import gui.infonode.InfoTask;
 import gui.objects.contextmenu.TableContextMenuR;
-import gui.objects.spinner.Spinner;
 import gui.objects.table.FilteredTable;
 import gui.objects.table.ImprovedTable.PojoV;
 import gui.objects.table.TableColumnInfo;
@@ -64,12 +63,15 @@ import static javafx.scene.input.TransferMode.COPY;
 import static javafx.util.Duration.seconds;
 import static layout.widget.Widget.Group.LIBRARY;
 import static main.App.APP;
+import static main.AppBuildersKt.appProgressIndicator;
 import static util.animation.Anim.Interpolators.reverse;
 import static util.async.Async.FX;
 import static util.async.Async.sleeping;
 import static util.file.Util.getCommonRoot;
 import static util.functional.Util.map;
-import static util.graphics.Util.*;
+import static util.graphics.Util.menuItem;
+import static util.graphics.Util.setAnchors;
+import static util.graphics.UtilKt.setScaleXY;
 import static util.reactive.Util.maintain;
 
 @Info(
@@ -101,15 +103,8 @@ public class Library extends FXMLController implements SongReader {
 
     private @FXML AnchorPane root;
 	private final FilteredTable<Metadata> table = new FilteredTable<>(Metadata.class, Metadata.EMPTY.getMainField());
-    private final InfoTask<Task<?>> taskInfo = new InfoTask<>(null, new Label(), new Spinner()) {
-        Anim a = new Anim(at -> setScaleXY(progressIndicator,at*at)).dur(500).intpl(new ElasticInterpolator());
-        @Override
-        public void setVisible(boolean v) {
-            super.setVisible(v);
-            if (v) a.playOpenFrom(0);
-        }
-    };
-	private final Anim hideInfo = new Anim(at-> setScaleXY(taskInfo.progressIndicator,at*at))
+    private final InfoTask<Task<?>> taskInfo = new InfoTask<>(null, new Label(), appProgressIndicator());
+	private final Anim hideInfo = new Anim(at-> setScaleXY(taskInfo.getProgressIndicator(),at*at))
 		                              .dur(500).intpl(reverse(new ElasticInterpolator()));
 
 	private final ExecuteN runOnce = new ExecuteN(1);
@@ -150,7 +145,7 @@ public class Library extends FXMLController implements SongReader {
         d(maintain(show_footer,table.footerVisible));
 
         // add progress indicator to bottom controls
-        ((Pane)table.footerPane.getRight()).getChildren().addAll(taskInfo.message, taskInfo.progressIndicator);
+        ((Pane)table.footerPane.getRight()).getChildren().addAll(taskInfo.getMessage(), taskInfo.getProgressIndicator());
         taskInfo.setVisible(false);
 
         // extend table items information

@@ -21,6 +21,7 @@ import util.file.Util;
 
 import static main.App.APP;
 import static util.dev.Util.noØ;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
 
 public final class Layout extends UniContainer {
 
@@ -149,7 +150,7 @@ public final class Layout extends UniContainer {
     public Layout deserialize(File f) {
         Layout l = X.fromXML(Layout.class, f)
             .ifError(e -> LOGGER.error("Unable to deserialize layout", e))
-            .getOrSupply(() -> new Layout(Util.getName(f)));
+            .getOrSupply(() -> new Layout(getNameWithoutExtensionOrRoot(f)));
 
         l.properties.forEach(properties::put);
         l.setName(name);    // TODO: dangerous

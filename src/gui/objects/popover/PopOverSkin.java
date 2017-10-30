@@ -48,16 +48,24 @@ import javafx.scene.control.Skin;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.scene.shape.*;
+import javafx.scene.shape.HLineTo;
+import javafx.scene.shape.LineTo;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
+import javafx.scene.shape.PathElement;
+import javafx.scene.shape.QuadCurveTo;
+import javafx.scene.shape.VLineTo;
 import javafx.stage.Window;
 import util.graphics.MouseDrag;
 import util.graphics.P;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TIMES_CIRCLE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN_OFF;
-import static javafx.beans.binding.Bindings.*;
+import static javafx.beans.binding.Bindings.add;
+import static javafx.beans.binding.Bindings.multiply;
+import static javafx.beans.binding.Bindings.subtract;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static main.AppBuilders.resizeButton;
+import static main.AppBuildersKt.resizeButton;
 import static util.async.Async.run;
 import static util.functional.Util.mapB;
 import static util.reactive.Util.maintain;
@@ -73,20 +81,23 @@ public class PopOverSkin implements Skin<PopOver> {
 	private static final String SHAPE_STYLECLASS = "bgr";
 
 	private final PopOver<? extends Node> p;
-
-	public final StackPane root;
+	private final StackPane root;
 	private final Path path;
 	private final BorderPane content;
 	private final Label title;
 	private final BorderPane header;
-
 	private boolean tornOff;
 
-	public PopOverSkin(final PopOver<? extends Node> popover) {
-
+	public PopOverSkin(PopOver<? extends Node> popover) {
 		p = popover;
 
-		root = new StackPane();
+		root = new StackPane() {
+			@Override
+			protected void layoutChildren() {
+				super.layoutChildren();
+				if (popover.positioner!=null) popover.positioner.run();
+			}
+		};
 		root.setPickOnBounds(false);
 		root.getStyleClass().add(ROOT_STYLECLASS);
 
@@ -126,19 +137,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		// content
 		content = new BorderPane();
 		content.getStyleClass().add(CONTENT_STYLECLASS);
-//        maintain(popOver.contentNodeProperty(), content.centerProperty());
-		maintain(p.contentNodeProperty(), n -> {
-			content.setCenter(n);
-			// the following fixes some resize bugs
-			content.autosize();
-			content.applyCss();
-			content.layout();
-			content.requestLayout();
-			root.autosize();
-			root.applyCss();
-			root.layout();
-			root.requestLayout();
-		});
+		maintain(p.contentNodeProperty(), content::setCenter);
 
 		// respect popover size
 		maintain(popover.prefWidthProperty(), content.paddingProperty(), (w, p) ->
@@ -162,7 +161,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		MouseDrag moving = new MouseDrag<>(
 				resizeB, new P(),
 				drag -> drag.data.setXY(p.getPrefWidth(), p.getPrefHeight()),
-				drag -> p.setPrefSize(drag.data.x+drag.diff.x, drag.data.y+drag.diff.y)
+				drag -> p.setPrefSize(drag.data.getX() + drag.diff.getX(), drag.data.getY() + drag.diff.getY())
 		);
 		maintain(p.userResizable, resizeB.visibleProperty());
 
@@ -201,14 +200,14 @@ public class PopOverSkin implements Skin<PopOver> {
 			if (p.detachable.get() && !moving.isDragging) {
 				tornOff = false;
 				dragOffset.setXY(e.getScreenX(), e.getScreenY());
-				dragStartLocation.setXY(dragOffset.x, dragOffset.y);
+				dragStartLocation.setXY(dragOffset.getX(), dragOffset.getY());
 			}
 		});
 		root.setOnMouseDragged(e -> {
 			if (p.detachable.get() && !moving.isDragging) {
 				Window window = p.getScene().getWindow();
-				double deltaX = e.getScreenX() - dragOffset.x;
-				double deltaY = e.getScreenY() - dragOffset.y;
+				double deltaX = e.getScreenX() - dragOffset.getX();
+				double deltaY = e.getScreenY() - dragOffset.getY();
 				window.setX(window.getX() + deltaX);
 				window.setY(window.getY() + deltaY);
 				dragOffset.setXY(e.getScreenX(), e.getScreenY());
@@ -247,8 +246,12 @@ public class PopOverSkin implements Skin<PopOver> {
 	}
 
 	@Override
-	public Node getNode() {
+	public StackPane getNode() {
 		return root;
+	}
+
+	public Node getContent() {
+		return content;
 	}
 
 	@Override
@@ -291,18 +294,13 @@ public class PopOverSkin implements Skin<PopOver> {
 	public void dispose() {}
 
 	private MoveTo moveTo;
-
 	private QuadCurveTo topCurveTo, rightCurveTo, bottomCurveTo, leftCurveTo;
-
 	private HLineTo lineBTop, lineETop, lineHTop, lineKTop;
 	private LineTo lineCTop, lineDTop, lineFTop, lineGTop, lineITop, lineJTop;
-
 	private VLineTo lineBRight, lineERight, lineHRight, lineKRight;
 	private LineTo lineCRight, lineDRight, lineFRight, lineGRight, lineIRight, lineJRight;
-
 	private HLineTo lineBBottom, lineEBottom, lineHBottom, lineKBottom;
 	private LineTo lineCBottom, lineDBottom, lineFBottom, lineGBottom, lineIBottom, lineJBottom;
-
 	private VLineTo lineBLeft, lineELeft, lineHLeft, lineKLeft;
 	private LineTo lineCLeft, lineDLeft, lineFLeft, lineGLeft, lineILeft, lineJLeft;
 

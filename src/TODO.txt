@@ -7,6 +7,10 @@
 - logger widget does not work outside IDE?
 - does dir cache refresh work?
 - implement app arg processing properly
+- file plugins cache
+- Environment
+- flowLayout
+- popover position jumps on app drag start
 - docked mode onhover/on lcick settings from gui, prolong autohide delay, autohide doesnt cancel if mouse returns
 - make writing to tag a Try op, report if files read-only, settings to set read-write
 - remove standalone widget code from UnContainer
@@ -21,19 +25,12 @@
   - implement apply/refresh skin properly
   - clean up old skins
 - remove all remaining dependencies on internal APIs
-- implement OS handlers // java 9
-- implement browse directory properly // java 9
 - refactor scrollableLabel to own class, reimplement for smaller CPU load
 - Fix incorrect layout of area controls
 - implement properly smooth volume on seek
 - implement gui selection on click/hover for inspector
 - figure out better what to inject widget to controller (kotlin lateinit?)
-- implement loading images properly using the twelve monkeys
-    - investigate/implement javaFX native loading to avoid BufferedImage
 - add name/icon for parametric function's parameters
-- remove uri builder classes and change plugin model for simple property file with uri building formats
-  Its a bit of shame, since these classes use those nice constant parsing annotations (gotta find better use for them)
-- try player implementation from gstreamer org.gstreamer.elements.PlayBin2.
 - Configuration should implement Configurable
 - standalone widgets impl better launching, add
     - binding with filtering by instance type needs to determine null handling PASS/IGNORE. How?
@@ -49,7 +46,7 @@
     - allow visiting up if parent is only 1
     - address/location breadcrumb
 - implement 'use embedded thumbnail' for all image formats, not just psd
-- impl layout refresh() pass so Widget.refresh() can run properly
+- impl layout refresh() pass so Widget.refresh() can run properlykvirc
 - parametric function state serialization
 - image widget add panning, zooming, rotating support + shortcuts
 - save playlists into db instead of xml to improve big playlist startup
@@ -64,7 +61,6 @@
 - layout manager + mock widgets
 - playlist playing item is busted for item duplicates
 - ClassMaps should support concurrency if desired
-- remove artwork caching? - Metadata cover caching causes outdated data if cover is set to tag
 - config field add checkbox list config field, implement for fileInfo
 - volume add linear vs logarithmic option
 - make generic rater control, use in FileInfo
@@ -72,7 +68,6 @@
     - add icons to reset and defaults
     - cover loading optimize
     - reimplement validations trough Configs
-- popover position jumps on app drag start
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI, remember
   order in random play order
 - unify table column resizing, namely getMain column and autosize with
@@ -80,8 +75,6 @@
   https://dlemmermann.wordpress.com/2015/12/10/javafx-tip-22-autosize-tree-table-columns/
   menu item for on/off auto-resize columns option
 - make tray and taskbar icons dpi aware
-- cleanups
-    - Var, Ref, ActionPane.ActionData, SwitchPane configs, Autocomplete
 
 /* ---------- IMPROVEMENTS ------------------------------------------------------------------------------------------ */
 
@@ -89,31 +82,31 @@
 - Inspector implement 'preview'/info pane
 - improve messagePane, make okPane & errorPane, use icon to style
 - improve widget compilation string result
+- implement loading images properly using the twelve monkeys (implement javaFX native loading to avoid BufferedImage)
+- remove streamex
+- remove xstream, use kotlin json serialization
 
 /* ---------- BUGS -------------------------------------------------------------------------------------------------- */
 
 - transparent stage causing massive performance degradation for larger stages                       (major, javaFX bug)
-  problem: transparent skins, window shadows & screen mouse effects unsupported 
+  problem: transparent skins, window shadows & screen mouse effects unsupported
 - de-activator position | size a bit off when loading first time & into small                       (minor)
-  area. It requires area resize call to initialize correct height/y-cord 
-  use black bgr on the buttons pane to see the issue 
+  area. It requires area resize call to initialize correct height/y-cord
+  use black bgr on the buttons pane to see the issue
 - playlist item moving change order when moving fast even for just 1 block                          (minor)
 - starting paused playback plays the song for an instant                                            (medium)
-- local shortcuts for complex characters (BACK_SLASH, etc) not working 
-  solution: solved for some characters by manually rewriting them upon 
+- local shortcuts for complex characters (BACK_SLASH, etc) not working
+  solution: solved for some characters by manually rewriting them upon
   shortcut registering, but that is only partial and incomplete workaround
 - popup window fullscreen or maximizing(any) breaks popup position                                  (minor, but should be fixed if possible)
 - some songs (happens to be album specific, but specific cause unknown) read                        (jaudiotagger bug?)
   length as twice of the real (note: Smile Precure OST)
-- sometimes not even suspending playback allows jaudiotagger renaming songs 
+- sometimes not even suspending playback allows jaudiotagger renaming songs
   and thus prevents successful tagging. see unable to rename in audio test files
-- when app starts with paused song, playing some other songs starts from that 
-  point rather than the beginning 
-- some images with very long names 'can not be found' - it is probably windows 
-  thing as have experienced problems with long image names before when copying 
-  the files in windows
-- variable bitrate oggs not playing 
-- dragOver event is called repeatedly, we cant use just any code in there 
+- when app starts with paused song, playing some other songs starts from that
+  point rather than the beginning
+- variable bitrate oggs not playing
+- dragOver event is called repeatedly, we cant use just any code in there
   (like Fut, which gets computed immediately when created)
 - javafx player MediaException: system cant find media file when weird character                    (JavaFX bug)
   in the filename e.g. : 1-21 Fungagaŕ
@@ -141,34 +134,34 @@
 /* ---------- WORKAROUNDS ------------------------------------------------------------------------------------------- */
 
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment                           (medium)
-  nonempty. 
+  nonempty.
   solution: custom comment reading method filters out CUSTOM fields                                 (great)
 - split container divider position not applied properly (vertical only).                            (medium)
-  note: how does orientation come into this: unknown 
-  solution: have each splitter wait 2 seconds and apply the position again 
+  note: how does orientation come into this: unknown
+  solution: have each splitter wait 2 seconds and apply the position again
   problem: arbitrary waiting value might not work in all cases + putting the
-  divider near edge (1 or 0 value) by resizing the Pane will deform the value 
+  divider near edge (1 or 0 value) by resizing the Pane will deform the value
   and it does not retain correct position. Re-applying it does not work because of
-  this bug. Platform.runLater is the only workaround and it can not be used here 
-  See the Splitter class for more information 
+  this bug. Platform.runLater is the only workaround and it can not be used here
+  See the Splitter class for more information
 - javafx.scene.text.Text does not have css style class and as such does not allow
-  default values and skinning 
-  solution: Text class extending javafx.scene.text.Text and adding custom  
-  styleclass. Use instead of the original if default behavior (skin) is expected 
+  default values and skinning
+  solution: Text class extending javafx.scene.text.Text and adding custom
+  styleclass. Use instead of the original if default behavior (skin) is expected
   note: there actually is a styleclass for the Text: .Text
-  investigate, test, reimplement 
+  investigate, test, reimplement
 - open PopOvers prevent app to close normally.                                                      (medium-major)
-  cause: javaFX bug 
+  cause: javaFX bug
   solution: Manually close them all when main window closes (introduces some                        (good)
-  code pollution). Requires static list. 
+  code pollution). Requires static list.
 - fullscreen not initializing on window deserialization, update() method bug                        (minor)
   cause: unknown                                                                                    (javafx bug?)
-  problem: fullscreen is set, resizability is set to false, the fs hint is shown 
-  but the window does not cover whole screen - maybe its too soon 
-  and the window is not really fully initialized 
+  problem: fullscreen is set, resizability is set to false, the fs hint is shown
+  but the window does not cover whole screen - maybe its too soon
+  and the window is not really fully initialized
   solution: delay execution 100ms (see WindowBase.update())                                         (not ideal but no problems)
-- Icon does not support disabled style (opacity 0.4). Thus it was processed in css.                     (minor, inconvenience)
-  But if set as graphics in MenuBar (and probably in MenuItem and so on) the 
+- Icon does not support disabled style (opacity 0.4). Thus it was processed in css.                 (minor, inconvenience)
+  But if set as graphics in MenuBar (and probably in MenuItem and so on) the
   style gets applied twice! javafx apparently applies the disabled state on the
   graphics of Labelled on its own!
   workaround: when intended to be used as graphics, call embedded() method
@@ -177,8 +170,6 @@
   table receives focus for the 1st time -> useless...
 
 /* ---------- HELP -------------------------------------------------------------------------------------------------- */
-
-- java: 1.9b161
 
 - heap: Use at least -Xmx1g, possibly more
     Large images need more memory. Default heap size WILL cause out of memory
@@ -201,9 +192,6 @@
     --add-opens javafx.controls/javafx.scene.control.skin=ALL-UNNAMED
     --add-opens javafx.graphics/javafx.scene.image=ALL-UNNAMED
     --add-opens javafx.controls/javafx.scene.control=ALL-UNNAMED
-
-    // modularization "all at once" switch (not supported as of jdk9b161)
-    --permit-illegal-access
 
 - VM parameters final all:
     -Dsun.reflect.debugModuleAccessChecks=true
@@ -281,17 +269,3 @@
     --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
     --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
-
-    // jaudiotagger
-    --add-exports java.base/sun.nio.ch=ALL-UNNAMED
-    --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
-
-    // lombok
-    --add-exports jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED
-    --add-exports jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED
-    --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED
-    --add-exports jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED
-    --add-exports jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED
-    --add-exports jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED
-    --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
-    --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED

@@ -1,8 +1,8 @@
 package gui.objects.image.cover;
 
-import util.graphics.image.ImageSize;
 import java.io.File;
 import javafx.scene.image.Image;
+import util.graphics.image.ImageSize;
 
 public interface Cover {
 

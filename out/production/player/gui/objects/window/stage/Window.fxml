@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.*?>
+<?import javafx.scene.layout.*?>
+<fx:root id="root" prefHeight="400.0" prefWidth="600.0" styleClass="window" type="AnchorPane"
+         xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+    <StackPane fx:id="subroot" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+               AnchorPane.topAnchor="0.0">
+        <StackPane fx:id="back" mouseTransparent="true">
+            <StackPane fx:id="backImage" styleClass="bgr-image"/>
+        </StackPane>
+        <AnchorPane fx:id="front" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+            <AnchorPane fx:id="bordersVisual" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                        AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <Region fx:id="lBorder" mouseTransparent="true" prefWidth="5.0" styleClass="w-border"
+                        AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="25.0"/>
+                <Region fx:id="rBorder" mouseTransparent="true" prefWidth="5.0" styleClass="w-border"
+                        AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0"/>
+                <Region mouseTransparent="true" prefHeight="5.0" styleClass="w-border"
+                        AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0"/>
+            </AnchorPane>
+            <BorderPane fx:id="header" prefHeight="25.0" styleClass="header" AnchorPane.leftAnchor="0.0"
+                        AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <opaqueInsets>
+                    <Insets/>
+                </opaqueInsets>
+                <padding>
+                    <Insets left="5.0" right="5.0"/>
+                </padding>
+            </BorderPane>
+            <HBox fx:id="leftHeaderBox" alignment="CENTER_LEFT" fillHeight="false" pickOnBounds="false"
+                  spacing="8.0" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0">
+                <Label fx:id="titleL" BorderPane.alignment="CENTER">
+                    <BorderPane.margin>
+                        <Insets left="10.0"/>
+                    </BorderPane.margin>
+                </Label>
+            </HBox>
+            <HBox fx:id="rightHeaderBox" alignment="CENTER_RIGHT" fillHeight="false"
+                  onMouseDragged="#consumeMouseEvent" onMousePressed="#consumeMouseEvent" pickOnBounds="false"
+                  spacing="8.0" visible="true" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0"/>
+            <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0"
+                        styleClass="content" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0"
+                        AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="25.0"/>
+            <Pane fx:id="header_activator" prefHeight="5.0" AnchorPane.leftAnchor="0.0"
+                  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+            <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"
+                    onMouseReleased="#border_onDragEnd" prefHeight="4.0"
+                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="18.0" AnchorPane.rightAnchor="18.0">
+                <cursor>
+                    <Cursor fx:constant="S_RESIZE"/>
+                </cursor>
+            </Region>
+            <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"
+                    onMouseReleased="#border_onDragEnd" prefHeight="4.0" AnchorPane.leftAnchor="18.0"
+                    AnchorPane.rightAnchor="18.0" AnchorPane.topAnchor="0.0">
+                <cursor>
+                    <Cursor fx:constant="N_RESIZE"/>
+                </cursor>
+            </Region>
+            <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"
+                    onMouseReleased="#border_onDragEnd"
+                    prefWidth="4.0" AnchorPane.bottomAnchor="18.0" AnchorPane.rightAnchor="0.0"
+                    AnchorPane.topAnchor="18.0">
+                <cursor>
+                    <Cursor fx:constant="E_RESIZE"/>
+                </cursor>
+            </Region>
+            <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"
+                    onMouseReleased="#border_onDragEnd"
+                    prefWidth="4.0" AnchorPane.bottomAnchor="18.0" AnchorPane.leftAnchor="0.0"
+                    AnchorPane.topAnchor="18.0">
+                <cursor>
+                    <Cursor fx:constant="W_RESIZE"/>
+                </cursor>
+            </Region>
+            <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"
+                    onMouseReleased="#border_onDragEnd" prefHeight="4.0" prefWidth="18.0"
+                    AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                <cursor>
+                    <Cursor fx:constant="SE_RESIZE"/>
+                </cursor>
+            </Region>
+            <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"
+                    onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="4.0"
+                    AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                <cursor>
+                    <Cursor fx:constant="SE_RESIZE"/>
+                </cursor>
+            </Region>
+            <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"
+                    onMouseReleased="#border_onDragEnd" prefHeight="4.0" prefWidth="18.0"
+                    AnchorPane.leftAnchor="0.0">
+                <cursor>
+                    <Cursor fx:constant="NW_RESIZE"/>
+                </cursor>
+            </Region>
+            <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"
+                    onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="4.0"
+                    AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <cursor>
+                    <Cursor fx:constant="NW_RESIZE"/>
+                </cursor>
+            </Region>
+            <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"
+                    onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="4.0"
+                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
+                <cursor>
+                    <Cursor fx:constant="SW_RESIZE"/>
+                </cursor>
+            </Region>
+            <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"
+                    onMouseReleased="#border_onDragEnd" prefHeight="4.0" prefWidth="18.0"
+                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
+                <cursor>
+                    <Cursor fx:constant="SW_RESIZE"/>
+                </cursor>
+            </Region>
+            <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"
+                    onMouseReleased="#border_onDragEnd" prefHeight="4.0" prefWidth="18.0"
+                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <cursor>
+                    <Cursor fx:constant="NE_RESIZE"/>
+                </cursor>
+            </Region>
+            <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"
+                    onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="4.0"
+                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <cursor>
+                    <Cursor fx:constant="NE_RESIZE"/>
+                </cursor>
+            </Region>
+        </AnchorPane>
+    </StackPane>
+</fx:root>

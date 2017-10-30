@@ -49,24 +49,28 @@ enum class Sort {
     companion object {
 
         /** @return a corresponding sort for [TableColumn.SortType] */
-        @JvmStatic fun of(sort: TableColumn.SortType) = when (sort) {
+        @JvmStatic
+        fun of(sort: TableColumn.SortType) = when (sort) {
             TableColumn.SortType.ASCENDING -> Sort.ASCENDING
             TableColumn.SortType.DESCENDING -> Sort.DESCENDING
             else -> throw SwitchException(sort)
         }
 
         /** @return a corresponding sort for [TreeTableColumn.SortType] */
-        @JvmStatic fun of(sort: TreeTableColumn.SortType) = when (sort) {
+        @JvmStatic
+        fun of(sort: TreeTableColumn.SortType) = when (sort) {
             TreeTableColumn.SortType.ASCENDING -> Sort.ASCENDING
             TreeTableColumn.SortType.DESCENDING -> Sort.DESCENDING
             else -> throw SwitchException(sort)
         }
 
         /** @return sort of the given column based on its [TableColumn.SortType] */
-        @JvmStatic fun of(column: TableColumn<*,*>) = of(column.sortType)
+        @JvmStatic
+        fun of(column: TableColumn<*, *>) = of(column.sortType)
 
         /** @return sort of the given column based on its [TreeTableColumn.SortType] */
-        @JvmStatic fun of(column: TreeTableColumn<*, *>) = of(column.sortType)
+        @JvmStatic
+        fun of(column: TreeTableColumn<*, *>) = of(column.sortType)
 
     }
 }

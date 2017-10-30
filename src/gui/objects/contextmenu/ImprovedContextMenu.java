@@ -43,7 +43,9 @@ import static util.dev.Util.noØ;
 import static util.file.Environment.copyToSysClipboard;
 import static util.file.Util.recycleFile;
 import static util.functional.Util.stream;
-import static util.graphics.Util.*;
+import static util.graphics.Util.menuItem;
+import static util.graphics.Util.menuItems;
+import static util.graphics.UtilKt.getScreen;
 
 /**
  * Context menu which contains an object.

@@ -11,6 +11,7 @@ import util.conf.Config.VarList.Elements
 import util.conf.IsConfig
 import util.dev.log
 import util.file.Environment
+import util.file.nameWithoutExtensionOrRoot
 import util.validation.Constraint
 import util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
@@ -59,10 +60,10 @@ class AppSearchPlugin: PluginBase(NAME) {
     }
 
     private fun File.toRunApplicationEntry() = ConfigSearch.Entry.of(
-            { "Run app: $name" },
+            { "Run app: $nameWithoutExtensionOrRoot" },
             { "Runs application: $absolutePath" },
             { "Run app: $absolutePath" },
             { Environment.runProgram(this) },
-            { Icon<Icon<*>>(MaterialIcon.APPS) }
+            { Icon(MaterialIcon.APPS) }
     )
 }

@@ -166,7 +166,6 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 			if (controller==null) {
 				root = Widget.EMPTY().load();
 			} else {
-				Exception ex = null;
 				try {
 					root = controller.loadFirstTime();
 					// we cant call this as parent is injected after this method returns
@@ -183,11 +182,8 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
 					updateIO();
 				} catch (Exception e) {
-					ex = e;
-				}
-				if (root==null) {
 					root = Widget.EMPTY().load();
-					LOGGER.error("Widget {} graphics creation failed. Using empty widget instead.", getName(), ex);
+					LOGGER.error("Widget {} graphics creation failed. Using empty widget instead.", getName(), e);
 				}
 			}
 		}
@@ -354,13 +350,8 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
 /******************************************************************************/
 
-	/**
-	 * Returns whether this widget is empty.
-	 * <p/>
-	 * Empty widget has no graphics. {@link Controller#isEmpty()} indicates
-	 * state - that there is no data to display within widget's graphics.
-	 */
-	public boolean isEmpty() {
+	/** @return whether this widget is empty - empty widget has no graphics. */
+	public boolean isNone() {
 		return this instanceof EmptyWidget;
 	}
 

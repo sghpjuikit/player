@@ -13,6 +13,7 @@ import util.R;
 import util.file.Util;
 import util.file.WindowsShortcut;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
 
 /**
  * Extracts an icon for a file type of specific file.
@@ -48,7 +49,7 @@ public class IconExtractor {
 			return WindowsShortcut.targetedFile(file).map(IconExtractor::getFileIcon).orElse(null);
 
 		// Handle windows executable files (we need to handle each individually)
-		String key = "exe".equals(ext) ? Util.getName(file) : ext;
+		String key = "exe".equals(ext) ? getNameWithoutExtensionOrRoot(file) : ext;
 
 		return mapOfFileExtToSmallIcon.computeIfAbsent(key, k -> {
 			javax.swing.Icon swingIcon = null;

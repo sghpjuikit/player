@@ -1,0 +1,32 @@
+<component name="libraryTable">
+  <library name="player-image">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/common-image-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/common-io-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/common-lang-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-batik-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-bmp-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-clippath-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-core-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-hdr-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-icns-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-iff-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-jpeg-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-metadata-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-pcx-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-pict-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-pnm-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-psd-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-sgi-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-tga-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-thumbsdb-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/imageio-tiff-3.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/metadata-extractor-2.9.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/xmpcore-5.1.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/extra/lib/image/metadata-extractor-2.9.1-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -58,7 +58,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 
 	private final ComboBox<PredicateData<F>> typeCB = new ImprovedComboBox<>(t -> t.name);
 	private FItemNode<Object,Boolean> config;
-	private final CheckIcon negB = new CheckIcon(false).styleclass("filter-negate-icon");
+	private final CheckIcon negB = (CheckIcon) new CheckIcon(false).styleclass("filter-negate-icon");
 	private final HBox root = new HBox(5, negB, typeCB);
 
 	private Supplier<PredicateData<F>> prefTypeSupplier;

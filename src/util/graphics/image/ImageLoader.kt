@@ -1,9 +1,9 @@
 package util.graphics.image
 
 import javafx.scene.image.Image
-import main.App
 import util.dev.log
 import util.file.mimetype.MimeType
+import util.file.mimetype.mimeType
 import util.graphics.IconExtractor
 import util.graphics.image.ImageLoader.Params
 import java.io.File
@@ -19,7 +19,7 @@ interface ImageLoader {
      * @return loaded image or null if file null or not a valid image source.
      * @throws IllegalArgumentException when on fx thread
      */
-    operator fun invoke(file: File?, size: ImageSize) = if (file==null) null else invoke(Params(file, size, App.APP.mimeTypes.ofFile(file)))
+    operator fun invoke(file: File?, size: ImageSize) = if (file==null) null else invoke(Params(file, size, file.mimeType()))
 
     operator fun invoke(file: File?) = invoke(file, ImageSize(0.0, 0.0))
     operator fun invoke(p: Params): Image?
@@ -32,7 +32,7 @@ object ImageStandardLoader: ImageLoader {
     override fun invoke(p: Params): Image? {
         log().debug("Loading img $p")
 
-        return when (p.mime.mimeType) {
+        return when (p.mime.name) {
             "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, true)
             "application/x-msdownload",
             "application/x-ms-shortcut" -> IconExtractor.getFileIcon(p.file)
@@ -52,7 +52,7 @@ object Image2PassLoader {
         override fun invoke(p: Params): Image? {
             log().debug("Loading LQ img $p")
 
-            return when (p.mime.mimeType) {
+            return when (p.mime.name) {
                 "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, false)
                 else -> ImageStandardLoader(p)
             }
@@ -62,7 +62,7 @@ object Image2PassLoader {
         override fun invoke(p: Params): Image? {
             log().debug("Loading HQ img $p")
 
-            return when (p.mime.mimeType) {
+            return when (p.mime.name) {
                 "image/vnd.adobe.photoshop" -> ImageStandardLoader(p)
                 else -> null
             }

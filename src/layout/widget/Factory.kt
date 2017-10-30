@@ -3,7 +3,8 @@ package layout.widget
 import layout.Component
 import layout.widget.controller.Controller
 import main.App
-import util.file.Util
+import util.file.childOf
+import util.file.nameOrRoot
 import util.type.ClassName
 import java.io.File
 
@@ -46,7 +47,7 @@ class WidgetFactory<C: Controller<*>>: ComponentFactory<Widget<C>>, WidgetInfo {
         this.name = ClassName.of(controllerType)
         this.controllerType = controllerType
         this.location = location
-        this.locationUser = if (location==null) null else Util.childOf(App.APP.DIR_USERDATA, "widgets", location.name)
+        this.locationUser = if (location==null) null else App.APP.DIR_USERDATA.childOf("widgets", location.nameOrRoot)
         this.nameGui = if (i.name.isEmpty()) name else i.name
         this.description = i.description
         this.version = i.version

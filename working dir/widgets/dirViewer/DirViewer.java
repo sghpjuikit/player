@@ -8,18 +8,12 @@ import gui.objects.grid.GridView.CellSize;
 import gui.objects.hierarchy.Item;
 import gui.objects.image.Thumbnail.FitFrom;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
-import javafx.geometry.Pos;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.ScrollEvent;
 import layout.widget.Widget;
@@ -29,13 +23,16 @@ import util.Sort;
 import util.access.V;
 import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
+import util.async.Async;
 import util.async.future.Fut;
 import util.conf.Config.VarList;
 import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 import util.file.Environment;
+import util.file.FileFlatter;
 import util.file.FileSort;
+import util.file.mimetype.MimeTypes;
 import util.functional.Functors.PƑ0;
 import util.graphics.Resolution;
 import util.graphics.drag.DragUtil;
@@ -52,14 +49,27 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
 import static layout.widget.Widget.Group.OTHER;
 import static main.App.APP;
+import static main.AppBuildersKt.appTooltipForData;
 import static util.Sort.ASCENDING;
 import static util.Util.capitalize;
-import static util.async.Async.*;
+import static util.async.Async.FX;
+import static util.async.Async.newSingleDaemonThreadExecutor;
+import static util.async.Async.newThreadPoolExecutor;
+import static util.async.Async.onlyIfMatches;
+import static util.async.Async.run;
+import static util.async.Async.runFX;
+import static util.async.Async.runLater;
+import static util.async.Async.threadFactory;
 import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.DIRECTORY;
-import static util.file.Util.*;
-import static util.functional.Util.*;
-import static util.graphics.Util.layVertically;
+import static util.file.Util.getCommonRoot;
+import static util.file.Util.getSuffix;
+import static util.file.mimetype.MimeTypesKt.mimeType;
+import static util.functional.Util.by;
+import static util.functional.Util.list;
+import static util.functional.Util.map;
+import static util.functional.Util.max;
+import static util.functional.Util.stream;
 import static util.graphics.Util.setAnchor;
 import static util.reactive.Util.maintain;
 
@@ -79,27 +89,23 @@ public class DirViewer extends ClassController {
     private static final double CELL_TEXT_HEIGHT = 20;
 
 	@Constraint.FileType(Constraint.FileActor.DIRECTORY)
-    @IsConfig(name = "Location", info = "Root directory the contents of to display "
-            + "This is not a file system browser, and it is not possible to "
-            + "visit parent of this directory.")
+    @IsConfig(name = "Location", info = "Root directories of the content.")
     final VarList<File> files = new VarList<>(File.class, Elements.NOT_NULL);
-	@IsConfig(name = "Location merge", info = "Merges all locations into single union location")
-	final V<Boolean> filesJoin = new V<>(true, f -> revisitCurrent());
-	@IsConfig(name = "Location recursive", info = "Merges all location content recursively into single union location")
-	final V<Boolean> filesAll = new V<>(false, f -> revisitCurrent());
+	@IsConfig(name = "Location joiner", info = "Merges location files into a virtual view.")
+    final V<FileFlatter> fileFlatter = new V<>(FileFlatter.NONE, ff -> revisitCurrent());
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(NORMAL, this::applyCellSize);
     @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
     final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5, this::applyCellSize);
-    @IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
-    final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
-    @IsConfig(name = "Fit image from", info = "Determines whether image will be fit from inside or outside.")
+    @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
     final V<FitFrom> fitFrom = new V<>(FitFrom.INSIDE);
+    @IsConfig(name = "Thumbnail animate on", info = "Determines when the thumbnail image transition is played.")
+    final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width, cellSize.get().width/cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT, 5, 5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
-    private final ExecutorService executorThumbs = newThreadPoolExecutor(8, 1, MINUTES, threadFactory("dirView-img-thumb", true));
+    private final ExecutorService executorThumbs = newThreadPoolExecutor(8, 1,MINUTES, threadFactory("dirView-img-thumb", true));
     private final ExecutorService executorImage = newThreadPoolExecutor(8, 1, MINUTES, threadFactory("dirView-img-full", true));
     private final Loader imageLoader = new Loader(executorThumbs, executorImage);
     boolean initialized = false;
@@ -338,20 +344,7 @@ public class DirViewer extends ClassController {
         protected void computeGraphics() {
             super.computeGraphics();
             maintain(fitFrom, thumb.fitFrom);
-
-            String KEY_TOOLTIP_SHOWN = "";
-            Label nameL = new Label();
-            Label sizeL = new Label();
-            Label resL = new Label();
-            Tooltip t = new Tooltip();
-            Tooltip.install(root, t);
-            t.setOnShowing(e -> {
-                if (!root.getProperties().containsKey(KEY_TOOLTIP_SHOWN));  // TODO: WTF
-                    t.setGraphic(layVertically(5, Pos.CENTER_LEFT, nameL, sizeL, resL));
-                nameL.setText("Name: " + Optional.ofNullable(thumb.getFile()).map(File::getName).orElse("unknown"));
-                resL.setText("Resolution: " + Optional.ofNullable(thumb.getImage()).map(i -> i.getWidth() + "x" + i.getHeight()).orElse("unknown"));
-                sizeL.setText("Size: " + Optional.ofNullable(thumb.getFile()).map(f -> FileField.SIZE.getOf(f).toString()).orElse("unknown"));
-            });
+            Tooltip.install(root, appTooltipForData(() -> thumb.getFile()));
         }
 
         @Override
@@ -390,21 +383,7 @@ public class DirViewer extends ClassController {
 
         @Override
         protected Stream<File> children_files() {
-            return filesAll.get()
-	                ? listFiles(files.list.stream())
-		                  .flatMap(f -> {
-		                  	try {
-			                    return Files.walk(f.toPath(), Integer.MAX_VALUE)
-						                  .map(Path::toFile)
-						                  .filter(File::isFile);
-		                    } catch (IOException e) {
-		                    	return stream();
-		                    }
-		                  })
-                          .distinct()
-	                : filesJoin.get()
-		                  ? listFiles(files.list.stream().distinct())
-		                  : files.list.stream().distinct();
+            return fileFlatter.get().flatten.invoke(files.list);
         }
 
         @Override
@@ -428,15 +407,15 @@ public class DirViewer extends ClassController {
         filters.add(new PƑ0<>("File - none", File.class, Boolean.class, file -> false));
         filters.add(new PƑ0<>("File type - file", File.class, Boolean.class, File::isFile));
         filters.add(new PƑ0<>("File type - directory", File.class, Boolean.class, File::isDirectory));
-        APP.mimeTypes.setOfGroups().forEach(group -> {
-            filters.add(new PƑ0<>("Mime type group - is " + capitalize(group), File.class, Boolean.class, file -> group.equals(APP.mimeTypes.ofFile(file).getGroup())));
-            filters.add(new PƑ0<>("Mime type group - no " + capitalize(group), File.class, Boolean.class, file -> !group.equals(APP.mimeTypes.ofFile(file).getGroup())));
+        MimeTypes.INSTANCE.setOfGroups().forEach(group -> {
+            filters.add(new PƑ0<>("Mime type group - is " + capitalize(group), File.class, Boolean.class, file -> group.equals(mimeType(file).getGroup())));
+            filters.add(new PƑ0<>("Mime type group - no " + capitalize(group), File.class, Boolean.class, file -> !group.equals(mimeType(file).getGroup())));
         });
-        APP.mimeTypes.setOfMimeTypes().forEach(mime -> {
-            filters.add(new PƑ0<>("Mime type - is " + mime.getName(), File.class, Boolean.class, file -> APP.mimeTypes.ofFile(file)==mime));
-            filters.add(new PƑ0<>("Mime type - no " + mime.getName(), File.class, Boolean.class, file -> APP.mimeTypes.ofFile(file)!=mime));
+        MimeTypes.INSTANCE.setOfMimeTypes().forEach(mime -> {
+            filters.add(new PƑ0<>("Mime type - is " + mime.getName(), File.class, Boolean.class, file -> mimeType(file)==mime));
+            filters.add(new PƑ0<>("Mime type - no " + mime.getName(), File.class, Boolean.class, file -> mimeType(file)!=mime));
         });
-        APP.mimeTypes.setOfExtensions().forEach(extension -> {
+        MimeTypes.INSTANCE.setOfExtensions().forEach(extension -> {
             filters.add(new PƑ0<>("Type - is " + extension, File.class, Boolean.class, file -> getSuffix(file).equalsIgnoreCase(extension)));
             filters.add(new PƑ0<>("Type - no " + extension, File.class, Boolean.class, file -> !getSuffix(file).equalsIgnoreCase(extension)));
         });

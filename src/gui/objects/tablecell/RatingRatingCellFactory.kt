@@ -25,10 +25,9 @@ object RatingRatingCellFactory: RatingCellFactory {
             alignment = Pos.CENTER
             r.icons.bind(APP.maxRating)
             r.partialRating.bind(APP.partialRating)
-            r.updateOnHover.bind(APP.hoverRating)
             r.editable.bind(APP.allowRatingChange)
             if (c.userData==Metadata.Field.RATING)
-                r.onRatingByUserChanged = Consumer { MetadataWriter.useToRate(c.tableView.items[index], it) }
+                r.onRatingEdited = Consumer { MetadataWriter.useToRate(c.tableView.items[index], it) }
         }
 
         override fun updateItem(item: Double?, empty: Boolean) {

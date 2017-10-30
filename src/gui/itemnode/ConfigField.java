@@ -61,7 +61,7 @@ import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static main.AppBuilders.appTooltip;
+import static main.AppBuildersKt.appTooltip;
 import static util.Util.enumToHuman;
 import static util.async.Async.run;
 import static util.functional.Try.ok;

@@ -16,7 +16,7 @@ import gui.objects.grid.GridView.SelectionOn;
 import gui.objects.icon.Icon;
 import gui.objects.icon.IconInfo;
 import gui.objects.popover.PopOver;
-import gui.objects.popover.PopOver.ScreenPos;
+import gui.objects.popover.ScreenPos;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.OverlayPane;
 import java.io.File;
@@ -63,12 +63,23 @@ import static javafx.scene.paint.Color.BLACK;
 import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static main.App.APP;
 import static util.Util.urlEncodeUtf8;
-import static util.async.Async.*;
+import static util.async.Async.FX;
+import static util.async.Async.run;
+import static util.async.Async.runFX;
+import static util.async.Async.runLater;
 import static util.async.future.Fut.fut;
 import static util.dev.Util.log;
 import static util.file.Environment.browse;
-import static util.functional.Util.*;
-import static util.graphics.Util.*;
+import static util.functional.Util.list;
+import static util.functional.Util.map;
+import static util.functional.Util.set;
+import static util.functional.Util.stream;
+import static util.graphics.Util.add1timeEventHandler;
+import static util.graphics.Util.bgr;
+import static util.graphics.Util.createFMNTStage;
+import static util.graphics.Util.layHorizontally;
+import static util.graphics.Util.layVertically;
+import static util.graphics.Util.setMinPrefMaxSize;
 import static util.math.Util.millis;
 import static util.type.Util.getEnumConstants;
 
@@ -144,7 +155,7 @@ public class AppActions {
 			  })
 			  .toList();
 		PopOver o = new PopOver<>(layVertically(20, Pos.TOP_CENTER,layHorizontally(8,Pos.CENTER,groups), root));
-		o.show(ScreenPos.App_Center);
+		o.show(ScreenPos.APP_CENTER);
 	}
 
 	@IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
@@ -271,7 +282,7 @@ public class AppActions {
 		);
 		PopOver p = new PopOver<>(sc);
 				p.title.set("Run system command ");
-				p.show(ScreenPos.App_Center);
+				p.show(ScreenPos.APP_CENTER);
 	}
 
 	@IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with " +
@@ -282,7 +293,7 @@ public class AppActions {
 			(String command) -> APP.parameterProcessor.process(list(command)));
 		PopOver p = new PopOver<>(sc);
 				p.title.set("Run app command");
-				p.show(ScreenPos.App_Center);
+				p.show(ScreenPos.APP_CENTER);
 	}
 
 	@IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")
@@ -291,7 +302,7 @@ public class AppActions {
 		PopOver<?> p = new PopOver<>(APP.search.build());
 		p.title.set("Search for an action or option");
 		p.setAutoHide(true);
-		p.show(ScreenPos.App_Center);
+		p.show(ScreenPos.APP_CENTER);
 	}
 
 	@IsAction(name = "Open web search", desc = "Opens website or search engine result for given phrase", keys = "CTRL + SHIFT + W", global = true)
@@ -323,7 +334,7 @@ public class AppActions {
 		));
 		p.title.set(title);
 		p.setAutoHide(true);
-		p.show(ScreenPos.App_Center);
+		p.show(ScreenPos.APP_CENTER);
 		p.getContentNode().focusFirstConfigField();
 		p.getContentNode().hideOnOk.setValue(true);
 	}

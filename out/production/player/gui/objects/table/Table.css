@@ -1,0 +1,9 @@
+/*
+    Created on : Mar 1, 2014, 5:12:13 AM
+    Author     : Plutonium_
+*/
+
+.column-header-background { 
+    visibility: hidden;
+    -fx-padding: -1em;
+}

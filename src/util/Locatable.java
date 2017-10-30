@@ -1,7 +1,7 @@
 package util;
 
 import java.io.File;
-import static util.file.Util.childOf;
+import static util.file.UtilKt.childOf;
 
 public interface Locatable {
 

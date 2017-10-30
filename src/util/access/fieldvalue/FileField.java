@@ -12,21 +12,22 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import main.App;
 import util.SwitchException;
 import util.file.FileType;
 import util.file.Util;
+import util.file.UtilKt;
 import util.file.mimetype.MimeType;
 import util.functional.Functors.Ƒ1;
 import util.units.FileSize;
 import static util.Util.localDateTimeFromMillis;
+import static util.file.mimetype.MimeTypesKt.mimeType;
 
 public class FileField<T> implements ObjectField<File,T> {
 
 	public static final Set<FileField<?>> FIELDS = new HashSet<>();
 	public static final FileField<String> PATH = new FileField<>("Path", "Path", File::getPath, String.class);
-	public static final FileField<String> NAME = new FileField<>("Name", "Name", Util::getName, String.class);
-	public static final FileField<String> NAME_FULL = new FileField<>("Filename", "Filename", Util::getNameFull, String.class);
+	public static final FileField<String> NAME = new FileField<>("Name", "Name", UtilKt::getNameWithoutExtensionOrRoot, String.class);
+	public static final FileField<String> NAME_FULL = new FileField<>("Filename", "Filename", UtilKt::getNameOrRoot, String.class);
 	public static final FileField<String> EXTENSION = new FileField<>("Extension", "Extension", Util::getSuffix, String.class);
 	public static final FileField<FileSize> SIZE = new FileField<>("Size", "Size", FileSize::new, FileSize.class);
 	public static final FileField<LocalDateTime> TIME_MODIFIED = new FileField<>("Time Modified", "Time Modified", f -> localDateTimeFromMillis(f.lastModified()), LocalDateTime.class);
@@ -58,8 +59,8 @@ public class FileField<T> implements ObjectField<File,T> {
 		}
 	}, FileTime.class);
 	public static final FileField<FileType> TYPE = new FileField<>("Type", "Type", FileType::of, FileType.class);
-	public static final FileField<MimeType> MIME = new FileField<>("Mime Type", "Mime Type", App.APP.mimeTypes::ofFile, MimeType.class);
-	public static final FileField<String> MIME_GROUP = new FileField<>("Mime Group", "Mime Group", f -> App.APP.mimeTypes.ofFile(f).getGroup(), String.class);
+	public static final FileField<MimeType> MIME = new FileField<>("Mime Type", "Mime Type", f -> mimeType(f), MimeType.class);
+	public static final FileField<String> MIME_GROUP = new FileField<>("Mime Group", "Mime Group", f -> mimeType(f).getGroup(), String.class);
 
 	private final String name;
 	private final String description;

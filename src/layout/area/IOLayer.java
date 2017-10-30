@@ -45,6 +45,7 @@ import util.animation.Anim;
 import util.collections.map.Map2D;
 import util.collections.map.Map2D.Key;
 import util.graphics.Util;
+import util.graphics.UtilKt;
 import util.graphics.drag.DragUtil;
 import static java.lang.Math.*;
 import static java.util.stream.Collectors.toList;
@@ -57,6 +58,7 @@ import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.functional.Util.*;
 import static util.functional.Util.min;
+import static util.graphics.UtilKt.setScaleXY;
 import static util.graphics.drag.DragUtil.installDrag;
 
 /**
@@ -399,7 +401,7 @@ public class IOLayer extends StackPane {
             });
 
             if (output!=null) {
-                Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
+                Anim a = new Anim(millis(250), at -> setScaleXY(t, at));
 
                 // This only makes sense when the descriptions are hidden by default, but that would
                 // be very confusing for the user. As it is, manual description show/hide is useless

@@ -48,8 +48,9 @@ import static util.Util.capitalizeStrong;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
 import static util.file.FileMonitor.monitorDirectory;
 import static util.file.FileMonitor.monitorFile;
-import static util.file.Util.childOf;
-import static util.file.Util.listFiles;
+import static util.file.UtilKt.childOf;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
+import static util.file.UtilKt.listChildren;
 import static util.functional.Util.listRO;
 import static util.functional.Util.set;
 
@@ -330,7 +331,7 @@ public class Gui {
 
 		// find skins
 		Set<String> skins = new HashSet<>();
-		listFiles(dir).filter(File::isDirectory)
+		listChildren(dir).filter(File::isDirectory)
 				.forEach(d -> {
 					String name = d.getName();
 					File css = new File(d, name + ".css");
@@ -402,7 +403,7 @@ public class Gui {
 			StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
 			StyleManager.getInstance().addUserAgentStylesheet(url);
 
-			skin.setValue(Util.getName(cssFile));   // set current skin
+			skin.setValue(getNameWithoutExtensionOrRoot(cssFile));   // set current skin
 			skinOldUrl = url;   // store its url so we can remove the skin later
 		} catch (MalformedURLException ex) {
 			LOGGER.error(ex.getMessage());

@@ -27,7 +27,9 @@ import util.async.future.Fut;
 import util.file.AudioFileFormat.Use;
 import util.functional.Try;
 import util.system.Os;
-import static java.awt.Desktop.Action.*;
+import static java.awt.Desktop.Action.BROWSE;
+import static java.awt.Desktop.Action.EDIT;
+import static java.awt.Desktop.Action.OPEN;
 import static java.util.stream.Collectors.groupingBy;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
@@ -36,10 +38,13 @@ import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.getSuffix;
-import static util.file.Util.traverseExistingDir;
+import static util.file.UtilKt.find1stExistingParentDir;
 import static util.functional.Try.error;
 import static util.functional.Try.ok;
-import static util.functional.Util.*;
+import static util.functional.Util.filter;
+import static util.functional.Util.isContainedIn;
+import static util.functional.Util.list;
+import static util.functional.Util.map;
 
 /**
  * Provides methods to handle external platform specific tasks. Browsing
@@ -339,12 +344,12 @@ public interface Environment {
 	static void openIn(File f, boolean inApp) {
 		// open skin - always in app
 		if ((f.isDirectory() && APP.DIR_SKINS.equals(f.getParentFile())) || Util.isValidSkinFile(f)) {
-			Gui.setSkin(Util.getName(f));
+			Gui.setSkin(UtilKt.getNameWithoutExtensionOrRoot(f));
 		}
 
 		// open widget
 		else if ((f.isDirectory() && APP.DIR_WIDGETS.equals(f.getParentFile())) || Util.isValidWidgetFile(f)) {
-			String n = Util.getName(f);
+			String n = UtilKt.getNameWithoutExtensionOrRoot(f);
 			APP.widgetManager.find(n, NO_LAYOUT, false);
 		}
 
@@ -390,13 +395,13 @@ public interface Environment {
 		if (type==DIRECTORY) {
 			DirectoryChooser c = new DirectoryChooser();
 			c.setTitle(title);
-			c.setInitialDirectory(traverseExistingDir(initial).getOr(APP.DIR_APP));
+			c.setInitialDirectory(find1stExistingParentDir(initial).getOr(APP.DIR_APP));
 			File f = c.showDialog(w);
 			return f!=null ? ok(f) : error();
 		} else {
 			FileChooser c = new FileChooser();
 			c.setTitle(title);
-			c.setInitialDirectory(traverseExistingDir(initial).getOr(APP.DIR_APP));
+			c.setInitialDirectory(find1stExistingParentDir(initial).getOr(APP.DIR_APP));
 			if (extensions!=null) c.getExtensionFilters().addAll(extensions);
 			File f = c.showOpenDialog(w);
 			return f!=null ? ok(f) : error();
@@ -406,7 +411,7 @@ public interface Environment {
 	static Try<List<File>,Void> chooseFiles(String title, File initial, Window w, ExtensionFilter... extensions) {
 		FileChooser c = new FileChooser();
 		c.setTitle(title);
-		c.setInitialDirectory(traverseExistingDir(initial).getOr(APP.DIR_APP));
+		c.setInitialDirectory(find1stExistingParentDir(initial).getOr(APP.DIR_APP));
 		if (extensions!=null) c.getExtensionFilters().addAll(extensions);
 		List<File> fs = c.showOpenMultipleDialog(w);
 		return fs!=null && !fs.isEmpty() ? ok(fs) : error();
@@ -415,7 +420,7 @@ public interface Environment {
 	static Try<File,Void> saveFile(String title, File initial, String initialName, Window w, ExtensionFilter... extensions) {
 		FileChooser c = new FileChooser();
 		c.setTitle(title);
-		c.setInitialDirectory(traverseExistingDir(initial).getOr(APP.DIR_APP));
+		c.setInitialDirectory(find1stExistingParentDir(initial).getOr(APP.DIR_APP));
 		c.setInitialFileName(initialName);
 		if (extensions!=null) c.getExtensionFilters().addAll(extensions);
 		File f = c.showSaveDialog(w);

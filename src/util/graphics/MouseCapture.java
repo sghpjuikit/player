@@ -21,7 +21,7 @@ public class MouseCapture {
 	private boolean calcSpeed = false;
 
 	public Point2D getMousePosition() {
-		return Util.getMousePosition();
+		return UtilKt.getMousePosition();
 	}
 
 	public Subscription observeMousePosition(Consumer<Point2D> action) {

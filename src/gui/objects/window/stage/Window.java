@@ -21,7 +21,12 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
@@ -34,7 +39,6 @@ import layout.Component;
 import layout.container.layout.Layout;
 import layout.container.switchcontainer.SwitchContainer;
 import layout.container.switchcontainer.SwitchPane;
-import main.AppBuilders;
 import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,35 +48,62 @@ import util.action.Action;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.conf.IsConfigurable;
-import util.graphics.Util;
+import util.graphics.UtilKt;
 import util.graphics.drag.DragUtil;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_LEFT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLOSE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COLUMNS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GEARS;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GRADUATION_CAP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LASTFM;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LASTFM_SQUARE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SQUARE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SQUARE_ALT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TH;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TH_LARGE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLOCK;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN_EXIT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_MAXIMIZE;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_MINIMIZE;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.objects.window.Resize.NONE;
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
+import static java.lang.Math.pow;
+import static java.lang.Math.signum;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCombination.keyCombination;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
+import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.paint.Color.BLACK;
 import static main.App.APP;
+import static main.AppBuildersKt.appProgressIndicator;
 import static util.access.SequentialValue.next;
 import static util.access.SequentialValue.previous;
 import static util.animation.Anim.par;
 import static util.async.Async.runLater;
 import static util.dev.Util.noØ;
 import static util.dev.Util.throwIfNot;
-import static util.functional.Util.*;
+import static util.functional.Util.forEachIRStream;
+import static util.functional.Util.forEachIStream;
+import static util.functional.Util.list;
+import static util.functional.Util.mapB;
+import static util.functional.Util.set;
 import static util.graphics.Util.setAnchors;
-import static util.graphics.Util.setScaleXY;
+import static util.graphics.UtilKt.setScaleXY;
 import static util.reactive.Util.maintain;
 
 /**
@@ -303,7 +334,7 @@ public class Window extends WindowBase {
 		Icon propB = new Icon(GEARS, 13, Action.get("Open settings"));
 		Icon runB = new Icon(GAVEL, 13, Action.get("Open app actions"));
 		Icon layB = new Icon(COLUMNS, 13, Action.get("Open layout manager"));
-		Icon lastFMB = new Icon<>(null, 13, "LastFM\n\nEnable/configure last fm with left/right "
+		Icon lastFMB = new Icon(null, 13, "LastFM\n\nEnable/configure last fm with left/right "
 			+ "click. Currently, lastFM support is disabled.", e -> {
 			Node b = (Node) e.getSource();
 			if (e.getButton()==PRIMARY)
@@ -574,7 +605,7 @@ public class Window extends WindowBase {
 	 * @return indicator
 	 */
 	public ProgressIndicator taskAdd() {
-		return AppBuilders.appProgressIndicator(
+		return appProgressIndicator(
 			pi -> leftHeaderBox.getChildren().add(pi),      // add indicator to header on start
 			pi -> leftHeaderBox.getChildren().remove(pi)    // remove indicator from header on end
 		);
@@ -653,7 +684,7 @@ public class Window extends WindowBase {
 
 		double X = e.getScreenX();
 		double Y = e.getScreenY();
-		Screen screen = Util.getScreen(X, Y);
+		Screen screen = UtilKt.getScreen(X, Y);     // TODO: this should be centre
 
 		double SWm = screen.getBounds().getMinX();
 		double SHm = screen.getBounds().getMinY();

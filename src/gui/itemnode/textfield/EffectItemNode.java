@@ -6,12 +6,29 @@ import gui.objects.popover.PopOver;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import javafx.scene.control.Tooltip;
-import javafx.scene.effect.*;
+import javafx.scene.effect.Blend;
+import javafx.scene.effect.Bloom;
+import javafx.scene.effect.BoxBlur;
+import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.ColorInput;
+import javafx.scene.effect.DisplacementMap;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.Effect;
+import javafx.scene.effect.GaussianBlur;
+import javafx.scene.effect.Glow;
+import javafx.scene.effect.ImageInput;
+import javafx.scene.effect.InnerShadow;
+import javafx.scene.effect.Lighting;
+import javafx.scene.effect.MotionBlur;
+import javafx.scene.effect.PerspectiveTransform;
+import javafx.scene.effect.Reflection;
+import javafx.scene.effect.SepiaTone;
+import javafx.scene.effect.Shadow;
 import javafx.scene.input.MouseEvent;
 import util.type.ClassName;
 import static javafx.geometry.Pos.CENTER;
 import static main.App.APP;
-import static main.AppBuilders.appTooltip;
+import static main.AppBuildersKt.appTooltip;
 import static util.conf.Configurable.configsFromFxPropertiesOf;
 import static util.dev.Util.log;
 import static util.functional.Util.list;
@@ -65,8 +82,8 @@ public class EffectItemNode extends TextFieldItemNode<Effect> {
 			new EffectType(null)
 	);
 
-	private final Icon<?> typeB = new Icon();
-	private final Icon<?> propB = new Icon();
+	private final Icon typeB = new Icon();
+	private final Icon propB = new Icon();
 	private final Class<? extends Effect> limitedToType;
 
 	/** Creates effect editor which can edit an effect or create effect of any type. */

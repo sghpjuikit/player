@@ -2,19 +2,17 @@ package main;
 
 import audio.Item;
 import audio.Player;
-import audio.SimpleItem;
 import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataGroup;
-import audio.tagging.MetadataReader;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.spi.FilterAttachable;
 import ch.qos.logback.core.util.StatusPrinter;
- import com.sun.tools.attach.VirtualMachine;
+import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.mapper.Mapper;
@@ -22,31 +20,38 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import gui.Gui;
-import gui.infonode.ConvertTaskInfo;
 import gui.objects.icon.Icon;
 import gui.objects.popover.PopOver;
-import gui.objects.spinner.Spinner;
-import gui.objects.tablecell.*;
+import gui.objects.tablecell.BarRatingCellFactory;
+import gui.objects.tablecell.HyphenRatingCellFactory;
+import gui.objects.tablecell.NumberRatingCellFactory;
+import gui.objects.tablecell.RatingCellFactory;
+import gui.objects.tablecell.RatingRatingCellFactory;
+import gui.objects.tablecell.TextStarRatingCellFactory;
 import gui.objects.textfield.autocomplete.ConfigSearch;
 import gui.objects.window.stage.Window;
 import gui.objects.window.stage.WindowManager;
-import gui.pane.*;
-import gui.pane.ActionPane.ComplexActionData;
+import gui.pane.ActionPane;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
 import gui.pane.ActionPane.SlowColAction;
+import gui.pane.InfoPane;
+import gui.pane.MessagePane;
+import gui.pane.ShortcutPane;
 import java.io.File;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.LogManager;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Pos;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
@@ -54,7 +59,10 @@ import layout.Component;
 import layout.widget.Widget;
 import layout.widget.WidgetManager;
 import layout.widget.WidgetManager.WidgetSource;
-import layout.widget.feature.*;
+import layout.widget.feature.ImageDisplayFeature;
+import layout.widget.feature.ImagesDisplayFeature;
+import layout.widget.feature.Opener;
+import layout.widget.feature.PlaylistFeature;
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
 import org.slf4j.Logger;
@@ -70,7 +78,6 @@ import services.database.Db;
 import services.notif.Notifier;
 import services.playcount.PlaycountIncrementer;
 import services.tray.TrayService;
-import util.SingleR;
 import util.access.TypedValue;
 import util.access.V;
 import util.access.VarEnum;
@@ -79,43 +86,70 @@ import util.access.fieldvalue.FileField;
 import util.access.fieldvalue.ObjectField;
 import util.action.Action;
 import util.action.IsAction;
-import util.async.future.ConvertListTask;
-import util.conf.*;
+import util.conf.Config;
 import util.conf.Config.PropertyConfig;
+import util.conf.Configurable;
+import util.conf.Configuration;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
 import util.file.ImageFileFormat;
 import util.file.Util;
-import util.file.mimetype.MimeTypes;
 import util.functional.Try;
 import util.graphics.MouseCapture;
 import util.reactive.SetƑ;
-import util.serialize.xstream.*;
+import util.serialize.xstream.BooleanPropertyConverter;
+import util.serialize.xstream.DoublePropertyConverter;
+import util.serialize.xstream.IntegerPropertyConverter;
+import util.serialize.xstream.LongPropertyConverter;
+import util.serialize.xstream.ObjectPropertyConverter;
+import util.serialize.xstream.ObservableListConverter;
+import util.serialize.xstream.PlaybackStateConverter;
+import util.serialize.xstream.PlaylistConverter;
+import util.serialize.xstream.PlaylistItemConverter;
+import util.serialize.xstream.StringPropertyConverter;
+import util.serialize.xstream.VConverter;
 import util.system.SystemOutListener;
-import util.type.*;
+import util.type.ClassName;
+import util.type.InstanceInfo;
+import util.type.InstanceMap;
+import util.type.InstanceName;
+import util.type.ObjectFieldMap;
 import util.units.FileSize;
 import util.validation.Constraint;
-import web.*;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
+import web.BingImageSearchQBuilder;
+import web.DuckDuckGoImageQBuilder;
+import web.DuckDuckGoQBuilder;
+import web.GoogleImageQBuilder;
+import web.SearchUriBuilder;
+import web.WikipediaQBuilder;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CSS3;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GITHUB;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.IMAGE;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.BRUSH;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.EXPORT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER;
-import static gui.pane.ActionPane.collectionWrap;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.IMPORT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.INFORMATION_OUTLINE;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.KEYBOARD_VARIANT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.stream.Collectors.toList;
-import static layout.widget.WidgetManager.WidgetSource.*;
+import static layout.widget.WidgetManager.WidgetSource.ANY;
+import static layout.widget.WidgetManager.WidgetSource.NEW;
+import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
+import static main.AppActionsKt.addToLibraryConsumer;
 import static org.atteo.evo.inflector.English.plural;
-import static util.graphics.image.UtilKt.getImageDim;
-import static util.async.Async.FX;
 import static util.async.Async.run;
-import static util.async.future.Fut.fut;
-import static util.dev.Util.log;
 import static util.file.Environment.chooseFile;
 import static util.file.Environment.chooseFiles;
 import static util.file.FileType.DIRECTORY;
-import static util.file.Util.*;
-import static util.functional.Util.*;
-import static util.graphics.Util.layHorizontally;
-import static util.graphics.Util.layVertically;
+import static util.file.Util.isValidatedDirectory;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
+import static util.functional.Util.list;
+import static util.functional.Util.stream;
+import static util.graphics.image.UtilKt.getImageDim;
 
 /**
  * Application. Represents the program.
@@ -236,7 +270,7 @@ public class App extends Application implements Configurable {
 	/**
 	 * Observable {@link System#out}
 	 */ public final SystemOutListener systemout = new SystemOutListener();
-	public final UncaughtExceptionHandler uncaughtExceptionHandler = (thread,ex) -> log(App.class).error("Uncaught exception", ex);
+	public final UncaughtExceptionHandler uncaughtExceptionHandler = (thread,ex) -> util.dev.Util.log(App.class).error("Uncaught exception", ex);
 
 	public final ClassName className = new ClassName();
 	public final InstanceName instanceName = new InstanceName();
@@ -279,10 +313,6 @@ public class App extends Application implements Configurable {
 	/**
 	 * Instance enumerations.
 	 */ public final InstanceMap instances = new InstanceMap();
-	/**
-	 * File mime type map.
-	 * Initialized with the built-in mime types definitions.
-	 */ public final MimeTypes mimeTypes = MimeTypes.standard();
 
 	@IsConfig(name = "Rating control", info = "The style of the graphics of the rating control.")
 	public final VarEnum<RatingCellFactory> ratingCell = VarEnum.ofInstances(RatingRatingCellFactory.INSTANCE, RatingCellFactory.class, instances);
@@ -296,9 +326,6 @@ public class App extends Application implements Configurable {
 
 	@IsConfig(name = "Rating editable", info = "Allow change of rating. Defaults to application settings")
 	public final V<Boolean> allowRatingChange = new V<>(true);
-
-	@IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering.")
-	public final V<Boolean> hoverRating = new V<>(true);
 
 	@IsConfig(name = "Debug value (double)", info = "For application testing. Generic number value "
 			+ "to control some application value manually.")
@@ -318,6 +345,7 @@ public class App extends Application implements Configurable {
 	@IsConfig(info = "Preferred text when multiple tag values per field. This value can be overridden.")
 	public String TAG_MULTIPLE_VALUE = "<multi>";
 
+	// TODO: use a Quality enum LOW/HIGH
 	@Constraint.MinMax(min=10, max=60)
 	@IsConfig(info = "Update frequency in Hz for performance-heavy animations.")
 	public double animationFps = 60.0;
@@ -465,7 +493,7 @@ public class App extends Application implements Configurable {
 			)
 		);
 		actionPane.register(Object.class,
-			new FastColAction<>("Set as data",
+			new FastColAction<Object>("Set as data",
 				"Sets the selected data as input.",
 				MaterialDesignIcon.DATABASE,
 				actionPane.converting(Try::ok)
@@ -560,61 +588,7 @@ public class App extends Application implements Configurable {
 				+ "item already was in the database it will not be added or edited.",
 				MaterialDesignIcon.DATABASE_PLUS,
 				items -> {}
-			).preventClosing(new ComplexActionData<Collection<File>,List<File>>(
-				() -> {
-					V<Boolean> makeWritable = new V<>(true);
-					V<Boolean> editInTagger = new V<>(true);
-					V<Boolean> editOnlyAdded = new V<>(false);
-					V<Boolean> enqueue = new V<>(false);
-					ConvertListTask<Item,Metadata> task = MetadataReader.buildAddItemsToLibTask();
-					ConvertTaskInfo info = new ConvertTaskInfo(null, new Label(), new Label(), new Label(), new Spinner().hidingOnIdle(true));
-									info.bind(task);
-					SingleR<Widget,Void> tagger = new SingleR<>(() -> APP.widgetManager.getFactories()
-								.findFirst(f -> f.name().equals("Tagger"))
-								.get().create());
-					return layHorizontally(50, Pos.CENTER,
-						layVertically(50, Pos.CENTER,
-							new ConfigPane<>(
-								Config.forProperty(Boolean.class, "Make writable if read-only", makeWritable),
-								Config.forProperty(Boolean.class, "Edit in Tagger", editInTagger),
-								Config.forProperty(Boolean.class, "Edit only added files", editOnlyAdded),
-								Config.forProperty(Boolean.class, "Enqueue in playlist", enqueue)
-							).getNode(),
-							layVertically(10, Pos.CENTER_LEFT,
-								info.state,
-								layHorizontally(10, Pos.CENTER_LEFT,
-									info.message,
-									info.progressIndicator
-								),
-								info.skipped
-							),
-							new Icon(FontAwesomeIcon.CHECK,25).onClick(e -> {
-								((Icon) e.getSource()).setDisable(true);
-								fut((List<File>) collectionWrap(actionPane.getData()))  // TODO: make automatic
-									.use(files -> {
-										if (makeWritable.get()) files.forEach(f -> f.setWritable(true));
-									})
-									.map(files -> map(files, SimpleItem::new))
-									.map(task)
-									.showProgress(actionPane.actionProgress)
-									.use(FX, r -> {
-										if (editInTagger.get()) {
-											List<? extends Item> items = editOnlyAdded.get() ? r.converted : r.all;
-											((SongReader) tagger.get().getController()).read(items);
-										}
-										if (enqueue.get() && !r.all.isEmpty()) {
-											APP.widgetManager.find(PlaylistFeature.class, WidgetSource.ANY)
-												.map(PlaylistFeature::getPlaylist)
-												.ifPresent(p -> p.addItems(r.all));
-										}
-									});
-							}).withText("Execute")
-						),
-						tagger.get().load()
-					);
-				},
-				files -> fut(files).map(fs -> getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList()))
-			)),
+			).preventClosing(addToLibraryConsumer(actionPane)),
 			new FastColAction<>("Add to existing playlist",
 				"Add items to existing playlist widget if possible or to a new one if not.",
 				PLAYLIST_PLUS,
@@ -624,7 +598,7 @@ public class App extends Application implements Configurable {
 			new FastAction<>("Apply skin", "Apply skin on the application.",
 				BRUSH,
 				Util::isValidSkinFile,
-				skin_file -> Gui.setSkin(getName(skin_file))),
+				skin_file -> Gui.setSkin(getNameWithoutExtensionOrRoot(skin_file))),
 			new FastAction<>("View image", "Opens image in an image viewer widget.",
 				IMAGE,
 				ImageFileFormat::isSupported,
@@ -649,7 +623,7 @@ public class App extends Application implements Configurable {
 		);
 		parameterProcessor.addFileProcessor(
 			Util::isValidSkinFile,
-			fs -> Gui.setSkin(getName(fs.get(0)))
+			fs -> Gui.setSkin(getNameWithoutExtensionOrRoot(fs.get(0)))
 		);
 		parameterProcessor.addFileProcessor(
 			ImageFileFormat::isSupported,

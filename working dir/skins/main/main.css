@@ -3247,6 +3247,11 @@ check-icon-disabling:selected {
 .filter-negate-icon:selected {
    -glyph-name: "FontAwesome.CIRCLE_ALT";
 }
+.resize-content-icon {
+   -glyph-name: "MaterialDesignIcon.RESIZE_BOTTOM_RIGHT";
+   scaleX: 1.5;
+   scaleY: 1.5;
+}
 
 /***********************************************************************************************************************
 
@@ -3270,19 +3275,14 @@ check-icon-disabling:selected {
  * inherits: .root
  * pseudoclasses: focused, hover, resized, moved, fullscreen
  */
-.window {
-}
-.window:hover {
-}
-.window:focused {
-}
-.window:resized {
-}
+.window {}
+.window:hover {}
+.window:focused {}
+.window:resized {}
 .window:moved {
     -fx-background-radius: 5;
 }
-.window:fullscreen {
-}
+.window:fullscreen {}
 
 /* 
  * Empty layer right above background for brg-image. It is possible to use more
@@ -3379,24 +3379,19 @@ check-icon-disabling:selected {
 }
 
 
-.freeflowcontainer-window {
-    
-}
+.freeflowcontainer-window {}
 .freeflowcontainer-window >.content {
     -fx-padding: 2.5;
 }
 
 /* Control for setting up layout. */
-.layouter {
-}
+.layouter {}
 /** Choosable element inside layouter. Subclasses .block */
-.layouter-element {
-}
+.layouter-element {}
 
 
 /* HBox containing buttons within a header */
-.header-buttons {
-}
+.header-buttons {}
 
 
 /* Small button mostly within custom controls for opening dialogs. For example
@@ -3473,8 +3468,7 @@ check-icon-disabling:selected {
  * inherits: ScrollPane, .block
  * Used in layouts (should mirror the style of widget area), but also popups.
  */
-.item-picker {
-}
+.item-picker {}
 
 .item-picker-element {
     -fx-background-color: -fx-pane-color;
@@ -3607,15 +3601,13 @@ check-icon-disabling:selected {
  * Root - background for thumbnail. 
  * inherits: .pane
  */
-.thumbnail {
-}
+.thumbnail {}
 
 /* 
  * The actual image.
  * inherits: .imageview
  */
-.thumbnail-image {
-}
+.thumbnail-image {}
 
 /*
  * The border of thumbnail 

@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import gui.objects.textfield.*?>
+
+<AnchorPane fx:id="root" prefHeight="740.0" prefWidth="550.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+       <VBox fx:id="content" alignment="CENTER">
+          <children>
+              <BorderPane fx:id="header" prefHeight="25.0">
+                  <left>
+                      <Label fx:id="infoL" text="Summary" BorderPane.alignment="CENTER_LEFT" />
+                  </left>
+                  <padding>
+                      <Insets left="10.0" right="10.0" />
+                  </padding>
+              </BorderPane>
+              <ScrollPane id="ScrollPane" fitToWidth="true" hbarPolicy="NEVER" prefHeight="640.0" prefWidth="550.0" VBox.vgrow="ALWAYS">
+                 <content>
+                     <AnchorPane id="AnchorPane" fx:id="scrollContent">
+                         <padding>
+                             <Insets bottom="10.0" left="10.0" right="10.0" />
+                         </padding>
+                        <children>
+                            <GridPane fx:id="grid" snapToPixel="true" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="210.0" AnchorPane.topAnchor="0.0">
+                                <columnConstraints>
+                                    <ColumnConstraints fillWidth="false" hgrow="NEVER" minWidth="-Infinity" />
+                                    <ColumnConstraints hgrow="NEVER" percentWidth="30.0" />
+                                    <ColumnConstraints hgrow="NEVER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />
+                                </columnConstraints>
+                                <padding>
+                                    <Insets />
+                                </padding>
+                                <rowConstraints>
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                </rowConstraints>
+                               <children>
+                                   <Label text="Title" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="0">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Album" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Artist" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Album Artist" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Composer" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Publisher" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="5">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Track" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="6">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Disc" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="7">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Genre" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="8">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Category" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="9">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Year" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="10">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Rating" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="11">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Playcount" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="12">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Comment" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="13">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Mood" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="14">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Color" GridPane.halignment="RIGHT" GridPane.rowIndex="15">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Custom 1" GridPane.halignment="RIGHT" GridPane.rowIndex="16">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Custom 2" GridPane.halignment="RIGHT" GridPane.rowIndex="17">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Custom 3" GridPane.halignment="RIGHT" GridPane.rowIndex="18">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Custom 4" GridPane.halignment="RIGHT" GridPane.rowIndex="19">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Custom 5" GridPane.halignment="RIGHT" GridPane.rowIndex="20">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Played First" GridPane.halignment="RIGHT" GridPane.rowIndex="21">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Played Last" GridPane.halignment="RIGHT" GridPane.rowIndex="22">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Added to Library" GridPane.halignment="RIGHT" GridPane.rowIndex="23">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <Label text="Tags" GridPane.halignment="RIGHT" GridPane.rowIndex="24">
+                                       <GridPane.margin>
+                                           <Insets right="10.0" />
+                                       </GridPane.margin>
+                                   </Label>
+                                   <DecoratedTextField fx:id="titleF" alignment="CENTER_RIGHT" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="0" />
+                                   <DecoratedTextField id="AlbumField" fx:id="albumF" alignment="CENTER_RIGHT" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
+                                   <DecoratedTextField fx:id="artistF" alignment="CENTER_RIGHT" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="2" />
+                                   <DecoratedTextField fx:id="albumArtistF" alignment="CENTER_RIGHT" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="3" />
+                                   <DecoratedTextField fx:id="composerF" alignment="CENTER_RIGHT" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="4" />
+                                   <DecoratedTextField fx:id="publisherF" alignment="CENTER_RIGHT" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="5" />
+                                   <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="6" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+                                       <columnConstraints>
+                                           <ColumnConstraints hgrow="SOMETIMES" />
+                                           <ColumnConstraints hgrow="SOMETIMES" maxWidth="10.0" minWidth="10.0" prefWidth="10.0" />
+                                           <ColumnConstraints hgrow="SOMETIMES" />
+                                       </columnConstraints>
+                                       <rowConstraints>
+                                           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                       </rowConstraints>
+                                      <children>
+                                          <DecoratedTextField fx:id="trackF" alignment="CENTER_RIGHT" GridPane.halignment="LEFT" />
+                                          <Label text="/" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                                          <DecoratedTextField fx:id="tracksTotalF" alignment="CENTER_RIGHT" GridPane.columnIndex="2" GridPane.halignment="LEFT" />
+                                      </children>
+                                   </GridPane>
+                                   <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="7" xmlns:fx="http://javafx.com/fxml">
+                                       <columnConstraints>
+                                           <ColumnConstraints hgrow="SOMETIMES" />
+                                           <ColumnConstraints hgrow="SOMETIMES" maxWidth="10.0" minWidth="10.0" prefWidth="10.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />
+                                           <ColumnConstraints hgrow="SOMETIMES" />
+                                       </columnConstraints>
+                                       <rowConstraints>
+                                           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                       </rowConstraints>
+                                      <children>
+                                          <DecoratedTextField fx:id="discF" alignment="CENTER_RIGHT" GridPane.halignment="LEFT" />
+                                          <Label text="/" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                                          <DecoratedTextField fx:id="discsTotalF" alignment="CENTER_RIGHT" GridPane.columnIndex="2" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" />
+                                      </children>
+                                   </GridPane>
+                                   <DecoratedTextField fx:id="genreF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="8" />
+                                   <DecoratedTextField fx:id="categoryF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="9" />
+                                   <DecoratedTextField fx:id="yearF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="10" />
+                                   <DecoratedTextField fx:id="ratingF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefColumnCount="0" BorderPane.alignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="11" />
+                                   <DecoratedTextField fx:id="ratingPF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" BorderPane.alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="11" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />
+                                   <DecoratedTextField fx:id="playcountF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="12" />
+                                   <DecoratedTextField fx:id="commentF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="13" />
+                                   <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="15">
+                                      <children>
+                                          <DecoratedTextField fx:id="colorF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="30.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" />
+                                          <ColorPicker fx:id="colorFPicker" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="15" />
+                                      </children>
+                                   </AnchorPane>
+                                   <DecoratedTextField fx:id="custom1F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" />
+                                   <DecoratedTextField fx:id="custom2F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="17" />
+                                   <DecoratedTextField fx:id="custom3F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="18" />
+                                   <DecoratedTextField fx:id="custom4F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="19" />
+                                   <DecoratedTextField fx:id="custom5F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="20" />
+                                   <DecoratedTextField fx:id="playedFirstF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="21" />
+                                   <DecoratedTextField fx:id="playedLastF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="22" />
+                                   <DecoratedTextField fx:id="addedToLibF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="23" />
+                                   <DecoratedTextField fx:id="tagsF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="24" />
+                               </children>
+                            </GridPane>
+                            <AnchorPane id="AnchorPane" prefHeight="137.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="230.0">
+                               <children>
+                                   <BorderPane prefHeight="137.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                       <center>
+                                           <TextArea fx:id="LyricsA" prefHeight="-1.0" prefWidth="200.0" wrapText="true" />
+                                       </center>
+                                       <top>
+                                           <Label text="Lyrics" BorderPane.alignment="CENTER">
+                                               <BorderPane.margin>
+                                                   <Insets bottom="3.0" />
+                                               </BorderPane.margin>
+                                           </Label>
+                                       </top>
+                                   </BorderPane>
+                               </children>
+                            </AnchorPane>
+                            <BorderPane prefHeight="205.0" prefWidth="200.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <bottom>
+                                    <Label fx:id="CoverL" text="Cover value" BorderPane.alignment="CENTER">
+                                        <BorderPane.margin>
+                                            <Insets top="3.0" />
+                                        </BorderPane.margin>
+                                    </Label>
+                                </bottom>
+                                <center>
+                                    <StackPane fx:id="coverSuperContainer" BorderPane.alignment="CENTER">
+                                       <children>
+                                           <Label fx:id="noCoverL" text="No Cover" StackPane.alignment="CENTER" />
+                                           <BorderPane fx:id="coverContainer" StackPane.alignment="CENTER" />
+                                       </children>
+                                    </StackPane>
+                                </center>
+                            </BorderPane>
+                        </children>
+                     </AnchorPane>
+                 </content>
+              </ScrollPane>
+            <Label fx:id="fieldDesc" text="Label">
+               <padding>
+                  <Insets bottom="5.0" />
+               </padding>
+            </Label>
+          </children>
+       </VBox>
+       <StackPane mouseTransparent="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+          <children>
+              <Label fx:id="placeholder" text="Drag &amp; drop songs to tag " />
+          </children>
+       </StackPane>
+   </children>
+</AnchorPane>

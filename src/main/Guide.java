@@ -1,5 +1,6 @@
 package main;
 
+import gui.objects.popover.ScreenPos;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -403,7 +404,7 @@ public final class Guide implements Configurable {
 		// - avoids unneeded show() call
 		// - avoids relocating the popups as a result of alignment with different popup size
 		// the popup size depends on the text
-		if (!p.isShowing()) p.show(PopOver.ScreenPos.App_Center);
+		if (!p.isShowing()) p.show(ScreenPos.APP_CENTER);
 		// progress
 		infoL.setText((at+1) + "/" + hints.size());
 		// title + text

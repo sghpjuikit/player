@@ -9,15 +9,25 @@ import gui.objects.image.cover.FileCover;
 import gui.objects.tree.FileTree;
 import gui.objects.tree.TreeItems;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import javafx.animation.Interpolator;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
+import kotlin.jvm.functions.Function1;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import util.SwitchException;
@@ -30,8 +40,6 @@ import util.conf.IsConfig;
 import util.file.Environment;
 import util.file.ImageFileFormat;
 import util.file.Properties;
-import util.file.Util;
-import util.functional.Functors.Ƒ1;
 import util.functional.Try;
 import util.validation.Constraint;
 import web.WikipediaQBuilder;
@@ -46,13 +54,17 @@ import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static layout.widget.Widget.Group.OTHER;
 import static main.App.APP;
-import static util.animation.Anim.Applier.typeText;
 import static util.animation.Anim.par;
 import static util.animation.Anim.seq;
-import static util.async.Async.*;
-import static util.file.Util.*;
+import static util.async.Async.FX;
+import static util.async.Async.runFX;
+import static util.async.Async.runNew;
+import static util.file.Util.readFileLines;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
+import static util.file.UtilKt.listChildren;
 import static util.functional.Util.by;
 import static util.functional.Util.stream;
+import static util.graphics.UtilKt.typeText;
 import static util.validation.Constraint.FileActor.DIRECTORY;
 
 @Widget.Info(
@@ -128,13 +140,13 @@ public class GameLib extends FXMLController {
             // play
         int name_len = g.getName().length();
         Interpolator i = new ElasticInterpolator();
-        Ƒ1<Double,String> ti = typeText(g.getName());
+        Function1<Double,String> ti = typeText(g.getName());
         par(
             seq(
                 new Anim(millis(450), i, at -> inforoot.setPrefSize(300*at,50)),
                 new Anim(millis(550), i, at -> inforoot.setPrefSize(300,50+(inforootroot.getHeight()-50)*at))
             ),
-            new Anim(millis(name_len*30), at -> titleL.setText(ti.apply(at)))
+            new Anim(millis(name_len*30), at -> titleL.setText(ti.invoke(at)))
         ).play();
     }
 
@@ -207,7 +219,7 @@ public class GameLib extends FXMLController {
                 File f = new File(nv.getValue(),"readme.txt");
                 if (f.exists()) {
                     String s = readFileLines(f).collect(joining("\n"));
-                    info_text.setText(getName(f) + "\n\n" + s);
+                    info_text.setText(getNameWithoutExtensionOrRoot(f) + "\n\n" + s);
                 }
             }
         });
@@ -225,7 +237,7 @@ public class GameLib extends FXMLController {
 
     private void loadGames() {
 	    List<GameItem> items = stream(files.list).distinct()
-			.flatMap(Util::listFiles)
+			.flatMap(f -> listChildren(f))
             .filter(f -> f.isDirectory() && !f.isHidden())
             .map(GameItem::new)
 		    .sorted(by(GameItem::getName))
@@ -281,7 +293,7 @@ public class GameLib extends FXMLController {
 
         public Cover getCover() {
             File dir = getLocation();
-            File cf = listFiles(dir).filter(f -> {
+            File cf = listChildren(dir).filter(f -> {
                 String filename = f.getName();
                 int i = filename.lastIndexOf('.');
                 if (i == -1) return false;

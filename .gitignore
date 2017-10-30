@@ -1,9 +1,9 @@
 ########################
 ## Project Specific
 ##########################
-.idea
-out
-private
+.idea/
+out/
+private/
 working dir/log/*zip
 working dir/log/*log
 working dir/user

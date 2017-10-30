@@ -7,7 +7,7 @@ import gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.grid.GridView.CellSize;
-import gui.objects.image.ImageNode.ImageSize;
+import gui.objects.image.ImageSize;
 import gui.objects.image.Thumbnail;
 import gui.objects.image.cover.Cover;
 import java.io.File;
@@ -28,7 +28,6 @@ import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import layout.widget.controller.io.Input;
 import layout.widget.controller.io.Output;
-import services.database.Db;
 import unused.TriConsumer;
 import util.SwitchException;
 import util.access.V;
@@ -46,6 +45,7 @@ import static gui.objects.grid.GridView.CellSize.NORMAL;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static main.App.APP;
 import static util.Util.loadImageFull;
 import static util.Util.loadImageThumb;
 import static util.async.Async.*;
@@ -162,8 +162,7 @@ public class AlbumView extends ClassController {
 						out_sel_met.setValue(fl);
 					}
 				});
-			})
-			.run();
+			});
 	}
 
 	private List<Metadata> filterList(List<Metadata> list, boolean orAll) {
@@ -178,7 +177,7 @@ public class AlbumView extends ClassController {
 	 */
 	private List<Metadata> filerListToSelectedNsort() {
 		List<Metadata> l = filterList(in_items.getValue(),false);
-		l.sort(Db.library_sorter.get());
+		l.sort(APP.db.getLibraryComparator().get());
 		return l;
 	}
 
@@ -192,7 +191,7 @@ public class AlbumView extends ClassController {
 
 	private void play(List<Metadata> items) {
 		if (items.isEmpty()) return;
-		PlaylistManager.use(p -> p.setNplay(items.stream().sorted(Db.library_sorter.get())));
+		PlaylistManager.use(p -> p.setNplay(items.stream().sorted(APP.db.getLibraryComparator().get())));
 	}
 
 /* ---------- SELECTION RESTORE ------------------------------------------------------------------------------------- */
@@ -409,7 +408,7 @@ public class AlbumView extends ClassController {
 		        setCoverPost(item, true, item.cover_file, item.cover);
 	        } else {
 				ImageSize size = thumb.calculateImageLoadSize();
-				double w = size.width, h = size.height;
+				double w = size.getWidth(), h = size.getHeight();
 	            // load thumbnail
 	            executorThumbs.execute(() ->
 	                item.loadCover(false, w, h, (was_loaded, file, img) -> setCoverPost(item, was_loaded, file, img))

@@ -1,5 +1,6 @@
 package util.file;
 
+import audio.Player;
 import audio.playlist.PlaylistManager;
 import gui.Gui;
 import java.awt.*;
@@ -22,21 +23,28 @@ import javafx.stage.Window;
 import layout.widget.feature.ImageDisplayFeature;
 import layout.widget.feature.ImagesDisplayFeature;
 import util.async.Async;
+import util.async.future.Fut;
 import util.file.AudioFileFormat.Use;
 import util.functional.Try;
 import util.system.Os;
-import static java.awt.Desktop.Action.*;
+import static java.awt.Desktop.Action.BROWSE;
+import static java.awt.Desktop.Action.EDIT;
+import static java.awt.Desktop.Action.OPEN;
 import static java.util.stream.Collectors.groupingBy;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
+import static util.async.Async.runNotFX;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.getSuffix;
-import static util.file.Util.traverseExistingDir;
+import static util.file.UtilKt.find1stExistingParentDir;
 import static util.functional.Try.error;
 import static util.functional.Try.ok;
-import static util.functional.Util.*;
+import static util.functional.Util.filter;
+import static util.functional.Util.isContainedIn;
+import static util.functional.Util.list;
+import static util.functional.Util.map;
 
 /**
  * Provides methods to handle external platform specific tasks. Browsing
@@ -71,51 +79,54 @@ public interface Environment {
 	 * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
 	 * @throws java.lang.RuntimeException if any param null
 	 */
-	static Try<Void,Exception> runProgram(File program, String... arguments) {
+	static Fut<Try<Void,Exception>> runProgram(File program, String... arguments) {
 		noØ(program);
 		noØ((Object[]) arguments);
 
 		File dir = program.getParentFile();
 		List<String> command = new ArrayList<>();
 
-		try {
-			// run this program
-			command.add(program.getAbsoluteFile().getPath());
-
-			// with optional parameter
-			for (String a : arguments)
-				if (!a.isEmpty()) command.add("-" + a);
-
-			new ProcessBuilder(command)
-					.directory(dir)
-					.start();
-
-			return Try.ok();
-		} catch (IOException e) {
-			log(Environment.class).warn("Failed to launch program", e);
-
-			if (Os.getCurrent()==Os.WINDOWS) {
-				// we might have failed due to the program requiring elevation (run
-				// as admin) so we use a little utility we package along
-				log(Environment.class).warn("Attempting to run as administrator...");
+		return Fut.fut()
+			.supply(Player.IO_THREAD, () -> {
 				try {
-					// use elevate.exe to run what we wanted
-					command.add(0, "elevate.exe");
-					log(Environment.class).info("Executing command= {}", command);
+					// run this program
+					command.add(program.getAbsoluteFile().getPath());
+
+					// with optional parameter
+					for (String a : arguments)
+						if (!a.isEmpty()) command.add("-" + a);
+
 					new ProcessBuilder(command)
 							.directory(dir)
 							.start();
 
 					return Try.ok();
-				} catch (IOException x) {
-					log(Environment.class).error("Failed to launch program", x);
-					Logger.getLogger(Environment.class.getName()).log(Level.SEVERE, null, x);
-					return Try.error(x);
+				} catch (IOException e) {
+					log(Environment.class).warn("Failed to launch program", e);
+
+					if (Os.getCurrent()==Os.WINDOWS) {
+						// we might have failed due to the program requiring elevation (run
+						// as admin) so we use a little utility we package along
+						log(Environment.class).warn("Attempting to run as administrator...");
+						try {
+							// use elevate.exe to run what we wanted
+							command.add(0, "elevate.exe");
+							log(Environment.class).info("Executing command= {}", command);
+							new ProcessBuilder(command)
+									.directory(dir)
+									.start();
+
+							return Try.ok();
+						} catch (IOException x) {
+							log(Environment.class).error("Failed to launch program", x);
+							Logger.getLogger(Environment.class.getName()).log(Level.SEVERE, null, x);
+							return Try.error(x);
+						}
+					} else {
+						return Try.error(e);
+					}
 				}
-			} else {
-				return Try.error(e);
-			}
-		}
+		});
 	}
 
 	/**
@@ -143,7 +154,7 @@ public interface Environment {
 	static void runCommand(String command, Consumer<Process> then) {
 		noØ(command);
 		if (!command.isEmpty())
-			Async.runNew(() -> {
+			Async.runNotFX(() -> {
 				try {
 					Process p = Runtime.getRuntime().exec(command);
 					if (then!=null) then.accept(p);
@@ -191,49 +202,53 @@ public interface Environment {
 			return;
 		}
 
-		try {
-			// If uri denotes a file, file explorer should be open, highlighting the file
-			// However Desktop.browse does nothing (a bug?). We have 2 alternatives:
-			// 1: open the parent directory of the file (and sacrifice the file highlighting functionality)
-			// 2: open the file with Desktop.open() which opens the file in the associated program.
-			// Both have problems.
-			//
-			// Ultimately, for Windows we run explorer.exe manually and select the file. For
-			// other systems we browse the parent directory instead. Non Windows platforms
-			// need some testing to do...
+		runNotFX(() -> {
 			try {
-				File f = new File(uri);
-				boolean isDir = f.isDirectory();
-				if (f.exists()) {
-					if (Os.WINDOWS.isCurrent() && (!isDir || !openDir)) {
-						openWindowsExplorerAndSelect(f);
-					} else {
-						open(isDir ? f.getParentFile() : f);
+				// If uri denotes a file, file explorer should be open, highlighting the file
+				// However Desktop.browse does nothing (a bug?). We have 2 alternatives:
+				// 1: open the parent directory of the file (and sacrifice the file highlighting functionality)
+				// 2: open the file with Desktop.open() which opens the file in the associated program.
+				// Both have problems.
+				//
+				// Ultimately, for Windows we run explorer.exe manually and select the file. For
+				// other systems we browse the parent directory instead. Non Windows platforms
+				// need some testing to do...
+				try {
+					File f = new File(uri);
+					boolean isDir = f.isDirectory();
+					if (f.exists()) {
+						if (Os.WINDOWS.isCurrent() && (!isDir || !openDir)) {
+							openWindowsExplorerAndSelect(f);
+						} else {
+							open(isDir ? f.getParentFile() : f);
+						}
 					}
+					return;
+				} catch (IllegalArgumentException e) {
+					// ignore exception, it just means the uri does not denote a
+					// file which is fine
 				}
-				return;
-			} catch (IllegalArgumentException e) {
-				// ignore exception, it just means the uri does not denote a
-				// file which is fine
+				Desktop.getDesktop().browse(uri);
+			} catch (IOException e) {
+				log(Environment.class).error("Browsing uri {} failed", uri, e);
+				APP.parameterProcessor.process(list(uri.getPath())); // try open with this app
 			}
-			Desktop.getDesktop().browse(uri);
-		} catch (IOException e) {
-			log(Environment.class).error("Browsing uri {} failed", uri, e);
-			APP.parameterProcessor.process(list(uri.getPath())); // try open with this app
-		}
+		});
 	}
 
 	/**
 	 * Browses files or directories. On some platforms the operation may be unsupported.
 	 */
 	static void browse(Stream<File> files) {
-		files.distinct()
-				.collect(groupingBy(f -> f.isFile() ? f.getParentFile() : f))
-				.forEach((dir, children) -> {
-					if (children.size()==1) browse(children.get(0));
-					else if (children.stream().anyMatch(f -> f==dir)) browse(dir);
-					else open(dir);
-				});
+		runNotFX(() -> {
+			files.distinct()
+					.collect(groupingBy(f -> f.isFile() ? f.getParentFile() : f))
+					.forEach((dir, children) -> {
+						if (children.size()==1) browse(children.get(0));
+						else if (children.stream().anyMatch(f -> f==dir)) browse(dir);
+						else open(dir);
+					});
+		});
 	}
 
 	// TODO: if no associated editor exists exception is thrown! fix and use Try
@@ -251,18 +266,20 @@ public interface Environment {
 			return;
 		}
 
-		if (file.isDirectory()) {
-			open(file);
-		} else {
-			try {
-				Desktop.getDesktop().edit(file);
-			} catch (IOException e) {
-				log(Environment.class).error("Opening file {} in editor failed", file, e);
-				APP.parameterProcessor.process(list(file.getPath())); // try open with this app
-			} catch (IllegalArgumentException e) {
-				// file does not exists, nothing for us to do
+		runNotFX(() -> {
+			if (file.isDirectory()) {
+				open(file);
+			} else {
+				try {
+					Desktop.getDesktop().edit(file);
+				} catch (IOException e) {
+					log(Environment.class).error("Opening file {} in editor failed", file, e);
+					APP.parameterProcessor.process(list(file.getPath())); // try open with this app
+				} catch (IllegalArgumentException e) {
+					// file does not exists, nothing for us to do
+				}
 			}
-		}
+		});
 	}
 
 	// TODO: if no associated program exists exception is thrown! fix and use Try
@@ -278,30 +295,32 @@ public interface Environment {
 	 */
 	static void open(File file) {
 		noØ(file);
-		if (isExecutable(file)) {
-			// If the file is executable, Desktop#open() will execute it, however the spawned process' working directory
-			// will be set to the working directory of this application, which is not illegal, but definitely dangerous
-			// Hence, we executable files specifically
-			runProgram(file);
-		} else {
-			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(OPEN)) {
-				try {
-					Desktop.getDesktop().open(file);
-				} catch (IOException e) {
-
-					if (e.getMessage().contains("No application is associated with the specified file for this operation"))
-						// TODO: hadle properly
-						;
-
-					log(Environment.class).error("Opening file {} in native app failed", file, e);
-					APP.parameterProcessor.process(list(file.getPath())); // try open with this app
-				} catch (IllegalArgumentException e) {
-					// file does not exists, nothing for us to do
-				}
+		runNotFX(() -> {
+			if (isExecutable(file)) {
+				// If the file is executable, Desktop#open() will execute it, however the spawned process' working directory
+				// will be set to the working directory of this application, which is not illegal, but definitely dangerous
+				// Hence, we executable files specifically
+				runProgram(file);
 			} else {
-				log(Environment.class).warn("Unsupported operation : " + OPEN + " file");
+				if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(OPEN)) {
+					try {
+						Desktop.getDesktop().open(file);
+					} catch (IOException e) {
+
+						if (e.getMessage().contains("No application is associated with the specified file for this operation"))
+							// TODO: hadle properly
+							;
+
+						log(Environment.class).error("Opening file {} in native app failed", file, e);
+						APP.parameterProcessor.process(list(file.getPath())); // try open with this app
+					} catch (IllegalArgumentException e) {
+						// file does not exists, nothing for us to do
+					}
+				} else {
+					log(Environment.class).warn("Unsupported operation : " + OPEN + " file");
+				}
 			}
-		}
+		});
 	}
 
 	// TODO: implement properly
@@ -325,12 +344,12 @@ public interface Environment {
 	static void openIn(File f, boolean inApp) {
 		// open skin - always in app
 		if ((f.isDirectory() && APP.DIR_SKINS.equals(f.getParentFile())) || Util.isValidSkinFile(f)) {
-			Gui.setSkin(Util.getName(f));
+			Gui.setSkin(UtilKt.getNameWithoutExtensionOrRoot(f));
 		}
 
 		// open widget
 		else if ((f.isDirectory() && APP.DIR_WIDGETS.equals(f.getParentFile())) || Util.isValidWidgetFile(f)) {
-			String n = Util.getName(f);
+			String n = UtilKt.getNameWithoutExtensionOrRoot(f);
 			APP.widgetManager.find(n, NO_LAYOUT, false);
 		}
 
@@ -376,13 +395,13 @@ public interface Environment {
 		if (type==DIRECTORY) {
 			DirectoryChooser c = new DirectoryChooser();
 			c.setTitle(title);
-			c.setInitialDirectory(traverseExistingDir(initial).getOr(APP.DIR_APP));
+			c.setInitialDirectory(find1stExistingParentDir(initial).getOr(APP.DIR_APP));
 			File f = c.showDialog(w);
 			return f!=null ? ok(f) : error();
 		} else {
 			FileChooser c = new FileChooser();
 			c.setTitle(title);
-			c.setInitialDirectory(traverseExistingDir(initial).getOr(APP.DIR_APP));
+			c.setInitialDirectory(find1stExistingParentDir(initial).getOr(APP.DIR_APP));
 			if (extensions!=null) c.getExtensionFilters().addAll(extensions);
 			File f = c.showOpenDialog(w);
 			return f!=null ? ok(f) : error();
@@ -392,7 +411,7 @@ public interface Environment {
 	static Try<List<File>,Void> chooseFiles(String title, File initial, Window w, ExtensionFilter... extensions) {
 		FileChooser c = new FileChooser();
 		c.setTitle(title);
-		c.setInitialDirectory(traverseExistingDir(initial).getOr(APP.DIR_APP));
+		c.setInitialDirectory(find1stExistingParentDir(initial).getOr(APP.DIR_APP));
 		if (extensions!=null) c.getExtensionFilters().addAll(extensions);
 		List<File> fs = c.showOpenMultipleDialog(w);
 		return fs!=null && !fs.isEmpty() ? ok(fs) : error();
@@ -401,7 +420,7 @@ public interface Environment {
 	static Try<File,Void> saveFile(String title, File initial, String initialName, Window w, ExtensionFilter... extensions) {
 		FileChooser c = new FileChooser();
 		c.setTitle(title);
-		c.setInitialDirectory(traverseExistingDir(initial).getOr(APP.DIR_APP));
+		c.setInitialDirectory(find1stExistingParentDir(initial).getOr(APP.DIR_APP));
 		c.setInitialFileName(initialName);
 		if (extensions!=null) c.getExtensionFilters().addAll(extensions);
 		File f = c.showSaveDialog(w);

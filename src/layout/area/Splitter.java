@@ -58,13 +58,13 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         prop = c.properties;
 
         Icon orienB = new Icon(MAGIC, 12, "Change orientation", this::toggleOrientation);
-        maintain(c.orientation,o->o==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H, orienB::icon);
+        maintain(c.orientation, o->o==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H, orienB::icon);
         icons.getChildren().add(2,orienB);
 
         Icon coll1B = new Icon(ARROW_RIGHT, 10, "Collapse", this::toggleCollapsed1);
-        maintain(c.orientation,o -> o==HORIZONTAL ? ARROW_RIGHT : ARROW_DOWN, coll1B::icon);
+        maintain(c.orientation, o -> o==HORIZONTAL ? ARROW_RIGHT : ARROW_DOWN, coll1B::icon);
         Icon coll2B = new Icon(ARROW_LEFT, 10, "Collapse", this::toggleCollapsed2);
-        maintain(c.orientation,o -> o==HORIZONTAL ? ARROW_LEFT : ARROW_UP, coll2B::icon);
+        maintain(c.orientation, o -> o==HORIZONTAL ? ARROW_LEFT : ARROW_UP, coll2B::icon);
 
         // setParentRec properties
         prop.getOrPut(Double.class, "pos", 0.5d);

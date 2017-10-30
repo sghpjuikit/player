@@ -25,8 +25,8 @@ import util.file.Util;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static main.App.APP;
 import static util.dev.Util.noØ;
-import static util.file.Util.getName;
-import static util.graphics.Util.getScreen;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
+import static util.graphics.UtilKt.getScreen;
 
 public final class UiContext {
 
@@ -198,7 +198,7 @@ public final class UiContext {
 
 			// try to build widget using just launcher filename
 			if (w==null) {
-				wf = APP.widgetManager.factories.get(getName(launcher));
+				wf = APP.widgetManager.factories.get(getNameWithoutExtensionOrRoot(launcher));
 				if (wf!=null) w = wf.create();
 			}
 

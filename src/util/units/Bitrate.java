@@ -26,7 +26,7 @@ public class Bitrate implements Comparable<Bitrate> {
 	 * @param value bit rate value in kb per second. Use -1 if not available.
 	 */
 	public Bitrate(int value) {
-		if (value<=1) throw new IllegalArgumentException("Bitrate value must be -1 or larger");
+		if (value < -1) throw new IllegalArgumentException("Bitrate value= " + value + " must be -1 or larger");
 		bitrate = value;
 	}
 

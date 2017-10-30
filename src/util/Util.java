@@ -424,6 +424,20 @@ public interface Util {
 		return !s.isEmpty() && isPalindrome(s);
 	}
 
+	static Try<BufferedImage,IOException> loadBufferedImage(File file) {
+		try {
+			return Try.ok(ImageIO.read(file));
+		} catch (IOException e) {
+			util.dev.Util.log(Util.class).error("Could not read the image for tray icon.", e);
+			return Try.error(e);
+		}
+	}
+
+	/** Convenience method. Equivalent to: loadImage(file, 0); */
+	static Image loadImage(File file) {
+		return loadImage(file, 0);
+	}
+
 	/** Convenience method. Equivalent to: loadImage(file, size, size); */
 	static Image loadImage(File file, double size) {
 		return loadImage(file, size, size);
@@ -629,8 +643,8 @@ public interface Util {
 			int h = dt.map(d -> d.height).getOr(Integer.MAX_VALUE);
 
 			// lets not surpass real size (javafx.scene.Image does that if we do not stop it)
-			int fin_width = min(W, w);
-			int fin_height = min(H, h);
+			int fin_width = min(2*W, w);    // TODO: remove 2* without loss of quality
+			int fin_height = min(2*H, h);
 			return new Image(file.toURI().toString(), fin_width, fin_height, true, true, backgroundLoading);
 		}
 	}

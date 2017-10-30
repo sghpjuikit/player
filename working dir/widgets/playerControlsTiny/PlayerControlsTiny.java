@@ -89,7 +89,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
          playB = new Icon(null, ICON_SIZE+3, null, PLAYBACK::pause_resume),
          stopB = new Icon(STOP, ICON_SIZE, null, PLAYBACK::stop),
          nextB = new Icon(STEP_FORWARD, ICON_SIZE, null, PlaylistManager::playNextItem),
-         loopB = new Icon<>(null, ICON_SIZE, null, (MouseEvent e) -> PLAYBACK.toggleLoopMode(e)),
+         loopB = new Icon(null, ICON_SIZE, null, (MouseEvent e) -> PLAYBACK.toggleLoopMode(e)),
          volB  = new Icon(null, ICON_SIZE, null, PLAYBACK::toggleMute);
     Anim scroller;
     double lastUpdatedTime = Double.MIN_VALUE; // reduces time update events

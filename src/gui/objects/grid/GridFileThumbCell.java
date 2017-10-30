@@ -1,7 +1,7 @@
 package gui.objects.grid;
 
 import gui.objects.hierarchy.Item;
-import gui.objects.image.ImageNode.ImageSize;
+import gui.objects.image.ImageSize;
 import gui.objects.image.Thumbnail;
 import java.io.File;
 import java.util.Objects;
@@ -22,11 +22,14 @@ import util.animation.Anim;
 import util.async.Async;
 import util.async.executor.EventReducer;
 import util.async.future.Fut;
-import util.file.Util;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static util.async.Async.runFX;
 import static util.async.Async.sleep;
-import static util.dev.Util.*;
+import static util.dev.Util.noØ;
+import static util.dev.Util.throwIf;
+import static util.dev.Util.throwIfFxThread;
+import static util.dev.Util.throwIfNotFxThread;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static util.reactive.Util.doOnceIfImageLoaded;
 
 /**
@@ -48,7 +51,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	}
 
 	protected String computeName(Item item) {
-		return Util.getName(item.val);
+		return getNameWithoutExtensionOrRoot(item.val);
 	}
 
 	protected AnimateOn computeAnimateOn() {
@@ -201,7 +204,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 			setCoverPost(item, true, item.cover_file, item.cover);
 		} else {
 			ImageSize size = thumb.calculateImageLoadSize();
-			throwIf(size.width<0 || size.height<0);
+			throwIf(size.getWidth()<0 || size.getHeight()<0);
 
 			// load thumbnail
 			if (loader.executorThumbs!=null)
@@ -209,7 +212,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 					if (isInvalidItem(item) || isInvalidVisibility()) return;
 
 					ImageSize IS = computeImageSize(item);
-					boolean isInvisible = IS.width==-1 && IS.height==-1;
+					boolean isInvisible = IS.getWidth()==-1 && IS.getHeight()==-1;
 					if (isInvisible) return;
 
 					loader.isImageLoading.set(true);
@@ -232,7 +235,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 					if (isInvalidItem(item) || isInvalidVisibility()) return;
 
 					ImageSize IS = computeImageSize(item);
-					boolean isInvisible = IS.width==-1 && IS.height==-1;
+					boolean isInvisible = IS.getWidth()==-1 && IS.getHeight()==-1;
 					if (isInvisible) return;
 
 					if (isInvalidItem(item) || isInvalidVisibility()) return;
@@ -249,9 +252,9 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 					ImageSize is =  Fut.fut()
 							.supply(Async.FX, () -> thumb.calculateImageLoadSize())
 							.getDone();
-					boolean isReady = is.width>0 || is.height>0;
+					boolean isReady = is.getWidth()>0 || is.getHeight()>0;
 					if (!isReady && getIndex()<0 || getIndex()>=gridView.get().getItemsShown().size()) return new ImageSize(-1,-1);
-					if (!isReady) new RuntimeException("Image request size=" + is.width + "x" + is.height + " not valid").printStackTrace();
+					if (!isReady) new RuntimeException("Image request size=" + is.getWidth() + "x" + is.getHeight() + " not valid").printStackTrace();
 					if (!isReady) sleep(20);
 					return isReady ? is : null;
 				})

@@ -14,7 +14,6 @@ public class VarAction extends VarEnum<String> {
 		super(a.getName(), () -> map(Action.getActions(), Action::getName), c(applier));
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	public VarAction(String action_name, Consumer<Action> applier) {
 		super(action_name, () -> map(Action.getActions(), Action::getName), c(applier));
 	}

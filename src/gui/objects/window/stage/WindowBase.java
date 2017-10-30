@@ -7,7 +7,14 @@ import gui.Gui;
 import gui.objects.window.Resize;
 import java.util.List;
 import java.util.UUID;
-import javafx.beans.property.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
@@ -16,7 +23,7 @@ import javafx.stage.StageStyle;
 import util.access.CyclicEnum;
 import util.async.Async;
 import util.dev.Dependency;
-import util.graphics.Util;
+import util.graphics.UtilKt;
 import util.system.Os;
 import static com.sun.jna.platform.win32.WinUser.GWL_STYLE;
 import static gui.objects.window.stage.WindowBase.Maximized.ALL;
@@ -119,7 +126,7 @@ public class WindowBase {
 
 		s.setX(X.get());
 		s.setY(Y.get());
-		screen = Util.getScreen(getCenterXY()); // update screen
+		screen = util.graphics.UtilKt.getScreen(getCenterXY()); // update screen
 		deMaxX = (s.getX() - screen.getBounds().getMinX())/screen.getBounds().getWidth();  // just in case
 		deMaxX = (s.getY() - screen.getBounds().getMinY())/screen.getBounds().getHeight(); // -||-
 
@@ -543,7 +550,7 @@ public class WindowBase {
 		s.setY(y);
 		X.set(x);
 		Y.set(y);
-		screen = Util.getScreen(getCenterXY()); // update screen
+		screen = UtilKt.getScreen(getCenterXY()); // update screen
 		if (snap) snap();
 	}
 
@@ -581,7 +588,7 @@ public class WindowBase {
 		// if (snap) snap();
 		W.set(s.getWidth());
 		H.set(s.getHeight());
-		screen = Util.getScreen(getCenterXY()); // update screen
+		screen = UtilKt.getScreen(getCenterXY()); // update screen
 	}
 
 	/**
@@ -595,7 +602,7 @@ public class WindowBase {
 		s.setHeight(height);
 		W.set(s.getWidth());
 		H.set(s.getHeight());
-		screen = Util.getScreen(getCenterXY()); // update screen
+		screen = UtilKt.getScreen(getCenterXY()); // update screen
 	}
 
 	/**

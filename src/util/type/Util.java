@@ -2,35 +2,30 @@ package util.type;
 
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import javafx.beans.value.ObservableValue;
 import one.util.streamex.StreamEx;
 import org.atteo.classindex.ClassIndex;
 import unused.TriConsumer;
 import static util.dev.Util.log;
-import static util.functional.Util.*;
+import static util.functional.Util.isNoneØ;
+import static util.functional.Util.list;
+import static util.functional.Util.stream;
 
 /**
  * Reflection utility methods.
  */
 public interface Util {
-
-	static <T> T build(T t, Consumer<? super T> postAction) {
-		postAction.accept(t);
-		return t;
-	}
-
-	static <T> T build(Supplier<? extends T> constructor, Consumer<? super T> postAction) {
-		T t = constructor.get();
-		postAction.accept(t);
-		return t;
-	}
 
 	/**
 	 * Execute action for each observable value representing a javafx property of an object o.

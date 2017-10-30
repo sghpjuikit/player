@@ -1,6 +1,6 @@
 package gui.objects.hierarchy;
 
-import gui.objects.image.ImageNode.ImageSize;
+import gui.objects.image.ImageSize;
 import gui.objects.image.Thumbnail;
 import java.io.File;
 import java.util.ArrayList;
@@ -19,8 +19,8 @@ import util.graphics.IconExtractor;
 import static util.Util.loadImageFull;
 import static util.Util.loadImageThumb;
 import static util.file.FileType.DIRECTORY;
-import static util.file.Util.getName;
-import static util.file.Util.listFiles;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
+import static util.file.UtilKt.listChildren;
 import static util.functional.Util.list;
 
 /**
@@ -95,7 +95,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	protected Stream<File> children_files() {
-		return listFiles(val);
+		return listChildren(val);
 	}
 
 	protected boolean filterChildFile(File f) {
@@ -154,7 +154,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 				// but that would cause animation to be played again, which we do not want
 				boolean wasLoaded = cover_loadedThumb.get() || cover_loadedFull.get();
 				if (!cover_loadedFull.get()) {
-					Image img = loadImageFull(file, size.width, size.height);
+					Image img = loadImageFull(file, size.getWidth(), size.getHeight());
 					if (img!=null) {
 						cover = img;
 						action.accept(wasLoaded, file, cover);
@@ -164,8 +164,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			} else {
 				boolean wasLoaded = cover_loadedThumb.get();
 				if (!wasLoaded) {
-					Image imgCached = Thumbnail.getCached(file, size.width, size.height);
-					cover = imgCached!=null ? imgCached : loadImageThumb(file, size.width, size.height);
+					Image imgCached = Thumbnail.getCached(file, size.getWidth(), size.getHeight());
+					cover = imgCached!=null ? imgCached : loadImageThumb(file, size.getWidth(), size.getHeight());
 					cover_loadedThumb.set(true);
 				}
 				action.accept(wasLoaded, file, cover);
@@ -187,7 +187,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			if (ImageFileFormat.isSupported(val)) {
 				cover_file = val;
 			} else {
-				File i = getImage(val.getParentFile(), getName(val));
+				File i = getImage(val.getParentFile(), getNameWithoutExtensionOrRoot(val));
 				if (i==null && parent!=null) cover_file = parent.getCoverFile(); // needs optimize?
 				else cover_file = i;
 			}

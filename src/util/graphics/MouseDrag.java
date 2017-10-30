@@ -29,15 +29,15 @@ public class MouseDrag<T> {
 		this.data = data;
 		node.addEventFilter(MOUSE_PRESSED, e -> {
 			isDragging = true;
-			start.x = e.getX();
-			start.y = e.getY();
+			start.setX(e.getX());
+			start.setY(e.getY());
 			onStart.accept(this);
 			e.consume();
 		});
 		node.addEventFilter(MOUSE_DRAGGED, e -> {
 			if (isDragging) {
-				diff.x = e.getX() - start.x;
-				diff.y = e.getY() - start.y;
+				diff.setX(e.getX() - start.getX());
+				diff.setY(e.getY() - start.getY());
 				onDrag.accept(this);
 			}
 			e.consume();

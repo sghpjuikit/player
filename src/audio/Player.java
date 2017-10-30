@@ -19,7 +19,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import layout.widget.controller.io.InOutput;
 import org.reactfx.Subscription;
-import services.database.Db;
 import util.async.Async;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
@@ -27,6 +26,7 @@ import util.async.future.Fut;
 import util.collections.mapset.MapSet;
 import static audio.tagging.Metadata.EMPTY;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static main.App.APP;
 import static util.async.Async.FX;
 import static util.async.Async.runNew;
 import static util.async.executor.EventReducer.toLast;
@@ -195,8 +195,8 @@ public class Player {
 			MapSet<URI,Metadata> mm = new MapSet<>(Metadata::getURI, ms);
 
 			// update library
-			Db.updatePer(ms);
-			Db.updateInMemoryDbFromPersisted();
+			APP.db.updatePer(ms);
+			APP.db.updateInMemoryDbFromPersisted();
 
 			Async.runFX(() -> {
 				// update all playlist items referring to this updated metadata

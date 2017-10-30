@@ -334,16 +334,6 @@ public interface Util {
 		return new Border(new BorderStroke(c, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));
 	}
 
-	static void setScaleXY(Node n, double s) {
-		n.setScaleX(s);
-		n.setScaleY(s);
-	}
-
-	static void setScaleXY(Node n, double x, double y) {
-		n.setScaleX(x);
-		n.setScaleY(y);
-	}
-
 	static <E extends Event> void add1timeEventHandler(Stage eTarget, EventType<E> eType, Consumer<E> eHandler) {
 		eTarget.addEventHandler(eType, new EventHandler<>() {
 			@Override
@@ -819,39 +809,6 @@ public interface Util {
 	}
 
 /* ---------- SCREEN ------------------------------------------------------------------------------------------------ */
-
-	/**
-	 * @return the latest mouse position
-	 */
-	// TODO: return Try
-	static Point2D getMousePosition() {
-		PointerInfo pi = MouseInfo.getPointerInfo();        // this can be null sometimes for some reason
-		Point p = pi==null ? new Point(0, 0) : pi.getLocation();
-		return new Point2D(p.getX(), p.getY());
-	}
-
-	/** Returns screen containing the given coordinates. Never null. */
-	static Screen getScreen(Point2D p) {
-		return getScreen(p.getX(), p.getY());
-	}
-
-	/** Returns screen containing the given coordinates. Never null. */
-	static Screen getScreen(double x, double y) {
-		// TODO: jigsaw
-		// rely on official util (someone hid it..., good work genius)
-		// return com.sun.javafx.util.Utils.getScreenForPoint(x, y);
-
-		for (Screen scr : Screen.getScreens())
-			if (scr.getBounds().intersects(x, y, 1, 1))
-				return scr;
-		return Screen.getPrimary();
-	}
-
-	/** Returns screen containing the given coordinates. Never null. */
-	static Screen getScreenForMouse() {
-		Point2D mouse = getMousePosition();
-		return getScreen(mouse.getX(), mouse.getY());
-	}
 
 	/** Captures screenshot of the entire screen and runs custom action on fx thread. */
 	static void screenCaptureAndDo(Screen screen, Consumer<Image> action) {

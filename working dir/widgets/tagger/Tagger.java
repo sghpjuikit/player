@@ -11,14 +11,19 @@ import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import gui.objects.image.ThumbnailWithAdd;
 import gui.objects.image.cover.Cover;
+import gui.objects.popover.NodePos;
 import gui.objects.popover.PopOver;
-import gui.objects.popover.PopOver.NodePos;
-import gui.objects.spinner.Spinner;
+import gui.objects.popover.ScreenPos;
 import gui.objects.textfield.DecoratedTextField;
 import java.io.File;
 import java.net.URI;
 import java.time.Year;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -32,13 +37,25 @@ import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import layout.widget.Widget;
@@ -46,7 +63,6 @@ import layout.widget.controller.FXMLController;
 import layout.widget.controller.io.IsInput;
 import layout.widget.feature.SongReader;
 import layout.widget.feature.SongWriter;
-import services.database.Db;
 import services.notif.Notifier;
 import util.access.V;
 import util.async.future.Fut;
@@ -59,7 +75,34 @@ import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.validation.InputConstraints;
-import static audio.tagging.Metadata.Field.*;
+import static audio.tagging.Metadata.Field.ADDED_TO_LIBRARY;
+import static audio.tagging.Metadata.Field.ALBUM;
+import static audio.tagging.Metadata.Field.ALBUM_ARTIST;
+import static audio.tagging.Metadata.Field.ARTIST;
+import static audio.tagging.Metadata.Field.CATEGORY;
+import static audio.tagging.Metadata.Field.COLOR;
+import static audio.tagging.Metadata.Field.COMMENT;
+import static audio.tagging.Metadata.Field.COMPOSER;
+import static audio.tagging.Metadata.Field.CUSTOM1;
+import static audio.tagging.Metadata.Field.CUSTOM2;
+import static audio.tagging.Metadata.Field.CUSTOM3;
+import static audio.tagging.Metadata.Field.CUSTOM4;
+import static audio.tagging.Metadata.Field.CUSTOM5;
+import static audio.tagging.Metadata.Field.DISC;
+import static audio.tagging.Metadata.Field.DISCS_TOTAL;
+import static audio.tagging.Metadata.Field.FIRST_PLAYED;
+import static audio.tagging.Metadata.Field.GENRE;
+import static audio.tagging.Metadata.Field.LAST_PLAYED;
+import static audio.tagging.Metadata.Field.LYRICS;
+import static audio.tagging.Metadata.Field.MOOD;
+import static audio.tagging.Metadata.Field.PLAYCOUNT;
+import static audio.tagging.Metadata.Field.PUBLISHER;
+import static audio.tagging.Metadata.Field.RATING;
+import static audio.tagging.Metadata.Field.RATING_RAW;
+import static audio.tagging.Metadata.Field.TITLE;
+import static audio.tagging.Metadata.Field.TRACK;
+import static audio.tagging.Metadata.Field.TRACKS_TOTAL;
+import static audio.tagging.Metadata.Field.YEAR;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TAGS;
 import static gui.objects.icon.Icon.createInfoIcon;
@@ -70,16 +113,25 @@ import static java.util.stream.Collectors.toList;
 import static javafx.application.Platform.runLater;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
-import static javafx.scene.input.KeyCode.*;
+import static javafx.scene.input.KeyCode.BACK_SPACE;
+import static javafx.scene.input.KeyCode.CONTROL;
+import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static main.App.APP;
+import static main.AppBuildersKt.appProgressIndicator;
 import static org.atteo.evo.inflector.English.plural;
-import static util.async.Async.*;
+import static util.async.Async.FX;
+import static util.async.Async.runFX;
+import static util.async.Async.runNew;
 import static util.file.Util.EMPTY_COLOR;
-import static util.functional.Util.*;
+import static util.functional.Util.isContainedIn;
+import static util.functional.Util.mapRef;
+import static util.functional.Util.noDups;
+import static util.functional.Util.noEx;
+import static util.functional.Util.split;
 
 /**
  * Tagger graphical component.
@@ -148,7 +200,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         CoverV.onHighlight = v -> noCoverL.setVisible(!v);
         coverContainer.setCenter(CoverV.getPane());
 
-        progressI = new Spinner();
+        progressI = appProgressIndicator();
         progressI.setVisible(false);
         header.setRight(progressI);
 
@@ -379,7 +431,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         Validation v = validators.stream().filter(Validation::isInValid).findFirst().orElse(null);
         if (v!=null) {
             PopOver p = new PopOver<>(new Text(v.text));
-            p.show(PopOver.ScreenPos.App_Center);
+            p.show(ScreenPos.APP_CENTER);
             return;
         }
 
@@ -521,8 +573,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
                         hideProgress();
                     });
-                })
-            .run();
+                });
         }
     }
 
@@ -636,7 +687,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                Comparator<String> cmp = String::compareTo;
                autoComplete(
                    (TextField)c,
-                   p -> Db.string_pool.getStrings(n).stream()
+                   p -> APP.db.getStringPool().getStrings(n).stream()
                           .filter(a -> a.startsWith(p.getUserText()))
                           .sorted(f!=YEAR ? cmp : cmp.reversed())
                           .collect(toList())

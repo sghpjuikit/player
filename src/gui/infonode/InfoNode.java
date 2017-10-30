@@ -29,4 +29,5 @@ public interface InfoNode<B> {
 		unbind();
 		setVisible(false);
 	}
+
 }

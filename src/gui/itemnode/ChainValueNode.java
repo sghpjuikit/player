@@ -22,7 +22,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static main.App.Build.appTooltip;
+import static main.AppBuildersKt.appTooltip;
 import static util.dev.Util.throwIfNot;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.repeat;

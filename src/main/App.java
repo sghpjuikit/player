@@ -2,7 +2,6 @@ package main;
 
 import audio.Item;
 import audio.Player;
-import audio.SimpleItem;
 import audio.playlist.Playlist;
 import audio.playlist.PlaylistItem;
 import audio.tagging.Metadata;
@@ -28,53 +27,65 @@ import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.octicons.OctIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import gui.Gui;
-import gui.infonode.ConvertTaskInfo;
 import gui.objects.grid.GridCell;
 import gui.objects.grid.GridView;
 import gui.objects.grid.GridView.SelectionOn;
 import gui.objects.icon.Icon;
 import gui.objects.icon.IconInfo;
 import gui.objects.popover.PopOver;
-import gui.objects.popover.PopOver.ScreenPos;
-import gui.objects.spinner.Spinner;
+import gui.objects.popover.ScreenPos;
 import gui.objects.tablecell.RatingCellFactory;
 import gui.objects.tablecell.RatingRatingCellFactory;
 import gui.objects.textfield.autocomplete.ConfigSearch;
 import gui.objects.window.stage.UiContext;
 import gui.objects.window.stage.Window;
 import gui.objects.window.stage.WindowManager;
-import gui.pane.*;
-import gui.pane.ActionPane.ComplexActionData;
+import gui.pane.ActionPane;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.ActionPane.FastColAction;
 import gui.pane.ActionPane.SlowColAction;
+import gui.pane.InfoPane;
+import gui.pane.MessagePane;
+import gui.pane.OverlayPane;
+import gui.pane.ShortcutPane;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.LogManager;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.stage.*;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import layout.Component;
 import layout.area.ContainerNode;
 import layout.widget.Widget;
 import layout.widget.WidgetManager;
 import layout.widget.WidgetManager.WidgetSource;
-import layout.widget.feature.*;
+import layout.widget.feature.ConfiguringFeature;
+import layout.widget.feature.ImageDisplayFeature;
+import layout.widget.feature.ImagesDisplayFeature;
+import layout.widget.feature.Opener;
+import layout.widget.feature.PlaylistFeature;
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
 import org.slf4j.Logger;
@@ -82,6 +93,7 @@ import org.slf4j.LoggerFactory;
 import plugin.AppSearchPlugin;
 import plugin.DirSearchPlugin;
 import plugin.Plugin;
+import plugin.ScreenRotator;
 import services.ClickEffect;
 import services.Service;
 import services.ServiceManager;
@@ -90,27 +102,27 @@ import services.notif.Notifier;
 import services.playcount.PlaycountIncrementer;
 import services.tray.TrayService;
 import unused.SimpleConfigurator;
-import util.SingleR;
 import util.access.TypedValue;
 import util.access.V;
 import util.access.VarEnum;
+import util.access.fieldvalue.ColumnField;
 import util.access.fieldvalue.FileField;
 import util.access.fieldvalue.ObjectField;
-import util.access.fieldvalue.ColumnField;
 import util.action.Action;
 import util.action.IsAction;
 import util.action.IsActionable;
-import util.animation.Anim;
-import util.animation.interpolator.ElasticInterpolator;
-import util.async.future.ConvertListTask;
-import util.conf.*;
+import util.conf.Config;
 import util.conf.Config.PropertyConfig;
+import util.conf.Configurable;
+import util.conf.Configuration;
+import util.conf.IsConfig;
+import util.conf.IsConfigurable;
+import util.conf.ValueConfig;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.Environment;
 import util.file.ImageFileFormat;
 import util.file.Util;
-import util.file.mimetype.MimeTypes;
 import util.functional.Functors;
 import util.functional.Try;
 import util.graphics.MouseCapture;
@@ -118,7 +130,17 @@ import util.plugin.IsPlugin;
 import util.plugin.IsPluginType;
 import util.plugin.PluginMap;
 import util.reactive.SetƑ;
-import util.serialize.xstream.*;
+import util.serialize.xstream.BooleanPropertyConverter;
+import util.serialize.xstream.DoublePropertyConverter;
+import util.serialize.xstream.IntegerPropertyConverter;
+import util.serialize.xstream.LongPropertyConverter;
+import util.serialize.xstream.ObjectPropertyConverter;
+import util.serialize.xstream.ObservableListConverter;
+import util.serialize.xstream.PlaybackStateConverter;
+import util.serialize.xstream.PlaylistConverter;
+import util.serialize.xstream.PlaylistItemConverter;
+import util.serialize.xstream.StringPropertyConverter;
+import util.serialize.xstream.VConverter;
 import util.system.SystemOutListener;
 import util.type.ClassName;
 import util.type.InstanceInfo;
@@ -127,11 +149,17 @@ import util.type.ObjectFieldMap;
 import util.units.FileSize;
 import util.validation.Constraint;
 import util.validation.Constraint.StringNonEmpty;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CSS3;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GITHUB;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.IMAGE;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.BRUSH;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.EXPORT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER;
-import static gui.objects.popover.PopOver.ScreenPos.App_Center;
-import static gui.pane.ActionPane.collectionWrap;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.IMPORT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.INFORMATION_OUTLINE;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.KEYBOARD_VARIANT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
+import static gui.objects.popover.ScreenPos.APP_CENTER;
 import static gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER;
@@ -142,21 +170,34 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.util.Duration.millis;
-import static javafx.util.Duration.seconds;
-import static layout.widget.WidgetManager.WidgetSource.*;
+import static layout.widget.WidgetManager.WidgetSource.ANY;
 import static layout.widget.WidgetManager.WidgetSource.NEW;
+import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
+import static main.AppActionsKt.addToLibraryConsumer;
 import static org.atteo.evo.inflector.English.plural;
 import static util.Util.getImageDim;
 import static util.Util.urlEncodeUtf8;
-import static util.async.Async.*;
+import static util.async.Async.FX;
+import static util.async.Async.run;
+import static util.async.Async.runFX;
+import static util.async.Async.runLater;
 import static util.async.future.Fut.fut;
-import static util.dev.Util.log;
-import static util.file.Environment.*;
+import static util.file.Environment.browse;
+import static util.file.Environment.chooseFile;
+import static util.file.Environment.chooseFiles;
 import static util.file.FileType.DIRECTORY;
-import static util.file.Util.getFilesAudio;
 import static util.file.Util.isValidatedDirectory;
-import static util.functional.Util.*;
-import static util.graphics.Util.*;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
+import static util.functional.Util.list;
+import static util.functional.Util.map;
+import static util.functional.Util.set;
+import static util.functional.Util.stream;
+import static util.graphics.Util.add1timeEventHandler;
+import static util.graphics.Util.bgr;
+import static util.graphics.Util.createFMNTStage;
+import static util.graphics.Util.layHorizontally;
+import static util.graphics.Util.layVertically;
+import static util.graphics.Util.setMinPrefMaxSize;
 import static util.type.Util.getEnumConstants;
 
 /**
@@ -303,6 +344,9 @@ public class App extends Application implements Configurable {
 	private boolean close_prematurely = false;
 
 	/**
+	 * Manages persistence and in-memory storage.
+	 */ public final Db db = new Db();
+	/**
 	 * Manages windows.
 	 */ public final WindowManager windowManager = new WindowManager();
 	/**
@@ -314,10 +358,6 @@ public class App extends Application implements Configurable {
 	/**
 	 * Manages plugins.
 	 */ public final PluginMap plugins = new PluginMap();
-	/**
-	 * File mime type map.
-	 * Initialized with the built-in mime types definitions.
-	 */ public final MimeTypes mimeTypes = MimeTypes.standard();
 
 	@IsConfig(name = "Rating control", info = "The style of the graphics of the rating control.")
 	public final VarEnum<RatingCellFactory> ratingCell = new VarEnum<>(new RatingRatingCellFactory(),
@@ -332,9 +372,6 @@ public class App extends Application implements Configurable {
 
 	@IsConfig(name = "Rating editable", info = "Allow change of rating. Defaults to application settings")
 	public final V<Boolean> allowRatingChange = new V<>(true);
-
-	@IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering.")
-	public final V<Boolean> hoverRating = new V<>(true);
 
 	@IsConfig(name = "Debug value (double)", info = "For application testing. Generic number value "
 			+ "to control some application value manually.")
@@ -353,6 +390,11 @@ public class App extends Application implements Configurable {
 
 	@IsConfig(info = "Preferred text when multiple tag values per field. This value can be overridden.")
 	public String TAG_MULTIPLE_VALUE = "<multi>";
+
+	// TODO: use a Quality enum LOW/HIGH
+	@Constraint.MinMax(min=10, max=60)
+	@IsConfig(info = "Update frequency in Hz for performance-heavy animations.")
+	public double animationFps = 60.0;
 
 	@IsConfig(name = "log level (console)", group = "Logging", info = "Logging level for logging to console")
 	public final VarEnum<Level> logLevelConsole = new VarEnum<Level>(Level.DEBUG,
@@ -497,7 +539,7 @@ public class App extends Application implements Configurable {
 			)
 		);
 		actionPane.register(Object.class,
-			new FastColAction<>("Set as data",
+			new FastColAction<Object>("Set as data",
 				"Sets the selected data as input.",
 				MaterialDesignIcon.DATABASE,
 				actionPane.converting(Try::ok)
@@ -551,7 +593,7 @@ public class App extends Application implements Configurable {
 			new FastColAction<>("Remove from library",
 				"Removes all specified items from library. After this library will contain none of these items.",
 				MaterialDesignIcon.DATABASE_MINUS,
-				Db::removeItems // this needs to be asynchronous
+				db::removeItems // this needs to be asynchronous
 			),
 			new FastColAction<>("Show",
 				"Shows items in a table.",
@@ -602,61 +644,7 @@ public class App extends Application implements Configurable {
 				+ "item already was in the database it will not be added or edited.",
 				MaterialDesignIcon.DATABASE_PLUS,
 				items -> {}
-			).preventClosing(new ComplexActionData<Collection<File>,List<File>>(
-				() -> {
-					V<Boolean> makeWritable = new V<>(true);
-					V<Boolean> editInTagger = new V<>(true);
-					V<Boolean> editOnlyAdded = new V<>(false);
-					V<Boolean> enqueue = new V<>(false);
-					ConvertListTask<Item,Metadata> task = MetadataReader.buildAddItemsToLibTask();
-					ConvertTaskInfo info = new ConvertTaskInfo(null, new Label(), new Label(), new Label(), new Spinner().hidingOnIdle(true));
-									info.bind(task);
-					SingleR<Widget,Void> tagger = new SingleR<>(() -> stream(APP.widgetManager.factories)
-								.findFirst(f -> f.name().equals("Tagger"))
-								.get().create());
-					return layHorizontally(50, Pos.CENTER,
-						layVertically(50, Pos.CENTER,
-							new ConfigPane<>(
-								Config.forProperty(Boolean.class, "Make writable if read-only", makeWritable),
-								Config.forProperty(Boolean.class, "Edit in Tagger", editInTagger),
-								Config.forProperty(Boolean.class, "Edit only added files", editOnlyAdded),
-								Config.forProperty(Boolean.class, "Enqueue in playlist", enqueue)
-							).getNode(),
-							layVertically(10, Pos.CENTER_LEFT,
-								info.state,
-								layHorizontally(10, Pos.CENTER_LEFT,
-									info.message,
-									info.progressIndicator
-								),
-								info.skipped
-							),
-							new Icon(FontAwesomeIcon.CHECK,25).onClick(e -> {
-								((Icon) e.getSource()).setDisable(true);
-								fut((List<File>) collectionWrap(actionPane.getData()))  // TODO: make automatic
-									.use(files -> {
-										if (makeWritable.get()) files.forEach(f -> f.setWritable(true));
-									})
-									.map(files -> map(files, SimpleItem::new))
-									.map(task)
-									.showProgress(actionPane.actionProgress)
-									.use(FX, r -> {
-										if (editInTagger.get()) {
-											List<? extends Item> items = editOnlyAdded.get() ? r.converted : r.all;
-											((SongReader) tagger.get().getController()).read(items);
-										}
-										if (enqueue.get() && !r.all.isEmpty()) {
-											APP.widgetManager.find(PlaylistFeature.class, WidgetSource.ANY)
-												.map(PlaylistFeature::getPlaylist)
-												.ifPresent(p -> p.addItems(r.all));
-										}
-									});
-							}).withText("Execute")
-						),
-						tagger.get().load()
-					);
-				},
-				files -> fut(files).map(fs -> getFilesAudio(fs, Use.APP, Integer.MAX_VALUE).collect(toList()))
-			)),
+			).preventClosing(addToLibraryConsumer(actionPane)),
 			new FastColAction<>("Add to existing playlist",
 				"Add items to existing playlist widget if possible or to a new one if not.",
 				PLAYLIST_PLUS,
@@ -666,7 +654,7 @@ public class App extends Application implements Configurable {
 			new FastAction<>("Apply skin", "Apply skin on the application.",
 				BRUSH,
 				Util::isValidSkinFile,
-				skin_file -> Gui.setSkin(Util.getName(skin_file))),
+				skin_file -> Gui.setSkin(getNameWithoutExtensionOrRoot(skin_file))),
 			new FastAction<>("View image", "Opens image in an image viewer widget.",
 				IMAGE,
 				ImageFileFormat::isSupported,
@@ -691,7 +679,7 @@ public class App extends Application implements Configurable {
 		);
 		parameterProcessor.addFileProcessor(
 			Util::isValidSkinFile,
-			fs -> Gui.setSkin(Util.getName(fs.get(0)))
+			fs -> Gui.setSkin(getNameWithoutExtensionOrRoot(fs.get(0)))
 		);
 		parameterProcessor.addFileProcessor(
 			ImageFileFormat::isSupported,
@@ -706,15 +694,18 @@ public class App extends Application implements Configurable {
 		);
 
 		// add search sources
-		search.sources.addAll(list(
+		search.getSources().addAll(list(
 			() -> APP.configuration.getFields().stream().map(ConfigSearch.Entry::of),
 			() -> APP.widgetManager.factories.streamV().map(ConfigSearch.Entry::of),
 			() -> Gui.skin.streamValues().map(s -> ConfigSearch.Entry.of(() -> "Open skin: " + s, () -> Gui.skin.setNapplyValue(s), () -> new Icon(MaterialIcon.BRUSH)))
 		));
 
 		// TODO: implement plugin discovery
-		installPlugins(new AppSearchPlugin());
-		installPlugins(new DirSearchPlugin());
+		installPlugins(
+			new AppSearchPlugin(),
+			new DirSearchPlugin(),
+			new ScreenRotator()
+		);
 
 		// listen to other application instance launches
 		try {
@@ -784,11 +775,12 @@ public class App extends Application implements Configurable {
 				services.addService(new ClickEffect());
 
 				// install actions
+			// TODO: unify services & managers ?
 				Action.installActions(
 					this,
 					windowManager,
 					guide,
-					services.getService(PlaycountIncrementer.class).get()
+					services.getAllServices()
 				);
 
 				actionAppPane.register(App.class,
@@ -846,7 +838,7 @@ public class App extends Application implements Configurable {
 				configuration.getFields(f -> f.getGroup().equals("Gui") && f.getGuiName().equals("Skin")).get(0).applyValue();
 				windowManager.deserialize(normalLoad);
 
-				Db.start();
+				db.start();
 
 				isInitialized = true;
 
@@ -905,7 +897,7 @@ public class App extends Application implements Configurable {
 					.filter(Service::isRunning)
 					.forEach(Service::stop);
 		}
-		Db.stop();
+		db.stop();
 		Action.stopActionListening();
 		appCommunicator.stop();
 	}
@@ -1074,8 +1066,7 @@ public class App extends Application implements Configurable {
 		fut(items)
 			.map(Player.IO_THREAD, is -> stream(is).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).toList())
 			.use(Player.IO_THREAD, Player::refreshItemsWith)
-			.showProgressOnActiveWindow()
-			.run();
+			.showProgressOnActiveWindow();
 	}
 
 	public static void itemToMeta(Item i, Consumer<Metadata> action) {
@@ -1084,14 +1075,13 @@ public class App extends Application implements Configurable {
 			return;
 		}
 
-		Metadata m = Db.items_byId.get(i.getId());
+		Metadata m = APP.db.getItemsById().get(i.getId());
 		if (m!=null) {
 			action.accept(m);
 		} else {
 			fut(i)
 				.map(Player.IO_THREAD, MetadataReader::readMetadata)
-				.use(FX, action)
-				.run();
+				.use(FX, action);
 		}
 	}
 
@@ -1121,54 +1111,6 @@ public class App extends Application implements Configurable {
 		Functors.Ƒ r = () -> runFX(100,a); // give layout some time to initialize (could display wrong size)
 		if (s.isShowing()) r.apply(); /// execute when/after window is shown
 		else add1timeEventHandler(s, WindowEvent.WINDOW_SHOWN, t -> r.apply());
-	}
-
-	public interface Build {
-
-		static ProgressIndicator appProgressIndicator() {
-			return appProgressIndicator(null, null);
-		}
-
-		static ProgressIndicator appProgressIndicator(Consumer<ProgressIndicator> onStart, Consumer<ProgressIndicator> onFinish) {
-			Spinner p = new Spinner();
-			Anim a = new Anim(at -> setScaleXY(p,at*at)).dur(500).intpl(new ElasticInterpolator());
-				 a.applier.accept(0d);
-			p.progressProperty().addListener((o,ov,nv) -> {
-				if (nv.doubleValue()==-1) {
-					if (onStart!=null) onStart.accept(p);
-					a.then(null)
-					 .play();
-				}
-				if (nv.doubleValue()==1) {
-					a.then(() -> { if (onFinish!=null) onFinish.accept(p); })
-					 .playClose();
-				}
-			});
-			return p;
-		}
-
-		static Tooltip appTooltip() {
-			return appTooltip("");
-		}
-
-		static Tooltip appTooltip(String text) {
-			Tooltip t = new Tooltip(text);
-			t.setHideOnEscape(true);
-			t.setConsumeAutoHidingEvents(true);
-			// TODO: make configurable
-			t.setShowDelay(seconds(1));
-			t.setShowDuration(seconds(10));
-			t.setHideDelay(millis(200));
-			return t;
-		}
-
-		static Icon resizeButton() {
-			// TODO: use css
-			Icon b = new Icon(RESIZE_BOTTOM_RIGHT).scale(1.5);
-			b.setCursor(Cursor.SE_RESIZE);
-			return b;
-		}
-
 	}
 
 	@IsActionable("Shortcuts")
@@ -1243,7 +1185,7 @@ public class App extends Application implements Configurable {
 				  })
 				  .toList();
 			PopOver o = new PopOver<>(layVertically(20,TOP_CENTER,layHorizontally(8,CENTER,groups), root));
-			o.show(App_Center);
+			o.show(APP_CENTER);
 		}
 
 		@IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
@@ -1367,7 +1309,7 @@ public class App extends Application implements Configurable {
 				(Consumer<String>) Environment::runCommand);
 			PopOver p = new PopOver<>(sc);
 					p.title.set("Run system command ");
-					p.show(ScreenPos.App_Center);
+					p.show(ScreenPos.APP_CENTER);
 		}
 
 		@IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with " +
@@ -1378,7 +1320,7 @@ public class App extends Application implements Configurable {
 				(String command) -> APP.parameterProcessor.process(list(command)));
 			PopOver p = new PopOver<>(sc);
 					p.title.set("Run app command");
-					p.show(ScreenPos.App_Center);
+					p.show(ScreenPos.APP_CENTER);
 		}
 
 		@IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")
@@ -1387,7 +1329,7 @@ public class App extends Application implements Configurable {
 			PopOver<TextField> p = new PopOver<>(APP.search.build());
 			p.title.set("Search for an action or option");
 			p.setAutoHide(true);
-			p.show(ScreenPos.App_Center);
+			p.show(ScreenPos.APP_CENTER);
 		}
 
 		@IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
@@ -1398,29 +1340,9 @@ public class App extends Application implements Configurable {
 			));
 			p.title.set("Look up in dictionary...");
 			p.setAutoHide(true);
-			p.show(ScreenPos.App_Center);
+			p.show(ScreenPos.APP_CENTER);
 			p.getContentNode().focusFirstConfigField();
 			p.getContentNode().hideOnOk.setValue(true);
-		}
-
-		// TODO: activate only when platform==WINDOWS
-		@IsAction(name = "Rotate display cw", desc = "Rotates display clockwise", keys = "CTRL + ALT + DOWN", global = true)
-		static void rotateDisplayCw() {
-			try {
-				new ProcessBuilder("display.exe", "/rotate:cw").directory(App.APP.DIR_APP).start();
-			} catch (IOException e) {
-				log(App.class).error("Failed to rotate display", e);
-			}
-		}
-
-		// TODO: activate only when platform==WINDOWS
-		@IsAction(name = "Rotate display ccw", desc = "Rotates display counter-clockwise", keys = "CTRL + ALT + UP", global = true)
-		static void rotateDisplayCcw() {
-			try {
-				new ProcessBuilder("display.exe", "/rotate:ccw").directory(App.APP.DIR_APP).start();
-			} catch (IOException e) {
-				log(App.class).error("Failed to rotate display", e);
-			}
 		}
 
 		static void printAllImageFileMetadata(File file) {

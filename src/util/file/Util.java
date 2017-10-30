@@ -1,10 +1,21 @@
 package util.file;
 
 import java.awt.*;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.*;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -21,8 +32,10 @@ import static main.App.APP;
 import static util.Util.filenamizeString;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
+import static util.file.UtilKt.childOf;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
+import static util.file.UtilKt.listChildren;
 import static util.functional.Util.ISNTØ;
-import static util.functional.Util.stream;
 
 /**
  * Provides file operations.
@@ -46,22 +59,6 @@ public interface Util {
 	 * situations.
 	 */
 	Color EMPTY_COLOR = new Color(0, 0, 0, 0);
-
-	static File childOf(File parent, String childName) {
-		return new File(parent, childName);
-	}
-
-	static File childOf(File parent, String childName, String childName2) {
-		return childOf(childOf(parent, childName), childName2);
-	}
-
-	static File childOf(File parent, String childName, String childName2, String childName3) {
-		return childOf(childOf(childOf(parent, childName), childName2), childName3);
-	}
-
-	static File childOf(File parent, String... childNames) {
-		return stream(childNames).foldLeft(parent, Util::childOf);
-	}
 
 	/**
 	 * Returns true if for provided File all conditions are met:
@@ -147,7 +144,7 @@ public interface Util {
 	 * @return true if parameter is valid skin file. False otherwise or if null.
 	 */
 	static boolean isValidSkinFile(File f) {
-		String name = Util.getName(f);
+		String name = getNameWithoutExtensionOrRoot(f);
 		File test = childOf(APP.DIR_SKINS, name, name + ".css");
 		return (isValidFile(f) &&                   // is valid
 				f.getPath().endsWith(".css") &&     // is .css
@@ -160,63 +157,6 @@ public interface Util {
 		return (isValidFile(f) &&                   // is valid file
 				f.getPath().endsWith(".fxml") &&    // is .fxml file
 				APP.DIR_WIDGETS.equals(p2));        // is located in skins folder in its rightful folder
-	}
-
-	/**
-	 * Same as {@link File#listFiles() }, but never returns null (instead, empty
-	 * list) and returns stream.
-	 * <p/>
-	 * Normally, the method in File returns null if parameter is not a directory, but also when I/O
-	 * error occurs. For example when parameter refers to a directory on a non existent partition,
-	 * e.g., residing on hdd that has been disconnected temporarily. Returning null instead of
-	 * collection is never a good idea anyway!
-	 *
-	 * @return stream of files in the directory, empty if parameter null, not a directory or I/O error occurs
-	 * @throws SecurityException - If a security manager exists and its SecurityManager.checkRead(String) method denies
-	 * read access to the directory
-	 */
-	static Stream<File> listFiles(File dir) {
-		File[] l = dir==null ? null : dir.listFiles();
-		return l==null ? stream() : stream(l);
-	}
-
-	/**
-	 * Find existing file or existing parent.
-	 *
-	 * @param f nullable file
-	 * @returns file itself if exists or its first existing parent recursively or error if null or no parent exists.
-	 */
-	static Try<File,Void> traverseExistingFile(File f) {
-		if (f==null) return Try.error();
-		if (f.exists()) return Try.ok(f);
-		else return traverseExistingFile(f.getParentFile());
-	}
-
-	/**
-	 * Find existing parent.
-	 *
-	 * @param f nullable file
-	 * @returns file's first existing parent recursively or error if null or no parent exists.
-	 */
-	static Try<File,Void> traverseExistingDir(File f) {
-		if (f==null) return Try.error();
-		if (f.exists() && f.isDirectory()) return Try.ok(f);
-		else return traverseExistingDir(f.getParentFile());
-	}
-
-	/**
-	 * Multiple parameter version of {@link #listFiles(java.io.File)} returning an union of the
-	 * respective results with no order guarantees.
-	 *
-	 * @return stream of children
-	 */
-	static Stream<File> listFiles(File... dirs) {
-		return listFiles(stream(dirs));
-	}
-
-	/** Stream parameter version of {@link #listFiles(java.io.File...)}. */
-	static Stream<File> listFiles(Stream<File> dirs) {
-		return dirs.filter(ISNTØ).flatMap(Util::listFiles);
 	}
 
 	static Stream<File> getFilesR(File dir, int depth) {
@@ -333,27 +273,12 @@ public interface Util {
 	 * @return name of the file without suffix
 	 * @throws NullPointerException if parameter null
 	 */
+	// TODO: remove
 	static String getName(File f) {
 		String n = f.getName();
-		if (f.isDirectory()) return n;
 		if (n.isEmpty()) return f.toString();
 		int i = n.lastIndexOf('.');
 		return i==-1 ? n : n.substring(0, i);
-	}
-
-	/**
-	 * For files 'filename.extension' is returned.
-	 * For directories only name is returned.
-	 * Root directory returns 'X:\' string.
-	 * <p/>
-	 * Use instead of {@link File#getName()} which returns empty string for root
-	 * directories.
-	 *
-	 * @return name of the file with suffix
-	 */
-	static String getNameFull(File f) {
-		String n = f.getName();
-		return n.isEmpty() ? f.toString() : n;
 	}
 
 	/**
@@ -376,6 +301,7 @@ public interface Util {
 	 * @throws NullPointerException if parameter null
 	 * @throws IllegalArgumentException if uri param scheme not file - if uri does not represent a file
 	 */
+	// TODO: remove
 	static String getName(URI u) {
 		String p = u.getPath();
 		if (p==null || p.isEmpty()) return "";   // badly damaged http URL could get here
@@ -504,7 +430,7 @@ public interface Util {
 	 */
 	static void deleteDirContent(File dir) {
 		// TODO: improve performance using Walker ?
-		listFiles(dir).forEach(Util::deleteFile);
+		listChildren(dir).forEach(Util::deleteFile);
 	}
 
 	/**

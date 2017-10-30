@@ -1,6 +1,6 @@
 package gui.objects.image.cover;
 
-import gui.objects.image.ImageNode.ImageSize;
+import gui.objects.image.ImageSize;
 import java.io.File;
 import javafx.scene.image.Image;
 
@@ -52,7 +52,7 @@ public interface Cover {
 	 * @see #getImage(double, double)
 	 */
 	default Image getImage(ImageSize size) {
-		return getImage(size.width, size.height);
+		return getImage(size.getWidth(), size.getHeight());
 	}
 
 	/**

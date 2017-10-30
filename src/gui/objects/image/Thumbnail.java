@@ -9,7 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javafx.animation.Timeline;
-import javafx.beans.property.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
@@ -22,8 +26,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import main.App;
 import util.SingleR;
 import util.access.V;
 import util.animation.Anim;
@@ -35,12 +38,15 @@ import static java.lang.Double.min;
 import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.util.Duration.millis;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
-import static util.graphics.Util.setScaleXY;
+import static util.graphics.UtilKt.setScaleXYByTo;
 import static util.reactive.Util.doOnceIf;
 import static util.type.Util.getFieldValue;
 
@@ -64,12 +70,8 @@ import static util.type.Util.getFieldValue;
  * <li> Data aware. Object the image is representing (file or any domain object, i.e.: album) can be set and queried.
  * <li> File aware. The underlying file of the image (if available) can be provided.
  * <li> Aspect ratio aware. See {@link #fitFrom}, {@link #ratioTHUMB} and {@link #ratioIMG}. Used for layout.
- * <li> Resolution aware. The images are loaded only up to required size to
- * reduce memory. For details see {@link ImageNode#LOAD_COEFFICIENT} and
- * {@link ImageNode#calculateImageLoadSize(javafx.scene.layout.Region) }.
- * <li> Size aware. If this thumbnail is resized then the image will only resize up
- * to a certain maximum size to prevent blurry result of scaling small image
- * too much. See {@link #setMaxScaleFactor(double) }
+ * <li> Resolution aware. The images are loaded only up to required size to reduce memory, see
+ * {@link #calculateImageLoadSize() }.
  * <li> Drag support. Dragging the image will put the the file in the
  * clipboard (if it is available).
  * <li> Background can be used. Background is visible on the empty space resulting
@@ -92,12 +94,18 @@ import static util.type.Util.getFieldValue;
  * </ul>
  */
 @IsConfigurable("Images")
-public class Thumbnail extends ImageNode {
+public class Thumbnail {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Thumbnail.class);
-	private static final String bgr_styleclass = "thumbnail";
-	private static final String border_styleclass = "thumbnail-border";
-	private static final String image_styleclass = "thumbnail-image";
+	private static final String styleclassBgr = "thumbnail";
+	private static final String styleclassBorder = "thumbnail-border";
+	private static final String styleclassImage = "thumbnail-image";
+
+	@IsConfig(name = "Image caching", info = "Will keep every loaded image in "
+		+ "memory. Reduces image loading (except for the first time) but "
+		+ "increases memory. For large images (around 5000px) the effect "
+		+ "is very noticeable. Not worth it if you do not browse large images "
+		+ "or want to minimize RAM usage.")
+	public static boolean cache_images = false;
 
 	@IsConfig(name = "Thumbnail anim duration", info = "Preferred hover scale animation duration for thumbnails.")
 	public static Duration animDur = millis(100);
@@ -113,15 +121,16 @@ public class Thumbnail extends ImageNode {
 			double imgW = min(W, maxImgW.get());
 			double imgH = min(H, maxImgH.get());
 
+			applyViewPort(imageView.getImage());
+
 			// fixes scaling when one side with FitFrom.OUTSIDE when one side of the image is smaller than thumbnail
-			boolean needsScaleH = !(isImgSmaller && fitFrom.get()==FitFrom.OUTSIDE && ratioTHUMB.get()>ratioIMG.get());
-			boolean needsScaleW = !(isImgSmaller && fitFrom.get()==FitFrom.OUTSIDE && ratioTHUMB.get()<ratioIMG.get());
+			boolean needsScaleH = !(isImgSmallerW && fitFrom.get()==FitFrom.OUTSIDE);
+			boolean needsScaleW = !(isImgSmallerH && fitFrom.get()==FitFrom.OUTSIDE);
 
 			// resize thumbnail
 			if (needsScaleH) imageView.setFitWidth(imgW);
 			if (needsScaleW) imageView.setFitHeight(imgH);
 
-			applyViewPort(imageView.getImage());
 
 			// lay out other children (maybe introduced in subclass)
 			super.layoutChildren();
@@ -160,7 +169,8 @@ public class Thumbnail extends ImageNode {
 	public final ObjectProperty<Image> image = imageView.imageProperty();
 	private File imageFile = null;
 	public final V<FitFrom> fitFrom = new V<>(FitFrom.INSIDE);
-	private boolean isImgSmaller = false;
+	private boolean isImgSmallerW = false;
+	private boolean isImgSmallerH = false;
 
 	/**
 	 * Constructor.
@@ -191,7 +201,7 @@ public class Thumbnail extends ImageNode {
 		root.setMinSize(width, height);
 		root.setPrefSize(width, height);
 		root.setMaxSize(width, height);
-		imageView.getStyleClass().add(image_styleclass);
+		imageView.getStyleClass().add(styleclassImage);
 		imageView.setFitHeight(-1);
 		imageView.setFitWidth(-1);
 
@@ -205,8 +215,8 @@ public class Thumbnail extends ImageNode {
 
 		// initialize values
 //        imageView.setCache(false);
-		setSmooth(true);
-		setPreserveRatio(true);
+		imageView.setSmooth(true);
+		imageView.setPreserveRatio(true);
 		setBorderToImage(false);
 		setBorderVisible(false);
 		setBackgroundVisible(true);
@@ -220,7 +230,7 @@ public class Thumbnail extends ImageNode {
 		return root.getStyleClass();
 	}
 
-	@Override
+	/** Loads image and sets it to show, null sets no image. */
 	public void loadImage(Image img) {
 		imageFile = null;
 		setImgA(img);
@@ -231,12 +241,11 @@ public class Thumbnail extends ImageNode {
 		this.imageFile = imageFile;
 	}
 
-	@Override
 	public void loadImage(File img) {
 		imageFile = img;
 		ImageSize size = calculateImageLoadSize();
 		Image c = getCached(img, size);
-		Image i = c!=null ? c : util.Util.loadImage(img, size.width, size.height);
+		Image i = c!=null ? c : util.Util.loadImage(img, size.getWidth(), size.getHeight());
 		setImgA(i);
 	}
 
@@ -260,7 +269,7 @@ public class Thumbnail extends ImageNode {
 	}
 
 	public static Image getCached(File file, ImageSize size) {
-		return getCached(file, size.width, size.height);
+		return getCached(file, size.getWidth(), size.getHeight());
 	}
 
 	public static Image getCached(File file, double w, double h) {
@@ -300,8 +309,8 @@ public class Thumbnail extends ImageNode {
 		imageView.setImage(i);
 
 		if (i!=null) {
-			maxImgW.set(i.getWidth()*maxScaleFactor);
-			maxImgH.set(i.getHeight()*maxScaleFactor);
+			maxImgW.set(i.getWidth());
+			maxImgH.set(i.getHeight());
 		}
 
 		root.layout();
@@ -314,8 +323,24 @@ public class Thumbnail extends ImageNode {
 		}
 	}
 
+	/**
+	 * Calculates size of the image to load. Returns recommended size for the image.
+	 * <p/>
+	 * The image normally loads 1:1 with the resolution size of the file, but it
+	 * is often wasteful, particularly for big images and even more if the size
+	 * the image will be used with is rather small.
+	 * <p/>
+	 * In order to limit memory consumption
+	 * the size of the specified component will be assumed to be an upper bound
+	 * of image's loaded size.
+	 *
+	 * @return recommended size of the image
+	 */
 	public ImageSize calculateImageLoadSize() {
-		return calculateImageLoadSize(root);
+		// sample both size and prefSize to avoid getting 0 when source not yet initialized (part of scene graph)
+		double w = App.APP.windowManager.screenMaxScaling*Math.max(root.getWidth(), root.getPrefWidth());
+		double h = App.APP.windowManager.screenMaxScaling*Math.max(root.getHeight(), root.getPrefHeight());
+		return new ImageSize(w, h);
 	}
 
 /* ---------- VIEWPORT ---------------------------------------------------------------------------------------------- */
@@ -325,17 +350,20 @@ public class Thumbnail extends ImageNode {
 			if (fitFrom.get()==FitFrom.INSIDE) {
 				imageView.setViewport(null);
 			} else {
-				boolean isImgBigger = i.getWidth()>imageView.getLayoutBounds().getWidth() && i.getHeight()>imageView.getLayoutBounds().getHeight();
-				isImgSmaller = !isImgBigger;
+				isImgSmallerW = i.getWidth()<=imageView.getLayoutBounds().getWidth();
+				isImgSmallerH = i.getHeight()<=imageView.getLayoutBounds().getHeight();
 				if (ratioTHUMB.get()<ratioIMG.get()) {
 					double uiImgWidth = i.getHeight()*ratioTHUMB.get();
 					double x = (i.getWidth() - uiImgWidth)/2;
 					imageView.setViewport(new Rectangle2D(x, 0, uiImgWidth, i.getHeight()));
-				}
+				} else
 				if (ratioTHUMB.get()>ratioIMG.get()) {
 					double uiImgHeight = i.getWidth()/ratioTHUMB.get();
 					double y = (i.getHeight() - uiImgHeight)/2;
 					imageView.setViewport(new Rectangle2D(0, y, i.getWidth(), uiImgHeight));
+				} else
+				if (ratioTHUMB.get()==ratioIMG.get()) {
+					imageView.setViewport(null);
 				}
 			}
 		}
@@ -369,7 +397,6 @@ public class Thumbnail extends ImageNode {
 /* ---------- DATA -------------------------------------------------------------------------------------------------- */
 
 	/** File of the displayed image or null if no image displayed or not a file (e.g. over http). */
-	@Override
 	public File getFile() {
 		// Since we delay image loading or something, image.get() can be null, in that case we fall
 		// back to imageFile
@@ -386,12 +413,22 @@ public class Thumbnail extends ImageNode {
 		return getFile();
 	}
 
-	@Override
+	/** @return image. Null if no image. */
 	public Image getImage() {
 		return imageView.getImage();
 	}
 
-	@Override
+	/**
+	 * For internal use only!
+	 * This method allows shifting the image methods common for all implementations
+	 * of this class to be defined here and prevent from need to implement them
+	 * individually.
+	 * Note, that implementations using multiple ImageViews or different way of
+	 * displaying the image will have to use their own implementation of all
+	 * methods that call this method.
+	 *
+	 * @return ImageView displaying the image.
+	 */
 	public ImageView getView() {
 		return imageView;
 	}
@@ -405,7 +442,6 @@ public class Thumbnail extends ImageNode {
 	 * {@inheritDoc }
 	 */
 	@Dependency("Must return image drag gesture root")
-	@Override
 	public Pane getPane() {
 		return root;
 	}
@@ -438,6 +474,10 @@ public class Thumbnail extends ImageNode {
 		if (isBorderVisible) root.layout();
 	}
 
+	public boolean getBorderVisible() {
+		return isBorderVisible;
+	}
+
 	public void setBorderVisible(boolean val) {
 		if (isBorderVisible==val) return;
 		isBorderVisible = val;
@@ -455,13 +495,17 @@ public class Thumbnail extends ImageNode {
 		Pane b = new Pane();
 		b.setMouseTransparent(true);
 		b.setManaged(false);
-		b.getStyleClass().add(border_styleclass);
+		b.getStyleClass().add(styleclassBorder);
 		return b;
 	}
 
 /* ---------- BACKGROUND -------------------------------------------------------------------------------------------- */
 
 	// TODO: use custom style classes for this
+
+	public boolean isBackgroundVisible() {
+		return root.getStyleClass().contains(styleclassBgr);
+	}
 
 	/**
 	 * Sets visibility of the background. The bgr is visible only when the image
@@ -471,35 +515,14 @@ public class Thumbnail extends ImageNode {
 	 */
 	public void setBackgroundVisible(boolean val) {
 		if (val) {
-			if (!root.getStyleClass().contains(bgr_styleclass))
-				root.getStyleClass().add(bgr_styleclass);
-		} else root.getStyleClass().remove(bgr_styleclass);
+			if (!isBackgroundVisible())
+				root.getStyleClass().add(styleclassBgr);
+		} else {
+			root.getStyleClass().remove(styleclassBgr);
+		}
 	}
 
 /* ---------- properties -------------------------------------------------------------------------------------------- */
-
-	private double maxScaleFactor = 1.3;
-
-	/**
-	 * Sets maximum allowed scaling factor for the image.
-	 * <p/>
-	 * The image in the thumbnail scales with it, but only up to its own maximal
-	 * size defined by:    imageSize * maximumScaleFactor
-	 * <p/>
-	 * <p>
-	 * Default value is 1.3.
-	 * <p/>
-	 * Note that original size in this context means size (width and height) the
-	 * image has been loaded with. The image can be loaded with any size, even
-	 * surpassing that of the resolution of the file.
-	 *
-	 * @throws IllegalArgumentException if parameter < 1
-	 * @see #calculateImageLoadSize(javafx.scene.layout.Region)
-	 */
-	public void setMaxScaleFactor(double val) {
-		if (val<1) throw new IllegalArgumentException("Scale factor < 1 not allowed.");
-		maxScaleFactor = val;
-	}
 
 	/**
 	 * Allow image file drag from this thumbnail.
@@ -559,7 +582,7 @@ public class Thumbnail extends ImageNode {
 
 	/** Duration of the scaling animation effect when transitioning to hover state. */
 	public final V<Duration> durationOnHover = new V<>(animDur);
-	private final Anim hoverAnimation = new Anim(durationOnHover.get(), at -> setScaleXY(root, 1 + 0.05*at));
+	private final Anim hoverAnimation = new Anim(durationOnHover.get(), at -> setScaleXYByTo(root, at, 0, 2));
 	private final EventHandler<MouseEvent> hoverHandler = e -> {
 		hoverAnimation.dur(durationOnHover.get());
 		if (isHoverable())

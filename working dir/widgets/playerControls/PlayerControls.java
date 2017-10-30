@@ -1,20 +1,5 @@
 package playerControls;
 
-import java.io.File;
-import java.util.List;
-
-import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.media.MediaPlayer.Status;
-import javafx.util.Duration;
-
 import audio.Item;
 import audio.Player;
 import audio.playback.PLAYBACK;
@@ -28,25 +13,44 @@ import gui.objects.balancer.Balancer;
 import gui.objects.icon.GlowIcon;
 import gui.objects.icon.Icon;
 import gui.objects.seeker.Seeker;
+import java.io.File;
+import java.util.List;
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.media.MediaPlayer.Status;
+import javafx.util.Duration;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import layout.widget.feature.PlaybackFeature;
 import util.Util;
 import util.access.V;
 import util.conf.IsConfig;
-import util.graphics.drag.DragUtil;
-
 import static audio.playback.PLAYBACK.Seek.RELATIVE;
 import static audio.tagging.Metadata.Field.BITRATE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_LEFT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_RIGHT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FAST_BACKWARD;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FAST_FORWARD;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PAUSE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RANDOM;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STOP;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.VOLUME_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.VOLUME_OFF;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.VOLUME_UP;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_OFF;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_ONCE;
 import static util.Util.formatDuration;
 import static util.functional.Util.mapRef;
+import static util.graphics.drag.DragUtil.getAudioItems;
+import static util.graphics.drag.DragUtil.hasAudio;
 import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
 
@@ -109,7 +113,6 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
 		 f5    = new GlowIcon(ANGLE_DOUBLE_RIGHT,25).onClick(() -> PLAYBACK.seekForward(seekType.get())),
 		 f6    = new GlowIcon(STOP,25).onClick(PLAYBACK::stop),
 		 muteB = new GlowIcon(VOLUME_UP,15).onClick(PLAYBACK::toggleMute),
-		 addB  = new GlowIcon(PLUS_SQUARE_ALT,10),
 		 loopB = new GlowIcon(RANDOM,15).onClick((MouseEvent e) -> PLAYBACK.toggleLoopMode(e));
 	double lastUpdatedTime = Double.MIN_VALUE; // reduces time update events
 
@@ -144,22 +147,12 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         playButtons.getChildren().setAll(f1,f2,f3,f4,f5,f6);
         infoBox.getChildren().add(1, loopB);
         soundGrid.add(muteB, 0, 0);
-        addB.tooltip("Add files or folder\n\nUse left for files and right click for directory.");
-        addB.setOnMouseClicked(e-> {
-            if (e.getButton()==MouseButton.PRIMARY)
-                PlaylistManager.chooseFilesToPlay();
-            else
-                PlaylistManager.chooseFolderToPlay();
-        });
-        entireArea.getChildren().add(addB);
-        AnchorPane.setTopAnchor(addB, 5d);
-        AnchorPane.setLeftAnchor(addB, 5d);
 
         // set gui updating
         d(maintain(ps.duration,     Util::formatDuration, totTime.textProperty()));
         d(maintain(ps.currentTime,  t -> timeChanged()));
-        d(maintain(ps.status,       this::statusChanged));
-        d(maintain(ps.loopMode,     this::loopModeChanged));
+        d(maintain(ps.status,       s -> statusChanged(s)));
+        d(maintain(ps.loopMode,     l -> loopModeChanged(l)));
         d(maintain(ps.mute,         v -> muteChanged(v, ps.volume.get())));
         d(maintain(ps.volume,       v -> muteChanged(ps.mute.get(), v.doubleValue())));
         d(PLAYBACK.onSeekDone.addS(() -> lastUpdatedTime = Double.MIN_VALUE));
@@ -169,9 +162,9 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         // drag & drop
         installDrag(
             entireArea, PLAYLIST_PLUS, "Add to active playlist",
-            DragUtil::hasAudio,
+            e -> hasAudio(e),
             e -> {
-                List<Item> items = DragUtil.getAudioItems(e);
+                List<Item> items = getAudioItems(e);
                 PlaylistManager.use(playDropped ? p -> p.setNplay(items) : p -> p.addItems(items));
             }
         );

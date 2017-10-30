@@ -15,17 +15,24 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import util.LazyR;
 import util.access.V;
 import util.animation.Anim;
 import util.conf.IsConfig;
 import util.reactive.SetƑ;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static main.App.Build.resizeButton;
-import static util.graphics.Util.*;
+import static main.AppBuildersKt.resizeButton;
+import static util.graphics.Util.createFMNTStage;
+import static util.graphics.Util.layStack;
+import static util.graphics.Util.screenCaptureAndDo;
+import static util.graphics.Util.setAnchors;
+import static util.graphics.UtilKt.getScreen;
 import static util.reactive.Util.maintain;
 
 /**
@@ -113,7 +120,7 @@ public abstract class OverlayPane<T> extends StackPane {
 	public void hide() {
 		if (isShown()) {
 			getProperties().remove(IS_SHOWN);
-			animation.playCloseDo(this::animEnd);
+			animation.get().playCloseDo(this::animEnd);
 		}
 	}
 
@@ -172,7 +179,7 @@ public abstract class OverlayPane<T> extends StackPane {
 /* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
 
 	private Display displayForHide; // prevents inconsistency in start() and stop(), see use
-	private Anim animation = new Anim(30, this::animDo).dur(millis(200)).intpl(x -> x*x); // lowering fps can help on fullHD+ resolutions
+	private LazyR<Anim> animation = new LazyR<Anim>(() -> new Anim(APP.animationFps, this::animDo).dur(millis(200)).intpl(x -> x*x)); // lowering fps can help on hd screens & low-end hardware
 	private Stage stg = null;
 	private BoxBlur blurBack = new BoxBlur(0, 0, 3);  // we need best possible quality
 	private BoxBlur blurFront = new BoxBlur(0, 0, 1); // we do not need quality, hence iterations==1
@@ -197,7 +204,7 @@ public abstract class OverlayPane<T> extends StackPane {
 	public enum Display {
 		WINDOW, SCREEN_OF_WINDOW, SCREEN_OF_MOUSE;
 
-		private void animStart(OverlayPane op) {
+		private void animStart(OverlayPane<?> op) {
 			if (this==WINDOW) {
 				APP.windowManager.getActive().ifPresentOrElse(
 						window -> {
@@ -231,7 +238,7 @@ public abstract class OverlayPane<T> extends StackPane {
 							op.blurFrontNode.setEffect(op.blurFront);
 
 							// start showing
-							op.animation.playOpenDo(null);
+							op.animation.get().playOpenDo(null);
 							op.onShown.run();
 						},
 						() -> {
@@ -268,12 +275,12 @@ public abstract class OverlayPane<T> extends StackPane {
 					op.blurBackNode.setEffect(op.blurBack);
 					op.blurFrontNode.setEffect(op.blurFront);
 
-					op.animation.applier.accept(0d);
+					op.animation.get().applier.accept(0d);
 					op.stg.show();
 					op.stg.requestFocus();
 
 					// start showing
-					op.animation.playOpenDo(null);
+					op.animation.get().playOpenDo(null);
 					op.onShown.run();
 				});
 			}

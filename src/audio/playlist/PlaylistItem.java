@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.media.Media;
+import main.App;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -19,7 +20,6 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
-import services.database.Db;
 import util.SwitchException;
 import util.access.fieldvalue.ObjectField;
 import util.file.AudioFileFormat;
@@ -178,8 +178,8 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 		// if library contains the item, use it & avoid I/O
 		// improves performance almost 100-fold when item in library
 		String id = getId();
-		if (Db.items_byId.containsKey(id)) {
-			update(Db.items_byId.get(id));
+		if (App.APP.db.getItemsById().containsKey(id)) {
+			update(App.APP.db.getItemsById().get(id));
 			return;
 		}
 

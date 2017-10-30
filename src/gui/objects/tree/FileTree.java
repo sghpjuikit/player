@@ -24,7 +24,7 @@ import static javafx.scene.input.TransferMode.COPY;
 import static javafx.scene.input.TransferMode.MOVE;
 import static javafx.scene.paint.Color.CADETBLUE;
 import static main.App.APP;
-import static util.file.Util.listFiles;
+import static util.file.UtilKt.listChildren;
 
 /**
  */
@@ -116,10 +116,10 @@ public class FileTree extends TreeView<File> {
 
 			private ObservableList<TreeItem<File>> buildChildren(TreeItem<File> i) {
 				// we want to sort the items : directories first
-				// we make use of the fact that listFiles() gives us already sorted list
+				// we make use of the fact that listChildren() gives us already sorted list
 				ObservableList<TreeItem<File>> dirs = FXCollections.observableArrayList();
 				List<TreeItem<File>> files = new ArrayList<>();
-				listFiles(i.getValue()).forEach(f -> {
+				listChildren(i.getValue()).forEach(f -> {
 					if (!f.isDirectory()) dirs.add(createTreeItem(f));
 					else files.add(createTreeItem(f));
 				});

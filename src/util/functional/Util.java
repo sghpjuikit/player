@@ -1,27 +1,60 @@
 package util.functional;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.function.*;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.IntConsumer;
+import java.util.function.IntPredicate;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import one.util.streamex.DoubleStreamEx;
 import one.util.streamex.EntryStream;
 import one.util.streamex.IntStreamEx;
 import one.util.streamex.StreamEx;
 import org.reactfx.util.TriFunction;
 import util.SwitchException;
 import util.collections.Tuple2;
-import util.functional.Functors.*;
-import static java.lang.Math.*;
-import static java.util.Collections.*;
+import util.functional.Functors.Ƒ1;
+import util.functional.Functors.Ƒ1E;
+import util.functional.Functors.Ƒ2;
+import util.functional.Functors.ƑEC;
+import util.functional.Functors.ƑP;
+import static java.lang.Math.PI;
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
+import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.EMPTY_SET;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static util.collections.Tuples.tuple;
-import static util.dev.Util.*;
+import static util.dev.Util.noØ;
+import static util.dev.Util.throwIf;
+import static util.dev.Util.throwIfNot;
 
 @SuppressWarnings("unused")
 public interface Util {
@@ -1044,21 +1077,21 @@ public interface Util {
 				.mapToObj(i -> mapper.apply(x + i*byX, y + i*byY));
 	}
 
-	static <R> StreamEx<R> forEachOnCircle(long count, TriFunction<Double,Double,Double,R> mapper) {
+	static <R> Stream<R> forEachOnCircle(long count, TriFunction<Double,Double,Double,R> mapper) {
 		throwIf(count<0);
 		return forEachOnCircle(0, 0, 1, count, mapper);
 	}
 
-	static <R> StreamEx<R> forEachOnCircleBy(double x, double y, double by, long count, TriFunction<Double,Double,Double,R> mapper) {
+	static <R> Stream<R> forEachOnCircleBy(double x, double y, double by, long count, TriFunction<Double,Double,Double,R> mapper) {
 		throwIf(count<0);
 		double circumference = by*count;
 		double radius = circumference/(2*PI);
 		return forEachOnCircle(x, y, radius, count, mapper);
 	}
 
-	static <R> StreamEx<R> forEachOnCircle(double x, double y, double radius, long count, TriFunction<Double,Double,Double,R> mapper) {
+	static <R> Stream<R> forEachOnCircle(double x, double y, double radius, long count, TriFunction<Double,Double,Double,R> mapper) {
 		throwIf(count<0);
-		return DoubleStreamEx.iterate(0, a -> a + 2*PI/count)
+		return DoubleStream.iterate(0, a -> a + 2*PI/count)
 				.limit(count)
 				.mapToObj(a -> mapper.apply(x + radius*cos(a), y + radius*sin(a), a));
 	}

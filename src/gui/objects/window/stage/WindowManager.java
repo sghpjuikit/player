@@ -43,7 +43,10 @@ import util.conf.IsConfigurable;
 import util.file.Util;
 import util.graphics.fxml.ConventionFxmlLoader;
 import util.validation.Constraint;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_DOWN;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOWN;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -58,13 +61,17 @@ import static main.App.APP;
 import static util.async.Async.runLater;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
-import static util.file.Util.childOf;
-import static util.file.Util.listFiles;
-import static util.functional.Util.*;
+import static util.file.UtilKt.childOf;
+import static util.file.UtilKt.listChildren;
+import static util.functional.Util.ISNTØ;
+import static util.functional.Util.mapB;
+import static util.functional.Util.max;
+import static util.functional.Util.set;
+import static util.functional.Util.stream;
 import static util.graphics.Util.add1timeEventHandler;
-import static util.graphics.Util.getScreen;
 import static util.reactive.Util.maintain;
 import static util.reactive.Util.onScreenChange;
+import static util.graphics.UtilKt.getScreen;
 
 /**
  * Manages windows.
@@ -201,7 +208,6 @@ public class WindowManager implements Configurable<Object> {
         }
 
         // bind properties
-        w.disposables.add(maintain(windowOpacity, w.getStage().opacityProperty()));
         w.disposables.add(maintain(window_borderless, w::setBorderless));
         w.disposables.add(maintain(window_headerless, v -> !v, w::setHeaderVisible));
 	    w.getStage().setTitle(APP.name);
@@ -391,7 +397,7 @@ public class WindowManager implements Configurable<Object> {
             return;
         }
 
-        Set<File> filesOld = listFiles(dir).collect(toSet());
+        Set<File> filesOld = listChildren(dir).collect(toSet());
         List<Window> windows = stream(Window.WINDOWS).without(miniWindow).toList();
 	    LOGGER.info("Serializing " + windows.size() + " application windows");
 
@@ -426,7 +432,7 @@ public class WindowManager implements Configurable<Object> {
             }
 
             // deserialize windows
-            File[] fs = listFiles(dir).filter(f -> f.getPath().endsWith(".ws")).toArray(File[]::new);
+            File[] fs = listChildren(dir).filter(f -> f.getPath().endsWith(".ws")).toArray(File[]::new);
 	        LOGGER.info("Deserializing {} application windows", fs.length);
 	        stream(fs)
 		        .map(f -> App.APP.serializators.fromXML(WindowState.class, f)

@@ -12,7 +12,6 @@ import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import main.App;
-import org.reactfx.Subscription;
 import util.access.*;
 import util.access.fieldvalue.EnumerableValue;
 import util.conf.Config.VarList.Elements;
@@ -261,6 +260,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 	 * If the value is not a value (its class is supported by ({@link #forProperty(Class, String, Object)}),
 	 * runtime exception is thrown.
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T> Config<T> forValue(Class type, String name, Object value) {
 		if (value instanceof Config ||
 				value instanceof VarList ||
@@ -864,7 +864,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		}
 	}
 
-	public static class VarList<T> extends V<ObservableList<T>> {
+	public static class VarList<T> extends VNullable<ObservableList<T>> {
 
 		public enum Elements {
 			NULLABLE, NOT_NULL
@@ -918,14 +918,19 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 		/**
 		 * Clears list and adds items to it. Fires 1 event.
-		 * Fluent API - returns this object. This is to avoid multiple constructors.
+		 *
+		 * @return this (fluent api)
 		 */
 		public VarList<T> setItems(Collection<? extends T> items) {
 			list.setAll(items);
 			return this;
 		}
 
-		/** Array version of {@link #setItems(java.util.Collection)} */
+		/**
+		 * Array version of {@link #setItems(java.util.Collection)}
+		 *
+		 * @return this (fluent api)
+		 */
 		public VarList<T> setItems(T... items) {
 			list.setAll(items);
 			return this;
@@ -933,26 +938,31 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 		/**
 		 * Adds invalidation listener to the list.
-		 * Returns subscription to dispose of the listening.
+		 *
+		 * @return this (fluent api)
 		 */
 		@SuppressWarnings("unchecked")
-		public Subscription onListInvalid(Consumer<ObservableList<T>> listener) {
+		public VarList<T> onListInvalid(Consumer<ObservableList<T>> listener) {
 			InvalidationListener l = o -> listener.accept((ObservableList<T>) o);
 			list.addListener(l);
-			return () -> list.removeListener(l);
+//			return () -> list.removeListener(l);
+			return this;
 		}
 
 		/**
 		 * Adds list change listener to the list.
-		 * Returns subscription to dispose of the listening.
+		 *
+		 * @return this (fluent api)
 		 */
-		public Subscription onListChange(ListChangeListener<? super T> listener) {
+		public VarList<T> onListChange(ListChangeListener<? super T> listener) {
 			list.addListener(listener);
-			return () -> list.removeListener(listener);
+//			return () -> list.removeListener(listener);
+			return this;
 		}
 	}
 
 	public static class ConfigurableVarList<T extends Configurable> extends VarList<T> {
+		@SuppressWarnings("unchecked")
 		public ConfigurableVarList(Class<T> itemType, T... items) {
 			super(
 					itemType,

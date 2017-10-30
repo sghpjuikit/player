@@ -194,8 +194,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
 
                     Player.refreshItemsWith(stream(songs).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).toList());
                })
-               .showProgress(getWidget().getWindow().taskAdd())
-               .run();
+               .showProgress(getWidget().getWindow().taskAdd());
         }));
         acts.accumulate(new WriteFileAct());
         acts.accumulate(new ActCreateDirs());
@@ -502,8 +501,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
                                log(Converter.class).info("couldnt create file/directory",e);
                            }
                        });
-                   })
-                   .run();
+                   });
             };
         }
 

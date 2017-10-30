@@ -65,7 +65,7 @@ public class AppLauncher extends ClassController {
     final V<CellSize> cellSize = new V<>(NORMAL, this::applyCellSize);
     @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
     final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5, this::applyCellSize);
-    @IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
+    @IsConfig(name = "Thumbnail animate on", info = "Determines when the thumbnail image transition is played.")
     final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width,cellSize.get().width*cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT,5,5);
@@ -86,7 +86,7 @@ public class AppLauncher extends ClassController {
     @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
     final V<FileSort> sort_file = new V<>(DIR_FIRST, this::applySort);
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
-    final VarEnum<FileField<?>> sortBy = new VarEnum<FileField<?>>(FileField.NAME, () -> FileField.FIELDS, f -> applySort());
+    final VarEnum<FileField<?>> sortBy = new VarEnum<>(FileField.NAME, () -> FileField.FIELDS, f -> applySort());
     @IsConfig(name = "Close on launch", info = "Close this widget when it launches a program.")
     final V<Boolean> closeOnLaunch = new V<>(false);
     @IsConfig(name = "Close on right click", info = "Close this widget when right click is detected.")
@@ -149,8 +149,7 @@ public class AppLauncher extends ClassController {
                         grid.implGetSkin().setPosition(item.lastScrollPosition);
 
 	                grid.implGetSkin().requestFocus();    // fixes focus problem
-                })
-                .run();
+                });
     }
 
     private void doubleClickItem(Item i) {

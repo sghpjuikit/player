@@ -29,7 +29,8 @@ import static javafx.util.Duration.millis;
 import static util.animation.Anim.seq;
 import static util.functional.Util.*;
 import static util.graphics.Util.layScrollVText;
-import static util.graphics.Util.setScaleXY;
+import static util.graphics.UtilKt.setScaleXY;
+
 
 /**
  * Generic item picker.

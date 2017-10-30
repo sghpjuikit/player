@@ -61,7 +61,7 @@ import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static main.App.Build.appTooltip;
+import static main.AppBuildersKt.appTooltip;
 import static util.Util.enumToHuman;
 import static util.async.Async.run;
 import static util.functional.Try.ok;
@@ -674,7 +674,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                     // currently only hacks allow this
                     // ((BehaviorSkinBase)n.getSkin()).getBehavior().traverseNext(); // !work since java9
 	                // n.traverse(Direction.NEXT); // !work since java 9 b135
-	                Util.invokeMethodP1(n, "traverse", Direction.class,Direction.NEXT);
+	                Util.invokeMethodP1(n, "traverse", Direction.class, Direction.NEXT);
                 }
                 e.consume();
             });

@@ -7,7 +7,7 @@ import java.util.List;
 import util.collections.map.abstr.MapByClass;
 
 /** Map where key is class. Provides additional methods. */
-public class ClassMap<E> extends HashMap<Class,E> implements MapByClass<E> {
+public class ClassMap<E> extends HashMap<Class<?>,E> implements MapByClass<E> {
 
 	@Override
 	public List<E> getElementsOf(Collection<Class<?>> keys) {

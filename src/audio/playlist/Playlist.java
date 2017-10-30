@@ -5,6 +5,7 @@ import audio.Player;
 import audio.playback.PLAYBACK;
 import gui.objects.icon.Icon;
 import gui.objects.popover.PopOver;
+import gui.objects.popover.ScreenPos;
 import gui.objects.window.stage.WindowBase;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -759,7 +760,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		// build popup
 		PopOver<?> p = new PopOver<>(title, content);
 		p.getHeaderIcons().add(infoB);
-		p.show(PopOver.ScreenPos.App_Center);
+		p.show(ScreenPos.APP_CENTER);
 		p.detached.set(true);
 	}
 

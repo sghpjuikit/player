@@ -32,16 +32,24 @@ import util.dev.Idempotent;
 import util.file.FileMonitor;
 import util.file.Util;
 import util.functional.Try;
-import static java.nio.file.StandardWatchEventKinds.*;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static layout.widget.WidgetManager.WidgetSource.*;
+import static layout.widget.WidgetManager.WidgetSource.LAYOUT;
+import static layout.widget.WidgetManager.WidgetSource.OPEN;
+import static layout.widget.WidgetManager.WidgetSource.STANDALONE;
 import static main.App.APP;
 import static util.Util.capitalize;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
-import static util.file.Util.*;
-import static util.functional.Util.*;
+import static util.file.Util.getName;
+import static util.file.UtilKt.listChildren;
+import static util.file.Util.readFileLines;
+import static util.functional.Util.ISNTØ;
+import static util.functional.Util.stream;
+import static util.functional.Util.toS;
 
 /**
  * Handles operations with Widgets.
@@ -57,6 +65,7 @@ public final class WidgetManager {
 	 * widgets files are discovered/deleted/modified.
 	 */
 	public final MapSet<String,WidgetFactory<?>> factories = new MapSet<>(WidgetFactory::name);
+	public final WidgetFactory<?> widgetFactoryEmpty = new WidgetFactory<>(EmptyWidget.class);
 	private final MapSet<String,WidgetDir> monitors = new MapSet<>(wd -> wd.widgetName);
 	private boolean initialized = false;
 	private final WindowManager windowManager; // use App instead, but that requires different App initialization
@@ -74,14 +83,14 @@ public final class WidgetManager {
 		// Factories for classes known at compile time and packaged along the application requesting
 		// factory generation.
 		ClassIndex.getAnnotated(GenerateWidgetFactory.class).forEach(c -> constructFactory(c, null));
-		factories.add(new WidgetFactory<>(EmptyWidget.class));
+		factories.add(widgetFactoryEmpty);
 
 		// external factories
 		File dirW = APP.DIR_WIDGETS;
 		if (!Util.isValidatedDirectory(dirW)) {
 			LOGGER.error("External widgets registration failed.");
 		} else {
-			listFiles(dirW).filter(File::isDirectory).forEach(widgetDir -> {
+			listChildren(dirW).filter(File::isDirectory).forEach(widgetDir -> {
 				String name = capitalize(getName(widgetDir));
 				monitors.computeIfAbsent(name, n -> new WidgetDir(name, widgetDir)).registerExternalFactory();
 			});
@@ -105,7 +114,7 @@ public final class WidgetManager {
 		if (!Util.isValidatedDirectory(dirL)) {
 			LOGGER.error("External .fxwl widgets registration failed.");
 		} else {
-			listFiles(dirL).filter(f -> f.getPath().endsWith(".fxwl"))
+			listChildren(dirL).filter(f -> f.getPath().endsWith(".fxwl"))
 						   .filter(f ->  readFileLines(f).limit(1).filter(line -> line.startsWith("<Widget")).count() > 0)
 						   .forEach(fxwl -> {
 				String name = capitalize(getName(fxwl));
@@ -147,18 +156,18 @@ public final class WidgetManager {
 		if (was_replaced) {
 			LOGGER.info("Reloading all open widgets of {}", wf.name());
 			findAll(OPEN)
-			.filter(w -> w.getInfo().name().equals(wf.name())) // can not rely on type since we just reloaded the class!
-			.collect(toList()) // guarantees no concurrency problems due to forEach side effects
-			.forEach(w -> {
-				Widget<?> nw = wf.create();
-				nw.setStateFrom((Widget)w);
-				// TODO: actually this can still be null as widget is not guaranteed to be within layout (i.e. FileInfo
-				// in notification). It MUST be wrapped within container!
-				Integer i = w.indexInParent();
-				Container c = w.getParent();
-				c.removeChild(i);
-				c.addChild(i, nw);
-			});
+				.filter(w -> w.getInfo().name().equals(wf.name())) // can not rely on type since we just reloaded the class!
+				.collect(toList()) // avoids possible concurrent modification
+				.forEach(w -> {
+					Widget<?> nw = wf.create();
+					nw.setStateFrom((Widget) w);
+					Integer i = w.indexInParent();  // TODO: avoid null, MUST be wrapped within container!
+					if (i!=null) {
+						Container c = w.getParent();
+						c.removeChild(i);
+						c.addChild(i, nw);
+					}
+				});
 		}
 	}
 
@@ -279,15 +288,15 @@ public final class WidgetManager {
 		}
 
 		Stream<File> getSrcFiles() {
-			return listFiles(widgetDir).filter(f -> f.getPath().endsWith(".java"));
+			return listChildren(widgetDir).filter(f -> f.getPath().endsWith(".java"));
 		}
 
 		Stream<File> getClassFiles() {
-			return listFiles(widgetDir).filter(f -> f.getPath().endsWith(".class"));
+			return listChildren(widgetDir).filter(f -> f.getPath().endsWith(".class"));
 		}
 
 		Stream<File> getLibFiles() {
-			return stream(listFiles(widgetDir),listFiles(widgetDir.getParentFile()))
+			return stream(listChildren(widgetDir), listChildren(widgetDir.getParentFile()))
 					   .filter(f -> f.getPath().endsWith(".jar"));
 		}
 
@@ -692,7 +701,7 @@ public final class WidgetManager {
 			return;
 		}
 		// find layout files
-		File[] files = listFiles(dir).filter(f -> f.getName().endsWith(".l")).toArray(File[]::new);
+		File[] files = listChildren(dir).filter(f -> f.getName().endsWith(".l")).toArray(File[]::new);
 		// load layouts
 		layoutsAvailable.clear();
 		if (files.length == 0) return;

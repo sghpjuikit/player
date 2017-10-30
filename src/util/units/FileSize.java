@@ -63,7 +63,7 @@ public final class FileSize implements Comparable<FileSize> {
 	 * @throws java.lang.RuntimeException if param smaller than -1
 	 */
 	public FileSize(long bytes) {
-		if (bytes < -1) throw new IllegalArgumentException("File size value must be -1 or larger");
+		if (bytes < -1) throw new IllegalArgumentException("File size value= " + bytes + " must be -1 or larger");
 		v = bytes;
 	}
 
@@ -150,7 +150,6 @@ public final class FileSize implements Comparable<FileSize> {
 	 * @return string representation of the object
 	 */
 	@Override
-	@Dependency("Designed to be used in tables, filters and gui.")
 	@Dependency("Supports different units. B - EB")
 	public String toString() {
 		if (v==-1) return NAString;

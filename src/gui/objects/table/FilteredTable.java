@@ -323,7 +323,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 	private List<PredicateData<ObjectField<T,Object>>> getFilterPredicates(Class<T> filterType) {
 		return stream(App.APP.classFields.get(filterType))
-			.filter(ObjectField::isTypeStringRepresentable)
+			.filter(ObjectField::isTypeString)
 			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
 			.sorted(by(e -> e.name))
 			.map(f -> (PredicateData<ObjectField<T,Object>>) f)

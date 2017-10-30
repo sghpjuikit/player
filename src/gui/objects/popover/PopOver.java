@@ -34,10 +34,17 @@ import gui.objects.window.stage.WindowBase;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import javafx.animation.FadeTransition;
+import java.util.function.Supplier;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -45,7 +52,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.PopupControl;
@@ -55,20 +61,22 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
-import util.SwitchException;
 import util.access.V;
-import static gui.objects.popover.PopOver.ScreenUse.APP_WINDOW;
+import util.animation.Anim;
+import util.graphics.P;
+import static gui.objects.popover.ScreenUse.APP_WINDOW;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
-import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static main.App.APP;
 import static util.dev.Util.noØ;
-import static util.functional.Util.isAny;
-import static util.functional.Util.stream;
-import static util.graphics.Util.getScreen;
-import static util.graphics.Util.getScreenForMouse;
-import static util.type.Util.getEnumConstants;
+import static util.graphics.UtilKt.getCentre;
+import static util.graphics.UtilKt.getScreen;
+import static util.graphics.UtilKt.setScaleXYByTo;
+import static util.math.Util.millis;
 
 /**
  * Customized popup window with enhanced functionalities and customizations.
@@ -338,7 +346,7 @@ public class PopOver<N extends Node> extends PopupControl {
 	 * otherwise happens immediatelly.
 	 */
 	public void hideStrong() {
-		if (isAnimated()) fadeOut();
+		if (animated.get()) fadeOut();
 		else hideImmediatelly();
 	}
 
@@ -364,7 +372,7 @@ public class PopOver<N extends Node> extends PopupControl {
 
 	private void showThis(Node ownerNode, Window ownerWindow) {
 		noØ(ownerWindow);
-		Screen s = getScreen(ownerWindow.getX() + ownerWindow.getWidth()/2, ownerWindow.getY() + ownerWindow.getHeight()/2);
+		Screen s = getScreen(getCentre(ownerWindow));
 		setMaxWidth(s.getBounds().getWidth());
 		setMaxHeight(s.getBounds().getHeight());
 
@@ -383,7 +391,6 @@ public class PopOver<N extends Node> extends PopupControl {
 		// show the popup
 		super.show(ownerWindow, 0, 0);
 		active_popups.add(this);
-		getSkin().getNode().setOpacity(isAnimated() ? opacityOldVal : 1);
 
 		// initialize moving with owner behavior to respect set value
 		initializeMovingBehavior(move_with_owner);
@@ -398,6 +405,18 @@ public class PopOver<N extends Node> extends PopupControl {
 				e.consume();
 			}
 		});
+
+		if (animated.get()) fadeIn();
+	}
+
+	Runnable positioner = null;
+
+	private void position(Supplier<P> position) {
+		positioner = () -> {
+			P p = position.get();
+			position(p.getX(), p.getY());
+		};
+		positioner.run();
 	}
 
 	private void position(double x, double y) {
@@ -418,8 +437,6 @@ public class PopOver<N extends Node> extends PopupControl {
 		// and binding is currently impossible
 		deltaThisX = getX();
 		deltaThisY = getY();
-
-		if (isAnimated()) fadeIn();
 	}
 
 	/**
@@ -439,7 +456,7 @@ public class PopOver<N extends Node> extends PopupControl {
 		Point2D a = owner.localToScreen(x, y);
 		double X = a.getX() + owner.getBoundsInParent().getWidth()/2;
 		double Y = a.getY() + owner.getBoundsInParent().getHeight()/2;
-		position(X, Y);
+		position(() -> new P(X, Y));
 	}
 
 	/**
@@ -452,16 +469,14 @@ public class PopOver<N extends Node> extends PopupControl {
 	/** Display at specified designated position relative to node. */
 	public void show(Node owner, NodePos pos) {
 		showThis(owner, owner.getScene().getWindow());
-		double X = pos.calcX(owner, this) + owner.getBoundsInParent().getWidth()/2;
-		double Y = pos.calcY(owner, this) + owner.getBoundsInParent().getHeight()/2;
-		position(X, Y);
+		position(() -> pos.computeXY(owner, this));
 	}
 
 	/** Display at specified screen coordinates */
 	@Override
 	public void show(Window window, double x, double y) {
 		showThis(null, window);
-		position(x, y);
+		position(() -> new P(x, y));
 	}
 
 	private static Stage UNFOCUSED_OWNER;
@@ -482,7 +497,8 @@ public class PopOver<N extends Node> extends PopupControl {
 		Window owner = ownerO.orElseGet(() -> focusOnShow.get() ? APP.windowManager.createStageOwner() : UNFOCUSED_OWNER);
 		ScreenPos p = isScreenCentric ? pos.toScreenCentric() : pos;
 		showThis(null, owner);
-		position(p.calcX(this), p.calcY(this));
+		position(() -> p.computeXY(this));
+
 		if (!p.isAppCentric()) uninstallMoveWith();
 		if (isOwnerCreated) getProperties().put(CLOSE_OWNER, CLOSE_OWNER);
 	}
@@ -784,215 +800,17 @@ public class PopOver<N extends Node> extends PopupControl {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-	// TODO: add css support for the gap value
-	// gap between screen border and the popover
-	// note that the practical value is (GAP-padding)/2 so if padding is 4
-	// then real GAP will be 3
-	private static double GAP = 9;
+	/** Whether resizing by user is allowed. */
+	public final BooleanProperty userResizable = new SimpleBooleanProperty(true);
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
 	public ScreenUse screen_preference = APP_WINDOW;
-
-	public enum NodePos {
-		Center,
-		UpLeft,
-		UpCenter,
-		UpRight,
-		DownLeft,
-		DownCenter,
-		DownRight,
-		RightUp,
-		RightCenter,
-		RightDown,
-		LeftUp,
-		LeftCenter,
-		LeftDown;
-
-		public NodePos reverse() {
-			switch (this) {
-				case Center: return Center;
-				case UpLeft: return DownRight;
-				case UpCenter: return DownCenter;
-				case UpRight: return DownLeft;
-				case DownLeft: return UpRight;
-				case DownCenter: return UpCenter;
-				case DownRight: return UpLeft;
-				case RightUp: return LeftDown;
-				case RightCenter: return LeftCenter;
-				case RightDown: return LeftUp;
-				case LeftUp: return RightDown;
-				case LeftCenter: return RightCenter;
-				case LeftDown: return RightUp;
-				default: throw new SwitchException(this);
-			}
-		}
-
-		public double calcX(Node n, PopOver popup) {
-			double W = popup.getContentNode().getBoundsInParent().getWidth();
-			double X = n.localToScreen(0, 0).getX();
-			switch (this) {
-				case Center:
-				case DownCenter:
-				case UpCenter: return X + n.getBoundsInParent().getWidth()/2 - W/2;
-				case LeftCenter:
-				case LeftUp:
-				case LeftDown: return X - W;
-				case RightCenter:
-				case RightUp:
-				case RightDown: return X + n.getBoundsInParent().getWidth();
-				case UpLeft:
-				case DownLeft: return X;
-				case UpRight:
-				case DownRight: return X + n.getBoundsInParent().getWidth() - W;
-				default: throw new SwitchException(this);
-			}
-		}
-
-		public double calcY(Node n, PopOver popup) {
-			double H = popup.getContentNode().getBoundsInParent().getHeight();
-			double Y = n.localToScreen(0, 0).getY();
-			switch (this) {
-				case UpRight:
-				case UpCenter:
-				case UpLeft: return Y - H;
-				case DownCenter:
-				case DownLeft:
-				case DownRight: return Y + n.getBoundsInParent().getHeight();
-				case LeftUp:
-				case RightUp: return Y;
-				case Center:
-				case LeftCenter:
-				case RightCenter: return Y + n.getBoundsInParent().getHeight()/2 - H/2;
-				case LeftDown:
-				case RightDown: return Y + n.getBoundsInParent().getHeight() - H;
-				default: throw new SwitchException(this);
-			}
-		}
-	}
-
-	/** Defines position within the screen area defined by {@link ScreenUse}. */
-	public enum ScreenPos {
-		Screen_Top_Right,
-		Screen_Top_Left,
-		Screen_Center,
-		Screen_Bottom_Right,
-		Screen_Bottom_Left,
-		App_Top_Right,
-		App_Top_Left,
-		App_Center,
-		App_Bottom_Right,
-		App_Bottom_Left;
-
-		public boolean isAppCentric() {
-			return isAny(this, App_Bottom_Left, App_Bottom_Right, App_Center, App_Top_Left, App_Top_Right);
-		}
-
-		public ScreenPos toScreenCentric() {
-			return (ScreenPos) getEnumConstants(ScreenPos.class)[ordinal()%5];
-		}
-
-		public ScreenPos toAppCentric() {
-			return (ScreenPos) getEnumConstants(ScreenPos.class)[5 + ordinal()%5];
-		}
-
-		public double calcX(PopOver popup) {
-			double W = popup.getSkinn().root.getWidth();
-			Rectangle2D screen = isAppCentric()
-					? null
-					: getScreenForMouse().getBounds();
-//				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screen_preference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
-			WindowBase app = APP.windowManager.getMain().orElse(null);
-			switch (this) {
-				case App_Top_Left:
-				case App_Bottom_Left: return app==null ? Screen_Bottom_Left.calcX(popup) : app.getX();
-				case App_Top_Right:
-				case App_Bottom_Right: return app==null ? Screen_Bottom_Right.calcX(popup) : app.getX() + app.getWidth() - W;
-				case App_Center: return app==null ? Screen_Center.calcX(popup) : app.getX() + app.getWidth()/2 - W/2;
-				case Screen_Top_Left:
-				case Screen_Bottom_Left: return screen.getMinX() + GAP;
-				case Screen_Top_Right:
-				case Screen_Bottom_Right: return screen.getMaxX() - W - GAP;
-				case Screen_Center: return screen.getMinX() + screen.getWidth()/2 - W/2;
-				default: throw new SwitchException(this);
-			}
-		}
-
-		public double calcY(PopOver popup) {
-			double H = popup.getSkinn().root.getHeight();
-			Rectangle2D screen = isAppCentric()
-					? null
-					: getScreenForMouse().getBounds();
-//				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screen_preference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
-			WindowBase app = APP.windowManager.getMain().orElse(null);
-			switch (this) {
-				case App_Bottom_Left:
-				case App_Bottom_Right: return app==null ? Screen_Bottom_Right.calcY(popup) : app.getY() + app.getHeight() - H;
-				case App_Top_Left:
-				case App_Top_Right: return app==null ? Screen_Top_Right.calcY(popup) : app.getY();
-				case App_Center: return app==null ? Screen_Center.calcY(popup) : app.getY() + app.getHeight()/2 - H/2;
-				case Screen_Bottom_Left:
-				case Screen_Bottom_Right: return screen.getMaxY() - H - GAP;
-				case Screen_Top_Left:
-				case Screen_Top_Right: return screen.getMinY() + GAP;
-				case Screen_Center: return screen.getMinY() + screen.getHeight()/2 - H/2;
-				default: throw new SwitchException(this);
-			}
-		}
-	}
-
-	/**
-	 * Screen area picking strategy for popover position. Decides a rectangular
-	 * screen area for popup positioning.
-	 */
-	public enum ScreenUse {
-		/** Area of a main screen will always be picked. */
-		MAIN,
-		/**
-		 * Area of popover's window owner's screen will be picked. This is the
-		 * screen, which contains the window's centrum.
-		 */
-		APP_WINDOW,
-		/**
-		 * All screens will be used. Resulting area is a rectangle ranging from
-		 * the left most screen's left edge and topmost screen's top edge to
-		 * rightmost screen's right edge and bottomost screen's bottom edge.
-		 */
-		ALL;
-
-		/** Returns rectangular screen area */
-		public Rectangle2D getScreenArea(Window w, ScreenPos pos) {
-			Screen ps = Screen.getPrimary();
-			Rectangle2D psb = ps.getBounds();
-			if (this==MAIN)
-				return ps.getBounds();
-			if (this==APP_WINDOW) {
-				Screen s = w==null ? getScreenForMouse() : getScreen(w.getX() + w.getWidth()/2, w.getY() + w.getHeight()/2);
-				return s.getBounds();
-			}
-			List<Screen> ss = Screen.getScreens();
-			Rectangle2D left = stream(ss).map(f -> f.getBounds()).minBy(b -> b.getMinX()).orElse(psb);
-			Rectangle2D right = stream(ss).map(f -> f.getBounds()).maxBy(b -> b.getMaxX()).orElse(psb);
-			switch (pos) {
-				case Screen_Bottom_Left:
-				case Screen_Top_Left: return left;
-				case Screen_Bottom_Right:
-				case Screen_Top_Right: return right;
-				case Screen_Center: {
-					Rectangle2D top = stream(ss).map(f -> f.getBounds()).minBy(b -> b.getMinY()).orElse(psb);
-					Rectangle2D bottom = stream(ss).map(f -> f.getBounds()).maxBy(b -> b.getMaxY()).orElse(psb);
-					return new Rectangle2D(left.getMinX(), top.getMinY(),
-							right.getMaxX() - left.getMinX(),
-							bottom.getMaxY() - top.getMinY());
-				}
-				default: return null;
-			}
-		}
-	}
 
 	/******************************************************************************/
 
-	// arrow size support
 	// TODO: make styleable
-	private final DoubleProperty arrowSize = new SimpleDoubleProperty(this,
-			"arrowSize", 9);
+	private final DoubleProperty arrowSize = new SimpleDoubleProperty(this,"arrowSize", 9);
 
 	/**
 	 * Controls the size of the arrow. Default value is 12.
@@ -1030,10 +848,8 @@ public class PopOver<N extends Node> extends PopupControl {
 		arrowSizeProperty().set(size);
 	}
 
-	// arrow indent support
 	// TODO: make styleable
-	private final DoubleProperty arrowIndent = new SimpleDoubleProperty(this,
-			"arrowIndent", 12);
+	private final DoubleProperty arrowIndent = new SimpleDoubleProperty(this, "arrowIndent", 12);
 
 	/**
 	 * Controls the distance between the arrow and the corners of the pop over.
@@ -1143,81 +959,22 @@ public class PopOver<N extends Node> extends PopupControl {
 
 	/**************************** IN/OUT ANIMATIONS *******************************/
 
-	private static final Duration DEFAULT_FADE_IN_DURATION = Duration.seconds(.3);
-	private static boolean animated = true;
-
-	// Lazily initialized, might be null, use getter
-	private Duration fadeDuration;
-	private FadeTransition fadeInAnim;
-	private FadeTransition fadeOutAnim;
-	private double opacityOldVal = 0;   // for restoring from previous session
-
-	/**
-	 * Return whether is animated. Uses fade in and out animations on show/hide.
-	 */
-	public boolean isAnimated() {
-		return animated;
-	}
-
-	/**
-	 * Sets whether is animated. Uses fade in and out animations on show/hide.
-	 */
-	public void setAnimated(boolean val) {
-		animated = val;
-	}
-
-	public void setAnimDuration(Duration val) {
-		fadeDuration = val;
-	}
-
-	public Duration getAnimDuration() {
-		return (fadeDuration!=null) ? fadeDuration : DEFAULT_FADE_IN_DURATION;
-	}
+	/** Whether is animated. Uses fade in and out animations on show/hide. */
+	public V<Boolean> animated = new V<>(true);
+	public V<Duration> animationDuration = new V<>(millis(300));
+	private final Anim animation = new Anim(p -> {
+		getSkinn().getNode().setOpacity(p*p);
+		setScaleXYByTo(getSkinn().getNode(), p, -20.0, 0.0);  // TODO: causes slight position shift sometimes
+	});
 
 	private void fadeIn() {
-		// lazy initialize
-		if (fadeInAnim==null) {
-			fadeInAnim = new FadeTransition();
-			fadeInAnim.setFromValue(0);
-			fadeInAnim.setToValue(1);
-		}
-		// if running stop
-		if (fadeOutAnim!=null) {
-			fadeOutAnim.setOnFinished(null);
-			fadeOutAnim.stop();
-			opacityOldVal = getSkin().getNode().getOpacity();
-		}// else opacityOldVal = 0;
-		// set & play
-		fadeInAnim.setOnFinished(e -> opacityOldVal = 1);
-		fadeInAnim.setNode(getSkin().getNode());
-		fadeInAnim.setFromValue(opacityOldVal);
-		fadeInAnim.setDuration(getAnimDuration());
-//        fadeInAnim.playFrom(getAnimDuration().multiply(opacityOldVal));
-		fadeInAnim.play();
+		animation.dur(animationDuration.get());
+		animation.playOpenDo(null);
 	}
 
 	private void fadeOut() {
-		// lazy initialize
-		if (fadeOutAnim==null) {
-			fadeOutAnim = new FadeTransition();
-			fadeOutAnim.setToValue(0);
-		}
-		// if running stop
-		if (fadeInAnim!=null)
-			fadeInAnim.stop();
-		// set & play
-		fadeOutAnim.setNode(getSkin().getNode());
-		fadeOutAnim.setDuration(getAnimDuration());
-		// when popover hides on click but that very click shows it back
-		// unfortunately the hiding executes on mouse press and showing on mouse
-		// release - thus producing ugly fade out-in, delayed hidding fixes it
-		fadeOutAnim.setDelay(Duration.millis(150));
-		fadeOutAnim.setOnFinished(e -> {
-			opacityOldVal = 0;
-			hideImmediatelly();
-			fadeOutAnim.setOnFinished(null);
-		});
-		fadeOutAnim.playFromStart();
+		animation.dur(animationDuration.get());
+		animation.playCloseDo(() -> hideImmediatelly());
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */

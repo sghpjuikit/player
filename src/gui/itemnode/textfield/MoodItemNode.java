@@ -3,11 +3,11 @@ package gui.itemnode.textfield;
 import audio.tagging.Metadata;
 import gui.objects.picker.MoodPicker;
 import gui.objects.popover.PopOver;
-import gui.objects.popover.PopOver.NodePos;
-import services.database.Db;
+import gui.objects.popover.NodePos;
 import util.access.V;
 import util.parsing.Parser;
 import static gui.objects.textfield.autocomplete.AutoCompletion.autoComplete;
+import static main.App.APP;
 import static util.functional.Util.filter;
 
 /**
@@ -21,12 +21,12 @@ import static util.functional.Util.filter;
 public class MoodItemNode extends TextFieldItemNode<String> {
 
 	/** The position for the picker to show on. */
-	public final V<NodePos> pos = new V<>(PopOver.NodePos.RightCenter);
+	public final V<NodePos> pos = new V<>(NodePos.RightCenter);
 
 	public MoodItemNode() {
 		super(Parser.DEFAULT.toConverterOf(String.class));
 		setEditable(true);
-		autoComplete(this, p -> filter(Db.string_pool.getStrings(Metadata.Field.MOOD.name()), t -> Db.autocompletionFilter.apply(t, p.getUserText())));
+		autoComplete(this, p -> filter(APP.db.getStringPool().getStrings(Metadata.Field.MOOD.name()), t -> APP.db.getAutocompletionFilter().apply(t, p.getUserText())));
 	}
 
 	@Override

@@ -12,7 +12,7 @@ import static util.reactive.Util.maintain;
 /**
  * Very simple alternative CheckBox control.
  */
-public class CheckIcon extends Icon<CheckIcon> {
+public class CheckIcon extends Icon {
 	private static final PseudoClass selectedPC = getPseudoClass("selected");
 	private static final String STYLECLASS = "check-icon";
 	private static final String STYLECLASS_DISABLING = "check-icon-disabling";

@@ -268,8 +268,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
                 if (DragUtil.hasImage(e)) {
                     DragUtil.getImages(e)
                          .use(FX, this::showImages)
-                         .showProgress(getWidget().getWindow().taskAdd())
-                         .run();
+                         .showProgress(getWidget().getWindow().taskAdd());
                 }
             }
         );

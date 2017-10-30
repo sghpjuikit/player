@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane id="AnchorPane" fx:id="entireArea" prefHeight="100.0" prefWidth="600.0" stylesheets="@skin.css"
+            xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+    <AnchorPane id="AnchorPane" pickOnBounds="false" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="0.0"
+                AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <BorderPane pickOnBounds="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <left>
+                <BorderPane fx:id="controlPanel" onMouseDragged="#consumeMouseEvent" BorderPane.alignment="CENTER">
+                    <center>
+                        <HBox fx:id="playButtons" alignment="CENTER" fillHeight="false" spacing="5.0"
+                              BorderPane.alignment="CENTER"/>
+                    </center>
+                    <right>
+                        <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="200.0"
+                                    AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
+                            <center>
+                                <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+                                          minWidth="-Infinity"
+                                          onMouseDragged="#consumeMouseEvent"
+                                          prefHeight="58.0" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="0.0"
+                                          BorderPane.alignment="CENTER_LEFT">
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="99.0" minWidth="10.0"
+                                                           prefWidth="20.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS" maxWidth="100.0"/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                        <RowConstraints maxHeight="39.0" minHeight="10.0" prefHeight="16.0"
+                                                        vgrow="SOMETIMES"/>
+                                        <RowConstraints maxHeight="39.0" minHeight="10.0" prefHeight="15.0"
+                                                        vgrow="SOMETIMES"/>
+                                        <RowConstraints maxHeight="26.0" minHeight="10.0" prefHeight="14.0"
+                                                        vgrow="SOMETIMES"/>
+                                        <RowConstraints maxHeight="25.0" minHeight="10.0" prefHeight="16.0"
+                                                        vgrow="SOMETIMES"/>
+                                    </rowConstraints>
+                                    <Label id="" fx:id="currTime" onMouseClicked="#cycleElapsed" text="00:00"
+                                           GridPane.columnIndex="1"
+                                           GridPane.rowIndex="1"/>
+                                    <Label id="" fx:id="totTime" text="00:00" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="2"/>
+                                    <HBox fx:id="infoBox" prefHeight="100.0" prefWidth="200.0" spacing="5.0"
+                                          GridPane.columnIndex="1"
+                                          GridPane.rowIndex="3" GridPane.valignment="CENTER">
+                                        <Label fx:id="status" text="status" GridPane.columnIndex="1"
+                                               GridPane.rowIndex="3"/>
+                                    </HBox>
+                                    <Label id="" fx:id="realTime" text="00:00" GridPane.columnIndex="1"/>
+                                </GridPane>
+                            </center>
+                        </BorderPane>
+                    </right>
+                </BorderPane>
+            </left>
+            <padding>
+                <Insets left="10.0" top="10.0"/>
+            </padding>
+            <right>
+                <BorderPane onMouseDragged="#consumeMouseEvent" BorderPane.alignment="CENTER">
+                    <center>
+                        <GridPane fx:id="soundGrid" alignment="CENTER" BorderPane.alignment="CENTER">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER" maxWidth="99.0" minWidth="10.0" prefWidth="33.0"/>
+                                <ColumnConstraints hgrow="NEVER"/>
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                            </rowConstraints>
+                            <Slider fx:id="volume" prefWidth="110.0" styleClass="volume" GridPane.columnIndex="1"
+                                    GridPane.rowIndex="0"/>
+                        </GridPane>
+                    </center>
+                </BorderPane>
+            </right>
+            <center>
+                <VBox alignment="CENTER_LEFT" layoutX="33.0" layoutY="126.0" BorderPane.alignment="CENTER">
+                    <Label fx:id="titleL" text="Title" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <Label fx:id="artistL" text="Artist" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <HBox alignment="CENTER_LEFT" spacing="7.0" GridPane.rowIndex="2">
+                        <Label fx:id="bitrateL" text="Bitrate" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <Label fx:id="sampleRateL" text="Sample rate" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <Label fx:id="channelsL" text="Channels" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                    </HBox>
+                </VBox>
+            </center>
+        </BorderPane>
+    </AnchorPane>
+</AnchorPane>

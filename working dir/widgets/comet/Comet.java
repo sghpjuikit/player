@@ -150,8 +150,8 @@ public class Comet extends ClassController {
 				new Icon(MaterialDesignIcon.NUMERIC_7_BOX_OUTLINE,15,"Start 7 player game",() -> game.start(7)),
 				new Icon(MaterialDesignIcon.NUMERIC_8_BOX_OUTLINE,15,"Start 8 player game",() -> game.start(8)),
 				new Icon(null,16){{ maintain(game.paused,mapB(MaterialDesignIcon.PLAY,MaterialDesignIcon.PAUSE), this::icon); }}.onClick(() -> game.pause(!game.paused.get())),
-				new Icon<>(FontAwesomeIcon.GEARS,14,"Settings").onClick(e -> showSettingsSimple(new ListConfigurable<>(Configurable.configsFromFieldsOf(this)),e)),
-				new Icon<>(FontAwesomeIcon.INFO,14,"How to play").onClick(() -> new HowToPane().show(game))
+				new Icon(FontAwesomeIcon.GEARS,14,"Settings").onClick(e -> showSettingsSimple(new ListConfigurable<>(Configurable.configsFromFieldsOf(this)),e)),
+				new Icon(FontAwesomeIcon.INFO,14,"How to play").onClick(() -> new HowToPane().show(game))
 			),
 			0d,0d,null,0d,
 			layStack(canvas_bgr, canvas, playfield, playerStats, message),
@@ -545,7 +545,7 @@ public class Comet extends ClassController {
 		Mission mission = null; // current mission, (they repeat), starts at 1, = mission % missions +1
 		final StatsGame stats = new StatsGame();
 
-		private final MotionBlur cee = new MotionBlur( 0, 50);
+		private final MotionBlur cee = new MotionBlur(0, 10);
 		//		private final BoxBlur cee = new BoxBlur(100,2,2);
 		private final Effect cee2 = new Bloom(0.3);
 		private final TimeDouble cceStrengthW = new TimeDouble(0,0.01);
@@ -754,14 +754,17 @@ public class Comet extends ClassController {
 			os.forEach(PO::draw);
 			oss.get(Bullet.class).forEach(Bullet::draw);
 
-			if (cceStrengthW.value>1) cceStrengthW.value = 0;
-			if (cceStrengthH.value>1) cceStrengthH.value = 0;
-			cee.setAngle(cceStrengthH.getAndRun()*360);
-			gc_bgr.applyEffect(cee);
-			gc.applyEffect(cee2);
+			boolean isHighDetails = false;
+			if (isHighDetails) {
+				if (cceStrengthW.value>1) cceStrengthW.value = 0;
+				if (cceStrengthH.value>1) cceStrengthH.value = 0;
+				cee.setAngle(cceStrengthH.getAndRun()*360);
+				gc_bgr.applyEffect(cee);
+				gc.applyEffect(cee2);
 
-			oss.get(Bullet.class).forEach(Bullet::draw);
-			os.forEach(PO::draw);
+				oss.get(Bullet.class).forEach(Bullet::draw);
+				os.forEach(PO::draw);
+			}
 
 			// non-interacting stuff last
 			oss.get(Particle.class).forEach(Particle::draw);

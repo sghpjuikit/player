@@ -6,7 +6,7 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
 import util.animation.Anim;
 
-public class GlowIcon extends Icon<GlowIcon> {
+public class GlowIcon extends Icon {
 
 	public static final String STYLECLASS = "glow-icon";
 

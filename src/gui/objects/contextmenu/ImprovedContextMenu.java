@@ -27,7 +27,6 @@ import layout.widget.feature.FileExplorerFeature;
 import layout.widget.feature.SongReader;
 import layout.widget.feature.SongWriter;
 import main.App;
-import services.database.Db;
 import util.access.AccessibleValue;
 import util.collections.map.ClassListMap;
 import util.file.Environment;
@@ -38,12 +37,15 @@ import util.parsing.Parser;
 import web.SearchUriBuilder;
 import static java.util.stream.Collectors.toList;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
+import static main.App.APP;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.file.Environment.copyToSysClipboard;
 import static util.file.Util.recycleFile;
 import static util.functional.Util.stream;
-import static util.graphics.Util.*;
+import static util.graphics.Util.menuItem;
+import static util.graphics.Util.menuItems;
+import static util.graphics.UtilKt.getScreen;
 
 /**
  * Context menu which contains an object.
@@ -167,10 +169,10 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 		CONTEXT_MENUS.add(
 				MetadataGroup.class,
 				(contextMenu, mg) -> Stream.of(
-						menuItem("Play items", () -> PlaylistManager.use(p -> p.setNplay(mg.getGrouped().stream().sorted(Db.library_sorter.get())))),
+						menuItem("Play items", () -> PlaylistManager.use(p -> p.setNplay(mg.getGrouped().stream().sorted(APP.db.getLibraryComparator().get())))),
 						menuItem("Enqueue items", () -> PlaylistManager.use(p -> p.addItems(mg.getGrouped()))),
 						menuItem("Update items from file", () -> App.refreshItemsFromFileJob(mg.getGrouped())),
-						menuItem("Remove items from library", () -> Db.removeItems(mg.getGrouped())),
+						menuItem("Remove items from library", () -> APP.db.removeItems(mg.getGrouped())),
 						new Menu("Show in", null,
 								menuItems(
 										App.APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongReader.class)).toList(),
@@ -230,7 +232,7 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 								Environment.browse(pig.items.stream().filter(Item::isFileBased).map(Item::getFile))
 						),
 						menuItem("Add items to library", () ->
-								Db.addItems(stream(pig.items).map(Item::toMeta).toList())
+								APP.db.addItems(stream(pig.items).map(Item::toMeta).toList())
 						),
 						new Menu("Search album cover", null,
 								menuItems(App.APP.plugins.getPlugins(SearchUriBuilder.class),
@@ -254,7 +256,7 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 										)
 												.ifOk(file -> Util.writeImage(cmd.image, file))
 								),
-								menuItem("Co py to clipboard", () -> copyToSysClipboard(DataFormat.IMAGE, cmd.image))
+								menuItem("Copy to clipboard", () -> copyToSysClipboard(DataFormat.IMAGE, cmd.image))
 						),
 						cmd.fsDisabled ? null : new Menu("Image file", null,
 								menuItem("Browse location", () -> Environment.browse(cmd.fsImageFile)),

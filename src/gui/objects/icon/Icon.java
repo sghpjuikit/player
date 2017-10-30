@@ -17,7 +17,12 @@ import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.css.*;
+import javafx.css.CssMetaData;
+import javafx.css.PseudoClass;
+import javafx.css.SimpleStyleableObjectProperty;
+import javafx.css.StyleConverter;
+import javafx.css.Styleable;
+import javafx.css.StyleableProperty;
 import javafx.css.converter.EffectConverter;
 import javafx.css.converter.PaintConverter;
 import javafx.event.Event;
@@ -54,16 +59,21 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static main.App.Build.appTooltip;
+import static main.AppBuildersKt.appTooltip;
 import static util.functional.Util.stream;
-import static util.graphics.Util.*;
+import static util.graphics.Util.layHeaderBottom;
+import static util.graphics.Util.layHeaderLeft;
+import static util.graphics.Util.layHeaderRight;
+import static util.graphics.Util.layHeaderTop;
+import static util.graphics.Util.setMinPrefMaxSize;
+import static util.graphics.UtilKt.setScaleXY;
 import static util.type.Util.getEnumConstants;
 import static util.type.Util.getFieldValue;
 
 /**
  * Icon.
  */
-public class Icon<I extends Icon<?>> extends StackPane {
+public class Icon extends StackPane {
 
 	// animation builder, & reusable supplier
 	private static final Ƒ1<Icon,Anim> Apress = i -> {
@@ -212,36 +222,36 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	/********************************* FLUENT API *********************************/
 
 	@SuppressWarnings("unchecked")
-	public I icon(GlyphIcons i) {
+	public Icon icon(GlyphIcons i) {
 		isGlyphSetProgrammatically |= i!=null;
 		glyph = i;
 		setGlyphName(i==null ? "null" : GLYPHS.keyMapper.apply(i));
-		return (I) this;
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")
-	public I size(double s) {
+	public Icon size(double s) {
 		isGlyphSizeSetProgrammatically = true;
 		setGlyphSize(s);
-		return (I) this;
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")
-	public I gap(double g) {
+	public Icon gap(double g) {
 		isGlyphGapSetProgrammatically = true;
 		setGlyphGap(g);
-		return (I) this;
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")
-	public I scale(double s) {
+	public Icon scale(double s) {
 		glyphScale = s;
 		updateSize();
-		return (I) this;
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")
-	public final I tooltip(String text) {
+	public final Icon tooltip(String text) {
 		boolean willBeEmpty = text==null || text.isEmpty();
 		if (!willBeEmpty) {
 			Tooltip old = getTooltip();
@@ -252,7 +262,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 				old.setText(text);
 			}
 		}
-		return (I) this;
+		return this;
 	}
 
 	/**
@@ -265,7 +275,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	}
 
 	@SuppressWarnings("unchecked")
-	public final I tooltip(Tooltip t) {
+	public final Icon tooltip(Tooltip t) {
 		Tooltip old = getTooltip();
 		if (t!=null && (old!=t || old.getProperties().containsKey("was_setup"))) {
 			t.setWrapText(true);
@@ -299,20 +309,20 @@ public class Icon<I extends Icon<?>> extends StackPane {
 			t.getProperties().put("was_setup", true);
 			Tooltip.install(this, t);
 		}
-		return (I) this;
+		return this;
 	}
 
 	/** Sets css style class. Returns this icon (fluent API). */
 	@SuppressWarnings("unchecked")
-	public final I styleclass(String s) {
+	public final Icon styleclass(String s) {
 		getStyleClass().add(s);
 		updateIcon();
 		updateSize();
 		updateStyle();
-		return (I) this;
+		return this;
 	}
 
-	public final I embedded() {
+	public final Icon embedded() {
 		return styleclass("embedded-icon");
 	}
 
@@ -323,7 +333,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	 * @return this icon (fluent API).
 	 */
 	@SuppressWarnings("unchecked")
-	public final I onClick(EventHandler<MouseEvent> action) {
+	public final Icon onClick(EventHandler<MouseEvent> action) {
 		setOnMouseClicked(action==null ? null : e -> {
 			if (e.getButton()==PRIMARY) {
 				action.handle(e);
@@ -335,7 +345,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 		removeEventHandler(Event.ANY, EVENT_CONSUMER);
 		if (action!=null) addEventHandler(Event.ANY, EVENT_CONSUMER);
 
-		return (I) this;
+		return this;
 	}
 
 	/**
@@ -349,7 +359,7 @@ public class Icon<I extends Icon<?>> extends StackPane {
 	 * to {@link Action#getInfo()}. Null removes mouse click handler (but not the tooltip).
 	 * @return this.
 	 */
-	public final I onClick(Runnable action) {
+	public final Icon onClick(Runnable action) {
 		if (action instanceof Action) {
 			Action a = (Action) action;
 			tooltip(a.getName() + "\n\n" + a.getInfo());

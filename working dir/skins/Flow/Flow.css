@@ -67,6 +67,11 @@
     -fx-fill: -fx-def-font-color;
 }
 
+.resize-content-icon,
+.resize-content-icon:hover {
+    -fx-border-color:  none;
+}
+
 /* inherits: .icon */
 .seeker-add-chapter-button,
 .seeker-add-chapter-button:hover {

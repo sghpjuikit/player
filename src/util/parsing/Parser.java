@@ -112,6 +112,7 @@ public abstract class Parser {
 	 */
 	public static final Parser FX = new Parser() {
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public <T> Try<T,String> ofS(Class<T> type, String text) {
 			// improve performance by not creating any Config/Configurable, premature optimization
@@ -120,7 +121,7 @@ public abstract class Parser {
 				Class<?> objecttype = Class.forName(vals[0]);
 				if (type!=null && !type.isAssignableFrom(objecttype))
 					throw new Exception(); // optimization, avoids next line
-				T v = (T) objecttype.newInstance();
+				T v = (T) objecttype.getConstructor().newInstance();
 				Configurable c = Configurable.configsFromFxPropertiesOf(v);
 				stream(vals).skip(1)
 						.forEach(str -> {
@@ -277,8 +278,8 @@ public abstract class Parser {
 	 */
 	public static class DefaultParser extends Parser {
 
-		private final ClassMap<Function<Object,Try<String,String>>> parsersToS = new ClassMap<>();
-		private final ClassMap<Function<String,Try<Object,String>>> parsersFromS = new ClassMap<>();
+		private final ClassMap<Function<? super Object,Try<String,String>>> parsersToS = new ClassMap<>();
+		private final ClassMap<Function<? super String,Try<Object,String>>> parsersFromS = new ClassMap<>();
 
 		public <T> void addParser(Class<T> c, StringConverter<T> parser) {
 			addParser(c, parser::toS, parser::ofS);
@@ -310,29 +311,29 @@ public abstract class Parser {
 			noØ(c, "Parsing type must be specified!");
 			noØ(s, "Parsing null not allowed!");
 			if (CONSTANT_NULL.equals(s)) return ok(null);
-			return (Try) getParserOfS(c).apply(s);
+			return getParserOfS(c).apply(s);
 		}
 
 		@SuppressWarnings("unchecked")
 		@Override
 		public <T> String toS(T o) {
 			if (o==null) return CONSTANT_NULL;
-//            String s = ((Function<T,Try<String,String>>)getParserToS(o.getClass())).apply(o).getOr(null);
 			String s = ((Function<T,Try<String,String>>) getParserToS(o.getClass())).apply(o).getOr(null);
 			return noNull(s, CONSTANT_NULL);
 		}
 
 		@SuppressWarnings("unchecked")
-		private <T> Function<String,Try<? extends T,String>> getParserOfS(Class<T> c) {
-			return (Function) parsersFromS.computeIfAbsent(c, key -> findOfSparser(key));
-		}
-
-		private <T> Function<? super T,Try<String,String>> getParserToS(Class<T> c) {
-			return parsersToS.computeIfAbsent(c, this::findToSparser);
+		private <T> Function<? super String,Try<T,String>> getParserOfS(Class<T> c) {
+			return (Function) parsersFromS.computeIfAbsent(c, key -> (Function) findOfSparser(key));
 		}
 
 		@SuppressWarnings("unchecked")
-		private <T> Function<String,Try<? extends T,String>> findOfSparser(Class<T> c) {
+		private <T> Function<? super T,Try<String,String>> getParserToS(Class<T> c) {
+			return parsersToS.computeIfAbsent(c, key -> (Function) findToSparser(key));
+		}
+
+		@SuppressWarnings("unchecked")
+		private <T> Function<? super String,Try<T,String>> findOfSparser(Class<T> c) {
 			return (Function) noNull(
 					() -> parsersFromS.getElementOfSuper(c),
 					() -> buildOfSParser(c),

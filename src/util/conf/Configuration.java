@@ -19,6 +19,7 @@ import util.access.Vo;
 import util.action.Action;
 import util.collections.mapset.MapSet;
 import util.conf.Config.*;
+import util.conf.IsConfig.EditMode;
 import util.file.Properties;
 import util.file.Properties.Property;
 import util.functional.Functors.Ƒ1;
@@ -255,8 +256,8 @@ public class Configuration {
 			return newFromProperty(f, instance, name, annotation, group);
 		} else {
 			try {
-				throwIfFinal(f);                // make sure the field is not final
-				f.setAccessible(true);     // make sure the field is accessible
+				if (annotation.editable()==EditMode.NONE) throwIfNotFinal(f); else throwIfFinal(f);
+				f.setAccessible(true);
 				MethodHandle getter = methodLookup.unreflectGetter(f);
 				MethodHandle setter = methodLookup.unreflectSetter(f);
 				Set<Constraint<? super T>> constraints = constraintsOf(type, f.getAnnotations());
@@ -270,8 +271,8 @@ public class Configuration {
 	@SuppressWarnings("unchecked")
 	private static <T> Config<T> newFromProperty(Field f, T instance, String name, IsConfig annotation, String group) {
 		try {
-			throwIfNotFinal(f);                // make sure the field is final
-			f.setAccessible(true);      // make sure the field is accessible
+			throwIfNotFinal(f);
+			f.setAccessible(true);
 			if (VarList.class.isAssignableFrom(f.getType())) {
 				Class<T> property_type = getGenericPropertyType(f.getGenericType());
 				Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
@@ -305,8 +306,8 @@ public class Configuration {
 	@SuppressWarnings("unchecked")
 	private static <T> Config<T> newFromConfig(Field f, Object instance) {
 		try {
-			throwIfNotFinal(f);                // make sure the field is final
-			f.setAccessible(true);      // make sure the field is accessible
+			throwIfNotFinal(f);
+			f.setAccessible(true);
 			Config<T> config = (Config<T>) f.get(instance);
 			((ConfigBase) config).constraints = constraintsOf(config.getType(), f.getAnnotations());
 			return config;

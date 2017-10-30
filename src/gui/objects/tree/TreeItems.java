@@ -35,20 +35,27 @@ import util.access.V;
 import util.conf.Config;
 import util.conf.Configurable;
 import util.file.Environment;
-import util.file.Util;
+import util.file.UtilKt;
 import util.type.ClassName;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static layout.widget.WidgetManager.WidgetSource.*;
+import static layout.widget.WidgetManager.WidgetSource.ANY;
+import static layout.widget.WidgetManager.WidgetSource.LAYOUT;
+import static layout.widget.WidgetManager.WidgetSource.OPEN;
+import static layout.widget.WidgetManager.WidgetSource.STANDALONE;
 import static main.App.APP;
 import static util.Util.emptyOr;
 import static util.conf.Configurable.configsFromFxPropertiesOf;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
-import static util.file.Util.listFiles;
-import static util.functional.Util.*;
+import static util.file.UtilKt.listChildren;
+import static util.functional.Util.by;
+import static util.functional.Util.filterMap;
+import static util.functional.Util.list;
+import static util.functional.Util.map;
+import static util.functional.Util.stream;
 import static util.graphics.Util.menuItem;
 
 public class TreeItems {
@@ -112,7 +119,7 @@ public class TreeItems {
 				tree("Windows", () -> APP.windowManager.windows.stream()),
 				tree("Layouts", () -> APP.widgetManager.getLayouts().sorted(by(Layout::getName)))
 			),
-			tree("Location", listFiles(APP.DIR_APP)),
+			tree("Location", listChildren(APP.DIR_APP)),
 			tree("File system", map(File.listRoots(), FileTreeItem::new)),
 			tree(Name.treeOfPaths("Settings", stream(APP.configuration.getFields()).map(Config::getGroup).toList()))
 		);
@@ -157,7 +164,7 @@ public class TreeItems {
 					else if (o instanceof Service) setText(((Service) o).getClass().getSimpleName());
 					else if (o instanceof WidgetFactory) setText(((WidgetFactory) o).nameGui());
 					else if (util.type.Util.isEnum(o.getClass())) setText(util.Util.enumToHuman(o.toString()));
-					else if (o instanceof File) setText(Util.getNameFull((File) o));
+					else if (o instanceof File) setText(UtilKt.getNameOrRoot((File) o));
 					else if (o instanceof Node) setText(toS((Node) o));
 					else if (o instanceof Window) setText(windowToName((Window) o));
 					else if (o instanceof Name) setText(((Name) o).val);
@@ -353,7 +360,7 @@ public class TreeItems {
 		private List<? extends TreeItem<File>> buildChildren(TreeItem<File> i) {
 			List<FileTreeItem> dirs = new ArrayList<>();
 			List<FileTreeItem> fils = new ArrayList<>();
-			listFiles(i.getValue()).forEach(f -> {
+			listChildren(i.getValue()).forEach(f -> {
 				boolean isFile = f.isFile();
 				(isFile ? fils : dirs).add(new FileTreeItem(f, isFile));
 			});

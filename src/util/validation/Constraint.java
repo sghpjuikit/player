@@ -1,12 +1,16 @@
 package util.validation;
 
 import java.io.File;
-import java.lang.annotation.*;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Predicate;
 import javafx.util.Duration;
-import one.util.streamex.StreamEx;
 import org.atteo.classindex.ClassIndex;
 import org.atteo.classindex.IndexAnnotated;
 import util.Password;
@@ -22,6 +26,8 @@ import static util.dev.Util.noØ;
 import static util.dev.Util.throwIfNot;
 import static util.functional.Try.error;
 import static util.functional.Try.ok;
+import static util.functional.Util.stream;
+import static util.type.Util.getGenericInterface;
 import static util.type.Util.instantiateOrThrow;
 import static util.validation.Constraint.DeclarationType.Declaration.IMPLICIT;
 
@@ -47,8 +53,8 @@ public interface Constraint<T> {
 		put(ConstrainsBy.class, (ConstrainsBy constraint) -> instantiateOrThrow(constraint.value()));
 		put(NonNullElements.class, (NonNullElements constraint) -> new HasNonNullElements());
 	}};
-	ClassListMap<Constraint> IMPLICIT_CONSTRAINTS = new ClassListMap<>(o -> util.type.Util.getGenericInterface(o.getClass(), 0, 0)) {{
-			StreamEx.of(ClassIndex.getAnnotated(DeclarationType.class).iterator())
+	ClassListMap<Constraint> IMPLICIT_CONSTRAINTS = new ClassListMap<>(o -> getGenericInterface(o.getClass(), 0, 0)) {{
+		stream(ClassIndex.getAnnotated(DeclarationType.class).iterator())
 					// report programming errors
 					.map(c -> {
 						if (!Constraint.class.isAssignableFrom(c))

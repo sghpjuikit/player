@@ -14,6 +14,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.*;
 import static util.async.future.Fut.fut;
 import static util.file.FileType.FILE;
+import static util.graphics.drag.DragUtil.hasImage;
 
 /**
  * Thumbnail which can accept a file. A custom action invoked afterwards can be
@@ -50,7 +51,7 @@ public class ThumbnailWithAdd extends Thumbnail {
 		// highlight on hover | drag
 		root.addEventHandler(MOUSE_EXITED, e -> highlight(false));
 		root.addEventHandler(MOUSE_ENTERED, e -> highlight(true));
-		root.addEventHandler(DRAG_OVER, e -> { if (DragUtil.hasImage(e)) onHighlight.accept(true); });
+		root.addEventHandler(DRAG_OVER, e -> { if (hasImage(e)) onHighlight.accept(true); });
 		root.addEventHandler(DRAG_EXITED, e -> onHighlight.accept(false));
 
 		// add image on click
@@ -68,7 +69,7 @@ public class ThumbnailWithAdd extends Thumbnail {
 		// drag&drop
 		DragUtil.installDrag(
 				root, dragIcon, dragDescription,
-				DragUtil::hasImage,
+				e -> hasImage(e),
 				e -> {
 					// why does the Fut (CompletableFuture) compute without running the Fut ???
 					// now the Fut executes over and over because this event fires like that (btw wtf?)

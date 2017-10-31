@@ -343,7 +343,8 @@ In Intellij Idea: create a separate module depending (type=PROVIDED) on the main
 
 - VM run options
 
-The application can use lots of RAM if it displays images, so Xmx1g or more is recommended. The rest is due to java 9 modularization.
+The application can use lots of RAM if it displays images, so Xmx1g or more is recommended. The rest is necessary due to java 9 modularization.
+
     -Xmx3g
     --add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
@@ -360,7 +361,10 @@ The application can use lots of RAM if it displays images, so Xmx1g or more is r
     --add-opens javafx.graphics/javafx.scene.image=ALL-UNNAMED
     --add-opens javafx.controls/javafx.scene.control=ALL-UNNAMED
     
-- javac (compiler) parameters:
+- javac (compiler) parameters
+
+Necessary due to java 9 modularization.
+
     --add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
     --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
@@ -369,11 +373,15 @@ The application can use lots of RAM if it displays images, so Xmx1g or more is r
     
 - annotation processing
 
-The project uses annotation processor, thus annotation processing needs to be enabled.
+The project uses annotation processor, thus annotation processing needs to be enabled (if possible set to obtain processor from class path)
 
 - running
 
 Set main.App class as main class if necessary
+
+- debugging
+
+Due to a mouse polling (using a native library), blocking all threads (like on a breakpoint) will cause major slow downs and unresponsive mouse (up to dozens of seconds) in the system. It is very recommended to never block all threads and use 'block current thread only' for breakpoints.
 
 - more
 

@@ -80,9 +80,7 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 
 				// handle binding of state to player
 				// handle seeking when player in invalid statuses (seek when status becomes valid)
-				player.statusProperty().addListener(new ChangeListener<>() {
-					@Override
-					public void changed(ObservableValue<? extends Status> o, Status ov, Status nv) {
+				player.statusProperty().addListener((o, ov, v) -> {
 						if (nv==PLAYING || nv==PAUSED || nv==STOPPED) {
 							// bind (read only) values: new player -> global (manual initialization)
 							d5 = maintain(player.currentTimeProperty(), state.currentTime);

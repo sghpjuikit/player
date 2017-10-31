@@ -1,4 +1,3 @@
-
 /*
  * Loosely based on ControlsFX Platform enum implementation.
  */
@@ -32,44 +31,37 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package util.system;
+package util.system
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
+import java.security.AccessController
+import java.security.PrivilegedAction
 
-/**
- * Operating system.
- */
-public enum Os {
-	WINDOWS,
-	OSX,
-	UNIX,
-	UNKNOWN;
+/** Operating system. */
+enum class Os {
+    WINDOWS,
+    OSX,
+    UNIX,
+    UNKNOWN;
 
-	public boolean isCurrent() {
-		return this==current;
-	}
+    fun isCurrent(): Boolean = this==current
 
-	/**
-	 * @return the current OS.
-	 */
-	public static Os getCurrent() {
-		return current;
-	}
+    companion object {
 
-	private static Os current = getCurrentPlatform();
+        /** @return the current operating system */
+        @JvmStatic val current: Os
+            get() {
+                val osName = System.getProperty("os.name")
+                if (osName.startsWith("Windows")) return WINDOWS
+                if (osName.startsWith("Mac")) return OSX
+                if (osName.startsWith("SunOS")) return UNIX
+                if (osName.startsWith("Linux")) {
+                    val javafxPlatform = AccessController.doPrivileged({ System.getProperty("javafx.platform") } as PrivilegedAction<String>)
+                    if (!("android"==javafxPlatform || "Dalvik"==System.getProperty("java.vm.name")))  // if not Android
+                        return UNIX
+                }
+                return UNKNOWN
+            }
 
-	private static Os getCurrentPlatform() {
-		String osName = System.getProperty("os.name");
-		if (osName.startsWith("Windows")) return WINDOWS;
-		if (osName.startsWith("Mac")) return OSX;
-		if (osName.startsWith("SunOS")) return UNIX;
-		if (osName.startsWith("Linux")) {
-			String javafxPlatform = AccessController.doPrivileged((PrivilegedAction<String>) () -> System.getProperty("javafx.platform"));
-			if (!("android".equals(javafxPlatform) || "Dalvik".equals(System.getProperty("java.vm.name")))) // if not Android
-				return UNIX;
-		}
-		return UNKNOWN;
-	}
+    }
 
 }

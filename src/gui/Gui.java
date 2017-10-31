@@ -2,6 +2,7 @@
 package gui;
 
 import com.sun.javafx.css.StyleManager;
+import gui.objects.popover.PopOver;
 import gui.objects.window.stage.Window;
 import gui.objects.window.stage.WindowBase;
 import java.io.File;
@@ -53,6 +54,7 @@ import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static util.file.UtilKt.listChildren;
 import static util.functional.Util.listRO;
 import static util.functional.Util.set;
+import static util.graphics.UtilKt.setFontAsStyle;
 
 @IsActionable
 @IsConfigurable
@@ -67,7 +69,7 @@ public class Gui {
 
 	// applied configs
 	@IsConfig(name = "Skin", info = "Application skin.")
-	public static final VarEnum<String> skin = new VarEnum<String>("Default", () -> skins, Gui::setSkin);
+	public static final VarEnum<String> skin = new VarEnum<>("Default", () -> skins, Gui::setSkin);
 	/**
 	 * Font of the application. Overrides font defined by skin. The font can be
 	 * overridden programmatically or stylesheet.
@@ -76,7 +78,10 @@ public class Gui {
 	 * nothing.
 	 */
 	@IsConfig(name = "Font", info = "Application font.")
-	public static final V<Font> font = new V<>(Font.getDefault(), f -> APP.windowManager.windows.forEach(w -> w.setFont(f)));
+	public static final V<Font> font = new V<>(Font.getDefault(), f -> {
+		APP.windowManager.windows.forEach(w -> setFontAsStyle(w.getStage().getScene().getRoot(), f));
+		PopOver.active_popups.forEach(p -> setFontAsStyle(p.getSkinn().getNode(), f));
+	});
 
 	// non applied configs
 	@IsConfig(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")

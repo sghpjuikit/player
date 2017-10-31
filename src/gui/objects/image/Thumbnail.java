@@ -271,7 +271,7 @@ public class Thumbnail {
 	}
 
 	public static Image getCached(File file, ImageSize size) {
-		return getCached(file, size.getWidth(), size.getHeight());
+		return getCached(file, size.width, size.height);
 	}
 
 	public static Image getCached(File file, double w, double h) {

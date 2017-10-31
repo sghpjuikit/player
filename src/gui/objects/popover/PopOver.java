@@ -43,8 +43,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -62,8 +60,8 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import util.access.V;
-import util.graphics.P;
 import util.animation.Anim;
+import util.math.P;
 import static gui.objects.popover.ScreenUse.APP_WINDOW;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
@@ -503,6 +501,8 @@ public class PopOver<N extends Node> extends PopupControl {
 		showThis(null, owner);
 		position(() -> p.computeXY(this));
 
+		if (focusOnShow.get()) requestFocus();
+
 		if (!p.isAppCentric()) uninstallMoveWith();
 		if (isOwnerCreated) getProperties().put(CLOSE_OWNER, CLOSE_OWNER);
 	}
@@ -807,8 +807,6 @@ public class PopOver<N extends Node> extends PopupControl {
 	/** Whether resizing by user is allowed. */
 	public final BooleanProperty userResizable = new SimpleBooleanProperty(true);
 
-/* ------------------------------------------------------------------------------------------------------------------ */
-
 	public ScreenUse screen_preference = APP_WINDOW;
 
 	/******************************************************************************/
@@ -983,6 +981,13 @@ public class PopOver<N extends Node> extends PopupControl {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
+	private EventHandler<MouseEvent> hideOnClick;
+
+	/** Whether hiding on click behavior is set true. Default false. */
+	public boolean isHideOnClick() {
+		return hideOnClick!=null;
+	}
+
 	/**
 	 * Sets closing behavior when receives click event. The detached value is
 	 * ignored - popup will always hide. Default false (off).
@@ -1022,58 +1027,37 @@ public class PopOver<N extends Node> extends PopupControl {
 		}
 	}
 
-	/**
-	 * Returns whether hiding on click behavior is set true.
-	 */
-	public boolean isHideOnClick() {
-		return hideOnClick!=null;
-	}
-
-	private EventHandler<MouseEvent> hideOnClick;
-
-	public void setParentPopup(PopOver popover) {
+	private void setParentPopup(PopOver popover) {
 		popover.addEventFilter(WindowEvent.WINDOW_HIDING, e -> {
-			if (this.isShowing())
-				// same bug as with 'open popups preventing app
-				// closing properly' due to owner being closed before the child
-				// we need to close immediately
-				this.hideImmediatelly();
+			// same bug as with 'open popups preventing app closing properly' due to owner being closed before
+			// the child -> we need to close immediately
+			if (isShowing())
+				hideImmediatelly();
 		});
 	}
 
-	/**
-	 * Determines whether the pop over will have focus and be able to receive input events after it is shown.
-	 * Use false for use like non-interactive notifications. Default true.
-	 */
+	/** Receive focus on shown to be able to receive input events. Use true for interactive content. Default true. */
 	public final V<Boolean> focusOnShow = new V<>(true);
-	/**
-	 * Determines whether the pop over can be detached.
-	 */
-	public final BooleanProperty detachable = new SimpleBooleanProperty(this, "detachable", true);
-	/**
-	 * Denotes whether this popover is detached. Popover detached from the
-	 * owning node. The pop over will no longer display an arrow pointing at the
-	 * owner node.
-	 */
-	public final BooleanProperty detached = new SimpleBooleanProperty(this, "detached", false);
-	/**
-	 * Title text. Default "".
-	 */
-	public final StringProperty title = new SimpleStringProperty(this, "title", "");
-	/**
-	 * Header visibility. Default true. Header contains title and icons.
-	 */
-	public final BooleanProperty headerVisible = new SimpleBooleanProperty(true);
+
+	/** Whether the pop over can be detached. */
+	public final V<Boolean> detachable = new V<>(true);
+
+	/** Whether this popover is detached so it no longer displays an arrow pointing at the owner node. Default false */
+	public final V<Boolean> detached = new V<>(false);
+
+	/** Title text. Default "". */
+	public final V<String> title = new V<>("");
+
+	/** Header visibility. Header contains title and icons. Default true. */
+	public final V<Boolean> headerVisible = new V<>(true);
 
 	private ObservableList<Node> headerContent = null;
 
 	/**
-	 * Modifiable list of children of the header. The elements are Nodes displayed
-	 * in the header. The list is modifiable and any changes will be immediatelly
-	 * reflected visually.
+	 * Modifiable list of children of the header. The elements are Nodes displayed in the header.
+	 * The list is modifiable and any changes will be immediately reflected visually.
 	 * <p/>
-	 * Use to customize header for example by adding icon or buttons for controlling
-	 * the content of the popup.
+	 * Use to customize header for example by adding icon or buttons for controlling the content of the popup.
 	 * <p/>
 	 * Note that the order of the items matters. The nodes will be displayed in
 	 * the header in the same order as they are in the list. The ascending order

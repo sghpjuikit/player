@@ -29,7 +29,7 @@ import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
-import static util.file.Environment.copyToSysClipboard;
+import static util.system.Environment.copyToSysClipboard;
 import static util.functional.Util.by;
 import static util.functional.Util.byNC;
 import static util.graphics.Util.*;

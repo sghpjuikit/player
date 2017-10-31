@@ -4,7 +4,7 @@ import util.action.Action
 import util.conf.Config.RunnableConfig
 import util.conf.IsConfig
 import util.dev.log
-import util.file.Environment
+import util.system.Environment
 import java.io.IOException
 
 private const val NAME = "Screen Rotator"

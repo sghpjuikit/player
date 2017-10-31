@@ -1,3 +1,3 @@
 package util.graphics.image
 
-data class ImageSize(val width: Double, val height: Double)
+data class ImageSize(@JvmField val width: Double, @JvmField val height: Double)

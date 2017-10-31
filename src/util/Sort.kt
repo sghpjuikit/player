@@ -4,10 +4,6 @@ import javafx.scene.control.TableColumn
 import javafx.scene.control.TreeTableColumn
 import java.util.*
 
-
-/** @see Sort.of */
-fun <T> Comparator<T>?.inSort(sort: Sort) = sort.of(this)
-
 /** Sort type. */
 enum class Sort {
     /** From minimal to maximal element. */
@@ -39,9 +35,7 @@ enum class Sort {
         if (c==null) return null
         return when (this) {
             ASCENDING -> c
-            // We need to preserve reference
-            // Rely on java impl.: ReversedComparator preserves the reference of the original comparator
-            DESCENDING -> c.reversed()
+            DESCENDING -> c.reversed() // preserves reference of the original comparator, see impl. (ReversedComparator)
             NONE -> util.functional.Util.SAME as Comparator<T>
         }
     }
@@ -49,28 +43,27 @@ enum class Sort {
     companion object {
 
         /** @return a corresponding sort for [TableColumn.SortType] */
-        @JvmStatic
-        fun of(sort: TableColumn.SortType) = when (sort) {
+        @JvmStatic fun of(sort: TableColumn.SortType) = when (sort) {
             TableColumn.SortType.ASCENDING -> Sort.ASCENDING
             TableColumn.SortType.DESCENDING -> Sort.DESCENDING
-            else -> throw SwitchException(sort)
         }
 
         /** @return a corresponding sort for [TreeTableColumn.SortType] */
-        @JvmStatic
-        fun of(sort: TreeTableColumn.SortType) = when (sort) {
+        @JvmStatic fun of(sort: TreeTableColumn.SortType) = when (sort) {
             TreeTableColumn.SortType.ASCENDING -> Sort.ASCENDING
             TreeTableColumn.SortType.DESCENDING -> Sort.DESCENDING
-            else -> throw SwitchException(sort)
         }
 
         /** @return sort of the given column based on its [TableColumn.SortType] */
-        @JvmStatic
-        fun of(column: TableColumn<*, *>) = of(column.sortType)
+        @JvmStatic fun of(column: TableColumn<*, *>) = of(column.sortType)
 
         /** @return sort of the given column based on its [TreeTableColumn.SortType] */
-        @JvmStatic
-        fun of(column: TreeTableColumn<*, *>) = of(column.sortType)
+        @JvmStatic fun of(column: TreeTableColumn<*, *>) = of(column.sortType)
 
     }
+
 }
+
+
+/** @see Sort.of */
+fun <T> Comparator<T>?.inSort(sort: Sort) = sort.of(this)

@@ -50,89 +50,42 @@ operator fun ObservableBooleanValue.getValue(thisRef: Any, property: KProperty<*
 operator fun BooleanProperty.setValue(thisRef: Any, property: KProperty<*>, value: Boolean) = set(value)
 
 
-operator fun ObservableDoubleValue.plus(other: Number): DoubleProperty
-        = SimpleDoubleProperty(get()+other.toDouble())
-
-operator fun ObservableDoubleValue.plus(other: ObservableNumberValue): DoubleProperty
-        = SimpleDoubleProperty(get()+other.doubleValue())
-
-
-operator fun WritableDoubleValue.plusAssign(other: Number)
-        = set(get()+other.toDouble())
-
-operator fun WritableDoubleValue.plusAssign(other: ObservableNumberValue)
-        = set(get()+other.doubleValue())
-
+operator fun ObservableDoubleValue.plus(other: Number): DoubleProperty = SimpleDoubleProperty(get()+other.toDouble())
+operator fun ObservableDoubleValue.plus(other: ObservableNumberValue): DoubleProperty = SimpleDoubleProperty(get()+other.doubleValue())
+operator fun WritableDoubleValue.plusAssign(other: Number) = set(get()+other.toDouble())
+operator fun WritableDoubleValue.plusAssign(other: ObservableNumberValue) = set(get()+other.doubleValue())
 
 operator fun DoubleProperty.inc(): DoubleProperty {
     set(get()+1.0)
     return this
 }
 
-operator fun ObservableDoubleValue.minus(other: Number): DoubleProperty
-        = SimpleDoubleProperty(get()-other.toDouble())
+operator fun ObservableDoubleValue.minus(other: Number): DoubleProperty = SimpleDoubleProperty(get()-other.toDouble())
+operator fun ObservableDoubleValue.minus(other: ObservableNumberValue): DoubleProperty = SimpleDoubleProperty(get()-other.doubleValue())
+operator fun WritableDoubleValue.minusAssign(other: Number) = set(get()-other.toDouble())
+operator fun WritableDoubleValue.minusAssign(other: ObservableNumberValue) = set(get()-other.doubleValue())
 
-operator fun ObservableDoubleValue.minus(other: ObservableNumberValue): DoubleProperty
-        = SimpleDoubleProperty(get()-other.doubleValue())
-
-
-operator fun WritableDoubleValue.minusAssign(other: Number)
-        = set(get()-other.toDouble())
-
-operator fun WritableDoubleValue.minusAssign(other: ObservableNumberValue)
-        = set(get()-other.doubleValue())
-
-
-operator fun ObservableDoubleValue.unaryMinus(): DoubleProperty
-        = SimpleDoubleProperty(-get())
-
+operator fun ObservableDoubleValue.unaryMinus(): DoubleProperty = SimpleDoubleProperty(-get())
 
 operator fun DoubleProperty.dec(): DoubleProperty {
     set(get()-1.0)
     return this
 }
 
-operator fun ObservableDoubleValue.times(other: Number): DoubleProperty
-        = SimpleDoubleProperty(get()*other.toDouble())
+operator fun ObservableDoubleValue.times(other: Number): DoubleProperty = SimpleDoubleProperty(get()*other.toDouble())
+operator fun ObservableDoubleValue.times(other: ObservableNumberValue): DoubleProperty = SimpleDoubleProperty(get()*other.doubleValue())
+operator fun WritableDoubleValue.timesAssign(other: Number) = set(get()*other.toDouble())
+operator fun WritableDoubleValue.timesAssign(other: ObservableNumberValue) = set(get()*other.doubleValue())
 
-operator fun ObservableDoubleValue.times(other: ObservableNumberValue): DoubleProperty
-        = SimpleDoubleProperty(get()*other.doubleValue())
+operator fun ObservableDoubleValue.div(other: Number): DoubleProperty = SimpleDoubleProperty(get()/other.toDouble())
+operator fun ObservableDoubleValue.div(other: ObservableNumberValue): DoubleProperty = SimpleDoubleProperty(get()/other.doubleValue())
+operator fun WritableDoubleValue.divAssign(other: Number) = set(get()/other.toDouble())
+operator fun WritableDoubleValue.divAssign(other: ObservableNumberValue) = set(get()/other.doubleValue())
 
-
-operator fun WritableDoubleValue.timesAssign(other: Number)
-        = set(get()*other.toDouble())
-
-operator fun WritableDoubleValue.timesAssign(other: ObservableNumberValue)
-        = set(get()*other.doubleValue())
-
-
-operator fun ObservableDoubleValue.div(other: Number): DoubleProperty
-        = SimpleDoubleProperty(get()/other.toDouble())
-
-operator fun ObservableDoubleValue.div(other: ObservableNumberValue): DoubleProperty
-        = SimpleDoubleProperty(get()/other.doubleValue())
-
-
-operator fun WritableDoubleValue.divAssign(other: Number)
-        = set(get()/other.toDouble())
-
-operator fun WritableDoubleValue.divAssign(other: ObservableNumberValue)
-        = set(get()/other.doubleValue())
-
-
-operator fun ObservableDoubleValue.rem(other: Number): DoubleProperty
-        = SimpleDoubleProperty(get()%other.toDouble())
-
-operator fun ObservableDoubleValue.rem(other: ObservableNumberValue): DoubleProperty
-        = SimpleDoubleProperty(get()%other.doubleValue())
-
-
-operator fun WritableDoubleValue.remAssign(other: Number)
-        = set(get()%other.toDouble())
-
-operator fun WritableDoubleValue.remAssign(other: ObservableNumberValue)
-        = set(get()%other.doubleValue())
-
+operator fun ObservableDoubleValue.rem(other: Number): DoubleProperty = SimpleDoubleProperty(get()%other.toDouble())
+operator fun ObservableDoubleValue.rem(other: ObservableNumberValue): DoubleProperty = SimpleDoubleProperty(get()%other.doubleValue())
+operator fun WritableDoubleValue.remAssign(other: Number) = set(get()%other.toDouble())
+operator fun WritableDoubleValue.remAssign(other: ObservableNumberValue) = set(get()%other.doubleValue())
 
 operator fun ObservableDoubleValue.compareTo(other: Number): Int {
     if (get()>other.toDouble())

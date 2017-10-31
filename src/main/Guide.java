@@ -70,7 +70,7 @@ public final class Guide implements Configurable {
 	@IsConfig(name = "Hint", editable = EditMode.APP)
 	private int at = -1;
 	private final Text text = new Text();
-	private final PopOver<VBox> p = new PopOver<>(new VBox(15,text));
+	private PopOver<VBox> p;        // TODO use lazy
 	private Subscription action_monitoring;
 	private final Label infoL = new Label();
 
@@ -78,11 +78,14 @@ public final class Guide implements Configurable {
 					"guide is shown, it is set to false so the guide will never appear again on its own.")
 	public final V<Boolean> first_time = new V<>(true);
 
-	public Guide() {
+	public Guide() {}
+
+	private void initPopup() {
 		text.setWrappingWidth(350);
 		text.prefWidth(350);
 		text.getStyleClass().add(STYLECLASS_TEXT);
 
+		p = new PopOver<>(new VBox(15,text));
 		p.getContentNode().setPadding(new Insets(30));
 		p.setAutoHide(false);
 		p.setHideOnClick(false);
@@ -429,6 +432,7 @@ public final class Guide implements Configurable {
 	public void start() {
 		if (action_monitoring==null)
 			action_monitoring = APP.actionStream.subscribe(this::handleAction);
+		if (p==null) initPopup();
 		proceed();
 	}
 

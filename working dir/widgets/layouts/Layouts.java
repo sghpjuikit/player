@@ -16,7 +16,7 @@ import layout.widget.Widget.Group;
 import layout.widget.controller.ClassController;
 import gui.objects.Text;
 import gui.objects.image.Thumbnail;
-import util.file.Environment;
+import util.system.Environment;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 import static java.util.stream.Collectors.toList;

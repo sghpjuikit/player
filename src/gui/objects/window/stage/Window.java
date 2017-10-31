@@ -29,9 +29,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -95,7 +92,6 @@ import static util.access.SequentialValue.next;
 import static util.access.SequentialValue.previous;
 import static util.animation.Anim.par;
 import static util.async.Async.runLater;
-import static util.dev.Util.noØ;
 import static util.dev.Util.throwIfNot;
 import static util.functional.Util.forEachIRStream;
 import static util.functional.Util.forEachIStream;
@@ -789,29 +785,6 @@ public class Window extends WindowBase {
 			}
 		}
 		e.consume();
-	}
-
-	/******************************************************************************/
-
-	/**
-	 * Sets font, overriding css style.
-	 *
-	 * @param font non null font
-	 */
-	public void setFont(Font font) {
-		noØ(font);
-		String tmp = font.getStyle().toLowerCase();
-		FontPosture style = tmp.contains("italic") ? FontPosture.ITALIC : FontPosture.REGULAR;
-		FontWeight weight = tmp.contains("bold") ? FontWeight.BOLD : FontWeight.NORMAL;
-		// for some reason javaFX and css values are quite different...
-		String styleS = style==FontPosture.ITALIC ? "italic" : "normal";
-		String weightS = weight==FontWeight.BOLD ? "bold" : "normal";
-		getStage().getScene().getRoot().setStyle(
-				"-fx-font-family: \"" + font.getFamily() + "\";" +
-				"-fx-font-style: " + styleS + ";" +
-				"-fx-font-weight: " + weightS + ";" +
-				"-fx-font-size: " + font.getSize() + ";"
-		);
 	}
 
 	@FXML

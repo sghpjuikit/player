@@ -84,7 +84,7 @@ class Notifier: ServiceBase(true) {
                     else -> APP.widgetManager.find(v, NEW, true).ifPresent { wf ->
                         songNotificationGui = wf.load()
                         songNotificationInfo = wf.controller as SongReader
-                        (songNotificationGui as Pane).setPrefSize(750.0, 400.0)
+                        (songNotificationGui as Pane).setPrefSize(900.0, 500.0)
                     }
                 // TODO: fix possible null ?
                 }

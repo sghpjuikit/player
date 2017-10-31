@@ -22,7 +22,7 @@ import util.conf.Config;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 import util.conf.IsConfigurable;
-import util.file.Environment;
+import util.system.Environment;
 import util.hotkey.Hotkeys;
 import util.validation.Constraint;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;

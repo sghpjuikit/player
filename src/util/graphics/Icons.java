@@ -9,11 +9,6 @@ import javafx.scene.text.Text;
 
 public class Icons {
 
-//    static {
-//        Font.loadFont(GlyphsDude.class.getResource(FontAwesomeIcon.TTF_PATH).toExternalForm(), 10.0);
-//        Font.loadFont(GlyphsDude.class.getResource(WeatherIcon.TTF_PATH).toExternalForm(), 10.0);
-//    }
-
 	public static final String DEFAULT_ICON_SIZE = "12";
 
 	public static Text createIcon(GlyphIcons icon) {

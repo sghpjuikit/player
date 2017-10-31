@@ -23,13 +23,12 @@ import util.Sort;
 import util.access.V;
 import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
-import util.async.Async;
 import util.async.future.Fut;
 import util.conf.Config.VarList;
 import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
-import util.file.Environment;
+import util.system.Environment;
 import util.file.FileFlatter;
 import util.file.FileSort;
 import util.file.mimetype.MimeTypes;
@@ -103,7 +102,7 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Thumbnail animate on", info = "Determines when the thumbnail image transition is played.")
     final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
 
-    private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width, cellSize.get().width/cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT, 5, 5);
+    private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width, cellSize.get().width/cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT, 5, 5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
     private final ExecutorService executorThumbs = newThreadPoolExecutor(8, 1,MINUTES, threadFactory("dirView-img-thumb", true));
     private final ExecutorService executorImage = newThreadPoolExecutor(8, 1, MINUTES, threadFactory("dirView-img-full", true));

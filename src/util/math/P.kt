@@ -1,11 +1,11 @@
-package util.graphics
+package util.math
 
 import java.lang.Math.sqrt
 
 /** Mutable point. */
 class P {
-    var x = 0.0
-    var y = 0.0
+    var x: Double
+    var y: Double
 
     @JvmOverloads constructor(x: Double = 0.0, y: Double = 0.0) {
         this.x = x

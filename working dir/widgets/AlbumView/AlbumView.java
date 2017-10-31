@@ -89,7 +89,7 @@ public class AlbumView extends ClassController {
 	Output<MetadataGroup> out_sel;
 	Output<List<Metadata>> out_sel_met;
 	Input<List<Metadata>> in_items;
-	final GridView<Album,MetadataGroup> view = new GridView<>(MetadataGroup.class, a -> a.items, cellSize.get().width, cellSize.get().width*cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT, 5, 5);
+	final GridView<Album,MetadataGroup> view = new GridView<>(MetadataGroup.class, a -> a.items, cellSize.get().width, cellSize.get().width*cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT, 5, 5);
 	final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
 	final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
 
@@ -282,7 +282,7 @@ public class AlbumView extends ClassController {
 				} else {
 					boolean was_loaded = cover_loadedThumb;
 					if (!cover_loadedThumb) {
-						Image imgc = Thumbnail.getCached(file, size.getWidth(), size.getHeight());
+						Image imgc = Thumbnail.getCached(file, size);
 						cover = imgc!=null ? imgc : Image2PassLoader.INSTANCE.getHq().invoke(file, size);
 						cover_loadedThumb = true;
 					}

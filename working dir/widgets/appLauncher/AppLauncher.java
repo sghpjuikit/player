@@ -24,7 +24,7 @@ import util.async.future.Fut;
 import util.conf.Config.VarList;
 import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig;
-import util.file.Environment;
+import util.system.Environment;
 import util.file.FileSort;
 import util.file.FileType;
 import util.graphics.Resolution;
@@ -69,7 +69,7 @@ public class AppLauncher extends ClassController {
     @IsConfig(name = "Thumbnail animate on", info = "Determines when the thumbnail image transition is played.")
     final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
 
-    private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width,cellSize.get().width*cellSizeRatio.get().ratio+CELL_TEXT_HEIGHT,5,5);
+    private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width,cellSize.get().width*cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT,5,5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
     private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
     private final Loader imageLoader = new Loader(executorThumbs, null);

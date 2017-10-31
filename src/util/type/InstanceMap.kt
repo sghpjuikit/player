@@ -12,4 +12,5 @@ class InstanceMap {
     /** Get instances of specified type. */
     @Suppress("UNCHECKED_CAST")
     fun <T> getInstances(type: Class<T>) =  m[type].orEmpty().asSequence().toList() as List<T>
+
 }

@@ -165,7 +165,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			} else {
 				boolean wasLoaded = cover_loadedThumb.get();
 				if (!wasLoaded) {
-					Image imgCached = Thumbnail.getCached(file, size.getWidth(), size.getHeight());
+					Image imgCached = Thumbnail.getCached(file, size);
 					cover = imgCached!=null ? imgCached : Image2PassLoader.INSTANCE.getLq().invoke(file, size);
 					cover_loadedThumb.set(true);
 				}

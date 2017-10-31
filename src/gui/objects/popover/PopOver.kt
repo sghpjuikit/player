@@ -5,7 +5,7 @@ import javafx.scene.Node
 import javafx.stage.Screen
 import javafx.stage.Window
 import main.App
-import util.graphics.P
+import util.math.P
 import util.graphics.centreX
 import util.graphics.centreY
 import util.graphics.getScreenForMouse
@@ -14,34 +14,34 @@ import util.graphics.size
 
 
 enum class NodePos {
-    Center,
-    UpLeft,
-    UpCenter,
-    UpRight,
-    DownLeft,
-    DownCenter,
-    DownRight,
-    RightUp,
-    RightCenter,
-    RightDown,
-    LeftUp,
-    LeftCenter,
-    LeftDown;
+    CENTER,
+    UP_LEFT,
+    UP_CENTER,
+    UP_RIGHT,
+    DOWN_LEFT,
+    DOWN_CENTER,
+    DOWN_RIGHT,
+    RIGHT_UP,
+    RIGHT_CENTER,
+    RIGHT_DOWN,
+    LEFT_UP,
+    LEFT_CENTER,
+    LEFT_DOWN;
 
     fun reverse() = when (this) {
-        Center -> Center
-        UpLeft -> DownRight
-        UpCenter -> DownCenter
-        UpRight -> DownLeft
-        DownLeft -> UpRight
-        DownCenter -> UpCenter
-        DownRight -> UpLeft
-        RightUp -> LeftDown
-        RightCenter -> LeftCenter
-        RightDown -> LeftUp
-        LeftUp -> RightDown
-        LeftCenter -> RightCenter
-        LeftDown -> RightUp
+        CENTER -> CENTER
+        UP_LEFT -> DOWN_RIGHT
+        UP_CENTER -> DOWN_CENTER
+        UP_RIGHT -> DOWN_LEFT
+        DOWN_LEFT -> UP_RIGHT
+        DOWN_CENTER -> UP_CENTER
+        DOWN_RIGHT -> UP_LEFT
+        RIGHT_UP -> LEFT_DOWN
+        RIGHT_CENTER -> LEFT_CENTER
+        RIGHT_DOWN -> LEFT_UP
+        LEFT_UP -> RIGHT_DOWN
+        LEFT_CENTER -> RIGHT_CENTER
+        LEFT_DOWN -> RIGHT_UP
     }
 
     fun computeXY(n: Node, popup: PopOver<*>) = P(computeX(n, popup), computeY(n, popup))+n.boundsInParent.size/2.0
@@ -50,11 +50,11 @@ enum class NodePos {
         val w = popup.contentNode.boundsInParent.width
         val x = n.localToScreen(0.0, 0.0).x
         return when (this) {
-            Center, DownCenter, UpCenter -> x+n.boundsInParent.width/2-w/2
-            LeftCenter, LeftUp, LeftDown -> x-w
-            RightCenter, RightUp, RightDown -> x+n.boundsInParent.width
-            UpLeft, DownLeft -> x
-            UpRight, DownRight -> x+n.boundsInParent.width-w
+            CENTER, DOWN_CENTER, UP_CENTER -> x+n.boundsInParent.width/2-w/2
+            LEFT_CENTER, LEFT_UP, LEFT_DOWN -> x-w
+            RIGHT_CENTER, RIGHT_UP, RIGHT_DOWN -> x+n.boundsInParent.width
+            UP_LEFT, DOWN_LEFT -> x
+            UP_RIGHT, DOWN_RIGHT -> x+n.boundsInParent.width-w
         }
     }
 
@@ -62,11 +62,11 @@ enum class NodePos {
         val h = popup.contentNode.boundsInParent.height
         val y = n.localToScreen(0.0, 0.0).y
         return when (this) {
-            UpRight, UpCenter, UpLeft -> y-h
-            DownCenter, DownLeft, DownRight -> y+n.boundsInParent.height
-            LeftUp, RightUp -> y
-            Center, LeftCenter, RightCenter -> y+n.boundsInParent.height/2-h/2
-            LeftDown, RightDown -> y+n.boundsInParent.height-h
+            UP_RIGHT, UP_CENTER, UP_LEFT -> y-h
+            DOWN_CENTER, DOWN_LEFT, DOWN_RIGHT -> y+n.boundsInParent.height
+            LEFT_UP, RIGHT_UP -> y
+            CENTER, LEFT_CENTER, RIGHT_CENTER -> y+n.boundsInParent.height/2-h/2
+            LEFT_DOWN, RIGHT_DOWN -> y+n.boundsInParent.height-h
         }
     }
 }

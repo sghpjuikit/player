@@ -52,7 +52,7 @@ public interface Cover {
 	 * @see #getImage(double, double)
 	 */
 	default Image getImage(ImageSize size) {
-		return getImage(size.getWidth(), size.getHeight());
+		return getImage(size.width, size.height);
 	}
 
 	/**

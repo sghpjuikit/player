@@ -1,4 +1,4 @@
-package util.file;
+package util.system;
 
 import audio.Player;
 import audio.playlist.PlaylistManager;
@@ -24,9 +24,13 @@ import layout.widget.feature.ImageDisplayFeature;
 import layout.widget.feature.ImagesDisplayFeature;
 import util.async.Async;
 import util.async.future.Fut;
+import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
+import util.file.FileType;
+import util.file.ImageFileFormat;
+import util.file.Util;
+import util.file.UtilKt;
 import util.functional.Try;
-import util.system.Os;
 import static java.awt.Desktop.Action.BROWSE;
 import static java.awt.Desktop.Action.EDIT;
 import static java.awt.Desktop.Action.OPEN;
@@ -104,7 +108,7 @@ public interface Environment {
 				} catch (IOException e) {
 					log(Environment.class).warn("Failed to launch program", e);
 
-					if (Os.getCurrent()==Os.WINDOWS) {
+					if (Os.WINDOWS.isCurrent()) {
 						// we might have failed due to the program requiring elevation (run
 						// as admin) so we use a little utility we package along
 						log(Environment.class).warn("Attempting to run as administrator...");

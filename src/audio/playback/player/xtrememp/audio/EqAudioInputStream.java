@@ -65,7 +65,7 @@ public class EqAudioInputStream extends TAsynchronousFilteredAudioInputStream {
      */
     private static final int SAMPLING_RATE = 44100;
     /**
-     * Center frequency of the lowest band.
+     * CENTER frequency of the lowest band.
      */
     private static final double FIRST_CENTER_FREQUENCY = 30;
     /**
@@ -97,7 +97,7 @@ public class EqAudioInputStream extends TAsynchronousFilteredAudioInputStream {
      */
     private double[] c = new double[STAGE_COUNT];
     /**
-     * Center frequency dependent coefficient.
+     * CENTER frequency dependent coefficient.
      */
     private double[] c0 = new double[BAND_COUNT];
     /**

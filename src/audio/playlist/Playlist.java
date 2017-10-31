@@ -29,7 +29,7 @@ import util.collections.mapset.MapSet;
 import util.conf.ValueConfig;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
-import util.file.Environment;
+import util.system.Environment;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;

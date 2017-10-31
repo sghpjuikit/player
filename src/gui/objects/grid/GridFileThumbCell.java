@@ -206,7 +206,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 			setCoverPost(item, true, item.cover_file, item.cover, null);
 		} else {
 			ImageSize size = thumb.calculateImageLoadSize();
-			throwIf(size.getWidth()<0 || size.getHeight()<0);
+			throwIf(size.width<0 || size.height<0);
 
 			// load thumbnail
 			if (loader.executorThumbs!=null)
@@ -220,7 +220,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 					}
 
 					ImageSize IS = computeImageSize(item);
-					boolean isInvisible = IS.getWidth()==-1 && IS.getHeight()==-1;
+					boolean isInvisible = IS.width==-1 && IS.height==-1;
 					if (isInvisible) {
 						then.runNothing();
 						return;
@@ -244,7 +244,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 						};
 
 						ImageSize IS = computeImageSize(item);
-						boolean isInvisible = IS.getWidth()==-1 && IS.getHeight()==-1;
+						boolean isInvisible = IS.width==-1 && IS.height==-1;
 						if (isInvisible)  {
 							then.runNothing();
 							return;
@@ -271,9 +271,9 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 					ImageSize is =  Fut.fut()
 							.supply(Async.FX, () -> thumb.calculateImageLoadSize())
 							.getDone();
-					boolean isReady = is.getWidth()>0 || is.getHeight()>0;
+					boolean isReady = is.width>0 || is.height>0;
 					if (!isReady && getIndex()<0 || getIndex()>=gridView.get().getItemsShown().size()) return new ImageSize(-1,-1);
-					if (!isReady) new RuntimeException("Image request size=" + is.getWidth() + "x" + is.getHeight() + " not valid").printStackTrace();
+					if (!isReady) new RuntimeException("Image request size=" + is.width + "x" + is.height + " not valid").printStackTrace();
 					if (!isReady) sleep(20);
 					return isReady ? is : null;
 				})

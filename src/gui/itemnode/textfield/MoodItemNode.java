@@ -21,7 +21,7 @@ import static util.functional.Util.filter;
 public class MoodItemNode extends TextFieldItemNode<String> {
 
 	/** The position for the picker to show on. */
-	public final V<NodePos> pos = new V<>(NodePos.RightCenter);
+	public final V<NodePos> pos = new V<>(NodePos.RIGHT_CENTER);
 
 	public MoodItemNode() {
 		super(Parser.DEFAULT.toConverterOf(String.class));

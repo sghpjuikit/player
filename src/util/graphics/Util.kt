@@ -6,8 +6,13 @@ import javafx.geometry.Bounds
 import javafx.geometry.Point2D
 import javafx.geometry.Rectangle2D
 import javafx.scene.Node
+import javafx.scene.Parent
 import javafx.scene.layout.AnchorPane
+import javafx.scene.text.Font
+import javafx.scene.text.FontPosture
+import javafx.scene.text.FontWeight
 import javafx.stage.Screen
+import util.math.P
 import java.awt.MouseInfo
 import java.awt.Point
 
@@ -132,6 +137,23 @@ val Rectangle2D.centreX get() = minX + width/2
 /** @return rectangle-relative y position of the centre of this rectangle */
 val Rectangle2D.centreY get() = minY + height/2
 
+/* ---------- FONT -------------------------------------------------------------------------------------------------- */
+
+/** Sets font, overriding css style. */
+fun Parent.setFontAsStyle(font: Font) {
+    val tmp = font.style.toLowerCase()
+    val style = if (tmp.contains("italic")) FontPosture.ITALIC else FontPosture.REGULAR
+    val weight = if (tmp.contains("bold")) FontWeight.BOLD else FontWeight.NORMAL
+    val styleS = if (style == FontPosture.ITALIC) "italic" else "normal"
+    val weightS = if (weight == FontWeight.BOLD) "bold" else "normal"
+    setStyle(
+        "-fx-font-family: \"" + font.family+ "\";" +
+        "-fx-font-style: " + styleS + ";" +
+        "-fx-font-weight: " + weightS + ";" +
+        "-fx-font-size: " + font.size+ ";"
+    )
+}
+
 /* ---------- SCREEN ------------------------------------------------------------------------------------------------ */
 
 /** @return the latest mouse position */
@@ -152,7 +174,7 @@ fun Point.getScreen() = getScreen(x.toDouble(), y.toDouble())
 
 /** @return screen containing the given coordinates */
     // See com.sun.javafx.util.Utils.getScreenForPoint(x, y);
-fun getScreen(x: Double, y: Double) = Screen.getScreens().find { it.bounds.intersects(x, y, 1.0, 1.0) } ?: Screen.getPrimary()
+fun getScreen(x: Double, y: Double) = Screen.getScreens().find { it.bounds.intersects(x, y, 1.0, 1.0) } ?: Screen.getPrimary()!!
 
 /** @return screen containing the given coordinates */
 fun getScreenForMouse() = getMousePosition().getScreen()

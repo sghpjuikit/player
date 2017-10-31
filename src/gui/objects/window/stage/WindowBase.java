@@ -23,8 +23,7 @@ import javafx.stage.StageStyle;
 import util.access.CyclicEnum;
 import util.async.Async;
 import util.dev.Dependency;
-import util.graphics.P;
-import util.graphics.Util;
+import util.math.P;
 import util.graphics.UtilKt;
 import util.system.Os;
 import static com.sun.jna.platform.win32.WinUser.GWL_STYLE;
@@ -652,7 +651,7 @@ public class WindowBase {
 	 */
 	@SuppressWarnings("SpellCheckingInspection")
 	public void setNonInteractingOnBottom() {
-		if (Os.getCurrent()!=Os.WINDOWS) return;
+		if (!Os.WINDOWS.isCurrent()) return;
 
 		installSingletonListener(s.showingProperty(), v -> v, v -> {
 			User32 user32 = User32.INSTANCE;
@@ -690,7 +689,7 @@ public class WindowBase {
 	@SuppressWarnings("SpellCheckingInspection")
 	private void fixJavaFxNonDecoratedMinimization() {
 		if (s.getStyle()!=UNDECORATED && s.getStyle()!=TRANSPARENT) return;
-		if (Os.getCurrent()!=Os.WINDOWS) return;
+		if (!Os.WINDOWS.isCurrent()) return;
 
 		installSingletonListener(s.showingProperty(), v -> v, v -> {
 			User32 user32 = User32.INSTANCE;

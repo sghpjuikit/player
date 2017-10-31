@@ -1,16 +1,11 @@
 
 /* ---------- WIP --------------------------------------------------------------------------------------------------- */
 
-- find out logical/physical cpu core count and use for threadpools
-- when image thumnails load, defer full quality loading until after all thumbnails are done
 - fix GView showing one plus row on bottom
 - logger widget does not work outside IDE?
 - does dir cache refresh work?
 - implement app arg processing properly
-- file plugins cache
-- Environment
-- flowLayout
-- popover position jumps on app drag start
+- to kotlin: Environment, DragUtil, FlowLayout
 - docked mode onhover/on lcick settings from gui, prolong autohide delay, autohide doesnt cancel if mouse returns
 - make writing to tag a Try op, report if files read-only, settings to set read-write
 - remove standalone widget code from UnContainer
@@ -46,7 +41,7 @@
     - allow visiting up if parent is only 1
     - address/location breadcrumb
 - implement 'use embedded thumbnail' for all image formats, not just psd
-- impl layout refresh() pass so Widget.refresh() can run properlykvirc
+- impl layout refresh() pass so Widget.refresh() can run properly
 - parametric function state serialization
 - image widget add panning, zooming, rotating support + shortcuts
 - save playlists into db instead of xml to improve big playlist startup
@@ -88,6 +83,8 @@
 
 /* ---------- BUGS -------------------------------------------------------------------------------------------------- */
 
+- popover position jumps on app drag start                                                          (minor)
+  problem: happens because of scaleXY animation and severity depends on the amount of scaling used
 - transparent stage causing massive performance degradation for larger stages                       (major, javaFX bug)
   problem: transparent skins, window shadows & screen mouse effects unsupported
 - de-activator position | size a bit off when loading first time & into small                       (minor)

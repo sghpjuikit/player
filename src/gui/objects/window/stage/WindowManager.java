@@ -73,6 +73,7 @@ import static util.functional.Util.max;
 import static util.functional.Util.set;
 import static util.functional.Util.stream;
 import static util.graphics.Util.add1timeEventHandler;
+import static util.graphics.UtilKt.setFontAsStyle;
 import static util.reactive.Util.maintain;
 import static util.reactive.Util.onScreenChange;
 import static util.graphics.UtilKt.getScreen;
@@ -203,7 +204,7 @@ public class WindowManager implements Configurable<Object> {
         windows.add(w); // add to list of active windows
 
 		w.initialize();
-		w.setFont(Gui.font.get());
+		setFontAsStyle(w.getStage().getScene().getRoot(), Gui.font.get());
         File skinFile = childOf(APP.DIR_SKINS, Gui.skin.getValue(), Gui.skin.getValue() + ".css");
         try {
             w.root.getStylesheets().add(skinFile.toURI().toURL().toExternalForm());

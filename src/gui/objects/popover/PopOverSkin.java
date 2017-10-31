@@ -29,6 +29,7 @@
 
 package gui.objects.popover;
 
+import gui.Gui;
 import gui.objects.icon.Icon;
 import gui.objects.popover.PopOver.ArrowLocation;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ import javafx.scene.shape.QuadCurveTo;
 import javafx.scene.shape.VLineTo;
 import javafx.stage.Window;
 import util.graphics.MouseDrag;
-import util.graphics.P;
+import util.math.P;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TIMES_CIRCLE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN_OFF;
@@ -68,6 +69,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static main.AppBuildersKt.resizeButton;
 import static util.async.Async.run;
 import static util.functional.Util.mapB;
+import static util.graphics.UtilKt.setFontAsStyle;
 import static util.reactive.Util.maintain;
 
 public class PopOverSkin implements Skin<PopOver> {
@@ -100,6 +102,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		};
 		root.setPickOnBounds(false);
 		root.getStyleClass().add(ROOT_STYLECLASS);
+		setFontAsStyle(root, Gui.font.get());
 
 		//  min width and height equal 2 * corner radius + 2*arrow indent + 2*arrow size
 		root.minHeightProperty().bind(root.minWidthProperty());

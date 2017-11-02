@@ -7,7 +7,7 @@ private/
 working dir/log/*zip
 working dir/log/*log
 working dir/user
-working dir/widgets/**class
+working dir/widgets/**/*class
 
 #####################
 # NetBeans specific #

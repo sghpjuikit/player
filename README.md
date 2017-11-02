@@ -317,41 +317,75 @@ There are several areas that one can contribute to:
 
 ### Project set up
 
-- JDK
+- Language
 
-Download and install latest 32-bit java9 build from [java kenai](https://jdk9.java.net/download/). Using 64-bit JDK/JRE is possible, but provides no benefits and causes high memory usage.
+Java jdk-9.0.0 or higher and Kotlin (latest version) are both required.
 
 - IDE
 
-Any IDE should work. THis project is being developed on Netbeans 9, 32-bit (64-bit is memory hungy for no benefit). Netbeans 9 is mandatory (to run java 9). If you have the IDE, download and open this project in it.
+Any IDE should work, but due to Kotlin, Intellij Idea is recommended.
 
 - Dependencies
 
-All dependencies are included in this repository. Import all libraries in /extra/lib directory. Similarly import the projects in /extra/projects as you did the libraries ( in Netbeans its in project > properties > libraries > add project). If any of the projects is mising a library, open the project and import the library from /extra/projects_lib.
-
-The library dependencies are all mandatory for the project to compile. The compilation will succeed without the project dependencies, but they are required for playback to work for certain audio file types (e.g. flac, ogg).
+All required dependencies are included in /extra/lib. For the optional extra projects, dependencies are located at /extra/projects_lib.
 
 - working directory
 
-It is imperative for working directory to be set up for the project to run successfully. Use /working dir located in this repository.
+/working dir must be set up as the working directory for the project to execute successfully, as it contains many runtime dependencies
 
 - widgets
 
-It is required to add widget source codes to the source code of the project. In Netbeans: project > properties > sources > add folder. Add /src widgets directory. You should see 2 source directories in you project: 'src' and 'src widgets'.
+It is required to add widget source codes to the source code of the project. 
 
+In Netbeans: project > properties > sources > add folder. Add /src widgets directory. You should see 2 source directories in you project: 'src' and 'src widgets'.
+
+In Intellij Idea: create a separate module depending (type=PROVIDED) on the main module and all its dependensies plus all the jars (recursively) in the /widgets directory.
 
 - VM run options
-  - "-Xmx1g" gets rid of memory errors when loading large images, the 1g (1GB) value can be less, but this works. Not using this parameter at all will result in some functionalities not working properly.
 
+The application can use lots of RAM if it displays images, so Xmx1g or more is recommended. The rest is necessary due to java 9 modularization.
+
+    -Xmx3g
+    --add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
+    --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
+    --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
+    --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED
+    --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
+    --add-opens java.base/java.util=ALL-UNNAMED
+    --add-opens java.base/java.lang.reflect=ALL-UNNAMED
+    --add-opens java.base/java.text=ALL-UNNAMED
+    --add-opens java.base/java.util.stream=ALL-UNNAMED
+    --add-opens java.base/java.lang=ALL-UNNAMED
+    --add-opens java.desktop/java.awt.font=ALL-UNNAMED
+    --add-opens javafx.controls/javafx.scene.control.skin=ALL-UNNAMED
+    --add-opens javafx.graphics/javafx.scene.image=ALL-UNNAMED
+    --add-opens javafx.controls/javafx.scene.control=ALL-UNNAMED
+    
+- javac (compiler) parameters
+
+Necessary due to java 9 modularization.
+
+    --add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
+    --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
+    --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
+    --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED
+    --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
+    
 - annotation processing
 
-The project makes heavy use of annotations and even annotation processor. It requires annotation processing to be enabled. In netbeans: project > properties > build > compiling  select both Enable annotation Processing and Enable Annotation Processing in Editor. Should be enabled by default.
+The project uses annotation processor, thus annotation processing needs to be enabled (if possible set to obtain processor from class path)
 
-- other options (should not be necessary since they are default settings, but just in case)
-  - dont binary encode javaFX css files (it will prevent skins from working since this changes .css to .bss and causes paths no longer work
-  - assertion dont have to be enabled
+- running
 
-- Set main.App class as main class in project properties, if not already set
+Set main.App class as main class if necessary
+
+- debugging
+
+Due to a mouse polling (using a native library), blocking all threads (like on a breakpoint) will cause major slow downs and unresponsive mouse (up to dozens of seconds) in the system. It is very recommended to never block all threads and use 'block current thread only' for breakpoints.
+
+- more
+
+See src/TODO.txt
 
 ### Coding style
 

@@ -553,7 +553,7 @@ public final class Seeker extends AnchorPane {
 			if (p==null) {
 				// text content
 				message = new Text(c.getText());
-				message.setWrappingWidthNatural(true);
+				message.wrappingWithNatural.setValue(true);
 				message.setTextAlignment(TextAlignment.CENTER);
 				content = new StackPane(message);
 				content.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
@@ -690,7 +690,7 @@ public final class Seeker extends AnchorPane {
 			if (!c.getText().equals(text)) {
 				// persist changes visually
 				message.setText(text);
-				message.setWrappingWidthNatural(true);
+				message.wrappingWithNatural.set(true);
 				// and physically
 				c.setText(text);
 				Metadata m = Player.playingItem.get();

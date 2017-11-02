@@ -26,9 +26,9 @@ class Notification: PopOver<Node>() {
         set(duration) { closer.period = duration }
 
     init {
-        detached.set(false)
-        detachable.set(false)
-        userResizable.set(false)
+        detached.value = false
+        detachable.value = false
+        userResizable.value = false
         isHideOnEscape = false
         arrowSize = 0.0
         arrowIndent = 0.0
@@ -52,11 +52,11 @@ class Notification: PopOver<Node>() {
         closer.start()
     }
 
-    fun setContent(content: Node, title: String) {
-        headerVisible.set(!title.isEmpty())
-        this.title.set(title)
-        content.isMouseTransparent = true
+    fun setContent(content: Node, titleText: String) {
+        headerVisible.value = !titleText.isEmpty()
+        title.value = titleText
         root.children.setAll(content)
+        content.isMouseTransparent = true
     }
 
 }

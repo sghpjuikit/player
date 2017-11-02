@@ -48,6 +48,7 @@ import javafx.scene.control.Labeled;
 import javafx.scene.control.Skin;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.HLineTo;
 import javafx.scene.shape.LineTo;
@@ -57,7 +58,6 @@ import javafx.scene.shape.PathElement;
 import javafx.scene.shape.QuadCurveTo;
 import javafx.scene.shape.VLineTo;
 import javafx.stage.Window;
-import util.graphics.MouseDrag;
 import util.math.P;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TIMES_CIRCLE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN;
@@ -69,6 +69,9 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static main.AppBuildersKt.resizeButton;
 import static util.async.Async.run;
 import static util.functional.Util.mapB;
+import static util.graphics.MouseDragKt.initMouseDrag;
+import static util.graphics.Util.setMinPrefMaxSize;
+import static util.graphics.UtilKt.initClip;
 import static util.graphics.UtilKt.setFontAsStyle;
 import static util.reactive.Util.maintain;
 
@@ -97,11 +100,14 @@ public class PopOverSkin implements Skin<PopOver> {
 			@Override
 			protected void layoutChildren() {
 				super.layoutChildren();
-				if (popover.positioner!=null) popover.positioner.run();
+				updatePath();
+				popover.setPrefSize(getWidth(), getHeight());
 			}
 		};
 		root.setPickOnBounds(false);
 		root.getStyleClass().add(ROOT_STYLECLASS);
+		setMinPrefMaxSize(root, Pane.USE_COMPUTED_SIZE, Pane.USE_COMPUTED_SIZE);
+		initClip(root);
 		setFontAsStyle(root, Gui.font.get());
 
 		//  min width and height equal 2 * corner radius + 2*arrow indent + 2*arrow size
@@ -140,13 +146,9 @@ public class PopOverSkin implements Skin<PopOver> {
 		// content
 		content = new BorderPane();
 		content.getStyleClass().add(CONTENT_STYLECLASS);
+		setMinPrefMaxSize(content, Pane.USE_COMPUTED_SIZE, Pane.USE_COMPUTED_SIZE);
 		maintain(p.contentNodeProperty(), content::setCenter);
-
-		// respect popover size
-		maintain(popover.prefWidthProperty(), content.paddingProperty(), (w, p) ->
-			root.setPrefWidth(w.doubleValue()<=0 ? w.doubleValue() : w.doubleValue() + p.getLeft() + p.getRight()));
-		maintain(popover.prefHeightProperty(), content.paddingProperty(), (h, p) ->
-			root.setPrefHeight(h.doubleValue()<=0 ? h.doubleValue() : h.doubleValue() + p.getTop() + p.getBottom()));
+		initClip(content);
 
 		// header
 		header = new BorderPane();
@@ -161,12 +163,13 @@ public class PopOverSkin implements Skin<PopOver> {
 		// footer
 		Icon resizeB = resizeButton();
 		resizeB.setPadding(new Insets(15));
-		MouseDrag moving = new MouseDrag<>(
-				resizeB, new P(),
-				drag -> drag.data.setXY(p.getPrefWidth(), p.getPrefHeight()),
-				drag -> p.setPrefSize(drag.data.getX() + drag.diff.getX(), drag.data.getY() + drag.diff.getY())
-		);
 		maintain(p.userResizable, resizeB.visibleProperty());
+		initMouseDrag(
+			resizeB,
+			new P(),
+			drag -> drag.data.setXY(content.getWidth(), content.getHeight()),
+			drag -> content.setPrefSize(drag.data.getX() + drag.diff.getX(), drag.data.getY() + drag.diff.getY())
+		);
 
 		// the delay in the execution is essential for updatePath to work - unknown reason
 		InvalidationListener uPLd = o -> run(25, this::updatePath);
@@ -197,34 +200,38 @@ public class PopOverSkin implements Skin<PopOver> {
 		maintain(p.focusedProperty(), v -> p.pseudoClassStateChanged(FOCUSED, v));
 
 		// detaching
+		P dragStartWLocation = new P();
 		P dragStartLocation = new P();
 		P dragOffset = new P();
 		root.setOnMousePressed(e -> {
-			if (p.detachable.get() && !moving.isDragging) {
+			if (p.detachable.get()) {
 				tornOff = false;
-				dragOffset.setXY(e.getScreenX(), e.getScreenY());
-				dragStartLocation.setXY(dragOffset.getX(), dragOffset.getY());
+				dragStartWLocation.setXY(p.getScene().getWindow().getX(), p.getScene().getWindow().getY());
+				dragStartLocation.setXY(e.getScreenX(), e.getScreenY());
 			}
 		});
 		root.setOnMouseDragged(e -> {
-			if (p.detachable.get() && !moving.isDragging) {
+			if (p.detachable.get()) {
 				Window window = p.getScene().getWindow();
-				double deltaX = e.getScreenX() - dragOffset.getX();
-				double deltaY = e.getScreenY() - dragOffset.getY();
-				window.setX(window.getX() + deltaX);
-				window.setY(window.getY() + deltaY);
-				dragOffset.setXY(e.getScreenX(), e.getScreenY());
-				if (dragStartLocation.distance(dragOffset)>20) {
-					tornOff = true;
-					updatePath();
-				} else if (tornOff) {
-					tornOff = false;
-					updatePath();
+				dragOffset.setX(e.getScreenX() - dragStartLocation.getX());
+				dragOffset.setY(e.getScreenY() - dragStartLocation.getY());
+				window.setX(dragStartWLocation.getX() + dragOffset.getX());
+				window.setY(dragStartWLocation.getY() + dragOffset.getY());
+				if (dragOffset.distance()>20) {
+					if (!tornOff) {
+						tornOff = true;
+						updatePath();
+					}
+				} else {
+					if (tornOff) {
+						tornOff = false;
+						updatePath();
+					}
 				}
 			}
 		});
 		root.setOnMouseReleased(e -> {
-			if (tornOff && !p.detached.get() && !moving.isDragging) {
+			if (tornOff && !p.detached.get()) {
 				tornOff = false;
 				p.detached.set(true);
 			}
@@ -253,7 +260,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		return root;
 	}
 
-	public Node getContent() {
+	public Pane getContent() {
 		return content;
 	}
 

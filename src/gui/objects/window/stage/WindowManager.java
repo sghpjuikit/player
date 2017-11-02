@@ -490,24 +490,14 @@ public class WindowManager implements Configurable<Object> {
 		l.load(new AnchorPane());
 
 		// build popup
-		PopOver p = new PopOver<>(l.getRoot());
+		PopOver<?> p = new PopOver<>(l.getRoot());
 		p.title.set(w.getInfo().nameGui());
 		p.setAutoFix(false);
 		Window wnd = getActive().get();
-		p.show(wnd.getStage(), wnd.getCenterX(), wnd.getCenterY());
-		// unregister the widget from active widgets manually on close
-		p.addEventFilter(WINDOW_HIDING, we -> l.close());
+		p.show(wnd.getStage(), wnd.getCenterX(), wnd.getCenterY()); // TODO: use ScreenPos
 
-		// load widget when graphics ready & shown
-		l.setChild(w);
-
-		// TODO: hack
-		// make popup honor widget size
-		double prefW = ((Pane) w.load()).getPrefWidth();
-		double prefH = ((Pane) w.load()).getPrefHeight();
-		p.setPrefSize(prefW, prefH);
-		p.setX(p.getX() - prefW/2);
-		p.setY(p.getY() - prefH/2);
+		p.addEventFilter(WINDOW_HIDING, we -> l.close());   // close widget on close
+		l.setChild(w);  // load widget when graphics ready & shown
 
 		return p;
 	}

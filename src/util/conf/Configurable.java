@@ -73,7 +73,9 @@ public interface Configurable<T> {
 		}
 
 		@Override
-		public void setField(String name, Object v) {}
+		public void setField(String name, Object v) {
+			setFieldOrThrow(name, v);
+		}
 
 		@Override
 		public void setFieldOrThrow(String name, Object v) {

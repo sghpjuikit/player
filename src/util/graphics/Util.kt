@@ -8,13 +8,16 @@ import javafx.geometry.Rectangle2D
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.layout.AnchorPane
+import javafx.scene.shape.Rectangle
 import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.stage.Screen
 import util.math.P
+import util.reactive.maintain
 import java.awt.MouseInfo
 import java.awt.Point
+import java.util.function.Consumer
 
 fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
 
@@ -88,6 +91,17 @@ fun Node.setScaleXYByTo(percent: Double, pxFrom: Double, pxTo: Double) {
 fun typeText(text: String): (Double) -> String {
     val length = text.length
     return { text.substring(0, Math.floor(length*it).toInt()) }
+}
+
+/* ---------- CLIP -------------------------------------------------------------------------------------------------- */
+
+fun Node.initClip() {
+    val clip = Rectangle()
+    layoutBoundsProperty().maintain(Consumer { size ->
+        clip.width = size.width
+        clip.height = size.height
+    })
+    setClip(clip)
 }
 
 /* ---------- POINT ------------------------------------------------------------------------------------------------- */

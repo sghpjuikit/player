@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
+import static main.AppBuildersKt.helpPopOver;
 import static util.async.Async.runFX;
 import static util.dev.Util.noØ;
 import static util.file.FileType.DIRECTORY;
@@ -748,7 +749,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		VBox.setMargin(t2, new Insets(0, 0, 0, 20));
 		Icon infoB = new Icon(INFO, 11, "Help");
 		infoB.setOnMouseClicked(e -> {
-			PopOver helpP = PopOver.createHelpPopOver("");
+			PopOver helpP = helpPopOver("");
 			helpP.setContentNode(cnt);	// TODO: fix this
 			// open the uri in browser
 			helpP.getContentNode().setOnMouseClicked(pe -> {

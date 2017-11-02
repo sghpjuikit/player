@@ -122,13 +122,13 @@ class Notifier: ServiceBase(true) {
             n!!.run {
                 setContent(content, title)
                 isAutoHide = notificationAutohide
-                animated.set(notificationAnimated)
-                animationDuration.set(notificationFadeTime)
+                animated.value = notificationAnimated
+                animationDuration.value = notificationFadeTime
                 duration = notificationDuration
-                focusOnShow.set(false)
+                focusOnShow.value = false
                 lClickAction = onClickL.valueAction
                 rClickAction = onClickR.valueAction
-                screen_preference = notificationScr
+                screenPreference = notificationScr
                 show(notificationPos)
             }
         }
@@ -137,10 +137,12 @@ class Notifier: ServiceBase(true) {
     /** Show notification displaying given text.  */
     fun showTextNotification(text: String, title: String) {
         if (running) {
-            val message = Text(text)
-            message.setWrappingWidthNatural(true)
-            val root = StackPane(message)
-            root.setMinSize(150.0, 70.0)
+            val message = Text(text).apply {
+                wrappingWithNatural.value = true
+            }
+            val root = StackPane(message).apply {
+                setMinSize(150.0, 70.0)
+            }
 
             showNotification(root, title)
         }
@@ -169,8 +171,9 @@ class Notifier: ServiceBase(true) {
     private fun playbackChange(s: Status?) {
         if (showStatusNotification && s!=null) {
             val title = "Playback change : $s"
-            val i = ItemInfo(false)
-            i.read(Player.playingItem.get())
+            val i = ItemInfo(false).apply {
+                read(Player.playingItem.get())
+            }
 
             showNotification(i, title)
         }

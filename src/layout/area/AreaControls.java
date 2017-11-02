@@ -57,6 +57,7 @@ import static layout.area.Area.DRAGGED_PSEUDOCLASS;
 import static layout.widget.Widget.LoadType.AUTOMATIC;
 import static layout.widget.Widget.LoadType.MANUAL;
 import static main.App.APP;
+import static main.AppBuildersKt.helpPopOver;
 import static util.functional.Util.mapB;
 import static util.graphics.Util.layScrollVText;
 import static util.graphics.Util.setAnchors;
@@ -100,7 +101,7 @@ public final class AreaControls {
     private static final String closebTEXT = "Close widget\n\n"
         + "Closes widget and creates empty place in the container.";
     private static SingleR<PopOver<Text>, AreaControls> helpP = new SingleR<>(
-	() -> PopOver.createHelpPopOver(""),
+	() -> helpPopOver(""),
 	(p, ac) -> {
             // set text
 	    p.getContentNode().setText(ac.getInfo());

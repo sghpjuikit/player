@@ -5,12 +5,12 @@ import javafx.scene.Node
 import javafx.stage.Screen
 import javafx.stage.Window
 import main.App
-import util.math.P
 import util.graphics.centreX
 import util.graphics.centreY
 import util.graphics.getScreenForMouse
 import util.graphics.screen
 import util.graphics.size
+import util.math.P
 
 
 enum class NodePos {
@@ -44,29 +44,29 @@ enum class NodePos {
         LEFT_DOWN -> RIGHT_UP
     }
 
-    fun computeXY(n: Node, popup: PopOver<*>) = P(computeX(n, popup), computeY(n, popup))+n.boundsInParent.size/2.0
+    fun computeXY(n: Node, popup: PopOver<*>) = P(computeX(n, popup), computeY(n, popup)) + n.layoutBounds.size/2.0
 
     private fun computeX(n: Node, popup: PopOver<*>): Double {
-        val w = popup.contentNode.boundsInParent.width
+        val w = popup.contentNode.layoutBounds.width
         val x = n.localToScreen(0.0, 0.0).x
         return when (this) {
-            CENTER, DOWN_CENTER, UP_CENTER -> x+n.boundsInParent.width/2-w/2
+            CENTER, DOWN_CENTER, UP_CENTER -> x+n.layoutBounds.width/2-w/2
             LEFT_CENTER, LEFT_UP, LEFT_DOWN -> x-w
-            RIGHT_CENTER, RIGHT_UP, RIGHT_DOWN -> x+n.boundsInParent.width
+            RIGHT_CENTER, RIGHT_UP, RIGHT_DOWN -> x+n.layoutBounds.width
             UP_LEFT, DOWN_LEFT -> x
-            UP_RIGHT, DOWN_RIGHT -> x+n.boundsInParent.width-w
+            UP_RIGHT, DOWN_RIGHT -> x+n.layoutBounds.width-w
         }
     }
 
     private fun computeY(n: Node, popup: PopOver<*>): Double {
-        val h = popup.contentNode.boundsInParent.height
+        val h = popup.contentNode.layoutBounds.height
         val y = n.localToScreen(0.0, 0.0).y
         return when (this) {
             UP_RIGHT, UP_CENTER, UP_LEFT -> y-h
-            DOWN_CENTER, DOWN_LEFT, DOWN_RIGHT -> y+n.boundsInParent.height
+            DOWN_CENTER, DOWN_LEFT, DOWN_RIGHT -> y+n.layoutBounds.height
             LEFT_UP, RIGHT_UP -> y
-            CENTER, LEFT_CENTER, RIGHT_CENTER -> y+n.boundsInParent.height/2-h/2
-            LEFT_DOWN, RIGHT_DOWN -> y+n.boundsInParent.height-h
+            CENTER, LEFT_CENTER, RIGHT_CENTER -> y+n.layoutBounds.height/2-h/2
+            LEFT_DOWN, RIGHT_DOWN -> y+n.layoutBounds.height-h
         }
     }
 }
@@ -101,7 +101,7 @@ enum class ScreenPos {
     private fun <N: Node> computeX(popup: PopOver<N>): Double {
         val w = popup.skinn.node.width
         val screen = if (isAppCentric()) null else getScreenForMouse().bounds
-        //				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screen_preference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
+        //				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screenPreference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
         val app = App.APP.windowManager.main.orElse(null)
         return when (this) {
             APP_TOP_LEFT, APP_BOTTOM_LEFT -> app?.x ?: SCREEN_BOTTOM_LEFT.computeX(popup)
@@ -116,7 +116,7 @@ enum class ScreenPos {
     private fun <N: Node> computeY(popup: PopOver<N>): Double {
         val h = popup.skinn.node.height
         val screen = if (isAppCentric()) null else getScreenForMouse().bounds
-        //				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screen_preference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
+        //				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screenPreference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
         val app = App.APP.windowManager.main.orElse(null)
         return when (this) {
             APP_BOTTOM_LEFT, APP_BOTTOM_RIGHT -> app?.let { it.y+it.height-h } ?: SCREEN_BOTTOM_RIGHT.computeY(popup)

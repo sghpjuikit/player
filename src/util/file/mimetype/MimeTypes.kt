@@ -1,10 +1,7 @@
 package util.file.mimetype
 
-import util.dev.log
 import util.file.Util.getSuffix
-import java.io.BufferedReader
 import java.io.File
-import java.io.InputStreamReader
 import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
 
@@ -20,20 +17,15 @@ object MimeTypes {
     private val extensions = ConcurrentHashMap<String, MimeType>()
 
     init {
-        try {
-            MimeTypes::class.java.getResourceAsStream("mime.types").use { file ->
-                InputStreamReader(file, "UTF-8").use { ir ->
-                    BufferedReader(ir).lineSequence()
-                            .filter { it.isNotBlank() && !it.startsWith("#") }
-                            .forEach {
-                                val halves = it.toLowerCase().split("\\s".toRegex(), 2).toTypedArray()
-                                val mime = MimeType(halves[0], *halves[1].trim().split("\\s".toRegex()).toTypedArray())
-                                register(mime)
-                            }
-                }
-            }
-        } catch (e: Exception) {
-            log().error("Failed to load default mime types", e)
+        MimeTypes::class.java.getResourceAsStream("mime.types")
+                .reader().buffered()
+                .useLines {
+                    it.filter { it.isNotBlank() && !it.startsWith("#") }
+                    .forEach {
+                        val halves = it.toLowerCase().split("\\s".toRegex(), 2).toTypedArray()
+                        val mime = MimeType(halves[0], *halves[1].trim().split("\\s".toRegex()).toTypedArray())
+                        register(mime)
+                    }
         }
     }
 

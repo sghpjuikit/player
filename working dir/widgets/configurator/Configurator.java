@@ -21,15 +21,18 @@ import layout.widget.Widget;
 import layout.widget.controller.ClassController;
 import layout.widget.feature.ConfiguringFeature;
 import main.App;
-import one.util.streamex.StreamEx;
 import util.conf.Config;
 import util.conf.Configurable;
 import util.graphics.fxml.ConventionFxmlLoader;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.HOME;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.REFRESH;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.SINGLE;
 import static main.App.APP;
 import static util.functional.Util.map;
+import static util.functional.Util.stream;
+import static util.functional.UtilKt.seqRec;
 import static util.graphics.Util.expandAndSelectTreeItem;
 
 @Widget.Info(
@@ -72,8 +75,8 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
 		// header icons
 		Icon appI = new Icon(HOME, 13, "App settings", () -> configure(APP.configuration.getFields())),
-			reI = new Icon(REFRESH, 13, "Refresh all", this::refresh),
-			defI = new Icon(RECYCLE, 13, "Set all to default", this::defaults);
+			 reI = new Icon(REFRESH, 13, "Refresh all", this::refresh),
+			 defI = new Icon(RECYCLE, 13, "Set all to default", this::defaults);
 		controls.getChildren().addAll(appI, new Label("    "), reI, defI);
 
 		// consume scroll event to prevent other scroll behavior // optional
@@ -122,11 +125,11 @@ public final class Configurator extends ClassController implements ConfiguringFe
 		return isValueSelected;
 	}
 
+
 	private void restoreSelection() {
 		Optional.ofNullable(App.APP.configuration.rawGet().get(CONFIG_SELECTION_NAME))
 				.filter(String.class::isInstance)
-				.flatMap(restoredSelection -> StreamEx
-						.ofTree(groups.getRoot(), item -> item.getChildren().stream())
+				.flatMap(restoredSelection -> stream(seqRec(groups.getRoot(), i -> i.getChildren()))
 						.findAny(item -> item.getValue().pathUp.equals(restoredSelection))
 				)
 				.or(() -> Optional.of(groups.getRoot()))

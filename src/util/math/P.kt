@@ -3,14 +3,7 @@ package util.math
 import java.lang.Math.sqrt
 
 /** Mutable point. */
-class P {
-    var x: Double
-    var y: Double
-
-    @JvmOverloads constructor(x: Double = 0.0, y: Double = 0.0) {
-        this.x = x
-        this.y = y
-    }
+data class P @JvmOverloads constructor(var x: Double = 0.0, var y: Double = 0.0) {
 
     fun setXY(x: Double, y: Double) {
         this.x = x
@@ -19,7 +12,8 @@ class P {
 
     fun distance(p: P) = distance(p.x, p.y)
 
-    fun distance(x: Double, y: Double) = sqrt((x-this.x)*(x-this.x)+(y-this.y)*(y-this.y))
+    @JvmOverloads
+    fun distance(x: Double = 0.0, y: Double = 0.0) = sqrt((x-this.x)*(x-this.x)+(y-this.y)*(y-this.y))
 
     operator fun plus(p: P) = P(x+p.x, y+p.y)
 
@@ -76,4 +70,5 @@ class P {
         x /= n
         y /= n
     }
+
 }

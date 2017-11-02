@@ -65,25 +65,4 @@ public class Text extends javafx.scene.text.Text {
 		}
 	};
 
-	/**
-	 * @see #setWrappingWidthNatural(boolean)
-	 */
-	public BooleanProperty wrappingWidthNatural() {
-		return wrappingWithNatural;
-	}
-
-	/**
-	 * @see #setWrappingWidthNatural(boolean)
-	 */
-	public boolean isWrappingWidthNaturally() {
-		return wrappingWithNatural.getValue();
-	}
-
-	/**
-	 * @see #wrapWidthNaturally()
-	 */
-	public void setWrappingWidthNatural(boolean val) {
-		wrappingWithNatural.setValue(val);
-	}
-
 }

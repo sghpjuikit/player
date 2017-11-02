@@ -61,6 +61,7 @@ import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static main.AppBuildersKt.appTooltip;
+import static main.AppBuildersKt.helpPopOver;
 import static util.functional.Util.setRO;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHeaderBottom;
@@ -124,7 +125,7 @@ public class Icon extends StackPane {
 
 	public static Icon createInfoIcon(String text) {
 		return new Icon(INFO).tooltip("Help").onClick(e -> {
-			PopOver<gui.objects.Text> helpP = PopOver.createHelpPopOver(text);
+			PopOver<gui.objects.Text> helpP = helpPopOver(text);
 			helpP.show((Node) e.getSource());
 			helpP.getContentNode().setWrappingWidth(400);
 			helpP.getSkinn().setTitleAsOnlyHeaderContent(false);

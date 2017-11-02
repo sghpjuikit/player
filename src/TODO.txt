@@ -73,6 +73,7 @@
 
 /* ---------- IMPROVEMENTS ------------------------------------------------------------------------------------------ */
 
+- use kotlin logging https://github.com/MicroUtils/kotlin-logging
 - ConfigSearch should open Settings and look up the property
 - Inspector implement 'preview'/info pane
 - improve messagePane, make okPane & errorPane, use icon to style

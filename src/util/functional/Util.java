@@ -1247,6 +1247,10 @@ public interface Util {
 		return StreamEx.of(t);
 	}
 
+	static <T> StreamEx<T> stream(Iterable<T> t) {
+		return stream(t.iterator());
+	}
+
 	static <T> StreamEx<T> stream(Enumeration<T> t) {
 		return StreamEx.of(t);
 	}

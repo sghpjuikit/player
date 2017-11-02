@@ -3,7 +3,9 @@ package main
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon
 import gui.objects.Text
 import gui.objects.icon.Icon
+import gui.objects.popover.PopOver
 import gui.objects.spinner.Spinner
+import javafx.geometry.Insets
 import javafx.scene.Cursor
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Tooltip
@@ -17,6 +19,36 @@ import util.math.seconds
 import java.util.function.Consumer
 
 private typealias C<T> = Consumer<T>
+
+/**
+ * Creates simple help popover designed as a tooltip for help buttons.
+ *
+ * The popover is
+ * * not detached
+ * * not detachable
+ * * hide on click true,
+ * * autohide true
+ * * not userResizable
+ *
+ * Tip: Associate help popovers with buttons marked with question mark or similar icon.
+ */
+@JvmOverloads
+fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> {
+    val t = Text(textContent).apply {
+        styleClass += "help-popover-text"
+        wrappingWithNatural.value = true
+    }
+    return PopOver(t).apply {
+        skinn.contentPadding = Insets(15.0) // use css instead
+        styleClass += "help-popover"
+        title.value = textTitle
+        isAutoHide = true
+        isHideOnClick = true
+        isAutoFix = true
+        userResizable.value = false
+        detachable.value = false
+    }
+}
 
 @JvmOverloads
 fun appProgressIndicator(onStart: C<ProgressIndicator> = C {}, onFinish: C<ProgressIndicator> = C {}) = Spinner().apply {

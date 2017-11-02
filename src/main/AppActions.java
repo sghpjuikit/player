@@ -17,6 +17,7 @@ import gui.objects.icon.Icon;
 import gui.objects.icon.IconInfo;
 import gui.objects.popover.PopOver;
 import gui.objects.popover.ScreenPos;
+import gui.objects.tree.TreeItems;
 import gui.pane.ActionPane.FastAction;
 import gui.pane.OverlayPane;
 import java.io.File;
@@ -29,6 +30,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -50,8 +52,8 @@ import util.action.IsActionable;
 import util.conf.ValueConfig;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
-import util.system.Environment;
 import util.functional.Functors;
+import util.system.Environment;
 import util.validation.Constraint.StringNonEmpty;
 import web.DuckDuckGoQBuilder;
 import web.WebBarInterpreter;
@@ -69,7 +71,6 @@ import static util.async.Async.runFX;
 import static util.async.Async.runLater;
 import static util.async.future.Fut.fut;
 import static util.dev.Util.log;
-import static util.system.Environment.browse;
 import static util.functional.Util.list;
 import static util.functional.Util.map;
 import static util.functional.Util.set;
@@ -81,6 +82,7 @@ import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layVertically;
 import static util.graphics.Util.setMinPrefMaxSize;
 import static util.math.Util.millis;
+import static util.system.Environment.browse;
 import static util.type.Util.getEnumConstants;
 
 @SuppressWarnings("unused")
@@ -403,5 +405,14 @@ public class AppActions {
 				.map(Player.IO_THREAD, MetadataReader::readMetadata)
 				.use(FX, action);
 		}
+	}
+
+	public void inspectObjectInInspector(Object o) {
+		App.APP.widgetManager.find("Inspector", WidgetSource.OPEN, true)
+			.ifPresent(w ->
+				((TreeView) util.type.Util.getFieldValue(w.getController(), "tree"))    // TODO: improve
+					.getRoot().getChildren()
+					.add(TreeItems.tree(o))
+			);
 	}
 }

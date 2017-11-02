@@ -29,7 +29,6 @@
 
 package gui.objects.popover;
 
-import gui.objects.Text;
 import gui.objects.window.stage.WindowBase;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,10 +36,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -48,7 +45,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
-import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -181,58 +177,6 @@ public class PopOver<N extends Node> extends PopupControl {
 	public static final List<PopOver> active_popups = new ArrayList<>();
 	private static final Object CLOSE_OWNER = new Object();
 	private static final String STYLE_CLASS = "popover";
-	private static final String STYLE_CLASS_HELP = "help-popover";
-	private static final String STYLE_CLASS_HELP_TEXT = "help-popover-text";
-
-	/**
-	 * Creates simple help popover designed as a tooltip for help buttons.
-	 * <p/>
-	 * The content of the popover is specified text and title: "Help".
-	 * <pre>
-	 *  For example: "Left click : Executes action\n
-	 *                Help button click : Shows hint on using this feature"
-	 * </pre>
-	 * The created popover is not detached, not detachable, hide on click is true,
-	 * autohide true, rest default.
-	 * <p/>
-	 * Tip: Associate help popovers with buttons marked with question mark or
-	 * similar icon.
-	 * <p/>
-	 * Tip: Help popover is intended to help user with familiarizing with the
-	 * functionalities of the application and as such is not expected to be
-	 * showed frequently.
-	 * It is recommended to have only single instance per help button, meaning
-	 * that if the popover is requested multiple times, it will only be constructed
-	 * once. Another recommended practice is to create the popover lazily - on
-	 * demand when requested, leaving the initial value as null.
-	 * For example lets have a global reference to the popup and lets initialize
-	 * it to null. When the popover is requested do a null check before the show()
-	 * method is called and construct the popover if it was null. Or construct
-	 * a method getHelpPopover() for this. Lazy singleton pattern.
-	 * <p/>
-	 * Note: following the above advice and assuming the request for the popover
-	 * comes from button click (more precisely an event handler) it is likely
-	 * that the event handler will be written as lambda. In that case the
-	 * reference to the popup will have to be global as the object referenced
-	 * from lambda must be effectively final and can not be reinitialized inside.
-	 *
-	 * @param text text to show
-	 * @return new popover
-	 */
-	public static PopOver<Text> createHelpPopOver(String text) {
-		Text t = new Text(text);
-		t.getStyleClass().add(STYLE_CLASS_HELP_TEXT);
-		t.setWrappingWidthNatural(true);
-		PopOver<Text> p = new PopOver<>(t);
-		p.getSkinn().setContentPadding(new Insets(15)); // use css instead
-		p.getStyleClass().add(STYLE_CLASS_HELP);
-		p.title.set("Help");
-		p.setAutoHide(true);
-		p.setHideOnClick(true);
-		p.setAutoFix(true);
-		p.detachable.set(false);
-		return p;
-	}
 
 	/**
 	 * Creates a pop over with a label as the content node.
@@ -451,10 +395,12 @@ public class PopOver<N extends Node> extends PopupControl {
 	@Override
 	public final void show(Node owner, double x, double y) {
 		showThis(owner, owner.getScene().getWindow());
-		Point2D a = owner.localToScreen(x, y);
-		double X = a.getX() + owner.getBoundsInParent().getWidth()/2;
-		double Y = a.getY() + owner.getBoundsInParent().getHeight()/2;
-		position(() -> new P(X, Y));
+		position(() -> {
+			Point2D a = owner.localToScreen(x, y);
+			double X = a.getX() + owner.getBoundsInParent().getWidth()/2;
+			double Y = a.getY() + owner.getBoundsInParent().getHeight()/2;
+			return new P(X, Y);
+		});
 	}
 
 	/**
@@ -493,11 +439,13 @@ public class PopOver<N extends Node> extends PopupControl {
 		Optional<Window> owneR = APP.windowManager.getFocused()
 				.filter(w -> pos.isAppCentric())
 				.map(WindowBase::getStage);
-		boolean isScreenCentric = !owneR.isPresent();
 		Optional<Window> ownerO = owneR.or(() -> Optional.ofNullable(getOwnerWindow()).filter(Window::isShowing));
 		boolean isOwnerCreated = !ownerO.isPresent() && focusOnShow.get();
 		Window owner = ownerO.orElseGet(() -> focusOnShow.get() ? APP.windowManager.createStageOwner() : UNFOCUSED_OWNER);
-		ScreenPos p = isScreenCentric ? pos.toScreenCentric() : pos;
+		ScreenPos p = normalize(pos, owneR);
+
+		if (isShowing()) hideImmediatelly();    // showing when shown can get us into trouble -> hide first // TODO: remove
+
 		showThis(null, owner);
 		position(() -> p.computeXY(this));
 
@@ -511,6 +459,10 @@ public class PopOver<N extends Node> extends PopupControl {
 	public void show(Window window) {
 		showThis(null, window);
 		uninstallMoveWith();
+	}
+
+	private ScreenPos normalize(ScreenPos pos, Optional<Window> owner) {
+		return owner.isPresent() ? pos : pos.toScreenCentric();
 	}
 
 /* --------------------- MOVE WITH OWNER ---------------------------------------------------------------------------- */
@@ -805,9 +757,9 @@ public class PopOver<N extends Node> extends PopupControl {
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 	/** Whether resizing by user is allowed. */
-	public final BooleanProperty userResizable = new SimpleBooleanProperty(true);
+	public final V<Boolean> userResizable = new V<>(true);
 
-	public ScreenUse screen_preference = APP_WINDOW;
+	public ScreenUse screenPreference = APP_WINDOW;
 
 	/******************************************************************************/
 

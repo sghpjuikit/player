@@ -8,11 +8,9 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.stream.Stream;
 import javafx.stage.FileChooser;
-import one.util.streamex.StreamEx;
 import util.SwitchException;
 import static java.util.stream.Collectors.toList;
 import static util.dev.Util.noØ;
-import static util.functional.Util.stream;
 
 /**
  * All audio file formats known and supported by application except for UNKNOWN that
@@ -97,10 +95,6 @@ public enum AudioFileFormat {
 			case UNKNOWN: return false;
 			default: throw new SwitchException(this);
 		}
-	}
-
-	public static StreamEx<AudioFileFormat> formats() {
-		return stream(values()).without(UNKNOWN);
 	}
 
 	/**

@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import javafx.beans.value.ObservableValue;
-import one.util.streamex.StreamEx;
 import org.atteo.classindex.ClassIndex;
 import unused.TriConsumer;
 import static util.dev.Util.log;
@@ -73,8 +73,8 @@ public interface Util {
 	 * @param annotation annotation to search class for
 	 * @return annotated classes
 	 */
-	static StreamEx<Class<?>> getAnnotated(Class<? extends Annotation> annotation) {
-		return stream(ClassIndex.getAnnotated(annotation).iterator());
+	static Stream<Class<?>> getAnnotated(Class<? extends Annotation> annotation) {
+		return stream(ClassIndex.getAnnotated(annotation));
 	}
 
 /* ---------- REFLECTION - INSTANTIATION ---------------------------------------------------------------------------- */

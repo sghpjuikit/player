@@ -40,6 +40,8 @@ import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.Predicate;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javafx.event.Event;
 import javafx.geometry.HPos;
@@ -66,9 +68,6 @@ import javafx.scene.text.Font;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
-import one.util.streamex.DoubleStreamEx;
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.StreamEx;
 import org.gamepad4j.Controllers;
 import org.gamepad4j.IController;
 import org.slf4j.Logger;
@@ -95,6 +94,8 @@ import static java.lang.Math.asin;
 import static java.lang.Math.ceil;
 import static java.lang.Math.random;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -127,8 +128,8 @@ import static util.graphics.Util.layHeaderTop;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layStack;
 import static util.graphics.Util.layVertically;
-import static util.reactive.Util.maintain;
 import static util.graphics.UtilKt.setScaleXY;
+import static util.reactive.Util.maintain;
 
 @SuppressWarnings({"unused","UnnecessaryLocalVariable"})
 interface Utils {
@@ -149,8 +150,8 @@ interface Utils {
 	double SIN45 = Math.sin(PI/4);
 	int precision = 100;
 	int UNITS = 360*precision;
-	double[] degSinMemo = IntStreamEx.rangeClosed(-UNITS,UNITS).mapToDouble(i -> i/(double)precision).map(angle -> Math.sin(rad(angle))).toArray();
-	double[] degCosMemo = IntStreamEx.rangeClosed(-UNITS,UNITS).mapToDouble(i -> i/(double)precision).map(angle -> Math.cos(rad(angle))).toArray();
+	double[] degSinMemo = IntStream.rangeClosed(-UNITS,UNITS).mapToDouble(i -> i/(double)precision).map(angle -> Math.sin(rad(angle))).toArray();
+	double[] degCosMemo = IntStream.rangeClosed(-UNITS,UNITS).mapToDouble(i -> i/(double)precision).map(angle -> Math.cos(rad(angle))).toArray();
 	Random RAND = new Random();
 	// Tele-Marines is packed with windows 8.1, but to be sure it works on any version and
 	// platform it is packed with the widget.
@@ -230,11 +231,12 @@ interface Utils {
 	 */
 	static Double[] calculateGunTurretAngles(int i, double gap) {
 		if (i<=1) return array(0d);
-		return ( i%2==1
-			? range(-i/2d,i/2d)  // ... -3 -2 -1 0 +1 +2 +3 ...
-			: stream(range(0.5-i/2,-0.5),range(0.5,i/2-0.5))   // ... -1.5 -0.5 +0.5 +1.5 ...
-		).map(x -> gap*x)
-		 .toArray(Double[]::new);
+		return (i%2==1
+				? range(-i/2d,i/2d)  // ... -3 -2 -1 0 +1 +2 +3 ...
+				: stream(range(0.5-i/2,-0.5),range(0.5,i/2-0.5))   // ... -1.5 -0.5 +0.5 +1.5 ...
+			)
+			.map(x -> gap*x)
+			.toArray(Double[]::new);
 	}
 
 	/** Relocates node such the center of the node is at the coordinates. */
@@ -2231,7 +2233,7 @@ interface Utils {
 			if (cells == null) {
 				// circle
 				double wh = min(W,H);
-				cells = DoubleStreamEx.iterate(0, a-> a+2*PI/11).limit(11)
+				cells = DoubleStream.iterate(0, a-> a+2*PI/11).limit(11)
 							.mapToObj(a -> new Cell(0,0) {
 								double angle = a;
 								{
@@ -2245,9 +2247,9 @@ interface Utils {
 								}
 							})
 							.map(c -> (Cell)c)
-							.toList();
-				cells.addAll(DoubleStreamEx.iterate(0, a-> a+2*PI/3).limit(3)
-								 .mapToObj(a -> new Cell(0,0) {
+							.collect(toList());
+				cells.addAll(DoubleStream.iterate(0, a-> a+2*PI/3).limit(3)
+								.mapToObj(a -> new Cell(0,0) {
 									 double angle = a;
 									 {
 										 moving = (w,h) -> {
@@ -2259,10 +2261,10 @@ interface Utils {
 										 };
 									 }
 								 })
-								 .map(c -> (Cell)c)
-								 .toList());
-				cells.addAll(DoubleStreamEx.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
-								 .mapToObj(a -> new Cell(0,0) {
+								.map(c -> (Cell)c)
+								.collect(toList()));
+				cells.addAll(DoubleStream.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
+								.mapToObj(a -> new Cell(0,0) {
 									 double angle = a;
 									 {
 										 moving = (w,h) -> {
@@ -2274,10 +2276,10 @@ interface Utils {
 										 };
 									 }
 								 })
-								 .map(c -> (Cell)c)
-								 .toList());
-				cells.addAll(DoubleStreamEx.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
-								 .mapToObj(a -> new Cell(0,0) {
+								.map(c -> (Cell)c)
+								.collect(toList()));
+				cells.addAll(DoubleStream.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
+								.mapToObj(a -> new Cell(0,0) {
 									 double angle = a;
 									 {
 										 moving = (w,h) -> {
@@ -2289,14 +2291,14 @@ interface Utils {
 										 };
 									 }
 								 })
-								 .map(c -> (Cell)c)
-								 .toList());
+								.map(c -> (Cell)c)
+								.collect(toList()));
 				// horizontal sequence
-//				cells = IntStreamEx.range(0,cellCount)
+//				cells = IntStream.range(0,cellCount)
 //								.mapToObj(a -> new Cell(W*0.1+W*0.8/cellCount*a, H/2))
 //								.toList();
 				// random
-//				cells = StreamEx.generate(() -> Cell.random(W, H, .5)).limit(cellCount).toList();
+//				cells = Stream.generate(() -> Cell.random(W, H, .5)).limit(cellCount).toList();
 
 				// add noise to avoid arithmetic problem
 				cells.forEach(cell -> {
@@ -2368,7 +2370,7 @@ interface Utils {
 			Try.tryS(() -> diagram.getDiagram(new GeometryFactory()), Exception.class)
 				.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
 				.ifOk(g ->
-						IntStreamEx.range(0, g.getNumGeometries())
+						IntStream.range(0, g.getNumGeometries())
 							.mapToObj(g::getGeometryN)
 							.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
 							.forEach(polygon -> {
@@ -2775,10 +2777,10 @@ interface Utils {
 			Try.tryS(() -> voronoi.getDiagram(new GeometryFactory()), Exception.class)
 				.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
 				.ifOk(g ->
-					edgesAction.accept(IntStreamEx.range(0, g.getNumGeometries())
+					edgesAction.accept(IntStream.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
 						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
-						.groupingBy(polygon -> ((Tuple2<Rocket, Boolean>) polygon.getUserData())._1)
+						.collect(groupingBy(polygon -> ((Tuple2<Rocket, Boolean>) polygon.getUserData())._1))
 						.values().stream()
 						.flatMap(ss -> {
 							List<Lin> lines = stream(ss)
@@ -2841,7 +2843,7 @@ interface Utils {
 		Try.tryS(() -> voronoi.getDiagram(new GeometryFactory()), Exception.class)
 			.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
 			.ifOk(g ->
-					IntStreamEx.range(0, g.getNumGeometries())
+					IntStream.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
 						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
 						.forEach(polygon -> {
@@ -3166,7 +3168,7 @@ interface Utils {
 		abstract protected void onInit(IController[] gamepads);
 		abstract protected void doLoopImpl(IController[] gamepads);
 
-		public StreamEx<IController> getControllers() {
+		public Stream<IController> getControllers() {
 			return stream(Controllers.getControllers()).nonNull();
 		}
 

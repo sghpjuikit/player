@@ -17,6 +17,16 @@ import java.util.function.BiConsumer
 import java.util.function.Consumer
 import java.util.function.Predicate
 
+/** Sets a value consumer to be fired immediately and on every value change. */
+infix fun <O> ObservableValue<O>.sync(u: (O) -> Unit) = maintain(Consumer { u(it) })
+
+/** Sets a value consumer to be fired if the value is true immediately and on every value change. */
+infix fun ObservableValue<Boolean>.syncTrue(u: (Boolean) -> Unit): Subscription = maintain(Consumer { if (it) u(it) })
+
+/** Sets a value consumer to be fired if the value is false immediately and on every value change. */
+infix fun ObservableValue<Boolean>.syncFalse(u: (Boolean) -> Unit): Subscription = maintain(Consumer { if (!it) u(it) })
+
+
 fun <O> ObservableValue<O>.changes(u: BiConsumer<in O, in O>): Subscription {
     val l = ChangeListener<O> { _, ov, nv -> u.accept(ov, nv) }
     this.addListener(l)
@@ -34,10 +44,6 @@ fun <O> ObservableValue<O>.maintain(u: Consumer<O>): Subscription {
     this.addListener(l)
     return Subscription { this.removeListener(l) }
 }
-
-fun ObservableValue<Boolean>.onTrue(u: (Boolean) -> Unit): Subscription = maintain(Consumer<Boolean> { if (it) u(it) })
-
-fun ObservableValue<Boolean>.onFalse(u: (Boolean) -> Unit): Subscription = maintain(Consumer<Boolean> { if (!it) u(it) })
 
 fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, w: WritableValue<in V>): Subscription {
     w.value = m(this.value)

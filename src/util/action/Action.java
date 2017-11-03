@@ -5,7 +5,11 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 import javafx.application.Platform;
@@ -22,17 +26,21 @@ import util.conf.Config;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 import util.conf.IsConfigurable;
-import util.system.Environment;
 import util.hotkey.Hotkeys;
+import util.system.Environment;
 import util.validation.Constraint;
+import static java.util.stream.Collectors.toCollection;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static main.App.APP;
 import static util.async.Async.runFX;
 import static util.dev.Util.log;
-import static util.functional.Util.*;
+import static util.functional.Util.list;
+import static util.functional.Util.setRO;
+import static util.functional.Util.stream;
 import static util.reactive.Util.doOnceIfNonNull;
 import static util.reactive.Util.listChangeHandlerEach;
+import static util.type.Util.getAnnotated;
 
 /**
  * Behavior with a name and possible shortcut.
@@ -572,7 +580,10 @@ public final class Action extends Config<Action> implements Runnable {
 		return actionName.hashCode();
 	}
 
-	private static final MapSet<Integer,Action> actions = gatherActions();
+	private static final MapSet<Integer,Action> actions = new MapSet<>(new ConcurrentHashMap<>(), Action::getID) {{
+		getAnnotated(IsActionable.class).flatMap(type -> gatherActions(type, null)).forEach(this::add);
+		add(EMPTY);
+	}};
 
 	public static void installActions(Object... os) {
 		stream(os)
@@ -585,14 +596,6 @@ public final class Action extends Config<Action> implements Runnable {
 					return stream(o);
 				})
 				.forEach(o -> gatherActions(o).forEach(actions::add));
-	}
-
-	/** @return all actions of this application */
-	private static MapSet<Integer,Action> gatherActions() {
-		return util.type.Util.getAnnotated(IsActionable.class)
-				.flatMap(c -> gatherActions(c, null))
-				.append(EMPTY)
-				.toCollection(() -> new MapSet<>(new ConcurrentHashMap<>(), Action::getID));
 	}
 
 	public static Stream<Action> gatherActions(Object object) {
@@ -650,7 +653,7 @@ public final class Action extends Config<Action> implements Runnable {
 		// file.exists() check. The number of deserialized commands can be 0 if deserialization fails for some reason
 		boolean generateTemplate = count<1 && !file.exists();
 		if (generateTemplate)
-			APP.serializators.toXML(stream(new Command()).toCollection(Commands::new), file)
+			APP.serializators.toXML(stream(new Command()).collect(toCollection(Commands::new)), file)
 					.ifError(e -> log(Action.class).error("Could not save command actions", e));
 	}
 

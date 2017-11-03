@@ -7,9 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import one.util.streamex.StreamEx;
 import static util.dev.Util.noØ;
-import static util.functional.Util.stream;
 
 /**
  * All image file types known and supported by application except for UNKNOWN that
@@ -35,10 +33,6 @@ public enum ImageFileFormat {
 
 	public ExtensionFilter toExtFilter() {
 		return new FileChooser.ExtensionFilter(toString(), toExt());
-	}
-
-	public static StreamEx<ImageFileFormat> formats() {
-		return stream(values()).without(UNKNOWN);
 	}
 
 	/**

@@ -396,8 +396,8 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 
 		String dName = !computed ? "n/a" : instanceName.get(d);
 		String dKind = !computed ? "n/a" : className.get(type);
-		String dInfo = !computed ? "" : stream(instanceInfo.get(d))
-											.mapKeyValue((key,val) -> key + ": " + val)
+		String dInfo = !computed ? "" : instanceInfo.get(d).entrySet().stream()
+											.map(e -> e.getKey() + ": " + e.getValue())
 											.sorted().collect(joining("\n"));
 		return "Data: " + dName + "\n" +
 			   "Type: " + dKind +

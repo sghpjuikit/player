@@ -29,7 +29,7 @@ import util.functional.Try
 import util.graphics.Util.menuItem
 import util.graphics.image.loadBufferedImage
 import util.reactive.Disposer
-import util.reactive.onFalse
+import util.reactive.syncFalse
 import java.awt.EventQueue
 import java.awt.Image
 import java.awt.SystemTray
@@ -71,19 +71,21 @@ class TrayService : ServiceBase(true) {
     override fun start() {
         if (!supported) return
 
-        val cm = ContextMenu()
-        cm.items.addAll(contextMenuItems)
-        cm.isAutoFix = true
-        cm.consumeAutoHidingEvents = false
-        // cm.setOnShown(e -> run(3000, cm::hide));
+        val cm = ContextMenu().apply {
+            items += contextMenuItems
+            isAutoFix = true
+            consumeAutoHidingEvents = false
+            // setOnShown(e -> run(3000, cm::hide));
+        }
 
-        val cmOwner = Stage(TRANSPARENT)
-        cmOwner.initStyle(UTILITY)
-        cmOwner.opacity = 0.0
-        cmOwner.scene = Scene(Region())
-        cmOwner.focusedProperty().onFalse {
-            if (cm.isShowing) cm.hide()
-            if (cmOwner.isShowing) cmOwner.hide()
+        val cmOwner = Stage(TRANSPARENT).apply {
+            initStyle(UTILITY)
+            opacity = 0.0
+            scene = Scene(Region())
+            focusedProperty() syncFalse {
+                if (cm.isShowing) cm.hide()
+                if (isShowing) hide()
+            }
         }
         contextMenu = cm
         contextMenuOwner = cmOwner

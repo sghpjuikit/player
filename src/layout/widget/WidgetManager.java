@@ -20,7 +20,6 @@ import layout.container.Container;
 import layout.container.layout.Layout;
 import layout.widget.controller.Controller;
 import layout.widget.feature.Feature;
-import one.util.streamex.StreamEx;
 import org.atteo.classindex.ClassIndex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +43,8 @@ import static util.Util.capitalize;
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
 import static util.file.Util.getName;
-import static util.file.UtilKt.listChildren;
 import static util.file.Util.readFileLines;
+import static util.file.UtilKt.listChildren;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
 import static util.functional.Util.toS;
@@ -441,7 +440,7 @@ public final class WidgetManager {
 	 */
 	private static ClassLoader createControllerClassLoader(File widget_dir, Stream<File> libFiles) {
 		File dir = widget_dir.getParentFile();
-		URL[] classpath = stream(dir).append(libFiles)
+		URL[] classpath = stream(stream(dir), libFiles)
 						 .map(f -> {
 							 try {
 								 return f.toURI().toURL();
@@ -453,15 +452,14 @@ public final class WidgetManager {
 		return new URLClassLoader(classpath);
 	}
 
-	// TODO: return read-only collection and make backing field private
 	/** @return all widget factories */
-	public StreamEx<WidgetFactory<?>> getFactories() {
-		return StreamEx.of(factories.streamV());
+	public Stream<WidgetFactory<?>> getFactories() {
+		return factories.streamV();
 	}
 
 	/** @return all component factories (including widget factories) */
-	public StreamEx<ComponentFactory<?>> getComponentFactories() {
-		return StreamEx.of(APP.widgetManager.factoriesC.stream()).append(getFactories()).distinct();
+	public Stream<ComponentFactory<?>> getComponentFactories() {
+		return stream(APP.widgetManager.factoriesC.stream(), getFactories()).distinct();
 	}
 
 	/** @return all features implemented by at least one widget */

@@ -68,4 +68,5 @@ public class Vo<T> implements ObservableValue<T>, WritableValue<T> {
 		if (!Objects.equals(t, current.get()))
 			current.setValue(t);
 	}
+
 }

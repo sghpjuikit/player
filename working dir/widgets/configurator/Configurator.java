@@ -130,7 +130,8 @@ public final class Configurator extends ClassController implements ConfiguringFe
 		Optional.ofNullable(App.APP.configuration.rawGet().get(CONFIG_SELECTION_NAME))
 				.filter(String.class::isInstance)
 				.flatMap(restoredSelection -> stream(seqRec(groups.getRoot(), i -> i.getChildren()))
-						.findAny(item -> item.getValue().pathUp.equals(restoredSelection))
+						.filter(item -> item.getValue().pathUp.equals(restoredSelection))
+						.findAny()
 				)
 				.or(() -> Optional.of(groups.getRoot()))
 				.ifPresent(item -> expandAndSelectTreeItem(groups, item));		// invokes #populateConfigFields

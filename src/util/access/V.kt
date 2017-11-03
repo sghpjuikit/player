@@ -67,7 +67,8 @@ open class V<T> : SimpleObjectProperty<T>, ApplicableValue<T> {
 }
 
 open class VNullable<T>: V<T?> {
+
     @JvmOverloads
     constructor(value: T?, applier: Consumer<T?> = Consumer {}) : super(value, applier)
-    constructor(value: T?, applier: Runnable) : super(value, applier)
+
 }

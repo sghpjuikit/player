@@ -722,9 +722,9 @@ public interface Util {
 	 * @return menu items
 	 * @throws java.lang.RuntimeException if any param null
 	 */
-	static <A> MenuItem[] menuItems(List<A> from, Function<A,String> toStr, Consumer<A> action) {
+	static <A> MenuItem[] menuItems(Stream<A> from, Function<A,String> toStr, Consumer<A> action) {
 		noØ(from, toStr, action);
-		return from.stream()
+		return from
 				.map(t -> menuItem(toStr.apply(t), () -> action.accept(t)))
 				.toArray(MenuItem[]::new);
 	}

@@ -31,8 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import one.util.streamex.EntryStream;
-import one.util.streamex.IntStreamEx;
+import java.util.stream.StreamSupport;
 import one.util.streamex.StreamEx;
 import org.reactfx.util.TriFunction;
 import util.SwitchException;
@@ -1210,12 +1209,12 @@ public interface Util {
 		return l;
 	}
 
-	static <T> StreamEx<T> stream() {
+	static <T> Stream<T> stream() {
 		return StreamEx.empty();
 	}
 
-	static <T> StreamEx<T> stream(T t) {
-		return StreamEx.of(t);
+	static <T> Stream<T> stream(T t) {
+		return Stream.of(t);
 	}
 
 	@SafeVarargs
@@ -1223,36 +1222,29 @@ public interface Util {
 		return t.length==0 ? StreamEx.empty() : StreamEx.of(t);
 	}
 
-	static <K, V> EntryStream<K,V> stream(Map<K,V> map) {
-		return EntryStream.of(map);
+	static <T> Stream<T> stream(Stream<? extends T> s1, Stream<? extends T> s2) {
+		return Stream.concat(s1, s2);
 	}
 
-	static <T> StreamEx<T> stream(Stream<? extends T> s1, Stream<? extends T> s2) {
-		return StreamEx.of(Stream.concat(s1, s2));
-	}
-
-	static <T> StreamEx<T> stream(T o, Stream<T> t) {
-		return StreamEx.of(o).append(t);
-	}
-
-	static <T> StreamEx<T> stream(T o, Collection<T> t) {
-		return StreamEx.of(o).append(t);
+	static <T> Stream<T> stream(T o, Stream<T> t) {
+		return Stream.concat(Stream.of(o), t);
 	}
 
 	static <T> StreamEx<T> stream(Collection<T> t) {
 		return StreamEx.of(t);
 	}
 
-	static <T> StreamEx<T> stream(Iterator<T> t) {
-		return StreamEx.of(t);
+	static <T> Stream<T> stream(Iterator<T> t) {
+		Iterable<T> iterable = () -> t;
+		return StreamSupport.stream(iterable.spliterator(), false);
 	}
 
-	static <T> StreamEx<T> stream(Iterable<T> t) {
+	static <T> Stream<T> stream(Iterable<T> t) {
 		return stream(t.iterator());
 	}
 
-	static <T> StreamEx<T> stream(Enumeration<T> t) {
-		return StreamEx.of(t);
+	static <T> Stream<T> stream(Enumeration<T> t) {
+		return stream(t.asIterator());
 	}
 
 	static <A, B, R> Stream<R> streamBi(A[] a, B[] b, Ƒ2<A,B,R> zipper) {
@@ -1389,7 +1381,7 @@ public interface Util {
 	 */
 	@SuppressWarnings("ConstantConditions")
 	static int findFirstEmptyKey(Map<Integer,?> map, int from) {
-		return IntStreamEx.iterate(from, i -> i + 1).findFirst(i -> !map.containsKey(i)).getAsInt();
+		return IntStream.iterate(from, i -> i + 1).filter(i -> !map.containsKey(i)).findFirst().getAsInt();
 	}
 
 	@SuppressWarnings("ConstantConditions")

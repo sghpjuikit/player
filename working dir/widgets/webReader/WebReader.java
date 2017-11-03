@@ -47,7 +47,7 @@ public class WebReader extends FXMLController {
     public String url = "http://duckduckgo.com/";
 
     @IsConfig(name = "Search engine")
-    private final VarEnum<SearchUriBuilder> searchEngine = VarEnum.ofInstances(DuckDuckGoQBuilder.INSTANCE, SearchUriBuilder.class, APP.instances);
+    private final VarEnum<SearchUriBuilder> searchEngine = VarEnum.Companion.ofInstances(DuckDuckGoQBuilder.INSTANCE, SearchUriBuilder.class, APP.instances);
 
     @IsConfig(name = "No background")
     private final V<Boolean> noBgr = new V<>(false);

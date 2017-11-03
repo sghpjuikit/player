@@ -14,10 +14,9 @@ import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.stage.Screen
 import util.math.P
-import util.reactive.maintain
+import util.reactive.sync
 import java.awt.MouseInfo
 import java.awt.Point
-import java.util.function.Consumer
 
 fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
 
@@ -95,12 +94,15 @@ fun typeText(text: String): (Double) -> String {
 
 /* ---------- CLIP -------------------------------------------------------------------------------------------------- */
 
+/** Installs clip mask to prevent disaplaying content outside of this node. */
 fun Node.initClip() {
     val clip = Rectangle()
-    layoutBoundsProperty().maintain(Consumer { size ->
+
+    layoutBoundsProperty() sync { size ->
         clip.width = size.width
         clip.height = size.height
-    })
+    }
+
     setClip(clip)
 }
 

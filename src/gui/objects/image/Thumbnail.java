@@ -37,6 +37,7 @@ import util.file.ImageFileFormat;
 import util.graphics.image.ImageSize;
 import util.graphics.image.ImageStandardLoader;
 import static java.lang.Double.min;
+import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -555,7 +556,7 @@ public class Thumbnail {
 				File file = getFile();
 				List<File> files = stream(representant instanceof File ? (File) representant : file)
 						.filter(ISNTØ)
-						.toList();
+						.collect(toList());
 
 				if (!files.isEmpty()) {
 					Dragboard db = root.startDragAndDrop(TransferMode.ANY);

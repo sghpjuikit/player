@@ -32,6 +32,8 @@ import util.math.millis
 import util.reactive.Disposer
 import util.reactive.changes
 import java.util.function.BiConsumer
+import java.util.function.Consumer
+import kotlin.streams.asSequence
 
 /** Provides notification functionality.  */
 @Suppress("unused")
@@ -59,15 +61,15 @@ class Notifier: ServiceBase(true) {
     @IsConfig(name = "On click right", info = "Right click action")
     val onClickR = VarAction("Notification hide", Action.EMPTY)
     @IsConfig(name = "Playback change graphics")
-    val graphics = VarEnum("Normal",
+    val graphics = VarEnum.ofSequence("Normal",
             {
-                APP.widgetManager.getFactories()
+                APP.widgetManager.getFactories().asSequence()
                         .filter { it.hasFeature(SongReader::class.java) }
                         .map { it.nameGui() }
-                        .append("Normal", "Normal - no cover")
-                        .toList()
+                        .plus("Normal")
+                        .plus("Normal - no cover")
             },
-            { v ->
+            Consumer { v ->
                 when (v) {
                     "Normal" -> {
                         val ii = ItemInfo(true)
@@ -126,8 +128,8 @@ class Notifier: ServiceBase(true) {
                 animationDuration.value = notificationFadeTime
                 duration = notificationDuration
                 focusOnShow.value = false
-                lClickAction = onClickL.valueAction
-                rClickAction = onClickR.valueAction
+                lClickAction = onClickL.getValueAction()
+                rClickAction = onClickR.getValueAction()
                 screenPreference = notificationScr
                 show(notificationPos)
             }

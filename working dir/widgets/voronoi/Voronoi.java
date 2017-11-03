@@ -1,37 +1,41 @@
 package voronoi;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.function.BiConsumer;
-
-import javafx.event.Event;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.effect.GaussianBlur;
-import javafx.scene.paint.Color;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.triangulate.VoronoiDiagramBuilder;
-
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.function.BiConsumer;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import javafx.event.Event;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.effect.GaussianBlur;
+import javafx.scene.paint.Color;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
-import one.util.streamex.DoubleStreamEx;
-import one.util.streamex.IntStreamEx;
-import one.util.streamex.StreamEx;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.access.V;
 import util.animation.Loop;
 import util.functional.Try;
-
-import static java.lang.Math.*;
-import static javafx.scene.input.MouseEvent.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.cos;
+import static java.lang.Math.min;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+import static java.util.stream.Collectors.toList;
+import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static util.Util.clip;
 import static util.Util.pyth;
 import static util.functional.Util.by;
@@ -115,10 +119,10 @@ public class Voronoi extends ClassController  {
 			int cellCount = 40;
 			if (cells == null) {
 				// random
-				cells = StreamEx.generate(() -> Cell.random(W, H, .5)).limit(cellCount).toList();
+				cells = Stream.generate(() -> Cell.random(W, H, .5)).limit(cellCount).collect(toList());
 				// circle
 				double wh = min(W,H);
-				cells = DoubleStreamEx.iterate(0, a-> a+2*PI/11).limit(11)
+				cells = DoubleStream.iterate(0, a-> a+2*PI/11).limit(11)
 						  .mapToObj(a -> new Cell(0,0) {
 								double angle = a;
 								{
@@ -132,54 +136,54 @@ public class Voronoi extends ClassController  {
 								}
 							})
 							.map(c -> (Cell)c)
-							.toList();
-				cells.addAll(DoubleStreamEx.iterate(0, a-> a+2*PI/3).limit(3)
-								 .mapToObj(a -> new Cell(0,0) {
-									 double angle = a;
-									 {
-										 moving = (w,h) -> {
-											 angle -= 0.002;
-											 x = wh/2+wh/10*cos(angle);
-											 y = wh/2+wh/10*sin(angle);
-											 x += randOf(-1,1)*randMN(0.0005,0.00051);
-											 y += randOf(-1,1)*randMN(0.0005,0.00051);
-										 };
-									 }
-								 })
-								 .map(c -> (Cell)c)
-								 .toList());
-				cells.addAll(DoubleStreamEx.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
-								 .mapToObj(a -> new Cell(0,0) {
-									 double angle = a;
-									 {
-										 moving = (w,h) -> {
-											 angle -= 0.002;
-											 x = wh-wh/6+wh/8*cos(angle);
-											 y = wh/6+wh/8*sin(angle);
-											 x += randOf(-1,1)*randMN(0.0005,0.00051);
-											 y += randOf(-1,1)*randMN(0.0005,0.00051);
-										 };
-									 }
-								 })
-								 .map(c -> (Cell)c)
-								 .toList());
-				cells.addAll(DoubleStreamEx.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
-								 .mapToObj(a -> new Cell(0,0) {
-									 double angle = a;
-									 {
-										 moving = (w,h) -> {
-											 angle -= 0.002;
-											 x = wh/2+wh/4*cos(angle);
-											 y = wh/2+wh/4*sin(angle);
-											 x += randOf(-1,1)*randMN(0.0005,0.00051);
-											 y += randOf(-1,1)*randMN(0.0005,0.00051);
-										 };
-									 }
-								 })
-								 .map(c -> (Cell)c)
-								 .toList());
+							.collect(toList());
+				cells.addAll(DoubleStream.iterate(0, a-> a+2*PI/3).limit(3)
+								.mapToObj(a -> new Cell(0,0) {
+									double angle = a;
+									{
+										moving = (w,h) -> {
+											angle -= 0.002;
+											x = wh/2+wh/10*cos(angle);
+											y = wh/2+wh/10*sin(angle);
+											x += randOf(-1,1)*randMN(0.0005,0.00051);
+											y += randOf(-1,1)*randMN(0.0005,0.00051);
+										};
+									}
+								})
+								.map(c -> (Cell)c)
+								.collect(toList()));
+				cells.addAll(DoubleStream.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
+								.mapToObj(a -> new Cell(0,0) {
+									double angle = a;
+									{
+										moving = (w,h) -> {
+											angle -= 0.002;
+											x = wh-wh/6+wh/8*cos(angle);
+											y = wh/6+wh/8*sin(angle);
+											x += randOf(-1,1)*randMN(0.0005,0.00051);
+											y += randOf(-1,1)*randMN(0.0005,0.00051);
+										};
+									}
+								})
+								.map(c -> (Cell)c)
+								.collect(toList()));
+				cells.addAll(DoubleStream.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
+								.mapToObj(a -> new Cell(0,0) {
+									double angle = a;
+									{
+										moving = (w,h) -> {
+											angle -= 0.002;
+											x = wh/2+wh/4*cos(angle);
+											y = wh/2+wh/4*sin(angle);
+											x += randOf(-1,1)*randMN(0.0005,0.00051);
+											y += randOf(-1,1)*randMN(0.0005,0.00051);
+										};
+									}
+								})
+								.map(c -> (Cell)c)
+								.collect(toList()));
 				// horizontal sequence
-//				cells = IntStreamEx.range(0,cellCount)
+//				cells = IntStream.range(0,cellCount)
 //			         .mapToObj(a -> new Cell(W*0.1+W*0.8/cellCount*a, H/2))
 //			         .toList();
 
@@ -254,7 +258,7 @@ public class Voronoi extends ClassController  {
 			Try.tryS(() -> diagram.getDiagram(new GeometryFactory()), Exception.class)
 				.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
 				.ifOk(g ->
-					IntStreamEx.range(0, g.getNumGeometries())
+					IntStream.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
 						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
 						.forEach(polygon -> {

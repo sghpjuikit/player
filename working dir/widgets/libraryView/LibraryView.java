@@ -111,7 +111,7 @@ public class LibraryView extends FXMLController {
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table items information.")
     public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
     @IsConfig(name = "Field")
-    public final VarEnum<Metadata.Field<?>> fieldFilter = new VarEnum<Metadata.Field<?>>(CATEGORY,
+    public final VarEnum<Metadata.Field<?>> fieldFilter = new VarEnum<>(CATEGORY,
         () -> filter(Metadata.Field.FIELDS, Field::isTypeStringRepresentable),
         this::applyData
     );
@@ -321,10 +321,7 @@ public class LibraryView extends FXMLController {
         if (list==null) return;
         fut(fieldFilter.getValue())
             .use(f -> {
-                List<MetadataGroup> mgs = stream(
-                    MetadataGroup.groupOf(f,list),
-                    MetadataGroup.groupsOf(f,list)
-                ).collect(toList());
+                List<MetadataGroup> mgs = stream(MetadataGroup.groupOf(f,list), MetadataGroup.groupsOf(f,list)).collect(toList());
                 List<Metadata> fl = filterList(list,true);
                 runLater(() -> {
                     if (!mgs.isEmpty()) {

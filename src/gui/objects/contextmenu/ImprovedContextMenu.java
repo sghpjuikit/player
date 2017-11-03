@@ -175,14 +175,14 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 						menuItem("Remove items from library", () -> APP.db.removeItems(mg.getGrouped())),
 						new Menu("Show in", null,
 								menuItems(
-										App.APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongReader.class)).toList(),
+										App.APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongReader.class)),
 										WidgetFactory::nameGui,
 										f -> App.APP.widgetManager.use(f.nameGui(), NO_LAYOUT, c -> ((SongReader) c.getController()).read(mg.getGrouped()))
 								)
 						),
 						new Menu("Edit tags in", null,
 								menuItems(
-										App.APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongWriter.class)).toList(),
+										App.APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongWriter.class)),
 										WidgetFactory::nameGui,
 										f -> App.APP.widgetManager.use(f.nameGui(), NO_LAYOUT, c -> ((SongWriter) c.getController()).read(mg.getGrouped()))
 								)
@@ -190,14 +190,14 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 						menuItem("Explore items's directory", () -> Environment.browse(mg.getGrouped().stream().filter(Item::isFileBased).map(Item::getFile))),
 						new Menu("Explore items' directory in", null,
 								menuItems(
-										App.APP.widgetManager.getFactories().filter(f -> f.hasFeature(FileExplorerFeature.class)).toList(),
+										App.APP.widgetManager.getFactories().filter(f -> f.hasFeature(FileExplorerFeature.class)),
 										WidgetFactory::nameGui,
 										f -> App.APP.widgetManager.use(f.nameGui(), NO_LAYOUT, c -> ((FileExplorerFeature) c.getController()).exploreFile(mg.getGrouped().get(0).getFile()))
 								)
 						),
 						mg.getField()!=Field.ALBUM ? null : new Menu("Search cover in", null,
 								menuItems(
-										App.APP.instances.getInstances(SearchUriBuilder.class),
+										App.APP.instances.getInstances(SearchUriBuilder.class).stream(),
 										q -> "in " + Parser.DEFAULT.toS(q),
 										q -> Environment.browse(q.apply(mg.getValueS("<none>")))
 								)
@@ -211,14 +211,14 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 						menuItem("Remove items", () -> PlaylistManager.use(p -> p.removeAll(pig.items))),
 						new Menu("Show in", null,
 								menuItems(
-										App.APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongReader.class)).toList(),
+										App.APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongReader.class)),
 										WidgetFactory::nameGui,
 										f -> App.APP.widgetManager.use(f.nameGui(), NO_LAYOUT, c -> ((SongReader) c.getController()).read(pig.items))
 								)
 						),
 						new Menu("Edit tags in", null,
 								menuItems(
-										App.APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongWriter.class)).toList(),
+										App.APP.widgetManager.getFactories().filter(f -> f.hasFeature(SongWriter.class)),
 										WidgetFactory::nameGui,
 										f -> App.APP.widgetManager.use(f.nameGui(), NO_LAYOUT, c -> ((SongWriter) c.getController()).read(pig.items))
 								)
@@ -235,7 +235,8 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 								APP.db.addItems(stream(pig.items).map(Item::toMeta).toList())
 						),
 						new Menu("Search album cover", null,
-								menuItems(App.APP.instances.getInstances(SearchUriBuilder.class),
+								menuItems(
+										App.APP.instances.getInstances(SearchUriBuilder.class).stream(),
 										q -> "in " + Parser.DEFAULT.toS(q),
 										q -> APP.actions.itemToMeta(pig.items.get(0), i -> Environment.browse(q.apply(i.getAlbum())))
 								)

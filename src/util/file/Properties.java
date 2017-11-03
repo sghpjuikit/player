@@ -10,7 +10,16 @@
 
 package util.file;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -20,7 +29,6 @@ import static util.Util.hasReadableText;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.functional.Util.byNC;
-import static util.functional.Util.stream;
 
 public interface Properties {
 
@@ -114,7 +122,12 @@ public interface Properties {
 
 	static void save(OutputStream out, String comments, Map<String,String> keyValues) {
 		try {
-			store(new BufferedWriter(new OutputStreamWriter(out, "8859_1")), comments, true, stream(keyValues).collect(toMap(Entry::getKey, e -> new Property("", e.getValue()))));
+			store(
+				new BufferedWriter(new OutputStreamWriter(out, "8859_1")),
+				comments,
+				true,
+				keyValues.entrySet().stream().collect(toMap(Entry::getKey, e -> new Property("", e.getValue())))
+			);
 		} catch (IOException e) {
 			log(Properties.class).error("Could not save properties into output stream {}", out, e);
 		}
@@ -131,7 +144,7 @@ public interface Properties {
 	static void save(Writer writer, String comments, Map<String,String> keyValues) {
 		try {
 			BufferedWriter bw = writer instanceof BufferedWriter ? (BufferedWriter) writer : new BufferedWriter(writer);
-			store(bw, comments, false, stream(keyValues).collect(toMap(Entry::getKey, e -> new Property("", e.getValue()))));
+			store(bw, comments, false, keyValues.entrySet().stream().collect(toMap(Entry::getKey, e -> new Property("", e.getValue()))));
 		} catch (IOException e) {
 			log(Properties.class).error("Could not save properties with writer {}", writer, e);
 		}

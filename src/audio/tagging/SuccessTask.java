@@ -3,10 +3,9 @@ package audio.tagging;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import javafx.concurrent.Task;
-import util.functional.Operable;
 
 @SuppressWarnings("UnusedReturnValue")
-public abstract class SuccessTask<T, O> extends Task<T> implements Operable<O> {
+public abstract class SuccessTask<T, O> extends Task<T> {
 
 	private BiConsumer<Boolean,T> onEnd;
 	private Consumer<O> onClose;

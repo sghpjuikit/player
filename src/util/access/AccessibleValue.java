@@ -1,11 +1,8 @@
 package util.access;
 
 import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import javafx.beans.value.WritableValue;
-import util.functional.Operable;
 
 /**
  * {@link WritableValue), with added default methods. A lightweight interface
@@ -19,7 +16,7 @@ import util.functional.Operable;
  * @see SequentialValue
  * @see Operable
  */
-public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>, Operable<V> {
+public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V> {
 
 	/** Sets value to specified. Convenience setter. */
 	default void setVof(WritableValue<V> value) {
@@ -90,33 +87,6 @@ public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>
 		else if (val instanceof Enum)
 			return (V) SequentialValue.previous(Enum.class.cast(getValue()));
 		else return val;
-	}
-
-	@Override
-	default V apply(UnaryOperator<V> op) {
-		return op.apply(getValue());
-	}
-
-	@Override
-	default <R> R apply(Function<V,R> op) {
-		return op.apply(getValue());
-	}
-
-	@Override
-	default V apply(V e, BinaryOperator<V> op) {
-		return op.apply(getValue(), e);
-	}
-
-	@Override
-	default void use(Consumer<V> op) {
-		op.accept(getValue());
-	}
-
-	@Override
-	default V useAnd(Consumer<V> op) {
-		V v = getValue();
-		op.accept(v);
-		return v;
 	}
 
 	default void setValueOf(UnaryOperator<V> op) {

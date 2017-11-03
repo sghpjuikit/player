@@ -71,14 +71,14 @@ public final class PlayerState {
 	 * adhere to singleton pattern).
 	 */
 	protected Object readResolve() throws ObjectStreamException {
-		playback = stream(playbacks).findAny(pb -> pb.getId().equals(playback_id)).orElseGet(PlaybackState::getDefault);
+		playback = stream(playbacks).filter(pb -> pb.getId().equals(playback_id)).findAny().orElseGet(PlaybackState::getDefault);
 		PlaylistManager.playlists.addAll(playlists);
 		PlaylistManager.active = playlist_id;
 		return this;
 	}
 
 	private void suspendPlayback() {
-		PlaybackState p = stream(playbacks).findAny(pb -> pb.getId().equals(playback_id)).orElse(null);
+		PlaybackState p = stream(playbacks).filter(pb -> pb.getId().equals(playback_id)).findAny().orElse(null);
 		if (p!=null)
 			p.change(playback);
 		else {

@@ -35,6 +35,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static layout.widget.WidgetManager.WidgetSource.LAYOUT;
 import static layout.widget.WidgetManager.WidgetSource.OPEN;
 import static layout.widget.WidgetManager.WidgetSource.STANDALONE;
@@ -121,9 +122,9 @@ public final class WidgetManager {
 				}
 				if (type == ENTRY_DELETE) {
 					stream(factoriesC)
-						.select(DeserializingFactory.class)
+						.filter(DeserializingFactory.class::isInstance).map(DeserializingFactory.class::cast)
 						.filter(f -> f.getLauncher().equals(fxwl))
-						.toSet()    // materialize iteration to avoid concurrent modification
+						.collect(toSet())    // materialize iteration to avoid concurrent modification
 						.forEach(this::unregisterFactory);
 				}
 			});

@@ -8,7 +8,12 @@ import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -18,19 +23,29 @@ import org.atteo.classindex.ClassIndex;
 import util.access.Vo;
 import util.action.Action;
 import util.collections.mapset.MapSet;
-import util.conf.Config.*;
+import util.conf.Config.ConfigBase;
+import util.conf.Config.FieldConfig;
+import util.conf.Config.ListConfig;
+import util.conf.Config.OverridablePropertyConfig;
+import util.conf.Config.PropertyConfig;
+import util.conf.Config.ReadOnlyPropertyConfig;
+import util.conf.Config.VarList;
 import util.conf.IsConfig.EditMode;
 import util.file.Properties;
 import util.file.Properties.Property;
 import util.functional.Functors.Ƒ1;
 import util.validation.Constraint;
 import util.validation.Constraint.IsConstraint;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static util.dev.Util.throwIfFinal;
 import static util.dev.Util.throwIfNotFinal;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.stream;
-import static util.type.Util.*;
+import static util.type.Util.getAllFields;
+import static util.type.Util.getGenericPropertyType;
+import static util.type.Util.unPrimitivize;
 
 /**
  * Provides methods to access configs.
@@ -130,7 +145,7 @@ public class Configuration {
 	}
 
 	public List<Config> getFields(Predicate<Config> condition) {
-		return stream(getFields()).filter(condition).toList();
+		return stream(getFields()).filter(condition).collect(toList());
 	}
 
 	/** Changes all config fields to their default value and applies them */
@@ -165,7 +180,7 @@ public class Configuration {
 		// TODO: persist raw properties that are not configs too
 		Map<String, Properties.Property> properties = stream(getFields())
 				.filter(c -> c.getType()!=Void.class)
-				.toMap(configs.keyMapper, c -> new Property(c.getInfo(), c.getValueS()));
+				.collect(toMap(configs.keyMapper, c -> new Property(c.getInfo(), c.getValueS())));
 		Properties.saveP(file, comment, properties);
 	}
 
@@ -231,7 +246,7 @@ public class Configuration {
 		return (List) stream(getAllFields(clazz))
 				.map(f -> createConfig(clazz, f, instance, include_static, include_instance))
 				.filter(ISNTØ)
-				.toList();
+				.collect(toList());
 	}
 
 	static Config<?> createConfig(Class<?> cl, Field f, Object instance, boolean include_static, boolean include_instance) {

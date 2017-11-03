@@ -37,16 +37,17 @@ import util.async.Async;
 import util.conf.Config.VarList;
 import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig;
-import util.system.Environment;
 import util.file.ImageFileFormat;
 import util.file.Properties;
 import util.functional.Try;
+import util.system.Environment;
 import util.validation.Constraint;
 import web.WikipediaQBuilder;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAMEPAD;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WIKIPEDIA;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.control.SelectionMode.SINGLE;
 import static javafx.scene.layout.Region.USE_PREF_SIZE;
@@ -241,7 +242,7 @@ public class GameLib extends FXMLController {
             .filter(f -> f.isDirectory() && !f.isHidden())
             .map(GameItem::new)
 		    .sorted(by(GameItem::getName))
-            .toList();
+            .collect(toList());
         game_list.getItems().setAll(items);
     }
 

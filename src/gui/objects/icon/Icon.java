@@ -13,6 +13,7 @@ import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIconView;
 import gui.objects.popover.PopOver;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import javafx.beans.property.ObjectProperty;
@@ -55,7 +56,9 @@ import util.parsing.Parser;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.lang.Math.signum;
-import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
@@ -107,8 +110,8 @@ public class Icon extends StackPane {
 	/** Collection of all glyphs mapped to a unique names that identify them. */
 	private static final MapSet<String,GlyphIcons> GLYPHS = stream(GLYPH_TYPES)
 		.flatMap(c -> stream(getEnumConstants(c)))
-		.select(GlyphIcons.class)
-		.toCollection(() -> new MapSet<>(glyph -> glyph.getFontFamily() + "." + glyph.name()));
+		.filter(GlyphIcons.class::isInstance).map(GlyphIcons.class::cast)
+		.collect(toCollection(() -> new MapSet<>(glyph -> glyph.getFontFamily() + "." + glyph.name())));
 
 	// load fonts
 	static {
@@ -611,10 +614,11 @@ public class Icon extends StackPane {
 			}
 		};
 
-		List<CssMetaData<? extends Styleable,?>> STYLEABLES = unmodifiableList(stream(StackPane.getClassCssMetaData())
-				.filter(a -> !"-fx-effect".equals(a.getProperty())) // we use our own effect
-				.append(FILL, GLYPH_NAME, GLYPH_SIZE, GLYPH_GAP)
-				.toList());
+		List<CssMetaData<? extends Styleable,?>> STYLEABLES = stream(
+					stream(FILL, GLYPH_NAME, GLYPH_SIZE, GLYPH_GAP),
+					stream(StackPane.getClassCssMetaData()).filter(a -> !"-fx-effect".equals(a.getProperty())) // we use our own effect
+				)
+				.collect(collectingAndThen(toList(), Collections::unmodifiableList));
 	}
 
 	public static List<CssMetaData<? extends Styleable,?>> getClassCssMetaData() {

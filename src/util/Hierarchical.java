@@ -1,8 +1,6 @@
 package util;
 
 import java.util.List;
-import java.util.stream.Stream;
-import one.util.streamex.StreamEx;
 
 /**
  * Object in a tree hierarchy, having an optional parent and any number of children. All objects in the hierarchy
@@ -16,18 +14,20 @@ public interface Hierarchical<H extends Hierarchical<H>> {
 
 	List<H> getHChildren();
 
-	@SuppressWarnings("unchecked")
-	default Stream<H> getHChildrenR() {
-		return StreamEx.ofTree((H) this, (H h) -> h.getHChildren().stream());
-	}
+	// TODO: implement
+//	@SuppressWarnings("unchecked")
+//	default Stream<H> getHChildrenR() {
+//		return StreamEx.ofTree((H) this, (H h) -> h.getHChildren().stream());
+//	}
 
 	default boolean isHLeaf() {
 		return getHChildren().isEmpty();
 	}
 
-	default Stream<H> getHLeafChildrenR() {
-		return getHChildrenR().filter(Hierarchical::isHLeaf);
-	}
+	// TODO: implement
+//	default Stream<H> getHLeafChildrenR() {
+//		return getHChildrenR().filter(Hierarchical::isHLeaf);
+//	}
 
 	default boolean isHRoot() {
 		return getHParent()==null;

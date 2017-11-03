@@ -4,7 +4,6 @@ import java.io.File;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
-import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
@@ -20,6 +19,7 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Pair;
 import util.access.V;
 import util.collections.mapset.MapSet;
 import util.conf.Config;
@@ -29,6 +29,7 @@ import util.conf.IsConfigurable;
 import util.hotkey.Hotkeys;
 import util.system.Environment;
 import util.validation.Constraint;
+import static java.lang.reflect.Modifier.isStatic;
 import static java.util.stream.Collectors.toCollection;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
@@ -606,26 +607,26 @@ public final class Action extends Config<Action> implements Runnable {
 		boolean findInstance = instance!=null;
 		Lookup method_lookup = MethodHandles.lookup();
 		return stream(type.getDeclaredMethods())
-				.mapToEntry(m -> m, m -> Modifier.isStatic(m.getModifiers()))
-				.filterValues(isStatic -> findInstance^isStatic)
-				.flatMapKeyValue((m, isStatic) -> stream(m.getAnnotationsByType(IsAction.class))
+				.map(m -> new Pair<>(m, isStatic(m.getModifiers())))
+				.filter(m -> findInstance^m.getValue())
+				.flatMap(m -> stream(m.getKey().getAnnotationsByType(IsAction.class))
 						.map(a -> {
-							if (m.getParameters().length>0)
+							if (m.getKey().getParameters().length>0)
 								throw new RuntimeException("Action Method must have 0 parameters!");
 
 							String group = getActionGroup(type);
 							MethodHandle mh;
 							try {
-								m.setAccessible(true);
-								mh = method_lookup.unreflect(m);
-								m.setAccessible(false);
+								m.getKey().setAccessible(true);
+								mh = method_lookup.unreflect(m.getKey());
+								m.getKey().setAccessible(false);
 							} catch (IllegalAccessException e) {
 								throw new RuntimeException(e);
 							}
 
 							Runnable r = () -> {
 								try {
-									if (isStatic) mh.invokeExact();
+									if (m.getValue()) mh.invokeExact();
 									else mh.invoke(instance);
 								} catch (Throwable e) {
 									throw new RuntimeException("Error during running action", e);

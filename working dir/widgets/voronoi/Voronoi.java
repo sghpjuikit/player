@@ -246,7 +246,7 @@ public class Voronoi extends ClassController  {
 					 inputOutputMap.put(c,cell);
 					 return c;
 				 })
-				 .toList();
+				 .collect(toList());
 			VoronoiDiagramBuilder diagram = new VoronoiDiagramBuilder();
 			diagram.setClipEnvelope(new Envelope(0, W, 0, H));
 			diagram.setSites(cords);

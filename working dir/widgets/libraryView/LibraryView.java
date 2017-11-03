@@ -217,7 +217,7 @@ public class LibraryView extends FXMLController {
             }
             // delete selected
             if (e.getCode() == DELETE) {
-                APP.db.removeItems(stream(table.getSelectedItems()).toFlatList(MetadataGroup::getGrouped));
+                APP.db.removeItems(table.getSelectedItems().stream().flatMap(mg -> mg.getGrouped().stream()).collect(toList()));
             }
         });
 

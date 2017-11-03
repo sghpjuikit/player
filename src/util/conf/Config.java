@@ -1,7 +1,11 @@
 package util.conf;
 
 import java.lang.invoke.MethodHandle;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -12,7 +16,12 @@ import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import main.App;
-import util.access.*;
+import util.access.ApplicableValue;
+import util.access.FAccessibleValue;
+import util.access.TypedValue;
+import util.access.V;
+import util.access.VNullable;
+import util.access.Vo;
 import util.access.fieldvalue.EnumerableValue;
 import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig.EditMode;
@@ -24,14 +33,21 @@ import util.type.Util;
 import util.validation.Constraint;
 import util.validation.Constraint.HasNonNullElements;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
 import static util.conf.Config.VarList.NULL_SUPPLIER;
 import static util.conf.Configuration.configsOf;
 import static util.dev.Util.log;
 import static util.functional.Try.error;
 import static util.functional.Try.ok;
-import static util.functional.Util.*;
-import static util.type.Util.*;
+import static util.functional.Util.forEachBoth;
+import static util.functional.Util.list;
+import static util.functional.Util.setRO;
+import static util.functional.Util.split;
+import static util.functional.Util.stream;
+import static util.type.Util.getValueFromFieldMethodHandle;
+import static util.type.Util.isEnum;
+import static util.type.Util.unPrimitivize;
 
 // TODO fix all varnings
 /**
@@ -838,8 +854,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			// we convert every item of the list to string joining with ';;' delimiter
 			// we convert items by converting all their fields, joining with ';' delimiter
 			return stream(v)
-					.map(t -> stream(a.toConfigurable.apply(t).getFields()).map(Config::getValueS).joining(";"))
-					.joining(";;");
+					.map(t -> stream(a.toConfigurable.apply(t).getFields()).map(Config::getValueS).collect(joining(";")))
+					.collect(joining(";;"));
 		}
 
 		@Override

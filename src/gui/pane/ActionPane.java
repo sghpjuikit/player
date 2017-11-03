@@ -58,7 +58,9 @@ import static gui.objects.table.FieldedTable.defaultCell;
 import static gui.pane.ActionPane.GroupApply.FOR_ALL;
 import static gui.pane.ActionPane.GroupApply.FOR_EACH;
 import static gui.pane.ActionPane.GroupApply.NONE;
+import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static javafx.beans.binding.Bindings.min;
 import static javafx.geometry.Pos.BOTTOM_CENTER;
 import static javafx.geometry.Pos.CENTER;
@@ -457,7 +459,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 					 });
 				return i.withText(action.name);
 			})
-			.toListAndThen(icons::setAll);
+			.collect(collectingAndThen(toList(), icons::setAll));
 
 		// Animate - pop icons in parallel, but with increasing delay
 		// We do not want the total animation length be dependent on number of icons (by using
@@ -508,7 +510,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 
 	private static Class<?> getCollectionType(Collection<?> c) {
 		// TODO: improve collection element type recognition
-		return stream(c).nonNull().findFirst().map(o -> (Class)o.getClass()).orElse(Void.class);
+		return stream(c).filter(o -> o!=null).findFirst().map(o -> (Class)o.getClass()).orElse(Void.class);
 	}
 
 	public static Collection<?> collectionWrap(Object o) {

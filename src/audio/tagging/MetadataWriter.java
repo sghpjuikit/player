@@ -25,7 +25,11 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.flac.FlacTag;
-import org.jaudiotagger.tag.id3.*;
+import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
+import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
+import org.jaudiotagger.tag.id3.ID3v24Frame;
+import org.jaudiotagger.tag.id3.ID3v24Frames;
+import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPCNT;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
@@ -41,17 +45,25 @@ import util.SwitchException;
 import util.file.AudioFileFormat;
 import util.parsing.Parser;
 import util.units.NofX;
-import static audio.tagging.Metadata.*;
+import static audio.tagging.Metadata.SEPARATOR_GROUP;
+import static audio.tagging.Metadata.TAG_ID_COLOR;
+import static audio.tagging.Metadata.TAG_ID_LIB_ADDED;
+import static audio.tagging.Metadata.TAG_ID_PLAYED_FIRST;
+import static audio.tagging.Metadata.TAG_ID_PLAYED_LAST;
+import static audio.tagging.Metadata.TAG_ID_TAGS;
 import static java.lang.Math.max;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static main.App.APP;
 import static org.jaudiotagger.tag.FieldKey.CUSTOM3;
 import static org.jaudiotagger.tag.FieldKey.RATING;
 import static util.Util.clip;
 import static util.Util.emptyOr;
 import static util.async.Async.runFX;
-import static util.functional.Util.*;
+import static util.functional.Util.list;
+import static util.functional.Util.split;
+import static util.functional.Util.stream;
 
 /**
  * Manages writing Metadata objects back into files. Handles all tag related data
@@ -896,7 +908,7 @@ public class MetadataWriter extends MetaItem {
 					setter.accept(w);
 					w.write();
 				}
-			List<Metadata> ms = stream(items).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).toList();
+			List<Metadata> ms = stream(items).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList());
 			Player.refreshItemsWith(ms);
 			if (action!=null) runFX(() -> action.accept(ms));
 		});

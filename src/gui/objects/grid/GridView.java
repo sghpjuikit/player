@@ -30,6 +30,7 @@
 package gui.objects.grid;
 
 import gui.objects.search.SearchAutoCancelable;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -42,7 +43,11 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.css.*;
+import javafx.css.CssMetaData;
+import javafx.css.StyleConverter;
+import javafx.css.Styleable;
+import javafx.css.StyleableDoubleProperty;
+import javafx.css.StyleableProperty;
 import javafx.event.Event;
 import javafx.scene.control.Control;
 import javafx.util.Callback;
@@ -53,7 +58,8 @@ import util.access.fieldvalue.StringGetter;
 import util.functional.Functors.Ƒ1;
 import static gui.objects.grid.GridView.SelectionOn.KEY_PRESS;
 import static gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
-import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static util.functional.Util.set;
 import static util.functional.Util.stream;
@@ -490,9 +496,11 @@ public class GridView<T, F> extends Control {
 					}
 				};
 
-		List<CssMetaData<? extends Styleable,?>> STYLEABLES = unmodifiableList(stream(Control.getClassCssMetaData())
-				.append(HORIZONTAL_CELL_SPACING, VERTICAL_CELL_SPACING, CELL_WIDTH, CELL_HEIGHT)
-				.toList());
+		List<CssMetaData<? extends Styleable,?>> STYLEABLES = stream(
+					stream(HORIZONTAL_CELL_SPACING, VERTICAL_CELL_SPACING, CELL_WIDTH, CELL_HEIGHT),
+					stream(Control.getClassCssMetaData())
+				)
+				.collect(collectingAndThen(toList(), Collections::unmodifiableList));
 	}
 
 	/**

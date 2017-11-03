@@ -23,7 +23,12 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
@@ -36,6 +41,7 @@ import util.functional.Functors;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
+import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
@@ -327,7 +333,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
 			.sorted(by(e -> e.name))
 			.map(f -> (PredicateData<ObjectField<T,Object>>) f)
-			.toList();
+			.collect(toList());
 	}
 
 /* --------------------- INDEX -------------------------------------------------------------------------------------- */

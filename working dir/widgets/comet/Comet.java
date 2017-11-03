@@ -52,6 +52,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
@@ -165,6 +166,7 @@ import static comet.Utils.strokeOval;
 import static comet.Utils.strokePolygon;
 import static comet.Utils.ttl;
 import static comet.Utils.ttlVal;
+import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.BOTTOM_LEFT;
 import static javafx.geometry.Pos.BOTTOM_RIGHT;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -203,6 +205,7 @@ import static util.functional.Util.forEachPair;
 import static util.functional.Util.list;
 import static util.functional.Util.listF;
 import static util.functional.Util.mapB;
+import static util.functional.Util.minBy;
 import static util.functional.Util.repeat;
 import static util.functional.Util.set;
 import static util.functional.Util.stream;
@@ -516,8 +519,10 @@ public class Comet extends ClassController {
 	}
 	/** Finds closest non-hyperspace rocket to the object. */
 	Rocket findClosestRocketTo(SO to) {
-		return stream(game.oss.get(Rocket.class)).filter(r -> !r.isHyperspace)
-					.minBy(to::distance).orElse(null);
+		return game.oss.get(Rocket.class).stream()
+			.filter(r -> !r.isHyperspace)
+			.collect(minBy(to::distance))
+			.orElse(null);
 	}
 	/** Applies repulsive force from every player. */
 	void applyPlayerRepulseForce(PO o, double maxDist) {
@@ -563,7 +568,7 @@ public class Comet extends ClassController {
 					.filter(g -> stream(players).noneMatch(p -> p.gamepadId.get()!=null && p.gamepadId.get()==g.getDeviceID()))
 					.sorted(by(IController::getDeviceID))
 					.forEach(g -> stream(players).sorted(by(p -> p.id.get()))
-						              .findFirst(p -> p.gamepadId.get()==null)
+						              .filter(p -> p.gamepadId.get()==null).findFirst()
 						              .ifPresent(p -> p.gamepadId.set(g.getDeviceID()))
 					);
 			}
@@ -582,7 +587,7 @@ public class Comet extends ClassController {
 
 						gamepadIds.add(c.getDeviceID());
 						stream(players).sorted(by(p -> p.id.get()))
-							.findFirst(p -> p.gamepadId.get()==null)
+							.filter(p -> p.gamepadId.get()==null).findFirst()
 							.ifPresent(p -> p.gamepadId.set(c.getDeviceID()));
 					}
 
@@ -612,7 +617,7 @@ public class Comet extends ClassController {
 					}
 				};
 				Controllers.instance().addListener(listener);
-				gamepadIds.addAll(stream(gamepads).map(IController::getDeviceID).toList());
+				gamepadIds.addAll(stream(gamepads).map(IController::getDeviceID).collect(toList()));
 			}
 
 			@Override
@@ -898,8 +903,8 @@ public class Comet extends ClassController {
 
 			// non-interacting stuff last
 			oss.get(Particle.class).forEach(Particle::draw);
-			stream(oss.get(Particle.class)).select(Draw2.class).forEach(Draw2::drawBack);
-			stream(oss.get(Particle.class)).select(Draw2.class).forEach(Draw2::drawFront);
+			stream(oss.get(Particle.class)).filter(Draw2.class::isInstance).map(Draw2.class::cast).forEach(Draw2::drawBack);
+			stream(oss.get(Particle.class)).filter(Draw2.class::isInstance).map(Draw2.class::cast).forEach(Draw2::drawFront);
 
 			voronoi.compute(oss.get(Rocket.class), game.field.width, game.field.height, this);
 			mode.doLoop();
@@ -2997,7 +3002,7 @@ public class Comet extends ClassController {
 				game.settings.SATELLITE_RADIUS/2, null
 			);
 			e = s instanceof Shuttle
-				? randOf(stream(game.mode.enhancers()).filter(en -> !"Shuttle support".equals(en.name)).toList())
+				? randOf(stream(game.mode.enhancers()).filter(en -> !"Shuttle support".equals(en.name)).collect(toList()))
 				: ((Satellite)s).e;
 			children = new HashSet<>(2);
 			graphics = new Draw(graphics(game.humans.intelOn.is() ? e.icon : MaterialDesignIcon.SATELLITE_VARIANT, 40, game.colors.humansTech, null));
@@ -3920,7 +3925,7 @@ public class Comet extends ClassController {
 
 			double connectionDistMin = 20, connectionDistMax = 100;
 			double forceDistMin = 20, forceDistMax = 80, forceDistMid = (forceDistMax-forceDistMin)*2/3;
-			stream(game.oss.get(Asteroid.class)).select(Linker.class).forEach(l -> {
+			stream(game.oss.get(Asteroid.class)).filter(Linker.class::isInstance).map(Linker.class::cast).forEach(l -> {
 				double dist = distance(l);
 				double dir = dir(l);
 				// link
@@ -4794,7 +4799,9 @@ public class Comet extends ClassController {
 		public EIndicator(PO OWNER, Enhancer enhancer) {
 			owner = OWNER;
 			ttl = ttl(owner instanceof Satellite ? minutes(10) : enhancer.duration);
-			index = findFirstInt(0, i -> stream(owner.children).select(EIndicator.class).noneMatch(o -> o.index==i));
+			index = findFirstInt(0, i -> stream(owner.children)
+				.filter(EIndicator.class::isInstance).map(EIndicator.class::cast)
+				.noneMatch(o -> o.index==i));
 			owner.children.add(this);
 			graphics = new Draw(graphics(enhancer.icon, 15, game.colors.humansTech, null));
 		}

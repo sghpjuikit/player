@@ -50,6 +50,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -73,10 +74,10 @@ import static util.functional.Util.max;
 import static util.functional.Util.set;
 import static util.functional.Util.stream;
 import static util.graphics.Util.add1timeEventHandler;
+import static util.graphics.UtilKt.getScreen;
 import static util.graphics.UtilKt.setFontAsStyle;
 import static util.reactive.Util.maintain;
 import static util.reactive.Util.onScreenChange;
-import static util.graphics.UtilKt.getScreen;
 
 /**
  * Manages windows.
@@ -151,7 +152,7 @@ public class WindowManager implements Configurable<Object> {
      * @return focused window or null if none focused.
      */
     public Optional<Window> getFocused() {
-		return stream(windows).findAny(w -> w.focused.get());
+		return stream(windows).filter(w -> w.focused.get()).findAny();
     }
 
     /**
@@ -403,7 +404,7 @@ public class WindowManager implements Configurable<Object> {
         }
 
         Set<File> filesOld = listChildren(dir).collect(toSet());
-        List<Window> windows = stream(Window.WINDOWS).without(miniWindow).toList();
+        List<Window> windows = stream(Window.WINDOWS).filter(w -> w!=miniWindow).collect(toList());
 	    LOGGER.info("Serializing " + windows.size() + " application windows");
 
         // serialize - for now each window to its own file with .ws extension

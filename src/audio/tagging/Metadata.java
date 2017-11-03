@@ -784,8 +784,8 @@ public final class Metadata extends MetaItem<Metadata> {
 			case DIRECTORY: return getCoverOfDir().map(f -> (Cover) new FileCover(f, "")).orElse(Cover.EMPTY);
 			case ANY: return stream(CoverSource.TAG, CoverSource.DIRECTORY)
 					.map(this::getCover)
-					.findFirst(c -> !c.isEmpty())
-					.orElse(Cover.EMPTY);
+					.filter(c -> !c.isEmpty())
+					.findFirst().orElse(Cover.EMPTY);
 			default: throw new SwitchException(source);
 		}
 	}

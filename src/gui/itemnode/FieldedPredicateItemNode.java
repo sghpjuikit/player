@@ -17,10 +17,16 @@ import util.access.fieldvalue.ObjectField;
 import util.collections.list.PrefList;
 import util.functional.Functors.PƑ;
 import util.functional.Util;
+import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static util.dev.Util.noØ;
-import static util.functional.Util.*;
+import static util.functional.Util.IS;
+import static util.functional.Util.ISNT;
+import static util.functional.Util.ISNTØ;
+import static util.functional.Util.ISØ;
+import static util.functional.Util.by;
+import static util.functional.Util.stream;
 
 /**
  * Filter node producing {@link util.access.fieldvalue.ObjectField} predicate.
@@ -97,7 +103,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	 * If there is no object to pass, use null.
 	 */
 	public void setData(List<PredicateData<F>> classes) {
-		List<PredicateData<F>> cs = stream(classes).sorted(by(pd -> pd.name)).toList();
+		List<PredicateData<F>> cs = stream(classes).sorted(by(pd -> pd.name)).collect(toList());
 		inconsistentState = true;
 		typeCB.getItems().setAll(cs);
 		inconsistentState = false;

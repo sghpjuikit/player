@@ -29,23 +29,23 @@ import layout.widget.feature.SongWriter;
 import main.App;
 import util.access.AccessibleValue;
 import util.collections.map.ClassListMap;
-import util.system.Environment;
 import util.file.ImageFileFormat;
 import util.file.Util;
 import util.functional.Functors.Ƒ2;
 import util.parsing.Parser;
+import util.system.Environment;
 import web.SearchUriBuilder;
 import static java.util.stream.Collectors.toList;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
-import static util.system.Environment.copyToSysClipboard;
 import static util.file.Util.recycleFile;
-import static util.functional.Util.stream;
+import static util.functional.Util.map;
 import static util.graphics.Util.menuItem;
 import static util.graphics.Util.menuItems;
 import static util.graphics.UtilKt.getScreen;
+import static util.system.Environment.copyToSysClipboard;
 
 /**
  * Context menu which contains an object.
@@ -232,7 +232,7 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 								Environment.browse(pig.items.stream().filter(Item::isFileBased).map(Item::getFile))
 						),
 						menuItem("Add items to library", () ->
-								APP.db.addItems(stream(pig.items).map(Item::toMeta).toList())
+								APP.db.addItems(map(pig.items, Item::toMeta))
 						),
 						new Menu("Search album cover", null,
 								menuItems(

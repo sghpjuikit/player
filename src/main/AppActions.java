@@ -58,6 +58,7 @@ import util.validation.Constraint.StringNonEmpty;
 import web.DuckDuckGoQBuilder;
 import web.WebBarInterpreter;
 import static gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE;
+import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.PopupControl.USE_COMPUTED_SIZE;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
@@ -155,7 +156,7 @@ public class AppActions {
 				  });
 				  return b;
 			  })
-			  .toList();
+			  .collect(toList());
 		PopOver o = new PopOver<>(layVertically(20, Pos.TOP_CENTER,layHorizontally(8,Pos.CENTER,groups), root));
 		o.show(ScreenPos.APP_CENTER);
 	}
@@ -173,8 +174,9 @@ public class AppActions {
 					// TODO: remove
 					run(millis(500), () ->
 						stream(((Pane)c.load()).getChildren())
-							.findAny(GridView.class::isInstance)
-							.ifPresent(n -> ((GridView)n).implGetSkin().requestFocus())
+							.filter(GridView.class::isInstance).map(GridView.class::cast)
+							.findAny()
+							.ifPresent(n -> n.implGetSkin().requestFocus())
 					);
 					if (c instanceof Widget) {
 						((Widget<?>)c).getController().getFieldOrThrow("closeOnLaunch").setValue(true);
@@ -386,7 +388,7 @@ public class AppActions {
 
 	public void refreshItemsFromFileJob(List<? extends Item> items) {
 		fut(items)
-			.map(Player.IO_THREAD, is -> stream(is).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).toList())
+			.map(Player.IO_THREAD, is -> is.stream().map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList()))
 			.use(Player.IO_THREAD, Player::refreshItemsWith)
 			.showProgressOnActiveWindow();
 	}

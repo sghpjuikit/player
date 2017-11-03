@@ -44,6 +44,7 @@ import static audio.tagging.Metadata.Field.ALBUM;
 import static audio.tagging.MetadataGroup.Field.VALUE;
 import static gui.objects.grid.GridView.CellSize.NORMAL;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static main.App.APP;
@@ -148,7 +149,7 @@ public class AlbumView extends ClassController {
 					if (!mgs.isEmpty()) {
 						selectionStore();
 
-						Map<String,Album> m = stream(view.getItemsRaw()).toMap(a -> a.name, a -> a);
+						Map<String,Album> m = stream(view.getItemsRaw()).collect(toMap(a -> a.name, a -> a));
 						List<Album> as = stream(mgs).map(Album::new)
 								.peek(a -> {
 									Album tmp = m.get(a.name);
@@ -161,7 +162,7 @@ public class AlbumView extends ClassController {
 									}
 								})
 								.sorted(by(a -> a.name))
-								.toList();
+								.collect(toList());
 
 						view.getItemsRaw().setAll(as);
 						selectionReStore();

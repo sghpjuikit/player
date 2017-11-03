@@ -15,9 +15,13 @@ import javafx.scene.text.TextAlignment;
 import layout.widget.feature.ConfiguringFeature;
 import util.conf.Config;
 import util.conf.Configurable;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static util.functional.Util.*;
+import static util.functional.Util.byNC;
+import static util.functional.Util.list;
+import static util.functional.Util.stream;
 
 public class ConfigPane<T> implements ConfiguringFeature {
 	private final FlowPane root = new FlowPane(5, 5);
@@ -65,7 +69,7 @@ public class ConfigPane<T> implements ConfiguringFeature {
 				HBox.setHgrow(cf.getNode(), ALWAYS);
 				return h;
 			})
-			.toListAndThen(root.getChildren()::setAll);
+			.collect(collectingAndThen(toList(), root.getChildren()::setAll));
 	}
 
 	public Node getNode() {

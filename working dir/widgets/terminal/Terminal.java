@@ -52,7 +52,9 @@ public class Terminal extends ClassController {
 		d(sizeOf(tabPane.getTabs(), i -> p.show(this, i==0)));
 		d(maintain(p.visibleProperty(), v -> !v, tabPane.visibleProperty()));
 
-		d(() -> stream(tabPane.getTabs()).select(TerminalTab.class).findAny().ifPresent(TerminalTab::closeAllTerminal));
+		d(() -> stream(tabPane.getTabs())
+			.filter(TerminalTab.class::isInstance).map(TerminalTab.class::cast)
+			.findAny().ifPresent(TerminalTab::closeAllTerminal));
 	}
 
 	@Override
@@ -72,7 +74,7 @@ public class Terminal extends ClassController {
 
 			if (e.getCode() == KeyCode.W)
 				stream(tabPane.getTabs())
-					.select(TerminalTab.class)
+					.filter(TerminalTab.class::isInstance).map(TerminalTab.class::cast)
 					.filter(TerminalTab::isSelected).findFirst()
 					.ifPresent(TerminalTab::closeTerminal);
 

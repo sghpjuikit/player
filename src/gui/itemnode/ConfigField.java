@@ -560,7 +560,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 	        if (isObservable) v.addListener((o,ov,nv) -> refreshItem());
 
             double val = c.getValue().doubleValue();
-	        NumberMinMax range = stream(c.getConstraints()).select(NumberMinMax.class).findAny().get();
+	        NumberMinMax range = stream(c.getConstraints())
+		        .filter(NumberMinMax.class::isInstance).map(NumberMinMax.class::cast)
+		        .findAny().get();
 
             min = new Label(String.valueOf(range.min));
             max = new Label(String.valueOf(range.max));
@@ -838,7 +840,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             ObservableValue<File> v = getObservableValue(c);
 	        isObservable = v!=null;
 	        Constraint.FileActor constraint = stream(c.getConstraints())
-				.select(Constraint.FileActor.class)
+		        .filter(Constraint.FileActor.class::isInstance).map(Constraint.FileActor.class::cast)
 				.findFirst().orElse(Constraint.FileActor.ANY);
 
 	        editor = new FileItemNode(constraint);

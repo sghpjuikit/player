@@ -121,7 +121,7 @@ public class TreeItems {
 			),
 			tree("Location", listChildren(APP.DIR_APP)),
 			tree("File system", map(File.listRoots(), FileTreeItem::new)),
-			tree(Name.treeOfPaths("Settings", stream(APP.configuration.getFields()).map(Config::getGroup).toList()))
+			tree(Name.treeOfPaths("Settings", stream(APP.configuration.getFields()).map(Config::getGroup).collect(toList())))
 		);
 	}
 
@@ -189,7 +189,7 @@ public class TreeItems {
 		} else if (o instanceof Configurable)
 			APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure((Configurable) o));
 		else if (o instanceof Name)
-			APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(stream(APP.configuration.getFields()).filter(f -> f.getGroup().equals(((Name) o).pathUp)).toList()));
+			APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(stream(APP.configuration.getFields()).filter(f -> f.getGroup().equals(((Name) o).pathUp)).collect(toList())));
 		else if (o instanceof HierarchicalBase) doOnDoubleClick(((HierarchicalBase) o).val);
 	}
 
@@ -267,7 +267,8 @@ public class TreeItems {
 				} else {
 					super.getChildren().removeIf(TreeItem::isLeaf);
 				}
-				stream(super.getChildren()).select(SimpleTreeItem.class)
+				stream(super.getChildren())
+					.filter(SimpleTreeItem.class::isInstance).map(SimpleTreeItem.class::cast)
 					.forEach(i -> i.showLeaves.set(nv));
 			});
 		}
@@ -451,7 +452,7 @@ public class TreeItems {
 			boolean isLeaf = i<0;
 
 			if (isLeaf) {
-				stream(getHChildren()).findFirst(name -> path.equals(name.val)).ifPresentOrElse(
+				stream(getHChildren()).filter(name -> path.equals(name.val)).findFirst().ifPresentOrElse(
 					name -> {},
 					() -> getHChildren().add(new Name(path, this))
 				);
@@ -459,7 +460,7 @@ public class TreeItems {
 				String prefix = path.substring(0, i);
 				String suffix = path.substring(i + 1);
 
-				stream(getHChildren()).findFirst(name -> prefix.equals(name.val))
+				stream(getHChildren()).filter(name -> prefix.equals(name.val)).findFirst()
 					.ifPresentOrElse(
 						name -> name.addPath(suffix),
 						() -> {

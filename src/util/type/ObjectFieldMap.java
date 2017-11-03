@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import util.access.fieldvalue.ObjectField;
 import util.collections.map.ClassMap;
+import static java.util.stream.Collectors.toSet;
 import static util.dev.Util.noØ;
 import static util.functional.Util.stream;
 
@@ -39,12 +40,15 @@ public class ObjectFieldMap {
 	@SuppressWarnings("unchecked")
 	public <T> Set<ObjectField<T,?>> get(Class<T> c) {
 		noØ(c);
-		return (Set) cache.computeIfAbsent(c, key -> stream(fields.getElementsOfSuperV(key)).flatMap(Set::stream).toSet());
+		return (Set) cache.computeIfAbsent(c, key -> (Set)
+			fields.getElementsOfSuperV(key).stream().flatMap(Set::stream).collect(toSet()));
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> Set<ObjectField<T,?>> getExact(Class<T> c) {
 		noØ(c);
-		return (Set) cache2.computeIfAbsent(c, key -> stream(fields.getElementsOf(key)).flatMap(Set::stream).toSet());
+		return (Set) cache2.computeIfAbsent(c, key -> (Set)
+			fields.getElementsOf(key).stream().flatMap(Set::stream).collect(toSet()));
 	}
+
 }

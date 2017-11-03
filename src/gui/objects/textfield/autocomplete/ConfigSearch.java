@@ -5,6 +5,7 @@ import gui.objects.textfield.autocomplete.ConfigSearch.Entry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -54,7 +55,7 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 				return stream(searchTargets).flatMap(Supplier::get)
 					.filter(f -> stream(phrases).allMatch(phrase -> containsNoCase(f.getSearchText(), phrase)))
 					.sorted(by(Entry::getName))
-					.toList();
+					.collect(Collectors.toList());
 			},
 			AutoCompletion.defaultStringConverter()
 		);

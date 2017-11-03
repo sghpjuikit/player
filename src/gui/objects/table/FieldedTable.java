@@ -30,6 +30,7 @@ import util.Sort;
 import util.access.fieldvalue.ColumnField;
 import util.access.fieldvalue.ObjectField;
 import util.functional.Functors.Ƒ1;
+import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.geometry.Side.BOTTOM;
@@ -107,7 +108,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		return stream(App.APP.classFields.get(type))
 			.filter(ObjectField::isTypeStringRepresentable)
 			.sorted(by(ObjectField::name))
-			.toList();
+			.collect(toList());
 	}
 
 	public void setColumnFactory(Ƒ1<? super ObjectField<? super T,Object>,TableColumn<T,Object>> columnFactory) {

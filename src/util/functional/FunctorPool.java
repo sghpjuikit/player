@@ -372,7 +372,7 @@ public class FunctorPool {
 	public <I,O> PƑ<I,O> getPF(String name, Class<I> i, Class<O> o) {
 		@SuppressWarnings("unchecked")
 		List<PƑ<I,O>> l = (List) fsIO.get(Objects.hash(unPrimitivize(i), unPrimitivize(o)));
-		return l==null ? null : stream(l).findAny(f -> f.name.equals(name)).orElse(null);
+		return l==null ? null : stream(l).filter(f -> f.name.equals(name)).findAny().orElse(null);
 	}
 
 	public <I> PƑ<I,?> getPrefI(Class<I> i) {

@@ -11,9 +11,12 @@ import javafx.scene.media.Media;
 import org.jaudiotagger.audio.AudioFile;
 import util.async.future.ConvertListTask;
 import util.file.AudioFileFormat.Use;
+import static java.util.stream.Collectors.toList;
 import static main.App.APP;
 import static util.async.Async.runFX;
-import static util.dev.Util.*;
+import static util.dev.Util.log;
+import static util.dev.Util.noØ;
+import static util.dev.Util.throwIfFxThread;
 import static util.functional.Util.stream;
 
 public class MetadataReader {
@@ -186,7 +189,7 @@ public class MetadataReader {
 
 			@Override
 			protected Void call() throws Exception {
-				List<Metadata> libraryItems = stream(APP.db.getAllItems()).filter(m -> !m.isEmpty() && m.isFileBased()).toList();
+				List<Metadata> libraryItems = stream(APP.db.getAllItems()).filter(m -> !m.isEmpty() && m.isFileBased()).collect(toList());
 				all = libraryItems.size();
 
 				// TODO: encapsulate & make threadsafe

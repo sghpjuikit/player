@@ -32,7 +32,6 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import one.util.streamex.StreamEx;
 import org.reactfx.util.TriFunction;
 import util.SwitchException;
 import util.collections.Tuple2;
@@ -48,8 +47,10 @@ import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.EMPTY_SET;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static util.collections.Tuples.tuple;
 import static util.dev.Util.noØ;
 import static util.dev.Util.throwIf;
@@ -254,12 +255,12 @@ public interface Util {
 	}
 
 	/** Collector returning the minimum element. */
-	static <V, C extends Comparable<? super C>> Collector<V,?,V> minBy(V identity, Ƒ1<? super V,C> by) {
+	static <V, C extends Comparable<? super C>> Collector<V,?,V> minByIdentity(V identity, Ƒ1<? super V,C> by) {
 		return Collectors.reducing(identity, BinaryOperator.minBy(by(by)));
 	}
 
 	/** Collector returning the maximum element. */
-	static <V, C extends Comparable<? super C>> Collector<V,?,V> maxBy(V identity, Ƒ1<? super V,C> by) {
+	static <V, C extends Comparable<? super C>> Collector<V,?,V> maxByIdentity(V identity, Ƒ1<? super V,C> by) {
 		return Collectors.reducing(identity, BinaryOperator.maxBy(by(by)));
 	}
 
@@ -1142,18 +1143,22 @@ public interface Util {
 		int size = ts.length;
 		if (size==0) return EMPTY_SET;
 		if (size==1) return singleton(ts[0]);
-		else return stream(ts).toSetAndThen(Collections::unmodifiableSet);
+		else return stream(ts).collect(collectingAndThen(toSet(), Collections::unmodifiableSet));
 	}
 
 	@SafeVarargs
 	static <T> Set<T> set(T... ts) {
-		return stream(ts).toCollection(() -> new HashSet<>(ts.length));
+		HashSet<T> s = new HashSet<>(ts.length);
+		for (T t : ts) s.add(t);
+		return s;
 	}
 
 	/** Returns modifiable list containing specified elements. */
 	@SafeVarargs
 	static <T> List<T> list(T... ts) {
-		return stream(ts).toCollection(() -> new ArrayList<>(ts.length));
+		ArrayList<T> s = new ArrayList<>(ts.length);
+		for (T t : ts) s.add(t);
+		return s;
 	}
 
 	/**
@@ -1177,12 +1182,6 @@ public interface Util {
 	/** Returns modifiable list containing elements in the specified collection. */
 	static <T> List<T> list(Collection<? extends T> a) {
 		return new ArrayList<>(a);
-	}
-
-	/** Returns modifiable list containing elements in both specified collection and array. */
-	@SafeVarargs
-	static <T> List<T> list(Collection<T> a, T... ts) {
-		return stream(ts).append(ts).toCollection(() -> new ArrayList<>(ts.length));
 	}
 
 	/** Returns modifiable list containing specified element i times. */
@@ -1210,7 +1209,7 @@ public interface Util {
 	}
 
 	static <T> Stream<T> stream() {
-		return StreamEx.empty();
+		return Stream.empty();
 	}
 
 	static <T> Stream<T> stream(T t) {
@@ -1218,8 +1217,8 @@ public interface Util {
 	}
 
 	@SafeVarargs
-	static <T> StreamEx<T> stream(T... t) {
-		return t.length==0 ? StreamEx.empty() : StreamEx.of(t);
+	static <T> Stream<T> stream(T... t) {
+		return t.length==0 ? Stream.empty() : Stream.of(t);
 	}
 
 	static <T> Stream<T> stream(Stream<? extends T> s1, Stream<? extends T> s2) {
@@ -1230,8 +1229,8 @@ public interface Util {
 		return Stream.concat(Stream.of(o), t);
 	}
 
-	static <T> StreamEx<T> stream(Collection<T> t) {
-		return StreamEx.of(t);
+	static <T> Stream<T> stream(Collection<T> t) {
+		return t.stream();
 	}
 
 	static <T> Stream<T> stream(Iterator<T> t) {

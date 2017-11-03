@@ -136,6 +136,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.INFORMAT
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.KEYBOARD_VARIANT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static layout.widget.WidgetManager.WidgetSource.ANY;
 import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
@@ -470,7 +471,7 @@ public class App extends Application implements Configurable {
 		instanceInfo.add(PlaylistItem.class, p ->
 			stream(PlaylistItem.Field.FIELDS)
 					.filter(TypedValue::isTypeString)
-					.toMap(ObjectField::name, f -> (String)f.getOf(p))
+					.collect(toMap(ObjectField::name, f -> (String)f.getOf(p)))
 		);
 
 		// register actions
@@ -955,7 +956,7 @@ public class App extends Application implements Configurable {
 			.map(size -> "icon" + size + ".png")
 			.map(path -> new File(path).toURI().toString())
 			.map(Image::new)
-			.toList();
+			.collect(toList());
 	}
 
 }

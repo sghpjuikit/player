@@ -267,7 +267,8 @@ public class DirViewer extends ClassController {
                     Item item = topItem;
                     while (!path.isEmpty()) {
                         File tmp = path.pop();
-                        item = stream(item.children()).findAny(child -> child.val.equals(tmp)).orElse(null);
+                        item = stream(item.children()).filter(child -> child.val.equals(tmp))
+                            .findAny().orElse(null);
                     }
                     Item i = item;
                     runFX(() -> visit(i));
@@ -423,7 +424,8 @@ public class DirViewer extends ClassController {
     private PƑ0<File,Boolean> buildFilter() {
         String type = filter.getValue();
         return stream(filters)
-                .findAny(f -> type.equals(f.name))
-                .orElseGet(() -> stream(filters).findAny(f -> "File - all".equals(f.name)).get());
+                .filter(f -> type.equals(f.name))
+                .findAny()
+                .orElseGet(() -> stream(filters).filter(f -> "File - all".equals(f.name)).findAny().get());
     }
 }

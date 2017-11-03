@@ -48,7 +48,7 @@ public class FileItemNode extends TextFieldItemNode<File> {
 		}
 
 		addEventHandler(DRAG_OVER, DragUtil.accept(e -> DragUtil.getFiles(e).stream().anyMatch(fileActor::isValid)));
-		addEventHandler(DRAG_DROPPED, e -> setValue(stream(DragUtil.getFiles(e)).findAny(fileActor::isValid).get()));
+		addEventHandler(DRAG_DROPPED, e -> setValue(stream(DragUtil.getFiles(e)).filter(fileActor::isValid).findAny().get()));
 	}
 
 	@Override

@@ -140,7 +140,8 @@ public final class TableColumnInfo {
 			table.getSortOrder().clear();
 			sorts.forEach(t ->
 					stream(table.getColumns())
-							.findAny(c -> t._1.equals(c.getText()))
+							.filter(c -> t._1.equals(c.getText()))
+							.findAny()
 							.ifPresent(c -> {
 								c.setSortType(t._2);
 								so.add(c);

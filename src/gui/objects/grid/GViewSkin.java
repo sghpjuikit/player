@@ -35,13 +35,18 @@ import util.access.fieldvalue.ObjectField;
 import util.functional.Functors;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.util.stream.Collectors.toList;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static util.Util.*;
+import static util.Util.clip;
+import static util.Util.getAt;
+import static util.Util.isInRangeInc;
 import static util.dev.Util.throwIf;
-import static util.functional.Util.*;
+import static util.functional.Util.by;
+import static util.functional.Util.repeat;
+import static util.functional.Util.stream;
 import static util.graphics.Util.layHeaderTop;
 import static util.reactive.Util.listChangeListener;
 import static util.reactive.Util.maintain;
@@ -242,7 +247,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 				.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
 				.map(f -> (PredicateData<ObjectField<F,Object>>) f)
 				.sorted(by(e -> e.name))
-				.toList();
+				.collect(toList());
 	}
 
 /* ---------- SELECTION --------------------------------------------------------------------------------------------- */

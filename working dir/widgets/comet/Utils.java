@@ -83,6 +83,7 @@ import util.collections.mapset.MapSet;
 import util.functional.Functors.Ƒ0;
 import util.functional.Functors.Ƒ1;
 import util.functional.Try;
+import util.functional.Util;
 import util.reactive.SetƑ;
 import static comet.Comet.Constants.FPS;
 import static comet.Utils.Achievement.achievement01;
@@ -95,7 +96,9 @@ import static java.lang.Math.ceil;
 import static java.lang.Math.random;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -830,10 +833,10 @@ interface Utils {
 
 			// build rows
 			R<Integer> i = new R<>(-1); // row index
-			stream(game.mode.achievements())
+			game.mode.achievements().stream()
 				.filter(a -> a.condition==null || a.condition.test(game))
-				.flatMapToEntry(a -> stream(a.evaluator.apply(game)).toMap(player -> player, player -> a))
-				.grouping()
+				.flatMap(a -> stream(a.evaluator.apply(game)).collect(toMap(player -> player, player -> a)).entrySet().stream())
+				.collect(groupingBy(e -> e.getKey()))
 				.entrySet().stream()
 				.sorted(by(e -> e.getKey().name.get()))
 				.forEach(e -> {
@@ -843,6 +846,7 @@ interface Utils {
 					achievementPane.add(new Label(), 2,i.get()); // empty row
 
 					e.getValue().stream()
+						.map(Map.Entry::getValue)
 						.sorted(by(achievement -> achievement.name))
 						.forEach(enhancer -> {
 							i.setOf(v -> v+1);
@@ -1730,12 +1734,12 @@ interface Utils {
 				).onlyIf(g -> g.players.size()>1),
 				achievement01(
 					"Mobile", MaterialDesignIcon.RUN,
-					g -> stream(g.players).maxBy(p -> p.stats.distanceTravelled),
+					g -> g.players.stream().collect(Util.<Player,Double>maxBy(p -> p.stats.distanceTravelled)),
 					"Travel the greatest distance"
 				).onlyIf(g -> g.players.size()>1),
 				achievement01(
 					"Crusher", FontAwesomeIcon.TRUCK,
-					g -> stream(g.players).maxBy(p -> p.stats.asteroidRamCount),
+					g -> g.players.stream().collect(Util.<Player,Long>maxBy(p -> p.stats.asteroidRamCount)),
 					"Destroy the most asteroids with your kinetic shield"
 				).onlyIf(g -> g.players.size()>1),
 				achievement0N(
@@ -1746,7 +1750,7 @@ interface Utils {
 				// TODO: fix this for situations where killCount is the same for multiple players
 				achievement01(
 					"Hunter", MaterialDesignIcon.BIOHAZARD,
-					g -> stream(g.players).maxBy(p -> p.stats.killUfoCount),
+					g -> g.players.stream().collect(Util.<Player,Long>maxBy(p -> p.stats.killUfoCount)),
 					"Kill most UFOs"
 				).onlyIf(g -> g.players.size()>1)
 			);
@@ -2134,7 +2138,7 @@ interface Utils {
 
 			List<Player> victors = stream(game.players)
 				.sorted(by((Player p) -> p.stats.controlAreaSize.getAverage()).reversed())
-				.toList();
+				.collect(toList());
 
 			// Highlight player ranking
 			forEachWithI(victors, (i,p) -> {
@@ -2143,9 +2147,9 @@ interface Utils {
 			});
 
 			// Highlight player with biggest area
-			stream(game.players)
+			game.players.stream()
 				.filter(p -> p.alive && p.rocket.voronoiArea!=null)
-				.maxByDouble(p -> p.rocket.voronoiArea)
+				.collect(Util.maxBy(p -> p.rocket.voronoiArea))
 				.ifPresent(p -> drawHudCircle(game.owner.gc, game.field, p.rocket.x, p.rocket.y, 50, game.colors.hud));
 
 			timeDisplay.doLoop();
@@ -2193,19 +2197,19 @@ interface Utils {
 			String text = ""
 				+ "Average\n\n"
 				+ stream(game.players)
-					  .reverseSorted(by(p -> p.stats.controlAreaSize.getAverage()))
+					  .sorted(Util.<Player,Double>by(p -> p.stats.controlAreaSize.getAverage()).reversed())
 					  .map(p -> p.name.get() + ": " + p.stats.controlAreaSize.getAverage())
-					  .joining("\n")
+					  .collect(joining("\n"))
 				+ "\n\nMax\n\n"
 				+ stream(game.players)
-					  .reverseSorted(by(p -> p.stats.controlAreaSize.getMax()))
+					  .sorted(Util.<Player,Double>by(p -> p.stats.controlAreaSize.getMax()).reversed())
 					  .map(p -> p.name.get() + ": " + p.stats.controlAreaSize.getMax())
-					  .joining("\n")
+					  .collect(joining("\n"))
 				+ "\n\nMin\n\n"
 				+ stream(game.players)
-					  .reverseSorted(by(p -> p.stats.controlAreaSize.getMin()))
+					  .sorted(Util.<Player,Double>by(p -> p.stats.controlAreaSize.getMin()).reversed())
 					  .map(p -> p.name.get() + ": " + p.stats.controlAreaSize.getMin())
-					  .joining("\n");
+					  .collect(joining("\n"));
 
 			Label l = new Label(text);
 			l.setFont(font(FONT_UI.getFamily(), 15));
@@ -2359,10 +2363,10 @@ interface Utils {
 			gc.save();
 			Set<Cell> selectedCells = stream(game.players)
 				.filter(p -> p.alive)
-				.map(p -> stream(cells).minBy(c -> c.distance(p.rocket.x, p.rocket.y)).orElse(null))
+				.map(p -> cells.stream().collect(Util.minBy(c -> c.distance(p.rocket.x, p.rocket.y))).orElse(null))
 				.filter(ISNTØ)
-				.toSet();
-			Map<Coordinate,Cell> inputOutputMap = stream(cells).toMap(o -> new Coordinate(o.x, o.y), o -> o);
+				.collect(toSet());
+			Map<Coordinate,Cell> inputOutputMap = cells.stream().collect(toMap(o -> new Coordinate(o.x, o.y), o -> o));
 			Collection<Coordinate> cords = inputOutputMap.keySet();
 			VoronoiDiagramBuilder diagram = new VoronoiDiagramBuilder();
 			diagram.setClipEnvelope(new Envelope(0, game.field.width, 0, game.field.height));
@@ -2762,14 +2766,15 @@ interface Utils {
 					Coordinate cMain = new Coordinate(r.x, r.y);
 					inputOutputMap.put(cMain,tuple(rocket,true));
 					return stream(
+						stream(cMain),
+						stream(
 							new Coordinate(r.x + W, r.y), new Coordinate(r.x, r.y + H), new Coordinate(r.x - W, r.y), new Coordinate(r.x, r.y - H),
 							new Coordinate(r.x + W, r.y + H), new Coordinate(r.x + W, r.y - H), new Coordinate(r.x - W, r.y + H), new Coordinate(r.x - W, r.y - H)
 						)
 						.peek(c -> inputOutputMap.put(c,tuple(rocket,false)))
-						.append(cMain);
-					}
-				)
-				.toList();
+					);
+				})
+				.collect(toList());
 
 			VoronoiDiagramBuilder voronoi = new VoronoiDiagramBuilder();
 			voronoi.setClipEnvelope(new Envelope(0, W, 0, H));
@@ -2815,14 +2820,14 @@ interface Utils {
 											s.add(new Lin(x1,y1,x2,y2));
 									}
 									return s.build();
-								}).toList();
+								}).collect(toList());
 //						        .groupingBy(x -> x, counting())
 //						        .entrySet().stream()
 //						        .peek(e -> System.out.println(e.getValue()))
 //						        .filter(e -> e.getValue()==1)
 //						        .map(Entry::getKey)
 							Set<Lin> linesUnique = new HashSet<>();
-							Set<Lin> linesDuplicate = stream(lines).filter(n -> !linesUnique.add(n)).toSet();
+							Set<Lin> linesDuplicate = stream(lines).filter(n -> !linesUnique.add(n)).collect(toSet());
 							linesUnique.removeAll(linesDuplicate);
 							return linesUnique.stream();
 						})
@@ -2834,7 +2839,7 @@ interface Utils {
 	}
 
 	static void computeVoronoi(Collection<? extends PO> os, Game game) {
-		Map<Coordinate,PO> inputOutputMap = stream(os).toMap(o -> new Coordinate(o.x, o.y), o -> o);
+		Map<Coordinate,PO> inputOutputMap = stream(os).collect(toMap(o -> new Coordinate(o.x, o.y), o -> o));
 		Set<Coordinate> cells = inputOutputMap.keySet();
 
 		VoronoiDiagramBuilder voronoi = new VoronoiDiagramBuilder();
@@ -3169,7 +3174,7 @@ interface Utils {
 		abstract protected void doLoopImpl(IController[] gamepads);
 
 		public Stream<IController> getControllers() {
-			return stream(Controllers.getControllers()).nonNull();
+			return stream(Controllers.getControllers()).filter(o -> o!=null);
 		}
 
 		public void dispose() {

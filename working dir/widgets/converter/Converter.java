@@ -1,29 +1,5 @@
 package converter;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
-import javafx.beans.property.StringProperty;
-import javafx.collections.ListChangeListener.Change;
-import javafx.collections.ObservableList;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.KeyCode;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-
 import audio.Item;
 import audio.Player;
 import audio.tagging.Metadata;
@@ -38,6 +14,27 @@ import gui.itemnode.StringSplitParser.SplitData;
 import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.Icon;
 import gui.pane.ConfigPane;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+import javafx.beans.property.StringProperty;
+import javafx.collections.ListChangeListener.Change;
+import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import layout.widget.Widget;
 import layout.widget.Widget.Group;
 import layout.widget.controller.ClassController;
@@ -50,11 +47,16 @@ import util.async.future.Fut;
 import util.collections.map.ClassListMap;
 import util.conf.Config;
 import util.file.Util;
+import util.functional.Functors.Ƒ0;
 import util.graphics.drag.DragUtil;
-
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_RIGHT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY_CIRCLE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import static java.lang.Integer.MAX_VALUE;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -66,8 +68,24 @@ import static util.Util.capitalizeStrong;
 import static util.Util.filenamizeString;
 import static util.dev.Util.log;
 import static util.file.Util.writeFile;
-import static util.functional.Util.*;
-import static util.graphics.Util.*;
+import static util.functional.Util.equalBy;
+import static util.functional.Util.filter;
+import static util.functional.Util.findFirstInt;
+import static util.functional.Util.forEachWithI;
+import static util.functional.Util.list;
+import static util.functional.Util.listRO;
+import static util.functional.Util.map;
+import static util.functional.Util.mapSlice;
+import static util.functional.Util.max;
+import static util.functional.Util.min;
+import static util.functional.Util.split;
+import static util.functional.Util.stream;
+import static util.functional.Util.streamBi;
+import static util.functional.Util.toS;
+import static util.graphics.Util.layHorizontally;
+import static util.graphics.Util.layStack;
+import static util.graphics.Util.layVertically;
+import static util.graphics.Util.setAnchor;
 import static util.graphics.drag.DragUtil.installDrag;
 
 @Widget.Info(
@@ -192,7 +210,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
                         MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field,vals) -> w.setFieldS(Metadata.Field.valueOf(field), vals.get(j))));
                     }
 
-                    Player.refreshItemsWith(stream(songs).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).toList());
+                    Player.refreshItemsWith(stream(songs).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList()));
                })
                .showProgress(getWidget().getWindow().taskAdd());
         }));
@@ -404,7 +422,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
     private class Act<V> {
         String name;
         int max = MAX_VALUE;
-        Supplier<List<String>> names;
+        Ƒ0<List<String>> names;
         Class type;
         boolean isNamesDeterminate;
         BiConsumer<V,Map<String,String>> actionPartial = null;
@@ -422,7 +440,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
             this.max = max;
             this.actionImpartial = action;
         }
-        Act(String name, Class<V> type, int max, Supplier<List<String>> names, BiConsumer<V,Map<String,String>> action) {
+        Act(String name, Class<V> type, int max, Ƒ0<List<String>> names, BiConsumer<V,Map<String,String>> action) {
             this(name, type, max, action);
             this.names = names;
             isNamesDeterminate = false;
@@ -432,7 +450,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
             this.names = () -> names;
             isNamesDeterminate = true;
         }
-        Act(String name, Class<V> type, int max, Supplier<List<String>> names, Consumer<Map<String,List<String>>> action) {
+        Act(String name, Class<V> type, int max, Ƒ0<List<String>> names, Consumer<Map<String,List<String>>> action) {
             this(name, type, max, action);
             this.names = names;
             isNamesDeterminate = false;
@@ -535,9 +553,9 @@ public class Converter extends ClassController implements Opener, SongWriter {
         ConfigField<EditArea> configfieldB;
         HBox root;
 
-        InPane(Supplier<Collection<String>> actions) {
-            name = new VarEnum<>(actions.get().stream().findFirst().get(),actions);
-            input = new VarEnum<>(stream(tas).findAny(ta -> ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
+        InPane(Ƒ0<Collection<String>> actions) {
+            name = new VarEnum<>(actions.get().stream().findFirst().orElse(null), actions);
+            input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in),tas);
             configfieldA = ConfigField.create(Config.forProperty(String.class, "", name));
             configfieldB = ConfigField.create(Config.forProperty(EditArea.class, "", input));
             root = new HBox(5, configfieldA.getNode(),configfieldB.getNode());
@@ -561,7 +579,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
         ConfigPane<EditArea> ins;
         InsSimple(Act<?> a) {
             ins = new ConfigPane(map(a.names.get(), name -> {
-                V<EditArea> input = new VarEnum<>(stream(tas).findAny(ta -> ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
+                V<EditArea> input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in),tas);
                 return Config.forProperty(String.class, name, input);
             }));
         }

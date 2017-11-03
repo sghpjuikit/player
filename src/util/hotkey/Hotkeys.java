@@ -138,7 +138,7 @@ public class Hotkeys {
 	public void register(Action action, String keys) {
 		int i = keys.lastIndexOf('+');
 		String keyString = (i<0 ? keys : keys.substring(i + 1)).trim().toLowerCase().replace('_', ' ');
-		KeyCode key = stream(KeyCode.values()).findFirst(k -> k.getName().toLowerCase().equals(keyString)).get();
+		KeyCode key = stream(KeyCode.values()).filter(k -> k.getName().toLowerCase().equals(keyString)).findFirst().get();
 		register(
 				action, key,
 				stream(KeyCode.ALT, KeyCode.ALT_GRAPH, KeyCode.SHIFT, KeyCode.CONTROL, KeyCode.WINDOWS, KeyCode.COMMAND, KeyCode.META)
@@ -166,15 +166,15 @@ public class Hotkeys {
 			this.modifiers = modifiers;
 
 			int m = 0;
-			if (stream(modifiers).has(KeyCode.SHIFT)) m += 1;   // right shift
-			if (stream(modifiers).has(KeyCode.CONTROL)) m += 2; // left ctrl
-			if (stream(modifiers).has(KeyCode.WINDOWS)) m += 4;
-			if (stream(modifiers).has(KeyCode.ALT)) m += 8;
-//			if(stream(modifiers).has(KeyCode.SHIFT)) m += 16;   // right shift
-//			if(stream(modifiers).has(KeyCode.CONTROL)) m += 32; // right ctrl
-			if (stream(modifiers).has(KeyCode.COMMAND)) m += 64;
-			if (stream(modifiers).has(KeyCode.ALT_GRAPH)) m += 128;
-//			if(stream(modifiers).has(KeyCode.META)) m += 128;
+			if (stream(modifiers).anyMatch(k -> k==KeyCode.SHIFT)) m += 1;   // right shift
+			if (stream(modifiers).anyMatch(k -> k==KeyCode.CONTROL)) m += 2; // left ctrl
+			if (stream(modifiers).anyMatch(k -> k==KeyCode.WINDOWS)) m += 4;
+			if (stream(modifiers).anyMatch(k -> k==KeyCode.ALT)) m += 8;
+//			if(stream(modifiers).anyMatch(k -> k==KeyCode.SHIFT)) m += 16;   // right shift
+//			if(stream(modifiers).anyMatch(k -> k==KeyCode.CONTROL)) m += 32; // right ctrl
+			if (stream(modifiers).anyMatch(k -> k==KeyCode.COMMAND)) m += 64;
+			if (stream(modifiers).anyMatch(k -> k==KeyCode.ALT_GRAPH)) m += 128;
+//			if(stream(modifiers).anyMatch(k -> k==KeyCode.META)) m += 128;
 			this.modifier = m;
 		}
 

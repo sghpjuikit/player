@@ -65,7 +65,7 @@ public abstract class Search {
 	 * Note: must be called on {@link KeyEvent#KEY_TYPED} event as event handler
 	 */
 	private void onKeyTyped(KeyEvent e) {
-		if (pressedKeyCode==null || pressedKeyCode==ESCAPE || pressedKeyCode==TAB || pressedKeyCode==ENTER) return;
+		if (pressedKeyCode==null || pressedKeyCode==ESCAPE || pressedKeyCode==TAB || pressedKeyCode==ENTER || pressedKeyCode==DELETE) return;
 		if (pressedKeyCode.isNavigationKey() || pressedKeyCode.isFunctionKey() || e.isAltDown() || e.isShortcutDown())
 			return;
 		if ((!isActive() && (e.isShiftDown() || pressedKeyCode==SPACE))) return;

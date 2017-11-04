@@ -125,12 +125,12 @@ class Db {
         emf.close()
     }
 
-    fun exists(item: Item<*>) = exists(item.uri)
+    fun exists(item: Item) = exists(item.uri)
 
     fun exists(uri: URI) = em.find(Metadata::class.java, uri.toString()) != null
 
     /** @return item from library with the URI of the specified item or null if not found */
-    fun getItem(item: Item<*>) = getItem(item.uri)
+    fun getItem(item: Item) = getItem(item.uri)
 
     /** @return item from library with the specified URI or null if not found */
     fun getItem(uri: URI): Metadata? = em.find(Metadata::class.java, uri.toString())
@@ -155,7 +155,7 @@ class Db {
         updateInMemoryDbFromPersisted()
     }
 
-    fun removeItems(items: Collection<Item<*>>) {
+    fun removeItems(items: Collection<Item>) {
         em.transaction.begin()
         items.forEach { item ->
             val inDb = em.find(Metadata::class.java, item.id)

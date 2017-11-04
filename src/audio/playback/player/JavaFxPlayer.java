@@ -56,9 +56,9 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 			try {
 				// bug here, which also
 				// blocks thread for like half second!, so i execute this not on fx
-				media = new Media(item.getURI().toString());
+				media = new Media(item.getUri().toString());
 			} catch (MediaException e) {
-				log(JavaFxPlayer.class).error("Media creation error for {}", item.getURI());
+				log(JavaFxPlayer.class).error("Media creation error for {}", item.getUri());
 				onFail.run();
 				return;
 			}

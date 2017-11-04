@@ -101,7 +101,7 @@ import static util.functional.Util.stream;
  * To access any field in a general way, see {@link audio.tagging.Metadata.Field}
  */
 @Entity(name = "MetadataItem")
-public final class Metadata extends MetaItem<Metadata> {
+public final class Metadata extends MetaItem {
 
 	/**
 	 * Delimiter between sections of data.
@@ -227,7 +227,7 @@ public final class Metadata extends MetaItem<Metadata> {
 	 * For example, if the item is playlist item, sets artist, length and title fields.
 	 */
 	public Metadata(Item item) {
-		uri = item.getURI().toString();
+		uri = item.getUri().toString();
 		if (item instanceof PlaylistItem) {
 			PlaylistItem pItem = (PlaylistItem) item;
 			artist = pItem.getArtist();
@@ -282,7 +282,7 @@ public final class Metadata extends MetaItem<Metadata> {
 	private void loadHeaderFields(AudioFile aFile) {
 		AudioHeader header = aFile.getAudioHeader();
 		if (header==null) {  // just in case
-			log(Metadata.class).info("Header not found: " + getURI());
+			log(Metadata.class).info("Header not found: " + getUri());
 		} else {
 			bitrate = (int) header.getBitRateAsNumber();
 			duration = 1000*header.getTrackLength();
@@ -573,7 +573,7 @@ public final class Metadata extends MetaItem<Metadata> {
 	}
 
 	@Override
-	public URI getURI() {
+	public URI getUri() {
 		return URI.create(uri.replace(" ", "%20"));
 	}
 
@@ -586,13 +586,13 @@ public final class Metadata extends MetaItem<Metadata> {
 	}
 
 	@Override
-	public String getPath() {
-		return isEmpty() ? "" : super.getPath();
+	public String getPathAsString() {
+		return isEmpty() ? "" : super.getPathAsString();
 	}
 
 	@Override
 	public String getFilename() {
-		return super.getFilename();
+		return isEmpty() ? "" : super.getFilename();
 	}
 
 	@Override
@@ -1019,7 +1019,7 @@ public final class Metadata extends MetaItem<Metadata> {
 
 	@Override
 	public PlaylistItem toPlaylist() {
-		return new PlaylistItem(getURI(), getArtist(), getTitle(), getLengthInMs());
+		return new PlaylistItem(getUri(), getArtist(), getTitle(), getLengthInMs());
 	}
 
 /* --------------------- AS FIELDED TYPE ---------------------------------------------------------------------------- */
@@ -1057,7 +1057,7 @@ public final class Metadata extends MetaItem<Metadata> {
 
 	@Override
 	public String toString() {
-		return Metadata.class.toString() + " " + getURI();
+		return Metadata.class.toString() + " " + getUri();
 	}
 
 	@Override
@@ -1104,7 +1104,7 @@ public final class Metadata extends MetaItem<Metadata> {
 		public static final Set<Field<?>> FIELDS = new HashSet<>();
 		public static final Set<String> FIELD_NAMES = new HashSet<>();
 
-		public static final Field<String> PATH = new Field<>(Metadata::getPath, "Path", "Song location");
+		public static final Field<String> PATH = new Field<>(Metadata::getPathAsString, "Path", "Song location");
 		public static final Field<String> FILENAME = new Field<>(Metadata::getFilename, "Filename", "Song file name without suffix");
 		public static final Field<AudioFileFormat> FORMAT = new Field<>(Metadata::getFormat, "Format", "Song file type ");
 		public static final Field<FileSize> FILESIZE = new Field<>(Metadata::getFileSize, "Filesize", "Song file size");

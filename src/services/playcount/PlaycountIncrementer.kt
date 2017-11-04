@@ -83,7 +83,7 @@ class PlaycountIncrementer : ServiceBase(false) {
     @IsAction(name = "Increment playcount", desc = "Rises the number of times the song has been played by one and updates the song tag.")
     fun increment() {
         val m = Player.playingItem.get()
-        if (!m.isEmpty && m.isFileBased) {
+        if (!m.isEmpty && m.isFileBased()) {
             if (delay.value) {
                 queue += m
                 if (showNotification.value)

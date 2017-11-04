@@ -105,7 +105,7 @@ public enum AudioFileFormat {
 	 * @return true if supported, false otherwise
 	 */
 	public static boolean isSupported(Item item, Use use) {
-		return of(item.getURI()).isSupported(use);
+		return of(item.getUri()).isSupported(use);
 	}
 
 	/**

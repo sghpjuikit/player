@@ -434,7 +434,7 @@ public class App extends Application implements Configurable {
 		// add optional object instance -> string converters
 		instanceName.add(Void.class, o -> "<none>");
 		instanceName.add(App.class, app -> "This application");
-		instanceName.add(Item.class, Item::getPath);
+		instanceName.add(Item.class, Item::getPathAsString);
 		instanceName.add(PlaylistItem.class, PlaylistItem::getTitle);
 		instanceName.add(Metadata.class, Metadata::getTitle);
 		instanceName.add(MetadataGroup.class, o -> Objects.toString(o.getValue()));

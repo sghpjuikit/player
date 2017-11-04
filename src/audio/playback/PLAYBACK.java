@@ -396,7 +396,7 @@ public final class PLAYBACK implements Configurable {
 	public static void openPlayedLocation() {
 		if (PlaylistManager.active==null) return;
 		Item i = PlaylistManager.use(Playlist::getPlaying, null);
-		if (i!=null) Environment.browse(i.getURI());
+		if (i!=null) Environment.browse(i.getUri());
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */

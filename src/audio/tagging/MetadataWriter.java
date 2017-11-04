@@ -120,7 +120,7 @@ public class MetadataWriter extends MetaItem {
 	}
 
 	@Override
-	public URI getURI() {
+	public URI getUri() {
 		if (file==null) throw new IllegalStateException("Illegal getUri call. metadata writer state not initialized.");
 		return file.toURI();
 	}

@@ -188,7 +188,7 @@ public class Player {
 		// always on br thread
 		IO_THREAD.execute(() -> {
 			// metadata map hashed with resource identity : O(n^2) -> O(n)
-			MapSet<URI,Metadata> mm = new MapSet<>(Metadata::getURI, ms);
+			MapSet<URI,Metadata> mm = new MapSet<>(Metadata::getUri, ms);
 
 			// update library
 			APP.db.updatePer(ms);
@@ -196,7 +196,7 @@ public class Player {
 
 			Async.runFX(() -> {
 				// update all playlist items referring to this updated metadata
-				PlaylistManager.playlists.stream().flatMap(Playlist::stream).forEach((PlaylistItem p) -> mm.ifHasK(p.getURI(), p::update));
+				PlaylistManager.playlists.stream().flatMap(Playlist::stream).forEach((PlaylistItem p) -> mm.ifHasK(p.getUri(), p::update));
 //                PlaylistManager.playlists.forEach(playlist -> playlist.forEach(p -> mm.ifHasK(p.getURI(), p::update)));
 
 				// refresh playing item data
@@ -204,7 +204,7 @@ public class Player {
 
 				if (playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
 				if (playlistSelected.i.getValue()!=null)
-					mm.ifHasK(playlistSelected.i.getValue().getURI(), m -> playlistSelected.i.setValue(m.toPlaylist()));
+					mm.ifHasK(playlistSelected.i.getValue().getUri(), m -> playlistSelected.i.setValue(m.toPlaylist()));
 				if (librarySelected.i.getValue()!=null)
 					mm.ifHasE(librarySelected.i.getValue(), librarySelected.i::setValue);
 

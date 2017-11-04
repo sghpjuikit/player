@@ -44,14 +44,14 @@ public class MetadataReader {
 		} else {
 			// TODO: implement properly
 			try {
-				Media m = new Media(item.getURI().toString());
+				Media m = new Media(item.getUri().toString());
 				//            m.getMetadata().forEach((String s, Object o) -> {
 				//                System.out.println(s + " " + o);
 				//            });
 
 				// make a playlistItem and covert to metadata //why? // not 100%sure...
 				// because PlaylistItem has advanced update() method? // probably
-				return new PlaylistItem(item.getURI(), "", "", m.getDuration().toMillis()).toMeta();
+				return new PlaylistItem(item.getUri(), "", "", m.getDuration().toMillis()).toMeta();
 			} catch (IllegalArgumentException|UnsupportedOperationException e) {
 				log(MetadataReader.class).error("Error creating metadata for non file based item: {}", item);
 				return item.toMeta();
@@ -134,7 +134,7 @@ public class MetadataReader {
 
 					Metadata m;
 					try {
-						m = APP.db.getEm().find(Metadata.class, Metadata.metadataID(item.getURI()));
+						m = APP.db.getEm().find(Metadata.class, Metadata.metadataID(item.getUri()));
 						if (m==null) {
 							MetadataWriter.useNoRefresh(item, MetadataWriter::setLibraryAddedNowIfEmpty);
 							m = readMetadata(item);

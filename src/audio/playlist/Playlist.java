@@ -158,7 +158,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	 * in {@link Item#same(audio.Item)}.
 	 */
 	public void removeDuplicates() {
-		MapSet<URI,Item> unique = new MapSet<>(Item::getURI);
+		MapSet<URI,Item> unique = new MapSet<>(Item::getUri);
 		List<PlaylistItem> staying = new ArrayList<>();
 		for (int i = 0; i<size(); i++) {
 			PlaylistItem p = get(i);

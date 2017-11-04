@@ -14,6 +14,7 @@ import util.graphics.fxml.ConventionFxmlLoader
 import util.graphics.leftAnchor
 import util.graphics.rightAnchor
 import util.graphics.setAnchors
+import util.identityHashCode
 import java.util.function.Consumer
 
 /** Basic display for song information. */
@@ -27,7 +28,7 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): AnchorPane(
     @FXML private lateinit var infoContainer: AnchorPane
     @FXML private var coverContainer: AnchorPane? = null
     private val thumb: Thumbnail?
-    private var dataId = System.identityHashCode(null)
+    private var dataId = null.identityHashCode()
 
     init {
         ConventionFxmlLoader(ItemInfo::class.java, this).loadNoEx<Any>()
@@ -45,17 +46,17 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): AnchorPane(
         }
     }
 
-    override fun read(items: List<Item<*>>) = read(items.firstOrNull() ?: Metadata.EMPTY)
+    override fun read(items: List<Item>) = read(items.firstOrNull() ?: Metadata.EMPTY)
 
-    override fun read(m: Item<*>) = setValue("", m.toMeta())
+    override fun read(m: Item) = setValue("", m.toMeta())
 
     /** Displays metadata information and title. */
     fun setValue(title: String, m: Metadata) {
-        dataId = System.identityHashCode(m)
+        dataId = m.identityHashCode()
         typeL.text = title
         thumb?.loadCoverOf(m)
         indexL.text = m.playlistIndexInfo
-        songL.text = if (m.title.isEmpty()) if (m.isFileBased) m.filename else m.path else m.title
+        songL.text = if (m.title.isEmpty()) m.getFilename() else m.title
         artistL.text = m.artist
         albumL.text = m.album
     }

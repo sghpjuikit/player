@@ -21,7 +21,7 @@ public class PlaylistItemConverter implements Converter {
 	public void marshal(Object value, HierarchicalStreamWriter writer, MarshallingContext context) {
 		PlaylistItem item = (PlaylistItem) value;
 		writer.startNode("uri");
-		writer.setValue(item.getURI().toString());
+		writer.setValue(item.getUri().toString());
 		writer.endNode();
 		writer.startNode("time");
 		writer.setValue(String.valueOf(item.getTime().toMillis()));

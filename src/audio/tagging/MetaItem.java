@@ -13,7 +13,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static util.Util.clip;
 import static util.file.AudioFileFormat.mp3;
 
-public abstract class MetaItem<CI extends Item> extends Item<CI> {
+public abstract class MetaItem extends Item {
 
 	/** @return maximal value of the rating. */
 	public int getRatingMax() {

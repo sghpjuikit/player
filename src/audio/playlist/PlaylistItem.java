@@ -54,7 +54,7 @@ import static util.file.AudioFileFormat.Use.APP;
  * SERIALIZATION
  * - this class is serializable by XStream using PlaylistItemConverter.
  */
-public final class PlaylistItem extends Item<PlaylistItem> {
+public final class PlaylistItem extends Item {
 
  	// Don't try to change property implementations SimpleObjectProperty
  	// into more generic ObjectProperty. It will cause XStream serializing
@@ -103,7 +103,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 	 * @return the url. Never null.
 	 */
 	@Override
-	public URI getURI() {
+	public URI getUri() {
 		return uri.get();
 	}
 
@@ -207,7 +207,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 		} else {
 			// update as web based item
 			try {
-				Media m = new Media(getURI().toString());
+				Media m = new Media(getUri().toString());
 				setATN("", "");
 				time.set(new Dur(m.getDuration().toMillis()));
 			} catch (IllegalArgumentException|NullPointerException|UnsupportedOperationException e) {
@@ -218,7 +218,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 
 	/** Updates this playlist item to data from provided metadata. No I/O. */
 	public void update(Metadata m) {
-		uri.set(m.getURI());
+		uri.set(m.getUri());
 		setATN(m.getArtist(), m.getTitle());
 		time.set(m.getLength());
 		updated = true;
@@ -226,7 +226,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 
 	private void setATN(String _artist, String _title) {
 		artist = _artist;
-		title = _title.isEmpty() ? Util.getName(getURI()) : _title;
+		title = _title.isEmpty() ? Util.getName(getUri()) : _title;
 		if (artist.isEmpty() && title.isEmpty())
 			name.set(getInitialName());
 		else
@@ -301,7 +301,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 	@Override
 	public String toString() {
 		return getName() + "\n"
-				+ getURI().toString() + "\n"
+				+ getUri().toString() + "\n"
 				+ getTime().toString();
 	}
 
@@ -325,7 +325,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 	 * @return copy of the item or null if parameter null.
 	 */
 	public PlaylistItem copy() {
-		PlaylistItem i = new PlaylistItem(getURI(), getArtist(), getTitle(), getTime().toMillis());
+		PlaylistItem i = new PlaylistItem(getUri(), getArtist(), getTitle(), getTime().toMillis());
 		i.updated = updated;
 		i.corrupted = corrupted;
 		return i;
@@ -338,7 +338,7 @@ public final class PlaylistItem extends Item<PlaylistItem> {
 		public static final Field<String> TITLE = new Field<>(String.class, PlaylistItem::getTitle, "Title", "Song title");
 		public static final Field<String> ARTIST = new Field<>(String.class, PlaylistItem::getArtist, "Artist", "Song artist");
 		public static final Field<Dur> LENGTH = new Field<>(Dur.class, PlaylistItem::getTime, "Time", "Song length");
-		public static final Field<String> PATH = new Field<>(String.class, PlaylistItem::getPath, "Path", "Song file path");
+		public static final Field<String> PATH = new Field<>(String.class, PlaylistItem::getPathAsString, "Path", "Song file path");
 		public static final Field<AudioFileFormat> FORMAT = new Field<>(AudioFileFormat.class, PlaylistItem::getFormat, "Format", "Song file type");
 
 		private final Class<T> type;

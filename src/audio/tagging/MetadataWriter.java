@@ -45,6 +45,9 @@ import util.SwitchException;
 import util.file.AudioFileFormat;
 import util.parsing.Parser;
 import util.units.NofX;
+import static audio.tagging.ExtKt.clipRating;
+import static audio.tagging.ExtKt.getRatingMax;
+import static audio.tagging.ExtKt.readAudioFile;
 import static audio.tagging.Metadata.SEPARATOR_GROUP;
 import static audio.tagging.Metadata.TAG_ID_COLOR;
 import static audio.tagging.Metadata.TAG_ID_LIB_ADDED;
@@ -72,7 +75,7 @@ import static util.functional.Util.stream;
  * The writer must be instantiated for use. It is reusable for an item.
  */
 // TODO: limit rating bounds value, multiple values, id3 popularimeter mail settings
-public class MetadataWriter extends MetaItem {
+public class MetadataWriter extends Item {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataWriter.class);
 
@@ -273,7 +276,7 @@ public class MetadataWriter extends MetaItem {
 			LOGGER.error("Rating number must be <= 1");
 		else if (val<0)
 			LOGGER.error("Rating number must be >= 0");
-		else setRating(getRatingMax()*val);
+		else setRating(getRatingMax(this)*val);
 	}
 
 	/**
@@ -285,7 +288,7 @@ public class MetadataWriter extends MetaItem {
 	 * @param val rating to set. -1 to remove the field from tag. Value will be clipped to 0-max value.
 	 */
 	public void setRating(double val) {
-		val = val<0 ? -1 : clipRating(val);
+		val = val<0 ? -1 : clipRating(this, val);
 
 		AudioFileFormat f = getFormat();
 		switch (f) {

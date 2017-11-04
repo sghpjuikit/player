@@ -59,6 +59,8 @@ import util.units.Bitrate;
 import util.units.Dur;
 import util.units.FileSize;
 import util.units.NofX;
+import static audio.tagging.ExtKt.getRatingMax;
+import static audio.tagging.ExtKt.readAudioFile;
 import static audio.tagging.Metadata.Field.COVER_INFO;
 import static audio.tagging.Metadata.Field.FULLTEXT;
 import static java.lang.Integer.parseInt;
@@ -101,7 +103,7 @@ import static util.functional.Util.stream;
  * To access any field in a general way, see {@link audio.tagging.Metadata.Field}
  */
 @Entity(name = "MetadataItem")
-public final class Metadata extends MetaItem {
+public final class Metadata extends Item {
 
 	/**
 	 * Delimiter between sections of data.
@@ -858,7 +860,7 @@ public final class Metadata extends MetaItem {
 	 * @return the rating in 0-1 percent range
 	 */
 	public double getRatingPercent() {
-		return rating==-1 ? 0 : rating/(double) getRatingMax();
+		return rating==-1 ? 0 : rating/(double) getRatingMax(this);
 	}
 
 	/**

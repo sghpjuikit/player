@@ -11,6 +11,7 @@ import javafx.scene.media.Media;
 import org.jaudiotagger.audio.AudioFile;
 import util.async.future.ConvertListTask;
 import util.file.AudioFileFormat.Use;
+import static audio.tagging.ExtKt.readAudioFile;
 import static java.util.stream.Collectors.toList;
 import static main.App.APP;
 import static util.async.Async.runFX;
@@ -39,7 +40,7 @@ public class MetadataReader {
 		}
 
 		if (item.isFileBased()) {
-			AudioFile f = MetaItem.readAudioFile(item.getFile());
+			AudioFile f = readAudioFile(item.getFile());
 			return f==null ? Metadata.EMPTY : new Metadata(f);
 		} else {
 			// TODO: implement properly

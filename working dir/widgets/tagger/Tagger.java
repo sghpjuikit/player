@@ -364,7 +364,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         if (items==null) return;
 
         // remove duplicates
-        MapSet<URI,? extends Item> unique = new MapSet<>(Item::getURI, items);
+        MapSet<URI,? extends Item> unique = new MapSet<>(Item::getUri, items);
 
         this.allItems.setAll(unique);
         if (add_not_set.get()) add(unique, false); else set(unique);
@@ -399,7 +399,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         runNew(MetadataReader.buildReadMetadataTask(needs_read, (ok,result) -> {
             if (ok) {
                 // remove duplicates
-                MapSet<URI, Metadata> unique = new MapSet<>(Metadata::getURI);
+                MapSet<URI, Metadata> unique = new MapSet<>(Metadata::getUri);
                                       unique.addAll(metadatas);
                                       unique.addAll(ready);
                                       unique.addAll(result);

@@ -143,9 +143,9 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 	    d(maintain(playlist.playingI, ι -> playlist.getPlaying(), outPlaying));
         d(Player.onItemRefresh(ms -> {
             if (outPlaying.getValue()!=null)
-                ms.ifHasK(outPlaying.getValue().getURI(), m -> outPlaying.setValue(m.toPlaylist()));
+                ms.ifHasK(outPlaying.getValue().getUri(), m -> outPlaying.setValue(m.toPlaylist()));
             if (outSelected.getValue()!=null)
-                ms.ifHasK(outSelected.getValue().getURI(), m -> outSelected.setValue(m.toPlaylist()));
+                ms.ifHasK(outSelected.getValue().getUri(), m -> outSelected.setValue(m.toPlaylist()));
         }));
 
         table = new PlaylistTable(playlist);

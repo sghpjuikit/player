@@ -9,21 +9,7 @@ import util.units.FileSize
 import java.io.File
 import java.net.URI
 
-/**
- * Representation of audio resource based on [URI].
- *
- * Item has two distinct identities:
- * * Resource identity revolves around the underlying resource this item
- * represents. Implementation independent (all subclasses will work this way).
- * Obtained by [.getURI] and compared by [.same]
- * * Object identity revolves around identity of this item as an object in
- * the application. For example items in a playlist
- * can have same resource identity (same song being in the playlist twice), but
- * their object identity must differ (only one of them can be played at any time).
- * Implementation dependent - check each subclass for specific
- * information
- * Represented by [.hashCode] and compared by [.equals]
- */
+/** Representation of audio resource based on [URI]. */
 abstract class Item {
 
     /** @return URI of the audio resource this item represents */
@@ -32,18 +18,12 @@ abstract class Item {
     /** @return internal id of this item */
     open val id get() = uri.toString()
 
-    /**
-     * Item based on file is represented by a file in a file system on a local
-     * system. Non file based item can for example be file on the web accessed
-     * through http protocol.
-     *
-     * @return whether item is file based
-     */
+    /** @return true iff this item represents a file on a local system, false indicates external resource (e.g. http) */
     fun isFileBased(): Boolean = "file"==uri.scheme
 
     /**
      * @return absolute file this item represents
-     * @throws UnsupportedOperationException if this item is not file based
+     * @throws RuntimeException if this item is not file based
      */
     open fun getFile() = File(uri).absoluteFile!!
 
@@ -56,37 +36,18 @@ abstract class Item {
     /**
      * Parent directory of the resource. Only for file based items.
      *
-     * Use to get location of the item, for example to fetch additional resources
-     * located there, such as cover.
-     *
      * @return parent directory of the item in the file system
-     * @throws UnsupportedOperationException if item is not file based
-     * @see .getPath
+     * @throws RuntimeException if this item is not file based
      */
     fun getLocation() = getFile().parentFile!!
 
     /** @return human-readable location of the resource this item represents */
     fun getLocationAsString() = if (isFileBased()) getLocation().path else getPathAsString()
 
-    /**
-     * Returns name of the file without its suffix.
-     *
-     * @return the filename without suffix
-     */
-    open fun getFilename(): String {
-        val n = getFilenameFull()
-        val p = n.lastIndexOf('.')
-        return if (p==-1) n else n.substring(0, p)
-    }
+    /** @return the filename without suffix or empty string if none */
+    open fun getFilename() = getFilenameFull().substringBeforeLast(".")
 
-    /**
-     * Returns name of the file with its suffix.
-     *
-     * @return the filename with suffix or empty string if none.
-     */
-    // should not happen ever, but just in case some damaged URL gets through
-    // another exceptional state check (just in case, might be unnecessary)
-    // get name portion of the path
+    /** @return filename with suffix or empty string if none */
     fun getFilenameFull(): String {
         val p = uri.path
         if (p==null || p.isEmpty()) return ""
@@ -94,24 +55,10 @@ abstract class Item {
         return if (i==-1 || p.length<2) p else p.substring(i+1)
     }
 
-    /**
-     * Returns suffix of the filename. For example: "mp3, flac"
-     *
-     *
-     * It does not necessarily reflect real type of the file. Dont use this method
-     * to find out type of the file. Use [.getFormat].
-     *
-     * @return the suffix of the file of this item or empty string if none.
-     */
-    fun getSuffix(): String {
-        val n = getFilenameFull()
-        val p = n.lastIndexOf('.')
-        return if (p==-1) "" else n.substring(p+1)
-    }
+    /** @return the suffix of the resource of this item or empty string if none, e.g.: mp3 */
+    fun getSuffix() = uri.path.substringAfterLast('.', "")
 
     /**
-     * Returns file type of the file.
-     *
      * @return file format of this item as recognized by the application. It can differ from simple suffix string. This
      * is recommended way to obtain type of file as it utilizes application's built-in mechanism.
      */
@@ -128,13 +75,10 @@ abstract class Item {
     /**
      * Returns initial name. Name derived purely from URI of the item.
      *
-     *
      * Name can denote an item such as PlaylistItem.
-     *
      *
      * Use as an initialization value when only URI is known about the item and
      * more user-friendly information is desired than the raw uri.
-     *
      *
      * Default implementation is equivalent to [.getFilename]
      *
@@ -142,13 +86,6 @@ abstract class Item {
      */
     fun getInitialName(): String = getFilename()
 
-    // TODO: improve
-    protected fun isCorruptWeak(): Boolean =
-        if (isFileBased()) {
-            getFile().let { !it.isFile || !it.exists() || !it.canRead() }
-        } else {
-            false
-        }
 
     /** Equivalent to `isCorrupt(PLAYBACK)` */
     fun isNotPlayable(): Boolean = isCorrupt(PLAYBACK)
@@ -159,19 +96,25 @@ abstract class Item {
     /**
      * Checks whether the item can be played. Only non corrupted items can be played.
      *
-     * Item is labeled corrupt if it fulfills at least one of the conditions for file based items:
-     * - file does not exist
-     * - file is not a file (is a directory)
-     * - is not supported audio file
-     * - file can not be read
-     * otherwise:
-     * - always false
+     * Item is labeled corrupt iff it fulfills at any of the conditions for file based items:
+     * * file does not exist
+     * * file is not a file (is a directory)
+     * * is not supported audio file
+     * * file can not be read
      *
      * Also see [.isCorruptWeak].
      *
      * @return playability/validity of the item
      */
     open fun isCorrupt(use: Use): Boolean = !getFormat().isSupported(use) || isCorruptWeak()
+
+    // TODO: improve
+    protected fun isCorruptWeak(): Boolean =
+            if (isFileBased()) {
+                getFile().let { !it.isFile || !it.exists() || !it.canRead() }
+            } else {
+                false
+            }
 
     /** @return true iff the URIs of the items are equal */
     fun same(i: Item?): Boolean = i!=null && i.uri==uri
@@ -186,6 +129,6 @@ abstract class Item {
     open fun toPlaylist() = PlaylistItem(uri)
 
     /** @return simple item representation this item */
-    fun toSimple() = SimpleItem(getFile())
+    open fun toSimple() = SimpleItem(getFile())
 
 }

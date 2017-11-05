@@ -262,12 +262,12 @@ public final class MetadataGroup {  // TODO: make generic by value
 		}
 
 		@Override
-		public boolean c_visible() {
+		public boolean cVisible() {
 			return this!=AVG_RATING && this!=YEAR && this!=W_RATING;
 		}
 
 		@Override
-		public double c_width() {
+		public double cWidth() {
 			return this==VALUE ? 250 : 70;
 		}
 

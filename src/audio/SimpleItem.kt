@@ -16,4 +16,6 @@ class SimpleItem: Item {
         uri = resource.toURI()
     }
 
+    override fun toSimple() = this
+
 }

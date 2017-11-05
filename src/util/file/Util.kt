@@ -19,9 +19,7 @@ import kotlin.streams.asStream
  * @return name of the file with suffix
  */
 val File.nameOrRoot: String
-    get() {
-        return name.takeUnless { it.isEmpty() } ?: toString()
-    }
+    get() = name.takeUnless { it.isEmpty() } ?: toString()
 
 /**
  * For files name with no extension is returned.
@@ -33,9 +31,7 @@ val File.nameOrRoot: String
  */
 //@Suppress("DEPRECATION")
 val File.nameWithoutExtensionOrRoot: String
-    get() {
-        return nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
-    }
+    get() = nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
 
 /**
  * Find 1st existing file or existing parent.

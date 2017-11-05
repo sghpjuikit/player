@@ -65,8 +65,8 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	}
 
 	private void updatePlayingItem(int i, PlaylistItem item) {
-		playingIWrapper.set(i);
 		playing = item;
+		playingIWrapper.set(i);
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */

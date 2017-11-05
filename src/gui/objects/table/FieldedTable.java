@@ -71,7 +71,7 @@ import static util.type.Util.invokeMethodP0;
  */
 public class FieldedTable<T> extends ImprovedTable<T> {
 
-	private Ƒ1<ObjectField<T,?>,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.c_order(), f.c_visible(), f.c_width());
+	private Ƒ1<ObjectField<T,?>,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.cOrder(), f.cVisible(), f.cWidth());
 	private Ƒ1<? super ObjectField<T,?>,? extends TableColumn<T,?>> colFact;
 	private Ƒ1<String,String> keyNameColMapper = name -> name;
 

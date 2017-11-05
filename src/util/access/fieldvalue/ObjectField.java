@@ -115,15 +115,15 @@ public interface ObjectField<V, T> extends TypedValue<T>, StringGetter<V> {
 		return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
 	}
 
-	default double c_width() {
+	default double cWidth() {
 		return 70;
 	}
 
-	default boolean c_visible() {
+	default boolean cVisible() {
 		return true;
 	}
 
-	default int c_order() {
+	default int cOrder() {
 		return (this instanceof Enum) ? ((Enum) this).ordinal() : 1;
 	}
 

@@ -122,7 +122,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 				setOnDragDropped(e -> dropDrag(e, isEmpty() ? getItems().size() : getIndex()));
 
 				// additional css style classes
-				styleRuleAdd(STYLE_PLAYED, p -> p==getPlaylist().getPlaying());
+				styleRuleAdd(STYLE_PLAYED, p -> getPlaylist().isItemPlaying(p));
 				styleRuleAdd(STYLE_CORRUPT, PlaylistItem::isCorruptCached);
 			}
 		});
@@ -147,7 +147,6 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 			}
 
 			// handle table resize or index column
-
 			double tw = resize.getTable().getWidth();
 			double sw = getVScrollbarWidth();
 			double gap = 3;               // prevents horizontal slider from appearing

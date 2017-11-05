@@ -1333,12 +1333,12 @@ public final class Metadata extends Item {
 		}
 
 		@Override
-		public boolean c_visible() {
+		public boolean cVisible() {
 			return VISIBLE.contains(this);
 		}
 
 		@Override
-		public double c_width() {
+		public double cWidth() {
 			return this==PATH || this==TITLE ? 160 : 60;
 		}
 	}

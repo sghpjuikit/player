@@ -1,7 +1,6 @@
 package util.access.fieldvalue
 
 import util.SwitchException
-import java.util.*
 import kotlin.reflect.KClass
 
 class ColumnField: ObjectFieldBase<Any, Int> {

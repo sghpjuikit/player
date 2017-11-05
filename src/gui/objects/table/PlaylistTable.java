@@ -17,21 +17,33 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumnBase;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.*;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.reactfx.Subscription;
 import util.access.V;
+import util.access.fieldvalue.ColumnField;
 import util.graphics.drag.DragUtil;
 import util.units.Dur;
-import static audio.playlist.PlaylistItem.Field.*;
+import static audio.playlist.PlaylistItem.Field.LENGTH;
+import static audio.playlist.PlaylistItem.Field.NAME;
+import static audio.playlist.PlaylistItem.Field.TITLE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseEvent.*;
-import static util.access.fieldvalue.ColumnField.INDEX;
-import static util.functional.Util.*;
-import static util.graphics.Util.*;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static util.functional.Util.SAME;
+import static util.functional.Util.list;
+import static util.functional.Util.listRO;
+import static util.graphics.Util.computeFontWidth;
+import static util.graphics.Util.consumeOnSecondaryButton;
+import static util.graphics.Util.selectRows;
 import static util.graphics.drag.DragUtil.installDrag;
 import static util.reactive.Util.maintain;
 
@@ -141,7 +153,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 			double gap = 3;               // prevents horizontal slider from appearing
 
 
-			getColumn(INDEX).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth()));
+			getColumn(ColumnField.INDEX).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth()));
 			getColumn(LENGTH).ifPresent(c -> {
 				double mt = getItems().stream().mapToDouble(PlaylistItem::getTimeMs).max().orElse(6000);
 				double width = computeFontWidth(Gui.font.getValue(), new Dur(mt).toString()) + 5;

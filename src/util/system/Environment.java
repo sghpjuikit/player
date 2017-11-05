@@ -399,13 +399,13 @@ public interface Environment {
 		if (type==DIRECTORY) {
 			DirectoryChooser c = new DirectoryChooser();
 			c.setTitle(title);
-			c.setInitialDirectory(find1stExistingParentDir(initial).getOr(APP.DIR_APP));
+			c.setInitialDirectory(initial==null ? null : find1stExistingParentDir(initial).getOr(APP.DIR_APP));
 			File f = c.showDialog(w);
 			return f!=null ? ok(f) : error();
 		} else {
 			FileChooser c = new FileChooser();
 			c.setTitle(title);
-			c.setInitialDirectory(find1stExistingParentDir(initial).getOr(APP.DIR_APP));
+			c.setInitialDirectory(initial==null ? null : find1stExistingParentDir(initial).getOr(APP.DIR_APP));
 			if (extensions!=null) c.getExtensionFilters().addAll(extensions);
 			File f = c.showOpenDialog(w);
 			return f!=null ? ok(f) : error();
@@ -415,7 +415,7 @@ public interface Environment {
 	static Try<List<File>,Void> chooseFiles(String title, File initial, Window w, ExtensionFilter... extensions) {
 		FileChooser c = new FileChooser();
 		c.setTitle(title);
-		c.setInitialDirectory(find1stExistingParentDir(initial).getOr(APP.DIR_APP));
+		c.setInitialDirectory(initial==null ? null : find1stExistingParentDir(initial).getOr(APP.DIR_APP));
 		if (extensions!=null) c.getExtensionFilters().addAll(extensions);
 		List<File> fs = c.showOpenMultipleDialog(w);
 		return fs!=null && !fs.isEmpty() ? ok(fs) : error();
@@ -424,7 +424,7 @@ public interface Environment {
 	static Try<File,Void> saveFile(String title, File initial, String initialName, Window w, ExtensionFilter... extensions) {
 		FileChooser c = new FileChooser();
 		c.setTitle(title);
-		c.setInitialDirectory(find1stExistingParentDir(initial).getOr(APP.DIR_APP));
+		c.setInitialDirectory(initial==null ? null : find1stExistingParentDir(initial).getOr(APP.DIR_APP));
 		c.setInitialFileName(initialName);
 		if (extensions!=null) c.getExtensionFilters().addAll(extensions);
 		File f = c.showSaveDialog(w);

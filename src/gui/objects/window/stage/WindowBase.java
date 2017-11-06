@@ -34,6 +34,7 @@ import static javafx.stage.StageStyle.TRANSPARENT;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static util.async.Async.run;
 import static util.reactive.Util.installSingletonListener;
+import static util.reactive.Util.maintain;
 
 /**
  * Customized Stage, window of the application.
@@ -101,6 +102,12 @@ public class WindowBase {
 		if (style!=null) s.initStyle(style);
 		s.setFullScreenExitHint("");
 		fixJavaFxNonDecoratedMinimization();
+
+		// window properties may change externally so let us take notice
+		maintain(s.xProperty(), v -> { if (!isFullscreen() && isMaximized()==NONE) X.setValue(v); });
+		maintain(s.yProperty(), v -> { if (!isFullscreen() && isMaximized()==NONE) Y.setValue(v); });
+		maintain(s.widthProperty(), v ->  { if (!isFullscreen() && isMaximized()==NONE) W.setValue(v); });
+		maintain(s.heightProperty(), v ->  { if (!isFullscreen() && isMaximized()==NONE) H.setValue(v); });
 	}
 
 	/**
@@ -129,7 +136,7 @@ public class WindowBase {
 		s.setY(Y.get());
 		screen = util.graphics.UtilKt.getScreen(getCenterXY()); // update screen
 		deMaxX = (s.getX() - screen.getBounds().getMinX())/screen.getBounds().getWidth();  // just in case
-		deMaxX = (s.getY() - screen.getBounds().getMinY())/screen.getBounds().getHeight(); // -||-
+		deMaxY = (s.getY() - screen.getBounds().getMinY())/screen.getBounds().getHeight(); // -||-
 
 		// we need to refresh maximized value so set it to NONE and back
 		Maximized m = MaxProp.get();

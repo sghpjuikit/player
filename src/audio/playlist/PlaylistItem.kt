@@ -193,7 +193,7 @@ class PlaylistItem: Item {
 
         override fun isTypeNumberNoNegative(): Boolean = true
 
-        override fun toS(o: T, substitute: String): String {
+        override fun toS(o: T?, substitute: String): String {
             if (this===NAME || this===TITLE || this===ARTIST) return if (""==o) substitute else o.toString()
             if (this===LENGTH || this===PATH || this===FORMAT) return o.toString()
             throw SwitchException(this)

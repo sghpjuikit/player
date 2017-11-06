@@ -111,6 +111,15 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			.collect(toList());
 	}
 
+	/**
+	 * Returns all fields of this table. The fields are string representable.
+	 */
+	public List<ObjectField<T,?>> getFieldsAll() {
+		return stream(App.APP.classFields.get(type))
+			.sorted(by(ObjectField::name))
+			.collect(toList());
+	}
+
 	public void setColumnFactory(Ƒ1<? super ObjectField<? super T,Object>,TableColumn<T,Object>> columnFactory) {
 		colFact = f -> {
 			TableColumn<T,?> c = f==ColumnField.INDEX ? columnIndex : (TableColumn) ((Ƒ1) columnFactory).call(f);

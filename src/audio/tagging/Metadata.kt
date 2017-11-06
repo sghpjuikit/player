@@ -4,6 +4,7 @@ import audio.Item
 import audio.playlist.PlaylistItem
 import audio.playlist.PlaylistManager
 import audio.tagging.chapter.Chapter
+import audio.tagging.chapter.Chapters
 import gui.objects.image.cover.Cover
 import gui.objects.image.cover.Cover.CoverSource
 import gui.objects.image.cover.FileCover
@@ -36,9 +37,10 @@ import util.file.Util
 import util.file.Util.EMPTY_URI
 import util.file.listChildren
 import util.file.nameWithoutExtensionOrRoot
-import util.functional.Util.list
 import util.localDateTimeFromMillis
 import util.parsing.Parser
+import util.text.Strings
+import util.text.toStrings
 import util.units.Bitrate
 import util.units.Dur
 import util.units.FileSize
@@ -473,7 +475,7 @@ class Metadata: Item {
 
     /** @return comprehensive information about all string representable tag fields of this */
     fun getInfo(): String = Field.FIELDS.asSequence()
-            .filter { it.isTypeStringRepresentable }
+            .filter { it.isTypeStringRepresentable() }
             .map { "${it.name()}: ${getField(it)}" }
             .joinToString("\n")
     
@@ -685,25 +687,22 @@ class Metadata: Item {
      *
      * @return ordered list of chapters parsed from tag data
      */
-    fun getChapters(): List<Chapter> {
-        val chapterString = custom2
-        if (chapterString.isNullOrBlank()) return list()
-
-        return chapterString!!
-                .split("\\|".toRegex())
-                .asSequence()
-                .filter { !it.isEmpty() }
-                .mapNotNull {
-                    try {
-                        Chapter(it)
-                    } catch (e: IllegalArgumentException) {
-                        Metadata::class.java.log().error("String '{}' not be parsed as chapter. Will be ignored.", it)
-                        null
+    fun getChapters(): Chapters =
+        custom2?.let {
+            it.split("\\|".toRegex())
+                    .asSequence()
+                    .filter { !it.isEmpty() }
+                    .mapNotNull {
+                        try {
+                            Chapter(it)
+                        } catch (e: IllegalArgumentException) {
+                            Metadata::class.java.log().error("String '{}' not be parsed as chapter. Will be ignored.", it)
+                            null
+                        }
                     }
-                }
-                .sorted()
-                .toList()
-    }
+                    .sorted()
+                    .toCollection(Chapters())
+        } ?: Chapters()
 
     fun containsChapterAt(at: Duration): Boolean = getChapters().any { it.time==at }
 
@@ -722,11 +721,8 @@ class Metadata: Item {
     /** @return time this item was added to library or null if none */
     fun getTimeLibraryAdded(): LocalDateTime? = libraryAdded?.toLongOrNull()?.localDateTimeFromMillis()
 
-    // TODO: cache or return as sequence
-    fun getFulltext(): String = STRING_FIELDS.asSequence()
-            .map { it.getOf(this) }
-            .joinTo(StringBuilder(150))
-            .toString()
+    /** @return all available text about this item */
+    fun getFulltext() = FIELDS_FULLTEXT.asSequence().map { it.getOf(this) }.filterNotNull().toStrings()
 
     /** @return index of the first same item as this in the active playlist or -1 if not on playlist */
     fun getPlaylistIndex(): Int? = PlaylistManager.use({ it.indexOfSame(this)+1 }, null)
@@ -860,9 +856,11 @@ class Metadata: Item {
             return if (i>-1) tag.getValue(FieldKey.COMMENT, i) else ""
         }
 
-        private val STRING_FIELDS = Field.FIELDS.asSequence()
+        @Suppress("UNCHECKED_CAST")
+        private val FIELDS_FULLTEXT: List<Field<String>> = Field.FIELDS.asSequence()
                 .filter { String::class.java==it.type }
-                .filter { it!==Metadata.Field.FULLTEXT && it!==Metadata.Field.COVER_INFO }  // avoid self recursion
+                .map { it as Field<String> }
+                .filter { it!==Metadata.Field.COVER_INFO }  // avoid i/o
                 .toList()
     }
 
@@ -874,9 +872,20 @@ class Metadata: Item {
             FIELDS_BY_NAME[name] = this
         }
 
-        fun isAutoCompletable(): Boolean = isTypeStringRepresentable && !NOT_AUTO_COMPLETABLE.contains(this)
+        fun isAutoCompletable(): Boolean = isTypeStringRepresentable() && !NOT_AUTO_COMPLETABLE.contains(this)
 
         override fun isTypeStringRepresentable(): Boolean = !NOT_STRING_REPRESENTABLE.contains(this)
+
+        override fun isTypeFilterable(): Boolean = this!=COVER
+
+        override fun searchSupported(): Boolean = super.searchSupported() || this==FULLTEXT
+
+        override fun searchMatch(matcher: (String) -> Boolean): (Metadata) -> Boolean =
+            when (this) {
+                CHAPTERS -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
+                FULLTEXT -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
+                else -> super.searchMatch(matcher)
+            }
 
         fun getGroupedOf(m: Metadata): Any? = when(this) {
             // Note that groups must include the 'empty' group for when the value is empty
@@ -946,8 +955,8 @@ class Metadata: Item {
             @JvmField val MOOD = Field(String::class, { it.mood }, "Mood", "Mood the song evokes")
             @JvmField val COLOR = Field(Color::class, { it.getColor() }, "Color", "Color the song evokes")
             @JvmField val TAGS = Field(String::class, { it.tags }, "Tags", "Tags associated with this song")
-            @JvmField val CHAPTERS = Field(List::class, { it.getChapters() }, "Chapters", "Comments at specific time points of the song")
-            @JvmField val FULLTEXT = Field(String::class, { it.getFulltext() }, "Fulltext", "All possible fields merged into single text. Use for searching.")
+            @JvmField val CHAPTERS = Field(Chapters::class, { it.getChapters() }, "Chapters", "Comments at specific time points of the song")
+            @JvmField val FULLTEXT = Field(Strings::class, { it.getFulltext() }, "Fulltext", "All possible fields merged into single text. Use for searching.")
             @JvmField val CUSTOM1 = Field(String::class, { it.custom1 }, "Custom1", "Custom field 1. Reserved for chapters.")
             @JvmField val CUSTOM2 = Field(String::class, { it.custom2 }, "Custom2", "Custom field 2. Reserved for color.")
             @JvmField val CUSTOM3 = Field(String::class, { it.custom3 }, "Custom3", "Custom field 3. Reserved for playback.")

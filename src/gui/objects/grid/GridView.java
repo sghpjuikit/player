@@ -538,7 +538,7 @@ public class GridView<T, F> extends Control {
 
 	public class Search extends SearchAutoCancelable {
 
-		// TODO: document def value, make it own ToStringField class
+		// TODO: change type to ObjectField & implement exactly the same as in FilteredTable
 		public StringGetter<F> field = (object,substitute) -> Objects.toString(object);
 
 		private Search() {}
@@ -547,7 +547,7 @@ public class GridView<T, F> extends Control {
 		public void doSearch(String query) {
 			for (int i = 0; i<getItemsShown().size(); i++) {
 				T item = getItemsShown().get(i);
-				String itemS = item==null ? null : field.getOfS(filterByMapper.apply(item), null);
+				String itemS = item==null ? null : field.getOfS(filterByMapper.apply(item), "");
 				if (itemS!=null && isMatchNth(itemS, query)) {
 					implGetSkin().select(i);
 					updateSearchStyles();
@@ -572,7 +572,7 @@ public class GridView<T, F> extends Control {
 			boolean searchOn = isActive();
 			getCellsShown().forEach(cell -> {
 				T item = cell.getItem();
-				String itemS = item==null ? null : field.getOfS(filterByMapper.apply(item), null);
+				String itemS = item==null ? null : field.getOfS(filterByMapper.apply(item), "");
 				boolean isMatch = itemS!=null && isMatch(itemS, searchQuery.get());
 				cell.pseudoClassStateChanged(PC_SEARCH_MATCH, searchOn && isMatch);
 				cell.pseudoClassStateChanged(PC_SEARCH_MATCH_NOT, searchOn && !isMatch);

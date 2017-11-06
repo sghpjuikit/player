@@ -35,6 +35,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
+import kotlin.jvm.functions.Function1;
 import main.App;
 import util.access.fieldvalue.ObjectField;
 import util.functional.Functors;
@@ -53,6 +54,7 @@ import static util.Util.zeroPad;
 import static util.async.Async.runLater;
 import static util.dev.Util.noØ;
 import static util.functional.Util.by;
+import static util.functional.Util.filter;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.menuItem;
@@ -71,19 +73,19 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 	/**
 	 * @param type exact type of the item displayed in the table
-	 * @param main_field to be chosen as main and default search field or null
+	 * @param mainField to be chosen as main and default search field or null
 	 */
-	public FilteredTable(Class<T> type, ObjectField<T,?> main_field) {
-		this(type, main_field, observableArrayList());
+	public FilteredTable(Class<T> type, ObjectField<T,?> mainField) {
+		this(type, mainField, observableArrayList());
 	}
 
 	/**
 	 * @param type exact type of the item displayed in the table
-	 * @param main_field field to determine primary filtering field and search column. Can be null. Initializes {@link
+	 * @param mainField field to determine primary filtering field and search column. Can be null. Initializes {@link
 	 * gui.objects.table.FilteredTable.Search#field} and {@link #primaryFilterField}.
 	 * @param backing_list non null backing list of items to be displayed in the table
 	 */
-	public FilteredTable(Class<T> type, ObjectField<T,?> main_field, ObservableList<T> backing_list) {
+	public FilteredTable(Class<T> type, ObjectField<T,?> mainField, ObservableList<T> backing_list) {
 		super(type);
 
 		allItems = noØ(backing_list);
@@ -104,12 +106,12 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		sizeOf(menuOrder.getItems(), size -> menuOrder.setDisable(size==0));
 
 		// searching
-		search.setColumn(main_field);
+		search.setColumn(mainField);
 		searchQueryLabel.textProperty().bind(search.searchQuery);
 		search.installOn(root);
 
 		// filtering
-		primaryFilterField = main_field;
+		primaryFilterField = mainField;
 		filterPane = new Filter(type, filteredItems);
 		filterPane.getNode().setVisible(false);
 		EventHandler<KeyEvent> filterKeyHandler = e -> {
@@ -329,7 +331,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 	private List<PredicateData<ObjectField<T,Object>>> getFilterPredicates(Class<T> filterType) {
 		return stream(App.APP.classFields.get(filterType))
-			.filter(ObjectField::isTypeString)
+			.filter(ObjectField::isTypeFilterable)
 			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
 			.sorted(by(e -> e.name))
 			.map(f -> (PredicateData<ObjectField<T,Object>>) f)
@@ -385,18 +387,16 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		@Override
 		public void doSearch(String query) {
 			APP.actionStream.push("Table search");
-			if (!getItems().isEmpty()) {
-				for (int i = 0; i<getItems().size(); i++) {
-					T item = getItems().get(i);
-					String itemS = field.getOfS(item, null);
-					boolean isMatch = itemS!=null && isMatchNth(itemS, query);
-					if (isMatch) {
-						scrollToCenter(i);
-						updateSearchStyles();
-						getSelectionModel().clearSelection();
-						getSelectionModel().select(i);
-						break;
-					}
+			Function1<? super T,Boolean> matcher = field.searchMatch(itemS -> isMatchNth(itemS, query));
+			for (int i = 0; i<getItems().size(); i++) {
+				T item = getItems().get(i);
+				boolean isMatch = item!=null && matcher.invoke(item);
+				if (isMatch) {
+					scrollToCenter(i);
+					updateSearchStyles();
+					getSelectionModel().clearSelection();
+					getSelectionModel().select(i);
+					break;
 				}
 			}
 		}
@@ -426,7 +426,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			boolean searchOn = isActive();
 			for (TableRow<T> row : getRows()) {
 				T item = row.getItem();
-				String itemS = item==null ? null : field.getOfS(item, null);
+				String itemS = item==null ? null : field.getOfS(item, "");
 				boolean isMatch = itemS!=null && isMatch(itemS, searchQuery.get());
 				row.pseudoClassStateChanged(PC_SEARCH_MATCH, searchOn && isMatch);
 				row.getChildrenUnmodifiable().forEach(c -> c.pseudoClassStateChanged(PC_SEARCH_MATCH, searchOn && isMatch));
@@ -440,7 +440,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}
 
 		private void buildSearchMenu() {
-			menu = buildSingleSelectionMenu("Search column", getFields(), field, ObjectField::name, this::setColumn);
+			menu = buildSingleSelectionMenu("Search column", filter(getFieldsAll(), ObjectField::searchSupported), field, ObjectField::name, this::setColumn);
 			columnMenu.getItems().add(menu);
 		}
 	}

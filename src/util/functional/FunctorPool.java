@@ -36,6 +36,7 @@ import util.functional.Functors.Ƒ1;
 import util.functional.Functors.Ƒ2;
 import util.functional.Functors.Ƒ3;
 import util.functional.Functors.Ƒ4;
+import util.text.Strings;
 import util.units.Bitrate;
 import util.units.FileSize;
 import util.units.NofX;
@@ -147,6 +148,8 @@ public class FunctorPool {
 			}
 		});
 		add("To file",      S, File.class, File::new);
+
+		add("Any contains",     Strings.class, B, Strings::anyContains, S, "");
 
 		add("to ASCII",     Character.class, Integer.class, x -> (int) x);
 

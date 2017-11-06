@@ -151,8 +151,8 @@ class PlaylistItem: Item {
     /** Updates this playlist item to data from specified metadata (involves no i/o). */
     fun update(m: Metadata) {
         uriP.set(m.uri)
-        setATN(m.artist, m.title)
-        timeP.set(m.length)
+        setATN(m.getArtist(), m.getTitle())
+        timeP.set(m.getLength())
         isUpdated = true
     }
 
@@ -206,7 +206,7 @@ class PlaylistItem: Item {
         companion object {
 
             private val FIELDS_IMPL: MutableSet<Field<*>> = HashSet()
-            @JvmField val FIELDS: MutableSet<Field<*>> = FIELDS_IMPL
+            @JvmField val FIELDS: Set<Field<*>> = FIELDS_IMPL
             @JvmField val NAME = Field(String::class, "Name", "'Song artist' - 'Song title'") { it.name }
             @JvmField val TITLE = Field(String::class, "Title", "Song title") { it.title }
             @JvmField val ARTIST = Field(String::class, "Artist", "Song artist") { it.artist }

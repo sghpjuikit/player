@@ -102,9 +102,9 @@ import static audio.tagging.Metadata.Field.RATING_RAW;
 import static audio.tagging.Metadata.Field.TITLE;
 import static audio.tagging.Metadata.Field.TRACK;
 import static audio.tagging.Metadata.Field.TRACKS_TOTAL;
+import static audio.tagging.Metadata.Field.TAGS;
 import static audio.tagging.Metadata.Field.YEAR;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TAGS;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.objects.image.cover.Cover.CoverSource.TAG;
 import static gui.objects.textfield.autocomplete.AutoCompletion.autoComplete;
@@ -223,35 +223,35 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         },NumberFormatException.class)::apply;
 
         // initialize fields
-        fields.add(new TagField(titleF,TITLE));
-        fields.add(new TagField(albumF,ALBUM));
-        fields.add(new TagField(artistF,ARTIST));
-        fields.add(new TagField(albumArtistF,ALBUM_ARTIST));
-        fields.add(new TagField(composerF,COMPOSER));
-        fields.add(new TagField(publisherF,PUBLISHER));
-        fields.add(new TagField(trackF,TRACK,isIntS));
-        fields.add(new TagField(tracksTotalF,TRACKS_TOTAL,isIntS));
-        fields.add(new TagField(discF,DISC,isIntS));
-        fields.add(new TagField(discsTotalF,DISCS_TOTAL,isIntS));
-        fields.add(new TagField(genreF,GENRE));
-        fields.add(new TagField(categoryF,CATEGORY));
-        fields.add(new TagField(yearF,YEAR,isPastYearS));
-        fields.add(new TagField(ratingF,RATING_RAW));
-        fields.add(new TagField(ratingPF,RATING,IsBetween0And1));
-        fields.add(new TagField(playcountF,PLAYCOUNT));
-        fields.add(new TagField(commentF,Metadata.Field.COMMENT));
-        fields.add(new TagField(moodF,MOOD));
-        fields.add(new TagField(colorF,CUSTOM1,Parser.DEFAULT.isParsable(Color.class)));
-        fields.add(new TagField(custom1F,CUSTOM1));
-        fields.add(new TagField(custom2F,CUSTOM2));
-        fields.add(new TagField(custom3F,CUSTOM3));
-        fields.add(new TagField(custom4F,CUSTOM4));
-        fields.add(new TagField(custom5F,CUSTOM5));
-        fields.add(new TagField(playedFirstF,FIRST_PLAYED));
-        fields.add(new TagField(playedLastF,LAST_PLAYED));
-        fields.add(new TagField(addedToLibF,ADDED_TO_LIBRARY));
-        fields.add(new TagField(tagsF,Metadata.Field.TAGS));
-        fields.add(new TagField(LyricsA,LYRICS));
+        fields.add(new TagField(titleF, TITLE));
+        fields.add(new TagField(albumF, ALBUM));
+        fields.add(new TagField(artistF, ARTIST));
+        fields.add(new TagField(albumArtistF, ALBUM_ARTIST));
+        fields.add(new TagField(composerF, COMPOSER));
+        fields.add(new TagField(publisherF, PUBLISHER));
+        fields.add(new TagField(trackF, TRACK,isIntS));
+        fields.add(new TagField(tracksTotalF, TRACKS_TOTAL,isIntS));
+        fields.add(new TagField(discF, DISC,isIntS));
+        fields.add(new TagField(discsTotalF, DISCS_TOTAL,isIntS));
+        fields.add(new TagField(genreF, GENRE));
+        fields.add(new TagField(categoryF, CATEGORY));
+        fields.add(new TagField(yearF, YEAR,isPastYearS));
+        fields.add(new TagField(ratingF, RATING_RAW));
+        fields.add(new TagField(ratingPF, RATING,IsBetween0And1));
+        fields.add(new TagField(playcountF, PLAYCOUNT));
+        fields.add(new TagField(commentF, COMMENT));
+        fields.add(new TagField(moodF, MOOD));
+        fields.add(new TagField(colorF, CUSTOM1,Parser.DEFAULT.isParsable(Color.class)));
+        fields.add(new TagField(custom1F, CUSTOM1));
+        fields.add(new TagField(custom2F, CUSTOM2));
+        fields.add(new TagField(custom3F, CUSTOM3));
+        fields.add(new TagField(custom4F, CUSTOM4));
+        fields.add(new TagField(custom5F, CUSTOM5));
+        fields.add(new TagField(playedFirstF, FIRST_PLAYED));
+        fields.add(new TagField(playedLastF, LAST_PLAYED));
+        fields.add(new TagField(addedToLibF, ADDED_TO_LIBRARY));
+        fields.add(new TagField(tagsF, TAGS));
+        fields.add(new TagField(LyricsA, LYRICS));
         // associate color picker with custom1 field
         colorFPicker.disableProperty().bind(colorF.disabledProperty());
         colorFPicker.valueProperty().addListener((o,ov,nv) ->
@@ -521,7 +521,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         } else {
             // set info
             infoL.setText(items.size() + " " + plural("item", items.size()) + " loaded.");
-            infoL.setGraphic(Icons.createIcon(items.size()==1 ? FontAwesomeIcon.TAG : TAGS));
+            infoL.setGraphic(Icons.createIcon(items.size()==1 ? FontAwesomeIcon.TAG : FontAwesomeIcon.TAGS));
 
             fields.forEach(f -> f.setEditable(true));
             coverSuperContainer.setDisable(false);
@@ -682,7 +682,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             });
 
             // autocompletion
-            if (c instanceof TextField && !isContainedIn(f, TITLE,RATING_RAW,COMMENT,LYRICS,COLOR)) {
+            if (c instanceof TextField && !isContainedIn(f, TITLE, RATING_RAW, COMMENT, LYRICS, COLOR)) {
                String n = f.name();
                Comparator<String> cmp = String::compareTo;
                autoComplete(

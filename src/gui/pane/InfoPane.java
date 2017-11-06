@@ -16,7 +16,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import util.R;
-import util.Util;
+import util.UtilKt;
 import util.conf.IsConfigurable;
 import util.units.Dur;
 import static gui.objects.icon.Icon.createInfoIcon;
@@ -106,7 +106,7 @@ public class InfoPane extends OverlayPane<Void> {
 			new Named("arguments",    pInfo.arguments().map(args -> String.join(", ", args)).orElse("")),
 			new Named("command",      pInfo.command().orElse("")),
 			new Named("commandline",  pInfo.commandLine().orElse("")),
-			new Named("start time",   pInfo.startInstant().map(i -> Util.localDateTimeFromMillis(i).toString()).orElse("")),
+			new Named("start time",   pInfo.startInstant().map(i -> UtilKt.toLocalDateTime(i).toString()).orElse("")),
 			new Named("running time", pInfo.totalCpuDuration().map(d -> new Dur(d.toMillis()).toString()).orElse("")),
 			new Named("user",         pInfo.user().orElse(""))
 		));

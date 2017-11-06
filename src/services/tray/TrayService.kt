@@ -126,7 +126,7 @@ class TrayService : ServiceBase(true) {
 
         onEnd += Player.playingItem.onUpdate { m ->
             if (showPlayingInTooltip.value)
-                setTooltipText(m.title.takeIf { it.isNotBlank() }?.let { "${APP.name} - $it" })
+                setTooltipText(m.getTitle()?.let { "${APP.name} - $it" })
         }
 
         running = true

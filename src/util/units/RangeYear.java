@@ -14,8 +14,8 @@ public class RangeYear {
 	private int max = Integer.MIN_VALUE;
 	private boolean hasUnspecified = false;
 
-	public void accumulate(int year) {
-		if (year==-1) {
+	public void accumulate(Integer year) {
+		if (year==null) {
 			hasUnspecified = true;
 		} else {
 			min = min(min, year);

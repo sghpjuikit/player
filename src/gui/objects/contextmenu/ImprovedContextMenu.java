@@ -238,7 +238,7 @@ public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleVal
 								menuItems(
 										App.APP.instances.getInstances(SearchUriBuilder.class).stream(),
 										q -> "in " + Parser.DEFAULT.toS(q),
-										q -> APP.actions.itemToMeta(pig.items.get(0), i -> Environment.browse(q.apply(i.getAlbum())))
+										q -> APP.actions.itemToMeta(pig.items.get(0), i -> Environment.browse(q.apply(i.getAlbumOrEmpty())))
 								)
 						)
 				)

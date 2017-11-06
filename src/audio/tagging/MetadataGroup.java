@@ -74,7 +74,7 @@ public final class MetadataGroup {  // TODO: make generic by value
 			albumSet.add(m.getAlbum());
 			lengthSum += m.getLengthInMs();
 			sizeSum += m.getFileSizeInB();
-			ratingSum += m.getRatingPercent();
+			ratingSum += m.getRatingPercentOr0();
 			years.accumulate(m.getYearAsInt());
 		}
 

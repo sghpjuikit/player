@@ -40,7 +40,6 @@ import util.conf.Config.PropertyConfig;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 import util.graphics.drag.DragUtil;
-import static audio.tagging.Metadata.EMPTY;
 import static audio.tagging.Metadata.Field.ALBUM;
 import static audio.tagging.Metadata.Field.ALBUM_ARTIST;
 import static audio.tagging.Metadata.Field.ARTIST;
@@ -144,7 +143,7 @@ public class FileInfo extends FXMLController implements SongReader {
     private final LField rating = fields.get(12);
 
     private Output<Metadata> data_out;
-    private Metadata data = EMPTY;
+    private Metadata data = Metadata.EMPTY;
 
     // configs
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
@@ -170,7 +169,7 @@ public class FileInfo extends FXMLController implements SongReader {
 
     @Override
     public void init() {
-        data_out = outputs.create(widget.id, "Displayed", Metadata.class, EMPTY);
+        data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
 
         // keep updated contents, we do this directly instead of looking up the Input, same effect
         d(Player.onItemRefresh(refreshed -> refreshed.ifHasE(data, this::read)));
@@ -245,7 +244,7 @@ public class FileInfo extends FXMLController implements SongReader {
 
     @Override
     public boolean isEmpty() {
-        return data==null || data == EMPTY;
+        return data==null || data==Metadata.EMPTY;
     }
 
     @SuppressWarnings("unchecked")
@@ -282,14 +281,14 @@ public class FileInfo extends FXMLController implements SongReader {
 
     // item -> metadata
     private void setValue(Item i) {
-        if (i==null) setValue(EMPTY);
+        if (i==null) setValue(Metadata.EMPTY);
         else if (i instanceof Metadata) setValue((Metadata)i);
         else APP.actions.itemToMeta(i, this::setValue);
     }
 
     private void setValue(Metadata m) {
         // no empty content if desired
-        if (!allowNoContent && m==EMPTY) return;
+        if (!allowNoContent && m==Metadata.EMPTY) return;
 
         // remember data
         data = m;
@@ -299,7 +298,7 @@ public class FileInfo extends FXMLController implements SongReader {
         // note we disallow empty rating so rater remains editable
         fields.forEach(l -> l.setVal(m));
         setCover(cover_source.getValue());
-        rater.rating.set(m==EMPTY ? 0d : m.getRatingPercent());
+        rater.rating.set(m.getRatingPercentOr0());
 
         update();
     }
@@ -362,7 +361,7 @@ public class FileInfo extends FXMLController implements SongReader {
             // get all known songs from album
             ? APP.db.getItems().o.getValue().stream()
                 // we must not write when album is empty! that could have disastrous consequences!
-                .filter(m -> !m.getAlbum().isEmpty() && m.getAlbum().equals(data.getAlbum()))
+                .filter(m -> m.getAlbum()!=null && m.getAlbum().equals(data.getAlbum()))
                 .collect(toSet())
             : new HashSet<>();
         items.add(data); // make sure the original is included (Set avoids duplicates)
@@ -395,7 +394,7 @@ public class FileInfo extends FXMLController implements SongReader {
         }
 
         void setVal(Metadata m) {
-            String v = m==EMPTY || field==RATING ? "" : m.getFieldS(field,"");
+            String v = m==Metadata.EMPTY || field==RATING ? "" : m.getFieldS(field,"");
                    v = v.replace('\r', ' ');
                    v = v.replace('\n', ',');
             setText(name + ": " + v);

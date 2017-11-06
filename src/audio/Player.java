@@ -24,7 +24,6 @@ import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
 import util.async.future.Fut;
 import util.collections.mapset.MapSet;
-import static audio.tagging.Metadata.EMPTY;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static main.App.APP;
 import static util.async.Async.FX;
@@ -215,8 +214,8 @@ public class Player {
 	}
 
 	public static class CurrentItem {
-		private Metadata val = EMPTY;
-		private Metadata valNext = EMPTY;
+		private Metadata val = Metadata.EMPTY;
+		private Metadata valNext = Metadata.EMPTY;
 		private final FxTimer valNextLoader = new FxTimer(400, 1, () -> preloadNext());
 		private final List<BiConsumer<Metadata,Metadata>> changes = new ArrayList<>();
 		private final List<BiConsumer<Metadata,Metadata>> updates = new ArrayList<>();
@@ -314,7 +313,7 @@ public class Player {
 		/** Execute when song starts playing. */
 		public void itemChanged(Item item) {
 			if (item==null) {
-				set(true, EMPTY);
+				set(true, Metadata.EMPTY);
 				log(Player.class).info("Current item metadata set to empty. No item playing.");
 			}
 			// if same item, still fire change

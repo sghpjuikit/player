@@ -168,7 +168,7 @@ public class Library extends FXMLController implements SongReader {
         table.setColumnFactory(f -> {
             TableColumn<Metadata,Object> c = new TableColumn<>(f.toString());
             c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue())));
-            c.setCellFactory(f==(Metadata.Field)RATING
+            c.setCellFactory(f==(Metadata.Field) RATING
                 ? (Callback) APP.ratingCell.getValue()
                 : column -> table.buildDefaultCell(f)
             );

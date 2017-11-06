@@ -316,7 +316,7 @@ public class App extends Application implements Configurable {
 	 */ public final InstanceMap instances = new InstanceMap();
 
 	@IsConfig(name = "Rating control", info = "The style of the graphics of the rating control.")
-	public final VarEnum<RatingCellFactory> ratingCell = VarEnum.Companion.ofInstances(RatingRatingCellFactory.INSTANCE, RatingCellFactory.class, instances);
+	public final VarEnum<RatingCellFactory> ratingCell = VarEnum.ofInstances(RatingRatingCellFactory.INSTANCE, RatingCellFactory.class, instances);
 
 	@IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.")
 	@Constraint.MinMax(min=0, max=10)
@@ -436,7 +436,7 @@ public class App extends Application implements Configurable {
 		instanceName.add(App.class, app -> "This application");
 		instanceName.add(Item.class, Item::getPathAsString);
 		instanceName.add(PlaylistItem.class, PlaylistItem::getTitle);
-		instanceName.add(Metadata.class, Metadata::getTitle);
+		instanceName.add(Metadata.class, Metadata::getTitleOrEmpty);
 		instanceName.add(MetadataGroup.class, o -> Objects.toString(o.getValue()));
 		instanceName.add(Component.class, Component::getName);
 		instanceName.add(File.class, File::getPath);

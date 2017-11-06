@@ -55,14 +55,14 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): AnchorPane(
         dataId = m.identityHashCode()
         typeL.text = title
         thumb?.loadCoverOf(m)
-        indexL.text = m.playlistIndexInfo
-        songL.text = if (m.title.isEmpty()) m.getFilename() else m.title
-        artistL.text = m.artist
-        albumL.text = m.album
+        indexL.text = m.getPlaylistIndexInfo().toString()
+        songL.text = m.getTitle() ?: m.getFilename()
+        artistL.text = m.getArtist()
+        albumL.text = m.getAlbum()
     }
 
     private fun Thumbnail.loadCoverOf(data: Metadata) {
-        val id = System.identityHashCode(data)
+        val id = data.identityHashCode()
         Fut.futWith { data.getCover(ANY).image }
            .use(FX, Consumer { if (dataId==id) loadImage(it) })
     }

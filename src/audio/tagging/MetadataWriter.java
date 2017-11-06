@@ -49,6 +49,7 @@ import static audio.tagging.ExtKt.clipRating;
 import static audio.tagging.ExtKt.getRatingMax;
 import static audio.tagging.ExtKt.readAudioFile;
 import static audio.tagging.Metadata.SEPARATOR_GROUP;
+import static audio.tagging.Metadata.SEPARATOR_UNIT;
 import static audio.tagging.Metadata.TAG_ID_COLOR;
 import static audio.tagging.Metadata.TAG_ID_LIB_ADDED;
 import static audio.tagging.Metadata.TAG_ID_PLAYED_FIRST;
@@ -384,7 +385,7 @@ public class MetadataWriter extends Item {
 
 	/** Increments playcount by 1. */
 	public void inrPlaycount(Metadata m) {
-		setPlaycount(m.getPlaycount() + 1);
+		setPlaycount(m.getPlaycountOr0() + 1);
 	}
 
 	private void setPlaycountID3(AbstractID3v2Tag tag, int val) {
@@ -623,11 +624,7 @@ public class MetadataWriter extends Item {
 	}
 
 	public void setTags(Set<String> tags) {
-		setTags(tags.isEmpty() ? "" :
-				Metadata.SEPARATOR_UNIT +
-						tags.stream().collect(joining(Metadata.SEPARATOR_UNIT.toString() +
-								Metadata.SEPARATOR_UNIT
-						)));
+		setTags(tags.isEmpty() ? "" : SEPARATOR_UNIT + tags.stream().collect(joining(String.valueOf(SEPARATOR_UNIT) + SEPARATOR_UNIT)));
 	}
 
 	public void setTags(String tags) {
@@ -717,10 +714,10 @@ public class MetadataWriter extends Item {
 	private void setCustomField(String id, String val) {
 		boolean isEmpty = val==null || val.isEmpty();	// TODO: unimplemented!!
 		String ov = tag.hasField(FieldKey.CUSTOM5) ? emptyOr(tag.getFirst(FieldKey.CUSTOM5)) : "";
-		List<String> tagfields = list(split(ov, SEPARATOR_GROUP.toString()));
+		List<String> tagfields = list(split(ov, String.valueOf(SEPARATOR_GROUP)));
 		tagfields.removeIf(tagfield -> tagfield.startsWith(id));
 		tagfields.add(id + val);
-		String nv = tagfields.stream().collect(joining(SEPARATOR_GROUP.toString()));
+		String nv = tagfields.stream().collect(joining(String.valueOf(SEPARATOR_GROUP)));
 		nv = SEPARATOR_GROUP + nv + SEPARATOR_GROUP;
 		setCustom5(nv);
 	}
@@ -732,14 +729,14 @@ public class MetadataWriter extends Item {
 
 	public void setFieldS(Metadata.Field field, String data) {
 		if (field==Metadata.Field.PATH ||
-				field==Metadata.Field.FILENAME ||
-				field==Metadata.Field.FORMAT ||
-				field==Metadata.Field.FILESIZE ||
-				field==Metadata.Field.ENCODING ||
-				field==Metadata.Field.BITRATE ||
-				field==Metadata.Field.CHANNELS ||
-				field==Metadata.Field.SAMPLE_RATE ||
-				field==Metadata.Field.LENGTH) return;
+			field==Metadata.Field.FILENAME ||
+			field==Metadata.Field.FORMAT ||
+			field==Metadata.Field.FILESIZE ||
+			field==Metadata.Field.ENCODING ||
+			field==Metadata.Field.BITRATE ||
+			field==Metadata.Field.CHANNELS ||
+			field==Metadata.Field.SAMPLE_RATE ||
+			field==Metadata.Field.LENGTH) return;
 		if (field==Metadata.Field.ENCODER) { setEncoder(data); return; }
 		if (field==Metadata.Field.TITLE) { setTitle(data); return; }
 		if (field==Metadata.Field.ALBUM) { setAlbum(data); return; }

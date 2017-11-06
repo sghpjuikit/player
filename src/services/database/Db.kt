@@ -85,7 +85,7 @@ class Db {
                         // populate metadata fields strings if empty
                         if (stringPool.getStrings("album").isEmpty() && !itemsById.isEmpty()) {
                             Metadata.Field.FIELDS.asSequence()
-                                    .filter { it.isAutoCompletable }
+                                    .filter { it.isAutoCompletable() }
                                     .forEach { f ->
                                         val pool = stringPool.getStrings(f.name())
                                         itemsById.asSequence()

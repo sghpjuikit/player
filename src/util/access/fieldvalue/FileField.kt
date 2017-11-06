@@ -4,12 +4,12 @@ import com.drew.imaging.ImageMetadataReader
 import com.drew.imaging.ImageProcessingException
 import com.drew.metadata.xmp.XmpDirectory
 import util.SwitchException
-import util.Util.localDateTimeFromMillis
 import util.file.FileType
 import util.file.mimetype.MimeType
 import util.file.mimetype.mimeType
 import util.file.nameOrRoot
 import util.file.nameWithoutExtensionOrRoot
+import util.localDateTimeFromMillis
 import util.units.FileSize
 import java.io.File
 import java.io.IOException
@@ -18,6 +18,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileTime
 import java.time.LocalDateTime
 import java.util.Date
+import kotlin.collections.HashSet
 import kotlin.reflect.KClass
 
 class FileField<T: Any>: ObjectFieldBase<File, T> {
@@ -37,7 +38,7 @@ class FileField<T: Any>: ObjectFieldBase<File, T> {
         @JvmField val NAME_FULL = FileField("Filename", "Filename", String::class) { it.nameOrRoot }
         @JvmField val EXTENSION = FileField("Extension", "Extension", String::class) { it.extension }
         @JvmField val SIZE = FileField("Size", "Size", FileSize::class) { FileSize(it) }
-        @JvmField val TIME_MODIFIED = FileField("Time Modified", "Time Modified", LocalDateTime::class) { localDateTimeFromMillis(it.lastModified()) }
+        @JvmField val TIME_MODIFIED = FileField("Time Modified", "Time Modified", LocalDateTime::class) { it.lastModified().localDateTimeFromMillis() }
         @JvmField val TIME_CREATED = FileField("Time Created", "Time Created", FileTime::class) {
             try {
                 Files.readAttributes(it.toPath(), BasicFileAttributes::class.java).creationTime()

@@ -129,7 +129,7 @@ public class WindowManager implements Configurable<Object> {
     public Duration mini_inactive_delay = millis(700);
 
     @IsConfig(name="Mini widget", info="Widget to use in mini window.")
-    public final VarEnum<String> mini_widget = VarEnum.Companion.ofStream("PlayerControlsTiny",
+    public final VarEnum<String> mini_widget = VarEnum.ofStream("PlayerControlsTiny",
         () -> APP.widgetManager.getFactories().filter(wf -> wf.hasFeature(HorizontalDock.class)).map(WidgetFactory::name)
     );
 

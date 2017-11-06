@@ -83,7 +83,7 @@ class PlaycountIncrementer : ServiceBase(false) {
     @IsAction(name = "Increment playcount", desc = "Rises the number of times the song has been played by one and updates the song tag.")
     fun increment() {
         val m = Player.playingItem.get()
-        if (!m.isEmpty && m.isFileBased()) {
+        if (!m.isEmpty() && m.isFileBased()) {
             if (delay.value) {
                 queue += m
                 if (showNotification.value)
@@ -91,7 +91,7 @@ class PlaycountIncrementer : ServiceBase(false) {
                 if (showBubble.value)
                     APP.services.use(TrayService::class) { it.showNotification("Tagger", "Playcount incremented scheduled", INFO) }
             } else {
-                val pc = 1 + m.playcount
+                val pc = 1 + m.getPlaycountOr0()
                 MetadataWriter.use(m, { it.setPlaycount(pc) }) { ok ->
                     if (ok!!) {
                         if (showNotification.value)
@@ -142,7 +142,7 @@ class PlaycountIncrementer : ServiceBase(false) {
         val queuedTimes = queue.count { it.same(m) }
         if (queuedTimes > 0) {
             queue.removeIf { it.same(m) }
-            val p = queuedTimes + m.playcount
+            val p = queuedTimes + m.getPlaycountOr0()
             Player.IO_THREAD.execute {
                 MetadataWriter.useNoRefresh(m) { it.setPlaycount(p) }
                 Player.refreshItemWith(MetadataReader.readMetadata(m), true)

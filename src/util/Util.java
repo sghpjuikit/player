@@ -7,9 +7,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.time.DateTimeException;
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +29,7 @@ import static util.dev.Util.throwIf;
 /**
  * Provides general purpose utility methods.
  */
+@SuppressWarnings("unused")
 public interface Util {
 
 	/** Golden ratio - {@code 1.6180339887}. */
@@ -40,14 +38,7 @@ public interface Util {
 	/** System default zone id. */
 	ZoneId ZONE_ID = ZoneId.systemDefault();
 
-	/**
-	 * Method equivalent to object's equal method, but if both objects are null
-	 * they are considered equal as well.
-	 * <p/>
-	 * Equivalent to {@code (a==b) || (a!=null && a.equals(b))}
-	 *
-	 * @return true iff objects are equal or both null
-	 */
+	/** @return true iff objects are equal or both null, same as {@code (a==b) || (a!=null && a.equals(b))} */
 	static boolean nullEqual(Object a, Object b) {
 		return (a==b) || (a!=null && a.equals(b));
 	}
@@ -59,37 +50,6 @@ public interface Util {
 	 */
 	static boolean equals(Artwork a1, Artwork a2) {
 		return (a1==null && a2==null) || (a1!=null && a2!=null && Arrays.equals(a1.getBinaryData(), a2.getBinaryData()));
-	}
-
-	/**
-	 * Returns local date time from an instant.
-	 */
-	static LocalDateTime localDateTimeFromMillis(Instant instant) {
-		return LocalDateTime.ofInstant(instant, ZONE_ID);
-	}
-
-	/**
-	 * Returns local date time from epoch millis or null if parameter exceeds the maximum or minimum
-	 * {@link java.time.Instant}.
-	 */
-	static LocalDateTime localDateTimeFromMillis(long epochMillis) {
-		try {
-			return localDateTimeFromMillis(Instant.ofEpochMilli(epochMillis));
-		} catch (DateTimeException e) {
-			return null;
-		}
-	}
-
-	/**
-	 * Returns local date time from epoch millis or null if parameter is not a number or exceeds the maximum or minimum
-	 * {@link java.time.Instant}.
-	 */
-	static LocalDateTime localDateTimeFromMillis(String epochMillis) {
-		try {
-			return localDateTimeFromMillis(Long.parseLong(epochMillis));
-		} catch (NumberFormatException e) {
-			return null;
-		}
 	}
 
 	/**

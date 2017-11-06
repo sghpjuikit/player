@@ -179,7 +179,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
     private void playbackItemChanged(Metadata m) {
         lastUpdatedTime = Double.MIN_VALUE;
         seeker.reloadChapters(m);
-        scrollLabel.setText(m.getArtist() + " - " + m.getTitle());
+        scrollLabel.setText(m.getArtistOrEmpty() + " - " + m.getTitleOrEmpty());
     }
 
     private void statusChanged(Status status) {

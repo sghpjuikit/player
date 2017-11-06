@@ -35,7 +35,7 @@ object RatingRatingCellFactory: RatingCellFactory {
             if (empty) {
                 graphic = null
             } else {
-                r.rating.set(item)
+                r.rating.set(item ?: 0.0)
                 if (graphic==null) graphic = r
             }
         }

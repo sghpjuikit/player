@@ -338,7 +338,7 @@ public class Player {
 		// load metadata, type indicates UPDATE vs CHANGE
 		private void load(boolean changeType, Item item) {
 			Fut.fut(item)
-					.map(MetadataReader::readMetadata)
+					.map(Player.IO_THREAD, MetadataReader::readMetadata)
 					.use(FX, m -> set(changeType, m.isEmpty() ? item.toMeta() : m));
 		}
 
@@ -348,7 +348,7 @@ public class Player {
 			PlaylistItem next = PlaylistManager.use(Playlist::getNextPlaying, null);
 			if (next!=null) {
 				Fut.fut(next)
-						.map(MetadataReader::readMetadata)
+						.map(Player.IO_THREAD, MetadataReader::readMetadata)
 						.use(FX, m -> valNext = m);
 			}
 		}

@@ -78,7 +78,6 @@ import static layout.widget.Widget.Group.OTHER;
 import static main.App.APP;
 import static util.async.Async.FX;
 import static util.async.Async.runFX;
-import static util.async.executor.EventReducer.toLast;
 import static util.file.Util.copyFileSafe;
 import static util.file.Util.copyFiles;
 import static util.functional.Util.by;
@@ -172,7 +171,7 @@ public class FileInfo extends FXMLController implements SongReader {
         data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
 
         // keep updated contents, we do this directly instead of looking up the Input, same effect
-        d(Player.onItemRefresh(refreshed -> refreshed.ifHasE(data, this::read)));
+        d(Player.onItemRefresh(refreshed -> refreshed.ifHasE(data, this::setValue)));   // do not feed even reducer, this could overwrite events and cause invalid data to be set
 
         cover.getPane().setDisable(true); // TODO: should be handled differently, either init all or none
         cover.setBackgroundVisible(false);
@@ -277,7 +276,7 @@ public class FileInfo extends FXMLController implements SongReader {
 
 /********************************* PRIVATE API ********************************/
 
-    private final EventReducer<Item> reading = toLast(200,this::setValue);
+    private final EventReducer<Item> reading = EventReducer.toLast(200, this::setValue);
 
     // item -> metadata
     private void setValue(Item i) {

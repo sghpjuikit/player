@@ -55,19 +55,19 @@ public abstract class EventReducer<E> {
 		return new HandlerFirstDelayed<>(inter_period, e -> handler.run());
 	}
 
-	public static <E> EventReducer<E> toLast(double inter_period, Consumer<E> handler) {
+	public static <E> HandlerLast<E> toLast(double inter_period, Consumer<E> handler) {
 		return new HandlerLast<>(inter_period, null, handler);
 	}
 
-	public static <E> EventReducer<E> toLast(double inter_period, Runnable handler) {
+	public static <E> HandlerLast<E> toLast(double inter_period, Runnable handler) {
 		return new HandlerLast<>(inter_period, null, e -> handler.run());
 	}
 
-	public static <E> EventReducer<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
+	public static <E> HandlerLast<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
 		return new HandlerLast<>(inter_period, reduction, handler);
 	}
 
-	public static <E> EventReducer<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Runnable handler) {
+	public static <E> HandlerLast<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Runnable handler) {
 		return new HandlerLast<>(inter_period, reduction, e -> handler.run());
 	}
 
@@ -95,7 +95,7 @@ public abstract class EventReducer<E> {
 		return new HandlerFirstOfAtLeast<>(inter_period, atLeast, e -> handler.run());
 	}
 
-	private static class HandlerLast<E> extends EventReducer<E> {
+	public static class HandlerLast<E> extends EventReducer<E> {
 		private final FxTimer t;
 
 		public HandlerLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
@@ -106,6 +106,10 @@ public abstract class EventReducer<E> {
 		@Override
 		public void handle() {
 			t.start(inter_period);
+		}
+
+		public boolean hasEventsQueued() {
+			return t.isRunning();
 		}
 
 	}

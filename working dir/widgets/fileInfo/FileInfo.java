@@ -33,6 +33,7 @@ import layout.widget.controller.io.Output;
 import layout.widget.feature.SongReader;
 import util.access.V;
 import util.async.executor.EventReducer;
+import util.async.executor.EventReducer.HandlerLast;
 import util.async.future.Fut;
 import util.conf.Config;
 import util.conf.Config.ConfigBase;
@@ -83,6 +84,8 @@ import static util.file.Util.copyFiles;
 import static util.functional.Util.by;
 import static util.functional.Util.list;
 import static util.graphics.Util.setAnchor;
+import static util.graphics.drag.DragUtil.hasAudio;
+import static util.graphics.drag.DragUtil.installDrag;
 
 /**
  * File info widget controller.
@@ -143,8 +146,8 @@ public class FileInfo extends FXMLController implements SongReader {
 
     private Output<Metadata> data_out;
     private Metadata data = Metadata.EMPTY;
+	private final HandlerLast<Item> dataReading = EventReducer.toLast(200, this::setValue);
 
-    // configs
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
     public final V<Double> minColumnWidth = new V<>(150.0, tiles::layout);
     @IsConfig(name = "Cover source", info = "Source for cover image.")
@@ -161,7 +164,6 @@ public class FileInfo extends FXMLController implements SongReader {
     public final V<Sort> groupFields = new V<>(Sort.SEMANTIC,this::update);
     @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
     public boolean allowNoContent = false;
-    // generate show {field} configs
     private final Map<String,Config> fieldConfigs = fields.stream()
             .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig, "FileInfo","Show this field", EditMode.USER))
             .collect(toMap(ConfigBase::getName, c -> c));
@@ -170,8 +172,11 @@ public class FileInfo extends FXMLController implements SongReader {
     public void init() {
         data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
 
-        // keep updated contents, we do this directly instead of looking up the Input, same effect
-        d(Player.onItemRefresh(refreshed -> refreshed.ifHasE(data, this::setValue)));   // do not feed even reducer, this could overwrite events and cause invalid data to be set
+        // keep updated content (unless the content is scheduled for change, then this could cause invalid content)
+	    d(Player.onItemRefresh(refreshed -> {
+        	if (!dataReading.hasEventsQueued())
+	            refreshed.ifHasE(data, this::read);
+        }));
 
         cover.getPane().setDisable(true); // TODO: should be handled differently, either init all or none
         cover.setBackgroundVisible(false);
@@ -224,9 +229,9 @@ public class FileInfo extends FXMLController implements SongReader {
         rater.onRatingEdited = r -> MetadataWriter.useToRate(data, r);
 
         // drag & drop
-        DragUtil.installDrag(
+        installDrag(
             root, MaterialIcon.DETAILS, "Display",
-            DragUtil::hasAudio,
+            e -> hasAudio(e),
             e -> DragUtil.getSongs(e)
                          .use(FX, items -> items.findFirst().ifPresent(this::read))
         );
@@ -261,12 +266,10 @@ public class FileInfo extends FXMLController implements SongReader {
                        .orElseGet(() -> super.getField(n));
     }
 
-/********************************** FEATURES **********************************/
-
     @Override
     @IsInput("To display")
     public void read(Item item) {
-        reading.push(item);
+        dataReading.push(item);
     }
 
     @Override
@@ -274,11 +277,6 @@ public class FileInfo extends FXMLController implements SongReader {
         read(items.isEmpty() ? null : items.get(0));
     }
 
-/********************************* PRIVATE API ********************************/
-
-    private final EventReducer<Item> reading = EventReducer.toLast(200, this::setValue);
-
-    // item -> metadata
     private void setValue(Item i) {
         if (i==null) setValue(Metadata.EMPTY);
         else if (i instanceof Metadata) setValue((Metadata)i);
@@ -286,8 +284,7 @@ public class FileInfo extends FXMLController implements SongReader {
     }
 
     private void setValue(Metadata m) {
-        // no empty content if desired
-        if (!allowNoContent && m==Metadata.EMPTY) return;
+	    if (!allowNoContent && m==Metadata.EMPTY) return; // no empty content if desired
 
         // remember data
         data = m;
@@ -369,12 +366,8 @@ public class FileInfo extends FXMLController implements SongReader {
         Player.refreshItems(items);
     }
 
-/**************************************************************************************************/
+    private enum Sort { SEMANTIC, ALPHANUMERIC }
 
-    private enum Sort {
-        SEMANTIC,
-        ALPHANUMERIC
-    }
     private class LField extends Label {
         final Field field;
         final V<Boolean> visibleConfig;
@@ -411,6 +404,7 @@ public class FileInfo extends FXMLController implements SongReader {
                 labels.remove(this);
         }
     }
+
     private class FieldsPane extends TilePane {
 
         public FieldsPane() {

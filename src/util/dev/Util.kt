@@ -4,7 +4,7 @@
 package util.dev
 
 import javafx.application.Platform
-import org.slf4j.LoggerFactory
+import mu.KotlinLogging
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
@@ -71,9 +71,9 @@ fun Field.throwIfNotFinal(): Field {
     return this
 }
 
-fun <T> measureTime(r: () -> T): T {
+fun <T> measureTime(block: () -> T): T {
     val time = System.currentTimeMillis()
-    val t = r()
+    val t = block()
     println(System.currentTimeMillis()-time)
     return t
 }
@@ -86,13 +86,10 @@ fun Any.log() = (when {
     }).log()
 
 /** @return [org.slf4j.Logger] for the class. */
-fun KClass<*>.log() = LoggerFactory.getLogger(this.java)!!
+fun KClass<*>.log() = KotlinLogging.logger(this.java.simpleName)
 
-/** @return logger for top level file with specified name */
-fun logFile(loggerName: String) = LoggerFactory.getLogger(loggerName)!!
-
-/** @return all running threads. Incurs performance penalty, use for debugging purposes. */
+/** @return all running threads (Incurs performance penalty, use only for debugging purposes) */
 fun activeThreads() = Thread.getAllStackTraces().keys.asSequence()
 
-/** Prints names of all currently running non daemon threads.  */
-fun printNonDaemonThreads() = activeThreads().filter { t -> !t.isDaemon }.forEach { t -> println(t.name) }
+/** Prints names of all currently running non daemon threads. */
+fun printNonDaemonThreads() = activeThreads().filter { !it.isDaemon }.forEach { println(it.name) }

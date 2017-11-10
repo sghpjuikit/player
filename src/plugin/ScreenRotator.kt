@@ -1,9 +1,9 @@
 package plugin
 
+import mu.KotlinLogging
 import util.action.Action
 import util.conf.Config.RunnableConfig
 import util.conf.IsConfig
-import util.dev.log
 import util.system.Environment
 import java.io.IOException
 
@@ -11,6 +11,7 @@ private const val NAME = "Screen Rotator"
 private const val GROUP = "${Plugin.CONFIG_GROUP}.$NAME"
 private const val PROGRAM_FILE_NAME = "display.exe"
 private const val PROGRAM_HELP_FILE_NAME = "display.htm"
+private val logger = KotlinLogging.logger {}
 
 class ScreenRotator: PluginBase(NAME) {
 
@@ -45,11 +46,12 @@ class ScreenRotator: PluginBase(NAME) {
 
     fun rotateScreen(screen: Int, rotation: String) {
         try {
-            ProcessBuilder(programFile.path, "/rotate:$rotation", "/device:$screen").directory(getUserLocation()).start()
+            ProcessBuilder(programFile.path, "/rotate:$rotation", "/device:$screen").directory(userLocation).start()
         } catch (e: IOException) {
-            log().error("Failed to rotate display", e)
+            logger.error(e) { "Failed to rotate display" }
         }
     }
 
     fun openHelp() = Environment.open(programHelpFile)
+
 }

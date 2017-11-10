@@ -6,6 +6,7 @@ import gui.objects.icon.Icon
 import gui.objects.textfield.autocomplete.ConfigSearch
 import javafx.collections.ObservableList
 import main.App
+import mu.KotlinLogging
 import util.access.v
 import util.async.Async.FX
 import util.async.future.Fut
@@ -13,10 +14,9 @@ import util.conf.Config.RunnableConfig
 import util.conf.Config.VarList
 import util.conf.Config.VarList.Elements
 import util.conf.IsConfig
-import util.dev.log
-import util.system.Environment
 import util.file.Util.readFileLines
 import util.file.Util.writeFile
+import util.system.Environment
 import util.validation.Constraint
 import util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
@@ -29,7 +29,7 @@ import kotlin.streams.asSequence
 
 private const val NAME = "Dir Search"
 private const val GROUP = "${Plugin.CONFIG_GROUP}.$NAME"
-private const val INDEX_FILE_NAME = "dirs.txt"
+private val logger = KotlinLogging.logger {}
 
 class DirSearchPlugin: PluginBase(NAME) {
 
@@ -45,7 +45,7 @@ class DirSearchPlugin: PluginBase(NAME) {
     @IsConfig(name = "Re-index", group = GROUP)
     private val searchDo = RunnableConfig("reindex", "Update cache", GROUP, "", { updateCache() })
 
-    private val cacheFile = getUserResource(INDEX_FILE_NAME)
+    private val cacheFile = getUserResource("dirs.txt")
     private val cacheUpdate = AtomicLong(0)
 
     private var dirs: List<File> = emptyList()
@@ -74,7 +74,7 @@ class DirSearchPlugin: PluginBase(NAME) {
                     try {
                         Paths.get(it).toFile()
                     } catch (e: Exception) {
-                        log().warn("Illegal path value in plugin cache", e)
+                        logger.warn(e) { "Illegal path value in plugin cache" }
                         null
                     }
                 }
@@ -112,7 +112,7 @@ class DirSearchPlugin: PluginBase(NAME) {
     private fun findDirectories(rootDir: File, id: Long) =
         rootDir.walkTopDown()
                 .onEnter { file -> cacheUpdate.get()==id && file.isDirectory }
-                .onFail { file, e -> log().warn("Couldn't not properly read/access file={}", file, e) }
+                .onFail { file, e -> logger.warn(e) { "Couldn't not properly read/access file=$file" } }
                 .maxDepth(searchDepth.value)
 
 }

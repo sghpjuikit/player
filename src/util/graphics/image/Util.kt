@@ -1,4 +1,3 @@
-@file:JvmName(CLASS_NAME)
 @file:Suppress("unused")
 
 package util.graphics.image
@@ -7,11 +6,10 @@ import javafx.application.Platform
 import javafx.embed.swing.SwingFXUtils
 import javafx.scene.image.Image
 import javafx.scene.image.WritableImage
+import mu.KotlinLogging
 import net.coobird.thumbnailator.Thumbnails
 import net.coobird.thumbnailator.resizers.configurations.Rendering
 import net.coobird.thumbnailator.resizers.configurations.ScalingMode
-import util.dev.log
-import util.dev.logFile
 import util.file.Util.getSuffix
 import util.functional.Try
 import java.awt.Dimension
@@ -26,9 +24,7 @@ private typealias ImageFx = Image
 private typealias ImageBf = BufferedImage
 private typealias ImageWr = WritableImage
 
-private const val CLASS_NAME = "Util"
-private const val LOGGER_NAME = "util.graphics.image.$CLASS_NAME"
-private val LOGGER = logFile(LOGGER_NAME)
+private val logger = KotlinLogging.logger {}
 
 // TODO: memoize readers transparently in a thread-safe manner
 
@@ -46,7 +42,7 @@ private fun ImageBf.toScaled(W: Int, H: Int, highQuality: Boolean): ImageBf {
                     .rendering(if (highQuality) Rendering.QUALITY else Rendering.SPEED)
                     .asBufferedImage()
         } catch (e: IOException) {
-            LOGGER.warn("Can't find image thumbnails {}", this, e)
+            logger.warn(e) { "Can't find image thumbnails $this" }
             this
         } finally {
             flush()
@@ -60,12 +56,12 @@ private fun imgImplHasThumbnail(reader: ImageReader, index: Int, f: File): Boole
         reader.readerSupportsThumbnails() && reader.hasThumbnails(index) // throws exception -> no thumb
         true
     } catch (e: IOException) {
-        LOGGER.warn("Can't find image thumbnails {}", f, e)
+        logger.warn(e) { "Can't find image thumbnails $f" }
         false
     } catch (e: Exception) {
         // The twelvemonkeys library seems to have a few bugs, throwing all kinds of exceptions,
         // including NullPointerException and ConcurrentModificationError
-        LOGGER.warn("Can't find image thumbnails {}", f, e)
+        logger.warn(e) { "Can't find image thumbnails $f" }
         false
     }
 }
@@ -74,7 +70,7 @@ fun loadBufferedImage(file: File): Try<ImageBf, IOException> {
     return try {
         Try.ok(ImageIO.read(file))
     } catch (e: IOException) {
-        LOGGER.error("Can't read image {} for tray icon", file, e)
+        logger.error(e) { "Can't read image $file for tray icon" }
         Try.error(e)
     }
 }
@@ -97,7 +93,7 @@ fun loadImageThumb(file: File?, width: Double, height: Double): ImageFx? {
 
 fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean): ImageFx? {
     if (Platform.isFxApplicationThread())
-        LOGGER.log().warn("Loading image on FX thread!", Throwable())
+        logger.warn(Throwable()) { "Loading image on FX thread!" }
 
     // negative values have same effect as 0, 0 loads image at its size
     val W = maxOf(0, width.toInt())
@@ -193,17 +189,17 @@ fun getImageDim(f: File): Try<Dimension, Void> {
                 return Try.ok(Dimension(width, height))
             }
         } catch (e: IOException) {
-            LOGGER.warn("Problem finding out image size {}", f, e)
+            logger.warn(e) {"Problem finding out image size $f" }
             return Try.error()
         } catch (e: NullPointerException) {
             // The twelvemonkeys library seems to have a bug
-            LOGGER.warn("Problem finding out image size {}", f, e)
+            logger.warn(e) { "Problem finding out image size $f" }
             return Try.error()
         } finally {
             reader.dispose()
         }
     } else {
-        LOGGER.warn("No reader found for given file: {}", f)
+        logger.warn { "No reader found for given file: $f" }
         return Try.error()
     }
 

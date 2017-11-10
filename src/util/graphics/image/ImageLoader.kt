@@ -1,13 +1,14 @@
 package util.graphics.image
 
 import javafx.scene.image.Image
-import util.dev.log
+import mu.KotlinLogging
 import util.file.mimetype.MimeType
 import util.file.mimetype.mimeType
 import util.graphics.IconExtractor
 import util.graphics.image.ImageLoader.Params
 import java.io.File
 
+private val logger = KotlinLogging.logger {}
 
 interface ImageLoader {
 
@@ -20,17 +21,18 @@ interface ImageLoader {
      * @throws IllegalArgumentException when on fx thread
      */
     operator fun invoke(file: File?, size: ImageSize) = if (file==null) null else invoke(Params(file, size, file.mimeType()))
-
     operator fun invoke(file: File?) = invoke(file, ImageSize(0.0, 0.0))
     operator fun invoke(p: Params): Image?
 
     data class Params(val file: File, val size: ImageSize, val mime: MimeType)
+
 }
 
 /** Standard image loader attempting the best possible quality and broad file type support. */
 object ImageStandardLoader: ImageLoader {
+
     override fun invoke(p: Params): Image? {
-        log().debug("Loading img $p")
+        logger.debug { "Loading img $p" }
 
         return when (p.mime.name) {
             "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, true)
@@ -50,7 +52,7 @@ object ImageStandardLoader: ImageLoader {
 object Image2PassLoader {
     val lq: ImageLoader = object: ImageLoader {
         override fun invoke(p: Params): Image? {
-            log().debug("Loading LQ img $p")
+            logger.debug { "Loading LQ img $p" }
 
             return when (p.mime.name) {
                 "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, false)
@@ -60,7 +62,7 @@ object Image2PassLoader {
     }
     val hq: ImageLoader = object: ImageLoader {
         override fun invoke(p: Params): Image? {
-            log().debug("Loading HQ img $p")
+            logger.debug { "Loading HQ img $p" }
 
             return when (p.mime.name) {
                 "image/vnd.adobe.photoshop" -> ImageStandardLoader(p)
@@ -68,4 +70,5 @@ object Image2PassLoader {
             }
         }
     }
+
 }

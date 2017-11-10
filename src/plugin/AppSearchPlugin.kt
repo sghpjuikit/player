@@ -4,14 +4,14 @@ import de.jensd.fx.glyphs.materialicons.MaterialIcon
 import gui.objects.icon.Icon
 import gui.objects.textfield.autocomplete.ConfigSearch
 import main.App
+import mu.KotlinLogging
 import util.access.v
 import util.conf.Config
 import util.conf.Config.VarList
 import util.conf.Config.VarList.Elements
 import util.conf.IsConfig
-import util.dev.log
-import util.system.Environment
 import util.file.nameWithoutExtensionOrRoot
+import util.system.Environment
 import util.validation.Constraint
 import util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
@@ -19,6 +19,7 @@ import java.util.function.Supplier
 
 private const val NAME = "App Search"
 private const val GROUP = "${Plugin.CONFIG_GROUP}.$NAME"
+private val logger = KotlinLogging.logger {}
 
 class AppSearchPlugin: PluginBase(NAME) {
 
@@ -54,7 +55,7 @@ class AppSearchPlugin: PluginBase(NAME) {
 
     private fun findApps(rootDir: File): Sequence<File> {
         return rootDir.walkTopDown()
-                .onFail { file, e -> log().warn("Ignoring file={}. No read/access permission", file, e) }
+                .onFail { file, e -> logger.warn(e) { "Ignoring file=$file. No read/access permission" } }
                 .maxDepth(searchDepth.value)
                 .filter { it.path.endsWith(".exe") }
     }
@@ -66,4 +67,5 @@ class AppSearchPlugin: PluginBase(NAME) {
             { Environment.runProgram(this) },
             { Icon(MaterialIcon.APPS) }
     )
+
 }

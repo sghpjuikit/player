@@ -12,6 +12,7 @@ import gui.objects.image.cover.ImageCover
 import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.util.Duration
+import mu.KLogging
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.KeyNotFoundException
@@ -29,7 +30,6 @@ import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag
 import org.jaudiotagger.tag.wav.WavTag
 import util.SwitchException
 import util.access.fieldvalue.ObjectFieldBase
-import util.dev.log
 import util.dev.throwIfFxThread
 import util.file.AudioFileFormat
 import util.file.ImageFileFormat
@@ -696,7 +696,7 @@ class Metadata: Item {
                         try {
                             Chapter(it)
                         } catch (e: IllegalArgumentException) {
-                            Metadata::class.java.log().error("String '{}' not be parsed as chapter. Will be ignored.", it)
+                            logger().error(e) { "String '{}' not be parsed as chapter. Will be ignored." }
                             null
                         }
                     }
@@ -777,7 +777,7 @@ class Metadata: Item {
         return r
     }
 
-    companion object {
+    companion object: KLogging() {
 
         /**
          * Delimiter between sections of data.
@@ -828,14 +828,14 @@ class Metadata: Item {
                 try {
                     val s = tag.getFirst(f) // can throw UnsupportedOperationException
                     if (s==null) {
-                        Metadata::class.java.log().warn("Jaudiotagger returned null for {} of {}", f, id)
+                        logger().warn { "Jaudiotagger returned null for $f of $id" }
                     }
                     s
                 } catch (e: UnsupportedOperationException) {
-                    Metadata::class.java.log().warn("Jaudiotagger failed to read {} of {}", f, id, e)
+                    logger().warn(e) { "Jaudiotagger failed to read $f of $id" }
                     ""
                 } catch (e: KeyNotFoundException) {
-                    Metadata::class.java.log().warn("Jaudiotagger failed to read {} of {}", f, id, e)
+                    logger().warn(e) { "Jaudiotagger failed to read $f of $id" }
                     ""
                 }
 

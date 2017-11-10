@@ -308,7 +308,7 @@ public class MetadataWriter extends Item {
 		AbstractID3v2Frame f = tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
 		if (f==null) {
 			f = new ID3v24Frame(ID3v24Frames.FRAME_ID_POPULARIMETER);
-			f.setBody(new FrameBodyPOPM());
+			f.setBody(new FrameBodyPOPM()); // TODO: this sets playcount to 0 if it was 0, avoid this
 		}
 		try {
 			if (val==-1) {

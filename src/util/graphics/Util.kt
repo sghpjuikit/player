@@ -1,24 +1,84 @@
 package util.graphics
 
+import de.jensd.fx.glyphs.GlyphIcons
+import gui.objects.icon.Icon
+import gui.objects.image.Thumbnail
 import gui.objects.window.stage.Window
 import javafx.css.PseudoClass
 import javafx.geometry.Bounds
+import javafx.geometry.Insets
 import javafx.geometry.Point2D
 import javafx.geometry.Rectangle2D
 import javafx.scene.Node
 import javafx.scene.Parent
+import javafx.scene.image.Image
+import javafx.scene.image.ImageView
 import javafx.scene.layout.AnchorPane
+import javafx.scene.layout.Background
+import javafx.scene.layout.BackgroundFill
+import javafx.scene.layout.Border
+import javafx.scene.layout.BorderStroke
+import javafx.scene.layout.BorderStrokeStyle
+import javafx.scene.layout.BorderWidths
+import javafx.scene.layout.CornerRadii
+import javafx.scene.layout.HBox
+import javafx.scene.layout.Pane
+import javafx.scene.layout.Region
+import javafx.scene.layout.VBox
+import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
+import javafx.scene.text.Text
 import javafx.stage.Screen
 import util.math.P
 import util.reactive.sync
 import java.awt.MouseInfo
 import java.awt.Point
 
+/* ---------- CONSTRUCTION ------------------------------------------------------------------------------------------ */
+
+/** @return simple background with specified solid fill color and no radius or insets */
+fun bgr(c: Color) = Background(BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY))
+
+/** @return simple border with specified color, solid style, no radius and default width */
+fun border(c: Color) = Border(BorderStroke(c, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT))
+
 fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
+
+@JvmOverloads
+fun createIcon(icon: GlyphIcons, iconSize: Int = 12) = Text(icon.characterToString()).apply {
+    style = "-fx-font-family: ${icon.fontFamily}; -fx-font-size: $iconSize;"
+    styleClass += "icon"
+}
+
+fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Int = 12): Text {
+    Icon.USE_PREF_SIZE
+    val s = icon.characterToString()
+    val sb = StringBuilder(icons)
+    for (i in 0 until icons) sb.append(s)
+
+    return Text(sb.toString()).apply {
+        style = "-fx-font-family: ${icon.fontFamily}; -fx-font-size: $iconSize;"
+        styleClass += "icon"
+    }
+}
+
+inline fun Pane.hBox(initialization: HBox.() -> Unit) = HBox().apply { initialization() }
+
+inline fun Pane.vBox(initialization: VBox.() -> Unit) = VBox().apply { initialization() }
+
+/* ---------- LAYOUT ------------------------------------------------------------------------------------------------ */
+
+/** Removes this from the parent's children if possible. */
+fun Node?.removeFromParent(parent: Node?) {
+    if (parent==null || this==null) return
+    (parent as? Pane)?.children?.remove(this)
+}
+
+/** Removes this from its parent's children if possible. */
+fun Node?.removeFromParent() = this?.removeFromParent(parent)
 
 /** Convenience for [AnchorPane.getTopAnchor] & [AnchorPane.setTopAnchor]. */
 var Node.topAnchor: Double?
@@ -57,6 +117,39 @@ fun Node.setAnchors(top: Double?, right: Double?, bottom: Double?, left: Double?
     AnchorPane.setLeftAnchor(this, left)
 }
 
+/**
+ * Sets minimal, preferred and maximal width and height of this element to provided values.
+ * Any bound property will be ignored. Null value will be ignored.
+ */
+@JvmOverloads
+fun Node.setMinPrefMaxSize(width: Double?, height: Double? = width) {
+    setMinPrefMaxWidth(width)
+    setMinPrefMaxHeight(height)
+}
+
+/**
+ * Sets minimal, preferred and maximal width of the node to provided value.
+ * Any bound property will be ignored. Null value will be ignored.
+ */
+fun Node.setMinPrefMaxWidth(width: Double?) {
+    if (width!=null && this is Region) {
+        if (!minWidthProperty().isBound) minWidth = width
+        if (!prefWidthProperty().isBound) prefWidth = width
+        if (!maxWidthProperty().isBound) maxWidth = width
+    }
+}
+
+/**
+ * Sets minimal, preferred and maximal height of the node to provided value.
+ * Any bound property will be ignored. Null value will be ignored.
+ */
+fun Node.setMinPrefMaxHeight(height: Double?) {
+    if (height!=null && this is Region) {
+        if (!minHeightProperty().isBound) minHeight = height
+        if (!prefHeightProperty().isBound) prefHeight = height
+        if (!maxHeightProperty().isBound) maxHeight = height
+    }
+}
 
 fun Node.setScaleXY(xy: Double) {
     scaleX = xy
@@ -80,32 +173,42 @@ fun Node.setScaleXYByTo(percent: Double, pxFrom: Double, pxTo: Double) {
     }
 }
 
-/**
- * Text interpolator for 'text typing effect'. Creates function returning string substrings
- * of all lengths from 0 to string length. Linear and uses rounding (Math.floor).
- *
- * @return function transforming `<0,1>` double input into substrings of the provided string, from
- * beginning to character at the position best reflected by the input.
- */
-fun typeText(text: String): (Double) -> String {
-    val length = text.length
-    return { text.substring(0, Math.floor(length*it).toInt()) }
-}
-
 /* ---------- CLIP -------------------------------------------------------------------------------------------------- */
 
-/** Installs clip mask to prevent disaplaying content outside of this node. */
+/** Installs clip mask to prevent displaying content outside of this node. */
 fun Node.initClip() {
     val clip = Rectangle()
 
-    layoutBoundsProperty() sync { size ->
-        clip.width = size.width
-        clip.height = size.height
+    layoutBoundsProperty() sync {
+        clip.width = it.width
+        clip.height = it.height
     }
 
     setClip(clip)
 }
 
+fun ImageView.applyViewPort(i: Image?, fit: Thumbnail.FitFrom) {
+    if (i!=null) {
+        when(fit) {
+            Thumbnail.FitFrom.INSIDE -> viewport = null
+            Thumbnail.FitFrom.OUTSIDE -> {
+                val ratioIMG = i.width/i.width
+                val ratioTHUMB = layoutBounds.width/layoutBounds.height
+                if (ratioTHUMB<ratioIMG) {
+                    val uiImgWidth = i.height*ratioTHUMB
+                    val x = (i.width-uiImgWidth)/2
+                    viewport = Rectangle2D(x, 0.0, uiImgWidth, i.height)
+                } else if (ratioTHUMB>ratioIMG) {
+                    val uiImgHeight = i.width/ratioTHUMB
+                    val y = (i.height-uiImgHeight)/2
+                    viewport = Rectangle2D(0.0, y, i.width, uiImgHeight)
+                } else if (ratioTHUMB==ratioIMG) {
+                    viewport = null
+                }
+            }
+        }
+    }
+}
 /* ---------- POINT ------------------------------------------------------------------------------------------------- */
 
 /** @return size of the bounds represented as point */
@@ -153,7 +256,12 @@ val Rectangle2D.centreX get() = minX + width/2
 /** @return rectangle-relative y position of the centre of this rectangle */
 val Rectangle2D.centreY get() = minY + height/2
 
-/* ---------- FONT -------------------------------------------------------------------------------------------------- */
+operator fun Point2D.minus(p: Point2D): Point2D = subtract(p)!!
+operator fun Point2D.plus(p: Point2D): Point2D = add(p)!!
+operator fun Point2D.times(p: Double): Point2D = multiply(p)!!
+operator fun Point2D.div(p: Double): Point2D = Point2D(x/p, y/p)
+
+/* ---------- TEXT -------------------------------------------------------------------------------------------------- */
 
 /** Sets font, overriding css style. */
 fun Parent.setFontAsStyle(font: Font) {
@@ -168,6 +276,12 @@ fun Parent.setFontAsStyle(font: Font) {
         "-fx-font-weight: " + weightS + ";" +
         "-fx-font-size: " + font.size+ ";"
     )
+}
+
+/** @return Linear text interpolator computing substrings of specified text from beginning */
+fun typeText(text: String): (Double) -> String {
+    val length = text.length
+    return { text.substring(0, Math.floor(length*it).toInt()) }
 }
 
 /* ---------- SCREEN ------------------------------------------------------------------------------------------------ */
@@ -189,10 +303,11 @@ fun Point2D.getScreen() = getScreen(x, y)
 fun Point.getScreen() = getScreen(x.toDouble(), y.toDouble())
 
 /** @return screen containing the given coordinates */
-    // See com.sun.javafx.util.Utils.getScreenForPoint(x, y);
+// See com.sun.javafx.util.Utils.getScreenForPoint(x, y);
 fun getScreen(x: Double, y: Double) = Screen.getScreens().find { it.bounds.intersects(x, y, 1.0, 1.0) } ?: Screen.getPrimary()!!
 
 /** @return screen containing the given coordinates */
 fun getScreenForMouse() = getMousePosition().getScreen()
 
+/** @return screen containing the centre of this window */
 val javafx.stage.Window.screen: Screen get() = getScreen(centreX, centreY)

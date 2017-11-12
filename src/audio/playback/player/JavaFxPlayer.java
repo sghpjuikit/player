@@ -12,8 +12,12 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
-import static javafx.scene.media.MediaPlayer.Status.*;
-import static util.async.Async.runFX;
+
+import static audio.playback.state.VolumeProperty.linToLog;
+import static javafx.scene.media.MediaPlayer.Status.PAUSED;
+import static javafx.scene.media.MediaPlayer.Status.PLAYING;
+import static javafx.scene.media.MediaPlayer.Status.STOPPED;
+import static util.async.AsyncKt.runFX;
 import static util.dev.Util.log;
 import static util.reactive.Util.maintain;
 
@@ -72,7 +76,7 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 				player.setAudioSpectrumListener(PLAYBACK.spectrumListenerDistributor);
 
 				// bind (not read only) values
-				d1 = maintain(state.volume, player.volumeProperty());
+				d1 = maintain(state.volume, v -> linToLog(v.doubleValue()), player.volumeProperty());
 				d2 = maintain(state.mute, player.muteProperty());
 				d3 = maintain(state.balance, player.balanceProperty());
 				d4 = maintain(state.rate, player.rateProperty());

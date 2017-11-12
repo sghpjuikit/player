@@ -44,7 +44,7 @@ import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.layout.HBox
 import javafx.scene.shape.Rectangle
 import util.Util.clip
-import util.graphics.Icons
+import util.graphics.createIcon
 import util.graphics.pseudoclass
 import java.lang.Math.ceil
 
@@ -97,7 +97,7 @@ class RatingSkin(r: Rating) : SkinBase<Rating>(r) {
     }
 
     private fun recreateButtons() {
-        fun createButton(icon: GlyphIcons) = Icons.createIcon(icon, skinnable.icons.get(), 10).apply {
+        fun createButton(icon: GlyphIcons) = createIcon(icon, skinnable.icons.get(), 10).apply {
             isCache = true
             cacheHint = CacheHint.SPEED
             styleClass.setAll("rating-button")

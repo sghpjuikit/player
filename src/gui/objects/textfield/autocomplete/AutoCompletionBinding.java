@@ -44,7 +44,7 @@ import javafx.scene.control.Skin;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import util.access.V;
-import static util.graphics.Util.setMinPrefMaxWidth;
+import static util.graphics.UtilKt.setMinPrefMaxWidth;
 
 /**
  * The AutoCompletionBinding is the abstract base class of all auto-completion bindings.

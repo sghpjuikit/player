@@ -6,9 +6,9 @@ import audio.tagging.MetadataWriter
 import layout.widget.controller.io.InOutput
 import main.App.APP
 import util.access.v
-import util.async.Async.FX
-import util.async.Async.runFX
+import util.async.FX
 import util.async.future.Fut
+import util.async.runFX
 import util.collections.mapset.MapSet
 import util.dev.ThreadSafe
 import util.file.Util.readFileLines

@@ -35,7 +35,7 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static layout.widget.WidgetManager.WidgetSource.OPEN;
 import static main.App.APP;
-import static util.async.Async.runLater;
+import static util.async.AsyncKt.runLater;
 import static util.file.Util.writeFile;
 import static util.functional.Util.*;
 
@@ -510,7 +510,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	private void updateIOLayout() {
 		// because we call this before the widget is part of scenegraph, we delay execution
 		// suffering from badly designed (recursive) widget loading again...
-		runLater(IOLayer::relayout);
+		runLater(() -> IOLayer.relayout());
 	}
 
 	/** Widget metadata. Passed from code to program. Use on controller class. */

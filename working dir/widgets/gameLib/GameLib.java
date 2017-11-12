@@ -33,7 +33,6 @@ import layout.widget.controller.FXMLController;
 import util.SwitchException;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
-import util.async.Async;
 import util.conf.Config.VarList;
 import util.conf.Config.VarList.Elements;
 import util.conf.IsConfig;
@@ -43,6 +42,7 @@ import util.functional.Try;
 import util.system.Environment;
 import util.validation.Constraint;
 import web.WikipediaQBuilder;
+
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAMEPAD;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WIKIPEDIA;
@@ -57,9 +57,9 @@ import static layout.widget.Widget.Group.OTHER;
 import static main.App.APP;
 import static util.animation.Anim.par;
 import static util.animation.Anim.seq;
-import static util.async.Async.FX;
-import static util.async.Async.runFX;
-import static util.async.Async.runNew;
+import static util.async.AsyncKt.FX;
+import static util.async.AsyncKt.runFX;
+import static util.async.AsyncKt.runNew;
 import static util.file.Util.readFileLines;
 import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static util.file.UtilKt.listChildren;
@@ -120,7 +120,7 @@ public class GameLib extends FXMLController {
         info_text.setText("");
         if (gameOpening_progressI==null) gameOpening_progressI = getWidget().getWindow().taskAdd();
         gameOpening_progressI.setProgress(-1);
-        Async.runNew(() -> {
+        runNew(() -> {
             File fileInfo = g.getInfoFile();
             String textInfo = !fileInfo.exists() ? "" : readFileLines(fileInfo).collect(joining("\n"));
             Cover c = g.getCover();

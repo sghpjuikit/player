@@ -66,10 +66,10 @@ import static javafx.scene.paint.Color.BLACK;
 import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static main.App.APP;
 import static util.Util.urlEncodeUtf8;
-import static util.async.Async.FX;
-import static util.async.Async.run;
-import static util.async.Async.runFX;
-import static util.async.Async.runLater;
+import static util.async.AsyncKt.FX;
+import static util.async.AsyncKt.run;
+import static util.async.AsyncKt.runFX;
+import static util.async.AsyncKt.runLater;
 import static util.async.future.Fut.fut;
 import static util.dev.Util.log;
 import static util.functional.Util.list;
@@ -77,11 +77,11 @@ import static util.functional.Util.map;
 import static util.functional.Util.set;
 import static util.functional.Util.stream;
 import static util.graphics.Util.add1timeEventHandler;
-import static util.graphics.Util.bgr;
 import static util.graphics.Util.createFMNTStage;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layVertically;
-import static util.graphics.Util.setMinPrefMaxSize;
+import static util.graphics.UtilKt.bgr;
+import static util.graphics.UtilKt.setMinPrefMaxSize;
 import static util.math.Util.millis;
 import static util.system.Environment.browse;
 import static util.type.Util.getEnumConstants;
@@ -168,12 +168,12 @@ public class AppActions {
 		if (c!=null) {
 			OverlayPane<Void> op = new OverlayPane<>() {
 				@Override
-				public void show(Void noValue) {
+				public void show(Void data) {
 					OverlayPane root = this;
-					getChildren().add(c.load());
-					// TODO: remove
-					run(millis(500), () ->
-						stream(((Pane)c.load()).getChildren())
+					Pane componentRoot = (Pane) c.load();
+//					getChildren().add(componentRoot);   // alternatively for borderless/fullscreen experience
+					setContent(componentRoot);
+					run(millis(500), () -> componentRoot.getChildren().stream()
 							.filter(GridView.class::isInstance).map(GridView.class::cast)
 							.findAny()
 							.ifPresent(n -> n.implGetSkin().requestFocus())
@@ -191,8 +191,9 @@ public class AppActions {
 					super.show();
 				}
 			};
-			op.display.set(SCREEN_OF_MOUSE);
+			op.getDisplay().set(SCREEN_OF_MOUSE);
 			op.show(null);
+			op.makeResizableByUser();
 			c.load().prefWidth(900);
 			c.load().prefHeight(700);
 		}

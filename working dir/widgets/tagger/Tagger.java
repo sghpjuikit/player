@@ -71,7 +71,6 @@ import util.conf.IsConfig;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.ImageFileFormat;
-import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.validation.InputConstraints;
@@ -99,13 +98,12 @@ import static audio.tagging.Metadata.Field.PLAYCOUNT;
 import static audio.tagging.Metadata.Field.PUBLISHER;
 import static audio.tagging.Metadata.Field.RATING;
 import static audio.tagging.Metadata.Field.RATING_RAW;
+import static audio.tagging.Metadata.Field.TAGS;
 import static audio.tagging.Metadata.Field.TITLE;
 import static audio.tagging.Metadata.Field.TRACK;
 import static audio.tagging.Metadata.Field.TRACKS_TOTAL;
-import static audio.tagging.Metadata.Field.TAGS;
 import static audio.tagging.Metadata.Field.YEAR;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
-import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.objects.image.cover.Cover.CoverSource.TAG;
 import static gui.objects.textfield.autocomplete.AutoCompletion.autoComplete;
 import static java.util.Collections.singletonList;
@@ -122,16 +120,18 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static main.App.APP;
 import static main.AppBuildersKt.appProgressIndicator;
+import static main.AppBuildersKt.createInfoIcon;
 import static org.atteo.evo.inflector.English.plural;
-import static util.async.Async.FX;
-import static util.async.Async.runFX;
-import static util.async.Async.runNew;
+import static util.async.AsyncKt.FX;
+import static util.async.AsyncKt.runFX;
+import static util.async.AsyncKt.runNew;
 import static util.file.Util.EMPTY_COLOR;
 import static util.functional.Util.isContainedIn;
 import static util.functional.Util.mapRef;
 import static util.functional.Util.noDups;
 import static util.functional.Util.noEx;
 import static util.functional.Util.split;
+import static util.graphics.UtilKt.createIcon;
 
 /**
  * Tagger graphical component.
@@ -521,7 +521,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         } else {
             // set info
             infoL.setText(items.size() + " " + plural("item", items.size()) + " loaded.");
-            infoL.setGraphic(Icons.createIcon(items.size()==1 ? FontAwesomeIcon.TAG : FontAwesomeIcon.TAGS));
+            infoL.setGraphic(createIcon(items.size()==1 ? FontAwesomeIcon.TAG : FontAwesomeIcon.TAGS));
 
             fields.forEach(f -> f.setEditable(true));
             coverSuperContainer.setDisable(false);

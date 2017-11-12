@@ -53,7 +53,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
 	@FXML TreeView<Name> groups;
 	@FXML Pane controls;
 	@FXML AnchorPane configsRootPane;
-	private final ConfigPane<Object> configsPane = new ConfigPane<>();
+	private final ConfigPane<?> configsPane = new ConfigPane<>();
 	private final List<Config> configs = new ArrayList<>();
 	private final String CONFIG_SELECTION_NAME = "app.settings.selected_group";
 
@@ -65,7 +65,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
 		new ConventionFxmlLoader(this).loadNoEx();
 
 		// set up graphics
-		configsRootPane.getChildren().setAll(configsPane.getNode());
+		configsRootPane.getChildren().setAll(configsPane);
 		groups.getSelectionModel().setSelectionMode(SINGLE);
 		groups.setCellFactory(TreeItems::buildTreeCell);
 		groups.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
@@ -86,13 +86,13 @@ public final class Configurator extends ClassController implements ConfiguringFe
 	/** Set and apply values and refresh if needed (no need for hard refresh). */
 	@FXML
 	public void ok() {
-		configsPane.getValuesC().forEach(ConfigField::apply);
+		configsPane.getConfigFields().forEach(ConfigField::apply);
 	}
 
 	/** Set default app settings. */
 	@FXML
 	public void defaults() {
-		configsPane.getValuesC().forEach(ConfigField::setNapplyDefault);
+		configsPane.getConfigFields().forEach(ConfigField::setNapplyDefault);
 	}
 
 	@Override
@@ -110,12 +110,12 @@ public final class Configurator extends ClassController implements ConfiguringFe
 		restoreSelection();		// invokes #populateConfigFields
 	}
 
-	private void populateConfigFields(Stream<Config> visibleConfigs) {
-		configsPane.configure(visibleConfigs.collect(toList()));
+	private void populateConfigFields(Stream<? extends Config> visibleConfigs) {
+		configsPane.configure((Collection<? extends Config<?>>) visibleConfigs.collect(toList()));
 	}
 
 	public void refreshConfigs() {
-		configsPane.getValuesC().forEach(ConfigField::refreshItem);
+		configsPane.getConfigFields().forEach(cf -> cf.refreshItem());
 	}
 
 	private boolean storeSelection(TreeItem<Name> item) {

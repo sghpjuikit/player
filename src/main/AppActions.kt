@@ -18,7 +18,7 @@ import layout.widget.feature.SongReader
 import main.App.APP
 import util.SingleR
 import util.access.V
-import util.async.Async
+import util.async.FX
 import util.async.future.Fut.fut
 import util.conf.Config
 import util.file.AudioFileFormat
@@ -53,12 +53,12 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
                                     Config.forProperty(Boolean::class.java, "Edit in Tagger", editInTagger),
                                     Config.forProperty(Boolean::class.java, "Edit only added files", editOnlyAdded),
                                     Config.forProperty(Boolean::class.java, "Enqueue in playlist", enqueue)
-                            ).node,
+                            ),
                             layVertically(10.0, Pos.CENTER_LEFT,
                                     info.state,
                                     layHorizontally(10.0, Pos.CENTER_LEFT,
                                             info.message,
-                                            info.progressIndicator
+                                            info.progress
                                     ),
                                     info.skipped
                             ),
@@ -69,7 +69,7 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
                                         .map { files -> files.map { SimpleItem(it) } }
                                         .map(task)
                                         .showProgress(actionPane.actionProgress)
-                                        .use(Async.FX, Consumer { result ->
+                                        .use(FX, Consumer { result ->
                                             if (editInTagger.get()) {
                                                 val items = if (editOnlyAdded.get()) result.converted else result.all
                                                 (tagger.get().controller as SongReader).read(items)

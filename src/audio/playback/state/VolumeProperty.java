@@ -15,11 +15,16 @@ import static util.Util.clip;
  */
 public final class VolumeProperty extends SimpleDoubleProperty {
     
+    /** @return logarithmic 0-1 value from linear 0-1 value */
+    public static double linToLog(double v) {
+        return v*v;
+    }
+
     public static final double MIN = 0;
     public static final double MAX = 1;
     public static final double AVG = (MAX+MIN)/2;
     public static final double STEP = abs(MAX-MIN)/20;
-    
+
     /** Initializes default value: 0.5 */
     public VolumeProperty() {
         super(AVG);

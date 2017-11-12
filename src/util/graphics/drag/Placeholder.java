@@ -10,7 +10,7 @@ import javafx.scene.layout.StackPane;
 import org.reactfx.Subscription;
 import static util.dev.Util.noØ;
 import static util.graphics.Util.layHeaderBottom;
-import static util.graphics.Util.removeFromParent;
+import static util.graphics.UtilKt.removeFromParent;
 import static util.reactive.Util.maintain;
 
 /**

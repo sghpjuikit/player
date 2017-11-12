@@ -71,7 +71,8 @@ fun Field.throwIfNotFinal(): Field {
     return this
 }
 
-fun <T> measureTime(block: () -> T): T {
+/** Prints the time it takes to execute specified block in milliseconds. Debugging only. */
+fun <T> measureTimeMs(block: () -> T): T {
     val time = System.currentTimeMillis()
     val t = block()
     println(System.currentTimeMillis()-time)
@@ -79,11 +80,13 @@ fun <T> measureTime(block: () -> T): T {
 }
 
 /** @return [org.slf4j.Logger] for the class of this object or this object if it is of type class. */
-fun Any.log() = (when {
-        this is KClass<*> -> this
-        this is Class<*> -> this.kotlin
-        else -> this::class
-    }).log()
+fun Any.log() = (
+        when {
+            this is KClass<*> -> this
+            this is Class<*> -> this.kotlin
+            else -> this::class
+        }
+    ).log()
 
 /** @return [org.slf4j.Logger] for the class. */
 fun KClass<*>.log() = KotlinLogging.logger(this.java.simpleName)
@@ -91,5 +94,5 @@ fun KClass<*>.log() = KotlinLogging.logger(this.java.simpleName)
 /** @return all running threads (Incurs performance penalty, use only for debugging purposes) */
 fun activeThreads() = Thread.getAllStackTraces().keys.asSequence()
 
-/** Prints names of all currently running non daemon threads. */
-fun printNonDaemonThreads() = activeThreads().filter { !it.isDaemon }.forEach { println(it.name) }
+/** Prints names and status of all threads. Debugging only. */
+fun printThreads() = activeThreads().forEach { println("${it.name} ${it.state}") }

@@ -14,7 +14,7 @@ import util.file.AudioFileFormat.Use;
 import static audio.tagging.ExtKt.readAudioFile;
 import static java.util.stream.Collectors.toList;
 import static main.App.APP;
-import static util.async.Async.runFX;
+import static util.async.AsyncKt.runFX;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.dev.Util.throwIfFxThread;

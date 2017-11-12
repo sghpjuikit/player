@@ -51,7 +51,7 @@ import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static layout.widget.Widget.Group.OTHER;
 import static main.App.APP;
-import static util.async.Async.FX;
+import static util.async.AsyncKt.FX;
 import static util.async.executor.EventReducer.toFirstDelayed;
 import static util.async.executor.EventReducer.toLast;
 import static util.file.Util.getCommonRoot;

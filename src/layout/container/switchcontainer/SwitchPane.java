@@ -1,10 +1,10 @@
 
 package layout.container.switchcontainer;
 
+import gui.Gui;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.DoubleProperty;
@@ -15,8 +15,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
-
-import gui.Gui;
 import layout.AltState;
 import layout.Component;
 import layout.area.ContainerNode;
@@ -28,19 +26,24 @@ import layout.widget.Widget;
 import util.access.V;
 import util.animation.Anim;
 import util.animation.interpolator.CircularInterpolator;
-import util.async.Async;
 import util.async.executor.FxTimer;
 
-import static java.lang.Double.*;
+import static java.lang.Double.NaN;
+import static java.lang.Double.max;
+import static java.lang.Double.min;
 import static java.lang.Math.signum;
 import static javafx.animation.Animation.INDEFINITE;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static main.App.APP;
 import static util.Util.clip;
 import static util.animation.interpolator.EasingMode.EASE_IN;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
+import static util.async.AsyncKt.run;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
@@ -263,7 +266,7 @@ public class SwitchPane implements ContainerNode {
         if (!uiDragActive) return;//System.out.println("end");
         // stop drag
 //        uiDragActive = false;
-        Async.run(100, () -> uiDragActive=false);
+        run(100, () -> uiDragActive=false);
         measurePulse.stop();
         // handle drag end
         if (align.get()) {

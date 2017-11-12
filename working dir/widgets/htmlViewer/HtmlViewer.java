@@ -11,7 +11,7 @@ import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 
 import static javafx.util.Duration.seconds;
-import static util.async.Async.runPeriodic;
+import static util.async.AsyncKt.runPeriodic;
 import static util.graphics.Util.setAnchor;
 
 /**

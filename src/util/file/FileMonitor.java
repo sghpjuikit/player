@@ -2,19 +2,30 @@ package util.file;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.ClosedWatchServiceException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.WatchEvent;
 import java.nio.file.WatchEvent.Kind;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import util.async.executor.EventReducer;
 import util.collections.Tuple2;
-import static java.nio.file.StandardWatchEventKinds.*;
-import static util.async.Async.runFX;
-import static util.async.Async.runNew;
+
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
+import static util.async.AsyncKt.runFX;
+import static util.async.AsyncKt.threadFactory;
 import static util.collections.Tuples.tuple;
 import static util.dev.Util.log;
 
+// TODO: use interface, leverage recursive directory watch on Windows
 // TODO: provide documentation
 public class FileMonitor {
 	/**
@@ -36,6 +47,7 @@ public class FileMonitor {
 	 * be thrown for any direct child or
 	 */
 
+	private static final ThreadFactory threadCreator = threadFactory("WatchServiceConsumer", true);
 	private File monitoredFileDir;
 	private WatchService watchService;
 	private Predicate<File> filter;
@@ -93,7 +105,7 @@ public class FileMonitor {
 		try {
 			fm.watchService = FileSystems.getDefault().newWatchService();
 			dir.register(fm.watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW);
-			runNew(() -> {
+			threadCreator.newThread(() -> {
 				// The check requires I/O so lets do that on bgr thread as well
 //                if (!monitoredDir.isDirectory()) throw new IllegalArgumentException("File not a directory or does not exist.");
 
@@ -133,7 +145,7 @@ public class FileMonitor {
 
 					valid = watchKey.reset();
 				} while (valid);
-			});
+			}).start();
 		} catch (IOException e) {
 			log(FileMonitor.class).error("Error when starting file monitoring {}", fm.monitoredFileDir, e);
 		}
@@ -154,7 +166,7 @@ public class FileMonitor {
 		try {
 			fm.watchService = FileSystems.getDefault().newWatchService();
 			dir.register(fm.watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW);
-			runNew(() -> {
+			threadCreator.newThread(() -> {
 				// The check requires I/O so lets do that on bgr thread as well
 //                if (!toMonitor.isDirectory()) throw new IllegalArgumentException("File not a directory or does not exist.");
 
@@ -184,7 +196,7 @@ public class FileMonitor {
 
 					valid = watchKey.reset();
 				} while (valid);
-			});
+			}).start();
 		} catch (IOException e) {
 			log(FileMonitor.class).error("Error when starting directory monitoring {}", fm.monitoredFileDir, e);
 		}

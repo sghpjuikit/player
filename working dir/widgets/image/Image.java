@@ -17,7 +17,7 @@ import util.validation.Constraint;
 
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static layout.widget.Widget.Group.OTHER;
-import static util.async.Async.FX;
+import static util.async.AsyncKt.FX;
 import static util.validation.Constraint.FileActor.FILE;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.drag.DragUtil.installDrag;

@@ -13,11 +13,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
+
 import static audio.playback.PLAYBACK.state;
-import static javafx.scene.media.MediaPlayer.Status.*;
+import static audio.playback.state.VolumeProperty.linToLog;
+import static javafx.scene.media.MediaPlayer.Status.PAUSED;
+import static javafx.scene.media.MediaPlayer.Status.PLAYING;
+import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import static javafx.util.Duration.millis;
-import static util.async.Async.runFX;
-import static util.async.Async.runLater;
+import static util.async.AsyncKt.runFX;
+import static util.async.AsyncKt.runLater;
 
 public class JavaSoundPlayer implements GeneralPlayer.Play {
 
@@ -41,7 +45,7 @@ public class JavaSoundPlayer implements GeneralPlayer.Play {
 
 			@Override
 			public void playbackEndOfMedia(PlaybackEvent pe) {
-				runLater(PLAYBACK.onPlaybackEnd);
+				runLater((Runnable) PLAYBACK.onPlaybackEnd);
 			}
 
 			@Override
@@ -91,7 +95,7 @@ public class JavaSoundPlayer implements GeneralPlayer.Play {
 				p.setMute(state.mute.get());
 				p.setBalance(state.balance.get());
 				runFX(() -> {
-					state.volume.addListener((o, ov, nv) -> p.setVolume(nv.doubleValue()));
+					state.volume.addListener((o, ov, nv) -> p.setVolume(linToLog(nv.doubleValue())));
 					state.mute.addListener((o, ov, nv) -> p.setMute(nv));
 					state.balance.addListener((o, ov, nv) -> p.setBalance(nv.doubleValue()));
 

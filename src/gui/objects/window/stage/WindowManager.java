@@ -63,7 +63,7 @@ import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static util.async.Async.runLater;
+import static util.async.AsyncKt.runLater;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.file.UtilKt.childOf;

@@ -30,6 +30,7 @@ import util.Sort;
 import util.access.fieldvalue.ColumnField;
 import util.access.fieldvalue.ObjectField;
 import util.functional.Functors.Ƒ1;
+
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
@@ -321,19 +322,6 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * </ul>
 	 */
 	public <X> TableCell<T,X> buildDefaultCell(ObjectField<? super T,X> f) {
-		Pos a = f.getType().equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
-		TableCell<T,X> cell = new TableCell<>() {
-			@Override
-			protected void updateItem(X item, boolean empty) {
-				super.updateItem(item, empty);
-				setText(empty || getTableRow()==null ? "" : f.toS(getTableRow().getItem(), item, ""));
-			}
-		};
-		cell.setAlignment(a);
-		return cell;
-	}
-
-	public static <T, X> TableCell<T,X> defaultCell(ObjectField<? super T,X> f) {
 		Pos a = f.getType().equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
 		TableCell<T,X> cell = new TableCell<>() {
 			@Override

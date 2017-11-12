@@ -22,7 +22,6 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
 import layout.widget.feature.ImageDisplayFeature;
 import layout.widget.feature.ImagesDisplayFeature;
-import util.async.Async;
 import util.async.future.Fut;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
@@ -31,13 +30,14 @@ import util.file.ImageFileFormat;
 import util.file.Util;
 import util.file.UtilKt;
 import util.functional.Try;
+
 import static java.awt.Desktop.Action.BROWSE;
 import static java.awt.Desktop.Action.EDIT;
 import static java.awt.Desktop.Action.OPEN;
 import static java.util.stream.Collectors.groupingBy;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.App.APP;
-import static util.async.Async.runNotFX;
+import static util.async.AsyncKt.runNotFX;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.file.FileType.DIRECTORY;
@@ -158,7 +158,7 @@ public interface Environment {
 	static void runCommand(String command, Consumer<Process> then) {
 		noØ(command);
 		if (!command.isEmpty())
-			Async.runNotFX(() -> {
+			runNotFX(() -> {
 				try {
 					Process p = Runtime.getRuntime().exec(command);
 					if (then!=null) then.accept(p);

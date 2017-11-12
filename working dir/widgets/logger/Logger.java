@@ -15,7 +15,7 @@ import layout.widget.controller.ClassController;
 import main.App;
 import util.conf.IsConfig;
 import static util.graphics.Util.setAnchors;
-import static util.graphics.Util.setMinPrefMaxSize;
+import static util.graphics.UtilKt.setMinPrefMaxSize;
 
 /**
  * Logger widget controller.

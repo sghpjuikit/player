@@ -104,12 +104,16 @@ public class Configuration {
 		for (Configurable<C> c : cs) collect(c);
 	}
 
-	public void collectStatic() {
-		// for all discovered classes
-		ClassIndex.getAnnotated(IsConfigurable.class).forEach(c -> {
-			discoverConfigFieldsOf(c);  // add class fields
-			discoverMethodsOf(c);   // add methods in the end to avoid incorrect initialization
-		});
+	public void collectStatic(Class<?>... notAnnotatedClasses) {
+		stream(
+				stream(notAnnotatedClasses),
+				stream(ClassIndex.getAnnotated(IsConfigurable.class))
+			)
+			.distinct()
+			.forEach(c -> {
+				discoverConfigFieldsOf(c);
+				discoverMethodsOf(c);
+			});
 	}
 
 	@SuppressWarnings("unchecked")
@@ -249,12 +253,36 @@ public class Configuration {
 				.collect(toList());
 	}
 
+	@SuppressWarnings("unchecked")
+	static List<Config<Object>> configsOf(Class<?> clazz, String fieldNamePrefix, String category, Object instance, boolean include_static, boolean include_instance) {
+		if (include_instance && instance==null)
+			throw new IllegalArgumentException("Instance must not be null if instance fields flag is true");
+
+		return (List) stream(getAllFields(clazz))
+			.map(f -> createConfig(clazz, fieldNamePrefix, category, f, instance, include_static, include_instance))
+			.filter(ISNTØ)
+			.collect(toList());
+	}
+
 	static Config<?> createConfig(Class<?> cl, Field f, Object instance, boolean include_static, boolean include_instance) {
 		Config<?> c = null;
 		IsConfig a = f.getAnnotation(IsConfig.class);
 		if (a!=null) {
 			String group = a.group().isEmpty() ? getGroup(cl) : a.group();
 			String name = f.getName();
+			int modifiers = f.getModifiers();
+			if ((include_static && Modifier.isStatic(modifiers)) || (include_instance && !Modifier.isStatic(modifiers)))
+				c = createConfig(f, instance, name, a, group);
+		}
+		return c;
+	}
+
+	static Config<?> createConfig(Class<?> cl, String fieldNamePrefix, String category, Field f, Object instance, boolean include_static, boolean include_instance) {
+		Config<?> c = null;
+		IsConfig a = f.getAnnotation(IsConfig.class);
+		if (a!=null) {
+			String group = category;
+			String name = fieldNamePrefix + f.getName();
 			int modifiers = f.getModifiers();
 			if ((include_static && Modifier.isStatic(modifiers)) || (include_instance && !Modifier.isStatic(modifiers)))
 				c = createConfig(f, instance, name, a, group);

@@ -577,19 +577,20 @@ public class Converter extends ClassController implements Opener, SongWriter {
     }
     private class InsSimple implements Ins {
         ConfigPane<EditArea> ins;
+
         InsSimple(Act<?> a) {
-            ins = new ConfigPane(map(a.names.get(), name -> {
-                V<EditArea> input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in),tas);
-                return Config.forProperty(String.class, name, input);
+            ins = new ConfigPane<>(map(a.names.get(), name -> {
+                V<EditArea> input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in), tas);
+                return Config.forProperty(EditArea.class, name, input);
             }));
         }
 
         public Node node() {
-            return ins.getNode();
+            return ins;
         }
 
         public Stream<In> vals() {
-            return ins.getValuesC().stream().map(c -> new In(c.getConfig().getName(),c.getValue()));
+            return ins.getConfigFields().stream().map(c -> new In(c.getConfig().getName(),c.getValue()));
         }
 
     }

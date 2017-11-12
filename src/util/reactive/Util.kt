@@ -8,6 +8,9 @@ import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
+import javafx.event.Event
+import javafx.event.EventType
+import javafx.scene.Node
 import javafx.scene.image.Image
 import javafx.stage.Screen
 import org.reactfx.EventStreams
@@ -20,18 +23,25 @@ import java.util.function.Predicate
 /** Sets a value consumer to be fired immediately and on every value change. */
 infix fun <O> ObservableValue<O>.sync(u: (O) -> Unit) = maintain(Consumer { u(it) })
 
+/** Sets a value consumer to be fired on every value change. */
+infix fun <O> ObservableValue<O>.attach(u: (O) -> Unit): Subscription {
+    val l = ChangeListener<O> { _, _, nv -> u(nv) }
+    addListener(l)
+    return Subscription { removeListener(l) }
+}
+
+/** Sets a value change consumer to be fired on every value change. */
+infix fun <O> ObservableValue<O>.changes(u: (O, O) -> Unit): Subscription {
+    val l = ChangeListener<O> { _, ov, nv -> u(ov, nv) }
+    addListener(l)
+    return Subscription { removeListener(l) }
+}
+
 /** Sets a value consumer to be fired if the value is true immediately and on every value change. */
 infix fun ObservableValue<Boolean>.syncTrue(u: (Boolean) -> Unit): Subscription = maintain(Consumer { if (it) u(it) })
 
 /** Sets a value consumer to be fired if the value is false immediately and on every value change. */
 infix fun ObservableValue<Boolean>.syncFalse(u: (Boolean) -> Unit): Subscription = maintain(Consumer { if (!it) u(it) })
-
-
-fun <O> ObservableValue<O>.changes(u: BiConsumer<in O, in O>): Subscription {
-    val l = ChangeListener<O> { _, ov, nv -> u.accept(ov, nv) }
-    this.addListener(l)
-    return Subscription { this.removeListener(l) }
-}
 
 fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, u: Consumer<in V>): Subscription {
     u.accept(m(this.value))
@@ -64,7 +74,7 @@ fun <O1, O2> maintain(o1: ObservableValue<O1>, o2: ObservableValue<O2>, u: BiCon
     }
 }
 
-fun <O> ObservableValue<O>.maintain(w: WritableValue<in O>): Subscription {
+infix fun <O> ObservableValue<O>.maintain(w: WritableValue<in O>): Subscription {
     w.value = this.value
     val l = ChangeListener<O> { _, _, nv -> w.value = nv }
     this.addListener(l)
@@ -89,7 +99,7 @@ fun <T> ObservableValue<T>.printOnChange(): Subscription = maintain(Consumer { p
  * The action executes when value is not null.
  */
 fun <T> doOnceIfNonNull(property: ObservableValue<T>, action: Consumer<T>): Subscription {
-    return doOnceIf(property, Predicate<T> { Objects.nonNull(it) }, action)
+    return doOnceIf(property, Predicate { Objects.nonNull(it) }, action)
 }
 
 /**
@@ -101,7 +111,7 @@ fun <T> doOnceIfNonNull(property: ObservableValue<T>, action: Consumer<T>): Subs
  * @throws java.lang.RuntimeException if any param null
  */
 fun <T> doOnceIfImageLoaded(image: Image, action: Runnable): Subscription {
-    return doOnceIf(image.progressProperty(), Predicate<Number> { progress -> progress.toDouble()==1.0 }, Consumer { _ -> action.run() })
+    return doOnceIf(image.progressProperty(), Predicate { progress -> progress.toDouble()==1.0 }, Consumer { _ -> action.run() })
 }
 
 /**
@@ -194,8 +204,8 @@ fun <T> listChangeHandlerEach(addedHandler: Consumer<T>, removedHandler: Consume
     return ListChangeListener { change ->
         while (change.next()) {
             if (!change.wasPermutated() && !change.wasUpdated()) {
-                if (change.wasAdded()) change.removed.forEach(removedHandler)
                 if (change.wasAdded()) change.addedSubList.forEach(addedHandler)
+                if (change.wasRemoved()) change.removed.forEach(removedHandler)
             }
         }
     }
@@ -206,24 +216,20 @@ fun <T> listChangeHandler(addedHandler: Consumer<List<T>>, removedHandler: Consu
     return ListChangeListener { change ->
         while (change.next()) {
             if (!change.wasPermutated() && !change.wasUpdated()) {
-                if (change.wasAdded()) removedHandler.accept(change.removed)
                 if (change.wasAdded()) addedHandler.accept(change.addedSubList)
+                if (change.wasRemoved()) removedHandler.accept(change.removed)
             }
         }
     }
 }
 
-/**
- * Unsubscribe the subscription. Does nothing if null. Returns (always) null.
- *
- * Use for concise and null safe disposal, using the following idiom:
- * <br></br><br></br>
- * `mySubscription = unsubscribe(mySubscription); `
 
- * @param s subscription to unsubscribe or null
- * @return null
- */
-fun Subscription?.unsubscribeTry(): Subscription? {
-    this?.unsubscribe()
-    return null
+fun <T: Event> Node.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+    addEventHandler(eventType, eventHandler);
+    return Subscription { removeEventHandler(eventType, eventHandler) }
+}
+
+fun <T: Event> Node.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+    addEventFilter(eventType, eventHandler);
+    return Subscription { removeEventFilter(eventType, eventHandler) }
 }

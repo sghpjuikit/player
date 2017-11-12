@@ -1,21 +1,29 @@
 package main
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon
+import gui.Gui
 import gui.objects.Text
 import gui.objects.icon.Icon
 import gui.objects.popover.PopOver
 import gui.objects.spinner.Spinner
 import javafx.geometry.Insets
 import javafx.scene.Cursor
+import javafx.scene.Node
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Tooltip
+import javafx.stage.WindowEvent
+import main.App.APP
+import org.reactfx.Subscription
 import util.animation.Anim
 import util.animation.interpolator.ElasticInterpolator
-import util.async.Async
+import util.async.FX
 import util.async.future.Fut
 import util.graphics.setScaleXY
 import util.math.millis
 import util.math.seconds
+import util.reactive.changes
+import util.reactive.maintain
 import java.util.function.Consumer
 
 private typealias C<T> = Consumer<T>
@@ -50,11 +58,23 @@ fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> 
     }
 }
 
+fun createInfoIcon(text: String): Icon = Icon(FontAwesomeIcon.INFO)
+        .tooltip("Help")
+        .onClick { e ->
+            e.consume()
+            APP.actionStream.push("Info popup")
+            helpPopOver(text).apply {
+                    contentNode.wrappingWidth = 400.0
+                    skinn.setTitleAsOnlyHeaderContent(false)
+                    show(e.source as Node)
+                }
+        }
+
 @JvmOverloads
 fun appProgressIndicator(onStart: C<ProgressIndicator> = C {}, onFinish: C<ProgressIndicator> = C {}) = Spinner().apply {
     val a = Anim { setScaleXY(it*it) }.dur(500.0).intpl(ElasticInterpolator())
     a.applier.accept(0.0)
-    progressProperty().addListener { _, ov, nv ->
+    progressProperty() changes { ov, nv ->
         if (ov.toDouble()==1.0 && nv.toDouble()!=1.0) {
             onStart.accept(this)
             a.playOpenDo { }
@@ -72,13 +92,18 @@ fun appTooltip(text: String = "") = Tooltip(text).apply {
     showDelay = seconds(1.0)        // TODO: make configurable
     showDuration = seconds(10.0)    // TODO: make configurable
     hideDelay = millis(200.0)       // TODO: make configurable
+
+    // TODO: unify font observing with popovers/windows
+    var s: Subscription? = null
+    addEventHandler(WindowEvent.WINDOW_SHOWING) { s = Gui.font maintain fontProperty() }
+    addEventHandler(WindowEvent.WINDOW_HIDDEN) { s?.unsubscribe() }
 }
 
 fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
     val text = Text()
     graphic = text
     setOnShowing {
-        computeDataInfo(data()).use(Async.FX, C { text.text = it })
+        computeDataInfo(data()).use(FX, C { text.text = it })
     }
 }
 

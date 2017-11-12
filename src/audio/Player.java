@@ -19,16 +19,17 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import layout.widget.controller.io.InOutput;
 import org.reactfx.Subscription;
-import util.async.Async;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
 import util.async.future.Fut;
 import util.collections.mapset.MapSet;
+
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static main.App.APP;
-import static util.async.Async.FX;
-import static util.async.Async.runNew;
-import static util.async.Async.threadFactory;
+import static util.async.AsyncKt.FX;
+import static util.async.AsyncKt.runFX;
+import static util.async.AsyncKt.runNew;
+import static util.async.AsyncKt.threadFactory;
 import static util.async.executor.EventReducer.toLast;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
@@ -165,7 +166,7 @@ public class Player {
 	 */
 	public static void refreshItemsWith(List<Metadata> ms, boolean allowDelay) {
 		noØ(ms);
-		if (allowDelay) Async.runFX(() -> red.push(ms));
+		if (allowDelay) runFX(() -> red.push(ms));
 		else refreshItemsWithNow(ms);
 	}
 
@@ -193,7 +194,7 @@ public class Player {
 			APP.db.updatePer(ms);
 			APP.db.updateInMemoryDbFromPersisted();
 
-			Async.runFX(() -> {
+			runFX(() -> {
 				// update all playlist items referring to this updated metadata
 				PlaylistManager.playlists.stream().flatMap(Playlist::stream).forEach((PlaylistItem p) -> mm.ifHasK(p.getUri(), p::update));
 //                PlaylistManager.playlists.forEach(playlist -> playlist.forEach(p -> mm.ifHasK(p.getURI(), p::update)));

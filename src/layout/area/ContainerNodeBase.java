@@ -5,35 +5,43 @@
  */
 package layout.area;
 
+import gui.objects.icon.Icon;
+import gui.objects.window.stage.Window;
 import java.util.ArrayList;
 import java.util.List;
-
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.*;
-
-import layout.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.TilePane;
+import layout.Component;
 import layout.container.Container;
 import layout.container.bicontainer.BiContainer;
 import layout.widget.Widget;
-import gui.objects.window.stage.Window;
-import gui.objects.icon.Icon;
 import util.animation.Anim;
 import util.graphics.drag.DragUtil;
-
-import static layout.area.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
-import static layout.area.Area.DRAGGED_PSEUDOCLASS;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLONE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LINK;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MAIL_REPLY;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TH_LARGE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TIMES;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLINK;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLOCK;
 import static gui.Gui.closeAndDo;
-import static gui.objects.icon.Icon.createInfoIcon;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static layout.area.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
+import static layout.area.Area.DRAGGED_PSEUDOCLASS;
 import static main.App.APP;
+import static main.AppBuildersKt.createInfoIcon;
 import static util.functional.Util.mapB;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;

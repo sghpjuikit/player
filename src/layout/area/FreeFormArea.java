@@ -32,7 +32,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DASHBOARD;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static util.async.Async.runFX;
+import static util.async.AsyncKt.runFX;
 import static util.functional.Util.findFirstEmptyKey;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.Util.setAnchors;

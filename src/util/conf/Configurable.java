@@ -202,6 +202,10 @@ public interface Configurable<T> {
 		return configsOf(o.getClass(), o, false, true);
 	}
 
+	static <E extends ObservableValue & WritableValue> Collection<Config<Object>> configsFromFieldsOf(String fieldNamePrefix, String category, Object o) {
+		return configsOf(o.getClass(), fieldNamePrefix, category, o, false, true);
+	}
+
 	@SuppressWarnings("unchecked")
 	static Configurable<?> configsFromFxPropertiesOf(Object o) {
 		List<Config<?>> cs = new ArrayList<>();

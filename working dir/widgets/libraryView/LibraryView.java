@@ -58,7 +58,7 @@ import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import static layout.widget.Widget.Group.LIBRARY;
 import static main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
-import static util.async.Async.runLater;
+import static util.async.AsyncKt.runLater;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.*;
 import static util.graphics.Util.menuItem;

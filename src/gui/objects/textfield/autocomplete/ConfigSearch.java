@@ -32,7 +32,7 @@ import static util.Util.containsNoCase;
 import static util.functional.Util.by;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layStack;
-import static util.graphics.Util.setMinPrefMaxSize;
+import static util.graphics.UtilKt.setMinPrefMaxSize;
 
 public class ConfigSearch extends AutoCompletion<Entry> {
 

@@ -5,12 +5,12 @@ import gui.objects.icon.Icon
 import gui.objects.textfield.DecoratedTextField
 import gui.objects.textfield.autocomplete.ConfigSearch
 import javafx.animation.FadeTransition
-import javafx.beans.InvalidationListener
 import javafx.scene.Cursor
 import javafx.scene.Node
 import javafx.scene.layout.Region
 import javafx.scene.layout.StackPane
 import util.math.millis
+import util.reactive.attach
 import java.util.*
 import java.util.function.Supplier
 import java.util.stream.Stream
@@ -35,9 +35,8 @@ class Search {
             clearB.setOnMouseReleased { clear() }
             clearB.managedProperty().bind(editableProperty())
             clearB.visibleProperty().bind(editableProperty())
-            textProperty().addListener(InvalidationListener {
-                val text = text
-                val isTextEmpty = text==null || text.isEmpty()
+            textProperty() attach {
+                val isTextEmpty = it==null || it.isEmpty()
                 val isButtonVisible = fade.node.opacity>0
                 fun setButtonVisible(visible: Boolean) {
                     fade.fromValue = if (visible) 0.0 else 1.0
@@ -50,7 +49,7 @@ class Search {
                 } else if (!isTextEmpty && !isButtonVisible) {
                     setButtonVisible(true)
                 }
-            })
+            }
         }
 
         ConfigSearch(tf, history, *sources.toTypedArray())

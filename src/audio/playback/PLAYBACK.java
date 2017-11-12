@@ -39,7 +39,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.millis;
-import static util.async.Async.runFX;
+import static util.async.AsyncKt.runFX;
 
 /**
  * Provides methods for player.
@@ -108,7 +108,7 @@ public final class PLAYBACK implements Configurable {
 		if (s==PAUSED) {
 			// THIS NEEDS TO GET FIXED
 			player.play(PlaylistManager.use(Playlist::getPlaying, null));
-			util.async.Async.runFX(1000, player::pause);
+			runFX(1000, player::pause);
 		}
 		if (s==PLAYING) {
 			player.play(PlaylistManager.use(Playlist::getPlaying, null));

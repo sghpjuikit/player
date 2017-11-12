@@ -21,18 +21,19 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import util.access.CyclicEnum;
-import util.async.Async;
 import util.dev.Dependency;
-import util.math.P;
 import util.graphics.UtilKt;
+import util.math.P;
 import util.system.Os;
+
 import static com.sun.jna.platform.win32.WinUser.GWL_STYLE;
 import static gui.objects.window.stage.WindowBase.Maximized.ALL;
 import static gui.objects.window.stage.WindowBase.Maximized.NONE;
 import static java.lang.Math.abs;
 import static javafx.stage.StageStyle.TRANSPARENT;
 import static javafx.stage.StageStyle.UNDECORATED;
-import static util.async.Async.run;
+import static util.async.AsyncKt.run;
+import static util.async.AsyncKt.runLater;
 import static util.reactive.Util.installSingletonListener;
 import static util.reactive.Util.maintain;
 
@@ -632,7 +633,7 @@ public class WindowBase {
 
 	/** Sets the window visible and focuses it. */
 	public void show() {
-		Async.runLater(() -> {
+		runLater(() -> {
 			s.show();
 			focus();
 		});

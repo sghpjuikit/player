@@ -8,7 +8,7 @@ import javafx.fxml.FXML
 import javafx.scene.control.Label
 import javafx.scene.layout.AnchorPane
 import layout.widget.feature.SongReader
-import util.async.Async.FX
+import util.async.FX
 import util.async.future.Fut
 import util.graphics.fxml.ConventionFxmlLoader
 import util.graphics.leftAnchor

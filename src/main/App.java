@@ -94,7 +94,6 @@ import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
-import util.system.Environment;
 import util.file.ImageFileFormat;
 import util.file.Util;
 import util.functional.Try;
@@ -111,6 +110,7 @@ import util.serialize.xstream.PlaylistConverter;
 import util.serialize.xstream.PlaylistItemConverter;
 import util.serialize.xstream.StringPropertyConverter;
 import util.serialize.xstream.VConverter;
+import util.system.Environment;
 import util.system.SystemOutListener;
 import util.type.ClassName;
 import util.type.InstanceInfo;
@@ -125,6 +125,7 @@ import web.DuckDuckGoQBuilder;
 import web.GoogleImageQBuilder;
 import web.SearchUriBuilder;
 import web.WikipediaQBuilder;
+
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CSS3;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GITHUB;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.IMAGE;
@@ -142,15 +143,15 @@ import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static main.AppActionsKt.addToLibraryConsumer;
 import static org.atteo.evo.inflector.English.plural;
-import static util.async.Async.run;
-import static util.system.Environment.chooseFile;
-import static util.system.Environment.chooseFiles;
+import static util.async.AsyncKt.run;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.isValidatedDirectory;
 import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static util.functional.Util.list;
 import static util.functional.Util.stream;
 import static util.graphics.image.UtilKt.getImageDim;
+import static util.system.Environment.chooseFile;
+import static util.system.Environment.chooseFiles;
 
 /**
  * Application. Represents the program.
@@ -778,7 +779,11 @@ public class App extends Application implements Configurable {
 				configuration.collectStatic();
 				configuration.collect(Action.getActions());
 				services.getAllServices().forEach(configuration::collect);
-				configuration.collect(this, windowManager, guide, actionPane);
+				configuration.collect(this, windowManager, guide);
+				configuration.collect(Configurable.configsFromFieldsOf("actionChooserView", "View.Action Chooser", actionPane));
+				configuration.collect(Configurable.configsFromFieldsOf("actionChooserAppView", "View.Action App Chooser", actionAppPane));
+				configuration.collect(Configurable.configsFromFieldsOf("shortcutViewer", "View.Shortcut Viewer", shortcutPane));
+				configuration.collect(Configurable.configsFromFieldsOf("infoView", "View.System info", infoPane));
 
 				// deserialize values (some configs need to apply it, will do when ready)
 				configuration.rawSet();

@@ -1,6 +1,5 @@
 package gui.objects.tree;
 
-import de.jensd.fx.glyphs.GlyphsDude;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -19,12 +18,18 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import util.file.Util;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CSS3;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PAINT_BRUSH;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.scene.input.TransferMode.MOVE;
 import static javafx.scene.paint.Color.CADETBLUE;
 import static main.App.APP;
 import static util.file.UtilKt.listChildren;
+import static util.graphics.UtilKt.createIcon;
+
+// TODO: remove class
 
 /**
  */
@@ -71,11 +76,11 @@ public class FileTree extends TreeView<File> {
 	private static Node makeIcon(Path p) {
 		File f = p.toFile();
 		if (p.toString().endsWith(".css"))
-			return GlyphsDude.createIcon(CSS3, "11");
+			return createIcon(CSS3, 11);
 		if ((f.isDirectory() && APP.DIR_SKINS.equals(p.toFile().getParentFile())) || Util.isValidSkinFile(p.toFile()))
-			return GlyphsDude.createIcon(PAINT_BRUSH, "11");
+			return createIcon(PAINT_BRUSH, 11);
 		if ((f.isDirectory() && APP.DIR_WIDGETS.equals(p.toFile().getParentFile())) || Util.isValidWidgetFile(p.toFile()))
-			return GlyphsDude.createIcon(GE, "11");
+			return createIcon(GE, 11);
 
 		if (f.isFile()) return new Circle(2.5, CADETBLUE);
 		else return new Rectangle(5, 5, CADETBLUE);

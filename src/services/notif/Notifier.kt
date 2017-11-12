@@ -30,8 +30,7 @@ import util.conf.IsConfig.EditMode
 import util.conf.IsConfigurable
 import util.math.millis
 import util.reactive.Disposer
-import util.reactive.changes
-import java.util.function.BiConsumer
+import util.reactive.attach
 import java.util.function.Consumer
 import kotlin.streams.asSequence
 
@@ -100,10 +99,10 @@ class Notifier: ServiceBase(true) {
     override fun start() {
         n = Notification()
         onStop += Player.playingItem.onChange { it -> songChange(it) }
-        onStop += PLAYBACK.statusProperty().changes(BiConsumer { _, nv ->
-            if (nv==PAUSED || nv==PLAYING || nv==STOPPED)
-                playbackChange(nv)
-        })
+        onStop += PLAYBACK.statusProperty() attach {
+            if (it==PAUSED || it==PLAYING || it==STOPPED)
+                playbackChange(it)
+        }
         running = true
     }
 

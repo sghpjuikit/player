@@ -34,7 +34,7 @@ import static java.util.stream.Collectors.toCollection;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static main.App.APP;
-import static util.async.Async.runFX;
+import static util.async.AsyncKt.runFX;
 import static util.dev.Util.log;
 import static util.functional.Util.list;
 import static util.functional.Util.setRO;

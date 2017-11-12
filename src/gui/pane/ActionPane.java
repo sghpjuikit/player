@@ -25,6 +25,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
@@ -39,12 +40,9 @@ import util.access.V;
 import util.action.Action;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
-import util.async.Async;
 import util.async.future.Fut;
 import util.collections.map.ClassListMap;
-import util.conf.Configurable;
 import util.conf.IsConfig;
-import util.conf.IsConfigurable;
 import util.functional.Functors.Ƒ1;
 import util.functional.Try;
 import util.type.ClassName;
@@ -53,8 +51,6 @@ import util.type.InstanceName;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_CIRCLE_OUTLINE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.RESIZE_BOTTOM_RIGHT;
-import static gui.objects.icon.Icon.createInfoIcon;
-import static gui.objects.table.FieldedTable.defaultCell;
 import static gui.pane.ActionPane.GroupApply.FOR_ALL;
 import static gui.pane.ActionPane.GroupApply.FOR_EACH;
 import static gui.pane.ActionPane.GroupApply.NONE;
@@ -72,9 +68,11 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static main.AppBuildersKt.appProgressIndicator;
-import static util.async.Async.FX;
-import static util.async.Async.runLater;
-import static util.async.Async.sleeping;
+import static main.AppBuildersKt.createInfoIcon;
+import static util.async.AsyncKt.FX;
+import static util.async.AsyncKt.runFX;
+import static util.async.AsyncKt.runLater;
+import static util.async.AsyncKt.sleeping;
 import static util.async.future.Fut.fut;
 import static util.async.future.Fut.futAfter;
 import static util.dev.Util.throwIfNotFxThread;
@@ -91,11 +89,8 @@ import static util.graphics.Util.layStack;
 import static util.graphics.Util.layVertically;
 import static util.graphics.UtilKt.setScaleXY;
 
-/**
- * Action chooser pane. Displays icons representing certain actions.
- */
-@IsConfigurable("Gui.Action Chooser")
-public class ActionPane extends OverlayPane<Object> implements Configurable<Object> {
+/** Action chooser pane. Displays icons representing certain actions. */
+public class ActionPane extends OverlayPane<Object> {
 
 	private static final String ROOT_STYLECLASS = "action-pane";
 	private static final String ICON_STYLECLASS = "action-pane-action-icon";
@@ -104,6 +99,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 
 	@IsConfig(name = COD_TITLE, info = COD_INFO)
 	public final V<Boolean> closeOnDone = new V<>(false);
+
 	private final ClassName className;
 	private final InstanceName instanceName;
 	private final InstanceInfo instanceInfo;
@@ -243,12 +239,12 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public final void show(Object value) {
+	public final void show(Object data) {
 		throwIfNotFxThread();
 
-		value = collectionUnwrap(value);
-		Class c = value==null ? Void.class : value.getClass();
-		show(c, value);
+		data = collectionUnwrap(data);
+		Class c = data==null ? Void.class : data.getClass();
+		show(c, data);
 	}
 
 	public final <T> void show(Class<T> type, T value) {
@@ -372,7 +368,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 				t.setColumnFactory(f -> {
 					TableColumn<?,Object> c = new TableColumn<>(f.toString());
 					c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV(f.getOf(cf.getValue())));
-					c.setCellFactory(col -> defaultCell(f));
+					c.setCellFactory(col -> (TableCell) t.buildDefaultCell(f));
 					c.setResizable(true);
 					return (TableColumn)c;
 				});
@@ -536,7 +532,7 @@ public class ActionPane extends OverlayPane<Object> implements Configurable<Obje
 	}
 
 	public <I> ConvertingConsumer<? super I> converting(Ƒ1<? super I,Try<?,?>> converter) {
-		return d -> converter.apply(d).ifOk(result -> Async.runFX(() -> ActionPane.this.show(result)));
+		return d -> converter.apply(d).ifOk(result -> runFX(() -> ActionPane.this.show(result)));
 	}
 
 	private interface ConvertingConsumer<T> extends Consumer<T> {}

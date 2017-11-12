@@ -39,6 +39,7 @@ object RatingRatingCellFactory: RatingCellFactory {
                 if (graphic==null) graphic = r
             }
         }
+
     }
 
 }

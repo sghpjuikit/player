@@ -36,7 +36,7 @@ import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static main.AppBuildersKt.helpPopOver;
-import static util.async.Async.runFX;
+import static util.async.AsyncKt.runFX;
 import static util.dev.Util.noØ;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.getFilesAudio;

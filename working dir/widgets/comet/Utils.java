@@ -89,7 +89,6 @@ import static comet.Comet.Constants.FPS;
 import static comet.Utils.Achievement.achievement01;
 import static comet.Utils.Achievement.achievement0N;
 import static comet.Utils.Achievement.achievement1;
-import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Math.acos;
 import static java.lang.Math.asin;
 import static java.lang.Math.ceil;
@@ -110,6 +109,7 @@ import static javafx.scene.text.Font.font;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.minutes;
 import static javafx.util.Duration.seconds;
+import static main.AppBuildersKt.createInfoIcon;
 import static util.Util.clip;
 import static util.Util.formatDuration;
 import static util.Util.pyth;
@@ -688,7 +688,7 @@ interface Utils {
 		private final Icon helpI = createInfoIcon("How to play");
 
 		public HowToPane() {
-			display.set(Display.WINDOW);
+			getDisplay().set(Display.WINDOW);
 
 			ScrollPane sp = new ScrollPane();
 					   sp.setOnScroll(Event::consume);
@@ -713,20 +713,15 @@ interface Utils {
 			buildEnhancers(game.mode.enhancers().stream());
 		}
 
-
-
 		private void buildEnhancers(Stream<Game.Enhancer> enhancers) {
-			// clear content
 			g.getChildren().clear();
 			g.getRowConstraints().clear();
 			g.getColumnConstraints().clear();
 
-			// build columns
 			g.getColumnConstraints().add(new ColumnConstraints(100,100,100, NEVER, HPos.RIGHT, false));
 			g.getColumnConstraints().add(new ColumnConstraints(20));
 			g.getColumnConstraints().add(new ColumnConstraints(-1,-1,-1, ALWAYS, HPos.LEFT, false));
 
-			// build rows
 			R<Integer> i = new R<>(-1); // row index
 			enhancers
 				.sorted(by(enhancer -> enhancer.name))
@@ -752,7 +747,7 @@ interface Utils {
 		private final Icon helpI = createInfoIcon("Mission details");
 
 		public MissionPane() {
-			display.set(Display.WINDOW);
+			getDisplay().set(Display.WINDOW);
 
 			ScrollPane sp = new ScrollPane();
 			sp.setOnScroll(Event::consume);
@@ -776,8 +771,8 @@ interface Utils {
 
 			text.setText(
 				"Name: " + mission.name + "\n" +
-					"Scale: " + mission.scale + "\n\n" +
-					mission.details
+				"Scale: " + mission.scale + "\n\n" +
+				mission.details
 			);
 		}
 	}
@@ -789,7 +784,7 @@ interface Utils {
 		private final Icon helpI = createInfoIcon("How to play");
 
 		public EndGamePane() {
-			display.set(Display.WINDOW);
+			getDisplay().set(Display.WINDOW);
 			gameModeName.setFont(font(FONT_UI.getFamily(), 30));
 
 			ScrollPane sp = new ScrollPane();

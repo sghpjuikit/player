@@ -12,7 +12,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.async.Async;
+
+import static util.async.AsyncKt.runFX;
 
 /**
  * Application instance communicator.
@@ -91,7 +92,7 @@ public class AppInstanceComm {
 		public void newInstanceLaunched(List<String> params) {
 			LOGGER.info("New app instance event received.");
 			// run handlers on fx thread (we are on rmi thread)
-			Async.runFX(() -> onNewInstanceHandlers.forEach(c -> c.accept(params)));
+			runFX(() -> onNewInstanceHandlers.forEach(c -> c.accept(params)));
 		}
 	}
 }

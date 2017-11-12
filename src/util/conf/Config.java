@@ -32,11 +32,11 @@ import util.parsing.StringConverter;
 import util.type.Util;
 import util.validation.Constraint;
 import util.validation.Constraint.HasNonNullElements;
+
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
 import static util.conf.Config.VarList.NULL_SUPPLIER;
-import static util.conf.Configuration.configsOf;
 import static util.dev.Util.log;
 import static util.functional.Try.error;
 import static util.functional.Try.ok;
@@ -312,11 +312,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		if (property instanceof ObservableValue)
 			return new ReadOnlyPropertyConfig<>(type, name, (ObservableValue<T>) property);
 		throw new RuntimeException("Must be WritableValue or ReadOnlyValue, but is " + property.getClass());
-	}
-
-	@SuppressWarnings("unchecked")
-	public static Collection<Config<?>> configs(Object o) {
-		return (Collection) configsOf(o.getClass(), o, false, true);
 	}
 
 	/******************************* IMPLEMENTATIONS ******************************/
@@ -1031,6 +1026,12 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			super(type, name, name, getter.get(), "", description, EditMode.USER);
 			this.getter = getter;
 			this.setter = setter;
+		}
+
+		public AccessorConfig(Class<T> type, String name, String description, String category, T objectAccessed) {
+			super(type, name, name, objectAccessed, category, description, EditMode.USER);
+			this.getter = () -> objectAccessed;
+			this.setter = o -> {};
 		}
 
 		@Override

@@ -51,14 +51,14 @@ import static main.App.APP;
 import static main.AppBuildersKt.appTooltipForData;
 import static util.Sort.ASCENDING;
 import static util.Util.capitalize;
-import static util.async.Async.FX;
-import static util.async.Async.newSingleDaemonThreadExecutor;
-import static util.async.Async.newThreadPoolExecutor;
-import static util.async.Async.onlyIfMatches;
-import static util.async.Async.run;
-import static util.async.Async.runFX;
-import static util.async.Async.runLater;
-import static util.async.Async.threadFactory;
+import static util.async.AsyncKt.FX;
+import static util.async.AsyncKt.newSingleDaemonThreadExecutor;
+import static util.async.AsyncKt.newThreadPoolExecutor;
+import static util.async.AsyncKt.onlyIfMatches;
+import static util.async.AsyncKt.run;
+import static util.async.AsyncKt.runFX;
+import static util.async.AsyncKt.runLater;
+import static util.async.AsyncKt.threadFactory;
 import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.getCommonRoot;
@@ -198,7 +198,7 @@ public class DirViewer extends ClassController {
         // temporary bug fix, (we use progress indicator of the window this widget is loaded
         // in, but when this refresh() method is called its just during loading and window is not yet
         // available, so we delay wit runLater
-        runLater(this::revisitCurrent);
+        runLater(() -> revisitCurrent());
     }
 
     void visitUp() {

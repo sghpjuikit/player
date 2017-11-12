@@ -77,8 +77,8 @@ import static javafx.geometry.Pos.TOP_LEFT;
 import static javafx.scene.control.OverrunStyle.ELLIPSIS;
 import static layout.widget.Widget.Group.OTHER;
 import static main.App.APP;
-import static util.async.Async.FX;
-import static util.async.Async.runFX;
+import static util.async.AsyncKt.FX;
+import static util.async.AsyncKt.runFX;
 import static util.file.Util.copyFileSafe;
 import static util.file.Util.copyFiles;
 import static util.functional.Util.by;
@@ -347,7 +347,7 @@ public class FileInfo extends FXMLController implements SongReader {
         else
             copyFiles(list(file), data.getLocation(), REPLACE_EXISTING);
 
-        runFX(cover_source::applyValue);
+        runFX(() -> cover_source.applyValue());
     }
 
     private void tagAsCover(File file, boolean includeAlbum) {

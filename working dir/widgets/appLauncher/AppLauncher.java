@@ -38,7 +38,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static layout.widget.Widget.Group.OTHER;
 import static main.App.APP;
 import static util.Sort.ASCENDING;
-import static util.async.Async.*;
+import static util.async.AsyncKt.*;
 import static util.file.FileSort.DIR_FIRST;
 import static util.file.FileType.FILE;
 import static util.functional.Util.by;

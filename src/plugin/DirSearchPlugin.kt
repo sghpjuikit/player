@@ -8,7 +8,7 @@ import javafx.collections.ObservableList
 import main.App
 import mu.KotlinLogging
 import util.access.v
-import util.async.Async.FX
+import util.async.FX
 import util.async.future.Fut
 import util.conf.Config.RunnableConfig
 import util.conf.Config.VarList

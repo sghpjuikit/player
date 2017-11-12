@@ -1,10 +1,14 @@
 package main;
 
+import gui.Gui;
+import gui.objects.Text;
+import gui.objects.icon.Icon;
+import gui.objects.popover.PopOver;
 import gui.objects.popover.ScreenPos;
+import gui.objects.window.stage.Window;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
-
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -15,31 +19,30 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
-
-import org.reactfx.Subscription;
-
-import gui.Gui;
-import gui.objects.Text;
-import gui.objects.icon.Icon;
-import gui.objects.popover.PopOver;
-import gui.objects.window.stage.Window;
 import layout.container.bicontainer.BiContainer;
 import layout.container.switchcontainer.SwitchContainer;
 import layout.widget.Widget;
+import org.reactfx.Subscription;
 import util.access.V;
 import util.action.Action;
 import util.action.IsAction;
 import util.animation.Anim;
-import util.async.Async;
 import util.conf.Configurable;
 import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 import util.conf.IsConfigurable;
 import util.graphics.drag.DragUtil;
-
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
-import static gui.objects.icon.Icon.createInfoIcon;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GRADUATION_CAP;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MUSIC;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.WHEELCHAIR;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DICE_2;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DICE_3;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.GAMEPAD_VARIANT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.HAND_POINTING_RIGHT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PALETTE_ADVANCED;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.RUN;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WALK;
 import static java.util.Collections.singletonMap;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
@@ -53,8 +56,9 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.util.Duration.millis;
 import static layout.container.Container.testControlContainer;
 import static main.App.APP;
-import static util.async.Async.run;
-import static util.async.Async.runFX;
+import static main.AppBuildersKt.createInfoIcon;
+import static util.async.AsyncKt.run;
+import static util.async.AsyncKt.runFX;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.drag.DragUtil.installDrag;
 
@@ -108,8 +112,8 @@ public final class Guide implements Configurable {
 		p.getContentNode().addEventHandler(MOUSE_CLICKED, e -> {
 			if (e.getButton()==PRIMARY)   goToNext();
 			if (e.getButton()==SECONDARY && hints.get(at).action.equals("Navigation")) {
-				Async.run(proceedAnimLength.multiply(3), this::goToNext);
-				Async.run(proceedAnimLength.multiply(6), this::goToNext);
+				run(proceedAnimLength.multiply(3), this::goToNext);
+				run(proceedAnimLength.multiply(6), this::goToNext);
 			}
 			if (e.getButton()==SECONDARY) goToPrevious();
 			e.consume();
@@ -182,12 +186,12 @@ public final class Guide implements Configurable {
 		   + "\n\nTo see all the available shortcuts, simply press '"
 		   + Action.get("Show shortcuts").getKeys() + "'.",
 			() -> {
-				APP.shortcutPane.onShown.add(hider);
-				APP.shortcutPane.onHidden.add(shower);
+				APP.shortcutPane.getOnShown().add(hider);
+				APP.shortcutPane.getOnHidden().add(shower);
 			},
 			() -> {
-				APP.shortcutPane.onShown.remove(hider);
-				APP.shortcutPane.onHidden.remove(shower);
+				APP.shortcutPane.getOnShown().remove(hider);
+				APP.shortcutPane.getOnHidden().remove(shower);
 			}
 		);
 		hint("New widget", "The application consists of:\n"

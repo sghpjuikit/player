@@ -63,7 +63,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static main.AppBuildersKt.appTooltip;
 import static util.Util.enumToHuman;
-import static util.async.Async.run;
+import static util.async.AsyncKt.run;
 import static util.functional.Try.ok;
 import static util.functional.Util.*;
 import static util.graphics.Util.layHeaderTop;
@@ -110,6 +110,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 		put(Password.class, PasswordField::new);
 		put(Charset.class, charset -> new EnumerableField<>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
 		put(KeyCode.class, KeyCodeField::new);
+		put(Configurable.class, ConfigurableField::new);
 		put(ObservableList.class, config -> Configurable.class.isAssignableFrom(((ListConfig)config).a.itemType) ? new ListFieldPaginated(config) : new ListField<>(config));
 		EffectItemNode.EFFECT_TYPES.stream().filter(et -> et.type != null).forEach(et -> put(et.type, config -> new EffectField(config, et.type)));
 	}};
@@ -899,6 +900,27 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 	        if (onChange != null) onChange.run();
         }
     }
+	private static class ConfigurableField extends ConfigField<Configurable<?>> {
+		private final ConfigPane<Object> configPane = new ConfigPane<>();
+
+		private ConfigurableField(Config<Configurable<?>> c) {
+			super(c);
+			configPane.configure(c.getValue().getFields());
+		}
+
+		@Override
+		public Node getControl() {
+			return configPane;
+		}
+
+		@Override
+		public Try<Configurable<?>,String> get() {
+			return ok(config.getValue());
+		}
+
+		@Override
+		public void refreshItem() {}
+	}
     private static class ListField<T> extends ConfigField<ObservableList<T>> {
 
         private final ListConfig<T> lc;
@@ -935,7 +957,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         class ConfigurableField extends ValueNode<T> {
             private final Class<T> type;
-        	private final ConfigPane<Object> p = new ConfigPane<>();
+        	private final ConfigPane<T> p = new ConfigPane<>();
 
             public ConfigurableField(Class<T> type, T value) {
                 this.type = type;
@@ -946,15 +968,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
             @Override
             public Node getNode() {
-                return p.getNode();
+                return p;
             }
 
             @Override
             public T getValue() {
             	// TODO: why do we get 1st ConfigField? Makes no sense
-            	Class oType = p.getValuesC().get(0).config.getType();
-                Object o = p.getValuesC().get(0).getValue();
-                if (type==oType) return (T) o;
+            	Class<T> oType = p.getConfigFields().get(0).config.getType();
+                T o = p.getConfigFields().get(0).getValue();
+                if (type==oType) return o;
                 else return value;
             }
 
@@ -966,10 +988,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 	    private final ListConfig<Configurable> lc;
     	Icon prevB = new Icon(FontAwesomeIcon.ANGLE_LEFT, 16, "Previous item", this::prev);
     	Icon nextB = new Icon(FontAwesomeIcon.ANGLE_RIGHT, 16, "Next item", this::next);
-	    ConfigPane<Configurable> configPane = new ConfigPane<>();
+	    ConfigPane<Object> configPane = new ConfigPane<>();
 	    Node graphics = layHeaderTop(10, Pos.CENTER_RIGHT,
 		    layHorizontally(5, Pos.CENTER_RIGHT, prevB,nextB),
-		    configPane.getNode()
+		    configPane
 	    );
 
         public ListFieldPaginated(Config<ObservableList<Configurable>> c) {

@@ -1,8 +1,9 @@
 package util.access
 
 import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.value.ChangeListener
 import org.reactfx.Subscription
+import util.reactive.attach
+import util.reactive.changes
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 
@@ -14,7 +15,6 @@ fun <T> vn(value: T?, onChange: (T?) -> Unit) = V(value, Consumer { onChange(it)
 /**
  * Var/variable - simple object wrapper similar to [javafx.beans.property.Property], but
  * simpler (no binding) and with the ability to apply value change.
- *
  *
  * Does not permit null values.
  */
@@ -39,30 +39,16 @@ open class V<T> : SimpleObjectProperty<T>, ApplicableValue<T> {
         applier.accept(`val`)
     }
 
-    fun onChange(action: Consumer<in T>): Subscription {
-        val l = ChangeListener<T> { _, _, nv -> action.accept(nv) }
-        addListener(l)
-        return Subscription { removeListener(l) }
-    }
+    fun onChange(action: Consumer<in T>) = attach { action.accept(it) }
 
-    fun onChange(action: BiConsumer<in T, in T>): Subscription {
-        val l = ChangeListener<T> { _, ov, nv -> action.accept(ov, nv) }
-        addListener(l)
-        return Subscription { removeListener(l) }
-    }
+    fun onChange(action: BiConsumer<in T, in T>) = changes { ov, nv -> action.accept(ov, nv) }
 
     fun maintain(action: Consumer<in T>): Subscription {
-        val l = ChangeListener<T> { _, _, nv -> action.accept(nv) }
-        addListener(l)
         action.accept(value)
-        return Subscription { removeListener(l) }
+        return attach { action.accept(it) }
     }
 
-    fun onInvalid(action: Runnable): Subscription {
-        val l = ChangeListener<T> {  _, _, _ -> action.run() }
-        addListener(l)
-        return Subscription { removeListener(l) }
-    }
+    fun onInvalid(action: Runnable) = attach { action.run() }
 
 }
 

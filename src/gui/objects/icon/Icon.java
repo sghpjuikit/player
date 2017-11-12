@@ -11,7 +11,6 @@ import de.jensd.fx.glyphs.octicons.OctIcon;
 import de.jensd.fx.glyphs.octicons.OctIconView;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIconView;
-import gui.objects.popover.PopOver;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -44,6 +43,7 @@ import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
+import kotlin.jvm.functions.Function1;
 import org.slf4j.LoggerFactory;
 import util.LazyR;
 import util.SwitchException;
@@ -51,10 +51,8 @@ import util.action.Action;
 import util.animation.Anim;
 import util.collections.mapset.MapSet;
 import util.functional.Functors.Ƒ1;
-import util.graphics.Icons;
 import util.parsing.Parser;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.lang.Math.signum;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toCollection;
@@ -62,17 +60,17 @@ import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
-import static main.App.APP;
 import static main.AppBuildersKt.appTooltip;
-import static main.AppBuildersKt.helpPopOver;
 import static util.functional.Util.setRO;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHeaderBottom;
 import static util.graphics.Util.layHeaderLeft;
 import static util.graphics.Util.layHeaderRight;
 import static util.graphics.Util.layHeaderTop;
-import static util.graphics.Util.setMinPrefMaxSize;
+import static util.graphics.UtilKt.createIcon;
+import static util.graphics.UtilKt.setMinPrefMaxSize;
 import static util.graphics.UtilKt.setScaleXY;
+import static util.graphics.UtilKt.typeText;
 import static util.type.Util.getEnumConstants;
 import static util.type.Util.getFieldValue;
 
@@ -92,7 +90,7 @@ public class Icon extends StackPane {
 		return new Anim(millis(150), p -> setScaleXY(i.node, s*(1 + 0.2*p*p), 1 + 0.2*p*p));
 	};
 	private static final String STYLECLASS = "icon";
-	public static final GlyphIcons DEFAULT_GLYPH = ADJUST;
+	private static final GlyphIcons DEFAULT_GLYPH = ADJUST;
 	private static final Double DEFAULT_ICON_SIZE = 12d;
 	private static final Double DEFAULT_ICON_GAP = 0d;
 	private static final String DEFAULT_FONT_SIZE = "1em";
@@ -124,17 +122,6 @@ public class Icon extends StackPane {
 		} catch (IOException e) {
 			LoggerFactory.getLogger(Icon.class).error("Could not load font", e);
 		}
-	}
-
-	public static Icon createInfoIcon(String text) {
-		return new Icon(INFO).tooltip("Help").onClick(e -> {
-			PopOver<gui.objects.Text> helpP = helpPopOver(text);
-			helpP.show((Node) e.getSource());
-			helpP.getContentNode().setWrappingWidth(400);
-			helpP.getSkinn().setTitleAsOnlyHeaderContent(false);
-			APP.actionStream.push("Info popup");
-			e.consume();
-		});
 	}
 
 	private final Text node = new Text();
@@ -306,24 +293,23 @@ public class Icon extends StackPane {
 			// Can not set graphics normally, because:
 			// 1) icon may be null at this point
 			// 2) the icon could change / tooltip graphics would have to be maintained (just NO)
-			// we create it when shown
-			// This also avoids creating useless objects
+			// 3) lazy graphics == better
 			t.setOnShowing(e -> {
 				GlyphIcons g = getGlyph();
 				if (g!=null) {
-					t.setGraphic(Icons.createIcon(g, 30));
+					t.setGraphic(createIcon(g, 30));
 					t.setGraphicTextGap(15);
 				}
 			});
 			t.setOnShown(e -> {
-				// animate
 				Label s = getFieldValue(t.getSkin(), "tipLabel");
 				Text txt = s==null ? null : getFieldValue(s.getSkin(), "text");
 				Node ico = s==null ? null : getFieldValue(s.getSkin(), "graphic");
 				if (ico!=null && txt!=null) {
+					Function1<Double,String> ti = typeText(txt.getText());
 					new Anim(millis(400), p -> {
 						double p2 = Anim.mapTo01(p, 0.4, 1);
-						txt.setTranslateX(20*p*p - 20);
+						txt.setText(ti.invoke(p));
 						setScaleXY(ico, p2);
 					}).play();
 				}

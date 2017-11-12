@@ -65,8 +65,8 @@ import static layout.widget.Widget.Group.LIBRARY;
 import static main.App.APP;
 import static main.AppBuildersKt.appProgressIndicator;
 import static util.animation.Anim.Interpolators.reverse;
-import static util.async.Async.FX;
-import static util.async.Async.sleeping;
+import static util.async.AsyncKt.FX;
+import static util.async.AsyncKt.sleeping;
 import static util.file.Util.getCommonRoot;
 import static util.functional.Util.map;
 import static util.graphics.Util.menuItem;
@@ -104,7 +104,7 @@ public class Library extends FXMLController implements SongReader {
     private @FXML AnchorPane root;
 	private final FilteredTable<Metadata> table = new FilteredTable<>(Metadata.class, Metadata.EMPTY.getMainField());
     private final InfoTask<Task<?>> taskInfo = new InfoTask<>(null, new Label(), appProgressIndicator());
-	private final Anim hideInfo = new Anim(at-> setScaleXY(taskInfo.getProgressIndicator(),at*at))
+	private final Anim hideInfo = new Anim(at-> setScaleXY(taskInfo.getProgress(),at*at))
 		                              .dur(500).intpl(reverse(new ElasticInterpolator()));
 
 	private final ExecuteN runOnce = new ExecuteN(1);
@@ -145,7 +145,7 @@ public class Library extends FXMLController implements SongReader {
         d(maintain(show_footer,table.footerVisible));
 
         // add progress indicator to bottom controls
-        ((Pane)table.footerPane.getRight()).getChildren().addAll(taskInfo.getMessage(), taskInfo.getProgressIndicator());
+        ((Pane)table.footerPane.getRight()).getChildren().addAll(taskInfo.getMessage(), taskInfo.getProgress());
         taskInfo.setVisible(false);
 
         // extend table items information

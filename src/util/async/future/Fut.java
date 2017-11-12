@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 import javafx.scene.control.ProgressIndicator;
 import util.functional.Functors.Ƒ1;
 import static main.App.APP;
-import static util.async.Async.eFX;
+import static util.async.AsyncKt.eFX;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 

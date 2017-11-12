@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import org.reactfx.Subscription;
-import static util.async.Async.runFX;
+import static util.async.AsyncKt.runFX;
 
 /**
  * Stream that self-inserts as {@link System#out}, but instead of redirecting it, it continues

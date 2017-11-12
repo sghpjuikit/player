@@ -51,7 +51,7 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
 import static util.Util.zeroPad;
-import static util.async.Async.runLater;
+import static util.async.AsyncKt.runLater;
 import static util.dev.Util.noØ;
 import static util.functional.Util.by;
 import static util.functional.Util.filter;
@@ -234,7 +234,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		@Override
 		public void set(boolean v) {
 			if (v && get()) {
-				runLater(filterPane::focus);
+				runLater(() -> filterPane.focus());
 				return;
 			}
 
@@ -251,7 +251,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			filterPane.getNode().setVisible(v);
 
 			// focus filter to allow user use filter asap
-			if (v) runLater(filterPane::focus);
+			if (v) runLater(() -> filterPane.focus());
 		}
 	};
 

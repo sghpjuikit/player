@@ -19,14 +19,15 @@ import javafx.scene.shape.StrokeType;
 import main.App;
 import util.SwitchException;
 import util.animation.Anim;
-import util.async.Async;
 import util.async.executor.EventReducer;
 import util.async.future.Fut;
 import util.graphics.image.ImageSize;
+
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static util.async.Async.newSingleDaemonThreadExecutor;
-import static util.async.Async.runFX;
-import static util.async.Async.sleep;
+import static util.async.AsyncKt.FX;
+import static util.async.AsyncKt.newSingleDaemonThreadExecutor;
+import static util.async.AsyncKt.runFX;
+import static util.async.AsyncKt.sleep;
 import static util.dev.Util.noØ;
 import static util.dev.Util.throwIf;
 import static util.dev.Util.throwIfFxThread;
@@ -269,7 +270,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		throwIfFxThread();
 		return Stream.generate(() -> {
 					ImageSize is =  Fut.fut()
-							.supply(Async.FX, () -> thumb.calculateImageLoadSize())
+							.supply(FX, () -> thumb.calculateImageLoadSize())
 							.getDone();
 					boolean isReady = is.width>0 || is.height>0;
 					if (!isReady && getIndex()<0 || getIndex()>=gridView.get().getItemsShown().size()) return new ImageSize(-1,-1);

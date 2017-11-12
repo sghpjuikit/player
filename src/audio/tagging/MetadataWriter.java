@@ -64,7 +64,7 @@ import static org.jaudiotagger.tag.FieldKey.CUSTOM3;
 import static org.jaudiotagger.tag.FieldKey.RATING;
 import static util.Util.clip;
 import static util.Util.emptyOr;
-import static util.async.Async.runFX;
+import static util.async.AsyncKt.runFX;
 import static util.functional.Util.list;
 import static util.functional.Util.split;
 import static util.functional.Util.stream;

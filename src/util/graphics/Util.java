@@ -2,8 +2,6 @@ package util.graphics;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -15,8 +13,6 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
-import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
@@ -24,35 +20,43 @@ import javafx.scene.SnapshotParameters;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.control.*;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView.TableViewSelectionModel;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Callback;
-import javafx.util.Duration;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
 import util.access.V;
 import util.dev.Dependency;
 import util.functional.Functors.Ƒ1;
+
 import static java.time.Duration.ofMillis;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
-import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED_TARGET;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
+import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.Modality.APPLICATION_MODAL;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
-import static util.async.Async.runFX;
-import static util.async.Async.runLater;
+import static util.async.AsyncKt.runFX;
+import static util.async.AsyncKt.runLater;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 
@@ -61,6 +65,8 @@ import static util.dev.Util.noØ;
  */
 @SuppressWarnings("unused")
 public interface Util {
+
+/* ---------- LAYOUT ------------------------------------------------------------------------------------------------ */
 
 	/** Constructs ordinary {@link javafx.scene.layout.HBox}. Convenience constructor for more fluent style. */
 	static HBox layHorizontally(double gap, Pos align, Node... nodes) {
@@ -326,16 +332,6 @@ public interface Util {
 		return s;
 	}
 
-	/** @return simple background with specified solid fill color and no radius or insets. */
-	static Background bgr(Color c) {
-		return new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY));
-	}
-
-	/** @return simple border with specified color, solid style, no radius and default width. */
-	static Border border(Color c) {
-		return new Border(new BorderStroke(c, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));
-	}
-
 	static <E extends Event> void add1timeEventHandler(Stage eTarget, EventType<E> eType, Consumer<E> eHandler) {
 		eTarget.addEventHandler(eType, new EventHandler<>() {
 			@Override
@@ -346,107 +342,11 @@ public interface Util {
 		});
 	}
 
-	/**
-	 * Sets minimal, preferred and maximal width and height of the node to provided value.
-	 * Any bound property will be ignored. Null value will be ignored.
-	 * If node is not a {@link javafx.scene.layout.Region}, this method is a no op.
-	 */
-	static void setMinPrefMaxSize(Node n, Double widthHeight) {
-		setMinPrefMaxSize(n, widthHeight, widthHeight);
-	}
-
-	/**
-	 * Sets minimal, preferred and maximal width and height of the node to provided values.
-	 * Any bound property will be ignored. Null value will be ignored.
-	 * <p>
-	 * If node is not a {@link javafx.scene.layout.Region}, this method is a no op.
-	 */
-	@SuppressWarnings("ConstantConditions")
-	static void setMinPrefMaxSize(Node n, Double width, Double height) {
-		if (n instanceof Region) {
-			Region r = (Region) n;
-			boolean wmin = width!=null && !r.minWidthProperty().isBound();
-			boolean wpref = width!=null && !r.prefWidthProperty().isBound();
-			boolean wmax = width!=null && !r.maxWidthProperty().isBound();
-			boolean hmin = height!=null && !r.minHeightProperty().isBound();
-			boolean hpref = height!=null && !r.prefHeightProperty().isBound();
-			boolean hmax = height!=null && !r.maxHeightProperty().isBound();
-
-			if (hmin && wmin) r.setMinSize(width, height);
-			else if (hmin) r.setMinHeight(height);
-			else if (wmin) r.setMinWidth(height);
-
-			if (hpref && wpref) r.setPrefSize(width, height);
-			else if (hpref) r.setPrefHeight(height);
-			else if (wpref) r.setPrefWidth(height);
-
-			if (hmax && wmax) r.setMaxSize(width, height);
-			else if (hmax) r.setMaxHeight(height);
-			else if (wmax) r.setMaxWidth(height);
-		}
-	}
-
-	/**
-	 * Sets minimal, preferred and maximal width of the node to provided value.
-	 * Any bound property will be ignored. Null value will be ignored.
-	 * If node is not a {@link javafx.scene.layout.Region}, this method is a no op.
-	 */
-	static void setMinPrefMaxWidth(Node n, Double width) {
-		if (width!=null && n instanceof Region) {
-			Region r = (Region) n;
-			if (!r.minWidthProperty().isBound()) r.setMinWidth(width);
-			if (!r.prefWidthProperty().isBound()) r.setPrefWidth(width);
-			if (!r.maxWidthProperty().isBound()) r.setMaxWidth(width);
-		}
-	}
-
-	/**
-	 * Sets minimal, preferred and maximal height of the node to provided value.
-	 * If property bound, value null or node not a {@link javafx.scene.layout.Region}, this method is a no op.
-	 */
-	static void setMinPrefMaxHeight(Node n, Double height) {
-		if (height!=null && n instanceof Region) {
-			Region r = (Region) n;
-			if (!r.minHeightProperty().isBound()) r.setMinHeight(height);
-			if (!r.prefHeightProperty().isBound()) r.setPrefHeight(height);
-			if (!r.maxHeightProperty().isBound()) r.setMaxHeight(height);
-		}
-	}
-
-	static void removeFromParent(Node parent, Node child) {
-		if (parent==null || child==null) return;
-		if (parent instanceof Pane) {
-			((Pane) parent).getChildren().remove(child);
-		}
-	}
-
-	static void removeFromParent(Node child) {
-		if (child==null) return;
-		removeFromParent(child.getParent(), child);
-	}
-
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 	// TODO: make dpi aware
 	static WritableImage makeSnapshot(Node n) {
 		return n.snapshot(new SnapshotParameters(), null);
-	}
-
-	static void installDragByMouse(Node n) {
-		class P {
-			double x = 0, y = 0;
-		}
-		P start = new P();
-		n.addEventHandler(DRAG_DETECTED, e -> {
-			start.x = n.getLayoutX() - e.getSceneX();
-			start.y = n.getLayoutY() - e.getSceneY();
-			e.consume();
-		});
-		n.addEventHandler(MOUSE_DRAGGED, e -> {
-			n.setLayoutX(start.x + e.getSceneX());
-			n.setLayoutY(start.y + e.getSceneY());
-			e.consume();
-		});
 	}
 
 	@Deprecated
@@ -469,54 +369,6 @@ public interface Util {
 				() -> n.removeEventFilter(MOUSE_EXITED_TARGET, eFalse),
 				() -> n.hoverProperty().removeListener(eVal)
 		);
-	}
-
-	/**
-	 * Tooltip behavior is controlled by a private class javafx.scene.control.Tooltip$TooltipBehavior. All Tooltips
-	 * share the same TooltipBehavior instance via a static private member BEHAVIOR, which has default values of 1sec
-	 * for opening, 5secs visible, and 200 ms close delay (if mouse exits from node before 5secs).
-	 * <p/>
-	 * This hack below constructs a custom instance of TooltipBehavior and replaces private member BEHAVIOR with this
-	 * custom instance.
-	 * <p/>
-	 * More on http://www.coderanch.com/t/622070/JavaFX/java/control-Tooltip-visible-time-duration}.
-	 *
-	 * @deprecated since java 9 b114. Use {@link javafx.scene.control.Tooltip#setHideDelay(javafx.util.Duration)},
-	 * {@link javafx.scene.control.Tooltip#setShowDelay(javafx.util.Duration)} and {@link
-	 * javafx.scene.control.Tooltip#setShowDuration(javafx.util.Duration)} instead.
-	 */
-	@Deprecated(since = "9 b114")
-	static void setupCustomTooltipBehavior(int openDelayInMillis, int visibleDurationInMillis, int closeDelayInMillis) {
-		try {
-			// The class is private, hence the overly complicated way of obtaining it
-			Class TTBehaviourClass = null;
-			Class<?>[] declaredClasses = Tooltip.class.getDeclaredClasses();
-			for (Class c : declaredClasses) {
-				if (c.getCanonicalName().equals("javafx.scene.control.Tooltip.TooltipBehavior")) {
-					TTBehaviourClass = c;
-					break;
-				}
-			}
-			if (TTBehaviourClass==null) return;
-
-			@SuppressWarnings("unchecked")
-			Constructor constructor = TTBehaviourClass.getDeclaredConstructor(Duration.class, Duration.class, Duration.class, boolean.class);
-			if (constructor==null) return;
-
-			constructor.setAccessible(true);
-			Object behaviour = constructor.newInstance(
-					new Duration(openDelayInMillis), new Duration(visibleDurationInMillis),
-					new Duration(closeDelayInMillis), false);
-			Field behaviourField = Tooltip.class.getDeclaredField("BEHAVIOR");
-			if (behaviourField==null) return;
-
-			behaviourField.setAccessible(true);
-			// Object defaultBehavior = behaviourField.get(Tooltip.class); // store default behavior
-			behaviourField.set(Tooltip.class, behaviour);
-
-		} catch (Exception e) {
-			log(Util.class).warn("Aborted customizing tooltip behavior", e);
-		}
 	}
 
 /* ---------- TREE -------------------------------------------------------------------------------------------------- */
@@ -643,7 +495,7 @@ public interface Util {
 		}
 	}
 
-/* ---------- Events ------------------------------------------------------------------------------------------------ */
+/* ---------- EVENT ------------------------------------------------------------------------------------------------- */
 
 	EventHandler<MouseEvent> consumeOnSecondaryButton = e -> {
 		if (e.getButton()==MouseButton.SECONDARY) e.consume();
@@ -774,7 +626,6 @@ public interface Util {
 		owner.show();
 		owner.setX(screen.getBounds().getMinX() + 1);    // owner and child should be on the same screen
 		owner.setY(screen.getBounds().getMinY() + 1);
-		owner.show(); // must be 'visible' for the hack to work
 
 		Stage s = new Stage(UNDECORATED); // no OS header & buttons, we want full space
 		s.initOwner(owner);
@@ -782,16 +633,16 @@ public interface Util {
 		s.setAlwaysOnTop(true); // maybe not needed, but just in case
 
 		s.show();    // part of the workaround below
-
 		s.setX(screen.getBounds().getMinX()); // screen does not necessarily start at [0,0]
 		s.setY(screen.getBounds().getMinY());
 
 		// On screen setup with varying screen dpi, javaFX may use wrong dpi, lading to wrong Stage size,
 		// so we manually work around this
-//		 s.setWidth(screen.getBounds().getWidth()); // fullscreen...
-//		 s.setHeight(screen.getBounds().getHeight());
-		s.setWidth(screen.getVisualBounds().getWidth()/Screen.getPrimary().getOutputScaleX()*screen.getOutputScaleX());
-		s.setHeight(screen.getVisualBounds().getHeight()/Screen.getPrimary().getOutputScaleY()*screen.getOutputScaleY());
+		 s.setWidth(screen.getBounds().getWidth()); // fullscreen...
+		 s.setHeight(screen.getBounds().getHeight());
+
+//		s.setWidth(screen.getVisualBounds().getWidth()/Screen.getPrimary().getOutputScaleX()*screen.getOutputScaleX());
+//		s.setHeight(screen.getVisualBounds().getHeight()/Screen.getPrimary().getOutputScaleY()*screen.getOutputScaleY());
 
 		// Going fullscreen actually breaks things.
 		// We do not need fullscreen, we use UNDECORATED stage of maximum size. Fullscreen

@@ -10,7 +10,7 @@ import main.App
 import org.jaudiotagger.tag.FieldKey
 import util.SwitchException
 import util.access.fieldvalue.ObjectFieldBase
-import util.async.Async.runFX
+import util.async.runFX
 import util.dev.throwIfFxThread
 import util.file.AudioFileFormat
 import util.file.AudioFileFormat.Use

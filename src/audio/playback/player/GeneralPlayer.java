@@ -14,17 +14,24 @@ import java.util.Objects;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 import util.animation.Anim;
-import util.async.Async;
 import util.file.AudioFileFormat;
-import static audio.playback.PLAYBACK.*;
+
+import static audio.playback.PLAYBACK.post_activating;
+import static audio.playback.PLAYBACK.post_activating_1st;
+import static audio.playback.PLAYBACK.state;
+import static audio.playback.PLAYBACK.suspension_flag;
 import static java.lang.Math.pow;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
-import static util.async.Async.runFX;
+import static util.async.AsyncKt.runFX;
 import static util.dev.Util.log;
-import static util.file.AudioFileFormat.*;
+import static util.file.AudioFileFormat.Use;
+import static util.file.AudioFileFormat.m4a;
+import static util.file.AudioFileFormat.mp3;
+import static util.file.AudioFileFormat.mp4;
+import static util.file.AudioFileFormat.wav;
 import static util.reactive.Util.installSingletonListener;
 
 /**
@@ -118,7 +125,7 @@ public class GeneralPlayer {
 		if (p==null) return;
 		p.stop();
 
-		Async.runFX(() -> {
+		runFX(() -> {
 			Player.playingItem.itemChanged(Metadata.EMPTY);
 			realTime.synchroRealTime_onStopped();
 			PLAYBACK.onPlaybackAt.forEach(PlayTimeHandler::stop);

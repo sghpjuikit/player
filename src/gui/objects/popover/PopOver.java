@@ -55,6 +55,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+import util.SwitchException;
 import util.access.V;
 import util.animation.Anim;
 import util.math.P;
@@ -354,31 +355,18 @@ public class PopOver<N extends Node> extends PopupControl {
 	Runnable positioner = null;
 
 	private void position(Supplier<P> position) {
-		positioner = () -> {
-			P p = position.get();
-			position(p.getX(), p.getY());
-		};
+		positioner = () -> position(position.get());
 		positioner.run();
 	}
 
-	private void position(double x, double y) {
-		setX(x);
-		setY(y);
+	private void position(P pos) {
+		if (getArrowSize()>0)
+			pos = pos.plus(adjustWindowLocation());
 
-		// causes popup position itself on the screen with the most favourable
-		// position (the furthest from any border)
-		// do it after the popup is shown, after the desired cordinates are
-		// set - those are needed, before adjusting location
-		//adjustArrowLocation(); // experimental & busted
-
-		// move popover so the arrow points to the desired coordinates
-		// avoid when no arrow
-		if (getArrowSize()>0) adjustWindowLocation();
-
-		// solves a small bug where the followng variables dont get initialized
-		// and binding is currently impossible
-		deltaThisX = getX();
-		deltaThisY = getY();
+		setX(pos.getX());
+		setY(pos.getY());
+		deltaThisX = pos.getX();
+		deltaThisY = pos.getY();
 	}
 
 	/**
@@ -397,8 +385,8 @@ public class PopOver<N extends Node> extends PopupControl {
 		showThis(owner, owner.getScene().getWindow());
 		position(() -> {
 			Point2D a = owner.localToScreen(x, y);
-			double X = a.getX() + owner.getBoundsInParent().getWidth()/2;
-			double Y = a.getY() + owner.getBoundsInParent().getHeight()/2;
+			double X = a.getX() + owner.getLayoutBounds().getWidth()/2;
+			double Y = a.getY() + owner.getLayoutBounds().getHeight()/2;
 			return new P(X, Y);
 		});
 	}
@@ -650,73 +638,40 @@ public class PopOver<N extends Node> extends PopupControl {
 
 	/******************************************************************************/
 
-	private void adjustArrowLocation() {
-		Bounds bounds = PopOver.this.getSkin().getNode().getBoundsInParent();
-
-		double SW = Screen.getPrimary().getBounds().getWidth();
-		double SH = Screen.getPrimary().getBounds().getHeight();
-		double W = getWidth();
-		double H = getHeight();
-		double X = getX();
-		double Y = getY();
-		double right = SW - X;
-		double left = X;
-		double down = SH - Y;
-		double up = Y;
-		double vdiff = right - left;
-		double hdiff = down - up;
-		double h_content_screen_span = W/SW;
-		double v_content_screen_span = H/SH;
-
-		if (right>left) {
-			if (down>up) {
-				setArrowLocation(ArrowLocation.LEFT_TOP);
-			} else {
-				setArrowLocation(ArrowLocation.LEFT_BOTTOM);
-			}
-		} else {
-			if (down>up) {
-				setArrowLocation(ArrowLocation.RIGHT_TOP);
-			} else {
-				setArrowLocation(ArrowLocation.RIGHT_BOTTOM);
-			}
-		}
-//        setArrowLocation(ArrowLocation.LEFT_TOP);
-	}
-
-	/*
-	 * Move the window so that the arrow will end up pointing at the
-	 * target coordinates.
-	 */
-	private void adjustWindowLocation() {
-		Bounds bounds = PopOver.this.getSkin().getNode().getBoundsInParent();
-		double X = getX();
-
+	/* Move the window so that the arrow will end up pointing at the target coordinates. */
+	// TODO: fix this computing wrong coordinates
+	private P adjustWindowLocation() {
+		Bounds bounds = PopOver.this.getSkin().getNode().getLayoutBounds();
 		switch (getArrowLocation()) {
 			case TOP_CENTER:
 			case TOP_LEFT:
 			case TOP_RIGHT:
-				setX(X + bounds.getMinX() - computeXOffset());
-				setY(getY() + bounds.getMinY() + getArrowSize());
-				break;
+				return new P(
+					+ bounds.getMinX() - computeXOffset(),
+					+ bounds.getMinY() + getArrowSize()
+				);
 			case LEFT_TOP:
 			case LEFT_CENTER:
 			case LEFT_BOTTOM:
-				setX(X + bounds.getMinX() + getArrowSize());
-				setY(getY() + bounds.getMinY() - computeYOffset());
-				break;
+				return new P(
+					+ bounds.getMinX() + getArrowSize(),
+					+ bounds.getMinY() - computeYOffset()
+				);
 			case BOTTOM_CENTER:
 			case BOTTOM_LEFT:
 			case BOTTOM_RIGHT:
-				setX(X + bounds.getMinX() - computeXOffset());
-				setY(getY() - bounds.getMinY() - bounds.getMaxY() - 1);
-				break;
+				return new P(
+					+ bounds.getMinX() - computeXOffset(),
+					- bounds.getMinY() - bounds.getMaxY() - 1
+				);
 			case RIGHT_TOP:
 			case RIGHT_BOTTOM:
 			case RIGHT_CENTER:
-				setX(X - bounds.getMinX() - bounds.getMaxX() - 1);
-				setY(getY() + bounds.getMinY() - computeYOffset());
-				break;
+				return new P(
+					- bounds.getMinX() - bounds.getMaxX() - 1,
+					+ bounds.getMinY() - computeYOffset()
+				);
+			default: throw new SwitchException(getArrowLocation());
 		}
 	}
 
@@ -727,7 +682,8 @@ public class PopOver<N extends Node> extends PopupControl {
 				return getCornerRadius() + getArrowIndent() + getArrowSize();
 			case TOP_CENTER:
 			case BOTTOM_CENTER:
-				return getContentNode().prefWidth(-1)/2 + getArrowSize() + getArrowIndent();
+				return getWidth()/2 - getArrowSize();
+//				return getContentNode().prefWidth(-1)/2 + getArrowSize() + getArrowIndent();
 			case TOP_RIGHT:
 			case BOTTOM_RIGHT:
 				return getContentNode().prefWidth(-1) - getArrowIndent()

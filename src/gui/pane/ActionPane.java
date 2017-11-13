@@ -98,7 +98,7 @@ public class ActionPane extends OverlayPane<Object> {
 	private static final String COD_INFO = "Closes the chooser when action finishes running.";
 
 	@IsConfig(name = COD_TITLE, info = COD_INFO)
-	public final V<Boolean> closeOnDone = new V<>(false);
+	public final V<Boolean> closeOnDone = new V<>(true);
 
 	private final ClassName className;
 	private final InstanceName instanceName;

@@ -107,7 +107,6 @@ public class PopOverSkin implements Skin<PopOver> {
 		root.setPickOnBounds(false);
 		root.getStyleClass().add(ROOT_STYLECLASS);
 		setMinPrefMaxSize(root, Pane.USE_COMPUTED_SIZE, Pane.USE_COMPUTED_SIZE);
-		initClip(root);
 		setFontAsStyle(root, Gui.font.get());
 
 		//  min width and height equal 2 * corner radius + 2*arrow indent + 2*arrow size

@@ -92,8 +92,6 @@ public final class Seeker extends AnchorPane {
 	private final List<Chap> chapters = new ArrayList<>();
 	private final DoubleProperty seekerScaleY = seeker.scaleYProperty();
 	private boolean user_drag = false;
-	private boolean snaPosToChap = false;
-	private Chap selectedChap = null;
 
 	public Seeker() {
 		seeker.getStyleClass().add(STYLECLASS);
@@ -116,7 +114,7 @@ public final class Seeker extends AnchorPane {
 				double v = x/w;
 
 				// snap to chapter
-				Chap ch = minBy(chapters, chapSnapDist.get(), c -> abs(x - c.position*w)).orElse(null);
+				Chap ch = minBy(chapters, chapterSnapDistance.get(), c -> abs(x - c.position*w)).orElse(null);
 				seeker.setValue(ch==null ? v : ch.position);
 			}
 			e.consume();
@@ -146,16 +144,16 @@ public final class Seeker extends AnchorPane {
 				if (addB.isSelected()) {
 					// if out of proximity -> unselect
 					// if chapter closer than selected one -> select it
-					double dist = abs(e.getX() - selectedChap.getCenterX());
-					minBy(chapters, chapSnapDist.get(), c -> abs(c.getCenterX() - e.getX()))
-							.map(c -> c!=selectedChap ? c : null)
+					double dist = abs(e.getX() - chapterSelected.getCenterX());
+					minBy(chapters, chapterSnapDistance.get(), c -> abs(c.getCenterX() - e.getX()))
+							.map(c -> c!=chapterSelected ? c : null)
 							.ifPresentOrElse(addB::select, () -> {
-								if (dist>chapSnapDist.get())
+								if (dist>chapterSnapDistance.get())
 									addB.unselect();
 							});
 				} else {
 					// if chapter in proximity -> select it
-					minBy(chapters, chapSnapDist.get(), c -> abs(c.getCenterX() - e.getX()))
+					minBy(chapters, chapterSnapDistance.get(), c -> abs(c.getCenterX() - e.getX()))
 							.ifPresent(addB::select);
 				}
 			}
@@ -188,8 +186,8 @@ public final class Seeker extends AnchorPane {
 			r2.setScaleX(scale);
 			r2.setScaleY(scale);
 			seeker.setScaleY(1 + 3*p2);
-		})
-				.intpl(new CircularInterpolator()).delay(150);
+		}).intpl(new CircularInterpolator())
+			.delay(150);
 		onHoverChanged(sa::playFromDir);
 	}
 
@@ -228,9 +226,9 @@ public final class Seeker extends AnchorPane {
 	private final Loop ma = new Loop(this::ma_do);
 	private final Icon r1 = new Icon(ANGLE_DOWN, MA_ISIZE);
 	private final Icon r2 = new Icon(ANGLE_UP, MA_ISIZE);
-	double matox = 0;
-	double macurx = 0;
-	double maspeed = 0;
+	private double matox = 0;
+	private double macurx = 0;
+	private double maspeed = 0;
 
 	private void ma_do() {
 		// calculate new x
@@ -260,12 +258,24 @@ public final class Seeker extends AnchorPane {
 		r2.setManaged(false);
 		getChildren().addAll(r1, r2);
 
-		addEventFilter(MOUSE_MOVED, e -> matox = addB.isSelected() ? selectedChap.getCenterX() : e.getX());
-		addEventFilter(MOUSE_DRAGGED, e -> matox = addB.isSelected() ? selectedChap.getCenterX() : e.getX());
+		addEventFilter(MOUSE_MOVED, e -> matox = addB.isSelected() ? chapterSelected.getCenterX() : e.getX());
+		addEventFilter(MOUSE_DRAGGED, e -> matox = addB.isSelected() ? chapterSelected.getCenterX() : e.getX());
 		ma.start(); // starts animation
 	}
 
-//****************************** selection animation *************************/
+//********************************** chapters *********************************/
+
+
+	/** Chapter display strategy. */
+	public final V<ChapterDisplayMode> chapterDisplayMode = new V<>(ChapterDisplayMode.POPUP_SHARED);
+	/** Chapter display activation strategy. */
+	public final V<ChapterDisplayActivation> chapterDisplayActivation = new V<>(ChapterDisplayActivation.HOVER);
+	/** Whether seeker snaps to chapters. */
+	public final V<Boolean> chapterSnap = new V<>(false);
+	/** Seeker snap to chapter activation distance. */
+	public final DoubleProperty chapterSnapDistance = new SimpleDoubleProperty(7);
+	/** Chapter selected */
+	private Chap chapterSelected = null;
 
 	private final Anim selectChapAnim = new Anim(millis(500), p -> {
 		double h = getHeight();
@@ -275,73 +285,20 @@ public final class Seeker extends AnchorPane {
 		r2.setTranslateY(-dy);
 	});
 
-//********************************** chapters *********************************/
-
-	/**
-	 * Reloads chapters from currently played item's metadata. Use when chapter
-	 * data changes for example on chapter add/remove.
-	 *
-	 * @param m metadata
-	 * @throws NullPointerException if parameter null
-	 */
+	/** Reload chapters. Use on chapter data change, e.g., on chapter add/remove. */
 	public void reloadChapters(Metadata m) {
 		noØ(m);
 
-		// clear
 		getChildren().removeAll(chapters);
 		chapters.clear();
 
-		if (!showChapters) return;
-
-		// populate
-		for (Chapter ch : m.getChapters().getChapters()) {
-			Chap c = new Chap(ch, ch.getTime().toMillis()/m.getLength().toMillis());
-			getChildren().add(c);
-			chapters.add(c);
+		if (chapterDisplayMode.get().canBeShown()) {
+			for (Chapter ch : m.getChapters().getChapters()) {
+				Chap c = new Chap(ch, ch.getTime().toMillis()/m.getLength().toMillis());
+				getChildren().add(c);
+				chapters.add(c);
+			}
 		}
-	}
-
-	// properties
-	boolean showChapters = true;
-	boolean popupChapters = true;
-	public final DoubleProperty chapSnapDist = new SimpleDoubleProperty(7);
-	boolean editableChapters = true;
-	boolean singleChapterPopupMode = false;
-	public final V<Boolean> selectChapOnHover = new V<>(true);
-
-	/**
-	 * Set whether chapters should display whole information in a pop up.
-	 * Default true.
-	 */
-	public void setChaptersShowPopUp(boolean val) {
-		popupChapters = val;
-	}
-
-	/** Set whether chapters should be displayed on the seeker. Default true */
-	public void setChaptersVisible(boolean val) {
-		showChapters = val;
-	}
-
-	/** Set whether chapters can be edited. Default true. */
-	public void setChaptersEditable(boolean val) {
-		editableChapters = val;
-	}
-
-	/** Set snapping to chapters during seeker dragging. */
-	public void setSnapToChapters(boolean v) {
-		snaPosToChap = v;
-	}
-
-	public boolean isSnapToChapters() {
-		return snaPosToChap;
-	}
-
-	/**
-	 * Set whether only one chapter popup can be displayed at any given time.
-	 * Default false.
-	 */
-	public void setSinglePopupMode(boolean val) {
-		singleChapterPopupMode = val;
 	}
 
 	/****************************************** POSITION **********************************************/
@@ -437,10 +394,14 @@ public final class Seeker extends AnchorPane {
 			// this button is mouse transparent, we handle click on our own
 			// and avoid nodes blocking events + we can use arbitrary click area
 			seeker.addEventFilter(MOUSE_CLICKED, e -> {
+				System.out.println("clicked");
 				if (e.getButton()==SECONDARY) {
 					if (isShown() && abs(getCenterX() - e.getX())<16/2) { // if addB contains event
-						if (isSelected()) selectedChap.showPopup();
-						else addChap();
+						if (isSelected()) {
+							if (chapterDisplayActivation.get()==ChapterDisplayActivation.RIGHT_CLICK) chapterSelected.showPopup();
+						} else {
+							addChap();
+						}
 					}
 					e.consume();
 				}
@@ -474,14 +435,14 @@ public final class Seeker extends AnchorPane {
 		}
 
 		void hide() {
-			selectedChap = null;
+			chapterSelected = null;
 			visible = false;
 			fade.playCloseDo(null);
 		}
 
 		void select(Chap c) {
-			Runnable oc = selectChapOnHover.getValue() ? c::showPopup : null; // open chap
-			selectedChap = c;
+			Runnable oc = chapterDisplayActivation.get()==ChapterDisplayActivation.HOVER ? c::showPopup : null;
+			chapterSelected = c;
 			setCenterX(c.getCenterX());             // move this to chapter
 			select.playOpen();                      // animate this
 			selectChapAnim.playOpenDoClose(oc);     // animate runners & open chap in middle
@@ -489,11 +450,11 @@ public final class Seeker extends AnchorPane {
 		}
 
 		boolean isSelected() {
-			return selectedChap!=null;
+			return chapterSelected!=null;
 		}
 
 		void unselect() {
-			selectedChap = null;
+			chapterSelected = null;
 			select.playClose();
 			selectChapAnim.playClose();   // animate runners
 		}
@@ -549,7 +510,7 @@ public final class Seeker extends AnchorPane {
 		}
 
 		public void showPopup() {
-			hover.playOpenDo(popupChapters ? this::showPopupReal : null);
+			hover.playOpenDo(chapterDisplayMode.get().isShownAsPopup() ? this::showPopupReal : null);
 		}
 
 		public void hidePopup() {
@@ -559,7 +520,7 @@ public final class Seeker extends AnchorPane {
 
 		public void showPopupReal() {
 			// hide other popups if only one allowed
-			if (singleChapterPopupMode)
+			if (chapterDisplayMode.get()==ChapterDisplayMode.POPUP_SHARED)
 				chapters.stream().filter(f -> f!=this).forEach(Chap::hidePopup);
 			// build popup if not yet
 			if (p==null) {
@@ -650,6 +611,7 @@ public final class Seeker extends AnchorPane {
 			}
 			// show if not already
 			if (!p.isShowing()) p.show(this);
+
 			if (just_created) startEdit();
 		}
 
@@ -666,7 +628,8 @@ public final class Seeker extends AnchorPane {
 
 		/** Starts editable mode. */
 		public void startEdit() {
-			if (!editableChapters || isEdited.getValue()) return;
+			if (isEdited()) return;
+
 			// start edit
 			isEdited.setValue(true);
 			ta = new TextArea();

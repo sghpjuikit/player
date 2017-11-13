@@ -105,9 +105,9 @@ public class FunctorPool {
 		add("Or",       B, B, Boolean::logicalOr,  B, true);
 		add("Xor",      B, B, Boolean::logicalXor, B, true);
 
-		add("'_' -> ' '",   S, S, s -> s.replace("_", " "));
-		add("-> file name", S, S, util.Util::filenamizeString);
-		add("Anime",        S, S, util.Util::renameAnime);
+		add("'_' -> ' '",    S, S, s -> s.replace("_", " "));
+		add("-> file name",  S, S, util.Util::filenamizeString);
+		add("Anime",         S, S, util.Util::renameAnime);
 		add("To upper case",       S, S, String::toUpperCase);
 		add("To lower case",       S, S, String::toLowerCase);
 		add("Plural",              S, S, English::plural);
@@ -147,9 +147,11 @@ public class FunctorPool {
 				return null;
 			}
 		});
-		add("To file",      S, File.class, File::new);
+		add("To file",       S, File.class, File::new);
 
-		add("Any contains",     Strings.class, B, Strings::anyContains, S, "");
+		add("Any contains",  Strings.class, B, Strings::anyContains, S, B, "", true);
+		add("Is empty",      Strings.class, B, Strings::isEmpty);
+		add("Elements",      Strings.class, Integer.class, Strings::size);
 
 		add("to ASCII",     Character.class, Integer.class, x -> (int) x);
 
@@ -165,12 +167,12 @@ public class FunctorPool {
 		add("Exists",       File.class,B,File::exists);
 		add("Anime",        File.class,S, f -> util.Util.renameAnime(UtilKt.getNameWithoutExtensionOrRoot(f)));
 
-		add("Group",        MimeType.class,String.class, MimeType::getGroup);
-		add("Extensions",   MimeType.class,String.class, m -> toS(", ", m.getExtensions()));
+		add("Group",        MimeType.class,S, MimeType::getGroup);
+		add("Extensions",   MimeType.class,S, m -> toS(", ", m.getExtensions()));
 
-		add("Less",         Bitrate.class,B,(x, y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
-		add("Is",           Bitrate.class,B,(x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));
-		add("More",         Bitrate.class,B,(x,y) -> x.compareTo(y)>0, Bitrate.class,new Bitrate(320));
+		add("Less",         Bitrate.class,B, (x,y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
+		add("Is",           Bitrate.class,B, (x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));
+		add("More",         Bitrate.class,B, (x,y) -> x.compareTo(y)>0, Bitrate.class,new Bitrate(320));
 		add("Is good",      Bitrate.class,B, x -> x.getValue()>=320);
 		add("Is bad",       Bitrate.class,B, x -> x.getValue()<=128);
 		add("Is unknown",   Bitrate.class,B, x -> x.getValue()==-1);
@@ -180,7 +182,7 @@ public class FunctorPool {
 		add("Is",           Duration.class,B,(x,y) -> x.compareTo(y)==0, Duration.class, new Duration(0));
 		add("More",         Duration.class,B,(x,y) -> x.compareTo(y)>0, Duration.class, new Duration(0),false,false,true);
 
-		add("<  Less",      NofX.class,B, (x, y) -> x.compareTo(y)< 0, NofX.class,new NofX(1,1));
+		add("<  Less",      NofX.class,B, (x,y) -> x.compareTo(y)< 0, NofX.class,new NofX(1,1));
 		add("=  Is",        NofX.class,B, (x,y) -> x.compareTo(y)==0, NofX.class,new NofX(1,1));
 		add(">  More",      NofX.class,B, (x,y) -> x.compareTo(y)> 0, NofX.class,new NofX(1,1),false,false,true);
 		add(">= Not less",  NofX.class,B, (x,y) -> x.compareTo(y)>=0, NofX.class,new NofX(1,1));
@@ -193,20 +195,20 @@ public class FunctorPool {
 		add("Is unknown",   FileSize.class,B, x -> x.inBytes()==-1);
 		add("Is known",     FileSize.class,B, x -> x.inBytes()>-1);
 
-		add("Is after",     Year.class,B, (x, y) -> x.compareTo(y)> 0, Year.class,Year.now());
-		add("Is",           Year.class,B, (x,y) -> x.compareTo(y)==0, Year.class,Year.now());
-		add("Is before",    Year.class,B, (x,y) -> x.compareTo(y)< 0, Year.class,Year.now());
-		add("Is in the future",  Year.class,B, x -> x.compareTo(Year.now())> 0);
-		add("Is now",            Year.class,B, x -> x.compareTo(Year.now())==0);
-		add("Is in the past",    Year.class,B, x -> x.compareTo(Year.now())< 0);
-		add("Is leap",      Year.class,B, Year::isLeap);
+		add("Is after",         Year.class,B, (x,y) -> x.compareTo(y)> 0, Year.class,Year.now());
+		add("Is",               Year.class,B, (x,y) -> x.compareTo(y)==0, Year.class,Year.now());
+		add("Is before",        Year.class,B, (x,y) -> x.compareTo(y)< 0, Year.class,Year.now());
+		add("Is in the future", Year.class,B, x -> x.compareTo(Year.now())> 0);
+		add("Is now",           Year.class,B, x -> x.compareTo(Year.now())==0);
+		add("Is in the past",   Year.class,B, x -> x.compareTo(Year.now())< 0);
+		add("Is leap",          Year.class,B, Year::isLeap);
 
-		add("Contains year",RangeYear.class,B, RangeYear::contains, Year.class,Year.now());
-		add("Is after",     RangeYear.class,B, RangeYear::isAfter,  Year.class,Year.now());
-		add("Is before",    RangeYear.class,B, RangeYear::isBefore, Year.class,Year.now());
-		add("Is in the future",  RangeYear.class,B, x -> x.contains(Year.now()));
-		add("Is now",            RangeYear.class,B, x -> x.isAfter(Year.now()));
-		add("Is in the past",    RangeYear.class,B, x -> x.isBefore(Year.now()));
+		add("Contains year",    RangeYear.class,B, RangeYear::contains, Year.class,Year.now());
+		add("Is after",         RangeYear.class,B, RangeYear::isAfter,  Year.class,Year.now());
+		add("Is before",        RangeYear.class,B, RangeYear::isBefore, Year.class,Year.now());
+		add("Is in the future", RangeYear.class,B, x -> x.contains(Year.now()));
+		add("Is now",           RangeYear.class,B, x -> x.isAfter(Year.now()));
+		add("Is in the past",   RangeYear.class,B, x -> x.isBefore(Year.now()));
 
 		add("After",   LocalDateTime.class,B, LocalDateTime::isAfter,  LocalDateTime.class,LocalDateTime.now());
 		add("Before",  LocalDateTime.class,B, LocalDateTime::isBefore, LocalDateTime.class,LocalDateTime.now());
@@ -214,8 +216,8 @@ public class FunctorPool {
 
 		add("File",    Item.class,File.class, Item::getFile);
 
-		add("Is supported", AudioFileFormat.class,B, x -> x.isSupported(APP));
-		add("Is playable", AudioFileFormat.class,B, x -> x.isSupported(PLAYBACK));
+		add("Is supported",     AudioFileFormat.class,B, x -> x.isSupported(APP));
+		add("Is playable",      AudioFileFormat.class,B, x -> x.isSupported(PLAYBACK));
 
 		addPredicatesComparable(Short.class, (short)0);
 		addPredicatesComparable(Integer.class, 0);

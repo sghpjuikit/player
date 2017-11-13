@@ -43,8 +43,10 @@ class Chapter: Comparable<Chapter> {
 
 }
 
-class Chapters: ArrayList<Chapter>(), Strings {
-    override val strings: Sequence<String> get() = asSequence().map { it.text }
+class Chapters(val chapters: List<Chapter> = listOf()): Strings {
+
+    override val strings: Sequence<String> get() = chapters.asSequence().map { it.text }
+
 }
 
 private fun Double.computeTimeFromMs() = Dur(Math.rint(this)) // round to decimal number before assigning

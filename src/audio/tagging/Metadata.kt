@@ -696,15 +696,16 @@ class Metadata: Item {
                         try {
                             Chapter(it)
                         } catch (e: IllegalArgumentException) {
-                            logger().error(e) { "String '{}' not be parsed as chapter. Will be ignored." }
+                            logger().error(e) { "String '$it' is not a valid chapter, chapters=$custom2, uri=$uri" }
                             null
                         }
                     }
                     .sorted()
-                    .toCollection(Chapters())
+                    .toList()
+                    .let { Chapters(it) }
         } ?: Chapters()
 
-    fun containsChapterAt(at: Duration): Boolean = getChapters().any { it.time==at }
+    fun containsChapterAt(at: Duration): Boolean = getChapters().chapters.any { it.time==at }
 
     /** @return the color associated with this or null if none */
     fun getColor(): Color? = color?.let { Parser.DEFAULT.ofS(Color::class.java, color).getOr(null) }

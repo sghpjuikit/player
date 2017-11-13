@@ -281,7 +281,8 @@ fun Parent.setFontAsStyle(font: Font) {
 /** @return Linear text interpolator computing substrings of specified text from beginning */
 fun typeText(text: String): (Double) -> String {
     val length = text.length
-    return { text.substring(0, Math.floor(length*it).toInt()) }
+    val sb = StringBuilder(text)
+    return { sb.substring(0, Math.floor(length*it).toInt()) }
 }
 
 /* ---------- SCREEN ------------------------------------------------------------------------------------------------ */

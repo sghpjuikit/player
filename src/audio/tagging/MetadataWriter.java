@@ -550,7 +550,7 @@ public class MetadataWriter extends Item {
 	 * item are necessary.
 	 */
 	public void addChapter(Chapter chapter, Metadata metadata) {
-		List<Chapter> chaps = list(metadata.getChapters());
+		List<Chapter> chaps = list(metadata.getChapters().getChapters());
 		int i = chaps.indexOf(chapter);
 		if (i==-1) chaps.add(chapter);
 		else chaps.set(i, chapter);
@@ -570,7 +570,7 @@ public class MetadataWriter extends Item {
 	 * item are necessary.
 	 */
 	public void removeChapter(Chapter chapter, Metadata metadata) {
-		List<Chapter> cs = metadata.getChapters();
+		List<Chapter> cs = metadata.getChapters().getChapters();
 		if (cs.remove(chapter)) setChapters(cs);
 	}
 

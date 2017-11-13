@@ -22,10 +22,8 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import util.access.CyclicEnum;
 import util.dev.Dependency;
-import util.graphics.UtilKt;
 import util.math.P;
 import util.system.Os;
-
 import static com.sun.jna.platform.win32.WinUser.GWL_STYLE;
 import static gui.objects.window.stage.WindowBase.Maximized.ALL;
 import static gui.objects.window.stage.WindowBase.Maximized.NONE;
@@ -105,10 +103,30 @@ public class WindowBase {
 		fixJavaFxNonDecoratedMinimization();
 
 		// window properties may change externally so let us take notice
-		maintain(s.xProperty(), v -> { if (!isFullscreen() && isMaximized()==NONE) X.setValue(v); });
-		maintain(s.yProperty(), v -> { if (!isFullscreen() && isMaximized()==NONE) Y.setValue(v); });
-		maintain(s.widthProperty(), v ->  { if (!isFullscreen() && isMaximized()==NONE) W.setValue(v); });
-		maintain(s.heightProperty(), v ->  { if (!isFullscreen() && isMaximized()==NONE) H.setValue(v); });
+		maintain(s.xProperty(), v -> {
+			if (!isFullscreen() && isMaximized()==NONE) {
+				X.setValue(v);
+				updateScreen();
+			}
+		});
+		maintain(s.yProperty(), v -> {
+			if (!isFullscreen() && isMaximized()==NONE) {
+				Y.setValue(v);
+				updateScreen();
+			}
+		});
+		maintain(s.widthProperty(), v ->  {
+			if (!isFullscreen() && isMaximized()==NONE) {
+				W.setValue(v);
+				updateScreen();
+			}
+		});
+		maintain(s.heightProperty(), v ->  {
+			if (!isFullscreen() && isMaximized()==NONE) {
+				H.setValue(v);
+				updateScreen();
+			}
+		});
 	}
 
 	/**
@@ -135,7 +153,7 @@ public class WindowBase {
 
 		s.setX(X.get());
 		s.setY(Y.get());
-		screen = util.graphics.UtilKt.getScreen(getCenterXY()); // update screen
+		updateScreen();
 		deMaxX = (s.getX() - screen.getBounds().getMinX())/screen.getBounds().getWidth();  // just in case
 		deMaxY = (s.getY() - screen.getBounds().getMinY())/screen.getBounds().getHeight(); // -||-
 
@@ -148,6 +166,10 @@ public class WindowBase {
 		// window is not yet ready. Delay execution. Avoid the whole process
 		// when the value is not true
 		if (FullProp.get()) run(322, () -> setFullscreen(true));
+	}
+
+	private void updateScreen() {
+		screen = util.graphics.UtilKt.getScreen(getCenterXY());
 	}
 
 	/**
@@ -555,7 +577,6 @@ public class WindowBase {
 	 * @param snap flag for snapping to screen edge and other windows. Snapping will be executed only if the window id
 	 * not being resized.
 	 */
-	@Dependency("must update screen")
 	public void setXY(double x, double y, boolean snap) {
 		if (isFullscreen()) return;
 		MaxProp.set(Maximized.NONE);
@@ -563,7 +584,6 @@ public class WindowBase {
 		s.setY(y);
 		X.set(x);
 		Y.set(y);
-		screen = UtilKt.getScreen(getCenterXY()); // update screen
 		if (snap) snap();
 	}
 
@@ -587,7 +607,6 @@ public class WindowBase {
 	 * @param width horizontal size of the window
 	 * @param height vertical size of the window
 	 */
-	@Dependency("must update screen")
 	public void setXYSize(double x, double y, double width, double height) {
 		if (isFullscreen()) return;
 		MaxProp.set(Maximized.NONE);
@@ -601,21 +620,18 @@ public class WindowBase {
 		// if (snap) snap();
 		W.set(s.getWidth());
 		H.set(s.getHeight());
-		screen = UtilKt.getScreen(getCenterXY()); // update screen
 	}
 
 	/**
 	 * @param width horizontal size of the window
 	 * @param height vertical size of the window
 	 */
-	@Dependency("must update screen")
 	public void setSize(double width, double height) {
 		if (isFullscreen()) return;
 		s.setWidth(width);
 		s.setHeight(height);
 		W.set(s.getWidth());
 		H.set(s.getHeight());
-		screen = UtilKt.getScreen(getCenterXY()); // update screen
 	}
 
 	/**

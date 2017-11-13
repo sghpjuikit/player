@@ -310,5 +310,12 @@ fun getScreen(x: Double, y: Double) = Screen.getScreens().find { it.bounds.inter
 /** @return screen containing the given coordinates */
 fun getScreenForMouse() = getMousePosition().getScreen()
 
+/** @return index of the screen as reported by the underlying os */
+val Screen.ordinal: Int get() =
+    // indexOf() assumption is supported by the ordinals matching screen order, see:
+    // com.sun.glass.ui.Screen.getScreens().forEach { s -> println(s.getAdapterOrdinal()+" - "+s.getWidth()+"x"+s.getHeight()) }
+    // Screen.getScreens().forEach { s -> println("1"+" - "+s.getBounds().getWidth()+"x"+s.getBounds().getHeight()) }
+    Screen.getScreens().indexOf(this)
+
 /** @return screen containing the centre of this window */
 val javafx.stage.Window.screen: Screen get() = getScreen(centreX, centreY)

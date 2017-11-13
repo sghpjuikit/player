@@ -320,7 +320,7 @@ enum class ScreenImgGetter {
             SCREEN_SHOT -> Util.screenCaptureAndDo(screen) { action(it) }
             SCREEN_BGR -> {
                 runNew {
-                    val img = getWallpaperFile()?.let { imgImplLoadFX(it, -1, -1, true) }
+                    val img = screen.getWallpaperFile()?.let { imgImplLoadFX(it, -1, -1, true) }
                     runFX { action(img) }
                 }
             }

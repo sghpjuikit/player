@@ -12,6 +12,8 @@ import gui.Gui;
 import gui.objects.balancer.Balancer;
 import gui.objects.icon.GlowIcon;
 import gui.objects.icon.Icon;
+import gui.objects.seeker.ChapterDisplayActivation;
+import gui.objects.seeker.ChapterDisplayMode;
 import gui.objects.seeker.Seeker;
 import java.io.File;
 import java.util.List;
@@ -93,14 +95,12 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
 
 	@IsConfig(name = "Seek type", info = "Seek by time (absolute) or fraction of total duration (relative).")
 	public final V<PLAYBACK.Seek> seekType = new V<>(RELATIVE);
-    @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
-    public final V<Boolean> showChapters = new V<>(true, seeker::setChaptersVisible);
-    @IsConfig(name = "Open chapters", info = "Display pop up information for chapter marks on seeker.")
-    public final V<Boolean> popupChapters = new V<>(true, seeker::setChaptersShowPopUp);
-    @IsConfig(name = "Snap seeker to chapters on drag", info = "Enable snapping to chapters during dragging.")
-    public final V<Boolean> snapToChap = new V<>(true, seeker::setSnapToChapters);
-    @IsConfig(name = "Open max 1 chapter", info = "Allows only one chapter open. Opening chapter closes all open chapters.")
-    public final V<Boolean> singleChapMode = new V<>(true, seeker::setSinglePopupMode);
+    @IsConfig(name = "Chapters show", info = "Display chapter marks on seeker.")
+    public final V<ChapterDisplayMode> showChapters = seeker.chapterDisplayMode;
+    @IsConfig(name = "Chapter open on", info = "Opens chapter also when mouse hovers over them.")
+    public final V<ChapterDisplayActivation> showChapOnHover = seeker.chapterDisplayActivation;
+    @IsConfig(name = "Snap seeker to chapters", info = "Enable snapping to chapters during dragging.")
+    public final V<Boolean> snapToChap = seeker.chapterSnap;
     @IsConfig(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
     public boolean elapsedTime = true;
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
@@ -141,7 +141,7 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         AnchorPane.setBottomAnchor(seeker, 0.0);
         AnchorPane.setLeftAnchor(seeker, 0.0);
         AnchorPane.setRightAnchor(seeker, 0.0);
-        d(maintain(Gui.snapDistance, seeker.chapSnapDist));
+        d(maintain(Gui.snapDistance, seeker.chapterSnapDistance));
 
         // icons
         playButtons.getChildren().setAll(f1,f2,f3,f4,f5,f6);

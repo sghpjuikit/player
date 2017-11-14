@@ -66,7 +66,7 @@ public final class PLAYBACK implements Configurable {
 	/** Initializes the Playback. */
 	public static void initialize() {
 		player.realTime.initialize();
-		onPlaybackAt.add(at(new Portion(1), () -> onPlaybackAt.forEach(h -> h.restart(Player.playingItem.get().getLength()))));
+		onPlaybackAt.add(at(new Portion(1), () -> onPlaybackAt.forEach(h -> h.restart(Player.playingItem.get().getLength())))); // TODO: fix possible StackOverflowError
 		onPlaybackEnd.add(() -> {
 			switch (state.loopMode.get()) {
 				case OFF: stop();

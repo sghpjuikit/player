@@ -5,6 +5,7 @@ import audio.playback.PLAYBACK;
 import audio.tagging.Metadata;
 import audio.tagging.MetadataWriter;
 import audio.tagging.chapter.Chapter;
+import gui.itemnode.ConfigField;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
 import gui.objects.popover.PopOver;
@@ -19,8 +20,10 @@ import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -28,6 +31,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
+import kotlin.jvm.functions.Function1;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
 import util.access.V;
@@ -35,6 +39,9 @@ import util.animation.Anim;
 import util.animation.Loop;
 import util.animation.interpolator.CircularInterpolator;
 import util.async.executor.FxTimer;
+import util.functional.Try;
+import util.graphics.UtilKt;
+import static audio.tagging.chapter.ChapterKt.validateChapterText;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CHECK;
@@ -63,6 +70,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
+import static main.AppBuildersKt.appTooltip;
 import static main.AppBuildersKt.createInfoIcon;
 import static util.Util.clip;
 import static util.animation.Anim.mapConcave;
@@ -70,6 +78,7 @@ import static util.animation.Anim.mapTo01;
 import static util.async.AsyncKt.run;
 import static util.dev.Util.noØ;
 import static util.functional.Util.minBy;
+import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.setAnchor;
 import static util.reactive.Util.maintain;
 
@@ -487,8 +496,9 @@ public final class Seeker extends AnchorPane {
 
 		StackPane content;
 		Text message;
-		TextArea ta;            // edit text area
-		PopOver<?> p, helpP;           // main & help popup
+		Anim messageAnimation;
+		TextArea ta;                    // edit text area
+		PopOver<?> p, helpP;            // main & help popup
 		Icon helpB, prevB, nextB, editB, commitB, delB, cancelB; // popup controls
 		Anim hover = new Anim(millis(150), this::setScaleX).intpl(x -> 1 + 7*x);
 
@@ -525,9 +535,11 @@ public final class Seeker extends AnchorPane {
 			// build popup if not yet
 			if (p==null) {
 				// text content
-				message = new Text(c.getText());
+				message = new Text();
 				message.wrappingWithNatural.setValue(true);
-				message.setTextAlignment(TextAlignment.CENTER);
+				message.setTextAlignment(TextAlignment.JUSTIFY);
+				Function1<Double,String> messageInterpolator = UtilKt.typeText(c.getText());
+				messageAnimation = new Anim(millis(300), p -> message.setText(messageInterpolator.invoke(p)));
 				content = new StackPane(message);
 				content.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
 				content.setPadding(new Insets(10));
@@ -610,7 +622,10 @@ public final class Seeker extends AnchorPane {
 				});
 			}
 			// show if not already
-			if (!p.isShowing()) p.show(this);
+			if (!p.isShowing()) {
+				p.show(this);
+				messageAnimation.play();
+			}
 
 			if (just_created) startEdit();
 		}
@@ -633,6 +648,7 @@ public final class Seeker extends AnchorPane {
 			// start edit
 			isEdited.setValue(true);
 			ta = new TextArea();
+
 			// resize on text change
 			maintain(ta.textProperty(), text -> {
 				int len = text==null ? 0 : text.length();
@@ -652,9 +668,23 @@ public final class Seeker extends AnchorPane {
 					e.consume();
 				}
 			});
+
+			// validation
+			Tooltip warnTooltip = appTooltip();
+			Icon warnB = new Icon();
+				 warnB.size(11);
+				 warnB.styleclass(ConfigField.STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
+				 warnB.tooltip(warnTooltip);
+			maintain(ta.textProperty(), text -> {
+				Try<String,String> result = validateChapterText(text);
+				warnB.setVisible(result.isError());
+				commitB.setDisable(result.isError());
+				warnTooltip.setText(result.isOk() ? "" : result.getError());
+			});
+
 			// maintain proper content
 			content.getChildren().remove(message);
-			content.getChildren().add(ta);
+			content.getChildren().add(layHorizontally(5, Pos.CENTER, ta, warnB));
 			p.getHeaderIcons().setAll(helpB, commitB, cancelB);
 		}
 
@@ -672,7 +702,7 @@ public final class Seeker extends AnchorPane {
 				MetadataWriter.use(m, w -> w.addChapter(c, m));
 			}
 			// maintain proper content
-			content.getChildren().remove(ta);
+			content.getChildren().remove(ta.getParent());
 			content.getChildren().add(message);
 			p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
 			// stop edit
@@ -687,7 +717,7 @@ public final class Seeker extends AnchorPane {
 				chapters.remove(this);
 			} else {
 				// maintain proper content
-				content.getChildren().remove(ta);
+				content.getChildren().remove(ta.getParent());
 				content.getChildren().add(message);
 				p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
 			}

@@ -2,7 +2,6 @@ package main
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon
-import gui.Gui
 import gui.objects.Text
 import gui.objects.icon.Icon
 import gui.objects.popover.PopOver
@@ -12,9 +11,7 @@ import javafx.scene.Cursor
 import javafx.scene.Node
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Tooltip
-import javafx.stage.WindowEvent
 import main.App.APP
-import org.reactfx.Subscription
 import util.animation.Anim
 import util.animation.interpolator.ElasticInterpolator
 import util.async.FX
@@ -23,7 +20,6 @@ import util.graphics.setScaleXY
 import util.math.millis
 import util.math.seconds
 import util.reactive.changes
-import util.reactive.maintain
 import java.util.function.Consumer
 
 private typealias C<T> = Consumer<T>
@@ -92,11 +88,6 @@ fun appTooltip(text: String = "") = Tooltip(text).apply {
     showDelay = seconds(1.0)        // TODO: make configurable
     showDuration = seconds(10.0)    // TODO: make configurable
     hideDelay = millis(200.0)       // TODO: make configurable
-
-    // TODO: unify font observing with popovers/windows
-    var s: Subscription? = null
-    addEventHandler(WindowEvent.WINDOW_SHOWING) { s = Gui.font maintain fontProperty() }
-    addEventHandler(WindowEvent.WINDOW_HIDDEN) { s?.unsubscribe() }
 }
 
 fun appTooltipForData(data: () -> Any?) = appTooltip().apply {

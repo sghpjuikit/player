@@ -31,7 +31,6 @@ package gui.objects.popover;
 
 import gui.objects.window.stage.WindowBase;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import javafx.application.Platform;
@@ -175,7 +174,7 @@ import static util.math.Util.millis;
  */
 public class PopOver<N extends Node> extends PopupControl {
 
-	public static final List<PopOver> active_popups = new ArrayList<>();
+	public static final ObservableList<PopOver<?>> active_popups = FXCollections.observableArrayList(new ArrayList<>());
 	private static final Object CLOSE_OWNER = new Object();
 	private static final String STYLE_CLASS = "popover";
 
@@ -352,7 +351,7 @@ public class PopOver<N extends Node> extends PopupControl {
 		if (animated.get()) fadeIn();
 	}
 
-	Runnable positioner = null;
+	Runnable positioner = () -> {};
 
 	private void position(Supplier<P> position) {
 		positioner = () -> position(position.get());

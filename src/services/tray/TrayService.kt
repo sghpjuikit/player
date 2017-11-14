@@ -5,7 +5,6 @@ import audio.playback.PLAYBACK
 import gui.Gui
 import javafx.application.Platform.runLater
 import javafx.event.EventHandler
-import javafx.scene.Scene
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.MenuItem
 import javafx.scene.input.MouseButton.MIDDLE
@@ -14,10 +13,8 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import javafx.scene.layout.Region
 import javafx.stage.Stage
-import javafx.stage.StageStyle.TRANSPARENT
-import javafx.stage.StageStyle.UTILITY
+import main.App
 import main.App.APP
 import services.ServiceBase
 import util.access.v
@@ -77,11 +74,8 @@ class TrayService : ServiceBase(true) {
             consumeAutoHidingEvents = false
             // setOnShown(e -> run(3000, cm::hide));
         }
-
-        val cmOwner = Stage(TRANSPARENT).apply {
-            initStyle(UTILITY)
-            opacity = 0.0
-            scene = Scene(Region())
+        val cmOwner = App.APP.windowManager.createStageOwner().apply {
+            hide()
             focusedProperty() syncFalse {
                 if (cm.isShowing) cm.hide()
                 if (isShowing) hide()
@@ -193,10 +187,10 @@ class TrayService : ServiceBase(true) {
 
         return if (trayIcon != null) {
             loadBufferedImage(trayIconImage)
-                    .ifOk({
+                    .ifOk {
                         trayIcon?.image?.flush()
                         trayIcon?.image = it
-                    })
+                    }
                     .map { null }
         } else Try.ok()
     }

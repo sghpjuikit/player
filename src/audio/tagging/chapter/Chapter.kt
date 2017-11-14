@@ -1,6 +1,8 @@
 package audio.tagging.chapter
 
+import audio.tagging.Metadata
 import javafx.util.Duration
+import util.functional.Try
 import util.text.Strings
 import util.units.Dur
 import java.util.*
@@ -47,6 +49,14 @@ class Chapters(val chapters: List<Chapter> = listOf()): Strings {
 
     override val strings: Sequence<String> get() = chapters.asSequence().map { it.text }
 
+}
+
+fun validateChapterText(text: String): Try<String, String> = when {
+    text.contains(Metadata.SEPARATOR_CHAPTER) -> Try.error("Must not contain '${Metadata.SEPARATOR_CHAPTER}'")
+    text.contains(Metadata.SEPARATOR_GROUP) -> Try.error("Must not contain '${Metadata.SEPARATOR_GROUP}'")
+    text.contains(Metadata.SEPARATOR_RECORD) -> Try.error("Must not contain '${Metadata.SEPARATOR_RECORD}'")
+    text.contains(Metadata.SEPARATOR_UNIT) -> Try.error("Must not contain '${Metadata.SEPARATOR_UNIT}'")
+    else -> Try.ok(text)
 }
 
 private fun Double.computeTimeFromMs() = Dur(Math.rint(this)) // round to decimal number before assigning

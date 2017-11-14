@@ -1,10 +1,8 @@
 package gui.objects.window.stage;
 
-import gui.Gui;
 import gui.objects.icon.Icon;
 import gui.objects.popover.PopOver;
 import java.io.File;
-import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -66,7 +64,6 @@ import static main.App.APP;
 import static util.async.AsyncKt.runLater;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
-import static util.file.UtilKt.childOf;
 import static util.file.UtilKt.listChildren;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.mapB;
@@ -75,7 +72,6 @@ import static util.functional.Util.set;
 import static util.functional.Util.stream;
 import static util.graphics.Util.add1timeEventHandler;
 import static util.graphics.UtilKt.getScreen;
-import static util.graphics.UtilKt.setFontAsStyle;
 import static util.reactive.Util.maintain;
 import static util.reactive.Util.onScreenChange;
 
@@ -190,7 +186,7 @@ public class WindowManager implements Configurable<Object> {
               s.setScene(new Scene(new Pane())); // allows child stages (e.g. popup) to receive key events
               s.show();
 		return s;
-	}
+    }
 
     Window create(boolean canBeMain) {
         return create(null,UNDECORATED, canBeMain);
@@ -205,13 +201,6 @@ public class WindowManager implements Configurable<Object> {
         windows.add(w); // add to list of active windows
 
 		w.initialize();
-		setFontAsStyle(w.getStage().getScene().getRoot(), Gui.font.get());
-        File skinFile = childOf(APP.DIR_SKINS, Gui.skin.getValue(), Gui.skin.getValue() + ".css");
-        try {
-            w.root.getStylesheets().add(skinFile.toURI().toURL().toExternalForm());
-        } catch (MalformedURLException e) {
-	        LOGGER.error("Could not load skin {}", skinFile, e);
-        }
 
         // bind properties
         w.disposables.add(maintain(window_borderless, w::setBorderless));

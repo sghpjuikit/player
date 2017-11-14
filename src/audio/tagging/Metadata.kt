@@ -689,7 +689,7 @@ class Metadata: Item {
      */
     fun getChapters(): Chapters =
         custom2?.let {
-            it.split("\\|".toRegex())
+            it.split(SEPARATOR_CHAPTER)
                     .asSequence()
                     .filter { !it.isEmpty() }
                     .mapNotNull {
@@ -780,21 +780,14 @@ class Metadata: Item {
 
     companion object: KLogging() {
 
-        /**
-         * Delimiter between sections of data.
-         * In this case, between different tags (concatenated to single string written to single tag)
-         */
+        /** Delimiter between sections of data. In this case, between tags (concatenated to single string). */
         @JvmField val SEPARATOR_GROUP: Char = 29.toChar()
-        /**
-         * Delimiter between records or rows.
-         * In this case, between multiple values in a tag.
-         */
+        /** Delimiter between records or rows. In this case, between values in a tag. */
         @JvmField val SEPARATOR_RECORD: Char = 30.toChar()
-        /**
-         * Delimiter between fields of a record, or members of a row.
-         * In this case, between multiple items in a tag value.
-         */
+        /** Delimiter between fields of a record, or members of a row. In this case, between items in a tag value. */
         @JvmField val SEPARATOR_UNIT: Char = 31.toChar()
+        /** Delimiter between chapters */
+        @JvmField val SEPARATOR_CHAPTER: Char = '|'
 
         // Custom tag ids. Ordinary string. Length 10 mandatory. Unique. Dev is free to use any
         // value - there is no predefined set of ids. Once set, never change!

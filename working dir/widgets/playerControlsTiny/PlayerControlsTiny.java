@@ -1,7 +1,19 @@
 package playerControlsTiny;
 
+import audio.Item;
+import audio.Player;
+import audio.playback.PLAYBACK;
+import audio.playback.PlaybackState;
+import audio.playlist.PlaylistManager;
+import audio.playlist.sequence.PlayingSequence.LoopMode;
+import audio.tagging.Metadata;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
+import gui.Gui;
+import gui.objects.icon.Icon;
+import gui.objects.seeker.ChapterDisplayActivation;
+import gui.objects.seeker.ChapterDisplayMode;
+import gui.objects.seeker.Seeker;
 import java.util.List;
-
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -13,18 +25,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
-
-import audio.Item;
-import audio.Player;
-import audio.playback.PLAYBACK;
-import audio.playback.PlaybackState;
-import audio.playlist.PlaylistManager;
-import audio.playlist.sequence.PlayingSequence.LoopMode;
-import audio.tagging.Metadata;
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
-import gui.Gui;
-import gui.objects.icon.Icon;
-import gui.objects.seeker.Seeker;
 import layout.widget.Widget;
 import layout.widget.controller.FXMLController;
 import layout.widget.feature.HorizontalDock;
@@ -33,13 +33,18 @@ import util.access.V;
 import util.animation.Anim;
 import util.conf.IsConfig;
 import util.graphics.drag.DragUtil;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PAUSE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RANDOM;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STEP_BACKWARD;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STEP_FORWARD;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STOP;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.VOLUME_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.VOLUME_OFF;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.VOLUME_UP;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_OFF;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.REPEAT_ONCE;
 import static java.lang.Double.max;
 import static javafx.animation.Animation.INDEFINITE;
 import static javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER;
@@ -94,16 +99,12 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
     Anim scroller;
     double lastUpdatedTime = Double.MIN_VALUE; // reduces time update events
 
-    @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
-    public final V<Boolean> showChapters = new V<>(true, seeker::setChaptersVisible);
-    @IsConfig(name = "Open chapters", info = "Display pop up information for chapter marks on seeker.")
-    public final V<Boolean> popupChapters = new V<>(true, seeker::setChaptersShowPopUp);
-    @IsConfig(name = "Snap seeker to chapters on drag", info = "Enable snapping to chapters during dragging.")
-    public final V<Boolean> snapToChap = new V<>(true, seeker::setSnapToChapters);
-    @IsConfig(name = "Open max 1 chapter", info = "Allows only one chapter open. Opening chapter closes all open chapters.")
-    public final V<Boolean> singleChapMode = new V<>(true, seeker::setSinglePopupMode);
-    @IsConfig(name = "Open chapter on hover", info = "Opens chapter also when mouse hovers over them.")
-    public final V<Boolean> showChapOnHover = seeker.selectChapOnHover;
+    @IsConfig(name = "Chapters show", info = "Display chapter marks on seeker.")
+    public final V<ChapterDisplayMode> showChapters = seeker.chapterDisplayMode;
+    @IsConfig(name = "Chapter open on", info = "Opens chapter also when mouse hovers over them.")
+    public final V<ChapterDisplayActivation> showChapOnHover = seeker.chapterDisplayActivation;
+    @IsConfig(name = "Snap seeker to chapters", info = "Enable snapping to chapters during dragging.")
+    public final V<Boolean> snapToChap = seeker.chapterSnap;
     @IsConfig(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
     public boolean elapsedTime = true;
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
@@ -122,7 +123,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
 
         // seeker
         d(seeker.bindTime(ps.duration, ps.currentTime));
-        d(maintain(Gui.snapDistance, seeker.chapSnapDist));
+        d(maintain(Gui.snapDistance, seeker.chapterSnapDistance));
         layout.getChildren().add(2,seeker);
         HBox.setHgrow(seeker, ALWAYS);
 

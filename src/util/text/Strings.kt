@@ -5,7 +5,7 @@ interface Strings {
 
     fun anyContains(text: String, ignoreCase: Boolean = false): Boolean = strings.any { it.contains(text, ignoreCase) }
 
-    fun isEmpty() = size()>0
+    fun isEmpty() = size()==0
 
     fun size() = strings.count()
 

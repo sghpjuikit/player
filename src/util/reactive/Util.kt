@@ -199,8 +199,9 @@ fun <T> listChangeListener(onChange: ListChangeListener<T>): ListChangeListener<
     }
 }
 
-/** Creates list change listener which calls an action for every added or removed item.  */
-fun <T> listChangeHandlerEach(addedHandler: Consumer<T>, removedHandler: Consumer<T>): ListChangeListener<T> {
+/** Creates list change listener which calls an action for every added or removed item. */
+@JvmOverloads
+fun <T> listChangeHandlerEach(addedHandler: Consumer<T>, removedHandler: Consumer<T> = Consumer {}): ListChangeListener<T> {
     return ListChangeListener { change ->
         while (change.next()) {
             if (!change.wasPermutated() && !change.wasUpdated()) {
@@ -211,8 +212,9 @@ fun <T> listChangeHandlerEach(addedHandler: Consumer<T>, removedHandler: Consume
     }
 }
 
-/** Creates list change listener which calls an action added or removed item list.  */
-fun <T> listChangeHandler(addedHandler: Consumer<List<T>>, removedHandler: Consumer<List<T>>): ListChangeListener<T> {
+/** Creates list change listener which calls an action added or removed item list. */
+@JvmOverloads
+fun <T> listChangeHandler(addedHandler: Consumer<List<T>>, removedHandler: Consumer<List<T>> = Consumer {}): ListChangeListener<T> {
     return ListChangeListener { change ->
         while (change.next()) {
             if (!change.wasPermutated() && !change.wasUpdated()) {

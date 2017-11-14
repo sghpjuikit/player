@@ -1,19 +1,19 @@
-
 package gui;
 
 import com.sun.javafx.css.StyleManager;
-import gui.objects.popover.PopOver;
 import gui.objects.window.stage.Window;
 import gui.objects.window.stage.WindowBase;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.nio.file.WatchService;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
-import javafx.application.Application;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -39,22 +39,16 @@ import util.file.Util;
 import util.validation.Constraint;
 import static gui.Gui.OpenStrategy.INSIDE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
-import static java.util.stream.Collectors.toList;
 import static javafx.animation.Interpolator.LINEAR;
-import static javafx.application.Application.STYLESHEET_CASPIAN;
-import static javafx.application.Application.STYLESHEET_MODENA;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
-import static util.Util.capitalizeStrong;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
 import static util.file.FileMonitor.monitorDirectory;
 import static util.file.FileMonitor.monitorFile;
 import static util.file.UtilKt.childOf;
 import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static util.file.UtilKt.listChildren;
-import static util.functional.Util.listRO;
 import static util.functional.Util.set;
-import static util.graphics.UtilKt.setFontAsStyle;
 
 @IsActionable
 @IsConfigurable
@@ -67,9 +61,9 @@ public class Gui {
 	private static final Map<File,WatchService> fileMonitors = new HashMap<>();
 	private static final Set<String> skins = new HashSet<>();
 
-	// applied configs
 	@IsConfig(name = "Skin", info = "Application skin.")
-	public static final VarEnum<String> skin = new VarEnum<>("Flow", () -> skins, Gui::setSkin);
+	public static final VarEnum<String> skin = new VarEnum<>("Flow", () -> skins);//, Gui::setSkin);
+
 	/**
 	 * Font of the application. Overrides font defined by skin. The font can be
 	 * overridden programmatically or stylesheet.
@@ -78,10 +72,7 @@ public class Gui {
 	 * nothing.
 	 */
 	@IsConfig(name = "Font", info = "Application font.")
-	public static final V<Font> font = new V<>(Font.getDefault(), f -> {
-		APP.windowManager.windows.forEach(w -> setFontAsStyle(w.getStage().getScene().getRoot(), f));
-		PopOver.active_popups.forEach(p -> setFontAsStyle(p.getSkinn().getNode(), f));
-	});
+	public static final V<Font> font = new V<>(Font.getDefault());
 
 	// non applied configs
 	@IsConfig(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")
@@ -134,6 +125,7 @@ public class Gui {
 			skins.clear();
 			skins.addAll(getSkins());
 		});
+		GuiKt.observeSkin();
 	}
 
 	private static File monitoredSkin = null;
@@ -192,14 +184,6 @@ public class Gui {
 	/** Toggles lock to prevent layouting. */
 	public static void toggleLayoutLocked() {
 		locked_layout.set(!locked_layout.get());
-	}
-
-	/** Loads/refreshes whole gui. */
-	@IsAction(name = "Reload GUI", desc = "Reload application GUI. Includes skin, font, layout.", keys = "F5")
-	public static void refresh() {
-		skin.applyValue();
-		font.applyValue();
-		loadLayout();
 	}
 
 	/** Loads/refreshes active layout. */
@@ -346,8 +330,6 @@ public class Gui {
 					}
 				});
 
-		skins.add(capitalizeStrong(STYLESHEET_CASPIAN));
-		skins.add(capitalizeStrong(STYLESHEET_MODENA));
 		LOGGER.info("Registering skin: Modena");
 		LOGGER.info("Registering skin: Caspian");
 
@@ -371,14 +353,8 @@ public class Gui {
 		if (s==null || s.isEmpty()) throw new IllegalArgumentException();
 		LOGGER.info("Skin {} applied", s);
 
-		if (s.equalsIgnoreCase(STYLESHEET_MODENA)) {
-			setSkinModena();
-		} else if (s.equalsIgnoreCase(STYLESHEET_CASPIAN)) {
-			setSkinCaspian();
-		} else {
-			File skin_file = childOf(APP.DIR_SKINS, s, s + ".css");
-			setSkinExternal(skin_file);
-		}
+		File skin_file = childOf(APP.DIR_SKINS, s, s + ".css");
+		setSkinExternal(skin_file);
 	}
 
 	/**
@@ -412,30 +388,6 @@ public class Gui {
 			skinOldUrl = url;   // store its url so we can remove the skin later
 		} catch (MalformedURLException ex) {
 			LOGGER.error(ex.getMessage());
-		}
-	}
-
-	private static void setSkinModena() {
-		monitorSkinStop();
-		StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);   // TODO: jigsaw
-		Application.setUserAgentStylesheet(STYLESHEET_MODENA);
-		skin.setValue("Modena");
-	}
-
-	private static void setSkinCaspian() {
-		monitorSkinStop();
-		StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);   // TODO: jigsaw
-		Application.setUserAgentStylesheet(STYLESHEET_CASPIAN);
-		skin.setValue("Caspian");
-	}
-
-	public static List<File> getGuiImages() {
-		File location = childOf(APP.DIR_SKINS, skin.getName(), "Images");
-		if (Util.isValidDirectory(location)) {
-			return Util.getFilesImage(location, 1).collect(toList());
-		} else {
-			LOGGER.warn("Can not access skin directory: " + location.getPath());
-			return listRO();
 		}
 	}
 

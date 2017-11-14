@@ -29,7 +29,6 @@
 
 package gui.objects.popover;
 
-import gui.Gui;
 import gui.objects.icon.Icon;
 import gui.objects.popover.PopOver.ArrowLocation;
 import java.util.ArrayList;
@@ -70,9 +69,8 @@ import static main.AppBuildersKt.resizeButton;
 import static util.async.AsyncKt.run;
 import static util.functional.Util.mapB;
 import static util.graphics.MouseDragKt.initMouseDrag;
-import static util.graphics.UtilKt.setMinPrefMaxSize;
 import static util.graphics.UtilKt.initClip;
-import static util.graphics.UtilKt.setFontAsStyle;
+import static util.graphics.UtilKt.setMinPrefMaxSize;
 import static util.reactive.Util.maintain;
 
 public class PopOverSkin implements Skin<PopOver> {
@@ -99,15 +97,14 @@ public class PopOverSkin implements Skin<PopOver> {
 		root = new StackPane() {
 			@Override
 			protected void layoutChildren() {
+				popover.setPrefSize(getWidth(), getHeight());
 				super.layoutChildren();
 				updatePath();
-				popover.setPrefSize(getWidth(), getHeight());
 			}
 		};
 		root.setPickOnBounds(false);
 		root.getStyleClass().add(ROOT_STYLECLASS);
 		setMinPrefMaxSize(root, Pane.USE_COMPUTED_SIZE, Pane.USE_COMPUTED_SIZE);
-		setFontAsStyle(root, Gui.font.get());
 
 		//  min width and height equal 2 * corner radius + 2*arrow indent + 2*arrow size
 		root.minHeightProperty().bind(root.minWidthProperty());

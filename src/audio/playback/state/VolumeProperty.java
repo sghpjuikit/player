@@ -23,7 +23,7 @@ public final class VolumeProperty extends SimpleDoubleProperty {
     public static final double MIN = 0;
     public static final double MAX = 1;
     public static final double AVG = (MAX+MIN)/2;
-    public static final double STEP = abs(MAX-MIN)/20;
+    public static final double STEP = abs(MAX-MIN)/10;
 
     /** Initializes default value: 0.5 */
     public VolumeProperty() {

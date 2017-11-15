@@ -30,7 +30,7 @@ object BingImageSearchQBuilder: ImageSearchUriBuilder {
 
 @Parse(from = ParseFrom.SINGLETON, to = ParseTo.CONSTANT, constant = "DuckDuckGo Image")
 object DuckDuckGoImageQBuilder: ImageSearchUriBuilder {
-    override fun uri(q: String) = URI.create("https://duckduckgo.com/?q=$q")!!
+    override fun uri(q: String) = URI.create("https://duckduckgo.com/?q=$q&iax=images&ia=images")!!
 }
 
 @Parse(from = ParseFrom.SINGLETON, to = ParseTo.CONSTANT, constant = "DuckDuckGo")

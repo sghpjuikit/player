@@ -361,11 +361,11 @@ Due to a mouse polling (using a native library), blocking all threads (like on a
 
   - Obtain logger instance:<br>
     - java:<br>
-      old school: private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(This.class);
-      convenience method:  util.dev.Util.log(this), util.dev.Util.log(this.getClass), util.dev.Util.log(This.class)
+      old school: private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(This.class);<br>
+      convenience method: util.dev.UtilKt.log(this), util.dev.UtilKt.log(this.getClass()), util.dev.UtilKt.log(This.class)<br>
     - kotlin:<br>
-      classes: companion object: mu.internal.KLoggerFactory.KLogging()
-      top level functions: private val logger = mu.internal.KLoggerFactory.KotlinLogging.logger {}
+      classes: companion object: mu.internal.KLoggerFactory.KLogging()<br>
+      top level functions: private val logger = mu.internal.KLoggerFactory.KotlinLogging.logger {}<br>
   
   - Configuration:<br>
       - log_configuration.xml in /working dir/log, where the log output is also located

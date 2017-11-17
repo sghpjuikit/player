@@ -2,6 +2,7 @@
 ## Project Specific
 ##########################
 .idea/
+*.iml
 out/
 private/
 working dir/log/*zip

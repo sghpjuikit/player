@@ -304,34 +304,20 @@ Tips:
 - If you get 'trapped' and 'locked in' with no idea what to do, press right ALT (layout edit mode) or click anywhere (mouse buttons often navigate) - once you get the hang of it, you will see how convenient it is.
 - widgets, popups and containers have informative "i" buttons that provide valuable info on possible course of action
 
-### Contribution
-
-There are several areas that one can contribute to:
-- application core - involves java & javaFX code, OOP + Functional + Reactive styles
-- skins - requires very basic knowledge of css and a some of patience
-- widgets - involves java & javaFX code & knowledge of the APIs
-- testing & bug reporting
-- feedback and spreading the word
-
 ## Development
 
 ### Project set up
 
 - Language
-
-Java jdk-9.0.0 or higher and Kotlin (latest version) are both required.
+  - Java jdk-9.0.0 or higher
+  - and Kotlin (latest version) are both required.
 
 - IDE
-
-Any IDE should work, but due to Kotlin, Intellij Idea is recommended.
+  - Any IDE works, but due to use of Kotlin, Intellij Idea is very recommended.
 
 - Dependencies
 
 All required dependencies are included in /extra/lib. For the optional extra projects, dependencies are located at /extra/projects_lib.
-
-- working directory
-
-/working dir must be set up as the working directory for the project to execute successfully, as it contains many runtime dependencies
 
 - widgets
 
@@ -340,85 +326,72 @@ It is required to add widget source codes to the source code of the project.
 In Netbeans: project > properties > sources > add folder. Add /src widgets directory. You should see 2 source directories in you project: 'src' and 'src widgets'.
 
 In Intellij Idea: create a separate module depending (type=PROVIDED) on the main module and all its dependensies plus all the jars (recursively) in the /widgets directory.
-
-- VM run options
-
-The application can use lots of RAM if it displays images, so Xmx1g or more is recommended. The rest is necessary due to java 9 modularization.
-
-    -Xmx3g
-    --add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
-    --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
-    --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
-    --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED
-    --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
-    --add-opens java.base/java.util=ALL-UNNAMED
-    --add-opens java.base/java.lang.reflect=ALL-UNNAMED
-    --add-opens java.base/java.text=ALL-UNNAMED
-    --add-opens java.base/java.util.stream=ALL-UNNAMED
-    --add-opens java.base/java.lang=ALL-UNNAMED
-    --add-opens java.desktop/java.awt.font=ALL-UNNAMED
-    --add-opens javafx.controls/javafx.scene.control.skin=ALL-UNNAMED
-    --add-opens javafx.graphics/javafx.scene.image=ALL-UNNAMED
-    --add-opens javafx.controls/javafx.scene.control=ALL-UNNAMED
     
-- javac (compiler) parameters
-
-Necessary due to java 9 modularization.
-
-    --add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED
-    --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
-    --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED
-    --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED
-    --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
-    
-- annotation processing
-
-The project uses annotation processor, thus annotation processing needs to be enabled (if possible set to obtain processor from class path)
-
 - running
 
-Set main.App class as main class if necessary
-
+  - main class: main.App
+  - annotation processing: must be enabled, set to obtain processor from classpath (classindex.jar)
+  - jvm args:<br>
+    -Xmx3g<br>
+    --add-opens java.base/java.util=ALL-UNNAMED<br>
+    --add-opens java.base/java.lang.reflect=ALL-UNNAMED<br>
+    --add-opens java.base/java.text=ALL-UNNAMED<br>
+    --add-opens java.base/java.util.stream=ALL-UNNAMED<br>
+    --add-opens java.base/java.lang=ALL-UNNAMED<br>
+    --add-opens java.desktop/java.awt.font=ALL-UNNAMED<br>
+    --add-opens javafx.controls/javafx.scene.control=ALL-UNNAMED<br>
+    --add-opens javafx.controls/javafx.scene.control.skin=ALL-UNNAMED<br>
+    --add-opens javafx.graphics/com.sun.glass.ui=ALL-UNNAMED<br>
+    --add-opens javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED<br>
+    --add-opens javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED<br>
+    --add-opens javafx.graphics/javafx.scene.image=ALL-UNNAMED<br>
+    --add-opens javafx.web/com.sun.webkit=ALL-UNNAMED<br>
+    
 - debugging
 
 Due to a mouse polling (using a native library), blocking all threads (like on a breakpoint) will cause major slow downs and unresponsive mouse (up to dozens of seconds) in the system. It is very recommended to never block all threads and use 'block current thread only' for breakpoints.
-
-- more
-
-See src/TODO.txt
 
 ### Coding style
 
 - Logging
 
-This project uses slf4j logging facade and bindings to logback library. To log, simply create static final instance of org.slf4j.Logger using org.slf4j.LoggerFactory. All logging configuration is in an xml in /working dir/log, where the log files are also located. The logger is configured to log WARN and ERROR levels to the file and in addition log every logging level to console.
+  - Mechanism:<br>
+    - java: [sl4j](https://github.com/qos-ch/slf4j) + [logback](https://github.com/qos-ch/logback)
+    - kotlin: [sl4j](https://github.com/qos-ch/slf4j) + [kotlin-logging](https://github.com/MicroUtils/kotlin-logging)
+
+  - Obtain logger instance:<br>
+    - java:<br>
+      old school: private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(This.class);
+      convenience method:  util.dev.Util.log(this), util.dev.Util.log(this.getClass), util.dev.Util.log(This.class)
+    - kotlin:<br>
+      classes: companion object: mu.internal.KLoggerFactory.KLogging()
+      top level functions: private val logger = mu.internal.KLoggerFactory.KotlinLogging.logger {}
+  
+  - Configuration:<br>
+      - log_configuration.xml in /working dir/log, where the log output is also located
+      - the logger appends WARN, ERROR to file and all to console ( this can be changed in runtime by user in application settings)
 
 - Imports
-  - use static imports where possible (aim for short code, IDEs can guide us where the object/method comes from), particularly for enum types, but also utility methods (Math, etc).
-  - separate imports and static imports (Netbeans > Tools > Options > Formatting > Imports)
-  - separate imports (java, javax, javafx packages or more if you like)
-  - no package imports and group imports if possible (causes problems when classes share same name)
-
-Setting IDE to auto-collapse imports is recommended.
+  - use static imports where possible (enum types, utility methods, etc.)
+  - no empty lines, just alphabetical sort
+  - separate imports and static imports
+  - never use package imports
 
 - Assertions
-
-This project doess not use any. They are disabled by default, thus unreliable. Use runtime exceptions (e.g. AssertionError) or methods like Objects.requireNonNull(). There is bunch of similar methods in util package.
+  - always try to avoid implicit conditions with proper design and typesafety
+  - always check method parameters for all required conditions, always document these in @param tags
+  - do not use java assertions
+  - use runtime exceptions (e.g. AssertionError) or methods like Objects.requireNonNull(), util.dev.throwIf, kotlin.test.fail and never document them in @throw (to avoid anyone catching them)
 
 - Comments
-
-Try to write javadoc for every public method and class. Use simple comments (//) to provide intent of the code.
-Setting IDE to auto-collapse javadoc is recommended.
-
-The provided files are
-- source files
-- working directory containing application data.
-- dependencies (libraries and projects to import)
+  - always write javadoc for public elements, be as concise as possible, but describe and define full contract
+  - use simple comments (//) to provide code intention
+  - avoid using comments by using proper names, proper code structure and avoiding arbitrary/exceptional/edge cases 
 
 ### Skinning
 
-A skin is a single css file that works the same way as if you are skinning a html web site. [javafx css reference guide](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html) is an official reference guide that contains a lot of useful information.
-The application autodiscovers the skins when it starts. The skins are located in Skins directory, each in its own folder. Press F5 (by default) to refresh skin changes.
+A skin is a single css file that works the same way as if you are skinning a html web site. See [javafx css reference guide](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html). Skins can import each other.
+The application autodiscovers the skins when it starts and monitors them for changes. The skins are located in working dir/skins, in separate folders.
 
 ## Credits & Licence
 

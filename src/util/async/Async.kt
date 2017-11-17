@@ -51,17 +51,18 @@ fun sleeping(d: Duration): Runnable = Runnable { sleep(d) }
 
 /* --------------------- EXECUTORS ---------------------------------------------------------------------------------- */
 
-/** Executes the runnable immediately on current thread. */
-fun Runnable.run() = run()
-
 /**
  * Executes the action on current thread after specified delay from now.
  * Equivalent to `new FxTimer(delay, action, 1).restart();`.
  *
  * @param delay delay
  */
-fun run(delay: Duration, action: Runnable) {
+fun runAfter(delay: Duration, action: Runnable) {
     FxTimer(delay, 1, action).start()
+}
+
+fun runAfter(delay: Duration, action: () -> Unit) {
+    runAfter(delay, Runnable { action() })
 }
 
 /**
@@ -72,6 +73,10 @@ fun run(delay: Duration, action: Runnable) {
  */
 fun run(delay: Double, action: Runnable) {
     FxTimer(delay, 1, action).start()
+}
+
+fun run(delay: Double, action: () -> Unit) {
+    run(delay, Runnable { action() })
 }
 
 /**

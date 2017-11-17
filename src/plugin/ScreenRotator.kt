@@ -4,6 +4,8 @@ import mu.KotlinLogging
 import util.action.Action
 import util.conf.Config.RunnableConfig
 import util.conf.IsConfig
+import util.graphics.getScreenForMouse
+import util.graphics.ordinal
 import util.system.Environment
 import java.io.IOException
 
@@ -19,6 +21,10 @@ class ScreenRotator: PluginBase(NAME) {
     private val programHelpFile = getResource(PROGRAM_HELP_FILE_NAME)
     private val actions by lazy {
         setOf(
+                Action("Rotate screen (active) cw", { rotateScreen(null, "cw") }, "Rotates screen (active) clockwise", "", "CTRL+ALT+DOWN", true, false),
+                Action("Rotate screen (active) cw", { rotateScreen(null, "cw") }, "Rotates screen (active) clockwise", "", "CTRL+ALT+RIGHT", true, false),
+                Action("Rotate screen (active) ccw", { rotateScreen(null, "ccw") }, "Rotates screen (active) counter-clockwise", "", "CTRL+ALT+UP", true, false),
+                Action("Rotate screen (active) ccw", { rotateScreen(null, "ccw") }, "Rotates screen (active) counter-clockwise", "", "CTRL+ALT+LEFT", true, false),
                 Action("Rotate screen 1 cw", { rotateScreen(1, "cw") }, "Rotates screen 1 clockwise", "", "CTRL+ALT+1", true, false),
                 Action("Rotate screen 2 cw", { rotateScreen(2, "cw") }, "Rotates screen 2 clockwise", "", "CTRL+ALT+2", true, false),
                 Action("Rotate screen 3 cw", { rotateScreen(3, "cw") }, "Rotates screen 3 clockwise", "", "CTRL+ALT+3", true, false),
@@ -44,9 +50,11 @@ class ScreenRotator: PluginBase(NAME) {
         Action.getActions() -= actions
     }
 
-    fun rotateScreen(screen: Int, rotation: String) {
+    fun rotateScreen(screen: Int? = null, rotation: String) {
+        val scr = screen ?: getScreenForMouse().ordinal
         try {
-            ProcessBuilder(programFile.path, "/rotate:$rotation", "/device:$screen").directory(userLocation).start()
+            println("rotating " + scr)
+            ProcessBuilder(programFile.path, "/rotate:$rotation", "/device:$scr").directory(userLocation).start()
         } catch (e: IOException) {
             logger.error(e) { "Failed to rotate display" }
         }

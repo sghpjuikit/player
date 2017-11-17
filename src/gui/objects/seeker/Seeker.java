@@ -282,7 +282,7 @@ public final class Seeker extends AnchorPane {
 	/** Whether seeker snaps to chapters. */
 	public final V<Boolean> chapterSnap = new V<>(false);
 	/** Seeker snap to chapter activation distance. */
-	public final DoubleProperty chapterSnapDistance = new SimpleDoubleProperty(7);
+	public final DoubleProperty chapterSnapDistance = new SimpleDoubleProperty(15);
 	/** Chapter selected */
 	private Chap chapterSelected = null;
 

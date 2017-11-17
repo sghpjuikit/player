@@ -23,6 +23,7 @@ import util.Sort;
 import util.access.V;
 import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
+import util.async.AsyncKt;
 import util.async.future.Fut;
 import util.conf.Config.VarList;
 import util.conf.Config.VarList.Elements;
@@ -55,7 +56,7 @@ import static util.async.AsyncKt.FX;
 import static util.async.AsyncKt.newSingleDaemonThreadExecutor;
 import static util.async.AsyncKt.newThreadPoolExecutor;
 import static util.async.AsyncKt.onlyIfMatches;
-import static util.async.AsyncKt.run;
+import static util.async.AsyncKt.runAfter;
 import static util.async.AsyncKt.runFX;
 import static util.async.AsyncKt.runLater;
 import static util.async.AsyncKt.threadFactory;
@@ -233,7 +234,7 @@ public class DirViewer extends ClassController {
                         grid.implGetSkin().setPosition(item.lastScrollPosition);
 
                     grid.requestFocus();    // fixes focus problem
-                    run(millis(500), grid::requestFocus);
+                    runAfter(millis(500), grid::requestFocus);
                 })
                 .showProgress(getWidget().getWindow().taskAdd());
     }

@@ -2,6 +2,7 @@ package layout.widget
 
 import layout.widget.feature.Feature
 import util.functional.Util.toS
+import kotlin.reflect.KClass
 
 interface ComponentInfo {
 
@@ -54,8 +55,11 @@ interface WidgetInfo: ComponentInfo {
     /** @return true iff widget's controller implements feature of given type */
     fun hasFeature(feature: Class<*>) = feature.isAssignableFrom(type())
 
+    /** @return true iff widget's controller implements feature of given type */
+    fun hasFeature(feature: KClass<*>) = hasFeature(feature.java)
+
     /** @return true iff widget's controller implements given feature */
-    fun hasFeature(feature: Feature) = hasFeature(feature.type.java)
+    fun hasFeature(feature: Feature) = hasFeature(feature.type)
 
     /** @return true iff widget's controller implements all given features */
     fun hasFeatures(vararg features: Class<*>) = features.asSequence().all { hasFeature(it) }

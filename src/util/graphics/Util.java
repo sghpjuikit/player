@@ -5,7 +5,6 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Stream;
 import javafx.beans.value.ChangeListener;
 import javafx.embed.swing.SwingFXUtils;
@@ -37,7 +36,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
@@ -548,39 +546,6 @@ public interface Util {
 		return i;
 	}
 
-	/**
-	 * Creates menu item.
-	 *
-	 * @param text non null text of the menu item
-	 * @param action non null action
-	 * @return non null menu item
-	 * @throws java.lang.RuntimeException if any param null
-	 */
-	static MenuItem menuItem(String text, Runnable action) {
-		noØ(action);
-		return menuItem(text, a -> action.run());
-	}
-
-	/**
-	 * Creates menu items from list of source objects. Use to populate context menu dynamically.
-	 * <p/>
-	 * For example context menu that provides menu items for searching given text on the web, using different search
-	 * engines. What we want is to generate menu items each executing the same type of action.
-	 *
-	 * @param <A> service or action that can facilitates the action
-	 * @param from non null list of source objects
-	 * @param toStr non null to string converter producing menu item text
-	 * @param action non null menu item item click action taking the respective source object as parameter
-	 * @return menu items
-	 * @throws java.lang.RuntimeException if any param null
-	 */
-	static <A> MenuItem[] menuItems(Stream<A> from, Function<A,String> toStr, Consumer<A> action) {
-		noØ(from, toStr, action);
-		return from
-				.map(t -> menuItem(toStr.apply(t), () -> action.accept(t)))
-				.toArray(MenuItem[]::new);
-	}
-
 /* ---------- FONT -------------------------------------------------------------------------------------------------- */
 
 	// internal com.sun.javafx.scene.control.skin.Utils class seems to be able to do this
@@ -617,6 +582,10 @@ public interface Util {
 	 */
 	// TODO: fix scaling screwing up initial window position
 	static Stage createFMNTStage(Screen screen) {
+		return createFMNTStage(screen, true);
+	}
+
+	static Stage createFMNTStage(Screen screen, boolean show) {
 		// Using owner stage of UTILITY style is the only way to get a 'top level'
 		// window with no taskbar.
 		Stage owner = new Stage(UTILITY);
@@ -632,17 +601,14 @@ public interface Util {
 		s.initModality(APPLICATION_MODAL); // eliminates focus stealing form other apps
 		s.setAlwaysOnTop(true); // maybe not needed, but just in case
 
-		s.show();    // part of the workaround below
+		if (show) s.show();    // part of the workaround below
 		s.setX(screen.getBounds().getMinX()); // screen does not necessarily start at [0,0]
 		s.setY(screen.getBounds().getMinY());
-
-		// On screen setup with varying screen dpi, javaFX may use wrong dpi, lading to wrong Stage size,
-		// so we manually work around this
-		 s.setWidth(screen.getBounds().getWidth()); // fullscreen...
-		 s.setHeight(screen.getBounds().getHeight());
-
-//		s.setWidth(screen.getVisualBounds().getWidth()/Screen.getPrimary().getOutputScaleX()*screen.getOutputScaleX());
-//		s.setHeight(screen.getVisualBounds().getHeight()/Screen.getPrimary().getOutputScaleY()*screen.getOutputScaleY());
+		s.setWidth(screen.getBounds().getWidth());
+		s.setHeight(screen.getBounds().getHeight());
+		// on multi-monitor setup with varying screen dpi, javaFX may use wrong dpi, leading to wrong Stage size,
+		// s.setWidth(screen.getVisualBounds().getWidth()/Screen.getPrimary().getOutputScaleX()*screen.getOutputScaleX());
+		// s.setHeight(screen.getVisualBounds().getHeight()/Screen.getPrimary().getOutputScaleY()*screen.getOutputScaleY());
 
 		// Going fullscreen actually breaks things.
 		// We do not need fullscreen, we use UNDECORATED stage of maximum size. Fullscreen

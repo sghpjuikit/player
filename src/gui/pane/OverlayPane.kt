@@ -20,12 +20,12 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.stage.Screen
 import javafx.stage.Stage
-import javafx.util.Duration.millis
 import main.App.APP
 import main.resizeButton
 import org.reactfx.Subscription
 import util.access.V
 import util.animation.Anim
+import util.async.runAfter
 import util.async.runFX
 import util.async.runNew
 import util.conf.IsConfig
@@ -38,6 +38,7 @@ import util.graphics.applyViewPort
 import util.graphics.getScreen
 import util.graphics.image.imgImplLoadFX
 import util.graphics.minus
+import util.math.millis
 import util.reactive.SetƑ
 import util.reactive.maintain
 import util.reactive.onEventDown
@@ -52,11 +53,11 @@ import kotlin.test.fail
  */
 abstract class OverlayPane<T>: StackPane() {
 
-    /** Display method.  */
+    /** Display method. */
     @IsConfig(name = "Display method", info = "Area of content. Screen provides more space than window, but can get in the way of other apps.")
     val display = V(Display.SCREEN_OF_MOUSE)
 
-    /** Display bgr (for SCREEN variants only).  */
+    /** Display bgr (for SCREEN variants only). */
     @IsConfig(name = "Display background", info = "Content background")
     val displayBgr = V(ScreenImgGetter.SCREEN_BGR)
 
@@ -115,7 +116,7 @@ abstract class OverlayPane<T>: StackPane() {
 /* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
 
     private lateinit var displayUsedForShow: Display // prevents inconsistency in start() and stop(), see use
-    private val animation: Anim by lazy { Anim(APP.animationFps, { animDo(it) }).dur(millis(200.0)).intpl { it*it } } // lowering fps can help on hd screens & low-end hardware
+    private val animation: Anim by lazy { Anim(APP.animationFps, { animDo(it) }).dur(millis(200)).intpl { it*it } } // lowering fps can help on hd screens & low-end hardware
     private var stg: Stage? = null
     private val blurBack = BoxBlur(0.0, 0.0, 3)  // we need best possible quality
     private val blurFront = BoxBlur(0.0, 0.0, 1) // we do not need quality, hence iterations==1
@@ -229,7 +230,7 @@ abstract class OverlayPane<T>: StackPane() {
                     }
                     val root = StackPane(StackPane(bgr, contentImg))
 
-                    op.stg = createFMNTStage(screen).apply {
+                    op.stg = createFMNTStage(screen, false).apply {
                         scene = Scene(root)
                     }
 
@@ -253,15 +254,18 @@ abstract class OverlayPane<T>: StackPane() {
                     op.stg!!.requestFocus()
 
                     // start showing
-                    op.animation.playOpenDo(null)
-                    op.onShown.run()
+                    // the preparation may cause an animation lag, hence delay a bit
+                    runAfter(millis(30)) {
+                        op.animation.playOpenDo(null)
+                        op.onShown.run()
+                    }
                 }
             }
         }
 
         internal fun animDo(op: OverlayPane<*>, x: Double) = op.apply {
             if (opacityNode!=null) { // bug fix, not 100% sure why it is necessary
-                if (this@Display!=WINDOW && (displayBgr.get()==ScreenImgGetter.SCREEN_BGR || displayBgr.get()==ScreenImgGetter.NONE)) {
+                if (this@Display!=WINDOW && (op.displayBgr.get()==ScreenImgGetter.SCREEN_BGR || op.displayBgr.get()==ScreenImgGetter.NONE)) {
                     stg!!.opacity = x
                     opacityNode!!.opacity = 1-x*0.5
                     opacity = 1.0

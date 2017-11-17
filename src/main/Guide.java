@@ -58,6 +58,7 @@ import static layout.container.Container.testControlContainer;
 import static main.App.APP;
 import static main.AppBuildersKt.createInfoIcon;
 import static util.async.AsyncKt.run;
+import static util.async.AsyncKt.runAfter;
 import static util.async.AsyncKt.runFX;
 import static util.graphics.Util.layHorizontally;
 import static util.graphics.drag.DragUtil.installDrag;
@@ -112,8 +113,8 @@ public final class Guide implements Configurable {
 		p.getContentNode().addEventHandler(MOUSE_CLICKED, e -> {
 			if (e.getButton()==PRIMARY)   goToNext();
 			if (e.getButton()==SECONDARY && hints.get(at).action.equals("Navigation")) {
-				run(proceedAnimLength.multiply(3), this::goToNext);
-				run(proceedAnimLength.multiply(6), this::goToNext);
+				runAfter(proceedAnimLength.multiply(3), this::goToNext);
+				runAfter(proceedAnimLength.multiply(6), this::goToNext);
 			}
 			if (e.getButton()==SECONDARY) goToPrevious();
 			e.consume();

@@ -155,13 +155,13 @@ public class Library extends FXMLController implements SongReader {
         };
         // add more menu items
         table.menuAdd.getItems().addAll(
-            menuItem("Add files", this::addFiles),
-            menuItem("Add directory", this::addDirectory)
+            menuItem("Add files", e -> addFiles()),
+            menuItem("Add directory", e -> addDirectory())
         );
         table.menuRemove.getItems().addAll(
-            menuItem("Remove selected from library", () -> APP.db.removeItems(table.getSelectedItems())),
-            menuItem("Remove all from library", () -> APP.db.removeItems(table.getItems())),
-            menuItem("Remove invalid items", this::removeInvalid)
+            menuItem("Remove selected from library", e -> APP.db.removeItems(table.getSelectedItems())),
+            menuItem("Remove all from library", e -> APP.db.removeItems(table.getItems())),
+            menuItem("Remove invalid items", e -> removeInvalid())
         );
 
         // set up table columns

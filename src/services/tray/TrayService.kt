@@ -59,9 +59,9 @@ class TrayService : ServiceBase(true) {
     private var contextMenu: ContextMenu? = null
     private var contextMenuOwner: Stage? = null
     private val contextMenuItemsDefault = listOf(
-            menuItem("New window", Runnable { APP.windowManager.createWindow() }),
-            menuItem("Play/pause", Runnable { PLAYBACK.pause_resume() }),
-            menuItem("Exit", Runnable { APP.close() })
+            menuItem("New window") { APP.windowManager.createWindow() },
+            menuItem("Play/pause") { PLAYBACK.pause_resume() },
+            menuItem("Exit") { APP.close() }
     )
     private var contextMenuItems: MutableList<MenuItem> = ArrayList(contextMenuItemsDefault)
 

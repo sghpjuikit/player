@@ -204,9 +204,9 @@ public class LibraryView extends FXMLController {
         table.columnMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
         // add menu items
         table.menuRemove.getItems().addAll(
-            menuItem("Remove selected groups from library", () -> APP.db.removeItems(MetadataGroup.ungroup(table.getSelectedItems()))),
-            menuItem("Remove playing group from library", () -> APP.db.removeItems(ungroup(table.getItems().stream().filter(MetadataGroup::isPlaying)))),
-            menuItem("Remove all groups from library", () -> APP.db.removeItems(MetadataGroup.ungroup(table.getItems())))
+            menuItem("Remove selected groups from library", e -> APP.db.removeItems(MetadataGroup.ungroup(table.getSelectedItems()))),
+            menuItem("Remove playing group from library", e -> APP.db.removeItems(ungroup(table.getItems().stream().filter(MetadataGroup::isPlaying)))),
+            menuItem("Remove all groups from library", e -> APP.db.removeItems(MetadataGroup.ungroup(table.getItems())))
         );
 
         // key actions

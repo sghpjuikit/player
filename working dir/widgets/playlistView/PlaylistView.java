@@ -171,34 +171,34 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         };
         // add more menu items
         table.menuAdd.getItems().addAll(
-            menuItem("Add files",PlaylistManager::chooseFilesToAdd),
-            menuItem("Add directory",PlaylistManager::chooseFolderToAdd),
-            menuItem("Add URL",PlaylistManager::chooseUrlToAdd),
-            menuItem("Play files",PlaylistManager::chooseFilesToPlay),
-            menuItem("Play directory",PlaylistManager::chooseFolderToPlay),
-            menuItem("Play URL",PlaylistManager::chooseUrlToPlay),
-            menuItem("Duplicate selected (+)",() -> playlist.duplicateItemsByOne(table.getSelectedItems())),
-            menuItem("Duplicate selected (*)",() -> playlist.duplicateItemsAsGroup(table.getSelectedItems()))
+            menuItem("Add files", e -> PlaylistManager.chooseFilesToAdd()),
+            menuItem("Add directory", e -> PlaylistManager.chooseFolderToAdd()),
+            menuItem("Add URL", e -> PlaylistManager.chooseUrlToAdd()),
+            menuItem("Play files", e -> PlaylistManager.chooseFilesToPlay()),
+            menuItem("Play directory", e -> PlaylistManager.chooseFolderToPlay()),
+            menuItem("Play URL", e -> PlaylistManager.chooseUrlToPlay()),
+            menuItem("Duplicate selected (+)", e -> playlist.duplicateItemsByOne(table.getSelectedItems())),
+            menuItem("Duplicate selected (*)", e -> playlist.duplicateItemsAsGroup(table.getSelectedItems()))
 //            editOnAdd_menuItem    // add to lib option
 //            editOnAdd_menuItem    // add to lib + edit option
         );
         table.menuRemove.getItems().addAll(
-            menuItem("Remove selected", () -> playlist.removeAll(table.getSelectedItems())),
-            menuItem("Remove not selected", () -> playlist.retainAll(table.getSelectedItems())),
-            menuItem("Remove unsupported", playlist::removeUnplayable),
-            menuItem("Remove duplicates", playlist::removeDuplicates),
-            menuItem("Remove all", playlist::clear)
+            menuItem("Remove selected", e -> playlist.removeAll(table.getSelectedItems())),
+            menuItem("Remove not selected", e -> playlist.retainAll(table.getSelectedItems())),
+            menuItem("Remove unsupported", e -> playlist.removeUnplayable()),
+            menuItem("Remove duplicates", e -> playlist.removeDuplicates()),
+            menuItem("Remove all", e -> playlist.clear())
         );
         table.menuOrder.getItems().addAll(
-            menuItem("Order reverse", playlist::reverse),
-            menuItem("Order randomly", playlist::randomize),
-            menuItem("Edit selected", () -> APP.widgetManager.use(SongReader.class,NO_LAYOUT,w->w.read(table.getSelectedItems()))),
-            menuItem("Save selected as...", this::saveSelectedAsPlaylist),
-            menuItem("Save playlist as...", this::savePlaylist)
+            menuItem("Order reverse", e -> playlist.reverse()),
+            menuItem("Order randomly", e -> playlist.randomize()),
+            menuItem("Edit selected", e -> APP.widgetManager.use(SongReader.class,NO_LAYOUT,w->w.read(table.getSelectedItems()))),
+            menuItem("Save selected as...", e -> saveSelectedAsPlaylist()),
+            menuItem("Save playlist as...", e -> savePlaylist())
         );
         Menu sortM = new Menu("Order by");
         stream(Field.FIELDS)
-                .map(f -> menuItem(f.toStringEnum(), () -> table.sortBy(f)))
+                .map(f -> menuItem(f.toStringEnum(), e -> table.sortBy(f)))
                 .forEach(sortM.getItems()::add);
         table.menuOrder.getItems().add(0, sortM);
 

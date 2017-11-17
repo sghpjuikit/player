@@ -260,9 +260,9 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public final Menu menuAdd = new Menu("", new Icon(PLAYLIST_PLUS).scale(1.3).embedded());
 	public final Menu menuRemove = new Menu("", new Icon(PLAYLIST_MINUS).scale(1.3).embedded());
 	public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
-		menuItem("Select inverse", this::selectAll),
-		menuItem("Select all", this::selectInverse),
-		menuItem("Select none", this::selectNone)
+		menuItem("Select inverse", e -> selectAll()),
+		menuItem("Select all", e -> selectInverse()),
+		menuItem("Select none", e -> selectNone())
 	);
 	public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded());
 	/** Table menubar in the bottom with menus. Feel free to modify. */

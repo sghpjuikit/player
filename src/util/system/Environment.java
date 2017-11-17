@@ -28,9 +28,7 @@ import util.file.AudioFileFormat.Use;
 import util.file.FileType;
 import util.file.ImageFileFormat;
 import util.file.Util;
-import util.file.UtilKt;
 import util.functional.Try;
-
 import static java.awt.Desktop.Action.BROWSE;
 import static java.awt.Desktop.Action.EDIT;
 import static java.awt.Desktop.Action.OPEN;
@@ -43,6 +41,7 @@ import static util.dev.Util.noØ;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.getSuffix;
 import static util.file.UtilKt.find1stExistingParentDir;
+import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static util.functional.Try.error;
 import static util.functional.Try.ok;
 import static util.functional.Util.filter;
@@ -348,12 +347,12 @@ public interface Environment {
 	static void openIn(File f, boolean inApp) {
 		// open skin - always in app
 		if ((f.isDirectory() && APP.DIR_SKINS.equals(f.getParentFile())) || Util.isValidSkinFile(f)) {
-			Gui.setSkin(UtilKt.getNameWithoutExtensionOrRoot(f));
+			Gui.setSkin(f);
 		}
 
 		// open widget
 		else if ((f.isDirectory() && APP.DIR_WIDGETS.equals(f.getParentFile())) || Util.isValidWidgetFile(f)) {
-			String n = UtilKt.getNameWithoutExtensionOrRoot(f);
+			String n = getNameWithoutExtensionOrRoot(f);
 			APP.widgetManager.find(n, NO_LAYOUT, false);
 		}
 

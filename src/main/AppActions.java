@@ -67,7 +67,7 @@ import static layout.widget.WidgetManager.WidgetSource.NEW;
 import static main.App.APP;
 import static util.Util.urlEncodeUtf8;
 import static util.async.AsyncKt.FX;
-import static util.async.AsyncKt.run;
+import static util.async.AsyncKt.runAfter;
 import static util.async.AsyncKt.runFX;
 import static util.async.AsyncKt.runLater;
 import static util.async.future.Fut.fut;
@@ -173,7 +173,7 @@ public class AppActions {
 					Pane componentRoot = (Pane) c.load();
 //					getChildren().add(componentRoot);   // alternatively for borderless/fullscreen experience
 					setContent(componentRoot);
-					run(millis(500), () -> componentRoot.getChildren().stream()
+					runAfter(millis(500), () -> componentRoot.getChildren().stream()
 							.filter(GridView.class::isInstance).map(GridView.class::cast)
 							.findAny()
 							.ifPresent(n -> n.implGetSkin().requestFocus())
@@ -242,7 +242,7 @@ public class AppActions {
 					fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.css"));
 					fc.setTitle("Open skin...");
 					File f = fc.showOpenDialog(APP.actionAppPane.getScene().getWindow());
-					if (f!=null) Gui.setSkinExternal(f);
+					if (f!=null) Gui.setSkin(f);
 				}
 			),
 			new FastAction<>(
@@ -352,7 +352,7 @@ public class AppActions {
 		setMinPrefMaxSize(cn, USE_COMPUTED_SIZE); // make sure no settings prevents full size
 		StackPane root = new StackPane(cn);
 		root.setBackground(bgr(BLACK));
-		Stage s = createFMNTStage(screen);
+		Stage s = createFMNTStage(screen, false);
 		s.setScene(new Scene(root));
 		s.show();
 

@@ -12,7 +12,7 @@ fun Screen.getWallpaperFile(): File? =
             val path = Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, "Control Panel\\Desktop", "Wallpaper")
             val isMultiWallpaper = path.endsWith("TranscodedWallpaper")
             if (isMultiWallpaper) {
-                File(path.substringBeforeLast("Wallpaper") + "_" + ordinal.toString().padStart(3, '0'))
+                File(path.substringBeforeLast("Wallpaper") + "_" + (ordinal-1).toString().padStart(3, '0'))
                         .takeIf { it.exists() }
                         ?: File(path)
             } else {

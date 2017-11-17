@@ -315,7 +315,7 @@ val Screen.ordinal: Int get() =
     // indexOf() assumption is supported by the ordinals matching screen order, see:
     // com.sun.glass.ui.Screen.getScreens().forEach { s -> println(s.getAdapterOrdinal()+" - "+s.getWidth()+"x"+s.getHeight()) }
     // Screen.getScreens().forEach { s -> println("1"+" - "+s.getBounds().getWidth()+"x"+s.getBounds().getHeight()) }
-    Screen.getScreens().indexOf(this)
+    Screen.getScreens().indexOf(this) + 1
 
 /** @return screen containing the centre of this window */
 val javafx.stage.Window.screen: Screen get() = getScreen(centreX, centreY)

@@ -125,7 +125,6 @@ import web.DuckDuckGoQBuilder;
 import web.GoogleImageQBuilder;
 import web.SearchUriBuilder;
 import web.WikipediaQBuilder;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CSS3;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GITHUB;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.IMAGE;
@@ -146,7 +145,6 @@ import static org.atteo.evo.inflector.English.plural;
 import static util.async.AsyncKt.run;
 import static util.file.FileType.DIRECTORY;
 import static util.file.Util.isValidatedDirectory;
-import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static util.functional.Util.list;
 import static util.functional.Util.stream;
 import static util.graphics.image.UtilKt.getImageDim;
@@ -571,7 +569,7 @@ public class App extends Application implements Configurable {
 			new FastAction<>("Browse (OS)", "Browse file in a native file system browser.",
 				FontAwesomeIcon.FOLDER_OPEN_ALT,
 				Environment::browse),
-			new FastColAction<>("Add to new playlist",
+			new FastColAction<File>("Add to new playlist",
 				"Add items to new playlist widget.",
 				MaterialDesignIcon.PLAYLIST_PLUS,
 				f -> AudioFileFormat.isSupported(f, Use.APP),
@@ -600,7 +598,7 @@ public class App extends Application implements Configurable {
 			new FastAction<>("Apply skin", "Apply skin on the application.",
 				BRUSH,
 				Util::isValidSkinFile,
-				skin_file -> Gui.setSkin(getNameWithoutExtensionOrRoot(skin_file))),
+				skin_file -> Gui.setSkin(skin_file)),
 			new FastAction<>("View image", "Opens image in an image viewer widget.",
 				IMAGE,
 				ImageFileFormat::isSupported,
@@ -625,7 +623,7 @@ public class App extends Application implements Configurable {
 		);
 		parameterProcessor.addFileProcessor(
 			Util::isValidSkinFile,
-			fs -> Gui.setSkin(getNameWithoutExtensionOrRoot(fs.get(0)))
+			fs -> Gui.setSkin(fs.get(0))
 		);
 		parameterProcessor.addFileProcessor(
 			ImageFileFormat::isSupported,

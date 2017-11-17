@@ -1,14 +1,9 @@
 package gui;
 
-import com.sun.javafx.css.StyleManager;
 import gui.objects.window.stage.Window;
 import gui.objects.window.stage.WindowBase;
 import java.io.File;
-import java.net.MalformedURLException;
-import java.nio.file.WatchService;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
@@ -33,20 +28,18 @@ import util.action.IsActionable;
 import util.animation.interpolator.CircularInterpolator;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
-import util.dev.Dependency;
 import util.file.FileMonitor;
 import util.file.Util;
 import util.validation.Constraint;
 import static gui.Gui.OpenStrategy.INSIDE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static java.util.stream.Collectors.toSet;
 import static javafx.animation.Interpolator.LINEAR;
 import static javafx.util.Duration.millis;
 import static main.App.APP;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
 import static util.file.FileMonitor.monitorDirectory;
 import static util.file.FileMonitor.monitorFile;
-import static util.file.UtilKt.childOf;
-import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static util.file.UtilKt.listChildren;
 import static util.functional.Util.set;
 
@@ -55,14 +48,13 @@ import static util.functional.Util.set;
 public class Gui {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Gui.class);
-	private static String skinOldUrl = ""; // set to not sensible non null value
+
 	public static final BooleanProperty layout_mode = new SimpleBooleanProperty(false);
 
-	private static final Map<File,WatchService> fileMonitors = new HashMap<>();
-	private static final Set<String> skins = new HashSet<>();
+	private static final Set<SkinCss> skins = new HashSet<>();
 
 	@IsConfig(name = "Skin", info = "Application skin.")
-	public static final VarEnum<String> skin = new VarEnum<>("Flow", () -> skins);//, Gui::setSkin);
+	public static final VarEnum<String> skin = VarEnum.ofStream("Flow", () -> skins.stream().map(s -> s.name));
 
 	/**
 	 * Font of the application. Overrides font defined by skin. The font can be
@@ -180,8 +172,8 @@ public class Gui {
 		return locked_layout.get();
 	}
 
-	@IsAction(name = "Toggle layout lock", desc = "Lock/unlock layout.", keys = "F4")
 	/** Toggles lock to prevent layouting. */
+	@IsAction(name = "Toggle layout lock", desc = "Lock/unlock layout.", keys = "F4")
 	public static void toggleLayoutLocked() {
 		locked_layout.set(!locked_layout.get());
 	}
@@ -310,88 +302,49 @@ public class Gui {
 	 * Searches for .css files in skin folder and registers them as available
 	 * skins. Use on app start or to discover newly added layouts dynamically.
 	 */
-	public static Set<String> getSkins() {
-		// get + verify path
+	public static Set<SkinCss> getSkins() {
 		File dir = APP.DIR_SKINS;
 		if (!Util.isValidatedDirectory(dir)) {
 			LOGGER.error("Skin lookup failed." + dir.getPath() + " could not be accessed.");
 			return set();
 		}
 
-		// find skins
-		Set<String> skins = new HashSet<>();
-		listChildren(dir).filter(File::isDirectory)
-				.forEach(d -> {
-					String name = d.getName();
-					File css = new File(d, name + ".css");
-					if (Util.isValidFile(css)) {
-						skins.add(name);
-						LOGGER.info("Registering skin: " + name);
-					}
-				});
-
-		LOGGER.info("Registering skin: Modena");
-		LOGGER.info("Registering skin: Caspian");
-
-		return skins;
+		return listChildren(dir)
+			.filter(File::isDirectory)
+			.map(d -> {
+				String name = d.getName();
+				File css = new File(d, name + ".css");
+				if (Util.isValidFile(css)) {
+					LOGGER.info("Registering skin: " + name);
+					return new SkinCss(css);
+				} else {
+					return null;
+				}
+			})
+			.filter(o -> o!=null)
+			.collect(toSet());
 	}
 
-/*****************************  setter methods ********************************/
-
-	/**
-	 * Changes application's skin and applies it.
-	 * This is a convenience method that constructs a file from the skinname
-	 * and calls the setSkin(File skin) method.
-	 * The skin file will be constructed like this:
-	 * application location .../Skins/skinname/skinname.css
-	 * For any details regarding the mechanics behind the method see documentation
-	 * of that method.
-	 *
-	 * @param s name of the skin to apply.
-	 */
-	public static void setSkin(String s) {
-		if (s==null || s.isEmpty()) throw new IllegalArgumentException();
-		LOGGER.info("Skin {} applied", s);
-
-		File skin_file = childOf(APP.DIR_SKINS, s, s + ".css");
-		setSkinExternal(skin_file);
+	private static SkinCss registerSkin(SkinCss skin) {
+		skins.add(skin);
+		return skin;
 	}
 
-	/**
-	 * Changes application's skin.
-	 *
-	 * @param cssFile - css file of the skin to load. It is expected that the skin file and resources are available.
-	 * @return true if the skin has been applied. False return value signifies that gui has not been initialized or that
-	 * skin file could be accessed. True return value does not imply successful skin loading, but guarantees that the
-	 * new skin has been applied regardless of the success. There can still be parsing errors resulting in imperfect
-	 * skin application.
-	 */
-	// TODO: jigsaw
-	@Dependency("requires access to javafx.graphics/com.sun.javafx.tk.StyleManager")
-	public static void setSkinExternal(File cssFile) {
-		try {
-			monitorSkinStart(cssFile);
-			String url = cssFile.toURI().toURL().toExternalForm();
+	public static void setSkin(SkinCss s) {
+		LOGGER.info("Setting skin={}", s.name);
 
-			// Id like to not rely on com.sun.javafx.css.StyleManager, but the below code causes some problems
-			// like icons with incorrect glyph and size (see gui.objects.icon.Icon.class)
-//	            APP.windowManager.windows.forEach(w -> w.getStage().getScene().getStylesheets().add(skinOldUrl));
-////	            APP.windowManager.windows.forEach(w -> w.getStage().getScene().setUserAgentStylesheet(STYLESHEET_MODENA));
-//	            App.setUserAgentStylesheet(STYLESHEET_MODENA);
-//	            APP.windowManager.windows.forEach(w -> w.getStage().getScene().getStylesheets().add(url));
-
-			// Application.setUserAgentStylesheet(STYLESHEET_MODENA); // unnecessary ?
-			StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
-			StyleManager.getInstance().addUserAgentStylesheet(url);
-
-			skin.setValue(getNameWithoutExtensionOrRoot(cssFile));   // set current skin
-			skinOldUrl = url;   // store its url so we can remove the skin later
-		} catch (MalformedURLException ex) {
-			LOGGER.error(ex.getMessage());
-		}
+		skin.set(s.name);
 	}
 
-	/*****************************  helper methods ********************************/
+	public static void setSkin(File cssFile) {
+		LOGGER.info("Setting skin file={}", cssFile);
+
+		SkinCss s = skins.stream()
+			.filter(ss -> ss.file.equals(cssFile)).findAny()
+			.orElseGet(() -> registerSkin(new SkinCss(cssFile)));
+		setSkin(s);
+	}
+
 
 	public static final Duration ANIM_DUR = Duration.millis(300);
 

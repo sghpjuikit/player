@@ -6,11 +6,14 @@ import util.collections.map.ClassListMap
 class InstanceMap {
     private val m = ClassListMap<Any> { it.javaClass }
 
-    /** Add instances of specified type. */
-    fun <T> addInstance(type: Class<T>, vararg instances: T) = m.accumulate(type, *instances)
+    /** Add instances of the specified type. */
+    fun <T> addInstance(type: Class<T>, vararg instances: T): Unit = m.accumulate(type, *instances)
 
-    /** Get instances of specified type. */
+    /** @return instances of the specified type */
     @Suppress("UNCHECKED_CAST")
-    fun <T> getInstances(type: Class<T>) =  m[type].orEmpty().asSequence().toList() as List<T>
+    fun <T> getInstances(type: Class<T>): List<T> = m[type].orEmpty().asSequence().toList() as List<T>
+
+    /** @return instances of the specified type */
+    inline fun <reified T> getInstances(): List<T> = getInstances(T::class.java)
 
 }

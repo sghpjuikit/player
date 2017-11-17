@@ -230,8 +230,9 @@ Platforms:
 
 ## Screenshots
 
-
-
+<details>
+  <summary>Show</summary>
+  
 ![ScreenShot](/extra/screenshot_playlists.jpg)
 Depicts:
 - multiple playlists
@@ -278,6 +279,7 @@ Depicts an old build of the application with an old skin.
 
 Depicts an old build of the application with an old skin.
 
+</details>
 
 ## The Catch XXII
 

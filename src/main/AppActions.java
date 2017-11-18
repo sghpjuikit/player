@@ -285,9 +285,9 @@ public class AppActions {
 			new ValueConfig<>(String.class, "Command", "").constraints(new StringNonEmpty()),
 			Environment::runCommand
 		);
-		PopOver p = new PopOver<>(sc);
-				p.title.set("Run system command ");
-				p.show(ScreenPos.APP_CENTER);
+		PopOver<?> p = new PopOver<>(sc);
+				   p.title.set("Run system command");
+				   p.show(ScreenPos.APP_CENTER);
 	}
 
 	@IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with " +
@@ -296,9 +296,9 @@ public class AppActions {
 		SimpleConfigurator sc = new SimpleConfigurator<>(
 			new ValueConfig<>(String.class, "Command", "").constraints(new StringNonEmpty()),
 			(String command) -> APP.parameterProcessor.process(list(command)));
-		PopOver p = new PopOver<>(sc);
-				p.title.set("Run app command");
-				p.show(ScreenPos.APP_CENTER);
+		PopOver<?> p = new PopOver<>(sc);
+				   p.title.set("Run app command");
+				   p.show(ScreenPos.APP_CENTER);
 	}
 
 	@IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")

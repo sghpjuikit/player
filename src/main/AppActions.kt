@@ -23,6 +23,7 @@ import util.async.future.Fut.fut
 import util.conf.Config
 import util.file.AudioFileFormat
 import util.file.Util.getFilesAudio
+import util.functional.orNull
 import util.graphics.Util.layHorizontally
 import util.graphics.Util.layVertically
 import java.io.File
@@ -76,7 +77,7 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
                                             }
                                             if (enqueue.get() && !result.all.isEmpty()) {
                                                 APP.widgetManager.find(PlaylistFeature::class.java, WidgetManager.WidgetSource.ANY)
-                                                        .orElse(null)
+                                                        .orNull()
                                                         ?.playlist
                                                         ?.addItems(result.all)
                                             }

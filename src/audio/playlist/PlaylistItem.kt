@@ -16,6 +16,7 @@ import util.file.AudioFileFormat
 import util.file.AudioFileFormat.Use
 import util.file.AudioFileFormat.Use.APP
 import util.file.Util
+import util.functional.orNull
 import util.identityHashCode
 import util.units.Dur
 import java.net.URI
@@ -120,7 +121,7 @@ class PlaylistItem: Item {
 
         if (isFileBased()) {
             throwIfFxThread()
-            getFile().readAudioFile()?.let { f ->
+            getFile().readAudioFile().orNull()?.let { f ->
                 val t = f.tag ?: null
                 val h = f.audioHeader
 

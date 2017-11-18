@@ -31,10 +31,9 @@ import util.conf.IsConfigurable
 import util.math.millis
 import util.reactive.Disposer
 import util.reactive.attach
-import java.util.function.Consumer
 import kotlin.streams.asSequence
 
-/** Provides notification functionality.  */
+/** Provides notification functionality. */
 @Suppress("unused")
 @IsActionable
 @IsConfigurable("Notifications")
@@ -68,8 +67,7 @@ class Notifier: ServiceBase(true) {
                         .plus("Normal")
                         .plus("Normal - no cover")
             },
-            Consumer { v ->
-                when (v) {
+            { when (it) {
                     "Normal" -> {
                         val ii = ItemInfo(true)
                         songNotificationInfo = ii
@@ -82,14 +80,22 @@ class Notifier: ServiceBase(true) {
                         songNotificationGui = ii
                         (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
                     }
-                    else -> APP.widgetManager.find(v, NEW, true).ifPresent { wf ->
-                        songNotificationGui = wf.load()
-                        songNotificationInfo = wf.controller as SongReader
-                        (songNotificationGui as Pane).setPrefSize(900.0, 500.0)
-                    }
-                // TODO: fix possible null ?
+                    else -> APP.widgetManager.find(it, NEW, true).ifPresentOrElse(
+                            { wf ->
+                                songNotificationGui = wf.load()
+                                songNotificationInfo = wf.controller as SongReader
+                                (songNotificationGui as Pane).setPrefSize(900.0, 500.0)
+                            },
+                            {
+                                val ii = ItemInfo(true)
+                                songNotificationInfo = ii
+                                songNotificationGui = ii
+                                (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
+                            }
+                    )
                 }
-            })
+            }
+    )
     private val onStop = Disposer()
     private var running = false
     private var n: Notification? = null

@@ -436,7 +436,10 @@ public class PopOver<N extends Node> extends PopupControl {
 		showThis(null, owner);
 		position(() -> p.computeXY(this));
 
-		if (focusOnShow.get()) requestFocus();
+		if (focusOnShow.get()) {
+			owner.requestFocus();
+			requestFocus();
+		}
 
 		if (!p.isAppCentric()) uninstallMoveWith();
 		if (isOwnerCreated) getProperties().put(CLOSE_OWNER, CLOSE_OWNER);

@@ -41,8 +41,8 @@ open class VarEnum<T>: V<T>, EnumerableValue<T> {
         @JvmStatic fun <V> ofStream(value: V, enumerator: () -> Stream<V>, vararg appliers: Consumer<in V>) =
                 VarEnum(value, enumerator = { enumerator().toList() }, appliers = *appliers)
 
-        @JvmStatic fun <V> ofSequence(value: V, enumerator: () -> Sequence<V>, vararg appliers: Consumer<in V>) =
-                VarEnum(value, enumerator = { enumerator().toList() }, appliers = *appliers)
+        @JvmStatic fun <V> ofSequence(value: V, enumerator: () -> Sequence<V>, vararg appliers: (V) -> Unit) =
+                VarEnum(value, enumerator = { enumerator().toList() }, appliers = *appliers.map { a -> Consumer<V> { a(it) } }.toTypedArray())
 
         @JvmStatic fun <V> ofInstances(value: V, type: Class<V>, instanceSource: InstanceMap) =
                 VarEnum(value, enumerator = { instanceSource.getInstances(type) })

@@ -96,6 +96,7 @@ import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
 import util.file.ImageFileFormat;
 import util.file.Util;
+import util.file.mimetype.MimeTypes;
 import util.functional.Try;
 import util.graphics.MouseCapture;
 import util.reactive.SetƑ;
@@ -272,10 +273,12 @@ public class App extends Application implements Configurable {
 	 */ public final SystemOutListener systemout = new SystemOutListener();
 	public final UncaughtExceptionHandler uncaughtExceptionHandler = (thread,ex) -> util.dev.Util.log(App.class).error("Uncaught exception", ex);
 
+	public final MimeTypes mimeTypes = MimeTypes.INSTANCE;
 	public final ClassName className = new ClassName();
 	public final InstanceName instanceName = new InstanceName();
 	public final InstanceInfo instanceInfo = new InstanceInfo();
 	public final ObjectFieldMap classFields = new ObjectFieldMap();
+	public final InstanceMap instances = new InstanceMap();
 
 	public final ActionPane actionPane = new ActionPane(className, instanceName, instanceInfo);
 	public final ActionPane actionAppPane = new ActionPane(className, instanceName, instanceInfo);
@@ -310,9 +313,6 @@ public class App extends Application implements Configurable {
 	/**
 	 * Manages services.
 	 */ public final ServiceManager services = new ServiceManager();
-	/**
-	 * Instance enumerations.
-	 */ public final InstanceMap instances = new InstanceMap();
 
 	@IsConfig(name = "Rating control", info = "The style of the graphics of the rating control.")
 	public final VarEnum<RatingCellFactory> ratingCell = VarEnum.ofInstances(RatingRatingCellFactory.INSTANCE, RatingCellFactory.class, instances);

@@ -16,6 +16,7 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.stage.Stage
 import main.App
 import main.App.APP
+import mu.KLogging
 import services.ServiceBase
 import util.access.v
 import util.conf.IsConfig
@@ -24,6 +25,8 @@ import util.conf.IsConfigurable
 import util.functional.Functors.Ƒ1
 import util.functional.Try
 import util.graphics.Util.menuItem
+import util.graphics.image.ImageSize
+import util.graphics.image.createImageBlack
 import util.graphics.image.loadBufferedImage
 import util.reactive.Disposer
 import util.reactive.syncFalse
@@ -87,9 +90,12 @@ class TrayService : ServiceBase(true) {
         // build tray
         EventQueue.invokeLater {
             tray = SystemTray.getSystemTray().apply {
-                val image = loadBufferedImage(trayIconImage).getOr(null)!!  // TODO: avoid !!
-                        .getScaledInstance(this.trayIconSize.width, -1, Image.SCALE_SMOOTH)
-                trayIcon = TrayIcon(image).apply {
+                val image = loadBufferedImage(trayIconImage)
+                        .ifError { logger.warn { "Failed to load tray icon" } }
+                        .getOr(null)
+                        ?.getScaledInstance(trayIconSize.width, -1, Image.SCALE_SMOOTH)
+                        ?: createImageBlack(ImageSize(trayIconSize.size))
+                val trayIconTmp = TrayIcon(image).apply {
                     toolTip = APP.name
                     addMouseListener(object : MouseAdapter() {
                         override fun mouseClicked(e: java.awt.event.MouseEvent) {
@@ -114,7 +120,8 @@ class TrayService : ServiceBase(true) {
                         }
                     })
                 }
-                add(trayIcon!!)
+                add(trayIconTmp)
+                trayIcon = trayIconTmp
             }
         }
 
@@ -206,4 +213,5 @@ class TrayService : ServiceBase(true) {
         contextMenu?.items?.setAll(contextMenuItems)
     }
 
+    companion object: KLogging()
 }

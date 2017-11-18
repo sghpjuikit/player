@@ -12,6 +12,7 @@ import net.coobird.thumbnailator.resizers.configurations.Rendering
 import net.coobird.thumbnailator.resizers.configurations.ScalingMode
 import util.file.Util.getSuffix
 import util.functional.Try
+import util.functional.supplyFirst
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.File
@@ -25,8 +26,6 @@ private typealias ImageBf = BufferedImage
 private typealias ImageWr = WritableImage
 
 private val logger = KotlinLogging.logger {}
-
-// TODO: memoize readers transparently in a thread-safe manner
 
 fun ImageBf.toFX(wImg: ImageWr? = null) = SwingFXUtils.toFXImage(this, wImg)!!
 
@@ -107,10 +106,10 @@ fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean
         val reader = readers.next()!!
         reader.input = input
         val ii = reader.minIndex // 1st image index
-        var i: ImageBf = supply(
+        var i: ImageBf = supplyFirst(
                 {
                     if (!loadFullSize) {
-                        val thumbHas = false // imgImplHasThumbnail(reader, ii, file) // TODO work around twelvemonkeys PsdReader thumbnail bugs
+                        val thumbHas = false // imgImplHasThumbnail(reader, ii, file) // TODO work around TwelveMonkeys PsdReader thumbnail bugs
                         val thumbW = if (!thumbHas) 0 else reader.getThumbnailWidth(ii, 0)
                         val thumbH = if (!thumbHas) 0 else reader.getThumbnailHeight(ii, 0)
                         val thumbUse = thumbHas && width<=thumbW && height<=thumbH
@@ -205,9 +204,8 @@ fun getImageDim(f: File): Try<Dimension, Void> {
 
 }
 
-// TODO: refactor out
-fun <T> supply(vararg suppliers: () -> T?): T? {
-    return sequenceOf(*suppliers)
-            .map { it() }
-            .find { it!=null }
-}
+/** @return new black image of specified size */
+fun createImageBlack(size: ImageSize) = BufferedImage(size.width.toInt(), size.height.toInt(), BufferedImage.TYPE_INT_RGB)
+
+/** @return new transparent image of specified size */
+fun createImageTransparent(size: ImageSize) = BufferedImage(size.width.toInt(), size.height.toInt(), BufferedImage.TYPE_INT_ARGB)

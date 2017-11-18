@@ -679,7 +679,7 @@ public final class Seeker extends AnchorPane {
 				Try<String,String> result = validateChapterText(text);
 				warnB.setVisible(result.isError());
 				commitB.setDisable(result.isError());
-				warnTooltip.setText(result.isOk() ? "" : result.getError());
+				warnTooltip.setText(result.map(t -> "").getAny());
 			});
 
 			// maintain proper content

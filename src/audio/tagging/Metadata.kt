@@ -37,6 +37,7 @@ import util.file.Util
 import util.file.Util.EMPTY_URI
 import util.file.listChildren
 import util.file.nameWithoutExtensionOrRoot
+import util.functional.orNull
 import util.localDateTimeFromMillis
 import util.parsing.Parser
 import util.text.Strings
@@ -164,8 +165,11 @@ class Metadata: Item {
     @Transient
     private var coverLoaded = false
 
-    /** Rating or -1 if empty */
+    /** Raw rating or -1 if empty */
     private var rating: Int? = null
+
+    /** Maximal raw rating value */
+    private var ratingMax: Int = 100
 
     /** Number of times this has been played or null if none */
     private var playcount: Int? = null
@@ -261,6 +265,7 @@ class Metadata: Item {
             is WavTag -> loadTagFields()
             is Mp4Tag -> loadTagFields()
         }
+        this@Metadata.ratingMax = ratingMax
     }
 
     private fun Tag.loadTagFieldsGeneral() {
@@ -384,7 +389,7 @@ class Metadata: Item {
                 publisher = this.getFirst(ID3v24Frames.FRAME_ID_PUBLISHER).orNull()
 
             // CATEGORY ------------------------------------------------------------
-            // the general acquisition is good enough
+            // general reading is good enough
         }
     }
 
@@ -440,7 +445,7 @@ class Metadata: Item {
             publisher = this.getFirst(Mp4FieldKey.MM_PUBLISHER).orNull()
 
         // CATEGORY ------------------------------------------------------------
-        // the general acquisition is good enough
+        // general reading is good enough
     }
 
     private fun VorbisCommentTag.loadTagFields() {
@@ -454,16 +459,16 @@ class Metadata: Item {
 
         // PLAYCOUNT -----------------------------------------------------------
         // if we want to support playcount in vorbis specific field, we can
-        // just lets not overwrite value we obtained with previous methods
-        // if (playcount==-1) playcount = tag.getFirst("PLAYCOUNT")).orNull()?.toIntOrNull();
+        // if (playcount==null)
+        //      playcount = tag.getFirst("PLAYCOUNT")).orNull()?.toIntOrNull();
 
         // PUBLISHER -----------------------------------------------------------
         if (publisher==null)
             publisher = this.getFirst("PUBLISHER").orNull()
 
         // CATEGORY ------------------------------------------------------------
-        // try to get category the winamp way, don't if we already have a value
         if (category==null)
+            // try to get category the winamp way
             category = this.getFirst("CATEGORY").orNull()
     }
 
@@ -650,7 +655,7 @@ class Metadata: Item {
     private fun loadCover() {
         if (cover!=null || coverLoaded) return
         coverLoaded = true
-        val af = if (isFileBased()) getFile().readAudioFile() else null
+        val af = if (isFileBased()) getFile().readAudioFile().orNull() else null
         val tag = af?.tagOrCreateAndSetDefault
         cover = tag?.firstArtwork
     }
@@ -659,9 +664,8 @@ class Metadata: Item {
     // never mind errors. Return "" on fail.    TODO: return Try or something, this is just embarrassing
     private fun getCoverInfo(): String = try {
         loadCover()
-        (cover!!.description+" "+cover!!.mimeType+" "
-                +(cover!!.image as RenderedImage).width+"x"
-                +(cover!!.image as RenderedImage).height)
+        val c = cover!!
+        "${c.description} ${c.mimeType} ${(c.image as RenderedImage).width}x${(c.image as RenderedImage).height}"   // TODO: remove cast
     } catch (e: IOException) {
         ""
     } catch (e: NullPointerException) {
@@ -895,7 +899,7 @@ class Metadata: Item {
         override fun toS(o: T?, substitute: String): String {
             if (o==null || ""==o) return substitute
             if (this===RATING_RAW)
-                return o.toString() // we leverage Integer caching, hence ==
+                return o.toString()
             if (this===RATING) return String.format("%.2f", o as Double)
             return if (this===DISC || this===DISCS_TOTAL || this===TRACK || this===TRACKS_TOTAL || this===PLAYCOUNT)
                 if (getOf(Metadata.EMPTY)==o) substitute

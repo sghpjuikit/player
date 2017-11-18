@@ -27,8 +27,8 @@ interface Plugin: Configurable<Any>, Locatable {
 
     override fun getUserLocation() = App.APP.DIR_USERDATA.childOf("plugins", getName())
 
-    companion object Factory {
-        // TODO: avoid specifying plugin name in group
+    companion object {
         const val CONFIG_GROUP = "Plugins"
     }
+
 }

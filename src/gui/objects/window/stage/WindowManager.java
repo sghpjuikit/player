@@ -517,7 +517,7 @@ public class WindowManager implements Configurable<Object> {
 	public void showSettingsSimple(Configurable<?> c, Node n) {
 		String name = c instanceof Widget ? ((Widget) c).getName() : "";
 		SimpleConfigurator<?> sc = new SimpleConfigurator<>(c);
-		PopOver p = new PopOver<>(sc);
+		PopOver<?> p = new PopOver<>(sc);
 		p.title.set((name==null ? "" : name + " ") + " Settings");
 		p.setArrowSize(0); // auto-fix breaks the arrow position, turn off - sux
 		p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
@@ -529,7 +529,7 @@ public class WindowManager implements Configurable<Object> {
 		noØ(content);
 		noØ(title);  // we could use null, but disallow
 
-		PopOver p = new PopOver<>(content);
+		PopOver<?> p = new PopOver<>(content);
 		p.title.set(title);
 		p.setAutoFix(false);
 		Window w = getActive().get();
@@ -573,10 +573,10 @@ public class WindowManager implements Configurable<Object> {
 			if (w==null)
 				w = App.APP.serializators.fromXML(Component.class, launcher)
 					.ifError(e -> LOGGER.error("Could not load component from file=", launcher, e))
-					.get();
+					.getOrThrow();
 
 			return w;
-		} catch (Exception x) {
+		} catch (Exception x) { // TODO: remove abomination
 			LOGGER.error("Could not load component from file {}", launcher, x);
 			return null;
 		}

@@ -12,18 +12,7 @@ import java.util.stream.Stream
 import kotlin.reflect.KClass
 import kotlin.streams.asSequence
 
-/**
- * Simple transfer class for result of a database query, that groups items by
- * one field and aggregates additional information about the groups.
- *
- *
- * An example is listing all artists and number of items per each. A query for
- * this uses GROUP BY 'specific field'
- *
- *
- * The accompanying information are always the same, the only changing variable
- * is the [Metadata.Field] according to which the items are grouped.
- */
+/** Group of [Metadata] by some [Metadata.Field] providing some group data. */
 class MetadataGroup {
     val field: Metadata.Field<*>
     val isAll: Boolean
@@ -49,7 +38,7 @@ class MetadataGroup {
         var sizeSum: Long = 0
         var ratingSum = 0.0
         for (m in ms) {
-            albumSet.add(m.getAlbum())
+            albumSet += m.getAlbum()
             lengthSum += m.getLengthInMs()
             sizeSum += m.getFileSizeInB()
             ratingSum += m.getRatingPercentOr0()
@@ -75,7 +64,6 @@ class MetadataGroup {
     /** @return true iff any of the songs belonging to this group is playing */
     fun isPlaying(): Boolean = field.getOf(Player.playingItem.get())==value // TODO: We need to check the contained metadata instead of just comparing the group value
 
-
     override fun toString(): String {
         return field.toString()+": "+value+", items: "+itemCount+
                 ", albums: "+albumCount+", length: "+getLength()+
@@ -93,6 +81,7 @@ class MetadataGroup {
 
         fun toString(field: Metadata.Field<*>): String = if (this===VALUE) field.toString() else toString()
 
+        @Suppress("UNCHECKED_CAST")
         fun getType(field: Metadata.Field<*>): Class<out T> = if (this===VALUE) field.type as Class<out T> else type
 
         override fun toS(o: T?, substitute: String): String {
@@ -106,10 +95,10 @@ class MetadataGroup {
             throw SwitchException(this)
         }
 
-        // TODO: handle better, generify this class
-        fun toS(v: MetadataGroup?, o: T?, substitute: String): String {
+        @Suppress("UNCHECKED_CAST")
+        override fun toS(v: MetadataGroup, o: T?, substitute: String): String {
             return if (this===VALUE) {
-                if (v==null || v.isAll) "<any>" else (v.field as Metadata.Field<Any>).toS(o, "<none>")
+                if (v.isAll) "<any>" else (v.field as Metadata.Field<Any>).toS(o, "<none>")
             } else {
                 toS(o, substitute)
             }
@@ -157,7 +146,7 @@ class MetadataGroup {
                     .entries.stream()
                     .map { (key, value) -> MetadataGroup(f, false, key, value) }
 
-        @JvmStatic fun ungroup(groups: Collection<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { group -> group.grouped.asSequence() }.toSet()
+        @JvmStatic fun ungroup(groups: Collection<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { it.grouped.asSequence() }.toSet()
 
         @JvmStatic fun ungroup(groups: Stream<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { it.grouped.asSequence() }.toSet()
 

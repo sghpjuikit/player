@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import javafx.concurrent.Task;
 import javafx.scene.media.Media;
-import org.jaudiotagger.audio.AudioFile;
 import util.async.future.ConvertListTask;
 import util.file.AudioFileFormat.Use;
 import static audio.tagging.ExtKt.readAudioFile;
@@ -40,8 +39,9 @@ public class MetadataReader {
 		}
 
 		if (item.isFileBased()) {
-			AudioFile f = readAudioFile(item.getFile());
-			return f==null ? Metadata.EMPTY : new Metadata(f);
+			return readAudioFile(item.getFile())
+				.map(Metadata::new)
+				.getOr(Metadata.EMPTY);
 		} else {
 			// TODO: implement properly
 			try {

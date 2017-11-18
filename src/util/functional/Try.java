@@ -14,6 +14,7 @@ import util.functional.Functors.Ƒ1;
  * @param <R> success return value
  * @param <E> error return value
  */
+@SuppressWarnings("deprecation")
 public interface Try<R, E> {
 
 	static <E> Try<Void,E> ok() {
@@ -156,31 +157,71 @@ public interface Try<R, E> {
 		}
 	}
 
+	/** @return true iff this is a success */
 	boolean isOk();
 
+	/** @return true iff this is an error */
 	boolean isError();
 
+	/** @return the value if ok or throw an exception if error */
+	@Deprecated
 	R get();
 
+	/** @return the value if ok or the specified value if error */
 	default R getOr(R val) {
 		return isOk() ? get() : val;
 	}
 
+	/** @return the value if ok or the value computed with specified supplier if error */
 	default R getOrSupply(Supplier<R> val) {
 		return isOk() ? get() : val.get();
 	}
 
-	E getError();
-
-	Try<R,E> ifOk(Consumer<? super R> action);
-
-	Try<R,E> ifError(Consumer<? super E> action);
-
-	default <X extends Throwable> Try<R,E> ifErrorThrow(Function<? super E,? extends X> exceptionSupplier) throws X {
-		if (isError()) throw exceptionSupplier.apply(getError());
-		return this;
+	/** @return the value if ok or the value computed with specified supplier if error */
+	default R getOrSupply(Function<? super E,? extends R> recoverValueSupplier) {
+		if (isOk()) {
+			return get();
+		} else {
+			return recoverValueSupplier.apply(getError());
+		}
 	}
 
+	/** @return the value if ok or throw an exception if error */
+	default R getOrThrow() {
+		if (isOk()) return get();
+		throw new AssertionError("Can not get result of an Error Try");
+	}
+
+	/** @return the error if error or throw an exception if success */
+	@Deprecated
+	E getError();
+
+	/** @return the success value if success or the error value if error */
+	@SuppressWarnings("unchecked")
+	default R getAny() {
+		if (isOk()) return get();
+		else return (R) getError();
+	}
+
+	/**
+	 * Invoke the specified action if success
+	 *
+	 * @return this
+	 */
+	Try<R,E> ifOk(Consumer<? super R> action);
+
+	/**
+	 * Invoke the specified action if error
+	 *
+	 * @return this
+	 */
+	Try<R,E> ifError(Consumer<? super E> action);
+
+	/**
+	 * Invoke the specified action if success or the other specified action if error
+	 *
+	 * @return this
+	 */
 	default Try<R,E> ifAny(Consumer<? super R> actionOk, Consumer<? super E> actionError) {
 		if (isOk()) actionOk.accept(get());
 		else actionError.accept(getError());
@@ -230,23 +271,6 @@ public interface Try<R, E> {
 		else {
 			return constraint.isOk() ? ok(constraint.get()) : this;
 		}
-	}
-
-	default <E1 extends E> Try<R,E> recover(Class<E1> type, Function<? super E,? extends R> recoverValueSupplier) {
-		if (isError()) {
-			E e = getError();
-			if (type.isInstance(e)) return ok(recoverValueSupplier.apply(e));
-		}
-		return this;
-	}
-
-	default <E1 extends E, E2 extends E> Try<R,E> recover(Class<E1> type1, Class<E1> type2, Function<? super E,? extends R> supplier1, Function<? super E,? extends R> supplier2) {
-		if (isError()) {
-			E e = getError();
-			if (type1.isInstance(e)) return ok(supplier1.apply(e));
-			if (type2.isInstance(e)) return ok(supplier2.apply(e));
-		}
-		return this;
 	}
 
 	class Ok<R, E> implements Try<R,E> {

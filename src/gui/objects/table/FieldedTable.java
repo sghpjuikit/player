@@ -21,6 +21,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.skin.TableHeaderRow;
 import javafx.scene.control.skin.TableViewSkin;
@@ -30,7 +31,6 @@ import util.Sort;
 import util.access.fieldvalue.ColumnField;
 import util.access.fieldvalue.ObjectField;
 import util.functional.Functors.Ƒ1;
-
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
@@ -327,7 +327,9 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			@Override
 			protected void updateItem(X item, boolean empty) {
 				super.updateItem(item, empty);
-				setText(empty || getTableRow()==null ? "" : f.toS(getTableRow().getItem(), item, ""));
+				TableRow<T> row = empty ? null : getTableRow();
+				T rowItem = row==null ? null : row.getItem();
+				setText(rowItem==null  ? "" : f.toS(rowItem, item, ""));
 			}
 		};
 		cell.setAlignment(a);

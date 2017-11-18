@@ -313,18 +313,17 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     protected void apply(boolean user) {
         if (inconsistentState) return;
-        Try<T,String> t = getValid();
-        boolean erroneous = t.isError();
-        if (erroneous) return;
-        boolean needsapply = !Objects.equals(t.get(), config.getValue());
-        if (!needsapply) return;
+        getValid().ifOk(v -> {
+            boolean needsapply = !Objects.equals(v, config.getValue());
+            if (!needsapply) return;
+            inconsistentState = true;
+            if (applyOnChange || user) config.setNapplyValue(v);
+            else config.setValue(v);
+            refreshItem();
+            if (onChange!=null) onChange.run();
+            inconsistentState = false;
+        });
 
-        inconsistentState = true;
-        if (applyOnChange || user) config.setNapplyValue(t.get());
-        else config.setValue(t.get());
-        refreshItem();
-        if (onChange!=null) onChange.run();
-        inconsistentState = false;
     }
 
 /* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
@@ -389,9 +388,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private GeneralField(Config<T> c) {
             super(c);
 
-	        ObservableValue<T> v = getObservableValue(c);
-	        isObservable = v!=null;
-	        if (isObservable) v.addListener((o,ov,nv) -> refreshItem());
+	        ObservableValue<T> obv = getObservableValue(c);
+	        isObservable = obv!=null;
+	        if (isObservable) obv.addListener((o,ov,nv) -> refreshItem());
 
             okB.setPrefSize(11, 11);
             okB.setMinSize(11, 11);
@@ -432,7 +431,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             // applying value
             n.textProperty().addListener((o,ov,nv)-> {
                 Try<T,String> t = getValid();
-                boolean applicable = t.isOk() && !Objects.equals(config.getValue(),t.get());
+                boolean applicable = t.map(v -> !Objects.equals(config.getValue(), v)).getOr(false);
                 showOkButton(!applyOnChange && applicable && t.isOk());
                 showWarnButton(t);
                 if (applyOnChange) apply(false);
@@ -478,16 +477,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override
         protected void apply(boolean user) {
             if (inconsistentState) return;
-	        Try<T,String> t = getValid();
-	        boolean erroneous = t.isError();
-            if (erroneous) return;
-            boolean applicable = !Objects.equals(config.getValue(),t.get());
-            if (!applicable) return;
+	        getValid().ifOk(v -> {
+	            boolean applicable = !Objects.equals(config.getValue(), v);
+	            if (!applicable) return;
 
-            inconsistentState = true;
-            if (applyOnChange || user) config.setNapplyValue(t.get());
-            else config.setValue(t.get());
-            inconsistentState = false;
+	            inconsistentState = true;
+	            if (applyOnChange || user) config.setNapplyValue(v);
+	            else config.setValue(v);
+	            inconsistentState = false;
+	        });
         }
 
         private void showOkButton(boolean val) {
@@ -498,7 +496,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private void showWarnButton(Try<?,String> value) {
 	        n.setRight(value.isError() ? warnB : null);
 	        warnB.setVisible(value.isError());
-	        if (value.isError()) warnTooltip.setText(value.getError());
+	        warnTooltip.setText(value.map(v -> "").getAny());
         }
 
         private void showWarnButton(boolean val) {
@@ -569,13 +567,13 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             max = new Label(String.valueOf(range.max));
 
             slider = new Slider(range.min,range.max,val);
-            cur = new Label(getValid().get().toString());
+            cur = new Label(computeLabelText());
             cur.setPadding(new Insets(0, 5, 0, 0)); // add gap
             // there is a slight bug where isValueChanging is false even if it should not. It appears when mouse clicks
 	        // NOT on the thumb but on the slider track instead and keeps dragging. valueChanging does not activate
             slider.valueProperty().addListener((o,ov,nv) -> {
                 // also bug with snap to tick, which does not work on mouse drag so we use get() which returns correct value
-                cur.setText(getValid().get().toString());
+                cur.setText(computeLabelText());
                 if (!slider.isValueChanging())
                     apply(false);
             });
@@ -619,6 +617,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override
         public void refreshItem() {
             slider.setValue(config.getValue().doubleValue());
+        }
+
+        private String computeLabelText() {
+	        return getValid().map(Object::toString).getOr("");
         }
     }
     private static class EnumerableField<T> extends ConfigField<T> {
@@ -893,11 +895,12 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             editor.setValue(config.getValue());
         }
         @Override protected void apply(boolean user) {
-            Try<Effect,String> t = getValid();
-	        if (applyOnChange || user) config.setNapplyValue(t.get());
-	        else config.setValue(t.get());
-	        refreshItem();
-	        if (onChange != null) onChange.run();
+            getValid().ifOk(v -> {
+                if (applyOnChange || user) config.setNapplyValue(v);
+                else config.setValue(v);
+                refreshItem();
+                if (onChange != null) onChange.run();
+            });
         }
     }
 	private static class ConfigurableField extends ConfigField<Configurable<?>> {

@@ -156,7 +156,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
 		okB.setMouseTransparent(validation.isError());
 		buttonPane.setBottom(validation.isOk() ? null : warnLabel);
 		updateAnchor();
-		if (validation.isError()) warnLabel.setText(validation.getError());
+		warnLabel.setText(validation.map(v -> "").getAny());
 	}
 
 	private void setOkButton(boolean val) {

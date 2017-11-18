@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -277,7 +278,7 @@ public class MetadataWriter extends Item {
 			LOGGER.error("Rating number must be <= 1");
 		else if (val<0)
 			LOGGER.error("Rating number must be >= 0");
-		else setRating(getRatingMax(this)*val);
+		else setRating(getRatingMax(tag)*val);
 	}
 
 	/**
@@ -288,20 +289,17 @@ public class MetadataWriter extends Item {
 	 *
 	 * @param val rating to set. -1 to remove the field from tag. Value will be clipped to 0-max value.
 	 */
-	public void setRating(double val) {
-		val = val<0 ? -1 : clipRating(this, val);
-
-		AudioFileFormat f = getFormat();
-		switch (f) {
-			case mp3: setRatingMP3((AbstractID3v2Tag) tag, val); break;
-			case wav: setRatingMP3(wavToId3((WavTag) tag), val); break;
+	private void setRating(double val) {
+		double v = val<0 ? -1 : clipRating(tag, val);
+		switch (getFormat()) {
+			case mp3: setRatingMP3((AbstractID3v2Tag) tag, v); break;
+			case wav: setRatingMP3(wavToId3((WavTag) tag), v); break;
 			case flac:
-			case ogg: setRatingVorbisOgg(val); break;
+			case ogg: setRatingVorbisOgg(v); break;
 			case mp4:
-			case m4a: setRatingMP4(val); break;
+			case m4a: setRatingMP4(v); break;
 			default:    // rest not supported
 		}
-		// increment fields_changed in implementations
 	}
 
 	private void setRatingMP3(AbstractID3v2Tag tag, double val) {
@@ -423,8 +421,7 @@ public class MetadataWriter extends Item {
 
 	/** @param val the publisher to set */
 	public void setPublisher(String val) {
-		AudioFileFormat f = getFormat();
-		switch (f) {
+		switch (getFormat()) {
 			case flac:
 			case ogg: setVorbisField("PUBLISHER", val); break;
 			case mp3: setPublisherID3((AbstractID3v2Tag) tag, val); break;
@@ -874,16 +871,21 @@ public class MetadataWriter extends Item {
 
 	public void reset(Item i) {
 		file = i.isFileBased() ? i.getFile() : null;
-		audioFile = readAudioFile(file);
-		try {
-			if (audioFile==null) throw new IllegalStateException("Couldn't read file " + file);
-			tag = audioFile.getTagOrCreateAndSetDefault(); // this can throw NullPointerException
-			hasCorruptedTag = false;
-		} catch (IllegalStateException|NullPointerException e) {
-			hasCorruptedTag = true;
-			tag = new ID3v24Tag(); // fake tag to write into
-			LOGGER.warn("Couldn't initialize MetadataWriter, writing to tag will be ignored", e);
-		}
+		Optional.ofNullable(file)
+			.map(f -> readAudioFile(f).getOr(null))
+			.ifPresentOrElse(
+				f -> {
+					audioFile = f;
+					tag = audioFile.getTagOrCreateAndSetDefault(); // this can throw NullPointerException
+					hasCorruptedTag = false;
+				},
+				() -> {
+					audioFile = null;
+					tag = new ID3v24Tag(); // fake tag to write into
+					hasCorruptedTag = true;
+					LOGGER.warn("Couldn't initialize MetadataWriter, writing to tag will be ignored");
+				}
+			);
 		fields_changed = 0;
 		isWriting.set(false);
 	}

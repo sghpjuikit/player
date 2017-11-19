@@ -7,7 +7,7 @@ class InstanceMap {
     private val m = ClassListMap<Any> { it.javaClass }
 
     /** Add instances of the specified type. */
-    fun <T> addInstance(type: Class<T>, vararg instances: T): Unit = m.accumulate(type, *instances)
+    fun <T> addInstance(type: Class<T>, vararg instances: T) = m.accumulate(type, *instances)
 
     /** @return instances of the specified type */
     @Suppress("UNCHECKED_CAST")

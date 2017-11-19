@@ -4,17 +4,19 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import java.io.File;
 import java.util.function.Consumer;
 import util.async.future.Fut;
-import util.system.Environment;
 import util.graphics.drag.DragPane;
 import util.graphics.drag.DragUtil;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static util.async.future.Fut.fut;
 import static util.file.FileType.FILE;
 import static util.graphics.drag.DragUtil.hasImage;
+import static util.system.EnvironmentKt.chooseFile;
 
 /**
  * Thumbnail which can accept a file. A custom action invoked afterwards can be
@@ -57,7 +59,7 @@ public class ThumbnailWithAdd extends Thumbnail {
 		// add image on click
 		root.addEventHandler(MOUSE_CLICKED, e -> {
 			if (e.getButton()==PRIMARY) {
-				Environment.chooseFile("Select image to add to tag", FILE, new File(""), root.getScene().getWindow())
+				chooseFile("Select image to add to tag", FILE, new File(""), root.getScene().getWindow())
 						.ifOk(file -> {
 							if (onFileDropped!=null)
 								onFileDropped.accept(fut(file));

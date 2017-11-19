@@ -6,9 +6,10 @@ import util.conf.Configurable
 import util.dev.Idempotent
 import util.file.childOf
 
+/** Plugin is like Service, but with no API to consume so developer never uses it directly. */
 interface Plugin: Configurable<Any>, Locatable {
 
-    fun getName(): String
+    val name: String
 
     @Idempotent
     fun start()
@@ -23,9 +24,9 @@ interface Plugin: Configurable<Any>, Locatable {
         else stop()
     }
 
-    override fun getLocation() = App.APP.DIR_APP.childOf("plugins", getName())
+    override fun getLocation() = App.APP.DIR_APP.childOf("plugins", name)
 
-    override fun getUserLocation() = App.APP.DIR_USERDATA.childOf("plugins", getName())
+    override fun getUserLocation() = App.APP.DIR_USERDATA.childOf("plugins", name)
 
     companion object {
         const val CONFIG_GROUP = "Plugins"

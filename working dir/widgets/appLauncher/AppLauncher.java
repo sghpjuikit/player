@@ -44,6 +44,7 @@ import static util.file.FileType.FILE;
 import static util.functional.Util.by;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.drag.DragUtil.installDrag;
+import static util.system.EnvironmentKt.chooseFile;
 
 // TODO: remove this widget, use DirViewer instead
 @Widget.Info(
@@ -78,7 +79,7 @@ public class AppLauncher extends ClassController {
 	private final AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
         FOLDER_PLUS, "Click to add launcher or drag & drop a file",
-        () -> Environment.chooseFile("Choose program or file", FILE, APP.DIR_HOME, getWidget().getWindow().getStage())
+        () -> chooseFile("Choose program or file", FILE, APP.DIR_HOME, getWidget().getWindow().getStage())
 				.ifOk(files.list::setAll)
     );
 

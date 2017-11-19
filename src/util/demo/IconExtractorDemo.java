@@ -12,9 +12,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import util.graphics.IconExtractor;
 
 import static javafx.collections.FXCollections.observableArrayList;
-import static util.graphics.IconExtractor.getFileIcon;
 
 public class IconExtractorDemo extends Application {
 
@@ -54,7 +54,7 @@ public class IconExtractorDemo extends Application {
 				setGraphic(null);
 				setText(null);
 			} else {
-				Image fxImage = getFileIcon(new File(item));
+				Image fxImage = IconExtractor.getFileIcon(new File(item));
 				ImageView imageView = new ImageView(fxImage);
 				setGraphic(imageView);
 				setText(item);

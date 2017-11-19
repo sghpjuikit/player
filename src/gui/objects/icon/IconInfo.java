@@ -6,7 +6,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import static javafx.geometry.Pos.CENTER;
 import static util.Util.capitalizeStrong;
-import static util.system.Environment.copyToSysClipboard;
+import static util.system.EnvironmentKt.copyToSysClipboard;
 
 /**
  * Displays an icon with its name. Has tooltip displaying additional information.

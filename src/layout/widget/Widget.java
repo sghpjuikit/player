@@ -198,14 +198,16 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	}
 
 	private C instantiateController() {
+
 		// instantiate controller
 		@SuppressWarnings("unchecked")
 		Class<C> cc = (Class) factory.getControllerType(); // TODO: make factory type safe and avoid cast
+		LOGGER.info("Instantiating widget controller " + cc);
 		C c;
 		try {
 			c = cc.getConstructor().newInstance();
 		} catch (IllegalAccessException|InstantiationException|NoSuchMethodException|InvocationTargetException e) {
-			LOGGER.error("Widget controller creation failed {}", cc, e);
+			LOGGER.error("Instantiating widget controller failed {}", cc, e);
 			return null;
 		}
 

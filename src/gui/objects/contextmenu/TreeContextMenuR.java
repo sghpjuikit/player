@@ -5,7 +5,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
-import util.SingleR;
+import util.access.ref.SingleR;
 
 public class TreeContextMenuR<E> extends SingleR<ImprovedContextMenu<List<E>>,TreeView<E>> {
 

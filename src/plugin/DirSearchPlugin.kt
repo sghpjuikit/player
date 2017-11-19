@@ -14,18 +14,15 @@ import util.conf.Config.RunnableConfig
 import util.conf.Config.VarList
 import util.conf.Config.VarList.Elements
 import util.conf.IsConfig
-import util.file.Util.readFileLines
 import util.file.Util.writeFile
 import util.system.Environment
 import util.validation.Constraint
 import util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
-import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Supplier
-import kotlin.streams.asSequence
 
 private const val NAME = "Dir Search"
 private const val GROUP = "${Plugin.CONFIG_GROUP}.$NAME"
@@ -69,17 +66,7 @@ class DirSearchPlugin: PluginBase(NAME) {
     }
 
     private fun readCache() {
-        dirs = readFileLines(cacheFile).asSequence()
-                .map {
-                    try {
-                        Paths.get(it).toFile()
-                    } catch (e: Exception) {
-                        logger.warn(e) { "Illegal path value in plugin cache" }
-                        null
-                    }
-                }
-                .filterNotNull()
-                .toList()
+        dirs = cacheFile.useLines { it.map { File(it) }.toList() }
     }
 
     private fun writeCache(files: List<File>) {
@@ -110,9 +97,9 @@ class DirSearchPlugin: PluginBase(NAME) {
     )
 
     private fun findDirectories(rootDir: File, id: Long) =
-        rootDir.walkTopDown()
-                .onEnter { file -> cacheUpdate.get()==id && file.isDirectory }
-                .onFail { file, e -> logger.warn(e) { "Couldn't not properly read/access file=$file" } }
-                .maxDepth(searchDepth.value)
+            rootDir.walkTopDown()
+                    .onEnter { file -> cacheUpdate.get()==id && file.isDirectory }
+                    .onFail { file, e -> logger.warn(e) { "Couldn't not properly read/access file=$file" } }
+                    .maxDepth(searchDepth.value)
 
 }

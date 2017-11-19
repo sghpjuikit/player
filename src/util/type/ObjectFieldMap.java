@@ -37,14 +37,14 @@ public class ObjectFieldMap {
 		cache2.remove(c);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "RedundantCast"})
 	public <T> Set<ObjectField<T,?>> get(Class<T> c) {
 		noØ(c);
 		return (Set) cache.computeIfAbsent(c, key -> (Set)
 			fields.getElementsOfSuperV(key).stream().flatMap(Set::stream).collect(toSet()));
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "RedundantCast"})
 	public <T> Set<ObjectField<T,?>> getExact(Class<T> c) {
 		noØ(c);
 		return (Set) cache2.computeIfAbsent(c, key -> (Set)

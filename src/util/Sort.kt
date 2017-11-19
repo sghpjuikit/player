@@ -31,6 +31,7 @@ enum class Sort {
      * @return null if c null, c if ascending, reverse to c if descending or no order comparator (which always returns
      * 0) when none.
      */
+    @Suppress("UNCHECKED_CAST")
     fun <T> of(c: Comparator<T>?): Comparator<T>? {
         if (c==null) return null
         return when (this) {

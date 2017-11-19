@@ -35,7 +35,7 @@ import gui.objects.popover.PopOver;
 import layout.container.bicontainer.BiContainer;
 import layout.widget.Widget;
 import unused.SimpleConfigurator;
-import util.SingleR;
+import util.access.ref.SingleR;
 import util.animation.Anim;
 import util.graphics.drag.DragUtil;
 import util.graphics.fxml.ConventionFxmlLoader;

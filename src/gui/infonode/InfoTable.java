@@ -7,7 +7,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TableView;
 import org.reactfx.Subscription;
-import static org.atteo.evo.inflector.English.plural;
+import static util.text.UtilKt.plural;
 
 /**
  * Provides information about table items and table item selection.
@@ -40,8 +40,7 @@ public final class InfoTable<E> implements InfoNode<TableView<E>> {
 	 * is empty, the other is the list of table items if selection is empty or
 	 * selected items if nonempty.
 	 */
-	@SuppressWarnings("unchecked")
-	public BiFunction<Boolean,List<E>,String> textFactory = (BiFunction) DEFAULT_TEXT_FACTORY;
+	public BiFunction<? super Boolean,? super List<? extends E>, ? extends String> textFactory = DEFAULT_TEXT_FACTORY;
 
 	private Subscription s;
 
@@ -69,7 +68,6 @@ public final class InfoTable<E> implements InfoNode<TableView<E>> {
 
 		ObservableList<E> al = t.getItems();
 		ObservableList<E> sl = t.getSelectionModel().getSelectedItems();
-		// ListChangeListener l = o -> updateText(al, sl);
 		ListChangeListener<E> l = o -> {
 			if (o.next()) {
 				updateText(al, sl);

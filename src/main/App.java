@@ -69,7 +69,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import plugin.AppSearchPlugin;
 import plugin.DirSearchPlugin;
-import plugin.Plugin;
+import plugin.PluginManager;
 import plugin.ScreenRotator;
 import services.ClickEffect;
 import services.Service;
@@ -87,7 +87,6 @@ import util.access.fieldvalue.ObjectField;
 import util.action.Action;
 import util.action.IsAction;
 import util.conf.Config;
-import util.conf.Config.PropertyConfig;
 import util.conf.Configurable;
 import util.conf.Configuration;
 import util.conf.IsConfig;
@@ -149,8 +148,8 @@ import static util.file.Util.isValidatedDirectory;
 import static util.functional.Util.list;
 import static util.functional.Util.stream;
 import static util.graphics.image.UtilKt.getImageDim;
-import static util.system.Environment.chooseFile;
-import static util.system.Environment.chooseFiles;
+import static util.system.EnvironmentKt.chooseFile;
+import static util.system.EnvironmentKt.chooseFiles;
 
 /**
  * Application. Represents the program.
@@ -158,6 +157,7 @@ import static util.system.Environment.chooseFiles;
  * Single instance:<br>
  * Application can only instantiate single instance, any subsequent call to constructor throws an exception.
  */
+@SuppressWarnings({"WeakerAccess", "unused", "Convert2Diamond"})
 @IsConfigurable("General")
 public class App extends Application implements Configurable {
 
@@ -313,6 +313,9 @@ public class App extends Application implements Configurable {
 	/**
 	 * Manages services.
 	 */ public final ServiceManager services = new ServiceManager();
+	/**
+	 * Manages services.
+	 */ public final PluginManager plugins = new PluginManager(configuration, messagePane::show);
 
 	@IsConfig(name = "Rating control", info = "The style of the graphics of the rating control.")
 	public final VarEnum<RatingCellFactory> ratingCell = VarEnum.ofInstances(RatingRatingCellFactory.INSTANCE, RatingCellFactory.class, instances);
@@ -511,8 +514,7 @@ public class App extends Application implements Configurable {
 				+ "Opening the launcher with this application will open this component with current settings "
 				+ "as if it were a standalone application.",
 				EXPORT,
-				w -> Environment
-					.chooseFile("Export to...", DIRECTORY, DIR_LAYOUTS, APP.actionPane.getScene().getWindow())
+				w -> chooseFile("Export to...", DIRECTORY, DIR_LAYOUTS, APP.actionPane.getScene().getWindow())
 					.ifOk(w::exportFxwl)
 			)
 		);
@@ -645,7 +647,7 @@ public class App extends Application implements Configurable {
 		));
 
 		// TODO: implement plugin discovery
-		installPlugins(
+		plugins.installPlugins(
 			new AppSearchPlugin(),
 			new DirSearchPlugin(),
 			new ScreenRotator()
@@ -663,31 +665,6 @@ public class App extends Application implements Configurable {
 		// start global shortcuts
 		Action.startActionListening();
 		Action.loadCommandActions();
-	}
-
-	// TODO: move out to plugin handling class
-	public void installPlugins(Plugin... plugins) {
-		stream(plugins).forEach(this::installPlugins);
-	}
-
-	/**
-	 * Plugin is like Service, but user or developer never uses it directly, hence allows for simpler API. Its basically
-	 * a Runnable which can be started and stopped.
-	 *
-	 * @implNote In the future Plugin and Service may extend a common supertype and share lifecycle management.
-	 */
-	public void installPlugins(Plugin plugin) {
-		String name = "Enable";
-		String group = Plugin.CONFIG_GROUP + "." + plugin.getName();
-		String info = "Enable/disable this plugin";
-		V<Boolean> starter = new V<>(false, plugin::activate);
-		configuration.collect(new PropertyConfig<>(Boolean.class, name, name, starter, group, info, IsConfig.EditMode.USER));
-		configuration.collect(plugin);
-		Action.installActions(plugin);
-
-		isValidatedDirectory(plugin.getLocation());
-		isValidatedDirectory(plugin.getUserLocation());
-		// TODO: handle error
 	}
 
 	/**
@@ -810,7 +787,6 @@ public class App extends Application implements Configurable {
 
 			})
 			.ifError(e -> {
-				LOGGER.info("Application failed to start", e);
 				LOGGER.error("Application failed to start", e);
 				messagePane.show("Application did not start successfully.");
 			})
@@ -823,13 +799,6 @@ public class App extends Application implements Configurable {
 
 				// show guide
 				if (guide.first_time.get()) run(3000, guide::start);
-
-				// TODO: implement properly - load with skin
-				// runNew(() -> {
-				//     Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());
-				//     ImageCursor c = new ImageCursor(image,3,3);
-				//     runLater(() -> window.getStage().getScene().setCursor(c));
-				// });
 
 				// process app parameters passed when app started
 				parameterProcessor.process(fetchParameters());

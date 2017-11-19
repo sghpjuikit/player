@@ -3,10 +3,9 @@ package plugin
 import util.dev.Idempotent
 
 abstract class PluginBase(name: String): Plugin {
-    private val name = name
-    private var isActive = false
 
-    override fun getName() = name
+    override val name = name
+    private var isActive = false
 
     @Idempotent
     override fun start() {
@@ -14,15 +13,16 @@ abstract class PluginBase(name: String): Plugin {
         isActive = true
     }
 
-    internal abstract fun onStart()
-
     @Idempotent
     override fun stop() {
         if (isActive()) onStop()
         isActive = false
     }
 
+    internal abstract fun onStart()
+
     internal abstract fun onStop()
 
     override fun isActive() = isActive
+
 }

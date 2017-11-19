@@ -42,6 +42,8 @@ import static util.file.FileType.DIRECTORY;
 import static util.file.Util.getFilesAudio;
 import static util.functional.Util.map;
 import static util.functional.Util.toS;
+import static util.system.EnvironmentKt.chooseFile;
+import static util.system.EnvironmentKt.chooseFiles;
 
 public class Playlist extends SimpleListProperty<PlaylistItem> {
 
@@ -665,7 +667,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	 * @param add true to add items, false to clear playlist and play items
 	 */
 	public void addOrEnqueueFiles(boolean add) {
-		Environment.chooseFiles(
+		chooseFiles(
 				"Choose Audio Files",
 				PlaylistManager.browse,
 				APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
@@ -692,7 +694,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	 * @param add true to add items, false to clear playlist and play items
 	 */
 	public void addOrEnqueueFolder(boolean add) {
-		Environment.chooseFile(
+		chooseFile(
 						"Choose Audio Files From Directory Tree",
 						DIRECTORY,
 						PlaylistManager.browse,

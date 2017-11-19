@@ -33,9 +33,6 @@
 
 package util.system
 
-import java.security.AccessController
-import java.security.PrivilegedAction
-
 /** Operating system. */
 enum class Os {
     WINDOWS,
@@ -55,7 +52,7 @@ enum class Os {
                 if (osName.startsWith("Mac")) return OSX
                 if (osName.startsWith("SunOS")) return UNIX
                 if (osName.startsWith("Linux")) {
-                    val javafxPlatform = AccessController.doPrivileged({ System.getProperty("javafx.platform") } as PrivilegedAction<String>)
+                    val javafxPlatform = System.getProperty("javafx.platform")
                     if (!("android"==javafxPlatform || "Dalvik"==System.getProperty("java.vm.name")))  // if not Android
                         return UNIX
                 }

@@ -33,11 +33,11 @@ import util.access.fieldvalue.ObjectFieldBase
 import util.dev.throwIfFxThread
 import util.file.AudioFileFormat
 import util.file.ImageFileFormat
-import util.file.Util
 import util.file.Util.EMPTY_URI
 import util.file.listChildren
 import util.file.nameWithoutExtensionOrRoot
 import util.functional.orNull
+import util.functional.seqOf
 import util.localDateTimeFromMillis
 import util.parsing.Parser
 import util.text.Strings
@@ -45,6 +45,7 @@ import util.text.toStrings
 import util.units.Bitrate
 import util.units.Dur
 import util.units.FileSize
+import util.units.FileSize.Companion.sizeInB
 import util.units.NofX
 import java.awt.image.BufferedImage
 import java.awt.image.RenderedImage
@@ -56,13 +57,13 @@ import java.time.LocalDateTime
 import java.time.Year
 import java.util.HashSet
 import java.util.Objects
-import java.util.stream.Collectors.toList
 import javax.persistence.Entity
 import javax.persistence.Id
 import javax.persistence.Transient
 import kotlin.collections.HashMap
 import kotlin.collections.set
 import kotlin.reflect.KClass
+import kotlin.streams.toList
 
 /**
  * Information about audio file.
@@ -96,7 +97,7 @@ class Metadata: Item {
 
     override val uri: URI get() = URI.create(id.replace(" ", "%20"))
 
-    @Id override var id = Util.EMPTY_URI.toString()
+    @Id override var id = EMPTY_URI.toString()
 
     /** File size in bytes or -1 if unknown */
     private var fileSizeInB: Long = -1
@@ -243,13 +244,14 @@ class Metadata: Item {
     }
 
     private fun File.loadFileFields() {
-        id = this.toURI().toString()
-        fileSizeInB = FileSize.inBytes(this)
+        id = toURI().toString()
+        fileSizeInB = sizeInB()
     }
     
     private fun AudioFile.loadHeaderFields() {
         val header = this.audioHeader
-        bitrate = header.bitRateAsNumber.toInt()
+        header.bitRate
+        bitrate = if (header.isVariableBitRate) -2 else header.bitRateAsNumber.toInt()
         lengthInMs = (1000*header.trackLength).toDouble()
         encodingType = header.format.orNull()   // format and encoding type are switched in jaudiotagger library...
         channels = header.channels.orNull()
@@ -497,7 +499,7 @@ class Metadata: Item {
     fun getEncodingType() = encodingType
 
     /** @return bitrate or null if unknown */
-    fun getBitrate(): Bitrate? = if (bitrate==-1) null else Bitrate(bitrate)
+    fun getBitrate(): Bitrate? = Bitrate(bitrate)
 
     /** @return encoder or empty String if not available */
     fun getEncoder() = encoder
@@ -628,7 +630,7 @@ class Metadata: Item {
     fun getCover(source: CoverSource): Cover = when (source) {
         Cover.CoverSource.TAG -> coverOfTag
         Cover.CoverSource.DIRECTORY -> getCoverOfDir()?.let { FileCover(it, "") as Cover } ?: Cover.EMPTY
-        Cover.CoverSource.ANY -> sequenceOf(CoverSource.TAG, CoverSource.DIRECTORY)
+        Cover.CoverSource.ANY -> seqOf(CoverSource.TAG, CoverSource.DIRECTORY)
                 .map { getCover(it) }
                 .find { !it.isEmpty } ?: Cover.EMPTY
     }
@@ -677,8 +679,8 @@ class Metadata: Item {
         throwIfFxThread()
         if (!isFileBased()) return null
 
-        val fs = getLocation().listChildren().collect(toList<File>())
-        return sequenceOf(getFilename(), title, album, "cover", "folder")
+        val fs = getLocation().listChildren().toList()
+        return seqOf(getFilename(), title, album, "cover", "folder")
                 .flatMap { filename -> fs.asSequence().filter { it.nameWithoutExtensionOrRoot.equals(filename, true) } }
                 .find { ImageFileFormat.isSupported(it) }
     }
@@ -923,7 +925,7 @@ class Metadata: Item {
             @JvmField val FORMAT = Field(AudioFileFormat::class, { it.getFormat() }, "Format", "Song file type ")
             @JvmField val FILESIZE = Field(FileSize::class, { it.getFileSize() }, "Filesize", "Song file size")
             @JvmField val ENCODING = Field(String::class, { it.encodingType }, "Encoding", "Song encoding")
-            @JvmField val BITRATE = Field(Bitrate::class, { it.getBitrate() }, "Bitrate", "Bits per second of the song - quality aspect.")
+            @JvmField val BITRATE = Field(Bitrate::class, { it.getBitrate() }, "Bitrate", "Number of kb per second of the song - quality aspect.")
             @JvmField val ENCODER = Field(String::class, { it.encoder }, "Encoder", "Song encoder")
             @JvmField val CHANNELS = Field(String::class, { it.channels }, "Channels", "Number of channels")
             @JvmField val SAMPLE_RATE = Field(String::class, { it.sampleRate }, "Sample_rate", "Sample frequency")

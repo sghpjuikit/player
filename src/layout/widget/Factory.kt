@@ -7,6 +7,7 @@ import util.file.childOf
 import util.file.nameOrRoot
 import util.type.ClassName
 import java.io.File
+import kotlin.reflect.full.findAnnotation
 
 /** Component factory that creates component by deserializing it from file. */
 interface ComponentFactory<out T: Component>: ComponentInfo {
@@ -15,7 +16,7 @@ interface ComponentFactory<out T: Component>: ComponentInfo {
 
 /** Component factory that creates widgets. */
 @Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
-@Widget.Info // empty widget info with default values
+@Widget.Info
 class WidgetFactory<C: Controller<*>>: ComponentFactory<Widget<C>>, WidgetInfo {
 
     val controllerType: Class<C>
@@ -43,11 +44,11 @@ class WidgetFactory<C: Controller<*>>: ComponentFactory<Widget<C>>, WidgetInfo {
      * @param location parent directory of the widget
      */
     @JvmOverloads constructor(controllerType: Class<C>, location: File? = null) {
-        val i: Widget.Info = controllerType.getAnnotation(Widget.Info::class.java) ?: WidgetFactory::class.java.getAnnotation(Widget.Info::class.java)!!
+        val i: Widget.Info = controllerType.kotlin.findAnnotation() ?: WidgetFactory::class.findAnnotation()!!
         this.name = ClassName.of(controllerType)
         this.controllerType = controllerType
         this.location = location
-        this.locationUser = if (location==null) null else App.APP.DIR_USERDATA.childOf("widgets", location.nameOrRoot)
+        this.locationUser = location?.let { App.APP.DIR_USERDATA.childOf("widgets", it.nameOrRoot) }
         this.nameGui = if (i.name.isEmpty()) name else i.name
         this.description = i.description
         this.version = i.version

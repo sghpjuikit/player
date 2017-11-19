@@ -5,6 +5,9 @@ package util.math
 
 import javafx.util.Duration
 
+/** Golden ratio - `1.6180339887`. */
+const val GOLDEN_RATIO = 1.6180339887
+
 fun millis(value: Int) = Duration.millis(value.toDouble())!!
 
 fun millis(value: Double) = Duration.millis(value)!!

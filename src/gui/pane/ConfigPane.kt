@@ -28,6 +28,8 @@ class ConfigPane<T: Any>: FlowPane, ConfiguringFeature {
         configure(configs)
     }
 
+    // TODO: can something be done about this? generic class implements non-generic interface
+    @Suppress("UNCHECKED_CAST")
     override fun configure(configs: Collection<Config<*>>?) {
         if (configs==null) return
 
@@ -35,7 +37,7 @@ class ConfigPane<T: Any>: FlowPane, ConfiguringFeature {
                 .sortedBy { it.guiName.toLowerCase() }
                 .map {
                     ConfigField.create(it as Config<T>).apply {
-                        onChange = Runnable { this@ConfigPane.onChange?.run() }
+                        onChange = this@ConfigPane.onChange
                     }
                 }
                 .toList()

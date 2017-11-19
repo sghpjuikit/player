@@ -5,7 +5,6 @@ import gui.objects.icon.Icon;
 import java.io.File;
 import javafx.geometry.Pos;
 import util.access.V;
-import util.system.Environment;
 import util.file.FileType;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
@@ -16,6 +15,7 @@ import static util.file.FileType.DIRECTORY;
 import static util.functional.Util.stream;
 import static util.graphics.Util.layHorizontally;
 import static util.reactive.Util.maintain;
+import static util.system.EnvironmentKt.chooseFile;
 
 /**
  * {@link TextFieldItemNode} for {@link File} objects.<br/>
@@ -54,7 +54,7 @@ public class FileItemNode extends TextFieldItemNode<File> {
 	@Override
 	void onDialogAction() {
 		String title = type.get()==DIRECTORY ? "Choose directory" : "Choose file";
-		Environment.chooseFile(title, type.get(), v, getScene().getWindow())
+		chooseFile(title, type.get(), v, getScene().getWindow())
 				.ifOk(this::setValue);
 	}
 

@@ -15,6 +15,7 @@ import javafx.scene.image.Image
 import javafx.stage.Screen
 import org.reactfx.EventStreams
 import org.reactfx.Subscription
+import util.functional.invoke
 import java.util.*
 import java.util.function.BiConsumer
 import java.util.function.Consumer
@@ -44,13 +45,13 @@ infix fun ObservableValue<Boolean>.syncTrue(u: (Boolean) -> Unit): Subscription 
 infix fun ObservableValue<Boolean>.syncFalse(u: (Boolean) -> Unit): Subscription = maintain(Consumer { if (!it) u(it) })
 
 fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, u: Consumer<in V>): Subscription {
-    u.accept(m(this.value))
+    u(m(this.value))
     return EventStreams.valuesOf(this).map(m).subscribe(u)
 }
 
 fun <O> ObservableValue<O>.maintain(u: Consumer<O>): Subscription {
-    val l = ChangeListener<O> { _, _, nv -> u.accept(nv) }
-    u.accept(this.value)
+    val l = ChangeListener<O> { _, _, nv -> u(nv) }
+    u(this.value)
     this.addListener(l)
     return Subscription { this.removeListener(l) }
 }
@@ -63,9 +64,9 @@ fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, w: WritableValue<in V>): Sub
 }
 
 fun <O1, O2> maintain(o1: ObservableValue<O1>, o2: ObservableValue<O2>, u: BiConsumer<in O1, in O2>): Subscription {
-    val l1 = ChangeListener<O1> { _, _, nv -> u.accept(nv, o2.value) }
-    val l2 = ChangeListener<O2> { _, _, nv -> u.accept(o1.value, nv) }
-    u.accept(o1.value, o2.value)
+    val l1 = ChangeListener<O1> { _, _, nv -> u(nv, o2.value) }
+    val l2 = ChangeListener<O2> { _, _, nv -> u(o1.value, nv) }
+    u(o1.value, o2.value)
     o1.addListener(l1)
     o2.addListener(l2)
     return Subscription {
@@ -82,7 +83,7 @@ infix fun <O> ObservableValue<O>.maintain(w: WritableValue<in O>): Subscription 
 }
 
 fun <T> sizeOf(list: ObservableList<T>, action: Consumer<in Int>): Subscription {
-    val l = ListChangeListener<T> { _ -> action.accept(list.size) }
+    val l = ListChangeListener<T> { _ -> action(list.size) }
     l.onChanged(null)
     list.addListener(l)
     return Subscription { list.removeListener(l) }
@@ -111,7 +112,7 @@ fun <T> doOnceIfNonNull(property: ObservableValue<T>, action: Consumer<T>): Subs
  * @throws java.lang.RuntimeException if any param null
  */
 fun <T> doOnceIfImageLoaded(image: Image, action: Runnable): Subscription {
-    return doOnceIf(image.progressProperty(), Predicate { progress -> progress.toDouble()==1.0 }, Consumer { _ -> action.run() })
+    return doOnceIf(image.progressProperty(), Predicate { progress -> progress.toDouble()==1.0 }, Consumer { _ -> action() })
 }
 
 /**
@@ -141,7 +142,7 @@ fun <T> doOnceIfImageLoaded(image: Image, action: Runnable): Subscription {
  */
 fun <T> doOnceIf(property: ObservableValue<T>, condition: Predicate<in T>, action: Consumer<T>): Subscription {
     if (condition.test(property.value)) {
-        action.accept(property.value)
+        action(property.value)
         return Subscription {}
     } else {
         val l = singletonListener(property, condition, action)
@@ -154,7 +155,7 @@ fun <T> singletonListener(property: ObservableValue<T>, condition: Predicate<in 
     return object: ChangeListener<T> {
         override fun changed(observable: ObservableValue<out T>, ov: T, nv: T) {
             if (condition.test(nv)) {
-                action.accept(nv)
+                action(nv)
                 property.removeListener(this)
             }
         }
@@ -169,7 +170,7 @@ fun <T> installSingletonListener(property: ObservableValue<T>, condition: Predic
 
 /** Creates list change listener which calls an action for every added or removed item.  */
 fun onScreenChange(onChange: Consumer<in Screen>): Subscription {
-    val l = listChangeListener(ListChangeListener<Screen> { change -> if (change.wasAdded()) onChange.accept(change.addedSubList[0]) })
+    val l = listChangeListener(ListChangeListener<Screen> { change -> if (change.wasAdded()) onChange(change.addedSubList[0]) })
     Screen.getScreens().addListener(l)
     return Subscription { Screen.getScreens().removeListener(l) }
 }
@@ -218,8 +219,8 @@ fun <T> listChangeHandler(addedHandler: Consumer<List<T>>, removedHandler: Consu
     return ListChangeListener { change ->
         while (change.next()) {
             if (!change.wasPermutated() && !change.wasUpdated()) {
-                if (change.wasAdded()) addedHandler.accept(change.addedSubList)
-                if (change.wasRemoved()) removedHandler.accept(change.removed)
+                if (change.wasAdded()) addedHandler(change.addedSubList)
+                if (change.wasRemoved()) removedHandler(change.removed)
             }
         }
     }

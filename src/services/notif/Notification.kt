@@ -8,6 +8,7 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.layout.StackPane
 import javafx.util.Duration
 import util.async.executor.FxTimer
+import util.functional.invoke
 
 /** Notification popover. */
 class Notification: PopOver<Node>() {
@@ -40,8 +41,8 @@ class Notification: PopOver<Node>() {
 
         contentNode = root
         root.setOnMouseClicked {
-            if (it.button==PRIMARY) lClickAction.run()
-            if (it.button==SECONDARY) rClickAction.run()
+            if (it.button==PRIMARY) lClickAction()
+            if (it.button==SECONDARY) rClickAction()
         }
         root.setOnMouseEntered { closer.pause() }
         root.setOnMouseExited { closer.unpause() }

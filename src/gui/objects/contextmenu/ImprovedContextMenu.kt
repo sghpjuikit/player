@@ -26,10 +26,12 @@ import util.collections.map.ClassListMap
 import util.file.ImageFileFormat
 import util.file.Util.recycleFile
 import util.file.Util.writeImage
+import util.functional.seqOf
 import util.graphics.Util.menuItem
 import util.graphics.getScreen
 import util.system.Environment
-import util.system.Environment.copyToSysClipboard
+import util.system.copyToSysClipboard
+import util.system.saveFile
 import web.SearchUriBuilder
 import java.io.File
 import java.io.IOException
@@ -108,13 +110,13 @@ class ContextMenuItemSuppliers {
 }
 
 val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
-    add<File> { contextMenu, file -> notNullSequenceOf(
+    add<File> { contextMenu, file -> notNullSeqOf(
             menuItem("Browse location") { Environment.browse(file) },
             menuItem("Open (in associated program)") { Environment.open(file) },
             menuItem("Edit (in associated editor)") { Environment.edit(file) },
             menuItem("Delete from disc") { recycleFile(file) },
             menuItem("Copy as ...") {
-                Environment.saveFile("Copy as...", App.APP.DIR_APP, file.name, contextMenu.ownerWindow, ImageFileFormat.filter())
+                saveFile("Copy as...", App.APP.DIR_APP, file.name, contextMenu.ownerWindow, ImageFileFormat.filter())
                         .ifOk { nf ->
                             // TODO: move low lvl impl. to utils
                             try {
@@ -125,7 +127,7 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
                         }
             }
     )}
-    add<MetadataGroup> { contextMenu, mg -> notNullSequenceOf(
+    add<MetadataGroup> { contextMenu, mg -> notNullSeqOf(
             menuItem("Play items") { PlaylistManager.use { it.setNplay(mg.grouped.stream().sorted(APP.db.libraryComparator.get())) } },
             menuItem("Enqueue items") { PlaylistManager.use { it.addItems(mg.grouped) } },
             menuItem("Update items from file") { APP.actions.refreshItemsFromFileJob(mg.grouped) },
@@ -157,7 +159,7 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
                     { Environment.browse(it.apply(mg.getValueS("<none>"))) }
             )
     )}
-    add<PlaylistItemGroup> { contextMenu, pig -> notNullSequenceOf(
+    add<PlaylistItemGroup> { contextMenu, pig -> notNullSeqOf(
             menuItem("Play items") { PlaylistManager.use { it.playItem(pig.items[0]) } },
             menuItem("Remove items") { PlaylistManager.use { it.removeAll(pig.items) } },
             menuWithItems(
@@ -184,11 +186,11 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
                     { APP.actions.itemToMeta(pig.items[0]) { i -> Environment.browse(it.apply(i.getAlbumOrEmpty())) } }
             )
     )}
-    add<Thumbnail.ContextMenuData> { contextMenu, cmd -> notNullSequenceOf(
+    add<Thumbnail.ContextMenuData> { contextMenu, cmd -> notNullSeqOf(
             if (cmd.image==null) null
             else Menu("Image", null,
-                        menuItem("Save the image as ...") {
-                            Environment.saveFile("Save image as...", App.APP.DIR_APP, cmd.iFile?.name ?: "new_image" , contextMenu.ownerWindow, ImageFileFormat.filter())
+                        menuItem("Save image as ...") {
+                            saveFile("Save image as...", App.APP.DIR_APP, cmd.iFile?.name ?: "new_image", contextMenu.ownerWindow, ImageFileFormat.filter())
                                     .ifOk { writeImage(cmd.image, it) }
                         },
                         menuItem("Copy to clipboard") { copyToSysClipboard(DataFormat.IMAGE, cmd.image) }
@@ -212,9 +214,9 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
 
 }
 
-private fun <T: Any> notNullSequenceOf(vararg elements: T?) = sequenceOf(*elements).filterNotNull()
+private fun <T: Any> notNullSeqOf(vararg elements: T?) = seqOf(*elements).filterNotNull()
 
-private fun menu(text: String, items: Sequence<MenuItem> = sequenceOf()) = Menu(text, null, *items.toList().toTypedArray())
+private fun menu(text: String, items: Sequence<MenuItem> = seqOf()) = Menu(text, null, *items.toList().toTypedArray())
 
 private fun <A> menuWithItems(text: String, from: Stream<A>, toStr: (A) -> String, action: (A) -> Unit) = menu(text, items(from, toStr, action).asSequence())
 

@@ -7,7 +7,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,12 +30,6 @@ import static util.dev.Util.throwIf;
  */
 @SuppressWarnings("unused")
 public interface Util {
-
-	/** Golden ratio - {@code 1.6180339887}. */
-	double GOLDEN_RATIO = 1.6180339887;
-
-	/** System default zone id. */
-	ZoneId ZONE_ID = ZoneId.systemDefault();
 
 	/** @return true iff objects are equal or both null, same as {@code (a==b) || (a!=null && a.equals(b))} */
 	static boolean nullEqual(Object a, Object b) {
@@ -362,18 +355,6 @@ public interface Util {
 			// will never happen as UTF-8 is guaranteed to be available on every platform
 			throw new AssertionError("Can't url encode string '" + s + "'. Charset " + charset + " not available.");
 		}
-	}
-
-	/** @return true if the string is palindrome (empty string is palindrome) */
-	static boolean isPalindrome(String s) {
-		int n = s.length();
-		for (int i = 0; i<n/2; i++)
-			if (s.charAt(i)!=s.charAt(n - i - 1)) return false;
-		return true;
-	}
-
-	static boolean isNonEmptyPalindrome(String s) {
-		return !s.isEmpty() && isPalindrome(s);
 	}
 
 	/**

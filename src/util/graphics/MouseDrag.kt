@@ -4,6 +4,7 @@ import javafx.scene.Node
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
+import util.functional.invoke
 import util.math.P
 import java.util.function.Consumer
 
@@ -34,14 +35,14 @@ class MouseDrag<T> {
             isDragging = true
             start.x = e.screenX
             start.y = e.screenY
-            onStart.accept(this)
+            onStart(this)
             e.consume()
         }
         node.addEventFilter(MOUSE_DRAGGED) { e ->
             if (isDragging) {
                 diff.x = e.screenX-start.x
                 diff.y = e.screenY-start.y
-                onDrag.accept(this)
+                onDrag(this)
             }
             e.consume()
         }

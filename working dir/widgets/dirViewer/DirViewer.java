@@ -18,12 +18,11 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.ScrollEvent;
 import layout.widget.Widget;
 import layout.widget.controller.ClassController;
-import util.LazyR;
+import util.access.ref.LazyR;
 import util.Sort;
 import util.access.V;
 import util.access.VarEnum;
 import util.access.fieldvalue.FileField;
-import util.async.AsyncKt;
 import util.async.future.Fut;
 import util.conf.Config.VarList;
 import util.conf.Config.VarList.Elements;
@@ -72,6 +71,7 @@ import static util.functional.Util.max;
 import static util.functional.Util.stream;
 import static util.graphics.Util.setAnchor;
 import static util.reactive.Util.maintain;
+import static util.system.EnvironmentKt.chooseFile;
 
 @Widget.Info(
         author = "Martin Polakovic",
@@ -112,14 +112,14 @@ public class DirViewer extends ClassController {
     private AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
     	FOLDER_PLUS, "Click to explore directory",
-		() -> Environment.chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getWidget().getWindow().getStage())
+		() -> chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getWidget().getWindow().getStage())
 				.ifOk(files.list::setAll)
     );
     private final LazyR<PƑ0<File, Boolean>> filterPredicate = new LazyR<>(this::buildFilter);
 
 
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
-    final VarEnum<String> filter = new VarEnum<String>("File - all", () -> map(filters, f -> f.name), v -> {
+    final VarEnum<String> filter = new VarEnum<>("File - all", () -> map(filters, f -> f.name), v -> {
 	    filterPredicate.set(buildFilter());
 	    revisitCurrent();
     });
@@ -128,7 +128,7 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
     final V<FileSort> sort_file = new V<>(DIR_FIRST, this::applySort);
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
-    final VarEnum<FileField<?>> sortBy = new VarEnum<FileField<?>>(FileField.NAME, () -> FileField.FIELDS, f -> applySort());
+    final VarEnum<FileField<?>> sortBy = new VarEnum<>(FileField.NAME, () -> FileField.FIELDS, f -> applySort());
 
 	@Constraint.FileType(Constraint.FileActor.DIRECTORY)
     @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)

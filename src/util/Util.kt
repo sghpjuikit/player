@@ -1,9 +1,12 @@
 package util
 
-import util.Util.ZONE_ID
 import java.time.DateTimeException
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
+
+/** System default zone id.  */
+val ZONE_ID = ZoneId.systemDefault()
 
 /** @return [System.identityHashCode] */
 fun Any?.identityHashCode() = System.identityHashCode(this)

@@ -10,11 +10,11 @@ class Disposer {
         disposers.clear()
     }
 
-    operator fun plusAssign(disposer: () -> Unit): Unit {
+    operator fun plusAssign(disposer: () -> Unit) {
         disposers += disposer
     }
 
-    operator fun plusAssign(disposer: Subscription): Unit {
+    operator fun plusAssign(disposer: Subscription) {
         disposers += { disposer.unsubscribe() }
     }
 }

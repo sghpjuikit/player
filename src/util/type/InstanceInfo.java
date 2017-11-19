@@ -6,11 +6,11 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import util.collections.map.ClassMap;
 import util.functional.Functors.Ƒ1;
-import static java.util.Collections.EMPTY_MAP;
+import static java.util.Collections.emptyMap;
 
 public class InstanceInfo {
 
-	private static final Ƒ1<?,Map<String,String>> DEF = o -> EMPTY_MAP; // default implementation must be able to handle null
+	private static final Ƒ1<?,Map<String,String>> DEF = o -> emptyMap();
 	private final ClassMap<Ƒ1<?,Map<String,String>>> names = new ClassMap<>();
 
 	/**

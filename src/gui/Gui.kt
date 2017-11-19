@@ -10,6 +10,7 @@ import javafx.stage.Window
 import main.App.APP
 import mu.KotlinLogging
 import util.file.childOf
+import util.functional.seqOf
 import util.graphics.setFontAsStyle
 import util.reactive.doOnceIfNonNull
 import util.reactive.listChangeHandlerEach
@@ -47,7 +48,7 @@ fun observeSkin() {
         doOnceIfNonNull(sceneProperty(), Consumer { doOnceIfNonNull(it.rootProperty(), Consumer { it.initializeFontAndSkin()} ) })
     }
 
-    sequenceOf(Popup.getWindows(), Stage.getWindows(), ContextMenu.getWindows(), PopOver.active_popups)
+    seqOf(Popup.getWindows(), Stage.getWindows(), ContextMenu.getWindows(), PopOver.active_popups)
             .forEach { windows ->
                 windows.forEach { it.initializeFontAndSkin() }
                 windows.addListener(listChangeHandlerEach(Consumer { it.initializeFontAndSkin() }))

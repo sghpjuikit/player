@@ -109,17 +109,10 @@ public interface Util {
 	 */
 	static boolean isValidatedDirectory(File dir) {
 		boolean validity = true;
-		if (!dir.exists())
-			validity = dir.mkdirs();
-		if (!dir.isDirectory()) {
-			return false;
-		}
-		if (!dir.canRead())
-			validity = dir.setReadable(true);
-		if (!dir.canWrite())
-			// TODO: flawed logic... overwriting previous value
-			validity = dir.setWritable(true);
-
+		if (!dir.exists()) validity &= dir.mkdirs();
+		if (!dir.isDirectory()) return false;
+		if (!dir.canRead()) validity &= dir.setReadable(true);
+		if (!dir.canWrite()) validity &= dir.setWritable(true);
 		return validity;
 	}
 

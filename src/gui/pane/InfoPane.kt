@@ -19,7 +19,7 @@ import util.graphics.Util.layHeaderTop
 import util.graphics.Util.layHorizontally
 import util.graphics.Util.layStack
 import util.graphics.Util.layVertically
-import util.system.Environment.copyToSysClipboard
+import util.system.copyToSysClipboard
 import util.toLocalDateTime
 import util.units.Dur
 

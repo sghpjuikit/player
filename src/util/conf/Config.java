@@ -32,7 +32,6 @@ import util.parsing.StringConverter;
 import util.type.Util;
 import util.validation.Constraint;
 import util.validation.Constraint.HasNonNullElements;
-
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
@@ -45,11 +44,12 @@ import static util.functional.Util.list;
 import static util.functional.Util.setRO;
 import static util.functional.Util.split;
 import static util.functional.Util.stream;
+import static util.type.Util.getEnumConstants;
 import static util.type.Util.getValueFromFieldMethodHandle;
 import static util.type.Util.isEnum;
 import static util.type.Util.unPrimitivize;
 
-// TODO fix all varnings
+// TODO fix all warnings
 /**
  * Object representation of a configurable value.
  * <p/>
@@ -226,9 +226,10 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		throw new RuntimeException(getType() + " not enumerable.");
 	}
 
+	@SuppressWarnings("unchecked")
 	private static <T> Supplier<Collection<T>> buildEnumEnumerator(T v) {
 		Class c = v==null ? Void.class : v.getClass();
-		return isEnum(c) ? () -> list((T[]) Util.getEnumConstants(c)) : null;
+		return isEnum(c) ? () -> list(getEnumConstants(c)) : null;
 	}
 
 /*************************** configurable methods *****************************/

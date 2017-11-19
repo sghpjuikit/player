@@ -25,6 +25,7 @@ import util.file.FileType;
 import util.file.Util;
 import util.file.UtilKt;
 import util.file.WindowsShortcut;
+import util.file.mimetype.MimeExt;
 import util.file.mimetype.MimeType;
 import util.functional.Functors.Parameter;
 import util.functional.Functors.PƑ;
@@ -52,6 +53,7 @@ import static util.functional.Util.IS;
 import static util.functional.Util.ISØ;
 import static util.functional.Util.stream;
 import static util.functional.Util.toS;
+import static util.text.UtilKt.isPalindrome;
 import static util.type.Util.getEnumConstants;
 import static util.type.Util.getSuperClassesInc;
 import static util.type.Util.isEnum;
@@ -137,8 +139,8 @@ public class FunctorPool {
 		add("Length >",      S, B, (x, l) -> x.length() > l, Integer.class, 0);
 		add("Length <",      S, B, (x, l) -> x.length() < l, Integer.class, 0);
 		add("Length =",      S, B, (x, l) -> x.length() == l, Integer.class, 0);
-		add("Is empty",      S, B, String::isEmpty);
-		add("Is palindrome", S, B, util.Util::isNonEmptyPalindrome);
+		add("Is empty",      S, B, s -> s.isEmpty());
+		add("Is palindrome", S, B, s -> isPalindrome(s));
 		add("Base64 encode", S, S, s -> Base64.getEncoder().encodeToString(s.getBytes()));
 		add("Base64 decode", S, S, s -> {
 			try {
@@ -170,13 +172,16 @@ public class FunctorPool {
 		add("Group",        MimeType.class,S, MimeType::getGroup);
 		add("Extensions",   MimeType.class,S, m -> toS(", ", m.getExtensions()));
 
+		add("Is",           MimeExt.class, B, (x,y) -> x.equals(y), MimeExt.class, new MimeExt("mp3"));
+
 		add("Less",         Bitrate.class,B, (x,y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
 		add("Is",           Bitrate.class,B, (x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));
 		add("More",         Bitrate.class,B, (x,y) -> x.compareTo(y)>0, Bitrate.class,new Bitrate(320));
 		add("Is good",      Bitrate.class,B, x -> x.getValue()>=320);
 		add("Is bad",       Bitrate.class,B, x -> x.getValue()<=128);
-		add("Is unknown",   Bitrate.class,B, x -> x.getValue()==-1);
-		add("Is known",     Bitrate.class,B, x -> x.getValue()>-1);
+		add("Is variable",  Bitrate.class,B, x -> x.isVariable());
+		add("Is constant",  Bitrate.class,B, x -> x.isConstant());
+		add("Is known",     Bitrate.class,B, x -> !x.isUnknown());
 
 		add("Less",         Duration.class,B,(x, y) -> x.compareTo(y)<0, Duration.class, new Duration(0));
 		add("Is",           Duration.class,B,(x,y) -> x.compareTo(y)==0, Duration.class, new Duration(0));
@@ -194,6 +199,7 @@ public class FunctorPool {
 		add(">  More",      FileSize.class,B, (x,y) -> x.compareTo(y)> 0, FileSize.class,new FileSize(0));
 		add("Is unknown",   FileSize.class,B, x -> x.inBytes()==-1);
 		add("Is known",     FileSize.class,B, x -> x.inBytes()>-1);
+		add("In bytes",     FileSize.class,Long.class, x -> x.inBytes());
 
 		add("Is after",         Year.class,B, (x,y) -> x.compareTo(y)> 0, Year.class,Year.now());
 		add("Is",               Year.class,B, (x,y) -> x.compareTo(y)==0, Year.class,Year.now());

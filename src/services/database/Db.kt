@@ -11,7 +11,6 @@ import util.async.future.Fut
 import util.async.runFX
 import util.collections.mapset.MapSet
 import util.dev.ThreadSafe
-import util.file.Util.readFileLines
 import util.functional.Functors.Ƒ2
 import java.io.File
 import java.net.URI
@@ -36,7 +35,7 @@ class Db {
 
     /**
      * In memory item database. Use for library. Thread-safe.
-     * Items are hashed by [Item.getId].
+     * Items are hashed by [Item.id].
      */
     @ThreadSafe
     val itemsById = MapSet(ConcurrentHashMap<String, Metadata>(2000, 1f, 3), { it.id })
@@ -97,7 +96,7 @@ class Db {
 
                             // add default moods (stored in file)
                             val pool = stringPool.getStrings(Metadata.Field.MOOD.name())
-                            readFileLines(FILE_MOODS).forEach { pool.add(it) }
+                            FILE_MOODS.useLines { pool += it }
 
                             // persist
                             em.transaction.begin()
@@ -107,7 +106,7 @@ class Db {
 
                         // add default moods (stored in file)
                         val pool = stringPool.getStrings(Metadata.Field.MOOD.name())
-                        readFileLines(FILE_MOODS).forEach { pool.add(it) }
+                        FILE_MOODS.useLines { pool += it }
 
                         // persist
                         em.transaction.begin()

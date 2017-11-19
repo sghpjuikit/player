@@ -45,7 +45,6 @@ import util.conf.IsConfig;
 import util.conf.IsConfig.EditMode;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
-import util.system.Environment;
 import util.file.FileType;
 import util.graphics.drag.DragUtil;
 import util.units.Dur;
@@ -73,6 +72,8 @@ import static util.graphics.Util.menuItem;
 import static util.graphics.Util.setAnchors;
 import static util.graphics.UtilKt.setScaleXY;
 import static util.reactive.Util.maintain;
+import static util.system.EnvironmentKt.chooseFile;
+import static util.system.EnvironmentKt.chooseFiles;
 
 @Info(
     author = "Martin Polakovic",
@@ -279,7 +280,7 @@ public class Library extends FXMLController implements SongReader {
     @FXML private void addDirectory() {
 	    Window w = root.getScene().getWindow();
 	    FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
-	    Environment.chooseFile("Add folder to library", FileType.DIRECTORY, lastDir, w, ef)
+	    chooseFile("Add folder to library", FileType.DIRECTORY, lastDir, w, ef)
 			.ifOk(file -> {
 				App.APP.actionPane.show(file);
 				lastDir = file.getParentFile();
@@ -289,7 +290,7 @@ public class Library extends FXMLController implements SongReader {
     @FXML private void addFiles() {
 	    Window w = root.getScene().getWindow();
 	    FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
-		Environment.chooseFiles("Add files to library", lastFile, w, ef)
+		chooseFiles("Add files to library", lastFile, w, ef)
 			.ifOk(files -> {
 				App.APP.actionPane.show(files);
 				lastFile = getCommonRoot(files);

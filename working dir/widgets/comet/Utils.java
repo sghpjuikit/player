@@ -73,7 +73,7 @@ import org.gamepad4j.IController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import unused.TriConsumer;
-import util.R;
+import util.access.ref.R;
 import util.SwitchException;
 import util.animation.Anim;
 import util.collections.Tuple2;
@@ -133,6 +133,7 @@ import static util.graphics.Util.layStack;
 import static util.graphics.Util.layVertically;
 import static util.graphics.UtilKt.setScaleXY;
 import static util.reactive.Util.maintain;
+import static util.type.Util.getEnumConstants;
 
 @SuppressWarnings({"unused","UnnecessaryLocalVariable"})
 interface Utils {
@@ -537,7 +538,7 @@ interface Utils {
 		return RAND.nextBoolean();
 	}
 	static <E extends Enum> E randEnum(Class<E> enumType) {
-		return randOf(enumType.getEnumConstants());
+		return randOf(getEnumConstants(enumType));
 	}
 	static <T> T randOf(T a, T b) {
 		return randBoolean() ? a : b;

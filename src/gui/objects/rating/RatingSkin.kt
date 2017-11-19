@@ -44,6 +44,7 @@ import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.layout.HBox
 import javafx.scene.shape.Rectangle
 import util.Util.clip
+import util.functional.invoke
 import util.graphics.createIcon
 import util.graphics.pseudoclass
 import java.lang.Math.ceil
@@ -72,7 +73,7 @@ class RatingSkin(r: Rating) : SkinBase<Rating>(r) {
                 val v = computeRating(it.sceneX, it.sceneY)
                 updateClip(v)
                 ratingOld = v
-                skinnable.onRatingEdited.accept(v)
+                skinnable.onRatingEdited(v)
                 it.consume()
             }
         }

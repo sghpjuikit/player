@@ -7,7 +7,7 @@ import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
-import util.SingleR;
+import util.access.ref.SingleR;
 import util.functional.Functors.Ƒ1;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLIPBOARD;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;

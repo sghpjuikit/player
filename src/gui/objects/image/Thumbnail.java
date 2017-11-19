@@ -27,7 +27,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import main.App;
-import util.SingleR;
+import util.access.ref.SingleR;
 import util.access.V;
 import util.animation.Anim;
 import util.conf.IsConfig;

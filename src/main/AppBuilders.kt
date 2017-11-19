@@ -16,6 +16,7 @@ import util.animation.Anim
 import util.animation.interpolator.ElasticInterpolator
 import util.async.FX
 import util.async.future.Fut
+import util.functional.invoke
 import util.graphics.setScaleXY
 import util.math.millis
 import util.math.seconds
@@ -69,14 +70,14 @@ fun createInfoIcon(text: String): Icon = Icon(FontAwesomeIcon.INFO)
 @JvmOverloads
 fun appProgressIndicator(onStart: C<ProgressIndicator> = C {}, onFinish: C<ProgressIndicator> = C {}) = Spinner().apply {
     val a = Anim { setScaleXY(it*it) }.dur(500.0).intpl(ElasticInterpolator())
-    a.applier.accept(0.0)
+    a.applier(0.0)
     progressProperty() changes { ov, nv ->
         if (ov.toDouble()==1.0 && nv.toDouble()!=1.0) {
-            onStart.accept(this)
+            onStart(this)
             a.playOpenDo { }
         }
         if (nv.toDouble()==1.0) {
-            a.playCloseDo { onFinish.accept(this) }
+            a.playCloseDo { onFinish(this) }
         }
     }
 }

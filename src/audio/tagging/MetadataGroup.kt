@@ -42,7 +42,7 @@ class MetadataGroup {
             lengthSum += m.getLengthInMs()
             sizeSum += m.getFileSizeInB()
             ratingSum += m.getRatingPercentOr0()
-            year.accumulate(m.getYearAsInt())
+            year += m.getYearAsInt()
         }
         albumCount = albumSet.size.toLong()
         lengthInMs = lengthSum

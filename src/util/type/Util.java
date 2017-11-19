@@ -140,13 +140,15 @@ public interface Util {
 	 * Equivalent to union of declared fields of the class and all its
 	 * superclasses.
 	 */
+	@SuppressWarnings("CollectionAddAllCanBeReplacedWithConstructor")
 	static List<Field> getAllFields(Class clazz) {
 		List<Field> fields = new ArrayList<>();
+
 		// get all fields of the class (but not inherited fields)
 		fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
 
-		Class superClazz = clazz.getSuperclass();
 		// get super class' fields recursively
+		Class superClazz = clazz.getSuperclass();
 		if (superClazz!=null) fields.addAll(getAllFields(superClazz));
 
 		return fields;
@@ -157,13 +159,15 @@ public interface Util {
 	 * Equivalent to union of declared fields of the class and all its
 	 * superclasses.
 	 */
+	@SuppressWarnings("CollectionAddAllCanBeReplacedWithConstructor")
 	static List<Method> getAllMethods(Class clazz) {
 		List<Method> methods = new ArrayList<>();
+
 		// get all fields of the class (but not inherited fields)
 		methods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
 
-		Class superClazz = clazz.getSuperclass();
 		// get super class' fields recursively
+		Class superClazz = clazz.getSuperclass();
 		if (superClazz!=null) methods.addAll(getAllMethods(superClazz));
 
 		return methods;
@@ -537,30 +541,26 @@ public interface Util {
 		return c.isEnum() || (c.getEnclosingClass()!=null && c.getEnclosingClass().isEnum());
 	}
 
-
 	/**
-	 * Returns enum constants of an enum class in declared order. Works for
-	 * enums with class method bodies (where Enum.getEnumConstants) does not work.
-	 * <p/>
-	 * Always use {@link #isEnum(Class)} before this method.
+	 * Returns enum constants of an enum class in declared order. Works for enums with class method bodies (where
+	 * Enum.getEnumConstants does not).
 	 *
 	 * @param type type of enum
-	 * @return array of enum constants, never null
+	 * @return non null array of enum constants
 	 * @throws IllegalArgumentException if class not an enum
 	 */
-	@SuppressWarnings("unchecked")
-	// TODO: make generic
-	static <T> T[] getEnumConstants(Class type) {
+	@SuppressWarnings({"unchecked", "deprecation"})
+	static <T> T[] getEnumConstants(Class<?> type) {
 		// handle enums
 		if (type.isEnum()) return (T[]) type.getEnumConstants();
 
 			// handle enum with class method bodies (they are not recognized as enums)
 		else {
-			Class ec = type.getEnclosingClass();
+			Class<?> ec = type.getEnclosingClass();
 			if (ec!=null && ec.isEnum())
 				return (T[]) ec.getEnumConstants();
 			else
-				throw new IllegalArgumentException("Class " + type + " is not an Enum.");
+				throw new IllegalArgumentException("Class=" + type + " is not an Enum.");
 		}
 	}
 }

@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 import javafx.util.Duration;
 import org.atteo.classindex.ClassIndex;
 import org.atteo.classindex.IndexAnnotated;
-import util.Password;
+import util.text.Password;
 import util.collections.map.ClassListMap;
 import util.collections.map.ClassMap;
 import util.functional.Functors.Ƒ1;
@@ -26,7 +26,6 @@ import static util.dev.Util.noØ;
 import static util.dev.Util.throwIfNot;
 import static util.functional.Try.error;
 import static util.functional.Try.ok;
-import static util.type.Util.getGenericInterface;
 import static util.functional.Util.stream;
 import static util.type.Util.getGenericInterface;
 import static util.type.Util.instantiateOrThrow;
@@ -150,7 +149,7 @@ public interface Constraint<T> {
 	class PasswordNonEmpty implements Constraint<Password> {
 		@Override
 		public boolean isValid(Password s) {
-			return s!=null && s.get()!=null && !s.get().isEmpty();
+			return s!=null && !s.value.isEmpty();
 		}
 
 		@Override
@@ -207,74 +206,49 @@ public interface Constraint<T> {
 
 /* ---------- ANNOTATIONS ------------------------------------------------------------------------------------------- */
 
-	@Documented
-	@Target(ANNOTATION_TYPE)
-	@Retention(RUNTIME)
+	@Documented @Target(ANNOTATION_TYPE) @Retention(RUNTIME)
 	@interface IsConstraint {
 		Class<?> value();
 	}
 
-	@Documented
-	@Target(FIELD)
-	@Retention(RUNTIME)
-	@IsConstraint(Object.class)
+	@Documented @Target(FIELD) @Retention(RUNTIME) @IsConstraint(Object.class)
 	@interface ConstrainsBy {
 		Class<? extends Constraint> value();
 	}
 
-	@Documented
-	@Target(FIELD)
-	@Retention(RUNTIME)
-	@IsConstraint(File.class)
+	@Documented @Target(FIELD) @Retention(RUNTIME) @IsConstraint(File.class)
 	@interface FileType {
 		FileActor value() default FileActor.ANY;
 	}
 
-	@Documented
-	@Target(FIELD)
-	@Retention(RUNTIME)
-	@IsConstraint(Number.class)
+	@Documented @Target(FIELD) @Retention(RUNTIME) @IsConstraint(Number.class)
 	@interface Min {
 		double value();
 	}
 
-	@Documented
-	@Target(FIELD)
-	@Retention(RUNTIME)
-	@IsConstraint(Number.class)
+	@Documented @Target(FIELD) @Retention(RUNTIME) @IsConstraint(Number.class)
 	@interface Max {
 		double value();
 	}
 
-	@Documented
-	@Target(FIELD)
-	@Retention(RUNTIME)
-	@IsConstraint(Number.class)
+	@Documented @Target(FIELD) @Retention(RUNTIME) @IsConstraint(Number.class)
 	@interface MinMax {
 		double min();
 
 		double max();
 	}
 
-	@Documented
-	@Target(FIELD)
-	@Retention(RUNTIME)
-	@IsConstraint(String.class)
+	@Documented @Target(FIELD) @Retention(RUNTIME) @IsConstraint(String.class)
 	@interface NonEmpty {}
 
-	@Documented
-	@Target(FIELD)
-	@Retention(RUNTIME)
-	@IsConstraint(String.class)
+	@Documented @Target(FIELD) @Retention(RUNTIME) @IsConstraint(String.class)
 	@interface Length {
 		int min();
 
 		int max();
 	}
 
-	@Documented
-	@Target(FIELD)
-	@Retention(RUNTIME)
-	@IsConstraint(Collection.class)
+	@Documented @Target(FIELD) @Retention(RUNTIME) @IsConstraint(Collection.class)
 	@interface NonNullElements {}
+
 }

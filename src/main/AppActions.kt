@@ -16,8 +16,8 @@ import layout.widget.WidgetManager
 import layout.widget.feature.PlaylistFeature
 import layout.widget.feature.SongReader
 import main.App.APP
-import util.SingleR
 import util.access.V
+import util.access.ref.SingleR
 import util.async.FX
 import util.async.future.Fut.fut
 import util.conf.Config

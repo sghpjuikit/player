@@ -3,7 +3,13 @@ package util.parsing;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.itemnode.StringSplitParser;
 import java.io.File;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.net.URI;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
@@ -31,6 +37,10 @@ import util.functional.Try;
 import util.functional.Util;
 import util.parsing.StringParseStrategy.From;
 import util.parsing.StringParseStrategy.To;
+import util.units.Bitrate;
+import util.units.Dur;
+import util.units.FileSize;
+import util.units.NofX;
 import static java.lang.Double.parseDouble;
 import static java.util.stream.Collectors.joining;
 import static javafx.scene.text.FontPosture.ITALIC;
@@ -39,8 +49,15 @@ import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
-import static util.functional.Try.*;
-import static util.functional.Util.*;
+import static util.functional.Try.error;
+import static util.functional.Try.errorOf;
+import static util.functional.Try.ok;
+import static util.functional.Try.tryF;
+import static util.functional.Util.list;
+import static util.functional.Util.listRO;
+import static util.functional.Util.noNull;
+import static util.functional.Util.split;
+import static util.functional.Util.stream;
 import static util.type.Util.getConstructorAnnotated;
 import static util.type.Util.getMethodAnnotated;
 
@@ -183,6 +200,11 @@ public abstract class Parser {
 		DEFAULT.addParsef(File.class, DEFAULT_TOS, File::new);
 		DEFAULT.addParser(URI.class, DEFAULT_TOS, tryF(URI::create, iae));
 		DEFAULT.addParser(Pattern.class, DEFAULT_TOS, tryF(Pattern::compile, PatternSyntaxException.class));
+		DEFAULT.addParser(Bitrate.class, DEFAULT_TOS, tryF(Bitrate::fromString, iae, obe, nfe));
+		DEFAULT.addParser(Dur.class, DEFAULT_TOS, tryF(Dur::fromString, iae));
+		DEFAULT.addParserOfS(Duration.class, tryF(s -> Duration.valueOf(s.replaceAll(" ", "")), iae)); // fixes java's inconsistency
+		DEFAULT.addParser(FileSize.class, DEFAULT_TOS, tryF(FileSize::fromString, nfe));
+		DEFAULT.addParser(NofX.class, DEFAULT_TOS, tryF(NofX::fromString, PatternSyntaxException.class, nfe, obe));
 		DEFAULT.addParser(Font.class,
 				f -> String.format("%s, %s", f.getName(), f.getSize()),
 				tryF(s -> {
@@ -195,7 +217,6 @@ public abstract class Parser {
 				}, nfe, obe)
 		);
 		DEFAULT.addParser(LocalDateTime.class, DEFAULT_TOS, tryF(LocalDateTime::parse, DateTimeException.class));
-		DEFAULT.addParserOfS(Duration.class, tryF(s -> Duration.valueOf(s.replaceAll(" ", "")), iae)); // fixes java's inconsistency
 		DEFAULT.addParserToS(FontAwesomeIcon.class, FontAwesomeIcon::name);
 		DEFAULT.addParser(Effect.class, FX::toS, text -> FX.ofS(Effect.class, text));
 //        DEFAULT.addParser(Class.class, Class::getName, noCEx(Class::forName, ClassNotFoundException.class,LinkageError.class));  // TODO: ??

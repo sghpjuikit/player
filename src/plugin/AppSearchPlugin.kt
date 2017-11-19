@@ -49,7 +49,7 @@ class AppSearchPlugin: PluginBase(NAME) {
     private fun findApps() {
         searchSource = searchDirs.list.asSequence()
                 .distinct()
-                .flatMap { dir -> findApps(dir) }
+                .flatMap { findApps(it) }
                 .toList()
     }
 

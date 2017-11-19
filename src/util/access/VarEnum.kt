@@ -1,6 +1,7 @@
 package util.access
 
 import util.access.fieldvalue.EnumerableValue
+import util.functional.invoke
 import util.type.InstanceMap
 import java.util.function.Consumer
 import java.util.stream.Stream
@@ -24,7 +25,7 @@ open class VarEnum<T>: V<T>, EnumerableValue<T> {
     }
 
     @SafeVarargs
-    constructor(value: T, enumerator: () -> Collection<T>, vararg appliers: Consumer<in T>): super(value, Consumer { v -> appliers.forEach { it.accept(v) } }) {
+    constructor(value: T, enumerator: () -> Collection<T>, vararg appliers: Consumer<in T>): super(value, Consumer { v -> appliers.forEach { it(v) } }) {
         valueEnumerator = enumerator
     }
 

@@ -14,7 +14,7 @@ import gui.Gui;
 import layout.Component;
 import layout.container.Container;
 import layout.widget.Widget;
-import util.SingleR;
+import util.access.ref.SingleR;
 import util.SwitchException;
 import util.functional.Util;
 import util.graphics.drag.DragUtil;

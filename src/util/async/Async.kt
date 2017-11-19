@@ -6,6 +6,7 @@ import javafx.util.Duration
 import mu.KotlinLogging
 import util.async.executor.FxTimer
 import util.dev.throwIf
+import util.functional.invoke
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -23,14 +24,14 @@ private val logger = KotlinLogging.logger { }
 @JvmField val FX = Consumer<Runnable> { runFX(it) }
 @JvmField val FX_LATER = Consumer<Runnable> { runLater(it) }
 @JvmField val NEW = Consumer<Runnable> { runNew(it) }
-@JvmField val CURR = Consumer<Runnable> { it.run() }
+@JvmField val CURR = Consumer<Runnable> { it() }
 
 fun FX_AFTER(delay: Double): Consumer<Runnable> = Consumer { runFX(delay, it) }
 fun FX_AFTER(delay: Duration): Consumer<Runnable> = Consumer { runFX(delay, it) }
-@JvmField val eFX = Executor { FX.accept(it) }
-@JvmField val eFX_LATER = Executor { FX_LATER.accept(it) }
-@JvmField val eBGR = Executor { NEW.accept(it) }
-@JvmField val eCURR = Executor { CURR.accept(it) }
+@JvmField val eFX = Executor { FX(it) }
+@JvmField val eFX_LATER = Executor { FX_LATER(it) }
+@JvmField val eBGR = Executor { NEW(it) }
+@JvmField val eCURR = Executor { CURR(it) }
 
 /* --------------------- RUNNABLE ----------------------------------------------------------------------------------- */
 
@@ -122,15 +123,15 @@ fun runNew(threadName: String, r: () -> Unit) = runNew(threadName, Runnable { r(
 
 fun runAfter(delay: Duration, executor: Consumer<Runnable>, r: Runnable) {
     if (delay.lessThanOrEqualTo(Duration.ZERO)) {
-        executor.accept(r)
+        executor(r)
     } else {
-        executor.accept(Runnable {
+        executor(Runnable {
             if (Platform.isFxApplicationThread()) {
                 FxTimer(delay, 1, r).start()
             } else {
                 try {
                     Thread.sleep(delay.toMillis().toLong())
-                    r.run()
+                    r()
                 } catch (e: InterruptedException) {
                     logger.error(e) { "Thread interrupted while sleeping" }
                 }
@@ -144,7 +145,7 @@ fun runNewAfter(delay: Duration, r: Runnable) {
     val thread = Thread {
         try {
             Thread.sleep(delay.toMillis().toLong())
-            r.run()
+            r()
         } catch (e: InterruptedException) {
             logger.error(e) { "Thread interrupted while sleeping" }
         }
@@ -167,21 +168,11 @@ fun runNewAfter(delay: Duration, r: Runnable) {
  * Platform.runLater(r);
 `* </pre>
  */
-fun runFX(r: Runnable) {
-    if (Platform.isFxApplicationThread())
-        r.run()
-    else
-        Platform.runLater(r)
-}
+fun runFX(r: Runnable): Unit = if (Platform.isFxApplicationThread()) r() else Platform.runLater(r)
 
 fun runFX(r: () -> Unit) = runFX(Runnable { r() })
 
-fun runNotFX(r: Runnable) {
-    if (Platform.isFxApplicationThread())
-        runNew(r)
-    else
-        r.run()
-}
+fun runNotFX(r: Runnable): Unit = if (Platform.isFxApplicationThread()) runNew(r) else r()
 
 fun runNotFX(r: () -> Unit) = runNotFX(Runnable { r() })
 
@@ -201,7 +192,7 @@ fun runFX(delay: Double, r: Runnable) {
 fun runFX(delay1: Double, r1: Runnable, delay2: Double, r2: Runnable) {
     throwIf(delay1<0)
     runFX(delay1, Runnable {
-        r1.run()
+        r1()
         runFX(delay2, r2)
     })
 }
@@ -231,7 +222,7 @@ fun onlyIfMatches(r: Runnable, counter: AtomicLong): Runnable {
     val c = counter.get()
     return Runnable {
         if (c==counter.get())
-            r.run()
+            r()
     }
 }
 

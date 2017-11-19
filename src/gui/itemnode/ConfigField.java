@@ -38,7 +38,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
-import util.Password;
+import util.text.Password;
 import util.access.Vo;
 import util.action.Action;
 import util.conf.Config;
@@ -374,7 +374,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
 		@Override
 		public void refreshItem() {
-			graphics.setText(config.getValue().get());
+			graphics.setText(config.getValue().value);
 		}
 
 	}

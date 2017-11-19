@@ -13,19 +13,11 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
-import javafx.stage.Window;
 import layout.widget.feature.ImageDisplayFeature;
 import layout.widget.feature.ImagesDisplayFeature;
 import util.async.future.Fut;
 import util.file.AudioFileFormat;
 import util.file.AudioFileFormat.Use;
-import util.file.FileType;
 import util.file.ImageFileFormat;
 import util.file.Util;
 import util.functional.Try;
@@ -38,12 +30,8 @@ import static main.App.APP;
 import static util.async.AsyncKt.runNotFX;
 import static util.dev.Util.log;
 import static util.dev.Util.noØ;
-import static util.file.FileType.DIRECTORY;
 import static util.file.Util.getSuffix;
-import static util.file.UtilKt.find1stExistingParentDir;
 import static util.file.UtilKt.getNameWithoutExtensionOrRoot;
-import static util.functional.Try.error;
-import static util.functional.Try.ok;
 import static util.functional.Util.filter;
 import static util.functional.Util.isContainedIn;
 import static util.functional.Util.list;
@@ -54,20 +42,6 @@ import static util.functional.Util.map;
  * files, opening files in external apps, clipboard, etc.
  */
 public interface Environment {
-
-	/** Copies the string to system clipboard. Does nothing if null. */
-	static void copyToSysClipboard(String s) {
-		copyToSysClipboard(DataFormat.PLAIN_TEXT, s);
-	}
-
-	/** Puts given object to system clipboard. Does nothing if object null. */
-	static void copyToSysClipboard(DataFormat df, Object o) {
-		if (o!=null) {
-			ClipboardContent c = new ClipboardContent();
-			c.put(df, o);
-			Clipboard.getSystemClipboard().setContent(c);
-		}
-	}
 
 	/**
 	 * Launches the program represented by the provided file. Does not wait for the program or block.
@@ -392,42 +366,6 @@ public interface Environment {
 				browse(files.stream());
 			}
 		}
-	}
-
-	static Try<File,Void> chooseFile(String title, FileType type, File initial, Window w, ExtensionFilter... extensions) {
-		if (type==DIRECTORY) {
-			DirectoryChooser c = new DirectoryChooser();
-			c.setTitle(title);
-			c.setInitialDirectory(initial==null ? null : find1stExistingParentDir(initial).getOr(APP.DIR_APP));
-			File f = c.showDialog(w);
-			return f!=null ? ok(f) : error();
-		} else {
-			FileChooser c = new FileChooser();
-			c.setTitle(title);
-			c.setInitialDirectory(initial==null ? null : find1stExistingParentDir(initial).getOr(APP.DIR_APP));
-			if (extensions!=null) c.getExtensionFilters().addAll(extensions);
-			File f = c.showOpenDialog(w);
-			return f!=null ? ok(f) : error();
-		}
-	}
-
-	static Try<List<File>,Void> chooseFiles(String title, File initial, Window w, ExtensionFilter... extensions) {
-		FileChooser c = new FileChooser();
-		c.setTitle(title);
-		c.setInitialDirectory(initial==null ? null : find1stExistingParentDir(initial).getOr(APP.DIR_APP));
-		if (extensions!=null) c.getExtensionFilters().addAll(extensions);
-		List<File> fs = c.showOpenMultipleDialog(w);
-		return fs!=null && !fs.isEmpty() ? ok(fs) : error();
-	}
-
-	static Try<File,Void> saveFile(String title, File initial, String initialName, Window w, ExtensionFilter... extensions) {
-		FileChooser c = new FileChooser();
-		c.setTitle(title);
-		c.setInitialDirectory(initial==null ? null : find1stExistingParentDir(initial).getOr(APP.DIR_APP));
-		c.setInitialFileName(initialName);
-		if (extensions!=null) c.getExtensionFilters().addAll(extensions);
-		File f = c.showSaveDialog(w);
-		return f!=null ? Try.ok(f) : Try.error();
 	}
 
 	// TODO: remove & use Desktop#browseFileDirectory instead

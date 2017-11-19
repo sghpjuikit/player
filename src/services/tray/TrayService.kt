@@ -75,7 +75,6 @@ class TrayService : ServiceBase(true) {
             items += contextMenuItems
             isAutoFix = true
             consumeAutoHidingEvents = false
-            // setOnShown(e -> run(3000, cm::hide));
         }
         val cmOwner = App.APP.windowManager.createStageOwner().apply {
             hide()

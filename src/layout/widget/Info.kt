@@ -3,6 +3,7 @@ package layout.widget
 import layout.widget.feature.Feature
 import util.functional.Util.toS
 import kotlin.reflect.KClass
+import kotlin.reflect.full.findAnnotation
 
 interface ComponentInfo {
 
@@ -47,7 +48,7 @@ interface WidgetInfo: ComponentInfo {
 
     /** @return all features the widget's controller implements */
     fun getFeatures() = type().interfaces.asSequence()
-            .map { it.getAnnotation(Feature::class.java) }
+            .map { it.kotlin.findAnnotation<Feature>() }
             .filterNotNull()
             .distinct()
             .toList()

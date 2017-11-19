@@ -11,7 +11,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
 import unused.SimpleConfigurator;
-import util.Password;
+import util.text.Password;
 import util.conf.IsConfig;
 import util.conf.IsConfigurable;
 import util.conf.MapConfigurable;
@@ -45,7 +45,7 @@ public class LastFM {
 				if (isLoginSet()) {
 					session = Authenticator.getMobileSession(
 							acquireUserName(),
-							acquirePassword().get(),
+							acquirePassword().value,
 							apiKey, secret);
 					Result lastResult = Caller.getInstance().getLastResult();
 					if (lastResult.getStatus()!=Result.Status.FAILED) {
@@ -124,8 +124,8 @@ public class LastFM {
 	}
 
 	public static boolean savePassword(Password pass) {
-		preferences.put("lastfm_password", pass.get());
-		return preferences.get("lastfm_password", "").equals(pass.get());
+		preferences.put("lastfm_password", pass.value);
+		return preferences.get("lastfm_password", "").equals(pass.value);
 	}
 
 	public static String acquireUserName() {

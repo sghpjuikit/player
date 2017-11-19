@@ -3,7 +3,7 @@ package gui.objects.contextmenu;
 import javafx.scene.control.TableView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
-import util.SingleR;
+import util.access.ref.SingleR;
 
 public class TableContextMenuR<M> extends SingleR<ImprovedContextMenu<M>,M> {
 

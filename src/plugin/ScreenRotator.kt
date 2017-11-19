@@ -38,7 +38,7 @@ class ScreenRotator: PluginBase(NAME) {
 
     @Suppress("unused")
     @IsConfig(name = "Open help", group = GROUP)
-    private val openHelpDo = RunnableConfig("showhelp", "Open technical usage help", GROUP, "", { openHelp() })
+    private val openHelpDo = RunnableConfig("show_help", "Open technical usage help", GROUP, "", { openHelp() })
 
     override fun onStart() {
         Action.getActions() += actions
@@ -53,7 +53,6 @@ class ScreenRotator: PluginBase(NAME) {
     fun rotateScreen(screen: Int? = null, rotation: String) {
         val scr = screen ?: getScreenForMouse().ordinal
         try {
-            println("rotating " + scr)
             ProcessBuilder(programFile.path, "/rotate:$rotation", "/device:$scr").directory(userLocation).start()
         } catch (e: IOException) {
             logger.error(e) { "Failed to rotate display" }

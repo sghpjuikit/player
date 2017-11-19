@@ -449,9 +449,9 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             if ((boolean) composerF.getUserData())     w.setComposer(composerF.getText());
             if ((boolean) publisherF.getUserData())    w.setPublisher(publisherF.getText());
             if ((boolean) trackF.getUserData())        w.setTrack(trackF.getText());
-            if ((boolean) tracksTotalF.getUserData())  w.setTracks_total(tracksTotalF.getText());
+            if ((boolean) tracksTotalF.getUserData())  w.setTracksTotal(tracksTotalF.getText());
             if ((boolean) discF.getUserData())         w.setDisc(discF.getText());
-            if ((boolean) discsTotalF.getUserData())   w.setDiscs_total(discF.getText());
+            if ((boolean) discsTotalF.getUserData())   w.setDiscsTotal(discF.getText());
             if ((boolean) genreF.getUserData())        w.setGenre(genreF.getText());
             if ((boolean) categoryF.getUserData())     w.setCategory(categoryF.getText());
             if ((boolean) yearF.getUserData())         w.setYear(yearF.getText());

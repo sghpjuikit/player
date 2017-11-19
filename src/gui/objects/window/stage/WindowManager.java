@@ -419,28 +419,27 @@ public class WindowManager implements Configurable<Object> {
         if (load_normally) {
 	        canBeMainTemp = true;
 
-            // make sure directory is accessible
             File dir = new File(APP.DIR_LAYOUTS, "current");
-            if (!Util.isValidatedDirectory(dir)) {
-	            LOGGER.error("Deserialization of windows and layouts failed. {} not accessible.", dir);
+            if (Util.isValidatedDirectory(dir)) {
+	            File[] fs = listChildren(dir)
+		            .filter(f -> f.getPath().endsWith(".ws"))
+		            .toArray(File[]::new);
+		        stream(fs)
+			        .map(f -> App.APP.serializators.fromXML(WindowState.class, f)
+						        .map(WindowState::toWindow)
+						        .ifError(e -> LOGGER.error("Unable to load window", e))
+						        .getOr(null)
+			        )
+					.filter(ISNTØ)
+					.forEach(ws::add);
+		        canBeMainTemp = false;
+			    LOGGER.info("Restored " + fs.length + "/" + ws.size() + " windows.");
+            } else {
+	            LOGGER.error("Restoring windows/layouts failed: {} not accessible.", dir);
                 return;
             }
-
-            // deserialize windows
-            File[] fs = listChildren(dir).filter(f -> f.getPath().endsWith(".ws")).toArray(File[]::new);
-	        LOGGER.info("Deserializing {} application windows", fs.length);
-	        stream(fs)
-		        .map(f -> App.APP.serializators.fromXML(WindowState.class, f)
-					        .ifError(e -> LOGGER.error("Unable to load window", e))
-					        .map(WindowState::toWindow)
-					        .getOr(null)
-		        )
-				.filter(ISNTØ)
-				.forEach(ws::add);
-	        canBeMainTemp = false;
          }
 
-	    LOGGER.info("Deserialized " + ws.size() + " windows.");
         // show windows
         if (ws.isEmpty()) {
         	if(load_normally)

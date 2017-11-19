@@ -2,6 +2,7 @@ package util.access
 
 import javafx.beans.property.SimpleObjectProperty
 import org.reactfx.Subscription
+import util.functional.invoke
 import util.reactive.attach
 import util.reactive.changes
 import java.util.function.BiConsumer
@@ -33,22 +34,22 @@ open class V<T> : SimpleObjectProperty<T>, ApplicableValue<T> {
         this.applier = applier
     }
 
-    constructor(value: T, applier: Runnable) : this(value, Consumer { applier.run() })
+    constructor(value: T, applier: Runnable) : this(value, Consumer { applier() })
 
     override fun applyValue(`val`: T) {
-        applier.accept(`val`)
+        applier(`val`)
     }
 
-    fun onChange(action: Consumer<in T>) = attach { action.accept(it) }
+    fun onChange(action: Consumer<in T>) = attach { action(it) }
 
-    fun onChange(action: BiConsumer<in T, in T>) = changes { ov, nv -> action.accept(ov, nv) }
+    fun onChange(action: BiConsumer<in T, in T>) = changes { ov, nv -> action(ov, nv) }
 
     fun maintain(action: Consumer<in T>): Subscription {
-        action.accept(value)
-        return attach { action.accept(it) }
+        action(value)
+        return attach { action(it) }
     }
 
-    fun onInvalid(action: Runnable) = attach { action.run() }
+    fun onInvalid(action: Runnable) = attach { action() }
 
 }
 

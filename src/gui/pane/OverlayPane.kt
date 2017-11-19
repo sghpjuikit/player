@@ -29,6 +29,7 @@ import util.async.runAfter
 import util.async.runFX
 import util.async.runNew
 import util.conf.IsConfig
+import util.functional.invoke
 import util.functional.orNull
 import util.graphics.Util
 import util.graphics.Util.createFMNTStage
@@ -210,7 +211,7 @@ abstract class OverlayPane<T>: StackPane() {
 
                             // start showing
                             op.animation.playOpenDo(null)
-                            op.onShown.run()
+                            op.onShown()
                         },
                         {
                             op.displayUsedForShow = SCREEN_OF_MOUSE
@@ -249,7 +250,7 @@ abstract class OverlayPane<T>: StackPane() {
                     op.blurBackNode!!.effect = op.blurBack
                     op.blurFrontNode!!.effect = op.blurFront
 
-                    op.animation.applier.accept(0.0)
+                    op.animation.applier(0.0)
                     op.stg!!.show()
                     op.stg!!.requestFocus()
 
@@ -257,7 +258,7 @@ abstract class OverlayPane<T>: StackPane() {
                     // the preparation may cause an animation lag, hence delay a bit
                     runAfter(millis(30)) {
                         op.animation.playOpenDo(null)
-                        op.onShown.run()
+                        op.onShown()
                     }
                 }
             }
@@ -299,7 +300,7 @@ abstract class OverlayPane<T>: StackPane() {
             opacityNode = null
             blurFrontNode = null
             blurBackNode = null
-            onHidden.run()
+            onHidden()
             if (this@Display==WINDOW) {
                 setVisible(false)
             } else {

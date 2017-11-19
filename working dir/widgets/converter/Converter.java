@@ -87,6 +87,7 @@ import static util.graphics.Util.layStack;
 import static util.graphics.Util.layVertically;
 import static util.graphics.Util.setAnchor;
 import static util.graphics.drag.DragUtil.installDrag;
+import static util.type.Util.getEnumConstants;
 
 @Widget.Info(
     author = "Martin Polakovic",
@@ -200,7 +201,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
             String name = data.get("Filename");
             Util.renameFile(file, name);
         }));
-        acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(util.type.Util.getEnumConstants(Metadata.Field.class),Object::toString), data -> {
+        acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(getEnumConstants(Metadata.Field.class), Object::toString), data -> {
             List<Item> songs = (List)list(source);
             if (songs.isEmpty()) return;
             Fut.fut()

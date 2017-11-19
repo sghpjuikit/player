@@ -20,7 +20,6 @@ import layout.container.Container;
 import layout.container.layout.Layout;
 import layout.widget.controller.Controller;
 import layout.widget.feature.Feature;
-import org.atteo.classindex.ClassIndex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SwitchException;
@@ -80,9 +79,6 @@ public final class WidgetManager {
 		if (initialized) throw new IllegalStateException("Already initialized");
 
 		// internal factories
-		// Factories for classes known at compile time and packaged along the application requesting
-		// factory generation.
-		ClassIndex.getAnnotated(GenerateWidgetFactory.class).forEach(c -> constructFactory(c, null));
 		factories.add(widgetFactoryEmpty);
 
 		// external factories
@@ -113,7 +109,7 @@ public final class WidgetManager {
 			LOGGER.error("External .fxwl widgets registration failed.");
 		} else {
 			listChildren(dirL).filter(f -> f.getPath().endsWith(".fxwl"))
-						   .filter(f -> readFileLines(f).limit(1).filter(line -> line.startsWith("<Widget")).count() > 0)
+						   .filter(f -> readFileLines(f).limit(1).anyMatch(line -> line.startsWith("<Widget")))
 						   .forEach(fxwl -> factoriesC.computeIfAbsent(capitalize(getName(fxwl)), key -> new DeserializingFactory(fxwl)));
 
 			FileMonitor.monitorDirsFiles(dirL, f -> f.getPath().endsWith(".fxwl"), (type, fxwl) -> {

@@ -65,9 +65,9 @@ fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Int = 12): Text {
     }
 }
 
-inline fun Pane.hBox(initialization: HBox.() -> Unit) = HBox().apply { initialization() }
+inline fun hBox(initialization: HBox.() -> Unit) = HBox().apply { initialization() }
 
-inline fun Pane.vBox(initialization: VBox.() -> Unit) = VBox().apply { initialization() }
+inline fun vBox(initialization: VBox.() -> Unit) = VBox().apply { initialization() }
 
 /* ---------- LAYOUT ------------------------------------------------------------------------------------------------ */
 

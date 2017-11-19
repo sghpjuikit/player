@@ -212,8 +212,13 @@ public class MetadataWriter extends Item {
 	}
 
 	/** @param discs_total the discs_total to set */
-	public void setDiscs_total(String discs_total) {
+	public void setDiscsTotal(String discs_total) {
 		setGeneralField(FieldKey.DISC_TOTAL, discs_total);
+	}
+
+	public void setDiscsInfo(NofX discsInfo) {
+		setDisc(String.valueOf(discsInfo.getN()));
+		setDiscsTotal(String.valueOf(discsInfo.getOf()));
 	}
 
 	/** @param genre the genre to set */
@@ -352,8 +357,13 @@ public class MetadataWriter extends Item {
 	}
 
 	/** @param tracks_total the tracks_total to set */
-	public void setTracks_total(String tracks_total) {
+	public void setTracksTotal(String tracks_total) {
 		setGeneralField(FieldKey.TRACK_TOTAL, tracks_total);
+	}
+
+	public void setTracksInfo(NofX tracksInfo) {
+		setTrack(String.valueOf(tracksInfo.getN()));
+		setTracksTotal(String.valueOf(tracksInfo.getOf()));
 	}
 
 	/** @param count the rating to set */
@@ -742,21 +752,11 @@ public class MetadataWriter extends Item {
 		if (field==Metadata.Field.COMPOSER) { setComposer(data); return; }
 		if (field==Metadata.Field.PUBLISHER) { setPublisher(data); return; }
 		if (field==Metadata.Field.TRACK) { setTrack(data); return; }
-		if (field==Metadata.Field.TRACKS_TOTAL) { setTracks_total(data); return; }
-		if (field==Metadata.Field.TRACK_INFO) {
-			NofX a = NofX.fromString(data);
-			setTrack(String.valueOf(a.n));
-			setTracks_total(String.valueOf(a.of));
-			return;
-		}
+		if (field==Metadata.Field.TRACKS_TOTAL) { setTracksTotal(data); return; }
+		if (field==Metadata.Field.TRACK_INFO) { setTracksInfo(NofX.fromString(data)); return; }
 		if (field==Metadata.Field.DISC) { setDisc(data); return; }
-		if (field==Metadata.Field.DISCS_TOTAL) { setDiscs_total(data); return; }
-		if (field==Metadata.Field.DISCS_INFO) {
-			NofX b = NofX.fromString(data);
-			setTrack(String.valueOf(b.n));
-			setTracks_total(String.valueOf(b.of));
-			return;
-		}
+		if (field==Metadata.Field.DISCS_TOTAL) { setDiscsTotal(data); return; }
+		if (field==Metadata.Field.DISCS_INFO) { setDiscsInfo(NofX.fromString(data)); return; }
 		if (field==Metadata.Field.GENRE) { setGenre(data); return; }
 		if (field==Metadata.Field.YEAR) { setYear(data); return; }
 		if (field==Metadata.Field.COVER) return;

@@ -45,7 +45,7 @@ import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 import kotlin.jvm.functions.Function1;
 import org.slf4j.LoggerFactory;
-import util.LazyR;
+import util.access.ref.LazyR;
 import util.SwitchException;
 import util.action.Action;
 import util.animation.Anim;

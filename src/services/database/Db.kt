@@ -1,6 +1,8 @@
 package services.database
 
 import audio.Item
+import audio.PlayerState
+import audio.PlayerStateDB
 import audio.tagging.Metadata
 import audio.tagging.MetadataWriter
 import layout.widget.controller.io.InOutput
@@ -21,6 +23,7 @@ import java.util.function.Consumer
 import javax.persistence.EntityManager
 import javax.persistence.EntityManagerFactory
 import javax.persistence.Persistence
+import kotlin.collections.ArrayList
 
 // TODO: implement Service
 // TODO: make thread-safe
@@ -70,13 +73,12 @@ class Db {
         emf = Persistence.createEntityManagerFactory(FILE_DB.path)
         em = emf.createEntityManager()
 
-
         Fut<Any>()
                 // load database
                 .supply { getAllItems() }
                 .use(FX, Consumer(this::setInMemoryDB))
                 // load string store
-                .then({
+                .then {
                     try {
                         val sss = em.createQuery("SELECT p FROM StringStore p", StringStore::class.java).resultList
                         stringPool = if (sss.isEmpty()) StringStore() else sss[0]
@@ -115,7 +117,7 @@ class Db {
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
-                })
+                }
                 .showProgressOnActiveWindow()
     }
 
@@ -182,5 +184,20 @@ class Db {
 
     @ThreadSafe
     fun updateInMemoryDbFromPersisted() = setInMemoryDB(getAllItems())
+
+    fun loadPlayerState(): PlayerStateDB? = em
+            .createQuery("SELECT p FROM PlayerStateDB p", PlayerStateDB::class.java)
+            .resultList.getOrNull(0) ?: PlayerStateDB(PlayerState())
+
+    fun savePlayerState(p: PlayerState) {
+        em.createQuery("SELECT p FROM PlayerStateDB p", PlayerStateDB::class.java)?.let {
+            em.transaction.begin()
+            it.resultList.forEach { em.remove(it) }
+            em.transaction.commit()
+        }
+        em.transaction.begin()
+        em.persist(PlayerStateDB(p))
+        em.transaction.commit()
+    }
 
 }

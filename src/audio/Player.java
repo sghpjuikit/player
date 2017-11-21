@@ -23,7 +23,6 @@ import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
 import util.async.future.Fut;
 import util.collections.mapset.MapSet;
-
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static main.App.APP;
 import static util.async.AsyncKt.FX;
@@ -181,7 +180,6 @@ public class Player {
 
 	// runs refresh on bgr thread, thread safe
 	private static void refreshItemsWithNow(List<Metadata> ms) {
-//        System.out.println("refreshing now " + ms.size());
 		noØ(ms);
 		if (ms.isEmpty()) return;
 

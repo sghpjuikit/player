@@ -689,8 +689,6 @@ public class WindowBase {
 			int WS_EX_NOACTIVATE = 0x08000000;  // https://msdn.microsoft.com/en-us/library/ff700543(v=vs.85).aspx
 			int oldStyle = user32.GetWindowLong(hwnd, GWL_STYLE);
 			int newStyle = oldStyle|WS_EX_NOACTIVATE;
-			// System.out.println(Integer.toBinaryString(oldStyle));
-			// System.out.println(Integer.toBinaryString(newStyle));
 			user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
 
 			// Put the window on bottom
@@ -726,8 +724,6 @@ public class WindowBase {
 			int WS_MINIMIZEBOX = 0x00020000;
 			int oldStyle = user32.GetWindowLong(hwnd, GWL_STYLE);
 			int newStyle = oldStyle|WS_MINIMIZEBOX;
-			// System.out.println(Integer.toBinaryString(oldStyle));
-			// System.out.println(Integer.toBinaryString(newStyle));
 			user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
 
 			// redraw

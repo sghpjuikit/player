@@ -403,7 +403,6 @@ public final class Seeker extends AnchorPane {
 			// this button is mouse transparent, we handle click on our own
 			// and avoid nodes blocking events + we can use arbitrary click area
 			seeker.addEventFilter(MOUSE_CLICKED, e -> {
-				System.out.println("clicked");
 				if (e.getButton()==SECONDARY) {
 					if (isShown() && abs(getCenterX() - e.getX())<16/2) { // if addB contains event
 						if (isSelected()) {

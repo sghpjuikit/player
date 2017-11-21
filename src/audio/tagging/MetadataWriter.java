@@ -760,7 +760,6 @@ public class MetadataWriter extends Item {
 		if (field==Metadata.Field.GENRE) { setGenre(data); return; }
 		if (field==Metadata.Field.YEAR) { setYear(data); return; }
 		if (field==Metadata.Field.COVER) return;
-		if (field==Metadata.Field.COVER_INFO) return;
 		if (field==Metadata.Field.RATING) { setRatingPercent(data); return; }
 		if (field==Metadata.Field.RATING_RAW) { setRating(data); return; }
 		if (field==Metadata.Field.PLAYCOUNT) { setPlaycount(data); return; }
@@ -794,10 +793,13 @@ public class MetadataWriter extends Item {
 	 * or writing failed.
 	 */
 	private boolean write() {
+		if (!hasFields()) return false; // nothing to write
 		LOGGER.debug("Writing {} tag fields to: {}", fields_changed, file);
 
-		if (hasCorruptedTag) return false; // writing impossible
-		if (!hasFields()) return false; // nothing to write
+		if (hasCorruptedTag) {
+			LOGGER.warn("Can not write to tag, because it could not be read: {} ", file);
+			return false; // writing impossible
+		}
 
 		// save tag
 		try {
@@ -811,7 +813,7 @@ public class MetadataWriter extends Item {
 		} catch (Exception ex) {
 			if (isPlayingSame()) {
 				LOGGER.debug("File being played, will attempt to suspend playback");
-				PLAYBACK.suspend(); // asynchronous, we dont know how long it will take
+				PLAYBACK.suspend(); // asynchronous, we don't know how long it will take
 				// so we sleep the thread and try tagging again, twice once quickly, once longer
 				for (int i = 1; i<=3; i += 2) {
 					int tosleep = i*i*250;

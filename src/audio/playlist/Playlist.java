@@ -12,7 +12,11 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -91,12 +95,12 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 
 	/** Returns total playlist duration - a sum of all playlist item lengths. */
 	public Duration getLength() {
-		double Σ = stream()
+		double sum = stream()
 				.map(PlaylistItem::getTime)
-				.filter(d -> !d.isIndefinite() && !d.isUnknown())
+				.filter(d -> !d.isIndefinite() && !d.isUnknown())   // TODO: this should not be needed
 				.mapToDouble(Duration::toMillis)
-				.reduce(0d, Double::sum);
-		return millis(Σ);
+				.sum();
+		return millis(sum);
 	}
 
 	/**
@@ -115,12 +119,13 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	 * Returns index of the first same item in playlist.
 	 *
 	 * @return item index. -1 if not in playlist.
+	 * @throws java.lang.RuntimeException if any param null
 	 * @see Item#same(audio.Item)
 	 */
 	public int indexOfSame(Item item) {
-		if (item==null) return -1;
-		for (int i = 0; i<transform().size(); i++)
-			if (transform().get(i).same(item)) return i;
+		List<PlaylistItem> transformed = transform();
+		for (int i = 0; i<transformed.size(); i++)
+			if (transformed.get(i).same(item)) return i;
 		return -1;
 	}
 

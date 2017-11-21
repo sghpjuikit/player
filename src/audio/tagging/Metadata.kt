@@ -9,7 +9,6 @@ import gui.objects.image.cover.Cover
 import gui.objects.image.cover.Cover.CoverSource
 import gui.objects.image.cover.FileCover
 import gui.objects.image.cover.ImageCover
-import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.util.Duration
 import mu.KLogging
@@ -47,8 +46,6 @@ import util.units.Dur
 import util.units.FileSize
 import util.units.FileSize.Companion.sizeInB
 import util.units.NofX
-import java.awt.image.BufferedImage
-import java.awt.image.RenderedImage
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -59,7 +56,6 @@ import java.util.HashSet
 import java.util.Objects
 import javax.persistence.Entity
 import javax.persistence.Id
-import javax.persistence.Transient
 import kotlin.collections.HashMap
 import kotlin.collections.set
 import kotlin.reflect.KClass
@@ -159,12 +155,6 @@ class Metadata: Item {
 
     /** Year as int or null if none */
     private var yearAsInt: Int? = null
-
-    @Transient
-    private var cover: Artwork? = null
-
-    @Transient
-    private var coverLoaded = false
 
     /** Raw rating or -1 if empty */
     private var rating: Int? = null
@@ -627,62 +617,39 @@ class Metadata: Item {
     fun getCustom5() = custom5
 
     /** @return cover using the respective source */
-    fun getCover(source: CoverSource): Cover = when (source) {
-        Cover.CoverSource.TAG -> coverOfTag
-        Cover.CoverSource.DIRECTORY -> getCoverOfDir()?.let { FileCover(it, "") as Cover } ?: Cover.EMPTY
-        Cover.CoverSource.ANY -> seqOf(CoverSource.TAG, CoverSource.DIRECTORY)
-                .map { getCover(it) }
-                .find { !it.isEmpty } ?: Cover.EMPTY
-    }
-
-    // jaudiotagger bug, Artwork.getImage() can throw NullPointerException sometimes
-    // at java.io.ByteArrayInputStream.<init>(ByteArrayInputStream.java:106) ~[na:na]
-    // at org.jaudiotagger.tag.images.StandardArtwork.getImage(StandardArtwork.java:95) ~[jaudiotagger-2.2.6-SNAPSHOT.jar:na]
-    private val coverOfTag: Cover
-        get() {
-            return try {
-                loadCover()
-                if (cover==null)
-                    ImageCover(null as Image?, getCoverInfo())
-                else
-                    ImageCover(cover!!.image as BufferedImage, getCoverInfo())
-            } catch (e: IOException) {
-                ImageCover(null as Image?, getCoverInfo())
-            } catch (ex: NullPointerException) {
-                ImageCover(null as Image?, getCoverInfo())
-            }
-
+    fun getCover(source: CoverSource): Cover {
+        throwIfFxThread()
+        return when (source) {
+            Cover.CoverSource.TAG -> getReadCoverOfTag() ?: Cover.EMPTY
+            Cover.CoverSource.DIRECTORY -> readCoverOfDir() ?: Cover.EMPTY
+            Cover.CoverSource.ANY -> seqOf(CoverSource.TAG, CoverSource.DIRECTORY)
+                    .mapNotNull { getCover(it) }
+                    .firstOrNull { !it.isEmpty }
+                    ?: Cover.EMPTY
         }
-
-    private fun loadCover() {
-        if (cover!=null || coverLoaded) return
-        coverLoaded = true
-        val af = if (isFileBased()) getFile().readAudioFile().orNull() else null
-        val tag = af?.tagOrCreateAndSetDefault
-        cover = tag?.firstArtwork
     }
 
-    // ^ why do we catch NullPointerException here? Not a bug fix! Investigate & remove!
-    // never mind errors. Return "" on fail.    TODO: return Try or something, this is just embarrassing
-    private fun getCoverInfo(): String = try {
-        loadCover()
-        val c = cover!!
-        "${c.description} ${c.mimeType} ${(c.image as RenderedImage).width}x${(c.image as RenderedImage).height}"   // TODO: remove cast
+    private fun getReadCoverOfTag(): Cover? = try {
+        readArt()?.let { ImageCover(it.imageOrNull, it.info ?: "") }
     } catch (e: IOException) {
-        ""
-    } catch (e: NullPointerException) {
-        ""
+        null
+    }
+
+    private fun readArt(): Artwork? {
+        val af = if (isFileBased()) getFile().readAudioFile().orNull() else null
+        return af?.tag?.firstArtwork
     }
 
     /** @return the cover image file on a file system or null if this item is not file based */
-    private fun getCoverOfDir(): File? {
-        throwIfFxThread()
+    private fun readCoverOfDir(): Cover? {
         if (!isFileBased()) return null
 
         val fs = getLocation().listChildren().toList()
-        return seqOf(getFilename(), title, album, "cover", "folder")
+        return seqOf(getFilename().takeIf { it.isNotBlank() }, title, album, "cover", "folder")
+                .filterNotNull()
                 .flatMap { filename -> fs.asSequence().filter { it.nameWithoutExtensionOrRoot.equals(filename, true) } }
                 .find { ImageFileFormat.isSupported(it) }
+                ?.let { FileCover(it, "") }
     }
 
     /**
@@ -860,7 +827,6 @@ class Metadata: Item {
         private val FIELDS_FULLTEXT: List<Field<String>> = Field.FIELDS.asSequence()
                 .filter { String::class.java==it.type }
                 .map { it as Field<String> }
-                .filter { it!==Metadata.Field.COVER_INFO }  // avoid i/o
                 .toList()
     }
 
@@ -944,8 +910,7 @@ class Metadata: Item {
             @JvmField val DISCS_INFO = Field(NofX::class, { it.getDiscInfo() }, "Discs_info", "Complete disc number in format: disc/disc total")
             @JvmField val GENRE = Field(String::class, { it.genre }, "Genre", "Genre of the song")
             @JvmField val YEAR = Field(Year::class, { it.getYear() }, "Year", "Year the album was published")
-            @JvmField val COVER = Field(Cover::class, { it.coverOfTag }, "Cover", "Cover of the song")
-            @JvmField val COVER_INFO = Field(String::class, { it.getCoverInfo() }, "Cover_info", "Cover information")
+            @JvmField val COVER = Field(Cover::class, { it.getReadCoverOfTag() }, "Cover", "Cover of the song")
             @JvmField val RATING = Field(Double::class, { it.getRatingPercent() }, "Rating", "Song rating in 0-1 range")
             @JvmField val RATING_RAW = Field(Int::class, { it.rating }, "Rating_raw", "Song rating tag value. Depends on tag type")
             @JvmField val PLAYCOUNT = Field(Int::class, { it.getPlaycount() }, "Playcount", "Number of times the song was played.")
@@ -970,14 +935,13 @@ class Metadata: Item {
                     TITLE, RATING_RAW,
                     COMMENT, LYRICS, COLOR, PLAYCOUNT, PATH, FILENAME, FILESIZE, ENCODING,
                     LENGTH, TRACK, TRACKS_TOTAL, TRACK_INFO, DISC, DISCS_TOTAL, DISCS_INFO,
-                    COVER, COVER_INFO, RATING, CHAPTERS
+                    COVER, RATING, CHAPTERS
             )
             private val VISIBLE = setOf<Field<*>>(
                     TITLE, ALBUM, ARTIST, LENGTH, TRACK_INFO, DISCS_INFO, RATING, PLAYCOUNT
             )
             private val NOT_STRING_REPRESENTABLE = setOf<Field<*>>(
                     COVER, // can not be converted to string
-                    COVER_INFO, // requires cover to load (would kill performance).
                     CHAPTERS, // raw string form unsuitable for viewing
                     FULLTEXT // purely for search purposes
             )

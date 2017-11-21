@@ -795,7 +795,7 @@ public class AudioPlayer implements Callable<Void> {
                 play();
             }
         }
-        System.out.println("POS CHANGED BY " + ((getPosition()-pos)/1000) + "ms");
+		// System.out.println("POS CHANGED BY " + ((getPosition()-pos)/1000) + "ms");
         return skipped;
     }
 
@@ -814,7 +814,7 @@ public class AudioPlayer implements Callable<Void> {
             return audioInputStream.skip(to);
         } else {
             // This impl. performs very badly even for single seek. Concecutive seeking is big fail.
-            System.out.println("seeking debug: is mark supported: " + audioInputStream.markSupported());
+			// System.out.println("seeking debug: is mark supported: " + audioInputStream.markSupported());
             if (audioInputStream.markSupported()) {
                 audioInputStream.reset();
                 return audioInputStream.skip(to);

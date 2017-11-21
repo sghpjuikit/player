@@ -105,9 +105,6 @@ import util.serialize.xstream.IntegerPropertyConverter;
 import util.serialize.xstream.LongPropertyConverter;
 import util.serialize.xstream.ObjectPropertyConverter;
 import util.serialize.xstream.ObservableListConverter;
-import util.serialize.xstream.PlaybackStateConverter;
-import util.serialize.xstream.PlaylistConverter;
-import util.serialize.xstream.PlaylistItemConverter;
 import util.serialize.xstream.StringPropertyConverter;
 import util.serialize.xstream.VConverter;
 import util.system.Environment;
@@ -406,9 +403,6 @@ public class App extends Application implements Configurable {
 		x.registerConverter(new ObjectPropertyConverter(xm));   // -||-
 		x.registerConverter(new ObservableListConverter(xm));   // -||-
 		x.registerConverter(new VConverter(xm));
-		x.registerConverter(new PlaybackStateConverter());
-		x.registerConverter(new PlaylistConverter(xm));
-		x.registerConverter(new PlaylistItemConverter());
 		x.alias("Component", Component.class);
 		x.alias("Playlist", Playlist.class);
 		x.alias("item", PlaylistItem.class);
@@ -749,6 +743,8 @@ public class App extends Application implements Configurable {
 					new FastAction<>(FOLDER,Action.get("Open app directory"))
 				);
 
+				db.start();
+
 				// gather configs
 				configuration.rawAdd(FILE_SETTINGS);
 				configuration.collectStatic();
@@ -780,8 +776,6 @@ public class App extends Application implements Configurable {
 				// and yes, this means reapplying different skin will have no effect in this regard...
 				configuration.getFields(f -> f.getGroup().equals("Gui") && f.getGuiName().equals("Skin")).get(0).applyValue();
 				windowManager.deserialize(normalLoad);
-
-				db.start();
 
 				isInitialized = true;
 

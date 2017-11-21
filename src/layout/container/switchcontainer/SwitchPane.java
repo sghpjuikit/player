@@ -254,7 +254,7 @@ public class SwitchPane implements ContainerNode {
     });
 
     private void dragUiStart(MouseEvent e) {
-        if (uiDragActive) return;//System.out.println("start");
+        if (uiDragActive) return;
         uiDrag.stop();
         uiStartX = e.getSceneX();
         uiTransX = ui.getTranslateX();
@@ -263,7 +263,7 @@ public class SwitchPane implements ContainerNode {
         e.consume();
     }
     private void dragUiEnd(MouseEvent e) {
-        if (!uiDragActive) return;//System.out.println("end");
+        if (!uiDragActive) return;
         // stop drag
 //        uiDragActive = false;
         run(100, () -> uiDragActive=false);

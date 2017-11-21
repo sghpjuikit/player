@@ -9,9 +9,11 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException
 import org.jaudiotagger.tag.Tag
 import org.jaudiotagger.tag.TagException
 import org.jaudiotagger.tag.id3.AbstractID3Tag
+import org.jaudiotagger.tag.images.Artwork
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag
 import util.Util.clip
 import util.functional.Try
+import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
 
@@ -53,3 +55,18 @@ fun File.readAudioFile(): Try<AudioFile, Void> =
 
 /** @return new metadata taking the data from this audio file */
 fun AudioFile.toMetadata() = Metadata(this)
+
+@Suppress("DEPRECATION")
+/** @return cover image or null if none or error */
+val Artwork.imageOrNull: BufferedImage? get() = try {
+    // TODO: avoid
+    // jaudiotagger bug, Artwork.getImage() can throw NullPointerException sometimes
+    // at java.io.ByteArrayInputStream.<init>(ByteArrayInputStream.java:106) ~[na:na]
+    // at org.jaudiotagger.tag.images.StandardArtwork.getImage(StandardArtwork.java:95) ~[jaudiotagger-2.2.6-SNAPSHOT.jar:na]
+    image as? BufferedImage
+} catch (e: NullPointerException) {
+    null
+}
+
+/** @return cover information */
+val Artwork.info: String? get() = "$description $mimeType ${width}x$height"

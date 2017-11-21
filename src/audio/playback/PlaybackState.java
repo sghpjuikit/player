@@ -3,10 +3,14 @@ package audio.playback;
 import audio.playback.state.BalanceProperty;
 import audio.playback.state.VolumeProperty;
 import audio.playlist.sequence.PlayingSequence;
-import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
-import javafx.beans.property.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
 
@@ -25,12 +29,8 @@ public final class PlaybackState {
 	public final BooleanProperty mute;
 	public final DoubleProperty rate;
 
-	private int played_item_index;
-	private URI played_item;
-	private UUID played_playlist;
-
-	private PlaybackState(UUID _id) {
-		id = _id;
+	public PlaybackState(UUID id) {
+		this.id = id;
 		volume = new VolumeProperty();
 		balance = new BalanceProperty();
 		loopMode = new SimpleObjectProperty<>(PlayingSequence.LoopMode.PLAYLIST);
@@ -111,9 +111,5 @@ public final class PlaybackState {
 	 */
 	public static PlaybackState getDefault() {
 		return new PlaybackState();
-	}
-
-	public static PlaybackState getDefault(UUID _id) {
-		return new PlaybackState(_id);
 	}
 }

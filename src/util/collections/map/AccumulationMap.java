@@ -70,7 +70,8 @@ public class AccumulationMap<E, K, C> extends HashMap<K,C> {
 		cacheAccumulator.accept(e, c);
 	}
 
-	public void accumulate(K k, E... es) {
+	@SafeVarargs
+	public final void accumulate(K k, E... es) {
 		for (E e : es)
 			accumulate(k, e);
 	}

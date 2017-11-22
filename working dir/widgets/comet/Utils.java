@@ -21,9 +21,9 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
-import gui.objects.Text;
-import gui.objects.icon.Icon;
-import gui.pane.OverlayPane;
+import sp.it.pl.gui.objects.Text;
+import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.gui.pane.OverlayPane;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -72,19 +72,19 @@ import org.gamepad4j.Controllers;
 import org.gamepad4j.IController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import unused.TriConsumer;
-import util.access.ref.R;
-import util.SwitchException;
-import util.animation.Anim;
-import util.collections.Tuple2;
-import util.collections.map.ClassMap;
-import util.collections.map.Map2D;
-import util.collections.mapset.MapSet;
-import util.functional.Functors.Ƒ0;
-import util.functional.Functors.Ƒ1;
-import util.functional.Try;
-import util.functional.Util;
-import util.reactive.SetƑ;
+import sp.it.pl.unused.TriConsumer;
+import sp.it.pl.util.access.ref.R;
+import sp.it.pl.util.SwitchException;
+import sp.it.pl.util.animation.Anim;
+import sp.it.pl.util.collections.Tuple2;
+import sp.it.pl.util.collections.map.ClassMap;
+import sp.it.pl.util.collections.map.Map2D;
+import sp.it.pl.util.collections.mapset.MapSet;
+import sp.it.pl.util.functional.Functors.Ƒ0;
+import sp.it.pl.util.functional.Functors.Ƒ1;
+import sp.it.pl.util.functional.Try;
+import sp.it.pl.util.functional.Util;
+import sp.it.pl.util.reactive.SetƑ;
 import static comet.Comet.Constants.FPS;
 import static comet.Utils.Achievement.achievement01;
 import static comet.Utils.Achievement.achievement0N;
@@ -109,33 +109,33 @@ import static javafx.scene.text.Font.font;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.minutes;
 import static javafx.util.Duration.seconds;
-import static main.AppBuildersKt.createInfoIcon;
-import static util.Util.clip;
-import static util.Util.formatDuration;
-import static util.Util.pyth;
-import static util.collections.Tuples.tuple;
-import static util.dev.Util.throwIf;
-import static util.dev.Util.throwIfNot;
-import static util.functional.Util.ISNTØ;
-import static util.functional.Util.array;
-import static util.functional.Util.by;
-import static util.functional.Util.forEachCartesianHalfNoSelf;
-import static util.functional.Util.forEachPair;
-import static util.functional.Util.forEachWithI;
-import static util.functional.Util.range;
-import static util.functional.Util.repeat;
-import static util.functional.Util.set;
-import static util.functional.Util.setRO;
-import static util.functional.Util.stream;
-import static util.graphics.Util.layHeaderTop;
-import static util.graphics.Util.layHorizontally;
-import static util.graphics.Util.layStack;
-import static util.graphics.Util.layVertically;
-import static util.graphics.UtilKt.setScaleXY;
-import static util.reactive.Util.maintain;
-import static util.type.Util.getEnumConstants;
+import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
+import static sp.it.pl.util.Util.clip;
+import static sp.it.pl.util.Util.formatDuration;
+import static sp.it.pl.util.Util.pyth;
+import static sp.it.pl.util.collections.Tuples.tuple;
+import static sp.it.pl.util.dev.Util.throwIf;
+import static sp.it.pl.util.dev.Util.throwIfNot;
+import static sp.it.pl.util.functional.Util.ISNTØ;
+import static sp.it.pl.util.functional.Util.array;
+import static sp.it.pl.util.functional.Util.by;
+import static sp.it.pl.util.functional.Util.forEachCartesianHalfNoSelf;
+import static sp.it.pl.util.functional.Util.forEachPair;
+import static sp.it.pl.util.functional.Util.forEachWithI;
+import static sp.it.pl.util.functional.Util.range;
+import static sp.it.pl.util.functional.Util.repeat;
+import static sp.it.pl.util.functional.Util.set;
+import static sp.it.pl.util.functional.Util.setRO;
+import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.graphics.Util.layHeaderTop;
+import static sp.it.pl.util.graphics.Util.layHorizontally;
+import static sp.it.pl.util.graphics.Util.layStack;
+import static sp.it.pl.util.graphics.Util.layVertically;
+import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
+import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.type.Util.getEnumConstants;
 
-@SuppressWarnings({"unused","UnnecessaryLocalVariable"})
+@SuppressWarnings({"sp/it/pl/unused","UnnecessaryLocalVariable"})
 interface Utils {
 
 	// superscript 	⁰ 	¹ 	²	³	⁴ 	⁵ 	⁶ 	⁷ 	⁸ 	⁹ 	⁺ 	⁻ 	⁼ 	⁽ 	⁾ 	ⁿ
@@ -600,7 +600,7 @@ interface Utils {
 			throw new SwitchException(this);
 		}
 
-		@SuppressWarnings("unused")
+		@SuppressWarnings("sp/it/pl/unused")
 		double computeStartingX(double w, double h, int ps, int p) {
 			switch(this) {
 				case CIRCLE : return w/2 + 50*cos(computeStartingAngle(ps, p));
@@ -613,7 +613,7 @@ interface Utils {
 			throw new SwitchException(this);
 		}
 
-		@SuppressWarnings("unused")
+		@SuppressWarnings("sp/it/pl/unused")
 		double computeStartingY(double w, double h, int ps, int p) {
 			switch(this) {
 				case CIRCLE : return h/2 + 50*sin(computeStartingAngle(ps, p));
@@ -1407,7 +1407,7 @@ interface Utils {
 		}
 	}
 
-	class Loop extends util.animation.Loop {
+	class Loop extends sp.it.pl.util.animation.Loop {
 		/** Loop id, starts at 0, incremented by 1 every loop. */
 		public long id = 0;
 		/** The timestamp of the current loop given in milliseconds. */

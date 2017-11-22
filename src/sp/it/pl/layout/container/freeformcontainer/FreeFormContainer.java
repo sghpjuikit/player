@@ -1,0 +1,63 @@
+package sp.it.pl.layout.container.freeformcontainer;
+
+import java.util.HashMap;
+import java.util.Map;
+import javafx.scene.Node;
+import sp.it.pl.layout.Component;
+import sp.it.pl.layout.area.FreeFormArea;
+import sp.it.pl.layout.container.Container;
+
+/** */
+public class FreeFormContainer extends Container<FreeFormArea> {
+
+    private final Map<Integer,Component> children = new HashMap<>();
+
+    @Override
+    public Map<Integer, Component> getChildren() {
+        return children;
+    }
+
+    @Override
+    public void addChild(Integer index, Component c) {
+        if (index == null) return;
+
+        if (c==null) children.remove(index);
+        else children.put(index, c);
+
+        if (ui!=null) ui.loadWindow(index, c);
+        setParentRec();
+    }
+
+    @Override
+    public void removeChild(Integer index) {
+        ui.closeWindow(index);
+	    closeChild(getChildren().get(index));
+        children.remove(index);
+    }
+
+    @Override
+    public Integer getEmptySpot() {
+        return null;
+    }
+
+    @Override
+    public Node load() {
+        if (ui==null) ui = new FreeFormArea(this);
+        ui.load();
+        return ui.getRoot();
+    }
+
+    @Override
+    public void show() {
+//        super.show();
+        if (ui!=null) ui.show();
+    }
+
+    @Override
+    public void hide() {
+//        super.hide();
+//        if (gui !=null) gui.widgets.values().forEach(Area::hide);
+                if (ui!=null) ui.hide();
+    }
+
+}

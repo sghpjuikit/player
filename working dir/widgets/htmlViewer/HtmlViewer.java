@@ -2,17 +2,17 @@ package htmlViewer;
 
 import javafx.scene.web.HTMLEditor;
 
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
-import layout.widget.controller.io.Input;
-import layout.widget.controller.io.Output;
-import util.access.V;
-import util.conf.IsConfig;
-import util.conf.IsConfig.EditMode;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.layout.widget.controller.io.Input;
+import sp.it.pl.layout.widget.controller.io.Output;
+import sp.it.pl.util.access.V;
+import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.conf.IsConfig.EditMode;
 
 import static javafx.util.Duration.seconds;
-import static util.async.AsyncKt.runPeriodic;
-import static util.graphics.Util.setAnchor;
+import static sp.it.pl.util.async.AsyncKt.runPeriodic;
+import static sp.it.pl.util.graphics.Util.setAnchor;
 
 /**
  * Web browser component.

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.LineTo?>
+<?import javafx.scene.shape.MoveTo?>
+<?import javafx.scene.shape.Path?>
+<fx:root id="entireArea" fx:id="content_root" focusTraversable="true"
+         minHeight="-1" minWidth="-1" prefHeight="-1" prefWidth="-1"
+         type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8"
+         xmlns:fx="http://javafx.com/fxml/1">
+    <Path AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <elements>
+          <MoveTo y="20.0"/>
+          <LineTo/>
+          <LineTo x="20.0"/>
+        </elements>
+        <styleClass>
+          <String fx:value="path-border"/>
+          <String fx:value="area-path-border"/>
+        </styleClass>
+    </Path>
+    <Path AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <elements>
+          <MoveTo x="-20.0"/>
+          <LineTo/>
+          <LineTo y="20.0"/>
+        </elements>
+        <styleClass>
+          <String fx:value="path-border"/>
+          <String fx:value="area-path-border"/>
+        </styleClass>
+    </Path>
+    <Path AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+        <elements>
+          <MoveTo y="-20.0"/>
+          <LineTo/>
+          <LineTo x="-20.0"/>
+        </elements>
+        <styleClass>
+          <String fx:value="path-border"/>
+          <String fx:value="area-path-border"/>
+        </styleClass>
+    </Path>
+    <Path AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
+        <elements>
+          <MoveTo y="-20.0"/>
+          <LineTo/>
+          <LineTo x="20.0"/>
+        </elements>
+        <styleClass>
+          <String fx:value="path-border"/>
+          <String fx:value="area-path-border"/>
+        </styleClass>
+    </Path>
+    <StackPane layoutX="60.0" layoutY="60.0" minHeight="0.0" minWidth="0.0" AnchorPane.bottomAnchor="0.0"
+               AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <StackPane fx:id="content_padding" minHeight="0.0" minWidth="0.0" StackPane.alignment="CENTER">
+            <styleClass>
+                <String fx:value="block"/>
+                <String fx:value="area"/>
+            </styleClass>
+            <AnchorPane id="contentPane" fx:id="content" minHeight="0.0" minWidth="0.0" prefWidth="-1.0"
+                        StackPane.alignment="CENTER">
+            </AnchorPane>
+        </StackPane>
+    </StackPane>
+</fx:root>

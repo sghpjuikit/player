@@ -8,10 +8,10 @@ import javafx.scene.effect.Effect;
 import javafx.scene.media.AudioSpectrumListener;
 import javafx.scene.paint.Color;
 
-import audio.playback.PLAYBACK;
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
-import util.animation.Loop;
+import sp.it.pl.audio.playback.PLAYBACK;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.util.animation.Loop;
 
 import static java.lang.Math.*;
 import static javafx.util.Duration.seconds;

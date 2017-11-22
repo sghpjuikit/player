@@ -10,12 +10,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.TextArea;
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
-import main.App;
-import util.conf.IsConfig;
-import static util.graphics.Util.setAnchors;
-import static util.graphics.UtilKt.setMinPrefMaxSize;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.main.App;
+import sp.it.pl.util.conf.IsConfig;
+import static sp.it.pl.util.graphics.Util.setAnchors;
+import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
 
 /**
  * Logger widget controller.

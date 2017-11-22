@@ -1,19 +1,19 @@
 package libraryView;
 
-import audio.Player;
-import audio.playlist.PlaylistManager;
-import audio.tagging.Metadata;
-import audio.tagging.Metadata.Field;
-import audio.tagging.MetadataGroup;
-import gui.Gui;
-import gui.itemnode.FieldedPredicateItemNode.PredicateData;
-import gui.objects.contextmenu.SelectionMenuItem;
-import gui.objects.contextmenu.TableContextMenuR;
-import gui.objects.table.FilteredTable;
-import gui.objects.table.ImprovedTable.PojoV;
-import gui.objects.table.TableColumnInfo;
-import gui.objects.tablecell.NumberRatingCellFactory;
-import gui.objects.tablerow.ImprovedTableRow;
+import sp.it.pl.audio.Player;
+import sp.it.pl.audio.playlist.PlaylistManager;
+import sp.it.pl.audio.tagging.Metadata;
+import sp.it.pl.audio.tagging.Metadata.Field;
+import sp.it.pl.audio.tagging.MetadataGroup;
+import sp.it.pl.gui.Gui;
+import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
+import sp.it.pl.gui.objects.contextmenu.SelectionMenuItem;
+import sp.it.pl.gui.objects.contextmenu.TableContextMenuR;
+import sp.it.pl.gui.objects.table.FilteredTable;
+import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
+import sp.it.pl.gui.objects.table.TableColumnInfo;
+import sp.it.pl.gui.objects.tablecell.NumberRatingCellFactory;
+import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -27,22 +27,22 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
-import layout.widget.Widget.Info;
-import layout.widget.controller.FXMLController;
-import layout.widget.controller.io.Input;
-import layout.widget.controller.io.Output;
-import util.access.VarEnum;
-import util.access.Vo;
-import util.access.fieldvalue.ColumnField;
-import util.async.executor.ExecuteN;
-import util.conf.Config;
-import util.conf.IsConfig;
-import util.conf.IsConfig.EditMode;
-import util.graphics.drag.DragUtil;
-import static audio.tagging.Metadata.Field.CATEGORY;
-import static audio.tagging.MetadataGroup.Field.*;
-import static audio.tagging.MetadataGroup.ungroup;
-import static gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
+import sp.it.pl.layout.widget.Widget.Info;
+import sp.it.pl.layout.widget.controller.FXMLController;
+import sp.it.pl.layout.widget.controller.io.Input;
+import sp.it.pl.layout.widget.controller.io.Output;
+import sp.it.pl.util.access.VarEnum;
+import sp.it.pl.util.access.Vo;
+import sp.it.pl.util.access.fieldvalue.ColumnField;
+import sp.it.pl.util.async.executor.ExecuteN;
+import sp.it.pl.util.conf.Config;
+import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.conf.IsConfig.EditMode;
+import sp.it.pl.util.graphics.drag.DragUtil;
+import static sp.it.pl.audio.tagging.Metadata.Field.CATEGORY;
+import static sp.it.pl.audio.tagging.MetadataGroup.Field.*;
+import static sp.it.pl.audio.tagging.MetadataGroup.ungroup;
+import static sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static java.time.Duration.ofMillis;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -55,15 +55,15 @@ import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.stage.WindowEvent.WINDOW_SHOWN;
-import static layout.widget.Widget.Group.LIBRARY;
-import static main.App.APP;
+import static sp.it.pl.layout.widget.Widget.Group.LIBRARY;
+import static sp.it.pl.main.App.APP;
 import static org.reactfx.EventStreams.changesOf;
-import static util.async.AsyncKt.runLater;
-import static util.async.future.Fut.fut;
-import static util.functional.Util.*;
-import static util.graphics.Util.menuItem;
-import static util.graphics.Util.setAnchors;
-import static util.reactive.Util.maintain;
+import static sp.it.pl.util.async.AsyncKt.runLater;
+import static sp.it.pl.util.async.future.Fut.fut;
+import static sp.it.pl.util.functional.Util.*;
+import static sp.it.pl.util.graphics.Util.menuItem;
+import static sp.it.pl.util.graphics.Util.setAnchors;
+import static sp.it.pl.util.reactive.Util.maintain;
 
 @Info(
     author = "Martin Polakovic",
@@ -293,7 +293,7 @@ public class LibraryView extends FXMLController {
 	/******************************** PRIVATE API *********************************/
 
     // applies lvl & fieldFilter
-    @SuppressWarnings({"unchecked", "unused"})
+    @SuppressWarnings({"unchecked", "sp/it/pl/unused"})
     private void applyData(Object o) {
         // rebuild value column
         table.getColumn(VALUE).ifPresent(c -> {

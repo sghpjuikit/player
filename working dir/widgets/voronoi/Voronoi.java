@@ -18,13 +18,13 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.paint.Color;
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.ClassController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.access.V;
-import util.animation.Loop;
-import util.functional.Try;
+import sp.it.pl.util.access.V;
+import sp.it.pl.util.animation.Loop;
+import sp.it.pl.util.functional.Try;
 import static java.lang.Math.PI;
 import static java.lang.Math.cos;
 import static java.lang.Math.min;
@@ -36,10 +36,10 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
-import static util.Util.clip;
-import static util.Util.pyth;
-import static util.functional.Util.by;
-import static util.functional.Util.stream;
+import static sp.it.pl.util.Util.clip;
+import static sp.it.pl.util.Util.pyth;
+import static sp.it.pl.util.functional.Util.by;
+import static sp.it.pl.util.functional.Util.stream;
 
 /**
  * Displays animated Voronoi diagram.
@@ -75,7 +75,7 @@ public class Voronoi extends ClassController  {
 
 	private static class RenderNode extends Canvas {
 		static Random rand = new Random();
-		final Loop loop = new util.animation.Loop(this::loop);
+		final Loop loop = new sp.it.pl.util.animation.Loop(this::loop);
 		final GraphicsContext gc = getGraphicsContext2D();
 		List<Cell> cells;       // delayed initialization
 		P draggedCell = null;   // null if none

@@ -5,22 +5,22 @@ import java.io.File;
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
 
-import gui.objects.image.Thumbnail;
-import layout.widget.Widget;
-import layout.widget.controller.FXMLController;
-import layout.widget.controller.io.IsInput;
-import layout.widget.feature.ImageDisplayFeature;
-import util.async.future.Fut;
-import util.conf.IsConfig;
-import util.graphics.drag.DragUtil;
-import util.validation.Constraint;
+import sp.it.pl.gui.objects.image.Thumbnail;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.FXMLController;
+import sp.it.pl.layout.widget.controller.io.IsInput;
+import sp.it.pl.layout.widget.feature.ImageDisplayFeature;
+import sp.it.pl.util.async.future.Fut;
+import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.graphics.drag.DragUtil;
+import sp.it.pl.util.validation.Constraint;
 
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
-import static layout.widget.Widget.Group.OTHER;
-import static util.async.AsyncKt.FX;
-import static util.validation.Constraint.FileActor.FILE;
-import static util.graphics.Util.setAnchor;
-import static util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.layout.widget.Widget.Group.OTHER;
+import static sp.it.pl.util.async.AsyncKt.FX;
+import static sp.it.pl.util.validation.Constraint.FileActor.FILE;
+import static sp.it.pl.util.graphics.Util.setAnchor;
+import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 
 /**
  * FXML Controller class

@@ -7,20 +7,20 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-import gui.objects.icon.Icon;
-import layout.widget.Widget;
-import layout.widget.Widget.Info;
-import layout.widget.controller.FXMLController;
-import layout.widget.feature.HorizontalDock;
-import util.access.FAccessor;
-import util.access.VarAction;
-import util.conf.Config;
-import util.conf.Config.VarList;
-import util.conf.IsConfig;
-import util.conf.ListConfigurable;
+import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.Widget.Info;
+import sp.it.pl.layout.widget.controller.FXMLController;
+import sp.it.pl.layout.widget.feature.HorizontalDock;
+import sp.it.pl.util.access.FAccessor;
+import sp.it.pl.util.access.VarAction;
+import sp.it.pl.util.conf.Config;
+import sp.it.pl.util.conf.Config.VarList;
+import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.conf.ListConfigurable;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
-import static util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.Util.maintain;
 
 @Info(
     author = "Martin Polakovic",

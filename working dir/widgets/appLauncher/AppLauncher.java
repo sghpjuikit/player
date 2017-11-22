@@ -1,50 +1,50 @@
 package appLauncher;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.objects.grid.GridFileThumbCell;
-import gui.objects.grid.GridFileThumbCell.AnimateOn;
-import gui.objects.grid.GridFileThumbCell.Loader;
-import gui.objects.grid.GridView;
-import gui.objects.grid.GridView.CellSize;
-import gui.objects.hierarchy.Item;
+import sp.it.pl.gui.objects.grid.GridFileThumbCell;
+import sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn;
+import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader;
+import sp.it.pl.gui.objects.grid.GridView;
+import sp.it.pl.gui.objects.grid.GridView.CellSize;
+import sp.it.pl.gui.objects.hierarchy.Item;
 import java.io.File;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
-import util.Sort;
-import util.access.V;
-import util.access.VarEnum;
-import util.access.fieldvalue.FileField;
-import util.async.executor.FxTimer;
-import util.async.future.Fut;
-import util.conf.Config.VarList;
-import util.conf.Config.VarList.Elements;
-import util.conf.IsConfig;
-import util.system.Environment;
-import util.file.FileSort;
-import util.file.FileType;
-import util.graphics.Resolution;
-import util.graphics.drag.DragUtil;
-import util.graphics.drag.Placeholder;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.util.Sort;
+import sp.it.pl.util.access.V;
+import sp.it.pl.util.access.VarEnum;
+import sp.it.pl.util.access.fieldvalue.FileField;
+import sp.it.pl.util.async.executor.FxTimer;
+import sp.it.pl.util.async.future.Fut;
+import sp.it.pl.util.conf.Config.VarList;
+import sp.it.pl.util.conf.Config.VarList.Elements;
+import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.system.Environment;
+import sp.it.pl.util.file.FileSort;
+import sp.it.pl.util.file.FileType;
+import sp.it.pl.util.graphics.Resolution;
+import sp.it.pl.util.graphics.drag.DragUtil;
+import sp.it.pl.util.graphics.drag.Placeholder;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
-import static gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
-import static gui.objects.grid.GridView.CellSize.NORMAL;
+import static sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
+import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static layout.widget.Widget.Group.OTHER;
-import static main.App.APP;
-import static util.Sort.ASCENDING;
-import static util.async.AsyncKt.*;
-import static util.file.FileSort.DIR_FIRST;
-import static util.file.FileType.FILE;
-import static util.functional.Util.by;
-import static util.graphics.Util.setAnchor;
-import static util.graphics.drag.DragUtil.installDrag;
-import static util.system.EnvironmentKt.chooseFile;
+import static sp.it.pl.layout.widget.Widget.Group.OTHER;
+import static sp.it.pl.main.App.APP;
+import static sp.it.pl.util.Sort.ASCENDING;
+import static sp.it.pl.util.async.AsyncKt.*;
+import static sp.it.pl.util.file.FileSort.DIR_FIRST;
+import static sp.it.pl.util.file.FileType.FILE;
+import static sp.it.pl.util.functional.Util.by;
+import static sp.it.pl.util.graphics.Util.setAnchor;
+import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 
 // TODO: remove this widget, use DirViewer instead
 @Widget.Info(
@@ -210,12 +210,12 @@ public class AppLauncher extends ClassController {
 
     private static class FItem extends Item {
 
-        public FItem(Item parent, File value, util.file.FileType type) {
+        public FItem(Item parent, File value, sp.it.pl.util.file.FileType type) {
             super(parent, value, type);
         }
 
         @Override
-        protected FItem createItem(Item parent, File value, util.file.FileType type) {
+        protected FItem createItem(Item parent, File value, sp.it.pl.util.file.FileType type) {
 			return getPortableAppExe(value, type)
 				.map(f -> new FItem(parent, getPortableAppExe(value, type).orElse(null), FileType.FILE))
 				.orElseGet(() -> new FItem(parent, value, type));

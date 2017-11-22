@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import gui.objects.textfield.DecoratedTextField?>
+<?import sp.it.pl.gui.objects.textfield.DecoratedTextField?>
 
 <AnchorPane fx:id="root" maxHeight="-1" maxWidth="-1" minHeight="-1" minWidth="-1" prefHeight="-1" prefWidth="-1" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
    <children>

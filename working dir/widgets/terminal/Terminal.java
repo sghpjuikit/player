@@ -9,15 +9,15 @@ import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
-import util.graphics.drag.Placeholder;
-import static util.functional.Util.stream;
-import static util.graphics.Util.setAnchors;
-import static util.reactive.Util.maintain;
-import static util.reactive.Util.sizeOf;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.util.graphics.drag.Placeholder;
+import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.graphics.Util.setAnchors;
+import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.Util.sizeOf;
 
-@SuppressWarnings("unused")
+@SuppressWarnings("sp/it/pl/unused")
 @Widget.Info(
 		author = "Martin Polakovic",
 		name = "Terminal",

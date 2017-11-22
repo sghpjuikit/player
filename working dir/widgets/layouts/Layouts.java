@@ -8,20 +8,20 @@ import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-import layout.Component;
-import layout.container.layout.Layout;
-import layout.container.switchcontainer.SwitchContainer;
-import layout.widget.Widget;
-import layout.widget.Widget.Group;
-import layout.widget.controller.ClassController;
-import gui.objects.Text;
-import gui.objects.image.Thumbnail;
-import util.system.Environment;
-import util.graphics.fxml.ConventionFxmlLoader;
+import sp.it.pl.layout.Component;
+import sp.it.pl.layout.container.layout.Layout;
+import sp.it.pl.layout.container.switchcontainer.SwitchContainer;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.Widget.Group;
+import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.gui.objects.Text;
+import sp.it.pl.gui.objects.image.Thumbnail;
+import sp.it.pl.util.system.Environment;
+import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
 
 import static java.util.stream.Collectors.toList;
-import static main.App.APP;
-import static util.functional.Util.toCSList;
+import static sp.it.pl.main.App.APP;
+import static sp.it.pl.util.functional.Util.toCSList;
 
 @Widget.Info(
     author = "Martin Polakovic",

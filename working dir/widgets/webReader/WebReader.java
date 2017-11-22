@@ -5,22 +5,22 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import layout.widget.Widget;
-import layout.widget.controller.FXMLController;
-import util.access.V;
-import util.access.VarEnum;
-import util.conf.IsConfig;
-import util.conf.IsConfig.EditMode;
-import util.dev.Dependency;
-import web.DuckDuckGoQBuilder;
-import web.SearchUriBuilder;
-import web.WebBarInterpreter;
-import static main.App.APP;
-import static util.dev.Util.log;
-import static util.file.UtilKt.childOf;
-import static util.reactive.Util.maintain;
-import static util.type.Util.getFieldValue;
-import static util.type.Util.invokeMethodP1;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.FXMLController;
+import sp.it.pl.util.access.V;
+import sp.it.pl.util.access.VarEnum;
+import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.conf.IsConfig.EditMode;
+import sp.it.pl.util.dev.Dependency;
+import sp.it.pl.web.DuckDuckGoQBuilder;
+import sp.it.pl.web.SearchUriBuilder;
+import sp.it.pl.web.WebBarInterpreter;
+import static sp.it.pl.main.App.APP;
+import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.file.UtilKt.childOf;
+import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.type.Util.getFieldValue;
+import static sp.it.pl.util.type.Util.invokeMethodP1;
 
 /**
  * Web browser component.

@@ -1,12 +1,12 @@
 package dirViewer;
 
-import gui.objects.grid.GridFileThumbCell;
-import gui.objects.grid.GridFileThumbCell.AnimateOn;
-import gui.objects.grid.GridFileThumbCell.Loader;
-import gui.objects.grid.GridView;
-import gui.objects.grid.GridView.CellSize;
-import gui.objects.hierarchy.Item;
-import gui.objects.image.Thumbnail.FitFrom;
+import sp.it.pl.gui.objects.grid.GridFileThumbCell;
+import sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn;
+import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader;
+import sp.it.pl.gui.objects.grid.GridView;
+import sp.it.pl.gui.objects.grid.GridView.CellSize;
+import sp.it.pl.gui.objects.hierarchy.Item;
+import sp.it.pl.gui.objects.image.Thumbnail.FitFrom;
 import java.io.File;
 import java.util.Comparator;
 import java.util.List;
@@ -16,62 +16,62 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.ScrollEvent;
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
-import util.access.ref.LazyR;
-import util.Sort;
-import util.access.V;
-import util.access.VarEnum;
-import util.access.fieldvalue.FileField;
-import util.async.future.Fut;
-import util.conf.Config.VarList;
-import util.conf.Config.VarList.Elements;
-import util.conf.IsConfig;
-import util.conf.IsConfig.EditMode;
-import util.system.Environment;
-import util.file.FileFlatter;
-import util.file.FileSort;
-import util.file.mimetype.MimeTypes;
-import util.functional.Functors.PƑ0;
-import util.graphics.Resolution;
-import util.graphics.drag.DragUtil;
-import util.graphics.drag.Placeholder;
-import util.validation.Constraint;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.util.access.ref.LazyR;
+import sp.it.pl.util.Sort;
+import sp.it.pl.util.access.V;
+import sp.it.pl.util.access.VarEnum;
+import sp.it.pl.util.access.fieldvalue.FileField;
+import sp.it.pl.util.async.future.Fut;
+import sp.it.pl.util.conf.Config.VarList;
+import sp.it.pl.util.conf.Config.VarList.Elements;
+import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.conf.IsConfig.EditMode;
+import sp.it.pl.util.system.Environment;
+import sp.it.pl.util.file.FileFlatter;
+import sp.it.pl.util.file.FileSort;
+import sp.it.pl.util.file.mimetype.MimeTypes;
+import sp.it.pl.util.functional.Functors.PƑ0;
+import sp.it.pl.util.graphics.Resolution;
+import sp.it.pl.util.graphics.drag.DragUtil;
+import sp.it.pl.util.graphics.drag.Placeholder;
+import sp.it.pl.util.validation.Constraint;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
-import static gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
-import static gui.objects.grid.GridView.CellSize.NORMAL;
+import static sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
+import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static java.util.Comparator.nullsLast;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
-import static layout.widget.Widget.Group.OTHER;
-import static main.App.APP;
-import static main.AppBuildersKt.appTooltipForData;
-import static util.Sort.ASCENDING;
-import static util.Util.capitalize;
-import static util.async.AsyncKt.FX;
-import static util.async.AsyncKt.newSingleDaemonThreadExecutor;
-import static util.async.AsyncKt.newThreadPoolExecutor;
-import static util.async.AsyncKt.onlyIfMatches;
-import static util.async.AsyncKt.runAfter;
-import static util.async.AsyncKt.runFX;
-import static util.async.AsyncKt.runLater;
-import static util.async.AsyncKt.threadFactory;
-import static util.file.FileSort.DIR_FIRST;
-import static util.file.FileType.DIRECTORY;
-import static util.file.Util.getCommonRoot;
-import static util.file.Util.getSuffix;
-import static util.file.mimetype.MimeTypesKt.mimeType;
-import static util.functional.Util.by;
-import static util.functional.Util.list;
-import static util.functional.Util.map;
-import static util.functional.Util.max;
-import static util.functional.Util.stream;
-import static util.graphics.Util.setAnchor;
-import static util.reactive.Util.maintain;
-import static util.system.EnvironmentKt.chooseFile;
+import static sp.it.pl.layout.widget.Widget.Group.OTHER;
+import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppBuildersKt.appTooltipForData;
+import static sp.it.pl.util.Sort.ASCENDING;
+import static sp.it.pl.util.Util.capitalize;
+import static sp.it.pl.util.async.AsyncKt.FX;
+import static sp.it.pl.util.async.AsyncKt.newSingleDaemonThreadExecutor;
+import static sp.it.pl.util.async.AsyncKt.newThreadPoolExecutor;
+import static sp.it.pl.util.async.AsyncKt.onlyIfMatches;
+import static sp.it.pl.util.async.AsyncKt.runAfter;
+import static sp.it.pl.util.async.AsyncKt.runFX;
+import static sp.it.pl.util.async.AsyncKt.runLater;
+import static sp.it.pl.util.async.AsyncKt.threadFactory;
+import static sp.it.pl.util.file.FileSort.DIR_FIRST;
+import static sp.it.pl.util.file.FileType.DIRECTORY;
+import static sp.it.pl.util.file.Util.getCommonRoot;
+import static sp.it.pl.util.file.Util.getSuffix;
+import static sp.it.pl.util.file.mimetype.MimeTypesKt.mimeType;
+import static sp.it.pl.util.functional.Util.by;
+import static sp.it.pl.util.functional.Util.list;
+import static sp.it.pl.util.functional.Util.map;
+import static sp.it.pl.util.functional.Util.max;
+import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.graphics.Util.setAnchor;
+import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 
 @Widget.Info(
         author = "Martin Polakovic",
@@ -361,12 +361,12 @@ public class DirViewer extends ClassController {
 
     private class FItem extends Item {
 
-        public FItem(Item parent, File value, util.file.FileType type) {
+        public FItem(Item parent, File value, sp.it.pl.util.file.FileType type) {
             super(parent, value, type);
         }
 
         @Override
-        protected Item createItem(Item parent, File value, util.file.FileType type) {
+        protected Item createItem(Item parent, File value, sp.it.pl.util.file.FileType type) {
             return new FItem(parent, value, type);
         }
 
@@ -394,8 +394,8 @@ public class DirViewer extends ClassController {
     }
 
     /**
-     * Filter summary: because we can not yet serialize functions (see {@link util.functional.Functors} and
-     * {@link util.parsing.Parser}) in  a way that stores (e.g. negation or function chaining), we do not use
+     * Filter summary: because we can not yet serialize functions (see {@link sp.it.pl.util.functional.Functors} and
+     * {@link sp.it.pl.util.parsing.Parser}) in  a way that stores (e.g. negation or function chaining), we do not use
      * predicates from function pool, but hardcoded filters, which we look up by name.
      * <p/>
      * We use String config field to save which filter we use. Of course, we give up filter chaining and other stuff...

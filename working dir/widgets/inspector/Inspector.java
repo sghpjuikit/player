@@ -12,17 +12,17 @@ import javafx.scene.Node;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
-import layout.widget.controller.io.Output;
-import layout.widget.feature.FileExplorerFeature;
-import gui.objects.tree.TreeItems;
-import util.graphics.drag.DragUtil;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.layout.widget.controller.io.Output;
+import sp.it.pl.layout.widget.feature.FileExplorerFeature;
+import sp.it.pl.gui.objects.tree.TreeItems;
+import sp.it.pl.util.graphics.drag.DragUtil;
 
-import static layout.widget.Widget.Group.APP;
+import static sp.it.pl.layout.widget.Widget.Group.APP;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
-import static util.graphics.Util.setAnchor;
+import static sp.it.pl.util.graphics.Util.setAnchor;
 
 @Widget.Info(
     author = "Martin Polakovic",

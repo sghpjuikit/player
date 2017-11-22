@@ -41,9 +41,9 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
-import gui.itemnode.ConfigField;
-import gui.objects.Text;
-import gui.objects.icon.Icon;
+import sp.it.pl.gui.itemnode.ConfigField;
+import sp.it.pl.gui.objects.Text;
+import sp.it.pl.gui.objects.icon.Icon;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -80,9 +80,9 @@ import javafx.scene.text.Font;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Scale;
 import javafx.util.Duration;
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
-import main.App;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.main.App;
 import org.gamepad4j.ButtonID;
 import org.gamepad4j.Controllers;
 import org.gamepad4j.DpadDirection;
@@ -92,19 +92,19 @@ import org.gamepad4j.IControllerListener;
 import org.gamepad4j.StickID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.access.V;
-import util.access.VarEnum;
-import util.animation.Anim;
-import util.conf.Config.ConfigurableVarList;
-import util.conf.Configurable;
-import util.conf.IsConfig;
-import util.conf.IsConfig.EditMode;
-import util.conf.ListConfigurable;
-import util.functional.Functors.Ƒ0;
-import util.functional.Functors.Ƒ1;
-import util.functional.Functors.Ƒ5;
-import util.functional.Util;
-import util.validation.Constraint;
+import sp.it.pl.util.access.V;
+import sp.it.pl.util.access.VarEnum;
+import sp.it.pl.util.animation.Anim;
+import sp.it.pl.util.conf.Config.ConfigurableVarList;
+import sp.it.pl.util.conf.Configurable;
+import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.conf.IsConfig.EditMode;
+import sp.it.pl.util.conf.ListConfigurable;
+import sp.it.pl.util.functional.Functors.Ƒ0;
+import sp.it.pl.util.functional.Functors.Ƒ1;
+import sp.it.pl.util.functional.Functors.Ƒ5;
+import sp.it.pl.util.functional.Util;
+import sp.it.pl.util.validation.Constraint;
 import static comet.Comet.Constants.FPS;
 import static comet.Comet.Constants.PLAYER_ABILITY_INITIAL;
 import static comet.Utils.AbilityKind.SHIELD;
@@ -192,31 +192,31 @@ import static javafx.scene.paint.CycleMethod.NO_CYCLE;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.minutes;
 import static javafx.util.Duration.seconds;
-import static util.Util.clip;
-import static util.Util.pyth;
-import static util.animation.Anim.map01To010;
-import static util.animation.Anim.mapTo01;
-import static util.functional.Util.by;
-import static util.functional.Util.filter;
-import static util.functional.Util.findFirstInt;
-import static util.functional.Util.forEachInLineBy;
-import static util.functional.Util.forEachOnCircleBy;
-import static util.functional.Util.forEachPair;
-import static util.functional.Util.list;
-import static util.functional.Util.listF;
-import static util.functional.Util.mapB;
-import static util.functional.Util.minBy;
-import static util.functional.Util.repeat;
-import static util.functional.Util.set;
-import static util.functional.Util.stream;
-import static util.graphics.Util.computeFontHeight;
-import static util.graphics.Util.computeFontWidth;
-import static util.graphics.Util.layHorizontally;
-import static util.graphics.Util.layStack;
-import static util.graphics.Util.setAnchor;
-import static util.reactive.Util.maintain;
+import static sp.it.pl.util.Util.clip;
+import static sp.it.pl.util.Util.pyth;
+import static sp.it.pl.util.animation.Anim.map01To010;
+import static sp.it.pl.util.animation.Anim.mapTo01;
+import static sp.it.pl.util.functional.Util.by;
+import static sp.it.pl.util.functional.Util.filter;
+import static sp.it.pl.util.functional.Util.findFirstInt;
+import static sp.it.pl.util.functional.Util.forEachInLineBy;
+import static sp.it.pl.util.functional.Util.forEachOnCircleBy;
+import static sp.it.pl.util.functional.Util.forEachPair;
+import static sp.it.pl.util.functional.Util.list;
+import static sp.it.pl.util.functional.Util.listF;
+import static sp.it.pl.util.functional.Util.mapB;
+import static sp.it.pl.util.functional.Util.minBy;
+import static sp.it.pl.util.functional.Util.repeat;
+import static sp.it.pl.util.functional.Util.set;
+import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.graphics.Util.computeFontHeight;
+import static sp.it.pl.util.graphics.Util.computeFontWidth;
+import static sp.it.pl.util.graphics.Util.layHorizontally;
+import static sp.it.pl.util.graphics.Util.layStack;
+import static sp.it.pl.util.graphics.Util.setAnchor;
+import static sp.it.pl.util.reactive.Util.maintain;
 
-@SuppressWarnings({"unused","UnnecessaryLocalVariable"})
+@SuppressWarnings({"sp/it/pl/unused","UnnecessaryLocalVariable"})
 @Widget.Info(
 	author = "Martin Polakovic",
 	name = "Comet",
@@ -1567,7 +1567,7 @@ public class Comet extends ClassController {
 			return mass;// * (dx*dy);
 		}
 
-		@SuppressWarnings("unused")
+		@SuppressWarnings("sp/it/pl/unused")
 		double kineticEto(SO o) {
 //            return 0.5 * mass * (dx*dx+dy*dy); // 0.5mv^2
 			return mass;// * (dx*dy);

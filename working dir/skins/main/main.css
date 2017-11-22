@@ -938,7 +938,7 @@
  */
 
 .slider {
-    -fx-skin: "gui.objects.ImprovedSliderSkin";
+    -fx-skin: "sp.it.pl.gui.objects.ImprovedSliderSkin";
 }
 .slider .thumb {
     -fx-background-color: -fx-def-font-color;
@@ -977,7 +977,7 @@
  ******************************************************************************/
 
 .scroll-bar {
-    -fx-skin: "gui.objects.ImprovedScrollBarSkin";
+    -fx-skin: "sp.it.pl.gui.objects.ImprovedScrollBarSkin";
     -fx-background-color: null;
     -fx-background-insets: 0, 1 0 1 0;
 }
@@ -1896,7 +1896,7 @@
 *******************************************************************************/
 /*
 .split-pane {
-    -fx-skin: "gui.objects.ImprovedSplitPaneSkin";
+    -fx-skin: "sp.it.pl.gui.objects.ImprovedSplitPaneSkin";
 }
 */
 .split-pane:horizontal > .split-pane-divider {
@@ -3638,7 +3638,7 @@ check-icon-disabling:selected {
  */
 
 .seeker {
-    -fx-skin: "gui.objects.seeker.SeekerSkin";
+    -fx-skin: "sp.it.pl.gui.objects.seeker.SeekerSkin";
 }
 .seeker .thumb {}
 .seeker .thumb:hover,

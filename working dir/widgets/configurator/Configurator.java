@@ -1,10 +1,10 @@
 package configurator;
 
-import gui.itemnode.ConfigField;
-import gui.objects.icon.Icon;
-import gui.objects.tree.TreeItems;
-import gui.objects.tree.TreeItems.Name;
-import gui.pane.ConfigPane;
+import sp.it.pl.gui.itemnode.ConfigField;
+import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.gui.objects.tree.TreeItems;
+import sp.it.pl.gui.objects.tree.TreeItems.Name;
+import sp.it.pl.gui.pane.ConfigPane;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,23 +17,23 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
-import layout.widget.feature.ConfiguringFeature;
-import main.App;
-import util.conf.Config;
-import util.conf.Configurable;
-import util.graphics.fxml.ConventionFxmlLoader;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.layout.widget.feature.ConfiguringFeature;
+import sp.it.pl.main.App;
+import sp.it.pl.util.conf.Config;
+import sp.it.pl.util.conf.Configurable;
+import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.HOME;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.REFRESH;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.SINGLE;
-import static main.App.APP;
-import static util.functional.Util.map;
-import static util.functional.Util.stream;
-import static util.functional.UtilKt.seqRec;
-import static util.graphics.Util.expandAndSelectTreeItem;
+import static sp.it.pl.main.App.APP;
+import static sp.it.pl.util.functional.Util.map;
+import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.functional.UtilKt.seqRec;
+import static sp.it.pl.util.graphics.Util.expandAndSelectTreeItem;
 
 @Widget.Info(
 		author = "Martin Polakovic",

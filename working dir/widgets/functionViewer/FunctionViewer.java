@@ -13,17 +13,17 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 
-import gui.itemnode.ConfigField;
-import layout.widget.Widget;
-import layout.widget.controller.ClassController;
-import util.access.V;
-import util.conf.Config;
-import util.functional.StrExF;
+import sp.it.pl.gui.itemnode.ConfigField;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.util.access.V;
+import sp.it.pl.util.conf.Config;
+import sp.it.pl.util.functional.StrExF;
 
 import static java.lang.Math.max;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static layout.widget.Widget.Group.DEVELOPMENT;
-import static util.graphics.Util.setAnchors;
+import static sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT;
+import static sp.it.pl.util.graphics.Util.setAnchors;
 
 @Widget.Info(
     author = "Martin Polakovic",

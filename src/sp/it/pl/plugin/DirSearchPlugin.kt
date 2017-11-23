@@ -38,7 +38,7 @@ class DirSearchPlugin: PluginBase(NAME) {
     @IsConfig(name = "Search depth", group = GROUP)
     private val searchDepth = v(2)
 
-    @Suppress("sp/it/pl/unused")
+    @Suppress("unused")
     @IsConfig(name = "Re-index", group = GROUP)
     private val searchDo = RunnableConfig("reindex", "Update cache", GROUP, "", { updateCache() })
 

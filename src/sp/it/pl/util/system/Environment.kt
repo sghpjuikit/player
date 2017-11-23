@@ -76,7 +76,7 @@ fun saveFile(title: String, initial: File?, initialName: String, w: Window, vara
 
 /** @return file representing the currently used wallpaper or null if error not supported */
 fun Screen.getWallpaperFile(): File? =
-        if (Os.WINDOWS.isCurrent()) {
+        if (Os.WINDOWS.isCurrent) {
             val path = Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, "Control Panel\\Desktop", "Wallpaper")
             val isMultiWallpaper = path.endsWith("TranscodedWallpaper")
             if (isMultiWallpaper) {

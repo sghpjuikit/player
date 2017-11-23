@@ -85,8 +85,9 @@ import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
 import static sp.it.pl.util.math.Util.millis;
 import static sp.it.pl.util.system.Environment.browse;
 import static sp.it.pl.util.type.Util.getEnumConstants;
+import static sp.it.pl.util.type.Util.getFieldValue;
 
-@SuppressWarnings("sp/it/pl/unused")
+@SuppressWarnings("unused")
 @IsActionable("Shortcuts")
 public class AppActions {
 
@@ -214,10 +215,8 @@ public class AppActions {
 		APP.actionAppPane.show(APP);
 	}
 
-	// TODO: is this even needed anymore? It improves UX, but its kind of unnecessary
 	@IsAction(name = "Open", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
 	public void openOpen() {
-//			APP.actionAppPane.show(Void.class, null, false,
 		APP.actionPane.show(Void.class, null, false,
 			new FastAction<>(
 				"Open widget",
@@ -413,7 +412,7 @@ public class AppActions {
 	public void inspectObjectInInspector(Object o) {
 		App.APP.widgetManager.find("Inspector", WidgetSource.OPEN, true)
 			.ifPresent(w ->
-				((TreeView) sp.it.pl.util.type.Util.getFieldValue(w.getController(), "tree"))    // TODO: improve
+				((TreeView) getFieldValue(w.getController(), "tree"))    // TODO: improve
 					.getRoot().getChildren()
 					.add(TreeItems.tree(o))
 			);

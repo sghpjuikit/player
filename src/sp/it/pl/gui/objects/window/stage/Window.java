@@ -45,7 +45,6 @@ import sp.it.pl.util.action.Action;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
 import sp.it.pl.util.conf.IsConfigurable;
-import sp.it.pl.util.graphics.UtilKt;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
@@ -376,7 +375,7 @@ public class Window extends WindowBase {
 		Icon miniB = new Icon(null, 13, Action.get("Mini mode"));
 		maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP, ANGLE_UP), miniB::icon);
 		Icon onTopB = new Icon(null, 13, "Always on top\n\nForbid hiding this window behind other "
-			+ "application windows", this::toggleAlwaysOnTOp);
+			+ "application windows", this::toggleAlwaysOnTop);
 		maintain(alwaysOnTop, mapB(SQUARE, SQUARE_ALT), onTopB::icon);
 		Icon fullsB = new Icon(null, 13, "Fullscreen\n\nExpand window to span whole screen and "
 			+ "put it on top", this::toggleFullscreen).scale(1.3);
@@ -611,7 +610,7 @@ public class Window extends WindowBase {
 
 	@Override
 	public void close() {
-		LOGGER.info("Closing{} window. {} windows currently open.", isMain.get() ? "sp/it/pl/main" : "", WINDOWS.size());
+		LOGGER.info("Closing{} window. {} windows currently open.", isMain.get() ? "main" : "", WINDOWS.size());
 		if (isMain.get()) {
 			APP.close();
 		} else {
@@ -680,7 +679,7 @@ public class Window extends WindowBase {
 
 		double X = e.getScreenX();
 		double Y = e.getScreenY();
-		Screen screen = UtilKt.getScreen(X, Y);     // TODO: this should be centre
+		Screen screen = getScreen();
 
 		double SWm = screen.getBounds().getMinX();
 		double SHm = screen.getBounds().getMinY();
@@ -716,11 +715,10 @@ public class Window extends WindowBase {
 		else if (Y<SH - SH5) to = Maximized.RIGHT;
 		else to = Maximized.RIGHT_BOTTOM;
 
-		setScreen(screen);
 		setMaximized(mouseSpeed<100 ? to : isMaximized());
 	}
 
-	@SuppressWarnings("sp/it/pl/unused")
+	@SuppressWarnings("unused")
 	private void moveEnd(MouseEvent e) {
 		isMoving.set(false);
 		if (mouseMonitor!=null) mouseMonitor.unsubscribe();

@@ -24,8 +24,7 @@ import sp.it.pl.util.validation.Constraint.PasswordNonEmpty;
 import sp.it.pl.util.validation.Constraint.StringNonEmpty;
 import static sp.it.pl.util.dev.Util.log;
 
-// TODO: make thread-safe
-// TODO: remvoe static, implement Service
+// TODO: make thread-safe, remove static, implement Service
 @IsConfigurable("LastFM")
 public class LastFM {
 

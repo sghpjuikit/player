@@ -140,6 +140,7 @@ import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.NEW;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static sp.it.pl.main.AppActionsKt.addToLibraryConsumer;
 import static sp.it.pl.util.async.AsyncKt.run;
+import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.Util.isValidatedDirectory;
 import static sp.it.pl.util.functional.Util.list;
@@ -154,7 +155,7 @@ import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
  * Single instance:<br>
  * Application can only instantiate single instance, any subsequent call to constructor throws an exception.
  */
-@SuppressWarnings({"WeakerAccess", "sp/it/pl/unused", "Convert2Diamond"})
+@SuppressWarnings({"WeakerAccess", "unused", "Convert2Diamond"})
 @IsConfigurable("General")
 public class App extends Application implements Configurable {
 
@@ -225,9 +226,6 @@ public class App extends Application implements Configurable {
 	 * Directory containing user gui state.
 	 */ public final File DIR_LAYOUTS = new File(DIR_USERDATA, "layouts");
 	/**
-	 * Directory containing playlists.
-	 */ public final File DIR_PLAYLISTS = new File(DIR_USERDATA, "playlists");
-	/**
 	 * Directory containing application resources.
 	 */ public final File DIR_RESOURCES = new File(DIR_APP, "resources");
 	/**
@@ -268,7 +266,7 @@ public class App extends Application implements Configurable {
 	/**
 	 * Observable {@link System#out}
 	 */ public final SystemOutListener systemout = new SystemOutListener();
-	public final UncaughtExceptionHandler uncaughtExceptionHandler = (thread,ex) -> sp.it.pl.util.dev.Util.log(App.class).error("Uncaught exception", ex);
+	public final UncaughtExceptionHandler uncaughtExceptionHandler = (thread,ex) -> log(App.class).error("Uncaught exception", ex);
 
 	public final MimeTypes mimeTypes = MimeTypes.INSTANCE;
 	public final ClassName className = new ClassName();
@@ -345,21 +343,20 @@ public class App extends Application implements Configurable {
 	@IsConfig(info = "Preferred text when multiple tag values per field. This value can be overridden.")
 	public String TAG_MULTIPLE_VALUE = "<multi>";
 
-	// TODO: use a Quality enum LOW/HIGH
 	@Constraint.MinMax(min=10, max=60)
 	@IsConfig(info = "Update frequency in Hz for performance-heavy animations.")
 	public double animationFps = 60.0;
 
 	@IsConfig(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")
 	public final VarEnum<Level> logLevelConsole = new VarEnum<Level>(Level.DEBUG,
-			() -> list(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF),
+			list(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF),
 			l -> changeLogBackLoggerAppenderLevel("STDOUT", l)
 	);
 
 	@IsConfig(name = "Level (file)", group = "Logging", info = "Logging level for logging to file")
 	public final VarEnum<Level> logLevelFile = new VarEnum<Level>(Level.WARN,
-			() -> list(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF),
-			l -> changeLogBackLoggerAppenderLevel("STDOUT", l)
+			list(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF),
+			l -> changeLogBackLoggerAppenderLevel("FILE", l)
 	);
 
 	public App() {
@@ -468,6 +465,22 @@ public class App extends Application implements Configurable {
 			stream(PlaylistItem.Field.FIELDS)
 					.filter(TypedValue::isTypeString)
 					.collect(toMap(ObjectField::name, f -> (String)f.getOf(p)))
+		);
+
+		// enumerate instances
+		instances.addInstance(SearchUriBuilder.class,
+			DuckDuckGoQBuilder.INSTANCE,
+			DuckDuckGoImageQBuilder.INSTANCE,
+			WikipediaQBuilder.INSTANCE,
+			BingImageSearchQBuilder.INSTANCE,
+			GoogleImageQBuilder.INSTANCE
+		);
+		instances.addInstance(RatingCellFactory.class,
+			BarRatingCellFactory.INSTANCE,
+			HyphenRatingCellFactory.INSTANCE,
+			TextStarRatingCellFactory.INSTANCE,
+			NumberRatingCellFactory.INSTANCE,
+			RatingRatingCellFactory.INSTANCE
 		);
 
 		// register actions
@@ -650,7 +663,6 @@ public class App extends Application implements Configurable {
 		// listen to other application instance launches
 		try {
 			appCommunicator.start();
-			// process app parameters of newly started instance
 			appCommunicator.onNewInstanceHandlers.add(parameterProcessor::process);
 		} catch (RemoteException e) {
 			LOGGER.warn("App instance communicator failed to start.", e);
@@ -682,21 +694,6 @@ public class App extends Application implements Configurable {
 		}
 
 		isInitialized = Try.tryCatchAll(() -> {
-				// enumerate instances
-				instances.addInstance(SearchUriBuilder.class,
-					DuckDuckGoQBuilder.INSTANCE,
-					DuckDuckGoImageQBuilder.INSTANCE,
-					WikipediaQBuilder.INSTANCE,
-					BingImageSearchQBuilder.INSTANCE,
-					GoogleImageQBuilder.INSTANCE
-				);
-				instances.addInstance(RatingCellFactory.class,
-					BarRatingCellFactory.INSTANCE,
-					HyphenRatingCellFactory.INSTANCE,
-					TextStarRatingCellFactory.INSTANCE,
-					NumberRatingCellFactory.INSTANCE,
-					RatingRatingCellFactory.INSTANCE
-				);
 
 				widgetManager.initialize();
 
@@ -765,16 +762,10 @@ public class App extends Application implements Configurable {
 				List<String> ps = fetchParameters();
 				normalLoad &= ps.stream().noneMatch(s -> s.endsWith(".fxwl") || widgetManager.factories.get(s)!=null);
 
-				// use for faster widget testing
-				// Set project to run with application parameters and use widget name
-				// This will only load the widget and start app faster
-				// normalLoad = false;
-
 				// load windows, layouts, widgets
 				// we must apply skin before we load graphics, solely because if skin defines custom
 				// Control Skins, it will only have effect when set before control is created
-				// and yes, this means reapplying different skin will have no effect in this regard...
-				configuration.getFields(f -> f.getGroup().equals("Gui") && f.getGuiName().equals("Skin")).get(0).applyValue();
+				configuration.getFields(f -> f.getGroup().equals("Gui") && f.getGuiName().equals("Skin")).findFirst().get().applyValue();
 				windowManager.deserialize(normalLoad);
 
 				isInitialized = true;

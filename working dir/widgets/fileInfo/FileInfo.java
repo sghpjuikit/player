@@ -1,17 +1,7 @@
 package fileInfo;
 
-import sp.it.pl.audio.Item;
-import sp.it.pl.audio.Player;
-import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.audio.tagging.Metadata.Field;
-import sp.it.pl.audio.tagging.MetadataWriter;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
-import sp.it.pl.gui.objects.image.ThumbnailWithAdd;
-import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
-import sp.it.pl.gui.objects.rating.Rating;
-import sp.it.pl.gui.pane.ActionPane.SlowAction;
-import sp.it.pl.gui.pane.ImageFlowPane;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,6 +16,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
+import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Player;
+import sp.it.pl.audio.tagging.Metadata;
+import sp.it.pl.audio.tagging.Metadata.Field;
+import sp.it.pl.audio.tagging.MetadataWriter;
+import sp.it.pl.gui.objects.image.ThumbnailWithAdd;
+import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
+import sp.it.pl.gui.objects.rating.Rating;
+import sp.it.pl.gui.pane.ActionPane.SlowAction;
+import sp.it.pl.gui.pane.ImageFlowPane;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
@@ -41,6 +41,17 @@ import sp.it.pl.util.conf.Config.PropertyConfig;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.graphics.drag.DragUtil;
+import static java.lang.Double.max;
+import static java.lang.Math.ceil;
+import static java.lang.Math.floor;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+import static javafx.geometry.Orientation.VERTICAL;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.TOP_LEFT;
+import static javafx.scene.control.OverrunStyle.ELLIPSIS;
+import static kotlin.collections.CollectionsKt.mapIndexed;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM_ARTIST;
 import static sp.it.pl.audio.tagging.Metadata.Field.ARTIST;
@@ -65,16 +76,6 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TRACKS_TOTAL;
 import static sp.it.pl.audio.tagging.Metadata.Field.TRACK_INFO;
 import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY;
-import static java.lang.Double.max;
-import static java.lang.Math.ceil;
-import static java.lang.Math.floor;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
-import static javafx.geometry.Orientation.VERTICAL;
-import static javafx.geometry.Pos.CENTER_LEFT;
-import static javafx.geometry.Pos.TOP_LEFT;
-import static javafx.scene.control.OverrunStyle.ELLIPSIS;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.App.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -87,9 +88,6 @@ import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.hasAudio;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 
-/**
- * File info widget controller.
- */
 @Widget.Info(
     author = "Martin Polakovic",
     name = "File Info",
@@ -119,34 +117,20 @@ public class FileInfo extends FXMLController implements SongReader {
                         gap2 = new Label(" "),
                         gap3 = new Label(" ");
     private final List<Label> labels = new ArrayList<>();
-    private final List<LField> fields = list(
-        new LField(TITLE,0),
-        new LField(TRACK_INFO,1),
-        new LField(DISCS_INFO,2),
-        new LField(LENGTH,3),
-        new LField(ARTIST,4),
-        new LField(ALBUM,5),
-        new LField(ALBUM_ARTIST,6),
-        new LField(YEAR,7),
-        new LField(GENRE,8),
-        new LField(COMPOSER,9),
-        new LField(PUBLISHER,10),
-        new LField(CATEGORY,11),
-        new LField(RATING,12),
-        new LField(PLAYCOUNT,13),
-        new LField(COMMENT,14),
-        new LField(FILESIZE,15),
-        new LField(FILENAME,16),
-        new LField(FORMAT,17),
-        new LField(BITRATE,18),
-        new LField(ENCODING,19),
-        new LField(PATH,20)
+    private final List<LField> fields = mapIndexed(
+        list(
+            TITLE, TRACK_INFO, DISCS_INFO, LENGTH, ARTIST,
+            ALBUM, ALBUM_ARTIST, YEAR, GENRE, COMPOSER,
+            PUBLISHER, CATEGORY, RATING, PLAYCOUNT, COMMENT,
+            FILESIZE, FILENAME, FORMAT, BITRATE, ENCODING, PATH
+        ),
+        (i,f) -> new LField(f,i)
     );
     private final LField rating = fields.get(12);
 
     private Output<Metadata> data_out;
     private Metadata data = Metadata.EMPTY;
-	private final HandlerLast<Item> dataReading = EventReducer.toLast(200, this::setValue);
+    private final HandlerLast<Item> dataReading = EventReducer.toLast(200, this::setValue);
 
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
     public final V<Double> minColumnWidth = new V<>(150.0, tiles::layout);
@@ -173,12 +157,12 @@ public class FileInfo extends FXMLController implements SongReader {
         data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
 
         // keep updated content (unless the content is scheduled for change, then this could cause invalid content)
-	    d(Player.onItemRefresh(refreshed -> {
-        	if (!dataReading.hasEventsQueued())
-	            refreshed.ifHasE(data, this::read);
+        d(Player.onItemRefresh(refreshed -> {
+            if (!dataReading.hasEventsQueued())
+                refreshed.ifHasE(data, this::read);
         }));
 
-        cover.getPane().setDisable(true); // TODO: should be handled differently, either init all or none
+        cover.getPane().setDisable(true);
         cover.setBackgroundVisible(false);
         cover.setBorderToImage(false);
         cover.onFileDropped = fut_file ->
@@ -284,7 +268,7 @@ public class FileInfo extends FXMLController implements SongReader {
     }
 
     private void setValue(Metadata m) {
-	    if (!allowNoContent && m==Metadata.EMPTY) return; // no empty content if desired
+        if (!allowNoContent && m==Metadata.EMPTY) return; // no empty content if desired
 
         // remember data
         data = m;
@@ -336,8 +320,6 @@ public class FileInfo extends FXMLController implements SongReader {
     private void setOverrun(OverrunStyle os) {
         fields.forEach(l -> l.setTextOverrun(os));
     }
-
-/**************************************************************************************************/
 
     private void setAsCover(File file, boolean setAsCover) {
         if (file==null) return;

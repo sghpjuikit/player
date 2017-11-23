@@ -59,7 +59,6 @@ import static sp.it.pl.util.type.Util.getSuperClassesInc;
 import static sp.it.pl.util.type.Util.isEnum;
 import static sp.it.pl.util.type.Util.unPrimitivize;
 
-// TODO: fix all warnings
 public class FunctorPool {
 
 	// functor pools must not be accessed directly, as accessor must insert IDENTITY functor
@@ -231,8 +230,6 @@ public class FunctorPool {
 		addPredicatesComparable(Double.class, 0d);
 		addPredicatesComparable(Float.class, 0f);
 
-		// TODO: read from APP.classFields
-		// fielded values
 		for (Metadata.Field f : Metadata.Field.FIELDS)
 			add(f.name(), Metadata.class, f.getType(), m -> (f).getOf(m));
 		for (PlaylistItem.Field f : PlaylistItem.Field.FIELDS)

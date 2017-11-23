@@ -142,14 +142,12 @@ public class Configuration {
 		configs.remove(config);
 	}
 
-	// TODO: add more drop implementations for convenience
-
 	public List<Config> getFields() {
 		return new ArrayList<>(configs);
 	}
 
-	public List<Config> getFields(Predicate<Config> condition) {
-		return stream(getFields()).filter(condition).collect(toList());
+	public Stream<Config> getFields(Predicate<Config> condition) {
+		return getFields().stream().filter(condition);
 	}
 
 	/** Changes all config fields to their default value and applies them */

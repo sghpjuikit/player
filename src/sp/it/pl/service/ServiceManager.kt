@@ -31,7 +31,7 @@ class ServiceManager {
     fun <S: Service> use(type: Class<S>, action: Consumer<in S>) =
             getService(type).filter { it.isRunning() } .ifPresent(action)
 
-    @Suppress("UNCHECKED_CAST", "sp/it/pl/unused")
+    @Suppress("UNCHECKED_CAST", "unused")
     fun <S : Service> acquire(type: Class<S>): Subscription {
         val service = services.computeIfAbsent(type) { instantiate(it as Class<S>) } as S
         if (!service.isRunning()) service.start()

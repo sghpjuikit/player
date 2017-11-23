@@ -13,7 +13,6 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -168,10 +167,6 @@ public class WindowBase {
 		if (FullProp.get()) run(322, () -> setFullscreen(true));
 	}
 
-	private void updateScreen() {
-		screen = sp.it.pl.util.graphics.UtilKt.getScreen(getCenterXY());
-	}
-
 	/**
 	 * WARNING: Don't use the stage for positioning, maximizing and other
 	 * functionalities already defined in this class!!
@@ -223,6 +218,10 @@ public class WindowBase {
 		return screen;
 	}
 
+	private void updateScreen() {
+		screen = sp.it.pl.util.graphics.UtilKt.getScreen(getCenter());
+	}
+
 	/**
 	 * The value of the property resizable
 	 * see {@link #setAlwaysOnTop(boolean)}
@@ -242,7 +241,7 @@ public class WindowBase {
 		s.setAlwaysOnTop(val);
 	}
 
-	public void toggleAlwaysOnTOp() {
+	public void toggleAlwaysOnTop() {
 		s.setAlwaysOnTop(!s.isAlwaysOnTop());
 	}
 
@@ -499,17 +498,22 @@ public class WindowBase {
 		setXY(x, y, true);
 	}
 
-	/** Centers this window on ita screen. */
-	public void setXYScreenCenter() {
-		Rectangle2D b = screen.getBounds();
+	/** Centers this window on its screen. */
+	public void setXYToCenter() {
+		setXYToCenter(screen);
+	}
+
+	/** Centers this window on the specified screen. */
+	public void setXYToCenter(Screen s) {
+		Rectangle2D b = s.getBounds();
 		double x = (b.getMinX() + b.getMaxX())/2 - getWidth()/2;
 		double y = (b.getMinY() + b.getMaxY())/2 - getHeight()/2;
 		setXY(x, y);
 	}
 
 	/** Returns screen x,y of the center of this window. */
-	public Point2D getCenterXY() {
-		return new Point2D(getCenterX(), getCenterY());
+	public P getCenter() {
+		return new P(getCenterX(), getCenterY());
 	}
 
 	/**

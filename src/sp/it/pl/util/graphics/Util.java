@@ -60,7 +60,7 @@ import static sp.it.pl.util.dev.Util.noØ;
 /**
  * Graphic utility methods.
  */
-@SuppressWarnings("sp/it/pl/unused")
+@SuppressWarnings("unused")
 public interface Util {
 
 /* ---------- LAYOUT ------------------------------------------------------------------------------------------------ */

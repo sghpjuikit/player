@@ -33,7 +33,7 @@ import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.type.Util.unPrimitivize;
 
-@SuppressWarnings({"unchecked", "sp/it/pl/unused","NonAsciiCharacters"})
+@SuppressWarnings({"unchecked", "unused","NonAsciiCharacters"})
 public interface Functors {
 
 	FunctorPool pool = new FunctorPool();

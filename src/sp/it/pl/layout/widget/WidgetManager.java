@@ -657,7 +657,7 @@ public final class WidgetManager {
 		}
 	}
 
-	@SuppressWarnings("sp/it/pl/unused")
+	@SuppressWarnings("unused")
 	public enum WidgetTarget {
 		LAYOUT,
 		TAB,

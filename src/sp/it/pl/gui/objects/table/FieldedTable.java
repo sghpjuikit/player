@@ -339,7 +339,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	/*********************************** PRIVATE **********************************/
 
 	// sort order -> comparator, never null
-	@SuppressWarnings({"unchecked", "sp/it/pl/unused"})
+	@SuppressWarnings({"unchecked", "unused"})
 	private void updateComparator(Object ignored) {
 		Comparator<? super T> c = getSortOrder().stream()
 			.map(column -> {

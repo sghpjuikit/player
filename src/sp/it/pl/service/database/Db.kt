@@ -27,7 +27,7 @@ import kotlin.collections.ArrayList
 
 // TODO: implement Service
 // TODO: make thread-safe
-@Suppress("sp/it/pl/unused")
+@Suppress("unused")
 class Db {
 
     private val FILE_DB_HOME by lazy { APP.DIR_LIBRARY }

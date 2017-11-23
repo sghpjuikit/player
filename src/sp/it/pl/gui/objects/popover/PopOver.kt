@@ -71,7 +71,6 @@ enum class NodePos {
     }
 }
 
-
 // TODO: add css support for the gap value
 // gap between screen border and the popover
 // note that the practical value is (GAP-padding)/2 so if padding is 4 then real GAP will be 3

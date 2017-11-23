@@ -138,7 +138,6 @@ public class Main extends Application {
 				// -----------------------------------------
 				graphicsContext.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-				// TODO: parallel?
 				allParticles.forEach(particle -> {
 
 					Image img = images[particle.getLifeSpan()];

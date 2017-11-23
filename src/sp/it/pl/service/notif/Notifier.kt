@@ -34,7 +34,7 @@ import sp.it.pl.util.reactive.attach
 import kotlin.streams.asSequence
 
 /** Provides notification functionality. */
-@Suppress("sp/it/pl/unused")
+@Suppress("unused")
 @IsActionable
 @IsConfigurable("Notifications")
 class Notifier: ServiceBase(true) {

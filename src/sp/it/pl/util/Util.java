@@ -28,7 +28,7 @@ import static sp.it.pl.util.dev.Util.throwIf;
 /**
  * Provides general purpose utility methods.
  */
-@SuppressWarnings("sp/it/pl/unused")
+@SuppressWarnings("unused")
 public interface Util {
 
 	/** @return true iff objects are equal or both null, same as {@code (a==b) || (a!=null && a.equals(b))} */

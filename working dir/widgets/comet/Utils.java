@@ -135,7 +135,7 @@ import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.reactive.Util.maintain;
 import static sp.it.pl.util.type.Util.getEnumConstants;
 
-@SuppressWarnings({"sp/it/pl/unused","UnnecessaryLocalVariable"})
+@SuppressWarnings({"unused","UnnecessaryLocalVariable"})
 interface Utils {
 
 	// superscript 	⁰ 	¹ 	²	³	⁴ 	⁵ 	⁶ 	⁷ 	⁸ 	⁹ 	⁺ 	⁻ 	⁼ 	⁽ 	⁾ 	ⁿ
@@ -600,7 +600,7 @@ interface Utils {
 			throw new SwitchException(this);
 		}
 
-		@SuppressWarnings("sp/it/pl/unused")
+		@SuppressWarnings("unused")
 		double computeStartingX(double w, double h, int ps, int p) {
 			switch(this) {
 				case CIRCLE : return w/2 + 50*cos(computeStartingAngle(ps, p));
@@ -613,7 +613,7 @@ interface Utils {
 			throw new SwitchException(this);
 		}
 
-		@SuppressWarnings("sp/it/pl/unused")
+		@SuppressWarnings("unused")
 		double computeStartingY(double w, double h, int ps, int p) {
 			switch(this) {
 				case CIRCLE : return h/2 + 50*sin(computeStartingAngle(ps, p));

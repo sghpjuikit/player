@@ -25,7 +25,7 @@ import static sp.it.pl.util.functional.Util.stream;
 /**
  * Reflection utility methods.
  */
-@SuppressWarnings("sp/it/pl/unused")
+@SuppressWarnings("unused")
 public interface Util {
 
 	/**

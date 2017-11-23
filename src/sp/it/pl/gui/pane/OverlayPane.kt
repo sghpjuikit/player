@@ -1,6 +1,5 @@
 package sp.it.pl.gui.pane
 
-import javafx.geometry.Point2D
 import javafx.geometry.Pos
 import javafx.scene.Cursor
 import javafx.scene.Node
@@ -31,14 +30,17 @@ import sp.it.pl.util.async.runNew
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.graphics.Util
 import sp.it.pl.util.graphics.Util.createFMNTStage
 import sp.it.pl.util.graphics.Util.layStack
+import sp.it.pl.util.graphics.Util.screenCaptureAndDo
 import sp.it.pl.util.graphics.Util.setAnchors
 import sp.it.pl.util.graphics.applyViewPort
-import sp.it.pl.util.graphics.getScreen
+import sp.it.pl.util.graphics.getScreenForMouse
 import sp.it.pl.util.graphics.image.imgImplLoadFX
 import sp.it.pl.util.graphics.minus
+import sp.it.pl.util.graphics.screenToLocal
+import sp.it.pl.util.graphics.size
+import sp.it.pl.util.math.P
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.SetƑ
 import sp.it.pl.util.reactive.maintain
@@ -181,7 +183,7 @@ abstract class OverlayPane<T>: StackPane() {
             WINDOW -> fail()
             SCREEN_PRIMARY -> Screen.getPrimary()
             SCREEN_OF_WINDOW -> APP.windowManager.active.orNull()?.screen ?: SCREEN_OF_MOUSE.computeScreen()
-            SCREEN_OF_MOUSE -> APP.mouseCapture.mousePosition.getScreen()
+            SCREEN_OF_MOUSE -> getScreenForMouse()
         }
 
         internal fun animStart(op: OverlayPane<*>) {
@@ -322,7 +324,7 @@ enum class ScreenImgGetter {
     fun getImgAndDo(screen: Screen, action: (Image?) -> Unit) {
         when (this) {
             NONE -> action(null)
-            SCREEN_SHOT -> Util.screenCaptureAndDo(screen) { action(it) }
+            SCREEN_SHOT -> screenCaptureAndDo(screen) { action(it) }
             SCREEN_BGR -> {
                 runNew {
                     val img = screen.getWallpaperFile()?.let { imgImplLoadFX(it, -1, -1, true) }
@@ -331,12 +333,11 @@ enum class ScreenImgGetter {
             }
         }
     }
-
 }
 
 private class PolarResize {
     private var isActive = false
-    private lateinit var offset: Point2D
+    private lateinit var offset: P
 
     /**
      * @param dragActivator some child node or null to use corner of the resizable
@@ -352,9 +353,9 @@ private class PolarResize {
                 resizable.onEventDown(MOUSE_PRESSED) {
                     if (dragActivator!=null) {
                         // drag by a resizable Node
-                        if (dragActivator.contains(dragActivator.screenToLocal(it.screenX, it.screenY))) {
+                        if (dragActivator.contains(dragActivator.screenToLocal(it))) {
                             isActive = true
-                            offset = Point2D(resizable.width, resizable.height)-resizable.screenToLocal(it.screenX, it.screenY)
+                            offset = resizable.size-resizable.screenToLocal(it)
                         }
                     } else {
                         // drag by corner
@@ -362,7 +363,7 @@ private class PolarResize {
                         val n = it.source as Pane
                         if (it.x>=n.width-cornerSize && it.y>=n.height-cornerSize) {
                             isActive = true
-                            offset = Point2D(resizable.width, resizable.height)-resizable.screenToLocal(it.screenX, it.screenY)
+                            offset = resizable.size-resizable.screenToLocal(it)
                         }
                     }
                 },
@@ -379,5 +380,4 @@ private class PolarResize {
                 }
         )
     }
-
 }

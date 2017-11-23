@@ -1,7 +1,6 @@
 package sp.it.pl.util.access
 
 import sp.it.pl.util.access.fieldvalue.EnumerableValue
-import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.type.InstanceMap
 import java.util.function.Consumer
 import java.util.stream.Stream
@@ -20,12 +19,13 @@ open class VarEnum<T>: V<T>, EnumerableValue<T> {
         valueEnumerator = { enumeration.toList() }
     }
 
-    constructor(value: T, enumerated: Collection<T>): super(value) {
+    @JvmOverloads
+    constructor(value: T, enumerated: Collection<T>, applier: Consumer<in T> = Consumer {}): super(value, applier) {
         valueEnumerator = { enumerated }
     }
 
-    @SafeVarargs
-    constructor(value: T, enumerator: () -> Collection<T>, vararg appliers: Consumer<in T>): super(value, Consumer { v -> appliers.forEach { it(v) } }) {
+    @JvmOverloads
+    constructor(value: T, enumerator: () -> Collection<T>, applier: Consumer<in T> = Consumer {}): super(value, applier) {
         valueEnumerator = enumerator
     }
 
@@ -39,11 +39,11 @@ open class VarEnum<T>: V<T>, EnumerableValue<T> {
         @JvmStatic fun <V> ofStream(value: V, enumerator: () -> Stream<V>) =
                 VarEnum(value, enumerator = { enumerator().toList() })
 
-        @JvmStatic fun <V> ofStream(value: V, enumerator: () -> Stream<V>, vararg appliers: Consumer<in V>) =
-                VarEnum(value, enumerator = { enumerator().toList() }, appliers = *appliers)
+        @JvmStatic fun <V> ofStream(value: V, enumerator: () -> Stream<V>, applier: Consumer<in V>) =
+                VarEnum(value, enumerator = { enumerator().toList() }, applier = applier)
 
-        @JvmStatic fun <V> ofSequence(value: V, enumerator: () -> Sequence<V>, vararg appliers: (V) -> Unit) =
-                VarEnum(value, enumerator = { enumerator().toList() }, appliers = *appliers.map { a -> Consumer<V> { a(it) } }.toTypedArray())
+        @JvmStatic fun <V> ofSequence(value: V, enumerator: () -> Sequence<V>, applier: (V) -> Unit) =
+                VarEnum(value, enumerator = { enumerator().toList() }, applier = Consumer { applier(it) })
 
         @JvmStatic fun <V> ofInstances(value: V, type: Class<V>, instanceSource: InstanceMap) =
                 VarEnum(value, enumerator = { instanceSource.getInstances(type) })

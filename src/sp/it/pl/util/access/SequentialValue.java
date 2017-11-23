@@ -33,9 +33,6 @@ public interface SequentialValue<V> extends CyclicValue<V> {
 		return next();
 	}
 
-
-	// TODO: prevent overflows
-
 	static int next(int v) { return v + 1; }
 
 	static int previous(int v) { return v - 1; }

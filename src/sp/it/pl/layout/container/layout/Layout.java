@@ -189,7 +189,7 @@ public final class Layout extends UniContainer {
 
     // create unique name
     private static String uniqueName() {
-        return "sp/it/pl/layout " + UUID.randomUUID().toString();
+        return "layout " + UUID.randomUUID().toString();
     }
 
 }

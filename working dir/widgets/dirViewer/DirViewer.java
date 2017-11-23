@@ -203,16 +203,12 @@ public class DirViewer extends ClassController {
     }
 
     void visitUp() {
-        // We visit parent, a "back" operation. Note we stop not at top of file hierarchy, but
-        // the user source - collection of directories << TODO
-        // if (item!=null) {
-        //     if (item.parent!=null) visitDir(item.parent);
-        //     else if (item instanceof TopItem && files.list.size()==1) visitDir(new Item(null,files.list.get(0)));
-        // }
+        // We visit parent, a "back" operation.
+        // Because the hierarchy we traverse is virtual (and may not have non-single parent), we may not go higher
         if (item != null && item.parent != null) {
             Item toDispose = item;
             visit(item.parent);
-            toDispose.disposeChildren(); // item.parent has become item
+            toDispose.disposeChildren();
         }
     }
 

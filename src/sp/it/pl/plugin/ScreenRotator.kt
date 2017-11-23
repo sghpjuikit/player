@@ -36,7 +36,7 @@ class ScreenRotator: PluginBase(NAME) {
         )
     }
 
-    @Suppress("sp/it/pl/unused")
+    @Suppress("unused")
     @IsConfig(name = "Open help", group = GROUP)
     private val openHelpDo = RunnableConfig("show_help", "Open technical usage help", GROUP, "", { openHelp() })
 

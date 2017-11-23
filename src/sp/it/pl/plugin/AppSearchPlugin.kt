@@ -30,7 +30,7 @@ class AppSearchPlugin: PluginBase(NAME) {
     @IsConfig(name = "Search depth", group = GROUP)
     private val searchDepth = v(Int.MAX_VALUE)
 
-    @Suppress("sp/it/pl/unused")
+    @Suppress("unused")
     @IsConfig(name = "Re-scan", group = GROUP)
     private val searchDo = Config.RunnableConfig("rescan", "Rescan apps", GROUP, "", { findApps() })
 

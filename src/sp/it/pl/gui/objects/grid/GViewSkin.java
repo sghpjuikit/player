@@ -556,7 +556,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			}
 		}
 
-		@SuppressWarnings("sp/it/pl/unused")
+		@SuppressWarnings("unused")
 		private void scrollToRow(int row) {
 			GridCell<T,F> fvc = getFirstVisibleCell();
 			GridCell<T,F> lvc = getLastVisibleCell();
@@ -613,7 +613,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			}
 		}
 
-		@SuppressWarnings("sp/it/pl/unused")
+		@SuppressWarnings("unused")
 		public void scrollTo01(double to) {
 			double virtualHeight = computeRowHeight()*computeRowCount();
 			double viewHeight = getHeight();

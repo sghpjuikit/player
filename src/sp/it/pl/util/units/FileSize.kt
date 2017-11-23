@@ -4,7 +4,7 @@ import sp.it.pl.util.dev.Dependency
 import java.io.File
 
 /** File size. Supports values up to `2^63-1` bytes and unknown value. */
-@Suppress("sp/it/pl/unused")
+@Suppress("unused")
 data class FileSize(private val v: Long): Comparable<FileSize> {
 
     constructor(file: File): this(file.sizeInB())

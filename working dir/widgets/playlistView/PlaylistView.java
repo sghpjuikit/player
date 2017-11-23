@@ -1,20 +1,6 @@
 package playlistView;
 
-import sp.it.pl.audio.Item;
-import sp.it.pl.audio.Player;
-import sp.it.pl.audio.playlist.Playlist;
-import sp.it.pl.audio.playlist.PlaylistItem;
-import sp.it.pl.audio.playlist.PlaylistItem.Field;
-import sp.it.pl.audio.playlist.PlaylistManager;
-import sp.it.pl.gui.Gui;
-import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.popover.PopOver;
-import sp.it.pl.gui.objects.popover.ScreenPos;
-import sp.it.pl.gui.objects.table.PlaylistTable;
-import sp.it.pl.gui.objects.table.TableColumnInfo;
-import java.io.File;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javafx.event.Event;
@@ -23,32 +9,38 @@ import javafx.geometry.NodeOrientation;
 import javafx.scene.control.Menu;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
+import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Player;
+import sp.it.pl.audio.playlist.Playlist;
+import sp.it.pl.audio.playlist.PlaylistItem;
+import sp.it.pl.audio.playlist.PlaylistItem.Field;
+import sp.it.pl.audio.playlist.PlaylistManager;
+import sp.it.pl.gui.Gui;
+import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.gui.objects.table.PlaylistTable;
+import sp.it.pl.gui.objects.table.TableColumnInfo;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.PlaylistFeature;
 import sp.it.pl.layout.widget.feature.SongReader;
-import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.Vo;
 import sp.it.pl.util.async.executor.ExecuteN;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.ValueConfig;
 import sp.it.pl.util.type.Util;
 import sp.it.pl.util.units.Dur;
-import sp.it.pl.util.validation.Constraint.StringNonEmpty;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FILTER_OUTLINE;
-import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
+import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static sp.it.pl.layout.widget.Widget.Group.PLAYLIST;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.OPEN;
 import static sp.it.pl.main.App.APP;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
-import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.stream;
@@ -140,7 +132,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         outSelected = outputs.create(id,"Selected", Item.class, null);
         outPlaying = outputs.create(id,"Playing", Item.class, null);
         d(Player.playlistSelected.i.bind(outSelected));
-	    d(maintain(playlist.playingI, ι -> playlist.getPlaying(), outPlaying));
+        d(maintain(playlist.playingI, ι -> playlist.getPlaying(), outPlaying));
         d(Player.onItemRefresh(ms -> {
             if (outPlaying.getValue()!=null)
                 ms.ifHasK(outPlaying.getValue().getUri(), m -> outPlaying.setValue(m.toPlaylist()));
@@ -192,9 +184,8 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         table.menuOrder.getItems().addAll(
             menuItem("Order reverse", e -> playlist.reverse()),
             menuItem("Order randomly", e -> playlist.randomize()),
-            menuItem("Edit selected", e -> APP.widgetManager.use(SongReader.class,NO_LAYOUT,w->w.read(table.getSelectedItems()))),
-            menuItem("Save selected as...", e -> saveSelectedAsPlaylist()),
-            menuItem("Save playlist as...", e -> savePlaylist())
+            menuItem("Edit selected", e -> APP.widgetManager.use(SongReader.class,NO_LAYOUT,w->w.read(table.getSelectedItems())))
+            // menuItem("Save selected as...", e -> saveSelectedAsPlaylist())
         );
         Menu sortM = new Menu("Order by");
         stream(Field.FIELDS)
@@ -221,8 +212,6 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         return super.getFields();
     }
 
-/******************************** PUBLIC API **********************************/
-
     @Override
     public void refresh() {
         columnInitializer.execute(() -> {
@@ -237,40 +226,23 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         return playlist;
     }
 
-/***************************** HELPER METHODS *********************************/
-
-    void savePlaylist() {
-        List<PlaylistItem> l = table.getItems();
-        if (l.isEmpty()) return;
-
-        String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
-        Config<String> mc = new ValueConfig<>(String.class, "Name", initialName).constraints(new StringNonEmpty());
-        SimpleConfigurator<?> sc = new SimpleConfigurator<>(mc, (String name) -> {
-            Playlist p = new Playlist(UUID.randomUUID());
-                     p.setAll(l);
-	        APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, name + ".xml"))
-				.ifError(e -> log(PlaylistView.class).error("Could not save playlist", e));
-        });
-        PopOver p = new PopOver<>(sc);
-                p.title.set("Save playlist as...");
-                p.show(ScreenPos.APP_CENTER);
-    }
-
-    void saveSelectedAsPlaylist() {
-        List<PlaylistItem> l = table.getSelectedItems();
-        if (l.isEmpty()) return;
-
-        Config<String> mc = new ValueConfig<>(String.class, "Name", "My Playlist").constraints(new StringNonEmpty());
-        SimpleConfigurator<?> sc = new SimpleConfigurator<>(mc, (String name) -> {
-            Playlist p = new Playlist(UUID.randomUUID());
-                     p.setAll(l);
-	        APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, name + ".xml"))
-		        .ifError(e -> log(PlaylistView.class).error("Could not save playlist", e));
-        });
-        PopOver p = new PopOver<>(sc);
-                p.title.set("Save selected items as...");
-                p.show(ScreenPos.APP_CENTER);
-    }
+    // TODO: implement properly
+//    void saveSelectedAsPlaylist() {
+//        List<PlaylistItem> l = table.getSelectedItems();
+//        if (l.isEmpty()) return;
+//
+//        App.APP.actions.doWithUserString("Save selected items as...", "Name",
+//        Config<String> mc = new ValueConfig<>(String.class, "Name", "My Playlist").constraints(new StringNonEmpty());
+//        SimpleConfigurator<?> sc = new SimpleConfigurator<>(mc, (String name) -> {
+//            Playlist p = new Playlist(UUID.randomUUID());
+//                     p.setAll(l);
+//            APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, name + ".xml"))
+//                .ifError(e -> log(PlaylistView.class).error("Could not save playlist", e));
+//        });
+//        PopOver p = new PopOver<>(sc);
+//                p.title.set("Save selected items as...");
+//                p.show(ScreenPos.APP_CENTER);
+//    }
 
     private void setUseFilterForPlayback(boolean v) {
         playlist.setTransformation(v

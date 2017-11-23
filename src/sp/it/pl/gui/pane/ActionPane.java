@@ -251,7 +251,7 @@ public class ActionPane extends OverlayPane<Object> {
 		show(type, value, false);
 	}
 
-	@SuppressWarnings("sp/it/pl/unused")
+	@SuppressWarnings("unused")
 	public final <T> void show(Class<T> type, T value, boolean exclusive, ActionData<?,?>... actions) {
 		data = value;
 		actionsIcons = list(actions);
@@ -260,7 +260,7 @@ public class ActionPane extends OverlayPane<Object> {
 	}
 
 	@SafeVarargs
-	@SuppressWarnings("sp/it/pl/unused")
+	@SuppressWarnings("unused")
 	public final <T> void show(Class<T> type, Fut<T> value, boolean exclusive, SlowAction<T,?>... actions) {
 		data = value;
 		actionsIcons = list(actions);

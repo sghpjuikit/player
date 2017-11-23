@@ -4,6 +4,7 @@ import com.terminalfx.TerminalBuilder;
 import com.terminalfx.TerminalTab;
 import com.terminalfx.config.TerminalConfig;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import java.io.File;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.input.KeyCode;
@@ -11,13 +12,18 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.util.access.V;
+import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.graphics.drag.Placeholder;
+import sp.it.pl.util.system.Os;
+import sp.it.pl.util.validation.Constraint.FileType;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.reactive.Util.maintain;
 import static sp.it.pl.util.reactive.Util.sizeOf;
+import static sp.it.pl.util.validation.Constraint.FileActor.FILE;
 
-@SuppressWarnings("sp/it/pl/unused")
+@SuppressWarnings("unused")
 @Widget.Info(
 		author = "Martin Polakovic",
 		name = "Terminal",
@@ -33,10 +39,22 @@ public class Terminal extends ClassController {
 	private final TerminalConfig tConfig = new TerminalConfig();
 	private final TerminalBuilder tBuilder = new TerminalBuilder(tConfig);
 	private final TabPane tabPane = new TabPane();
-	private final Placeholder p = new Placeholder(FontAwesomeIcon.TERMINAL, "New terminal", this::openTerminal);
+	private final Placeholder p = new Placeholder(FontAwesomeIcon.TERMINAL, "New terminal (Ctrl+T)", this::openTerminal);
+
+	@FileType(FILE)
+	@IsConfig(name = "Shell path", info = "Path to the shell or none for default")
+	private final V<File> shellPath = new V<>(null, v -> {
+		if (Os.WINDOWS.isCurrent()) {
+			closeAllTabs();
+			tConfig.setWindowsTerminalStarter(v==null ? "cmd.exe" : v.getAbsolutePath());
+		}
+		if (Os.UNIX.isCurrent()) {
+			closeAllTabs();
+			tConfig.setUnixTerminalStarter(v==null ? "/bin/bash -i" : v.getAbsolutePath());
+		}
+	});
 
 	public Terminal() {
-		tConfig.setWindowsTerminalStarter("C:\\software\\Git\\usr\\bin\\bash"); // TODO: make configurable
 		tConfig.setBackgroundColor(Color.rgb(16, 16, 16));
 		tConfig.setForegroundColor(Color.rgb(240, 240, 240));
 		tConfig.setCursorColor(Color.rgb(255, 0, 0, 0.1));
@@ -51,15 +69,13 @@ public class Terminal extends ClassController {
 
 		d(sizeOf(tabPane.getTabs(), i -> p.show(this, i==0)));
 		d(maintain(p.visibleProperty(), v -> !v, tabPane.visibleProperty()));
-
-		d(() -> stream(tabPane.getTabs())
-			.filter(TerminalTab.class::isInstance).map(TerminalTab.class::cast)
-			.findAny().ifPresent(TerminalTab::closeAllTerminal));
+		d(() -> closeAllTabs());
 	}
 
 	@Override
 	public void refresh() {
 		if (p.isVisible()) p.requestFocus();
+		shellPath.applyValue();
 	}
 
 	private void openTerminal() {
@@ -80,5 +96,12 @@ public class Terminal extends ClassController {
 
 			e.consume();
 		}
+	}
+
+	private void closeAllTabs() {
+		tabPane.getTabs().stream()
+			.filter(TerminalTab.class::isInstance).map(TerminalTab.class::cast)
+			.findAny().ifPresent(TerminalTab::closeAllTerminal);
+		tabPane.getTabs().clear();
 	}
 }

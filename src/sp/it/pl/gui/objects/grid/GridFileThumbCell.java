@@ -68,7 +68,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		return r;
 	}
 
-	@SuppressWarnings("sp/it/pl/unused")
+	@SuppressWarnings("unused")
 	protected void onAction(Item i, boolean edit) {}
 
 	@Override

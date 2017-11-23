@@ -26,6 +26,7 @@ import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
+import sp.it.pl.gui.objects.popover.ScreenPos;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.widget.Widget;
@@ -71,7 +72,7 @@ import static sp.it.pl.util.functional.Util.max;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.add1timeEventHandler;
-import static sp.it.pl.util.graphics.UtilKt.getScreen;
+import static sp.it.pl.util.graphics.UtilKt.getScreenForMouse;
 import static sp.it.pl.util.reactive.Util.maintain;
 import static sp.it.pl.util.reactive.Util.onScreenChange;
 
@@ -218,8 +219,7 @@ public class WindowManager implements Configurable<Object> {
 	    w.initLayout();
 	    w.update();
 	    w.show();
-	    w.setScreen(getScreen(APP.mouseCapture.getMousePosition()));
-	    w.setXYScreenCenter();
+	    w.setXYToCenter(getScreenForMouse());
 	    return w;
     }
 
@@ -279,9 +279,8 @@ public class WindowManager implements Configurable<Object> {
             miniWindow.resizable.set(true);
             miniWindow.setAlwaysOnTop(true);
             miniWindow.disposables.add(onScreenChange(screen -> {
-	            // TODO: implement for every window
                 // maintain proper widget content until window closes
-                if (screen.getBounds().contains(miniWindow.getCenterXY()))
+                if (screen.equals(miniWindow.getScreen()))
 		            runLater(() -> {
 			            miniWindow.setScreen(screen);
 			            miniWindow.setXYSize(
@@ -464,8 +463,7 @@ public class WindowManager implements Configurable<Object> {
 		w.initLayout();
 		w.setContent(widget);
 		w.show();
-		w.setScreen(getScreen(APP.mouseCapture.getMousePosition()));
-		w.setXYScreenCenter();
+		w.setXYToCenter(getScreenForMouse());
 		return w;
 	}
 
@@ -482,8 +480,7 @@ public class WindowManager implements Configurable<Object> {
 		PopOver<?> p = new PopOver<>(l.getRoot());
 		p.title.set(w.getInfo().nameGui());
 		p.setAutoFix(false);
-		Window wnd = getActive().get();
-		p.show(wnd.getStage(), wnd.getCenterX(), wnd.getCenterY()); // TODO: use ScreenPos
+		p.show(ScreenPos.APP_CENTER);
 
 		p.addEventFilter(WINDOW_HIDING, we -> l.close());   // close widget on close
 		l.setChild(w);  // load widget when graphics ready & shown
@@ -557,28 +554,23 @@ public class WindowManager implements Configurable<Object> {
 	}
 
 	public Component instantiateComponent(File launcher) {
-		try {
-			WidgetFactory<?> wf;
-			Component w = null;
+		WidgetFactory<?> wf;
+		Component c = null;
 
-			// try to build widget using just launcher filename
-			boolean isLauncherEmpty = Util.readFileLines(launcher).count()==0;
-			String wn = isLauncherEmpty ? Util.getName(launcher) : "";
-			wf = APP.widgetManager.factories.get(wn);
-			if (wf!=null)
-				w = wf.create();
+		// try to build widget using just launcher filename
+		boolean isLauncherEmpty = Util.readFileLines(launcher).count()==0;
+		String wn = isLauncherEmpty ? Util.getName(launcher) : "";
+		wf = APP.widgetManager.factories.get(wn);
+		if (wf!=null)
+			c = wf.create();
 
-			// try to deserialize normally
-			if (w==null)
-				w = App.APP.serializators.fromXML(Component.class, launcher)
-					.ifError(e -> LOGGER.error("Could not load component from file=", launcher, e))
-					.getOrThrow();
+		// try to deserialize normally
+		if (c==null)
+			c = App.APP.serializators.fromXML(Component.class, launcher)
+				.ifError(e -> LOGGER.error("Could not load component from file=", launcher, e))
+				.getOr(null);
 
-			return w;
-		} catch (Exception x) { // TODO: remove abomination
-			LOGGER.error("Could not load component from file {}", launcher, x);
-			return null;
-		}
+		return c;
 	}
 
 }

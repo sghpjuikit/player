@@ -39,7 +39,7 @@ import java.io.File
 import java.io.IOException
 
 /** Provides tray facilities, such as tray icon, tray tooltip, tray click actions or tray bubble notification. */
-@Suppress("sp/it/pl/unused")
+@Suppress("unused")
 @IsConfigurable("Tray")
 class TrayService : ServiceBase(true) {
 

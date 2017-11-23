@@ -85,7 +85,7 @@ import kotlin.streams.toList
  *
  * To access any field in a general way, see [audio.tagging.Metadata.Field]
  */
-@Suppress("sp/it/pl/unused", "MemberVisibilityCanPrivate")
+@Suppress("unused", "MemberVisibilityCanPrivate")
 @Entity(name = "MetadataItem")
 class Metadata: Item {
 

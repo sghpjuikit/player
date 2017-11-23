@@ -56,7 +56,7 @@ import static sp.it.pl.util.dev.Util.noØ;
 import static sp.it.pl.util.dev.Util.throwIf;
 import static sp.it.pl.util.dev.Util.throwIfNot;
 
-@SuppressWarnings("sp/it/pl/unused")
+@SuppressWarnings("unused")
 public interface Util {
 
 	/** Function returning the inputs. */
@@ -1200,7 +1200,7 @@ public interface Util {
 
 	/**
 	 * Returns modifiable list containing element supplied by specified supplier i times. Integer
-	 * params range from 1 to i;
+	 * params range from 0 to i-1 inclusive;
 	 */
 	static <T> List<T> listF(int i, Function<Integer,T> factory) {
 		List<T> l = new ArrayList<>(i);

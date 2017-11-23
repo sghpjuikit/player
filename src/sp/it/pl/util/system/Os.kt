@@ -40,7 +40,7 @@ enum class Os {
     UNIX,
     UNKNOWN;
 
-    fun isCurrent(): Boolean = this==current
+    val isCurrent get() = this==current
 
     companion object {
 

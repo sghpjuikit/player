@@ -21,7 +21,7 @@ import static sp.it.pl.util.dev.Util.noØ;
  * Oriented for practicality, not specification (monadic laws) or robustness (API completeness).
  * This is still work in progress.
  */
-@SuppressWarnings({"sp/it/pl/unused", "UnusedReturnValue"})
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class Fut<T> {
 
 	private CompletableFuture<T> f;

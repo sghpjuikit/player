@@ -49,7 +49,6 @@ import static sp.it.pl.util.type.Util.getValueFromFieldMethodHandle;
 import static sp.it.pl.util.type.Util.isEnum;
 import static sp.it.pl.util.type.Util.unPrimitivize;
 
-// TODO fix all warnings
 /**
  * Object representation of a configurable value.
  * <p/>
@@ -120,7 +119,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 	abstract public Config<T> constraints(Constraint<? super T>... constraints);
 
-	@SuppressWarnings({"unchecked", "sp/it/pl/unused"})
+	@SuppressWarnings({"unchecked", "unused"})
 	public Config<T> constraints(Collection<Constraint<? super T>> constraints) {
 		return constraints(constraints.toArray(new Constraint[constraints.size()]));
 	}

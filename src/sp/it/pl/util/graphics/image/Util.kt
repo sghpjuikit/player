@@ -1,4 +1,4 @@
-@file:Suppress("sp/it/pl/unused")
+@file:Suppress("unused")
 
 package sp.it.pl.util.graphics.image
 

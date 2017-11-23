@@ -147,7 +147,7 @@ public final class DragUtil {
 
 /* ---------- ANY --------------------------------------------------------------------------------------------------- */
 
-	@SuppressWarnings("sp/it/pl/unused")
+	@SuppressWarnings("unused")
 	public static boolean hasAny(DragEvent e) {
 		return true;
 	}

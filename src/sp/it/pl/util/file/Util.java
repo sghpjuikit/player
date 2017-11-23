@@ -73,23 +73,7 @@ public interface Util {
 	 * @return validity of directory for use
 	 */
 	static boolean isValidDirectory(File dir) {
-		if (dir==null) {
-			return false;
-		}
-		if (!dir.exists()) {
-			return false;
-		}
-		if (!dir.isDirectory()) {
-			return false;
-		}
-		if (!dir.canRead()) {
-			return false;
-		}
-		//noinspection RedundantIfStatement
-		if (!dir.canWrite()) {
-			return false;
-		}
-		return true;
+		return dir!=null && dir.isDirectory() && dir.canRead() && dir.canWrite();
 	}
 
 	/**

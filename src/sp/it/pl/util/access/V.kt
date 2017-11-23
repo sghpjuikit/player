@@ -21,7 +21,7 @@ fun <T> vn(value: T?, onChange: (T?) -> Unit) = V(value, Consumer { onChange(it)
  */
 open class V<T> : SimpleObjectProperty<T>, ApplicableValue<T> {
 
-    var applier: Consumer<T>
+    var applier: Consumer<in T>
 
     /**
      * Sets applier. Applier is a code that applies the value in any way.
@@ -29,7 +29,7 @@ open class V<T> : SimpleObjectProperty<T>, ApplicableValue<T> {
      * @param applier or null to disable applying
      */
     @JvmOverloads
-    constructor(value: T, applier: Consumer<T> = Consumer<T> {}) {
+    constructor(value: T, applier: Consumer<in T> = Consumer {}) {
         this.value = value
         this.applier = applier
     }

@@ -31,7 +31,7 @@ import static sp.it.pl.util.type.Util.getGenericInterface;
 import static sp.it.pl.util.type.Util.instantiateOrThrow;
 import static sp.it.pl.util.validation.Constraint.DeclarationType.Declaration.IMPLICIT;
 
-@SuppressWarnings({"unchecked", "sp/it/pl/unused"})
+@SuppressWarnings({"unchecked", "unused"})
 public interface Constraint<T> {
 
 	boolean isValid(T t);

@@ -44,7 +44,7 @@ public enum AudioFileFormat {
 	 *
 	 * @return true if supported, false otherwise
 	 */
-	@SuppressWarnings("sp/it/pl/unused")
+	@SuppressWarnings("unused")
 	public boolean isSupported(Use use) {
 		switch (this) {
 			case mp4:
@@ -75,7 +75,7 @@ public enum AudioFileFormat {
 	}
 
 	/** Returns whether writing the field to tag for this format is supported. */
-	@SuppressWarnings("sp/it/pl/unused")
+	@SuppressWarnings("unused")
 	public boolean isTagWriteSupported(Metadata.Field f) {
 		switch (this) {
 			case mp4:

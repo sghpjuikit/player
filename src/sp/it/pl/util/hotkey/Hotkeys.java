@@ -196,7 +196,7 @@ public class Hotkeys {
 			}
 		}
 
-		@SuppressWarnings("sp/it/pl/unused")
+		@SuppressWarnings("unused")
 		synchronized public void release(NativeKeyEvent e) {
 			isPressed = false;
 		}

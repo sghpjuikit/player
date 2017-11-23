@@ -86,9 +86,9 @@ fun appProgressIndicator(onStart: C<ProgressIndicator> = C {}, onFinish: C<Progr
 fun appTooltip(text: String = "") = Tooltip(text).apply {
     isHideOnEscape = true
     consumeAutoHidingEvents = true
-    showDelay = seconds(1.0)        // TODO: make configurable
-    showDuration = seconds(10.0)    // TODO: make configurable
-    hideDelay = millis(200.0)       // TODO: make configurable
+    showDelay = seconds(1.0)
+    showDuration = seconds(10.0)
+    hideDelay = millis(200.0)
 }
 
 fun appTooltipForData(data: () -> Any?) = appTooltip().apply {

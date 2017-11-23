@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package sp.it.pl.util.graphics
 
 import de.jensd.fx.glyphs.GlyphIcons
@@ -10,6 +12,7 @@ import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Background
 import javafx.scene.layout.BackgroundFill
@@ -226,6 +229,9 @@ val Bounds.leftBottom get() = P(minX, maxY)
 /** @return right bottom point */
 val Bounds.rightBottom get() = P(maxX, maxY)
 
+/** @return size of the bounds represented as point */
+val Region.size get() = P(width, height)
+
 /** @return window-relative position of the centre of this window */
 val Window.centre get() = P(centreX, centreY)
 
@@ -261,6 +267,15 @@ operator fun Point2D.plus(p: Point2D): Point2D = add(p)!!
 operator fun Point2D.times(p: Double): Point2D = multiply(p)!!
 operator fun Point2D.div(p: Double): Point2D = Point2D(x/p, y/p)
 
+operator fun P.minus(p: Point2D): P = P(x-p.x, y-p.y)
+operator fun P.plus(p: Point2D): P = P(x+p.x, y+p.y)
+
+fun Point.toP() = P(x.toDouble(), y.toDouble())
+fun Point2D.toP() = P(x, y)
+
+fun Node.screenToLocal(e: MouseEvent) = screenToLocal(e.screenX, e.screenY)
+fun Node.sceneToLocal(e: MouseEvent) = sceneToLocal(e.sceneX, e.sceneY)
+
 /* ---------- TEXT -------------------------------------------------------------------------------------------------- */
 
 /** Sets font, overriding css style. */
@@ -289,8 +304,8 @@ fun typeText(text: String): (Double) -> String {
 
 /** @return the latest mouse position */
 fun getMousePosition(): Point2D {
-    val pi = MouseInfo.getPointerInfo()        // TODO: return Try, since this can be null sometimes for some reason
-    val p = if (pi==null) Point(0, 0) else pi.location
+    val pi = MouseInfo.getPointerInfo()        // TODO: this can be null sometimes, investigate & fix
+    val p = pi?.location ?: Point(0, 0)
     return Point2D(p.getX(), p.getY())
 }
 
@@ -298,17 +313,13 @@ fun getMousePosition(): Point2D {
 fun P.getScreen() = getScreen(x, y)
 
 /** @return screen containing this point */
-fun Point2D.getScreen() = getScreen(x, y)
-
-/** @return screen containing this point */
 fun Point.getScreen() = getScreen(x.toDouble(), y.toDouble())
 
 /** @return screen containing the given coordinates */
-// See com.sun.javafx.util.Utils.getScreenForPoint(x, y);
 fun getScreen(x: Double, y: Double) = Screen.getScreens().find { it.bounds.intersects(x, y, 1.0, 1.0) } ?: Screen.getPrimary()!!
 
 /** @return screen containing the given coordinates */
-fun getScreenForMouse() = getMousePosition().getScreen()
+fun getScreenForMouse() = getMousePosition().toP().getScreen()
 
 /** @return index of the screen as reported by the underlying os */
 val Screen.ordinal: Int get() =

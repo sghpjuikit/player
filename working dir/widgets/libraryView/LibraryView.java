@@ -112,7 +112,7 @@ public class LibraryView extends FXMLController {
     public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
     @IsConfig(name = "Field")
     public final VarEnum<Metadata.Field<?>> fieldFilter = new VarEnum<>(CATEGORY,
-        () -> filter(Metadata.Field.FIELDS, Field::isTypeStringRepresentable),
+        filter(Metadata.Field.FIELDS, Field::isTypeStringRepresentable),
         this::applyData
     );
 
@@ -293,7 +293,7 @@ public class LibraryView extends FXMLController {
 	/******************************** PRIVATE API *********************************/
 
     // applies lvl & fieldFilter
-    @SuppressWarnings({"unchecked", "sp/it/pl/unused"})
+    @SuppressWarnings({"unchecked", "unused"})
     private void applyData(Object o) {
         // rebuild value column
         table.getColumn(VALUE).ifPresent(c -> {

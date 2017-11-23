@@ -216,7 +216,7 @@ import static sp.it.pl.util.graphics.Util.layStack;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.reactive.Util.maintain;
 
-@SuppressWarnings({"sp/it/pl/unused","UnnecessaryLocalVariable"})
+@SuppressWarnings({"unused","UnnecessaryLocalVariable"})
 @Widget.Info(
 	author = "Martin Polakovic",
 	name = "Comet",
@@ -1567,7 +1567,7 @@ public class Comet extends ClassController {
 			return mass;// * (dx*dy);
 		}
 
-		@SuppressWarnings("sp/it/pl/unused")
+		@SuppressWarnings("unused")
 		double kineticEto(SO o) {
 //            return 0.5 * mass * (dx*dx+dy*dy); // 0.5mv^2
 			return mass;// * (dx*dy);

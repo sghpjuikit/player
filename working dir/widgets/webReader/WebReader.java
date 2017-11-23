@@ -44,7 +44,7 @@ public class WebReader extends FXMLController {
     private WebEngine engine;
 
     @IsConfig(name = "Last visited address", info = "Last visited address", editable = EditMode.APP)
-    public String url = "http://duckduckgo.com/";
+    private String url = "http://duckduckgo.com/";
 
     @IsConfig(name = "Search engine")
     private final VarEnum<SearchUriBuilder> searchEngine = VarEnum.ofInstances(DuckDuckGoQBuilder.INSTANCE, SearchUriBuilder.class, APP.instances);

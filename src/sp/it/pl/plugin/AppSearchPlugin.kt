@@ -11,7 +11,7 @@ import sp.it.pl.util.conf.Config.VarList
 import sp.it.pl.util.conf.Config.VarList.Elements
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
-import sp.it.pl.util.system.Environment
+import sp.it.pl.util.system.runAsProgram
 import sp.it.pl.util.validation.Constraint
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
@@ -64,7 +64,7 @@ class AppSearchPlugin: PluginBase(NAME) {
             { "Run app: $nameWithoutExtensionOrRoot" },
             { "Runs application: $absolutePath" },
             { "Run app: $absolutePath" },
-            { Environment.runProgram(this) },
+            { runAsProgram() },
             { Icon(MaterialIcon.APPS) }
     )
 

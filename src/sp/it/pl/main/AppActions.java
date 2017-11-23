@@ -53,7 +53,7 @@ import sp.it.pl.util.conf.ValueConfig;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.functional.Functors;
-import sp.it.pl.util.system.Environment;
+import sp.it.pl.util.system.EnvironmentKt;
 import sp.it.pl.util.validation.Constraint.StringNonEmpty;
 import sp.it.pl.web.DuckDuckGoQBuilder;
 import sp.it.pl.web.WebBarInterpreter;
@@ -83,7 +83,8 @@ import static sp.it.pl.util.graphics.Util.layVertically;
 import static sp.it.pl.util.graphics.UtilKt.bgr;
 import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
 import static sp.it.pl.util.math.Util.millis;
-import static sp.it.pl.util.system.Environment.browse;
+import static sp.it.pl.util.system.EnvironmentKt.browse;
+import static sp.it.pl.util.system.EnvironmentKt.open;
 import static sp.it.pl.util.type.Util.getEnumConstants;
 import static sp.it.pl.util.type.Util.getFieldValue;
 
@@ -98,7 +99,7 @@ public class AppActions {
 
 	@IsAction(name = "Open app directory", desc = "Opens directory from which this application is running from.")
 	public void openAppLocation() {
-		Environment.open(APP.DIR_APP);
+		open(APP.DIR_APP);
 	}
 
 	@IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
@@ -282,7 +283,7 @@ public class AppActions {
 	public void runCommand() {
 		SimpleConfigurator sc = new SimpleConfigurator<>(
 			new ValueConfig<>(String.class, "Command", "").constraints(new StringNonEmpty()),
-			Environment::runCommand
+			c -> EnvironmentKt.runCommand(c)
 		);
 		PopOver<?> p = new PopOver<>(sc);
 				   p.title.set("Run system command");
@@ -316,7 +317,7 @@ public class AppActions {
 				String uriString = WebBarInterpreter.INSTANCE.toUrlString(phrase, DuckDuckGoQBuilder.INSTANCE);
 				try {
 					URI uri = new URI(uriString);
-					Environment.browse(uri);
+					browse(uri);
 				} catch (URISyntaxException e) {
 					log(AppActions.class).warn("{} is not a valid URI", uriString, e);
 				}
@@ -327,7 +328,7 @@ public class AppActions {
 	@IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
 	public void openDictionary() {
 		doWithUserString("Look up in dictionary...", "Word",
-			phrase -> Environment.browse(URI.create("http://www.thefreedictionary.com/" + urlEncodeUtf8(phrase)))
+			phrase -> browse(URI.create("http://www.thefreedictionary.com/" + urlEncodeUtf8(phrase)))
 		);
 	}
 

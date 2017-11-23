@@ -33,7 +33,6 @@ import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.ValueConfig;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
-import sp.it.pl.util.system.Environment;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
@@ -46,6 +45,7 @@ import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.Util.getFilesAudio;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.toS;
+import static sp.it.pl.util.system.EnvironmentKt.browse;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
 
@@ -760,7 +760,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 			helpP.setContentNode(cnt);	// TODO: fix this
 			// open the uri in browser
 			helpP.getContentNode().setOnMouseClicked(pe -> {
-				Environment.browse(URI.create(uri));
+				browse(URI.create(uri));
 				pe.consume();
 			});
 			helpP.show(infoB);

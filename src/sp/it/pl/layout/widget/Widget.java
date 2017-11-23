@@ -249,7 +249,6 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 							try {
 								m.setAccessible(true);
 								m.invoke(c);
-								m.setAccessible(false);
 							} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
 								LOGGER.error("Input {} in widget {} failed to process value.", i_name, name, e);
 							}
@@ -258,7 +257,6 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 							try {
 								m.setAccessible(true);
 								m.invoke(c, value);
-								m.setAccessible(false);
 							} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
 								LOGGER.error("Input {} in widget {} failed to process value.", i_name, name, e);
 							}

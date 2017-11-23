@@ -412,8 +412,6 @@ public interface Util {
 			return (T) f.get(o);
 		} catch (Exception e) {
 			return null;
-		} finally {
-			if (f!=null) f.setAccessible(false);
 		}
 	}
 
@@ -443,8 +441,6 @@ public interface Util {
 			f.set(o, v);
 		} catch (Exception x) {
 			throw new RuntimeException(x);
-		} finally {
-			if (f!=null) f.setAccessible(false);
 		}
 	}
 
@@ -473,29 +469,23 @@ public interface Util {
 
 	/** Invokes method with no parameters on given object and returns the result. */
 	static <T> Object invokeMethodP0(T o, String name) {
-		Method m = null;
 		try {
-			m = getMethod(o.getClass(), name);
+			Method m = getMethod(o.getClass(), name);
 			m.setAccessible(true);
 			return m.invoke(o);
 		} catch (NoSuchMethodException|SecurityException|IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
 			throw new RuntimeException("Failed to invoke method: " + name, e);
-		} finally {
-			if (m!=null) m.setAccessible(false);
 		}
 	}
 
 	/** Invokes method with no parameters on given object and returns the result. */
 	static <T, P> Object invokeMethodP1(T o, String name, Class<P> paramType, P param) {
-		Method m = null;
 		try {
-			m = getMethod(o.getClass(), name, paramType);
+			Method m = getMethod(o.getClass(), name, paramType);
 			m.setAccessible(true);
 			return m.invoke(o, param);
 		} catch (NoSuchMethodException|SecurityException|IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
 			throw new RuntimeException("Failed to invoke method '" + name + "' for " + param.getClass(), e);
-		} finally {
-			if (m!=null) m.setAccessible(false);
 		}
 	}
 

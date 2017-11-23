@@ -94,20 +94,15 @@ public class Gui {
 	@IsConfig(name = "Layout open strategy", info = "How will certain layout element open and close.")
 	public static OpenStrategy open_strategy = INSIDE;
 
-	@IsConfig(name = "Table orientation", group = "Table",
-			info = "Orientation of the table.")
+	@IsConfig(name = "Table orientation", group = "Table", info = "Orientation of the table.")
 	public static final ObjectProperty<NodeOrientation> table_orient = new SimpleObjectProperty<>(NodeOrientation.INHERIT);
-	@IsConfig(name = "Zeropad numbers", group = "Table",
-			info = "Adds 0s for number length consistency.")
+	@IsConfig(name = "Zeropad numbers", group = "Table", info = "Adds 0s for number length consistency.")
 	public static final V<Boolean> table_zeropad = new V<>(false);
-	@IsConfig(name = "Search show original index", group = "Table",
-			info = "Show unfiltered table item index when filter applied.")
+	@IsConfig(name = "Search show original index", group = "Table", info = "Show unfiltered table item index when filter applied.")
 	public static final V<Boolean> table_orig_index = new V<>(false);
-	@IsConfig(name = "Show table header", group = "Table",
-			info = "Show table header with columns.")
+	@IsConfig(name = "Show table header", group = "Table", info = "Show table header with columns.")
 	public static final V<Boolean> table_show_header = new V<>(true);
-	@IsConfig(name = "Show table controls", group = "Table",
-			info = "Show table controls at the bottom of the table. Displays menubar and table items information")
+	@IsConfig(name = "Show table controls", group = "Table", info = "Show table controls at the bottom of the table. Displays menubar and table items information")
 	public static final V<Boolean> table_show_footer = new V<>(true);
 
 	static {

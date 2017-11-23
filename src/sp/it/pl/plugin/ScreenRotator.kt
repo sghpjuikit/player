@@ -6,7 +6,7 @@ import sp.it.pl.util.conf.Config.RunnableConfig
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.graphics.getScreenForMouse
 import sp.it.pl.util.graphics.ordinal
-import sp.it.pl.util.system.Environment
+import sp.it.pl.util.system.open
 import java.io.IOException
 
 private const val NAME = "Screen Rotator"
@@ -59,6 +59,6 @@ class ScreenRotator: PluginBase(NAME) {
         }
     }
 
-    fun openHelp() = Environment.open(programHelpFile)
+    fun openHelp() = programHelpFile.open()
 
 }

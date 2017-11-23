@@ -49,7 +49,6 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
      * Returns a comparator comparing by the value extracted by this field or [util.functional.Util.SAME] if
      * this field does not extract [java.lang.Comparable] type.
      *
-     *
      * Note, that because value returned by [.getOf] can be null, comparator this method returns may
      * be unsafe - throw [java.lang.NullPointerException] when comparing null values - and must be guarded, by
      * providing transformer that makes it null safe.
@@ -57,6 +56,7 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
      * @param comparatorTransformer non null function that transforms the underlying comparator to be used. At minimum
      * it must handle null logic such as it does not permit the underlying comparator to compare null.
      */
+    @Suppress("UNCHECKED_CAST")
     fun <C: Comparable<C>> comparator(comparatorTransformer: (Comparator<in C>) -> Comparator<in C> = { Comparator.nullsLast(it) }): Comparator<V> {
         return if (Comparable::class.java.isAssignableFrom(type))
             by<V, C>({ o -> getOf(o) as C }, comparatorTransformer)

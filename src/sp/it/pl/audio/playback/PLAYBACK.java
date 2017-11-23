@@ -29,7 +29,6 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.math.Portion;
 import sp.it.pl.util.reactive.SetƑ;
-import sp.it.pl.util.system.Environment;
 import sp.it.pl.util.validation.Constraint;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
@@ -40,6 +39,7 @@ import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.playback.PlayTimeHandler.at;
 import static sp.it.pl.util.async.AsyncKt.runFX;
+import static sp.it.pl.util.system.EnvironmentKt.browse;
 
 /**
  * Provides methods for player.
@@ -396,7 +396,7 @@ public final class PLAYBACK implements Configurable {
 	public static void openPlayedLocation() {
 		if (PlaylistManager.active==null) return;
 		Item i = PlaylistManager.use(Playlist::getPlaying, null);
-		if (i!=null) Environment.browse(i.getUri());
+		if (i!=null) browse(i.getUri());
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */

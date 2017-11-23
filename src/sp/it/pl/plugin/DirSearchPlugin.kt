@@ -15,7 +15,7 @@ import sp.it.pl.util.conf.Config.VarList
 import sp.it.pl.util.conf.Config.VarList.Elements
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.file.Util.writeFile
-import sp.it.pl.util.system.Environment
+import sp.it.pl.util.system.browse
 import sp.it.pl.util.validation.Constraint
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
@@ -92,7 +92,7 @@ class DirSearchPlugin: PluginBase(NAME) {
             { "Open directory: $absolutePath" },
             { "Opens directory: $absolutePath" },
             { "Open directory: $absolutePath" },
-            { Environment.browse(this) },
+            { browse() },
             { Icon(FontAwesomeIcon.FOLDER) }
     )
 

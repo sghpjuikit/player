@@ -9,13 +9,39 @@ import javafx.stage.DirectoryChooser
 import javafx.stage.FileChooser
 import javafx.stage.Screen
 import javafx.stage.Window
+import mu.KotlinLogging
+import sp.it.pl.audio.Player
+import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.gui.Gui
+import sp.it.pl.layout.widget.WidgetManager
+import sp.it.pl.layout.widget.feature.ImageDisplayFeature
+import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.main.App.APP
+import sp.it.pl.util.async.future.Fut
+import sp.it.pl.util.async.future.Fut.fut
+import sp.it.pl.util.async.runNotFX
+import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.FileType
+import sp.it.pl.util.file.ImageFileFormat
+import sp.it.pl.util.file.Util.isValidSkinFile
+import sp.it.pl.util.file.Util.isValidWidgetFile
 import sp.it.pl.util.file.find1stExistingParentDir
+import sp.it.pl.util.file.nameWithoutExtensionOrRoot
+import sp.it.pl.util.file.parentDirOrSelf
+import sp.it.pl.util.file.toFileOrNull
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.Try.ok
+import sp.it.pl.util.functional.Util
 import sp.it.pl.util.graphics.ordinal
+import java.awt.Desktop
 import java.io.File
+import java.io.IOException
+import java.net.URI
+import java.util.*
+import java.util.function.Consumer
+import java.util.function.Supplier
+
+private val logger = KotlinLogging.logger { }
 
 /** Puts the specified string to system clipboard. Does nothing if null. */
 fun copyToSysClipboard(s: String?) {
@@ -28,6 +54,218 @@ fun copyToSysClipboard(df: DataFormat, o: Any?) {
         val c = ClipboardContent()
         c.put(df, o)
         Clipboard.getSystemClipboard().setContent(c)
+    }
+}
+
+/**
+ * Launches this file as an executable program. Does not wait for the program or block.
+ * * working directory of the program will be set to the parent directory of its file
+ * * if the program fails to start, it may be launched again with elevated privileges (as an administrator) if possible
+ *
+ * @param arguments arguments to run the program with
+ * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
+ */
+fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = fut()
+        .supply(Player.IO_THREAD, Supplier {
+            val dir = parentFile
+            val command = ArrayList<String>()
+            try {
+                command += absoluteFile.path
+                command += arguments.asSequence().filter { it.isNotBlank() }.map { "-$it" }
+
+                ProcessBuilder(command)
+                        .directory(dir)
+                        .start()
+
+                ok<Exception>()
+            } catch (e: IOException) {
+                logger.warn(e) { "Failed to launch program" }
+
+                if (Os.WINDOWS.isCurrent) {
+                    logger.warn { "Attempting to run as administrator..." }
+
+                    try {
+                        // use elevate.exe to run what we wanted
+                        command.add(0, "elevate.exe")
+                        logger.info { "Executing command=$command" }
+                        ProcessBuilder(command)
+                                .directory(dir)
+                                .start()
+
+                        ok<Exception>()
+                    } catch (e: IOException) {
+                        logger.error(e) { "Failed to launch program" }
+                        Try.error<Void, Exception>(e)
+                    }
+                } else {
+                    Try.error<Void, Exception>(e)
+                }
+            }
+        })
+
+/**
+ * Runs a command in new background thread as a process and executes an action (on it) right after it launches.
+ * This allows process monitoring or waiting for it to end.
+ *
+ * @param command see [Runtime.exec]
+ */
+@JvmOverloads
+fun runCommand(command: String, then: Consumer<Process>? = null) {
+    runNotFX {
+        try {
+            val p = Runtime.getRuntime().exec(command)
+            then?.accept(p)
+        } catch (e: IOException) {
+            logger.error(e) { "Error running command '$command'" }
+        }
+    }
+}
+
+/**
+ * Browse the file in OS' file browser:
+ * * if denotes a directory it will be opened
+ * * if denotes a file, it's location will be opened and the file selected
+ *
+ * On some platforms the operation may be unsupported. In that case this method is a no-op.
+ */
+fun File.browse() = toURI().browse()
+
+/**
+ * Browse uri:
+ * * if denotes an uri, opens it in its predefined internet browser
+ * * if denotes a directory it will be opened
+ * * if denotes a file, it's location will be opened and the file selected
+ *
+ * On some platforms the operation may be unsupported. In that case this method is a no-op.
+ */
+fun URI.browse() {
+    println("browsing file=$this")
+    runNotFX {
+        val f = toFileOrNull()
+        if (f==null) {
+            try {
+                if (Desktop.Action.BROWSE.isSupportedOrWarn())
+                    Desktop.getDesktop().browse(this)
+            } catch (e: IOException) {
+                logger.error(e) { "Browsing uri=$this failed" }
+            }
+        } else {
+            if (f.isDirectory) {
+                // Would be nice if this was widely supported, but it isn't
+                if (Desktop.Action.BROWSE_FILE_DIR.isSupportedOrWarn())
+                    Desktop.getDesktop().browseFileDirectory(f)
+                else
+                    f.openWindowsExplorerAndSelect()
+            } else {
+                // Would be nice if this did what it is supposed to, but it doesn't (tries to open the file)
+                // Desktop.getDesktop().browse(this)
+                if (Os.WINDOWS.isCurrent) {
+                    f.openWindowsExplorerAndSelect()
+                } else {
+                    f.parentDirOrSelf.open()
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Edit the file, in order:
+ * * if is a directory, [open] is called
+ * * if is a file, it will be edited in default associated editor program
+ *
+ * On some platforms the operation may be unsupported. In that case this method is a no-op.
+ */
+fun File.edit() {
+    runNotFX {
+        if (isDirectory) {
+            open()
+        } else {
+            if (Desktop.Action.EDIT.isSupportedOrWarn()) {
+                try {
+                    Desktop.getDesktop().edit(this)
+                } catch (e: IOException) {
+                    logger.error(e) { "Opening file=$this in editor failed" }
+                } catch (e: IllegalArgumentException) {
+                    // file does not exists, nothing to do
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Opens the file, in order:
+ * * if is executable, it will be executed using [runAsProgram]
+ * * if is directory, it will be opened in default system's browser
+ * * file will be opened in the default associated program.
+ *
+ * On some platforms the operation may be unsupported. In that case this method is a no-op.
+ */
+fun File.open() {
+    runNotFX {
+        if (isExecutable()) {
+            // If the file is executable, Desktop#open() will execute it, however the spawned process' working directory
+            // will be set to the working directory of this application, which is not illegal, but definitely dangerous
+            // Hence, we executable files specifically
+            runAsProgram()
+        } else {
+            if (Desktop.Action.OPEN.isSupportedOrWarn()) {
+                try {
+                    Desktop.getDesktop().open(this)
+                } catch (e: IOException) {
+                    val noApp = "No application is associated with the specified file for this operation" in e.message.orEmpty()
+                    if (noApp) logger.warn(e) { "Opening file=$this in native app failed" }
+                    else logger.error(e) { "Opening file=$this in native app failed" }
+                } catch (e: IllegalArgumentException) {
+                    // file does not exists, nothing to do
+                }
+            }
+        }
+    }
+}
+
+fun File.isOpenableInApp(): Boolean {
+    return isDirectory && APP.DIR_SKINS==parentFile || isValidSkinFile(this) ||
+            isDirectory && APP.DIR_WIDGETS==parentFile || isValidWidgetFile(this) ||
+            AudioFileFormat.isSupported(this, AudioFileFormat.Use.PLAYBACK) || ImageFileFormat.isSupported(this)
+}
+
+fun File.openIn() {
+    // open skin - always in app
+    if (isDirectory && APP.DIR_SKINS==parentFile || isValidSkinFile(this)) {
+        Gui.setSkin(this)
+    } else if (isDirectory && APP.DIR_WIDGETS==parentFile || isValidWidgetFile(this)) {
+        APP.widgetManager.find(nameWithoutExtensionOrRoot, WidgetManager.WidgetSource.NO_LAYOUT, false)
+    } else if (AudioFileFormat.isSupported(this, AudioFileFormat.Use.PLAYBACK)) {
+        PlaylistManager.use { it.addUri(toURI()) }
+    } else if (ImageFileFormat.isSupported(this)) {
+        APP.widgetManager.use(ImageDisplayFeature::class.java, WidgetManager.WidgetSource.NO_LAYOUT) { it.showImage(this) }
+    } else {
+        open() // delegate to native app cant handle
+    }
+    // open image file
+    // open audio file
+    // open widget
+}
+
+fun openIn(files: List<File>) {
+    if (files.isEmpty()) {
+        return
+    } else if (files.size==1) {
+        files[0].openIn()
+    } else {
+        val audio = files.filter { AudioFileFormat.isSupported(it, AudioFileFormat.Use.PLAYBACK) }
+        val images = files.filter { ImageFileFormat.isSupported(it) }
+
+        if (!audio.isEmpty())
+            PlaylistManager.use { it.addUris(audio.map { it.toURI() }) }
+
+        if (images.size==1) {
+            APP.widgetManager.use(ImageDisplayFeature::class.java, WidgetManager.WidgetSource.NO_LAYOUT) { it.showImage(images[0]) }
+        } else if (images.size>1) {
+            APP.widgetManager.use(ImagesDisplayFeature::class.java, WidgetManager.WidgetSource.NO_LAYOUT) { it.showImages(images) }
+        }
     }
 }
 
@@ -80,7 +318,7 @@ fun Screen.getWallpaperFile(): File? =
             val path = Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, "Control Panel\\Desktop", "Wallpaper")
             val isMultiWallpaper = path.endsWith("TranscodedWallpaper")
             if (isMultiWallpaper) {
-                File(path.substringBeforeLast("Wallpaper") + "_" + (ordinal-1).toString().padStart(3, '0'))
+                File(path.substringBeforeLast("Wallpaper")+"_"+(ordinal-1).toString().padStart(3, '0'))
                         .takeIf { it.exists() }
                         ?: File(path)
             } else {
@@ -88,6 +326,29 @@ fun Screen.getWallpaperFile(): File? =
                 File(path)
             }
         } else {
-                println(null)
+            println(null)
             null
         }
+
+private fun Desktop.Action.isSupportedOrWarn() =
+        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(this)) {
+            true
+        } else {
+            logger.warn { "Unsupported operation=$this" }
+            false
+        }
+
+private fun File.openWindowsExplorerAndSelect() {
+    try {
+        Runtime.getRuntime().exec(arrayOf("explorer.exe", "/select,", "\"$path\""))
+    } catch (e: IOException) {
+        logger.error(e) { "Failed to open explorer.exe and select file=$this" }
+    }
+}
+
+// TODO: implement properly
+/** @return true if the file is an executable file */
+private fun File.isExecutable(): Boolean = when (Os.current) {
+    Os.WINDOWS -> Util.isContainedIn(extension.toLowerCase(), "exe")    // TODO: use MimeExt
+    else -> false
+}

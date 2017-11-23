@@ -1,6 +1,7 @@
 package sp.it.pl.main
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon
 import javafx.geometry.Pos
 import javafx.scene.control.Label
 import sp.it.pl.audio.SimpleItem
@@ -22,14 +23,19 @@ import sp.it.pl.util.async.FX
 import sp.it.pl.util.async.future.Fut.fut
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.file.AudioFileFormat
+import sp.it.pl.util.file.Util.getCommonRoot
 import sp.it.pl.util.file.Util.getFilesAudio
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.Util.layHorizontally
 import sp.it.pl.util.graphics.Util.layVertically
+import sp.it.pl.util.system.browse
 import java.io.File
 import java.util.function.Consumer
+import java.util.stream.Stream
+import kotlin.streams.asSequence
 import kotlin.streams.toList
 
+@Suppress("UNCHECKED_CAST")
 fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<File>, List<File>> = ComplexActionData(
         {
             val makeWritable = V(true)
@@ -90,3 +96,48 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
         },
         { files -> fut(files).map { getFilesAudio(it, AudioFileFormat.Use.APP, Integer.MAX_VALUE).toList() } }
 )
+
+fun browseMultipleFiles(files: Stream<File>) {
+    val fs = files.asSequence().toSet()
+    when {
+        fs.size==1 -> fs.firstOrNull()?.browse()
+        else -> App.APP.actionPane.show(MultipleFiles(fs))
+    }
+}
+
+class MultipleFiles(val files: Set<File>) {
+
+    fun browseEach() = files.forEach { it.browse() }
+
+    fun browseEachLocation() = files.map { if (it.isFile) it.parentFile else it }.distinct().forEach { it.browse() }
+
+    fun browseCommonRoot() {
+        getCommonRoot(files)?.browse()
+    }
+
+    companion object {
+        init {
+            App.APP.actionPane.register<MultipleFiles>(
+                    ActionPane.FastAction<MultipleFiles>(
+                            "Browse each",
+                            "Browse each file individually. May have performance implications if too many.",
+                            MaterialDesignIcon.FOLDER_MULTIPLE,
+                            Consumer { it.browseEach() }
+                    ),
+                    ActionPane.FastAction<MultipleFiles>(
+                            "Browse each location",
+                            "Browse each unique location. May have performance implications if too many.",
+                            MaterialDesignIcon.FOLDER_MULTIPLE_OUTLINE,
+                            Consumer { it.browseEachLocation() }
+                    ),
+                    ActionPane.FastAction<MultipleFiles>(
+                            "Browse shared root",
+                            "Browse parent location of all files or do nothing if no such single location exists.",
+                            MaterialDesignIcon.FOLDER_OUTLINE,
+                            Consumer { it.browseCommonRoot() }
+                    )
+            )
+        }
+    }
+
+}

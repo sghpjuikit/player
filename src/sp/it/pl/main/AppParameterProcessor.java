@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import static java.util.stream.Collectors.toList;
+import static sp.it.pl.util.file.UtilKt.toFileOrNull;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 
 /**
@@ -107,13 +108,7 @@ public class AppParameterProcessor {
 						}
 					})
 					.filter(ISNTØ)
-					.map(u -> {
-						try {
-							return new File(u);
-						} catch (IllegalArgumentException e) {
-							return null;
-						}
-					})
+					.map(u -> toFileOrNull(u))
 					.filter(ISNTØ)
 					.filter(isProcessible)
 					.collect(toList());

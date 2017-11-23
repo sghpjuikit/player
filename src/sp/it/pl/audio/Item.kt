@@ -5,8 +5,8 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.AudioFileFormat.Use.PLAYBACK
+import sp.it.pl.util.file.toFileOrNull
 import sp.it.pl.util.units.FileSize
-import java.io.File
 import java.net.URI
 
 /** Representation of audio resource based on [URI]. */
@@ -25,7 +25,7 @@ abstract class Item {
      * @return absolute file this item represents
      * @throws RuntimeException if this item is not file based
      */
-    open fun getFile() = File(uri).absoluteFile!!
+    open fun getFile() = uri.toFileOrNull()!!.absoluteFile!!
 
     /** @return human-readable path of the resource this item represents */
     open fun getPathAsString(): String {

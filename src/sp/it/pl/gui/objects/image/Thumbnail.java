@@ -47,6 +47,8 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.util.Duration.millis;
+import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.file.UtilKt.toFileOrNull;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXYByTo;
@@ -405,8 +407,9 @@ public class Thumbnail {
 		// back to imageFile
 		String url = image.get()==null ? null : image.get().getUrl();
 		try {
-			return url==null ? imageFile : new File(URI.create(url));
+			return url==null ? imageFile : toFileOrNull(URI.create(url));
 		} catch (IllegalArgumentException e) {
+			log(Thumbnail.class).warn("Uri={} is not valid file", url, e);
 			return null;
 		}
 	}

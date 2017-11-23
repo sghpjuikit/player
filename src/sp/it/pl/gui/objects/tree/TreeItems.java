@@ -35,7 +35,6 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.Configurable;
 import sp.it.pl.util.file.UtilKt;
-import sp.it.pl.util.system.Environment;
 import sp.it.pl.util.type.ClassName;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
@@ -46,6 +45,7 @@ import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.LAYOUT;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.OPEN;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.STANDALONE;
 import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppActionsKt.browseMultipleFiles;
 import static sp.it.pl.util.Util.emptyOr;
 import static sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf;
 import static sp.it.pl.util.dev.Util.log;
@@ -57,6 +57,10 @@ import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.menuItem;
+import static sp.it.pl.util.system.EnvironmentKt.edit;
+import static sp.it.pl.util.system.EnvironmentKt.isOpenableInApp;
+import static sp.it.pl.util.system.EnvironmentKt.open;
+import static sp.it.pl.util.system.EnvironmentKt.openIn;
 
 public class TreeItems {
 
@@ -185,7 +189,7 @@ public class TreeItems {
 			APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure(configsFromFxPropertiesOf(((Window) o).getStage())));
 		else if (o instanceof File) {
 			File f = (File) o;
-			if (f.isFile() || Environment.isOpenableInApp(f)) Environment.openIn(f, true);
+			if (f.isFile() || isOpenableInApp(f)) openIn(f);
 		} else if (o instanceof Configurable)
 			APP.widgetManager.use(ConfiguringFeature.class, ANY, w -> w.configure((Configurable) o));
 		else if (o instanceof Name)
@@ -223,15 +227,15 @@ public class TreeItems {
 
 	private static ImprovedContextMenu<List<File>> m = new ImprovedContextMenu<>() {{
 		getItems().addAll(
-			menuItem("Open", e -> Environment.open(getValue().get(0))),
-			menuItem("Open in-app", e -> Environment.openIn(getValue(), true)),
-			menuItem("Edit", e -> Environment.edit(getValue().get(0))),
+			menuItem("Open", e -> open(getValue().get(0))),
+			menuItem("Open in-app", e -> openIn(getValue())),
+			menuItem("Edit", e -> edit(getValue().get(0))),
 			menuItem("Copy", e -> {
 				ClipboardContent cc = new ClipboardContent();
 				cc.put(DataFormat.FILES, getValue());
 				Clipboard.getSystemClipboard().setContent(cc);
 			}),
-			menuItem("Explore in browser", e -> Environment.browse(getValue().stream()))
+			menuItem("Explore in browser", e -> browseMultipleFiles(getValue().stream()))
 		);
 	}};
 

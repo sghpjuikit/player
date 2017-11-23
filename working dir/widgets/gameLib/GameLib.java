@@ -1,13 +1,6 @@
 package gameLib;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import sp.it.pl.gui.Gui;
-import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.image.Thumbnail;
-import sp.it.pl.gui.objects.image.cover.Cover;
-import sp.it.pl.gui.objects.image.cover.FileCover;
-import sp.it.pl.gui.objects.tree.FileTree;
-import sp.it.pl.gui.objects.tree.TreeItems;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +21,13 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import kotlin.jvm.functions.Function1;
+import sp.it.pl.gui.Gui;
+import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.gui.objects.image.Thumbnail;
+import sp.it.pl.gui.objects.image.cover.Cover;
+import sp.it.pl.gui.objects.image.cover.FileCover;
+import sp.it.pl.gui.objects.tree.FileTree;
+import sp.it.pl.gui.objects.tree.TreeItems;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.util.SwitchException;
@@ -42,7 +42,6 @@ import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.system.Environment;
 import sp.it.pl.util.validation.Constraint;
 import sp.it.pl.web.WikipediaQBuilder;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAMEPAD;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WIKIPEDIA;
@@ -66,6 +65,7 @@ import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.UtilKt.typeText;
+import static sp.it.pl.util.system.EnvironmentKt.runAsProgram;
 import static sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY;
 
 @Widget.Info(
@@ -361,10 +361,8 @@ public class GameLib extends FXMLController {
                     if (!a.isEmpty()) arguments.add("-" + a);
             }
 
-            Environment
-                .runProgram(exe, arguments.toArray(new String[arguments.size()]))
+            runAsProgram(exe, arguments.toArray(new String[arguments.size()]))
                 .use(FX, e -> e.ifError(error -> APP.messagePane.show("Unable to launch program " + exe + ". Reason: " + error.getMessage())));
-
 
         }
 

@@ -4,6 +4,7 @@ import sp.it.pl.util.functional.Try
 import java.io.File
 import java.io.FileFilter
 import java.io.FilenameFilter
+import java.net.URI
 import java.util.stream.Stream
 import kotlin.streams.asStream
 
@@ -62,7 +63,6 @@ fun File.childOf(childName: String, childName2: String, childName3: String) = ch
 
 fun File.childOf(vararg childNames: String) = childNames.fold(this, File::childOf)
 
-
 /**
  * Safe version of [File.listFiles]
  *
@@ -82,6 +82,19 @@ fun File.listChildren(filter: FileFilter): Stream<File> = this.listFiles(filter)
 @Suppress("DEPRECATION")
 fun File.listChildren(filter: FilenameFilter): Stream<File> = this.listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
 
+/** @return parent file or self if is root */
+val File.parentDirOrSelf get() = parentDir ?: this
+
+/** @return parent file or null if is root */
+val File.parentDir: File? get() = parentFile    // TODO: deprecate parentFile
+
+/** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown. */
+@Suppress("DEPRECATION")
+fun URI.toFileOrNull() = try {
+        File(this)
+    } catch (e: IllegalArgumentException) {
+        null
+    }
 
 enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>) {
     NONE({ it.stream().distinct() }),

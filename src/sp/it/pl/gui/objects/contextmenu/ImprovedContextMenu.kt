@@ -21,6 +21,7 @@ import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.App
 import sp.it.pl.main.App.APP
+import sp.it.pl.main.browseMultipleFiles
 import sp.it.pl.util.access.AccessibleValue
 import sp.it.pl.util.collections.map.ClassListMap
 import sp.it.pl.util.file.ImageFileFormat
@@ -29,8 +30,10 @@ import sp.it.pl.util.file.Util.writeImage
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.Util.menuItem
 import sp.it.pl.util.graphics.getScreen
-import sp.it.pl.util.system.Environment
+import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.copyToSysClipboard
+import sp.it.pl.util.system.edit
+import sp.it.pl.util.system.open
 import sp.it.pl.util.system.saveFile
 import sp.it.pl.web.SearchUriBuilder
 import java.io.File
@@ -111,9 +114,9 @@ class ContextMenuItemSuppliers {
 
 val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
     add<File> { contextMenu, file -> notNullSeqOf(
-            menuItem("Browse location") { Environment.browse(file) },
-            menuItem("Open (in associated program)") { Environment.open(file) },
-            menuItem("Edit (in associated editor)") { Environment.edit(file) },
+            menuItem("Browse location") { file.browse() },
+            menuItem("Open (in associated program)") { file.open() },
+            menuItem("Edit (in associated editor)") { file.edit() },
             menuItem("Delete from disc") { recycleFile(file) },
             menuItem("Copy as ...") {
                 saveFile("Copy as...", App.APP.DIR_APP, file.name, contextMenu.ownerWindow, ImageFileFormat.filter())
@@ -144,7 +147,7 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
                     { it.nameGui() },
                     { App.APP.widgetManager.use(it.nameGui(), NO_LAYOUT) { c -> (c.controller as SongWriter).read(mg.grouped) } }
             ),
-            menuItem("Explore items's directory") { Environment.browse(mg.grouped.stream().filter { it.isFileBased() }.map { it.getFile() }) },
+            menuItem("Explore items's directory") { browseMultipleFiles(mg.grouped.stream().filter { it.isFileBased() }.map { it.getFile() }) },
             menuWithItems(
                     "Explore items' directory in",
                     App.APP.widgetManager.getFactories().filter { it.hasFeature(FileExplorerFeature::class) },
@@ -156,7 +159,7 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
                     "Search cover in",
                     App.APP.instances.getInstances<SearchUriBuilder>().stream(),
                     { "in ${it.name}" },
-                    { Environment.browse(it.apply(mg.getValueS("<none>"))) }
+                    { it(mg.getValueS("<none>")).browse() }
             )
     )}
     add<PlaylistItemGroup> { contextMenu, pig -> notNullSeqOf(
@@ -177,13 +180,13 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
             menuItem("Crop items") { PlaylistManager.use { it.retainAll(pig.items) } },
             menuItem("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(pig.items) } },
             menuItem("Duplicate items individually") { PlaylistManager.use { it.duplicateItemsByOne(pig.items) } },
-            menuItem("Explore items's directory") { Environment.browse(pig.items.stream().filter { it.isFileBased() }.map { it.getFile() }) },
+            menuItem("Explore items's directory") { browseMultipleFiles(pig.items.stream().filter { it.isFileBased() }.map { it.getFile() }) },
             menuItem("Add items to library") { APP.db.addItems(pig.items.map { it.toMeta() }) },
             menuWithItems(
                     "Search album cover",
                     App.APP.instances.getInstances<SearchUriBuilder>().stream(),
                     { "in ${it.name}" },
-                    { APP.actions.itemToMeta(pig.items[0]) { i -> Environment.browse(it.apply(i.getAlbumOrEmpty())) } }
+                    { APP.actions.itemToMeta(pig.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
             )
     )}
     add<Thumbnail.ContextMenuData> { contextMenu, cmd -> notNullSeqOf(
@@ -197,9 +200,9 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
                 ),
             if (cmd.fsDisabled) null
             else Menu("Image file", null,
-                    menuItem("Browse location") { Environment.browse(cmd.fsImageFile) },
-                    menuItem("Open (in associated program)") { Environment.open(cmd.fsImageFile) },
-                    menuItem("Edit (in associated editor)") { Environment.edit(cmd.fsImageFile) },
+                    menuItem("Browse location") { cmd.fsImageFile.browse() },
+                    menuItem("Open (in associated program)") { cmd.fsImageFile.open() },
+                    menuItem("Edit (in associated editor)") { cmd.fsImageFile.edit() },
                     menuItem("Delete from disc") { recycleFile(cmd.fsImageFile) },
                     menuItem("Fullscreen") {
                         val f = cmd.fsImageFile

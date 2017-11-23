@@ -8,8 +8,6 @@ import ch.qos.logback.core.spi.FilterAttachable;
 import ch.qos.logback.core.util.StatusPrinter;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.mapper.Mapper;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
@@ -30,13 +28,11 @@ import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.Player;
-import sp.it.pl.audio.playlist.Playlist;
 import sp.it.pl.audio.playlist.PlaylistItem;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataGroup;
@@ -60,7 +56,6 @@ import sp.it.pl.gui.pane.InfoPane;
 import sp.it.pl.gui.pane.MessagePane;
 import sp.it.pl.gui.pane.ShortcutPane;
 import sp.it.pl.layout.Component;
-import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.WidgetManager;
 import sp.it.pl.layout.widget.WidgetManager.WidgetSource;
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature;
@@ -99,15 +94,7 @@ import sp.it.pl.util.file.mimetype.MimeTypes;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.graphics.MouseCapture;
 import sp.it.pl.util.reactive.SetƑ;
-import sp.it.pl.util.serialize.xstream.BooleanPropertyConverter;
-import sp.it.pl.util.serialize.xstream.DoublePropertyConverter;
-import sp.it.pl.util.serialize.xstream.IntegerPropertyConverter;
-import sp.it.pl.util.serialize.xstream.LongPropertyConverter;
-import sp.it.pl.util.serialize.xstream.ObjectPropertyConverter;
-import sp.it.pl.util.serialize.xstream.ObservableListConverter;
-import sp.it.pl.util.serialize.xstream.StringPropertyConverter;
-import sp.it.pl.util.serialize.xstream.VConverter;
-import sp.it.pl.util.system.Environment;
+import sp.it.pl.util.system.EnvironmentKt;
 import sp.it.pl.util.system.SystemOutListener;
 import sp.it.pl.util.type.ClassName;
 import sp.it.pl.util.type.InstanceInfo;
@@ -388,25 +375,6 @@ public class App extends Application implements Configurable {
 		}
 		if (close_prematurely) return;
 
-		// configure serialization
-		XStream x = serializators.x;
-		Mapper xm = x.getMapper();
-		x.autodetectAnnotations(true);
-		x.registerConverter(new StringPropertyConverter(xm));   // javafx properties
-		x.registerConverter(new BooleanPropertyConverter(xm));  // -||-
-		x.registerConverter(new DoublePropertyConverter(xm));   // -||-
-		x.registerConverter(new LongPropertyConverter(xm));     // -||-
-		x.registerConverter(new IntegerPropertyConverter(xm));  // -||-
-		x.registerConverter(new ObjectPropertyConverter(xm));   // -||-
-		x.registerConverter(new ObservableListConverter(xm));   // -||-
-		x.registerConverter(new VConverter(xm));
-		x.alias("Component", Component.class);
-		x.alias("Playlist", Playlist.class);
-		x.alias("item", PlaylistItem.class);
-		ClassIndex.getSubclasses(Component.class).forEach(c -> x.alias(c.getSimpleName(),c));
-		x.useAttributeFor(Component.class, "id");
-		x.useAttributeFor(Widget.class, "name");
-
 		// add optional object fields
 		classFields.add(PlaylistItem.class, PlaylistItem.Field.FIELDS);
 		classFields.add(Metadata.class, Metadata.Field.FIELDS);
@@ -571,13 +539,13 @@ public class App extends Application implements Configurable {
 				actions::printAllImageFileMetadata),
 			new FastAction<>("Open (OS)", "Opens file in a native program associated with this file type.",
 				MaterialIcon.OPEN_IN_NEW,
-				Environment::open),
+				EnvironmentKt::open),
 			new FastAction<>("Edit (OS)", "Edit file in a native editor program associated with this file type.",
 				FontAwesomeIcon.EDIT,
-				Environment::edit),
+				EnvironmentKt::edit),
 			new FastAction<>("Browse (OS)", "Browse file in a native file system browser.",
 				FontAwesomeIcon.FOLDER_OPEN_ALT,
-				Environment::browse),
+				EnvironmentKt::browse),
 			new FastColAction<File>("Add to new playlist",
 				"Add items to new playlist widget.",
 				MaterialDesignIcon.PLAYLIST_PLUS,
@@ -653,7 +621,6 @@ public class App extends Application implements Configurable {
 			() -> Gui.skin.streamValues().map(s -> ConfigSearch.Entry.of(() -> "Open skin: " + s, () -> Gui.skin.setNapplyValue(s), () -> new Icon(MaterialIcon.BRUSH)))
 		));
 
-		// TODO: implement plugin discovery
 		plugins.installPlugins(
 			new AppSearchPlugin(),
 			new DirSearchPlugin(),
@@ -704,7 +671,6 @@ public class App extends Application implements Configurable {
 				services.addService(new ClickEffect());
 
 				// install actions
-				// TODO: unify services & managers ?
 				Action.installActions(
 					this,
 					actions,

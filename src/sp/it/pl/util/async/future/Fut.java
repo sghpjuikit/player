@@ -105,15 +105,15 @@ public class Fut<T> {
 		f.cancel(mayInterruptIfRunning);
 	}
 
-	public <R> Fut<R> map(Function<? super T,R> action) {
+	public <R> Fut<R> map(Function<? super T,? extends R> action) {
 		return new Fut<>(f.thenApplyAsync(action));
 	}
 
-	public <R> Fut<R> map(Executor executor, Function<? super T,R> action) {
+	public <R> Fut<R> map(Executor executor, Function<? super T, ? extends R> action) {
 		return new Fut<>(f.thenApplyAsync(action, executor));
 	}
 
-	public <R> Fut<R> map(Consumer<Runnable> executor, Function<? super T,R> action) {
+	public <R> Fut<R> map(Consumer<Runnable> executor, Function<? super T,? extends R> action) {
 		return new Fut<>(f.thenApplyAsync(action, executor::accept));
 	}
 
@@ -121,7 +121,7 @@ public class Fut<T> {
 		return supply(() -> value);
 	}
 
-	public <R> Fut<R> supply(Supplier<R> action) {
+	public <R> Fut<R> supply(Supplier<? extends R> action) {
 		return map(r -> action.get());
 	}
 
@@ -131,23 +131,23 @@ public class Fut<T> {
 				.thenCompose(res -> action.f));
 	}
 
-	public <R> Fut<R> supply(Executor executor, Supplier<R> action) {
+	public <R> Fut<R> supply(Executor executor, Supplier<? extends R> action) {
 		return map(executor, r -> action.get());
 	}
 
-	public <R> Fut<R> supply(Consumer<Runnable> executor, Supplier<R> action) {
+	public <R> Fut<R> supply(Consumer<Runnable> executor, Supplier<? extends R> action) {
 		return map(executor, r -> action.get());
 	}
 
-	public Fut<T> use(Consumer<T> action) {
+	public Fut<T> use(Consumer<? super T> action) {
 		return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }));
 	}
 
-	public Fut<T> use(Executor executor, Consumer<T> action) {
+	public Fut<T> use(Executor executor, Consumer<? super T> action) {
 		return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }, executor));
 	}
 
-	public Fut<T> use(Consumer<Runnable> executor, Consumer<T> action) {
+	public Fut<T> use(Consumer<? super Runnable> executor, Consumer<? super T> action) {
 		return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }, executor::accept));
 	}
 
@@ -159,7 +159,7 @@ public class Fut<T> {
 		return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }, executor));
 	}
 
-	public Fut<T> then(Consumer<Runnable> executor, Runnable action) {
+	public Fut<T> then(Consumer<? super Runnable> executor, Runnable action) {
 		return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }, executor::accept));
 	}
 
@@ -218,11 +218,11 @@ public class Fut<T> {
 	 * @param sp function that supplies nonnull progress indicator
 	 * @return this (fluent style)
 	 */
-	public Fut<T> showProgress(boolean condition, Supplier<ProgressIndicator> sp) {
+	public Fut<T> showProgress(boolean condition, Supplier<? extends ProgressIndicator> sp) {
 		return condition ? showProgress(sp.get()) : this;
 	}
 
-	public <R> Fut<R> thenChain(Ƒ1<Fut<T>,Fut<R>> then) {
+	public <R> Fut<R> thenChain(Ƒ1<? super Fut<T>, ? extends Fut<R>> then) {
 		return then.apply(this);
 	}
 	

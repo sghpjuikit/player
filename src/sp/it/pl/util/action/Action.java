@@ -27,7 +27,6 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.hotkey.Hotkeys;
-import sp.it.pl.util.system.Environment;
 import sp.it.pl.util.validation.Constraint;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.stream.Collectors.toCollection;
@@ -41,6 +40,7 @@ import static sp.it.pl.util.functional.Util.setRO;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.reactive.Util.doOnceIfNonNull;
 import static sp.it.pl.util.reactive.Util.listChangeHandlerEach;
+import static sp.it.pl.util.system.EnvironmentKt.runCommand;
 import static sp.it.pl.util.type.Util.getAnnotated;
 
 /**
@@ -619,7 +619,6 @@ public final class Action extends Config<Action> implements Runnable {
 							try {
 								m.getKey().setAccessible(true);
 								mh = method_lookup.unreflect(m.getKey());
-								m.getKey().setAccessible(false);
 							} catch (IllegalAccessException e) {
 								throw new RuntimeException(e);
 							}
@@ -671,7 +670,7 @@ public final class Action extends Config<Action> implements Runnable {
 		public Action toAction() {
 			return new Action(
 					name,
-					isAppCommand ? () -> APP.parameterProcessor.process(list(command)) : () -> Environment.runCommand(command),
+					isAppCommand ? () -> APP.parameterProcessor.process(list(command)) : () -> runCommand(command),
 					isAppCommand ? "Runs app command '" + command + "'" : "Runs system command '" + command + "'",
 					isAppCommand ? "Shortcuts.command.app" : "Shortcuts.command.system",
 					keys, isGlobal, false

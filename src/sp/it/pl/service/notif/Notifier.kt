@@ -167,7 +167,7 @@ class Notifier: ServiceBase(true) {
     fun showNowPlayingNotification() = songChange(Player.playingItem.get())
 
     private fun songChange(m: Metadata) {
-        if (showSongNotification) {
+        if (showSongNotification && !m.isEmpty()) {
             val title = "Now playing \t${m.getPlaylistIndexInfo()}"
             songNotificationInfo!!.read(m)
 

@@ -21,7 +21,6 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.type.Util;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.main.App.APP;
-import static sp.it.pl.util.dev.Util.log;
 
 /**
  * Defines wrapper of loadable graphical component.
@@ -150,8 +149,7 @@ public abstract class Component {
 	 * current settings.
 	 */
 	public void exportFxwl(File file) {
-		App.APP.serializators.toXML(this, file)
-			.ifError(e -> log(Component.class).error("Failed to export component {}", getName(), e));
+		App.APP.serializators.toXML(this, file);
 	}
 
 	public String getExportName() {

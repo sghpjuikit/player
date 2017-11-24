@@ -106,7 +106,7 @@ public final class AppSerializer {
 
 		try {
 			return ok((T) x.fromXML(text));
-		} catch (Throwable e) { // XStreamException | IOException is not enough
+		} catch (Throwable e) { // ClassCastException | XStreamException | IOException is not enough
 			log(AppSerializer.class).error("Couldn't deserialize " + type + " from file {}", file, e);
 			return error(new SerializationException("Couldn't deserialize " + type + " from file " + file, e));
 		}

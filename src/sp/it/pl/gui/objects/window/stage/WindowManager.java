@@ -403,9 +403,7 @@ public class WindowManager implements Configurable<Object> {
             Window w = windows.get(i);
             File f = new File(dir, "window_" + sessionUniqueName + "_" + i + ".ws");
 	        filesNew.add(f);
-	        isError |= App.APP.serializators.toXML(new WindowState(w), f)
-		        .ifError(e -> LOGGER.error("Window serialization failed", e))
-	            .isError();
+	        isError |= App.APP.serializators.toXML(new WindowState(w), f).isError();
 	        if (isError) break;
         }
 
@@ -426,7 +424,6 @@ public class WindowManager implements Configurable<Object> {
 		        stream(fs)
 			        .map(f -> App.APP.serializators.fromXML(WindowState.class, f)
 						        .map(WindowState::toWindow)
-						        .ifError(e -> LOGGER.error("Unable to load window", e))
 						        .getOr(null)
 			        )
 					.filter(ISNTØ)
@@ -566,9 +563,7 @@ public class WindowManager implements Configurable<Object> {
 
 		// try to deserialize normally
 		if (c==null)
-			c = App.APP.serializators.fromXML(Component.class, launcher)
-				.ifError(e -> LOGGER.error("Could not load component from file=", launcher, e))
-				.getOr(null);
+			c = App.APP.serializators.fromXML(Component.class, launcher).getOr(null);
 
 		return c;
 	}

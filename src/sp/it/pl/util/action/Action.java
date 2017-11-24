@@ -640,7 +640,6 @@ public final class Action extends Config<Action> implements Runnable {
 		// discover all command actions defined in file
 		File file = new File(APP.DIR_USERDATA, "command-actions.cfg");
 		long count = APP.serializators.fromXML(Commands.class, file)
-				.ifError(e -> log(Action.class).error("Could not load command actions", e))
 				.getOrSupply(Commands::new)
 				.stream()
 				.filter(a -> a.isEnabled)
@@ -653,8 +652,7 @@ public final class Action extends Config<Action> implements Runnable {
 		// file.exists() check. The number of deserialized commands can be 0 if deserialization fails for some reason
 		boolean generateTemplate = count<1 && !file.exists();
 		if (generateTemplate)
-			APP.serializators.toXML(stream(new Command()).collect(toCollection(Commands::new)), file)
-					.ifError(e -> log(Action.class).error("Could not save command actions", e));
+			APP.serializators.toXML(stream(new Command()).collect(toCollection(Commands::new)), file);
 	}
 
 	private static class Commands extends HashSet<Command> {}

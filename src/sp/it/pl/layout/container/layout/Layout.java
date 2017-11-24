@@ -131,8 +131,7 @@ public final class Layout extends UniContainer {
 
     public void serialize(File f) {
         if (getChild() == null) return;
-        X.toXML(this, f)
-            .ifError(e -> LOGGER.error("Unable to save layout {}", name));
+        X.toXML(this, f);
     }
 
     /**
@@ -143,10 +142,7 @@ public final class Layout extends UniContainer {
     }
 
     public Layout deserialize(File f) {
-        Layout l = X.fromXML(Layout.class, f)
-            .ifError(e -> LOGGER.error("Unable to deserialize layout", e))
-            .getOrSupply(() -> new Layout(getNameWithoutExtensionOrRoot(f)));
-
+        Layout l = X.fromXML(Layout.class, f).getOrSupply(() -> new Layout(getNameWithoutExtensionOrRoot(f)));
         l.properties.forEach(properties::put);
         l.setName(name);    // TODO: dangerous
         child = l.child;

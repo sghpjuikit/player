@@ -55,13 +55,13 @@ public final class AppSerializer {
 		// configure serialization
 		Mapper xm = x.getMapper();
 		x.autodetectAnnotations(true);
-		x.registerConverter(new StringPropertyConverter(xm));   // javafx properties
-		x.registerConverter(new BooleanPropertyConverter(xm));  // -||-
-		x.registerConverter(new DoublePropertyConverter(xm));   // -||-
-		x.registerConverter(new LongPropertyConverter(xm));     // -||-
-		x.registerConverter(new IntegerPropertyConverter(xm));  // -||-
-		x.registerConverter(new ObjectPropertyConverter(xm));   // -||-
-		x.registerConverter(new ObservableListConverter(xm));   // -||-
+		x.registerConverter(new StringPropertyConverter(xm));
+		x.registerConverter(new BooleanPropertyConverter(xm));
+		x.registerConverter(new DoublePropertyConverter(xm));
+		x.registerConverter(new LongPropertyConverter(xm));
+		x.registerConverter(new IntegerPropertyConverter(xm));
+		x.registerConverter(new ObjectPropertyConverter(xm));
+		x.registerConverter(new ObservableListConverter(xm));
 		x.registerConverter(new VConverter(xm));
 		x.alias("Component", Component.class);
 		x.alias("Playlist", Playlist.class);
@@ -79,10 +79,7 @@ public final class AppSerializer {
 		) {
 			x.toXML(o, w);
 			return ok(null);
-		} catch (Throwable e) {
-			// We need to be absolutely sure we catch everything
-			// Apparently XStreamException | IOException is not enough
-			// } catch(XStreamException | IOException e) {
+		} catch (Throwable e) { // XStreamException | IOException is not enough
 			log(AppSerializer.class).error("Couldn't serialize " + o.getClass() + " to file {}", file, e);
 			return error(new SerializationException("Couldn't serialize to file " + file, e));
 		}
@@ -109,10 +106,7 @@ public final class AppSerializer {
 
 		try {
 			return ok((T) x.fromXML(text));
-		} catch (Throwable e) {
-			// We need to be absolutely sure we catch everything
-			// Apparently ClassCastException is not enough
-			// } catch(ClassCastException e) {
+		} catch (Throwable e) { // XStreamException | IOException is not enough
 			log(AppSerializer.class).error("Couldn't deserialize " + type + " from file {}", file, e);
 			return error(new SerializationException("Couldn't deserialize " + type + " from file " + file, e));
 		}

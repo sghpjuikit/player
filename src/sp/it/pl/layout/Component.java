@@ -145,15 +145,17 @@ public abstract class Component {
 //    }
 
 	/**
-	 * Creates a launcher for this component in given directory. Launcher is a
+	 * Creates a launcher for this component as given file. Launcher is a
 	 * file, opening which by this application opens this component with its
 	 * current settings.
 	 */
-	public void exportFxwl(File dir) {
-		String name = this instanceof Widget ? ((Widget<?>)this).custom_name.getValue() : getName();
-		File f = new File(dir, name + ".fxwl");
-		App.APP.serializators.toXML(this, f)
+	public void exportFxwl(File file) {
+		App.APP.serializators.toXML(this, file)
 			.ifError(e -> log(Component.class).error("Failed to export component {}", getName(), e));
+	}
+
+	public String getExportName() {
+		return this instanceof Widget ? ((Widget<?>) this).custom_name.getValue() : getName();
 	}
 
 	public void swapWith(Container c, int i) {

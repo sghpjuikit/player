@@ -27,6 +27,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import org.reactfx.EventSource;
 import org.slf4j.Logger;
@@ -135,6 +136,7 @@ import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.image.UtilKt.getImageDim;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
+import static sp.it.pl.util.system.EnvironmentKt.saveFile;
 
 /**
  * Application. Represents the program.
@@ -489,7 +491,7 @@ public class App extends Application implements Configurable {
 				+ "Opening the launcher with this application will open this component with current settings "
 				+ "as if it were a standalone application.",
 				EXPORT,
-				w -> chooseFile("Export to...", DIRECTORY, DIR_LAYOUTS, APP.actionPane.getScene().getWindow())
+				w -> saveFile("Export to...", DIR_LAYOUTS, w.getExportName(), APP.actionPane.getScene().getWindow(), new ExtensionFilter("Component", "*.fxwl"))
 					.ifOk(w::exportFxwl)
 			)
 		);
@@ -509,12 +511,12 @@ public class App extends Application implements Configurable {
 				+ "in the database and real metadata cab be a result of a bug or file edited externally. "
 				+ "After this, the library will be synchronized with the file data.",
 				FontAwesomeIcon.REFRESH,
-				Player::refreshItems // this needs to be asynchronous
+				Player::refreshItems
 			),
 			new FastColAction<>("Remove from library",
 				"Removes all specified items from library. After this library will contain none of these items.",
 				MaterialDesignIcon.DATABASE_MINUS,
-				db::removeItems // this needs to be asynchronous
+				db::removeItems
 			),
 			new FastColAction<>("Show",
 				"Shows items in a table.",

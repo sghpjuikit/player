@@ -415,13 +415,6 @@ public final class WidgetManager {
 			String className = widgetName + "." + Util.getName(classFile);
 
 			ClassLoader controllerClassloader = createControllerClassLoader(dir, libFiles);
-
-			// debug - checks if the classloader can load the same class multiple times
-			// boolean isDifferentClassInstance =
-			//         createControllerClassLoader(dir, name_widget).loadClass(name_class) ==
-			//         createControllerClassLoader(dir, name_widget).loadClass(name_class);
-			// System.out.println(isDifferentClassInstance);
-
 			return controllerClassloader.loadClass(className);
 		} catch (ClassNotFoundException e) {
 			LOGGER.info("FXML widget factory controller class loading failed for: " + classFile, e);
@@ -446,6 +439,7 @@ public final class WidgetManager {
 							 }
 						 })
 						 .filter(ISNTØ).toArray(URL[]::new);
+
 		return new URLClassLoader(classpath);
 	}
 

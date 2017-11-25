@@ -1,34 +1,31 @@
 package sp.it.pl.service.database
 
-import sp.it.pl.main.App.APP
+import sp.it.pl.core.CoreSerializer
+import java.io.Serializable
 import java.util.*
-import javax.persistence.Entity
 
 /** Map of string collections. Singleton. */
-@Entity(name = "StringStore")
-class StringStore {
+class StringStore: Serializable {
     private val pool = HashMap<String, HashSet<String>>()
 
-    fun getStrings(name: String): MutableSet<String> {
-        val n = name.toLowerCase()
-        return pool.computeIfAbsent(n, { HashSet() })
+    fun getStrings(name: String) = pool.computeIfAbsent(name.toLowerCase(), { HashSet() })
+
+    fun modify(modifier: (StringStore) -> Unit) {
+        modifier(this)
+        CoreSerializer.writeSingleStorage(this)
     }
 
     fun addString(name: String, s: String) {
         val wasChanged = getStrings(name.toLowerCase()).add(s)
         if (wasChanged) {
-            APP.db.em.transaction.begin()
-            APP.db.em.merge(APP.db.stringPool)
-            APP.db.em.transaction.commit()
+            CoreSerializer.writeSingleStorage(this)
         }
     }
 
     fun addStrings(name: String, s: List<String>) {
         val wasChanged = getStrings(name.toLowerCase()).addAll(s)
         if (wasChanged) {
-            APP.db.em.transaction.begin()
-            APP.db.em.merge(APP.db.stringPool)
-            APP.db.em.transaction.commit()
+            CoreSerializer.writeSingleStorage(this)
         }
     }
 

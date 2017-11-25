@@ -235,7 +235,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 //        SimpleConfigurator<?> sc = new SimpleConfigurator<>(mc, (String name) -> {
 //            Playlist p = new Playlist(UUID.randomUUID());
 //                     p.setAll(l);
-//            APP.serializators.toXML(p, new File(APP.DIR_PLAYLISTS, name + ".xml"))
+//            APP.serializerXml.toXML(p, new File(APP.DIR_PLAYLISTS, name + ".xml"))
 //                .ifError(e -> log(PlaylistView.class).error("Could not save playlist", e));
 //        });
 //        PopOver p = new PopOver<>(sc);

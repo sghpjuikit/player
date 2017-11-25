@@ -2,12 +2,15 @@ package sp.it.pl.util.type
 
 import sp.it.pl.util.collections.map.ClassListMap
 
-/** Map of instance enumerations per type. Useful for customization by pluggable & extensible behaviors. */
-class InstanceMap {
+/** Map of instances per type. Useful for customization by pluggable & extensible behaviors. */
+open class InstanceMap {
     private val m = ClassListMap<Any> { it.javaClass }
 
     /** Add instances of the specified type. */
     fun <T> addInstance(type: Class<T>, vararg instances: T) = m.accumulate(type, *instances)
+
+    /** Add instances of the specified type. */
+    inline fun <reified T> addInstance(vararg instances: T) = addInstance(T::class.java, *instances)
 
     /** @return instances of the specified type */
     @Suppress("UNCHECKED_CAST")

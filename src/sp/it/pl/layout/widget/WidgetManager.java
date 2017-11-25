@@ -75,7 +75,7 @@ public final class WidgetManager {
 		this.userErrorLogger = userErrorLogger;
 	}
 
-	public void initialize() {
+	public void init() {
 		if (initialized) throw new IllegalStateException("Already initialized");
 
 		// internal factories

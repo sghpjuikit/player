@@ -4,7 +4,7 @@ import sp.it.pl.audio.playback.PLAYBACK
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.playlist.PlaylistManager
-import sp.it.pl.main.App
+import sp.it.pl.core.CoreSerializer
 import java.util.*
 
 /** State of player. */
@@ -38,7 +38,7 @@ class PlayerState {
         playlists.clear()
         playlists += PlaylistManager.playlists
 
-        App.APP.db.savePlayerState(this)
+        CoreSerializer.writeSingleStorage(PlayerStateDB(this))
     }
 
     private fun suspendPlayback() {
@@ -57,7 +57,7 @@ class PlayerState {
     companion object {
 
         @JvmStatic
-        fun deserialize() = App.APP.db.loadPlayerState()
+        fun deserialize() = CoreSerializer.readSingleStorage<PlayerStateDB>()
                 .let { if (it==null) PlayerState() else PlayerState(it) }
                 .also {
                     PlaylistManager.playlists += it.playlists

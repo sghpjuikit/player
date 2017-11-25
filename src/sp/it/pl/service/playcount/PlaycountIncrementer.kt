@@ -71,7 +71,7 @@ class PlaycountIncrementer : ServiceBase(false) {
         running = false
         apply()
         onStop()
-        queue.asSequence().distinct().forEach { incrementQueued(it) }
+        queue.distinctBy { it.uri }.forEach { incrementQueued(it) }
     }
 
     override fun isSupported() = true

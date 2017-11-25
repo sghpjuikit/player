@@ -2,26 +2,27 @@ package layouts;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-
+import sp.it.pl.gui.objects.Text;
+import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.container.switchcontainer.SwitchContainer;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Group;
 import sp.it.pl.layout.widget.controller.ClassController;
-import sp.it.pl.gui.objects.Text;
-import sp.it.pl.gui.objects.image.Thumbnail;
-import sp.it.pl.util.system.Environment;
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
-
 import static java.util.stream.Collectors.toList;
 import static sp.it.pl.main.App.APP;
 import static sp.it.pl.util.functional.Util.toCSList;
+import static sp.it.pl.util.system.EnvironmentKt.browse;
 
 @Widget.Info(
     author = "Martin Polakovic",
@@ -118,7 +119,7 @@ public final class Layouts extends ClassController {
     }
     @FXML
     public void openLayoutDirectory() {
-        Environment.browse(APP.DIR_LAYOUTS);
+        browse(APP.DIR_LAYOUTS);
     }
 
     private boolean isSelected() {

@@ -1,18 +1,18 @@
 package appLauncher;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import sp.it.pl.gui.objects.grid.GridFileThumbCell;
-import sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn;
-import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader;
-import sp.it.pl.gui.objects.grid.GridView;
-import sp.it.pl.gui.objects.grid.GridView.CellSize;
-import sp.it.pl.gui.objects.hierarchy.Item;
 import java.io.File;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
+import sp.it.pl.gui.objects.grid.GridFileThumbCell;
+import sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn;
+import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader;
+import sp.it.pl.gui.objects.grid.GridView;
+import sp.it.pl.gui.objects.grid.GridView.CellSize;
+import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
 import sp.it.pl.util.Sort;
@@ -24,27 +24,29 @@ import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.conf.Config.VarList.Elements;
 import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.system.Environment;
 import sp.it.pl.util.file.FileSort;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.Resolution;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.graphics.drag.Placeholder;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
-import static sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
-import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
+import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.App.APP;
 import static sp.it.pl.util.Sort.ASCENDING;
-import static sp.it.pl.util.async.AsyncKt.*;
+import static sp.it.pl.util.async.AsyncKt.FX;
+import static sp.it.pl.util.async.AsyncKt.newSingleDaemonThreadExecutor;
+import static sp.it.pl.util.async.AsyncKt.run;
 import static sp.it.pl.util.file.FileSort.DIR_FIRST;
 import static sp.it.pl.util.file.FileType.FILE;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
+import static sp.it.pl.util.system.EnvironmentKt.open;
 
 // TODO: remove this widget, use DirViewer instead
 @Widget.Info(
@@ -157,9 +159,9 @@ public class AppLauncher extends ClassController {
     private void doubleClickItem(Item i) {
         if (closeOnLaunch.get()) {
             widget.areaTemp.close();
-            run(250, () -> Environment.open(i.val));
+            run(250, () -> open(i.val));
         } else {
-            Environment.open(i.val);
+            open(i.val);
         }
     }
 

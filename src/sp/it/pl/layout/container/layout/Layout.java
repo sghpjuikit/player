@@ -7,21 +7,15 @@ import java.util.Objects;
 import java.util.UUID;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.container.uncontainer.UniContainer;
 import sp.it.pl.main.App;
-import sp.it.pl.main.AppSerializer;
 import sp.it.pl.util.file.Util;
 import static sp.it.pl.main.App.APP;
 import static sp.it.pl.util.dev.Util.noØ;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 
 public final class Layout extends UniContainer {
-
-    private static final AppSerializer X = App.APP.serializators;
-    private static final Logger LOGGER = LoggerFactory.getLogger(Layout.class);
 
     @XStreamOmitField
     private String name;
@@ -131,7 +125,7 @@ public final class Layout extends UniContainer {
 
     public void serialize(File f) {
         if (getChild() == null) return;
-        X.toXML(this, f);
+        App.APP.serializerXml.toXML(this, f);
     }
 
     /**
@@ -142,7 +136,7 @@ public final class Layout extends UniContainer {
     }
 
     public Layout deserialize(File f) {
-        Layout l = X.fromXML(Layout.class, f).getOrSupply(() -> new Layout(getNameWithoutExtensionOrRoot(f)));
+        Layout l = App.APP.serializerXml.fromXML(Layout.class, f).getOrSupply(() -> new Layout(getNameWithoutExtensionOrRoot(f)));
         l.properties.forEach(properties::put);
         l.setName(name);    // TODO: dangerous
         child = l.child;

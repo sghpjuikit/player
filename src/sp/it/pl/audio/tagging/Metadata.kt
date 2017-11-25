@@ -21,6 +21,7 @@ import org.jaudiotagger.tag.wav.WavTag
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.playlist.PlaylistItem
 import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.audio.tagging.Metadata.Field
 import sp.it.pl.audio.tagging.chapter.Chapter
 import sp.it.pl.audio.tagging.chapter.Chapters
 import sp.it.pl.gui.objects.image.cover.Cover
@@ -48,14 +49,13 @@ import sp.it.pl.util.units.FileSize.Companion.sizeInB
 import sp.it.pl.util.units.NofX
 import java.io.File
 import java.io.IOException
+import java.io.Serializable
 import java.net.URI
 import java.time.DateTimeException
 import java.time.LocalDateTime
 import java.time.Year
 import java.util.HashSet
 import java.util.Objects
-import javax.persistence.Entity
-import javax.persistence.Id
 import kotlin.collections.HashMap
 import kotlin.collections.set
 import kotlin.reflect.KClass
@@ -83,17 +83,16 @@ import kotlin.streams.toList
  * returns the best possible string representation of the field's value, including
  * its empty value.
  *
- * To access any field in a general way, see [audio.tagging.Metadata.Field]
+ * To access any field in a general way, see [Field]
  */
-@Suppress("unused", "MemberVisibilityCanPrivate")
-@Entity(name = "MetadataItem")
-class Metadata: Item {
+@Suppress("unused")
+class Metadata: Item, Serializable {
 
     // file fields
 
     override val uri: URI get() = URI.create(id.replace(" ", "%20"))
 
-    @Id override var id = EMPTY_URI.toString()
+    override var id = EMPTY_URI.toString()
 
     /** File size in bytes or -1 if unknown */
     private var fileSizeInB: Long = -1

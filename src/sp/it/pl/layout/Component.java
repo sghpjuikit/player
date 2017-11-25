@@ -149,7 +149,7 @@ public abstract class Component {
 	 * current settings.
 	 */
 	public void exportFxwl(File file) {
-		App.APP.serializators.toXML(this, file);
+		App.APP.serializerXml.toXML(this, file);
 	}
 
 	public String getExportName() {

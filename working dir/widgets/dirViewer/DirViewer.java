@@ -1,12 +1,5 @@
 package dirViewer;
 
-import sp.it.pl.gui.objects.grid.GridFileThumbCell;
-import sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn;
-import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader;
-import sp.it.pl.gui.objects.grid.GridView;
-import sp.it.pl.gui.objects.grid.GridView.CellSize;
-import sp.it.pl.gui.objects.hierarchy.Item;
-import sp.it.pl.gui.objects.image.Thumbnail.FitFrom;
 import java.io.File;
 import java.util.Comparator;
 import java.util.List;
@@ -16,19 +9,25 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.ScrollEvent;
+import sp.it.pl.gui.objects.grid.GridFileThumbCell;
+import sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn;
+import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader;
+import sp.it.pl.gui.objects.grid.GridView;
+import sp.it.pl.gui.objects.grid.GridView.CellSize;
+import sp.it.pl.gui.objects.hierarchy.Item;
+import sp.it.pl.gui.objects.image.Thumbnail.FitFrom;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
-import sp.it.pl.util.access.ref.LazyR;
 import sp.it.pl.util.Sort;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.fieldvalue.FileField;
+import sp.it.pl.util.access.ref.LazyR;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.conf.Config.VarList.Elements;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfig.EditMode;
-import sp.it.pl.util.system.Environment;
 import sp.it.pl.util.file.FileFlatter;
 import sp.it.pl.util.file.FileSort;
 import sp.it.pl.util.file.mimetype.MimeTypes;
@@ -38,14 +37,14 @@ import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.graphics.drag.Placeholder;
 import sp.it.pl.util.validation.Constraint;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
-import static sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
-import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static java.util.Comparator.nullsLast;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
+import static sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
+import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.App.APP;
 import static sp.it.pl.main.AppBuildersKt.appTooltipForData;
@@ -72,6 +71,8 @@ import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.reactive.Util.maintain;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
+import static sp.it.pl.util.system.EnvironmentKt.edit;
+import static sp.it.pl.util.system.EnvironmentKt.open;
 
 @Widget.Info(
         author = "Martin Polakovic",
@@ -284,8 +285,8 @@ public class DirViewer extends ClassController {
     private void doubleClickItem(Item i, boolean edit) {
         if (i.valType== DIRECTORY) DirViewer.this.visit(i);
         else {
-            if (edit) Environment.edit(i.val);
-            else     Environment.open(i.val);
+            if (edit) edit(i.val);
+            else open(i.val);
         }
     }
 

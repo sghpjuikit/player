@@ -94,6 +94,11 @@ public class MapSet<K, E> implements Set<E> {
 		addAll(c);
 	}
 
+	@Deprecated
+	public Map<K,E> backingMap() {
+		return m;
+	}
+
 	@Override
 	public int size() {
 		return m.size();

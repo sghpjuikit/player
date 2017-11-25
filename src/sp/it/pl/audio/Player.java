@@ -189,8 +189,7 @@ public class Player {
 			MapSet<URI,Metadata> mm = new MapSet<>(Metadata::getUri, ms);
 
 			// update library
-			APP.db.updatePer(ms);
-			APP.db.updateInMemoryDbFromPersisted();
+			APP.db.addItems(ms);
 
 			runFX(() -> {
 				// update all playlist items referring to this updated metadata

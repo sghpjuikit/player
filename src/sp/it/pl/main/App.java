@@ -1,18 +1,12 @@
 package sp.it.pl.main;
 
 import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.core.joran.spi.JoranException;
-import ch.qos.logback.core.spi.FilterAttachable;
-import ch.qos.logback.core.util.StatusPrinter;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import java.io.File;
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -21,8 +15,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.logging.LogManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
@@ -40,12 +32,8 @@ import sp.it.pl.audio.tagging.MetadataGroup;
 import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
-import sp.it.pl.gui.objects.tablecell.BarRatingCellFactory;
-import sp.it.pl.gui.objects.tablecell.HyphenRatingCellFactory;
-import sp.it.pl.gui.objects.tablecell.NumberRatingCellFactory;
 import sp.it.pl.gui.objects.tablecell.RatingCellFactory;
 import sp.it.pl.gui.objects.tablecell.RatingRatingCellFactory;
-import sp.it.pl.gui.objects.tablecell.TextStarRatingCellFactory;
 import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch;
 import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.gui.objects.window.stage.WindowManager;
@@ -63,6 +51,10 @@ import sp.it.pl.layout.widget.feature.ImageDisplayFeature;
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature;
 import sp.it.pl.layout.widget.feature.Opener;
 import sp.it.pl.layout.widget.feature.PlaylistFeature;
+import sp.it.pl.core.CoreInstances;
+import sp.it.pl.core.CoreLogging;
+import sp.it.pl.core.CoreSerializer;
+import sp.it.pl.core.CoreSerializerXml;
 import sp.it.pl.plugin.AppSearchPlugin;
 import sp.it.pl.plugin.DirSearchPlugin;
 import sp.it.pl.plugin.PluginManager;
@@ -99,17 +91,10 @@ import sp.it.pl.util.system.EnvironmentKt;
 import sp.it.pl.util.system.SystemOutListener;
 import sp.it.pl.util.type.ClassName;
 import sp.it.pl.util.type.InstanceInfo;
-import sp.it.pl.util.type.InstanceMap;
 import sp.it.pl.util.type.InstanceName;
 import sp.it.pl.util.type.ObjectFieldMap;
 import sp.it.pl.util.units.FileSize;
 import sp.it.pl.util.validation.Constraint;
-import sp.it.pl.web.BingImageSearchQBuilder;
-import sp.it.pl.web.DuckDuckGoImageQBuilder;
-import sp.it.pl.web.DuckDuckGoQBuilder;
-import sp.it.pl.web.GoogleImageQBuilder;
-import sp.it.pl.web.SearchUriBuilder;
-import sp.it.pl.web.WikipediaQBuilder;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CSS3;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GITHUB;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.IMAGE;
@@ -128,7 +113,6 @@ import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.NEW;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static sp.it.pl.main.AppActionsKt.addToLibraryConsumer;
 import static sp.it.pl.util.async.AsyncKt.run;
-import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.Util.isValidatedDirectory;
 import static sp.it.pl.util.functional.Util.list;
@@ -221,6 +205,19 @@ public class App extends Application implements Configurable {
 	 * File for application configuration.
 	 */ public final File FILE_SETTINGS = new File(DIR_USERDATA, "application.properties");
 
+	// cores (always active, mostly singletons)
+	public final CoreLogging logging = new CoreLogging(FILE_LOG_CONFIG, DIR_LOG);
+	public final CoreSerializerXml serializerXml = new CoreSerializerXml();
+	public final CoreSerializer serializer = CoreSerializer.INSTANCE;
+	public final CoreInstances instances = CoreInstances.INSTANCE;
+	public final MimeTypes mimeTypes = MimeTypes.INSTANCE;
+	public final ClassName className = new ClassName();
+	public final InstanceName instanceName = new InstanceName();
+	public final InstanceInfo instanceInfo = new InstanceInfo();
+	public final ObjectFieldMap classFields = new ObjectFieldMap();
+
+	// app stuff
+	public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
 	/**
 	 * Various actions for the application
 	 */ public final AppActions actions = new AppActions();
@@ -240,12 +237,7 @@ public class App extends Application implements Configurable {
 	/**
 	 * Allows sending and receiving {@link java.lang.String} messages to and from other instances of this application.
 	 */ public final AppInstanceComm appCommunicator = new AppInstanceComm();
-	/**
-	 * Handles application parameters as commands
-	 */ public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
-	/**
-	 * Serializators and deserializators, e.g., to save object into a file.
-	 */ public final AppSerializer serializators = new AppSerializer(encoding);
+
 	/**
 	 * Configurable state, i.e., the settings of the application.
 	 */ public final Configuration configuration = new Configuration();
@@ -255,14 +247,6 @@ public class App extends Application implements Configurable {
 	/**
 	 * Observable {@link System#out}
 	 */ public final SystemOutListener systemout = new SystemOutListener();
-	public final UncaughtExceptionHandler uncaughtExceptionHandler = (thread,ex) -> log(App.class).error("Uncaught exception", ex);
-
-	public final MimeTypes mimeTypes = MimeTypes.INSTANCE;
-	public final ClassName className = new ClassName();
-	public final InstanceName instanceName = new InstanceName();
-	public final InstanceInfo instanceInfo = new InstanceInfo();
-	public final ObjectFieldMap classFields = new ObjectFieldMap();
-	public final InstanceMap instances = new InstanceMap();
 
 	public final ActionPane actionPane = new ActionPane(className, instanceName, instanceInfo);
 	public final ActionPane actionAppPane = new ActionPane(className, instanceName, instanceInfo);
@@ -339,13 +323,13 @@ public class App extends Application implements Configurable {
 	@IsConfig(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")
 	public final VarEnum<Level> logLevelConsole = new VarEnum<Level>(Level.DEBUG,
 			list(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF),
-			l -> changeLogBackLoggerAppenderLevel("STDOUT", l)
+			l -> logging.changeLogBackLoggerAppenderLevel("STDOUT", l)
 	);
 
 	@IsConfig(name = "Level (file)", group = "Logging", info = "Logging level for logging to file")
 	public final VarEnum<Level> logLevelFile = new VarEnum<Level>(Level.WARN,
 			list(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF),
-			l -> changeLogBackLoggerAppenderLevel("FILE", l)
+			l -> logging.changeLogBackLoggerAppenderLevel("FILE", l)
 	);
 
 	public App() {
@@ -365,7 +349,7 @@ public class App extends Application implements Configurable {
 	 */
 	@Override
 	public void init() {
-		configureLogging();
+		logging.init();
 
 		// Forbid multiple application instances, instead notify the 1st instance of 2nd (this one)
 		// trying to run and this instance's run parameters and close prematurely
@@ -435,22 +419,6 @@ public class App extends Application implements Configurable {
 			stream(PlaylistItem.Field.FIELDS)
 					.filter(TypedValue::isTypeString)
 					.collect(toMap(ObjectField::name, f -> (String)f.getOf(p)))
-		);
-
-		// enumerate instances
-		instances.addInstance(SearchUriBuilder.class,
-			DuckDuckGoQBuilder.INSTANCE,
-			DuckDuckGoImageQBuilder.INSTANCE,
-			WikipediaQBuilder.INSTANCE,
-			BingImageSearchQBuilder.INSTANCE,
-			GoogleImageQBuilder.INSTANCE
-		);
-		instances.addInstance(RatingCellFactory.class,
-			BarRatingCellFactory.INSTANCE,
-			HyphenRatingCellFactory.INSTANCE,
-			TextStarRatingCellFactory.INSTANCE,
-			NumberRatingCellFactory.INSTANCE,
-			RatingRatingCellFactory.INSTANCE
 		);
 
 		// register actions
@@ -616,6 +584,11 @@ public class App extends Application implements Configurable {
 			ws -> ws.forEach(windowManager::launchComponent)
 		);
 
+		// init cores
+		serializer.init();
+		serializerXml.init();
+		instances.init();
+
 		// add search sources
 		search.getSources().addAll(list(
 			() -> APP.configuration.getFields().stream().map(ConfigSearch.Entry::of),
@@ -640,6 +613,7 @@ public class App extends Application implements Configurable {
 		// start global shortcuts
 		Action.startActionListening();
 		Action.loadCommandActions();
+
 	}
 
 	/**
@@ -663,9 +637,6 @@ public class App extends Application implements Configurable {
 		}
 
 		isInitialized = Try.tryCatchAll(() -> {
-
-				widgetManager.initialize();
-
 				// services must be created before Configuration
 				services.addService(new TrayService());
 				services.addService(new Notifier());
@@ -708,7 +679,8 @@ public class App extends Application implements Configurable {
 					new FastAction<>(FOLDER,Action.get("Open app directory"))
 				);
 
-				db.start();
+				widgetManager.init();
+				db.init();
 
 				// gather configs
 				configuration.rawAdd(FILE_SETTINGS);
@@ -786,6 +758,7 @@ public class App extends Application implements Configurable {
 					.forEach(Service::stop);
 		}
 		db.stop();
+		CoreSerializer.INSTANCE.dispose();
 		Action.stopActionListening();
 		appCommunicator.stop();
 	}
@@ -813,16 +786,6 @@ public class App extends Application implements Configurable {
 		close();
 	}
 
-	private void changeLogBackLoggerAppenderLevel(String appenderName, Level level) {
-		Optional.ofNullable((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME))
-				.map(logger -> logger.getAppender(appenderName))
-				.map(FilterAttachable::getCopyOfAttachedFiltersList)
-				.flatMap(filters -> filters.stream().findFirst())
-				.filter(filter -> filter instanceof ch.qos.logback.classic.filter.ThresholdFilter)
-				.map(filter -> ((ch.qos.logback.classic.filter.ThresholdFilter)filter))
-				.ifPresent(filter -> filter.setLevel(level.toString()));
-	}
-
 	public List<String> fetchParameters() {
 		// Note: Parameters are never null, but if the application is created manually from other class
 		// it is possible and we don't want failure, hence the null check
@@ -834,30 +797,6 @@ public class App extends Application implements Configurable {
 			getParameters().getNamed().forEach((t, value) -> params.add(value));
 		}
 		return params;
-	}
-
-	private void configureLogging() {
-		// disable java.util.logging logging
-		// Im not sure this is really wise, but otherwise we get a lot of unwanted log content in console from
-		// libraries
-		LogManager.getLogManager().reset();
-
-		// configure slf4 logging
-		LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-		try {
-			JoranConfigurator jc = new JoranConfigurator();
-			jc.setContext(lc);
-			lc.reset();
-			lc.putProperty("LOG_DIR", DIR_LOG.getPath());
-			// override default configuration
-			jc.doConfigure(FILE_LOG_CONFIG);
-		} catch (JoranException ex) {
-			LOGGER.error(ex.getMessage());
-		}
-		StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
-
-		// log uncaught thread termination exceptions
-		Thread.setDefaultUncaughtExceptionHandler(uncaughtExceptionHandler);
 	}
 
 	/** @return number of instances of this application (including this one) running at this moment */

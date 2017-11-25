@@ -1,4 +1,4 @@
-package sp.it.pl.main;
+package sp.it.pl.core;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import javafx.beans.Observable;
@@ -16,6 +17,7 @@ import sp.it.pl.audio.playlist.Playlist;
 import sp.it.pl.audio.playlist.PlaylistItem;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.util.dev.Blocks;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.serialize.xstream.BooleanPropertyConverter;
 import sp.it.pl.util.serialize.xstream.DoublePropertyConverter;
@@ -32,17 +34,13 @@ import static sp.it.pl.util.file.Util.readFileLines;
 import static sp.it.pl.util.functional.Try.error;
 import static sp.it.pl.util.functional.Try.ok;
 
-/**
- * Composition of serializers for the application.
- */
-public final class AppSerializer {
+public final class CoreSerializerXml implements Core {
 
-	/** XStream serializer that serializes objects into human readable XMLs. */
-	public final XStream x;
-	private final Charset encoding;
+	private final Charset encoding = StandardCharsets.UTF_8;
+	private XStream x;
 
-	public AppSerializer(Charset outputEncoding) {
-		encoding = outputEncoding;
+	@Override
+	public void init() {
 		x = new XStream(new DomDriver(encoding.name()));
 
 		// configure security
@@ -71,6 +69,10 @@ public final class AppSerializer {
 		x.useAttributeFor(Widget.class, "name");
 	}
 
+	@Override
+	public void dispose() {}
+
+	@Blocks
 	public Try<Void,SerializationException> toXML(Object o, File file) {
 		try (
 				FileOutputStream fos = new FileOutputStream(file);
@@ -80,12 +82,13 @@ public final class AppSerializer {
 			x.toXML(o, w);
 			return ok(null);
 		} catch (Throwable e) { // XStreamException | IOException is not enough
-			log(AppSerializer.class).error("Couldn't serialize " + o.getClass() + " to file {}", file, e);
+			log(CoreSerializerXml.class).error("Couldn't serialize " + o.getClass() + " to file {}", file, e);
 			return error(new SerializationException("Couldn't serialize to file " + file, e));
 		}
 	}
 
 	@SuppressWarnings("unchecked")
+	@Blocks
 	public <T> Try<T,SerializationException> fromXML(Class<T> type, File file) {
 		// pre-processing
 		String varDefinition = "#def ";
@@ -107,7 +110,7 @@ public final class AppSerializer {
 		try {
 			return ok((T) x.fromXML(text));
 		} catch (Throwable e) { // ClassCastException | XStreamException | IOException is not enough
-			log(AppSerializer.class).error("Couldn't deserialize " + type + " from file {}", file, e);
+			log(CoreSerializerXml.class).error("Couldn't deserialize " + type + " from file {}", file, e);
 			return error(new SerializationException("Couldn't deserialize " + type + " from file " + file, e));
 		}
 	}

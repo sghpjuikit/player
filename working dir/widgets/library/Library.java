@@ -100,15 +100,15 @@ import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
 )
 public class Library extends FXMLController implements SongReader {
 
-	private static final TableContextMenuR<MetadataGroup> contextMenu = new TableContextMenuR<>();
+    private static final TableContextMenuR<MetadataGroup> contextMenu = new TableContextMenuR<>();
 
     private @FXML AnchorPane root;
-	private final FilteredTable<Metadata> table = new FilteredTable<>(Metadata.class, Metadata.EMPTY.getMainField());
+    private final FilteredTable<Metadata> table = new FilteredTable<>(Metadata.class, Metadata.EMPTY.getMainField());
     private final InfoTask<Task<?>> taskInfo = new InfoTask<>(null, new Label(), appProgressIndicator());
-	private final Anim hideInfo = new Anim(at-> setScaleXY(taskInfo.getProgress(),at*at))
-		                              .dur(500).intpl(reverse(new ElasticInterpolator()));
+    private final Anim hideInfo = new Anim(at-> setScaleXY(taskInfo.getProgress(),at*at))
+                                      .dur(500).intpl(reverse(new ElasticInterpolator()));
 
-	private final ExecuteN runOnce = new ExecuteN(1);
+    private final ExecuteN runOnce = new ExecuteN(1);
     private Output<Metadata> out_sel;
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -136,9 +136,9 @@ public class Library extends FXMLController implements SongReader {
         setAnchors(table.getRoot(),0d);
 
         // table properties
-        table.setFixedCellSize(Gui.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.search.setColumn(TITLE);
+        d(maintain(Gui.font, f -> f.getSize()+5, table.fixedCellSizeProperty()));
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));
@@ -151,8 +151,8 @@ public class Library extends FXMLController implements SongReader {
 
         // extend table items information
         table.items_info.textFactory = (all, list) -> {
-            double Σms = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
-            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new Dur(Σms);
+            double lengthMs = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
+            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new Dur(lengthMs);
         };
         // add more menu items
         table.menuAdd.getItems().addAll(
@@ -175,25 +175,22 @@ public class Library extends FXMLController implements SongReader {
             );
             return c;
         });
+        // maintain rating column cell style
+        d(APP.ratingCell.maintain(cf -> table.getColumn(RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));
 
         // let resizing as it is
         table.setColumnResizePolicy(resize -> {
             boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
             // resize index column
-			table.getColumn(ColumnField.INDEX).ifPresent(i -> i.setPrefWidth(table.computeIndexColumnWidth()));
+            table.getColumn(ColumnField.INDEX).ifPresent(i -> i.setPrefWidth(table.computeIndexColumnWidth()));
             return b;
         });
-
-        // maintain rating column cell style
-        APP.ratingCell.addListener((o,ov,nv) -> table.getColumn(RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
 
         table.getDefaultColumnInfo();
 
         // row behavior
         table.setRowFactory(tbl -> new ImprovedTableRow<Metadata>()
-                .onLeftDoubleClick((r,e) ->
-                    PlaylistManager.use(pl->pl.setNplayFrom(table.getItems(), r.getIndex()))
-                )
+                .onLeftDoubleClick((r,e) -> PlaylistManager.use(pl->pl.setNplayFrom(table.getItems(), r.getIndex())))
                 .onRightSingleClick((r,e) -> {
                     // prep selection for context menu
                     if (!r.isSelected())
@@ -212,16 +209,16 @@ public class Library extends FXMLController implements SongReader {
 
         // key actions
         table.setOnKeyPressed(e -> {
-			// play selected
+            // play selected
             if (e.getCode() == ENTER) {
                 if (!table.getSelectionModel().isEmpty()) {
                     PlaylistManager.use(pl -> pl.setNplayFrom(table.getItems(), table.getSelectionModel().getSelectedIndex()));
                 }
             }
-			// delete selected
+            // delete selected
             if (e.getCode() == DELETE) {
-				APP.db.removeItems(table.getSelectedItems());
-			}
+                APP.db.removeItems(table.getSelectedItems());
+            }
         });
 
         // drag&drop from
@@ -252,59 +249,60 @@ public class Library extends FXMLController implements SongReader {
         table.getSelectionModel().clearSelection();
     }
 
-	@Override
-	public Collection<Config<Object>> getFields() {
-		// serialize column state when requested
-		getWidget().properties.put("columns", table.getColumnState().toString());
-		return super.getFields();
-	}
+    @Override
+    public Collection<Config<Object>> getFields() {
+        // serialize column state when requested
+        getWidget().properties.put("columns", table.getColumnState().toString());
+        return super.getFields();
+    }
 
-	/**
-	 * Converts items to Metadata using {@link Item#toMeta()} (using no I/O)
-	 * and displays them in the table.
-	 * <p/>
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void read(List<? extends Item> items) {
-		if (items==null) return;
-		table.setItemsRaw(map(items,Item::toMeta));
-	}
+    /**
+     * Converts items to Metadata using {@link Item#toMeta()} (using no I/O)
+     * and displays them in the table.
+     * <p/>
+     * {@inheritDoc}
+     */
+    @Override
+    public void read(List<? extends Item> items) {
+        if (items==null) return;
+        table.setItemsRaw(map(items,Item::toMeta));
+    }
 
     @IsInput("To display")
     public void setItems(List<? extends Metadata> items) {
+        System.out.println("setting " + (items==null ? null : items.size()));
         if (items==null) return;
         table.setItemsRaw(items);
     }
 
     @FXML private void addDirectory() {
-	    Window w = root.getScene().getWindow();
-	    FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
-	    chooseFile("Add folder to library", FileType.DIRECTORY, lastDir, w, ef)
-			.ifOk(file -> {
-				App.APP.actionPane.show(file);
-				lastDir = file.getParentFile();
-			});
+        Window w = root.getScene().getWindow();
+        FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
+        chooseFile("Add folder to library", FileType.DIRECTORY, lastDir, w, ef)
+            .ifOk(file -> {
+                App.APP.actionPane.show(file);
+                lastDir = file.getParentFile();
+            });
     }
 
     @FXML private void addFiles() {
-	    Window w = root.getScene().getWindow();
-	    FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
-		chooseFiles("Add files to library", lastFile, w, ef)
-			.ifOk(files -> {
-				App.APP.actionPane.show(files);
-				lastFile = getCommonRoot(files);
-			});
+        Window w = root.getScene().getWindow();
+        FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
+        chooseFiles("Add files to library", lastFile, w, ef)
+            .ifOk(files -> {
+                App.APP.actionPane.show(files);
+                lastFile = getCommonRoot(files);
+            });
     }
 
     private void removeInvalid() {
-    	Task<Void> t = MetadataReader.buildRemoveMissingFromLibTask();
-	    Fut.fut(t)
-			.use(FX, taskInfo::showNbind)
-			.use(Task::run)
-			.then(sleeping(seconds(5)))
-			.then(FX, () -> hideInfo.playOpenDo(taskInfo::hideNunbind))
-	        .printExceptions();
+        Task<Void> t = MetadataReader.buildRemoveMissingFromLibTask();
+        Fut.fut(t)
+            .use(FX, taskInfo::showNbind)
+            .use(Task::run)
+            .then(sleeping(seconds(5)))
+            .then(FX, () -> hideInfo.playOpenDo(taskInfo::hideNunbind))
+            .printExceptions();
     }
 
 }

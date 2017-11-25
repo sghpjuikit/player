@@ -141,14 +141,9 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         }));
 
         table = new PlaylistTable(playlist);
-
-        // add table to scene graph
-        root.getChildren().add(table.getRoot());
-        setAnchors(table.getRoot(),0d);
-
-        // table properties
-        table.setFixedCellSize(Gui.font.getValue().getSize() + 5);
+        table.search.setColumn(Field.NAME);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
+        d(maintain(Gui.font, f -> f.getSize()+5, table.fixedCellSizeProperty()));
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));
@@ -156,10 +151,14 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         d(maintain(show_footer,table.footerVisible));
         d(maintain(scrollToPlaying,table.scrollToPlaying));
 
+        // add table to scene graph
+        root.getChildren().add(table.getRoot());
+        setAnchors(table.getRoot(),0d);
+
         // extend table items information
         table.items_info.textFactory = (all, list) -> {
-            double Σms = list.stream().mapToDouble(PlaylistItem::getTimeMs).sum();
-            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new Dur(Σms);
+            double lengthMs = list.stream().mapToDouble(PlaylistItem::getTimeMs).sum();
+            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new Dur(lengthMs);
         };
         // add more menu items
         table.menuAdd.getItems().addAll(

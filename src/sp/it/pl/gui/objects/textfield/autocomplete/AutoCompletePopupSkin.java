@@ -52,7 +52,7 @@ public class AutoCompletePopupSkin<T> implements Skin<AutoCompletePopup<T>> {
 
 		double reserve = 12; // removes vertical scrollbar
 		list = new ListView<>(control.getSuggestions());
-		list.setFixedCellSize(20);
+		list.setFixedCellSize(20);  // TODO: avoid hardcoded value
 		list.prefHeightProperty().bind(
 			min(control.visibleRowCountProperty(), size(list.getItems()))
 				.multiply(list.fixedCellSizeProperty())

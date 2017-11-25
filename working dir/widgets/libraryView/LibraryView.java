@@ -129,15 +129,14 @@ public class LibraryView extends FXMLController {
         setAnchors(table.getRoot(),0d);
 
         // table properties
-        table.setFixedCellSize(Gui.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.search.setColumn(VALUE);
+        d(maintain(Gui.font, f -> f.getSize()+5, table.fixedCellSizeProperty()));
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));
         d(maintain(show_header,table.headerVisible));
         d(maintain(show_footer,table.footerVisible));
-
 
         // set up table columns
         table.setKeyNameColMapper(name-> ColumnField.INDEX.name().equals(name) ? name : MetadataGroup.Field.valueOf(name).toString());
@@ -152,12 +151,12 @@ public class LibraryView extends FXMLController {
                 c.setCellFactory(mgf==AVG_RATING
                         ? (Callback) APP.ratingCell.getValue()
                         : mgf==W_RATING
-                        ? (Callback) NumberRatingCellFactory.INSTANCE
-                        : col -> {
-                        TableCell cel = table.buildDefaultCell(mgf);
-                        cel.setAlignment(a);
-                        return cel;
-                    }
+                                ? (Callback) NumberRatingCellFactory.INSTANCE
+                                : col -> {
+                                    TableCell cel = table.buildDefaultCell(mgf);
+                                    cel.setAlignment(a);
+                                    return cel;
+                                }
                 );
                 return c;
             } else {
@@ -168,9 +167,9 @@ public class LibraryView extends FXMLController {
             }
         });
         // maintain rating column cell style
-        APP.ratingCell.addListener((o,ov,nv) -> table.getColumn(AVG_RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
+        d(APP.ratingCell.maintain(cf -> table.getColumn(AVG_RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));
 
-	    table.getDefaultColumnInfo();
+        table.getDefaultColumnInfo();
 
         // rows
         table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>()
@@ -239,9 +238,9 @@ public class LibraryView extends FXMLController {
             t.getColumn(ColumnField.INDEX).ifPresent(i -> i.setPrefWidth(t.computeIndexColumnWidth()));
             // resize main column to span remaining space
             t.getColumn(VALUE).ifPresent(c -> {
-                double Σcw = t.getColumns().stream().filter(TableColumn::isVisible).mapToDouble(TableColumn::getWidth).sum();
-                double sw = t.getVScrollbarWidth();
-                c.setPrefWidth(t.getWidth()-(sw+Σcw-c.getWidth()));
+                double sumW = t.getColumns().stream().filter(TableColumn::isVisible).mapToDouble(TableColumn::getWidth).sum();
+                double sbW = t.getVScrollbarWidth();
+                c.setPrefWidth(t.getWidth()-(sbW+sumW-c.getWidth()));
             });
             return b;
         });
@@ -285,12 +284,12 @@ public class LibraryView extends FXMLController {
         return super.getFields();
     }
 
-	@Override
-	public void onClose() {
-		super.onClose();
-	}
+    @Override
+    public void onClose() {
+        super.onClose();
+    }
 
-	/******************************** PRIVATE API *********************************/
+    /******************************** PRIVATE API *********************************/
 
     // applies lvl & fieldFilter
     @SuppressWarnings({"unchecked", "unused"})
@@ -299,8 +298,8 @@ public class LibraryView extends FXMLController {
         table.getColumn(VALUE).ifPresent(c -> {
             TableColumn<MetadataGroup,Object> t = table.getColumnFactory().call(VALUE);
             c.setText(t.getText());
-            c.setCellValueFactory((Callback)t.getCellValueFactory());
-            c.setCellFactory((Callback)t.getCellFactory());
+            c.setCellValueFactory(t.getCellValueFactory());
+            c.setCellFactory(t.getCellFactory());
             table.refreshColumn(c);
         });
 
@@ -341,13 +340,13 @@ public class LibraryView extends FXMLController {
 
         // handle special "All" row, selecting it is equivalent to selecting all rows
         return mgs.stream().anyMatch(MetadataGroup::isAll)
-			? list
-			: mgs.stream().flatMap(mg -> mg.getGrouped().stream()).collect(toList());
+            ? list
+            : mgs.stream().flatMap(mg -> mg.getGrouped().stream()).collect(toList());
     }
 
-	/**
-	 *  Get all items in grouped in the selected groups, sorts using library sort order.
- 	 */
+    /**
+     *  Get all items in grouped in the selected groups, sorts using library sort order.
+     */
     private List<Metadata> filerListToSelectedNsort() {
         List<Metadata> l = filterList(in_items.getValue(),false);
                        l.sort(APP.db.getLibraryComparator().get());

@@ -88,6 +88,7 @@ import static sp.it.pl.util.graphics.Util.layScrollVTextCenter;
 import static sp.it.pl.util.graphics.Util.layStack;
 import static sp.it.pl.util.graphics.Util.layVertically;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
+import static sp.it.pl.util.reactive.Util.maintain;
 
 /** Action chooser pane. Displays icons representing certain actions. */
 public class ActionPane extends OverlayPane<Object> {
@@ -363,7 +364,7 @@ public class ActionPane extends OverlayPane<Object> {
 			Class itemType = getCollectionType(items);
 			if (App.APP.classFields.get(itemType) != null) {	// TODO: add support for any item by using generic ToString objectField and column
 				FilteredTable<Object> t = new FilteredTable<>(itemType, null);
-				t.setFixedCellSize(Gui.font.getValue().getSize() + 5);
+				maintain(Gui.font, f -> f.getSize()+5, table.fixedCellSizeProperty());
 				t.getSelectionModel().setSelectionMode(MULTIPLE);
 				t.setColumnFactory(f -> {
 					TableColumn<?,Object> c = new TableColumn<>(f.toString());

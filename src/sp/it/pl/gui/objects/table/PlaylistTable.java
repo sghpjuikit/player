@@ -78,7 +78,6 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 		VBox.setVgrow(this, Priority.ALWAYS);
 
 		// initialize table
-		setFixedCellSize(Gui.font.getValue().getSize() + 5);
 		getSelectionModel().setSelectionMode(MULTIPLE);
 
 		// initialize column factories

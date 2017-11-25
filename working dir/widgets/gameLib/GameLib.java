@@ -39,7 +39,6 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.file.Properties;
 import sp.it.pl.util.functional.Try;
-import sp.it.pl.util.system.Environment;
 import sp.it.pl.util.validation.Constraint;
 import sp.it.pl.web.WikipediaQBuilder;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
@@ -65,6 +64,10 @@ import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.UtilKt.typeText;
+import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.system.EnvironmentKt.browse;
+import static sp.it.pl.util.system.EnvironmentKt.edit;
+import static sp.it.pl.util.system.EnvironmentKt.open;
 import static sp.it.pl.util.system.EnvironmentKt.runAsProgram;
 import static sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY;
 
@@ -182,8 +185,8 @@ public class GameLib extends FXMLController {
         		GameItem g = game;
         		runNew(() -> {
 			        Try.wrapE(g.getInfoFile()::createNewFile);
-	                Environment.edit(g.getInfoFile());
-	                Environment.open(g.getInfoFile());
+	                edit(g.getInfoFile());
+	                open(g.getInfoFile());
 		        });
 	        }
         });
@@ -193,11 +196,11 @@ public class GameLib extends FXMLController {
         });
         exploreB = new Icon(FOLDER, iconSize, null, () -> {
             if (at!=InfoType.EXPLORER) goTo(InfoType.EXPLORER);
-            else Environment.browse(game.getLocation());
+            else browse(game.getLocation());
         });
         wikiB = new Icon(WIKIPEDIA, iconSize, null, () -> {
             if (game!=null) {
-                Environment.browse(WikipediaQBuilder.INSTANCE.apply(game.getName()));
+                browse(WikipediaQBuilder.INSTANCE.apply(game.getName()));
                 // in-widget browser
                 // WebView w = new javafx.scene.web.WebView();
                 // file_tree_root.getChildren().add(w);
@@ -212,7 +215,7 @@ public class GameLib extends FXMLController {
 
 
         file_tree.setShowRoot(false);
-        file_tree.setFixedCellSize(Gui.font.getValue().getSize() + 5);
+        d(maintain(Gui.font, f -> f.getSize()+5, file_tree.fixedCellSizeProperty()));
         file_tree.getSelectionModel().setSelectionMode(SINGLE);
         FileTree.from(file_tree);
         file_tree.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {

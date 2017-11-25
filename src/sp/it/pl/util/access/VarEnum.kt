@@ -47,6 +47,8 @@ open class VarEnum<T>: V<T>, EnumerableValue<T> {
 
         @JvmStatic fun <V> ofInstances(value: V, type: Class<V>, instanceSource: InstanceMap) =
                 VarEnum(value, enumerator = { instanceSource.getInstances(type) })
+
+        inline fun <reified V> ofInstances(value: V, instanceSource: InstanceMap) = Companion.ofInstances(value, V::class.java, instanceSource)
     }
 
 }

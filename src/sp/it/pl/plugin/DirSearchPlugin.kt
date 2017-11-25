@@ -6,7 +6,7 @@ import mu.KotlinLogging
 import sp.it.pl.audio.Player
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
-import sp.it.pl.main.App
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.access.v
 import sp.it.pl.util.async.FX
 import sp.it.pl.util.async.future.Fut
@@ -22,7 +22,6 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 import java.util.function.Function
-import java.util.function.Supplier
 
 private const val NAME = "Dir Search"
 private const val GROUP = "${Plugin.CONFIG_GROUP}.$NAME"
@@ -46,15 +45,15 @@ class DirSearchPlugin: PluginBase(NAME) {
     private val cacheUpdate = AtomicLong(0)
 
     private var dirs: List<File> = emptyList()
-    private val searchProvider = Supplier { dirs.stream().map { it.toOpenDirEntry() } }
+    private val searchProvider = { dirs.stream().map { it.toOpenDirEntry() } }
 
     override fun onStart() {
         computeFiles()
-        App.APP.search.sources += searchProvider
+        APP.search.sources += searchProvider
     }
 
     override fun onStop() {
-        App.APP.search.sources -= searchProvider
+        APP.search.sources -= searchProvider
     }
 
     private fun computeFiles() {

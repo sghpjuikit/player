@@ -7,7 +7,7 @@ import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.parsing.Parser;
 import static sp.it.pl.gui.objects.textfield.autocomplete.AutoCompletion.autoComplete;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.functional.Util.filter;
 
 /**

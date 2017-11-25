@@ -21,7 +21,7 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 
 @IsConfigurable("Mouse.Effect")

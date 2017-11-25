@@ -24,7 +24,7 @@ public class AppInstanceComm {
 	private static final int PORT = 1099;
 	private static final String REGISTRY_NAME = "PlayerFxCommunicatorServer";
 
-	public final ArrayList<Consumer<List<String>>> onNewInstanceHandlers = new ArrayList<>();
+	public final ArrayList<Consumer<? super List<String>>> onNewInstanceHandlers = new ArrayList<>();
 	private AppMediator appCommunicator;
 	private Registry rmiRegistry;
 
@@ -33,10 +33,14 @@ public class AppInstanceComm {
 	 * Starts a non daemon thread, which has to
 	 * be manually terminated by calling {@link #stop()}.
 	 */
-	public void start() throws RemoteException {
-		appCommunicator = new AppMediator();
-		rmiRegistry = LocateRegistry.createRegistry(PORT);
-		rmiRegistry.rebind("PlayerFxCommunicatorServer", appCommunicator);
+	public void start() {
+		try {
+			appCommunicator = new AppMediator();
+			rmiRegistry = LocateRegistry.createRegistry(PORT);
+			rmiRegistry.rebind("PlayerFxCommunicatorServer", appCommunicator);
+		} catch (RemoteException e) {
+			LOGGER.warn("App instance communicator failed to start", e);
+		}
 	}
 
 	/**

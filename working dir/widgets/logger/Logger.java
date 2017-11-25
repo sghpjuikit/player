@@ -12,8 +12,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.TextArea;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
-import sp.it.pl.main.App;
 import sp.it.pl.util.conf.IsConfig;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
 
@@ -46,7 +46,7 @@ public class Logger extends ClassController {
 		getChildren().add(area);
 		setAnchors(area, 0d);
 
-		d(App.APP.systemout.addListener(area::appendText));
+		d(APP.systemout.addListener(area::appendText));
 
 //		TextAreaStream stream = new TextAreaStream(area);
 //		PrintStream con = new PrintStream(stream);

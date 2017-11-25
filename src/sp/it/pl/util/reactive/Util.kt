@@ -76,7 +76,7 @@ fun <O1, O2> maintain(o1: ObservableValue<O1>, o2: ObservableValue<O2>, u: BiCon
 }
 
 infix fun <O> ObservableValue<O>.maintain(w: WritableValue<in O>): Subscription {
-    w.value = this.value
+    w.value = value
     val l = ChangeListener<O> { _, _, nv -> w.value = nv }
     this.addListener(l)
     return Subscription { this.removeListener(l) }
@@ -90,16 +90,11 @@ fun <T> sizeOf(list: ObservableList<T>, action: Consumer<in Int>): Subscription 
 }
 
 /**
- * Prints the value to console immediately and then on every change.
- */
-fun <T> ObservableValue<T>.printOnChange(): Subscription = maintain(Consumer { println(it) })
-
-/**
  * [.doOnceIf]
  * testing the value for nullity.<br></br>
  * The action executes when value is not null.
  */
-fun <T> doOnceIfNonNull(property: ObservableValue<T>, action: Consumer<T>): Subscription {
+fun <T> doOnceIfNonNull(property: ObservableValue<T>, action: Consumer<in T>): Subscription {
     return doOnceIf(property, Predicate { Objects.nonNull(it) }, action)
 }
 
@@ -119,28 +114,22 @@ fun <T> doOnceIfImageLoaded(image: Image, action: Runnable): Subscription {
  * Runs action (consuming the property's value) as soon as the condition is met. Useful to execute initialization,
  * for example to wait for nonnull value.
  *
- *
  * The action runs immediately if current value already meets the condition. Otherwise registers a one-time
  * listener, which will run the action when the value changes to such that the condition is met.
  *
- *
  * It is guaranteed:
- *
  *  *  action executes at most once
  *
  * It is not guaranteed:
- *
  *  *  action will execute - it maye never execute either because the value never met the condition or the
  * listener was unregistered manually using the returned subscription.
  *
 
  * @param property observable value to consume
- * *
  * @param condition test the value must pass for the action to execute
- * *
  * @param action action receiving the value and that runs exactly once when the condition is first met
  */
-fun <T> doOnceIf(property: ObservableValue<T>, condition: Predicate<in T>, action: Consumer<T>): Subscription {
+fun <T> doOnceIf(property: ObservableValue<T>, condition: Predicate<in T>, action: Consumer<in T>): Subscription {
     if (condition.test(property.value)) {
         action(property.value)
         return Subscription {}
@@ -151,7 +140,7 @@ fun <T> doOnceIf(property: ObservableValue<T>, condition: Predicate<in T>, actio
     }
 }
 
-fun <T> singletonListener(property: ObservableValue<T>, condition: Predicate<in T>, action: Consumer<T>): ChangeListener<T> {
+fun <T> singletonListener(property: ObservableValue<T>, condition: Predicate<in T>, action: Consumer<in T>): ChangeListener<T> {
     return object: ChangeListener<T> {
         override fun changed(observable: ObservableValue<out T>, ov: T, nv: T) {
             if (condition.test(nv)) {
@@ -162,7 +151,7 @@ fun <T> singletonListener(property: ObservableValue<T>, condition: Predicate<in 
     }
 }
 
-fun <T> installSingletonListener(property: ObservableValue<T>, condition: Predicate<in T>, action: Consumer<T>): Subscription {
+fun <T> installSingletonListener(property: ObservableValue<T>, condition: Predicate<in T>, action: Consumer<in T>): Subscription {
     val l = singletonListener(property, condition, action)
     property.addListener(l)
     return Subscription { property.removeListener(l) }
@@ -170,17 +159,17 @@ fun <T> installSingletonListener(property: ObservableValue<T>, condition: Predic
 
 /** Creates list change listener which calls an action for every added or removed item.  */
 fun onScreenChange(onChange: Consumer<in Screen>): Subscription {
-    val l = listChangeListener(ListChangeListener<Screen> { change -> if (change.wasAdded()) onChange(change.addedSubList[0]) })
+    val l = listChangeListener(ListChangeListener<Screen> { if (it.wasAdded()) onChange(it.addedSubList[0]) })
     Screen.getScreens().addListener(l)
     return Subscription { Screen.getScreens().removeListener(l) }
 }
 
 fun <T> listChangeListener(onAdded: ListChangeListener<T>, onRemoved: ListChangeListener<T>): ListChangeListener<T> {
-    return ListChangeListener { change ->
-        while (change.next()) {
-            if (!change.wasPermutated() && !change.wasUpdated()) {
-                if (change.wasAdded()) onAdded.onChanged(change)
-                if (change.wasAdded()) onRemoved.onChanged(change)
+    return ListChangeListener {
+        while (it.next()) {
+            if (!it.wasPermutated() && !it.wasUpdated()) {
+                if (it.wasAdded()) onAdded.onChanged(it)
+                if (it.wasAdded()) onRemoved.onChanged(it)
             }
         }
     }
@@ -193,21 +182,21 @@ fun <T> listChangeListener(onAdded: ListChangeListener<T>, onRemoved: ListChange
  * [javafx.collections.ListChangeListener.Change].
  */
 fun <T> listChangeListener(onChange: ListChangeListener<T>): ListChangeListener<T> {
-    return ListChangeListener { change ->
-        while (change.next()) {
-            onChange.onChanged(change)
+    return ListChangeListener {
+        while (it.next()) {
+            onChange.onChanged(it)
         }
     }
 }
 
 /** Creates list change listener which calls an action for every added or removed item. */
 @JvmOverloads
-fun <T> listChangeHandlerEach(addedHandler: Consumer<T>, removedHandler: Consumer<T> = Consumer {}): ListChangeListener<T> {
-    return ListChangeListener { change ->
-        while (change.next()) {
-            if (!change.wasPermutated() && !change.wasUpdated()) {
-                if (change.wasAdded()) change.addedSubList.forEach(addedHandler)
-                if (change.wasRemoved()) change.removed.forEach(removedHandler)
+fun <T> listChangeHandlerEach(addedHandler: Consumer<in T>, removedHandler: Consumer<in T> = Consumer {}): ListChangeListener<T> {
+    return ListChangeListener {
+        while (it.next()) {
+            if (!it.wasPermutated() && !it.wasUpdated()) {
+                if (it.wasAdded()) it.addedSubList.forEach(addedHandler)
+                if (it.wasRemoved()) it.removed.forEach(removedHandler)
             }
         }
     }
@@ -215,12 +204,12 @@ fun <T> listChangeHandlerEach(addedHandler: Consumer<T>, removedHandler: Consume
 
 /** Creates list change listener which calls an action added or removed item list. */
 @JvmOverloads
-fun <T> listChangeHandler(addedHandler: Consumer<List<T>>, removedHandler: Consumer<List<T>> = Consumer {}): ListChangeListener<T> {
-    return ListChangeListener { change ->
-        while (change.next()) {
-            if (!change.wasPermutated() && !change.wasUpdated()) {
-                if (change.wasAdded()) addedHandler(change.addedSubList)
-                if (change.wasRemoved()) removedHandler(change.removed)
+fun <T> listChangeHandler(addedHandler: Consumer<in List<T>>, removedHandler: Consumer<in List<T>> = Consumer {}): ListChangeListener<T> {
+    return ListChangeListener {
+        while (it.next()) {
+            if (!it.wasPermutated() && !it.wasUpdated()) {
+                if (it.wasAdded()) addedHandler(it.addedSubList)
+                if (it.wasRemoved()) removedHandler(it.removed)
             }
         }
     }
@@ -228,11 +217,11 @@ fun <T> listChangeHandler(addedHandler: Consumer<List<T>>, removedHandler: Consu
 
 
 fun <T: Event> Node.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
-    addEventHandler(eventType, eventHandler);
+    addEventHandler(eventType, eventHandler)
     return Subscription { removeEventHandler(eventType, eventHandler) }
 }
 
 fun <T: Event> Node.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
-    addEventFilter(eventType, eventHandler);
+    addEventFilter(eventType, eventHandler)
     return Subscription { removeEventFilter(eventType, eventHandler) }
 }

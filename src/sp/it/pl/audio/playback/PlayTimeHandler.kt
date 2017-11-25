@@ -7,7 +7,6 @@ import sp.it.pl.util.math.Portion
 /**
  * Handler for handling events at specific point of song playback.
  */
-@Suppress("ConvertSecondaryConstructorToPrimary")
 class PlayTimeHandler {
 
     private val whenCalculator: (Duration) -> Duration

@@ -1,7 +1,7 @@
 package sp.it.pl.core
 
 import mu.KotlinLogging
-import sp.it.pl.main.App
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.async.threadFactory
 import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.ThreadSafe
@@ -40,7 +40,7 @@ object CoreSerializer: Core {
      */
     @Blocks
     inline fun <reified T: Serializable> readSingleStorage(): T? {
-        val f = App.APP.DIR_LIBRARY.childOf(T::class.simpleName!!)
+        val f = APP.DIR_LIBRARY.childOf(T::class.simpleName!!)
 
         if (!f.exists()) return null
 
@@ -64,7 +64,7 @@ object CoreSerializer: Core {
      */
     @Blocks
     inline fun <reified T: Serializable> writeSingleStorage(o: T) {
-        val f = App.APP.DIR_LIBRARY.childOf(T::class.simpleName!!)
+        val f = APP.DIR_LIBRARY.childOf(T::class.simpleName!!)
         try {
             FileOutputStream(f).use {
                 ObjectOutputStream(it).use {

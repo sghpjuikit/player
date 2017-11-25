@@ -71,7 +71,7 @@ import static sp.it.pl.gui.Gui.openAndDo;
 import static sp.it.pl.layout.area.Area.DRAGGED_PSEUDOCLASS;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
 import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.graphics.Util.layScrollVText;
@@ -290,7 +290,7 @@ public final class AreaControls {
 
     void settings() {
 		if (area.getActiveWidgets().isEmpty()) return;
-        Widget w = area.getActiveWidgets().get(0);
+        Widget<?> w = area.getActiveWidgets().get(0);
 
         if (Gui.open_strategy==POPUP) {
 	        APP.windowManager.showSettings(w,propB);
@@ -300,10 +300,9 @@ public final class AreaControls {
 	            // TODO: decide whether we use SimpleConfigurator or Configurator widget
                 // Configurator sc = new Configurator(true);
                 //              sc.configure(w);
-	            SimpleConfigurator sc = new SimpleConfigurator(w);
-
+	            SimpleConfigurator<?> sc = new SimpleConfigurator<>(w);
 	            sc.getStyleClass().addAll("block", "area", "widget-area");// imitate area looks
-	            sc.setOnMouseClicked(me->{ if (me.getButton()==SECONDARY) closeAndDo(sc, () -> openAndDo(area.content_root, null)); });
+	            sc.setOnMouseClicked(me -> { if (me.getButton()==SECONDARY) closeAndDo(sc, () -> openAndDo(area.content_root, null)); });
 	            area.root.getChildren().add(sc);
 	            setAnchors(sc, 0d);
 	            openAndDo(sc, null);
@@ -314,10 +313,10 @@ public final class AreaControls {
     void changeWidget() {
         if (Gui.open_strategy==POPUP) {
             WidgetPicker w = new WidgetPicker();
-            PopOver p = new PopOver(w.getNode());
+            PopOver<?> p = new PopOver<>(w.getNode());
                     p.title.set("Change widget");
-                    p.setArrowSize(0); // autofix breaks the arrow position, turn off - sux
-                    p.setAutoFix(true); // we need autofix here, because the popup can getM rather big
+                    p.setArrowSize(0); // auto-fix breaks the arrow position, turn off - sux
+                    p.setAutoFix(true); // we need auto-fix here, because the popup can getM rather big
                     p.setAutoHide(true);
                     p.show(propB);
             w.onCancel = p::hide;
@@ -370,7 +369,7 @@ public final class AreaControls {
             helpP.getM(this).show(infoB);
         } else
         if (Gui.open_strategy==INSIDE) {
-            closeAndDo(area.content_root, ()->{
+            closeAndDo(area.content_root, () -> {
                 Text t = new Text(getInfo());
                      t.setMouseTransparent(true);
                 ScrollPane s = layScrollVText(t);

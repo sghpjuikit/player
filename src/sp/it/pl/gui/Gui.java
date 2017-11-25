@@ -28,18 +28,15 @@ import sp.it.pl.util.action.IsActionable;
 import sp.it.pl.util.animation.interpolator.CircularInterpolator;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
-import sp.it.pl.util.file.FileMonitor;
 import sp.it.pl.util.file.Util;
 import sp.it.pl.util.validation.Constraint;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.util.stream.Collectors.toSet;
 import static javafx.animation.Interpolator.LINEAR;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.Gui.OpenStrategy.INSIDE;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.gui.GuiKt.applySkin;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_OUT;
-import static sp.it.pl.util.file.FileMonitor.monitorDirectory;
-import static sp.it.pl.util.file.FileMonitor.monitorFile;
 import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.set;
 
@@ -49,9 +46,9 @@ public class Gui {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Gui.class);
 
-	public static final BooleanProperty layout_mode = new SimpleBooleanProperty(false);
+	static final Set<SkinCss> skins = new HashSet<>();
 
-	private static final Set<SkinCss> skins = new HashSet<>();
+	public static final BooleanProperty layout_mode = new SimpleBooleanProperty(false);
 
 	@IsConfig(name = "Skin", info = "Application skin.")
 	public static final VarEnum<String> skin = VarEnum.ofStream("Flow", () -> skins.stream().map(s -> s.name));
@@ -106,31 +103,7 @@ public class Gui {
 	public static final V<Boolean> table_show_footer = new V<>(true);
 
 	static {
-		skins.addAll(getSkins());
-		monitorDirectory(APP.DIR_SKINS, (type, file) -> {
-			LOGGER.info("Change {} detected in skin directory for {}", type, file);
-			skins.clear();
-			skins.addAll(getSkins());
-		});
-		GuiKt.observeSkin();
-	}
-
-	private static File monitoredSkin = null;
-	private static FileMonitor monitorSkin = null;
-
-	private static void monitorSkinStart(File cssFile) {
-		if (cssFile.equals(monitoredSkin)) return;
-		monitorSkinStop();
-		monitorSkin = monitorFile(cssFile, type -> {
-			if (type==ENTRY_MODIFY)
-				loadSkin();
-		});
-	}
-
-	private static void monitorSkinStop() {
-		if (monitorSkin!=null) monitorSkin.stop();
-		monitorSkin = null;
-		monitoredSkin = null;
+		GuiKt.initSkins();
 	}
 
 	/**
@@ -181,8 +154,9 @@ public class Gui {
 
 	/** Toggles layout controlling mode. */
 	@IsAction(name = "Reload skin", desc = "Reloads skin.", keys = "F7")
-	public static void loadSkin() {
-		skin.applyValue();
+	public static void reloadSkin() {
+		LOGGER.info("Reloading skin={}", skin.get());
+		applySkin(skin.get());
 	}
 
 	/**
@@ -320,14 +294,16 @@ public class Gui {
 			.collect(toSet());
 	}
 
-	private static SkinCss registerSkin(SkinCss skin) {
-		skins.add(skin);
-		return skin;
+	private static SkinCss registerSkin(SkinCss s) {
+		LOGGER.info("Registering skin={}", s.name);
+		skins.add(s);
+		return s;
 	}
 
 	public static void setSkin(SkinCss s) {
 		LOGGER.info("Setting skin={}", s.name);
 
+		registerSkin(s);
 		skin.set(s.name);
 	}
 

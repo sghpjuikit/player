@@ -12,11 +12,10 @@ import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.attach
 import java.util.*
-import java.util.function.Supplier
 import java.util.stream.Stream
 
 class Search {
-    val sources = HashSet<Supplier<Stream<ConfigSearch.Entry>>>()
+    val sources = HashSet<() -> Stream<ConfigSearch.Entry>>()
     val history = ConfigSearch.History()
 
     fun build(): Node {
@@ -52,9 +51,7 @@ class Search {
             }
         }
 
-        ConfigSearch(tf, history, *sources.toTypedArray())
+        ConfigSearch(tf, history, { sources.stream().flatMap { it() } })
         return tf
-
     }
-
 }

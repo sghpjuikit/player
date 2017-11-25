@@ -4,9 +4,12 @@
 package sp.it.pl.util.dev
 
 import javafx.application.Platform
+import javafx.beans.value.ObservableValue
 import mu.KotlinLogging
+import sp.it.pl.util.reactive.maintain
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import java.util.function.Consumer
 import kotlin.reflect.KClass
 
 fun throwIf(v: Boolean) {
@@ -78,6 +81,9 @@ fun <T> measureTimeMs(block: () -> T): T {
     println(System.currentTimeMillis()-time)
     return t
 }
+
+/** Prints the value to console immediately and then on every change. */
+fun <T> ObservableValue<T>.printOnChange(name: String = "") = maintain(Consumer { println("Value $name changed to=$it") })
 
 /** @return [org.slf4j.Logger] for the class of this object or this object if it is of type class. */
 fun Any.log() = (

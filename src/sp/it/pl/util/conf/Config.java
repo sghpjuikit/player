@@ -15,7 +15,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import sp.it.pl.main.App;
 import sp.it.pl.util.access.ApplicableValue;
 import sp.it.pl.util.access.FAccessibleValue;
 import sp.it.pl.util.access.TypedValue;
@@ -35,6 +34,7 @@ import sp.it.pl.util.validation.Constraint.HasNonNullElements;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.conf.Config.VarList.NULL_SUPPLIER;
 import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.functional.Try.error;
@@ -117,6 +117,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 	abstract public Set<Constraint<? super T>> getConstraints();
 
+	@SuppressWarnings("unchecked")
 	abstract public Config<T> constraints(Constraint<? super T>... constraints);
 
 	@SuppressWarnings({"unchecked", "unused"})
@@ -891,7 +892,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		private Elements nullElements;
 
 		public VarList(Class<T> itemType, Elements nullElements) {
-			this(itemType, () -> null, f -> Config.forValue(itemType, App.APP.className.get(itemType), f));
+			this(itemType, () -> null, f -> Config.forValue(itemType, APP.className.get(itemType), f));
 			this.nullElements = nullElements;
 		}
 

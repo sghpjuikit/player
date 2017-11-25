@@ -1,10 +1,5 @@
 package configurator;
 
-import sp.it.pl.gui.itemnode.ConfigField;
-import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.tree.TreeItems;
-import sp.it.pl.gui.objects.tree.TreeItems.Name;
-import sp.it.pl.gui.pane.ConfigPane;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,10 +12,14 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import sp.it.pl.gui.itemnode.ConfigField;
+import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.gui.objects.tree.TreeItems;
+import sp.it.pl.gui.objects.tree.TreeItems.Name;
+import sp.it.pl.gui.pane.ConfigPane;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
 import sp.it.pl.layout.widget.feature.ConfiguringFeature;
-import sp.it.pl.main.App;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.Configurable;
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
@@ -29,7 +28,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.REFRESH;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.SINGLE;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.UtilKt.seqRec;
@@ -74,7 +73,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
 		});
 
 		// header icons
-		Icon appI = new Icon(HOME, 13, "App settings", () -> configure(APP.configuration.getFields())),
+		Icon appI = new Icon(HOME, 13, "AppUtil settings", () -> configure(APP.configuration.getFields())),
 			 reI = new Icon(REFRESH, 13, "Refresh all", this::refresh),
 			 defI = new Icon(RECYCLE, 13, "Set all to default", this::defaults);
 		controls.getChildren().addAll(appI, new Label("    "), reI, defI);
@@ -121,13 +120,13 @@ public final class Configurator extends ClassController implements ConfiguringFe
 	private boolean storeSelection(TreeItem<Name> item) {
 		boolean isItemSelected = item!=null;
 		boolean isValueSelected = isItemSelected && item.getValue()!=null;
-		App.APP.configuration.rawAddProperty(CONFIG_SELECTION_NAME, isValueSelected ? item.getValue().pathUp : "");
+		APP.configuration.rawAddProperty(CONFIG_SELECTION_NAME, isValueSelected ? item.getValue().pathUp : "");
 		return isValueSelected;
 	}
 
 
 	private void restoreSelection() {
-		Optional.ofNullable(App.APP.configuration.rawGet().get(CONFIG_SELECTION_NAME))
+		Optional.ofNullable(APP.configuration.rawGet().get(CONFIG_SELECTION_NAME))
 				.filter(String.class::isInstance)
 				.flatMap(restoredSelection -> stream(seqRec(groups.getRoot(), i -> i.getChildren()))
 						.filter(item -> item.getValue().pathUp.equals(restoredSelection))

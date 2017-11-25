@@ -16,13 +16,13 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.image.Thumbnail;
-import sp.it.pl.main.App;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.graphics.image.ImageSize;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.newSingleDaemonThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
@@ -133,7 +133,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		// Problem: OS scaling will change width of the border, for non-integer widths it may produce visual artifacts
 		// Solution: We adjust width so it can only scale into integer values.
 		double BW = 1;
-		double dpiScalingFix = Math.rint(BW*App.APP.windowManager.screenMaxScaling)/App.APP.windowManager.screenMaxScaling;
+		double dpiScalingFix = Math.rint(BW*APP.windowManager.screenMaxScaling)/APP.windowManager.screenMaxScaling;
 		BW *= dpiScalingFix;
 		Rectangle r = new Rectangle(1, 1);
 		r.setMouseTransparent(true);

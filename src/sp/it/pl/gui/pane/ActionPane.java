@@ -34,7 +34,6 @@ import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
-import sp.it.pl.main.App;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.action.Action;
@@ -67,6 +66,7 @@ import static javafx.util.Duration.seconds;
 import static sp.it.pl.gui.pane.ActionPane.GroupApply.FOR_ALL;
 import static sp.it.pl.gui.pane.ActionPane.GroupApply.FOR_EACH;
 import static sp.it.pl.gui.pane.ActionPane.GroupApply.NONE;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -362,9 +362,9 @@ public class ActionPane extends OverlayPane<Object> {
 		if (data instanceof Collection && !((Collection)data).isEmpty()) {
 			Collection<Object> items = (Collection) data;
 			Class itemType = getCollectionType(items);
-			if (App.APP.classFields.get(itemType) != null) {	// TODO: add support for any item by using generic ToString objectField and column
+			if (APP.classFields.get(itemType) != null) {	// TODO: add support for any item by using generic ToString objectField and column
 				FilteredTable<Object> t = new FilteredTable<>(itemType, null);
-				maintain(Gui.font, f -> f.getSize()+5, table.fixedCellSizeProperty());
+				maintain(Gui.font, f -> f.getSize()+5, t.fixedCellSizeProperty());
 				t.getSelectionModel().setSelectionMode(MULTIPLE);
 				t.setColumnFactory(f -> {
 					TableColumn<?,Object> c = new TableColumn<>(f.toString());
@@ -536,7 +536,7 @@ public class ActionPane extends OverlayPane<Object> {
 		return d -> converter.apply(d).ifOk(result -> runFX(() -> ActionPane.this.show(result)));
 	}
 
-	private interface ConvertingConsumer<T> extends Consumer<T> {}
+	public interface ConvertingConsumer<T> extends Consumer<T> {}
 	public static class ComplexActionData<R,T> {
 		public final Supplier<Node> gui;
 		public final Ƒ1<? super R, ?> input;

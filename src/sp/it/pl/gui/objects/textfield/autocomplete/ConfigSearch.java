@@ -26,7 +26,7 @@ import sp.it.pl.layout.widget.ComponentFactory;
 import sp.it.pl.util.action.Action;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.functional.Functors.Ƒ0;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.util.Util.containsNoCase;
 import static sp.it.pl.util.functional.Util.by;
@@ -40,19 +40,17 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 	private final History history;
 	private boolean ignoreEvent = false;
 
-	@SafeVarargs
-	public ConfigSearch(TextField textField, Supplier<Stream<Entry>>... searchTargets) {
+	public ConfigSearch(TextField textField, Supplier<Stream<Entry>> searchTargets) {
 		this(textField, new History(), searchTargets);
 	}
 
-	@SafeVarargs
-	public ConfigSearch(TextField textField, History history, Supplier<Stream<Entry>>... searchTargets) {
+	public ConfigSearch(TextField textField, History history, Supplier<Stream<Entry>> searchTargets) {
 		super(
 			textField,
 			s -> {
 				String text = s.getUserText();
 				String[] phrases = text.split(" ");
-				return stream(searchTargets).flatMap(Supplier::get)
+				return searchTargets.get()
 					.filter(f -> stream(phrases).allMatch(phrase -> containsNoCase(f.getSearchText(), phrase)))
 					.sorted(by(Entry::getName))
 					.collect(Collectors.toList());
@@ -182,23 +180,23 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 
 	public interface Entry extends Runnable {
 
-		static Entry of(Ƒ0<String> nameΛ, Runnable runΛ) {
+		static Entry of(Ƒ0<? extends String> nameΛ, Runnable runΛ) {
 			return new ΛEntry(nameΛ, nameΛ, () -> null, runΛ);
 		}
 
-		static Entry of(Ƒ0<String> nameΛ, Ƒ0<String> infoΛ, Runnable runΛ) {
+		static Entry of(Ƒ0<? extends String> nameΛ, Ƒ0<? extends String> infoΛ, Runnable runΛ) {
 			return new ΛEntry(nameΛ, infoΛ, () -> null, runΛ);
 		}
 
-		static Entry of(Ƒ0<String> nameΛ, Runnable runΛ, Ƒ0<Node> graphicsΛ) {
+		static Entry of(Ƒ0<? extends String> nameΛ, Runnable runΛ, Ƒ0<? extends Node> graphicsΛ) {
 			return new ΛEntry(nameΛ, nameΛ, graphicsΛ, runΛ);
 		}
 
-		static Entry of(Ƒ0<String> nameΛ, Ƒ0<String> infoΛ, Runnable runΛ, Ƒ0<Node> graphicsΛ) {
+		static Entry of(Ƒ0<? extends String> nameΛ, Ƒ0<? extends String> infoΛ, Runnable runΛ, Ƒ0<? extends Node> graphicsΛ) {
 			return new ΛEntry(nameΛ, infoΛ, graphicsΛ, runΛ);
 		}
 
-		static Entry of(Ƒ0<String> nameΛ, Ƒ0<String> infoΛ, Ƒ0<String> seachTextΛ, Runnable runΛ, Ƒ0<Node> graphicsΛ) {
+		static Entry of(Ƒ0<? extends String> nameΛ, Ƒ0<? extends String> infoΛ, Ƒ0<? extends String> seachTextΛ, Runnable runΛ, Ƒ0<? extends Node> graphicsΛ) {
 			return new ΛEntry(nameΛ, infoΛ, seachTextΛ, graphicsΛ, runΛ);
 		}
 
@@ -229,17 +227,17 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 		}
 
 		class ΛEntry implements Entry {
-			private final Ƒ0<String> nameΛ;
-			private final Ƒ0<String> infoΛ;
-			private final Ƒ0<String> searchTextΛ;
-			private final Ƒ0<Node> graphicsΛ;
+			private final Ƒ0<? extends String> nameΛ;
+			private final Ƒ0<? extends String> infoΛ;
+			private final Ƒ0<? extends String> searchTextΛ;
+			private final Ƒ0<? extends Node> graphicsΛ;
 			private final Runnable runΛ;
 
-			public ΛEntry(Ƒ0<String> nameΛ, Ƒ0<String> infoΛ, Ƒ0<Node> graphicsΛ, Runnable runΛ) {
+			public ΛEntry(Ƒ0<? extends String> nameΛ, Ƒ0<? extends String> infoΛ, Ƒ0<? extends Node> graphicsΛ, Runnable runΛ) {
 				this(nameΛ, infoΛ, nameΛ, graphicsΛ, runΛ);
 			}
 
-			public ΛEntry(Ƒ0<String> nameΛ, Ƒ0<String> infoΛ, Ƒ0<String> searchTextΛ, Ƒ0<Node> graphicsΛ, Runnable runΛ) {
+			public ΛEntry(Ƒ0<? extends String> nameΛ, Ƒ0<? extends String> infoΛ, Ƒ0<? extends String> searchTextΛ, Ƒ0<? extends Node> graphicsΛ, Runnable runΛ) {
 				this.nameΛ = nameΛ;
 				this.infoΛ = infoΛ;
 				this.searchTextΛ = searchTextΛ;
@@ -338,12 +336,16 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 				return graphics;
 			}
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public void run() {
 				if (Runnable.class.isAssignableFrom(config.getClass()))
 					((Runnable) config).run();
 				else if (Runnable.class.isAssignableFrom(config.getType()) && config.getValue()!=null)
 					((Runnable) config.getValue()).run();
+				else if (Boolean.class.isAssignableFrom(config.getType()) && config.getValue()!=null) {
+					((Config) config).setNapplyValue(!(Boolean) config.getValue());
+				}
 			}
 		}
 	}

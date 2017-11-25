@@ -40,13 +40,13 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static sp.it.pl.gui.Gui.closeAndDo;
 import static sp.it.pl.layout.area.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
 import static sp.it.pl.layout.area.Area.DRAGGED_PSEUDOCLASS;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.reactive.Util.maintain;
 
-public abstract class ContainerNodeBase<C extends Container> implements ContainerNode {
+public abstract class ContainerNodeBase<C extends Container<?>> implements ContainerNode {
 
     private static final String actbTEXT = "Actions\n\n"
         + "Opens action chooser for this container. Browse and run additional non-layout actions "

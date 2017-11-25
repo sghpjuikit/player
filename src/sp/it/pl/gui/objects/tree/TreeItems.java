@@ -44,7 +44,7 @@ import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.ANY;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.LAYOUT;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.OPEN;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.STANDALONE;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppActionsKt.browseMultipleFiles;
 import static sp.it.pl.util.Util.emptyOr;
 import static sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf;

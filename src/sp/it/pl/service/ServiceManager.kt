@@ -26,6 +26,8 @@ class ServiceManager {
 
     fun getAllServices(): Stream<Service> = services.values.stream()
 
+    inline fun <reified S: Service> use(noinline action: (S) -> Unit) = use(S::class.java, Consumer(action))
+
     fun <S: Service> use(type: KClass<S>, action: (S) -> Unit) = use(type.java, Consumer(action))
 
     fun <S: Service> use(type: Class<S>, action: Consumer<in S>) =

@@ -24,7 +24,7 @@ import sp.it.pl.util.async.executor.FxTimer;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.collections.mapset.MapSet;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;

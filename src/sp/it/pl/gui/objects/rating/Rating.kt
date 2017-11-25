@@ -4,7 +4,6 @@ import javafx.scene.control.Control
 import sp.it.pl.util.Util.clip
 import sp.it.pl.util.access.V
 import sp.it.pl.util.access.v
-import java.util.function.Consumer
 
 /** A control for allowing users to provide a rating as 0-1 double. */
 class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double = 0.0): Control() {
@@ -26,7 +25,7 @@ class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double
     @JvmField val editable = v(true)
 
     /** Rating value handler called when user changes the value */
-    @JvmField var onRatingEdited = Consumer<Double> {}
+    @JvmField var onRatingEdited: (Double) -> Unit = {}
 
     init {
         styleClass.setAll("rating")

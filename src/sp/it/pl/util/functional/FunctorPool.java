@@ -282,7 +282,7 @@ public class FunctorPool {
 		addF(new PƑ3<>(name,i,o,f,new Parameter<>(p1,p1def),new Parameter<>(p2,p2def),new Parameter<>(p3,p3def)),pi,po,pio);
 	}
 
-	public <C extends Comparable> void addPredicatesComparable(Class<C> c, C def_val) {
+	public <C extends Comparable<? super C>> void addPredicatesComparable(Class<C> c, C def_val) {
 		add("Is less",     c,Boolean.class, (x,y) -> x.compareTo(y)<0,  c,def_val);
 		add("Is",          c,Boolean.class, (x,y) -> x.compareTo(y)==0, c,def_val);
 		add("Is more",     c,Boolean.class, (x,y) -> x.compareTo(y)>0,  c,def_val);
@@ -322,7 +322,7 @@ public class FunctorPool {
 
 		// add enum is predicates
 		if (isEnum(c))
-			add("Is", c,Boolean.class, (a,b) -> a==b, c, (T)getEnumConstants(c)[0], false,false,true);
+			add("Is", c,Boolean.class, (a,b) -> a==b, c, (T) getEnumConstants(c)[0], false,false,true);
 	}
 
 	/** Returns all functions taking input I. */

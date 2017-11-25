@@ -4,6 +4,8 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Path;
+import java.nio.file.WatchEvent.Kind;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,12 +40,14 @@ import static java.util.stream.Collectors.toSet;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.LAYOUT;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.OPEN;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.STANDALONE;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.capitalize;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.file.Util.getName;
 import static sp.it.pl.util.file.Util.readFileLines;
+import static sp.it.pl.util.file.UtilKt.isAnyParentOf;
+import static sp.it.pl.util.file.UtilKt.isParentOf;
 import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.stream;
@@ -67,7 +71,7 @@ public final class WidgetManager {
 	public final WidgetFactory<?> widgetFactoryEmpty = new WidgetFactory<>(EmptyWidget.class);
 	private final MapSet<String,WidgetDir> monitors = new MapSet<>(wd -> wd.widgetName);
 	private boolean initialized = false;
-	private final WindowManager windowManager; // use App instead, but that requires different App initialization
+	private final WindowManager windowManager;
 	private final Consumer<? super String> userErrorLogger;
 
 	public WidgetManager(WindowManager windowManager, Consumer<? super String> userErrorLogger) {
@@ -91,14 +95,21 @@ public final class WidgetManager {
 				monitors.computeIfAbsent(name, n -> new WidgetDir(name, widgetDir)).registerExternalFactory();
 			});
 
-			FileMonitor.monitorDirsFiles(dirW, File::isDirectory, (type, widget_dir) -> {
-				String name = capitalize(getName(widget_dir));
-				if (type == ENTRY_CREATE) {
-					monitors.computeIfAbsent(name, n -> new WidgetDir(name, widget_dir)).registerExternalFactory();
-				}
-				if (type == ENTRY_DELETE) {
-					WidgetDir wd = monitors.get(name);
-					if (wd != null) wd.dispose();
+			FileMonitor.monitorDirectory(dirW, true, (type, f) -> {
+				if (dirW.equals(f)) {
+
+				} else if (isParentOf(dirW, f)) {
+					String name = capitalize(getName(f));
+					if (type == ENTRY_CREATE) {
+						monitors.computeIfAbsent(name, n -> new WidgetDir(name, f)).registerExternalFactory();
+					} else
+					if (type == ENTRY_DELETE) {
+						WidgetDir wd = monitors.get(name);
+						if (wd != null) wd.dispose();
+					}
+				} else {
+					WidgetDir wd = monitors.stream().filter(w -> isAnyParentOf(w.widgetDir, f)).findFirst().orElse(null);
+					if (wd!=null) wd.handleResourceChange(type, f);
 				}
 			});
 		}
@@ -182,10 +193,7 @@ public final class WidgetManager {
 	private class WidgetDir {
 		private final String widgetName;
 		private final File widgetDir;
-		private final File classFile;
-		private final File srcFile;
 		private final File skinFile;
-		private FileMonitor fileMonitor;
 		private final EventReducer<Void> scheduleRefresh = EventReducer.toLast(500,
 			() -> runFX(this::registerExternalFactory));
 		private final EventReducer<Void> scheduleCompilation = EventReducer.toLast(250,
@@ -194,71 +202,48 @@ public final class WidgetManager {
 		WidgetDir(String name, File dir) {
 			widgetName = name;
 			widgetDir = dir;
-			classFile = new File(widgetDir, widgetName + ".class");
-			srcFile = new File(widgetDir, widgetName + ".java");
 			skinFile = new File(widgetDir,"skin.css");
 		}
 
-		@Idempotent
-		void monitorStart() {
-			if (fileMonitor!=null) return;
-			fileMonitor = FileMonitor.monitorDirsFiles(widgetDir, file -> true, (type, file) -> {
-				if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
-					if (file.getPath().endsWith(".class")) {
-						// monitor class file (only the main class' one) & recreate factory on change
-						if (file.equals(classFile)) {
-							LOGGER.info("Widget {} class file changed {}", widgetName, type);
-							// Register factory, but
-							// - on fx thread
-							// - throttle subsequent events to avoid inconsistent state & overloading ui thread
-							// - give the compilation some time to finish
-							scheduleRefresh.push(null);
-						}
-					} else if (file.equals(skinFile)) {
-						// monitor skin file & on change reload skin on all open widgets
-						LOGGER.info("Widget {} SKIN file changed {}", widgetName,type);
-						runFX(() ->
-							findAll(OPEN).filter(w -> w.getName().equals(widgetName))
-								.forEach(w -> {
-									try {
-										if (w.root instanceof Pane) {
-											((Pane)w.root).getStylesheets().remove(skinFile.toURI().toURL().toExternalForm());
-											((Pane)w.root).getStylesheets().add(skinFile.toURI().toURL().toExternalForm());
-										}
-									} catch (MalformedURLException ex) {
-										java.util.logging.Logger.getLogger(WidgetManager.class.getName()).log(Level.SEVERE, null, ex);
+		void handleResourceChange(Kind<Path> type, File file) {
+			if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
+				if (file.getPath().endsWith(".class")) {
+					// register factory on class file change
+					LOGGER.info("Widget={} class file changed {}", widgetName, type);
+					scheduleRefresh.push(null);
+				} else if (file.equals(skinFile)) {
+					// reload skin on skin file change
+					LOGGER.info("Widget={} skin file changed {}", widgetName, type);
+					runFX(() ->
+						findAll(OPEN).filter(w -> w.getName().equals(widgetName))
+							.forEach(w -> {
+								try {
+									if (w.root instanceof Pane) {
+										((Pane)w.root).getStylesheets().remove(skinFile.toURI().toURL().toExternalForm());
+										((Pane)w.root).getStylesheets().add(skinFile.toURI().toURL().toExternalForm());
 									}
-								})
-						);
-					} else {
-						// monitor source files (any .java file) & recompile on change
-						// Because the widget may be skinned (.css), loaded from fxml (.fxml) or use any kind of resource
-						// (.jar, .txt, etc.), we will monitor all of the files except for .class, not just .java.
-						LOGGER.info("Widget {} source file changed {}", file,type);
-						// Compile source files, but
-						// - on new thread
-						// - throttle subsequent events (multiple files may be changed at once, multiple events per file
-						//   may be thrown at once (when applications create tmp files while saving)
-						scheduleCompilation.push(null);
-					}
+								} catch (MalformedURLException ex) {
+									java.util.logging.Logger.getLogger(WidgetManager.class.getName()).log(Level.SEVERE, null, ex);
+								}
+							})
+					);
+				} else {
+					// recompile on source code change
+					LOGGER.info("Widget {} source file changed {}", file,type);
+					scheduleCompilation.push(null);
 				}
-			});
-		}
-
-		@Idempotent
-		void monitorStop() {
-			if (fileMonitor!=null) fileMonitor.stop();
-			fileMonitor = null;
+			}
 		}
 
 		@Idempotent
 		void dispose() {
-			monitorStop();
 			factories.removeKey(widgetName);
 			monitors.removeKey(widgetName);
 		}
 
 		void registerExternalFactory() {
+			LOGGER.info("Registering widget={} factory", widgetName);
+
 			File classFile = new File(widgetDir, widgetName + ".class");
 			File srcFile = new File(widgetDir, widgetName + ".java");
 
@@ -291,16 +276,10 @@ public final class WidgetManager {
 					compile(getSrcFiles(),getLibFiles()).ifOk(v -> registerExternalFactory());
 				}
 			}
-
-			monitorStart();
 		}
 
 		Stream<File> getSrcFiles() {
 			return listChildren(widgetDir).filter(f -> f.getPath().endsWith(".java"));
-		}
-
-		Stream<File> getClassFiles() {
-			return listChildren(widgetDir).filter(f -> f.getPath().endsWith(".class"));
 		}
 
 		Stream<File> getLibFiles() {
@@ -308,105 +287,104 @@ public final class WidgetManager {
 					   .filter(f -> f.getPath().endsWith(".jar"));
 		}
 
-	}
+		// TODO: collect compiler error output & clean-up
+		/**
+		 * Compiles the .java file into .class file. All project dependencies (including the project
+		 * itself - its jar) are available because they are on the classpath.
+		 *
+		 * @param srcFiles .java files to compile
+		 */
+		private Try<Void,String> compile(Stream<File> srcFiles, Stream<File> libFiles) {
+			List<File> ffs = srcFiles.collect(toList());
+			String classpath = System.getProperty("java.class.path");
+			Stream<String> options = stream(                            // Command-line options
+				// Compiler defaults to system encoding, we need consistent system independent encoding, such as UTF-8
+				"-encoding",APP.encoding.name(),
+				// Includes information about each class loaded and each source file compiled.
+				// "-verbose"
+				"-cp", classpath + ";" + libFiles.map(File::getAbsolutePath).collect(joining(";"))
+			);
+	//        Stream<String> sourceFiles = srcFiles.map(File::getPath);   // One or more source files to be compiled
+			Stream<String> sourceFiles = ffs.stream().map(File::getPath);   // One or more source files to be compiled
+			Stream<String> classes = stream();   // One or more classes to be processed for annotations
+			Stream<String> argFiles = stream();   // One or more files that lists options and source files. The -J options are not allowed in these files
+			String[] arguments = stream(options,sourceFiles,classes,argFiles).flatMap(s -> s).toArray(String[]::new);
 
-	// TODO: collect compiler error output & clean-up
-	/**
-	 * Compiles the .java file into .class file. All project dependencies (including the project
-	 * itself - its jar) are available because they are on the classpath.
-	 *
-	 * @param srcFiles .java files to compile
-	 */
-	private Try<Void,String> compile(Stream<File> srcFiles, Stream<File> libFiles) {
-		List<File> ffs = srcFiles.collect(toList());
-		String classpath = System.getProperty("java.class.path");
-		Stream<String> options = stream(                            // Command-line options
-			// Compiler defaults to system encoding, we need consistent system independent encoding, such as UTF-8
-			"-encoding",APP.encoding.name(),
-			// Includes information about each class loaded and each source file compiled.
-			// "-verbose"
-			"-cp", classpath + ";" + libFiles.map(File::getAbsolutePath).collect(joining(";"))
-		);
-//        Stream<String> sourceFiles = srcFiles.map(File::getPath);   // One or more source files to be compiled
-		Stream<String> sourceFiles = ffs.stream().map(File::getPath);   // One or more source files to be compiled
-		Stream<String> classes = stream();   // One or more classes to be processed for annotations
-		Stream<String> argFiles = stream();   // One or more files that lists options and source files. The -J options are not allowed in these files
-		String[] arguments = stream(options,sourceFiles,classes,argFiles).flatMap(s -> s).toArray(String[]::new);
+			LOGGER.info("Compiling widget={} with arguments: {} ", widgetName, toS(", ", arguments));
+			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
-		LOGGER.info("Compiling with arguments: {} ", toS(", ", arguments));
-		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+	//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+	////        compiler.getStandardFileManager(diagnostics, Locale.getDefault(), APP.encoding);
+	//        compiler.getStandardFileManager(diagnostics, null, null);
+			int success = compiler.run(null, null, null, arguments);
 
-//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-////        compiler.getStandardFileManager(diagnostics, Locale.getDefault(), App.APP.encoding);
-//        compiler.getStandardFileManager(diagnostics, null, null);
-		int success = compiler.run(null, null, null, arguments);
-
-//	    StringBuilder sb = new StringBuilder();
-//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-////        compiler.getStandardFileManager(diagnostics, Locale.getDefault(), App.APP.encoding);
-//        compiler.getStandardFileManager(diagnostics, null, null);
-//        int success = compiler.run(null, new OutputStream() {
-//	        @Override
-//	        public void write(int b) throws IOException {
-//		        throw new AssertionError("Operation not allowed for performance reasons.");
-//	        }
-//
-//	        @Override
-//	        public void write(byte[] b, int off, int len) throws IOException {
-//	        	sb.append(new String(b));
-//	        }
-//
-//            }, null, arguments);
+	//	    StringBuilder sb = new StringBuilder();
+	//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+	////        compiler.getStandardFileManager(diagnostics, Locale.getDefault(), APP.encoding);
+	//        compiler.getStandardFileManager(diagnostics, null, null);
+	//        int success = compiler.run(null, new OutputStream() {
+	//	        @Override
+	//	        public void write(int b) throws IOException {
+	//		        throw new AssertionError("Operation not allowed for performance reasons.");
+	//	        }
+	//
+	//	        @Override
+	//	        public void write(byte[] b, int off, int len) throws IOException {
+	//	        	sb.append(new String(b));
+	//	        }
+	//
+	//            }, null, arguments);
 
 
-		//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-		//	    StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
-		//	    Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromStrings(map(ffs, File::getPath));
-		//	    JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, null, null, compilationUnits);
-		//	    boolean isSuccess = task.call();
+			//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+			//	    StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
+			//	    Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromStrings(map(ffs, File::getPath));
+			//	    JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, null, null, compilationUnits);
+			//	    boolean isSuccess = task.call();
 
-//	    StringBuilder sb = new StringBuilder();
-//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-//	    StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
-//	    Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromStrings(map(ffs, File::getPath));
-//	    JavaCompiler.CompilationTask task = compiler.getTask(new Writer() {
-//		    @Override
-//		    public void write(@NotNull char[] cbuf, int off, int len) throws IOException {
-//			    sb.append(cbuf);
-//		    }
-//
-//		    @Override
-//		    public void flush() throws IOException {
-//
-//		    }
-//
-//		    @Override
-//		    public void close() throws IOException {
-//
-//		    }
-//	    }, fileManager, diagnostics, null, null, compilationUnits);
-//	    boolean isSuccess = task.call();
+	//	    StringBuilder sb = new StringBuilder();
+	//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+	//	    StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
+	//	    Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromStrings(map(ffs, File::getPath));
+	//	    JavaCompiler.CompilationTask task = compiler.getTask(new Writer() {
+	//		    @Override
+	//		    public void write(@NotNull char[] cbuf, int off, int len) throws IOException {
+	//			    sb.append(cbuf);
+	//		    }
+	//
+	//		    @Override
+	//		    public void flush() throws IOException {
+	//
+	//		    }
+	//
+	//		    @Override
+	//		    public void close() throws IOException {
+	//
+	//		    }
+	//	    }, fileManager, diagnostics, null, null, compilationUnits);
+	//	    boolean isSuccess = task.call();
 
-		boolean isSuccess = success==0;
-		if (isSuccess) LOGGER.info("Compilation succeeded");
-		else LOGGER.error("Compilation failed");
-		return isSuccess
-			? Try.ok()
-			: Try.error("Compilation failed with errors");
-//			: Try.error(sb.toString());
-//			: Try.error("Compilation failed with errors:\n\n" + stream(diagnostics.getDiagnostics())
-//					.map(d -> "" +
-//						"Kind: " + d.getKind() + "\n" +
-//						"Code: " + d.getCode() + "\n" +
-//						"Message :" + d.getMessage(null) + "\n" +
-//						"Source :" + d.getSource().getName() + "\n" +
-//						"Column number :" + d.getColumnNumber() + "\n" +
-//						"Position start :" + d.getStartPosition() + "\n" +
-//						"Position :" + d.getPosition() + "\n" +
-//						"Position end :" + d.getEndPosition() + "\n" +
-//						"Line: " + d.getLineNumber() + "\n"
-//					)
-//					.joining("\n\n"));
+			boolean isSuccess = success==0;
+			if (isSuccess) LOGGER.info("Compilation succeeded");
+			else LOGGER.error("Compilation failed");
+			return isSuccess
+				? Try.ok()
+				: Try.error("Compilation failed with errors");
+	//			: Try.error(sb.toString());
+	//			: Try.error("Compilation failed with errors:\n\n" + stream(diagnostics.getDiagnostics())
+	//					.map(d -> "" +
+	//						"Kind: " + d.getKind() + "\n" +
+	//						"Code: " + d.getCode() + "\n" +
+	//						"Message :" + d.getMessage(null) + "\n" +
+	//						"Source :" + d.getSource().getName() + "\n" +
+	//						"Column number :" + d.getColumnNumber() + "\n" +
+	//						"Position start :" + d.getStartPosition() + "\n" +
+	//						"Position :" + d.getPosition() + "\n" +
+	//						"Position end :" + d.getEndPosition() + "\n" +
+	//						"Line: " + d.getLineNumber() + "\n"
+	//					)
+	//					.joining("\n\n"));
+		}
 	}
 
 	private static Class<?> loadClass(String widgetName, File classFile, Stream<File> libFiles) {

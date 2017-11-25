@@ -32,7 +32,6 @@ import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.WidgetFactory;
 import sp.it.pl.layout.widget.feature.HorizontalDock;
-import sp.it.pl.main.App;
 import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
@@ -61,7 +60,7 @@ import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.dev.Util.noØ;
@@ -108,7 +107,7 @@ public class WindowManager implements Configurable<Object> {
 
     @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in mini mode.")
     public final V<Boolean> show_windows = new V<>(true, v -> {
-        if (!App.APP.normalLoad) return;
+        if (!APP.normalLoad) return;
         if (v) windows.stream().filter(w->w!=miniWindow).forEach(Window::show);
         else windows.stream().filter(w->w!=miniWindow).forEach(Window::hide);
     });
@@ -256,19 +255,19 @@ public class WindowManager implements Configurable<Object> {
     }
 
     private void toggleMiniFull() {
-        if (!App.APP.normalLoad) return;
+        if (!APP.normalLoad) return;
         if (mini.get()) mainWindow.show();
         else mainWindow.hide();
         setMini(!mini.get());
     }
 
     private void toggleShowWindows() {
-        if (!App.APP.normalLoad) return;
+        if (!APP.normalLoad) return;
         show_windows.set(!show_windows.get());
     }
 
     private void setMini(boolean val) {
-        if (!App.APP.normalLoad) return;
+        if (!APP.normalLoad) return;
 
         mini.set(val);
         if (val) {
@@ -403,7 +402,7 @@ public class WindowManager implements Configurable<Object> {
             Window w = windows.get(i);
             File f = new File(dir, "window_" + sessionUniqueName + "_" + i + ".ws");
 	        filesNew.add(f);
-	        isError |= App.APP.serializerXml.toXML(new WindowState(w), f).isError();
+	        isError |= APP.serializerXml.toXML(new WindowState(w), f).isError();
 	        if (isError) break;
         }
 
@@ -422,7 +421,7 @@ public class WindowManager implements Configurable<Object> {
 		            .filter(f -> f.getPath().endsWith(".ws"))
 		            .toArray(File[]::new);
 		        stream(fs)
-			        .map(f -> App.APP.serializerXml.fromXML(WindowState.class, f)
+			        .map(f -> APP.serializerXml.fromXML(WindowState.class, f)
 						        .map(WindowState::toWindow)
 						        .getOr(null)
 			        )
@@ -563,7 +562,7 @@ public class WindowManager implements Configurable<Object> {
 
 		// try to deserialize normally
 		if (c==null)
-			c = App.APP.serializerXml.fromXML(Component.class, launcher).getOr(null);
+			c = APP.serializerXml.fromXML(Component.class, launcher).getOr(null);
 
 		return c;
 	}

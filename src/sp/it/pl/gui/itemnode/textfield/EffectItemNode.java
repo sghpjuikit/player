@@ -27,7 +27,7 @@ import sp.it.pl.gui.objects.picker.Picker;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.util.type.ClassName;
 import static javafx.geometry.Pos.CENTER;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf;
 import static sp.it.pl.util.dev.Util.log;

@@ -46,7 +46,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appTooltipForData;
 import static sp.it.pl.util.Sort.ASCENDING;
 import static sp.it.pl.util.Util.capitalize;

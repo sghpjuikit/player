@@ -27,7 +27,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static sp.it.pl.gui.Gui.ANIM_DUR;
 import static sp.it.pl.gui.Gui.closeAndDo;
 import static sp.it.pl.gui.Gui.openAndDo;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_OUT;
 import static sp.it.pl.util.collections.Tuples.tuple;
 import static sp.it.pl.util.dev.Util.noØ;

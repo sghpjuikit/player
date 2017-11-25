@@ -18,7 +18,7 @@ import sp.it.pl.gui.objects.popover.ScreenUse
 import sp.it.pl.gui.objects.popover.ScreenUse.APP_WINDOW
 import sp.it.pl.layout.widget.WidgetManager.WidgetSource.NEW
 import sp.it.pl.layout.widget.feature.SongReader
-import sp.it.pl.main.App.APP
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.util.access.VarAction
 import sp.it.pl.util.access.VarEnum

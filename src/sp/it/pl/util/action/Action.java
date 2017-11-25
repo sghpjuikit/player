@@ -32,7 +32,7 @@ import static java.lang.reflect.Modifier.isStatic;
 import static java.util.stream.Collectors.toCollection;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.functional.Util.list;

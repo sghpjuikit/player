@@ -11,7 +11,7 @@ import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.spinner.Spinner
-import sp.it.pl.main.App.APP
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator
 import sp.it.pl.util.async.FX
@@ -23,7 +23,8 @@ import sp.it.pl.util.math.seconds
 import sp.it.pl.util.reactive.changes
 import java.util.function.Consumer
 
-private typealias C<T> = Consumer<T>
+private typealias In<T> = Consumer<in T>
+private typealias Progress = ProgressIndicator
 
 /**
  * Creates simple help popover designed as a tooltip for help buttons.
@@ -68,7 +69,7 @@ fun createInfoIcon(text: String): Icon = Icon(FontAwesomeIcon.INFO)
         }
 
 @JvmOverloads
-fun appProgressIndicator(onStart: C<ProgressIndicator> = C {}, onFinish: C<ProgressIndicator> = C {}) = Spinner().apply {
+fun appProgressIndicator(onStart: In<Progress> = In {}, onFinish: In<Progress> = In {}) = Spinner().apply {
     val a = Anim { setScaleXY(it*it) }.dur(500.0).intpl(ElasticInterpolator())
     a.applier(0.0)
     progressProperty() changes { ov, nv ->
@@ -95,14 +96,14 @@ fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
     val text = Text()
     graphic = text
     setOnShowing {
-        computeDataInfo(data()).use(FX, C { text.text = it })
+        computeDataInfo(data()).use(FX, In { text.text = it })
     }
 }
 
 fun computeDataInfo(data: Any?): Fut<String> = futureWrap(data).map {
-    val dName = App.APP.instanceName.get(it)
-    val dKind = App.APP.className.get(it?.javaClass ?: Void::class.java)
-    val dInfo = App.APP.instanceInfo.get(it)
+    val dName = APP.instanceName.get(it)
+    val dKind = APP.className.get(it?.javaClass ?: Void::class.java)
+    val dInfo = APP.instanceInfo.get(it)
             .entries.asSequence()
             .map { "${it.key}: ${it.value}" }
             .sorted()

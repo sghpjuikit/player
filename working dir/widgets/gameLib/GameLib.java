@@ -52,7 +52,7 @@ import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.animation.Anim.par;
 import static sp.it.pl.util.animation.Anim.seq;
 import static sp.it.pl.util.async.AsyncKt.FX;

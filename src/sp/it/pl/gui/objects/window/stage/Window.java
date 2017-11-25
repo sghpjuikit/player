@@ -84,9 +84,9 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.paint.Color.BLACK;
 import static sp.it.pl.gui.objects.window.Resize.NONE;
-import static sp.it.pl.main.App.APP;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.access.SequentialValue.next;
 import static sp.it.pl.util.access.SequentialValue.previous;
 import static sp.it.pl.util.animation.Anim.par;
@@ -97,24 +97,12 @@ import static sp.it.pl.util.functional.Util.forEachIStream;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.functional.Util.set;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.reactive.Util.maintain;
 
-/**
- * Window for application.
- * <p/>
- * Use example:
- * <pre>{@code
- *     Window w = Window.create();
- *            w.setIsPopup(true);
- *            w.getStage().initOwner(App.getWindow().getStage());
- *            w.setTitle(title);
- *            w.setContent(content);
- *            w.show();
- *            w.setLocationCenter();
- * }</pre>
- */
+/** Window for application. */
 @IsConfigurable
 public class Window extends WindowBase {
 
@@ -610,7 +598,7 @@ public class Window extends WindowBase {
 
 	@Override
 	public void close() {
-		LOGGER.info("Closing{} window. {} windows currently open.", isMain.get() ? "main" : "", WINDOWS.size());
+		LOGGER.info("Closing{} window. {} windows currently open.", isMain.get() ? " main" : "", WINDOWS.size());
 		if (isMain.get()) {
 			APP.close();
 		} else {
@@ -664,7 +652,7 @@ public class Window extends WindowBase {
 		if (e.getButton()!=PRIMARY || resizing.get()!=Resize.NONE) return;
 //        if (header.contains(new Point2D(e.getSceneX(), e.getSceneY())));
 
-		mouseMonitor = APP.mouseCapture.observeMouseVelocity(speed -> mouseSpeed = speed);
+		mouseMonitor = APP.mouse.observeMouseVelocity(consumer(speed -> mouseSpeed = speed));
 		isMoving.set(true);
 		appX = e.getSceneX();
 		appY = e.getSceneY();

@@ -36,7 +36,7 @@ import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.DragEvent.DRAG_DROPPED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.TransferMode.ANY;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.file.Util.getFilesAudio;

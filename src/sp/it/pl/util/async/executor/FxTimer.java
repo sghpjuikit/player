@@ -15,7 +15,7 @@ import javafx.util.Duration;
 public class FxTimer {
 
 	private final Timeline timeline;
-	private final Consumer<FxTimer> action;
+	private final Consumer<? super FxTimer> action;
 	private Duration period;
 	private long seq = 0;
 
@@ -40,21 +40,6 @@ public class FxTimer {
 	 * Equivalent to {@code new FxTimer(Duration.millis(delay), action, cycles);}
 	 */
 	public FxTimer(double delay, int cycles, Runnable action) {
-		this(Duration.millis(delay), cycles, action);
-	}
-
-	public FxTimer(Duration delay, int cycles, Consumer<FxTimer> action) {
-		this.period = Duration.millis(delay.toMillis());
-		this.timeline = new Timeline();
-		this.action = action;
-
-		timeline.setCycleCount(cycles);
-	}
-
-	/**
-	 * Equivalent to {@code new FxTimer(Duration.millis(delay), action, cycles);}
-	 */
-	public FxTimer(double delay, int cycles, Consumer<FxTimer> action) {
 		this(Duration.millis(delay), cycles, action);
 	}
 

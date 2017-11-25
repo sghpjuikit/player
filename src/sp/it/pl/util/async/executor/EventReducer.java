@@ -2,6 +2,7 @@ package sp.it.pl.util.async.executor;
 
 import java.util.function.Consumer;
 import sp.it.pl.util.functional.Functors.Ƒ2;
+import static sp.it.pl.util.math.Util.millis;
 
 /**
  * Event frequency reducer. Consumes events and reduces close temporal successions into (exactly)
@@ -115,15 +116,15 @@ public abstract class EventReducer<E> {
 	}
 
 	private static class HandlerEvery<E> extends EventReducer<E> {
-		private final FxTimer t;
+		private FxTimer t;
 		private long last = 0;
 		boolean fired = false;
 
 		public HandlerEvery(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
 			super(inter_period, reduction, handler);
-			t = new FxTimer(inter_period, 1, tmr -> {
+			t = new FxTimer(millis(inter_period), 1, () -> {
 				action.accept(e);
-				if (fired) tmr.start();
+				if (fired) t.start();
 				fired = false;
 			});
 		}

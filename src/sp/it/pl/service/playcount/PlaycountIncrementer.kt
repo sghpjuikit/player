@@ -8,7 +8,7 @@ import sp.it.pl.audio.playback.PlayTimeHandler.Companion.at
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.audio.tagging.MetadataWriter
-import sp.it.pl.main.App.APP
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.service.notif.Notifier
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.NEVER
@@ -87,17 +87,17 @@ class PlaycountIncrementer : ServiceBase(false) {
             if (delay.value) {
                 queue += m
                 if (showNotification.value)
-                    APP.services.use(Notifier::class) { it.showTextNotification("Song playcount incrementing scheduled", "Playcount") }
+                    APP.services.use<Notifier> { it.showTextNotification("Song playcount incrementing scheduled", "Playcount") }
                 if (showBubble.value)
-                    APP.services.use(TrayService::class) { it.showNotification("Tagger", "Playcount incremented scheduled", INFO) }
+                    APP.services.use<TrayService> { it.showNotification("Tagger", "Playcount incremented scheduled", INFO) }
             } else {
                 val pc = 1 + m.getPlaycountOr0()
                 MetadataWriter.use(m, { it.setPlaycount(pc) }) { ok ->
                     if (ok!!) {
                         if (showNotification.value)
-                            APP.services.use(Notifier::class) { it.showTextNotification("Song playcount incremented to: $pc", "Playcount") }
+                            APP.services.use<Notifier> { it.showTextNotification("Song playcount incremented to: $pc", "Playcount") }
                         if (showBubble.value)
-                            APP.services.use(TrayService::class) { it.showNotification("Tagger", "Playcount incremented to: $pc", INFO) }
+                            APP.services.use<TrayService> { it.showNotification("Tagger", "Playcount incremented to: $pc", INFO) }
                     }
                 }
             }

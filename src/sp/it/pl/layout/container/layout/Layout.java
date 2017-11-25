@@ -9,9 +9,8 @@ import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.container.uncontainer.UniContainer;
-import sp.it.pl.main.App;
 import sp.it.pl.util.file.Util;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.dev.Util.noØ;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 
@@ -125,7 +124,7 @@ public final class Layout extends UniContainer {
 
     public void serialize(File f) {
         if (getChild() == null) return;
-        App.APP.serializerXml.toXML(this, f);
+        APP.serializerXml.toXML(this, f);
     }
 
     /**
@@ -136,7 +135,7 @@ public final class Layout extends UniContainer {
     }
 
     public Layout deserialize(File f) {
-        Layout l = App.APP.serializerXml.fromXML(Layout.class, f).getOrSupply(() -> new Layout(getNameWithoutExtensionOrRoot(f)));
+        Layout l = APP.serializerXml.fromXML(Layout.class, f).getOrSupply(() -> new Layout(getNameWithoutExtensionOrRoot(f)));
         l.properties.forEach(properties::put);
         l.setName(name);    // TODO: dangerous
         child = l.child;

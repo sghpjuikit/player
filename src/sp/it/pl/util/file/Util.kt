@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package sp.it.pl.util.file
 
 import sp.it.pl.util.functional.Try
@@ -14,8 +16,7 @@ import kotlin.streams.asStream
  * For directories only name is returned.
  * Root directory returns 'X:\' string.
  *
- * Use instead of [File.getName] which returns empty string for root
- * directories.
+ * Use instead of [File.getName] which returns empty string for root directories.
  *
  * @return name of the file with suffix
  */
@@ -28,28 +29,17 @@ val File.nameOrRoot: String
  * Root directory returns 'X:\' string.
  *
  * @return name of the file without suffix
- * @throws NullPointerException if parameter null
  */
-//@Suppress("DEPRECATION")
 val File.nameWithoutExtensionOrRoot: String
     get() = nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
 
-/**
- * Find 1st existing file or existing parent.
- *
- * @returns file itself if exists or its first existing parent recursively or error if null or no parent exists.
- */
+/** @returns file itself if exists or its first existing parent or error if null or no parent exists */
 fun File.find1stExistingParentFile(): Try<File, Void> = when {
     exists() -> Try.ok(this)
     else -> parentFile?.find1stExistingParentFile() ?: Try.error()
 }
 
-/**
- * Find 1st existing parent.
- *
- * @param f nullable file
- * @returns file's first existing parent recursively or error if null or no parent exists.
- */
+/** @returns file's first existing parent or error if null or no parent exists */
 fun File.find1stExistingParentDir(): Try<File, Void> = when {
     exists() && isDirectory -> Try.ok(this)
     else -> parentFile?.find1stExistingParentDir() ?: Try.error()
@@ -62,6 +52,14 @@ fun File.childOf(childName: String, childName2: String) = childOf(childName).chi
 fun File.childOf(childName: String, childName2: String, childName3: String) = childOf(childName, childName2).childOf(childName3)
 
 fun File.childOf(vararg childNames: String) = childNames.fold(this, File::childOf)
+
+fun File.isParentOf(child: File) = child.parentFile==this
+
+fun File.isAnyParentOf(child: File) = generateSequence(child, { it.parentFile}).takeWhile { it!=null }.any { isParentOf(it) }
+
+fun File.isChildOf(parent: File) = parent.isParentOf(this)
+
+fun File.isAnyChildOf(parent: File) = parent.isAnyParentOf(this)
 
 /**
  * Safe version of [File.listFiles]
@@ -99,5 +97,5 @@ fun URI.toFileOrNull() = try {
 enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>) {
     NONE({ it.stream().distinct() }),
     FLATTEN_TOP_LVL({ it.stream().distinct().flatMap { it.listChildren() } }),
-    FLATTEN_ALL({ it.stream().distinct().flatMap { it.walk().asStream().filter(File::isFile) } })
+    FLATTEN_ALL({ it.stream().distinct().flatMap { it.walk().asStream().filter(File::isFile) } });
 }

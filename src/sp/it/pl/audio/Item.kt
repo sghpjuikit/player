@@ -108,7 +108,6 @@ abstract class Item {
      */
     open fun isCorrupt(use: Use): Boolean = !getFormat().isSupported(use) || isCorruptWeak()
 
-    // TODO: improve
     protected fun isCorruptWeak(): Boolean =
             if (isFileBased()) {
                 getFile().let { !it.isFile || !it.exists() || !it.canRead() }

@@ -1,13 +1,13 @@
 package sp.it.pl.util.type;
 
 import java.util.Objects;
+import java.util.function.Function;
 import sp.it.pl.util.collections.map.ClassMap;
-import sp.it.pl.util.functional.Functors.Ƒ1;
 
 public class InstanceName {
 
-	private static final Ƒ1<?,String> DEF = Objects::toString;  // Default implementation must be able to handle null
-	private final ClassMap<Ƒ1<?,String>> names = new ClassMap<>();
+	private static final Function<?,String> DEF = Objects::toString;  // Default implementation must be able to handle null
+	private final ClassMap<Function<?, ? extends String>> names = new ClassMap<>();
 
 	/**
 	 * Registers name function for specified class and all its subclasses that
@@ -17,7 +17,7 @@ public class InstanceName {
 	 * 'instance' of Void).
 	 * @param parser instance to instance name transformer function
 	 */
-	public <T> void add(Class<T> c, Ƒ1<? super T,String> parser) {
+	public <T> void add(Class<T> c, Function<? super T, ? extends String> parser) {
 		names.put(c, parser);
 	}
 
@@ -32,11 +32,11 @@ public class InstanceName {
 	public String get(Object instance) {
 		// Handle null as void so user can register his own function
 		Class c = instance==null ? Void.class : instance.getClass();
-		Ƒ1<?,String> f = names.getElementOfSuper(c);
+		Function<?, ? extends String> f = names.getElementOfSuper(c);
 		// Fall back to default implementation
 		if (f==null) f = DEF;
 
-		return ((Ƒ1<Object,String>) f).apply(instance);
+		return ((Function<Object,String>) f).apply(instance);
 	}
 
 }

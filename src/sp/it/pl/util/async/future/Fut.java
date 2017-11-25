@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 import javafx.scene.control.ProgressIndicator;
 import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.util.functional.Functors.Ƒ1;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.eFX;
 import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.dev.Util.noØ;

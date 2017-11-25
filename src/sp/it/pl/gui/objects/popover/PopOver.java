@@ -65,7 +65,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static sp.it.pl.gui.objects.popover.ScreenUse.APP_WINDOW;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.dev.Util.noØ;
 import static sp.it.pl.util.graphics.UtilKt.getCentre;
 import static sp.it.pl.util.graphics.UtilKt.getScreen;

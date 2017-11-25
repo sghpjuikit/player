@@ -56,6 +56,7 @@ public interface Functors {
 
 		@Override
 		default Unit invoke() {
+			apply();
 			return Unit.INSTANCE;
 		}
 

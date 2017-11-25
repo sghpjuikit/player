@@ -7,11 +7,10 @@ import javafx.scene.control.TableColumn
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataWriter
 import sp.it.pl.gui.objects.rating.Rating
-import sp.it.pl.main.App.APP
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.parsing.StringParseStrategy
 import sp.it.pl.util.parsing.StringParseStrategy.From
 import sp.it.pl.util.parsing.StringParseStrategy.To
-import java.util.function.Consumer
 
 /** Cell for rating displaying the value as rating control. */
 @StringParseStrategy(from = From.SINGLETON, to = To.CONSTANT, constant = "Stars")
@@ -27,7 +26,7 @@ object RatingRatingCellFactory: RatingCellFactory {
             r.partialRating.bind(APP.partialRating)
             r.editable.bind(APP.allowRatingChange)
             if (c.userData==Metadata.Field.RATING)
-                r.onRatingEdited = Consumer { MetadataWriter.useToRate(c.tableView.items[index], it) }
+                r.onRatingEdited = { MetadataWriter.useToRate(c.tableView.items[index], it) }
         }
 
         override fun updateItem(item: Double?, empty: Boolean) {

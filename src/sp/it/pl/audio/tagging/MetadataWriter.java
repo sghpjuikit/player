@@ -62,7 +62,7 @@ import static sp.it.pl.audio.tagging.Metadata.TAG_ID_LIB_ADDED;
 import static sp.it.pl.audio.tagging.Metadata.TAG_ID_PLAYED_FIRST;
 import static sp.it.pl.audio.tagging.Metadata.TAG_ID_PLAYED_LAST;
 import static sp.it.pl.audio.tagging.Metadata.TAG_ID_TAGS;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.emptyOr;
 import static sp.it.pl.util.async.AsyncKt.runFX;

@@ -94,6 +94,7 @@ public interface Util {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	static <T> T instantiateAsSingleton(Class<T> type) {
 		String fieldName = "INSTANCE";
 		try {
@@ -104,7 +105,6 @@ public interface Util {
 			if (fType!=type) throw new NoSuchFieldException(fieldName + " field has wrong type=" + fType);
 
 			try {
-				//noinspection unchecked
 				return (T) f.get(null);
 			} catch (IllegalAccessException e) {
 				throw new NoSuchFieldException("Field " + f + " is not accessible");
@@ -405,9 +405,8 @@ public interface Util {
 	 */
 	@SuppressWarnings("unchecked")
 	static <T> T getFieldValue(Object o, String name) {
-		Field f = null;
 		try {
-			f = getField(o.getClass(), name);
+			Field f = getField(o.getClass(), name);
 			f.setAccessible(true);
 			return (T) f.get(o);
 		} catch (Exception e) {
@@ -434,13 +433,12 @@ public interface Util {
 	 * behavior which checks only the specified class
 	 */
 	static void setField(Class c, Object o, String name, Object v) {
-		Field f = null;
 		try {
-			f = getField(c, name);
+			Field f = getField(c, name);
 			f.setAccessible(true);
 			f.set(o, v);
-		} catch (Exception x) {
-			throw new RuntimeException(x);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 

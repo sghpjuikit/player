@@ -7,11 +7,9 @@ import sp.it.pl.util.conf.Configuration
 import sp.it.pl.util.conf.IsConfig.EditMode
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.functional.ifFalse
-import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.seqOf
-import java.util.function.Consumer
 
-class PluginManager(private val configuration: Configuration, private val userErrorLogger: Consumer<String>) {
+class PluginManager(private val configuration: Configuration, private val userErrorLogger: (String) -> Unit) {
 
     /** Install the specified plugins. */
     fun installPlugins(vararg plugins: Plugin) {

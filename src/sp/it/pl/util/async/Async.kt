@@ -7,6 +7,7 @@ import mu.KotlinLogging
 import sp.it.pl.util.async.executor.FxTimer
 import sp.it.pl.util.dev.throwIf
 import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.math.millis
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -88,7 +89,7 @@ fun run(delay: Double, action: () -> Unit) {
  * @param action action. Takes the timer as a parameter. Use it to stop the periodic execution. Otherwise it will
  * never stop !
  */
-fun runPeriodic(period: Duration, action: Consumer<FxTimer>): FxTimer {
+fun runPeriodic(period: Duration, action: Runnable): FxTimer {
     val t = FxTimer(period, INDEFINITE, action)
     t.start()
     return t
@@ -186,12 +187,12 @@ fun runFX(delay: Double, r: Runnable) {
     if (delay==0.0)
         runFX(r)
     else
-        FxTimer(delay, 1, Runnable { runFX(r) }).start()
+        FxTimer(delay, 1) { runFX(r) }.start()
 }
 
 fun runFX(delay1: Double, r1: Runnable, delay2: Double, r2: Runnable) {
     throwIf(delay1<0)
-    runFX(delay1, Runnable {
+    runFX(millis(delay1), Runnable {
         r1()
         runFX(delay2, r2)
     })
@@ -203,7 +204,7 @@ fun runFX(delay1: Double, r1: Runnable, delay2: Double, r2: Runnable) {
  * @param delay delay
  */
 fun runFX(delay: Duration, r: Runnable) {
-    FxTimer(delay, 1, Runnable { runFX(r) }).start()
+    FxTimer(delay, 1) { runFX(r) }.start()
 }
 
 /**

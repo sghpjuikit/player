@@ -1,6 +1,6 @@
 package sp.it.pl.plugin
 
-import sp.it.pl.main.App
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.Locatable
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.dev.Idempotent
@@ -24,9 +24,9 @@ interface Plugin: Configurable<Any>, Locatable {
         else stop()
     }
 
-    override fun getLocation() = App.APP.DIR_APP.childOf("plugins", name)
+    override fun getLocation() = APP.DIR_APP.childOf("plugins", name)
 
-    override fun getUserLocation() = App.APP.DIR_USERDATA.childOf("plugins", name)
+    override fun getUserLocation() = APP.DIR_USERDATA.childOf("plugins", name)
 
     companion object {
         const val CONFIG_GROUP = "Plugins"

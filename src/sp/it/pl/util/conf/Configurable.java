@@ -4,8 +4,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javafx.beans.value.ObservableValue;
-import javafx.beans.value.WritableValue;
 import sp.it.pl.util.type.Util;
 import static sp.it.pl.util.conf.Configuration.configsOf;
 import static sp.it.pl.util.functional.Util.list;
@@ -198,11 +196,11 @@ public interface Configurable<T> {
 		if (c!=null) c.setValueS(v);
 	}
 
-	static <E extends ObservableValue & WritableValue> Collection<Config<Object>> configsFromFieldsOf(Object o) {
+	static Collection<Config<Object>> configsFromFieldsOf(Object o) {
 		return configsOf(o.getClass(), o, false, true);
 	}
 
-	static <E extends ObservableValue & WritableValue> Collection<Config<Object>> configsFromFieldsOf(String fieldNamePrefix, String category, Object o) {
+	static Collection<Config<Object>> configsFromFieldsOf(String fieldNamePrefix, String category, Object o) {
 		return configsOf(o.getClass(), fieldNamePrefix, category, o, false, true);
 	}
 

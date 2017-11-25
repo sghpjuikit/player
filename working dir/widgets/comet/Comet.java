@@ -41,9 +41,6 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
-import sp.it.pl.gui.itemnode.ConfigField;
-import sp.it.pl.gui.objects.Text;
-import sp.it.pl.gui.objects.icon.Icon;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -52,7 +49,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
@@ -80,9 +76,6 @@ import javafx.scene.text.Font;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Scale;
 import javafx.util.Duration;
-import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.controller.ClassController;
-import sp.it.pl.main.App;
 import org.gamepad4j.ButtonID;
 import org.gamepad4j.Controllers;
 import org.gamepad4j.DpadDirection;
@@ -92,6 +85,11 @@ import org.gamepad4j.IControllerListener;
 import org.gamepad4j.StickID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sp.it.pl.gui.itemnode.ConfigField;
+import sp.it.pl.gui.objects.Text;
+import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.ClassController;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.animation.Anim;
@@ -192,6 +190,7 @@ import static javafx.scene.paint.CycleMethod.NO_CYCLE;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.minutes;
 import static javafx.util.Duration.seconds;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.pyth;
 import static sp.it.pl.util.animation.Anim.map01To010;
@@ -283,7 +282,7 @@ public class Comet extends ClassController {
 				new Icon(MaterialDesignIcon.NUMERIC_7_BOX_OUTLINE,15,"Start 7 player game",() -> game.start(7)),
 				new Icon(MaterialDesignIcon.NUMERIC_8_BOX_OUTLINE,15,"Start 8 player game",() -> game.start(8)),
 				new Icon(null,16){{ maintain(game.paused,mapB(MaterialDesignIcon.PLAY,MaterialDesignIcon.PAUSE), this::icon); }}.onClick(() -> game.pause(!game.paused.get())),
-				new Icon(FontAwesomeIcon.GEARS,14,"Settings").onClick(e -> App.APP.windowManager.showSettingsSimple(new ListConfigurable<>(Configurable.configsFromFieldsOf(this)),e)),
+				new Icon(FontAwesomeIcon.GEARS,14,"Settings").onClick(e -> APP.windowManager.showSettingsSimple(new ListConfigurable<>(Configurable.configsFromFieldsOf(this)),e)),
 				new Icon(FontAwesomeIcon.INFO,14,"How to play").onClick(() -> new HowToPane().show(game))
 			),
 			0d,0d,null,0d,

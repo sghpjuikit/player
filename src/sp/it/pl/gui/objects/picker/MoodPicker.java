@@ -1,7 +1,7 @@
 package sp.it.pl.gui.objects.picker;
 
 import sp.it.pl.audio.tagging.Metadata;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 
 /** Mood picker. */
 public class MoodPicker extends Picker<String> {

@@ -26,7 +26,6 @@ import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.layout.Pane;
 import sp.it.pl.gui.objects.contextmenu.SelectionMenuItem;
 import sp.it.pl.gui.objects.table.TableColumnInfo.ColumnInfo;
-import sp.it.pl.main.App;
 import sp.it.pl.util.Sort;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
@@ -37,6 +36,7 @@ import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.geometry.Side.BOTTOM;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.util.dev.Util.noØ;
 import static sp.it.pl.util.functional.Util.SAME;
@@ -106,7 +106,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * Returns all fields of this table. The fields are string representable.
 	 */
 	public List<ObjectField<T,?>> getFields() {
-		return stream(App.APP.classFields.get(type))
+		return stream(APP.classFields.get(type))
 			.filter(ObjectField::isTypeStringRepresentable)
 			.sorted(by(ObjectField::name))
 			.collect(toList());
@@ -116,7 +116,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * Returns all fields of this table. The fields are string representable.
 	 */
 	public List<ObjectField<T,?>> getFieldsAll() {
-		return stream(App.APP.classFields.get(type))
+		return stream(APP.classFields.get(type))
 			.sorted(by(ObjectField::name))
 			.collect(toList());
 	}

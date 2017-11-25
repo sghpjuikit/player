@@ -24,7 +24,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PAINT_BRUSH;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.scene.input.TransferMode.MOVE;
 import static javafx.scene.paint.Color.CADETBLUE;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.graphics.UtilKt.createIcon;
 

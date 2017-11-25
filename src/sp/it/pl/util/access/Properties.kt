@@ -29,6 +29,7 @@ import javafx.beans.value.WritableDoubleValue
 import javafx.beans.value.WritableFloatValue
 import javafx.beans.value.WritableIntegerValue
 import javafx.beans.value.WritableLongValue
+import javafx.beans.value.WritableValue
 import kotlin.reflect.KProperty
 
 operator fun <T> ObservableValue<T>.getValue(thisRef: Any, property: KProperty<*>) = value
@@ -49,6 +50,9 @@ operator fun IntegerProperty.setValue(thisRef: Any, property: KProperty<*>, valu
 operator fun ObservableBooleanValue.getValue(thisRef: Any, property: KProperty<*>) = get()
 operator fun BooleanProperty.setValue(thisRef: Any, property: KProperty<*>, value: Boolean) = set(value)
 
+fun WritableValue<Boolean>.not() {
+    value = !value
+}
 
 operator fun ObservableDoubleValue.plus(other: Number): DoubleProperty = SimpleDoubleProperty(get()+other.toDouble())
 operator fun ObservableDoubleValue.plus(other: ObservableNumberValue): DoubleProperty = SimpleDoubleProperty(get()+other.doubleValue())

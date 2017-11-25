@@ -64,7 +64,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.paint.Color.BLACK;
 import static sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.NEW;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.urlEncodeUtf8;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runAfter;
@@ -94,7 +94,7 @@ public class AppActions {
 
 	@IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
 	public void openAppGithubPage() {
-		browse(APP.GITHUB_URI);
+		browse(APP.uriGithub);
 	}
 
 	@IsAction(name = "Open app directory", desc = "Opens directory from which this application is running from.")
@@ -411,7 +411,7 @@ public class AppActions {
 	}
 
 	public void inspectObjectInInspector(Object o) {
-		App.APP.widgetManager.find("Inspector", WidgetSource.OPEN, true)
+		APP.widgetManager.find("Inspector", WidgetSource.OPEN, true)
 			.ifPresent(w ->
 				((TreeView) getFieldValue(w.getController(), "tree"))    // TODO: improve
 					.getRoot().getChildren()

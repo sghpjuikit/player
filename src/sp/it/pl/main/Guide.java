@@ -55,7 +55,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.container.Container.testControlContainer;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static sp.it.pl.util.async.AsyncKt.run;
 import static sp.it.pl.util.async.AsyncKt.runAfter;

@@ -42,7 +42,7 @@ public class HtmlViewer extends ClassController {
 	    Output<String> output = getOutputs().create(widget.id, "Html", String.class, "");
 	    d(text.maintain(output::setValue));
 
-	    d(runPeriodic(seconds(5), timer -> text.setValue(editor.getHtmlText()))::stop);
+	    d(runPeriodic(seconds(5), () -> text.setValue(editor.getHtmlText()))::stop);
 	    setAnchor(this, editor, 0d);
     }
 

@@ -20,7 +20,7 @@ import sp.it.pl.layout.widget.Widget.Group;
 import sp.it.pl.layout.widget.controller.ClassController;
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
 import static java.util.stream.Collectors.toList;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.functional.Util.toCSList;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
 

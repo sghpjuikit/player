@@ -77,13 +77,14 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TRACK_INFO;
 import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.file.Util.copyFileSafe;
 import static sp.it.pl.util.file.Util.copyFiles;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.hasAudio;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
@@ -210,7 +211,7 @@ public class FileInfo extends FXMLController implements SongReader {
         rater.partialRating.bind(APP.partialRating);
         rater.editable.bind(APP.allowRatingChange);
         // write metadata on rating change
-        rater.onRatingEdited = r -> MetadataWriter.useToRate(data, r);
+        rater.onRatingEdited = consumer(r -> MetadataWriter.useToRate(data, r));
 
         // drag & drop
         installDrag(

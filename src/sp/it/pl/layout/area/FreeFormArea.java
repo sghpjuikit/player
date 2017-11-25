@@ -220,7 +220,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
     /** Optimal size/position strategy returning greatest empty square. */
     TupleM4<Double,Double,Double,Double> bestRec(double x, double y, PaneWindowControls new_w) {
-        TupleM4<Double,Double,Double,Double> b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
+        TupleM4<Double,Double,Double,Double> b = new TupleM4<>(0d, rt.getWidth(), 0d, rt.getHeight());
 
         for (PaneWindowControls w : windows.values()) {
             if (w==new_w) continue;   // ignore self
@@ -253,7 +253,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                             (b.b-b.a)/rt.getWidth(),(b.d-b.c)/rt.getHeight());
     }
     Bounds bestRecBounds(double x, double y, PaneWindowControls new_w) {
-        TupleM4<Double,Double,Double,Double> b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
+        TupleM4<Double,Double,Double,Double> b = new TupleM4<>(0d, rt.getWidth(), 0d, rt.getHeight());
 
         for (PaneWindowControls w : windows.values()) {
             if (w==new_w) continue;   // ignore self

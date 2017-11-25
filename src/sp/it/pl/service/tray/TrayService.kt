@@ -15,14 +15,12 @@ import mu.KLogging
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.playback.PLAYBACK
 import sp.it.pl.gui.Gui
-import sp.it.pl.main.App
-import sp.it.pl.main.App.APP
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfig.EditMode
 import sp.it.pl.util.conf.IsConfigurable
-import sp.it.pl.util.functional.Functors.Ƒ1
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.graphics.Util.menuItem
 import sp.it.pl.util.graphics.image.ImageSize
@@ -62,8 +60,11 @@ class TrayService : ServiceBase(true) {
     private var contextMenu: ContextMenu? = null
     private var contextMenuOwner: Stage? = null
     private val contextMenuItemsDefault = listOf(
+            menuItem("Show actions") { APP.actions.openOpen() },
+            menuItem("Settings") { APP.actions.openSettings() },
             menuItem("New window") { APP.windowManager.createWindow() },
             menuItem("Play/pause") { PLAYBACK.pause_resume() },
+            menuItem("Disable tray") { stop() },
             menuItem("Exit") { APP.close() }
     )
     private var contextMenuItems: MutableList<MenuItem> = ArrayList(contextMenuItemsDefault)
@@ -76,7 +77,7 @@ class TrayService : ServiceBase(true) {
             isAutoFix = true
             consumeAutoHidingEvents = false
         }
-        val cmOwner = App.APP.windowManager.createStageOwner().apply {
+        val cmOwner = APP.windowManager.createStageOwner().apply {
             hide()
             focusedProperty() syncFalse {
                 if (cm.isShowing) cm.hide()
@@ -206,9 +207,9 @@ class TrayService : ServiceBase(true) {
         onClick = action ?: onClickDefault
     }
 
-    /** Adjust tray right mouse click context menu items. Null sets default context menu. */
-    fun adjustContextMenuItems(action: Ƒ1<in MutableList<MenuItem>, out MutableList<MenuItem>>?) {
-        contextMenuItems = action?.apply(contextMenuItems) ?: ArrayList(contextMenuItemsDefault)
+    /** Adjust or provide tray right mouse click context menu items. Null sets default context menu. */
+    fun setContextMenuItems(menuItems: MutableList<MenuItem>?) {
+        contextMenuItems = menuItems ?: ArrayList(contextMenuItemsDefault)
         contextMenu?.items?.setAll(contextMenuItems)
     }
 

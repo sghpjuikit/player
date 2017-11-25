@@ -23,6 +23,9 @@ operator fun <T> Supplier<T>.invoke() = get()
 
 operator fun Runnable.invoke() = run()
 
+/** @return kotlin consumer that invokes java consumer */
+fun <T> consumer(consumer: Consumer<T>): (T) -> Unit = { consumer(it) }
+
 /** @return return value in the optional or null if empty */
 fun <T> Optional<T>.orNull(): T? = orElse(null)
 

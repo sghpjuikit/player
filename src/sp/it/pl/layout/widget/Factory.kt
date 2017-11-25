@@ -2,7 +2,7 @@ package sp.it.pl.layout.widget
 
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.controller.Controller
-import sp.it.pl.main.App
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.type.ClassName
@@ -48,7 +48,7 @@ class WidgetFactory<C: Controller<*>>: ComponentFactory<Widget<C>>, WidgetInfo {
         this.name = ClassName.of(controllerType)
         this.controllerType = controllerType
         this.location = location
-        this.locationUser = location?.let { App.APP.DIR_USERDATA.childOf("widgets", it.nameOrRoot) }
+        this.locationUser = location?.let { APP.DIR_USERDATA.childOf("widgets", it.nameOrRoot) }
         this.nameGui = if (i.name.isEmpty()) name else i.name
         this.description = i.description
         this.version = i.version
@@ -90,7 +90,7 @@ class DeserializingFactory: ComponentFactory<Component> {
 
     override fun nameGui() = nameGui
 
-    override fun create() = App.APP.windowManager.instantiateComponent(launcher)!!
+    override fun create() = APP.windowManager.instantiateComponent(launcher)!!
 
     override fun toString() = "${javaClass.simpleName} $nameGui $launcher"
 

@@ -1,6 +1,5 @@
 package sp.it.pl.util.file;
 
-import java.awt.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -28,7 +27,7 @@ import javax.imageio.ImageIO;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.functional.Try;
 import static java.util.stream.Collectors.toList;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.filenamizeString;
 import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.dev.Util.noØ;
@@ -358,27 +357,11 @@ public interface Util {
 	}
 
 	/**
-	 * Deletes the file by moving it to a recycle bin of the underlying OS.<br/>
-	 * If the file denotes a directory, it will be deleted including its content.
-	 * <p/>
-	 * The file will not be deleted permanently, only recycled, which is what user usually expects to happen. On the
-	 * other hand, an application may want to dispose of the file directly, where {@link #deleteFile(java.io.File)}
-	 * is more suitable.
-	 *
-	 * @param f nonnull file
-	 * @return success if file was deleted or did not exist or error if error occurs during deletion
-	 * @throws java.lang.RuntimeException if parameter null
-	 */
-	static Try<Void,Void> recycleFile(File f) {
-		return Desktop.getDesktop().moveToTrash(f) ? Try.ok() : Try.error();
-	}
-
-	/**
 	 * Deletes the file permanently.<br/>
 	 * If the file denotes a directory, it will be deleted including its content.
 	 * <p/>
 	 * The file will not be recycled, but deleted permanently, which is not what is usually desired when deletion is
-	 * invoked directly by a user. See {@link #recycleFile(java.io.File)}.
+	 * invoked directly by a user. See {@link sp.it.pl.util.system.EnvironmentKt#recycle(java.io.File)}.
 	 *
 	 * @param f nonnull file
 	 * @return success if file was deleted or did not exist or error if error occurs during deletion

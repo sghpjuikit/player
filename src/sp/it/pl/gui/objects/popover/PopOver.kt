@@ -4,7 +4,7 @@ import javafx.geometry.Rectangle2D
 import javafx.scene.Node
 import javafx.stage.Screen
 import javafx.stage.Window
-import sp.it.pl.main.App
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.graphics.centreX
 import sp.it.pl.util.graphics.centreY
 import sp.it.pl.util.graphics.getScreenForMouse
@@ -101,7 +101,7 @@ enum class ScreenPos {
         val w = popup.skinn.node.width
         val screen = if (isAppCentric()) null else getScreenForMouse().bounds
         //				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screenPreference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
-        val app = App.APP.windowManager.main.orElse(null)
+        val app = APP.windowManager.main.orElse(null)
         return when (this) {
             APP_TOP_LEFT, APP_BOTTOM_LEFT -> app?.x ?: SCREEN_BOTTOM_LEFT.computeX(popup)
             APP_TOP_RIGHT, APP_BOTTOM_RIGHT -> app?.let { it.x+it.width-w } ?: SCREEN_BOTTOM_RIGHT.computeX(popup)
@@ -116,7 +116,7 @@ enum class ScreenPos {
         val h = popup.skinn.node.height
         val screen = if (isAppCentric()) null else getScreenForMouse().bounds
         //				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screenPreference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
-        val app = App.APP.windowManager.main.orElse(null)
+        val app = APP.windowManager.main.orElse(null)
         return when (this) {
             APP_BOTTOM_LEFT, APP_BOTTOM_RIGHT -> app?.let { it.y+it.height-h } ?: SCREEN_BOTTOM_RIGHT.computeY(popup)
             APP_TOP_LEFT, APP_TOP_RIGHT -> app?.y ?: SCREEN_TOP_RIGHT.computeY(popup)

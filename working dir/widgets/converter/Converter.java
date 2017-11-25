@@ -1,19 +1,6 @@
 package converter;
 
-import sp.it.pl.audio.Item;
-import sp.it.pl.audio.Player;
-import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.audio.tagging.MetadataReader;
-import sp.it.pl.audio.tagging.MetadataWriter;
 import de.jensd.fx.glyphs.octicons.OctIcon;
-import sp.it.pl.gui.itemnode.ChainValueNode.ListConfigField;
-import sp.it.pl.gui.itemnode.ConfigField;
-import sp.it.pl.gui.itemnode.ItemNode.ValueNode;
-import sp.it.pl.gui.itemnode.ListAreaNode;
-import sp.it.pl.gui.itemnode.StringSplitParser.SplitData;
-import sp.it.pl.gui.objects.combobox.ImprovedComboBox;
-import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.pane.ConfigPane;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,6 +22,19 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Player;
+import sp.it.pl.audio.tagging.Metadata;
+import sp.it.pl.audio.tagging.MetadataReader;
+import sp.it.pl.audio.tagging.MetadataWriter;
+import sp.it.pl.gui.itemnode.ChainValueNode.ListConfigField;
+import sp.it.pl.gui.itemnode.ConfigField;
+import sp.it.pl.gui.itemnode.ItemNode.ValueNode;
+import sp.it.pl.gui.itemnode.ListAreaNode;
+import sp.it.pl.gui.itemnode.StringSplitParser.SplitData;
+import sp.it.pl.gui.objects.combobox.ImprovedComboBox;
+import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.gui.pane.ConfigPane;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Group;
 import sp.it.pl.layout.widget.controller.ClassController;
@@ -63,7 +63,7 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.capitalizeStrong;
 import static sp.it.pl.util.Util.filenamizeString;
 import static sp.it.pl.util.dev.Util.log;
@@ -87,7 +87,6 @@ import static sp.it.pl.util.graphics.Util.layStack;
 import static sp.it.pl.util.graphics.Util.layVertically;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
-import static sp.it.pl.util.type.Util.getEnumConstants;
 
 @Widget.Info(
     author = "Martin Polakovic",
@@ -201,7 +200,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
             String name = data.get("Filename");
             Util.renameFile(file, name);
         }));
-        acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(getEnumConstants(Metadata.Field.class), Object::toString), data -> {
+        acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(Metadata.Field.FIELDS, f -> f.name()), data -> {
             List<Item> songs = (List)list(source);
             if (songs.isEmpty()) return;
             Fut.fut()

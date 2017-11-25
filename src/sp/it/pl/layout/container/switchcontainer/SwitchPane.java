@@ -38,7 +38,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_IN;
 import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_OUT;

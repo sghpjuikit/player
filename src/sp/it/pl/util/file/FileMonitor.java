@@ -15,6 +15,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.collections.Tuple2;
+import sp.it.pl.util.system.Os;
+import static com.sun.nio.file.ExtendedWatchEventModifier.FILE_TREE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
@@ -32,18 +34,17 @@ public class FileMonitor {
 	 * 1) Dir only!
 	 * WatchService allows us to only monitor a directory. We then must simply ignore other
 	 * events of files other than the one we monitor. This is really bad if we want to monitor
-	 * multiple files in a single directory (each on its own). We would have to use 1 thread
-	 * and 1 watch service per each file!
-	 * Solved using a predicate parameter to filter out unwanted events.
+	 * multiple files in a single directory independently.
+	 * Solvable using a predicate parameter to filter out unwanted events.
 	 * 2) Modification events.
-	 * Not even going to try to understand - modifications events fire
-	 * multiple times! When editing java source file in Netbeans and saving it throws 3 events
-	 * at about 8-13 ms time gap (tested on SSD)!
-	 * Solved using event reducer & checking modification times
+	 * Events can fire multiple times when application use safe-rewrite saving or in various other scenarios! E.g.
+	 * editing and saving .java file in Netbeans fires 3 events at about 8-13 ms time gap (tested on SSD).
+	 * Solvable using event reducer & checking modification times
 	 * 3) Nested events
 	 * CREATE and DELETE events are fired for files and directories up to level 2 (children of
 	 * children of the monitored directory, e.g.,  mon_dir/lvl1/file.txt). MODIFIED events will
-	 * be thrown for any direct child or
+	 * be thrown for any direct child.
+	 * Furthermore, recursive monitoring is only supported on Windows, this is a platform limitation.
 	 */
 
 	private static final ThreadFactory threadCreator = threadFactory("WatchServiceConsumer", true);
@@ -51,10 +52,8 @@ public class FileMonitor {
 	private WatchService watchService;
 	private Predicate<File> filter;
 	private BiConsumer<Kind<Path>,File> action;
-	private boolean isFile;
-	private String name; // purely for logging "Directory" or "File"
 
-	EventReducer<Tuple2<Kind<Path>,File>> modificationReducer = EventReducer.toLast(50, e -> emitEvent(e._1, e._2));
+	private final EventReducer<Tuple2<Kind<Path>,File>> modificationReducer = EventReducer.toLast(50, e -> emitEvent(e._1, e._2));
 
 	private void emitEvent(Kind<Path> type, File file) {
 		// This works as it should.
@@ -97,8 +96,6 @@ public class FileMonitor {
 		fm.monitoredFileDir = monitoredDir;
 		fm.filter = filter;
 		fm.action = handler;
-		fm.isFile = true;
-		fm.name = fm.isFile ? "File" : "Directory";
 
 		Path dir = fm.monitoredFileDir.toPath();
 		try {
@@ -134,7 +131,7 @@ public class FileMonitor {
 						if (fm.filter.test(modifiedFile)) {
 							if (type==ENTRY_MODIFY) {
 								runFX(() ->
-										fm.modificationReducer.push(tuple((Kind) type, modifiedFile))
+										fm.modificationReducer.push(tuple((Kind) type, modifiedFile))   // TODO: fix overwriting events
 								);
 							} else {
 								fm.emitEvent((Kind) type, modifiedFile);
@@ -152,19 +149,27 @@ public class FileMonitor {
 		return fm;
 	}
 
-	@SuppressWarnings({"unchecked", "ConstantConditions"})
-	@Deprecated
-	public static FileMonitor monitorDirectory(File toMonitor, BiConsumer<Kind<Path>,File> handler) {
+	@SuppressWarnings({"unchecked", "ConstantConditions", "UnnecessaryLocalVariable"})
+	public static FileMonitor monitorDirectory(File toMonitor, boolean recursive, BiConsumer<Kind<Path>,File> handler) {
 		FileMonitor fm = new FileMonitor();
 		fm.monitoredFileDir = toMonitor;
 		fm.action = handler;
-		fm.isFile = false;
-		fm.name = fm.isFile ? "File" : "Directory";
 
 		Path dir = fm.monitoredFileDir.toPath();
 		try {
 			fm.watchService = FileSystems.getDefault().newWatchService();
-			dir.register(fm.watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW);
+
+			boolean recursiveRequested = recursive;
+			boolean recursiveSupported = Os.WINDOWS.isCurrent();
+			boolean recursiveWarn = recursiveRequested && !recursiveSupported;
+			boolean recursiveUsed = !recursiveRequested || !recursiveSupported;
+
+			if (recursiveWarn)
+				log(FileMonitor.class).warn("Recursive file watcher is not supported, using standard, file={}", fm.monitoredFileDir);
+
+			if (recursiveUsed) dir.register(fm.watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW);
+			else dir.register(fm.watchService, new Kind<?>[] {ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW}, FILE_TREE);
+
 			threadCreator.newThread(() -> {
 				// The check requires I/O so lets do that on bgr thread as well
 //                if (!toMonitor.isDirectory()) throw new IllegalArgumentException("File not a directory or does not exist.");

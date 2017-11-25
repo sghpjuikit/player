@@ -1,18 +1,5 @@
 package library;
 
-import sp.it.pl.audio.Item;
-import sp.it.pl.audio.Player;
-import sp.it.pl.audio.playlist.PlaylistManager;
-import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.audio.tagging.MetadataGroup;
-import sp.it.pl.audio.tagging.MetadataReader;
-import sp.it.pl.gui.Gui;
-import sp.it.pl.gui.infonode.InfoTask;
-import sp.it.pl.gui.objects.contextmenu.TableContextMenuR;
-import sp.it.pl.gui.objects.table.FilteredTable;
-import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
-import sp.it.pl.gui.objects.table.TableColumnInfo;
-import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -28,12 +15,24 @@ import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.util.Callback;
+import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Player;
+import sp.it.pl.audio.playlist.PlaylistManager;
+import sp.it.pl.audio.tagging.Metadata;
+import sp.it.pl.audio.tagging.MetadataGroup;
+import sp.it.pl.audio.tagging.MetadataReader;
+import sp.it.pl.gui.Gui;
+import sp.it.pl.gui.infonode.InfoTask;
+import sp.it.pl.gui.objects.contextmenu.TableContextMenuR;
+import sp.it.pl.gui.objects.table.FilteredTable;
+import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
+import sp.it.pl.gui.objects.table.TableColumnInfo;
+import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
 import sp.it.pl.layout.widget.Widget.Info;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.SongReader;
-import sp.it.pl.main.App;
 import sp.it.pl.util.access.Vo;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.animation.Anim;
@@ -50,9 +49,6 @@ import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.units.Dur;
 import sp.it.pl.util.validation.Constraint;
 import sp.it.pl.util.validation.Constraint.FileActor;
-import static sp.it.pl.audio.tagging.Metadata.Field.RATING;
-import static sp.it.pl.audio.tagging.Metadata.Field.TITLE;
-import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
 import static javafx.scene.input.KeyCode.DELETE;
@@ -60,8 +56,11 @@ import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.util.Duration.seconds;
+import static sp.it.pl.audio.tagging.Metadata.Field.RATING;
+import static sp.it.pl.audio.tagging.Metadata.Field.TITLE;
+import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static sp.it.pl.layout.widget.Widget.Group.LIBRARY;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.util.animation.Anim.Interpolators.reverse;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -279,7 +278,7 @@ public class Library extends FXMLController implements SongReader {
         FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
         chooseFile("Add folder to library", FileType.DIRECTORY, lastDir, w, ef)
             .ifOk(file -> {
-                App.APP.actionPane.show(file);
+                APP.actionPane.show(file);
                 lastDir = file.getParentFile();
             });
     }
@@ -289,7 +288,7 @@ public class Library extends FXMLController implements SongReader {
         FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
         chooseFiles("Add files to library", lastFile, w, ef)
             .ifOk(files -> {
-                App.APP.actionPane.show(files);
+                APP.actionPane.show(files);
                 lastFile = getCommonRoot(files);
             });
     }

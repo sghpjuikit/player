@@ -26,7 +26,6 @@ import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import sp.it.pl.gui.objects.contextmenu.ImprovedContextMenu;
 import sp.it.pl.gui.objects.image.cover.Cover;
-import sp.it.pl.main.App;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.animation.Anim;
@@ -47,6 +46,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.util.Duration.millis;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.file.UtilKt.toFileOrNull;
 import static sp.it.pl.util.functional.Util.ISNTØ;
@@ -343,8 +343,8 @@ public class Thumbnail {
 	 */
 	public ImageSize calculateImageLoadSize() {
 		// sample both size and prefSize to avoid getting 0 when source not yet initialized (part of scene graph)
-		double w = App.APP.windowManager.screenMaxScaling*Math.max(root.getWidth(), root.getPrefWidth());
-		double h = App.APP.windowManager.screenMaxScaling*Math.max(root.getHeight(), root.getPrefHeight());
+		double w = APP.windowManager.screenMaxScaling*Math.max(root.getWidth(), root.getPrefWidth());
+		double h = APP.windowManager.screenMaxScaling*Math.max(root.getHeight(), root.getPrefHeight());
 		return new ImageSize(w, h);
 	}
 

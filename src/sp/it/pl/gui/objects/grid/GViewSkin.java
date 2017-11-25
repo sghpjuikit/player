@@ -30,7 +30,6 @@ import sp.it.pl.gui.itemnode.FieldedPredicateItemNode;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.gui.objects.grid.GridView.Search;
 import sp.it.pl.gui.objects.grid.GridView.SelectionOn;
-import sp.it.pl.main.App;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
 import sp.it.pl.util.functional.Functors;
 import static java.lang.Math.max;
@@ -40,6 +39,7 @@ import static javafx.application.Platform.runLater;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.getAt;
 import static sp.it.pl.util.Util.isInRangeInc;
@@ -242,7 +242,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 	}
 
 	private List<PredicateData<ObjectField<F,Object>>> getFilterPredicates(Class<F> filterType) {
-		return stream(App.APP.classFields.get(filterType))
+		return stream(APP.classFields.get(filterType))
 				.filter(ObjectField::isTypeFilterable)
 				.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
 				.map(f -> (PredicateData<ObjectField<F,Object>>) f)

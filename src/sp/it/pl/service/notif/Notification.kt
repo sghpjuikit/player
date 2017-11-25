@@ -12,7 +12,7 @@ import sp.it.pl.util.functional.invoke
 
 /** Notification popover. */
 class Notification: PopOver<Node>() {
-    private val closer = FxTimer(5000.0, 1, Runnable { this.hide() })
+    private val closer = FxTimer(5000.0, 1) { hide() }
     private val root = StackPane()
 
     /** Executes on left mouse click. Default does nothing. */

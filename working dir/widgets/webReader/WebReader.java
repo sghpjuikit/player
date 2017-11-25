@@ -15,7 +15,7 @@ import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.web.DuckDuckGoQBuilder;
 import sp.it.pl.web.SearchUriBuilder;
 import sp.it.pl.web.WebBarInterpreter;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.file.UtilKt.childOf;
 import static sp.it.pl.util.reactive.Util.maintain;

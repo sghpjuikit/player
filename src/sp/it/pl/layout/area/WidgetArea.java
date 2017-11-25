@@ -38,7 +38,7 @@ import static sp.it.pl.util.reactive.Util.maintain;
  * Maintains final 1:1 relationship with the widget. Widget area can contain only 1 widget provided
  * at the creation and it can not be changed (although the parent container can create another one).
  */
-public final class WidgetArea extends Area<Container> {
+public final class WidgetArea extends Area<Container<?>> {
 
     @FXML private AnchorPane content;
     @FXML public StackPane content_padding;

@@ -852,11 +852,11 @@ class Metadata: Item, Serializable {
                 else -> super.searchMatch(matcher)
             }
 
-        fun getGroupedOf(m: Metadata): Any? = when(this) {
+        fun getGroupedOf(): (Metadata) -> Any? = when(this) {
             // Note that groups must include the 'empty' group for when the value is empty
-            FILESIZE -> GROUPS_FILESIZE[64-java.lang.Long.numberOfLeadingZeros(m.fileSizeInB-1)]
-            RATING -> if (m.rating==null) -1.0 else GROUPS_RATING[(m.getRatingPercent()!!*100/5).toInt()]
-            else -> getOf(m)
+            FILESIZE -> { m -> GROUPS_FILESIZE[64-java.lang.Long.numberOfLeadingZeros(m.fileSizeInB-1)] }
+            RATING -> { m -> if (m.rating==null) -1.0 else GROUPS_RATING[(m.getRatingPercent()!!*100/5).toInt()] }
+            else -> { m -> getOf(m) }
         }
 
         fun isFieldEmpty(m: Metadata): Boolean = getOf(m)==getOf(Metadata.EMPTY)

@@ -16,7 +16,7 @@ import sp.it.pl.gui.Gui
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
-import sp.it.pl.main.App.APP
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.async.future.Fut.fut
 import sp.it.pl.util.async.runNotFX
@@ -139,7 +139,7 @@ fun File.browse() = toURI().browse()
  * On some platforms the operation may be unsupported. In that case this method is a no-op.
  */
 fun URI.browse() {
-    println("browsing file=$this")
+    println("browsing uri=$this")
     runNotFX {
         val f = toFileOrNull()
         if (f==null) {
@@ -222,6 +222,25 @@ fun File.open() {
                 }
             }
         }
+    }
+}
+
+/**
+ * Deletes the file by moving it to the recycle bin of the underlying OS.
+ * * if denotes a directory, it will be deleted including its content
+ * * file will not be deleted permanently, only recycled
+ *
+ *  @return success if file was deleted or did not exist or error if error occurs during deletion
+ */
+fun File.recycle(): Try<Void, Void> {
+    return if (Desktop.Action.MOVE_TO_TRASH.isSupportedOrWarn()) {
+        try {
+            if (Desktop.getDesktop().moveToTrash(this)) Try.ok<Void>() else Try.error()
+        } catch (e: IllegalArgumentException) {
+            Try.ok<Void>()
+        }
+    } else {
+        Try.error()
     }
 }
 

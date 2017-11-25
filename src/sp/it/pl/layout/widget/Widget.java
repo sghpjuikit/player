@@ -40,7 +40,7 @@ import sp.it.pl.util.type.Util;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.OPEN;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.file.Util.writeFile;
 import static sp.it.pl.util.functional.Util.ISNTØ;
@@ -97,7 +97,6 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	// I think this is the best and most painless way to wire widget with area & container (parent)
 	// All the pseudo wiring through Controller is pure chaos.
 	@XStreamOmitField
-	@Deprecated
 	public Container parentTemp;
 
 	/**

@@ -4,7 +4,7 @@ import javafx.scene.layout.Region
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.controller.io.Inputs
 import sp.it.pl.layout.widget.controller.io.Outputs
-import sp.it.pl.main.App
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.conf.Config
 import java.io.ObjectStreamException
 
@@ -17,7 +17,7 @@ import java.io.ObjectStreamException
     year = "2014",
     group = Widget.Group.OTHER
 )
-internal class EmptyWidget: Widget<EmptyWidget>("Empty", App.APP.widgetManager.widgetFactoryEmpty), Controller<EmptyWidget> {
+internal class EmptyWidget: Widget<EmptyWidget>("Empty", APP.widgetManager.widgetFactoryEmpty), Controller<EmptyWidget> {
 
     private val o = Outputs()
     private val i = Inputs()

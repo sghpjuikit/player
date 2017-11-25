@@ -14,7 +14,7 @@ import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.util.graphics.Util;
 import static javafx.css.PseudoClass.getPseudoClass;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.dev.Util.noØ;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.graphics.Util.setAnchor;
@@ -28,7 +28,7 @@ import static sp.it.pl.util.graphics.Util.setAnchor;
  * container. Instances of this class can not live outside of container's
  * life cycle. Note that the opposite does not necessarily hold true.
  */
-public abstract class Area<T extends Container> implements ContainerNode {
+public abstract class Area<T extends Container<?>> implements ContainerNode {
 
     public static final PseudoClass DRAGGED_PSEUDOCLASS = getPseudoClass("dragged");
     public static final List<String> bgr_STYLECLASS = list("block", "area");
@@ -155,7 +155,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
     }
     public boolean isLocked() {
         Component c = getWidget();
-        return c==null ? false : c.locked.get();
+        return c!=null && c.locked.get();
     }
     public final boolean isUnderLock() {
         Component c = getWidget();

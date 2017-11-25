@@ -36,7 +36,6 @@ import sp.it.pl.gui.itemnode.FieldedPredicateItemNode;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.search.SearchAutoCancelable;
-import sp.it.pl.main.App;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
 import sp.it.pl.util.functional.Functors;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
@@ -49,7 +48,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static org.reactfx.EventStreams.changesOf;
 import static sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.zeroPad;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.dev.Util.noØ;
@@ -330,7 +329,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	}
 
 	private List<PredicateData<ObjectField<T,Object>>> getFilterPredicates(Class<T> filterType) {
-		return stream(App.APP.classFields.get(filterType))
+		return stream(APP.classFields.get(filterType))
 			.filter(ObjectField::isTypeFilterable)
 			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
 			.sorted(by(e -> e.name))

@@ -4,7 +4,7 @@ import de.jensd.fx.glyphs.materialicons.MaterialIcon
 import mu.KotlinLogging
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
-import sp.it.pl.main.App
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Config.VarList
@@ -15,7 +15,6 @@ import sp.it.pl.util.system.runAsProgram
 import sp.it.pl.util.validation.Constraint
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
-import java.util.function.Supplier
 
 private const val NAME = "App Search"
 private const val GROUP = "${Plugin.CONFIG_GROUP}.$NAME"
@@ -35,15 +34,15 @@ class AppSearchPlugin: PluginBase(NAME) {
     private val searchDo = Config.RunnableConfig("rescan", "Rescan apps", GROUP, "", { findApps() })
 
     private var searchSource: List<File> = emptyList()
-    private val searchProvider = Supplier { searchSource.stream().map { it.toRunApplicationEntry() } }
+    private val searchProvider = { searchSource.stream().map { it.toRunApplicationEntry() } }
 
     override fun onStart() {
         findApps()
-        App.APP.search.sources.add(searchProvider)
+        APP.search.sources += searchProvider
     }
 
     override fun onStop() {
-        App.APP.search.sources.remove(searchProvider)
+        APP.search.sources -= searchProvider
     }
 
     private fun findApps() {

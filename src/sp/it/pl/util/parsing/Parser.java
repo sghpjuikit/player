@@ -27,6 +27,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
+import sp.it.pl.gui.SkinCss;
 import sp.it.pl.gui.itemnode.StringSplitParser;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.collections.map.ClassMap;
@@ -236,6 +237,7 @@ public abstract class Parser {
 			if (name==null || in==null || out==null) return null;
 			return Functors.pool.getPF(name, in, out);
 		});
+		DEFAULT.addParser(SkinCss.class, s -> s.file.getPath(), s -> Try.ok(new SkinCss(new File(s))));
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */

@@ -39,7 +39,7 @@ import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static sp.it.pl.layout.widget.Widget.Group.PLAYLIST;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.OPEN;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.list;
@@ -230,7 +230,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 //        List<PlaylistItem> l = table.getSelectedItems();
 //        if (l.isEmpty()) return;
 //
-//        App.APP.actions.doWithUserString("Save selected items as...", "Name",
+//        APP.actions.doWithUserString("Save selected items as...", "Name",
 //        Config<String> mc = new ValueConfig<>(String.class, "Name", "My Playlist").constraints(new StringNonEmpty());
 //        SimpleConfigurator<?> sc = new SimpleConfigurator<>(mc, (String name) -> {
 //            Playlist p = new Playlist(UUID.randomUUID());

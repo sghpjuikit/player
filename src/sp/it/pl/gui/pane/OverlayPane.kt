@@ -20,7 +20,7 @@ import javafx.stage.Stage
 import org.reactfx.Subscription
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.image.Thumbnail.FitFrom
-import sp.it.pl.main.App.APP
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.main.resizeButton
 import sp.it.pl.util.access.V
 import sp.it.pl.util.animation.Anim
@@ -274,8 +274,6 @@ abstract class OverlayPane<T>: StackPane() {
                     opacity = 1.0
                     blurBack.height = 15.0*x*x
                     blurBack.width = 15.0*x*x
-                    opacityNode!!.scaleX = 1.0
-                    opacityNode!!.scaleY = 1.0
                     blurFront.height = 20*(1-x*x)
                     blurFront.width = 20*(1-x*x)
                     scaleX = 1+0.2*(1-x)
@@ -285,8 +283,6 @@ abstract class OverlayPane<T>: StackPane() {
                     opacity = x
                     blurBack.height = 15.0*x*x
                     blurBack.width = 15.0*x*x
-                    opacityNode!!.scaleX = 1-0.02*x
-                    opacityNode!!.scaleY = 1-0.02*x
                     blurFront.height = 20*(1-x*x)
                     blurFront.width = 20*(1-x*x)
                     scaleX = 1+2*(1-x)

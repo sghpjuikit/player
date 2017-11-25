@@ -14,13 +14,12 @@ import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.LoadType;
-import sp.it.pl.main.App;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.collections.map.PropertyMap;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.type.Util;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 
 /**
  * Defines wrapper of loadable graphical component.
@@ -149,7 +148,7 @@ public abstract class Component {
 	 * current settings.
 	 */
 	public void exportFxwl(File file) {
-		App.APP.serializerXml.toXML(this, file);
+		APP.serializerXml.toXML(this, file);
 	}
 
 	public String getExportName() {

@@ -7,14 +7,13 @@ import org.jaudiotagger.tag.FieldKey
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.readAudioFile
-import sp.it.pl.main.App
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.SwitchException
 import sp.it.pl.util.access.fieldvalue.ObjectFieldBase
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.dev.throwIfFxThread
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
-import sp.it.pl.util.file.AudioFileFormat.Use.APP
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.identityHashCode
@@ -108,14 +107,14 @@ class PlaylistItem: Item {
      * metadata object is required.
      */
     fun update() {
-        if (isUpdated || isCorrupt(APP)) return
+        if (isUpdated || isCorrupt(Use.APP)) return
         isUpdated = true
 
         // if library contains the item, use it & avoid I/O
         // improves performance almost 100-fold when item in library
         val id = id
-        if (App.APP.db.itemsById.containsKey(id)) {
-            update(App.APP.db.itemsById.get(id))
+        if (APP.db.itemsById.containsKey(id)) {
+            update(APP.db.itemsById.get(id))
             return
         }
 

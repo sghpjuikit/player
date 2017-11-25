@@ -118,7 +118,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
-import static sp.it.pl.main.App.APP;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static org.atteo.evo.inflector.English.plural;
@@ -559,7 +559,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                         fields.forEach(f -> f.histogramEnd(formats));
 
                         // handle cover separately
-                        CoverL.setText(mapRef(c, 0,1,2, APP.TAG_NO_VALUE,s,APP.TAG_MULTIPLE_VALUE)); // set image info
+                        CoverL.setText(mapRef(c, 0,1,2, APP.textNoVal,s,APP.textManyVal)); // set image info
                         CoverV.loadImage(c==1 ? co.getImage() : null);  // set image
 
                         // enable/disable fields
@@ -613,7 +613,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             CoverL.setUserData(true);
         } else {
             CoverV.loadImage((Image)null);
-            CoverL.setText(APP.TAG_NO_VALUE);
+            CoverL.setText(APP.textNoVal);
             CoverL.setUserData(true);
         }
     }
@@ -721,7 +721,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 c.setUserData(true);
                 c.setText("");
                 c.setText("");
-                c.setText(isContainedIn(c.getPromptText(), APP.TAG_NO_VALUE, APP.TAG_MULTIPLE_VALUE)
+                c.setText(isContainedIn(c.getPromptText(), APP.textNoVal, APP.textManyVal)
                                 ? "" : c.getPromptText());
                 c.setPromptText("");
                 c.selectAll();
@@ -789,9 +789,9 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 colorF.setText("");
             }
 
-            if      (histogramI == 0)   c.setPromptText(APP.TAG_NO_VALUE);
+            if      (histogramI == 0)   c.setPromptText(APP.textNoVal);
             else if (histogramI == 1)   c.setPromptText(histogramS);
-            else if (histogramI == 2)   c.setPromptText(APP.TAG_MULTIPLE_VALUE);
+            else if (histogramI == 2)   c.setPromptText(APP.textManyVal);
 
             // remember prompt text
             c.setId(c.getPromptText());

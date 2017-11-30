@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.audio.exceptions.CannotReadException
+import org.jaudiotagger.audio.exceptions.CannotReadVideoException
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException
 import org.jaudiotagger.tag.Tag
@@ -36,6 +37,9 @@ fun Tag.clipRating(v: Double): Double = clip(ratingMin.toDouble(), v, ratingMax.
 fun File.readAudioFile(): Try<AudioFile, Void> =
         try {
             Try.ok(AudioFileIO.read(this))
+        } catch (e: CannotReadVideoException) {
+            logger.warn { "Reading metadata failed for file $this: video not supported" }
+            Try.error<AudioFile>()
         } catch (e: CannotReadException) {
             logger.error(e) { "Reading metadata failed for file $this" }
             Try.error<AudioFile>()

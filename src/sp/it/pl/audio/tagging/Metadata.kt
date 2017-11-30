@@ -773,13 +773,10 @@ class Metadata: Item, Serializable {
          * EMPTY metadata. Substitute for null. Always use instead of null. Also
          * corrupted items should transform into EMPTY metadata.
          *
-         *
          * All fields are at their default values.
-         *
          *
          * There are two ways to check whether Metadata object is EMPTY. Either use
          * reference operator this == Metadata.EMPTY or call [.isEmpty].
-         *
          *
          * Note: The reference operator works, because there is always only one
          * instance of EMPTY metadata.
@@ -798,7 +795,7 @@ class Metadata: Item, Serializable {
                     }
                     s
                 } catch (e: UnsupportedOperationException) {
-                    logger().warn(e) { "Jaudiotagger failed to read $f of $id" }
+                    logger().warn { "Jaudiotagger failed to read $f of $id" }
                     ""
                 } catch (e: KeyNotFoundException) {
                     logger().warn(e) { "Jaudiotagger failed to read $f of $id" }

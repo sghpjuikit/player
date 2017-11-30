@@ -13,7 +13,6 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.stage.Stage
 import mu.KLogging
 import sp.it.pl.audio.Player
-import sp.it.pl.audio.playback.PLAYBACK
 import sp.it.pl.gui.Gui
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.service.ServiceBase
@@ -63,7 +62,7 @@ class TrayService : ServiceBase(true) {
             menuItem("Show actions") { APP.actions.openOpen() },
             menuItem("Settings") { APP.actions.openSettings() },
             menuItem("New window") { APP.windowManager.createWindow() },
-            menuItem("Play/pause") { PLAYBACK.pause_resume() },
+            menuItem("Play/pause") { Player.pause_resume() },
             menuItem("Disable tray") { stop() },
             menuItem("Exit") { APP.close() }
     )

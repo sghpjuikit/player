@@ -10,8 +10,6 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
-import sp.it.pl.audio.playback.state.BalanceProperty;
-import sp.it.pl.audio.playback.state.VolumeProperty;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence;
 
 /**
@@ -48,6 +46,10 @@ public final class PlaybackState {
 
 	public UUID getId() {
 		return id;
+	}
+
+	public Duration getRemainingTime() {
+		return duration.get().subtract(currentTime.get());
 	}
 
 	/**

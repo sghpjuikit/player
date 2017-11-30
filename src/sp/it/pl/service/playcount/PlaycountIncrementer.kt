@@ -2,7 +2,6 @@ package sp.it.pl.service.playcount
 
 import javafx.util.Duration.seconds
 import sp.it.pl.audio.Player
-import sp.it.pl.audio.playback.PLAYBACK
 import sp.it.pl.audio.playback.PlayTimeHandler
 import sp.it.pl.audio.playback.PlayTimeHandler.Companion.at
 import sp.it.pl.audio.tagging.Metadata
@@ -111,31 +110,31 @@ class PlaycountIncrementer : ServiceBase(false) {
         when (whenStrategy.value) {
             ON_PERCENT -> {
                 incHandler = at(Portion(whenPercent.value), incrementer)
-                PLAYBACK.onPlaybackAt.add(incHandler)
+                Player.onPlaybackAt.add(incHandler)
             }
             ON_TIME -> {
                 incHandler = at(whenTime.value, incrementer)
-                PLAYBACK.onPlaybackAt.add(incHandler)
+                Player.onPlaybackAt.add(incHandler)
             }
             ON_TIME_AND_PERCENT -> {
                 incHandler = at({ total -> max(whenTime.value, total.multiply(whenPercent.value)) }, incrementer)
-                PLAYBACK.onPlaybackAt.add(incHandler)
+                Player.onPlaybackAt.add(incHandler)
             }
             ON_TIME_OR_PERCENT -> {
                 incHandler = at({ total -> min(whenTime.value, total.multiply(whenPercent.value)) }, incrementer)
-                PLAYBACK.onPlaybackAt.add(incHandler)
+                Player.onPlaybackAt.add(incHandler)
             }
-            ON_START -> PLAYBACK.onPlaybackStart += incrementer
-            ON_END -> PLAYBACK.onPlaybackEnd += incrementer
+            ON_START -> Player.onPlaybackStart += incrementer
+            ON_END -> Player.onPlaybackEnd += incrementer
             NEVER -> {}
             else -> throw SwitchException(whenStrategy.value)
         }
     }
 
     private fun removeOld() {
-        PLAYBACK.onPlaybackAt -= incHandler
-        PLAYBACK.onPlaybackEnd -= incrementer
-        PLAYBACK.onPlaybackStart -= incrementer
+        Player.onPlaybackAt -= incHandler
+        Player.onPlaybackEnd -= incrementer
+        Player.onPlaybackStart -= incrementer
     }
 
     private fun incrementQueued(m: Metadata) {

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import javafx.animation.Interpolator;
@@ -66,9 +67,9 @@ import static javafx.util.Duration.seconds;
 import static sp.it.pl.gui.pane.ActionPane.GroupApply.FOR_ALL;
 import static sp.it.pl.gui.pane.ActionPane.GroupApply.FOR_EACH;
 import static sp.it.pl.gui.pane.ActionPane.GroupApply.NONE;
-import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
@@ -278,11 +279,11 @@ public class ActionPane extends OverlayPane<Object> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void doneHide(ActionData action) {
+	private void doneHide(ActionData<?,?> action) {
 		if (action.isComplex) {
-			ComplexActionData complexAction = action.complexData;
+			ComplexActionData complexAction = action.complexData.apply(this);
 			showIcons = false;
-			insteadIcons = (Node) complexAction.gui.get();
+			insteadIcons = (Node) complexAction.gui.apply((Supplier) () -> action.prepInput(getData()));
 			show(complexAction.input.apply(action.prepInput(getData())));
 		}
 
@@ -538,12 +539,12 @@ public class ActionPane extends OverlayPane<Object> {
 
 	public interface ConvertingConsumer<T> extends Consumer<T> {}
 	public static class ComplexActionData<R,T> {
-		public final Supplier<Node> gui;
-		public final Ƒ1<? super R, ?> input;
+		public final Ƒ1<? super R, ? extends T> input;
+		public final Ƒ1<? super Supplier<T>, ? extends Node> gui;
 
-		public ComplexActionData(Supplier<Node> gui, Ƒ1<? super R, ?> input) {
+		public ComplexActionData(Ƒ1<? super R, Fut<? extends T>> input, Ƒ1<? super Supplier<T>, ? extends  Node> gui) {
+			this.input = (Ƒ1) input;
 			this.gui = gui;
-			this.input = input;
 		}
 	}
 	/** Action. */
@@ -558,7 +559,7 @@ public class ActionPane extends OverlayPane<Object> {
 
 		private boolean isComplex = false;
 		private boolean preventClosing = false;
-		private ComplexActionData<?,?> complexData = null;
+		private Function<? super ActionPane, ? extends ComplexActionData<?,?>> complexData = null;
 
 		private ActionData(String name, String description, GlyphIcons icon, GroupApply group, Predicate<? super T> constriction, boolean isLong, Consumer<? super T> action) {
 			this.name = name;
@@ -571,7 +572,7 @@ public class ActionPane extends OverlayPane<Object> {
 			if (action instanceof ConvertingConsumer) preventClosing = true;
 		}
 
-		public ActionData<C,T> preventClosing(ComplexActionData<T,?> action) {
+		public ActionData<C,T> preventClosing(Function<? super ActionPane, ? extends ComplexActionData<T,?>> action) {
 			isComplex = true;
 			complexData = action;
 			preventClosing = true;

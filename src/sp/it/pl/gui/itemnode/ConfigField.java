@@ -301,7 +301,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     protected abstract Try<T,String> get();
 
 	public Try<T,String> getValid() {
-//		return get().errorIf(v -> config.getConstraints().stream().map(c -> c.validate(v)).reduce(Try::and).orElse(ok()));
 		value = get().and(v -> config.getConstraints().stream().map(c -> c.validate(v)).reduce(ok(),Try::and));
 		if (observer!=null) observer.accept(value);
 		return value;

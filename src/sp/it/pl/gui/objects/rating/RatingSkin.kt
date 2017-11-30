@@ -44,7 +44,6 @@ import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.layout.HBox
 import javafx.scene.shape.Rectangle
 import sp.it.pl.util.Util.clip
-import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.graphics.createIcon
 import sp.it.pl.util.graphics.pseudoclass
 import java.lang.Math.ceil
@@ -98,7 +97,7 @@ class RatingSkin(r: Rating) : SkinBase<Rating>(r) {
     }
 
     private fun recreateButtons() {
-        fun createButton(icon: GlyphIcons) = createIcon(icon, skinnable.icons.get(), 10).apply {
+        fun createButton(icon: GlyphIcons) = createIcon(icon, skinnable.icons.get(), 10).apply {    // TODO: scale with font + center vertically
             isCache = true
             cacheHint = CacheHint.SPEED
             styleClass.setAll("rating-button")

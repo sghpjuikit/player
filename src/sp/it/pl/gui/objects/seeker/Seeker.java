@@ -26,7 +26,6 @@ import kotlin.jvm.functions.Function1;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
 import sp.it.pl.audio.Player;
-import sp.it.pl.audio.playback.PLAYBACK;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataWriter;
 import sp.it.pl.audio.tagging.chapter.Chapter;
@@ -133,7 +132,7 @@ public final class Seeker extends AnchorPane {
 				if (e.getButton()==PRIMARY) {
 					double p = e.getX()/getWidth();
 					p = clip(0, p, 1);
-					PLAYBACK.seek(p);
+					Player.seek(p);
 					run(100, () -> user_drag = false);
 					if (seeker.isHover()) addB.show(); // ~bug fix
 				}
@@ -371,7 +370,7 @@ public final class Seeker extends AnchorPane {
 	}
 
 	private void timeUpdateDo(long frame) {
-		if (!user_drag && PLAYBACK.state.status.get()==PLAYING) {
+		if (!user_drag && Player.state.playback.status.get()==PLAYING) {
 			long dt = posLastFrame==0 ? 0 : (frame - posLastFrame)/1000000;
 			double dp = dt/timeTot.get().toMillis();
 			posLast += dp;
@@ -725,7 +724,7 @@ public final class Seeker extends AnchorPane {
 		}
 
 		public void seekTo() {
-			PLAYBACK.seek(c.getTime());
+			Player.seek(c.getTime());
 		}
 
 		double getCenterX() {

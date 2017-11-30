@@ -8,7 +8,6 @@ import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import sp.it.pl.audio.Player
-import sp.it.pl.audio.playback.PLAYBACK
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.infonode.ItemInfo
 import sp.it.pl.gui.objects.Text
@@ -105,7 +104,7 @@ class Notifier: ServiceBase(true) {
     override fun start() {
         n = Notification()
         onStop += Player.playingItem.onChange { it -> songChange(it) }
-        onStop += PLAYBACK.statusProperty() attach {
+        onStop += Player.state.playback.status attach {
             if (it==PAUSED || it==PLAYING || it==STOPPED)
                 playbackChange(it)
         }
@@ -117,7 +116,7 @@ class Notifier: ServiceBase(true) {
     override fun stop() {
         running = false
         onStop()
-        n?.hideImmediatelly()
+        n?.hideImmediately()
         n = null
     }
 

@@ -32,6 +32,10 @@ fun <T> Optional<T>.orNull(): T? = orElse(null)
 /** @return return value in the optional or null if empty */
 fun <R,E> Try<R,E>.orNull(onError: (E) -> Unit = {}): R? = ifError(onError).getOr(null)
 
+fun runTry(block: () -> Unit): Try<Void,Throwable> = Try.tryCatchAll(block)
+
+infix fun <R,E> Try<R,E>.onE(handle: (E) -> Unit) = ifError(handle)!!
+
 /** Invokes the block if this is true and returns this value. */
 inline fun Boolean.ifTrue(block: (Boolean) -> Unit) = apply { if (this) block(this) }
 

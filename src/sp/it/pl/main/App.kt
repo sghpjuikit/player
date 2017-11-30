@@ -181,7 +181,7 @@ class App: Application(), Configurable<Any> {
     @F var animationFps = 60.0
 
     @C(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")
-    @F val logLevelConsole = VarEnum.ofSequence(Level.DEBUG,
+    @F val logLevelConsole = VarEnum.ofSequence(Level.INFO,
             { seqOf(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF) },
             { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
     )
@@ -346,7 +346,6 @@ class App: Application(), Configurable<Any> {
             // deserialize values (some configs need to apply it, will do when ready)
             configuration.rawSet()
 
-            // initializing, the order is important
             Player.initialize()
 
             val ps = fetchParameters()
@@ -370,7 +369,7 @@ class App: Application(), Configurable<Any> {
                     configuration.fields.forEach { it.applyValue() }
 
                     // initialize non critical parts
-                    if (normalLoad) Player.loadLast()
+                    if (normalLoad) Player.loadLastState()
 
                     // show guide
                     if (guide.first_time.get()) runAfter(millis(3000), { guide.start() })
@@ -387,7 +386,7 @@ class App: Application(), Configurable<Any> {
         if (!normalLoad) {
             normalLoad = true
             windowManager.deserialize(true)
-            Player.loadLast()
+            Player.loadLastState()
         }
     }
 
@@ -416,6 +415,7 @@ class App: Application(), Configurable<Any> {
     }
 
     private fun dispose() {
+        Player.dispose()
         db.stop()
         Action.stopActionListening()
         appCommunicator.stop()
@@ -424,7 +424,7 @@ class App: Application(), Configurable<Any> {
     /** Close this app normally. Invokes [stop] as a result.  */
     @IsAction(name = "Close app", desc = "Closes this application.")
     fun close() {
-        PopOver.active_popups.toList().forEach { it.hideImmediatelly() }    // javaFX bug - must close popups before windows
+        PopOver.active_popups.toList().forEach { it.hideImmediately() }    // javaFX bug - must close popups before windows
         windowManager.windows.forEach { it.hide() }     // close app in bgr (assumes we don't restore window visibility state!)
         Platform.exit()
     }

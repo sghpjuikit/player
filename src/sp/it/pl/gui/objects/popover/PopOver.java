@@ -277,6 +277,7 @@ public class PopOver<N extends Node> extends PopupControl {
 	/**
 	 * Hides this popup if it is not detached. Otherwise does nothing.
 	 * Equivalent to: if (!isDetached()) hideStrong();
+	 * @implNote implementation should not close detached popup
 	 */
 	@Override
 	public void hide() {
@@ -289,7 +290,7 @@ public class PopOver<N extends Node> extends PopupControl {
 	 */
 	public void hideStrong() {
 		if (animated.get()) fadeOut();
-		else hideImmediatelly();
+		else hideImmediately();
 	}
 
 	/**
@@ -302,7 +303,7 @@ public class PopOver<N extends Node> extends PopupControl {
 	 * javafx.stage.Window to PopOver (when it in fact is an instance of this class) and calling modified hide() method
 	 * has been observed to cause serious problems.
 	 */
-	public void hideImmediatelly() {
+	public void hideImmediately() {
 		active_popups.remove(this);
 		uninstallMoveWith();
 		super.hide();
@@ -337,12 +338,9 @@ public class PopOver<N extends Node> extends PopupControl {
 		// initialize moving with owner behavior to respect set value
 		initializeMovingBehavior(move_with_owner);
 
-		// fixes 'broken' default hide on ESC functionality. Because hideOnESC
-		// calls hide() method by default, there is no effect in detached mode
-		// we fix this here, because we need default hide() implementation to
-		// not close detached popup
+		// hideOnESC calls hide(), so there is no effect in detached mode, fix here
 		getScene().addEventHandler(KEY_PRESSED, e -> {
-			if (e.getCode()==ESCAPE && isHideOnEscape() && detached.get()) {
+			if (e.getCode()==ESCAPE && isHideOnEscape()) {
 				hideStrong();
 				e.consume();
 			}
@@ -351,11 +349,8 @@ public class PopOver<N extends Node> extends PopupControl {
 		if (animated.get()) fadeIn();
 	}
 
-	Runnable positioner = () -> {};
-
 	private void position(Supplier<P> position) {
-		positioner = () -> position(position.get());
-		positioner.run();
+		position(position.get());
 	}
 
 	private void position(P pos) {
@@ -431,7 +426,7 @@ public class PopOver<N extends Node> extends PopupControl {
 		Window owner = ownerO.orElseGet(() -> focusOnShow.get() ? APP.windowManager.createStageOwner() : UNFOCUSED_OWNER);
 		ScreenPos p = normalize(pos, owneR);
 
-		if (isShowing()) hideImmediatelly();    // showing when shown can get us into trouble -> hide first // TODO: remove
+		if (isShowing()) hideImmediately();    // showing when shown can get us into trouble -> hide first // TODO: remove
 
 		showThis(null, owner);
 		position(() -> p.computeXY(this));
@@ -886,7 +881,7 @@ public class PopOver<N extends Node> extends PopupControl {
 
 	private void fadeOut() {
 		animation.dur(animationDuration.get());
-		animation.playCloseDo(() -> hideImmediatelly());
+		animation.playCloseDo(() -> hideImmediately());
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -942,7 +937,7 @@ public class PopOver<N extends Node> extends PopupControl {
 			// same bug as with 'open popups preventing app closing properly' due to owner being closed before
 			// the child -> we need to close immediately
 			if (isShowing())
-				hideImmediatelly();
+				hideImmediately();
 		});
 	}
 

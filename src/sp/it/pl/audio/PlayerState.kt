@@ -1,6 +1,5 @@
 package sp.it.pl.audio
 
-import sp.it.pl.audio.playback.PLAYBACK
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -29,7 +28,7 @@ class PlayerState {
     }
 
     fun serialize() {
-        playback.realTime.set(PLAYBACK.getRealTime())
+        playback.realTime.set(Player.player.realTime.get()) // TODO: remove
         suspendPlayback()
 
         playbackId = playback.id
@@ -51,8 +50,6 @@ class PlayerState {
             playbacks += s
         }
     }
-
-    override fun toString() = "PlayerState{playback=$playback, playbacks=$playbacks, playlists=$playlists, playlistId=$playlistId, playbackId=$playbackId}"
 
     companion object {
 

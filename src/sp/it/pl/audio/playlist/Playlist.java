@@ -23,7 +23,6 @@ import javafx.scene.text.Text;
 import javafx.util.Duration;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.Player;
-import sp.it.pl.audio.playback.PLAYBACK;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.gui.objects.popover.ScreenPos;
@@ -372,7 +371,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		try {
 			playItem(transform().get(index));
 		} catch (IndexOutOfBoundsException ex) {
-			PLAYBACK.stop();
+			Player.stop();
 		}
 	}
 
@@ -414,7 +413,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 						if (isNonePlayable) return;    // stop the loop
 
 						runFX(() -> {
-							PLAYBACK.stop();            // stop playback
+							Player.stop();            // stop playback
 							unplayable1st = null;       // reset the loop
 						});
 					}
@@ -436,7 +435,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 						PlaylistManager.active = this.id;
 						PlaylistManager.playlists.stream().filter(p -> p!=this).forEach(p -> p.updatePlayingItem(-1));
 						updatePlayingItem(indexOf(item), item);
-						PLAYBACK.play(item);
+						Player.play(item);
 					});
 				}
 			});
@@ -685,7 +684,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 
 					if (add) addUris(queue);
 					else {
-						PLAYBACK.stop();
+						Player.stop();
 						clear();
 						addUris(queue);
 						playFirstItem();
@@ -712,7 +711,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 
 					if (add) addUris(queue);
 					else {
-						PLAYBACK.stop();
+						Player.stop();
 						clear();
 						addUris(queue);
 						playFirstItem();
@@ -734,7 +733,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 					if (add) {
 						addUri(url);
 					} else {
-						PLAYBACK.stop();
+						Player.stop();
 						clear();
 						addUri(url);
 						playFirstItem();

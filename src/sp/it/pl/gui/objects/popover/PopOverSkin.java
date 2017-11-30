@@ -120,7 +120,10 @@ public class PopOverSkin implements Skin<PopOver> {
 		String closeBt = "Close\n\nClose this popup and its content.";
 		Icon closeB = new Icon(TIMES_CIRCLE, 11, closeBt, p::hideStrong).styleclass("popover-close-button");
 		String pinBt = "Pin\n\nWhen disabled, this popup will close on mouse click outside of this popup.";
-		Icon pinB = new Icon(null, 11, pinBt, () -> p.setAutoHide(!p.isAutoHide()));
+		Icon pinB = new Icon(null, 11, pinBt, () -> {
+			p.setAutoHide(!p.isAutoHide());
+
+		});
 		maintain(p.autoHideProperty(), mapB(PIN_OFF, PIN), pinB::icon);
 
 		HBox headerControls = new HBox(closeB);
@@ -129,15 +132,20 @@ public class PopOverSkin implements Skin<PopOver> {
 		headerControls.getStyleClass().add("header-buttons");
 		// initialize proper header content
 		headerControls.getChildren().setAll(p.getHeaderIcons());
-		headerControls.getChildren().addAll(pinB, closeB);
+		headerControls.getChildren().addAll(pinB);
 		// maintain proper header content
 		p.getHeaderIcons().addListener((ListChangeListener.Change<? extends Node> e) -> {
 			while (e.next()) {
 				headerControls.getChildren().clear();
 				headerControls.getChildren().setAll(p.getHeaderIcons());
-				headerControls.getChildren().addAll(pinB, closeB);
+				headerControls.getChildren().addAll(pinB);
 			}
 		});
+		maintain(p.autoHideProperty(), v -> {
+			if (v) headerControls.getChildren().remove(closeB);
+			else headerControls.getChildren().add(closeB);
+		});
+
 
 		// content
 		content = new BorderPane();

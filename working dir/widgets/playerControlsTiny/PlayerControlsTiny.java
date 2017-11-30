@@ -1,18 +1,6 @@
 package playerControlsTiny;
 
-import sp.it.pl.audio.Item;
-import sp.it.pl.audio.Player;
-import sp.it.pl.audio.playback.PLAYBACK;
-import sp.it.pl.audio.playback.PlaybackState;
-import sp.it.pl.audio.playlist.PlaylistManager;
-import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode;
-import sp.it.pl.audio.tagging.Metadata;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
-import sp.it.pl.gui.Gui;
-import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.seeker.ChapterDisplayActivation;
-import sp.it.pl.gui.objects.seeker.ChapterDisplayMode;
-import sp.it.pl.gui.objects.seeker.Seeker;
 import java.util.List;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -25,6 +13,17 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
+import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Player;
+import sp.it.pl.audio.playback.PlaybackState;
+import sp.it.pl.audio.playlist.PlaylistManager;
+import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode;
+import sp.it.pl.audio.tagging.Metadata;
+import sp.it.pl.gui.Gui;
+import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.gui.objects.seeker.ChapterDisplayActivation;
+import sp.it.pl.gui.objects.seeker.ChapterDisplayMode;
+import sp.it.pl.gui.objects.seeker.Seeker;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.feature.HorizontalDock;
@@ -91,11 +90,11 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
     Label scrollLabel = new Label("");
     Seeker seeker = new Seeker();
     Icon prevB = new Icon(STEP_BACKWARD, ICON_SIZE, null, PlaylistManager::playPreviousItem),
-         playB = new Icon(null, ICON_SIZE+3, null, PLAYBACK::pause_resume),
-         stopB = new Icon(STOP, ICON_SIZE, null, PLAYBACK::stop),
+         playB = new Icon(null, ICON_SIZE+3, null, Player::pause_resume),
+         stopB = new Icon(STOP, ICON_SIZE, null, Player::stop),
          nextB = new Icon(STEP_FORWARD, ICON_SIZE, null, PlaylistManager::playNextItem),
-         loopB = new Icon(null, ICON_SIZE, null, (MouseEvent e) -> PLAYBACK.toggleLoopMode(e)),
-         volB  = new Icon(null, ICON_SIZE, null, PLAYBACK::toggleMute);
+         loopB = new Icon(null, ICON_SIZE, null, (MouseEvent e) -> Player.toggleLoopMode(e)),
+         volB  = new Icon(null, ICON_SIZE, null, Player::toggleMute);
     Anim scroller;
     double lastUpdatedTime = Double.MIN_VALUE; // reduces time update events
 
@@ -112,7 +111,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
 
     @Override
     public void init() {
-        PlaybackState ps = PLAYBACK.state;
+        PlaybackState ps = Player.state.playback;
 
         // volume
         volume.setMin(ps.volume.getMin());
@@ -153,7 +152,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
         d(maintain(ps.status, this::statusChanged));
         d(maintain(ps.currentTime, t -> currentTimeChanged()));
         d(maintain(ps.loopMode,this::loopModeChanged));
-        d(PLAYBACK.onSeekDone.addS(() -> lastUpdatedTime = Double.MIN_VALUE));
+        d(Player.onSeekDone.addS(() -> lastUpdatedTime = Double.MIN_VALUE));
         d(Player.playingItem.onUpdate(this::playbackItemChanged));
         playbackItemChanged(Player.playingItem.get());
 
@@ -201,15 +200,15 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
     }
 
     private void currentTimeChanged() {
-        double millis = PLAYBACK.getCurrentTime().toMillis();
+        double millis = Player.state.playback.currentTime.get().toMillis();
         if (lastUpdatedTime+1000 <= millis) {
             lastUpdatedTime = millis;
             if (elapsedTime) {
-                Duration elapsed = PLAYBACK.getCurrentTime();
+                Duration elapsed = Player.state.playback.currentTime.get();
                 currTime.setText(formatDuration(elapsed));
             } else {
-                if (PLAYBACK.getTotalTime() == null) return;
-                Duration remaining = PLAYBACK.getRemainingTime();
+                if (Player.state.playback.duration.get() == null) return;
+                Duration remaining = Player.state.playback.getRemainingTime();
                 currTime.setText("- " + formatDuration(remaining));
             }
         }

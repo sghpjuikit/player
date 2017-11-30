@@ -76,7 +76,7 @@ public class MetadataReader {
 			private int skipped = 0;
 
 			@Override
-			protected List<Metadata> call() throws Exception {
+			protected List<Metadata> call() {
 				updateTitle("Reading metadata for items.");
 				List<Metadata> metadatas = new ArrayList<>();
 

@@ -30,7 +30,7 @@ import javafx.stage.StageStyle;
 import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sp.it.pl.audio.playback.PLAYBACK;
+import sp.it.pl.audio.Player;
 import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
@@ -270,11 +270,9 @@ public class Window extends WindowBase {
 		titleL.setMinWidth(0);
 
 		// change volume on scroll
-		// if some component has its own onScroll behavior, it should consume
-		// the event so this will not fire
 		root.setOnScroll(e -> {
-			if (e.getDeltaY()>0) PLAYBACK.volumeInc();
-			else if (e.getDeltaY()<0) PLAYBACK.volumeDec();
+			if (e.getDeltaY()>0) Player.volumeInc();
+			else if (e.getDeltaY()<0) Player.volumeDec();
 		});
 
 		List<Maximized> maximizedValues = list(Maximized.LEFT, Maximized.NONE, Maximized.RIGHT);

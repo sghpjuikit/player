@@ -442,7 +442,7 @@ public final class Guide implements Configurable {
 	}
 
 	public void stop() {
-		if (p.isShowing()) p.hideImmediatelly();
+		if (p.isShowing()) p.hideImmediately();
 		if (action_monitoring!=null) {
 			action_monitoring.unsubscribe();
 			action_monitoring = null;

@@ -39,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.Player;
-import sp.it.pl.audio.playback.PLAYBACK;
 import sp.it.pl.audio.tagging.chapter.Chapter;
 import sp.it.pl.service.notif.Notifier;
 import sp.it.pl.util.SwitchException;
@@ -803,17 +802,11 @@ public class MetadataWriter extends Item {
 
 		// save tag
 		try {
-//            System.out.println("WRITING_PRE");
-//            audioFile.getTag().getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
 			audioFile.commit();
-//            System.out.println("WRITING_POST");
-//            audioFile.getTag().getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
-//            System.out.println("WRITING_POST_2");
-//            MetaItem.readAudioFile(getFile()).getTag().getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
 		} catch (Exception ex) {
 			if (isPlayingSame()) {
 				LOGGER.debug("File being played, will attempt to suspend playback");
-				PLAYBACK.suspend(); // asynchronous, we don't know how long it will take
+				Player.suspend(); // asynchronous, we don't know how long it will take
 				// so we sleep the thread and try tagging again, twice once quickly, once longer
 				for (int i = 1; i<=3; i += 2) {
 					int tosleep = i*i*250;
@@ -825,12 +818,12 @@ public class MetadataWriter extends Item {
 					} catch (CannotWriteException|InterruptedException e) {
 						if (i>=3) {
 							LOGGER.info("Can not write file tag (attempt {}): {} {}", 1 + i/2, audioFile.getFile().getPath(), e);
-							PLAYBACK.activate();
+							Player.activate();
 							return false;
 						}
 					}
 				}
-				PLAYBACK.activate();
+				Player.activate();
 			} else {
 				LOGGER.debug("Can not write file tag: {}", audioFile.getFile().getPath(), ex);
 				return false;

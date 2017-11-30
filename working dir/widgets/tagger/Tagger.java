@@ -187,7 +187,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     @IsConfig(name = "Field text alignment", info = "Alignment of the text in fields.")
     public final V<Pos> fieldTextAlignment = new V<>(CENTER_LEFT, v -> fields.forEach(f -> f.setVerticalAlignment(v)));
     @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
-    public final V<NodePos> popupPos = moodF.pos;
+    public final V<NodePos> popupPos = moodF.getPickerPosition();
 
     @Override
     public void init() {
@@ -683,13 +683,13 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
             // autocompletion
             if (c instanceof TextField && !isContainedIn(f, TITLE, RATING_RAW, COMMENT, LYRICS, COLOR)) {
-               String n = f.name();
-               Comparator<String> cmp = String::compareTo;
+               Comparator<String> cmpRaw = String::compareTo;
+               Comparator<String> cmp = f!=YEAR ? cmpRaw : cmpRaw.reversed();
                autoComplete(
                    (TextField)c,
-                   p -> APP.db.getStringPool().getStrings(n).stream()
+                   p -> APP.db.getItemUniqueValuesByField().get(f).stream()
                           .filter(a -> a.startsWith(p.getUserText()))
-                          .sorted(f!=YEAR ? cmp : cmp.reversed())
+                          .sorted(cmp)
                           .collect(toList())
                );
             }

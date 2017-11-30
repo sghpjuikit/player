@@ -1,19 +1,20 @@
 package spectrum;
 
 import java.util.Arrays;
-
 import javafx.scene.canvas.Canvas;
 import javafx.scene.effect.Bloom;
 import javafx.scene.effect.Effect;
 import javafx.scene.media.AudioSpectrumListener;
 import javafx.scene.paint.Color;
-
-import sp.it.pl.audio.playback.PLAYBACK;
+import sp.it.pl.audio.Player;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
 import sp.it.pl.util.animation.Loop;
-
-import static java.lang.Math.*;
+import static java.lang.Math.PI;
+import static java.lang.Math.cos;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.sin;
 import static javafx.util.Duration.seconds;
 
 /**
@@ -59,13 +60,13 @@ public class Spectrum extends ClassController  {
         /** Starts listening to the playback */
         public void start() {
             loop.start();
-            PLAYBACK.spectrumListeners.add(this);
+	        Player.spectrumListeners.add(this);
         }
 
         /** Stops listening to the playback */
         public void stop() {
             loop.stop();
-            PLAYBACK.spectrumListeners.remove(this);
+	        Player.spectrumListeners.remove(this);
         }
 
         private void doLoop() {

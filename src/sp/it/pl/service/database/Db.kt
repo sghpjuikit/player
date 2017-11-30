@@ -3,11 +3,10 @@ package sp.it.pl.service.database
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.MetadatasDB
 import sp.it.pl.audio.tagging.Metadata
+import sp.it.pl.core.CoreSerializer
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.AppUtil.APP
-import sp.it.pl.core.CoreSerializer
 import sp.it.pl.util.access.v
-import sp.it.pl.util.async.FX
 import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.collections.mapset.MapSet
@@ -18,21 +17,19 @@ import java.net.URI
 import java.util.*
 import java.util.UUID.fromString
 import java.util.concurrent.ConcurrentHashMap
-import java.util.function.Consumer
 
 // TODO: implement proper API & subclass Service
 @Suppress("unused")
 class Db {
 
-    private val FILE_MOODS by lazy { File(APP.DIR_RESOURCES, "moods.cfg") }
     private var running = false
+    private lateinit var moods: Set<String>
 
-    /**
-     * In memory item database. Use for library. Thread-safe.
-     * Items are hashed by [Item.id].
-     */
-    @ThreadSafe
-    val itemsById = MapSet(ConcurrentHashMap<String, Metadata>(2000, 1f, 3), { it.id })
+    /** In memory item database. Use for library. Items are hashed by [Item.id]. */
+    @ThreadSafe val itemsById = MapSet(ConcurrentHashMap<String, Metadata>(2000, 1f, 3), { it.id })
+    /** Map of unique values per field gathered from [itemsById] */
+    @ThreadSafe val itemUniqueValuesByField = ConcurrentHashMap<Metadata.Field<*>, Set<String>>()
+
     val items = InOutput<List<Metadata>>(fromString("396d2407-7040-401e-8f85-56bc71288818"), "All library songs", List::class.java)
 
     /**
@@ -43,14 +40,6 @@ class Db {
      */
     var libraryComparator = v<Comparator<in Metadata>>(Comparator { a, b -> a.compareTo(b) })
 
-    /**
-     * In memory storage for strings that persists in database.
-     * Map that maps sets of strings to string keys. The keys are case-insensitive.
-     *
-     * The store is loaded when DB starts. Changes persist immediately.
-     */
-    lateinit var stringPool: StringStore
-
     var autocompletionContains = true
     val autocompletionFilter = Ƒ2<String, String, Boolean> { text, phrase ->
         if (autocompletionContains) text.contains(phrase) else text.startsWith(phrase)
@@ -59,26 +48,10 @@ class Db {
     fun init() {
         if (running) return
         running = true
+        moods = File(APP.DIR_RESOURCES, "moods.cfg").useLines { it.toSet() }
 
         Fut<Any>()
-                .supply { getAllItems().values.toList() }
-                .use(FX, Consumer(this::setInMemoryDB))
-                .then {
-                    stringPool = CoreSerializer.readSingleStorage() ?: StringStore().also { pools ->
-                        pools.modify {
-                            Metadata.Field.FIELDS.asSequence()
-                                    .filter { it.isAutoCompletable() }
-                                    .forEach { f ->
-                                        pools.getStrings(f.name()) += itemsById.asSequence()
-                                                .map { it.getFieldS(f, "") }
-                                                .filter { !it.isEmpty() }
-                                                .distinct()
-                                    }
-
-                            FILE_MOODS.useLines { pools.getStrings(Metadata.Field.MOOD.name()) += it }
-                        }
-                    }
-                }
+                .then { updateInMemoryDbFromPersisted() }
                 .showProgressOnActiveWindow()
     }
 
@@ -131,11 +104,24 @@ class Db {
         }
     }
 
-    @ThreadSafe
     private fun setInMemoryDB(l: List<Metadata>) {
         itemsById.clear()
-        itemsById.addAll(l)
+        itemsById += l
+        updateItemValues()
         runFX { items.i.setValue(l) }
+    }
+
+    private fun updateItemValues() {
+        itemUniqueValuesByField.clear()
+        Metadata.Field.FIELDS.asSequence()
+                .filter { it.isAutoCompletable() }
+                .forEach { f ->
+                    itemUniqueValuesByField[f] = itemsById.asSequence()
+                            .map { it.getFieldS(f, "") }
+                            .filter { it.isNotBlank() }
+                            .toSet()
+                }
+        itemUniqueValuesByField[Metadata.Field.MOOD] = moods
     }
 
     @ThreadSafe

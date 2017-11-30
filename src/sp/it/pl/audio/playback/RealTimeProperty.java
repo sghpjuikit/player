@@ -20,7 +20,7 @@ public final class RealTimeProperty {
 		currentTime = _currentTime;
 	}
 
-	void initialize() {
+	public void initialize() {
 		// bind realTime to playback
 		currentTime.addListener(o -> {
 			Duration d = real_seek.add(currentTime.get().subtract(curr_sek));

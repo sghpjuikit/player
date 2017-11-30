@@ -18,7 +18,6 @@ import sp.it.pl.gui.pane.ActionPane.ComplexActionData
 import sp.it.pl.gui.pane.ActionPane.FastAction
 import sp.it.pl.gui.pane.ActionPane.FastColAction
 import sp.it.pl.gui.pane.ActionPane.SlowColAction
-import sp.it.pl.gui.pane.ActionPane.collectionWrap
 import sp.it.pl.gui.pane.ConfigPane
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.Widget
@@ -48,6 +47,7 @@ import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.getCommonRoot
 import sp.it.pl.util.file.Util.getFilesAudio
 import sp.it.pl.util.functional.Try
+import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.Util.layHorizontally
 import sp.it.pl.util.graphics.Util.layVertically
@@ -229,7 +229,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                             "item already was in the database it will not be added or edited.",
                     IconMD.DATABASE_PLUS,
                     { }
-            ).preventClosing(addToLibraryConsumer(ap)),
+            ).preventClosing { addToLibraryConsumer(it) },
             FastColAction(
                     "Add to existing playlist",
                     "Add items to existing playlist widget if possible or to a new one if not.",
@@ -290,7 +290,8 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
 
 @Suppress("UNCHECKED_CAST")
 fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<File>, List<File>> = ComplexActionData(
-        {
+        { files -> fut(files).map { getFilesAudio(it, AudioFileFormat.Use.APP, Integer.MAX_VALUE).toList() } },
+        { files ->
             val makeWritable = V(true)
             val editInTagger = V(true)  // TODO: enable only if Tagger/SongReader is available and avoid casts
             val editOnlyAdded = V(false)
@@ -324,9 +325,9 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
                             ),
                             Icon(FontAwesomeIcon.CHECK, 25.0).onClick { e ->
                                 (e.source as Icon).isDisable = true
-                                fut<List<File>>(collectionWrap(actionPane.data) as List<File>)  // TODO: make automatic
-                                        .use { files -> if (makeWritable.get()) files.forEach { it.setWritable(true) } }
-                                        .map { files -> files.map { SimpleItem(it) } }
+                                fut(files())
+                                        .use { if (makeWritable.get()) it.forEach { it.setWritable(true) } }
+                                        .map { it.map { SimpleItem(it) } }
                                         .map(task)
                                         .showProgress(actionPane.actionProgress)
                                         .use(FX, Consumer { result ->
@@ -346,8 +347,7 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
                     ),
                     tagger.get().load()
             )
-        },
-        { files -> fut(files).map { getFilesAudio(it, AudioFileFormat.Use.APP, Integer.MAX_VALUE).toList() } }
+        }
 )
 
 fun browseMultipleFiles(files: Stream<File>) {

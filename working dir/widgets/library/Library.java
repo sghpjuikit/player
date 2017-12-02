@@ -160,6 +160,7 @@ public class Library extends FXMLController implements SongReader {
         );
         table.menuRemove.getItems().addAll(
             menuItem("Remove selected from library", e -> APP.db.removeItems(table.getSelectedItems())),
+            menuItem("Remove all shown from library", e -> APP.db.removeItems(table.getItems())),
             menuItem("Remove all from library", e -> APP.db.removeItems(table.getItems())),
             menuItem("Remove invalid items", e -> removeInvalid())
         );

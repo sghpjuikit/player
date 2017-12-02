@@ -3,17 +3,13 @@ package sp.it.pl.util.units
 import sp.it.pl.util.dev.Dependency
 
 /** Media bit rate with kb/s unit. Supports variable and unknown value. */
-data class Bitrate(/** Value in kb/s, -1 if unknown, -2 if variable. */ val value: Int): Comparable<Bitrate> {
-
-    init {
-        if (-2>value) throw IllegalArgumentException("Bitrate value=$value must be -2 or larger")
-    }
+data class Bitrate(/** Value in kb/s, 0 if unknown, and negative if variable. */ val value: Int): Comparable<Bitrate> {
 
     /** @return true iff the value is unknown */
-    fun isUnknown() = value==-1
+    fun isUnknown() = value==VALUE_NA
 
     /** @return true iff this represents variable bitrate */
-    fun isVariable() = value==-2
+    fun isVariable() = value<0
 
     /** @return true iff this represents constant bitrate */
     fun isConstant() = !isVariable()
@@ -22,27 +18,30 @@ data class Bitrate(/** Value in kb/s, -1 if unknown, -2 if variable. */ val valu
 
     /** For example: "320 kbps" or "N/A". */
     @Dependency("fromString")
-    override fun toString() = when (value) {
-        -1 -> VALUE_NA
-        -2 -> VALUE_VARIABLE
+    override fun toString() = when {
+        value==VALUE_NA -> VALUE_S_NA
+        value<0 -> "$VALUE_S_VARIABLE${-value} $UNIT"
         else -> "$value $UNIT"
     }
 
     companion object {
+        private val VALUE_NA = 0
+        private val VALUE_S_NA = "n/a"
+        private val VALUE_S_VARIABLE = "~"
         private val UNIT = "kbps"
-        private val VALUE_NA = "n/a"
-        private val VALUE_VARIABLE = "~"
 
         @Dependency("toString")
         @Throws(IndexOutOfBoundsException::class, NumberFormatException::class, IllegalArgumentException::class)
         @JvmStatic
         fun fromString(s: String): Bitrate {
-            if (VALUE_NA==s) return Bitrate(-1)
-            if (VALUE_VARIABLE==s) return Bitrate(-2)
+            if (VALUE_S_NA==s) return Bitrate(VALUE_NA)
+            if (VALUE_S_VARIABLE==s) return Bitrate(-2)
             var v = s
+            v = v.trim()
+            if (v.startsWith(VALUE_S_VARIABLE)) v = v.substringAfter(VALUE_S_VARIABLE)
             if (v.endsWith(UNIT)) v = v.substring(0, v.length-UNIT.length)
             v = v.trim()
-            return if (v.isEmpty()) Bitrate(-1) else Bitrate(v.toInt())
+            return if (v.isEmpty()) Bitrate(VALUE_NA) else Bitrate(v.toInt())
         }
     }
 

@@ -102,8 +102,8 @@ class Metadata: Item, Serializable {
     /** Encoding type, e.g.: MPEG-1 Layer 3 */
     private var encodingType: String? = null
 
-    /** Bitrate or -1 if unknown */
-    private var bitrate: Int = -1
+    /** Bitrate or 0 if unknown */
+    private var bitrate: Int = 0
 
     /** Encoder or empty String if not available */
     private var encoder: String? = null
@@ -240,7 +240,7 @@ class Metadata: Item, Serializable {
     private fun AudioFile.loadHeaderFields() {
         val header = this.audioHeader
         header.bitRate
-        bitrate = if (header.isVariableBitRate) -2 else header.bitRateAsNumber.toInt()
+        bitrate = header.bitRateAsNumber.toInt()*(if (header.isVariableBitRate) -1 else 1)
         lengthInMs = (1000*header.trackLength).toDouble()
         encodingType = header.format.orNull()   // format and encoding type are switched in jaudiotagger library...
         channels = header.channels.orNull()

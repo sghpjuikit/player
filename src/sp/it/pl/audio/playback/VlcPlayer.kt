@@ -6,7 +6,6 @@ import javafx.util.Duration
 import mu.KLogging
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
-import sp.it.pl.audio.playback.VolumeProperty.linToLog
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.file.childOf
@@ -69,7 +68,7 @@ class VlcPlayer: GeneralPlayer.Play {
         val p = mediaPlayerFactory.newHeadlessMediaPlayer()
         player = p
 
-        d += state.volume.sync { p.volume = (100*linToLog(it.toDouble())).roundToInt() }
+        d += state.volume.sync { p.volume = (100*it.toDouble()).roundToInt() }
         d += state.mute.sync { p.mute(it) }
         d += state.balance.sync { }
         d += state.rate.sync { p.rate = it.toFloat() }

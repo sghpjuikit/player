@@ -42,6 +42,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 	private static final Tooltip onTooltip = appTooltip("Enable. Disabled elements will not be in the list.");
 
 	protected final VBox root = new VBox();
+	@SuppressWarnings("unchecked")
 	protected final ObservableList<Link> chain = (ObservableList) root.getChildren();
 	public final IntegerProperty maxChainLength = new SimpleIntegerProperty(Integer.MAX_VALUE);
 	protected Supplier<C> chainedFactory; // final

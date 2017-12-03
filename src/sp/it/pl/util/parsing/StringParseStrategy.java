@@ -36,11 +36,11 @@ public @interface StringParseStrategy {
 	/**
 	 * Use when to string strategy relies on a method that can throw an
 	 * exception. Here it is possible to specify all exceptions regarding the
-	 * conversion process. Parser can then catch them and provide a unification
+	 * conversion process. Converter can then catch them and provide a unification
 	 * mechanism for handling erroneous input and failed conversions.
 	 * <p/>
 	 * This shifts the implementation in fail cases from the object to the
-	 * parsing framework, see {@link Parser}.
+	 * parsing framework.
 	 * <p/>
 	 * Enumerate all exceptions (runtime or checked) that can be thrown as a
 	 * result of to string conversion failure. Exceptions due to programming
@@ -65,7 +65,7 @@ public @interface StringParseStrategy {
 		 * <p/>
 		 * Instance will be created by invoking the public no-arg constructor (fails if not
 		 * accessible) of the exact class, name of which is in the string.
-		 * Parser then uses available name-value pairs and sets the values to appropriate
+		 * Converter then uses available name-value pairs and sets the values to appropriate
 		 * javafx property beans of the instance.
 		 */
 		FX,

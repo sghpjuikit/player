@@ -51,7 +51,6 @@ import sp.it.pl.util.action.Action;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.functional.Functors.Ƒ1;
-import sp.it.pl.util.parsing.Parser;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static java.lang.Math.signum;
 import static java.util.stream.Collectors.collectingAndThen;
@@ -61,6 +60,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.functional.Util.setRO;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.layHeaderBottom;
@@ -106,7 +106,7 @@ public class Icon extends StackPane {
 	);
 
 	/** Collection of all glyphs mapped to a unique names that identify them. */
-	private static final MapSet<String,GlyphIcons> GLYPHS = stream(GLYPH_TYPES)
+	public static final MapSet<String,GlyphIcons> GLYPHS = stream(GLYPH_TYPES)
 		.flatMap(c -> stream(getEnumConstants(c)))
 		.filter(GlyphIcons.class::isInstance).map(GlyphIcons.class::cast)
 		.collect(toCollection(() -> new MapSet<>(glyph -> glyph.getFontFamily() + "." + glyph.name())));
@@ -617,7 +617,7 @@ public class Icon extends StackPane {
 	}
 
 	public Number convert(String sizeString) {
-		return Parser.DEFAULT.ofS(Double.class, sizeString).getOr(DEFAULT_ICON_SIZE);
+		return APP.converter.general.ofS(Double.class, sizeString).getOr(DEFAULT_ICON_SIZE);
 	}
 
 }

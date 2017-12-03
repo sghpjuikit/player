@@ -7,10 +7,10 @@ import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.drag.DragUtil;
-import sp.it.pl.util.parsing.Parser;
 import sp.it.pl.util.validation.Constraint;
 import static javafx.scene.input.DragEvent.DRAG_DROPPED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
@@ -35,7 +35,7 @@ public class FileItemNode extends TextFieldItemNode<File> {
 	private final V<FileType> type;
 
 	public FileItemNode(Constraint.FileActor fileActor) {
-		super(Parser.DEFAULT.toConverterOf(File.class));
+		super(f -> APP.converter.general.toS(f));
 		this.fileActor = fileActor;
 		this.type = new V<>(fileActor==Constraint.FileActor.FILE ? FileType.FILE : FileType.DIRECTORY);
 

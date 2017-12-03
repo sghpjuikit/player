@@ -164,6 +164,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 		return create(Config.forProperty(type, name, property));
 	}
 
+	@SuppressWarnings("unchecked")
 	private static <T> ObservableValue<T> getObservableValue(Config<T> c) {
 		return c instanceof PropertyConfig && ((PropertyConfig)c).getProperty() instanceof ObservableValue
 			       ? (ObservableValue)((PropertyConfig)c).getProperty()

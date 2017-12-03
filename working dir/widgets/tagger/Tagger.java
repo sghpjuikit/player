@@ -72,7 +72,6 @@ import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.graphics.drag.DragUtil;
-import sp.it.pl.util.parsing.Parser;
 import sp.it.pl.util.validation.InputConstraints;
 import static sp.it.pl.audio.tagging.Metadata.Field.ADDED_TO_LIBRARY;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
@@ -229,19 +228,19 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         fields.add(new TagField(albumArtistF, ALBUM_ARTIST));
         fields.add(new TagField(composerF, COMPOSER));
         fields.add(new TagField(publisherF, PUBLISHER));
-        fields.add(new TagField(trackF, TRACK,isIntS));
-        fields.add(new TagField(tracksTotalF, TRACKS_TOTAL,isIntS));
-        fields.add(new TagField(discF, DISC,isIntS));
-        fields.add(new TagField(discsTotalF, DISCS_TOTAL,isIntS));
+        fields.add(new TagField(trackF, TRACK, isIntS));
+        fields.add(new TagField(tracksTotalF, TRACKS_TOTAL, isIntS));
+        fields.add(new TagField(discF, DISC, isIntS));
+        fields.add(new TagField(discsTotalF, DISCS_TOTAL, isIntS));
         fields.add(new TagField(genreF, GENRE));
         fields.add(new TagField(categoryF, CATEGORY));
-        fields.add(new TagField(yearF, YEAR,isPastYearS));
+        fields.add(new TagField(yearF, YEAR, isPastYearS));
         fields.add(new TagField(ratingF, RATING_RAW));
-        fields.add(new TagField(ratingPF, RATING,IsBetween0And1));
+        fields.add(new TagField(ratingPF, RATING, IsBetween0And1));
         fields.add(new TagField(playcountF, PLAYCOUNT));
         fields.add(new TagField(commentF, COMMENT));
         fields.add(new TagField(moodF, MOOD));
-        fields.add(new TagField(colorF, CUSTOM1,Parser.DEFAULT.isParsable(Color.class)));
+        fields.add(new TagField(colorF, CUSTOM1, s -> APP.converter.general.isValid(Color.class, s)));
         fields.add(new TagField(custom1F, CUSTOM1));
         fields.add(new TagField(custom2F, CUSTOM2));
         fields.add(new TagField(custom3F, CUSTOM3));
@@ -255,7 +254,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         // associate color picker with custom1 field
         colorFPicker.disableProperty().bind(colorF.disabledProperty());
         colorFPicker.valueProperty().addListener((o,ov,nv) ->
-            colorF.setText(nv==null || nv==EMPTY_COLOR ? "" : Parser.DEFAULT.toS(nv))
+            colorF.setText(nv==null || nv==EMPTY_COLOR ? "" : APP.converter.general.toS(nv))
         );
 
 
@@ -784,7 +783,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         }
         public void histogramEnd(Collection<AudioFileFormat> formats) {
             if (f==CUSTOM1) {
-                Color c = Parser.DEFAULT.ofS(Color.class,histogramS).getOr(null);
+                Color c = APP.converter.general.ofS(Color.class,histogramS).getOr(null);
                 colorFPicker.setValue(c==null ? EMPTY_COLOR : c);
                 colorF.setText("");
             }

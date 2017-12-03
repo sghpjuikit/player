@@ -18,7 +18,7 @@ import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.conf.Config;
-import sp.it.pl.util.functional.StrExF;
+import sp.it.pl.util.math.StrExF;
 
 import static java.lang.Math.max;
 import static javafx.scene.layout.Priority.ALWAYS;
@@ -36,7 +36,7 @@ import static sp.it.pl.util.graphics.Util.setAnchors;
 public class FunctionViewer extends ClassController  {
     private final Axes axes = new Axes(400,300,  -1,1,0.2, -1,1,0.2);
     private final Plot plot = new Plot(-1,1, axes);
-	private final V<StrExF> function = new V<>(new StrExF("x"),this::plot);
+	private final V<StrExF> function = new V<>(StrExF.fromString("x").getOrThrow(), this::plot);
 
     public FunctionViewer() {
         this.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);

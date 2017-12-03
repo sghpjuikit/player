@@ -8,7 +8,6 @@ import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.textfield.autocomplete.AutoCompletion.autoComplete
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.access.V
-import sp.it.pl.util.parsing.Parser
 import java.util.function.Consumer
 
 /**
@@ -17,7 +16,7 @@ import java.util.function.Consumer
  * * Auto-completion from set of moods application is aware of
  * * Mood picker popup. The position of the picker popup can be customized.
  */
-class MoodItemNode: TextFieldItemNode<String>(Parser.DEFAULT.toConverterOf(String::class.java)) {
+class MoodItemNode: TextFieldItemNode<String>({ APP.converter.general.toS(it) }) {
 
     /** The position for the picker to show on. */
     val pickerPosition = V(NodePos.RIGHT_CENTER)

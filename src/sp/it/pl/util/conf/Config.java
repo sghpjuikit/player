@@ -26,8 +26,9 @@ import sp.it.pl.util.conf.Config.VarList.Elements;
 import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.functional.Try;
-import sp.it.pl.util.parsing.Parser;
-import sp.it.pl.util.parsing.StringConverter;
+import sp.it.pl.util.parsing.Converter;
+import sp.it.pl.util.parsing.Parsers;
+import sp.it.pl.util.parsing.ConverterString;
 import sp.it.pl.util.type.Util;
 import sp.it.pl.util.validation.Constraint;
 import sp.it.pl.util.validation.Constraint.HasNonNullElements;
@@ -63,11 +64,11 @@ import static sp.it.pl.util.type.Util.unPrimitivize;
  * it and can be used as non aggregate configurable type.
  * <p/>
  * Because config is convertible from String and back it also provides convert
- * methods and implements {@link StringConverter}.
+ * methods and implements {@link sp.it.pl.util.parsing.ConverterString}.
  *
  * @param <T> type of value of this config
  */
-public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, StringConverter<T>, TypedValue<T>, EnumerableValue<T> {
+public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, ConverterString<T>, TypedValue<T>, EnumerableValue<T> {
 
 	@Override
 	public abstract T getValue();
@@ -146,7 +147,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 /******************************** converting **********************************/
 
 	/**
-	 * Converts the value to String utilizing generic {@link Parser}.
+	 * Converts the value to String utilizing generic {@link Converter}.
 	 * Use for serialization or filling out guis.
 	 */
 	public String getValueS() {
@@ -164,18 +165,18 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 	}
 
 	/**
-	 * This method is inherited from {@link StringConverter} for compatibility & convenience reasons.
+	 * This method is inherited from {@link sp.it.pl.util.parsing.ConverterString} for compatibility & convenience reasons.
 	 * Note: invoking this method produces no effects on this config instance. Consider this method static.
 	 * <p/>
 	 * {@inheritDoc}
 	 */
 	@Override
 	public String toS(T v) {
-		return Parser.DEFAULT.toS(v);
+		return Parsers.DEFAULT.toS(v);
 	}
 
 	/**
-	 * This method is inherited from {@link StringConverter} for compatibility & convenience reasons.
+	 * This method is inherited from {@link sp.it.pl.util.parsing.ConverterString} for compatibility & convenience reasons.
 	 * Note: invoking this method produces no effects on this config instance. Consider this method static.
 	 * <p/>
 	 * {@inheritDoc}
@@ -193,17 +194,17 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			// 2 OverridableConfig adds additional information as a prefix when serializing the
 			//   value, then removing the prefix when deserializing. This causes the lookup not work
 			//   because toS adds the prefix to the values and the string parameter of this method
-			//   has it already removed. To bypass this, we rely on Parser.toS/fromS directly,
+			//   has it already removed. To bypass this, we rely on Converter.toS/fromS directly,
 			//   rather than Config.toS/fromS. This is also dangerous. Of course we could fix this
 			//   by having OverridableConfig provide its own implementation, but I dont want to
 			//   spread problematic code such as this around. Not till 1 gets fixed up.
 			for (T v : enumerateValues())
-				if (Parser.DEFAULT.toS(v).equalsIgnoreCase(s)) return ok(v);
+				if (Parsers.DEFAULT.toS(v).equalsIgnoreCase(s)) return ok(v);
 
 			log(Config.class).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", s, getGuiName());
 			return error("Value does not correspond to any value of the enumeration.");
 		} else {
-			return Parser.DEFAULT.ofS(getType(), s);
+			return Parsers.DEFAULT.ofS(getType(), s);
 		}
 	}
 
@@ -729,7 +730,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		}
 
 		///**
-		// * Converts the value to String utilizing generic {@link Parser}.
+		// * Converts the value to String utilizing generic {@link Converter}.
 		// * Use for serialization or filling out guis.
 		// */
 		//@Override
@@ -748,7 +749,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		}
 
 		/**
-		 * Inherited method from {@link StringConverter}
+		 * Inherited method from {@link sp.it.pl.util.parsing.ConverterString}
 		 * Note: this config remains intact.
 		 * <p/>
 		 * {@inheritDoc}
@@ -759,7 +760,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		}
 
 		/**
-		 * Inherited method from {@link StringConverter}
+		 * Inherited method from {@link sp.it.pl.util.parsing.ConverterString}
 		 * Note: this config remains intact.
 		 * <p/>
 		 * {@inheritDoc}

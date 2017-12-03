@@ -392,7 +392,7 @@ public class DirViewer extends ClassController {
 
     /**
      * Filter summary: because we can not yet serialize functions (see {@link sp.it.pl.util.functional.Functors} and
-     * {@link sp.it.pl.util.parsing.Parser}) in  a way that stores (e.g. negation or function chaining), we do not use
+     * {@link sp.it.pl.util.parsing.Converter}) in  a way that stores (e.g. negation or function chaining), we do not use
      * predicates from function pool, but hardcoded filters, which we look up by name.
      * <p/>
      * We use String config field to save which filter we use. Of course, we give up filter chaining and other stuff...

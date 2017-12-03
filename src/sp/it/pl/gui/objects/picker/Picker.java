@@ -15,7 +15,7 @@ import javafx.scene.layout.StackPane;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.functional.Functors.Ƒ1;
-import sp.it.pl.util.parsing.ToStringConverter;
+import sp.it.pl.util.parsing.ConverterToString;
 import static java.lang.Math.ceil;
 import static java.lang.Math.floor;
 import static java.lang.Math.max;
@@ -56,11 +56,11 @@ public class Picker<E> {
 	/** Default on cancel action. Does nothing. */
 	public static final Runnable DEF_onCancel = () -> {};
 	/** Default text factory. Uses null safe version of object's toString() method. */
-	public static final ToStringConverter<Object> DEF_textConverter = Objects::toString;
+	public static final ConverterToString<Object> DEF_textConverter = Objects::toString;
 	/** Default text factory. Returns empty string. */
-	public static final ToStringConverter<Object> DEF_infoConverter = item -> "";
+	public static final ConverterToString<Object> DEF_infoConverter = item -> "";
 	/** Default Item supplier. Returns empty stream. */
-	public static final Supplier<Stream<?>> DEF_itemSupply = Stream::empty;
+	public static final Supplier<? extends Stream<?>> DEF_itemSupply = Stream::empty;
 
 	public boolean consumeCancelClick = false;
 
@@ -86,14 +86,14 @@ public class Picker<E> {
 	 * Default implementation is {@link Picker#DEF_textConverter}
 	 * Must not be null.
 	 */
-	public ToStringConverter<? super E> textConverter = DEF_textConverter;
+	public ConverterToString<? super E> textConverter = DEF_textConverter;
 	/**
 	 * Info text factory.
 	 * Creates string representation of the item.
 	 * Default implementation is {@link Picker#DEF_infoConverter}
 	 * Must not be null.
 	 */
-	public ToStringConverter<? super E> infoConverter = DEF_infoConverter;
+	public ConverterToString<? super E> infoConverter = DEF_infoConverter;
 	/**
 	 * Item supplier. Fetches the items as a stream.
 	 * Default implementation returns empty stream. Must not be null;

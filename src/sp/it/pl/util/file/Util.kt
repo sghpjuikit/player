@@ -55,7 +55,7 @@ fun File.childOf(vararg childNames: String) = childNames.fold(this, File::childO
 
 fun File.isParentOf(child: File) = child.parentFile==this
 
-fun File.isAnyParentOf(child: File) = generateSequence(child, { it.parentFile}).takeWhile { it!=null }.any { isParentOf(it) }
+fun File.isAnyParentOf(child: File) = generateSequence(child, { it.parentFile }).takeWhile { it!=null }.any { isParentOf(it) }
 
 fun File.isChildOf(parent: File) = parent.isParentOf(this)
 

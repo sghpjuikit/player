@@ -1,6 +1,7 @@
 package sp.it.pl.util.units
 
 import sp.it.pl.util.dev.Dependency
+import sp.it.pl.util.functional.Try
 import java.util.regex.PatternSyntaxException
 
 /** Amount within an amount. For example 15/20.  */
@@ -18,12 +19,19 @@ data class NofX(val n: Int, val of: Int): Comparable<NofX> {
 
     companion object {
         @Dependency("toString")
-        @Throws(PatternSyntaxException::class, NumberFormatException::class, IndexOutOfBoundsException::class)
         @JvmStatic
-        fun fromString(s: String): NofX {
+        fun fromString(s: String): Try<NofX, Throwable> {
             val a = s.split("/")
-            if (a.size!=2) throw IndexOutOfBoundsException("'Text=$s' is not in an 'x/y' format")
-            return NofX(a[0].toInt(), a[1].toInt())
+            return if (a.size!=2)
+                Try.error(IndexOutOfBoundsException("'Text=$s' is not in an 'x/y' format"))
+            else
+                try {
+                    Try.ok<NofX, Throwable>(NofX(a[0].toInt(), a[1].toInt()))
+                } catch (e: PatternSyntaxException) {
+                    Try.error<NofX, Throwable>(e)
+                } catch (e: NumberFormatException) {
+                    Try.error<NofX, Throwable>(e)
+                }
         }
     }
 

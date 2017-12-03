@@ -39,13 +39,14 @@ class Notification: PopOver<Node>() {
         skinn.setTitleAsOnlyHeaderContent(true)
         styleClass += "notification"
 
-        contentNode = root
-        root.setOnMouseClicked {
-            if (it.button==PRIMARY) lClickAction()
-            if (it.button==SECONDARY) rClickAction()
+        contentNode = root.apply {
+            setOnMouseClicked {
+                if (it.button==PRIMARY) lClickAction()
+                if (it.button==SECONDARY) rClickAction()
+            }
+            setOnMouseEntered { closer.pause() }
+            setOnMouseExited { closer.unpause() }
         }
-        root.setOnMouseEntered { closer.pause() }
-        root.setOnMouseExited { closer.unpause() }
     }
 
     override fun show(pos: ScreenPos) {

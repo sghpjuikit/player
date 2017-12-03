@@ -28,6 +28,7 @@ import sp.it.pl.gui.objects.image.cover.Cover
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource
 import sp.it.pl.gui.objects.image.cover.FileCover
 import sp.it.pl.gui.objects.image.cover.ImageCover
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.SwitchException
 import sp.it.pl.util.access.fieldvalue.ObjectFieldBase
 import sp.it.pl.util.dev.throwIfFxThread
@@ -39,7 +40,6 @@ import sp.it.pl.util.file.nameWithoutExtensionOrRoot
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.localDateTimeFromMillis
-import sp.it.pl.util.parsing.Parser
 import sp.it.pl.util.text.Strings
 import sp.it.pl.util.text.toStrings
 import sp.it.pl.util.units.Bitrate
@@ -680,7 +680,7 @@ class Metadata: Item, Serializable {
     fun containsChapterAt(at: Duration): Boolean = getChapters().chapters.any { it.time==at }
 
     /** @return the color associated with this or null if none */
-    fun getColor(): Color? = color?.let { Parser.DEFAULT.ofS(Color::class.java, color).getOr(null) }
+    fun getColor(): Color? = color?.let { APP.converter.general.ofS<Color>(it).getOr(null) }
 
     /** Tags joined into a string or null if none */
     fun getTags(): String? = tags

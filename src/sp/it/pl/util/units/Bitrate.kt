@@ -1,6 +1,7 @@
 package sp.it.pl.util.units
 
 import sp.it.pl.util.dev.Dependency
+import sp.it.pl.util.functional.Try
 
 /** Media bit rate with kb/s unit. Supports variable and unknown value. */
 data class Bitrate(/** Value in kb/s, 0 if unknown, and negative if variable. */ val value: Int): Comparable<Bitrate> {
@@ -16,7 +17,7 @@ data class Bitrate(/** Value in kb/s, 0 if unknown, and negative if variable. */
 
     override fun compareTo(other: Bitrate) = Integer.compare(value, other.value)
 
-    /** For example: "320 kbps" or "N/A". */
+    /** For example: "~320 kbps" or "N/A". */
     @Dependency("fromString")
     override fun toString() = when {
         value==VALUE_NA -> VALUE_S_NA
@@ -31,17 +32,25 @@ data class Bitrate(/** Value in kb/s, 0 if unknown, and negative if variable. */
         private val UNIT = "kbps"
 
         @Dependency("toString")
-        @Throws(IndexOutOfBoundsException::class, NumberFormatException::class, IllegalArgumentException::class)
         @JvmStatic
-        fun fromString(s: String): Bitrate {
-            if (VALUE_S_NA==s) return Bitrate(VALUE_NA)
-            if (VALUE_S_VARIABLE==s) return Bitrate(-2)
-            var v = s
-            v = v.trim()
-            if (v.startsWith(VALUE_S_VARIABLE)) v = v.substringAfter(VALUE_S_VARIABLE)
-            if (v.endsWith(UNIT)) v = v.substring(0, v.length-UNIT.length)
-            v = v.trim()
-            return if (v.isEmpty()) Bitrate(VALUE_NA) else Bitrate(v.toInt())
+        fun fromString(s: String): Try<Bitrate, Throwable> {
+            if (VALUE_S_NA==s) return Try.ok(Bitrate(VALUE_NA))
+
+            return try {
+                var v = s
+                v = v.trim()
+                if (v.startsWith(VALUE_S_VARIABLE)) v = v.substringAfter(VALUE_S_VARIABLE)
+                if (v.endsWith(UNIT)) v = v.substring(0, v.length-UNIT.length)
+                v = v.trim()
+
+                Try.ok(if (v.isEmpty()) Bitrate(VALUE_NA) else Bitrate(v.toInt()))
+            } catch (e: IndexOutOfBoundsException) {
+                Try.error(e)
+            } catch (e: NumberFormatException) {
+                Try.error(e)
+            } catch (e: IllegalArgumentException) {
+                Try.error(e)
+            }
         }
     }
 

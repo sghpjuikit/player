@@ -1139,6 +1139,7 @@ public interface Util {
 	 * </ul>
 	 */
 	@SuppressWarnings("unchecked")
+	@SafeVarargs
 	static <T> Set<T> setRO(T... ts) {
 		int size = ts.length;
 		if (size==0) return EMPTY_SET;

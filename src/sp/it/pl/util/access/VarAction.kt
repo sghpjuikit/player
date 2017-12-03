@@ -9,11 +9,11 @@ import java.util.function.Consumer
 class VarAction: VarEnum<String> {
 
     @JvmOverloads
-    constructor(a: Action, applier: Consumer<Action> = Consumer {})
+    constructor(a: Action, applier: Consumer<in Action> = Consumer {})
             : super(a.name, { Action.getActions().map { it.name } }, Consumer { applier(Action.get(it)) })
 
     @JvmOverloads
-    constructor(action_name: String, applier: Consumer<Action> = Consumer {})
+    constructor(action_name: String, applier: Consumer<in Action> = Consumer {})
             : super(action_name, { Action.getActions().map { it.name } }, Consumer { applier(Action.get(it)) })
 
     fun getValueAction(): Action = Action.get(value)

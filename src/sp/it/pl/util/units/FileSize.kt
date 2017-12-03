@@ -1,6 +1,7 @@
 package sp.it.pl.util.units
 
 import sp.it.pl.util.dev.Dependency
+import sp.it.pl.util.functional.Try
 import java.io.File
 
 /** File size. Supports values up to `2^63-1` bytes and unknown value. */
@@ -93,10 +94,9 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
         fun File.size() = FileSize(this)
 
         @Dependency("toString")
-        @Throws(NumberFormatException::class)
         @JvmStatic
-        fun fromString(s: String): FileSize {
-            if (s==NAString) return FileSize(NA)
+        fun fromString(s: String): Try<FileSize, Throwable> {
+            if (s==NAString) return Try.ok(FileSize(NA))
 
             var v = s
             var unit: Long = 1
@@ -132,8 +132,12 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
                 }
                 v = v.substring(0, b-skip).trim()
             }
-
-            return FileSize((unit*v.toDouble()).toLong())
+            return try {
+                Try.ok(FileSize((unit*v.toDouble()).toLong()))
+            } catch (e: NumberFormatException) {
+                Try.error(e)
+            }
         }
+
     }
 }

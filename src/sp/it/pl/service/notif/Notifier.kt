@@ -21,7 +21,6 @@ import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.util.access.VarAction
 import sp.it.pl.util.access.VarEnum
-import sp.it.pl.util.action.Action
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.action.IsActionable
 import sp.it.pl.util.conf.IsConfig
@@ -30,6 +29,7 @@ import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
+import java.util.function.Consumer
 import kotlin.streams.asSequence
 
 /** Provides notification functionality. */
@@ -54,9 +54,9 @@ class Notifier: ServiceBase(true) {
     @IsConfig(name = "Position relative to", info = "Determines screen for positioning. Main screen, application window screen or all screens as one")
     var notificationScr: ScreenUse = APP_WINDOW
     @IsConfig(name = "On click left", info = "Left click action")
-    val onClickL = VarAction("Show application", Action.EMPTY)
+    val onClickL = VarAction("Show application", Consumer {})
     @IsConfig(name = "On click right", info = "Right click action")
-    val onClickR = VarAction("Notification hide", Action.EMPTY)
+    val onClickR = VarAction("Notification hide", Consumer {})
     @IsConfig(name = "Playback change graphics")
     val graphics = VarEnum.ofSequence("Normal",
             {

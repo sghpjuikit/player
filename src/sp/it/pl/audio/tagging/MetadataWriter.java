@@ -43,7 +43,6 @@ import sp.it.pl.audio.tagging.chapter.Chapter;
 import sp.it.pl.service.notif.Notifier;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.file.AudioFileFormat;
-import sp.it.pl.util.parsing.Parser;
 import sp.it.pl.util.units.NofX;
 import static java.lang.Math.max;
 import static java.util.Collections.singletonList;
@@ -523,7 +522,7 @@ public class MetadataWriter extends Item {
 
 	/** @param c the color to set */
 	public void setColor(Color c) {
-		setCustomField(TAG_ID_COLOR, Parser.DEFAULT.toS(c));
+		setCustomField(TAG_ID_COLOR, APP.converter.general.toS(c));
 	}
 
 	/** @param tags tags to set */
@@ -752,10 +751,10 @@ public class MetadataWriter extends Item {
 		if (field==Metadata.Field.PUBLISHER) { setPublisher(data); return; }
 		if (field==Metadata.Field.TRACK) { setTrack(data); return; }
 		if (field==Metadata.Field.TRACKS_TOTAL) { setTracksTotal(data); return; }
-		if (field==Metadata.Field.TRACK_INFO) { setTracksInfo(NofX.fromString(data)); return; }
+		if (field==Metadata.Field.TRACK_INFO) { NofX.fromString(data).ifOk(this::setTracksInfo); return; }
 		if (field==Metadata.Field.DISC) { setDisc(data); return; }
 		if (field==Metadata.Field.DISCS_TOTAL) { setDiscsTotal(data); return; }
-		if (field==Metadata.Field.DISCS_INFO) { setDiscsInfo(NofX.fromString(data)); return; }
+		if (field==Metadata.Field.DISCS_INFO) { NofX.fromString(data).ifOk(this::setDiscsInfo); return; }
 		if (field==Metadata.Field.GENRE) { setGenre(data); return; }
 		if (field==Metadata.Field.YEAR) { setYear(data); return; }
 		if (field==Metadata.Field.COVER) return;

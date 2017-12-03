@@ -15,6 +15,7 @@ import sp.it.pl.audio.Player
 import sp.it.pl.audio.playlist.PlaylistItem
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
+import sp.it.pl.core.CoreConverter
 import sp.it.pl.core.CoreInstances
 import sp.it.pl.core.CoreLogging
 import sp.it.pl.core.CoreMouse
@@ -125,6 +126,7 @@ class App: Application(), Configurable<Any> {
     @F val logging = CoreLogging(FILE_LOG_CONFIG, DIR_LOG)
     @F val serializerXml = CoreSerializerXml()
     @F val serializer = CoreSerializer
+    @F val converter = CoreConverter()
     @F val instances = CoreInstances
     @F val mimeTypes = MimeTypes
     @F val className = ClassName()
@@ -287,6 +289,7 @@ class App: Application(), Configurable<Any> {
         // init cores
         serializer.init()
         serializerXml.init()
+        converter.init()
         instances.init()
         mouse.init()
 
@@ -396,11 +399,12 @@ class App: Application(), Configurable<Any> {
         dispose()
 
         // cores
-        logging.dispose()
-        serializerXml.dispose()
-        serializer.dispose()
-        instances.dispose()
         mouse.dispose()
+        instances.dispose()
+        serializer.dispose()
+        serializerXml.dispose()
+        converter.dispose()
+        logging.dispose()
     }
 
     private fun store() {

@@ -11,7 +11,6 @@ import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.collections.mapset.MapSet
 import sp.it.pl.util.dev.ThreadSafe
-import sp.it.pl.util.functional.Functors.Ƒ2
 import java.io.File
 import java.net.URI
 import java.util.*
@@ -41,7 +40,7 @@ class Db {
     var libraryComparator = v<Comparator<in Metadata>>(Comparator { a, b -> a.compareTo(b) })
 
     var autocompletionContains = true
-    val autocompletionFilter = Ƒ2<String, String, Boolean> { text, phrase ->
+    val autocompletionFilter: (String, String) -> Boolean = { text, phrase ->
         if (autocompletionContains) text.contains(phrase) else text.startsWith(phrase)
     }
 

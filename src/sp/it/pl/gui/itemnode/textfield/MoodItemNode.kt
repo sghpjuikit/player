@@ -10,12 +10,7 @@ import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.access.V
 import java.util.function.Consumer
 
-/**
- * [sp.it.pl.gui.itemnode.textfield.TextFieldItemNode] for audio mood tagging values.
- * Additional functionalities
- * * Auto-completion from set of moods application is aware of
- * * Mood picker popup. The position of the picker popup can be customized.
- */
+/** Text field for audio mood tagging values with a picker and autocompletion. */
 class MoodItemNode: TextFieldItemNode<String>({ APP.converter.general.toS(it) }) {
 
     /** The position for the picker to show on. */

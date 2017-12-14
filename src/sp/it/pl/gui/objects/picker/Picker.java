@@ -34,7 +34,6 @@ import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.graphics.Util.layScrollVText;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 
-
 /**
  * Generic item picker.
  * <p/>
@@ -51,59 +50,41 @@ public class Picker<E> {
 	/** Style class for cell. */
 	public static final String STYLE_CLASS = "item-picker";
 	public static final List<String> CELL_STYLE_CLASS = asList("block", "item-picker-element");
-	/** Default on select action. Does nothing. */
-	public static final Consumer<Object> DEF_onSelect = item -> {};
-	/** Default on cancel action. Does nothing. */
-	public static final Runnable DEF_onCancel = () -> {};
-	/** Default text factory. Uses null safe version of object's toString() method. */
-	public static final Function<Object, ? extends String> DEF_textConverter = Objects::toString;
-	/** Default text factory. Returns empty string. */
-	public static final Function<Object, ? extends String> DEF_infoConverter = item -> "";
-	/** Default Item supplier. Returns empty stream. */
-	public static final Supplier<? extends Stream<?>> DEF_itemSupply = Stream::empty;
-
-	public boolean consumeCancelClick = false;
 
 	private final CellPane tiles = new CellPane();
 	public final ScrollPane root = new ScrollPane(tiles);
-
+	public boolean consumeCancelClick = false;
 	/**
-	 * Procedure executed when item is selected passing the item as parameter.
-	 * Default implementation does nothing. Must not be null;
+	 * Nonnull procedure executed when item is selected passing the item as parameter.
+	 * Default implementation does nothing.
 	 */
-	public Consumer<? super E> onSelect = DEF_onSelect;
+	public Consumer<? super E> onSelect = item -> {};
 	/**
-	 * Procedure executed when no item is selected. Invoked when user cancels
+	 * Nonnull procedure executed when no item is selected. Invoked when user cancels
 	 * the picking by right click.
-	 * Default implementation does nothing. Must not be null;
+	 * Default implementation does nothing.
 	 * <p/>
 	 * For example one might want to close this picker when no item is selected.
 	 */
-	public Runnable onCancel = DEF_onCancel;
+	public Runnable onCancel = () -> {};
 	/**
-	 * Text factory.
-	 * Creates string representation of the item.
-	 * Default implementation is {@link Picker#DEF_textConverter}
-	 * Must not be null.
+	 * Nonnull text factory.
+	 * Creates string name/title of the item.
+	 * Default implementation calls {@link Objects#toString(Object)}
 	 */
-	public Function<? super E, ? extends String> textConverter = DEF_textConverter;
+	public Function<? super E, ? extends String> textConverter = Objects::toString;
 	/**
-	 * Info text factory.
-	 * Creates string representation of the item.
-	 * Default implementation is {@link Picker#DEF_infoConverter}
-	 * Must not be null.
+	 * Nonnull info text factory.
+	 * Creates string descriptive of the item.
+	 * Default implementation returns empty string.
 	 */
-	public Function<? super E, ? extends String> infoConverter = DEF_infoConverter;
+	public Function<? super E, ? extends String> infoConverter = item -> "";
+	/** Nonnull item supplier. Fetches the items as a stream. Default implementation returns empty stream. */
+	public Supplier<? extends Stream<? extends E>> itemSupply = Stream::empty;
 	/**
-	 * Item supplier. Fetches the items as a stream.
-	 * Default implementation returns empty stream. Must not be null;
-	 */
-	public Supplier<? extends Stream<E>> itemSupply = (Supplier) DEF_itemSupply;
-	/**
-	 * Cell factory.
+	 * Nonnull cell factory.
 	 * Creates graphic representation of the item.
 	 * Also might define minimum and maximum item size.
-	 * Must not be null;
 	 */
 	public Ƒ1<E,Pane> cellFactory = item -> {
 		String text = textConverter.apply(item);
@@ -186,6 +167,7 @@ public class Picker<E> {
 		return root;
 	}
 
+	@SuppressWarnings("unchecked")
 	public List<Region> getCells() {
 		return (List) list(tiles.getChildren());
 	}

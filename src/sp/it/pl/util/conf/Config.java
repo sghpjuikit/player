@@ -944,6 +944,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		 *
 		 * @return this (fluent api)
 		 */
+		@SuppressWarnings("unchecked")
 		public VarList<T> setItems(T... items) {
 			list.setAll(items);
 			return this;

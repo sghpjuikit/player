@@ -589,11 +589,10 @@ public final class Action extends Config<Action> implements Runnable {
 	public static void installActions(Object... os) {
 		stream(os)
 				.flatMap(o -> {
-					// TODO: refactor out ?
-					if (o instanceof Stream) return (Stream) o;
-					if (o instanceof Optional) return ((Optional)o).stream();
-					if (o instanceof Object[]) return stream(((Object[])o));
-					// if (o instanceof Collection) return ((Collection)o).stream();	// TODO: Objects may extend Collection, disable?
+					if (o instanceof Stream) return (Stream<?>) o;
+					if (o instanceof Optional) return ((Optional<?>) o).stream();
+					if (o instanceof Object[]) return stream(((Object[]) o));
+					if (o instanceof Collection) return Stream.concat(Stream.of(o), ((Collection<?>)o).stream());
 					return stream(o);
 				})
 				.forEach(o -> gatherActions(o).forEach(actions::add));

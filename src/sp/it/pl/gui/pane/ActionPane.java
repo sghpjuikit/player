@@ -478,9 +478,9 @@ public class ActionPane extends OverlayPane<Object> {
 		} else {
 			futAfter(fut(data))
 				.then(FX, () -> actionProgress.setProgress(-1))
-				.use(action) // run action and obtain output
-				// 1) the actions may invoke some action on FX thread, so we give it some
-				// by waiting a bit
+				// run action and obtain output
+				.use(action)
+				// 1) the actions may invoke some action on FX thread, so we give it some by waiting a bit
 				// 2) very short actions 'pretend' to run for a while
 				.then(sleeping(millis(150)))
 				.then(FX, () -> actionProgress.setProgress(1))

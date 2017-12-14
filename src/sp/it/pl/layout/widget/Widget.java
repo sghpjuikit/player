@@ -238,10 +238,10 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 				if (Modifier.isStatic(m.getModifiers()) || params>1)
 					throw new RuntimeException("Method " + m + " can not be an input.");
 
-				String i_name = a.value();
-				boolean isvoid = params==0;
-				Class i_type = isvoid ? Void.class : m.getParameterTypes()[0];
-				Consumer i_action = isvoid
+				String iName = a.value();
+				boolean isVoid = params==0;
+				Class iType = isVoid ? Void.class : m.getParameterTypes()[0];
+				Consumer iAction = isVoid
 					? value -> {
 							if (value!=null)
 								throw new ClassCastException(cc + " " + m + ": Can not cast " + value + " into Void.class");
@@ -249,7 +249,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 								m.setAccessible(true);
 								m.invoke(c);
 							} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
-								LOGGER.error("Input {} in widget {} failed to process value.", i_name, name, e);
+								LOGGER.error("Input {} in widget {} failed to process value.", iName, name, e);
 							}
 						}
 					: value -> {
@@ -257,10 +257,10 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 								m.setAccessible(true);
 								m.invoke(c, value);
 							} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
-								LOGGER.error("Input {} in widget {} failed to process value.", i_name, name, e);
+								LOGGER.error("Input {} in widget {} failed to process value.", iName, name, e);
 							}
 						};
-				c.getInputs().create(i_name, i_type, i_action);
+				c.getInputs().create(iName, iType, iAction);
 			}
 		}
 

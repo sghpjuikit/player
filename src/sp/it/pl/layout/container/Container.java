@@ -281,12 +281,13 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      *
      * @return containers
      */
-    public Stream<Container> getAllContainers(boolean include_self) {
-        Stream<Container> s1 = include_self ? stream(this) : stream();
-        Stream<Container> s2 = getChildren().values().stream()
-                                            .filter(c -> c instanceof Container)
-                                            .flatMap(c -> ((Container)c).getAllContainers(true));
-        return stream(s1,s2);
+    @SuppressWarnings("unchecked")
+    public Stream<Container<?>> getAllContainers(boolean include_self) {
+        Stream<Container<?>> s1 = include_self ? stream(this) : stream();
+        Stream<Container<?>> s2 = getChildren().values().stream()
+            .filter(c -> c instanceof Container)
+            .flatMap(c -> ((Container) c).getAllContainers(true));
+        return stream(s1, s2);
     }
 
     /**
@@ -343,7 +344,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     }
 
     protected void removeGraphicsFromSceneGraph() {
-        // to do: make sure the layout brachn under this container does not
+        // to do: make sure the layout branch under this container does not
         // cause a memory leak
         if (ui!=null) root.getChildren().remove(ui.getRoot());
     }

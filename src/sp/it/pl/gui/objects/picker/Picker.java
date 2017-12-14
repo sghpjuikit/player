@@ -3,6 +3,7 @@ package sp.it.pl.gui.objects.picker;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.geometry.Insets;
@@ -15,7 +16,6 @@ import javafx.scene.layout.StackPane;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.functional.Functors.Ƒ1;
-import sp.it.pl.util.parsing.ConverterToString;
 import static java.lang.Math.ceil;
 import static java.lang.Math.floor;
 import static java.lang.Math.max;
@@ -56,9 +56,9 @@ public class Picker<E> {
 	/** Default on cancel action. Does nothing. */
 	public static final Runnable DEF_onCancel = () -> {};
 	/** Default text factory. Uses null safe version of object's toString() method. */
-	public static final ConverterToString<Object> DEF_textConverter = Objects::toString;
+	public static final Function<Object, ? extends String> DEF_textConverter = Objects::toString;
 	/** Default text factory. Returns empty string. */
-	public static final ConverterToString<Object> DEF_infoConverter = item -> "";
+	public static final Function<Object, ? extends String> DEF_infoConverter = item -> "";
 	/** Default Item supplier. Returns empty stream. */
 	public static final Supplier<? extends Stream<?>> DEF_itemSupply = Stream::empty;
 
@@ -86,14 +86,14 @@ public class Picker<E> {
 	 * Default implementation is {@link Picker#DEF_textConverter}
 	 * Must not be null.
 	 */
-	public ConverterToString<? super E> textConverter = DEF_textConverter;
+	public Function<? super E, ? extends String> textConverter = DEF_textConverter;
 	/**
 	 * Info text factory.
 	 * Creates string representation of the item.
 	 * Default implementation is {@link Picker#DEF_infoConverter}
 	 * Must not be null.
 	 */
-	public ConverterToString<? super E> infoConverter = DEF_infoConverter;
+	public Function<? super E, ? extends String> infoConverter = DEF_infoConverter;
 	/**
 	 * Item supplier. Fetches the items as a stream.
 	 * Default implementation returns empty stream. Must not be null;
@@ -106,14 +106,14 @@ public class Picker<E> {
 	 * Must not be null;
 	 */
 	public Ƒ1<E,Pane> cellFactory = item -> {
-		String text = textConverter.toS(item);
+		String text = textConverter.apply(item);
 		Label l = new Label(text);
 		StackPane cell = new StackPane(l);
 		cell.setMinSize(90, 30);
 		cell.getStyleClass().setAll(CELL_STYLE_CLASS);
 
 		// set up info pane
-		String info = infoConverter.toS(item);
+		String info = infoConverter.apply(item);
 		if (!info.isEmpty()) {
 			// info content
 			Node content = cell.getChildren().get(0);
@@ -160,7 +160,7 @@ public class Picker<E> {
 		// get items
 		itemSupply.get()
 			// & sort
-			.sorted(byNC(textConverter::toS))
+			.sorted(byNC(textConverter::apply))
 			// & create cells
 			.forEach(item -> {
 				Node cell = cellFactory.apply(item);

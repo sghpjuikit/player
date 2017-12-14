@@ -58,9 +58,9 @@ fun copyToSysClipboard(df: DataFormat, o: Any?) {
 }
 
 /**
- * Launches this file as an executable program. Does not wait for the program or block.
+ * Launches this file as an executable program as a separate process. Does not wait for the program or block.
  * * working directory of the program will be set to the parent directory of its file
- * * if the program fails to start, it may be launched again with elevated privileges (as an administrator) if possible
+ * * the program may start as a child process if otherwise not possible
  *
  * @param arguments arguments to run the program with
  * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
@@ -70,6 +70,9 @@ fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = fut
             val dir = parentFile
             val command = ArrayList<String>()
             try {
+                if (Os.WINDOWS.isCurrent)
+                    command += "elevate.exe"   // use elevate.exe to run command
+
                 command += absoluteFile.path
                 command += arguments.asSequence().filter { it.isNotBlank() }.map { "-$it" }
 
@@ -80,26 +83,7 @@ fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = fut
                 ok<Exception>()
             } catch (e: IOException) {
                 logger.warn(e) { "Failed to launch program" }
-
-                if (Os.WINDOWS.isCurrent) {
-                    logger.warn { "Attempting to run as administrator..." }
-
-                    try {
-                        // use elevate.exe to run what we wanted
-                        command.add(0, "elevate.exe")
-                        logger.info { "Executing command=$command" }
-                        ProcessBuilder(command)
-                                .directory(dir)
-                                .start()
-
-                        ok<Exception>()
-                    } catch (e: IOException) {
-                        logger.error(e) { "Failed to launch program" }
-                        Try.error<Void, Exception>(e)
-                    }
-                } else {
-                    Try.error<Void, Exception>(e)
-                }
+                Try.error<Void, Exception>(e)
             }
         })
 

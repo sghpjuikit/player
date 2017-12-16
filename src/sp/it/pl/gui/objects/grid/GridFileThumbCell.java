@@ -119,7 +119,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 
 		thumb = new Thumbnail() {
 			@Override
-			protected Object getRepresentant() {
+			public Object getRepresentant() {
 				return getItem()==null ? null : getItem().val;
 			}
 		};

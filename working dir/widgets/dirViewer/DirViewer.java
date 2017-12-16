@@ -342,7 +342,7 @@ public class DirViewer extends ClassController {
         protected void computeGraphics() {
             super.computeGraphics();
             maintain(fitFrom, thumb.fitFrom);
-            Tooltip.install(root, appTooltipForData(() -> thumb.getFile()));
+            Tooltip.install(root, appTooltipForData(() -> thumb.getRepresentant()));
         }
 
         @Override

@@ -364,7 +364,7 @@ public class AlbumView extends ClassController {
 			name.setAlignment(Pos.CENTER);
 			thumb = new Thumbnail() {
 				@Override
-				protected MetadataGroup getRepresentant() {
+				public MetadataGroup getRepresentant() {
 					return getItem() == null ? null : getItem().items;
 				}
 			};

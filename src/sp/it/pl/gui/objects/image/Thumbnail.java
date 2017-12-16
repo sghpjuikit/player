@@ -414,8 +414,8 @@ public class Thumbnail {
 		}
 	}
 
-	/** Object for which this thumbnail displays the thumbnail. By default equivalent to {@link #getFile()} */
-	protected Object getRepresentant() {
+	/** @return object for which this thumbnail displays the thumbnail, by default equivalent to {@link #getFile()} */
+	public Object getRepresentant() {
 		return getFile();
 	}
 

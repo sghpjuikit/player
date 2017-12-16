@@ -451,7 +451,8 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 
 		protected void buildCells() {
 			needsRebuildCells = true;
-			requestLayout();
+			requestLayout();    // ui might not be ready for layout(), hence schedule it for later  // TODO: remove
+			layout();   // layout needs to be done before this method returns
 		}
 
 		@Override

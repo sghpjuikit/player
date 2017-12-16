@@ -61,6 +61,7 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
+import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.mimetype.MimeTypes
@@ -264,13 +265,13 @@ class App: Application(), Configurable<Any> {
         instanceInfo.add(File::class.java) { f, map ->
             val suffix = Util.getSuffix(f)
             val fs = FileSize(f)
-            val fsBytes = if (fs.isUnknown()) "" else " ("+String.format("%,d ", fs.inBytes()).replace(',', ' ')+"bytes)"
-            map.put("Size", fs.toString()+fsBytes)
+            map.put("File type", FileType.of(f).name)
+            map.put("Size", "" + fs + (if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else ""))
             map.put("Format", if (suffix.isEmpty()) "n/a" else suffix)
 
             val iff = ImageFileFormat.of(f.toURI())
             if (iff.isSupported) {
-                val res = getImageDim(f).map { id -> id.width.toString()+" x "+id.height }.getOr("n/a")
+                val res = getImageDim(f).map { "${it.width} x ${it.height}" }.getOr("n/a")
                 map.put("Resolution", res)
             }
         }

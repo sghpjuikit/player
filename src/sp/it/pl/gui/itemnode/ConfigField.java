@@ -134,7 +134,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 		put(KeyCode.class, KeyCodeField::new);
 		put(Configurable.class, ConfigurableField::new);
 		put(ObservableList.class, config -> Configurable.class.isAssignableFrom(((ListConfig)config).a.itemType) ? new ListFieldPaginated(config) : new ListField<>(config));
-		EffectItemNode.EFFECT_TYPES.stream().filter(et -> et.type != null).forEach(et -> put(et.type, config -> new EffectField(config, et.type)));
+		EffectItemNode.EFFECT_TYPES.stream().map(et -> et.getType()).filter(t -> t!=null).forEach(t -> put(t, config -> new EffectField(config, t)));
 	}};
 
 	/**
@@ -511,18 +511,18 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         private void showOkButton(boolean val) {
-            n.setLeft(val ? okI : null);
+            n.left.setValue(val ? okI : null);
             okI.setVisible(val);
         }
 
         private void showWarnButton(Try<?,String> value) {
-	        n.setRight(value.isError() ? warnB : null);
+	        n.right.setValue(value.isError() ? warnB : null);
 	        warnB.setVisible(value.isError());
 	        warnTooltip.setText(value.map(v -> "").getAny());
         }
 
         private void showWarnButton(boolean val) {
-            n.setRight(val ? warnB : null);
+            n.right.setValue(val ? warnB : null);
             warnB.setVisible(val);
         }
 
@@ -843,7 +843,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private FontField(Config<Font> c) {
             super(c);
             refreshItem();
-            txtF.setOnItemChange((ov,nv) -> apply(false));
+            txtF.setOnValueChange((ov, nv) -> apply(false));
         }
 
         @Override public Control getControl() {
@@ -877,7 +877,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 	        });
 
             if (isObservable) v.addListener((o,ov,nv) -> editor.setValue(nv));
-            editor.setOnItemChange((ov,nv) -> apply(false));
+            editor.setOnValueChange((ov, nv) -> apply(false));
         }
 
         @Override
@@ -900,11 +900,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         private final EffectItemNode editor;
 
-        public EffectField(Config<Effect> c, Class<? extends Effect> effect_type) {
+        public EffectField(Config<Effect> c, Class<? extends Effect> effectType) {
             super(c);
-            editor = new EffectItemNode(effect_type);
+            editor = new EffectItemNode(effectType);
             refreshItem();
-            editor.setOnItemChange((ov,nv) -> apply(false));
+            editor.setOnValueChange((ov, nv) -> apply(false));
         }
 
         @Override public Control getControl() {

@@ -1,5 +1,5 @@
 /*
- * Impl based on ControlsFX
+ * Implementation based on ControlsFX
  *
  * Copyright (c) 2013, 2015 ControlsFX
  * All rights reserved.
@@ -42,24 +42,24 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 	private static final PseudoClass HAS_LEFT_NODE = PseudoClass.getPseudoClass("left-node-visible");
 	private static final PseudoClass HAS_RIGHT_NODE = PseudoClass.getPseudoClass("right-node-visible");
 
-	private Node left, right;
-	private StackPane leftPane, rightPane;
+	private Node left;
+	private StackPane leftPane;
+	private Node right;
+	private StackPane rightPane;
+	private final DecoratedTextField control;
 
 	public DecoratedTextFieldSkin(DecoratedTextField control) {
 		super(control);
 
+		this.control = control;
+		registerChangeListener(control.left, e -> updateChildren());
+		registerChangeListener(control.right, e -> updateChildren());
+		registerChangeListener(control.focusedProperty(), e -> updateChildren());
 		updateChildren();
-
-		registerChangeListener(control.leftProperty(), e -> updateChildren());
-		registerChangeListener(control.rightProperty(), e -> updateChildren());
-	}
-
-	public DecoratedTextField getSkinnableNode() {
-		return (DecoratedTextField) getSkinnable();
 	}
 
 	private void updateChildren() {
-		Node newLeft = getSkinnableNode().leftProperty().get();
+		Node newLeft = control.left.get();
 		if (newLeft!=null) {
 			getChildren().remove(leftPane);
 			leftPane = new StackPane(newLeft);
@@ -69,7 +69,7 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 			left = newLeft;
 		}
 
-		Node newRight = getSkinnableNode().rightProperty().get();
+		Node newRight = control.right.get();
 		if (newRight!=null) {
 			getChildren().remove(rightPane);
 			rightPane = new StackPane(newRight);
@@ -79,9 +79,9 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 			right = newRight;
 		}
 
-		getSkinnable().pseudoClassStateChanged(HAS_LEFT_NODE, left!=null);
-		getSkinnable().pseudoClassStateChanged(HAS_RIGHT_NODE, right!=null);
-		getSkinnable().pseudoClassStateChanged(HAS_NO_SIDE_NODE, left==null && right==null);
+		control.pseudoClassStateChanged(HAS_LEFT_NODE, left!=null);
+		control.pseudoClassStateChanged(HAS_RIGHT_NODE, right!=null);
+		control.pseudoClassStateChanged(HAS_NO_SIDE_NODE, left==null && right==null);
 	}
 
 	@Override
@@ -122,7 +122,7 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 		final double leftWidth = leftPane==null ? 0.0 : snapSizeX(leftPane.prefWidth(h));
 		final double rightWidth = rightPane==null ? 0.0 : snapSizeX(rightPane.prefWidth(h));
 
-		return pw + leftWidth + rightWidth + leftInset + rightInset;
+		return pw + leftWidth + rightWidth;
 	}
 
 	@Override

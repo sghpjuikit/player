@@ -635,7 +635,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             c = control;
             f = field;
 
-            c.getStyleClass().setAll(TextFieldItemNode.STYLE_CLASS());
+            c.getStyleClass().setAll(TextFieldItemNode.textFieldStyleClass());
             c.setMinSize(0, 0);
             c.setPrefSize(-1, -1);
 
@@ -648,9 +648,9 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                     boolean b = v.isValid();
                     l.setVisible(!b);
                     if (b) {
-                    	if (cf.getRight()==l) cf.setRight(new Region());
+                    	if (cf.right.getValue()==l) cf.right.setValue(new Region());
                     } else {
-                    	if (cf.getRight()!=l) cf.setRight(l);
+                    	if (cf.right.getValue()!=l) cf.right.setValue(l);
                     }
                 });
             }

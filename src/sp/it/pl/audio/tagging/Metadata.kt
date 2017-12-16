@@ -668,7 +668,7 @@ class Metadata: Item, Serializable {
                         try {
                             Chapter(it)
                         } catch (e: IllegalArgumentException) {
-                            logger().error(e) { "String '$it' is not a valid chapter, chapters=$custom2, uri=$uri" }
+                            logger.error(e) { "String '$it' is not a valid chapter, chapters=$custom2, uri=$uri" }
                             null
                         }
                     }
@@ -791,14 +791,14 @@ class Metadata: Item, Serializable {
                 try {
                     val s = tag.getFirst(f) // can throw UnsupportedOperationException
                     if (s==null) {
-                        logger().warn { "Jaudiotagger returned null for $f of $id" }
+                        logger.warn { "Jaudiotagger returned null for $f of $id" }
                     }
                     s
                 } catch (e: UnsupportedOperationException) {
-                    logger().warn { "Jaudiotagger failed to read $f of $id" }
+                    logger.warn { "Jaudiotagger failed to read $f of $id" }
                     ""
                 } catch (e: KeyNotFoundException) {
-                    logger().warn(e) { "Jaudiotagger failed to read $f of $id" }
+                    logger.warn(e) { "Jaudiotagger failed to read $f of $id" }
                     ""
                 }
 

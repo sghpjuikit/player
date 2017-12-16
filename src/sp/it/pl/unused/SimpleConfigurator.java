@@ -106,7 +106,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
 				.forEach(f -> {
 					ConfigField<T> cf = ConfigField.create(f);                  // create
 					configFields.add(cf);                                       // add
-					fields.add(cf.createLabel(), 0, configFields.size() - 1);  // populate
+					fields.add(cf.createLabel(), 0, configFields.size() - 1);   // populate
 					fields.add(cf.getNode(), 1, configFields.size() - 1);
 				});
 		Consumer<Try<T,String>> observer = v -> validate();

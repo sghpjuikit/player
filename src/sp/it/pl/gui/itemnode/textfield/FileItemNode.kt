@@ -23,10 +23,10 @@ private typealias IconFA = FontAwesomeIcon
 class FileItemNode: TextFieldItemNode<File> {
     private val type: V<FileType>
 
-    constructor(constraint: FileActor): super({ f -> APP.converter.general.toS(f) }) {
+    constructor(constraint: FileActor): super({ APP.converter.general.toS(it) }) {
         type = V(if (constraint==FileActor.FILE) Type.FILE else Type.DIRECTORY)
         if (constraint==FileActor.ANY) {
-            val b2 = getRight() as ArrowDialogButton
+            val b2 = right.value as ArrowDialogButton
             val b1 = Icon(null, 7.0).apply {
                 tooltip("Switch mode between file and directory")
                 setOnMouseClicked { type.setNextValue() }

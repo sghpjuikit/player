@@ -220,7 +220,7 @@ class App: Application(), Configurable<Any> {
         // Forbid multiple application instances, instead notify the 1st instance of 2nd (this one)
         // trying to run and this instance's run parameters and close prematurely
         if (getInstances()>1) {
-            logger().info { "App will close prematurely: Multiple app instances detected" }
+            logger.info { "App will close prematurely: Multiple app instances detected" }
             appCommunicator.fireNewInstanceEvent(fetchParameters())
             closedPrematurely = true
             return
@@ -307,7 +307,7 @@ class App: Application(), Configurable<Any> {
 
     override fun start(primaryStage: Stage) {
         if (closedPrematurely) {
-            logger().info { "Application closing prematurely" }
+            logger.info { "Application closing prematurely" }
             close()
             return
         }
@@ -364,7 +364,7 @@ class App: Application(), Configurable<Any> {
 
         }
                 .ifError {
-                    logger().error(it) { "Application failed to start" }
+                    logger.error(it) { "Application failed to start" }
                     messagePane.show("Application did not start successfully.")
                 }
                 .ifOk {

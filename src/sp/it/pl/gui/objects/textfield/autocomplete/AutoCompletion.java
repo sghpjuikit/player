@@ -1,5 +1,5 @@
 /*
- * Impl based on ControlsFX
+ * Implementation based on ControlsFX
  *
  * Copyright (c) 2014, 2015, ControlsFX
  * All rights reserved.

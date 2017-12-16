@@ -34,7 +34,7 @@ class CoreLogging(val loggingConfigurationFile: File, val loggingOutputDir: File
         StatusPrinter.printInCaseOfErrorsOrWarnings(lc)
 
         // log uncaught thread termination exceptions
-        Thread.setDefaultUncaughtExceptionHandler { _, e -> logger().error(e) { "Uncaught exception" } }
+        Thread.setDefaultUncaughtExceptionHandler { _, e -> logger.error(e) { "Uncaught exception" } }
     }
 
     fun changeLogBackLoggerAppenderLevel(appenderName: String, level: Level) {

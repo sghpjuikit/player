@@ -1,5 +1,5 @@
 /*
- * Impl based on ControlsFX
+ * Implementation based on ControlsFX
  *
  * Copyright (c) 2013, 2015, ControlsFX
  * All rights reserved.
@@ -27,75 +27,25 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package sp.it.pl.gui.objects.textfield;
+package sp.it.pl.gui.objects.textfield
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.Node;
-import javafx.scene.control.Skin;
-import javafx.scene.control.TextField;
+import javafx.beans.property.ObjectProperty
+import javafx.beans.property.SimpleObjectProperty
+import javafx.scene.Node
+import javafx.scene.control.TextField
 
-/**
- * {@link TextField}, which can be decorated with nodes inside on the left an right.
- */
-public class DecoratedTextField extends TextField {
+/** [TextField], which can be decorated with nodes inside on the left an right. */
+open class DecoratedTextField: TextField() {
 
-	public final ObjectProperty<Node> left = new SimpleObjectProperty<>(this, "left");
-	public final ObjectProperty<Node> right = new SimpleObjectProperty<>(this, "right");
+    @JvmField val left: ObjectProperty<Node?> = SimpleObjectProperty(null)
+    @JvmField val right: ObjectProperty<Node?> = SimpleObjectProperty(null)
 
-	/**
-	 * Instantiates a default CustomTextField.
-	 */
-	public DecoratedTextField() {
-		getStyleClass().add("custom-text-field");
-		setMinWidth(TextField.USE_PREF_SIZE);
-		setMaxWidth(TextField.USE_PREF_SIZE);
-	}
+    init {
+        styleClass += "custom-text-field"
+        minWidth = TextField.USE_PREF_SIZE
+        maxWidth = TextField.USE_PREF_SIZE
+    }
 
-	/**
-	 * @see #left
-	 */
-	public final ObjectProperty<Node> leftProperty() {
-		return left;
-	}
+    override fun createDefaultSkin() = DecoratedTextFieldSkin(this)
 
-	/**
-	 * @see #left
-	 */
-	public final Node getLeft() {
-		return left.get();
-	}
-
-	/**
-	 * @see #left
-	 */
-	public final void setLeft(Node value) {
-		left.set(value);
-	}
-
-	/**
-	 * @see #right
-	 */
-	public final ObjectProperty<Node> rightProperty() {
-		return right;
-	}
-
-	/**
-	 * @see #right
-	 */
-	public final Node getRight() {
-		return right.get();
-	}
-
-	/**
-	 * @see #right
-	 */
-	public final void setRight(Node value) {
-		right.set(value);
-	}
-
-	@Override
-	protected Skin<?> createDefaultSkin() {
-		return new DecoratedTextFieldSkin(this);
-	}
 }

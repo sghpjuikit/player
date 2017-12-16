@@ -25,7 +25,7 @@ class MoodItemNode: TextFieldItemNode<String>({ APP.converter.general.toS(it) })
         }
     }
 
-    internal override fun onDialogAction() {
+    override fun onDialogAction() {
         val p = PopOver<Node>().apply {
             detachable.set(false)
             arrowSize = 0.0

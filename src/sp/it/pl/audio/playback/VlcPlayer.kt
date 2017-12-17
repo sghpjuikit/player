@@ -73,7 +73,7 @@ class VlcPlayer: GeneralPlayer.Play {
         d += state.balance.sync { }
         d += state.rate.sync { p.rate = it.toFloat() }
 
-        p.prepareMedia(SimpleMedia(item.getFile().absolutePath))
+        p.prepareMedia(SimpleMedia(item.getFile().absolutePath))    // TODO: use URI instead
         p.addMediaPlayerEventListener(object: MediaPlayerEventAdapter() {
 
             override fun lengthChanged(mediaPlayer: MediaPlayer?, newLength: Long) {

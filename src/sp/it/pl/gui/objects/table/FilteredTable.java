@@ -393,8 +393,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 				if (isMatch) {
 					scrollToCenter(i);
 					updateSearchStyles();
-					getSelectionModel().clearSelection();
-					getSelectionModel().select(i);
+					getSelectionModel().clearAndSelect(i);
 					break;
 				}
 			}

@@ -679,12 +679,12 @@ public class MetadataWriter extends Item {
 //            System.out.println("AFTER");
 //            tag.getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
 			fields_changed++;
-		} catch (KeyNotFoundException ex) {
-			LOGGER.info(field.toString() + " field not found.");
-		} catch (FieldDataInvalidException ex) {
-			LOGGER.info("Invalid " + field.toString() + " field data.");
-		} catch (UnsupportedOperationException ex) {
-			LOGGER.info("Unsupported operation.");
+		} catch (KeyNotFoundException e) {
+			LOGGER.info(field + " field not found", e);
+		} catch (FieldDataInvalidException e) {
+			LOGGER.info("Invalid " + field + " field data", e);
+		} catch (UnsupportedOperationException e) {
+			LOGGER.info("Unsupported operation", e);
 		}
 	}
 

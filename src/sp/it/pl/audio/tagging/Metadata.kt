@@ -730,7 +730,7 @@ class Metadata: Item, Serializable {
     override fun hashCode(): Int = 79*7+Objects.hashCode(this.id)
 
     /**
-     * Compares with other metadata by attributes in the exact order:
+     * Compares by attributes in the exact order:
      *  * artist
      *  * album
      *  * disc number

@@ -1,6 +1,7 @@
 package sp.it.pl.layout.widget;
 
 import java.io.File;
+import java.lang.ProcessBuilder.Redirect;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -24,6 +25,7 @@ import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.widget.controller.Controller;
 import sp.it.pl.layout.widget.feature.Feature;
+import sp.it.pl.main.AppUtil;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.collections.mapset.MapSet;
@@ -46,6 +48,7 @@ import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.file.Util.getName;
 import static sp.it.pl.util.file.Util.readFileLines;
+import static sp.it.pl.util.file.UtilKt.childOf;
 import static sp.it.pl.util.file.UtilKt.isAnyParentOf;
 import static sp.it.pl.util.file.UtilKt.isParentOf;
 import static sp.it.pl.util.file.UtilKt.listChildren;
@@ -197,23 +200,24 @@ public final class WidgetManager {
 		private final EventReducer<Void> scheduleRefresh = EventReducer.toLast(500,
 			() -> runFX(this::registerExternalFactory));
 		private final EventReducer<Void> scheduleCompilation = EventReducer.toLast(250,
-			() -> runNew(() -> compile(getSrcFiles(),getLibFiles()).ifError(userErrorLogger)));
+			() -> runNew(() -> compile().ifError(userErrorLogger)));
+
 
 		WidgetDir(String name, File dir) {
 			widgetName = name;
 			widgetDir = dir;
-			skinFile = new File(widgetDir,"skin.css");
+			skinFile = new File(widgetDir, "skin.css");
 		}
 
 		void handleResourceChange(Kind<Path> type, File file) {
 			if (type==ENTRY_CREATE || type==ENTRY_MODIFY) {
 				if (file.getPath().endsWith(".class")) {
 					// register factory on class file change
-					LOGGER.info("Widget={} class file changed {}", widgetName, type);
+					LOGGER.info("Widget={} class file={} changed {}", widgetName, file.getName(), type);
 					scheduleRefresh.push(null);
 				} else if (file.equals(skinFile)) {
 					// reload skin on skin file change
-					LOGGER.info("Widget={} skin file changed {}", widgetName, type);
+					LOGGER.info("Widget={} skin file={} changed {}", widgetName, file.getName(), type);
 					runFX(() ->
 						findAll(OPEN).filter(w -> w.getName().equals(widgetName))
 							.forEach(w -> {
@@ -229,7 +233,7 @@ public final class WidgetManager {
 					);
 				} else {
 					// recompile on source code change
-					LOGGER.info("Widget {} source file changed {}", file,type);
+					LOGGER.info("Widget {} source file={} changed {}", widgetName, file.getName(), type);
 					scheduleCompilation.push(null);
 				}
 			}
@@ -244,8 +248,10 @@ public final class WidgetManager {
 		void registerExternalFactory() {
 			LOGGER.info("Registering widget={} factory", widgetName);
 
+			List<File> srcFiles = getSrcFiles().collect(toList());
+			boolean isKotlin = srcFiles.stream().anyMatch(f -> f.getPath().endsWith("kt"));
 			File classFile = new File(widgetDir, widgetName + ".class");
-			File srcFile = new File(widgetDir, widgetName + ".java");
+			File srcFile = new File(widgetDir, widgetName + (isKotlin ? ".kt" : ".java"));
 
 			// Source file is available if exists
 			// Class file is available if exists and source file does not. But if both do, class file must
@@ -268,23 +274,32 @@ public final class WidgetManager {
 				// provide all factories before widgets start loading so we compile on this (ui/fx)
 				// thread. This blocks and delays startup, but it is fine - it is necessary
 				if (initialized)
-					runNew(() -> compile(getSrcFiles(),getLibFiles()));
+					runNew(() -> compile());
 				else {
 					// File monitoring is not and must not be running yet (as it creates factory
 					// asynchronously). We do it manually.
 					// TODO: use assert
-					compile(getSrcFiles(),getLibFiles()).ifOk(v -> registerExternalFactory());
+					compile().ifOk(v -> registerExternalFactory());
 				}
 			}
 		}
 
 		Stream<File> getSrcFiles() {
-			return listChildren(widgetDir).filter(f -> f.getPath().endsWith(".java"));
+			return listChildren(widgetDir).filter(f -> f.getPath().endsWith(".java") || f.getPath().endsWith(".kt"));
 		}
 
 		Stream<File> getLibFiles() {
 			return stream(listChildren(widgetDir), listChildren(widgetDir.getParentFile()))
 					   .filter(f -> f.getPath().endsWith(".jar"));
+		}
+
+		private Try<Void,String> compile() {
+			LOGGER.info("Compiling widget={}", widgetName);
+
+			List<File> srcFiles = getSrcFiles().collect(toList());
+			boolean isKotlin = srcFiles.stream().anyMatch(f -> f.getPath().endsWith("kt"));
+			if (isKotlin) return compileKotlin(srcFiles.stream(), getLibFiles());
+			else return compileJava(srcFiles.stream(), getLibFiles());
 		}
 
 		// TODO: collect compiler error output & clean-up
@@ -294,18 +309,16 @@ public final class WidgetManager {
 		 *
 		 * @param srcFiles .java files to compile
 		 */
-		private Try<Void,String> compile(Stream<File> srcFiles, Stream<File> libFiles) {
-			List<File> ffs = srcFiles.collect(toList());
+		private Try<Void,String> compileJava(Stream<File> srcFiles, Stream<File> libFiles) {
 			String classpath = System.getProperty("java.class.path");
 			Stream<String> options = stream(                            // Command-line options
 				// Compiler defaults to system encoding, we need consistent system independent encoding, such as UTF-8
-				"-encoding",APP.encoding.name(),
+				"-encoding", APP.encoding.name(),
 				// Includes information about each class loaded and each source file compiled.
 				// "-verbose"
 				"-cp", classpath + ";" + libFiles.map(File::getAbsolutePath).collect(joining(";"))
 			);
-	//        Stream<String> sourceFiles = srcFiles.map(File::getPath);   // One or more source files to be compiled
-			Stream<String> sourceFiles = ffs.stream().map(File::getPath);   // One or more source files to be compiled
+			Stream<String> sourceFiles = srcFiles.map(File::getPath);   // One or more source files to be compiled
 			Stream<String> classes = stream();   // One or more classes to be processed for annotations
 			Stream<String> argFiles = stream();   // One or more files that lists options and source files. The -J options are not allowed in these files
 			String[] arguments = stream(options,sourceFiles,classes,argFiles).flatMap(s -> s).toArray(String[]::new);
@@ -313,56 +326,7 @@ public final class WidgetManager {
 			LOGGER.info("Compiling widget={} with arguments: {} ", widgetName, toS(", ", arguments));
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
-	//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-	////        compiler.getStandardFileManager(diagnostics, Locale.getDefault(), APP.encoding);
-	//        compiler.getStandardFileManager(diagnostics, null, null);
 			int success = compiler.run(null, null, null, arguments);
-
-	//	    StringBuilder sb = new StringBuilder();
-	//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-	////        compiler.getStandardFileManager(diagnostics, Locale.getDefault(), APP.encoding);
-	//        compiler.getStandardFileManager(diagnostics, null, null);
-	//        int success = compiler.run(null, new OutputStream() {
-	//	        @Override
-	//	        public void write(int b) throws IOException {
-	//		        throw new AssertionError("Operation not allowed for performance reasons.");
-	//	        }
-	//
-	//	        @Override
-	//	        public void write(byte[] b, int off, int len) throws IOException {
-	//	        	sb.append(new String(b));
-	//	        }
-	//
-	//            }, null, arguments);
-
-
-			//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-			//	    StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
-			//	    Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromStrings(map(ffs, File::getPath));
-			//	    JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, null, null, compilationUnits);
-			//	    boolean isSuccess = task.call();
-
-	//	    StringBuilder sb = new StringBuilder();
-	//	    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-	//	    StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
-	//	    Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromStrings(map(ffs, File::getPath));
-	//	    JavaCompiler.CompilationTask task = compiler.getTask(new Writer() {
-	//		    @Override
-	//		    public void write(@NotNull char[] cbuf, int off, int len) throws IOException {
-	//			    sb.append(cbuf);
-	//		    }
-	//
-	//		    @Override
-	//		    public void flush() throws IOException {
-	//
-	//		    }
-	//
-	//		    @Override
-	//		    public void close() throws IOException {
-	//
-	//		    }
-	//	    }, fileManager, diagnostics, null, null, compilationUnits);
-	//	    boolean isSuccess = task.call();
 
 			boolean isSuccess = success==0;
 			if (isSuccess) LOGGER.info("Compilation succeeded");
@@ -370,20 +334,40 @@ public final class WidgetManager {
 			return isSuccess
 				? Try.ok()
 				: Try.error("Compilation failed with errors");
-	//			: Try.error(sb.toString());
-	//			: Try.error("Compilation failed with errors:\n\n" + stream(diagnostics.getDiagnostics())
-	//					.map(d -> "" +
-	//						"Kind: " + d.getKind() + "\n" +
-	//						"Code: " + d.getCode() + "\n" +
-	//						"Message :" + d.getMessage(null) + "\n" +
-	//						"Source :" + d.getSource().getName() + "\n" +
-	//						"Column number :" + d.getColumnNumber() + "\n" +
-	//						"Position start :" + d.getStartPosition() + "\n" +
-	//						"Position :" + d.getPosition() + "\n" +
-	//						"Position end :" + d.getEndPosition() + "\n" +
-	//						"Line: " + d.getLineNumber() + "\n"
-	//					)
-	//					.joining("\n\n"));
+		}
+
+		private Try<Void,String> compileKotlin(Stream<File> srcFiles, Stream<File> libFiles) {
+			try {
+				File srcFile = srcFiles.findAny().get();
+				String classpath = System.getProperty("java.class.path");
+				List<String> command = new ArrayList<>();
+				command.add(childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin", "kotlinc.bat").getAbsolutePath());
+				command.add(srcFile.getAbsolutePath());
+				command.add("-d");
+				command.add(AppUtil.APP.DIR_WIDGETS.getAbsolutePath());
+				command.add("-jdk-home");
+				command.add(childOf(AppUtil.APP.DIR_APP, "jre").getAbsolutePath());
+				command.add("-jvm-target");
+				command.add("1.8");
+				command.add("-cp");
+				command.add(classpath + ";" + libFiles.map(File::getAbsolutePath).collect(joining(";")));
+
+				int success = new ProcessBuilder(command)
+					.directory(childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin"))
+					.redirectOutput(Redirect.INHERIT)
+					.redirectError(Redirect.INHERIT)
+					.start()
+					.waitFor();
+
+				boolean isSuccess = success==0;
+				if (isSuccess) LOGGER.info("Compilation succeeded");
+				else LOGGER.error("Compilation failed");
+				return isSuccess
+					? Try.ok()
+					: Try.error("Compilation failed with errors");
+			} catch (Exception e ) {
+				return Try.error(e.getMessage());
+			}
 		}
 	}
 

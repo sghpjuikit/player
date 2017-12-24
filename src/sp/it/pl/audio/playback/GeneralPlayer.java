@@ -78,7 +78,7 @@ public class GeneralPlayer {
 	}
 
 	private Play computePlayer(Item i) {
-		return new VlcPlayer();
+		return p!=null ? p : new VlcPlayer();
 	}
 
 	public void resume() {

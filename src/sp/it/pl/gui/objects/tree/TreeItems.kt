@@ -2,7 +2,6 @@ package sp.it.pl.gui.objects.tree
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 import javafx.collections.ObservableList
-import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.control.TreeCell
@@ -115,7 +114,6 @@ fun treeApp(): SimpleTreeItem<Any> {
 fun <T: Any> buildTreeView() = TreeView<T>().apply { initTreeView(this) }
 
 fun <T: Any> initTreeView(tree: TreeView<T>) = tree.apply {
-    onDragDetected = EventHandler{  e -> }
     setOnDragDetected { e ->
         if (e.button!=MouseButton.PRIMARY) return@setOnDragDetected
         if (selectionModel.isEmpty) return@setOnDragDetected
@@ -130,6 +128,7 @@ fun <T: Any> initTreeView(tree: TreeView<T>) = tree.apply {
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
     init {
         setOnMouseClicked { doOnClick(it) }

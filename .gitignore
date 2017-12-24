@@ -1,6 +1,8 @@
 # Project
 out/
 private/
+working dir/jre
+working dir/kotlinc
 working dir/log/*zip
 working dir/log/*log
 working dir/user

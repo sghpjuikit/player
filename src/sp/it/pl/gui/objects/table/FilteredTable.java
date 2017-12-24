@@ -55,9 +55,10 @@ import static sp.it.pl.util.dev.Util.noØ;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.filter;
 import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.menuItem;
-import static sp.it.pl.util.reactive.Util.sizeOf;
+import static sp.it.pl.util.reactive.Util.syncSize;
 
 /**
  * Table with a search filter header that supports filtering with provided gui.
@@ -99,10 +100,10 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		items_info.bind(this);
 
 		// visually hint user menus are empty
-		sizeOf(menuAdd.getItems(), size -> menuAdd.setDisable(size==0));
-		sizeOf(menuRemove.getItems(), size -> menuRemove.setDisable(size==0));
-		sizeOf(menuSelected.getItems(), size -> menuSelected.setDisable(size==0));
-		sizeOf(menuOrder.getItems(), size -> menuOrder.setDisable(size==0));
+		syncSize(menuAdd.getItems(), consumer(size -> menuAdd.setDisable(size==0)));
+		syncSize(menuRemove.getItems(), consumer(size -> menuRemove.setDisable(size==0)));
+		syncSize(menuSelected.getItems(), consumer(size -> menuSelected.setDisable(size==0)));
+		syncSize(menuOrder.getItems(), consumer(size -> menuOrder.setDisable(size==0)));
 
 		// searching
 		search.setColumn(mainField);

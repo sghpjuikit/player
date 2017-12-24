@@ -44,6 +44,35 @@ infix fun ObservableValue<Boolean>.syncTrue(u: (Boolean) -> Unit): Subscription 
 /** Sets a value consumer to be fired if the value is false immediately and on every value change. */
 infix fun ObservableValue<Boolean>.syncFalse(u: (Boolean) -> Unit): Subscription = maintain(Consumer { if (!it) u(it) })
 
+/** Sets a size consumer to be fired immediatelly and on every list size change. */
+infix fun <T> ObservableList<T>.syncSize(action: (Int) -> Unit): Subscription {
+    var s = -1
+    val l = ListChangeListener<T> { _ ->
+        val os = s
+        val ns = size
+        if (os!=ns) action(ns)
+        s = ns
+    }
+    l.onChanged(null)
+    addListener(l)
+    return Subscription { removeListener(l) }
+}
+
+/** Sets a size consumer to be fired on every list size change. */
+infix fun <T> ObservableList<T>.attachSize(action: (Int) -> Unit): Subscription {
+    var s = size
+    val l = ListChangeListener<T> { _ ->
+        val os = s
+        val ns = size
+        if (os!=ns) action(ns)
+        s = ns
+    }
+    l.onChanged(null)
+    addListener(l)
+    return Subscription { removeListener(l) }
+}
+
+
 fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, u: Consumer<in V>): Subscription {
     u(m(this.value))
     return EventStreams.valuesOf(this).map(m).subscribe(u)
@@ -80,13 +109,6 @@ infix fun <O> ObservableValue<O>.maintain(w: WritableValue<in O>): Subscription 
     val l = ChangeListener<O> { _, _, nv -> w.value = nv }
     this.addListener(l)
     return Subscription { this.removeListener(l) }
-}
-
-fun <T> sizeOf(list: ObservableList<T>, action: Consumer<in Int>): Subscription {
-    val l = ListChangeListener<T> { _ -> action(list.size) }
-    l.onChanged(null)
-    list.addListener(l)
-    return Subscription { list.removeListener(l) }
 }
 
 /**

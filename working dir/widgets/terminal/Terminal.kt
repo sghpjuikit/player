@@ -16,12 +16,11 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.graphics.Util.setAnchors
 import sp.it.pl.util.graphics.drag.Placeholder
 import sp.it.pl.util.graphics.setAnchors
-import sp.it.pl.util.reactive.sizeOf
+import sp.it.pl.util.reactive.syncSize
 import sp.it.pl.util.system.Os
 import sp.it.pl.util.validation.Constraint.FileActor.FILE
 import sp.it.pl.util.validation.Constraint.FileType
 import java.io.File
-import java.util.function.Consumer
 
 @Widget.Info(
         author = "Martin Polakovic",
@@ -63,11 +62,11 @@ class Terminal: ClassController() {
         tabPane.setAnchors(0.0)
         setAnchors(tabPane, 0.0)
 
-        d(sizeOf(tabPane.tabs, Consumer {
+        onClose += tabPane.tabs syncSize {
             tabPane.isVisible = it!=0
             placeholder.show(this, it==0)
-        }))
-        d { closeAllTabs() }
+        }
+        onClose += { closeAllTabs() }
     }
 
     override fun refresh() {
@@ -103,6 +102,7 @@ class Terminal: ClassController() {
             if (e.code==KeyCode.W) {
                 closeActiveTab()
                 e.consume()
+
             }
         }
     }

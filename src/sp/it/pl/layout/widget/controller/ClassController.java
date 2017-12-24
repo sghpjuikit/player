@@ -1,8 +1,6 @@
 package sp.it.pl.layout.widget.controller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javafx.scene.layout.AnchorPane;
 import org.reactfx.Subscription;
@@ -12,6 +10,7 @@ import sp.it.pl.layout.widget.controller.io.Inputs;
 import sp.it.pl.layout.widget.controller.io.Outputs;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.dev.Dependency;
+import sp.it.pl.util.reactive.Disposer;
 
 abstract public class ClassController extends AnchorPane implements Controller<Widget<?>> {
 
@@ -20,7 +19,7 @@ abstract public class ClassController extends AnchorPane implements Controller<W
 	public final Outputs outputs = new Outputs();
 	public final Inputs inputs = new Inputs();
 	private final HashMap<String,Config<Object>> configs = new HashMap<>();
-	private final List<Subscription> disposables = new ArrayList<>();
+	public final Disposer onClose = new Disposer();
 
 	@Override
 	public Widget<?> getWidget() {
@@ -33,7 +32,7 @@ abstract public class ClassController extends AnchorPane implements Controller<W
 
 	@Override
 	public final void close() {
-		disposables.forEach(Subscription::unsubscribe);
+		onClose.invoke();
 		onClose();
 		inputs.getInputs().forEach(Input::unbindAll);
 	}
@@ -48,7 +47,7 @@ abstract public class ClassController extends AnchorPane implements Controller<W
 	 * time.
 	 */
 	public void d(Subscription d) {
-		disposables.add(d);
+		onClose.plusAssign(d);
 	}
 
 	/** {@inheritDoc} */

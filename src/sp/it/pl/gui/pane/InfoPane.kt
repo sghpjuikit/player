@@ -75,7 +75,9 @@ class InfoPane: OverlayPane<Void>() {
                     // property rows
                     for (n in it.value) {
                         i++
-                        val name = if (n.name.startsWith(it.key)) n.name.substring(it.key.length+1) else n.name
+
+                        val hasGroupAsPrefix = n.name.length > it.key.length && n.name.startsWith(it.key)
+                        val name = if (hasGroupAsPrefix) n.name.substring(it.key.length+1) else n.name
                         val value = n.value.fixASCII()
 
                         val nameL = Label(name)

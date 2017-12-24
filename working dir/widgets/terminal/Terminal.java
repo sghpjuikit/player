@@ -85,16 +85,17 @@ public class Terminal extends ClassController {
 
 	private void handleKey(KeyEvent e) {
 		if (e.getEventType() == KeyEvent.KEY_PRESSED && e.isShortcutDown()) {
-			if (e.getCode() == KeyCode.T)
+			if (e.getCode() == KeyCode.T) {
 				openTerminal();
-
-			if (e.getCode() == KeyCode.W)
+				e.consume();
+			}
+			if (e.getCode() == KeyCode.W) {
 				stream(tabPane.getTabs())
 					.filter(TerminalTab.class::isInstance).map(TerminalTab.class::cast)
 					.filter(TerminalTab::isSelected).findFirst()
 					.ifPresent(TerminalTab::closeTerminal);
-
-			e.consume();
+				e.consume();
+			}
 		}
 	}
 

@@ -66,6 +66,7 @@ public class Placeholder extends StackPane {
 				resizeRelocate(b.getMinX(), b.getMinY(), w, h);
 			});
 			toFront();
+			requestFocus();
 		}
 	}
 

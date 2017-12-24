@@ -20,6 +20,7 @@ import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.async.future.Fut;
+import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.image.ImageSize;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static sp.it.pl.main.AppUtil.APP;
@@ -53,7 +54,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	}
 
 	protected String computeName(Item item) {
-		return getNameWithoutExtensionOrRoot(item.val);
+		return item.valType==FileType.DIRECTORY ? item.val.getName() : getNameWithoutExtensionOrRoot(item.val);
 	}
 
 	protected AnimateOn computeAnimateOn() {

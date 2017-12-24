@@ -306,12 +306,14 @@ public class DirViewer extends ClassController {
     }
 
     private Comparator<Item> buildSortComparator() {
-        Sort sortHetero = sort_file.get().sort,     // sorts Files to files and directories
-	         sortHomo = sort.get();                 // sorts each group separately
         FileField<?> field = sortBy.get();          // pre-compute, do not compute in comparator
-        Comparator<Item> cmpHetero = sortHetero.of(by(i -> i.valType)),
-                         cmpHomo = by(i -> i.val, field.comparator(c -> nullsLast(sortHomo.of(c))));
-        return cmpHetero.thenComparing(cmpHomo);
+        Sort sortHetero = sort_file.get().sort;     // sorts Files to files and directories
+        Sort sortHomo = sort.get();                 // sorts each group separately
+        Comparator<Item> cmpHetero = sortHetero.of(by(i -> i.valType));
+        Comparator<Item> cmpHomo = by(i -> i.val, field.comparator(c -> nullsLast(sortHomo.of(c))));
+        return cmpHetero
+            .thenComparing(cmpHomo)
+            .thenComparing(by(i -> i.val.getPath()));
     }
 
     private boolean applyFilter(File f) {

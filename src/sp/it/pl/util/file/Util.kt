@@ -30,6 +30,7 @@ val File.nameOrRoot: String
  *
  * @return name of the file without suffix
  */
+// TODO: does not work for directories with '.'
 val File.nameWithoutExtensionOrRoot: String
     get() = nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
 
@@ -97,6 +98,30 @@ fun URI.toFileOrNull() = try {
 
 enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>) {
     NONE({ it.stream().distinct() }),
-    FLATTEN_TOP_LVL({ it.stream().distinct().flatMap { it.listChildren() } }),
-    FLATTEN_ALL({ it.stream().distinct().flatMap { it.walk().asStream().filter(File::isFile) } });
+    DIRS({
+        it.asSequence().distinct()
+                .flatMap { sequenceOf(it).filter { it.isFile } + it.walk().filter { it.isDirectory } }
+                .asStream()
+    }),
+    TOP_LVL({ it.stream().distinct().flatMap { it.listChildren() } }),
+    TOP_LVL_AND_DIRS({
+        it.stream().distinct()
+                .flatMap { it.listChildren() }
+                .flatMap { (sequenceOf(it).filter { it.isFile } + it.walk().filter { it.isDirectory }).asStream() }
+    }),
+    TOP_LVL_AND_DIRS_AND_WITH_COVER({
+        it.stream().distinct()
+                .flatMap { it.listChildren() }
+                .flatMap { it.walk().filter { it.isDirectory || it.hasCover() }.asStream() }
+    }),
+    ALL({ it.stream().distinct().flatMap { it.walk().asStream().filter(File::isFile) } });
+}
+
+// TODO: optimize
+private fun File.hasCover(): Boolean {
+    val p = parentFile
+    val n = nameWithoutExtension
+    return ImageFileFormat.values().asSequence()
+            .filter { it.isSupported }
+            .any { p.childOf("$n.$it").exists() }
 }

@@ -36,7 +36,7 @@ import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.icon.IconInfo;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.gui.objects.popover.ScreenPos;
-import sp.it.pl.gui.objects.tree.TreeItems;
+import sp.it.pl.gui.objects.tree.TreeItemsKt;
 import sp.it.pl.gui.pane.ActionPane.FastAction;
 import sp.it.pl.gui.pane.OverlayPane;
 import sp.it.pl.layout.Component;
@@ -415,7 +415,7 @@ public class AppActions {
 			.ifPresent(w ->
 				((TreeView) getFieldValue(w.getController(), "tree"))    // TODO: improve
 					.getRoot().getChildren()
-					.add(TreeItems.tree(o))
+					.add(TreeItemsKt.tree(o))
 			);
 	}
 }

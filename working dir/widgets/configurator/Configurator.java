@@ -14,8 +14,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import sp.it.pl.gui.itemnode.ConfigField;
 import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.tree.TreeItems;
-import sp.it.pl.gui.objects.tree.TreeItems.Name;
+import sp.it.pl.gui.objects.tree.TreeItemsKt;
+import sp.it.pl.gui.objects.tree.Name;
 import sp.it.pl.gui.pane.ConfigPane;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
@@ -66,7 +66,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
 		// set up graphics
 		configsRootPane.getChildren().setAll(configsPane);
 		groups.getSelectionModel().setSelectionMode(SINGLE);
-		groups.setCellFactory(TreeItems::buildTreeCell);
+		groups.setCellFactory(TreeItemsKt::buildTreeCell);
 		groups.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
 			if (storeSelection(nv))
 				populateConfigFields(configs.stream().filter(f -> f.getGroup().equals(nv.getValue().pathUp)));
@@ -105,7 +105,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
 		configs.clear();
 		configs.addAll(c);
-		groups.setRoot(TreeItems.tree(Name.treeOfPaths("Groups", map(c, Config::getGroup))));
+		groups.setRoot(TreeItemsKt.tree(Name.treeOfPaths("Groups", map(c, Config::getGroup))));
 		restoreSelection();		// invokes #populateConfigFields
 	}
 

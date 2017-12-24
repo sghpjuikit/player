@@ -3,7 +3,6 @@ package inspector;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Optional;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.PseudoClass;
@@ -11,17 +10,15 @@ import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-
+import sp.it.pl.gui.objects.tree.TreeItemsKt;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.FileExplorerFeature;
-import sp.it.pl.gui.objects.tree.TreeItems;
 import sp.it.pl.util.graphics.drag.DragUtil;
-
-import static sp.it.pl.layout.widget.Widget.Group.APP;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
+import static sp.it.pl.layout.widget.Widget.Group.APP;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 
 @Widget.Info(
@@ -45,16 +42,15 @@ public class Inspector extends ClassController implements FileExplorerFeature {
 
     private static final PseudoClass selectedPC = getPseudoClass("selected");
     private Node sel_node = null;
-    private TreeView<Object> tree = new TreeView<>();
+    private TreeView<Object> tree = TreeItemsKt.buildTreeView();
     private Output<Object> out_sel;
 
     public Inspector() {
         setAnchor(this, tree,0d);
 
         tree.getSelectionModel().setSelectionMode(MULTIPLE);
-        tree.setCellFactory(TreeItems::buildTreeCell);
-        tree.setRoot(TreeItems.treeApp());
-        (((TreeItems.SimpleTreeItem)tree.getRoot().getChildren().get(3))).showLeaves.set(false);
+        tree.setCellFactory(TreeItemsKt::buildTreeCell);
+        tree.setRoot(TreeItemsKt.treeApp());
         tree.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
             Object oi = ov==null ? null : ov.getValue();
             Object ni = nv==null ? null : nv.getValue();

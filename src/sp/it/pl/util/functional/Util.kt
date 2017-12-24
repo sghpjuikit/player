@@ -7,6 +7,7 @@ import java.util.function.DoubleConsumer
 import java.util.function.Function
 import java.util.function.LongConsumer
 import java.util.function.Supplier
+import java.util.stream.Stream
 import kotlin.coroutines.experimental.buildSequence
 
 operator fun <T> Consumer<T>.invoke(t: T) = accept(t)
@@ -53,3 +54,6 @@ fun <E> E.seqRec(children : (E) -> Iterable<E>): Iterable<E> = buildSequence {
     yield(this@seqRec)
     children(this@seqRec).forEach { it.seqRec(children) }
 }.asIterable()
+
+/** @return stream that yields elements of this stream sorted by value selected by specified [selector] function. */
+inline fun <T, R : Comparable<R>> Stream<T>.sortedBy(crossinline selector: (T) -> R?) = sorted(compareBy(selector))!!

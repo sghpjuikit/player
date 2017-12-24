@@ -3,7 +3,6 @@ package sp.it.pl.util.system
 import com.sun.jna.platform.win32.Advapi32Util
 import com.sun.jna.platform.win32.WinReg
 import javafx.scene.input.Clipboard
-import javafx.scene.input.ClipboardContent
 import javafx.scene.input.DataFormat
 import javafx.stage.DirectoryChooser
 import javafx.stage.FileChooser
@@ -51,9 +50,7 @@ fun copyToSysClipboard(s: String?) {
 /** Puts the specified object to system clipboard. Does nothing if null. */
 fun copyToSysClipboard(df: DataFormat, o: Any?) {
     if (o!=null) {
-        val c = ClipboardContent()
-        c.put(df, o)
-        Clipboard.getSystemClipboard().setContent(c)
+        Clipboard.getSystemClipboard().setContent(mapOf(df to o))
     }
 }
 
@@ -226,12 +223,6 @@ fun File.recycle(): Try<Void, Void> {
     } else {
         Try.error()
     }
-}
-
-fun File.isOpenableInApp(): Boolean {
-    return isDirectory && APP.DIR_SKINS==parentFile || isValidSkinFile(this) ||
-            isDirectory && APP.DIR_WIDGETS==parentFile || isValidWidgetFile(this) ||
-            AudioFileFormat.isSupported(this, AudioFileFormat.Use.PLAYBACK) || ImageFileFormat.isSupported(this)
 }
 
 fun File.openIn() {

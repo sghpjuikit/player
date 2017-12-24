@@ -26,8 +26,8 @@ import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.pl.gui.objects.image.cover.FileCover;
-import sp.it.pl.gui.objects.tree.FileTree;
-import sp.it.pl.gui.objects.tree.TreeItems;
+import sp.it.pl.gui.objects.tree.FileTreeItem;
+import sp.it.pl.gui.objects.tree.TreeItemsKt;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.util.SwitchException;
@@ -159,7 +159,7 @@ public class GameLib extends FXMLController {
         loadSkin("skin.css",root);
 
         fh.getSelectionModel().setSelectionMode(MULTIPLE);
-        fh.setCellFactory(TreeItems::buildTreeCell);
+        fh.setCellFactory(TreeItemsKt::buildTreeCell);
         fh.setShowRoot(false);
         file_tree_root.getChildren().setAll(fh);
 
@@ -217,7 +217,7 @@ public class GameLib extends FXMLController {
         file_tree.setShowRoot(false);
         d(maintain(Gui.font, f -> f.getSize()+5, file_tree.fixedCellSizeProperty()));
         file_tree.getSelectionModel().setSelectionMode(SINGLE);
-        FileTree.from(file_tree);
+        TreeItemsKt.initTreeView(file_tree);
         file_tree.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
             if (nv.getValue()!=null && nv.getValue().isDirectory()) {
                 File f = new File(nv.getValue(),"readme.txt");
@@ -255,8 +255,8 @@ public class GameLib extends FXMLController {
         switch(to) {
             case EXPLORER:  cover_root.setVisible(false);
                             file_tree_root.setVisible(true);
-                            file_tree.setRoot(FileTree.createTreeItem(game.getLocation()));
-                            fh.setRoot((TreeItem)FileTree.createTreeItem(game.getLocation()));
+                            file_tree.setRoot(new FileTreeItem(game.getLocation()));
+                            fh.setRoot((TreeItem) new FileTreeItem(game.getLocation()));
                             break;
             case PLAY:      cover_root.setVisible(true);
                             file_tree_root.setVisible(false);

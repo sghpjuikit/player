@@ -40,7 +40,6 @@ import sp.it.pl.util.file.nameWithoutExtensionOrRoot
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.localDateTimeFromMillis
-import sp.it.pl.util.text.Strings
 import sp.it.pl.util.text.toStrings
 import sp.it.pl.util.units.Bitrate
 import sp.it.pl.util.units.Dur
@@ -60,6 +59,8 @@ import kotlin.collections.HashMap
 import kotlin.collections.set
 import kotlin.reflect.KClass
 import kotlin.streams.toList
+
+private typealias F = JvmField
 
 /**
  * Information about audio file.
@@ -118,7 +119,7 @@ class Metadata: Item, Serializable {
     private var lengthInMs = 0.0
 
     // tag fields
-    
+
     /** Title or null if none */
     private var title: String? = null
 
@@ -236,7 +237,7 @@ class Metadata: Item, Serializable {
         id = toURI().toString()
         fileSizeInB = sizeInB()
     }
-    
+
     private fun AudioFile.loadHeaderFields() {
         val header = this.audioHeader
         header.bitRate
@@ -246,7 +247,7 @@ class Metadata: Item, Serializable {
         channels = header.channels.orNull()
         sampleRate = header.sampleRate.orNull()
     }
-    
+
     private fun Tag.loadTagFieldAll() {
         loadTagFieldsGeneral()
         when (this) {
@@ -459,7 +460,7 @@ class Metadata: Item, Serializable {
 
         // CATEGORY ------------------------------------------------------------
         if (category==null)
-            // try to get category the winamp way
+        // try to get category the winamp way
             category = this.getFirst("CATEGORY").orNull()
     }
 
@@ -474,13 +475,13 @@ class Metadata: Item, Serializable {
             .filter { it.isTypeStringRepresentable() }
             .map { "${it.name()}: ${getField(it)}" }
             .joinToString("\n")
-    
+
     override fun getPathAsString(): String = if (isEmpty()) "" else super.getPathAsString()
 
     override fun getFilename(): String = if (isEmpty()) "" else super.getFilename()
 
     override fun getFileSize() = FileSize(fileSizeInB)
-    
+
     /** @return file size in bytes or -1 if unknown */
     fun getFileSizeInB() = fileSizeInB
 
@@ -660,22 +661,22 @@ class Metadata: Item, Serializable {
      * @return ordered list of chapters parsed from tag data
      */
     fun getChapters(): Chapters =
-        custom2?.let {
-            it.split(SEPARATOR_CHAPTER)
-                    .asSequence()
-                    .filter { !it.isEmpty() }
-                    .mapNotNull {
-                        try {
-                            Chapter(it)
-                        } catch (e: IllegalArgumentException) {
-                            logger.error(e) { "String '$it' is not a valid chapter, chapters=$custom2, uri=$uri" }
-                            null
+            custom2?.let {
+                it.split(SEPARATOR_CHAPTER)
+                        .asSequence()
+                        .filter { !it.isEmpty() }
+                        .mapNotNull {
+                            try {
+                                Chapter(it)
+                            } catch (e: IllegalArgumentException) {
+                                logger.error(e) { "String '$it' is not a valid chapter, chapters=$custom2, uri=$uri" }
+                                null
+                            }
                         }
-                    }
-                    .sorted()
-                    .toList()
-                    .let { Chapters(it) }
-        } ?: Chapters()
+                        .sorted()
+                        .toList()
+                        .let { Chapters(it) }
+            } ?: Chapters()
 
     fun containsChapterAt(at: Duration): Boolean = getChapters().chapters.any { it.time==at }
 
@@ -707,7 +708,7 @@ class Metadata: Item, Serializable {
 
     override fun toPlaylist() = PlaylistItem(uri, artist, title, lengthInMs)
 
-/* --------------------- AS FIELDED TYPE ---------------------------------------------------------------------------- */
+    /* --------------------- AS FIELDED TYPE ---------------------------------------------------------------------------- */
 
     fun getMainField(): Field<*> = Field.TITLE
 
@@ -783,7 +784,8 @@ class Metadata: Item, Serializable {
          */
         @JvmField val EMPTY = Metadata()
 
-        @JvmStatic fun metadataID(u: URI): String = u.toString()
+        @JvmStatic
+        fun metadataID(u: URI): String = u.toString()
 
         private fun String?.orNull() = takeUnless { it.isNullOrBlank() }
 
@@ -828,11 +830,7 @@ class Metadata: Item, Serializable {
 
     class Field<T: Any>: ObjectFieldBase<Metadata, T> {
 
-        internal constructor(type: KClass<T>, extractor: (Metadata) -> T?, name: String, description: String): super(type, extractor, name, description) {
-            FIELDS_IMPL += this
-            FIELD_NAMES_IMPL += name
-            FIELDS_BY_NAME[name] = this
-        }
+        private constructor(type: KClass<T>, extractor: (Metadata) -> T?, name: String, description: String): super(type, extractor, name, description)
 
         fun isAutoCompletable(): Boolean = isTypeStringRepresentable() && !NOT_AUTO_COMPLETABLE.contains(this)
 
@@ -843,14 +841,14 @@ class Metadata: Item, Serializable {
         override fun searchSupported(): Boolean = super.searchSupported() || this==FULLTEXT
 
         override fun searchMatch(matcher: (String) -> Boolean): (Metadata) -> Boolean =
-            when (this) {
-                CHAPTERS -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
-                FULLTEXT -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
-                else -> super.searchMatch(matcher)
-            }
+                when (this) {
+                    CHAPTERS -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
+                    FULLTEXT -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
+                    else -> super.searchMatch(matcher)
+                }
 
-        fun getGroupedOf(): (Metadata) -> Any? = when(this) {
-            // Note that groups must include the 'empty' group for when the value is empty
+        fun getGroupedOf(): (Metadata) -> Any? = when (this) {
+        // Note that groups must include the 'empty' group for when the value is empty
             FILESIZE -> { m -> GROUPS_FILESIZE[64-java.lang.Long.numberOfLeadingZeros(m.fileSizeInB-1)] }
             RATING -> { m -> if (m.rating==null) -1.0 else GROUPS_RATING[(m.getRatingPercent()!!*100/5).toInt()] }
             else -> { m -> getOf(m) }
@@ -872,60 +870,67 @@ class Metadata: Item, Serializable {
 
         override fun cVisible(): Boolean = VISIBLE.contains(this)
 
-        override fun cWidth(): Double = (if (this===PATH || this===TITLE) 160 else 60).toDouble()
+        override fun cWidth(): Double = if (this===PATH || this===TITLE) 160.0 else 60.0
 
         companion object {
 
             private val FIELDS_IMPL: MutableSet<Field<*>> = HashSet()
             private val FIELDS_BY_NAME = HashMap<String, Field<*>>()
             private val FIELD_NAMES_IMPL: MutableSet<String> = HashSet()
-            @JvmField val FIELDS: Set<Field<*>> = FIELDS_IMPL
-            @JvmField val FIELD_NAMES: Set<String> = FIELD_NAMES_IMPL
+            @F val FIELDS: Set<Field<*>> = FIELDS_IMPL
+            @F val FIELD_NAMES: Set<String> = FIELD_NAMES_IMPL
 
-            @JvmField val PATH = Field(String::class, { it.getPathAsString() }, "Path", "Song location")
-            @JvmField val FILENAME = Field(String::class, { it.getFilename() }, "Filename", "Song file name without suffix")
-            @JvmField val FORMAT = Field(AudioFileFormat::class, { it.getFormat() }, "Format", "Song file type ")
-            @JvmField val FILESIZE = Field(FileSize::class, { it.getFileSize() }, "Filesize", "Song file size")
-            @JvmField val ENCODING = Field(String::class, { it.encodingType }, "Encoding", "Song encoding")
-            @JvmField val BITRATE = Field(Bitrate::class, { it.getBitrate() }, "Bitrate", "Number of kb per second of the song - quality aspect.")
-            @JvmField val ENCODER = Field(String::class, { it.encoder }, "Encoder", "Song encoder")
-            @JvmField val CHANNELS = Field(String::class, { it.channels }, "Channels", "Number of channels")
-            @JvmField val SAMPLE_RATE = Field(String::class, { it.sampleRate }, "Sample_rate", "Sample frequency")
-            @JvmField val LENGTH = Field(Dur::class, { it.getLength() }, "Length", "Song length")
-            @JvmField val TITLE = Field(String::class, { it.title }, "Title", "Song title")
-            @JvmField val ALBUM = Field(String::class, { it.album }, "Album", "Song album")
-            @JvmField val ARTIST = Field(String::class, { it.artist }, "Artist", "Artist of the song")
-            @JvmField val ALBUM_ARTIST = Field(String::class, { it.albumArtist }, "Album_artist", "Artist of the song album")
-            @JvmField val COMPOSER = Field(String::class, { it.composer }, "Composer", "Composer of the song")
-            @JvmField val PUBLISHER = Field(String::class, { it.publisher }, "Publisher", "Publisher of the album")
-            @JvmField val TRACK = Field(Int::class, { it.track }, "Track", "Song number within album")
-            @JvmField val TRACKS_TOTAL = Field(Int::class, { it.tracksTotal }, "Tracks_total", "Number of songs in the album")
-            @JvmField val TRACK_INFO = Field(NofX::class, { it.getTrackInfo() }, "Track_info", "Complete song number in format: track/track total")
-            @JvmField val DISC = Field(Int::class, { it.disc }, "Disc", "Disc number within album")
-            @JvmField val DISCS_TOTAL = Field(Int::class, { it.discsTotal }, "Discs_total", "Number of discs in the album")
-            @JvmField val DISCS_INFO = Field(NofX::class, { it.getDiscInfo() }, "Discs_info", "Complete disc number in format: disc/disc total")
-            @JvmField val GENRE = Field(String::class, { it.genre }, "Genre", "Genre of the song")
-            @JvmField val YEAR = Field(Year::class, { it.getYear() }, "Year", "Year the album was published")
-            @JvmField val COVER = Field(Cover::class, { it.getReadCoverOfTag() }, "Cover", "Cover of the song")
-            @JvmField val RATING = Field(Double::class, { it.getRatingPercent() }, "Rating", "Song rating in 0-1 range")
-            @JvmField val RATING_RAW = Field(Int::class, { it.rating }, "Rating_raw", "Song rating tag value. Depends on tag type")
-            @JvmField val PLAYCOUNT = Field(Int::class, { it.getPlaycount() }, "Playcount", "Number of times the song was played.")
-            @JvmField val CATEGORY = Field(String::class, { it.category }, "Category", "Category of the song. Arbitrary")
-            @JvmField val COMMENT = Field(String::class, { it.comment }, "Comment", "User comment of the song. Arbitrary")
-            @JvmField val LYRICS = Field(String::class, { it.lyrics }, "Lyrics", "Lyrics for the song")
-            @JvmField val MOOD = Field(String::class, { it.mood }, "Mood", "Mood the song evokes")
-            @JvmField val COLOR = Field(Color::class, { it.getColor() }, "Color", "Color the song evokes")
-            @JvmField val TAGS = Field(String::class, { it.tags }, "Tags", "Tags associated with this song")
-            @JvmField val CHAPTERS = Field(Chapters::class, { it.getChapters() }, "Chapters", "Comments at specific time points of the song")
-            @JvmField val FULLTEXT = Field(Strings::class, { it.getFulltext() }, "Fulltext", "All possible fields merged into single text. Use for searching.")
-            @JvmField val CUSTOM1 = Field(String::class, { it.custom1 }, "Custom1", "Custom field 1. Reserved for chapters.")
-            @JvmField val CUSTOM2 = Field(String::class, { it.custom2 }, "Custom2", "Custom field 2. Reserved for color.")
-            @JvmField val CUSTOM3 = Field(String::class, { it.custom3 }, "Custom3", "Custom field 3. Reserved for playback.")
-            @JvmField val CUSTOM4 = Field(String::class, { it.custom4 }, "Custom4", "Custom field 4")
-            @JvmField val CUSTOM5 = Field(String::class, { it.custom5 }, "Custom5", "Custom field 5")
-            @JvmField val FIRST_PLAYED = Field(LocalDateTime::class, { it.getTimePlayedFirst() }, "First_played", "Marks time the song was played the first time.")
-            @JvmField val LAST_PLAYED = Field(LocalDateTime::class, { it.getTimePlayedLast() }, "Last_played", "Marks time the song was played the last time.")
-            @JvmField val ADDED_TO_LIBRARY = Field(LocalDateTime::class, { it.getTimeLibraryAdded() }, "Added_to_library", "Marks time the song was added to the library.")
+            @F val PATH = field({ it.getPathAsString() }, "Path", "Song location")
+            @F val FILENAME = field({ it.getFilename() }, "Filename", "Song file name without suffix")
+            @F val FORMAT = field({ it.getFormat() }, "Format", "Song file type ")
+            @F val FILESIZE = field({ it.getFileSize() }, "Filesize", "Song file size")
+            @F val ENCODING = field({ it.encodingType }, "Encoding", "Song encoding")
+            @F val BITRATE = field({ it.getBitrate() }, "Bitrate", "Number of kb per second of the song - quality aspect.")
+            @F val ENCODER = field({ it.encoder }, "Encoder", "Song encoder")
+            @F val CHANNELS = field({ it.channels }, "Channels", "Number of channels")
+            @F val SAMPLE_RATE = field({ it.sampleRate }, "Sample_rate", "Sample frequency")
+            @F val LENGTH = field({ it.getLength() }, "Length", "Song length")
+            @F val TITLE = field({ it.title }, "Title", "Song title")
+            @F val ALBUM = field({ it.album }, "Album", "Song album")
+            @F val ARTIST = field({ it.artist }, "Artist", "Artist of the song")
+            @F val ALBUM_ARTIST = field({ it.albumArtist }, "Album_artist", "Artist of the song album")
+            @F val COMPOSER = field({ it.composer }, "Composer", "Composer of the song")
+            @F val PUBLISHER = field({ it.publisher }, "Publisher", "Publisher of the album")
+            @F val TRACK = field({ it.track }, "Track", "Song number within album")
+            @F val TRACKS_TOTAL = field({ it.tracksTotal }, "Tracks_total", "Number of songs in the album")
+            @F val TRACK_INFO = field({ it.getTrackInfo() }, "Track_info", "Complete song number in format: track/track total")
+            @F val DISC = field({ it.disc }, "Disc", "Disc number within album")
+            @F val DISCS_TOTAL = field({ it.discsTotal }, "Discs_total", "Number of discs in the album")
+            @F val DISCS_INFO = field({ it.getDiscInfo() }, "Discs_info", "Complete disc number in format: disc/disc total")
+            @F val GENRE = field({ it.genre }, "Genre", "Genre of the song")
+            @F val YEAR = field({ it.getYear() }, "Year", "Year the album was published")
+            @F val COVER = field({ it.getReadCoverOfTag() }, "Cover", "Cover of the song")
+            @F val RATING = field({ it.getRatingPercent() }, "Rating", "Song rating in 0-1 range")
+            @F val RATING_RAW = field({ it.rating }, "Rating_raw", "Song rating tag value. Depends on tag type")
+            @F val PLAYCOUNT = field({ it.getPlaycount() }, "Playcount", "Number of times the song was played.")
+            @F val CATEGORY = field({ it.category }, "Category", "Category of the song. Arbitrary")
+            @F val COMMENT = field({ it.comment }, "Comment", "User comment of the song. Arbitrary")
+            @F val LYRICS = field({ it.lyrics }, "Lyrics", "Lyrics for the song")
+            @F val MOOD = field({ it.mood }, "Mood", "Mood the song evokes")
+            @F val COLOR = field({ it.getColor() }, "Color", "Color the song evokes")
+            @F val TAGS = field({ it.tags }, "Tags", "Tags associated with this song")
+            @F val CHAPTERS = field({ it.getChapters() }, "Chapters", "Comments at specific time points of the song")
+            @F val FULLTEXT = field({ it.getFulltext() }, "Fulltext", "All possible fields merged into single text. Use for searching.")
+            @F val CUSTOM1 = field({ it.custom1 }, "Custom1", "Custom field 1. Reserved for chapters.")
+            @F val CUSTOM2 = field({ it.custom2 }, "Custom2", "Custom field 2. Reserved for color.")
+            @F val CUSTOM3 = field({ it.custom3 }, "Custom3", "Custom field 3. Reserved for playback.")
+            @F val CUSTOM4 = field({ it.custom4 }, "Custom4", "Custom field 4")
+            @F val CUSTOM5 = field({ it.custom5 }, "Custom5", "Custom field 5")
+            @F val FIRST_PLAYED = field({ it.getTimePlayedFirst() }, "First_played", "Marks time the song was played the first time.")
+            @F val LAST_PLAYED = field({ it.getTimePlayedLast() }, "Last_played", "Marks time the song was played the last time.")
+            @F val ADDED_TO_LIBRARY = field({ it.getTimeLibraryAdded() }, "Added_to_library", "Marks time the song was added to the library.")
+
+            private inline fun <reified T: Any> field(noinline extractor: (Metadata) -> T?, name: String, description: String) =
+                    Field(T::class, extractor, name, description).apply {
+                        FIELDS_IMPL += this
+                        FIELD_NAMES_IMPL += name
+                        FIELDS_BY_NAME[name] = this
+                    }
 
             private val NOT_AUTO_COMPLETABLE = setOf<Field<*>>(
                     TITLE, RATING_RAW,
@@ -942,7 +947,7 @@ class Metadata: Item, Serializable {
                     FULLTEXT // purely for search purposes
             )
             private val GROUPS_FILESIZE = Array(65) {
-                when(it) {
+                when (it) {
                     0 -> FileSize(1)
                     in 1..62 -> FileSize(Math.pow(2.0, it.toDouble()).toLong())
                     63 -> FileSize(java.lang.Long.MAX_VALUE)

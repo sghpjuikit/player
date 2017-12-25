@@ -127,7 +127,6 @@ class VlcPlayer: GeneralPlayer.Play {
 
         })
 
-
         val s = state.status.get()
         if (Player.startTime!=null) {
             if (s==PLAYING) play()

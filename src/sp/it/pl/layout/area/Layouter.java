@@ -79,7 +79,7 @@ public final class Layouter implements ContainerNode {
         );
         cp.textConverter = layout_action -> layout_action._1;
         cp.infoConverter = layout_action -> layout_action._3;
-        cp.onSelect = layout_action -> closeAndDo(cp.root,layout_action._2);
+        cp.onSelect = layout_action -> closeAndDo(cp.root, layout_action._2);
         cp.onCancel = () -> {
             isCancelPlaying = true;
             hide();

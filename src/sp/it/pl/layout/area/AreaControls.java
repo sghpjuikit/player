@@ -26,7 +26,6 @@ import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.picker.WidgetPicker;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.widget.Widget;
@@ -40,7 +39,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LINK;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.REFRESH;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TH_LARGE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TIMES;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLINK;
 import static de.jensd.fx.glyphs.octicons.OctIcon.FOLD;
@@ -96,9 +94,6 @@ public final class AreaControls {
         + "Opens action chooser for this widget. Action chooser displays and "
         + "can run an action on some data, in this case this widget. Shows "
         + "non-layout operations.";
-    private static final String changebTEXT = "Change widget\n\n"
-        + "Choose new widget or container. If any is selected, old widget is "
-        + "closed.";
     private static final String closebTEXT = "Close widget\n\n"
         + "Closes widget and creates empty place in the container.";
     private static SingleR<PopOver<Text>, AreaControls> helpP = new SingleR<>(
@@ -145,25 +140,25 @@ public final class AreaControls {
             .bind(root.widthProperty().subtract(title.widthProperty())
             .divide(2).subtract(15));
         header_buttons.setMinWidth(15);
-        header_buttons.setHgap(8);
-        header_buttons.setVgap(8);
 
         // build header buttons
-        Icon closeB = new Icon(TIMES, 12, closebTEXT, this::close);
-        Icon changeB = new Icon(TH_LARGE, 12, changebTEXT, this::changeWidget);
-        Icon actB = new Icon(GAVEL, 12, actbTEXT, () -> APP.actionPane.show(Widget.class, area.getWidget()));
-        propB = new Icon(COGS, 12, propbTEXT, this::settings);
-        Icon refreshB = new Icon(REFRESH, 12, refbTEXT, this::refreshWidget);
-        lockB = new Icon(null, 12, lockbTEXT, () -> {
+        double is = 13;
+        Icon closeB = new Icon(TIMES, is, closebTEXT, this::close);
+        Icon actB = new Icon(GAVEL, is, actbTEXT, () -> APP.actionPane.show(Widget.class, area.getWidget()));
+        propB = new Icon(COGS, is, propbTEXT, this::settings);
+        Icon refreshB = new Icon(REFRESH, is, refbTEXT, this::refreshWidget);
+        lockB = new Icon(null, is, lockbTEXT, () -> {
             toggleLocked();
             APP.actionStream.push("Widget layout lock");
         });
 //		maintain(area.container.locked, mapB(LOCK,UNLOCK),lockB::icon);
-        absB = new Icon(LINK, 12, absbTEXT, e -> {
+        absB = new Icon(LINK, is, absbTEXT, e -> {
             toggleAbsSize();
             updateAbsB();
         });
         CheckIcon loadB = new CheckIcon();
+        loadB.size(is);
+        loadB.tooltip("Switch between automatic or manual widget loading.");
         maintain(area.getWidget().loadType, lt -> lt==AUTOMATIC, loadB.selected);
         maintain(loadB.selected, mapB(UNFOLD,FOLD), loadB::icon);
         loadB.selected.addListener((o,ov,nv) -> area.getWidget().loadType.set(nv ? AUTOMATIC : MANUAL));
@@ -188,12 +183,12 @@ public final class AreaControls {
         root.setOnDragDone(e -> root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
 
 
-        infoB = new Icon(INFO, 12, infobTEXT, this::showInfo); // consistent with Icon.createInfoIcon()
+        infoB = new Icon(INFO, is, infobTEXT, this::showInfo); // consistent with Icon.createInfoIcon()
 
         // build header
         header_buttons.setNodeOrientation(LEFT_TO_RIGHT);
         header_buttons.setAlignment(Pos.CENTER_RIGHT);
-        header_buttons.getChildren().addAll(infoB, loadB, absB, lockB, refreshB, propB, actB, changeB, closeB);
+        header_buttons.getChildren().addAll(infoB, loadB, absB, lockB, refreshB, propB, actB, closeB);
 
         // build animations
         contrAnim = new FadeTransition(Gui.duration_LM, root);
@@ -296,59 +291,6 @@ public final class AreaControls {
                 openAndDo(sc, null);
                 area.root.getChildren().add(sc);
                 setAnchors(sc, 0d);
-            });
-        }
-    }
-
-    void changeWidget() {
-        if (Gui.open_strategy==POPUP) {
-            WidgetPicker w = new WidgetPicker();
-            PopOver<?> p = new PopOver<>(w.getNode());
-                    p.title.set("Change widget");
-                    p.setArrowSize(0); // auto-fix breaks the arrow position, turn off - sux
-                    p.setAutoFix(true); // we need auto-fix here, because the popup can getM rather big
-                    p.setAutoHide(true);
-                    p.show(propB);
-            w.onCancel = p::hide;
-            w.onSelect = factory -> {
-                closeAndDo(w.getNode(), () -> {
-                    area.root.getChildren().remove(w.getNode());
-                    // load widget
-                    area.add(factory.create());
-
-                    openAndDo(area.content_root,null);
-                });
-            };
-        } else if (Gui.open_strategy==INSIDE) {
-            closeAndDo(area.content_root, () -> {
-                WidgetPicker w = new WidgetPicker();
-                w.onCancel = () -> {
-                    closeAndDo(w.root, () -> {
-                        area.root.getChildren().remove(w.root);
-                        Layouter l = new Layouter(area.container, area.index);
-                        area.root.getChildren().add(l.root);
-                        setAnchors(l.root, 0d);
-//                        openAndDo(l.getRoot(), null);
-                        l.show();
-                        l.onCpCancel = () -> {
-                            area.root.getChildren().remove(l.root);
-                            openAndDo(area.content_root,null);
-                        };
-                    });
-                };
-                w.onSelect = factory -> {
-                    closeAndDo(w.root, () -> {
-                        area.root.getChildren().remove(w.root);
-                        // load widget
-                        area.add(factory.create());
-
-//                        openAndDo(area.content_root,null);
-                    });
-                };
-                area.root.getChildren().add(w.getNode());
-                setAnchors(w.getNode(), 0d);
-
-                openAndDo(w.getNode(), null);
             });
         }
     }

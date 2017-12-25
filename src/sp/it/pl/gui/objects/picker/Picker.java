@@ -107,8 +107,8 @@ public class Picker<E> {
 			// animation
 			Anim anim = new Anim(millis(300), x -> {
 				sp.setOpacity(x);
-				content.setOpacity(1 - x);
-				setScaleXY(sp, 0.5 + 0.5*x);
+				content.setOpacity(1 - x*x);
+				setScaleXY(sp, 0.7 + 0.3*x*x);
 			});
 			anim.applier.accept(0d);
 			cell.hoverProperty().addListener((o, ov, nv) -> anim.playFromDir(nv));
@@ -179,7 +179,7 @@ public class Picker<E> {
 			double width = root.getWidth();
 			double height = root.getHeight();
 
-			int gap = 5;
+			int gap = 1;
 			int elements = getChildren().size();
 			double min_cell_w = max(1, getCells().get(0).getMinWidth());
 			double min_cell_h = max(1, getCells().get(0).getMinHeight());

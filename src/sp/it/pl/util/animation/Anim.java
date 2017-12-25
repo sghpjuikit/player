@@ -131,6 +131,7 @@ public class Anim extends Transition {
 
 	@Override
 	protected void interpolate(double at) {
+
 		position.set(at);
 		applier.accept(at);
 	}
@@ -159,8 +160,7 @@ public class Anim extends Transition {
 	 * are used to play with rate 1 and rate -1 to reverse-play their effect.
 	 */
 	public void playOpen() {
-		double p = getCurrentTime().toMillis()/getCycleDuration().toMillis();
-//               p = p==0 ? 1 : p; // should be or not?
+		double p = getCurrentTime().equals(getCycleDuration()) ? 0 : getCurrentTime().toMillis()/getCycleDuration().toMillis();
 		stop();
 		playOpenFrom(p);
 	}
@@ -173,8 +173,7 @@ public class Anim extends Transition {
 	 * are used to play with rate 1 and rate -1 to reverse-play their effect.
 	 */
 	public void playClose() {
-		double p = getCurrentTime().toMillis()/getCycleDuration().toMillis();
-//               p = p==0 ? 1 : p; // should be or not?
+		double p = getCurrentTime().toMillis()==0 ? 1 : getCurrentTime().toMillis()/getCycleDuration().toMillis();
 		stop();
 		playCloseFrom(1 - p);
 	}

@@ -142,7 +142,7 @@ public class Anim extends Transition {
 
 	/** Returns true if not stopped or paused. */
 	public boolean isRunning() {
-		return getCurrentTime().lessThan(getTotalDuration());
+		return !getCurrentTime().equals(Duration.ZERO) && getCurrentTime().lessThan(getTotalDuration());
 	}
 
 	/** Equivalent to {@code if (forward) playOpen(); else playClose();} */

@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
@@ -24,6 +25,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.skin.TableHeaderRow;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.TextAlignment;
 import sp.it.pl.gui.objects.contextmenu.SelectionMenuItem;
 import sp.it.pl.gui.objects.table.TableColumnInfo.ColumnInfo;
 import sp.it.pl.util.Sort;
@@ -31,13 +33,11 @@ import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import static java.util.stream.Collectors.toList;
-import static javafx.geometry.Pos.CENTER_LEFT;
-import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.geometry.Side.BOTTOM;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.dev.Util.noØ;
 import static sp.it.pl.util.functional.Util.SAME;
 import static sp.it.pl.util.functional.Util.by;
@@ -322,7 +322,6 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * </ul>
 	 */
 	public <X> TableCell<T,X> buildDefaultCell(ObjectField<? super T,X> f) {
-		Pos a = f.getType().equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
 		TableCell<T,X> cell = new TableCell<>() {
 			@Override
 			protected void updateItem(X item, boolean empty) {
@@ -330,9 +329,12 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 				TableRow<T> row = empty ? null : getTableRow();
 				T rowItem = row==null ? null : row.getItem();
 				setText(rowItem==null  ? "" : f.toS(rowItem, item, ""));
+				if (row!=null) row.setPadding(Insets.EMPTY);
 			}
 		};
-		cell.setAlignment(a);
+		cell.setAlignment(f.getType()==String.class ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
+		cell.setTextAlignment(f.getType()==String.class ? TextAlignment.LEFT : TextAlignment.RIGHT);
+		cell.setPadding(Insets.EMPTY);
 		return cell;
 	}
 

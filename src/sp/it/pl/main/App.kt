@@ -251,7 +251,7 @@ class App: Application(), Configurable<Any> {
         instanceName.add(PlaylistItem::class.java, { it.getTitle() })
         instanceName.add(Metadata::class.java, { it.getTitleOrEmpty() })
         instanceName.add(MetadataGroup::class.java) { it.getValueS("<none>") }
-        instanceName.add(Component::class.java, { it.name })
+        instanceName.add(Component::class.java, { it.exportName })
         instanceName.add(File::class.java, { it.path })
         instanceName.add(Collection::class.java) {
             val eType = sp.it.pl.util.type.Util.getGenericPropertyType(it.javaClass)
@@ -276,6 +276,7 @@ class App: Application(), Configurable<Any> {
             }
         }
         instanceInfo.add(App::class.java) { v, map -> map.put("Name", v.name) }
+        instanceInfo.add(Component::class.java) { v, map -> map.put("Name", v.exportName) }
         instanceInfo.add(Metadata::class.java) { m, map ->
             Metadata.Field.FIELDS.asSequence()
                     .filter { it.isTypeStringRepresentable() && !it.isFieldEmpty(m) }

@@ -112,66 +112,66 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     private static final Tooltip overTooltip = appTooltip("Override value"
             + "\n\nUses local value if true and global value if false.");
 
-	public static final String STYLECLASS_CONFIG_FIELD_PROCEED_BUTTON = "config-field-proceed-button";
-	public static final String STYLECLASS_CONFIG_FIELD_OK_BUTTON = "config-field-ok-button";
-	public static final String STYLECLASS_CONFIG_FIELD_WARN_BUTTON = "config-field-warn-button";
-	public static final String STYLECLASS_TEXT_CONFIG_FIELD = "text-field-config";
+    public static final String STYLECLASS_CONFIG_FIELD_PROCEED_BUTTON = "config-field-proceed-button";
+    public static final String STYLECLASS_CONFIG_FIELD_OK_BUTTON = "config-field-ok-button";
+    public static final String STYLECLASS_CONFIG_FIELD_WARN_BUTTON = "config-field-warn-button";
+    public static final String STYLECLASS_TEXT_CONFIG_FIELD = "text-field-config";
 
-	@SuppressWarnings("unchecked")
-	private static Map<Class<?>,Ƒ1<Config,ConfigField>> CF_BUILDERS = new HashMap<>() {{
-		put(boolean.class, BooleanField::new);
-		put(Boolean.class, BooleanField::new);
-		put(void.class, RunnableField::new);
-		put(Void.class, RunnableField::new);
-		put(String.class, GeneralField::new);
-		put(Action.class, ShortcutField::new);
-		put(Color.class, ColorField::new);
-		put(File.class, FileField::new);
-		put(Font.class, FontField::new);
-		put(Effect.class, config -> new EffectField(config, Effect.class));
-		put(Password.class, PasswordField::new);
-		put(Charset.class, charset -> new EnumerableField<>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
-		put(KeyCode.class, KeyCodeField::new);
-		put(Configurable.class, ConfigurableField::new);
-		put(ObservableList.class, config -> Configurable.class.isAssignableFrom(((ListConfig)config).a.itemType) ? new ListFieldPaginated(config) : new ListField<>(config));
-		EffectItemNode.EFFECT_TYPES.stream().map(et -> et.getType()).filter(t -> t!=null).forEach(t -> put(t, config -> new EffectField(config, t)));
-	}};
+    @SuppressWarnings("unchecked")
+    private static Map<Class<?>,Ƒ1<Config,ConfigField>> CF_BUILDERS = new HashMap<>() {{
+        put(boolean.class, BooleanField::new);
+        put(Boolean.class, BooleanField::new);
+        put(void.class, RunnableField::new);
+        put(Void.class, RunnableField::new);
+        put(String.class, GeneralField::new);
+        put(Action.class, ShortcutField::new);
+        put(Color.class, ColorField::new);
+        put(File.class, FileField::new);
+        put(Font.class, FontField::new);
+        put(Effect.class, config -> new EffectField(config, Effect.class));
+        put(Password.class, PasswordField::new);
+        put(Charset.class, charset -> new EnumerableField<>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
+        put(KeyCode.class, KeyCodeField::new);
+        put(Configurable.class, ConfigurableField::new);
+        put(ObservableList.class, config -> Configurable.class.isAssignableFrom(((ListConfig)config).a.itemType) ? new ListFieldPaginated(config) : new ListField<>(config));
+        EffectItemNode.EFFECT_TYPES.stream().map(et -> et.getType()).filter(t -> t!=null).forEach(t -> put(t, config -> new EffectField(config, t)));
+    }};
 
-	/**
-	 * Creates ConfigFfield best suited for the specified Field.
-	 *
-	 * @param config field for which the GUI will be created
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T> ConfigField<T> create(Config<T> config) {
-		Config c = config;
-		ConfigField cf;
-		if (c instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) c);
-		else if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeField(c) : new EnumerableField(c);
-		else if (isMinMax(c)) cf = new SliderField(c);
-		else cf = CF_BUILDERS.computeIfAbsent(c.getType(), key -> GeneralField::new).apply(c);
+    /**
+     * Creates ConfigFfield best suited for the specified Field.
+     *
+     * @param config field for which the GUI will be created
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> ConfigField<T> create(Config<T> config) {
+        Config c = config;
+        ConfigField cf;
+        if (c instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) c);
+        else if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeField(c) : new EnumerableField(c);
+        else if (isMinMax(c)) cf = new SliderField(c);
+        else cf = CF_BUILDERS.computeIfAbsent(c.getType(), key -> GeneralField::new).apply(c);
 
-		cf.setEditable(c.isEditable().isByUser());
+        cf.setEditable(c.isEditable().isByUser());
 
-		return cf;
-	}
+        return cf;
+    }
 
-	public static boolean isMinMax(Config<?> c) {
-		return Number.class.isAssignableFrom(c.getType()) && c.getConstraints().stream().anyMatch(l -> l.getClass()==NumberMinMax.class);
-	}
+    public static boolean isMinMax(Config<?> c) {
+        return Number.class.isAssignableFrom(c.getType()) && c.getConstraints().stream().anyMatch(l -> l.getClass()==NumberMinMax.class);
+    }
 
-	public static <T> ConfigField<T> createForProperty(Class<T> type, String name, Object property) {
-		return create(Config.forProperty(type, name, property));
-	}
+    public static <T> ConfigField<T> createForProperty(Class<T> type, String name, Object property) {
+        return create(Config.forProperty(type, name, property));
+    }
 
-	@SuppressWarnings("unchecked")
-	private static <T> ObservableValue<T> getObservableValue(Config<T> c) {
-		return c instanceof PropertyConfig && ((PropertyConfig)c).getProperty() instanceof ObservableValue
-			       ? (ObservableValue)((PropertyConfig)c).getProperty()
-			       : c instanceof ReadOnlyPropertyConfig
-				         ? ((ReadOnlyPropertyConfig)c).getProperty()
-				         : null;
-	}
+    @SuppressWarnings("unchecked")
+    private static <T> ObservableValue<T> getObservableValue(Config<T> c) {
+        return c instanceof PropertyConfig && ((PropertyConfig)c).getProperty() instanceof ObservableValue
+                   ? (ObservableValue)((PropertyConfig)c).getProperty()
+                   : c instanceof ReadOnlyPropertyConfig
+                         ? ((ReadOnlyPropertyConfig)c).getProperty()
+                         : null;
+    }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
@@ -179,8 +179,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     public boolean applyOnChange = true;
     protected boolean inconsistentState = false;
     private Icon defB;
-	public Try<T,String> value = ok(null);
-	public Consumer<? super Try<T,String>> observer;
+    public Try<T,String> value = ok(null);
+    public Consumer<? super Try<T,String>> observer;
 
     private ConfigField(Config<T> c) {
         super(c);
@@ -301,11 +301,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     protected abstract Try<T,String> get();
 
-	public Try<T,String> getValid() {
-		value = get().and(v -> config.getConstraints().stream().map(c -> c.validate(v)).reduce(ok(),Try::and));
-		if (observer!=null) observer.accept(value);
-		return value;
-	}
+    public Try<T,String> getValid() {
+        value = get().and(v -> config.getConstraints().stream().map(c -> c.validate(v)).reduce(ok(),Try::and));
+        if (observer!=null) observer.accept(value);
+        return value;
+    }
 
     /**
      * Refreshes the content of this config field. The content is read from the
@@ -349,60 +349,60 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
 
 /* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
-	private static class RunnableField extends ConfigField<Void> {
-		protected final Icon graphics;
+    private static class RunnableField extends ConfigField<Void> {
+        protected final Icon graphics;
 
-		private RunnableField(Config<Void> c) {
-			super(c);
+        private RunnableField(Config<Void> c) {
+            super(c);
 
-			boolean isSupported = c instanceof RunnableConfig;
-			RunnableConfig rc = isSupported ? (RunnableConfig) c : null;
-			graphics = new Icon();
-			graphics.styleclass("runnable-config-field");
-			if (isSupported) graphics.onClick(rc);
-		}
+            boolean isSupported = c instanceof RunnableConfig;
+            RunnableConfig rc = isSupported ? (RunnableConfig) c : null;
+            graphics = new Icon();
+            graphics.styleclass("runnable-config-field");
+            if (isSupported) graphics.onClick(rc);
+        }
 
-		@Override
-		public Icon getControl() {
-			return graphics;
-		}
+        @Override
+        public Icon getControl() {
+            return graphics;
+        }
 
-		@Override
-		public Try<Void,String> get() {
-			return ok(null);
-		}
+        @Override
+        public Try<Void,String> get() {
+            return ok(null);
+        }
 
-		@Override
-		public void refreshItem() {}
-	}
-	private static class PasswordField extends ConfigField<Password> {
-		javafx.scene.control.PasswordField graphics = new javafx.scene.control.PasswordField();
+        @Override
+        public void refreshItem() {}
+    }
+    private static class PasswordField extends ConfigField<Password> {
+        javafx.scene.control.PasswordField graphics = new javafx.scene.control.PasswordField();
 
-		public PasswordField(Config<Password> c) {
-			super(c);
-			graphics.setPromptText(c.getGuiName());
-			refreshItem();
-		}
+        public PasswordField(Config<Password> c) {
+            super(c);
+            graphics.setPromptText(c.getGuiName());
+            refreshItem();
+        }
 
-		@Override
-		Node getControl() {
-			return graphics;
-		}
+        @Override
+        Node getControl() {
+            return graphics;
+        }
 
-		@Override
-		public Try<Password,String> get() {
-			return ok(new Password(graphics.getText()));
-		}
+        @Override
+        public Try<Password,String> get() {
+            return ok(new Password(graphics.getText()));
+        }
 
-		@Override
-		public void refreshItem() {
-			graphics.setText(config.getValue().value);
-		}
+        @Override
+        public void refreshItem() {
+            graphics.setText(config.getValue().value);
+        }
 
-	}
+    }
     private static class GeneralField<T> extends ConfigField<T> {
         private final DecoratedTextField n = new DecoratedTextField();
-	    private final boolean isObservable;
+        private final boolean isObservable;
         private final Icon okI= new Icon();
         private final Icon warnB = new Icon();
         private final AnchorPane okB = new AnchorPane(okI);
@@ -410,9 +410,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private GeneralField(Config<T> c) {
             super(c);
 
-	        ObservableValue<T> obv = getObservableValue(c);
-	        isObservable = obv!=null;
-	        if (isObservable) obv.addListener((o,ov,nv) -> refreshItem());
+            ObservableValue<T> obv = getObservableValue(c);
+            isObservable = obv!=null;
+            if (isObservable) obv.addListener((o,ov,nv) -> refreshItem());
 
             okB.setPrefSize(11, 11);
             okB.setMinSize(11, 11);
@@ -459,18 +459,18 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 if (applyOnChange) apply(false);
             });
             okI.setOnMouseClicked(e -> {
-            	apply(true);
-	            e.consume();
+                apply(true);
+                e.consume();
             });
             n.setOnKeyPressed(e -> {
-            	if (e.getCode()==ENTER) {
-            		apply(true);
-		            e.consume();
-	            }
+                if (e.getCode()==ENTER) {
+                    apply(true);
+                    e.consume();
+                }
             });
 
-	        Try<T,String> t = getValid();
-	        showWarnButton(t);
+            Try<T,String> t = getValid();
+            showWarnButton(t);
         }
 
         @Override
@@ -499,15 +499,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override
         protected void apply(boolean user) {
             if (inconsistentState) return;
-	        getValid().ifOk(v -> {
-	            boolean applicable = !Objects.equals(config.getValue(), v);
-	            if (!applicable) return;
+            getValid().ifOk(v -> {
+                boolean applicable = !Objects.equals(config.getValue(), v);
+                if (!applicable) return;
 
-	            inconsistentState = true;
-	            if (applyOnChange || user) config.setNapplyValue(v);
-	            else config.setValue(v);
-	            inconsistentState = false;
-	        });
+                inconsistentState = true;
+                if (applyOnChange || user) config.setNapplyValue(v);
+                else config.setValue(v);
+                inconsistentState = false;
+            });
         }
 
         private void showOkButton(boolean val) {
@@ -516,9 +516,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         private void showWarnButton(Try<?,String> value) {
-	        n.right.setValue(value.isError() ? warnB : null);
-	        warnB.setVisible(value.isError());
-	        warnTooltip.setText(value.map(v -> "").getAny());
+            n.right.setValue(value.isError() ? warnB : null);
+            warnB.setVisible(value.isError());
+            warnTooltip.setText(value.map(v -> "").getAny());
         }
 
         private void showWarnButton(boolean val) {
@@ -535,7 +535,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             super(c);
 
             ObservableValue<Boolean> v = getObservableValue(c);
-	        isObservable = v!=null;
+            isObservable = v!=null;
 
             graphics = new CheckIcon();
             graphics.styleclass("boolean-config-field");
@@ -571,19 +571,19 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private final Slider slider;
         private final Label cur, min, max;
         private final HBox box;
-	    private final boolean isObservable;
+        private final boolean isObservable;
 
         private SliderField(Config<Number> c) {
             super(c);
 
-	        ObservableValue<Number> v = getObservableValue(c);
-	        isObservable = v!=null;
-	        if (isObservable) v.addListener((o,ov,nv) -> refreshItem());
+            ObservableValue<Number> v = getObservableValue(c);
+            isObservable = v!=null;
+            if (isObservable) v.addListener((o,ov,nv) -> refreshItem());
 
             double val = c.getValue().doubleValue();
-	        NumberMinMax range = stream(c.getConstraints())
-		        .filter(NumberMinMax.class::isInstance).map(NumberMinMax.class::cast)
-		        .findAny().get();
+            NumberMinMax range = stream(c.getConstraints())
+                .filter(NumberMinMax.class::isInstance).map(NumberMinMax.class::cast)
+                .findAny().get();
 
             min = new Label(String.valueOf(range.min));
             max = new Label(String.valueOf(range.max));
@@ -592,7 +592,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             cur = new Label(computeLabelText());
             cur.setPadding(new Insets(0, 5, 0, 0)); // add gap
             // there is a slight bug where isValueChanging is false even if it should not. It appears when mouse clicks
-	        // NOT on the thumb but on the slider track instead and keeps dragging. valueChanging does not activate
+            // NOT on the thumb but on the slider track instead and keeps dragging. valueChanging does not activate
             slider.valueProperty().addListener((o,ov,nv) -> {
                 // also bug with snap to tick, which does not work on mouse drag so we use get() which returns correct value
                 cur.setText(computeLabelText());
@@ -642,7 +642,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         private String computeLabelText() {
-	        return getValid().map(Object::toString).getOr("");
+            return getValid().map(Object::toString).getOr("");
         }
     }
     private static class EnumerableField<T> extends ConfigField<T> {
@@ -680,8 +680,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class KeyCodeField extends EnumerableField<KeyCode> {
 
-	    @Dependency("requires access to com.sun.javafx.scene.traversal.Direction")
-	    private KeyCodeField(Config<KeyCode> c) {
+        @Dependency("requires access to com.sun.javafx.scene.traversal.Direction")
+        private KeyCodeField(Config<KeyCode> c) {
             super(c);
 
             n.setOnKeyPressed(Event::consume);
@@ -695,13 +695,13 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 // be set twice, but should be all right since the value is the same anyway.
                 n.setValue(e.getCode());
 
-	            // TODO: jigsaw
+                // TODO: jigsaw
                 if (e.getEventType()==KEY_RELEASED) {
                     // conveniently traverse focus by simulating TAB behavior
                     // currently only hacks allow this
                     // ((BehaviorSkinBase)n.getSkin()).getBehavior().traverseNext(); // !work since java9
-	                // n.traverse(Direction.NEXT); // !work since java 9 b135
-	                Util.invokeMethodP1(n, "traverse", Direction.class, Direction.NEXT);
+                    // n.traverse(Direction.NEXT); // !work since java 9 b135
+                    Util.invokeMethodP1(n, "traverse", Direction.class, Direction.NEXT);
                 }
                 e.consume();
             });
@@ -863,18 +863,18 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         public FileField(Config<File> c) {
             super(c);
             ObservableValue<File> v = getObservableValue(c);
-	        isObservable = v!=null;
-	        Constraint.FileActor constraint = stream(c.getConstraints())
-		        .filter(Constraint.FileActor.class::isInstance).map(Constraint.FileActor.class::cast)
-				.findFirst().orElse(Constraint.FileActor.ANY);
+            isObservable = v!=null;
+            Constraint.FileActor constraint = stream(c.getConstraints())
+                .filter(Constraint.FileActor.class::isInstance).map(Constraint.FileActor.class::cast)
+                .findFirst().orElse(Constraint.FileActor.ANY);
 
-	        editor = new FileItemNode(constraint);
+            editor = new FileItemNode(constraint);
             editor.setValue(config.getValue());
-	        editor.setOnKeyPressed(e -> {
-	        	if (e.getCode()==ENTER) {
-	        		e.consume();
-		        }
-	        });
+            editor.setOnKeyPressed(e -> {
+                if (e.getCode()==ENTER) {
+                    e.consume();
+                }
+            });
 
             if (isObservable) v.addListener((o,ov,nv) -> editor.setValue(nv));
             editor.setOnValueChange((ov, nv) -> apply(false));
@@ -925,27 +925,27 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             });
         }
     }
-	private static class ConfigurableField extends ConfigField<Configurable<?>> {
-		private final ConfigPane<Object> configPane = new ConfigPane<>();
+    private static class ConfigurableField extends ConfigField<Configurable<?>> {
+        private final ConfigPane<Object> configPane = new ConfigPane<>();
 
-		private ConfigurableField(Config<Configurable<?>> c) {
-			super(c);
-			configPane.configure(c.getValue().getFields());
-		}
+        private ConfigurableField(Config<Configurable<?>> c) {
+            super(c);
+            configPane.configure(c.getValue().getFields());
+        }
 
-		@Override
-		public Node getControl() {
-			return configPane;
-		}
+        @Override
+        public Node getControl() {
+            return configPane;
+        }
 
-		@Override
-		public Try<Configurable<?>,String> get() {
-			return ok(config.getValue());
-		}
+        @Override
+        public Try<Configurable<?>,String> get() {
+            return ok(config.getValue());
+        }
 
-		@Override
-		public void refreshItem() {}
-	}
+        @Override
+        public void refreshItem() {}
+    }
     private static class ListField<T> extends ConfigField<ObservableList<T>> {
 
         private final ListConfig<T> lc;
@@ -954,9 +954,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         public ListField(Config<ObservableList<T>> c) {
             super(c);
             lc = (ListConfig)c;
-			Predicate<T> p = c.getConstraints().stream().anyMatch(HasNonNullElements.class::isInstance)
-					? Objects::nonNull
-					: (Predicate) IS;
+            Predicate<T> p = c.getConstraints().stream().anyMatch(HasNonNullElements.class::isInstance)
+                    ? Objects::nonNull
+                    : (Predicate) IS;
 
             // create chain
             chain = new ListConfigField<>(0, () -> new ConfigurableField(lc.a.itemType, lc.a.factory.get()));
@@ -982,7 +982,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         class ConfigurableField extends ValueNode<T> {
             private final Class<T> type;
-        	private final ConfigPane<T> p = new ConfigPane<>();
+            private final ConfigPane<T> p = new ConfigPane<>();
 
             public ConfigurableField(Class<T> type, T value) {
                 this.type = type;
@@ -998,8 +998,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
             @Override
             public T getValue() {
-            	// TODO: why do we get 1st ConfigField? Makes no sense
-            	Class<T> oType = p.getConfigFields().get(0).config.getType();
+                // TODO: why do we get 1st ConfigField? Makes no sense
+                Class<T> oType = p.getConfigFields().get(0).config.getType();
                 T o = p.getConfigFields().get(0).getValue();
                 if (type==oType) return o;
                 else return value;
@@ -1009,38 +1009,38 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class ListFieldPaginated extends ConfigField<ObservableList<Configurable>> {
 
-    	private int at = -1;
-	    private final ListConfig<Configurable> lc;
-    	Icon prevB = new Icon(FontAwesomeIcon.ANGLE_LEFT, 16, "Previous item", this::prev);
-    	Icon nextB = new Icon(FontAwesomeIcon.ANGLE_RIGHT, 16, "Next item", this::next);
-	    ConfigPane<Object> configPane = new ConfigPane<>();
-	    Node graphics = layHeaderTop(10, Pos.CENTER_RIGHT,
-		    layHorizontally(5, Pos.CENTER_RIGHT, prevB,nextB),
-		    configPane
-	    );
+        private int at = -1;
+        private final ListConfig<Configurable> lc;
+        Icon prevB = new Icon(FontAwesomeIcon.ANGLE_LEFT, 16, "Previous item", this::prev);
+        Icon nextB = new Icon(FontAwesomeIcon.ANGLE_RIGHT, 16, "Next item", this::next);
+        ConfigPane<Object> configPane = new ConfigPane<>();
+        Node graphics = layHeaderTop(10, Pos.CENTER_RIGHT,
+            layHorizontally(5, Pos.CENTER_RIGHT, prevB,nextB),
+            configPane
+        );
 
         public ListFieldPaginated(Config<ObservableList<Configurable>> c) {
             super(c);
             lc = (ListConfig<Configurable>)c;
-	        next();
+            next();
         }
 
         private void prev() {
-        	int size = lc.a.list.size();
-	        if (size<=0) at=-1;
-	        if (size<=0) return;
+            int size = lc.a.list.size();
+            if (size<=0) at=-1;
+            if (size<=0) return;
 
-	        at = at==-1 || at==0 ? size-1 : at-1;
-        	configPane.configure(lc.a.list.get(at));
+            at = at==-1 || at==0 ? size-1 : at-1;
+            configPane.configure(lc.a.list.get(at));
         }
 
         private void next() {
-	        int size = lc.a.list.size();
-	        if (size<=0) at=-1;
-	        if (size<=0) return;
+            int size = lc.a.list.size();
+            if (size<=0) at=-1;
+            if (size<=0) return;
 
-	        at = at==-1 || at==size-1 ? 0 : at+1;
-	        configPane.configure(lc.a.list.get(at));
+            at = at==-1 || at==size-1 ? 0 : at+1;
+            configPane.configure(lc.a.list.get(at));
         }
 
         @Override

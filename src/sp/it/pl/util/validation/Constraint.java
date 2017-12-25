@@ -104,7 +104,7 @@ public interface Constraint<T> {
 
 		@Override
 		public boolean isValid(File file) {
-			return condition.test(file);
+			return file==null || condition.test(file);
 		}
 
 		@Override

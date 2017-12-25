@@ -144,6 +144,7 @@ public class Window extends WindowBase {
 	public AnchorPane front, content;
 	@FXML
 	HBox rightHeaderBox;
+	private final double headerHeight = 30;
 
 	/**
 	 * Disposables ran when window closes. For example you may put here listeners.
@@ -312,10 +313,11 @@ public class Window extends WindowBase {
 		});
 
 		setTitle("");
-		Icon propB = new Icon(GEARS, 13, Action.get("Open settings"));
-		Icon runB = new Icon(GAVEL, 13, Action.get("Open app actions"));
-		Icon layB = new Icon(COLUMNS, 13, Action.get("Open layout manager"));
-		Icon lastFMB = new Icon(null, 13, "LastFM\n\nEnable/configure last fm with left/right "
+		double is = 15;
+		Icon propB = new Icon(GEARS, is, Action.get("Open settings"));
+		Icon runB = new Icon(GAVEL, is, Action.get("Open app actions"));
+		Icon layB = new Icon(COLUMNS, is, Action.get("Open layout manager"));
+		Icon lastFMB = new Icon(null, is, "LastFM\n\nEnable/configure last fm with left/right "
 			+ "click. Currently, lastFM support is disabled.", e -> {
 			Node b = (Node) e.getSource();
 			if (e.getButton()==PRIMARY)
@@ -330,15 +332,15 @@ public class Window extends WindowBase {
 		});
 		maintain(LastFM.scrobblingEnabledProperty(), mapB(LASTFM_SQUARE, LASTFM), lastFMB::icon);
 		lastFMB.setDisable(true);
-		Icon lockB = new Icon(null, 13, "Lock layout\n\nRestricts certain layout operations to "
+		Icon lockB = new Icon(null, is, "Lock layout\n\nRestricts certain layout operations to "
 			+ "prevent accidents and configuration getting in the way. Widgets, containers and "
 			+ "layouts can also be locked individually.", Gui::toggleLayoutLocked);
 		maintain(Gui.layoutLockedProperty(), mapB(LOCK, UNLOCK), lockB::icon);
-		Icon lmB = new Icon(null, 13, Action.get("Manage Layout & Zoom"));
-		Icon ltB = new Icon(CARET_LEFT, 13, "Previous layout\n\nSwitch to next layout", () -> getSwitchPane().alignLeftTab());
-		Icon rtB = new Icon(CARET_RIGHT, 13, "Next layout\n\nSwitch to next layout", () -> getSwitchPane().alignRightTab());
+		Icon lmB = new Icon(null, is, Action.get("Manage Layout & Zoom"));
+		Icon ltB = new Icon(CARET_LEFT, is, "Previous layout\n\nSwitch to next layout", () -> getSwitchPane().alignLeftTab());
+		Icon rtB = new Icon(CARET_RIGHT, is, "Next layout\n\nSwitch to next layout", () -> getSwitchPane().alignRightTab());
 		maintain(Gui.layout_mode, mapB(TH, TH_LARGE), lmB::icon);
-		Icon guideB = new Icon(GRADUATION_CAP, 13, Action.get("Open guide"));
+		Icon guideB = new Icon(GRADUATION_CAP, is, Action.get("Open guide"));
 		Icon helpB = createInfoIcon("Available actions:\n"
 			+ "\tHeader icons : Providing custom functionalities. See tooltips.\n"
 			+ "\tHeader buttons : Providing window control. See tooltips.\n"
@@ -349,7 +351,7 @@ public class Window extends WindowBase {
 			+ "\tDouble right click : Toggle hide header on/off.\n"
 			+ "\tPress ALT : Show hidden header temporarily.\n"
 			+ "\tPress ALT : Activate layout mode.\n"
-			+ "\tContent right drag : drag tabs.").size(13);
+			+ "\tContent right drag : drag tabs.").size(is);
 
 		// left header
 		leftHeaderBox.getChildren().addAll(
@@ -358,21 +360,21 @@ public class Window extends WindowBase {
 			guideB, helpB
 		);
 
-		Icon miniB = new Icon(null, 13, Action.get("Mini mode"));
+		Icon miniB = new Icon(null, is, Action.get("Mini mode"));
 		maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP, ANGLE_UP), miniB::icon);
-		Icon onTopB = new Icon(null, 13, "Always on top\n\nForbid hiding this window behind other "
+		Icon onTopB = new Icon(null, is, "Always on top\n\nForbid hiding this window behind other "
 			+ "application windows", this::toggleAlwaysOnTop);
 		maintain(alwaysOnTop, mapB(SQUARE, SQUARE_ALT), onTopB::icon);
-		Icon fullsB = new Icon(null, 13, "Fullscreen\n\nExpand window to span whole screen and "
+		Icon fullsB = new Icon(null, is, "Fullscreen\n\nExpand window to span whole screen and "
 			+ "put it on top", this::toggleFullscreen).scale(1.3);
 		maintain(fullscreen, mapB(FULLSCREEN_EXIT, FULLSCREEN), fullsB::icon);
-		Icon minB = new Icon(WINDOW_MINIMIZE, 13, "Minimize application", this::toggleMinimize);
-		Icon maxB = new Icon(WINDOW_MAXIMIZE, 13, "Maximize\n\nExpand window to span whole screen",
+		Icon minB = new Icon(WINDOW_MINIMIZE, is, "Minimize application", this::toggleMinimize);
+		Icon maxB = new Icon(WINDOW_MAXIMIZE, is, "Maximize\n\nExpand window to span whole screen",
 			this::toggleMaximize);
 //        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
-		Icon closeB = new Icon(CLOSE, 13, "Close\n\nCloses window. If the window is is main, "
+		Icon closeB = new Icon(CLOSE, is, "Close\n\nCloses window. If the window is is main, "
 			+ "application closes as well.", this::close);
-		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, 13).scale(0.4)
+		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, is).scale(0.4)
 			.onClick(() -> APP.windowManager.setAsMain(this));
 		maintain(isMain, v -> mainB.setOpacity(v ? 1.0 : 0.4));
 		maintain(isMain, v -> mainB.tooltip(v
@@ -515,10 +517,10 @@ public class Window extends WindowBase {
 		rightHeaderBox.setVisible(val);
 		leftHeaderBox.setVisible(val);
 		if (val) {
-			header.setPrefHeight(25);
-			AnchorPane.setTopAnchor(content, 25d);
-			AnchorPane.setTopAnchor(lBorder, 25d);
-			AnchorPane.setTopAnchor(rBorder, 25d);
+			header.setPrefHeight(headerHeight);
+			AnchorPane.setTopAnchor(content, headerHeight);
+			AnchorPane.setTopAnchor(lBorder, headerHeight);
+			AnchorPane.setTopAnchor(rBorder, headerHeight);
 
 			Anim.par(
 				par(
@@ -545,7 +547,7 @@ public class Window extends WindowBase {
 	}
 
 	public boolean isHeaderVisibleApplied() {
-		return AnchorPane.getTopAnchor(content)==25;
+		return AnchorPane.getTopAnchor(content)==headerHeight;
 	}
 
 	/**
@@ -624,7 +626,7 @@ public class Window extends WindowBase {
 	}
 
 	private void applyBorderless(boolean v) {
-		double tp = isHeaderVisibleApplied() ? 25 : v ? 0 : 5;
+		double tp = isHeaderVisibleApplied() ? headerHeight : v ? 0 : 5;
 		double p = v ? 0 : 5;
 		sp.it.pl.util.graphics.Util.setAnchors(content, tp, p, p, p);
 		header.setPrefHeight(tp);

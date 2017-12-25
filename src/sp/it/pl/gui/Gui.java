@@ -4,9 +4,6 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import javafx.animation.Animation;
-import javafx.animation.FadeTransition;
-import javafx.animation.ParallelTransition;
-import javafx.animation.ScaleTransition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -25,18 +22,16 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.action.IsAction;
 import sp.it.pl.util.action.IsActionable;
-import sp.it.pl.util.animation.interpolator.CircularInterpolator;
+import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.file.Util;
 import sp.it.pl.util.validation.Constraint;
 import static java.util.stream.Collectors.toSet;
-import static javafx.animation.Interpolator.LINEAR;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.Gui.OpenStrategy.INSIDE;
 import static sp.it.pl.gui.GuiKt.applySkin;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_OUT;
 import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.set;
 
@@ -319,54 +314,22 @@ public class Gui {
 
 	public static final Duration ANIM_DUR = Duration.millis(300);
 
-//    public static void closeAndDo(Node n, Runnable action) {
-//        double pos = n.getOpacity()==1 ? 0 : n.getOpacity();
-//               pos *= pos;
-//        Animation a = buildAnimation(n, action);
-//                  a.setRate(-1);
-//                  a.playFrom(ANIM_DUR.subtract(ANIM_DUR.multiply(pos)));
-//    }
-//    public static void openAndDo(Node n, Runnable action) {
-//        double pos = n.getOpacity()==1 ? 0 : n.getOpacity();
-//               pos *= pos;
-//        Animation a = buildAnimation(n, action);
-//                  a.playFrom(ANIM_DUR.multiply(pos));
-//    }
-//
-//    private static Animation buildAnimation(Node n, Runnable action) {
-//        Anim a = new Anim(ANIM_DUR,x -> n.setOpacity(x*x));
-//            a.then(action);
-//        return a;
-//    }
+    public static void closeAndDo(Node n, Runnable action) {
+    	Anim a = (Anim) n.getProperties().computeIfAbsent("ANIMATION_OPEN_CLOSE", k -> buildAnimation(n));
+    	if (!a.isRunning()) a.applier.accept(1);
+    	a.playCloseDo(action);
+    }
 
-	public static void closeAndDo(Node n, Runnable action) {
-		double pos = n.getScaleX()==1 ? 0 : n.getScaleX();
-		Animation a = buildAnimation(n, action);
-		a.setRate(-1);
-		a.playFrom(ANIM_DUR.subtract(ANIM_DUR.multiply(pos)));
-	}
+    public static void openAndDo(Node n, Runnable action) {
+	    Anim a = (Anim) n.getProperties().computeIfAbsent("ANIMATION_OPEN_CLOSE", k -> buildAnimation(n));
+    	if (!a.isRunning()) a.applier.accept(0);
+	    a.playOpenDo(action);
+    }
 
-	public static void openAndDo(Node n, Runnable action) {
-		double pos = n.getScaleX()==1 ? 0 : n.getScaleX();
-		Animation a = buildAnimation(n, action);
-		a.playFrom(ANIM_DUR.multiply(pos));
-	}
+    private static Animation buildAnimation(Node n) {
+        return new Anim(ANIM_DUR, x -> n.setOpacity(x*x));
+    }
 
-	private static Animation buildAnimation(Node n, Runnable action) {
-		FadeTransition a1 = new FadeTransition(ANIM_DUR);
-		a1.setFromValue(0);
-		a1.setToValue(1);
-		a1.setInterpolator(LINEAR);
-		ScaleTransition a2 = new ScaleTransition(ANIM_DUR);
-		a2.setInterpolator(new CircularInterpolator(EASE_OUT));
-		a2.setFromX(0);
-		a2.setFromY(0);
-		a2.setToX(1);
-		a2.setToY(1);
-		Animation pt = new ParallelTransition(n, a1, a2);
-		pt.setOnFinished(action==null ? null : e -> action.run());
-		return pt;
-	}
 
 	public enum OpenStrategy {
 		POPUP, INSIDE

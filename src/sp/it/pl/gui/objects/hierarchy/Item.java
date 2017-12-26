@@ -181,8 +181,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		if (coverFile_loaded) return cover_file;
 		coverFile_loaded = true;
 
-		if (all_children==null) buildChildren();
 		if (valType==DIRECTORY) {
+			if (all_children==null) buildChildren();
 			cover_file = getImageT(val, "cover");
 		} else {
 			// image files are their own thumbnail

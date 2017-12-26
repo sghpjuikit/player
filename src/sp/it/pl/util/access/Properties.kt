@@ -32,7 +32,7 @@ import javafx.beans.value.WritableLongValue
 import javafx.beans.value.WritableValue
 import kotlin.reflect.KProperty
 
-operator fun <T> ObservableValue<T>.getValue(thisRef: Any, property: KProperty<*>) = value
+operator fun <T> ObservableValue<T>.getValue(thisRef: Any, property: KProperty<*>): T = value
 operator fun <T> Property<T?>.setValue(thisRef: Any, property: KProperty<*>, value: T?) = setValue(value)
 
 operator fun ObservableDoubleValue.getValue(thisRef: Any, property: KProperty<*>) = get()

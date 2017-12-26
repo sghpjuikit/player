@@ -52,7 +52,7 @@ object MimeTypes {
      */
     fun ofExtension(extension: String): MimeType = extensions.getOrDefault(extension.toLowerCase(), MimeType.UNKNOWN)
 
-    fun ofFile(file: File): MimeType = extensions.getOrDefault(getSuffix(file).toLowerCase(), MimeType.UNKNOWN)
+    fun ofFile(file: File): MimeType = extensions.getOrDefault(file.extension.toLowerCase(), MimeType.UNKNOWN)
 
     fun ofURI(url: URI): MimeType = extensions.getOrDefault(getSuffix(url).toLowerCase(), MimeType.UNKNOWN)
 

@@ -263,11 +263,14 @@ class App: Application(), Configurable<Any> {
         instanceInfo.add(Void::class.java) { _, _ -> }
         instanceInfo.add(String::class.java) { s, map -> map.put("Length", Integer.toString(s?.length ?: 0)) }
         instanceInfo.add(File::class.java) { f, map ->
-            val suffix = Util.getSuffix(f)
-            val fs = FileSize(f)
-            map.put("File type", FileType.of(f).name)
-            map.put("Size", "" + fs + (if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else ""))
-            map.put("Format", if (suffix.isEmpty()) "n/a" else suffix)
+            val type = FileType.of(f)
+            map.put("File type", type.name)
+
+            if (type==FileType.FILE) {
+                val fs = FileSize(f)
+                map.put("Size", "" + fs + (if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else ""))
+                map.put("Format", f.name.substringAfterLast('.', "<none>"))
+            }
 
             val iff = ImageFileFormat.of(f.toURI())
             if (iff.isSupported) {

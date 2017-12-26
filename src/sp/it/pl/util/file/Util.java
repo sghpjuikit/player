@@ -557,7 +557,7 @@ public interface Util {
 	 * @throws java.lang.NullPointerException if parameter null
 	 */
 	static String getSuffix(File f) {
-		return getSuffix(f.getPath());
+		return getSuffix(f.getName());
 	}
 
 	/**

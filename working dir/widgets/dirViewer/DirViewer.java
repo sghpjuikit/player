@@ -46,8 +46,8 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
-import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appTooltipForData;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Sort.ASCENDING;
 import static sp.it.pl.util.Util.capitalize;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -79,8 +79,6 @@ import static sp.it.pl.util.system.EnvironmentKt.open;
         name = "Dir Viewer",
         description = "Displays directory hierarchy and files as thumbnails in a "
                 + "vertically scrollable grid. Intended as simple library",
-//        howto = "",
-//        notes = "",
         version = "0.5",
         year = "2015",
         group = OTHER
@@ -93,14 +91,14 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Location", info = "Root directories of the content.")
     final VarList<File> files = new VarList<>(File.class, Elements.NOT_NULL);
 	@IsConfig(name = "Location joiner", info = "Merges location files into a virtual view.")
-    final V<FileFlatter> fileFlatter = new V<>(FileFlatter.NONE, ff -> revisitCurrent());
+    final V<FileFlatter> fileFlatter = new V<>(FileFlatter.TOP_LVL, ff -> revisitCurrent());
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(NORMAL, this::applyCellSize);
     @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-    final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5, this::applyCellSize);
+    final V<Resolution> cellSizeRatio = new V<>(Resolution.R_1x1, this::applyCellSize);
     @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
-    final V<FitFrom> fitFrom = new V<>(FitFrom.INSIDE);
+    final V<FitFrom> fitFrom = new V<>(FitFrom.OUTSIDE);
     @IsConfig(name = "Thumbnail animate on", info = "Determines when the thumbnail image transition is played.")
     final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
 
@@ -196,7 +194,7 @@ public class DirViewer extends ClassController {
     @Override
     public void refresh() {
         initialized = true;
-        applyCellSize();
+        applyCellSizeNoRefresh();
         // temporary bug fix, (we use progress indicator of the window this widget is loaded
         // in, but when this refresh() method is called its just during loading and window is not yet
         // available, so we delay wit runLater
@@ -253,19 +251,27 @@ public class DirViewer extends ClassController {
         if (lastVisited == null) {
             visit(topItem);
         } else {
+
+            // Build stack of files representing the visited branch
             Stack<File> path = new Stack<>(); // nested items we need to rebuild to get to last visited
             File f = lastVisited;
-            while (f != null && !files.list.contains(f)) {
+            while (f != null && topItem.children().stream().map(c -> c.val).noneMatch(f::equals)) {
                 path.push(f);
                 f = f.getParentFile();
             }
-            boolean success = files.list.contains(f);
+            File tmpF = f;
+            boolean success = topItem.children().stream().map(c -> c.val).anyMatch(c -> c!=null && c.equals(tmpF));
+            if (success) {
+                path.push(f);
+            }
+
+            // Visit the branch
             if (success) {
                 executorIO.execute(() -> {
                     Item item = topItem;
                     while (!path.isEmpty()) {
                         File tmp = path.pop();
-                        item = stream(item.children()).filter(child -> child.val.equals(tmp))
+                        item = item==null ? null : item.children().stream().filter(child -> tmp.equals(child.val))
                             .findAny().orElse(null);
                     }
                     Item i = item;
@@ -290,12 +296,17 @@ public class DirViewer extends ClassController {
         }
     }
 
-    void applyCellSize() {
+    void applyCellSizeNoRefresh() {
         grid.setCellSize(cellSize.get().width, cellSize.get().width/cellSizeRatio.get().ratio + CELL_TEXT_HEIGHT);
+    }
+
+    void applyCellSize() {
+        applyCellSize(cellSize.get().width, cellSize.get().width/cellSizeRatio.get().ratio);
     }
 
     void applyCellSize(double width, double height) {
         grid.setCellSize(width, height + CELL_TEXT_HEIGHT);
+        refresh();
     }
 
     /**

@@ -703,7 +703,7 @@ public class Window extends WindowBase {
 		else if (Y<SH - SH5) to = Maximized.RIGHT;
 		else to = Maximized.RIGHT_BOTTOM;
 
-		setMaximized(mouseSpeed<100 ? to : isMaximized());
+		setMaximized(mouseSpeed<80 ? to : isMaximized());
 	}
 
 	@SuppressWarnings("unused")

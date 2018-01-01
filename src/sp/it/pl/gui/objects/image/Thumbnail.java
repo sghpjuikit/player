@@ -105,13 +105,6 @@ public class Thumbnail {
 	private static final String styleclassBorder = "thumbnail-border";
 	private static final String styleclassImage = "thumbnail-image";
 
-	@IsConfig(name = "Image caching", info = "Will keep every loaded image in "
-		+ "memory. Reduces image loading (except for the first time) but "
-		+ "increases memory. For large images (around 5000px) the effect "
-		+ "is very noticeable. Not worth it if you do not browse large images "
-		+ "or want to minimize RAM usage.")
-	public static boolean cache_images = false;
-
 	@IsConfig(name = "Thumbnail anim duration", info = "Preferred hover scale animation duration for thumbnails.")
 	public static Duration animDur = millis(100);
 
@@ -128,14 +121,19 @@ public class Thumbnail {
 
 			applyViewPort(imageView.getImage());
 
-			// fixes scaling when one side with FitFrom.OUTSIDE when one side of the image is smaller than thumbnail
-			boolean needsScaleH = !(isImgSmallerW && fitFrom.get()==FitFrom.OUTSIDE);
-			boolean needsScaleW = !(isImgSmallerH && fitFrom.get()==FitFrom.OUTSIDE);
-
 			// resize thumbnail
-			if (needsScaleH) imageView.setFitWidth(imgW);
-			if (needsScaleW) imageView.setFitHeight(imgH);
-
+			if (fitFrom.get()==FitFrom.INSIDE) {
+				imageView.setFitWidth(imgW);
+				imageView.setFitHeight(imgH);
+			} else {
+				if (isImgSmallerW && isImgSmallerH) {
+					imageView.setFitWidth(imgW);
+					imageView.setFitHeight(imgH);
+				} else {
+					imageView.setFitWidth(W);
+					imageView.setFitHeight(H);
+				}
+			}
 
 			// lay out other children (maybe introduced in subclass)
 			super.layoutChildren();
@@ -210,13 +208,9 @@ public class Thumbnail {
 		imageView.setFitHeight(-1);
 		imageView.setFitWidth(-1);
 
-		// update ratios
 		ratioTHUMB.bind(root.widthProperty().divide(root.heightProperty()));
-		imageView.imageProperty().addListener((o, ov, nv) ->
-				ratioIMG.set(nv==null ? 1 : nv.getWidth()/nv.getHeight())
-		);
-
-		fitFrom.addListener((o, ov, nv) -> applyViewPort(imageView.getImage()));
+		imageView.imageProperty().addListener((o, ov, nv) -> ratioIMG.set(nv==null ? 1 : nv.getWidth()/nv.getHeight()));
+		fitFrom.addListener((o, ov, nv) -> root.requestLayout());
 
 		// initialize values
 //        imageView.setCache(false);
@@ -299,9 +293,10 @@ public class Thumbnail {
 	}
 
 	// set synchronously
+	@SuppressWarnings("PointlessBooleanExpression")
 	private void setImg(Image i, long id) {
 		// cache
-		if (i!=null && cache_images) {
+		if (i!=null && false) {
 			Image ci = IMG_CACHE.get(i.getUrl());
 			if (ci==null || ci.getHeight()*ci.getWidth()<i.getHeight()*i.getWidth())
 				IMG_CACHE.put(i.getUrl(), i);
@@ -357,6 +352,9 @@ public class Thumbnail {
 			} else {
 				isImgSmallerW = i.getWidth()<=imageView.getLayoutBounds().getWidth();
 				isImgSmallerH = i.getHeight()<=imageView.getLayoutBounds().getHeight();
+				if (isImgSmallerW && isImgSmallerH) {
+					imageView.setViewport(null);
+				} else
 				if (ratioTHUMB.get()<ratioIMG.get()) {
 					double uiImgWidth = i.getHeight()*ratioTHUMB.get();
 					double x = (i.getWidth() - uiImgWidth)/2;

@@ -31,9 +31,12 @@ fun <T> consumer(consumer: Consumer<T>): (T) -> Unit = { consumer(it) }
 fun <T> Optional<T>.orNull(): T? = orElse(null)
 
 /** @return return value in the optional or null if empty */
-fun <R,E> Try<R,E>.orNull(onError: (E) -> Unit = {}): R? = ifError(onError).getOr(null)
+fun <R,E> Try<R,E>.orNull(): R? = getOr(null)
 
-fun runTry(block: () -> Unit): Try<Void,Throwable> = Try.tryCatchAll(block)
+/** @return return value in the optional or null if empty */
+infix fun <R,E> Try<R,E>.orNull(onError: (E) -> Unit): R? = ifError(onError).getOr(null)
+
+fun <R> runTry(block: () -> R): Try<R,Throwable> = Try.tryS(Supplier { block() }, Throwable::class.java)
 
 infix fun <R,E> Try<R,E>.onE(handle: (E) -> Unit) = ifError(handle)!!
 
@@ -57,3 +60,9 @@ fun <E> E.seqRec(children : (E) -> Iterable<E>): Iterable<E> = buildSequence {
 
 /** @return stream that yields elements of this stream sorted by value selected by specified [selector] function. */
 inline fun <T, R : Comparable<R>> Stream<T>.sortedBy(crossinline selector: (T) -> R?) = sorted(compareBy(selector))!!
+
+/** @return null-safe comparator wrapper putting nulls at the end */
+fun <T> Comparator<T>.nullsLast(): Comparator<T?> = Comparator.nullsLast(this) as Comparator<T?>
+
+/** @return null-safe comparator wrapper putting nulls at the the start */
+fun <T> Comparator<T>.nullsFirst(): Comparator<T?> = Comparator.nullsFirst(this) as Comparator<T?>

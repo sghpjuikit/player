@@ -2,6 +2,7 @@ package sp.it.pl.util.access.fieldvalue
 
 import sp.it.pl.util.access.TypedValue
 import sp.it.pl.util.functional.Util.by
+import sp.it.pl.util.functional.nullsLast
 import java.util.*
 
 /**
@@ -15,15 +16,13 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
      * denotes, whether this type should be attempted to be displayed as text (not if it is String),
      * e.g., when generating generic table columns.
      *
-     *
      * The type does not have to be String for this field to be string representable. Any type
      * can be string representable as long as it provides a string converter producing human
      * readable string (compact enough to be used in gui such as tables). Example of string field
      * that is not string representable would be a fulltext field - field that is a concatenation
      * of all string fields, used for fulltext search.
      *
-     *
-     * Default implementation returns true;
+     * Default implementation returns true.
      *
      * @return whether the field can be displayed as a human readable text in a gui
      */
@@ -33,10 +32,10 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
 
     override fun getOfS(value: V, substitute: String): String = toS(getOf(value), substitute)
 
-    /** Returns description of the field.  */
+    /** Returns description of the field. */
     fun description(): String
 
-    /** Returns name of the field.  */
+    /** Returns name of the field. */
     fun name(): String
 
     /**
@@ -53,18 +52,17 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
      * be unsafe - throw [java.lang.NullPointerException] when comparing null values - and must be guarded, by
      * providing transformer that makes it null safe.
      *
-     * @param comparatorTransformer non null function that transforms the underlying comparator to be used. At minimum
-     * it must handle null logic such as it does not permit the underlying comparator to compare null.
+     * @param comparatorTransformer function that transforms the underlying null-unsafe comparator into null-safe one
      */
     @Suppress("UNCHECKED_CAST")
-    fun <C: Comparable<C>> comparator(comparatorTransformer: (Comparator<in C>) -> Comparator<in C> = { Comparator.nullsLast(it) }): Comparator<V> {
+    fun <C: Comparable<C>> comparator(comparatorTransformer: (Comparator<in C>) -> Comparator<in C?> = { it.nullsLast() }): Comparator<V?> {
         return if (Comparable::class.java.isAssignableFrom(type))
-            by<V, C>({ o -> getOf(o) as C }, comparatorTransformer)
+            by<V, C>({ o -> getOf(o) as C? }, comparatorTransformer)
         else
-            sp.it.pl.util.functional.Util.SAME as Comparator<V>
+            sp.it.pl.util.functional.Util.SAME as Comparator<V?>
     }
 
-    fun <C: Comparable<C>> comparator(): Comparator<V> = comparator<C> { Comparator.nullsLast(it) }
+    fun <C: Comparable<C>> comparator(): Comparator<V?> = comparator<C> { it.nullsLast() }
 
     fun toS(v: V, o: T?, substitute: String): String = toS(o, substitute)
 
@@ -79,8 +77,7 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
 
     /**
      * Variation of [.toString] method.
-     * Converts first letter of the string to upper case and all others into
-     * lower case.
+     * Converts first letter of the string to upper case and all others into lower case.
      */
     fun toStringCapitalCase(): String {
         val s = toString()
@@ -89,9 +86,7 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
 
     /**
      * Variation of [.toString] method.
-     * Converts first letter of the string to upper case and all others into
-     * lower case and replaces all '_' with ' '.
-     *
+     * Converts first letter of the string to upper case and all others into lower case and replaces all '_' with ' '.
      *
      * Use to make [Enum] constants more human readable, for gui for example.
      */

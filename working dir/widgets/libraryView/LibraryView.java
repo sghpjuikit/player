@@ -354,17 +354,12 @@ public class LibraryView extends FXMLController {
     }
 
     private void playSelected() {
-        play(getSelected());
+        play(filerListToSelectedNsort());
     }
 
-    // TODO: remove and use a general (and robust) mechanism
     private void play(List<Metadata> items) {
         if (items.isEmpty()) return;
-        PlaylistManager.use(p -> p.setNplay(items.stream().sorted(APP.db.getLibraryComparator().get())));
-    }
-
-    private List<Metadata> getSelected() {
-        return filterList(in_items.getValue(),false);
+        PlaylistManager.use(p -> p.setNplay(items));
     }
 
 /******************************* SELECTION RESTORE ****************************/

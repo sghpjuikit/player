@@ -64,6 +64,7 @@ import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util
+import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.mimetype.MimeTypes
 import sp.it.pl.util.functional.Functors.Ƒ0
 import sp.it.pl.util.functional.Try
@@ -101,27 +102,27 @@ class App: Application(), Configurable<Any> {
     /** Absolute file of location of this app. Working directory of the project. new File("").getAbsoluteFile(). */
     @F val DIR_APP = File("").absoluteFile!!
     /** Temporary directory of the os. */
-    @F val DIR_TEMP = File(System.getProperty("java.io.tmpdir"))
+    @F val DIR_TEMP = File(System.getProperty("java.io.tmpdir")).initForApp()
     /** Home directory of the os. */
-    @F val DIR_HOME = File(System.getProperty("user.home"))
+    @F val DIR_HOME = File(System.getProperty("user.home")).initForApp()
     /** Directory for application logging. */
-    @F val DIR_LOG = File(DIR_APP, "log")
+    @F val DIR_LOG = File(DIR_APP, "log").initForApp()
     /** File for application logging configuration. */
     @F val FILE_LOG_CONFIG = File(DIR_LOG, "log_configuration.xml")
     /** Directory containing widgets - source files, class files and widget's resources. */
-    @F val DIR_WIDGETS = File(DIR_APP, "widgets")
+    @F val DIR_WIDGETS = File(DIR_APP, "widgets").initForApp()
     /** Directory containing skins. */
-    @F val DIR_SKINS = File(DIR_APP, "skins")
+    @F val DIR_SKINS = File(DIR_APP, "skins").initForApp()
     /** Directory containing user data created by application usage, such as customizations, song library, etc. */
-    @F val DIR_USERDATA = File(DIR_APP, "user")
+    @F val DIR_USERDATA = File(DIR_APP, "user").initForApp()
     /** Directory containing library database. */
-    @F val DIR_LIBRARY = File(DIR_USERDATA, "library")
+    @F val DIR_LIBRARY = File(DIR_USERDATA, "library").initForApp()
     /** Directory containing user gui state. */
-    @F val DIR_LAYOUTS = File(DIR_USERDATA, "layouts")
+    @F val DIR_LAYOUTS = File(DIR_USERDATA, "layouts").initForApp()
     /** Directory containing application resources. */
-    @F val DIR_RESOURCES = File(DIR_APP, "resources")
+    @F val DIR_RESOURCES = File(DIR_APP, "resources").initForApp()
     /** File for application configuration. */
-    @F val FILE_SETTINGS = File(DIR_USERDATA, "application.properties")
+    @F val FILE_SETTINGS = File(DIR_USERDATA, "application.properties").initForApp()
 
     // cores (always active, mostly singletons)
     @F val logging = CoreLogging(FILE_LOG_CONFIG, DIR_LOG)
@@ -503,4 +504,6 @@ class App: Application(), Configurable<Any> {
     private fun AppInstanceComm.initForApp() {
         onNewInstanceHandlers += Consumer { parameterProcessor.process(it) }
     }
+
+    private fun File.initForApp() = apply { isValidatedDirectory(this) }
 }

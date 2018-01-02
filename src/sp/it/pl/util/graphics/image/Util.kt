@@ -2,23 +2,22 @@
 
 package sp.it.pl.util.graphics.image
 
+import com.twelvemonkeys.image.ResampleOp
 import javafx.application.Platform
 import javafx.embed.swing.SwingFXUtils
 import javafx.scene.image.Image
 import javafx.scene.image.WritableImage
 import mu.KotlinLogging
-import net.coobird.thumbnailator.Thumbnails
-import net.coobird.thumbnailator.resizers.configurations.Rendering
-import net.coobird.thumbnailator.resizers.configurations.ScalingMode
 import sp.it.pl.util.file.Util.getSuffix
 import sp.it.pl.util.functional.Try
+import sp.it.pl.util.functional.orNull
+import sp.it.pl.util.functional.runTry
 import sp.it.pl.util.functional.supplyFirst
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
-import javax.imageio.ImageReadParam
 import javax.imageio.ImageReader
 
 private typealias ImageFx = Image
@@ -29,23 +28,20 @@ private val logger = KotlinLogging.logger {}
 
 fun ImageBf.toFX(wImg: ImageWr? = null) = SwingFXUtils.toFXImage(this, wImg)!!
 
-/** Scales image to requested size, returning new image instance and flushing the old. Size must not be 0.  */
-private fun ImageBf.toScaled(W: Int, H: Int, highQuality: Boolean): ImageBf {
-    return if (width==W || height==H) {
+/** Scales image down to requested size. Size must not be 0. */
+private fun ImageBf.toScaledDown(W: Int, H: Int): ImageBf {
+    return if (width<=W || height<=H) {
         this
     } else {
-        try {
-            Thumbnails.of(this)
-                    .scalingMode(if (highQuality) ScalingMode.PROGRESSIVE_BILINEAR else ScalingMode.BILINEAR)
-                    .size(W, H).keepAspectRatio(true)
-                    .rendering(if (highQuality) Rendering.QUALITY else Rendering.SPEED)
-                    .asBufferedImage()
-        } catch (e: IOException) {
-            logger.warn(e) { "Can't find image thumbnails $this" }
-            this
-        } finally {
-            flush()
-        }
+        val iW = width
+        val iH = height
+        val iRatio = iW.toDouble()/iH
+        val rRatio = W.toDouble()/H
+        val rW = if (iRatio<rRatio) W else (H*iRatio).toInt()
+        val rH = if (iRatio<rRatio) (W/iRatio).toInt() else H
+        val imgScaled = ResampleOp(rW, rH).filter(this, null)
+        flush()
+        imgScaled
     }
 }
 
@@ -53,7 +49,6 @@ private fun ImageBf.toScaled(W: Int, H: Int, highQuality: Boolean): ImageBf {
 private fun imgImplHasThumbnail(reader: ImageReader, index: Int, f: File): Boolean {
     return try {
         reader.readerSupportsThumbnails() && reader.hasThumbnails(index) // throws exception -> no thumb
-        true
     } catch (e: IOException) {
         logger.warn(e) { "Can't find image thumbnails $f" }
         false
@@ -95,52 +90,71 @@ fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean
         logger.warn(Throwable()) { "Loading image on FX thread!" }
 
     // negative values have same effect as 0, 0 loads image at its size
-    val W = maxOf(0, width.toInt())
-    val H = maxOf(0, height.toInt())
+    var W = maxOf(0, width.toInt())
+    var H = maxOf(0, height.toInt())
     val loadFullSize = W==0 && H==0
 
     ImageIO.createImageInputStream(file).use { input ->
         val readers = ImageIO.getImageReaders(input)
         if (!readers.hasNext()) return null
 
+        var scale = !loadFullSize
         val reader = readers.next()!!
         reader.input = input
-        val ii = reader.minIndex // 1st image index
-        var i: ImageBf = supplyFirst(
+        val ii = reader.minIndex
+        var i: ImageBf? = supplyFirst<ImageBf>(
                 {
                     if (!loadFullSize) {
-                        val thumbHas = false // imgImplHasThumbnail(reader, ii, file) // TODO work around TwelveMonkeys PsdReader thumbnail bugs
-                        val thumbW = if (!thumbHas) 0 else reader.getThumbnailWidth(ii, 0)
-                        val thumbH = if (!thumbHas) 0 else reader.getThumbnailHeight(ii, 0)
-                        val thumbUse = thumbHas && width<=thumbW && height<=thumbH
-                        if (thumbUse) {
-                            reader.readThumbnail(ii, 0)
+                        runTry {
+                            val thumbHas = imgImplHasThumbnail(reader, ii, file)
+                            val thumbW = if (!thumbHas) 0 else reader.getThumbnailWidth(ii, 0)
+                            val thumbH = if (!thumbHas) 0 else reader.getThumbnailHeight(ii, 0)
+                            val thumbUse = thumbHas && W<=thumbW && H<=thumbH
+                            if (thumbUse) {
+                                reader.readThumbnail(ii, 0)
+                            }
+                        } orNull {
+                            logger.warn(it) { "Failed to read thumbnail for image=$file" }
                         }
                     }
                     null
                 },
                 {
-                    var px = 1
-                    if (!highQuality) {
-                        val sw = reader.getWidth(ii)/W
-                        val sh = reader.getHeight(ii)/H
-                        px = maxOf(1, maxOf(sw, sh)*2/3) // quality == 2/3 == ok, great performance
+                    val iW = reader.getWidth(ii)
+                    val iH = reader.getHeight(ii)
+                    if (W>iW || H > iH) {
+                        W = iW
+                        H = iH
                     }
-                    // max quality is px==1, but quality/performance ratio would suck
-                    // the only quality issue is with halftone patterns (e.g. manga),
-                    // they really ask for max quality
-                    val irp = ImageReadParam()
-                    irp.setSourceSubsampling(px, px, 0, 0)
-                    reader.read(ii, irp)
+                    val iRatio = iW.toDouble()/iH
+                    val rRatio = W.toDouble()/H
+                    val rW = if (iRatio<rRatio) W else (H*iRatio).toInt()
+                    val rH = if (iRatio<rRatio) (W/iRatio).toInt() else H
+
+                    val irp = reader.defaultReadParam.apply {
+                        var px = 1
+                        if (!highQuality) {
+                            val sw = reader.getWidth(ii)/rW
+                            val sh = reader.getHeight(ii)/rH
+                            px = maxOf(1, maxOf(sw, sh)/3) // quality == 2/3 == ok, great performance
+                        }
+                        // max quality is px==1, but quality/performance ratio would suck
+                        setSourceSubsampling(px, px, 0, 0)
+                    }
+
+                    runTry {
+                        reader.read(ii, irp)
+                    } orNull {
+                        logger.warn(it) { "Failed to load image=$file" }
+                    }
                 }
-        )!!
+        )
         reader.dispose()
 
-        // scale, also improves quality, fairly quick
-        if (!loadFullSize)
-            i = i.toScaled(W, H, highQuality)
+        if (scale)
+            i = i?.toScaledDown(W, H)
 
-        return i.toFX()
+        return i?.toFX()
     }
 }
 
@@ -209,3 +223,5 @@ fun createImageBlack(size: ImageSize) = BufferedImage(size.width.toInt(), size.h
 
 /** @return new transparent image of specified size */
 fun createImageTransparent(size: ImageSize) = BufferedImage(size.width.toInt(), size.height.toInt(), BufferedImage.TYPE_INT_ARGB)
+
+

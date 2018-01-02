@@ -71,8 +71,8 @@ public final class Layouter implements ContainerNode {
         this.container = c;
 
         cp.itemSupply = () -> stream(
-            tuple("Split Vertically", this::showSplitV, "Container for 2 components. Splits space vertically to top and bottom."),
-            tuple("Split Horizontally", this::showSplitH, "Container for 2 widgets. Splits space horizontally to left and right."),
+            tuple("Split Vertically", this::showSplitV, "Splits space to left and right component."),
+            tuple("Split Horizontally", this::showSplitH, "Splits space to top and bottom component."),
             tuple("Widget", this::showWidgetArea, "Choose a widget using a widget chooser."),
             tuple("FreeForm", this::showFreeform, "Container for unlimited number of widgets. Widgets become 'window-like' - allow "
                     + "manual resizing and reposition. Widgets may overlap. You can make use of autolayout mechanism.")

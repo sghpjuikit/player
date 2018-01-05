@@ -16,6 +16,7 @@ class CoreLogging(val loggingConfigurationFile: File, val loggingOutputDir: File
     override fun init() {
         // disable java.util.logging logging
         // Not sure this is really wise, but otherwise we get a lot of unwanted log content in console from libs
+        // TODO: see https://stackoverflow.com/questions/6020545/send-redirect-route-java-util-logging-logger-jul-to-logback-using-slf4j
         LogManager.getLogManager().reset()
 
         // configure slf4 logging

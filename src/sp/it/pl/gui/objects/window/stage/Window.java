@@ -99,6 +99,7 @@ import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchors;
+import static sp.it.pl.util.graphics.UtilKt.initClip;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.reactive.Util.maintain;
 
@@ -353,12 +354,14 @@ public class Window extends WindowBase {
 			+ "\tPress ALT : Activate layout mode.\n"
 			+ "\tContent right drag : drag tabs.").size(is);
 
-		// left header
 		leftHeaderBox.getChildren().addAll(
 			layB, propB, runB, lastFMB, new Label(" "),
 			ltB, lockB, lmB, rtB, new Label(" "),
 			guideB, helpB
 		);
+		leftHeaderBox.setTranslateY(-4);
+		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
+
 
 		Icon miniB = new Icon(null, is, Action.get("Mini mode"));
 		maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP, ANGLE_UP), miniB::icon);
@@ -381,8 +384,10 @@ public class Window extends WindowBase {
 			? "Main window\n\nThis window is main app window\nClosing it will close application."
 			: "Main window\n\nThis window is not main app window\nClosing it will not close application."));
 
-		// right header
 		rightHeaderBox.getChildren().addAll(mainB, new Label(""), miniB, onTopB, fullsB, new Label(""), minB, maxB, closeB);
+		rightHeaderBox.setTranslateY(-4);
+		initClip(rightHeaderBox, new Insets(4, 0, 4, 0));
+
 	}
 
 /* ---------- CONTENT ----------------------------------------------------------------------------------------------- */

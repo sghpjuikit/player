@@ -179,12 +179,14 @@ fun Node.setScaleXYByTo(percent: Double, pxFrom: Double, pxTo: Double) {
 /* ---------- CLIP -------------------------------------------------------------------------------------------------- */
 
 /** Installs clip mask to prevent displaying content outside of this node. */
-fun Node.initClip() {
+@JvmOverloads fun Node.initClip(padding: Insets = Insets.EMPTY) {
     val clip = Rectangle()
 
     layoutBoundsProperty() sync {
-        clip.width = it.width
-        clip.height = it.height
+        clip.x = padding.left
+        clip.y = padding.top
+        clip.width = it.width - padding.left - padding.right
+        clip.height = it.height - padding.top - padding.bottom
     }
 
     setClip(clip)

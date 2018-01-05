@@ -39,11 +39,6 @@ class Db {
      */
     var libraryComparator = v<Comparator<in Metadata>>(Comparator { a, b -> a.compareTo(b) })
 
-    var autocompletionContains = true
-    val autocompletionFilter: (String, String) -> Boolean = { text, phrase ->
-        if (autocompletionContains) text.contains(phrase) else text.startsWith(phrase)
-    }
-
     fun init() {
         if (running) return
         running = true

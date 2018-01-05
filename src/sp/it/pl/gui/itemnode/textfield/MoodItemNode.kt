@@ -20,7 +20,7 @@ class MoodItemNode: TextFieldItemNode<String>({ APP.converter.general.toS(it) })
         isEditable = true
         autoComplete(this) { p ->
             APP.db.itemUniqueValuesByField[Metadata.Field.MOOD]
-                    ?.filter { APP.db.autocompletionFilter(it, p.userText) }
+                    ?.filter { it.contains(p.userText, true) }
                     .orEmpty()
         }
     }

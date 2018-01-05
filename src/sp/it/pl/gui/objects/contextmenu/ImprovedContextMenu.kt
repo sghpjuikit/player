@@ -146,7 +146,7 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
                     { it.nameGui() },
                     { APP.widgetManager.use(it.nameGui(), NO_LAYOUT) { c -> (c.controller as SongWriter).read(mg.grouped) } }
             ),
-            menuItem("Explore items's directory") { browseMultipleFiles(mg.grouped.stream().filter { it.isFileBased() }.map { it.getFile() }) },
+            menuItem("Explore items's directory") { browseMultipleFiles(mg.grouped.asSequence().filter { it.isFileBased() }.map { it.getFile() }) },
             menuWithItems(
                     "Explore items' directory in",
                     APP.widgetManager.getFactories().filter { it.hasFeature(FileExplorerFeature::class) },
@@ -179,7 +179,7 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
             menuItem("Crop items") { PlaylistManager.use { it.retainAll(pig.items) } },
             menuItem("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(pig.items) } },
             menuItem("Duplicate items individually") { PlaylistManager.use { it.duplicateItemsByOne(pig.items) } },
-            menuItem("Explore items's directory") { browseMultipleFiles(pig.items.stream().filter { it.isFileBased() }.map { it.getFile() }) },
+            menuItem("Explore items's directory") { browseMultipleFiles(pig.items.asSequence().filter { it.isFileBased() }.map { it.getFile() }) },
             menuItem("Add items to library") { APP.db.addItems(pig.items.map { it.toMeta() }) },
             menuWithItems(
                     "Search album cover",

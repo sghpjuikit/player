@@ -20,7 +20,6 @@ import sp.it.pl.gui.pane.ActionPane.FastColAction
 import sp.it.pl.gui.pane.ActionPane.SlowColAction
 import sp.it.pl.gui.pane.ConfigPane
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.layout.widget.WidgetManager.WidgetSource
 import sp.it.pl.layout.widget.WidgetManager.WidgetSource.ANY
@@ -33,7 +32,6 @@ import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.access.V
-import sp.it.pl.util.access.ref.SingleR
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.async.FX
 import sp.it.pl.util.async.future.Fut.fut
@@ -60,8 +58,6 @@ import sp.it.pl.util.system.recycle
 import sp.it.pl.util.system.saveFile
 import java.io.File
 import java.util.function.Consumer
-import java.util.stream.Stream
-import kotlin.streams.asSequence
 import kotlin.streams.toList
 
 private typealias IconMA = MaterialIcon
@@ -304,7 +300,7 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
                     state = Label(),
                     pi = appProgressIndicator()
             )
-            val tagger = SingleR<Widget<*>, Void> { APP.widgetManager.factories.find { it.name()=="Tagger" }.orEmpty().create() }   // TODO: no empty widget...
+            val tagger by lazy { APP.widgetManager.factories.find { it.name()=="Tagger" }.orEmpty().create() }   // TODO: no empty widget...
 
             info.bind(task)
             layHorizontally(50.0, Pos.CENTER,
@@ -333,7 +329,7 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
                                         .use(FX, Consumer { result ->
                                             if (editInTagger.get()) {
                                                 val items = if (editOnlyAdded.get()) result.converted else result.all
-                                                (tagger.get().controller as SongReader).read(items)
+                                                (tagger.controller as SongReader).read(items)
                                             }
                                             if (enqueue.get() && !result.all.isEmpty()) {
                                                 APP.widgetManager.find(PlaylistFeature::class.java, WidgetManager.WidgetSource.ANY)
@@ -345,14 +341,15 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
                             }
                                     .withText("Execute")
                     ),
-                    tagger.get().load()
+                    tagger.load()
             )
         }
 )
 
-fun browseMultipleFiles(files: Stream<File>) {
+fun browseMultipleFiles(files: Sequence<File>) {
     val fs = files.asSequence().toSet()
     when {
+        fs.isEmpty() -> {}
         fs.size==1 -> fs.firstOrNull()?.browse()
         else -> APP.actionPane.show(MultipleFiles(fs))
     }

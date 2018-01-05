@@ -257,7 +257,7 @@ private val m = ImprovedContextMenu<List<File>>().apply {
             menuItem("Open in-app") { openIn(value) },
             menuItem("Edit") { value[0].edit() },
             menuItem("Copy") { copyToSysClipboard(DataFormat.FILES, value) },
-            menuItem("Explore in browser") { browseMultipleFiles(value.stream()) }
+            menuItem("Explore in browser") { browseMultipleFiles(value.asSequence()) }
     )
 }
 

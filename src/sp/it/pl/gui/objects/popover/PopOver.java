@@ -141,7 +141,7 @@ import static sp.it.pl.util.math.Util.millis;
  *  - hide on click : true
  *  - move with owner : optional
  *  - tip: hide when owner receives any kind of event
- *  - hiding immediatelly or disabling animations might be considered
+ *  - hiding immediately or disabling animations might be considered
  *  - detachable : false
  *  - detached : false or true with no arrow
  *
@@ -431,11 +431,7 @@ public class PopOver<N extends Node> extends PopupControl {
 		showThis(null, owner);
 		position(() -> p.computeXY(this));
 
-		if (focusOnShow.get()) {
-			owner.requestFocus();
-			requestFocus();
-		}
-
+		if (focusOnShow.get()) focus();
 		if (!p.isAppCentric()) uninstallMoveWith();
 		if (isOwnerCreated) getProperties().put(CLOSE_OWNER, CLOSE_OWNER);
 	}
@@ -448,6 +444,12 @@ public class PopOver<N extends Node> extends PopupControl {
 
 	private ScreenPos normalize(ScreenPos pos, Optional<Window> owner) {
 		return owner.isPresent() ? pos : pos.toScreenCentric();
+	}
+
+	private void focus() {
+		Window w = getOwnerWindow();
+		if (w!=null && w.isFocused()) w.requestFocus();
+		requestFocus();
 	}
 
 /* --------------------- MOVE WITH OWNER ---------------------------------------------------------------------------- */

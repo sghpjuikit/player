@@ -347,7 +347,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			.map(column -> {
 				ObjectField<T,?> field = (ObjectField<T,?>) column.getUserData();
 				Sort sort = Sort.of(column.getSortType());
-				return sort.of(field.comparator(sort==Sort.DESCENDING ? Comparator::nullsFirst : Comparator::nullsLast));
+				return sort.of(field.comparator(Comparator::nullsFirst));
 			})
 			.reduce(Comparator::thenComparing)
 			.orElse((Comparator) SAME);

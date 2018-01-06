@@ -122,7 +122,7 @@ class App: Application(), Configurable<Any> {
     /** Directory containing application resources. */
     @F val DIR_RESOURCES = File(DIR_APP, "resources").initForApp()
     /** File for application configuration. */
-    @F val FILE_SETTINGS = File(DIR_USERDATA, "application.properties").initForApp()
+    @F val FILE_SETTINGS = File(DIR_USERDATA, "application.properties")
 
     // cores (always active, mostly singletons)
     @F val logging = CoreLogging(FILE_LOG_CONFIG, DIR_LOG)

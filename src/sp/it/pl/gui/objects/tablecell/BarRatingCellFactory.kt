@@ -13,7 +13,7 @@ import sp.it.pl.util.parsing.StringParseStrategy.To
 @StringParseStrategy(from = From.SINGLETON, to = To.CONSTANT, constant = "Bar")
 object BarRatingCellFactory: RatingCellFactory {
 
-    override fun apply(param: TableColumn<Metadata, Double>) = object: TableCell<Metadata, Double>() {
+    override fun apply(param: TableColumn<Metadata, Double?>) = object: TableCell<Metadata, Double?>() {
         private var p = ProgressBar()
 
         init {

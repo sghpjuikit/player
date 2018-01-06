@@ -12,7 +12,7 @@ import sp.it.pl.util.parsing.StringParseStrategy.To
 @StringParseStrategy(from = From.SINGLETON, to = To.CONSTANT, constant = "Number")
 object NumberRatingCellFactory: RatingCellFactory {
 
-    override fun apply(param: TableColumn<Metadata, Double>) = object: TableCell<Metadata, Double>() {
+    override fun apply(param: TableColumn<Metadata, Double?>) = object: TableCell<Metadata, Double?>() {
         init {
             alignment = Pos.CENTER_RIGHT
         }

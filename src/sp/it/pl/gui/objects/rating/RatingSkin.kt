@@ -49,7 +49,7 @@ import sp.it.pl.util.graphics.pseudoclass
 import java.lang.Math.ceil
 
 /** Skin for [Rating]. */
-class RatingSkin(r: Rating) : SkinBase<Rating>(r) {
+class RatingSkin(r: Rating): SkinBase<Rating>(r) {
 
     private val backgroundContainer = HBox()
     private lateinit var backgroundIcons: Node
@@ -119,8 +119,8 @@ class RatingSkin(r: Rating) : SkinBase<Rating>(r) {
         val w = backgroundIcons.layoutBounds.width
         val gap = 2.0
         val x = when {
-                -gap>b.x -> ratingOld
-                b.x>w+gap -> ratingOld
+                -gap>b.x -> ratingOld ?: 0.0
+                b.x>w+gap -> ratingOld ?: 0.0
                 else -> clip(0.0, b.x/w, 1.0)
             }
 
@@ -132,15 +132,17 @@ class RatingSkin(r: Rating) : SkinBase<Rating>(r) {
         }
     }
 
-    private fun updateClip(v: Double = skinnable.rating.get()) {
+    private fun updateClip(v: Double? = skinnable.rating.get()) {
         val icons = foregroundIcons.boundsInParent
-        foregroundMask.width = icons.minX + v*icons.width
+        foregroundMask.width = icons.minX + (v ?: 0.0)*icons.width
         foregroundMask.height = skinnable.height
 
-        val is1 = v == 1.0
-        foregroundContainer.children.forEach { it.pseudoClassStateChanged(max, is1) }
+        val isEmpty = v == null
+        backgroundContainer.children.forEach { it.pseudoClassStateChanged(empty, isEmpty) }
         val is0 = v == 0.0
         backgroundContainer.children.forEach { it.pseudoClassStateChanged(min, is0) }
+        val is1 = v == 1.0
+        foregroundContainer.children.forEach { it.pseudoClassStateChanged(max, is1) }
     }
 
     override fun layoutChildren(x: Double, y: Double, w: Double, h: Double) {
@@ -150,7 +152,8 @@ class RatingSkin(r: Rating) : SkinBase<Rating>(r) {
 
     companion object {
         val SELECTED = "strong"
-        val max = pseudoclass("max")
+        val empty = pseudoclass("empty")
         val min = pseudoclass("min")
+        val max = pseudoclass("max")
     }
 }

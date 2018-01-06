@@ -19,7 +19,7 @@ object TextStarRatingCellFactory: RatingCellFactory {
     private val s4 = "****"
     private val s5 = "*****"
 
-    override fun apply(param: TableColumn<Metadata, Double>) = object: TableCell<Metadata, Double>() {
+    override fun apply(param: TableColumn<Metadata, Double?>) = object: TableCell<Metadata, Double?>() {
 
         init {
             alignment = Pos.CENTER

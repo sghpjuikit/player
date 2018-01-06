@@ -3798,8 +3798,12 @@ check-icon-disabling:selected {
     -fx-font-size: 10px;
 }
 
+.rating-button:empty {
+    -fx-opacity: 0.0;
+}
+
 .rating-button:min {
-    -fx-opacity: 0.3;
+    -fx-opacity: 0.4;
 }
 
 .rating-button:max {

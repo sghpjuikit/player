@@ -45,6 +45,7 @@ import sp.it.pl.util.action.Action;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
 import sp.it.pl.util.conf.IsConfigurable;
+import sp.it.pl.util.graphics.UtilKt;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
@@ -672,14 +673,15 @@ public class Window extends WindowBase {
 
 		double X = e.getScreenX();
 		double Y = e.getScreenY();
-		Screen screen = getScreen();
-
+		Screen screen = UtilKt.getScreen(X, Y);
 		double SWm = screen.getBounds().getMinX();
 		double SHm = screen.getBounds().getMinY();
 		double SW = screen.getBounds().getMaxX();
 		double SH = screen.getBounds().getMaxY();
 		double SW5 = screen.getBounds().getWidth()/5;
 		double SH5 = screen.getBounds().getHeight()/5;
+		double SDw = 20; // horizontal snap activation distance
+		double SDh = 20; // vertical snap activation distance
 
 		if (isMaximized()==Maximized.NONE)
 			setXY(X - appX, Y - appY);
@@ -687,28 +689,34 @@ public class Window extends WindowBase {
 		// (imitate Windows Aero Snap)
 		Maximized to;
 
-		//left screen edge
-		if (X<=SWm + 10)
-			if (Y<SHm + SH5) to = Maximized.LEFT_TOP;
+		if (X<=SWm + SDw) {
+			if (Y<=SHm + SH5) to = Maximized.LEFT_TOP;
 			else if (Y<SH - SH5) to = Maximized.LEFT;
-			else to = Maximized.LEFT_BOTTOM; // left screen part
-		else if (X<SWm + SW5)
-			if (Y<=SHm) to = Maximized.LEFT_TOP;
+			else to = Maximized.LEFT_BOTTOM;
+		} else if (X<SWm + SW5) {
+			if (Y<=SHm + SDh) to = Maximized.LEFT_TOP;
 			else if (Y<SH - 1) to = Maximized.NONE;
-			else to = Maximized.LEFT_BOTTOM; // middle screen
-		else if (X<SW - SW5)
-			if (Y<=SHm) to = Maximized.ALL;
+			else to = Maximized.LEFT_BOTTOM;
+		} else if (X<SW - SW5) {
+			if (Y<=SHm + SDh) to = Maximized.ALL;
 			else if (Y<SH - 1) to = Maximized.NONE;
-			else to = Maximized.NONE; // right screen part
-		else if (X<SW - 10)
-			if (Y<=SHm) to = Maximized.RIGHT_TOP;
+			else to = Maximized.NONE;
+		} else if (X<SW - SDw) {
+			if (Y<=SHm+SDh) to = Maximized.RIGHT_TOP;
 			else if (Y<SH - 1) to = Maximized.NONE;
-			else to = Maximized.RIGHT_BOTTOM; // right screen edge
-		else if (Y<SHm + SH5) to = Maximized.RIGHT_TOP;
-		else if (Y<SH - SH5) to = Maximized.RIGHT;
-		else to = Maximized.RIGHT_BOTTOM;
+			else to = Maximized.RIGHT_BOTTOM;
+		} else {
+			if (Y<SHm + SH5) to = Maximized.RIGHT_TOP;
+			else if (Y<SH - SH5) to = Maximized.RIGHT;
+			else to = Maximized.RIGHT_BOTTOM;
+		}
 
-		setMaximized(mouseSpeed<80 ? to : isMaximized());
+		boolean isDeMaximize = to==Maximized.NONE && (mouseSpeed==0 || mouseSpeed>70);
+		boolean isMaximize = to!=Maximized.NONE && (isMaximized()!=Maximized.NONE || mouseSpeed<70);
+		if (isDeMaximize || isMaximize) {
+			setScreen(screen);
+			setMaximized(to);
+		}
 	}
 
 	@SuppressWarnings("unused")

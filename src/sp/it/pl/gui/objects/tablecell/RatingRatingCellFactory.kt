@@ -16,8 +16,8 @@ import sp.it.pl.util.parsing.StringParseStrategy.To
 @StringParseStrategy(from = From.SINGLETON, to = To.CONSTANT, constant = "Stars")
 object RatingRatingCellFactory: RatingCellFactory {
 
-    override fun apply(c: TableColumn<Metadata, Double>) = object: TableCell<Metadata, Double>() {
-        internal var r = Rating(APP.maxRating.get(), 0.0)
+    override fun apply(c: TableColumn<Metadata, Double?>) = object : TableCell<Metadata, Double?>() {
+        var r = Rating(APP.maxRating.get())
 
         init {
             contentDisplay = GRAPHIC_ONLY
@@ -26,7 +26,7 @@ object RatingRatingCellFactory: RatingCellFactory {
             r.partialRating.bind(APP.partialRating)
             r.editable.bind(APP.allowRatingChange)
             if (c.userData==Metadata.Field.RATING)
-                r.onRatingEdited = { MetadataWriter.useToRate(c.tableView.items[index], it) }
+                r.onRatingEdited = { it?.let { MetadataWriter.useToRate(c.tableView.items[index], it) } }
         }
 
         override fun updateItem(item: Double?, empty: Boolean) {
@@ -34,11 +34,10 @@ object RatingRatingCellFactory: RatingCellFactory {
             if (empty) {
                 graphic = null
             } else {
-                r.rating.set(item ?: 0.0)
-                if (graphic==null) graphic = r
+                r.rating.set(item)
+                if (graphic == null) graphic = r
             }
         }
-
     }
 
 }

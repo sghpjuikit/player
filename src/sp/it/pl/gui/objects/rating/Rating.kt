@@ -6,12 +6,12 @@ import sp.it.pl.util.access.V
 import sp.it.pl.util.access.v
 
 /** A control for allowing users to provide a rating as 0-1 double. */
-class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double = 0.0): Control() {
+class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double? = null): Control() {
 
     /** Rating value in 0-1. Value will clipped to range. Default 0. */
-    @JvmField val rating = object: V<Double>(initialRating) {
-        override fun set(nv: Double) {
-            super.set(clip(0.0, nv, 1.0))
+    @JvmField val rating = object: V<Double?>(initialRating) {
+        override fun set(nv: Double?) {
+            super.set(nv?.let { clip(0.0, it, 1.0) })
         }
     }
 
@@ -25,7 +25,7 @@ class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double
     @JvmField val editable = v(true)
 
     /** Rating value handler called when user changes the value */
-    @JvmField var onRatingEdited: (Double) -> Unit = {}
+    @JvmField var onRatingEdited: (Double?) -> Unit = {}
 
     init {
         styleClass.setAll("rating")

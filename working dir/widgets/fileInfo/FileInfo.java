@@ -211,7 +211,9 @@ public class FileInfo extends FXMLController implements SongReader {
         rater.partialRating.bind(APP.partialRating);
         rater.editable.bind(APP.allowRatingChange);
         // write metadata on rating change
-        rater.onRatingEdited = consumer(r -> MetadataWriter.useToRate(data, r));
+        rater.onRatingEdited = consumer(r -> {
+            if (r != null) MetadataWriter.useToRate(data, r);
+        });
 
         // drag & drop
         installDrag(
@@ -279,7 +281,7 @@ public class FileInfo extends FXMLController implements SongReader {
         // note we disallow empty rating so rater remains editable
         fields.forEach(l -> l.setVal(m));
         setCover(cover_source.getValue());
-        rater.rating.set(m.getRatingPercentOr0());
+        rater.rating.set(m.getRatingPercent());
 
         update();
     }

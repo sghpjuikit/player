@@ -594,8 +594,7 @@ public final class Seeker extends AnchorPane {
 				p.title.setValue(c.getTime().toString());
 				p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
 				content.setOnMouseClicked(e -> {
-					// if info popup displayed close it and act as if content is
-					// mouse transparent to prevent any action
+					// if info popup is shown, close it and act as if content is mouse transparent to prevent any action
 					if (helpP!=null && helpP.isShowing()) {
 						helpP.hideStrong();
 						return;
@@ -604,11 +603,8 @@ public final class Seeker extends AnchorPane {
 					if (isEdited.getValue()) return;
 
 					// otherwise handle click event
-					if (e.getClickCount()==1 && e.isStillSincePress())
-						// attempt to hide but wait to check if the click is not
-						// part of the double click - ignore if it is
-						// also prevent closing when not still since press
-						// as dragging also activates click which we need to avoid
+					if (e.getClickCount()==1 && e.isStillSincePress() && p.isAutoHide())
+						// attempt to hide but only if click will not follow into double click
 						delayerCloser.start();
 					if (e.getClickCount()==2) {
 						can_hide = false;

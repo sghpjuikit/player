@@ -42,7 +42,7 @@ class Db {
     fun init() {
         if (running) return
         running = true
-        moods = File(APP.DIR_RESOURCES, "moods.cfg").useLines { it.toSet() }
+        moods = File(APP.DIR_RESOURCES, "moods.cfg").useLines { it.toSet() }    // TODO: fix file !exist
 
         Fut<Any>()
                 .then { updateInMemoryDbFromPersisted() }

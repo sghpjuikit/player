@@ -32,6 +32,7 @@ import sp.it.pl.audio.tagging.chapter.Chapter;
 import sp.it.pl.gui.itemnode.ConfigField;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.gui.objects.popover.ArrowLocation;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.animation.Anim;
@@ -68,7 +69,6 @@ import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.chapter.ChapterKt.validateChapterText;
-import static sp.it.pl.gui.objects.popover.PopOver.ArrowLocation.TOP_CENTER;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static sp.it.pl.util.Util.clip;
@@ -582,7 +582,7 @@ public final class Seeker extends AnchorPane {
 				// popup
 				p = new PopOver<>(content);
 				p.getSkinn().setContentPadding(new Insets(10));
-				p.setArrowLocation(TOP_CENTER);
+				p.arrowLocation.set(ArrowLocation.TOP_CENTER);
 				maintain(isEdited, v -> !v, p::setAutoHide); // breaks editing >> p.setAutoHide(true);
 				p.setHideOnEscape(true);
 				p.setHideOnClick(false); // will emulate on our own

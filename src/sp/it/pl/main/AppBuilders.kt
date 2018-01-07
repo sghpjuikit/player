@@ -45,7 +45,7 @@ fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> 
         wrappingWithNatural.value = true
     }
     return PopOver(t).apply {
-        skinn.contentPadding = Insets(15.0) // use css instead
+        getSkinn().contentPadding = Insets(15.0) // use css instead
         styleClass += "help-popover"
         title.value = textTitle
         isAutoHide = true
@@ -62,8 +62,8 @@ fun createInfoIcon(text: String): Icon = Icon(FontAwesomeIcon.INFO)
             e.consume()
             APP.actionStream.push("Info popup")
             helpPopOver(text).apply {
-                    contentNode.wrappingWidth = 400.0
-                    skinn.setTitleAsOnlyHeaderContent(false)
+                    contentNode.value.wrappingWidth = 400.0
+                    getSkinn().setTitleAsOnlyHeaderContent(false)
                     show(e.source as Node)
                 }
         }

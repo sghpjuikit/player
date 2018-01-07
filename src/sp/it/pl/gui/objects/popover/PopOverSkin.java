@@ -56,7 +56,6 @@ import javafx.scene.shape.QuadCurveTo;
 import javafx.scene.shape.VLineTo;
 import javafx.stage.Window;
 import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.popover.PopOver.ArrowLocation;
 import sp.it.pl.util.math.P;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TIMES_CIRCLE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN;
@@ -108,10 +107,7 @@ public class PopOverSkin implements Skin<PopOver> {
 
 		//  min width and height equal 2 * corner radius + 2*arrow indent + 2*arrow size
 		root.minHeightProperty().bind(root.minWidthProperty());
-		root.minWidthProperty().bind(
-			add(multiply(2, p.arrowSizeProperty()),
-				add(multiply(2, p.cornerRadiusProperty()),
-					multiply(2, p.arrowIndentProperty()))));
+		root.minWidthProperty().bind(add(multiply(2, p.arrowSize), add(multiply(2, p.cornerRadius), multiply(2, p.arrowIndent))));
 
 		// header content
 		title = new Label();
@@ -151,7 +147,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		content = new BorderPane();
 		content.getStyleClass().add(CONTENT_STYLECLASS);
 		setMinPrefMaxSize(content, Pane.USE_COMPUTED_SIZE, Pane.USE_COMPUTED_SIZE);
-		maintain(p.contentNodeProperty(), content::setCenter);
+		maintain(p.contentNode, content::setCenter);
 		initClip(content);
 
 		// header
@@ -181,7 +177,7 @@ public class PopOverSkin implements Skin<PopOver> {
 
 		p.getScene().getWindow().xProperty().addListener(uPL);
 		p.getScene().getWindow().yProperty().addListener(uPL);
-		p.arrowLocationProperty().addListener(uPL);
+		p.arrowLocation.addListener(uPL);
 
 		// show new content when changes
 		content.widthProperty().addListener(uPLd);
@@ -273,12 +269,14 @@ public class PopOverSkin implements Skin<PopOver> {
 		return p;
 	}
 
+	public void setTitleAsOnlyHeaderContent(boolean right) {
+		header.getChildren().clear();
+		if (right) header.setRight(title);
+		else header.setLeft(title);
+	}
+
 	// TODO: use css instead
-	/**
-	 * Sets padding of content within popover. Overrides and defaults to css.
-	 *
-	 * @param i padding
-	 */
+	/** Sets padding of content within popover. Overrides and defaults to css. */
 	public void setContentPadding(Insets i) {
 		// set padding from borders
 		content.setPadding(i);
@@ -286,15 +284,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		header.setPadding(new Insets(0, 0, i.getTop(), 0));
 	}
 
-	public void setTitleAsOnlyHeaderContent(boolean right) {
-		header.getChildren().clear();
-		if (right) header.setRight(title);
-		else header.setLeft(title);
-	}
-
-	/**
-	 * @return padding of content within popover. Default is css value.
-	 */
+	/** @return padding of content within popover. Default is css value. */
 	public Insets getContentPadding() {
 		return content.getPadding();
 	}
@@ -321,36 +311,29 @@ public class PopOverSkin implements Skin<PopOver> {
 	private void createPathElements() {
 		DoubleProperty centerYProperty = new SimpleDoubleProperty();
 		DoubleProperty centerXProperty = new SimpleDoubleProperty();
-
 		DoubleProperty leftEdgeProperty = new SimpleDoubleProperty();
 		DoubleProperty leftEdgePlusRadiusProperty = new SimpleDoubleProperty();
-
 		DoubleProperty topEdgeProperty = new SimpleDoubleProperty();
 		DoubleProperty topEdgePlusRadiusProperty = new SimpleDoubleProperty();
-
 		DoubleProperty rightEdgeProperty = new SimpleDoubleProperty();
 		DoubleProperty rightEdgeMinusRadiusProperty = new SimpleDoubleProperty();
-
 		DoubleProperty bottomEdgeProperty = new SimpleDoubleProperty();
 		DoubleProperty bottomEdgeMinusRadiusProperty = new SimpleDoubleProperty();
-
-		DoubleProperty cornerProperty = p.cornerRadiusProperty();
-
-		DoubleProperty arrowSizeProperty = p.arrowSizeProperty();
-		DoubleProperty arrowIndentProperty = p.arrowIndentProperty();
+		DoubleProperty cornerProperty = p.cornerRadius;
+		DoubleProperty arrowSizeProperty = p.arrowSize;
+		DoubleProperty arrowIndentProperty = p.arrowIndent;
 
 		centerYProperty.bind(Bindings.divide(root.heightProperty(), 2));
 		centerXProperty.bind(Bindings.divide(root.widthProperty(), 2));
 
-		leftEdgePlusRadiusProperty.bind(add(leftEdgeProperty, p.cornerRadiusProperty()));
-
-		topEdgePlusRadiusProperty.bind(add(topEdgeProperty, p.cornerRadiusProperty()));
+		leftEdgePlusRadiusProperty.bind(add(leftEdgeProperty, p.cornerRadius));
+		topEdgePlusRadiusProperty.bind(add(topEdgeProperty, p.cornerRadius));
 
 		rightEdgeProperty.bind(root.widthProperty());
-		rightEdgeMinusRadiusProperty.bind(subtract(rightEdgeProperty, p.cornerRadiusProperty()));
+		rightEdgeMinusRadiusProperty.bind(subtract(rightEdgeProperty, p.cornerRadius));
 
 		bottomEdgeProperty.bind(root.heightProperty());
-		bottomEdgeMinusRadiusProperty.bind(subtract(bottomEdgeProperty, p.cornerRadiusProperty()));
+		bottomEdgeMinusRadiusProperty.bind(subtract(bottomEdgeProperty, p.cornerRadius));
 
 		// INIT
 		moveTo = new MoveTo();
@@ -604,7 +587,7 @@ public class PopOverSkin implements Skin<PopOver> {
 	}
 
 	private boolean showArrow(ArrowLocation loc) {
-		ArrowLocation arrowLocation = p.getArrowLocation();
+		ArrowLocation arrowLocation = p.arrowLocation.get();
 		return loc.equals(arrowLocation) && !p.detached.get() && !tornOff;
 	}
 

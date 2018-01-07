@@ -8,10 +8,10 @@ import sp.it.pl.util.reactive.changes
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 
-fun <T> v(value: T) = V(value)
-fun <T> v(value: T, onChange: (T) -> Unit) = V(value, Consumer { onChange(it) } )
-fun <T> vn(value: T? = null) = V(value)
-fun <T> vn(value: T?, onChange: (T?) -> Unit) = V(value, Consumer { onChange(it) } )
+fun <T> v(value: T): V<T> = V(value)
+fun <T> v(value: T, onChange: (T) -> Unit): V<T> = V(value, Consumer { onChange(it) } )
+fun <T> vn(value: T? = null): V<T?> = V(value)
+fun <T> vn(value: T?, onChange: (T?) -> Unit): V<T?> = V(value, Consumer { onChange(it) } )
 
 /**
  * Var/variable - simple object wrapper similar to [javafx.beans.property.Property], but
@@ -36,8 +36,8 @@ open class V<T> : SimpleObjectProperty<T>, ApplicableValue<T> {
 
     constructor(value: T, applier: Runnable) : this(value, Consumer { applier() })
 
-    override fun applyValue(`val`: T) {
-        applier(`val`)
+    override fun applyValue(value: T) {
+        applier(value)
     }
 
     fun onChange(action: Consumer<in T>) = attach { action(it) }

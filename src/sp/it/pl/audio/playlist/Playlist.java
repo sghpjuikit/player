@@ -18,6 +18,7 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
@@ -755,10 +756,10 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		VBox.setMargin(t2, new Insets(0, 0, 0, 20));
 		Icon infoB = new Icon(INFO, 11, "Help");
 		infoB.setOnMouseClicked(e -> {
-			PopOver helpP = helpPopOver("");
-			helpP.setContentNode(cnt);	// TODO: fix this
-			// open the uri in browser
-			helpP.getContentNode().setOnMouseClicked(pe -> {
+			PopOver<Node> helpP = helpPopOver("").changeContentType();
+			helpP.contentNode.set(cnt);
+			helpP.contentNode.getValue().setOnMouseClicked(pe -> {
+				// open the uri in browser
 				browse(URI.create(uri));
 				pe.consume();
 			});

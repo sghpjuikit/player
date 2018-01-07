@@ -76,6 +76,7 @@ public final class Guide implements Configurable {
 	private int at = -1;
 	private final Text text = new Text();
 	private PopOver<VBox> p;        // TODO use lazy
+	private VBox pContent;          // TODO use lazy
 	private Subscription action_monitoring;
 	private final Label infoL = new Label();
 
@@ -90,13 +91,27 @@ public final class Guide implements Configurable {
 		text.prefWidth(350);
 		text.getStyleClass().add(STYLECLASS_TEXT);
 
-		p = new PopOver<>(new VBox(15,text));
-		p.getContentNode().setPadding(new Insets(30));
+		pContent = new VBox(15,text);
+		pContent.setPadding(new Insets(30));
+		pContent.addEventHandler(MOUSE_CLICKED, e -> {
+			if (e.getButton()==PRIMARY) goToNext();
+			if (e.getButton()==SECONDARY && hints.get(at).action.equals("Navigation")) {
+				runAfter(proceedAnimLength.multiply(3), this::goToNext);
+				runAfter(proceedAnimLength.multiply(6), this::goToNext);
+			}
+			if (e.getButton()==SECONDARY) goToPrevious();
+			e.consume();
+		});
+		pContent.addEventHandler(KEY_PRESSED, e -> {
+			if (e.getCode()==RIGHT) { goToNext(); e.consume(); }
+			if (e.getCode()==LEFT)  { goToPrevious(); e.consume(); }
+		});
+		p = new PopOver<>(pContent);
 		p.setAutoHide(false);
 		p.setHideOnClick(false);
 		p.setHideOnEscape(true);
 		p.getSkinn().setContentPadding(new Insets(8)); // TODO: use css style instead
-		p.setArrowSize(0);
+		p.arrowSize.set(0);
 		p.detached.set(true);
 		p.setOnHiding(e -> run(20,() -> APP.actionStream.push("Guide closing")));
 		p.getHeaderIcons().addAll(
@@ -110,19 +125,6 @@ public final class Guide implements Configurable {
 			// new Icon(ARROW_RIGHT,11,"Next",this::goToNext) // unnecessary, uses left+right mouse button navigation
 			new Label()
 		);
-		p.getContentNode().addEventHandler(MOUSE_CLICKED, e -> {
-			if (e.getButton()==PRIMARY)   goToNext();
-			if (e.getButton()==SECONDARY && hints.get(at).action.equals("Navigation")) {
-				runAfter(proceedAnimLength.multiply(3), this::goToNext);
-				runAfter(proceedAnimLength.multiply(6), this::goToNext);
-			}
-			if (e.getButton()==SECONDARY) goToPrevious();
-			e.consume();
-		});
-		p.getContentNode().addEventHandler(KEY_PRESSED, e -> {
-			if (e.getCode()==RIGHT) { goToNext(); e.consume(); }
-			if (e.getCode()==LEFT)  { goToPrevious(); e.consume(); }
-		});
 
 		hint("Intro", "Hi, this is guide for this application. It will show you around. " +
 			 "\n\nBut first let's play some music.",
@@ -387,7 +389,7 @@ public final class Guide implements Configurable {
 
 	private final EventHandler<Event> consumer = Event::consume;
 	private final Duration proceedAnimLength = millis(400);
-	private final Anim proceed_anim = new Anim(proceedAnimLength, x -> p.getContentNode().setOpacity(-(x*x-1)));
+	private final Anim proceed_anim = new Anim(proceedAnimLength, x -> pContent.setOpacity(-(x*x-1)));
 
 	private void proceed() {
 		if (hints.isEmpty()) return;
@@ -419,14 +421,14 @@ public final class Guide implements Configurable {
 		p.title.set(h.action.isEmpty() ? "Guide" : "Guide - " + h.action);
 		text.setText(h.text.get());
 		// graphics
-		p.getContentNode().getChildren().retainAll(text);
+		pContent.getChildren().retainAll(text);
 		if (h.graphics!=null) {
 			h.graphics.removeEventHandler(MOUSE_CLICKED, consumer);
 			h.graphics.addEventHandler(MOUSE_CLICKED, consumer);
-			p.getContentNode().getChildren().add(h.graphics);
+			pContent.getChildren().add(h.graphics);
 			VBox.setMargin(h.graphics, new Insets(10,0,0,0));
 		}
-		p.getContentNode().requestFocus();
+		pContent.requestFocus();
 	}
 
 	private void handleAction(String action) {

@@ -340,8 +340,8 @@ public class AppActions {
 		p.title.set(title);
 		p.setAutoHide(true);
 		p.show(ScreenPos.APP_CENTER);
-		p.getContentNode().focusFirstConfigField();
-		p.getContentNode().hideOnOk.setValue(true);
+		p.contentNode.getValue().focusFirstConfigField();
+		p.contentNode.getValue().hideOnOk.setValue(true);
 	}
 
 	public void openImageFullscreen(File image, Screen screen) {

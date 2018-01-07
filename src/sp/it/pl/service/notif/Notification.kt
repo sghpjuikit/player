@@ -31,15 +31,15 @@ class Notification: PopOver<Node>() {
         detachable.value = false
         userResizable.value = false
         isHideOnEscape = false
-        arrowSize = 0.0
-        arrowIndent = 0.0
-        cornerRadius = 0.0
+        arrowSize.value = 0.0
+        arrowIndent.value = 0.0
+        cornerRadius.value = 0.0
         isAutoFix = false
         isAutoHide = false
-        skinn.setTitleAsOnlyHeaderContent(true)
+        getSkinn().setTitleAsOnlyHeaderContent(true)
         styleClass += "notification"
 
-        contentNode = root.apply {
+        contentNode.value = root.apply {
             setOnMouseClicked {
                 if (it.button==PRIMARY) lClickAction()
                 if (it.button==SECONDARY) rClickAction()

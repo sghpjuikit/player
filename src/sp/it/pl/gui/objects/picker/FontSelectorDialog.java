@@ -85,7 +85,7 @@ public class FontSelectorDialog extends PopOver<VBox> {
 			)
 		);
 		layout.setPadding(new Insets(15));
-		setContentNode(layout);
+		contentNode.set(layout);
 	}
 
 /* ---------- HELPER CLASSES ---------------------------------------------------------------------------------------- */

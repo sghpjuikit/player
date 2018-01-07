@@ -74,10 +74,10 @@ class EffectItemNode: TextFieldItemNode<Effect> {
     private fun openChooser(me: MouseEvent) {
         val p = PopOver<Region>().apply {
             title.set("Effect")
-            arrowSize = 0.0
+            arrowSize.value = 0.0
             isAutoFix = true
             isAutoHide = true
-            contentNode = Picker<EffectType>().apply {
+            contentNode.value = Picker<EffectType>().apply {
                 itemSupply = limitedToType
                         ?.let { Supplier { stream(EffectType(limitedToType.kotlin), EffectType(null)) } }
                         ?: Supplier { EFFECT_TYPES.stream() }

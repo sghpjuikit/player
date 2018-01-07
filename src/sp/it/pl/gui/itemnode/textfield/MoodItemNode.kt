@@ -28,12 +28,12 @@ class MoodItemNode: TextFieldItemNode<String>({ APP.converter.general.toS(it) })
     override fun onDialogAction() {
         val p = PopOver<Node>().apply {
             detachable.set(false)
-            arrowSize = 0.0
-            arrowIndent = 0.0
-            cornerRadius = 0.0
+            arrowSize.value = 0.0
+            arrowIndent.value = 0.0
+            cornerRadius.value = 0.0
             isAutoHide = true
             isAutoFix = true
-            contentNode = MoodPicker().apply {
+            contentNode.value = MoodPicker().apply {
                 node.setPrefSize(800.0, 600.0)
                 onCancel = Runnable { hide() }
                 onSelect = Consumer {

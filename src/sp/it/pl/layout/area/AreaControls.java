@@ -100,10 +100,10 @@ public final class AreaControls {
     () -> helpPopOver(""),
     (p, ac) -> {
         // set text
-        p.getContentNode().setText(ac.getInfo());
+        p.contentNode.getValue().setText(ac.getInfo());
         // for some reason we need to put this every time, which
         // should not be the case, investigate
-        p.getContentNode().setWrappingWidth(400);
+        p.contentNode.getValue().setWrappingWidth(400);
         // we need to handle hiding this AreaControls when popup
         // closes and we are outside of the area (not implemented yet)
         p.addEventHandler(WINDOW_HIDDEN, we -> {

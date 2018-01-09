@@ -47,16 +47,15 @@ import static sp.it.pl.util.type.Util.getAllFields;
 import static sp.it.pl.util.type.Util.getGenericPropertyType;
 import static sp.it.pl.util.type.Util.unPrimitivize;
 
-/**
- * Provides methods to access configs.
- */
+/** Provides methods to access configs. */
 public class Configuration {
 
 	private static final Lookup methodLookup = MethodHandles.lookup();
-	private static final Ƒ1<String,String> mapper = s -> s.replaceAll(" ", "_").toLowerCase();
+	private static final Ƒ1<String,String> mapper = s -> s.replace(' ', '_').toLowerCase();
 
+	private final Ƒ1<Config,String> configToRawKeyMapper = mapper.compose(c -> c.getGroup() + "." + c.getName());
 	private final Map<String,String> properties = new ConcurrentHashMap<>();
-	private final MapSet<String,Config> configs = new MapSet<>(new ConcurrentHashMap<>(), mapper.compose(c -> c.getGroup() + "." + c.getName()));
+	private final MapSet<String,Config> configs = new MapSet<>(new ConcurrentHashMap<>(), configToRawKeyMapper);
 
 	/**
 	 * Returns raw key-value ({@link java.lang.String}) pairs representing the serialized configs.
@@ -65,6 +64,10 @@ public class Configuration {
 	 */
 	public Map<String,String> rawGet() {
 		return properties;
+	}
+
+	public boolean rawContains(Config<?> config) {
+		return properties.containsKey(configToRawKeyMapper.apply(config));
 	}
 
 	public void rawAddProperty(String name, String value) {
@@ -161,7 +164,7 @@ public class Configuration {
 	 * Loops through Configuration fields and stores them all into file.
 	 */
 	public void save(String title, File file) {
-		String comment = title + " property file" + "\n"
+		String comment = " " + title + " property file" + "\n"
 				+ " Last auto-modified: " + java.time.LocalDateTime.now() + "\n"
 				+ "\n"
 				+ " Properties are in the format: {property path}.{property name}{separator}{property value}\n"
@@ -172,11 +175,10 @@ public class Configuration {
 				+ " Properties must be separated by (any) combination of '\\n', '\\r' characters\n"
 				+ "\n"
 				+ " Ignored lines:\n"
-				+ " \tcomment lines (start with '#')\n"
-				+ " \tcomment lines (start with '!')\n"
+				+ " \tcomment lines (start with '#' or '!')\n"
 				+ " \tempty lines\n"
 				+ "\n"
-				+ " Some properties are read-only or have additional value constraints. Such properties will ignore "
+				+ " Some properties may be read-only or have additional value constraints. Such properties will ignore "
 				+ "custom or unfit values";
 
 		// TODO: persist raw properties that are not configs too

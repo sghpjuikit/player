@@ -357,26 +357,26 @@ public interface Util {
 	}
 
 	/**
-	 * Deletes the file permanently.<br/>
+	 * Deletes the file/directory permanently.<br/>
 	 * If the file denotes a directory, it will be deleted including its content.
 	 * <p/>
 	 * The file will not be recycled, but deleted permanently, which is not what is usually desired when deletion is
 	 * invoked directly by a user. See {@link sp.it.pl.util.system.EnvironmentKt#recycle(java.io.File)}.
 	 *
 	 * @param f nonnull file
-	 * @return success if file was deleted or did not exist or error if error occurs during deletion
+	 * @return success of true if file was deleted, of false if did not exist or error if error occurs during deletion
 	 * @throws java.lang.RuntimeException if parameter null
 	 */
-	static Try<Void,Exception> deleteFile(File f) {
+	static Try<Boolean,Exception> deleteFile(File f) {
 		if (f.isDirectory()) {
 			deleteDirContent(f);
 		}
 
 		try {
 			Files.delete(f.toPath());
-			return Try.ok();
+			return Try.ok(true);
 		} catch (NoSuchFileException e) {
-			return Try.ok();
+			return Try.ok(false);
 		} catch (IOException | SecurityException e) {
 			log(Util.class).error("Could not delete file {}", f, e);
 			return Try.error(e);

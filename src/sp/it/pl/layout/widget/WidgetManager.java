@@ -544,8 +544,8 @@ public final class WidgetManager {
 	}
 
 	/** Equivalent to: {@code getWidget(type, source).ifPresent(action)} */
-	public <F> void use(Class<F> type, WidgetSource source, Consumer<F> action) {
-		find(type, source).ifPresent(action);
+	public <F> void use(Class<F> feature, WidgetSource source, Consumer<F> action) {
+		find(feature, source).ifPresent(action);
 	}
 
 	/** Equivalent to: {@code getWidget(cond, source).ifPresent(action)} */

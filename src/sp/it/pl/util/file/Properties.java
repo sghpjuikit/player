@@ -28,6 +28,7 @@ import static sp.it.pl.util.Util.hasNoReadableText;
 import static sp.it.pl.util.Util.hasReadableText;
 import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.file.Util.isValidatedDirectory;
 import static sp.it.pl.util.functional.Util.byNC;
 
 public interface Properties {
@@ -105,6 +106,7 @@ public interface Properties {
 	}
 
 	static void save(File file, String comments, Map<String,String> keyValues) {
+		isValidatedDirectory(file.getParentFile().getAbsoluteFile());
 		try (FileOutputStream os = new FileOutputStream(file)) {
 			save(os, comments, keyValues);
 		} catch (IOException e) {
@@ -113,6 +115,7 @@ public interface Properties {
 	}
 
 	static void saveP(File file, String comments, Map<String,Property> keyValues) {
+		isValidatedDirectory(file.getParentFile().getAbsoluteFile());
 		try (FileOutputStream os = new FileOutputStream(file)) {
 			saveP(os, comments, keyValues);
 		} catch (IOException e) {

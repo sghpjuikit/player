@@ -20,8 +20,7 @@ import sp.it.pl.gui.pane.ActionPane.FastColAction
 import sp.it.pl.gui.pane.ActionPane.SlowColAction
 import sp.it.pl.gui.pane.ConfigPane
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.widget.WidgetManager
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource
+import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetManager.WidgetSource.ANY
 import sp.it.pl.layout.widget.WidgetManager.WidgetSource.NEW
 import sp.it.pl.layout.widget.WidgetManager.WidgetSource.NO_LAYOUT
@@ -46,7 +45,6 @@ import sp.it.pl.util.file.Util.getCommonRoot
 import sp.it.pl.util.file.Util.getFilesAudio
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.Util.layHorizontally
 import sp.it.pl.util.graphics.Util.layVertically
 import sp.it.pl.util.system.browse
@@ -114,15 +112,15 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Open data in Converter.",
                     IconMD.SWAP_HORIZONTAL,
                     // TODO: make sure it opens Converter or support multiple Opener types
-                    { f -> APP.widgetManager.use(Opener::class.java, ANY) { it.open(f) } }
+                    { f -> APP.widgetManager.use<Opener>(ANY) { it.open(f) } }
             )
     )
     ap.register<Component>(
             FastAction(
                     "Export",
                     "Creates a launcher for this component. \n"+
-                            "Opening the launcher with this application will open this component with current settings "+
-                            "as if it were a standalone application.",
+                    "Opening the launcher with this application will open this component with current settings "+
+                    "as if it were a standalone application.",
                     IconMD.EXPORT,
                     { w ->
                         saveFile("Export to...", APP.DIR_LAYOUTS, w.exportName, APP.actionPane.scene.window, ExtensionFilter("Component", "*.fxwl"))
@@ -130,18 +128,35 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     }
             )
     )
+    ap.register<Widget<*>>(
+            FastAction(
+                    "Use as default",
+                    "Uses settings of this widget as default settings when creating widgets of this type. This " +
+                    "overrides the default settings of the widget set by the developer. For using multiple widget " +
+                    "configurations at once, use 'Export' instead.",
+                    IconMD.SETTINGS_BOX,
+                    { w -> w.storeDefaultConfigs() }
+            ),
+            FastAction(
+                    "Clear default",
+                    "Removes overridden default settings for this widget. New widgets will start with settings set " +
+                    "by the developer.",
+                    IconMD.SETTINGS_BOX,
+                    { w -> w.clearDefaultConfigs() }
+            )
+    )
     ap.register<Item>(
             FastColAction(
                     "Add to new playlist",
                     "Add items to new playlist widget.",
                     IconMD.PLAYLIST_PLUS,
-                    { items -> APP.widgetManager.use(PlaylistFeature::class.java, NEW) { it.playlist.addItems(items) } }
+                    { items -> APP.widgetManager.use<PlaylistFeature>(NEW) { it.playlist.addItems(items) } }
             ),
             FastColAction(
                     "Add to existing playlist",
                     "Add items to existing playlist widget if possible or to a new one if not.",
                     IconMD.PLAYLIST_PLUS,
-                    { items -> APP.widgetManager.use(PlaylistFeature::class.java, ANY) { it.playlist.addItems(items) } }
+                    { items -> APP.widgetManager.use<PlaylistFeature>(ANY) { it.playlist.addItems(items) } }
             ),
             FastColAction(
                     "Update from file",
@@ -161,9 +176,8 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Show",
                     "Shows items in a table.",
                     IconMA.COLLECTIONS,
-                    { items ->
-                        APP.widgetManager
-                                .find("Library", WidgetSource.NEW, false)
+                    { items -> APP.widgetManager
+                                .find("Library", NEW, false)
                                 .ifPresent { it.controller.inputs.getInput("To display").setValue(items) }
                     }
             ),
@@ -171,9 +185,8 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Show as Group",
                     "Group items in a table.",
                     MaterialIcon.COLLECTIONS,
-                    { items ->
-                        APP.widgetManager
-                                .find("Library View", WidgetSource.NEW, false)
+                    { items -> APP.widgetManager
+                                .find("Library View", NEW, false)
                                 .ifPresent { it.controller.inputs.getInput("To display").setValue(items) }
                     }
             )
@@ -210,7 +223,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Add items to new playlist widget.",
                     IconMD.PLAYLIST_PLUS,
                     { f -> AudioFileFormat.isSupported(f, Use.APP) },
-                    { fs -> APP.widgetManager.use(PlaylistFeature::class.java, NEW) { it.playlist.addFiles(fs) } }
+                    { fs -> APP.widgetManager.use<PlaylistFeature>(NEW) { it.playlist.addFiles(fs) } }
             ),
             SlowColAction(
                     "Find files",
@@ -231,7 +244,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Add items to existing playlist widget if possible or to a new one if not.",
                     IconMD.PLAYLIST_PLUS,
                     { AudioFileFormat.isSupported(it, Use.APP) },
-                    { f -> APP.widgetManager.use(PlaylistFeature::class.java, ANY) { it.playlist.addFiles(f) } }
+                    { f -> APP.widgetManager.use<PlaylistFeature>(ANY) { it.playlist.addFiles(f) } }
             ),
             FastAction(
                     "Apply skin",
@@ -245,14 +258,14 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Opens image in an image viewer widget.",
                     IconFA.IMAGE,
                     { ImageFileFormat.isSupported(it) },
-                    { img_file -> APP.widgetManager.use(ImageDisplayFeature::class.java, NO_LAYOUT) { it.showImage(img_file) } }
+                    { img_file -> APP.widgetManager.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(img_file) } }
             ),
             FastColAction(
                     "View image",
                     "Opens image in an image browser widget.",
                     IconFA.IMAGE,
                     { ImageFileFormat.isSupported(it) },
-                    { img_files -> APP.widgetManager.use(ImagesDisplayFeature::class.java, NO_LAYOUT) { it.showImages(img_files) } }
+                    { img_files -> APP.widgetManager.use<ImagesDisplayFeature>(NO_LAYOUT) { it.showImages(img_files) } }
             ),
             FastAction(
                     "Open widget",
@@ -332,10 +345,7 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
                                                 (tagger.controller as SongReader).read(items)
                                             }
                                             if (enqueue.get() && !result.all.isEmpty()) {
-                                                APP.widgetManager.find(PlaylistFeature::class.java, WidgetManager.WidgetSource.ANY)
-                                                        .orNull()
-                                                        ?.playlist
-                                                        ?.addItems(result.all)
+                                                APP.widgetManager.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
                                             }
                                         })
                             }

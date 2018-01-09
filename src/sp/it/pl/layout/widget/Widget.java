@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javafx.scene.Node;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -34,16 +33,21 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.conf.CachedCompositeConfigurable;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.Configurable;
+import sp.it.pl.util.conf.Configuration;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.type.Util;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.util.Objects.deepEquals;
+import static java.util.stream.Collectors.toMap;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.OPEN;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
+import static sp.it.pl.util.file.Util.deleteFile;
 import static sp.it.pl.util.file.Util.writeFile;
 import static sp.it.pl.util.functional.Util.ISNTØ;
+import static sp.it.pl.util.functional.Util.filter;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.set;
@@ -79,7 +83,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	 * will be removed from the list of factories (substituted by the new factory), this field will
 	 * still point to the old factory, holding true to the description of this field.
 	 */
-	@Dependency("name - acceesed using reflection by name")
+	@Dependency("name - accessed using reflection by name")
 	@XStreamOmitField
 	public final WidgetFactory<?> factory;	// TODO: make type safe
 	@XStreamOmitField
@@ -187,6 +191,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 					// however that does not happen here. The root Container and Node should be passed
 					// as parameters to this method
 					controller.init();
+					restoreDefaultConfigs();
 					restoreConfigs();
 					controller.refresh();
 
@@ -466,6 +471,29 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 		}
 	}
 
+	public void storeDefaultConfigs() {
+		File configFile = new File(getUserLocation(), "default.properties");
+		Configuration configuration = new Configuration();
+		configuration.collect(filter(getFields(), f -> !deepEquals(f.getValue(), f.getDefaultValue())));
+		configuration.save("Custom default widget settings", configFile);
+	}
+
+	private void restoreDefaultConfigs() {
+		File configFile = new File(getUserLocation(), "default.properties");
+		if (configFile.exists()) {
+			Configuration configuration = new Configuration();
+			configuration.rawAdd(configFile);
+			configuration.collect(filter(getFields(), f -> configuration.rawContains(f)));
+			configuration.rawSet();
+			configuration.getFields().forEach(f -> setField(f.getName(), f.getValueS()));
+		}
+	}
+
+	public void clearDefaultConfigs() {
+		File configFile = new File(getUserLocation(), "default.properties");
+		deleteFile(configFile);
+	}
+
 	/******************************************************************************/
 
 	static class IO {
@@ -488,7 +516,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 				.filter(w -> w.controller!=null)
 				.peek(w -> w.controller.getInputs().getInputs().forEach(is::add))
 				.flatMap(w -> w.controller.getOutputs().getOutputs().stream())
-				.collect(Collectors.toMap(i -> i.id, i -> i));
+				.collect(toMap(i -> i.id, i -> i));
 		IOLayer.all_inoutputs.forEach(io -> os.put(io.o.id, io.o));
 
 		ios.forEach(io -> {

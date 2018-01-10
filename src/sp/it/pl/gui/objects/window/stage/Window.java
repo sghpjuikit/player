@@ -419,7 +419,7 @@ public class Window extends WindowBase {
 
 	public void initLayout() {
 		topContainer = new SwitchContainer();
-		Layout l = new Layout();
+		Layout l = new Layout("Layout");
 		content.getChildren().clear();
 		l.load(content);
 		l.setChild(topContainer);
@@ -429,6 +429,7 @@ public class Window extends WindowBase {
 	public void initLayout(Layout l) {
 		throwIfNot(layout==null, "Layout already initialized");
 		layout = l;
+		if (layout.getName()==null) layout.setName("Layout");
 		content.getChildren().clear();
 		layout.load(content);
 		topContainer = (SwitchContainer) l.getChild();

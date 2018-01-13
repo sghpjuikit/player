@@ -16,6 +16,7 @@ import javafx.util.Duration;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.playback.PlaybackState;
+import sp.it.pl.audio.playback.VolumeProperty;
 import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode;
 import sp.it.pl.audio.tagging.Metadata;
@@ -116,6 +117,7 @@ public class PlayerControlsTiny extends FXMLController implements PlaybackFeatur
         // volume
         volume.setMin(ps.volume.getMin());
         volume.setMax(ps.volume.getMax());
+        volume.setBlockIncrement(VolumeProperty.STEP);
         volume.setValue(ps.volume.get());
         volume.valueProperty().bindBidirectional(ps.volume);
         d(volume.valueProperty()::unbind);

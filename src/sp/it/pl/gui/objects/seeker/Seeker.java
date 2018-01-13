@@ -15,6 +15,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -175,6 +176,15 @@ public final class Seeker extends AnchorPane {
 		seeker.addEventFilter(MOUSE_MOVED, e -> {
 			if (!user_drag && !addB.isVisible())
 				addB.show();
+		});
+		seeker.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
+			if (e.getCode()==KeyCode.RIGHT) {
+				Player.seekForwardAbsolute();
+				e.consume();
+			} else if (e.getCode()==KeyCode.LEFT) {
+				Player.seekBackwardAbsolute();
+				e.consume();
+			}
 		});
 
 		// animation 1

@@ -24,6 +24,8 @@ import java.util.function.Predicate
 /** Sets a value consumer to be fired immediately and on every value change. */
 infix fun <O> ObservableValue<O>.sync(u: (O) -> Unit) = maintain(Consumer { u(it) })
 
+infix fun <O> WritableValue<O>.sync(o: ObservableValue<out O>): Subscription = o maintain this
+
 /** Sets a value consumer to be fired on every value change. */
 infix fun <O> ObservableValue<O>.attach(u: (O) -> Unit): Subscription {
     val l = ChangeListener<O> { _, _, nv -> u(nv) }

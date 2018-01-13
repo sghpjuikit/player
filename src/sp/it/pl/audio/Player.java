@@ -554,13 +554,13 @@ public class Player {
 	}
 
 	/** Seek forward by small duration unit. */
-	@IsAction(name = "Seek forward", desc = "Seek forward playback by small duration unit.", keys = "ALT+D", repeat = true, global = true)
+	@IsAction(name = "Seek forward", desc = "Seek playback forward by small duration unit.", keys = "ALT+D", repeat = true, global = true)
 	public static void seekForwardAbsolute() {
 		seek(state.playback.currentTime.get().add(seekUnitT));
 	}
 
 	/** Seek forward by small fraction unit. */
-	@IsAction(name = "Seek forward (%)", desc = "Seek forward playback by fraction.", keys = "SHIFT+ALT+D", repeat = true, global = true)
+	@IsAction(name = "Seek forward (%)", desc = "Seek playback forward by fraction.", keys = "SHIFT+ALT+D", repeat = true, global = true)
 	public static void seekForwardRelative() {
 		double d = state.playback.currentTime.get().toMillis()/state.playback.duration.get().toMillis() + seekUnitP;
 		seek(min(d, 1));
@@ -572,13 +572,13 @@ public class Player {
 	}
 
 	/** Seek backward by small duration unit. */
-	@IsAction(name = "Seek backward", desc = "Seek backward playback by small duration unit.", keys = "ALT+A", repeat = true, global = true)
+	@IsAction(name = "Seek backward", desc = "Seek playback backward by small duration unit.", keys = "ALT+A", repeat = true, global = true)
 	public static void seekBackwardAbsolute() {
 		seek(state.playback.currentTime.get().subtract(seekUnitT));
 	}
 
 	/** Seek backward by small fraction unit. */
-	@IsAction(name = "Seek backward (%)", desc = "Seek backward playback by fraction.", keys = "SHIFT+ALT+A", repeat = true, global = true)
+	@IsAction(name = "Seek backward (%)", desc = "Seek playback backward by fraction.", keys = "SHIFT+ALT+A", repeat = true, global = true)
 	public static void seekBackwardRelative() {
 		double d = state.playback.currentTime.get().toMillis()/state.playback.duration.get().toMillis() - seekUnitP;
 		seek(max(d, 0));

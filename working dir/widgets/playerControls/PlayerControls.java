@@ -16,7 +16,9 @@ import javafx.util.Duration;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Player.Seek;
+import sp.it.pl.audio.playback.BalanceProperty;
 import sp.it.pl.audio.playback.PlaybackState;
+import sp.it.pl.audio.playback.VolumeProperty;
 import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode;
 import sp.it.pl.audio.tagging.Metadata;
@@ -119,17 +121,16 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
     public void init() {
         PlaybackState ps = Player.state.playback;
 
-        // balancer
-        balance = new Balancer();
+        balance = new Balancer(ps.balance.get(), ps.balance.getMin(), ps.balance.getMax());
         soundGrid.add(balance, 1, 1);
+        balance.getStep().set(BalanceProperty.STEP);
         balance.setPrefSize(50,20);
-        balance.setMin(ps.balance.getMin());
-        balance.setMax(ps.balance.getMax());
-        balance.balanceProperty().bindBidirectional(ps.balance);
-        d(balance.balanceProperty()::unbind);
+        balance.getBalance().bindBidirectional(ps.balance);
+        d(balance.getBalance()::unbind);
 
         volume.setMin(ps.volume.getMin());
         volume.setMax(ps.volume.getMax());
+        volume.setBlockIncrement(VolumeProperty.STEP);
         volume.setValue(ps.volume.get());
         volume.valueProperty().bindBidirectional(ps.volume);
         d(volume.valueProperty()::unbind);
@@ -142,12 +143,10 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         AnchorPane.setRightAnchor(seeker, 0.0);
         d(maintain(Gui.snapDistance, seeker.chapterSnapDistance));
 
-        // icons
         playButtons.getChildren().setAll(f1,f2,f3,f4,f5,f6);
         infoBox.getChildren().add(1, loopB);
         soundGrid.add(muteB, 0, 0);
 
-        // set gui updating
         d(maintain(ps.duration,     Util::formatDuration, totTime.textProperty()));
         d(maintain(ps.currentTime,  t -> timeChanged()));
         d(maintain(ps.status,       s -> statusChanged(s)));
@@ -158,7 +157,6 @@ public class PlayerControls extends FXMLController implements PlaybackFeature {
         d(Player.playingItem.onUpdate(this::playingItemChanged));  // add listener
         playingItemChanged(Player.playingItem.get());              // init value
 
-        // drag & drop
         installDrag(
             entireArea, PLAYLIST_PLUS, "Add to active playlist",
             e -> hasAudio(e),

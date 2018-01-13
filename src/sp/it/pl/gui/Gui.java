@@ -3,6 +3,7 @@ package sp.it.pl.gui;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 import javafx.animation.Animation;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -10,7 +11,9 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.NodeOrientation;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.text.Font;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +21,7 @@ import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.gui.objects.window.stage.WindowBase;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.container.switchcontainer.SwitchPane;
+import sp.it.pl.layout.widget.WidgetManager.WidgetSource;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.action.IsAction;
@@ -34,6 +38,7 @@ import static sp.it.pl.gui.GuiKt.applySkin;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.set;
+import static sp.it.pl.util.graphics.UtilKt.isAnyParentOf;
 
 @IsActionable
 @IsConfigurable
@@ -44,6 +49,18 @@ public class Gui {
 	static final Set<SkinCss> skins = new HashSet<>();
 
 	public static final BooleanProperty layout_mode = new SimpleBooleanProperty(false);
+	public static final Consumer<Node> focusChangedHandler = n -> {
+		Scene window = n==null ? null : n.getScene();
+		APP.widgetManager.findAll(WidgetSource.ANY)
+			.filter(w -> n!=null && w.areaTemp!=null && isAnyParentOf(w.areaTemp.getRoot(), n))
+			.findAny().ifPresent(fw -> {
+				APP.widgetManager.findAll(WidgetSource.ANY)
+					.filter(w -> w!=fw)
+					.filter(w -> w.getWindow().map(Window::getStage).map(Stage::getScene).map(s -> s==window).orElse(false))
+					.forEach(w -> w.focused.set(false));
+				fw.focused.set(true);
+			});
+	};
 
 	@IsConfig(name = "Skin", info = "Application skin.")
 	public static final VarEnum<String> skin = VarEnum.ofStream("Flow", () -> skins.stream().map(s -> s.name));
@@ -94,7 +111,7 @@ public class Gui {
 	public static final V<Boolean> table_orig_index = new V<>(false);
 	@IsConfig(name = "Show table header", group = "Table", info = "Show table header with columns.")
 	public static final V<Boolean> table_show_header = new V<>(true);
-	@IsConfig(name = "Show table controls", group = "Table", info = "Show table controls at the bottom of the table. Displays menubar and table items information")
+	@IsConfig(name = "Show table controls", group = "Table", info = "Show table controls at the bottom of the table. Displays menu bar and table items information")
 	public static final V<Boolean> table_show_footer = new V<>(true);
 
 	static {

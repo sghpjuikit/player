@@ -3357,6 +3357,14 @@ check-icon-disabling:selected {
     */
     -fx-padding: 4 ;
     -fx-background-insets: 2; /* margin, by default set to area-path-border width */
+
+    -fx-border-width: 0.5;
+    -fx-border-color: none;
+}
+
+.area: active {
+    -fx-border-width: 0.5;
+    -fx-border-color: -fx-def-font-color;
 }
 
 /**

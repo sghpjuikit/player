@@ -1,26 +1,23 @@
 package image;
 
 import java.io.File;
-
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
-
 import sp.it.pl.gui.objects.image.Thumbnail;
+import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature;
-import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.validation.Constraint;
-
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.util.async.AsyncKt.FX;
-import static sp.it.pl.util.validation.Constraint.FileActor.FILE;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.util.validation.Constraint.FileActor.FILE;
 
 /**
  * FXML Controller class
@@ -57,11 +54,9 @@ public class Image extends FXMLController implements ImageDisplayFeature {
             root, DETAILS,"Display",
             DragUtil::hasImage,
             e -> img!=null && img.equals(DragUtil.getImageNoUrl(e)),
-            e -> {
-                Fut<File> future = DragUtil.getImage(e);
-                future.use(FX, this::showImage)
-                      .showProgress(!future.isDone(), getWidget().getWindow()::taskAdd);
-            }
+            e -> DragUtil.getImage(e)
+                    .use(FX, this::showImage)
+                    .showProgress(getWidget().getWindowOrActive().map(Window::taskAdd))
         );
     }
 

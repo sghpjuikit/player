@@ -28,6 +28,7 @@ import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.pl.gui.objects.image.cover.FileCover;
 import sp.it.pl.gui.objects.tree.FileTreeItem;
 import sp.it.pl.gui.objects.tree.TreeItemsKt;
+import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.util.SwitchException;
@@ -121,8 +122,8 @@ public class GameLib extends FXMLController {
 //        info_text.getChildren().clear();
 
         info_text.setText("");
-        if (gameOpening_progressI==null) gameOpening_progressI = getWidget().getWindow().taskAdd();
-        gameOpening_progressI.setProgress(-1);
+        if (gameOpening_progressI==null) gameOpening_progressI = getWidget().getWindowOrActive().map(Window::taskAdd).orElse(null);
+        if (gameOpening_progressI!=null) gameOpening_progressI.setProgress(-1);
         runNew(() -> {
             File fileInfo = g.getInfoFile();
             String textInfo = !fileInfo.exists() ? "" : readFileLines(fileInfo).collect(joining("\n"));
@@ -131,7 +132,7 @@ public class GameLib extends FXMLController {
             if (g==game) runFX(() -> {
                 cover.loadImage(c);
                 info_text.setText(textInfo);
-                gameOpening_progressI.setProgress(1);
+                if (gameOpening_progressI!=null) gameOpening_progressI.setProgress(1);
             });
         });
         goTo(InfoType.PLAY);

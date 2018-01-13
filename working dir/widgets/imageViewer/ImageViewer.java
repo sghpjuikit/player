@@ -24,6 +24,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
+import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
@@ -265,7 +266,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
                 if (DragUtil.hasImage(e)) {
                     DragUtil.getImages(e)
                          .use(FX, this::showImages)
-                         .showProgress(getWidget().getWindow().taskAdd());
+                         .showProgress(getWidget().getWindowOrActive().map(Window::taskAdd));
                 }
             }
         );

@@ -34,6 +34,7 @@ import sp.it.pl.gui.itemnode.ListAreaNode;
 import sp.it.pl.gui.itemnode.StringSplitParser.SplitData;
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox;
 import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.gui.pane.ConfigPane;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Group;
@@ -212,7 +213,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
 
                     Player.refreshItemsWith(stream(songs).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList()));
                })
-               .showProgress(getWidget().getWindow().taskAdd());
+               .showProgress(getWidget().getWindowOrActive().map(Window::taskAdd));
         }));
         acts.accumulate(new WriteFileAct());
         acts.accumulate(new ActCreateDirs());

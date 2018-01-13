@@ -18,10 +18,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,11 +57,8 @@ import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.split;
 import static sp.it.pl.util.functional.Util.toS;
-import static sp.it.pl.util.graphics.UtilKt.alpha;
-import static sp.it.pl.util.graphics.UtilKt.border;
 import static sp.it.pl.util.graphics.UtilKt.findParent;
 import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
-import static sp.it.pl.util.graphics.UtilKt.widthTimes;
 
 /**
  * Widget graphical component with a functionality.
@@ -375,20 +369,17 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 			restoreConfigs();
 	}
 
+	public void focus() {
+		if (isLoaded()) {
+			root.requestFocus();
+		}
+	}
+
 	private ChangeListener<Boolean> computeFocusChangeHandler() {
 		return (o, ov, nv) -> {
 			if (isLoaded()) {
 				Pane p = (Pane) findParent(root, n -> n.getStyleClass().containsAll(Area.bgr_STYLECLASS));
-				if (p!=null) {
-					if (nv) {
-						p.getProperties().put("widget_border", p.getBorder());
-						p.setBorder(areaTemp.getRoot().getBorder()==null ? null : widthTimes(areaTemp.getRoot().getBorder(), 20));
-						p.setBorder(border(alpha(Color.AQUA, 0.4), new CornerRadii(5)));
-					} else {
-						p.setBorder((Border) p.getProperties().get("widget_border"));
-					}
-					p.pseudoClassStateChanged(pseudoclass("active"), nv);
-				}
+				if (p!=null) p.pseudoClassStateChanged(pseudoclass("active"), nv);
 			}
 		};
 	}

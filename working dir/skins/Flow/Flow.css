@@ -251,12 +251,20 @@
 
     -fx-border-width: 0.5;
     -fx-border-radius: 5;
-    -fx-border-color:   linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -fx-def-font-color 100%)
-                        linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, transparent 20%)
-                        linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, transparent 20%)
-                        linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -fx-def-font-color 100%);
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -fx-def-font-color 100%)
+                         linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, transparent 20%)
+                         linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, transparent 20%)
+                         linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -fx-def-font-color 100%);
 }
 
+.area: active {
+    -fx-border-width: 0.5;
+    -fx-border-radius: 5;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.2) 40%, -fx-def-font-color 100%)
+                         linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, rgba(255,255,255,0.2) 40%)
+                         linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, rgba(255,255,255,0.2) 40%)
+                         linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.2) 40%, -fx-def-font-color 100%);
+}
 
 
 

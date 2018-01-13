@@ -3,6 +3,7 @@ package sp.it.pl.layout;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.io.File;
 import java.io.ObjectStreamException;
+import java.util.Optional;
 import java.util.UUID;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -107,9 +108,8 @@ public abstract class Component {
 				  : null;
 	}
 
-	// TODO: use Optional<>
 	/** Window containing this component. Null if not loaded or not in any window. */
-	public Window getWindow() {
+	public Optional<Window> getWindow() {
 		Window w = null;
 		if (this instanceof Container) {
 			Node root = ((Container)this).getRoot();
@@ -123,24 +123,13 @@ public abstract class Component {
 			javafx.stage.Window stage = scene==null ? null : scene.getWindow();
 			w = stage==null ? null : (Window)stage.getProperties().get("window");
 		}
-		return w==null ? APP.windowManager.getActive().orElse(null) : w;
+		return Optional.ofNullable(w);
 	}
 
-//    /** @return whether this component is currently open*/
-//    public boolean isOpen() {
-//        // check if this is not standalone widget (not in a layout)
-//        if (APP.widgetManager.standaloneWidgets.contains(this)) return true;
-//
-//        Component c = this;
-//        Component p = this;
-//        do {
-//            p = c instanceof Widget ? null : ((Container)c).getParent();
-//            if (p!=null) c = p;
-//        } while(p!=null);
-//
-//        // top container is always layout
-//        return c instanceof Layout;
-//    }
+	/** Window containing this component or active window if not loaded or not in any window or null if no active window either. */
+	public Optional<Window> getWindowOrActive() {
+		return getWindow().or(() -> APP.windowManager.getActive());
+	}
 
 	/**
 	 * Creates a launcher for this component as given file. Launcher is a

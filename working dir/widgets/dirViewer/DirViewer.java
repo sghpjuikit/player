@@ -16,6 +16,7 @@ import sp.it.pl.gui.objects.grid.GridView;
 import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.image.Thumbnail.FitFrom;
+import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
 import sp.it.pl.util.Sort;
@@ -111,7 +112,7 @@ public class DirViewer extends ClassController {
     private AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
     	FOLDER_PLUS, "Click to explore directory",
-		() -> chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getWidget().getWindow().getStage())
+		() -> chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getWidget().getWindowOrActive().map(Window::getStage).orElse(null))
 				.ifOk(files.list::setAll)
     );
     private final LazyR<PƑ0<File, Boolean>> filterPredicate = new LazyR<>(this::buildFilter);
@@ -231,7 +232,7 @@ public class DirViewer extends ClassController {
                     grid.requestFocus();    // fixes focus problem
                     runAfter(millis(500), grid::requestFocus);
                 })
-                .showProgress(getWidget().getWindow().taskAdd());
+                .showProgress(getWidget().getWindowOrActive().map(Window::taskAdd));
     }
 
     /**

@@ -42,16 +42,20 @@ import java.awt.Point
 
 /* ---------- CONSTRUCTION ------------------------------------------------------------------------------------------ */
 
+/** @return color with same r,g,b values but specified opacity */
+fun Color.alpha(opacity: Double): Color {
+    return Color(red, green, blue, opacity)
+}
+
 /** @return simple background with specified solid fill color and no radius or insets */
 fun bgr(c: Color) = Background(BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY))
 
 /** @return simple border with specified color, solid style, no radius and default width */
-fun border(c: Color) = Border(BorderStroke(c, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT))
+@JvmOverloads fun border(c: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(BorderStroke(c, BorderStrokeStyle.SOLID, radius, BorderWidths.DEFAULT))
 
 fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
 
-@JvmOverloads
-fun createIcon(icon: GlyphIcons, iconSize: Int = 12) = Text(icon.characterToString()).apply {
+@JvmOverloads fun createIcon(icon: GlyphIcons, iconSize: Int = 12) = Text(icon.characterToString()).apply {
     style = "-fx-font-family: ${icon.fontFamily}; -fx-font-size: $iconSize;"
     styleClass += "icon"
 }
@@ -73,6 +77,21 @@ inline fun hBox(initialization: HBox.() -> Unit) = HBox().apply { initialization
 inline fun vBox(initialization: VBox.() -> Unit) = VBox().apply { initialization() }
 
 /* ---------- LAYOUT ------------------------------------------------------------------------------------------------ */
+
+/** @return true iff this is direct parent of the specified node */
+fun Node.isParentOf(child: Node) = child.parent==this
+
+/** @return true iff this is direct or indirect parent of the specified node */
+fun Node.isAnyParentOf(child: Node) = generateSequence(child, { it.parent }).any { isParentOf(it) }
+
+/** @return true iff this is direct child of the specified node */
+fun Node.isChildOf(parent: Node) = parent.isParentOf(this)
+
+/** @return true iff this is direct or indirect child of the specified node */
+fun Node.isAnyChildOf(parent: Node) = parent.isAnyParentOf(this)
+
+/** @return this or direct or indirect parent of this that passes specified filter or null if no element passes */
+fun Node.findParent(filter: (Node) -> Boolean) = generateSequence(this, { it.parent }).find(filter)
 
 /** Removes this from the parent's children if possible. */
 fun Node?.removeFromParent(parent: Node?) {

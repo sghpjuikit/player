@@ -285,6 +285,13 @@ public class Window extends WindowBase {
 		KeyCombination maximize = keyCombination("Alt+Up");
 		KeyCombination minimize = keyCombination("Alt+Down");
 
+		// report focus changes
+		getStage().getScene().focusOwnerProperty().addListener((o,ov,nv) -> Gui.focusChangedHandler.accept(nv));
+		root.addEventFilter(MOUSE_PRESSED, e -> {
+			if (e.getButton()==PRIMARY)
+				Gui.focusClickedWidget(e);
+		});
+
 		// layout mode on key press/release
 		root.addEventFilter(KeyEvent.ANY, e -> {
 			if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {

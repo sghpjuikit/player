@@ -8,6 +8,8 @@ import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.input.DataFormat
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
@@ -34,6 +36,7 @@ import sp.it.pl.service.Service
 import sp.it.pl.util.HierarchicalBase
 import sp.it.pl.util.Util.enumToHuman
 import sp.it.pl.util.access.V
+import sp.it.pl.util.access.toggle
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.pl.util.file.FileType
@@ -65,17 +68,17 @@ private val logger = KotlinLogging.logger { }
 
 fun <T> tree(o: T): SimpleTreeItem<T> = when (o) {
     is SimpleTreeItem<*> -> o
-    is Widget<*> -> WidgetItem(o as Widget<*>)
+    is Widget<*> -> WidgetItem(o)
     is WidgetFactory<*> -> SimpleTreeItem(o)
     is Widget.Group -> STreeItem(o, { APP.widgetManager.findAll(OPEN).filter { it.info.group()==o }.sortedBy { it.name } })
-    is WidgetSource -> STreeItem(o, { APP.widgetManager.findAll(o as WidgetSource).sortedBy { it.name } })
+    is WidgetSource -> STreeItem(o, { APP.widgetManager.findAll(o).sortedBy { it.name } })
     is Feature -> STreeItem(o.name, { APP.widgetManager.getFactories().filter { it.hasFeature(o) }.sortedBy { it.nameGui() } })
-    is Container<*> -> LayoutItem(o as Component)
-    is File -> FileTreeItem(o as File)
-    is Node -> NodeTreeItem(o as Node)
-    is Window -> STreeItem(o, { stream((o as Window).stage.scene.root, (o as Window).layout) })
-    is Name -> STreeItem(o, { (o as HierarchicalBase<*, *>).getHChildren().stream() }, { (o as Name).hChildren.isEmpty() })
-    else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { (o as HierarchicalBase<*, *>).getHChildren().stream() }, { true }) else SimpleTreeItem(o)
+    is Container<*> -> LayoutItem(o)
+    is File -> FileTreeItem(o)
+    is Node -> NodeTreeItem(o)
+    is Window -> STreeItem(o, { stream(o.stage.scene.root, o.layout) })
+    is Name -> STreeItem(o, { o.hChildren.stream() }, { o.hChildren.isEmpty() })
+    else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().stream() }, { true }) else SimpleTreeItem(o)
 }.let { it as SimpleTreeItem<T> }
 
 fun <T> tree(v: T, vararg children: Any): SimpleTreeItem<Any> = SimpleTreeItem(v as Any).apply {
@@ -105,7 +108,7 @@ fun treeApp(): SimpleTreeItem<Any> {
                     tree("Windows", { APP.windowManager.windows.stream() }),
                     tree("Layouts", { APP.widgetManager.layouts.sortedBy { it.name } })
             ),
-            tree("Location", APP.DIR_APP.listChildren()),
+            tree("Location", APP.DIR_APP),
             tree("File system", File.listRoots().map { FileTreeItem(it) }),
             tree(Name.treeOfPaths("Settings", APP.configuration.fields.stream().map { it.group }.toList()))
     )
@@ -114,6 +117,17 @@ fun treeApp(): SimpleTreeItem<Any> {
 fun <T: Any> buildTreeView() = TreeView<T>().apply { initTreeView(this) }
 
 fun <T: Any> initTreeView(tree: TreeView<T>) = tree.apply {
+
+    addEventFilter(KeyEvent.KEY_PRESSED) {
+        when (it.code) {
+            KeyCode.ENTER -> {
+                doAction(selectionModel.selectedItem?.value, {})
+                it.consume()
+            }
+            else -> {
+            }
+        }
+    }
     setOnDragDetected { e ->
         if (e.button!=MouseButton.PRIMARY) return@setOnDragDetected
         if (selectionModel.isEmpty) return@setOnDragDetected
@@ -126,12 +140,13 @@ fun <T: Any> initTreeView(tree: TreeView<T>) = tree.apply {
         startDragAndDrop(mode).setContent(mapOf(DataFormat.FILES to items))
         e.consume()
     }
+
 }
 
 @Suppress("UNUSED_PARAMETER")
 fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
     init {
-        setOnMouseClicked { doOnClick(it) }
+        addEventFilter(MouseEvent.ANY) { doOnClick(it) }
     }
 
     override fun updateItem(o: T?, empty: Boolean) {
@@ -152,7 +167,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
         o is WidgetFactory<*> -> o.nameGui()
         o::class.java.isEnum -> enumToHuman(o.toString())
         o is File -> o.nameOrRoot
-        o is Node -> o.id.trim()+":"+APP.className.get(o::class.java)
+        o is Node -> o.id?.trim().orEmpty()+":"+APP.className.getOf(o)
         o is Window -> {
             var n = "window "+APP.windowManager.windows.indexOf(o)
             if (o===APP.windowManager.main.orNull()) n += " (main)"
@@ -184,6 +199,13 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
     }
 
     fun doOnClick(e: MouseEvent) {
+        // We can not override default double click behavior, hence this workaround.
+        // TODO: this may cause issues by consuming in EventFilter instead of EventHandler, rarely (for double click)
+        // https://bugs.openjdk.java.net/browse/JDK-8092146
+        // https://stackoverflow.com/questions/15509203/disable-treeitems-default-expand-collapse-on-double-click-javafx-2-2
+        if (e.clickCount==2) e.consume()
+        if (e.eventType!=MouseEvent.MOUSE_CLICKED) return
+
         if (item!=null) {
             when (e.button) {
                 PRIMARY -> {
@@ -200,7 +222,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
                         }
                     }
                 }
-                else -> {}
+                else -> {
+                }
             }
         }
     }
@@ -212,14 +235,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
     }
 
     fun doOnDoubleClick(o: Any?) {
-        when (o) {
-            is Node -> APP.widgetManager.use<Settings>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
-            is Window -> APP.widgetManager.use<Settings>(ANY) { it.configure(configsFromFxPropertiesOf(o.stage)) }
-            is File -> o.openIn()
-            is Configurable<*> -> APP.widgetManager.use<Settings>(ANY) { it.configure(o) }
-            is Name -> APP.widgetManager.use<Settings>(ANY) { it.configure(APP.configuration.fields.filter { it.group==o.pathUp }) }
-            is HierarchicalBase<*, *> -> doOnDoubleClick(o.`val`)
-        }
+        doAction(o, { treeItem?.expandedProperty()?.toggle() })
     }
 
     // TODO: implement properly
@@ -249,6 +265,20 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
         //	    if (o instanceof HierarchicalBase) showMenu(((HierarchicalBase)o).val, t, n, e); // requires mapping Hierarchical -> T
         }
     }
+
+}
+
+private fun doAction(o: Any?, otherwise: () -> Unit) {
+    when (o) {
+        is Node -> APP.widgetManager.use<Settings>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
+        is Window -> APP.widgetManager.use<Settings>(ANY) { it.configure(configsFromFxPropertiesOf(o.stage)) }
+        is File -> o.openIn()
+        is Configurable<*> -> APP.widgetManager.use<Settings>(ANY) { it.configure(o) }
+        is Name -> APP.widgetManager.use<Settings>(ANY) { it.configure(APP.configuration.fields.filter { it.group==o.pathUp }) }
+        is TreeItem<*> -> doAction(o.value, otherwise)
+        is HierarchicalBase<*, *> -> doAction(o.`val`, otherwise)
+        else -> otherwise()
+    }
 }
 
 private val m = ImprovedContextMenu<List<File>>().apply {
@@ -267,9 +297,9 @@ private val windowMenu = ImprovedContextMenu<Window>().apply {
             .filter { it.parameterCount==0 }
             .filter { it.returnType==Void.TYPE }
             .map {
-                menuItem(it.name) { _ ->
+                menuItem(it.name) {
                     try {
-                        it.invoke(value)
+                        it(value)
                     } catch (e: IllegalAccessException) {
                         logger.error(e) { "Could not invoke method $it on object $value" }
                     } catch (e: InvocationTargetException) {

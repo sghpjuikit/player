@@ -201,7 +201,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 if (root.isHover()) {
                     // lazily build the button when requested
                     // we do not want hundreds of buttons we will never use anyway
-                    if (defB==null) {
+                    if (defB==null && c.isEditable().isByUser()) {
                         defB = new Icon(RECYCLE, 11, null, this::setNapplyDefault);
                         defB.tooltip(defTooltip);
                         defB.styleclass("config-field-default-button");
@@ -314,16 +314,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      */
     public abstract void refreshItem();
 
-    /**
-     * Sets and applies default value of the config if it has different value
-     * set.
-     */
+    /** Sets and applies default value of the config if it has different value set and if editable by user. */
     public void setNapplyDefault() {
-        T t = config.getDefaultValue();
-        if (!Objects.equals(config.getValue(),t)) {
-            config.setNapplyValue(t);
-            refreshItem();
-            if (onChange!=null) onChange.run();
+        if (config.isEditable().isByUser()) {
+            T t = config.getDefaultValue();
+            if (!Objects.equals(config.getValue(), t)) {
+                config.setNapplyValue(t);
+                refreshItem();
+                if (onChange!=null) onChange.run();
+            }
         }
     }
 

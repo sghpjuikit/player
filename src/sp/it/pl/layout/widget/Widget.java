@@ -16,11 +16,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.layout.Component;
+import sp.it.pl.layout.area.Area;
 import sp.it.pl.layout.area.ContainerNode;
 import sp.it.pl.layout.area.IOLayer;
 import sp.it.pl.layout.container.Container;
@@ -35,6 +41,7 @@ import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.Configurable;
 import sp.it.pl.util.conf.Configuration;
 import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.type.Util;
 import static java.lang.annotation.ElementType.TYPE;
@@ -53,6 +60,11 @@ import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.split;
 import static sp.it.pl.util.functional.Util.toS;
+import static sp.it.pl.util.graphics.UtilKt.alpha;
+import static sp.it.pl.util.graphics.UtilKt.border;
+import static sp.it.pl.util.graphics.UtilKt.findParent;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
+import static sp.it.pl.util.graphics.UtilKt.widthTimes;
 
 /**
  * Widget graphical component with a functionality.
@@ -84,15 +96,11 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	 * still point to the old factory, holding true to the description of this field.
 	 */
 	@Dependency("name - accessed using reflection by name")
-	@XStreamOmitField
-	public final WidgetFactory<?> factory;	// TODO: make type safe
-	@XStreamOmitField
-	protected Node root;
-	@XStreamOmitField
-	protected C controller;
+	@XStreamOmitField public final WidgetFactory<?> factory;	// TODO: make type safe
+	@XStreamOmitField protected Node root;
+	@XStreamOmitField protected C controller;
 
-	@XStreamOmitField
-	private HashMap<String,Config<Object>> configs = new HashMap<>();
+	@XStreamOmitField private HashMap<String,Config<Object>> configs = new HashMap<>();
 
 	// Temporary workaround for bad design. Widget-Container-Controller-Area relationship is badly
 	// designed. This particular problem: Area can contain not yet loaded widget. Thus, we cant
@@ -100,8 +108,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	//
 	// I think this is the best and most painless way to wire widget with area & container (parent)
 	// All the pseudo wiring through Controller is pure chaos.
-	@XStreamOmitField
-	public Container parentTemp;
+	@XStreamOmitField public Container parentTemp;
 
 	/**
 	 * Graphics this widget is loaded in. It is responsibility of the caller of the {@link #load()} to set this
@@ -109,8 +116,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	 * <p/>
 	 * This field allows widget to control its lifecycle and context from its controller.
 	 */
-	@XStreamOmitField
-	public ContainerNode areaTemp;
+	@XStreamOmitField public ContainerNode areaTemp;
 
 	// configuration
 
@@ -123,14 +129,20 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	@IsConfig(name = "Is ignored", info = "Ignore this widget if there is a request.")
 	public final V<Boolean> forbid_use = new V<>(false);
 
-	/** Name displayed in gui. User can set his own. By default component type name. */
+	/** Name displayed in gui. Customizable. Default is component type name. */
 	@IsConfig(name = "Custom name", info = "Name displayed in gui. User can set his own. By default component type name.")
 	public final V<String> custom_name = new V<>("");
+
+	/** Whether this widget is active/focused. Each window has 0 or 1 active widgets. Default false.*/
+	@Dependency("name - accessed using reflection by name")
+	@IsConfig(name = "Focused", info = "Whether widget is active/focused.", editable = EditMode.APP)
+	@XStreamOmitField public final V<Boolean> focused = new V<>(false); // TODO: make read-only
 
 	public Widget(String name, WidgetFactory factory) {
 		this.name = name;
 		this.factory = factory;
 		custom_name.setValue(name);
+		focused.addListener(computeFocusChangeHandler());
 	}
 
 	@Override
@@ -363,6 +375,24 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 			restoreConfigs();
 	}
 
+	private ChangeListener<Boolean> computeFocusChangeHandler() {
+		return (o, ov, nv) -> {
+			if (isLoaded()) {
+				Pane p = (Pane) findParent(root, n -> n.getStyleClass().containsAll(Area.bgr_STYLECLASS));
+				if (p!=null) {
+					if (nv) {
+						p.getProperties().put("widget_border", p.getBorder());
+						p.setBorder(areaTemp.getRoot().getBorder()==null ? null : widthTimes(areaTemp.getRoot().getBorder(), 20));
+						p.setBorder(border(alpha(Color.AQUA, 0.4), new CornerRadii(5)));
+					} else {
+						p.setBorder((Border) p.getProperties().get("widget_border"));
+					}
+					p.pseudoClassStateChanged(pseudoclass("active"), nv);
+				}
+			}
+		};
+	}
+
 /******************************************************************************/
 
 	/** @return whether this widget is empty - empty widget has no graphics. */
@@ -436,8 +466,12 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 		if (factory==null) return Widget.EMPTY();
 
 		if (configs==null) configs = new HashMap<>();
+		if (focused==null) {
+			Util.setField(this, "focused", new V<>(false));
+			focused.addListener(computeFocusChangeHandler());
+		}
 
-		// accumulate serialized inputs for later deserialiation when all widgets are ready
+		// accumulate serialized inputs for later deserialization when all widgets are ready
 		properties.entrySet().stream()
 				.filter(e -> e.getKey().startsWith("io"))
 				.map(e -> new IO(this, e.getKey().substring(2), (String) e.getValue()))
@@ -445,6 +479,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
 		return this;
 	}
+
 
 	private void storeConfigs() {
 		// We store only Controller configs as configs of this widget should be defined in this

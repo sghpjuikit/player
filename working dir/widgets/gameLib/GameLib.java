@@ -52,6 +52,7 @@ import static javafx.scene.control.SelectionMode.SINGLE;
 import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
+import static sp.it.pl.gui.Gui.rowHeight;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.animation.Anim.par;
@@ -216,7 +217,7 @@ public class GameLib extends FXMLController {
 
 
         file_tree.setShowRoot(false);
-        d(maintain(Gui.font, f -> f.getSize()+5, file_tree.fixedCellSizeProperty()));
+        d(maintain(Gui.font, f -> rowHeight(f), file_tree.fixedCellSizeProperty()));
         file_tree.getSelectionModel().setSelectionMode(SINGLE);
         TreeItemsKt.initTreeView(file_tree);
         file_tree.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {

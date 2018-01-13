@@ -64,11 +64,18 @@ public class Gui {
 				fw.focused.set(true);
 			});
 	};
+
 	public static void focusClickedWidget(MouseEvent e) {
 		Node n = e.getTarget() instanceof Node ? (Node) e.getTarget() : null;
 		(n==null ? Stream.<Widget<?>>empty() : APP.widgetManager.findAll(WidgetSource.ANY))
 			.filter(w -> !w.focused.get() && w.isLoaded() && isAnyParentOf(w.load(), n))
 			.findAny().ifPresent(w -> w.focus());
+	}
+
+	public static double rowHeight(Font f) {
+		long h = (long) (f.getSize()*1.5);  // decimal number helps pixel alignment
+		h = h%2==0 ? h : h+1;   // even number helps layout symmetry
+		return h;
 	}
 
 	@IsConfig(name = "Skin", info = "Application skin.")

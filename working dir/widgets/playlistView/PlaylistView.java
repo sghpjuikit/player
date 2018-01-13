@@ -35,6 +35,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FILTER_OUTLINE;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
+import static sp.it.pl.gui.Gui.rowHeight;
 import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static sp.it.pl.layout.widget.Widget.Group.PLAYLIST;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
@@ -143,7 +144,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         table = new PlaylistTable(playlist);
         table.search.setColumn(Field.NAME);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
-        d(maintain(Gui.font, f -> f.getSize()+5, table.fixedCellSizeProperty()));
+        d(maintain(Gui.font, f -> rowHeight(f), table.fixedCellSizeProperty()));
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));

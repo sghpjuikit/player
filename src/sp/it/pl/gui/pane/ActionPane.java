@@ -64,6 +64,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
+import static sp.it.pl.gui.Gui.rowHeight;
 import static sp.it.pl.gui.pane.ActionPane.GroupApply.FOR_ALL;
 import static sp.it.pl.gui.pane.ActionPane.GroupApply.FOR_EACH;
 import static sp.it.pl.gui.pane.ActionPane.GroupApply.NONE;
@@ -365,7 +366,7 @@ public class ActionPane extends OverlayPane<Object> {
 			Class itemType = getCollectionType(items);
 			if (APP.classFields.get(itemType) != null) {	// TODO: add support for any item by using generic ToString objectField and column
 				FilteredTable<Object> t = new FilteredTable<>(itemType, null);
-				maintain(Gui.font, f -> f.getSize()+5, t.fixedCellSizeProperty());
+				maintain(Gui.font, f -> rowHeight(f), t.fixedCellSizeProperty());
 				t.getSelectionModel().setSelectionMode(MULTIPLE);
 				t.setColumnFactory(f -> {
 					TableColumn<?,Object> c = new TableColumn<>(f.toString());

@@ -58,6 +58,7 @@ import static javafx.scene.input.TransferMode.COPY;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.audio.tagging.Metadata.Field.RATING;
 import static sp.it.pl.audio.tagging.Metadata.Field.TITLE;
+import static sp.it.pl.gui.Gui.rowHeight;
 import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static sp.it.pl.layout.widget.Widget.Group.LIBRARY;
 import static sp.it.pl.main.AppUtil.APP;
@@ -137,7 +138,7 @@ public class Library extends FXMLController implements SongReader {
         // table properties
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.search.setColumn(TITLE);
-        d(maintain(Gui.font, f -> f.getSize()+5, table.fixedCellSizeProperty()));
+        d(maintain(Gui.font, f -> rowHeight(f), table.fixedCellSizeProperty()));
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));

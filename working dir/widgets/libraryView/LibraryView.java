@@ -42,6 +42,7 @@ import sp.it.pl.util.graphics.drag.DragUtil;
 import static sp.it.pl.audio.tagging.Metadata.Field.CATEGORY;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.*;
 import static sp.it.pl.audio.tagging.MetadataGroup.ungroup;
+import static sp.it.pl.gui.Gui.rowHeight;
 import static sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static java.time.Duration.ofMillis;
 import static java.util.stream.Collectors.toList;
@@ -131,7 +132,7 @@ public class LibraryView extends FXMLController {
         // table properties
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.search.setColumn(VALUE);
-        d(maintain(Gui.font, f -> f.getSize()+5, table.fixedCellSizeProperty()));
+        d(maintain(Gui.font, f -> rowHeight(f), table.fixedCellSizeProperty()));
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));

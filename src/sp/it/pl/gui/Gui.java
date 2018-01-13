@@ -49,6 +49,11 @@ public class Gui {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Gui.class);
 
+	public static final String STYLE_FONT_STYLE_NORMAL = "text-style-normal";
+	public static final String STYLE_FONT_STYLE_ITALIC = "text-style-italic";
+	public static final String STYLE_FONT_WEIGHT_NORMAL = "text-weight-normal";
+	public static final String STYLE_FONT_WEIGHT_BOLD = "text-weight-bold";
+
 	static final Set<SkinCss> skins = new HashSet<>();
 
 	public static final BooleanProperty layout_mode = new SimpleBooleanProperty(false);

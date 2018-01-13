@@ -3164,12 +3164,27 @@
 
 
 
-/*******************************************************************************
- *                                                                             *
- *  THE APPLICATION ELEMENTS                                                   *
- *                                                                             *
+/******************************************************************************
+ *                                                                                                                  *
+ *  THE APPLICATION ELEMENTS                                                                     *
+ *                                                                                                                  *
  ******************************************************************************/
 
+
+/************************************ FONTS ***********************************/
+.text-style-normal {
+    -fx-font-style: normal;
+}
+.text-style-italic {
+    -fx-font-style: italic;
+}
+
+.text-weight-normal {
+    -fx-font-weight: normal;
+}
+.text-weight-bold {
+    -fx-font-weight: bold;
+}
 
 /************************************ ICONS ***********************************/
 
@@ -3230,10 +3245,10 @@
  * by style instead.
  * inherits: .check-icon
  */
-check-icon-disabling {
+.check-icon-disabling {
     opacity: 1;
 }
-check-icon-disabling:selected {
+.check-icon-disabling:selected {
     opacity: 0.4; /* imitate disabled style, should be consistent with it */
 }
 
@@ -3549,6 +3564,7 @@ check-icon-disabling:selected {
 
 /* Popover header title. */
 .popover-root > .content > .popover-header > .title  {
+    -fx-font-size: 1.083334em; // 13
     -fx-font-weight: bold;
     /*  
     give title some space, for small popups the control buttons on the right
@@ -3597,7 +3613,6 @@ check-icon-disabling:selected {
 .notification > .popover-root > .content > .popover-header {}
 
 .notification > .popover-root > .content > .popover-header > .title  {
-    -fx-font-size: 12;
     -fx-font-weight: bold;
 }
 

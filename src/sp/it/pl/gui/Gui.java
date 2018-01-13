@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javafx.animation.Animation;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -12,6 +13,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.NodeOrientation;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -21,6 +23,7 @@ import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.gui.objects.window.stage.WindowBase;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.container.switchcontainer.SwitchPane;
+import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.WidgetManager.WidgetSource;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
@@ -51,8 +54,8 @@ public class Gui {
 	public static final BooleanProperty layout_mode = new SimpleBooleanProperty(false);
 	public static final Consumer<Node> focusChangedHandler = n -> {
 		Scene window = n==null ? null : n.getScene();
-		APP.widgetManager.findAll(WidgetSource.ANY)
-			.filter(w -> n!=null && w.areaTemp!=null && isAnyParentOf(w.areaTemp.getRoot(), n))
+		(n==null ? Stream.<Widget<?>>empty() : APP.widgetManager.findAll(WidgetSource.ANY))
+			.filter(w -> w.areaTemp!=null && isAnyParentOf(w.areaTemp.getRoot(), n))
 			.findAny().ifPresent(fw -> {
 				APP.widgetManager.findAll(WidgetSource.ANY)
 					.filter(w -> w!=fw)
@@ -61,6 +64,12 @@ public class Gui {
 				fw.focused.set(true);
 			});
 	};
+	public static void focusClickedWidget(MouseEvent e) {
+		Node n = e.getTarget() instanceof Node ? (Node) e.getTarget() : null;
+		(n==null ? Stream.<Widget<?>>empty() : APP.widgetManager.findAll(WidgetSource.ANY))
+			.filter(w -> !w.focused.get() && w.isLoaded() && isAnyParentOf(w.load(), n))
+			.findAny().ifPresent(w -> w.focus());
+	}
 
 	@IsConfig(name = "Skin", info = "Application skin.")
 	public static final VarEnum<String> skin = VarEnum.ofStream("Flow", () -> skins.stream().map(s -> s.name));

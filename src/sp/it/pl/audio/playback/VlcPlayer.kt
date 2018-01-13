@@ -70,7 +70,7 @@ class VlcPlayer: GeneralPlayer.Play {
 
         d += state.volume sync { p.volume = (100*it.toDouble()).roundToInt() }
         d += state.mute sync { p.mute(it) }
-        d += state.balance sync { }
+        d += state.balance sync { }         // TODO: implement
         d += state.rate sync { p.rate = it.toFloat() }
 
         p.prepareMedia(SimpleMedia(item.getFile().absolutePath))    // TODO: use URI instead

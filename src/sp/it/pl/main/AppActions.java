@@ -290,8 +290,7 @@ public class AppActions {
 				   p.show(ScreenPos.APP_CENTER);
 	}
 
-	@IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with " +
-											   "the command as a parameter.")
+	@IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with the command as a parameter.")
 	public void runAppCommand() {
 		SimpleConfigurator sc = new SimpleConfigurator<>(
 			new ValueConfig<>(String.class, "Command", "").constraints(new StringNonEmpty()),
@@ -301,13 +300,21 @@ public class AppActions {
 				   p.show(ScreenPos.APP_CENTER);
 	}
 
-	@IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")
 	@IsAction(name = "Search (os)", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
-	public void showSearch() {
+	public void showSearchPosScreen() {
+		showSearch(ScreenPos.SCREEN_CENTER);
+	}
+
+	@IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")
+	public void showSearchPosApp() {
+		showSearch(ScreenPos.APP_CENTER);
+	}
+
+	public void showSearch(ScreenPos pos) {
 		PopOver<?> p = new PopOver<>(APP.search.build());
 		p.title.set("Search for an action or option");
 		p.setAutoHide(true);
-		p.show(ScreenPos.APP_CENTER);
+		p.show(pos);
 	}
 
 	@IsAction(name = "Open web search", desc = "Opens website or search engine result for given phrase", keys = "CTRL + SHIFT + W", global = true)

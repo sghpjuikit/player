@@ -10,7 +10,6 @@ import javafx.util.Duration.millis
 import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.type.Util.getFieldValue
 
-
 /** SliderSkin skin that adds animations & improved usability - track expands on mouse hover. */
 class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
 

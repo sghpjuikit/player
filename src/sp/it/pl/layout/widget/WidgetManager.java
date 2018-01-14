@@ -329,11 +329,11 @@ public final class WidgetManager {
 			int success = compiler.run(null, null, null, arguments);
 
 			boolean isSuccess = success==0;
-			if (isSuccess) LOGGER.info("Compilation succeeded");
-			else LOGGER.error("Compilation failed");
+			if (isSuccess) LOGGER.info("Widget " + widgetName + " compilation succeeded");
+			else LOGGER.error("Widget " + widgetName + " compilation failed");
 			return isSuccess
 				? Try.ok()
-				: Try.error("Compilation failed with errors");
+				: Try.error("Widget " + widgetName + " compilation failed with errors");
 		}
 
 		private Try<Void,String> compileKotlin(Stream<File> srcFiles, Stream<File> libFiles) {
@@ -360,11 +360,11 @@ public final class WidgetManager {
 					.waitFor();
 
 				boolean isSuccess = success==0;
-				if (isSuccess) LOGGER.info("Compilation succeeded");
-				else LOGGER.error("Compilation failed");
+				if (isSuccess) LOGGER.info("Widget " + widgetName + " compilation succeeded");
+				else LOGGER.error("Widget " + widgetName + " compilation failed");
 				return isSuccess
 					? Try.ok()
-					: Try.error("Compilation failed with errors");
+					: Try.error("Widget " + widgetName + " compilation failed with errors");
 			} catch (Exception e ) {
 				return Try.error(e.getMessage());
 			}

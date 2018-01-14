@@ -80,6 +80,7 @@ import sp.it.pl.util.type.ObjectFieldMap
 import sp.it.pl.util.units.FileSize
 import sp.it.pl.util.validation.Constraint.MinMax
 import java.io.File
+import java.lang.management.ManagementFactory
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
@@ -447,6 +448,8 @@ class App: Application(), Configurable<Any> {
     }
 
     fun fetchParameters(): List<String> = parameters?.let { it.raw+it.unnamed+it.named.values } ?: listOf()
+
+    fun fetchVMParameters(): List<String> = ManagementFactory.getRuntimeMXBean().inputArguments
 
     /** @return number of instances of this application (including this one) running at this moment */
     fun getInstances(): Int = VirtualMachine.list().count { App::class.java.name==it.displayName() }

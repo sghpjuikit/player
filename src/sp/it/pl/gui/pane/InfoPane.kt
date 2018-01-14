@@ -14,6 +14,7 @@ import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
+import sp.it.pl.main.AppUtil
 import sp.it.pl.main.createInfoIcon
 import sp.it.pl.util.graphics.Util.layHeaderTop
 import sp.it.pl.util.graphics.Util.layHorizontally
@@ -92,6 +93,7 @@ class InfoPane: OverlayPane<Void>() {
     }
 
     private fun computeProperties(): Map<String, MutableList<Named>> {
+        fun <K,V> MutableMap<K,MutableList<V>>.group(key: K) = getOrPut(key) { ArrayList() }
         val ps = System.getProperties()
                 .entries.asSequence()
                 .filter { it.key is String && it.value is String }
@@ -100,7 +102,7 @@ class InfoPane: OverlayPane<Void>() {
 
         val p = ProcessHandle.current()
         val pInfo = p.info()
-        ps += "process" to mutableListOf(
+        ps.group("process") += listOf(
                 "pid" named p.pid().toString(),
                 "arguments" named pInfo.arguments().map { it.joinToString(", ") }.orElse(""),
                 "command" named pInfo.command().orElse(""),
@@ -109,6 +111,7 @@ class InfoPane: OverlayPane<Void>() {
                 "running time" named pInfo.totalCpuDuration().map { Dur(it.toMillis().toDouble()).toString() }.orElse(""),
                 "user" named pInfo.user().orElse("")
         )
+        ps.group("java") += "vm.arguments" named AppUtil.APP.fetchVMParameters().joinToString(" ")
 
         return ps
     }

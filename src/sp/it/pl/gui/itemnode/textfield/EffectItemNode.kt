@@ -29,7 +29,6 @@ import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.main.appTooltip
 import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
-import sp.it.pl.util.functional.Util.list
 import sp.it.pl.util.functional.Util.stream
 import sp.it.pl.util.graphics.Util.layHorizontally
 import sp.it.pl.util.type.ClassName
@@ -103,7 +102,7 @@ class EffectItemNode: TextFieldItemNode<Effect> {
 
         private val typeTooltip = appTooltip("Choose type of effect")
         private val propTooltip = appTooltip("Configure effect")
-        @JvmField val EFFECT_TYPES = list(
+        @JvmField val EFFECT_TYPES = listOf(
                 EffectType(Blend::class),
                 EffectType(Bloom::class),
                 EffectType(BoxBlur::class),

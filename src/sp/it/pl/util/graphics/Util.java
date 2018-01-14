@@ -368,17 +368,6 @@ public interface Util {
 		);
 	}
 
-/* ---------- TREE -------------------------------------------------------------------------------------------------- */
-
-	static <T> void expandTreeItem(TreeItem<T> item) {
-		Stream.iterate(item, Objects::nonNull, TreeItem::getParent).forEach(i -> i.setExpanded(true));
-	}
-
-	static <T> void expandAndSelectTreeItem(TreeView<T> tree, TreeItem<T> item) {
-		expandTreeItem(item);
-		tree.getSelectionModel().select(item);
-	}
-
 /* ---------- TABLE ------------------------------------------------------------------------------------------------- */
 
 	/**

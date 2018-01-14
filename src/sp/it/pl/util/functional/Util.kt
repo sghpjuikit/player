@@ -52,11 +52,13 @@ fun <T> supplyFirst(vararg suppliers: () -> T?): T? = seqOf(*suppliers).map { it
 /** @return a sequence of the specified values */
 fun <T> seqOf(vararg elements: T) = sequenceOf(*elements)
 
-/** @return lazy recursive sequence of in depth-first order */
-fun <E> E.seqRec(children : (E) -> Iterable<E>): Iterable<E> = buildSequence {
+/** @return lazy recursive sequence in depth-first order */
+fun <E> E.seqRec(children: (E) -> Iterable<E>): Sequence<E> = buildSequence {
     yield(this@seqRec)
-    children(this@seqRec).forEach { it.seqRec(children) }
-}.asIterable()
+    children(this@seqRec).forEach { it.seqRec(children).forEach { yield(it) } }
+    // eager version
+    // sequenceOf(this) + children(this).asSequence().flatMap { it.seqRec(children) }
+}
 
 /** @return stream that yields elements of this stream sorted by value selected by specified [selector] function. */
 inline fun <T, R : Comparable<R>> Stream<T>.sortedBy(crossinline selector: (T) -> R?) = sorted(compareBy(selector))!!

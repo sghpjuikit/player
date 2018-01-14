@@ -10,6 +10,8 @@ import javafx.geometry.Point2D
 import javafx.geometry.Rectangle2D
 import javafx.scene.Node
 import javafx.scene.Parent
+import javafx.scene.control.TreeItem
+import javafx.scene.control.TreeView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseEvent
@@ -319,6 +321,15 @@ fun typeText(text: String): (Double) -> String {
     val length = text.length
     val sb = StringBuilder(text)
     return { sb.substring(0, Math.floor(length*it).toInt()) }
+}
+
+/* ---------- TREE VIEW --------------------------------------------------------------------------------------------- */
+
+fun <T> TreeItem<T>.expandToRoot() = generateSequence(this, { it.parent }).forEach { it.setExpanded(true) }
+
+fun <T> TreeView<T>.expandAndSelect(item: TreeItem<T>) {
+    item.expandToRoot()
+    selectionModel.select(item)
 }
 
 /* ---------- SCREEN ------------------------------------------------------------------------------------------------ */

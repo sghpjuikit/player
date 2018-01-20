@@ -335,25 +335,31 @@ In Intellij Idea: create a separate module depending (type=PROVIDED) on the main
 
   - main class: main.App
   - annotation processing: must be enabled, set to obtain processor from classpath (classindex.jar)
+  - javac arg:<br>
+    -Xlint:unchecked<br/>
+    --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED<br/>
+    --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED<br/>
+    --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED<br/>
+    --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED<br/>
   - jvm args:<br>
     -Xmx3g<br>
-    --add-opens java.base/java.util=ALL-UNNAMED<br>
-    --add-opens java.base/java.lang.reflect=ALL-UNNAMED<br>
-    --add-opens java.base/java.text=ALL-UNNAMED<br>
-    --add-opens java.base/java.util.stream=ALL-UNNAMED<br>
-    --add-opens java.base/java.lang=ALL-UNNAMED<br>
-    --add-opens java.desktop/java.awt.font=ALL-UNNAMED<br>
-    --add-opens javafx.controls/javafx.scene.control=ALL-UNNAMED<br>
-    --add-opens javafx.controls/javafx.scene.control.skin=ALL-UNNAMED<br>
-    --add-opens javafx.graphics/com.sun.glass.ui=ALL-UNNAMED<br>
-    --add-opens javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED<br>
-    --add-opens javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED<br>
-    --add-opens javafx.graphics/javafx.scene.image=ALL-UNNAMED<br>
-    --add-opens javafx.web/com.sun.webkit=ALL-UNNAMED<br>
+    --add-opens java.base/java.util=ALL-UNNAMED<br/>
+    --add-opens java.base/java.lang.reflect=ALL-UNNAMED<br/>
+    --add-opens java.base/java.text=ALL-UNNAMED<br/>
+    --add-opens java.base/java.util.stream=ALL-UNNAMED<br/>
+    --add-opens java.base/java.lang=ALL-UNNAMED<br/>
+    --add-opens java.desktop/java.awt.font=ALL-UNNAMED<br/>
+    --add-opens javafx.controls/javafx.scene.control=ALL-UNNAMED<br/>
+    --add-opens javafx.controls/javafx.scene.control.skin=ALL-UNNAMED<br/>
+    --add-opens javafx.graphics/com.sun.glass.ui=ALL-UNNAMED<br/>
+    --add-opens javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED<br/>
+    --add-opens javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED<br/>
+    --add-opens javafx.graphics/javafx.scene.image=ALL-UNNAMED<br/>
+    --add-opens javafx.web/com.sun.webkit=ALL-UNNAMED<br/>
     
 ### Debugging
 
-Due to a mouse polling (using a native library), blocking all threads (like on a breakpoint) will cause major slow downs and unresponsive mouse (up to dozens of seconds) in the system. It is very recommended to never block all threads and use 'block current thread only' for breakpoints.
+- use 'block current thread only' for breakpoints. Due to a mouse polling (using a native library), blocking all threads (like on a breakpoint) can cause major slow downs and unresponsive mouse (up to dozens of seconds) in the system.
 
 ### Coding style
 

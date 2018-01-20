@@ -363,6 +363,10 @@ In Intellij Idea: create a separate module depending (type=PROVIDED) on the main
 
 ### Coding style
 
+- Overall
+  - Kotlin: follow [official style giude](https://kotlinlang.org/docs/reference/coding-conventions.html)
+  - Java: I encourage using Kotlin instead
+      
 - Logging
 
   - Mechanism
@@ -409,7 +413,3 @@ You are free to use the application or make your own builds of the project for p
 
 The project is to adopt MIT licence in the future, but for now remains personal. I would appreciate to be
 informed before taking any actions that could result in publicizing or sharing this project.
-
-The project makes use of work of sevaral other individuals (with their permission), who will be properly credited later as well.
-
-El Psy Congroo

@@ -1,14 +1,15 @@
-#Intro
+# PlayerFX
 
 ## What is this?
 
-  The <b>Player</b> or <b>PlayerFX</b> is a desktop audio player and audio management application, which also turned into sort of dynamic module system - a multipurpose extensible application capable of compiling and running custom java widgets.
+  The <b>Player</b> or <b>PlayerFX</b> is a desktop audio player and audio management application, with a dynamic module system - a multipurpose extensible application capable of compiling and running custom java widgets.
 
-I did not scare you away with that, did I?
+![Playlist View](https://raw.githubusercontent.com/sghpjuikit/player/master/extra/screenshot_playlists.jpg)
 
 ## Am I the target group?
 
 There are two reasons to be interested in this project:
+
 - as an <b>audio management system</b>. You may ask, why another audio player? Because there is significant lack of such application for a power user. It's not just about hitting a play button. Ever wanted to use timed comment? Ever lost your entire library song ratings due to corrupted database file? Ever needed multiple playlists or display/manipulate your songs in a way that just wasnt possible for some reason? This audioplayer addresses a lot of such issues.
 
 - as a <b>multiapplication</b> - collection of unrelated miniapplications. Image browser, movie explorer, file renamer and more. And if you know java, you can make your own app with simple text editor and literaly dozen lines of code - without java, without IDE and without hassles of creating and deploying your application - just write your code, hit save and watch as it autocompiles and runs as widget, which you can run as a standalone application! All that with included support for configurations, skins and everything else.
@@ -35,7 +36,7 @@ Glad you asked.
 - mp3, mp4, m4a, wav, ogg, flac, possibly more to come
 - file, http (over internet, support is limited to what javaFX can currently do - no flac & ogg).
 
-###Manage audio files
+### Manage audio files
 
 Song database:
 - small footprint: in 10s of MBs for 10000s audio files
@@ -55,7 +56,7 @@ Tables:
 - multiple column sorting by any attribute (artist, year, rating, bitrate, etc)
 - cascading - link tables to other tables as filters and display only selected items (e.g. show songs of autor A's  albums X,D,E in year Y in three linked tables reacting on table selection). Basically library widgets allow linking selection of the table as an input, while simultaneously providing its selection as an output to other tables. Use however library widgets (each having 1 table) you wish and link them up in any way you want.
 
-###Audio tag editing
+### Audio tag editing
 
 Application supports 
 - <b>reading</b>
@@ -281,7 +282,7 @@ Depicts an old build of the application with an old skin.
 
 </details>
 
-## The Catch XXII
+## Issues
 
 - Some of the widgets or features are **experimental**, buggy or confusing (its being worked on, so stay tuned).
 - Linux and Mac not tested for now.
@@ -297,7 +298,7 @@ Download link coming soon.
 
 - download zip
 - extract anywhere
-- run the exe file
+- run the executable file
 
   Starting the application for the first time will run a guide. Before you close it, read at least first couple of tips (like where to find the guide if you need it again...).
 
@@ -306,22 +307,18 @@ Tips:
 - If you get 'trapped' and 'locked in' with no idea what to do, press right ALT (layout edit mode) or click anywhere (mouse buttons often navigate) - once you get the hang of it, you will see how convenient it is.
 - widgets, popups and containers have informative "i" buttons that provide valuable info on possible course of action
 
-## Development
+# Development
 
-### Project set up
+### Project setup
 
 - Language
   - Java jdk-9.0.0 or higher
   - and Kotlin (latest version) are both required.
+- IDE: due to use of Kotlin, Intellij Idea is strongly recommended, although not required
 
-- IDE
-  - Any IDE works, but due to use of Kotlin, Intellij Idea is very recommended.
+- Dependencies: All required dependencies are included in /extra/lib. For the optional extra projects, dependencies are located at /extra/projects_lib.
 
-- Dependencies
-
-All required dependencies are included in /extra/lib. For the optional extra projects, dependencies are located at /extra/projects_lib.
-
-- widgets
+#### Widgets
 
 It is required to add widget source codes to the source code of the project. 
 
@@ -329,7 +326,7 @@ In Netbeans: project > properties > sources > add folder. Add /src widgets direc
 
 In Intellij Idea: create a separate module depending (type=PROVIDED) on the main module and all its dependensies plus all the jars (recursively) in the /widgets directory.
     
-- running
+### Running
 
   - main class: main.App
   - annotation processing: must be enabled, set to obtain processor from classpath (classindex.jar)
@@ -349,7 +346,7 @@ In Intellij Idea: create a separate module depending (type=PROVIDED) on the main
     --add-opens javafx.graphics/javafx.scene.image=ALL-UNNAMED<br>
     --add-opens javafx.web/com.sun.webkit=ALL-UNNAMED<br>
     
-- debugging
+### Debugging
 
 Due to a mouse polling (using a native library), blocking all threads (like on a breakpoint) will cause major slow downs and unresponsive mouse (up to dozens of seconds) in the system. It is very recommended to never block all threads and use 'block current thread only' for breakpoints.
 
@@ -357,19 +354,19 @@ Due to a mouse polling (using a native library), blocking all threads (like on a
 
 - Logging
 
-  - Mechanism:<br>
+  - Mechanism
     - java: [sl4j](https://github.com/qos-ch/slf4j) + [logback](https://github.com/qos-ch/logback)
     - kotlin: [sl4j](https://github.com/qos-ch/slf4j) + [kotlin-logging](https://github.com/MicroUtils/kotlin-logging)
 
-  - Obtain logger instance:<br>
+  - Obtain logger instance
     - java:<br>
-      old school: private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(This.class);<br>
-      convenience method: util.dev.UtilKt.log(this), util.dev.UtilKt.log(this.getClass()), util.dev.UtilKt.log(This.class)<br>
+      old school: `private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(This.class);`<br>
+      convenience method: `util.dev.UtilKt.log(this)`, `util.dev.UtilKt.log(this.getClass())`, `util.dev.UtilKt.log(This.class)`
     - kotlin:<br>
-      classes: companion object: mu.internal.KLoggerFactory.KLogging()<br>
-      top level functions: private val logger = mu.internal.KLoggerFactory.KotlinLogging.logger {}<br>
+      classes: companion object: `mu.internal.KLoggerFactory.KLogging()`<br>
+      top level functions: `private val logger = mu.internal.KLoggerFactory.KotlinLogging.logger {}`
   
-  - Configuration:<br>
+  - Configuration
       - log_configuration.xml in /working dir/log, where the log output is also located
       - the logger appends WARN, ERROR to file and all to console ( this can be changed in runtime by user in application settings)
 
@@ -395,7 +392,7 @@ Due to a mouse polling (using a native library), blocking all threads (like on a
 A skin is a single css file that works the same way as if you are skinning a html web site. See [javafx css reference guide](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html). Skins can import each other.
 The application autodiscovers the skins when it starts and monitors them for changes. The skins are located in working dir/skins, in separate folders.
 
-## Credits & Licence
+# Credits & Licence
 
 You are free to use the application or make your own builds of the project for personal use.
 

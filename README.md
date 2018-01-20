@@ -1,4 +1,16 @@
+
 # PlayerFX
+
+## Overview
+
+- [What is this?](#what-is-this)
+- [Am I the target group?](#am-i-the-target-group)
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Issues](#issues)
+- [Download & Use](#download--use)
+- [Development](#development)
+- [Credits & Licence](#credits-%26-license)
 
 ## What is this?
 
@@ -14,7 +26,9 @@ There are two reasons to be interested in this project:
 
 - as a <b>multiapplication</b> - collection of unrelated miniapplications. Image browser, movie explorer, file renamer and more. And if you know java, you can make your own app with simple text editor and literaly dozen lines of code - without java, without IDE and without hassles of creating and deploying your application - just write your code, hit save and watch as it autocompiles and runs as widget, which you can run as a standalone application! All that with included support for configurations, skins and everything else.
 
-## Motto
+## Features
+
+### Guiding Principles
 
 - <b>Customizability</b> - User uses the application how he wants, not how it was designed to be used. Therefore emphasis on customization, skins, settings, etc.
 - <b>Portability</b> - No installation (or need for java or other programs), run from anywhere, little/no trace, everything is packaged along (no hunting your library database file in hidden Windows directories... 
@@ -25,11 +39,6 @@ There are two reasons to be interested in this project:
 - <b>Usability</b> - Ease of use and efficient workflow due to minimalistic and unobtursive graphical user interface design. Think shortcuts, swiping, icons instead buttons, closing with right click instead of trying to hit small button somewhere in the corner of whatever you are doing..., etc.
 - <b>Responsive</b> - fast and responsive. Minimal modal dialogs. No more stuck windows while your library is scanning that big fat audio collection of yours
 - <b>Sexy</b> - Your way of sexy if you know tiny bit about css.
-
-  Okey, okey so now, what can this application actually do?
-Glad you asked.
-
-## Features
 
 ### Play audio 
 
@@ -58,18 +67,14 @@ Tables:
 
 ### Audio tag editing
 
-Application supports 
-- <b>reading</b>
-- <b>writing</b>
-
-of song tags
+PlayerFX supports reading & writing of song tags
 
 - individually
 - by group
   - using Tagger to write the same data to multiple tags (songs may share an artist)
   - using Converter to write multiple data to multiple tags (e.g. using titles from a tracklist)
 
-The supported are:
+Supported are:
 - all file types (see at the top), including wma and mp4 (which normally can not have a tag)
 - all fields (comprehensive list later), including rating, playcount, color, timed comments.
 
@@ -89,7 +94,7 @@ The aim is to be interoperable with other players, where possible. Noteworthy or
   - just in case you want to associate songs with a colors, you can.
   - using custom tag
 - <b>Cover</b>
-  - image in tag can be imported/exported (but I advise against placing images in audio tags, it is impractical (large space requirements - it adds up..) and semantically incorrect (cover is album metadata, not song metadata)).
+  - image in tag can be imported/exported (but I advise against placing images in audio tags, it eats space and is semantically incorrect (cover is album metadata, not song metadata)).
   - cover read from file location is supported too, looking for image files named:
     - song title.filetype
     - song album.filetype

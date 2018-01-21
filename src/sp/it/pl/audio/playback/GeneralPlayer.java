@@ -70,7 +70,7 @@ public class GeneralPlayer {
 						Player.post_activating_1st = false;
 					},
 					() -> runFX(() -> {
-						log(GeneralPlayer.class).info("Player {} can not play item {}", p, item);
+						log(GeneralPlayer.class).info("Player {} can not play item {}", p, item);   // TODO: handle looping playlist forever
 						item.playbackError = true;
 						PlaylistManager.use(Playlist::playNextItem); // handle within playlist
 					}));

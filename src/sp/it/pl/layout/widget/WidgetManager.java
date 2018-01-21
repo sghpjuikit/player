@@ -338,7 +338,7 @@ public final class WidgetManager {
 
 		private Try<Void,String> compileKotlin(Stream<File> srcFiles, Stream<File> libFiles) {
 			try {
-				File srcFile = srcFiles.findAny().get();
+				File srcFile = srcFiles.findAny().get();        // TODO: improve
 				String classpath = System.getProperty("java.class.path");
 				List<String> command = new ArrayList<>();
 				command.add(childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin", "kotlinc.bat").getAbsolutePath());
@@ -366,6 +366,7 @@ public final class WidgetManager {
 					? Try.ok()
 					: Try.error("Widget " + widgetName + " compilation failed with errors");
 			} catch (Exception e ) {
+				LOGGER.error("Widget " + widgetName + " compilation failed");
 				return Try.error(e.getMessage());
 			}
 		}

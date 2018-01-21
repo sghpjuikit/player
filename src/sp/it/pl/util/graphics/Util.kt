@@ -4,6 +4,7 @@ package sp.it.pl.util.graphics
 
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.css.PseudoClass
+import javafx.event.EventHandler
 import javafx.geometry.Bounds
 import javafx.geometry.Insets
 import javafx.geometry.Point2D
@@ -14,6 +15,7 @@ import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import javafx.scene.input.MouseDragEvent
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Background
@@ -34,6 +36,7 @@ import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
 import javafx.stage.Screen
+import org.reactfx.Subscription
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.window.stage.Window
@@ -330,6 +333,66 @@ fun <T> TreeItem<T>.expandToRoot() = generateSequence(this, { it.parent }).forEa
 fun <T> TreeView<T>.expandAndSelect(item: TreeItem<T>) {
     item.expandToRoot()
     selectionModel.select(item)
+}
+
+/* ---------- EVENT ------------------------------------------------------------------------------------------------- */
+
+/**
+ * Sets an action to execute when this node is hovered or dragged with mouse.
+ * More reliable than [MouseEvent.MOUSE_ENTERED]. Use in combination with [Node.onHoverOrDragEnd].
+ */
+fun Node.onHoverOrDragStart(onStart: () -> Unit): Subscription {
+    if (isHover) onStart()
+
+    val onMouseEnteredEH = EventHandler<MouseEvent> {
+        if (properties["isHoverOrDrag"]!=true)
+            onStart()
+    }
+    val onDragEnteredEH = EventHandler<MouseEvent> {
+        properties["isHoverOrDrag"] = true
+        if (!isHover)
+            onStart()
+    }
+
+    addEventFilter(MouseEvent.MOUSE_ENTERED, onMouseEnteredEH)
+    addEventFilter(MouseEvent.DRAG_DETECTED, onDragEnteredEH)
+
+    return Subscription {
+        removeEventFilter(MouseEvent.MOUSE_ENTERED, onMouseEnteredEH)
+        removeEventFilter(MouseEvent.DRAG_DETECTED, onDragEnteredEH)
+    }
+}
+
+/**
+ * Sets an action to execute when hover or drag with mouse on this node ends
+ * More reliable than [MouseEvent.MOUSE_EXITED]. Use in combination with [Node.onHoverOrDragStart].
+ */
+fun Node.onHoverOrDragEnd(onEnd: () -> Unit): Subscription {
+    val onMouseExitedEH = EventHandler<MouseEvent> {
+        if (properties["isHoverOrDrag"]!=true)
+            onEnd()
+    }
+    val onMouseDragReleasedEH = EventHandler<MouseDragEvent> {
+        properties["isHoverOrDrag"] = false
+        if (!isHover)
+            onEnd()
+    }
+    val onMouseReleasedEH = EventHandler<MouseEvent> {
+        properties["isHoverOrDrag"] = false
+        if (!isHover)
+            onEnd()
+    }
+
+    addEventFilter(MouseEvent.MOUSE_EXITED, onMouseExitedEH)
+    addEventFilter(MouseDragEvent.MOUSE_DRAG_RELEASED, onMouseDragReleasedEH)
+    addEventFilter(MouseEvent.MOUSE_RELEASED, onMouseReleasedEH)
+
+    return Subscription {
+        removeEventFilter(MouseEvent.MOUSE_EXITED, onMouseExitedEH)
+        removeEventFilter(MouseDragEvent.MOUSE_DRAG_RELEASED, onMouseDragReleasedEH)
+        removeEventFilter(MouseEvent.MOUSE_RELEASED, onMouseReleasedEH)
+    }
+
 }
 
 /* ---------- SCREEN ------------------------------------------------------------------------------------------------ */

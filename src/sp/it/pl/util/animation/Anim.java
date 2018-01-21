@@ -56,8 +56,19 @@ import static sp.it.pl.util.functional.Util.forEachIStream;
  */
 public class Anim extends Transition {
 
+	/** The side effect of the animation called in each loop. */
 	public final DoubleConsumer applier;
+	/** Position of the animation including the interpolation transformation. */
 	public final DoubleProperty position = new SimpleDoubleProperty(0);
+	/**
+	 * Whether animation should start from beginning/end if it is at the end/beginning. Default true.<br>
+	 * Affects family of methods {@link #playFromDir(boolean)}, {@link #playOpen()}, {@link #playClose()}.
+	 *
+	 * Set to false if animation should not run if it already finished. For example {@link #playClose()} will play
+	 * animation from current position back to 0, but if the position already is 0, false will cause nothing to
+	 * happen, while true will play the animation again from 1 to 0.
+	 */
+	public boolean playAgainIfFinished = true;
 
 	/** Creates animation with specified frame rate and side effect called at every frame. */
 	public Anim(double targetFPS, DoubleConsumer sideEffect) {
@@ -160,7 +171,7 @@ public class Anim extends Transition {
 	 * are used to play with rate 1 and rate -1 to reverse-play their effect.
 	 */
 	public void playOpen() {
-		double p = getCurrentTime().equals(getCycleDuration()) ? 0 : getCurrentTime().toMillis()/getCycleDuration().toMillis();
+		double p = !playAgainIfFinished && getCurrentTime().equals(getCycleDuration()) ? 0 : getCurrentTime().toMillis()/getCycleDuration().toMillis();
 		stop();
 		playOpenFrom(p);
 	}
@@ -173,7 +184,7 @@ public class Anim extends Transition {
 	 * are used to play with rate 1 and rate -1 to reverse-play their effect.
 	 */
 	public void playClose() {
-		double p = getCurrentTime().toMillis()==0 ? 1 : getCurrentTime().toMillis()/getCycleDuration().toMillis();
+		double p = !playAgainIfFinished && getCurrentTime().toMillis()==0 ? 1 : getCurrentTime().toMillis()/getCycleDuration().toMillis();
 		stop();
 		playCloseFrom(1 - p);
 	}

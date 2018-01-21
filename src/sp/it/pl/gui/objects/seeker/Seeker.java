@@ -203,7 +203,6 @@ public final class Seeker extends AnchorPane {
 			r1.setScaleY(scale);
 			r2.setScaleX(scale);
 			r2.setScaleY(scale);
-			seeker.setScaleY(1 + 3*p2);
 		}).intpl(new CircularInterpolator())
 			.delay(150);
 		onHoverChanged(sa::playFromDir);

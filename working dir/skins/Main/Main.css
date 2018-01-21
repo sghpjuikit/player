@@ -390,7 +390,7 @@
 .toggle-button,
 .radio-button > .radio,
 .check-box > .box,
-/*.menu-button,  // enable this if you want menu button to look like normal button*/
+/*.menu-button, */ /* enable this if you want menu button to look like normal button*/
 .color-picker.split-button > .color-picker-label{
    /* -fx-background-color:
         rgba(255, 255, 255, 0.08),
@@ -952,7 +952,7 @@
     /*-fx-background-radius:0;*/
 }
 .slider:focused .thumb {
-     /*-fx-background-radius: 1.0em;  // makes sure this remains circular*/
+     /*-fx-background-radius: 1.0em;  *//* makes sure this remains circular*/
 }
 .slider .track {
     -fx-background-color: rgba(255,255,255,0.3);
@@ -3564,7 +3564,7 @@
 
 /* Popover header title. */
 .popover-root > .content > .popover-header > .title  {
-    -fx-font-size: 1.083334em; // 13
+    -fx-font-size: 1.083334em;  /* 13 */
     -fx-font-weight: bold;
     /*  
     give title some space, for small popups the control buttons on the right

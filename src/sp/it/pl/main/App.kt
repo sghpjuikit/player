@@ -72,6 +72,7 @@ import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.image.getImageDim
 import sp.it.pl.util.math.millis
+import sp.it.pl.util.stacktraceAsString
 import sp.it.pl.util.system.SystemOutListener
 import sp.it.pl.util.type.ClassName
 import sp.it.pl.util.type.InstanceInfo
@@ -199,7 +200,7 @@ class App: Application(), Configurable<Any> {
 
     @C(name = "Normal mode", info = "Whether application loads into previous/default state or no state at all.")
     @F var normalLoad = true
-    private var isInitialized = false
+    private var isInitialized: Try<Void, Throwable> = Try.error(Exception("Initialization has not run yet"))
     private var closedPrematurely = false
 
     /** Manages persistence and in-memory storage. */
@@ -325,7 +326,7 @@ class App: Application(), Configurable<Any> {
             services.addService(Notifier())
             services.addService(PlaycountIncrementer())
             services.addService(ClickEffect())
-
+            throw RuntimeException("blalalva")
             // install actions
             Action.installActions(
                     this,
@@ -366,28 +367,28 @@ class App: Application(), Configurable<Any> {
             // Control Skins, it will only have effect when set before control is created
             configuration.getFields { it.group=="Gui" && it.guiName=="Skin" }.findFirst().orNull()!!.applyValue()
             windowManager.deserialize(normalLoad)
+        }.ifError {
+            logger.error(it) { "Application failed to start" }
+            logger.info { "Application closing prematurely" }
 
-            isInitialized = true
+            messagePane.onHidden += Runnable { close() }
+            messagePane.show(
+                    "Application did not start successfully and will close. Please fill an issue at $uriGithub " +
+                    "providing the logs in $DIR_LOG. The exact problem was:\n ${it.stacktraceAsString}"
+            )
+        }.ifOk {
+            // initialization is complete -> apply all settings
+            configuration.fields.forEach { it.applyValue() }
 
+            // initialize non critical parts
+            if (normalLoad) Player.loadLastState()
+
+            // show guide
+            if (guide.first_time.get()) runAfter(millis(3000), { guide.start() })
+
+            // process app parameters passed when app started
+            parameterProcessor.process(fetchParameters())
         }
-                .ifError {
-                    logger.error(it) { "Application failed to start" }
-                    messagePane.show("Application did not start successfully.")
-                }
-                .ifOk {
-                    // initialization is complete -> apply all settings
-                    configuration.fields.forEach { it.applyValue() }
-
-                    // initialize non critical parts
-                    if (normalLoad) Player.loadLastState()
-
-                    // show guide
-                    if (guide.first_time.get()) runAfter(millis(3000), { guide.start() })
-
-                    // process app parameters passed when app started
-                    parameterProcessor.process(fetchParameters())
-                }
-                .isOk
     }
 
     /** Starts this application normally if not yet started that way, otherwise has no effect. */
@@ -415,7 +416,7 @@ class App: Application(), Configurable<Any> {
     }
 
     private fun store() {
-        if (isInitialized) {
+        if (isInitialized.isOk) {
             if (normalLoad) Player.state.serialize()
             if (normalLoad) windowManager.serialize()
             configuration.save(name, FILE_SETTINGS)
@@ -432,7 +433,7 @@ class App: Application(), Configurable<Any> {
         appCommunicator.stop()
     }
 
-    /** Close this app normally. Invokes [stop] as a result.  */
+    /** Close this app normally. Invokes [stop] as a result. */
     @IsAction(name = "Close app", desc = "Closes this application.")
     fun close() {
         PopOver.active_popups.toList().forEach { it.hideImmediately() }    // javaFX bug - must close popups before windows
@@ -452,7 +453,7 @@ class App: Application(), Configurable<Any> {
     fun fetchVMParameters(): List<String> = ManagementFactory.getRuntimeMXBean().inputArguments
 
     /** @return number of instances of this application (including this one) running at this moment */
-    fun getInstances(): Int = VirtualMachine.list().count { App::class.java.name==it.displayName() }
+    fun getInstances(): Int = VirtualMachine.list().count { AppUtil::class.java.name==it.displayName() }
 
     /** @return image of the icon of the application */
     fun getIcon(): Image = Image(File("icon512.png").toURI().toString())

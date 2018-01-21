@@ -1,9 +1,13 @@
 package sp.it.pl.util
 
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.time.DateTimeException
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+
+
 
 /** System default zone id.  */
 val ZONE_ID = ZoneId.systemDefault()
@@ -21,3 +25,7 @@ fun Long.localDateTimeFromMillis(): LocalDateTime? =
     } catch (e: DateTimeException) {
         null
     }
+
+/** @return string of printed stacktrace of this throwable */
+val Throwable.stacktraceAsString: String
+    get() = StringWriter().also { printStackTrace(PrintWriter(it)) }.toString()

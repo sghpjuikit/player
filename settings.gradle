@@ -1,0 +1,4 @@
+
+include ":widgets"
+project(":widgets").projectDir = new File("working dir/widgets")
+

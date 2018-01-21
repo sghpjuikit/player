@@ -11,7 +11,11 @@ working dir/widgets/**/*class
 
 # Idea
 .idea/
-*.iml
+PlayerFX.*
+
+# Gradle
+build/
+gradle.properties
 
 # NetBeans
 nbproject/

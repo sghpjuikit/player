@@ -51,6 +51,7 @@ class Configurator: ClassController(), ConfiguringFeature {
     private val configsPane = ConfigPane<Any>()
     private val configs = ArrayList<Config<*>>()
     private val configSelectionName = "app.settings.selected_group"
+    private var configSelectionAvoid = false
 
     @IsConfig(editable = IsConfig.EditMode.APP)
     @JvmField var showsAppSettings = true
@@ -90,11 +91,12 @@ class Configurator: ClassController(), ConfiguringFeature {
 
     override fun configure(c: Collection<Config<*>>?) {
         if (c==null) return
-
         configs.clear()
         configs += c
+        configSelectionAvoid = true
         groups.root = tree(Name.treeOfPaths("Groups", c.map { it.group }))
         groups.root.isExpanded = true
+        configSelectionAvoid = false
         restoreAppSettingsSelection()
     }
 
@@ -103,7 +105,7 @@ class Configurator: ClassController(), ConfiguringFeature {
     private fun refreshConfigs() = configsPane.getConfigFields().forEach { it.refreshItem() }
 
     private fun storeAppSettingsSelection(item: TreeItem<Name>?) {
-        if (!showsAppSettings) return
+        if (!showsAppSettings || configSelectionAvoid) return
         val selectedGroupPath = item?.value?.pathUp ?: ""
         APP.configuration.rawAddProperty(configSelectionName, selectedGroupPath)
     }

@@ -320,8 +320,10 @@ Tips:
   - Java jdk-9.0.0 or higher
   - and Kotlin (latest version) are both required.
 - IDE: due to use of Kotlin, Intellij Idea is strongly recommended, although not required
-
-- Dependencies: All required dependencies are included in /extra/lib. For the optional extra projects, dependencies are located at /extra/projects_lib.
+- dependencies
+  - Java/Kotlin: all jars are included in /working dir/lib
+  - VLC: installation must be placed in working dir/vlc directory. Obtain latest [here](https://www.videolan.org/vlc/). Without this step, audio playback will not be possible.
+  - Kotlin compiler: kotlinc must be placed in working dir/kotlinc directory. Obtain latest [here](https://github.com/JetBrains/kotlin/releases). Without this step, compiling widgets written in Kotlin will not be possible.
 
 #### Widgets
 

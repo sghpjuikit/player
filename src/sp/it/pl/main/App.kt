@@ -326,7 +326,7 @@ class App: Application(), Configurable<Any> {
             services.addService(Notifier())
             services.addService(PlaycountIncrementer())
             services.addService(ClickEffect())
-            throw RuntimeException("blalalva")
+
             // install actions
             Action.installActions(
                     this,

@@ -1,4 +1,6 @@
-
+buildscript {
+	buildDir = '../../build/widgets'
+}
 plugins {
 	id 'java'
 }

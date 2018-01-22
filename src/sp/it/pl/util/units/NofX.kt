@@ -20,17 +20,17 @@ data class NofX(val n: Int, val of: Int): Comparable<NofX> {
     companion object {
         @Dependency("toString")
         @JvmStatic
-        fun fromString(s: String): Try<NofX, Throwable> {
+        fun fromString(s: String): Try<NofX> {
             val a = s.split("/")
             return if (a.size!=2)
                 Try.error(IndexOutOfBoundsException("'Text=$s' is not in an 'x/y' format"))
             else
                 try {
-                    Try.ok<NofX, Throwable>(NofX(a[0].toInt(), a[1].toInt()))
+                    Try.ok<NofX>(NofX(a[0].toInt(), a[1].toInt()))
                 } catch (e: PatternSyntaxException) {
-                    Try.error<NofX, Throwable>(e)
+                    Try.error<NofX>(e)
                 } catch (e: NumberFormatException) {
-                    Try.error<NofX, Throwable>(e)
+                    Try.error<NofX>(e)
                 }
         }
     }

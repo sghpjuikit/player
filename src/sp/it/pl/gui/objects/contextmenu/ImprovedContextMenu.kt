@@ -119,7 +119,7 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
             menuItem("Delete from disc") { file.recycle() },
             menuItem("Copy as ...") {
                 saveFile("Copy as...", APP.DIR_APP, file.name, contextMenu.ownerWindow, ImageFileFormat.filter())
-                        .ifOk { nf ->
+                        .handleOk { nf ->
                             // TODO: move low lvl impl. to utils
                             try {
                                 Files.copy(file.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING)
@@ -193,7 +193,7 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
             else Menu("Image", null,
                         menuItem("Save image as ...") {
                             saveFile("Save image as...", APP.DIR_APP, cmd.iFile?.name ?: "new_image", contextMenu.ownerWindow, ImageFileFormat.filter())
-                                    .ifOk { writeImage(cmd.image, it) }
+                                    .handleOk { writeImage(cmd.image, it) }
                         },
                         menuItem("Copy to clipboard") { copyToSysClipboard(DataFormat.IMAGE, cmd.image) }
                 ),

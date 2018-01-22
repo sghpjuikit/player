@@ -137,7 +137,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return null;
 	}
 
-	public Try<LoadResult,Void> loadCover(boolean full, ImageSize size) {
+	public Try<LoadResult> loadCover(boolean full, ImageSize size) {
 		throwIfFxThread();
 
 		boolean wasCoverFile_loaded = coverFile_loaded;
@@ -172,7 +172,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 				return Try.ok(new LoadResult(wasLoaded, file, cover));
 			}
 		}
-		return Try.error();
+		return Try.errorFast();
 	}
 
 	// guaranteed to execute only once

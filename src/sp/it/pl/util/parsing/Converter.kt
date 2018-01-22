@@ -6,7 +6,7 @@ import sp.it.pl.util.functional.Try
 abstract class Converter {
 
     /** @return object converted from the text or error */
-    abstract fun <T> ofS(c: Class<T>, s: String): Try<T, String>
+    abstract fun <T> ofS(c: Class<T>, s: String): Try<T>
 
     /** @return object converted from the text or error */
     inline fun <reified T> ofS(s: String) = ofS(T::class.java, s)

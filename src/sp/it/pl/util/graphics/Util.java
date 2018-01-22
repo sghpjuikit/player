@@ -3,9 +3,8 @@ package sp.it.pl.util.graphics;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
+
 import javafx.beans.value.ChangeListener;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -22,8 +21,6 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView.TableViewSelectionModel;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
@@ -54,7 +51,7 @@ import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.dev.Util.noØ;
 
 /**
@@ -661,7 +658,7 @@ public interface Util {
 				BufferedImage img = robot.createScreenCapture(area);
 				action.accept(img);
 			} catch (Exception e) {
-				log(Util.class).error("Failed to screenshot the screen {}", area, e);
+				sp.it.pl.util.dev.Util.logger(Util.class).error("Failed to screenshot the screen {}", area, e);
 				action.accept(null);
 			}
 		});

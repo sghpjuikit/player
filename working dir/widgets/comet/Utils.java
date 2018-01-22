@@ -2213,6 +2213,11 @@ interface Utils {
 		}
 
 	}
+
+	static void diagramFailed(Object me, Throwable e) {
+		Try.error(e, "Computation of Voronoi diagram failed").log(sp.it.pl.util.dev.Util.logger(me), true);
+	}
+
 	class VoronoiMode extends GameMode {
 //		private final List<Cell> cells = new ArrayList<>();
 		private List<Cell> cells;
@@ -2368,8 +2373,8 @@ interface Utils {
 			diagram.setClipEnvelope(new Envelope(0, game.field.width, 0, game.field.height));
 			diagram.setSites(cords);
 			Try.tryS(() -> diagram.getDiagram(new GeometryFactory()), Exception.class)
-				.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
-				.ifOk(g ->
+				.handleException(e -> diagramFailed(this, e))
+				.handleOk(g ->
 						IntStream.range(0, g.getNumGeometries())
 							.mapToObj(g::getGeometryN)
 							.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
@@ -2776,8 +2781,8 @@ interface Utils {
 			voronoi.setClipEnvelope(new Envelope(0, W, 0, H));
 			voronoi.setSites(cells);
 			Try.tryS(() -> voronoi.getDiagram(new GeometryFactory()), Exception.class)
-				.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
-				.ifOk(g ->
+				.handleException(e -> diagramFailed(this, e))
+				.handleOk(g ->
 					edgesAction.accept(IntStream.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
 						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
@@ -2842,8 +2847,8 @@ interface Utils {
 		voronoi.setClipEnvelope(new Envelope(0, game.field.width, 0, game.field.height));
 		voronoi.setSites(cells);
 		Try.tryS(() -> voronoi.getDiagram(new GeometryFactory()), Exception.class)
-			.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
-			.ifOk(g ->
+			.handleError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
+			.handleOk(g ->
 					IntStream.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
 						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))

@@ -62,7 +62,7 @@ fun copyToSysClipboard(df: DataFormat, o: Any?) {
  * @param arguments arguments to run the program with
  * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
  */
-fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = fut()
+fun File.runAsProgram(vararg arguments: String): Fut<Try<Void>> = fut()
         .supply(Player.IO_THREAD, Supplier {
             val dir = parentFile
             val command = ArrayList<String>()
@@ -77,10 +77,9 @@ fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = fut
                         .directory(dir)
                         .start()
 
-                ok<Exception>()
+                ok()
             } catch (e: IOException) {
-                logger.warn(e) { "Failed to launch program" }
-                Try.error<Void, Exception>(e)
+                Try.error<Void>(e, "Failed to launch program").log(logger, true)
             }
         })
 
@@ -213,12 +212,12 @@ fun File.open() {
  *
  *  @return success if file was deleted or did not exist or error if error occurs during deletion
  */
-fun File.recycle(): Try<Void, Void> {
+fun File.recycle(): Try<Void> {
     return if (Desktop.Action.MOVE_TO_TRASH.isSupportedOrWarn()) {
         try {
-            if (Desktop.getDesktop().moveToTrash(this)) Try.ok<Void>() else Try.error()
+            if (Desktop.getDesktop().moveToTrash(this)) Try.ok() else Try.errorFast()
         } catch (e: IllegalArgumentException) {
-            Try.ok<Void>()
+            Try.ok()
         }
     } else {
         Try.error()
@@ -263,7 +262,7 @@ fun openIn(files: List<File>) {
     }
 }
 
-fun chooseFile(title: String, type: FileType, initial: File?, w: Window?, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void> {
+fun chooseFile(title: String, type: FileType, initial: File?, w: Window?, vararg extensions: FileChooser.ExtensionFilter): Try<File> {
     when (type) {
         FileType.DIRECTORY -> {
             val c = DirectoryChooser().apply {
@@ -271,7 +270,7 @@ fun chooseFile(title: String, type: FileType, initial: File?, w: Window?, vararg
                 this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(APP.DIR_APP)
             }
             val f = c.showDialog(w)
-            return if (f!=null) ok<File, Void>(f) else Try.error()
+            return if (f!=null) ok<File>(f) else Try.errorFast()
         }
         FileType.FILE -> {
             val c = FileChooser().apply {
@@ -280,22 +279,22 @@ fun chooseFile(title: String, type: FileType, initial: File?, w: Window?, vararg
                 this.extensionFilters += extensions
             }
             val f = c.showOpenDialog(w)
-            return if (f!=null) ok<File, Void>(f) else Try.error()
+            return if (f!=null) ok<File>(f) else Try.errorFast()
         }
     }
 }
 
-fun chooseFiles(title: String, initial: File?, w: Window?, vararg extensions: FileChooser.ExtensionFilter): Try<List<File>, Void> {
+fun chooseFiles(title: String, initial: File?, w: Window?, vararg extensions: FileChooser.ExtensionFilter): Try<List<File>> {
     val c = FileChooser().apply {
         this.title = title
         this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(APP.DIR_APP)
         this.extensionFilters += extensions
     }
     val fs = c.showOpenMultipleDialog(w)
-    return if (fs!=null && !fs.isEmpty()) ok<List<File>, Void>(fs) else Try.error()
+    return if (fs!=null && !fs.isEmpty()) ok<List<File>>(fs) else Try.errorFast()
 }
 
-fun saveFile(title: String, initial: File?, initialName: String, w: Window?, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void> {
+fun saveFile(title: String, initial: File?, initialName: String, w: Window?, vararg extensions: FileChooser.ExtensionFilter): Try<File> {
     val c = FileChooser().apply {
         this.title = title
         this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(APP.DIR_APP)
@@ -303,7 +302,7 @@ fun saveFile(title: String, initial: File?, initialName: String, w: Window?, var
         this.extensionFilters += extensions
     }
     val f = c.showSaveDialog(w)
-    return if (f!=null) Try.ok(f) else Try.error()
+    return if (f!=null) Try.ok(f) else Try.errorFast()
 }
 
 /** @return file representing the currently used wallpaper or null if error not supported */

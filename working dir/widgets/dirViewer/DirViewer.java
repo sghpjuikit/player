@@ -113,7 +113,7 @@ public class DirViewer extends ClassController {
     private final Placeholder placeholder = new Placeholder(
     	FOLDER_PLUS, "Click to explore directory",
 		() -> chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getWidget().getWindowOrActive().map(Window::getStage).orElse(null))
-				.ifOk(files.list::setAll)
+				.handleOk(files.list::setAll)
     );
     private final LazyR<PƑ0<File, Boolean>> filterPredicate = new LazyR<>(this::buildFilter);
 

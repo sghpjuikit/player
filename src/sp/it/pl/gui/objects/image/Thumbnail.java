@@ -32,6 +32,7 @@ import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.dev.Dependency;
+import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.graphics.image.ImageSize;
 import sp.it.pl.util.graphics.image.ImageStandardLoader;
@@ -47,7 +48,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.UtilKt.toFileOrNull;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.stream;
@@ -407,7 +408,7 @@ public class Thumbnail {
 		try {
 			return url==null ? imageFile : toFileOrNull(URI.create(url));
 		} catch (IllegalArgumentException e) {
-			log(Thumbnail.class).warn("Uri={} is not valid file", url, e);
+			Util.logger(Thumbnail.class).warn("Uri={} is not valid file", url, e);
 			return null;
 		}
 	}

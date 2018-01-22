@@ -11,7 +11,6 @@ import sp.it.pl.util.async.runFX
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.functional.ifFalse
 import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.functional.onE
 import sp.it.pl.util.functional.runTry
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
@@ -138,7 +137,7 @@ class VlcPlayer: GeneralPlayer.Play {
 
     override fun disposePlayback() {
         d()
-        runTry { player?.release() } onE { logger.error(it) { "Failed to dispose of the player" } }
+        runTry { player?.release() }.handleException { logger.error("Failed to dispose of the player", it) }
         player = null
     }
 

@@ -367,7 +367,11 @@ public class GameLib extends FXMLController {
             }
 
             runAsProgram(exe, arguments.toArray(new String[arguments.size()]))
-                .use(FX, e -> e.ifError(error -> APP.messagePane.show("Unable to launch program " + exe + ". Reason: " + error.getMessage())));
+                .use(FX, e -> e.handleException(error -> {
+                    String msg = "Unable to launch program " + exe + ". Reason: " + error.getMessage();
+                    APP.messagePane.show(msg);
+                    Try.error(error, msg).log(this);
+                }));
 
         }
 

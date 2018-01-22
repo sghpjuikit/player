@@ -18,6 +18,7 @@ import sp.it.pl.audio.playlist.PlaylistItem;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.util.dev.Blocks;
+import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.serialize.xstream.BooleanPropertyConverter;
 import sp.it.pl.util.serialize.xstream.DoublePropertyConverter;
@@ -29,7 +30,7 @@ import sp.it.pl.util.serialize.xstream.StringPropertyConverter;
 import sp.it.pl.util.serialize.xstream.VConverter;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.Util.readFileLines;
 import static sp.it.pl.util.functional.Try.error;
 import static sp.it.pl.util.functional.Try.ok;
@@ -73,7 +74,7 @@ public final class CoreSerializerXml implements Core {
 	public void dispose() {}
 
 	@Blocks
-	public Try<Void,SerializationException> toXML(Object o, File file) {
+	public Try<Void> toXML(Object o, File file) {
 		try (
 				FileOutputStream fos = new FileOutputStream(file);
 				OutputStreamWriter ow = new OutputStreamWriter(fos, encoding);
@@ -82,14 +83,14 @@ public final class CoreSerializerXml implements Core {
 			x.toXML(o, w);
 			return ok(null);
 		} catch (Throwable e) { // XStreamException | IOException is not enough
-			log(CoreSerializerXml.class).error("Couldn't serialize " + o.getClass() + " to file {}", file, e);
+			Util.logger(CoreSerializerXml.class).error("Couldn't serialize " + o.getClass() + " to file {}", file, e);
 			return error(new SerializationException("Couldn't serialize to file " + file, e));
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Blocks
-	public <T> Try<T,SerializationException> fromXML(Class<T> type, File file) {
+	public <T> Try<T> fromXML(Class<T> type, File file) {
 		// pre-processing
 		String varDefinition = "#def ";
 		List<String> lines = readFileLines(file).collect(toList());
@@ -110,7 +111,7 @@ public final class CoreSerializerXml implements Core {
 		try {
 			return ok((T) x.fromXML(text));
 		} catch (Throwable e) { // ClassCastException | XStreamException | IOException is not enough
-			log(CoreSerializerXml.class).error("Couldn't deserialize " + type + " from file {}", file, e);
+			Util.logger(CoreSerializerXml.class).error("Couldn't deserialize " + type + " from file {}", file, e);
 			return error(new SerializationException("Couldn't deserialize " + type + " from file " + file, e));
 		}
 	}

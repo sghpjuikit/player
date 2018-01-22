@@ -51,7 +51,7 @@ class Chapters(val chapters: List<Chapter> = listOf()): Strings {
 
 }
 
-fun validateChapterText(text: String): Try<String, String> = when {
+fun validateChapterText(text: String): Try<String> = when {
     text.contains(Metadata.SEPARATOR_CHAPTER) -> Try.error("Must not contain '${Metadata.SEPARATOR_CHAPTER}'")
     text.contains(Metadata.SEPARATOR_GROUP) -> Try.error("Must not contain '${Metadata.SEPARATOR_GROUP}'")
     text.contains(Metadata.SEPARATOR_RECORD) -> Try.error("Must not contain '${Metadata.SEPARATOR_RECORD}'")

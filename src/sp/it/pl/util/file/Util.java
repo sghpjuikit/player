@@ -29,7 +29,7 @@ import sp.it.pl.util.functional.Try;
 import static java.util.stream.Collectors.toList;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.filenamizeString;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.dev.Util.noØ;
 import static sp.it.pl.util.file.UtilKt.childOf;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
@@ -295,7 +295,7 @@ public interface Util {
 			file.getParentFile().mkdirs();
 			file.createNewFile();
 		} catch (IOException e) {
-			log(Util.class).error("Creating file failed: {}", file, e);
+			sp.it.pl.util.dev.Util.logger(Util.class).error("Creating file failed: {}", file, e);
 		}
 	}
 
@@ -324,7 +324,7 @@ public interface Util {
 			writer.write(content);
 			return true;
 		} catch (IOException e) {
-			log(Util.class).error("Could not save file: {}", file, e);
+			sp.it.pl.util.dev.Util.logger(Util.class).error("Could not save file: {}", file, e);
 			return false;
 		}
 	}
@@ -341,7 +341,7 @@ public interface Util {
 			return Files.readAllLines(Paths.get(filepath));
 		} catch (IOException e) {
 			if (!(e.getCause() instanceof NoSuchFileException))
-				log(Util.class).error("Problems reading file {}. File was not read.", filepath, e);
+				sp.it.pl.util.dev.Util.logger(Util.class).error("Problems reading file {}. File was not read.", filepath, e);
 			return new ArrayList<>();
 		}
 	}
@@ -351,7 +351,7 @@ public interface Util {
 			return Files.lines(f.toPath());
 		} catch (IOException e) {
 			if (!(e.getCause() instanceof NoSuchFileException))
-				log(Util.class).error("Problem reading file {}. File was not read.", f);
+				sp.it.pl.util.dev.Util.logger(Util.class).error("Problem reading file {}. File was not read.", f);
 			return Stream.empty();
 		}
 	}
@@ -367,7 +367,7 @@ public interface Util {
 	 * @return success of true if file was deleted, of false if did not exist or error if error occurs during deletion
 	 * @throws java.lang.RuntimeException if parameter null
 	 */
-	static Try<Boolean,Exception> deleteFile(File f) {
+	static Try<Boolean> deleteFile(File f) {
 		if (f.isDirectory()) {
 			deleteDirContent(f);
 		}
@@ -377,9 +377,8 @@ public interface Util {
 			return Try.ok(true);
 		} catch (NoSuchFileException e) {
 			return Try.ok(false);
-		} catch (IOException | SecurityException e) {
-			log(Util.class).error("Could not delete file {}", f, e);
-			return Try.error(e);
+		} catch (IOException | SecurityException ex) {
+			return Try.<Boolean>error(ex, "Could not delete file " + f).log(Util.class);
 		}
 	}
 
@@ -409,14 +408,14 @@ public interface Util {
 
 		ImageFileFormat t = ImageFileFormat.of(f.toURI());
 		if (!t.isSupported()) {
-			log(Util.class).error("Could not save image to file {}. Format {} not supported.", f, t);
+			sp.it.pl.util.dev.Util.logger(Util.class).error("Could not save image to file {}. Format {} not supported.", f, t);
 			return;
 		}
 
 		try {
 			ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", f);
 		} catch (IOException e) {
-			log(Util.class).error("Could not save image to file {}", f, e);
+			sp.it.pl.util.dev.Util.logger(Util.class).error("Could not save image to file {}", f, e);
 		}
 	}
 
@@ -442,7 +441,7 @@ public interface Util {
 					out.add(new File(target, f.getName()));
 				}
 			} catch (IOException e) {
-				log(Util.class).error("Could not copy file {}", f, e);
+				sp.it.pl.util.dev.Util.logger(Util.class).error("Could not copy file {}", f, e);
 			}
 		}
 		return out;
@@ -457,7 +456,7 @@ public interface Util {
 			File nf = new File(target, new_name + "." + getSuffix(f.toURI()));
 			Files.copy(f.toPath(), nf.toPath(), options);
 		} catch (IOException e) {
-			log(Util.class).error("Could not copy file {}", f, e);
+			sp.it.pl.util.dev.Util.logger(Util.class).error("Could not copy file {}", f, e);
 		}
 	}
 
@@ -482,7 +481,7 @@ public interface Util {
 			// copy file
 			Files.copy(f.toPath(), nf.toPath(), options);
 		} catch (IOException e) {
-			log(Util.class).error("Could not copy file {}", f, e);
+			sp.it.pl.util.dev.Util.logger(Util.class).error("Could not copy file {}", f, e);
 		}
 	}
 

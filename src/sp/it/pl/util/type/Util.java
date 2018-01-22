@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 import javafx.beans.value.ObservableValue;
 import org.atteo.classindex.ClassIndex;
 import sp.it.pl.util.functional.TriConsumer;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.functional.Util.isNoneØ;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.stream;
@@ -56,7 +56,7 @@ public interface Util {
 						if (isNoneØ(property, propertyName, propertyType))
 							action.accept(property, propertyName, propertyType);
 					} catch (IllegalAccessException|InvocationTargetException e) {
-						log(Util.class).error("Could not obtain property '{}' from object", propertyName);
+						logger(Util.class).error("Could not obtain property '{}' from object", propertyName);
 					}
 				}
 			}

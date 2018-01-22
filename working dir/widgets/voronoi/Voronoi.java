@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.animation.Loop;
+import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.functional.Try;
 import static java.lang.Math.PI;
 import static java.lang.Math.cos;
@@ -256,8 +257,8 @@ public class Voronoi extends ClassController  {
 
 			// Unfortunately the computation can fail under some circumstances, so lets defend against it with Try
 			Try.tryS(() -> diagram.getDiagram(new GeometryFactory()), Exception.class)
-				.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
-				.ifOk(g ->
+				.handleException(e -> Try.error(e, "Computation of Voronoi diagram failed").log(Util.logger(this), true))
+				.handleOk(g ->
 					IntStream.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
 						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))

@@ -10,7 +10,6 @@ import javafx.scene.image.WritableImage
 import mu.KotlinLogging
 import sp.it.pl.util.file.Util.getSuffix
 import sp.it.pl.util.functional.Try
-import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.runTry
 import sp.it.pl.util.functional.supplyFirst
 import java.awt.Dimension
@@ -60,12 +59,11 @@ private fun imgImplHasThumbnail(reader: ImageReader, index: Int, f: File): Boole
     }
 }
 
-fun loadBufferedImage(file: File): Try<ImageBf, IOException> {
+fun loadBufferedImage(file: File): Try<ImageBf> {
     return try {
         Try.ok(ImageIO.read(file))
     } catch (e: IOException) {
-        logger.error(e) { "Can't read image $file for tray icon" }
-        Try.error(e)
+        Try.error<ImageBf>(e, "Can't read image $file for tray icon").log(logger)
     }
 }
 
@@ -113,9 +111,9 @@ fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean
                             if (thumbUse) {
                                 reader.readThumbnail(ii, 0)
                             }
-                        } orNull {
+                        }.handleException {
                             logger.warn(it) { "Failed to read thumbnail for image=$file" }
-                        }
+                        }.getOr(null)
                     }
                     null
                 },
@@ -144,9 +142,9 @@ fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean
 
                     runTry {
                         reader.read(ii, irp)
-                    } orNull {
+                    }.handleException {
                         logger.warn(it) { "Failed to load image=$file" }
-                    }
+                    }.getOr(null)
                 }
         )
         reader.dispose()
@@ -186,7 +184,7 @@ fun imgImplLoadFX(file: File, W: Int, H: Int, loadFullSize: Boolean): ImageFx {
  * Returns image size in pixels or error if unable to find out.
  * Does i/o, but does not read whole image into memory.
  */
-fun getImageDim(f: File): Try<Dimension, Void> {
+fun getImageDim(f: File): Try<Dimension> {
     // see more at:
     // http://stackoverflow.com/questions/672916/how-to-get-image-height-and-width-using-java
     val suffix = getSuffix(f.toURI())
@@ -202,18 +200,15 @@ fun getImageDim(f: File): Try<Dimension, Void> {
                 return Try.ok(Dimension(width, height))
             }
         } catch (e: IOException) {
-            logger.warn(e) {"Problem finding out image size $f" }
-            return Try.error()
+            return Try.error<Dimension>(e, "Problem determining image size $f").log(logger, true)
         } catch (e: NullPointerException) {
             // The twelvemonkeys library seems to have a bug
-            logger.warn(e) { "Problem finding out image size $f" }
-            return Try.error()
+            return Try.error<Dimension>(e, "Problem determining image size $f").log(logger, true)
         } finally {
             reader.dispose()
         }
     } else {
-        logger.warn { "No reader found for given file: $f" }
-        return Try.error()
+        return Try.error<Dimension>("No reader found for given file: $f").log(logger, true)
     }
 
 }

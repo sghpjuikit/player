@@ -200,7 +200,7 @@ public final class WidgetManager {
 		private final EventReducer<Void> scheduleRefresh = EventReducer.toLast(500,
 			() -> runFX(this::registerExternalFactory));
 		private final EventReducer<Void> scheduleCompilation = EventReducer.toLast(250,
-			() -> runNew(() -> compile().ifError(userErrorLogger)));
+			() -> runNew(() -> compile().handleError(userErrorLogger)));
 
 
 		WidgetDir(String name, File dir) {
@@ -274,12 +274,12 @@ public final class WidgetManager {
 				// provide all factories before widgets start loading so we compile on this (ui/fx)
 				// thread. This blocks and delays startup, but it is fine - it is necessary
 				if (initialized)
-					runNew(() -> compile());
+					runNew(() -> compile().log(LOGGER));
 				else {
 					// File monitoring is not and must not be running yet (as it creates factory
 					// asynchronously). We do it manually.
 					// TODO: use assert
-					compile().ifOk(v -> registerExternalFactory());
+					compile().log(LOGGER).handleOk(v -> registerExternalFactory());
 				}
 			}
 		}
@@ -293,7 +293,7 @@ public final class WidgetManager {
 					   .filter(f -> f.getPath().endsWith(".jar"));
 		}
 
-		private Try<Void,String> compile() {
+		private Try<String> compile() {
 			LOGGER.info("Compiling widget={}", widgetName);
 
 			List<File> srcFiles = getSrcFiles().collect(toList());
@@ -309,9 +309,9 @@ public final class WidgetManager {
 		 *
 		 * @param srcFiles .java files to compile
 		 */
-		private Try<Void,String> compileJava(Stream<File> srcFiles, Stream<File> libFiles) {
+		private Try<String> compileJava(Stream<File> srcFiles, Stream<File> libFiles) {
 			String classpath = System.getProperty("java.class.path");
-			Stream<String> options = stream(                            // Command-line options
+			Stream<String> options = stream(  // Command-line options
 				// Compiler defaults to system encoding, we need consistent system independent encoding, such as UTF-8
 				"-encoding", APP.encoding.name(),
 				// Includes information about each class loaded and each source file compiled.
@@ -321,22 +321,22 @@ public final class WidgetManager {
 			Stream<String> sourceFiles = srcFiles.map(File::getPath);   // One or more source files to be compiled
 			Stream<String> classes = stream();   // One or more classes to be processed for annotations
 			Stream<String> argFiles = stream();   // One or more files that lists options and source files. The -J options are not allowed in these files
-			String[] arguments = stream(options,sourceFiles,classes,argFiles).flatMap(s -> s).toArray(String[]::new);
+			String[] arguments = stream(options, sourceFiles, classes, argFiles).flatMap(s -> s).toArray(String[]::new);
 
-			LOGGER.info("Compiling widget={} with arguments: {} ", widgetName, toS(", ", arguments));
+			LOGGER.info("Compiling widget={}", widgetName);
+			// since arguments become really long with the absolute Paths of all libs, hide them in TRACE
+			if(LOGGER.isTraceEnabled())
+				LOGGER.trace("arguments: {}", toS(", ", arguments));
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
 			int success = compiler.run(null, null, null, arguments);
 
-			boolean isSuccess = success==0;
-			if (isSuccess) LOGGER.info("Widget " + widgetName + " compilation succeeded");
-			else LOGGER.error("Widget " + widgetName + " compilation failed");
-			return isSuccess
-				? Try.ok()
-				: Try.error("Widget " + widgetName + " compilation failed with errors");
+			return success==0
+				? Try.ok("Widget " + widgetName + " compilation succeeded")
+				: Try.error("Widget " + widgetName + " compilation failed!");
 		}
 
-		private Try<Void,String> compileKotlin(Stream<File> srcFiles, Stream<File> libFiles) {
+		private Try<String> compileKotlin(Stream<File> srcFiles, Stream<File> libFiles) {
 			try {
 				File srcFile = srcFiles.findAny().get();        // TODO: improve
 				String classpath = System.getProperty("java.class.path");
@@ -359,15 +359,11 @@ public final class WidgetManager {
 					.start()
 					.waitFor();
 
-				boolean isSuccess = success==0;
-				if (isSuccess) LOGGER.info("Widget " + widgetName + " compilation succeeded");
-				else LOGGER.error("Widget " + widgetName + " compilation failed");
-				return isSuccess
-					? Try.ok()
-					: Try.error("Widget " + widgetName + " compilation failed with errors");
+				return success == 0
+					? Try.ok("Widget " + widgetName + " compilation succeeded")
+					: Try.error("Widget " + widgetName + " compilation failed!");
 			} catch (Exception e ) {
-				LOGGER.error("Widget " + widgetName + " compilation failed");
-				return Try.error(e.getMessage());
+				return Try.error(e, "Widget " + widgetName + " compilation failed!");
 			}
 		}
 	}

@@ -11,13 +11,15 @@ import sp.it.pl.audio.playlist.PlaylistItem;
 import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.util.animation.Anim;
+import sp.it.pl.util.dev.Util;
+
 import static java.lang.Math.pow;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.reactive.Util.installSingletonListener;
 
 /** Audio player which abstracts away from the implementation. */
@@ -46,7 +48,7 @@ public class GeneralPlayer {
 		if (p!=null) p.disposePlayback();
 		p = computePlayer(item);
 		if (p==null) {
-			log(GeneralPlayer.class).info("Player {} can not play item {}", p, item);
+			Util.logger(GeneralPlayer.class).info("Player {} can not play item {}", p, item);
 			item.playbackError = true;
 			PlaylistManager.use(Playlist::playNextItem); // handle within playlist
 		} else {
@@ -70,7 +72,7 @@ public class GeneralPlayer {
 						Player.post_activating_1st = false;
 					},
 					() -> runFX(() -> {
-						log(GeneralPlayer.class).info("Player {} can not play item {}", p, item);   // TODO: handle looping playlist forever
+						Util.logger(GeneralPlayer.class).info("Player {} can not play item {}", p, item);   // TODO: handle looping playlist forever
 						item.playbackError = true;
 						PlaylistManager.use(Playlist::playNextItem); // handle within playlist
 					}));

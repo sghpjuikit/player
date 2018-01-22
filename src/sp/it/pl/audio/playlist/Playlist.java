@@ -678,7 +678,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 				APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
 				AudioFileFormat.filter(Use.PLAYBACK)
 		)
-				.ifOk(files -> {
+				.handleOk(files -> {
 					PlaylistManager.browse = files.get(0).getParentFile();
 					List<URI> queue = new ArrayList<>();
 					files.forEach(f -> queue.add(f.toURI()));
@@ -705,7 +705,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 						PlaylistManager.browse,
 						APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner())
 				)
-				.ifOk(dir -> {
+				.handleOk(dir -> {
 					PlaylistManager.browse = dir;
 					List<URI> queue = new ArrayList<>();
 					getFilesAudio(dir, Use.APP, PlaylistManager.folder_depth).forEach(f -> queue.add(f.toURI()));

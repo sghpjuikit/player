@@ -37,7 +37,7 @@ import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.conf.Config.VarList.NULL_SUPPLIER;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.functional.Try.error;
 import static sp.it.pl.util.functional.Try.ok;
 import static sp.it.pl.util.functional.Util.forEachBoth;
@@ -156,12 +156,12 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 	/**
 	 * Sets value converted from string. Does nothing if conversion fails.
-	 * Equivalent to: {@code fromS(str).ifOk(this::setValue);}
+	 * Equivalent to: {@code fromS(str).handleOk(this::setValue);}
 	 *
 	 * @param s string to parse
 	 */
 	public void setValueS(String s) {
-		ofS(s).ifOk(this::setValue);
+		ofS(s).handleOk(this::setValue);
 	}
 
 	/**
@@ -182,7 +182,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Try<T,String> ofS(String s) {
+	public Try<T> ofS(String s) {
 		if (isTypeEnumerable()) {
 			// 1 Notice we are traversing all enumarated values to look up the one which we want to
 			//   deserialize.
@@ -201,7 +201,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			for (T v : enumerateValues())
 				if (Parsers.DEFAULT.toS(v).equalsIgnoreCase(s)) return ok(v);
 
-			log(Config.class).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", s, getGuiName());
+			sp.it.pl.util.dev.Util.logger(Config.class).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", s, getGuiName());
 			return error("Value does not correspond to any value of the enumeration.");
 		} else {
 			return Parsers.DEFAULT.ofS(getType(), s);
@@ -745,7 +745,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		 */
 		@Override
 		public void setValueS(String s) {
-			ofS(s).ifOk(getProperty().real::setValue);
+			ofS(s).handleOk(getProperty().real::setValue);
 		}
 
 		/**
@@ -766,7 +766,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		 * {@inheritDoc}
 		 */
 		@Override
-		public Try<T,String> ofS(String str) {
+		public Try<T> ofS(String str) {
 			String s = str;
 			if (s.contains("overrides:true, ")) {
 				getProperty().override.setValue(true);
@@ -843,7 +843,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 		@Override
 		public void setValueS(String s) {
-			ofS(s).ifOk(a.list::setAll);
+			ofS(s).handleOk(a.list::setAll);
 		}
 
 		@Override
@@ -856,7 +856,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		}
 
 		@Override
-		public Try<ObservableList<T>,String> ofS(String str) {
+		public Try<ObservableList<T>> ofS(String str) {
 			ObservableList<T> l = observableArrayList();
 			boolean isFixedSizeAndHasConfigurableItems = a.factory==NULL_SUPPLIER;
 			AtomicInteger i = isFixedSizeAndHasConfigurableItems ? new AtomicInteger(0) : null;

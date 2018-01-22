@@ -95,7 +95,7 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
 
         @Dependency("toString")
         @JvmStatic
-        fun fromString(s: String): Try<FileSize, Throwable> {
+        fun fromString(s: String): Try<FileSize> {
             if (s==NAString) return Try.ok(FileSize(NA))
 
             var v = s

@@ -38,7 +38,7 @@ public interface Constraint<T> {
 
 	String message();
 
-	default Try<Void,String> validate(T t) {
+	default Try<Void> validate(T t) {
 		return isValid(t) ? ok(null) : error(message());
 	}
 

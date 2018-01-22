@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.function.Function;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.functional.Try;
-import static sp.it.pl.util.functional.Try.errorOf;
+import static sp.it.pl.util.functional.Try.error;
 import static sp.it.pl.util.functional.Try.ok;
 import static sp.it.pl.util.functional.Try.tryF;
 import static sp.it.pl.util.functional.Util.list;
@@ -49,7 +49,7 @@ public interface Parsers {
         }
     }
 
-    static <I, O> Function<I,Try<O,String>> parserOfI(Invokable<O> m, Class<I> typeIn, Class<O> typeOut, StringParseStrategy a, ParseDir dir) {
+    static <I, O> Function<I,Try<O>> parserOfI(Invokable<O> m, Class<I> typeIn, Class<O> typeOut, StringParseStrategy a, ParseDir dir) {
         Collection<Parameter> params = m.getParameters();
         if (params.size()>1)
             throw new IllegalArgumentException("Converter method/constructor must take 0 or 1 parameter");
@@ -68,9 +68,9 @@ public interface Parsers {
             } catch (IllegalAccessException|InvocationTargetException e) {
                 for (Class<?> ec : ecs) {
                     if (e.getCause()!=null && ec.isInstance(e.getCause().getCause()))
-                        return errorOf(e.getCause().getCause());
-                    if (ec.isInstance(e.getCause())) return errorOf(e.getCause());
-                    if (ec.isInstance(e)) return errorOf(e);
+                        return error(e.getCause().getCause());
+                    if (ec.isInstance(e.getCause())) return error(e.getCause());
+                    if (ec.isInstance(e)) return error(e);
                 }
                 throw new RuntimeException("Converter cant invoke the method: " + m, e.getCause());
             }
@@ -81,9 +81,9 @@ public interface Parsers {
             } catch (IllegalAccessException|InvocationTargetException e) {
                 for (Class<?> ec : ecs) {
                     if (e.getCause()!=null && ec.isInstance(e.getCause().getCause()))
-                        return errorOf(e.getCause().getCause());
-                    if (ec.isInstance(e.getCause())) return errorOf(e.getCause());
-                    if (ec.isInstance(e)) return errorOf(e);
+                        return error(e.getCause().getCause());
+                    if (ec.isInstance(e.getCause())) return error(e.getCause());
+                    if (ec.isInstance(e)) return error(e);
                 }
                 throw new RuntimeException("Converter cant invoke the method: " + m, e.getCause());
             }
@@ -91,7 +91,7 @@ public interface Parsers {
     }
 
     @SuppressWarnings("unchecked")
-    static <I, O> Function<I,Try<O,String>> parserOfM(Method m, Class<I> i, Class<O> o, StringParseStrategy a, ParseDir dir) {
+    static <I, O> Function<I,Try<O>> parserOfM(Method m, Class<I> i, Class<O> o, StringParseStrategy a, ParseDir dir) {
         Set<Class<?>> ecs = new HashSet<>();
         if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
         else ecs.add(Exception.class);
@@ -105,9 +105,9 @@ public interface Parsers {
             } catch (IllegalAccessException|InvocationTargetException e) {
                 for (Class<?> ec : ecs) {
                     if (e.getCause()!=null && ec.isInstance(e.getCause().getCause()))
-                        return errorOf(e.getCause().getCause());
-                    if (ec.isInstance(e.getCause())) return errorOf(e.getCause());
-                    if (ec.isInstance(e)) return errorOf(e);
+                        return error(e.getCause().getCause());
+                    if (ec.isInstance(e.getCause())) return error(e.getCause());
+                    if (ec.isInstance(e)) return error(e);
                 }
                 throw new RuntimeException("Converter cant invoke the method: " + m, e.getCause());
             }
@@ -118,16 +118,16 @@ public interface Parsers {
             } catch (IllegalAccessException|InvocationTargetException e) {
                 for (Class<?> ec : ecs) {
                     if (e.getCause()!=null && ec.isInstance(e.getCause().getCause()))
-                        return errorOf(e.getCause().getCause());
-                    if (ec.isInstance(e.getCause())) return errorOf(e.getCause());
-                    if (ec.isInstance(e)) return errorOf(e);
+                        return error(e.getCause().getCause());
+                    if (ec.isInstance(e.getCause())) return error(e.getCause());
+                    if (ec.isInstance(e)) return error(e);
                 }
                 throw new RuntimeException("Converter cant invoke the method: " + m, e.getCause());
             }
         };
     }
 
-    static <O> Function<String,Try<O,String>> parserOfC(StringParseStrategy a, ParseDir dir, Class<O> type, Class<?>... params) {
+    static <O> Function<String,Try<O>> parserOfC(StringParseStrategy a, ParseDir dir, Class<O> type, Class<?>... params) {
         try {
             Constructor<O> c = type.getConstructor(params);
             if (c==null) throw new NoSuchMethodException();
@@ -142,13 +142,13 @@ public interface Parsers {
                 } catch (ExceptionInInitializerError|InstantiationException|IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
                     for (Class<?> ec : ecs) {
                         if (e.getCause()!=null && ec.isInstance(e.getCause().getCause())) {
-                            return errorOf(e.getCause().getCause());
+                            return error(e.getCause().getCause());
                         }
                         if (ec.isInstance(e.getCause())) {
-                            return errorOf(e.getCause());
+                            return error(e.getCause());
                         }
                         if (ec.isInstance(e)) {
-                            return errorOf(e);
+                            return error(e);
                         }
                     }
                     throw new RuntimeException("String '" + in + "' parsing failed to invoke constructor in class " + c.getDeclaringClass(), e);
@@ -159,7 +159,7 @@ public interface Parsers {
         }
     }
 
-    static <I, O> Ƒ1<I,Try<O,String>> noExWrap(Executable m, StringParseStrategy a, ParseDir dir, Function<I,O> f) {
+    static <I, O> Ƒ1<I,Try<O>> noExWrap(Executable m, StringParseStrategy a, ParseDir dir, Function<I,O> f) {
         Set<Class<?>> ecs = new HashSet<>();
         if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
         if (m!=null) ecs.addAll(list(m.getExceptionTypes()));

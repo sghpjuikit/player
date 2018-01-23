@@ -1,4 +1,5 @@
-# Project
+## Project
+
 out/
 private/
 working dir/jre
@@ -9,9 +10,16 @@ working dir/user
 working dir/vlc/
 working dir/widgets/**/*class
 
+# Gradle
+.gradle/
+build/
+gradle.properties
+
+## IDE
+
 # Idea
 .idea/
-*.iml
+PlayerFX.*
 
 # NetBeans
 nbproject/
@@ -24,7 +32,6 @@ nb-configuration.xml
 build.xml
 nbbuild.xml
 manifest.mf
-
 
 # Eclipse
 *.pydevproject
@@ -44,6 +51,8 @@ local.properties
 *.launch
 .cproject
 .buildpath
+
+## OS
 
 # Windows
 Thumbs.db

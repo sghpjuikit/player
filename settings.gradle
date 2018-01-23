@@ -1,0 +1,6 @@
+
+rootProject.name = 'PlayerFX'
+
+include ":widgets"
+project(":widgets").projectDir = file("working dir/widgets")
+

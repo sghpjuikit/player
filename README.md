@@ -317,54 +317,28 @@ Tips:
 
 # Development
 
-### Project setup
-
 - Language
   - Java jdk-9.0.0 or higher
   - and Kotlin (latest version) are both required.
 - IDE: due to use of Kotlin, Intellij Idea is strongly recommended, although not required
-- dependencies
-  - Java/Kotlin: all jars are included in /working dir/lib
+- dependencies (gradle soon TM)
+  - Java/Kotlin: all jars are included in /working dir/lib
   - VLC: installation must be placed in working dir/vlc directory. Obtain latest [here](https://www.videolan.org/vlc/). Without this step, audio playback will not be possible.
   - Kotlin compiler: kotlinc must be placed in working dir/kotlinc directory. Obtain latest [here](https://github.com/JetBrains/kotlin/releases). Without this step, compiling widgets written in Kotlin will not be possible.
 
-#### Widgets
+### Get started
 
-It is required to add widget source codes to the source code of the project. 
+- launch gradlew (Unix: gradlew/Windows: gradlew.bat) to set up gradle
+- gradle run to set up the project and run the application
 
-In Netbeans: project > properties > sources > add folder. Add /src widgets directory. You should see 2 source directories in you project: 'src' and 'src widgets'.
+### Widgets
 
-In Intellij Idea: create a separate module depending (type=PROVIDED) on the main module and all its dependensies plus all the jars (recursively) in the /widgets directory.
-    
-### Running
+Widgets don't need to be compiled by the IDE, the application will compile them itself. But for syntax highlighting and error reporting they should be included as separate module, depending on PlayerFX and all jars in the widgets directory. 
+This should automatically be setup by gradle and imported into your IDE.
 
-  - main class: main.App
-  - annotation processing: must be enabled, set to obtain processor from classpath (classindex.jar)
-  - javac arg:<br>
-    -Xlint:unchecked<br/>
-    --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED<br/>
-    --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED<br/>
-    --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED<br/>
-    --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED<br/>
-  - jvm args:<br>
-    -Xmx3g<br>
-    --add-opens java.base/java.util=ALL-UNNAMED<br/>
-    --add-opens java.base/java.lang.reflect=ALL-UNNAMED<br/>
-    --add-opens java.base/java.text=ALL-UNNAMED<br/>
-    --add-opens java.base/java.util.stream=ALL-UNNAMED<br/>
-    --add-opens java.base/java.lang=ALL-UNNAMED<br/>
-    --add-opens java.desktop/java.awt.font=ALL-UNNAMED<br/>
-    --add-opens javafx.controls/javafx.scene.control=ALL-UNNAMED<br/>
-    --add-opens javafx.controls/javafx.scene.control.skin=ALL-UNNAMED<br/>
-    --add-opens javafx.graphics/com.sun.glass.ui=ALL-UNNAMED<br/>
-    --add-opens javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED<br/>
-    --add-opens javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED<br/>
-    --add-opens javafx.graphics/javafx.scene.image=ALL-UNNAMED<br/>
-    --add-opens javafx.web/com.sun.webkit=ALL-UNNAMED<br/>
-    
 ### Debugging
 
-- use 'block current thread only' for breakpoints. Due to a mouse polling (using a native library), blocking all threads (like on a breakpoint) can cause major slow downs and unresponsive mouse (up to dozens of seconds) in the system.
+Use 'block current thread only' for breakpoints. Due to mouse polling (using a native library), blocking all threads (like on a breakpoint) can cause freezes.
 
 ### Coding style
 

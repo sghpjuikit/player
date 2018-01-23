@@ -326,10 +326,11 @@ Tips:
   - VLC: installation must be placed in working dir/vlc directory. Obtain latest [here](https://www.videolan.org/vlc/). Without this step, audio playback will not be possible.
   - Kotlin compiler: kotlinc must be placed in working dir/kotlinc directory. Obtain latest [here](https://github.com/JetBrains/kotlin/releases). Without this step, compiling widgets written in Kotlin will not be possible.
 
-### Get started
+### Running
 
-- launch gradlew (Unix: gradlew/Windows: gradlew.bat) to set up gradle
-- gradle run to set up the project and run the application
+`./gradlew run`
+to only build use
+`./gradle build`
 
 ### Widgets
 

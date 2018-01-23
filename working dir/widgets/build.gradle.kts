@@ -2,8 +2,9 @@
 buildDir = rootDir.resolve("build").resolve("widgets")
 
 plugins {
-	id("java")
-	id("idea")
+	java
+	kotlin("jvm")
+	//id("idea")
 }
 
 /*idea {
@@ -12,7 +13,7 @@ plugins {
 	}
 }*/
 
-sourceSets {
+java.sourceSets {
 	getByName("main") {
 		java.srcDir(".")
 	}
@@ -23,5 +24,5 @@ dependencies {
 	compile(rootProject)
 
 	// include all libs in the widgets directory and its subdirectories
-	// todo compile(fileTree(dir: ".", include: ["/**/*.jar"]))
+	compile(files(file(".").listFiles().flatMap { if(it.isDirectory) listOf<File>(*it.listFiles()) else listOf<File>(it) }.filter { it.extension == "jar" }))
 }

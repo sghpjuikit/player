@@ -10,11 +10,11 @@
 - [Issues](#issues)
 - [Download & Use](#download--use)
 - [Development](#development)
-- [Credits & Licence](#credits-%26-license)
+- [Credits & Licence](#credits--license)
 
 ## What is this?
 
-  The <b>Player</b> or <b>PlayerFX</b> is a desktop audio player and audio management application, with a dynamic module system - a multipurpose extensible application capable of compiling and running custom java widgets.
+**PlayerFX** is a desktop audio player and audio management application, with a dynamic module system - a multipurpose extensible application capable of compiling and running custom java widgets.
 
 ![Playlist View](https://raw.githubusercontent.com/sghpjuikit/player/master/extra/screenshot_playlists.jpg)
 
@@ -38,7 +38,7 @@ There are two reasons to be interested in this project:
 - <b>Library independence</b> - Moving & renaming files will not result in loss of any information. Every single bit is in the tag. Always. If you move on to different application or lose your library - you never lose data. Ever again.
 - <b>Usability</b> - Ease of use and efficient workflow due to minimalistic and unobtursive graphical user interface design. Think shortcuts, swiping, icons instead buttons, closing with right click instead of trying to hit small button somewhere in the corner of whatever you are doing..., etc.
 - <b>Responsive</b> - fast and responsive. Minimal modal dialogs. No more stuck windows while your library is scanning that big fat audio collection of yours
-- <b>Sexy</b> - Your way of sexy if you know tiny bit about css.
+- <b>Sexy</b> - Your way of sexy if you know a tiny bit about css.
 
 ### Play audio 
 
@@ -106,7 +106,7 @@ The aim is to be interoperable with other players, where possible. Noteworthy or
 
 ### Modularity
 
-  Most of the functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or popups. Widgets' source files can be created and edited in runtime and any changes will be immediatelly reflected in the application. This means that if you are a developer you just edit code of the .java file, hit save and watch as the widgets are (recompiled and then) reloaded with previous state and configuration. 
+  Most of the functionalities are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or popups. Widgets' source files can be created and edited in runtime and any changes will be immediatelly reflected in the application. This means that if you are a developer you can simply edit code of the .java file, hit save and watch as the widgets are (recompiled and then) reloaded with previous state and configuration. 
   
 Comprehensive widget list:
 - <b>Playback</b>
@@ -290,12 +290,15 @@ Depicts an old build of the application with an old skin.
 ## Issues
 
 - Some of the widgets or features are **experimental**, buggy or confusing (its being worked on, so stay tuned).
-- Linux and Mac not tested for now.
-- Memory consumption is worse than what native applications could do. Normally i have get about 250-450MB, but it depends on use case. Lots of widgets will eat more memory. Handling large pictures (4000^2 px) on large monitors can also rapidly increase memory consumption (but picture quality stays great). 32bit is more effective (64bit effectively doubles memory consumption), so ill only provide 32-bit version.
-- No playlist  support (.m3u, etc) for now. Maybe later.
-- Using shadows on text or icons (in custom skins) can severely impact performance, but i think that goes true for any app.
-- no transparent bgr for now (due to java bug causing massive performance degradation)
-- visually big tables with lots of text can impact performance (we are talking full-hd and beyond)
+- Linux support is in the ways, Mac is completely untested
+- No playlist files (.m3u, etc) supported yet
+- No transparent background for now (due to a java bug causing massive performance degradation)
+
+#### Performance
+
+- Memory consumption is usually worse compared to native applications. Normally i have get about 250-450MB, but it depends on use case. Lots of widgets will eat more memory. Handling large pictures (4000^2 px) on large monitors can also rapidly increase memory consumption (but picture quality stays great). 32-bit is more effective (64-bit effectively doubles memory consumption), so there will only be a 32-bit version for now.
+- Using shadows on text or icons (in custom skins) can severely impact performance, but that is a common issue.
+- Visually big tables (full-hd and beyond) with lots of text can impact performance
 
 ## Download & Use
 
@@ -308,7 +311,7 @@ Download link coming soon.
   Starting the application for the first time will run a guide. Before you close it, read at least first couple of tips (like where to find the guide if you need it again...).
 
 Tips:
-- use tooltips! Cant stress enough.
+- Do use tooltips!
 - If you get 'trapped' and 'locked in' with no idea what to do, press right ALT (layout edit mode) or click anywhere (mouse buttons often navigate) - once you get the hang of it, you will see how convenient it is.
 - widgets, popups and containers have informative "i" buttons that provide valuable info on possible course of action
 
@@ -385,7 +388,7 @@ In Intellij Idea: create a separate module depending (type=PROVIDED) on the main
   
   - Configuration
       - log_configuration.xml in /working dir/log, where the log output is also located
-      - the logger appends WARN, ERROR to file and all to console ( this can be changed in runtime by user in application settings)
+      - the logger appends WARN, ERROR to file and everything to console (this can be changed in runtime by user in application settings)
 
 - Imports
   - use static imports where possible (enum types, utility methods, etc.)
@@ -406,7 +409,7 @@ In Intellij Idea: create a separate module depending (type=PROVIDED) on the main
 
 ### Skinning
 
-A skin is a single css file that works the same way as if you are skinning a html web site. See [javafx css reference guide](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html). Skins can import each other.
+A skin is a single css file that works similar to styling a html web site - see [javafx css reference guide](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html). Skins can import each other.
 The application autodiscovers the skins when it starts and monitors them for changes. The skins are located in working dir/skins, in separate folders.
 
 # Credits & Licence

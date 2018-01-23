@@ -7,8 +7,6 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-
-
 /** System default zone id.  */
 val ZONE_ID = ZoneId.systemDefault()
 

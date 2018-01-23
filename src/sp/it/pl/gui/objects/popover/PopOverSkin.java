@@ -116,10 +116,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		String closeBt = "Close\n\nClose this popup and its content.";
 		Icon closeB = new Icon(TIMES_CIRCLE, 11, closeBt, p::hideStrong).styleclass("popover-close-button");
 		String pinBt = "Pin\n\nWhen disabled, this popup will close on mouse click outside of this popup.";
-		Icon pinB = new Icon(null, 11, pinBt, () -> {
-			p.setAutoHide(!p.isAutoHide());
-
-		});
+		Icon pinB = new Icon(null, 11, pinBt, () -> p.setAutoHide(!p.isAutoHide()));
 		maintain(p.autoHideProperty(), mapB(PIN_OFF, PIN), pinB::icon);
 
 		HBox headerControls = new HBox(closeB);

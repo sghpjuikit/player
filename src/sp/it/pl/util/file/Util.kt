@@ -35,15 +35,15 @@ val File.nameWithoutExtensionOrRoot: String
     get() = nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
 
 /** @returns file itself if exists or its first existing parent or error if null or no parent exists */
-fun File.find1stExistingParentFile(): Try<File, Void> = when {
+fun File.find1stExistingParentFile(): Try<File> = when {
     exists() -> Try.ok(this)
-    else -> parentFile?.find1stExistingParentFile() ?: Try.error()
+    else -> parentFile?.find1stExistingParentFile() ?: Try.errorFast()
 }
 
 /** @returns file's first existing parent or error if null or no parent exists */
-fun File.find1stExistingParentDir(): Try<File, Void> = when {
+fun File.find1stExistingParentDir(): Try<File> = when {
     exists() && isDirectory -> Try.ok(this)
-    else -> parentFile?.find1stExistingParentDir() ?: Try.error()
+    else -> parentFile?.find1stExistingParentDir() ?: Try.errorFast()
 }
 
 fun File.childOf(childName: String) = File(this, childName)

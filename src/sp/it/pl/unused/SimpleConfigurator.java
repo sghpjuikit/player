@@ -109,7 +109,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
 					fields.add(cf.createLabel(), 0, configFields.size() - 1);   // populate
 					fields.add(cf.getNode(), 1, configFields.size() - 1);
 				});
-		Consumer<Try<T,String>> observer = v -> validate();
+		Consumer<Try<T>> observer = v -> validate();
 		configFields.forEach(f -> f.observer = observer);
 
 		fieldsPane.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
@@ -127,7 +127,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
 	public void ok() {
 		if (!hasAction.get()) return;
 
-		Try<T,String> validation = validate();
+		Try<T> validation = validate();
 		if (validation.isOk()) {
 			configFields.forEach(ConfigField::apply);
 			onOK.accept(configurable);
@@ -137,8 +137,8 @@ public class SimpleConfigurator<T> extends AnchorPane {
 		}
 	}
 
-	private Try<T,String> validate() {
-		Try<T,String> validation = configFields.stream()
+	private Try<T> validate() {
+		Try<T> validation = configFields.stream()
 				.map(f -> f.value.mapError(e -> f.getConfig().getGuiName() + ": " + e))
 				.reduce(Try::and).orElse(Try.ok(null));
 		showWarnButton(validation);
@@ -150,7 +150,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
 			configFields.get(0).focus();
 	}
 
-	private void showWarnButton(Try<T,String> validation) {
+	private void showWarnButton(Try<T> validation) {
 		if (validation.isError()) okB.styleclass(STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
 		okB.icon(validation.isOk() ? OctIcon.CHECK : FontAwesomeIcon.EXCLAMATION_TRIANGLE);
 		okB.setMouseTransparent(validation.isError());

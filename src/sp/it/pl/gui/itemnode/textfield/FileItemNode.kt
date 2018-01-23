@@ -42,7 +42,7 @@ class FileItemNode: TextFieldItemNode<File> {
     override fun onDialogAction() {
         val title = if (type.get()==Type.DIRECTORY) "Choose directory" else "Choose file"
         chooseFile(title, type.get(), v, scene.window)
-                .ifOk { value = it }
+                .handleOk { value = it }
     }
 
 }

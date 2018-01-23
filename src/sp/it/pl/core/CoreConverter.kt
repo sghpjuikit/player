@@ -63,13 +63,13 @@ class CoreConverter: Core {
         addP<File>(toS, { File(it) })
         addT<URI>(toS, tryF({ URI.create(it) }, iae))
         addT<Pattern>(toS, tryF({ Pattern.compile(it) }, PatternSyntaxException::class))
-        addT<Bitrate>(toS, { Bitrate.fromString(it).orMessage() })
-        addT<Dur>(toS, { Dur.fromString(it).orMessage() })
+        addT<Bitrate>(toS, { Bitrate.fromString(it) })
+        addT<Dur>(toS, { Dur.fromString(it) })
         addT<Duration>(toS, tryF({ Duration.valueOf(it.replace(" ", "")) }, iae)) // fixes java's inconsistency
         addT<LocalDateTime>(toS, tryF( { LocalDateTime.parse(it) }, DateTimeException::class))
-        addT<FileSize>(toS, { FileSize.fromString(it).orMessage() })
-        addT<StrExF>(toS, { StrExF.fromString(it).orMessage() })
-        addT<NofX>(toS, { NofX.fromString(it).orMessage() })
+        addT<FileSize>(toS, { FileSize.fromString(it) })
+        addT<StrExF>(toS, { StrExF.fromString(it) })
+        addT<NofX>(toS, { NofX.fromString(it) })
         addT<Font>(
                 { String.format("%s, %s", it.name, it.size) },
                 tryF({
@@ -85,7 +85,7 @@ class CoreConverter: Core {
                 { "${it.fontFamily}.${it.name()}" },
                 {
                     Icon.GLYPHS[it]
-                            ?.let { Try.ok<GlyphIcons,String>(it) }
+                            ?.let { Try.ok<GlyphIcons>(it) }
                             ?: Try.error("No such icon=$it")
                 }
         )
@@ -115,23 +115,21 @@ class CoreConverter: Core {
         addParserAsF(T::class.java, to, of)
     }
 
-    private inline fun <reified T: Any> ConverterDefault.addT(noinline to: (T) -> String, noinline of: (String) -> Try<T, String>) {
+    private inline fun <reified T: Any> ConverterDefault.addT(noinline to: (T) -> String, noinline of: (String) -> Try<T>) {
         addParser(T::class.java, to, of)
     }
 
-    private fun <I, O> tryF(f: (I) -> O, vararg ecs: KClass<*>): (I) -> Try<O, String> {
+    private fun <I, O> tryF(f: (I) -> O, vararg ecs: KClass<*>): (I) -> Try<O> {
         return {
             try {
                 Try.ok(f(it))
             } catch (e: Throwable) {
                 ecs.asSequence()
                         .find { it.isInstance(e) }
-                        ?.let { Try.errorOf<O>(e) }
+                        ?.let { Try.error<O>(e) }
                         ?: throw RuntimeException("Unhandled exception thrown in Try operation", e)
             }
         }
     }
-
-    private fun <T> Try<T,out Throwable>.orMessage() = mapError { it.message!! }
 
 }

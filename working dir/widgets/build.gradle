@@ -1,0 +1,16 @@
+buildscript {
+	buildDir = '../../build/widgets'
+}
+plugins {
+	id 'java'
+}
+
+sourceSets.main.java.srcDirs = ['.']
+
+dependencies {
+	// include all libs from the actual Project
+	compile rootProject
+
+	// include all libs in the widgets directory and its subdirectories
+	compile fileTree(dir: ".", includes: ['/**/*.jar'])
+}

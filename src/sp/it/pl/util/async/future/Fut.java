@@ -9,10 +9,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import javafx.scene.control.ProgressIndicator;
 import sp.it.pl.gui.objects.window.stage.Window;
+import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.eFX;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.dev.Util.noØ;
 
 /**
@@ -76,10 +77,10 @@ public class Fut<T> {
 		try {
 			return f.get();
 		} catch (InterruptedException e) {
-			log(Fut.class).error("Asynchronous computation was interrupted", e);
+			Util.logger(Fut.class).error("Asynchronous computation was interrupted", e);
 			return null;
 		} catch (ExecutionException e) {
-			log(Fut.class).error("Asynchronous computation encountered a problem", e);
+			Util.logger(Fut.class).error("Asynchronous computation encountered a problem", e);
 			return null;
 		}
 	}
@@ -90,10 +91,10 @@ public class Fut<T> {
 			try {
 				return f.get();
 			} catch (InterruptedException e) {
-				log(Fut.class).error("Asynchronous computation was interrupted", e);
+				Util.logger(Fut.class).error("Asynchronous computation was interrupted", e);
 				return null;
 			} catch (ExecutionException e) {
-				log(Fut.class).error("Asynchronous computation encountered a problem", e);
+				Util.logger(Fut.class).error("Asynchronous computation encountered a problem", e);
 				return null;
 			}
 		} else {

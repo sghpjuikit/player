@@ -1,0 +1,152 @@
+buildscript {
+	ext.kotlinVersion = "1.2.20"
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+	}
+}
+plugins {
+	id 'java'
+	id 'application'
+
+	id "net.ltgt.apt" version "0.13"
+
+	id 'idea'
+}
+
+// configure idea
+idea {
+	module {
+		downloadSources = true
+		downloadJavadoc = true
+		sourceDirs += file('src')
+		testSourceDirs += file('working dir/widgets')
+	}
+}
+
+// configure files/dirs
+mainClassName = "sp.it.pl.main.App"
+
+sourceSets {
+	main.java.srcDirs = ['src']
+	main.resources.srcDirs = ['src']
+}
+
+allprojects {
+	// configure kotlin
+	apply plugin: 'kotlin'
+
+	tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+		kotlinOptions {
+			jvmTarget = '1.8'
+			suppressWarnings = true
+		}
+	}
+	kotlin.experimental.coroutines "enable"
+
+	// javac args
+	compileJava {
+		options.warnings = false
+		options.deprecation = false
+/*		options.fork = true
+		println(options.forkOptions.executable)
+		options.forkOptions.executable = '/usr/lib/jvm/java-9-oracle/bin/javac'*/
+		options.compilerArgs = ["-Xlint:unchecked",
+									   "-nowarn",
+									   "--add-exports", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
+									   "--add-exports", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED",
+									   "--add-exports", "javafx.web/com.sun.webkit=ALL-UNNAMED",
+									   "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"]
+	}
+}
+
+// jvm args
+applicationDefaultJvmArgs = [
+        "-Xmx3g",
+		"--add-opens", "java.base/java.util=ALL-UNNAMED",
+		"--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+		"--add-opens", "java.base/java.text=ALL-UNNAMED",
+		"--add-opens", "java.base/java.util.stream=ALL-UNNAMED",
+		"--add-opens", "java.base/java.lang=ALL-UNNAMED",
+		"--add-opens", "java.desktop/java.awt.font=ALL-UNNAMED",
+		"--add-opens", "javafx.controls/javafx.scene.control=ALL-UNNAMED",
+		"--add-opens", "javafx.controls/javafx.scene.control.skin=ALL-UNNAMED",
+		"--add-opens", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
+		"--add-opens", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED",
+		"--add-opens", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
+		"--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
+		"--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED",
+		"-Duser.dir=" + file('working dir')
+]
+
+// get libs
+allprojects {
+	repositories {
+		jcenter()
+	}
+}
+
+	dependencies {
+
+		// Kotlin
+		compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: kotlinVersion
+		compile group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlinVersion
+
+		compile group: 'org.jetbrains.kotlin', name: 'kotlin-test', version: '1.2.20'
+
+		// Java Native
+		compile group: 'net.java.dev.jna', name: 'jna', version: '4.5.1'
+		compile group: 'net.java.dev.jna', name: 'jna-platform', version: '4.5.1'
+		compile group: 'com.1stleg', name: 'jnativehook', version: '2.0.3'
+
+		// Logging
+		compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+		compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+		compile group: 'io.github.microutils', name: 'kotlin-logging', version: '1.5.3'
+
+		// JavaFX
+		compile group: 'de.jensd', name: 'fontawesomefx', version: '8.9'
+		compile group: 'org.reactfx', name: 'reactfx', version: '2.0-M5'
+		compile group: 'eu.hansolo', name: 'tilesfx', version: '1.5.2'
+		compile group: 'eu.hansolo', name: 'Medusa', version: '7.9'
+
+		// Player
+		compile group: 'uk.co.caprica', name: 'vlcj', version: '3.10.1'
+		compile group: 'de.u-mass', name: 'lastfm-java', version: '0.1.2'
+
+		// annotation processor
+		compile group: 'org.atteo.classindex', name: 'classindex', version: '3.4'
+		apt group: 'org.atteo.classindex', name: 'classindex', version: '3.4'
+
+		// misc
+		compile group: 'com.adobe.xmp', name: 'xmpcore', version: '5.1.2'
+		compile group: 'com.drewnoakes', name: 'metadata-extractor', version: '2.9.1'
+		compile group: 'net.objecthunter', name: 'exp4j', version: '0.4.8'
+		compile group: 'org.atteo', name: 'evo-inflector', version: '1.2.2'
+		compile group: 'com.thoughtworks.xstream', name: 'xstream', version: '1.4.10'
+
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-core', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-bmp', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-jpeg', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-iff', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-icns', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-pcx', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-pict', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-clippath', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-hdr', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-pdf', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-pnm', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-psd', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-tga', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-sgi', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-thumbsdb', version: '3.3.2'
+	//	compile group: 'com.twelvemonkeys.imageio', name: 'imageio-tiff', version: '3.3.2'
+
+		compile fileTree(dir: "working dir/lib", include: "*.jar")
+
+	}
+
+println("Java version: ${JavaVersion.current()}")
+println("Kotlin version: $kotlinVersion")

@@ -36,7 +36,7 @@ import static sp.it.pl.util.graphics.Util.setAnchors;
 public class FunctionViewer extends ClassController  {
     private final Axes axes = new Axes(400,300,  -1,1,0.2, -1,1,0.2);
     private final Plot plot = new Plot(-1,1, axes);
-	private final V<StrExF> function = new V<>(StrExF.fromString("x").getOrThrow(), this::plot);
+	private final V<StrExF> function = new V<>(StrExF.fromString("x").get(), this::plot);
 
     public FunctionViewer() {
         this.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);

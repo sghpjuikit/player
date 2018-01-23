@@ -534,8 +534,8 @@ public class ActionPane extends OverlayPane<Object> {
 		return o instanceof Fut ? ((Fut)o).getDoneOrNull() : o;
 	}
 
-	public <I> ConvertingConsumer<? super I> converting(Ƒ1<? super I,Try<?,?>> converter) {
-		return d -> converter.apply(d).ifOk(result -> runFX(() -> ActionPane.this.show(result)));
+	public <I> ConvertingConsumer<? super I> converting(Ƒ1<? super I,Try<?>> converter) {
+		return d -> converter.apply(d).handleOk(result -> runFX(() -> ActionPane.this.show(result)));
 	}
 
 	public interface ConvertingConsumer<T> extends Consumer<T> {}

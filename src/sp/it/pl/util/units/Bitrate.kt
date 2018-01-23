@@ -33,7 +33,7 @@ data class Bitrate(/** Value in kb/s, 0 if unknown, and negative if variable. */
 
         @Dependency("toString")
         @JvmStatic
-        fun fromString(s: String): Try<Bitrate, Throwable> {
+        fun fromString(s: String): Try<Bitrate> {
             if (VALUE_S_NA==s) return Try.ok(Bitrate(VALUE_NA))
 
             return try {

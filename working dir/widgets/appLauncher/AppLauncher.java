@@ -83,7 +83,7 @@ public class AppLauncher extends ClassController {
     private final Placeholder placeholder = new Placeholder(
         FOLDER_PLUS, "Click to add launcher or drag & drop a file",
         () -> chooseFile("Choose program or file", FILE, APP.DIR_HOME, getWidget().getWindowOrActive().map(Window::getStage).orElse(null))
-				.ifOk(files.list::setAll)
+				.handleOk(files.list::setAll)
     );
 
     @IsConfig(name = "Sort", info = "Sorting effect.")

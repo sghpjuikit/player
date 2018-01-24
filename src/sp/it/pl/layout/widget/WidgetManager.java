@@ -86,6 +86,11 @@ public final class WidgetManager {
 	public void init() {
 		if (initialized) throw new IllegalStateException("Already initialized");
 
+		if (childOf(AppUtil.APP.DIR_APP, "jre", "bin").exists())
+			LOGGER.error("Java development kit is missing. Please install JDK in {} directory" + childOf(AppUtil.APP.DIR_APP, "jre"));
+		if (childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin").exists())
+			LOGGER.error("Kotlin compiler is missing. Please install kotlinc in {} directory" + childOf(AppUtil.APP.DIR_APP, "kotlinc"));
+
 		// internal factories
 		factories.add(widgetFactoryEmpty);
 

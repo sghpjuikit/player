@@ -6,7 +6,6 @@ plugins {
     //java
     application
     id("net.ltgt.apt") version "0.13"
-    id("idea")
 }
 
 // source directories
@@ -16,14 +15,6 @@ java.sourceSets {
         resources.srcDir("src")
     }
 }
-
-/*idea {
-    buildDir = file("build")
-    module {
-        sourceDirs += file('src')
-        testSourceDirs += file('working dir/widgets')
-    }
-}*/
 
 // configure kotlin
 val kotlinVersion: String? by extra {
@@ -71,8 +62,10 @@ application {
             "-Duser.dir=" + file("working dir"))
 }
 
-repositories {
-    jcenter()
+allprojects {
+    repositories {
+        jcenter()
+    }
 }
 
 dependencies {

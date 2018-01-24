@@ -4,18 +4,11 @@ buildDir = rootDir.resolve("build").resolve("widgets")
 plugins {
 	java
 	kotlin("jvm")
-	id("idea")
-}
-
-idea {
-	module {
-		sourceDirs = setOf(file("."))
-	}
 }
 
 java.sourceSets {
 	getByName("main") {
-		java.srcDir(".")
+		java.srcDir("../widgets")
 	}
 }
 

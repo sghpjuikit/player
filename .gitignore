@@ -19,7 +19,9 @@ gradle.properties
 
 # Idea
 .idea/
-PlayerFX.*
+*.iml
+*.ipr
+*.iws
 
 # NetBeans
 nbproject/

@@ -324,17 +324,16 @@ Tips:
 
 ### Preparations
 
-- pull the repo
+- Clone the repository
 - Import into IDE from Gradle 
-  - IDEA: Deselect 'Create separate module per source set', don't worry if Gradle buildscripts are not recognised, that's a known issue
+  - IDEA: Deselect 'Create separate module per source set', don't worry if Gradle buildscripts are not recognised, that's a known issue; it's also recommended to "Use auto-import"
 - To enable audio playback, a vlc installation must be placed in working dir/vlc directory. Obtain latest [here](https://www.videolan.org/vlc/)
 - To use widgets written in Kotlin (which includes the the Settings!) kotlinc must be placed in working dir/kotlinc directory. Obtain latest [here](https://github.com/JetBrains/kotlin/releases)
 
 #### Running
 
-`./gradlew run`
-
-to only build use `./gradlew build`
+- `./gradlew run` will compile and run the application
+- `./gradlew build` will only build
 
 #### Widgets
 

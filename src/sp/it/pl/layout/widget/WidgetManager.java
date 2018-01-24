@@ -33,6 +33,7 @@ import sp.it.pl.util.dev.Idempotent;
 import sp.it.pl.util.file.FileMonitor;
 import sp.it.pl.util.file.Util;
 import sp.it.pl.util.functional.Try;
+import sp.it.pl.util.system.Os;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
@@ -84,6 +85,11 @@ public final class WidgetManager {
 
 	public void init() {
 		if (initialized) throw new IllegalStateException("Already initialized");
+
+		if (childOf(AppUtil.APP.DIR_APP, "jre", "bin").exists())
+			LOGGER.error("Java development kit is missing. Please install JDK in {} directory" + childOf(AppUtil.APP.DIR_APP, "jre"));
+		if (childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin").exists())
+			LOGGER.error("Kotlin compiler is missing. Please install kotlinc in {} directory" + childOf(AppUtil.APP.DIR_APP, "kotlinc"));
 
 		// internal factories
 		factories.add(widgetFactoryEmpty);
@@ -140,6 +146,8 @@ public final class WidgetManager {
 			});
 		}
 
+		factories.forEach(f -> LOGGER.info("Registered widget: {}", f.name()));
+		factoriesC.forEach(f -> LOGGER.info("Registered widget: {}", f.nameGui()));
 		initialized = true;
 	}
 
@@ -246,7 +254,7 @@ public final class WidgetManager {
 		}
 
 		void registerExternalFactory() {
-			LOGGER.info("Registering widget={} factory", widgetName);
+			LOGGER.info("Widget={} factory updating", widgetName);
 
 			List<File> srcFiles = getSrcFiles().collect(toList());
 			boolean isKotlin = srcFiles.stream().anyMatch(f -> f.getPath().endsWith("kt"));
@@ -259,6 +267,9 @@ public final class WidgetManager {
 			// errors as consequently we recompile the source file.
 			boolean srcFile_available = srcFile.exists();
 			boolean classFile_available = classFile.exists() && (!srcFile_available || classFile.lastModified()>getSrcFiles().mapToLong(File::lastModified).max().orElseGet(srcFile::lastModified));
+
+			LOGGER.info("Widget={} source files available={}", widgetName, srcFile_available);
+			LOGGER.info("Widget={} class files available={}", widgetName, classFile_available);
 
 			// If class file is available, we just create factory for it.
 			if (classFile_available) {
@@ -294,7 +305,7 @@ public final class WidgetManager {
 		}
 
 		private Try<Void,String> compile() {
-			LOGGER.info("Compiling widget={}", widgetName);
+			LOGGER.info("Widget={} compiling...", widgetName);
 
 			List<File> srcFiles = getSrcFiles().collect(toList());
 			boolean isKotlin = srcFiles.stream().anyMatch(f -> f.getPath().endsWith("kt"));
@@ -323,7 +334,7 @@ public final class WidgetManager {
 			Stream<String> argFiles = stream();   // One or more files that lists options and source files. The -J options are not allowed in these files
 			String[] arguments = stream(options,sourceFiles,classes,argFiles).flatMap(s -> s).toArray(String[]::new);
 
-			LOGGER.info("Compiling widget={} with arguments: {} ", widgetName, toS(", ", arguments));
+			LOGGER.info("Widget={} compiling with arguments: {} ", widgetName, toS(", ", arguments));
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
 			int success = compiler.run(null, null, null, arguments);
@@ -340,8 +351,11 @@ public final class WidgetManager {
 			try {
 				File srcFile = srcFiles.findAny().get();        // TODO: improve
 				String classpath = System.getProperty("java.class.path");
+				File compilerFile = childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin", "kotlinc.bat");
+				if (Os.UNIX.isCurrent()) compilerFile = childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin", "kotlinc");
+
 				List<String> command = new ArrayList<>();
-				command.add(childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin", "kotlinc.bat").getAbsolutePath());
+				command.add(compilerFile.getAbsolutePath());
 				command.add(srcFile.getAbsolutePath());
 				command.add("-d");
 				command.add(AppUtil.APP.DIR_WIDGETS.getAbsolutePath());
@@ -360,13 +374,13 @@ public final class WidgetManager {
 					.waitFor();
 
 				boolean isSuccess = success==0;
-				if (isSuccess) LOGGER.info("Widget " + widgetName + " compilation succeeded");
-				else LOGGER.error("Widget " + widgetName + " compilation failed");
+				if (isSuccess) LOGGER.info("Widget={} compilation succeeded", widgetName);
+				else LOGGER.error("Widget={} compilation failed", widgetName);
 				return isSuccess
 					? Try.ok()
 					: Try.error("Widget " + widgetName + " compilation failed with errors");
 			} catch (Exception e ) {
-				LOGGER.error("Widget " + widgetName + " compilation failed");
+				LOGGER.error("Widget={} compilation failed", widgetName);
 				return Try.error(e.getMessage());
 			}
 		}

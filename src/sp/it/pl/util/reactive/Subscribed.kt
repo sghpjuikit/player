@@ -8,7 +8,7 @@ class Subscribed(private val subscribing: () -> Subscription, private var s: Sub
     val isSubscribed get() = s!=null
 
     fun subscribe(on: Boolean = true) {
-        when(on) {
+        when (on) {
             true -> if (s==null) s = subscribing()
             false -> s?.unsubscribe()
         }

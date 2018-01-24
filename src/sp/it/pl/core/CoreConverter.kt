@@ -66,7 +66,7 @@ class CoreConverter: Core {
         addT<Bitrate>(toS, { Bitrate.fromString(it).orMessage() })
         addT<Dur>(toS, { Dur.fromString(it).orMessage() })
         addT<Duration>(toS, tryF({ Duration.valueOf(it.replace(" ", "")) }, iae)) // fixes java's inconsistency
-        addT<LocalDateTime>(toS, tryF( { LocalDateTime.parse(it) }, DateTimeException::class))
+        addT<LocalDateTime>(toS, tryF({ LocalDateTime.parse(it) }, DateTimeException::class))
         addT<FileSize>(toS, { FileSize.fromString(it).orMessage() })
         addT<StrExF>(toS, { StrExF.fromString(it).orMessage() })
         addT<NofX>(toS, { NofX.fromString(it).orMessage() })
@@ -85,13 +85,13 @@ class CoreConverter: Core {
                 { "${it.fontFamily}.${it.name()}" },
                 {
                     Icon.GLYPHS[it]
-                            ?.let { Try.ok<GlyphIcons,String>(it) }
+                            ?.let { Try.ok<GlyphIcons, String>(it) }
                             ?: Try.error("No such icon=$it")
                 }
         )
         addT<Effect>({ Parsers.FX.toS(it) }, { Parsers.FX.ofS<Effect>(it) })
         addT<Class<*>>({ it.name }, tryF({ Class.forName(it) }, Throwable::class))
-        addP<Functors.PƑ<*,*>>(
+        addP<Functors.PƑ<*, *>>(
                 { "${it.name},${it.`in`},${it.out}" },
                 {
                     val data = Util.split(it, ",")
@@ -132,6 +132,6 @@ class CoreConverter: Core {
         }
     }
 
-    private fun <T> Try<T,out Throwable>.orMessage() = mapError { it.message!! }
+    private fun <T> Try<T, out Throwable>.orMessage() = mapError { it.message!! }
 
 }

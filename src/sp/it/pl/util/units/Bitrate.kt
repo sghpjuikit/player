@@ -26,10 +26,10 @@ data class Bitrate(/** Value in kb/s, 0 if unknown, and negative if variable. */
     }
 
     companion object {
-        private val VALUE_NA = 0
-        private val VALUE_S_NA = "n/a"
-        private val VALUE_S_VARIABLE = "~"
-        private val UNIT = "kbps"
+        private const val VALUE_NA = 0
+        private const val VALUE_S_NA = "n/a"
+        private const val VALUE_S_VARIABLE = "~"
+        private const val UNIT = "kbps"
 
         @Dependency("toString")
         @JvmStatic

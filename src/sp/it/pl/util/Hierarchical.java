@@ -1,6 +1,9 @@
 package sp.it.pl.util;
 
 import java.util.List;
+import java.util.stream.Stream;
+import sp.it.pl.util.functional.Util;
+import static sp.it.pl.util.functional.UtilKt.seqRec;
 
 /**
  * Object in a tree hierarchy, having an optional parent and any number of children. All objects in the hierarchy
@@ -14,20 +17,18 @@ public interface Hierarchical<H extends Hierarchical<H>> {
 
 	List<H> getHChildren();
 
-	// TODO: implement
-//	@SuppressWarnings("unchecked")
-//	default Stream<H> getHChildrenR() {
-//		return StreamEx.ofTree((H) this, (H h) -> h.getHChildren().stream());
-//	}
+	@SuppressWarnings("unchecked")
+	default Stream<H> getHChildrenR() {
+		return Util.stream(seqRec((H) this, e -> e.getHChildren()).iterator());
+	}
 
 	default boolean isHLeaf() {
 		return getHChildren().isEmpty();
 	}
 
-	// TODO: implement
-//	default Stream<H> getHLeafChildrenR() {
-//		return getHChildrenR().filter(Hierarchical::isHLeaf);
-//	}
+	default Stream<H> getHLeafChildrenR() {
+		return getHChildrenR().filter(Hierarchical::isHLeaf);
+	}
 
 	default boolean isHRoot() {
 		return getHParent()==null;

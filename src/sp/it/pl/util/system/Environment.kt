@@ -36,7 +36,7 @@ import java.awt.Desktop
 import java.io.File
 import java.io.IOException
 import java.net.URI
-import java.util.*
+import java.util.ArrayList
 import java.util.function.Consumer
 import java.util.function.Supplier
 
@@ -312,16 +312,16 @@ fun Screen.getWallpaperFile(): File? =
             val path = Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, "Control Panel\\Desktop", "Wallpaper")
             val isMultiWallpaper = path.endsWith("TranscodedWallpaper")
             if (isMultiWallpaper) {
-                File(path.substringBeforeLast("Wallpaper")+"_"+(ordinal-1).toString().padStart(3, '0'))
+                val pathPrefix = path.substringBeforeLast("Wallpaper")
+                val index = (ordinal-1).toString().padStart(3, '0')
+                File("${pathPrefix}_$index")
                         .takeIf { it.exists() }
                         ?: File(path)
             } else {
-                println(path)
                 File(path)
             }
         } else {
-            println(null)
-            null
+            null    // TODO: implement
         }
 
 private fun Desktop.Action.isSupportedOrWarn() =

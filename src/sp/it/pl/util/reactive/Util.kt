@@ -16,7 +16,7 @@ import javafx.stage.Screen
 import org.reactfx.EventStreams
 import org.reactfx.Subscription
 import sp.it.pl.util.functional.invoke
-import java.util.*
+import java.util.Objects
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 import java.util.function.Predicate
@@ -46,7 +46,7 @@ infix fun ObservableValue<Boolean>.syncTrue(u: (Boolean) -> Unit): Subscription 
 /** Sets a value consumer to be fired if the value is false immediately and on every value change. */
 infix fun ObservableValue<Boolean>.syncFalse(u: (Boolean) -> Unit): Subscription = maintain(Consumer { if (!it) u(it) })
 
-/** Sets a size consumer to be fired immediatelly and on every list size change. */
+/** Sets a size consumer to be fired immediately and on every list size change. */
 infix fun <T> ObservableList<T>.syncSize(action: (Int) -> Unit): Subscription {
     var s = -1
     val l = ListChangeListener<T> { _ ->
@@ -154,13 +154,13 @@ fun <T> doOnceIfImageLoaded(image: Image, action: Runnable): Subscription {
  * @param action action receiving the value and that runs exactly once when the condition is first met
  */
 fun <T> doOnceIf(property: ObservableValue<T>, condition: Predicate<in T>, action: Consumer<in T>): Subscription {
-    if (condition.test(property.value)) {
+    return if (condition.test(property.value)) {
         action(property.value)
-        return Subscription {}
+        Subscription {}
     } else {
         val l = singletonListener(property, condition, action)
         property.addListener(l)
-        return Subscription { property.removeListener(l) }
+        Subscription { property.removeListener(l) }
     }
 }
 

@@ -16,7 +16,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javafx.beans.value.ObservableValue;
 import org.atteo.classindex.ClassIndex;
-import sp.it.pl.unused.TriConsumer;
+import sp.it.pl.util.functional.TriConsumer;
 import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.functional.Util.isNoneØ;
 import static sp.it.pl.util.functional.Util.list;

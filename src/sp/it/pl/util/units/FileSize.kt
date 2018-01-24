@@ -64,25 +64,25 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
     companion object {
 
         /** `1024^1` */
-        val Ki: Long = 1024
+        const val Ki: Long = 1024
         /** `1024^2` */
-        val Mi = Ki*Ki
+        const val Mi = Ki*Ki
         /** `1024^3` */
-        val Gi = Ki*Mi
+        const val Gi = Ki*Mi
         /** `1024^4` */
-        val Ti = Mi*Mi
+        const val Ti = Mi*Mi
         /** `1024^5` */
-        val Pi = Ti*Ki
+        const val Pi = Ti*Ki
         /** `1024^6` */
-        val Ei = Ti*Mi
+        const val Ei = Ti*Mi
         /** `0` */
-        val MIN: Long = 0
+        const val MIN: Long = 0
         /** `2^63-1` */
-        val MAX = java.lang.Long.MAX_VALUE
+        const val MAX = java.lang.Long.MAX_VALUE
         /** Not available value. */
-        val NA: Long = -1
+        const val NA: Long = -1
         /** Not available string value. */
-        val NAString = "Unknown"
+        const val NAString = "Unknown"
 
         /** @return file size of this file in bytes */
         fun File.sizeInB(): Long {

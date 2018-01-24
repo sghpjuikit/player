@@ -72,7 +72,7 @@ import org.gamepad4j.Controllers;
 import org.gamepad4j.IController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sp.it.pl.unused.TriConsumer;
+import sp.it.pl.util.functional.TriConsumer;
 import sp.it.pl.util.access.ref.R;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.animation.Anim;

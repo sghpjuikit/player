@@ -53,7 +53,8 @@ private fun imgImplHasThumbnail(reader: ImageReader, index: Int, f: File): Boole
         logger.warn(e) { "Can't find image thumbnails $f" }
         false
     } catch (e: Exception) {
-        // The twelvemonkeys library seems to have a few bugs, throwing all kinds of exceptions,
+        // TODO: remove, should not longer happen
+        // The TwelveMonkeys library seems to have a few bugs, throwing all kinds of exceptions,
         // including NullPointerException and ConcurrentModificationError
         logger.warn(e) { "Can't find image thumbnails $f" }
         false
@@ -73,13 +74,13 @@ fun loadImageThumb(file: File?, width: Double, height: Double): ImageFx? {
     if (file==null) return null
 
     // negative values have same effect as 0, 0 loads image at its size
-    val W = maxOf(0, width.toInt())
-    val H = maxOf(0, height.toInt())
-    val loadFullSize = W==0 && H==0
+    val w = maxOf(0, width.toInt())
+    val h = maxOf(0, height.toInt())
+    val loadFullSize = w==0 && h==0
 
     // psd special case
     return if (!file.path.endsWith("psd")) {
-        imgImplLoadFX(file, W, H, loadFullSize)
+        imgImplLoadFX(file, w, h, loadFullSize)
     } else {
         loadImagePsd(file, width, height, false)
     }
@@ -90,26 +91,26 @@ fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean
         logger.warn(Throwable()) { "Loading image on FX thread!" }
 
     // negative values have same effect as 0, 0 loads image at its size
-    var W = maxOf(0, width.toInt())
-    var H = maxOf(0, height.toInt())
-    val loadFullSize = W==0 && H==0
+    var w = maxOf(0, width.toInt())
+    var h = maxOf(0, height.toInt())
+    val loadFullSize = w==0 && h==0
 
     ImageIO.createImageInputStream(file).use { input ->
         val readers = ImageIO.getImageReaders(input)
         if (!readers.hasNext()) return null
 
-        var scale = !loadFullSize
+        val scale = !loadFullSize
         val reader = readers.next()!!
         reader.input = input
         val ii = reader.minIndex
-        var i: ImageBf? = supplyFirst<ImageBf>(
+        var i: ImageBf? = supplyFirst(
                 {
                     if (!loadFullSize) {
                         runTry {
                             val thumbHas = imgImplHasThumbnail(reader, ii, file)
                             val thumbW = if (!thumbHas) 0 else reader.getThumbnailWidth(ii, 0)
                             val thumbH = if (!thumbHas) 0 else reader.getThumbnailHeight(ii, 0)
-                            val thumbUse = thumbHas && W<=thumbW && H<=thumbH
+                            val thumbUse = thumbHas && w<=thumbW && h<=thumbH
                             if (thumbUse) {
                                 reader.readThumbnail(ii, 0)
                             }
@@ -122,14 +123,14 @@ fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean
                 {
                     val iW = reader.getWidth(ii)
                     val iH = reader.getHeight(ii)
-                    if (W>iW || H > iH) {
-                        W = iW
-                        H = iH
+                    if (w>iW || h > iH) {
+                        w = iW
+                        h = iH
                     }
                     val iRatio = iW.toDouble()/iH
-                    val rRatio = W.toDouble()/H
-                    val rW = if (iRatio<rRatio) W else (H*iRatio).toInt()
-                    val rH = if (iRatio<rRatio) (W/iRatio).toInt() else H
+                    val rRatio = w.toDouble()/h
+                    val rW = if (iRatio<rRatio) w else (h*iRatio).toInt()
+                    val rH = if (iRatio<rRatio) (w/iRatio).toInt() else h
 
                     val irp = reader.defaultReadParam.apply {
                         var px = 1
@@ -152,7 +153,7 @@ fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean
         reader.dispose()
 
         if (scale)
-            i = i?.toScaledDown(W, H)
+            i = i?.toScaledDown(w, h)
 
         return i?.toFX()
     }
@@ -205,7 +206,7 @@ fun getImageDim(f: File): Try<Dimension, Void> {
             logger.warn(e) {"Problem finding out image size $f" }
             return Try.error()
         } catch (e: NullPointerException) {
-            // The twelvemonkeys library seems to have a bug
+            // The TwelveMonkeys library seems to have a bug
             logger.warn(e) { "Problem finding out image size $f" }
             return Try.error()
         } finally {

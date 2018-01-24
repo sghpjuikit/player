@@ -3,16 +3,16 @@ package sp.it.pl.core
 import javafx.geometry.Point2D
 import org.reactfx.Subscription
 import sp.it.pl.util.async.executor.FxTimer
-import java.util.*
+import java.util.HashSet
 
 /** Provides access to mouse position and mouse speed. By default lazy, i.e., consumes resources only if observed. */
 object CoreMouse: Core {
-    private val positionSubscribers = HashSet<(Point2D) -> Unit>()
-    private val velocitySubscribers = HashSet<(Double) -> Unit>()
+    private const val pulseFrequency = 10 // Hz
     private var pulse: FxTimer? = null
-    private val pulseFrequency = 10 // Hz
     private var lastPos: Point2D? = null
     private var observeSpeed = false
+    private val positionSubscribers = HashSet<(Point2D) -> Unit>()
+    private val velocitySubscribers = HashSet<(Double) -> Unit>()
 
     /** @return mouse position in screen coordinates */
     fun getMousePosition(): Point2D = sp.it.pl.util.graphics.getMousePosition()

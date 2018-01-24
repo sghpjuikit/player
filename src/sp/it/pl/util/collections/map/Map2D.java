@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import sp.it.pl.unused.TriConsumer;
+import sp.it.pl.util.functional.TriConsumer;
 import sp.it.pl.util.collections.map.Map2D.Key;
 import static java.util.stream.Collectors.toSet;
 

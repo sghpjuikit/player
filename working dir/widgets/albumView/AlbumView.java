@@ -27,7 +27,7 @@ import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
-import sp.it.pl.unused.TriConsumer;
+import sp.it.pl.util.functional.TriConsumer;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.animation.Anim;

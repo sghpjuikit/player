@@ -36,7 +36,7 @@ import java.awt.Desktop
 import java.io.File
 import java.io.IOException
 import java.net.URI
-import java.util.*
+import java.util.ArrayList
 import java.util.function.Consumer
 import java.util.function.Supplier
 

@@ -67,6 +67,6 @@ object WebBarInterpreter {
             if (url.startsWithHttp()) url
             else "http://" + (if (url.startsWith("www.")) url else "www.") + url
 
-    fun String.startsWithHttp() = startsWith("http://") || startsWith("https://")
+    private fun String.startsWithHttp() = startsWith("http://") || startsWith("https://")
 
 }

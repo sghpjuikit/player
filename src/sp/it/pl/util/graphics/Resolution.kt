@@ -1,7 +1,7 @@
 package sp.it.pl.util.graphics
 
 @Suppress("EnumEntryName")
-enum class Resolution(@JvmField val width: Double,@JvmField val height: Double) {
+enum class Resolution(@JvmField val width: Double, @JvmField val height: Double) {
     R_1x1(1.0, 1.0),
     R_3x2(3.0, 2.0),
     R_4x5(4.0, 5.0),

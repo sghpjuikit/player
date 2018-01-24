@@ -39,14 +39,14 @@ class CoreLogging(val loggingConfigurationFile: File, val loggingOutputDir: File
     }
 
     fun changeLogBackLoggerAppenderLevel(appenderName: String, level: Level) {
-         val logger = (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) ?: null)
-                 as? ch.qos.logback.classic.Logger
-         val filter = logger
-                 ?.getAppender(appenderName)
-                 ?.copyOfAttachedFiltersList
-                 ?.firstOrNull()
-                 as? ch.qos.logback.classic.filter.ThresholdFilter
-         filter?.setLevel(level.toString())
+        val logger = (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) ?: null)
+                as? ch.qos.logback.classic.Logger
+        val filter = logger
+                ?.getAppender(appenderName)
+                ?.copyOfAttachedFiltersList
+                ?.firstOrNull()
+                as? ch.qos.logback.classic.filter.ThresholdFilter
+        filter?.setLevel(level.toString())
     }
 
     companion object: KLogging()

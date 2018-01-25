@@ -31,15 +31,28 @@ allprojects {
     }
 }
 
-tasks.withType<JavaCompile> {
-    options.isWarnings = false
-    options.isDeprecation = false
-    // javac args
-    options.compilerArgs = listOf("-Xlint:unchecked", "-nowarn",
-            "--add-exports", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
-            "--add-exports", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED",
-            "--add-exports", "javafx.web/com.sun.webkit=ALL-UNNAMED",
-            "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED")
+tasks {
+    withType<JavaCompile> {
+        options.isWarnings = false
+        options.isDeprecation = false
+        // javac args
+        options.compilerArgs = listOf("-Xlint:unchecked", "-nowarn",
+                "--add-exports", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
+                "--add-exports", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED",
+                "--add-exports", "javafx.web/com.sun.webkit=ALL-UNNAMED",
+                "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED")
+    }
+
+    val cleanup by creating {
+        file("working dir/log").listFiles { file -> arrayOf("log", "zip").contains(file.extension) }.forEach { it.delete() }
+    }
+
+    val copyLibs by creating(Copy::class) {
+        into("working dir/lib")
+        // the filter is only necessary because of the file dependencies, once these are gone it can be removed
+        from(configurations.runtime.filter { !(it.name.contains("javadoc") || it.name.contains("sources")) } )
+    }
+
 }
 
 application {

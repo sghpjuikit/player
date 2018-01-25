@@ -2,6 +2,7 @@
 
 out/
 private/
+working dir/lib
 working dir/jre
 working dir/kotlinc
 working dir/log/*zip

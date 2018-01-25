@@ -9,6 +9,6 @@ data class SkinCss(@JvmField val name: String, @JvmField val file: File) {
 }
 
 // TODO: implement cursor
-// Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());
+// Image image = new Image(new File("resources/icons/cursor.png").getAbsoluteFile().toURI().toString());
 // ImageCursor c = new ImageCursor(image,3,3);
 // stage.getScene().setCursor(c);

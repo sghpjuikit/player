@@ -460,7 +460,7 @@ class App: Application(), Configurable<Any> {
 
     /** @return images of the icon of the application in all possible sizes */
     fun getIcons(): List<Image> = seqOf(16, 24, 32, 48, 128, 256, 512)
-            .map { File("icon$it.png").toURI().toString() }
+            .map { File("resources/icons/icon$it.png").toURI().toString() }
             .map { Image(it) }
             .toList()
 

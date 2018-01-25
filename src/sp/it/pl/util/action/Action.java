@@ -637,7 +637,7 @@ public final class Action extends Config<Action> implements Runnable {
 
 	public static void loadCommandActions() {
 		// discover all command actions defined in file
-		File file = new File(APP.DIR_USERDATA, "command-actions.cfg");
+		File file = new File(APP.DIR_USERDATA, "command-actions.xml");
 		long count = APP.serializerXml.fromXML(Commands.class, file)
 				.getOrSupply(Commands::new)
 				.stream()

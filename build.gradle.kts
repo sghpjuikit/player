@@ -2,11 +2,18 @@ import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.2.20"
-    //java
+    kotlin("jvm") version "1.2.21"
     application
     id("net.ltgt.apt") version "0.13"
+    //id("idea")
 }
+
+/*idea {
+    module {
+        excludeDirs.add(file(".idea"))
+        excludeDirs.add(file("extra"))
+    }
+}*/
 
 // source directories
 java.sourceSets {
@@ -43,6 +50,10 @@ tasks {
                 "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED")
     }
 
+    /*"run" {
+        dependsOn()
+    }
+
     val cleanup by creating {
         file("working dir/log").listFiles { file -> arrayOf("log", "zip").contains(file.extension) }.forEach { it.delete() }
     }
@@ -51,7 +62,7 @@ tasks {
         into("working dir/lib")
         // the filter is only necessary because of the file dependencies, once these are gone it can be removed
         from(configurations.runtime.filter { !(it.name.contains("javadoc") || it.name.contains("sources")) } )
-    }
+    }*/
 
 }
 
@@ -137,8 +148,7 @@ dependencies {
     //	compile("com.twelvemonkeys.imageio", "imageio-thumbsdb", "3.3.2")
     //	compile("com.twelvemonkeys.imageio", "imageio-tiff", "3.3.2")
 
-    compile(files(file("working dir/lib").listFiles()))
-    // todo compile(fileTree(dir: "working dir/lib", include: "*.jar"))
+    compile(files(file("extra/lib").listFiles()))
 
 }
 

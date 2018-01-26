@@ -36,6 +36,7 @@ import sp.it.pl.util.file.Properties.Property;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.validation.Constraint;
 import sp.it.pl.util.validation.Constraint.IsConstraint;
+import sp.it.pl.util.validation.Constraints;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -370,10 +371,13 @@ public class Configuration {
 		return (Set) Stream.concat(
 				stream(annotations)
 						// restrict to annotations marked to be constraint annotations
-						.filter(a -> Optional.ofNullable(a.annotationType().getAnnotation(IsConstraint.class))
-								.filter(c -> c.value().isAssignableFrom(unPrimitivize(type))).isPresent())
-						.map(Constraint::toConstraint),
-				Constraint.IMPLICIT_CONSTRAINTS.getElementsOfSuper(type).stream()
+						.filter(a ->
+							Optional.ofNullable(a.annotationType().getAnnotation(IsConstraint.class))
+								.filter(c -> c.value().isAssignableFrom(unPrimitivize(type)))
+								.isPresent()
+						)
+						.map(Constraints::toConstraint),
+				Constraints.IMPLICIT_CONSTRAINTS.getElementsOfSuper(type).stream()
 						.map(constraint -> (Constraint<T>) constraint)
 				//		    .filter(constraint -> stream(annotations).noneMatch(annotation.))
 		).collect(toSet());

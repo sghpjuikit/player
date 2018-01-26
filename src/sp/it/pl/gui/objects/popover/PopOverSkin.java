@@ -93,14 +93,16 @@ public class PopOverSkin implements Skin<PopOver> {
 	public PopOverSkin(PopOver<? extends Node> popover) {
 		p = popover;
 
-		root = new StackPane() {
-			@Override
-			protected void layoutChildren() {
-				popover.setPrefSize(getWidth(), getHeight());
-				super.layoutChildren();
-				updatePath();
-			}
-		};
+		root = new StackPane();
+		// TODO: make sure this is not necessary
+		//		root = new StackPane() {
+		//			@Override
+		//			protected void layoutChildren() {
+		//				popover.setPrefSize(getWidth(), getHeight());
+		//				super.layoutChildren();
+		//				updatePath();
+		//			}
+		//		};
 		root.setPickOnBounds(false);
 		root.getStyleClass().add(ROOT_STYLECLASS);
 		setMinPrefMaxSize(root, Pane.USE_COMPUTED_SIZE, Pane.USE_COMPUTED_SIZE);

@@ -347,6 +347,7 @@ Use 'block current thread only' for breakpoints. Due to mouse polling (using a n
 ### Coding style
 
 - Overall
+  The project contains shared code style [code-style.xml](code-style.xml) with definitions that allow beneficial use of auto formatting. This decreases the amount of changes, mitigates the chance of mundane conflicts and standardizes the code base. 
   - Kotlin: follow [official style giude](https://kotlinlang.org/docs/reference/coding-conventions.html)
   - Java: It is encouraged to write any new code on Kotlin
       

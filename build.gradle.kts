@@ -101,6 +101,8 @@ java.sourceSets {
 }
 
 tasks {
+    val main = "_Main"
+
     withType<JavaCompile> {
         options.isWarnings = false
         options.isDeprecation = false
@@ -113,25 +115,33 @@ tasks {
     }
 
     "build" {
+        group = main
         println("Java version: ${JavaVersion.current()}")
         println("Kotlin version: $kotlinVersion")
     }
 
     "run" {
+        group = main
         dependsOn()
     }
 
     val cleanup by creating {
+        group = main
+        description = "Cleans the working dir - currently only deletes logs"
         file("working dir/log").listFiles { file -> arrayOf("log", "zip").contains(file.extension) }.forEach { it.delete() }
     }
 
     val copyLibs by creating(Copy::class) {
+        group = main
+        description = "Copies all libraries into the working dir for deployment"
         into("working dir/lib")
         // the filter is only necessary because of the file dependencies, once these are gone it can be removed
         from(configurations.runtime.filter { !(it.name.contains("javadoc") || it.name.contains("sources")) } )
     }
 
     val kotlinc by creating {
+        group = main
+        description = "Downloads the kotlin compiler into \"working dir/kotlinc\""
         val root = file("working dir")
         val kotlinc = root.resolve("kotlinc")
         if(kotlinc.exists() && kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion!!) ?: false) {

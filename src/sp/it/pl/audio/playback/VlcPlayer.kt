@@ -17,6 +17,8 @@ import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.sync
 import uk.co.caprica.vlcj.discovery.NativeDiscovery
+import uk.co.caprica.vlcj.discovery.linux.DefaultLinuxNativeDiscoveryStrategy
+import uk.co.caprica.vlcj.discovery.mac.DefaultMacNativeDiscoveryStrategy
 import uk.co.caprica.vlcj.discovery.windows.DefaultWindowsNativeDiscoveryStrategy
 import uk.co.caprica.vlcj.player.MediaPlayer
 import uk.co.caprica.vlcj.player.MediaPlayerEventAdapter
@@ -146,7 +148,7 @@ class VlcPlayer: GeneralPlayer.Play {
 
     companion object: KLogging() {
 
-        private fun discoverVlc(location: File) = NativeDiscovery(computeVlcDiscoverer(location)).discover()
+        private fun discoverVlc(location: File) = NativeDiscovery(computeVlcDiscoverer(location), DefaultWindowsNativeDiscoveryStrategy(), DefaultLinuxNativeDiscoveryStrategy(), DefaultMacNativeDiscoveryStrategy()).discover()
 
         private fun computeVlcDiscoverer(location: File) = object: DefaultWindowsNativeDiscoveryStrategy() {
             override fun onGetDirectoryNames(directoryNames: MutableList<String>) {

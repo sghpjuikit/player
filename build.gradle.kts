@@ -114,21 +114,33 @@ tasks {
                 "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED")
     }
 
+    "compileJava" {
+        doFirst {
+            println("Java version: ${JavaVersion.current()}")
+        }
+    }
+
+    "compileKotlin" {
+        doFirst {
+            println("Kotlin version: $kotlinVersion")
+        }
+    }
+
     "build" {
         group = main
-        println("Java version: ${JavaVersion.current()}")
-        println("Kotlin version: $kotlinVersion")
     }
 
     "run" {
         group = main
-        dependsOn()
     }
 
     val cleanup by creating {
         group = main
         description = "Cleans the working dir - currently only deletes logs"
-        file("working dir/log").listFiles { file -> arrayOf("log", "zip").contains(file.extension) }.forEach { it.delete() }
+        doFirst {
+            println("Cleaning up...")
+            file("working dir/log").listFiles { file -> arrayOf("log", "zip").contains(file.extension) }.forEach { it.delete() }
+        }
     }
 
     val copyLibs by creating(Copy::class) {
@@ -142,31 +154,34 @@ tasks {
     val kotlinc by creating {
         group = main
         description = "Downloads the kotlin compiler into \"working dir/kotlinc\""
-        val root = file("working dir")
-        val kotlinc = root.resolve("kotlinc")
-        if(kotlinc.exists() && kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion!!) ?: false) {
-            println("Kotlin compiler is already up to date with $kotlinVersion!")
-            return@creating
-        }
-        try {
-            val url = URL("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/kotlin-compiler-$kotlinVersion.zip")
-            val zip = ZipInputStream(url.openStream())
-            while (true) {
-                val next = zip.nextEntry ?: break
-                if (!next.isDirectory) {
-                    val file = root.resolve(next.name)
-                    file.parentFile.mkdirs()
-                    val out = file.outputStream()
-                    zip.copyTo(out)
-                } else {
-                    println("Downloading ${next.name}")
-                }
+        doFirst {
+            println("")
+            val root = file("working dir")
+            val kotlinc = root.resolve("kotlinc")
+            if(kotlinc.exists() && kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion!!) ?: false) {
+                println("Kotlin compiler is already up to date with $kotlinVersion!")
+                return@doFirst
             }
-            if(!kotlinc.exists())
-                println("Nothing has been downloaded! Maybe the remote file is not a zip?")
-        } catch(e: FileNotFoundException) {
-            println("The remote file could not be found")
-            println(e.toString())
+            try {
+                val url = URL("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/kotlin-compiler-$kotlinVersion.zip")
+                val zip = ZipInputStream(url.openStream())
+                while (true) {
+                    val next = zip.nextEntry ?: break
+                    if (!next.isDirectory) {
+                        val file = root.resolve(next.name)
+                        file.parentFile.mkdirs()
+                        val out = file.outputStream()
+                        zip.copyTo(out)
+                    } else {
+                        println("Downloading ${next.name}")
+                    }
+                }
+                if(!kotlinc.exists())
+                    println("Nothing has been downloaded! Maybe the remote file is not a zip?")
+            } catch(e: FileNotFoundException) {
+                println("The remote file could not be found")
+                println(e.toString())
+            }
         }
     }
 

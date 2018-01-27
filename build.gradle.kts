@@ -10,7 +10,6 @@ import kotlin.text.Charsets.UTF_8
 plugins {
     kotlin("jvm") version "1.2.21"
     application
-    //id("net.ltgt.apt") version "0.13"
 }
 
 java {
@@ -60,7 +59,6 @@ allprojects {
         kotlinOptions.suppressWarnings = false
         kotlinOptions.allWarningsAsErrors = false
         kotlinOptions.includeRuntime = true
-        kotlinOptions.jdkHome = null
     }
 }
 
@@ -128,23 +126,11 @@ dependencies {
 tasks {
     val main = "_Main"
 
-    "compileJava" {
-        doFirst {
-            println("Java version: ${JavaVersion.current()}")
-        }
-    }
-
-    "compileKotlin" {
-        doFirst {
-            println("Kotlin version: $kotlinVersion")
-        }
-    }
-
     val copyLibs by creating(Copy::class) {
         group = main
         description = "Copies all libraries into the working dir for deployment"
         into("working dir/lib")
-        // the filter is only necessary because of the file dependencies, once these are gone it can be removed
+        // TODO: the filter is only necessary because of the file dependencies, once these are gone it can be removed
         from(configurations.runtime.filter { !(it.name.contains("javadoc") || it.name.contains("sources")) })
     }
 

@@ -227,7 +227,7 @@ class App: Application(), Configurable<Any> {
         // trying to run and this instance's run parameters and close prematurely
         if (getInstances()>1) {
             logger.info { "App will close prematurely: Multiple app instances detected" }
-            appCommunicator.fireNewInstanceEvent(fetchParameters())
+            appCommunicator.fireNewInstanceEvent(fetchArguments())
             closedPrematurely = true
             return
         }
@@ -361,7 +361,7 @@ class App: Application(), Configurable<Any> {
 
             Player.initialize()
 
-            val ps = fetchParameters()
+            val ps = fetchArguments()
             normalLoad = normalLoad && ps.none { it.endsWith(".fxwl") || widgetManager.factories.get(it)!=null }
 
             // load windows, layouts, widgets
@@ -389,7 +389,7 @@ class App: Application(), Configurable<Any> {
             if (guide.first_time.get()) runAfter(millis(3000), { guide.start() })
 
             // process app parameters passed when app started
-            parameterProcessor.process(fetchParameters())
+            parameterProcessor.process(fetchArguments())
         }
     }
 
@@ -450,9 +450,11 @@ class App: Application(), Configurable<Any> {
         close()
     }
 
-    fun fetchParameters(): List<String> = parameters?.let { it.raw+it.unnamed+it.named.values } ?: listOf()
+    /** @return arguments supplied to this application when it was launched */
+    fun fetchArguments(): List<String> = parameters?.let { it.raw+it.unnamed+it.named.values } ?: listOf()
 
-    fun fetchVMParameters(): List<String> = ManagementFactory.getRuntimeMXBean().inputArguments
+    /** @return JVM arguments supplied to JVM this application is running in */
+    fun fetchVMArguments(): List<String> = ManagementFactory.getRuntimeMXBean().inputArguments
 
     /** @return number of instances of this application (including this one) running at this moment */
     fun getInstances(): Int = VirtualMachine.list().count { AppUtil::class.java.name==it.displayName() }

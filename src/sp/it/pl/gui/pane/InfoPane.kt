@@ -111,7 +111,7 @@ class InfoPane: OverlayPane<Void>() {
                 "running time" named pInfo.totalCpuDuration().map { Dur(it.toMillis().toDouble()).toString() }.orElse(""),
                 "user" named pInfo.user().orElse("")
         )
-        ps.group("java") += "vm.arguments" named AppUtil.APP.fetchVMParameters().joinToString(" ")
+        ps.group("java") += "vm.arguments" named AppUtil.APP.fetchVMArguments().joinToString(" ")
 
         return ps
     }

@@ -126,12 +126,21 @@ tasks {
         }
     }
 
+    val copyLibs by creating(Copy::class) {
+        group = main
+        description = "Copies all libraries into the working dir for deployment"
+        into("working dir/lib")
+        // the filter is only necessary because of the file dependencies, once these are gone it can be removed
+        from(configurations.runtime.filter { !(it.name.contains("javadoc") || it.name.contains("sources")) } )
+    }
+
     "build" {
         group = main
     }
 
     "run" {
         group = main
+        dependsOn(copyLibs)
     }
 
     val cleanup by creating {
@@ -141,14 +150,6 @@ tasks {
             println("Cleaning up...")
             file("working dir/log").listFiles { file -> arrayOf("log", "zip").contains(file.extension) }.forEach { it.delete() }
         }
-    }
-
-    val copyLibs by creating(Copy::class) {
-        group = main
-        description = "Copies all libraries into the working dir for deployment"
-        into("working dir/lib")
-        // the filter is only necessary because of the file dependencies, once these are gone it can be removed
-        from(configurations.runtime.filter { !(it.name.contains("javadoc") || it.name.contains("sources")) } )
     }
 
     val kotlinc by creating {

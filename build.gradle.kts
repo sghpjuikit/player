@@ -157,10 +157,12 @@ tasks {
 
     val cleanup by creating {
         group = main
-        description = "Cleans the working dir - currently only deletes logs"
+        description = "Cleans up the working dir (does not delete settings or any the like)"
+        dependsOn("clean")
         doFirst {
             println("Cleaning up...")
             file("working dir/log").listFiles { file -> arrayOf("log", "zip").contains(file.extension) }.forEach { it.delete() }
+            file("working dir/lib").deleteRecursively()
         }
     }
 

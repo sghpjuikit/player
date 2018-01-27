@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileNotFoundException
 import java.net.URL
 import java.util.zip.ZipInputStream
+import kotlin.text.Charsets.UTF_8
 
 plugins {
     kotlin("jvm") version "1.2.21"
@@ -12,10 +13,24 @@ plugins {
     id("idea")
 }
 
-// configure kotlin
+java {
+    this.targetCompatibility = JavaVersion.VERSION_1_9
+    this.sourceCompatibility = JavaVersion.VERSION_1_9
+    sourceSets {
+        getByName("main") {
+            java.srcDir("src")
+            resources.srcDir("src")
+        }
+    }
+}
+
+kotlin {
+    experimental.coroutines = Coroutines.ENABLE
+}
+
 val kotlinVersion: String? by extra {
     buildscript.configurations["classpath"].resolvedConfiguration.firstLevelModuleDependencies
-            .find { it.moduleName == "org.jetbrains.kotlin.jvm.gradle.plugin" }?.moduleVersion
+            .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }?.moduleVersion
 }
 
 // common configuration
@@ -23,7 +38,8 @@ allprojects {
     tasks.withType<KotlinCompile> {
         kotlinOptions {
             jvmTarget = "1.8"
-            suppressWarnings = true
+            suppressWarnings = false
+            allWarningsAsErrors = true
         }
     }
 
@@ -37,13 +53,11 @@ dependencies {
     // Kotlin
     compile("org.jetbrains.kotlin", "kotlin-stdlib-jdk8", kotlinVersion)
     compile("org.jetbrains.kotlin", "kotlin-reflect", kotlinVersion)
-
-    compile("org.jetbrains.kotlin", "kotlin-test", "1.2.20")
+    compile("org.jetbrains.kotlin", "kotlin-test", kotlinVersion)
 
     // Java Native
     compile("net.java.dev.jna", "jna", "4.5.1")
     compile("net.java.dev.jna", "jna-platform", "4.5.1")
-    compile("com.1stleg", "jnativehook", "2.0.3")
 
     // Logging
     compile("org.slf4j", "slf4j-api", "1.7.25")
@@ -56,7 +70,11 @@ dependencies {
     compile("eu.hansolo", "tilesfx", "1.5.2")
     compile("eu.hansolo", "Medusa", "7.9")
 
-    // Player
+    // Image
+    compile("com.adobe.xmp", "xmpcore", "5.1.2")
+    compile("com.drewnoakes", "metadata-extractor", "2.9.1")
+
+    // Audio
     compile("uk.co.caprica", "vlcj", "3.10.1")
     compile("de.u-mass", "lastfm-java", "0.1.2")
 
@@ -65,8 +83,7 @@ dependencies {
     apt("org.atteo.classindex", "classindex", "3.4")
 
     // misc
-    compile("com.adobe.xmp", "xmpcore", "5.1.2")
-    compile("com.drewnoakes", "metadata-extractor", "2.9.1")
+    compile("com.1stleg", "jnativehook", "2.0.3")
     compile("net.objecthunter", "exp4j", "0.4.8")
     compile("org.atteo", "evo-inflector", "1.2.2")
     compile("com.thoughtworks.xstream", "xstream", "1.4.10")
@@ -92,26 +109,21 @@ dependencies {
 
 }
 
-// source directories
-java.sourceSets {
-    getByName("main") {
-        java.srcDir("src")
-        resources.srcDir("src")
-    }
-}
-
 tasks {
     val main = "_Main"
 
     withType<JavaCompile> {
-        options.isWarnings = false
-        options.isDeprecation = false
-        // javac args
-        options.compilerArgs = listOf("-Xlint:unchecked", "-nowarn",
+        options.encoding = UTF_8.name()
+        options.isIncremental = true
+        options.isWarnings = true
+        options.isDeprecation = true
+        options.compilerArgs = listOf(
+                "-Xlint:unchecked",
                 "--add-exports", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
                 "--add-exports", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED",
                 "--add-exports", "javafx.web/com.sun.webkit=ALL-UNNAMED",
-                "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED")
+                "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
+        )
     }
 
     "compileJava" {
@@ -131,7 +143,7 @@ tasks {
         description = "Copies all libraries into the working dir for deployment"
         into("working dir/lib")
         // the filter is only necessary because of the file dependencies, once these are gone it can be removed
-        from(configurations.runtime.filter { !(it.name.contains("javadoc") || it.name.contains("sources")) } )
+        from(configurations.runtime.filter { !(it.name.contains("javadoc") || it.name.contains("sources")) })
     }
 
     "build" {
@@ -159,7 +171,7 @@ tasks {
             println("")
             val root = file("working dir")
             val kotlinc = root.resolve("kotlinc")
-            if(kotlinc.exists() && kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion!!) ?: false) {
+            if (kotlinc.exists() && kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion!!) ?: false) {
                 println("Kotlin compiler is already up to date with $kotlinVersion!")
                 return@doFirst
             }
@@ -177,9 +189,9 @@ tasks {
                         println("Downloading ${next.name}")
                     }
                 }
-                if(!kotlinc.exists())
+                if (!kotlinc.exists())
                     println("Nothing has been downloaded! Maybe the remote file is not a zip?")
-            } catch(e: FileNotFoundException) {
+            } catch (e: FileNotFoundException) {
                 println("The remote file could not be found")
                 println(e.toString())
             }
@@ -189,9 +201,9 @@ tasks {
 }
 
 application {
-    mainClassName = "sp.it.pl.main.App"
-    // jvm args
-    applicationDefaultJvmArgs = listOf("-Xmx3g",
+    mainClassName = "sp.it.pl.main.AppUtil"
+    applicationDefaultJvmArgs = listOf(
+            "-Xmx3g",
             "--add-opens", "java.base/java.util=ALL-UNNAMED",
             "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
             "--add-opens", "java.base/java.text=ALL-UNNAMED",
@@ -205,7 +217,8 @@ application {
             "--add-opens", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
             "--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
             "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED",
-            "-Duser.dir=" + file("working dir"))
+            "-Duser.dir="+file("working dir")
+    )
 }
 
 

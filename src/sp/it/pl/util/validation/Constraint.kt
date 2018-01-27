@@ -179,7 +179,7 @@ class Constraints {
                 register<Constraint.NonEmpty> { Constraint.StringNonEmpty() }
                 register<Constraint.Length> { Constraint.StringLength(it.min, it.max) }
                 register<Constraint.NonNullElements> { Constraint.HasNonNullElements() }
-                register<Constraint.ConstraintBy> { instantiateOrThrow<Constraint<*>>(it.value.java as Class<Constraint<*>>) }
+                register<Constraint.ConstraintBy> { instantiateOrThrow(it.value.java) }
                 registerByType<Duration, Constraint.DurationNonNegative>()
             }
         }

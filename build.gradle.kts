@@ -1,4 +1,5 @@
 import org.gradle.internal.impldep.org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
+import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileNotFoundException
@@ -14,8 +15,8 @@ plugins {
 }
 
 java {
-    this.targetCompatibility = JavaVersion.VERSION_1_9
-    this.sourceCompatibility = JavaVersion.VERSION_1_9
+    targetCompatibility = JavaVersion.VERSION_1_9
+    sourceCompatibility = JavaVersion.VERSION_1_9
     sourceSets {
         getByName("main") {
             java.srcDir("src")
@@ -25,26 +26,42 @@ java {
 }
 
 kotlin {
+    copyClassesToJavaOutput = true
     experimental.coroutines = Coroutines.ENABLE
 }
 
 val kotlinVersion: String? by extra {
-    buildscript.configurations["classpath"].resolvedConfiguration.firstLevelModuleDependencies
+    buildscript.configurations["classpath"]
+            .resolvedConfiguration.firstLevelModuleDependencies
             .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }?.moduleVersion
 }
 
 // common configuration
 allprojects {
-    tasks.withType<KotlinCompile> {
-        kotlinOptions {
-            jvmTarget = "1.8"
-            suppressWarnings = false
-            allWarningsAsErrors = true
-        }
-    }
-
     repositories {
         jcenter()
+    }
+
+    tasks.withType<JavaCompile> {
+        options.encoding = UTF_8.name()
+        options.isIncremental = true
+        options.isWarnings = true
+        options.isDeprecation = true
+        options.compilerArgs = listOf(
+                "-Xlint:unchecked",
+                "--add-exports", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
+                "--add-exports", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED",
+                "--add-exports", "javafx.web/com.sun.webkit=ALL-UNNAMED",
+                "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
+        )
+    }
+    tasks.withType<KotlinCompile> {
+        kaptOptions.supportInheritedAnnotations = true
+        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.suppressWarnings = false
+        kotlinOptions.allWarningsAsErrors = false
+        kotlinOptions.includeRuntime = true
+        kotlinOptions.jdkHome = null
     }
 }
 
@@ -112,20 +129,6 @@ dependencies {
 tasks {
     val main = "_Main"
 
-    withType<JavaCompile> {
-        options.encoding = UTF_8.name()
-        options.isIncremental = true
-        options.isWarnings = true
-        options.isDeprecation = true
-        options.compilerArgs = listOf(
-                "-Xlint:unchecked",
-                "--add-exports", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
-                "--add-exports", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED",
-                "--add-exports", "javafx.web/com.sun.webkit=ALL-UNNAMED",
-                "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
-        )
-    }
-
     "compileJava" {
         doFirst {
             println("Java version: ${JavaVersion.current()}")
@@ -161,7 +164,7 @@ tasks {
         dependsOn("clean")
         doFirst {
             println("Cleaning up...")
-            file("working dir/log").listFiles { file -> arrayOf("log", "zip").contains(file.extension) }.forEach { it.delete() }
+            file("working dir/log").listFiles { file -> file.extension in arrayOf("log", "zip") }.forEach { it.delete() }
             file("working dir/lib").deleteRecursively()
         }
     }
@@ -199,10 +202,10 @@ tasks {
             }
         }
     }
-
 }
 
 application {
+    applicationName = "PlayerFx"
     mainClassName = "sp.it.pl.main.AppUtil"
     applicationDefaultJvmArgs = listOf(
             "-Xmx3g",
@@ -222,5 +225,3 @@ application {
             "-Duser.dir="+file("working dir")
     )
 }
-
-

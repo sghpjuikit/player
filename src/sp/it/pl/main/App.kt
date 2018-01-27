@@ -74,7 +74,9 @@ import sp.it.pl.util.type.InstanceInfo
 import sp.it.pl.util.type.InstanceName
 import sp.it.pl.util.type.ObjectFieldMap
 import sp.it.pl.util.units.FileSize
+import sp.it.pl.util.validation.Constraint.ConstraintBy
 import sp.it.pl.util.validation.Constraint.MinMax
+import sp.it.pl.util.validation.Constraint.PreserveOrder
 import java.io.File
 import java.lang.management.ManagementFactory
 import java.net.URI
@@ -187,7 +189,7 @@ class App: Application(), Configurable<Any> {
             { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
     )
 
-    @C(name = "Level (file)", group = "Logging", info = "Logging level for logging to file")
+    @C(name = "Level (file)", group = "Logging", info = "Logging level for logging to file") @ConstraintBy(PreserveOrder::class)
     @F val logLevelFile = VarEnum.ofSequence(Level.WARN,
             { seqOf(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF) },
             { logging.changeLogBackLoggerAppenderLevel("FILE", it) }

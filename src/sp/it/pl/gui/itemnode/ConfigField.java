@@ -584,10 +584,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 .filter(NumberMinMax.class::isInstance).map(NumberMinMax.class::cast)
                 .findAny().get();
 
-            min = new Label(String.valueOf(range.min));
-            max = new Label(String.valueOf(range.max));
+            min = new Label(String.valueOf(range.getMin()));
+            max = new Label(String.valueOf(range.getMax()));
 
-            slider = new Slider(range.min,range.max,val);
+            slider = new Slider(range.getMin(),range.getMax(),val);
             cur = new Label(computeLabelText());
             cur.setPadding(new Insets(0, 5, 0, 0)); // add gap
             // there is a slight bug where isValueChanging is false even if it should not. It appears when mouse clicks
@@ -601,7 +601,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             slider.setOnMouseReleased(e -> {
                 if (applyOnChange) apply(false);
             });
-            slider.setBlockIncrement((range.max-range.min)/20);
+            slider.setBlockIncrement((range.getMax()-range.getMin())/20);
             slider.setMinWidth(-1);
             slider.setPrefWidth(-1);
             slider.setMaxWidth(-1);
@@ -653,10 +653,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         private EnumerableField(Config<T> c, Collection<T> enumeration) {
             super(c);
+
+            boolean sortable = c.getConstraints().stream().noneMatch(con -> con instanceof Constraint.PreserveOrder);
+
             n = new ImprovedComboBox<>(item -> enumToHuman(c.toS(item)));
+
             if (enumeration instanceof ObservableList) n.setItems((ObservableList<T>)enumeration);
             else n.getItems().setAll(enumeration);
-            n.getItems().sort(by(c::toS));
+            if (sortable) n.getItems().sort(by(c::toS));
             n.setValue(c.getValue());
             n.valueProperty().addListener((o,ov,nv) -> apply(false));
             n.getStyleClass().add("combobox-field-config");

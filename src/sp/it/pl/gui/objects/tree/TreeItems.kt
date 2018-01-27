@@ -58,7 +58,7 @@ import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
 import java.nio.file.Path
-import java.util.*
+import java.util.ArrayList
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 import kotlin.streams.toList
@@ -66,6 +66,7 @@ import kotlin.streams.toList
 private typealias Settings = ConfiguringFeature
 private val logger = KotlinLogging.logger { }
 
+@Suppress("UNCHECKED_CAST")
 fun <T> tree(o: T): SimpleTreeItem<T> = when (o) {
     is SimpleTreeItem<*> -> o
     is Widget<*> -> WidgetItem(o)
@@ -262,7 +263,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
                 windowMenu.value = o
                 windowMenu.show(n, e)
             }
-        //	    if (o instanceof HierarchicalBase) showMenu(((HierarchicalBase)o).val, t, n, e); // requires mapping Hierarchical -> T
+        //	    if (o instance of HierarchicalBase) showMenu(((HierarchicalBase)o).val, t, n, e); // requires mapping Hierarchical -> T
         }
     }
 

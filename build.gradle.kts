@@ -1,4 +1,3 @@
-import org.gradle.internal.impldep.org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileNotFoundException
@@ -106,6 +105,7 @@ tasks {
     withType<JavaCompile> {
         options.isWarnings = false
         options.isDeprecation = false
+        options.encoding = "UTF-8"
         // javac args
         options.compilerArgs = listOf("-Xlint:unchecked", "-nowarn",
                 "--add-exports", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
@@ -145,10 +145,12 @@ tasks {
 
     val cleanup by creating {
         group = main
-        description = "Cleans the working dir - currently only deletes logs"
+        description = "Cleans up the working dir (does not delete settings or any the like)"
+        dependsOn("clean")
         doFirst {
             println("Cleaning up...")
             file("working dir/log").listFiles { file -> arrayOf("log", "zip").contains(file.extension) }.forEach { it.delete() }
+            file("working dir/lib").deleteRecursively()
         }
     }
 

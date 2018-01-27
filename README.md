@@ -329,6 +329,7 @@ Tips:
   - IDEA: Deselect 'Create separate module per source set', don't worry if Gradle buildscripts are not recognised, that's a known issue; it's also recommended to "Use auto-import"
 - To enable audio playback, a vlc installation must be placed in working dir/vlc directory. Obtain latest [here](https://www.videolan.org/vlc/)
 - To use widgets written in Kotlin (which includes the the Settings!) kotlinc must be placed in working dir/kotlinc directory. Obtain latest [here](https://github.com/JetBrains/kotlin/releases)
+- To use a jdk other than your default system one, create a `gradle.properties` file at project root with the following content: `org.gradle.java.home=/path/to/jdk`
 
 #### Running
 

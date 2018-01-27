@@ -327,6 +327,7 @@ Tips:
   - Java/Kotlin: all jars are included in /working dir/lib
   - VLC: installation must be placed in working dir/vlc directory. Obtain latest [here](https://www.videolan.org/vlc/). Without this step, audio playback will not be possible.
   - Kotlin compiler: kotlinc must be placed in working dir/kotlinc directory. Obtain latest [here](https://github.com/JetBrains/kotlin/releases). Without this step, compiling widgets written in Kotlin will not be possible.
+  - Code style: import the project [code-style.xml](code-style.xml) into your IDE.
 
 #### Widgets
 
@@ -369,6 +370,7 @@ In Intellij Idea: create a separate module depending (type=PROVIDED) on the main
 ### Coding style
 
 - Overall
+  The project contains shared code style [code-style.xml](code-style.xml) with definitions that allow beneficial use of auto formatting. This decreases the amount of changes, mitigates the chance of mundane conflicts and standardizes the code base. 
   - Kotlin: follow [official style giude](https://kotlinlang.org/docs/reference/coding-conventions.html)
   - Java: I encourage using Kotlin instead
       

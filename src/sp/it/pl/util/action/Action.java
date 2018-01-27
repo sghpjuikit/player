@@ -637,15 +637,16 @@ public final class Action extends Config<Action> implements Runnable {
 
 	public static void loadCommandActions() {
 		// discover all command actions defined in file
-		File file = new File(APP.DIR_USERDATA, "command-actions.xml");
-		long count = APP.serializerXml.fromXML(Commands.class, file)
-				.getOrSupply(Commands::new)
-				.stream()
-				.filter(a -> a.isEnabled)
-				.map(Command::toAction)
-				.peek(Action::register)
-				.peek(actions::add)
-				.count();
+		File file = new File(APP.DIR_USERDATA, "command-actions.cfg");
+		// TODO: improve to side effect free code
+		long count = !file.exists() ? 0 : APP.serializerXml.fromXML(Commands.class, file)
+			.getOrSupply(Commands::new)
+			.stream()
+			.filter(a -> a.isEnabled)
+			.map(Command::toAction)
+			.peek(Action::register)
+			.peek(actions::add)
+			.count();
 		// Generate default template for the user if necessary (shows how to define commands).
 		// Note we must not overwrite existing file, possibly containing already defined commands, hence the
 		// file.exists() check. The number of deserialized commands can be 0 if deserialization fails for some reason

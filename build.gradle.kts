@@ -10,8 +10,7 @@ import kotlin.text.Charsets.UTF_8
 plugins {
     kotlin("jvm") version "1.2.21"
     application
-    id("net.ltgt.apt") version "0.13"
-    id("idea")
+    //id("net.ltgt.apt") version "0.13"
 }
 
 java {
@@ -97,7 +96,7 @@ dependencies {
 
     // annotation processor
     compile("org.atteo.classindex", "classindex", "3.4")
-    apt("org.atteo.classindex", "classindex", "3.4")
+    kapt("org.atteo.classindex", "classindex", "3.4")
 
     // misc
     compile("com.1stleg", "jnativehook", "2.0.3")

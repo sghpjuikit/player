@@ -7,30 +7,35 @@ import java.util.function.Consumer
 class Inputs {
     private val m = HashMap<String, Input<*>>()
 
-    fun <T> create(name: String, type: Class<in T>, action: Consumer<in T>): Input<T> {
-        val i = Input(name, type, action)
+    inline fun <reified T> create(name: String, crossinline action: (T?) -> Unit): Input<T?> = create<T>(name, T::class.java, Consumer<T?> { action(it) })
+    inline fun <reified T> create(name: String, initialValue: T?, crossinline action: (T?) -> Unit): Input<T?> = create<T>(name, T::class.java, initialValue, Consumer { action(it) })
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T> create(name: String, type: Class<T>, action: Consumer<in T?>): Input<T?> {
+        val i: Input<T?> = Input(name, type as Class<T?>, action)
         m[name] = i
         return i
     }
 
-    fun <T> create(name: String, type: Class<in T>, init_val: T, action: Consumer<in T>): Input<T> {
-        val i = Input(name, type, init_val, action)
+    @Suppress("UNCHECKED_CAST")
+    fun <T> create(name: String, type: Class<T>, initialValue: T?, action: Consumer<in T?>): Input<T?> {
+        val i: Input<T?> = Input(name, type as Class<T?>, initialValue, action)
         m[name] = i
         return i
     }
 
     @Suppress("UNCHECKED_CAST")
     @Deprecated("unsafe")
-    fun <T> getInputRaw(name: String): Input<T>? = m[name] as Input<T>?
+    fun <T> getInputRaw(name: String): Input<T?>? = m[name] as Input<T?>?
 
     @Suppress("UNCHECKED_CAST")
-    fun <T> findInput(type: Class<T>, name: String): Input<T>? {
+    fun <T> findInput(type: Class<T>, name: String): Input<T?>? {
         val i = m[name]
         if (i!=null && type.isSubclassOf(i.type)) throw ClassCastException()
-        return i as Input<T>?
+        return i as Input<T?>?
     }
 
-    fun <T> getInput(type: Class<T>, name: String): Input<T> = findInput(type, name)!!
+    fun <T> getInput(type: Class<T>, name: String): Input<T?> = findInput(type, name)!!
 
     inline fun <reified T> findInput(name: String) = findInput(T::class.java, name)
 

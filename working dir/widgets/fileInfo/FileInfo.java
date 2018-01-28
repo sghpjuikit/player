@@ -153,6 +153,7 @@ public class FileInfo extends FXMLController implements SongReader {
             .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig, "FileInfo","Show this field", EditMode.USER))
             .collect(toMap(ConfigBase::getName, c -> c));
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public void init() {
         data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
@@ -354,7 +355,7 @@ public class FileInfo extends FXMLController implements SongReader {
     private enum Sort { SEMANTIC, ALPHANUMERIC }
 
     private class LField extends Label {
-        final Field field;
+        final Field<?> field;
         final V<Boolean> visibleConfig;
         final String name;
         final int semantic_index;
@@ -371,7 +372,7 @@ public class FileInfo extends FXMLController implements SongReader {
         }
 
         void setVal(Metadata m) {
-            String v = m==Metadata.EMPTY || field==RATING ? "" : m.getFieldS(field,"");
+            String v = m==Metadata.EMPTY || field==RATING ? "" : m.getFieldS(field, "");
                    v = v.replace('\r', ' ');
                    v = v.replace('\n', ',');
             setText(name + ": " + v);

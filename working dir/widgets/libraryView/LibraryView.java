@@ -91,7 +91,6 @@ import static sp.it.pl.util.reactive.Util.maintain;
             "    Column right click: show column menu\n" +
             "    Click column : Sort - ascending | descending | none\n" +
             "    Click column + SHIFT : Sorts by multiple columns\n",
-    notes = "",
     version = "1",
     year = "2015",
     group = LIBRARY
@@ -127,6 +126,7 @@ public class LibraryView extends FXMLController {
 
     private final ExecuteN runOnce = new ExecuteN(1);
 
+    @SuppressWarnings({"ConstantConditions", "unchecked"})
     @Override
     public void init() {
         out_sel = outputs.create(widget.id,"Selected Group", MetadataGroup.class, null);
@@ -199,7 +199,8 @@ public class LibraryView extends FXMLController {
 
 
         // column context menu - add change VALUE column menus
-        Menu m = (Menu)table.columnVisibleMenu.getItems().stream().filter(i->i.getText().equals("Value")).findFirst().get();
+        Menu m = (Menu) table.columnVisibleMenu.getItems().stream().filter(i -> i.getText().equals("Value")).findFirst()
+            .orElseThrow(() -> new RuntimeException("Menu must contain a 'Value' item"));
         m.getItems().addAll(
             buildSingleSelectionMenu(
                 list(Metadata.Field.FIELDS),
@@ -382,7 +383,7 @@ public class LibraryView extends FXMLController {
     private boolean sel_ignore_canturnback = true;
     private Set sel_old;
     // restoring selection from previous session, we serialize string
-    // representation and try to restre when application runs again
+    // representation and try to restore when application runs again
     // we restore only once
     @IsConfig(name = "Last selected", editable = EditMode.APP)
     private String sel_last = "null";
@@ -404,7 +405,7 @@ public class LibraryView extends FXMLController {
                 if (mg.getValueS("").equals(sel_last)) {
                     table.getSelectionModel().select(i);
                     sel_last_restored = true; // restore only once
-                    return;
+                    return; // TODO: this may be a bug
                 }
             });
 

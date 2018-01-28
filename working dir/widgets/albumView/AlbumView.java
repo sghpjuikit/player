@@ -65,6 +65,7 @@ import static sp.it.pl.util.reactive.Util.doOnceIfNonNull;
 /**
  * Logger widget controller.
  */
+@SuppressWarnings("WeakerAccess")
 @Widget.Info(
 		author = "Martin Polakovic",
 		name = "AlbumView",
@@ -94,6 +95,7 @@ public class AlbumView extends ClassController {
 	final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
 	final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
 
+	@SuppressWarnings("unchecked")
 	public AlbumView() {
 		view.search.field = VALUE;
 		view.primaryFilterField = VALUE;
@@ -121,6 +123,7 @@ public class AlbumView extends ClassController {
 		});
 	}
 
+	@SuppressWarnings("ConstantConditions")
 	@Override
 	public void init() {
 		in_items = getInputs().create("To display", List.class, listRO(), this::setItems);

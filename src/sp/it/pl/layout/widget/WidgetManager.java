@@ -325,6 +325,7 @@ public final class WidgetManager {
 			Stream<String> options = stream(                            // Command-line options
 				// Compiler defaults to system encoding, we need consistent system independent encoding, such as UTF-8
 				"-encoding", APP.encoding.name(),
+				"-Xlint",
 				// Includes information about each class loaded and each source file compiled.
 				// "-verbose"
 				"-cp", classpath + ";" + libFiles.map(File::getAbsolutePath).collect(joining(";"))

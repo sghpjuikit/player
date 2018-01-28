@@ -1,6 +1,6 @@
 package sp.it.pl.util.access.fieldvalue
 
-interface StringGetter<V> {
+interface StringGetter<in V> {
 
     /**
      * Converts the value to a string representation.

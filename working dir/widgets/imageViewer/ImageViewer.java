@@ -122,7 +122,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     });
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
     public final V<Duration> slideshow_dur = new V<>(seconds(15), slideshow::setTimeoutAndRestart);
-    @IsConfig(name = "Slideshow", info = "Turn sldideshow on/off.")
+    @IsConfig(name = "Slideshow", info = "Turn slideshow on/off.")
     public final V<Boolean> slideshow_on = new V<>(true, slideshow::setRunning);
     @IsConfig(name = "Show big image", info = "Show thumbnails.")
     public final V<Boolean> showImage = new V<>(true, mainImage.getPane()::setVisible);
@@ -159,7 +159,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
 
     @Override
     public void init() {
-        inputs.getInput("Location of").bind(Player.playing.o);
+        inputs.getInput(Metadata.class, "Location of").bind(Player.playing.o);
 
         // main image
         mainImage.setBorderVisible(true);

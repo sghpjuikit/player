@@ -86,9 +86,9 @@ public final class WidgetManager {
 	public void init() {
 		if (initialized) throw new IllegalStateException("Already initialized");
 
-		if (childOf(AppUtil.APP.DIR_APP, "jre", "bin").exists())
+		if (!childOf(AppUtil.APP.DIR_APP, "jre", "bin").exists())
 			LOGGER.error("Java development kit is missing. Please install JDK in {}", childOf(AppUtil.APP.DIR_APP, "jre"));
-		if (childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin").exists())
+		if (!childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin").exists())
 			LOGGER.error("Kotlin compiler is missing. Please install kotlinc in {}", childOf(AppUtil.APP.DIR_APP, "kotlinc"));
 
 		// internal factories
@@ -322,18 +322,17 @@ public final class WidgetManager {
 		 */
 		private Try<Void,String> compileJava(Stream<File> srcFiles, Stream<File> libFiles) {
 			String classpath = System.getProperty("java.class.path");
-			Stream<String> options = stream(                            // Command-line options
-				// Compiler defaults to system encoding, we need consistent system independent encoding, such as UTF-8
+			Stream<String> options = stream(
 				"-encoding", APP.encoding.name(),
 				"-Xlint",
-				// Includes information about each class loaded and each source file compiled.
-				// "-verbose"
+				"-Xlint:-path",
+				"-Xlint:-processing",
 				"-cp", classpath + ";" + libFiles.map(File::getAbsolutePath).collect(joining(";"))
 			);
 			Stream<String> sourceFiles = srcFiles.map(File::getPath);   // One or more source files to be compiled
 			Stream<String> classes = stream();   // One or more classes to be processed for annotations
 			Stream<String> argFiles = stream();   // One or more files that lists options and source files. The -J options are not allowed in these files
-			String[] arguments = stream(options,sourceFiles,classes,argFiles).flatMap(s -> s).toArray(String[]::new);
+			String[] arguments = stream(options, sourceFiles, classes, argFiles).flatMap(s -> s).toArray(String[]::new);
 
 			LOGGER.info("Widget={} compiling with arguments: {} ", widgetName, toS(", ", arguments));
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();

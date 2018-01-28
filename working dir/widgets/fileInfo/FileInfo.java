@@ -149,9 +149,9 @@ public class FileInfo extends FXMLController implements SongReader {
     public final V<Sort> groupFields = new V<>(Sort.SEMANTIC,this::update);
     @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
     public boolean allowNoContent = false;
-    private final Map<String,Config> fieldConfigs = fields.stream()
+    private final Map<String,Config<Boolean>> fieldConfigs = fields.stream()
             .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig, "FileInfo","Show this field", EditMode.USER))
-            .collect(toMap(ConfigBase::getName, c -> c));
+            .collect(toMap(c -> c.getName(), c -> c));
 
     @SuppressWarnings("ConstantConditions")
     @Override
@@ -250,7 +250,7 @@ public class FileInfo extends FXMLController implements SongReader {
     @SuppressWarnings("unchecked")
     @Override
     public Config<Object> getField(String n) {
-        return Optional.ofNullable(fieldConfigs.get(n))
+        return Optional.ofNullable((Config) fieldConfigs.get(n))
                        .orElseGet(() -> super.getField(n));
     }
 
@@ -360,7 +360,7 @@ public class FileInfo extends FXMLController implements SongReader {
         final String name;
         final int semantic_index;
 
-        public LField(Field field, int i) {
+        public LField(Field<?> field, int i) {
             this.field = field;
             this.visibleConfig = new V<>(true,FileInfo.this::update);
             this.semantic_index = i;

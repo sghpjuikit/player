@@ -430,7 +430,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
         Validation v = validators.stream().filter(Validation::isInValid).findFirst().orElse(null);
         if (v!=null) {
-            PopOver p = new PopOver<>(new Text(v.text));
+            PopOver<?> p = new PopOver<>(new Text(v.text));
             p.show(ScreenPos.APP_CENTER);
             return;
         }
@@ -623,15 +623,15 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     @SuppressWarnings("unused")
     private final class TagField {
         private final TextInputControl c;
-        private final Metadata.Field f;
+        private final Metadata.Field<?> f;
         public String histogramS;
         public int histogramI;
 
-        public TagField(TextInputControl control, Metadata.Field field) {
+        public TagField(TextInputControl control, Metadata.Field<?> field) {
             this(control, field, null);
         }
 
-        public TagField(TextInputControl control, Metadata.Field field, Predicate<String> valCond) {
+        public TagField(TextInputControl control, Metadata.Field<?> field, Predicate<String> valCond) {
             c = control;
             f = field;
 
@@ -821,9 +821,9 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
 
     private static PseudoClass corrupt = PseudoClass.getPseudoClass("corrupt");
-    PopOver helpP;
+    PopOver<?> helpP;
 
-    private PopOver showItemsPopup() {
+    private PopOver<?> showItemsPopup() {
         // build popup
         ListView<Item> list = new ListView<>();
                        // factory is set dynamically

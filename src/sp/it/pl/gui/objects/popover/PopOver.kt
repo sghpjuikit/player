@@ -223,7 +223,7 @@ open class PopOver<N: Node>(): PopupControl() {
      * @return this popup with different content type.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T: Node> changeContentType(): PopOver<T> = this.apply { contentNode.set(null) } as PopOver<T>
+    fun <T: Node> changeContentType(): PopOver<T> = apply { contentNode.set(null) } as PopOver<T>
 
     /** @return concrete skin implementation (unlike [PopOver.getSkin]) */
     fun getSkinn(): PopOverSkin = skin as PopOverSkin

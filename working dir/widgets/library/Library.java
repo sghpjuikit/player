@@ -105,7 +105,7 @@ public class Library extends FXMLController implements SongReader {
     private @FXML AnchorPane root;
     private final FilteredTable<Metadata> table = new FilteredTable<>(Metadata.class, Metadata.EMPTY.getMainField());
     private final InfoTask<Task<?>> taskInfo = new InfoTask<>(null, new Label(), appProgressIndicator());
-    private final Anim hideInfo = new Anim(at-> setScaleXY(taskInfo.getProgress(),at*at))
+    private final Anim hideInfo = new Anim(at -> setScaleXY(taskInfo.getProgress(),at*at))
                                       .dur(500).intpl(reverse(new ElasticInterpolator()));
 
     private final ExecuteN runOnce = new ExecuteN(1);

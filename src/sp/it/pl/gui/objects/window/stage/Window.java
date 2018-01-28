@@ -90,7 +90,7 @@ import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.access.SequentialValue.next;
 import static sp.it.pl.util.access.SequentialValue.previous;
-import static sp.it.pl.util.animation.Anim.par;
+import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.dev.Util.throwIfNot;
 import static sp.it.pl.util.functional.Util.forEachIRStream;
@@ -536,12 +536,12 @@ public class Window extends WindowBase {
 			AnchorPane.setTopAnchor(lBorder, headerHeight);
 			AnchorPane.setTopAnchor(rBorder, headerHeight);
 
-			Anim.par(
-				par(
+			animPar(
+				animPar(
 					forEachIStream(leftHeaderBox.getChildren(), (i, icon) ->
 						new Anim(at -> setScaleXY(icon, at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
 				),
-				par(
+				animPar(
 					forEachIRStream(rightHeaderBox.getChildren(), (i, icon) ->
 						new Anim(at -> setScaleXY(icon, at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
 				)

@@ -4,7 +4,7 @@ import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.control.Slider
 import javafx.scene.control.skin.SliderSkin
 import javafx.scene.layout.StackPane
-import sp.it.pl.util.animation.Anim
+import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.graphics.onHoverOrDragEnd
 import sp.it.pl.util.graphics.onHoverOrDragStart
 import sp.it.pl.util.graphics.setScaleXY
@@ -26,7 +26,7 @@ open class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
 
     fun initHoverTrackAnimation() {
         val track = getFieldValue<StackPane>(this, "track")!!
-        val a = Anim(millis(350)) {
+        val a = anim(millis(350)) {
             val isVertical = skinnable.orientation==VERTICAL
             val p = 1+1*it*it
             track.scaleX = if (isVertical) p else 1.0
@@ -39,13 +39,13 @@ open class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
     }
 
     fun initFocusAnimation() {
-        val scaling = Anim(millis(350)) { updateThumbScale(fxy = 1+1*it*it) }
-        skinnable.focusedProperty() attach { if (it) scaling.playOpenDoClose {} }
+        val scaling = anim(millis(350)) { updateThumbScale(fxy = 1+1*it*it) }
+        skinnable.focusedProperty() attach { if (it) scaling.playOpenDoClose(null) }
     }
 
 
     fun initHoverThumbAnimation() {
-        val a = Anim(millis(350)) {
+        val a = anim(millis(350)) {
             val isVertical = skinnable.orientation==VERTICAL
             val p = 1+3*it*it
             updateThumbScale(hx = if (isVertical) 1.0 else p, hy = if (isVertical) p else 1.0)

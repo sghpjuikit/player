@@ -1,10 +1,11 @@
 
 rootProject.name = 'PlayerFX'
-rootProject.buildFileName = "gradle/playerfx.gradle.kts"
+rootProject.buildFileName = "gradle/project.gradle.kts"
 
 include ":widgets"
 project(":widgets").projectDir = file("working dir/widgets")
 
 rootProject.children.each { project ->
-    project.buildFileName = "../../gradle/widgets.gradle.kts"
+    if(project.name == "widgets")
+        project.buildFileName = "../../gradle/widgets.gradle.kts"
 }

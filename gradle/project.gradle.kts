@@ -10,7 +10,6 @@ import kotlin.text.Charsets.UTF_8
 plugins {
     kotlin("jvm") version "1.2.21"
     application
-    //id("net.ltgt.apt") version "0.13"
 }
 
 java {
@@ -37,15 +36,10 @@ val kotlinVersion: String? by extra {
 
 // common configuration
 allprojects {
-    repositories {
-        jcenter()
-    }
 
     tasks.withType<JavaCompile> {
         options.encoding = UTF_8.name()
         options.isIncremental = true
-        options.isWarnings = true
-        options.isDeprecation = true
         options.compilerArgs = listOf(
                 "-Xlint:unchecked",
                 "--add-exports", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
@@ -54,14 +48,16 @@ allprojects {
                 "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
         )
     }
+
     tasks.withType<KotlinCompile> {
         kaptOptions.supportInheritedAnnotations = true
         kotlinOptions.jvmTarget = "1.8"
-        kotlinOptions.suppressWarnings = false
-        kotlinOptions.allWarningsAsErrors = false
-        kotlinOptions.includeRuntime = true
-        kotlinOptions.jdkHome = null
     }
+
+    repositories {
+        jcenter()
+    }
+
 }
 
 dependencies {

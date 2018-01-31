@@ -24,12 +24,10 @@ import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.functional.Util.toCSList;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 @Widget.Info(
     author = "Martin Polakovic",
     name = "Layouts",
-    description = "",
-    howto = "",
-    notes = "",
     version = "0.4",
     year = "2014",
     group = Group.APP
@@ -63,13 +61,7 @@ public final class Layouts extends ClassController {
         layoutsCB.setCellFactory( list -> new ListCell<>() {
             @Override protected void updateItem(String l, boolean empty) {
                 super.updateItem(l, empty);
-                if (empty)
-                    setText("");
-                else
-                    if (new Layout(l).isMain())
-                        setText(l + " (active)");
-                    else
-                        setText(l);
+                setText(empty ? "" : l);
             }
         });
 
@@ -155,7 +147,6 @@ public final class Layouts extends ClassController {
         // show info
         String s;
         s  = "Name: " + l.getName() + "\n";
-        s += "Active: " + (l.isMain()) + "\n";
         s += "Children: " + (ws+cs) + "\n";
         s += "Containers: " + cs + "\n";
         s += "Widgets: " + ws + "\n";

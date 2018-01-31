@@ -1,5 +1,6 @@
 package sp.it.pl.layout.widget
 
+import javafx.scene.Node
 import javafx.scene.layout.Region
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.controller.io.Inputs
@@ -28,6 +29,10 @@ internal class EmptyWidget: Widget<EmptyWidget>("Empty", APP.widgetManager.widge
 
     override fun close() = super<Widget>.close()
 
+    override fun load(): Node {
+        if (root==null) root = loadFirstTime()
+        return root
+    }
     override fun loadFirstTime() = Region()
 
     override fun refresh() {}

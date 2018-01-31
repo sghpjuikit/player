@@ -1,14 +1,5 @@
 package albumView;
 
-import sp.it.pl.audio.playlist.PlaylistManager;
-import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.audio.tagging.MetadataGroup;
-import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
-import sp.it.pl.gui.objects.grid.GridCell;
-import sp.it.pl.gui.objects.grid.GridView;
-import sp.it.pl.gui.objects.grid.GridView.CellSize;
-import sp.it.pl.gui.objects.image.Thumbnail;
-import sp.it.pl.gui.objects.image.cover.Cover;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -23,30 +14,40 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
+import sp.it.pl.audio.playlist.PlaylistManager;
+import sp.it.pl.audio.tagging.Metadata;
+import sp.it.pl.audio.tagging.MetadataGroup;
+import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
+import sp.it.pl.gui.objects.grid.GridCell;
+import sp.it.pl.gui.objects.grid.GridView;
+import sp.it.pl.gui.objects.grid.GridView.CellSize;
+import sp.it.pl.gui.objects.image.Thumbnail;
+import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
-import sp.it.pl.util.functional.TriConsumer;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.access.V;
+import sp.it.pl.util.access.fieldvalue.ObjectField;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfig.EditMode;
+import sp.it.pl.util.functional.TriConsumer;
 import sp.it.pl.util.functional.Util;
 import sp.it.pl.util.graphics.Resolution;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.graphics.image.Image2PassLoader;
 import sp.it.pl.util.graphics.image.ImageSize;
 import static albumView.AlbumView.AnimateOn.IMAGE_CHANGE_1ST_TIME;
-import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
-import static sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE;
-import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
+import static sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE;
+import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.newSingleDaemonThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
@@ -65,6 +66,7 @@ import static sp.it.pl.util.reactive.Util.doOnceIfNonNull;
 /**
  * Logger widget controller.
  */
+@SuppressWarnings("WeakerAccess")
 @Widget.Info(
 		author = "Martin Polakovic",
 		name = "AlbumView",
@@ -94,6 +96,7 @@ public class AlbumView extends ClassController {
 	final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
 	final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
 
+	@SuppressWarnings("unchecked")
 	public AlbumView() {
 		view.search.field = VALUE;
 		view.primaryFilterField = VALUE;
@@ -111,19 +114,20 @@ public class AlbumView extends ClassController {
 
 		// update filters of VALUE type, we must wat until skin has been built
 		doOnceIfNonNull(view.skinProperty(), skin -> {
-			Metadata.Field f = ALBUM;
+			Metadata.Field<String> f = ALBUM;
 			view.implGetSkin().filter.inconsistent_state = true;
 			view.implGetSkin().filter.setPrefTypeSupplier(() -> PredicateData.ofField(VALUE));
-			view.implGetSkin().filter.setData(map(MetadataGroup.Field.FIELDS, mgf -> new PredicateData(mgf.toString(f),mgf.getType(f),mgf)));
+			view.implGetSkin().filter.setData(map(MetadataGroup.Field.FIELDS, mgf -> new PredicateData<ObjectField<MetadataGroup,Object>>(mgf.toString(f), mgf.getType(f), (MetadataGroup.Field) mgf)));
 			view.implGetSkin().filter.shrinkTo(0);
 			view.implGetSkin().filter.growTo1();
 			view.implGetSkin().filter.clear();
 		});
 	}
 
+	@SuppressWarnings({"ConstantConditions", "unchecked"})
 	@Override
 	public void init() {
-		in_items = getInputs().create("To display", List.class, listRO(), this::setItems);
+		in_items = getInputs().create("To display", (Class) List.class, listRO(), this::setItems);
 		out_sel = outputs.create(widget.id,"Selected Album", MetadataGroup.class, null);
 		out_sel_met = outputs.create(widget.id,"Selected", List.class, listRO());
 	}
@@ -208,7 +212,7 @@ public class AlbumView extends ClassController {
     // (previously selected) that are still in the table
     private boolean sel_ignore = false;
     private boolean sel_ignore_canturnback = true;
-    private Set sel_old;
+    private Set<Object> sel_old;
     // restoring selection from previous session, we serialize string
     // representation and try to restore when application runs again
     // we restore only once

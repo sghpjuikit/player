@@ -3,7 +3,7 @@ package sp.it.pl.util.access.fieldvalue
 import sp.it.pl.util.access.TypedValue
 import sp.it.pl.util.functional.Util.by
 import sp.it.pl.util.functional.nullsLast
-import java.util.*
+import java.util.Comparator
 
 /**
  * @param <V> type of value this field extracts from
@@ -32,10 +32,10 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
 
     override fun getOfS(value: V, substitute: String): String = toS(getOf(value), substitute)
 
-    /** Returns description of the field. */
+    /** @return description of the field */
     fun description(): String
 
-    /** Returns name of the field. */
+    /** @return name of the field */
     fun name(): String
 
     /**
@@ -45,7 +45,7 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
     fun toS(o: T?, substitute: String): String
 
     /**
-     * Returns a comparator comparing by the value extracted by this field or [util.functional.Util.SAME] if
+     * Returns a comparator comparing by the value extracted by this field or [sp.it.pl.util.functional.Util.SAME] if
      * this field does not extract [java.lang.Comparable] type.
      *
      * Note, that because value returned by [.getOf] can be null, comparator this method returns may
@@ -66,6 +66,7 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
 
     fun toS(v: V, o: T?, substitute: String): String = toS(o, substitute)
 
+    // TODO: move out
     /**
      * Variation of [.toString] method.
      * Converts first letter of the string to upper case.
@@ -75,6 +76,7 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
         return if (s.isEmpty()) "" else s.substring(0, 1).toUpperCase()+s.substring(1)
     }
 
+    // TODO: move out
     /**
      * Variation of [.toString] method.
      * Converts first letter of the string to upper case and all others into lower case.
@@ -84,6 +86,7 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
         return if (s.isEmpty()) "" else s.substring(0, 1).toUpperCase()+s.substring(1).toLowerCase()
     }
 
+    // TODO: move out
     /**
      * Variation of [.toString] method.
      * Converts first letter of the string to upper case and all others into lower case and replaces all '_' with ' '.

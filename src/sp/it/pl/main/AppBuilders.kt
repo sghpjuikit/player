@@ -12,7 +12,7 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.spinner.Spinner
 import sp.it.pl.main.AppUtil.APP
-import sp.it.pl.util.animation.Anim
+import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator
 import sp.it.pl.util.async.FX
 import sp.it.pl.util.async.future.Fut
@@ -70,15 +70,14 @@ fun createInfoIcon(text: String): Icon = Icon(FontAwesomeIcon.INFO)
 
 @JvmOverloads
 fun appProgressIndicator(onStart: In<Progress> = In {}, onFinish: In<Progress> = In {}) = Spinner().apply {
-    val a = Anim { setScaleXY(it*it) }.dur(500.0).intpl(ElasticInterpolator())
-    a.applier(0.0)
+    val a = anim({ setScaleXY(it*it) }).dur(500.0).intpl(ElasticInterpolator()).applyNow()
     progressProperty() changes { ov, nv ->
         if (ov.toDouble()==1.0 && nv.toDouble()!=1.0) {
             onStart(this)
-            a.playOpenDo { }
+            a.playOpenDo(null)
         }
         if (nv.toDouble()==1.0) {
-            a.playCloseDo { onFinish(this) }
+            a.playCloseDo(Runnable { onFinish(this) })
         }
     }
 }

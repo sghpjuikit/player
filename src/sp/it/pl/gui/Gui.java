@@ -354,13 +354,13 @@ public class Gui {
 
     public static void closeAndDo(Node n, Runnable action) {
     	Anim a = (Anim) n.getProperties().computeIfAbsent("ANIMATION_OPEN_CLOSE", k -> buildAnimation(n));
-    	if (!a.isRunning()) a.applier.accept(1);
+    	if (!a.isRunning()) a.applyAt(1.0);
     	a.playCloseDo(action);
     }
 
     public static void openAndDo(Node n, Runnable action) {
 	    Anim a = (Anim) n.getProperties().computeIfAbsent("ANIMATION_OPEN_CLOSE", k -> buildAnimation(n));
-    	if (!a.isRunning()) a.applier.accept(0);
+    	if (!a.isRunning()) a.applyAt(0.0);
 	    a.playOpenDo(action);
     }
 

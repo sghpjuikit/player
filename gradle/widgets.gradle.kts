@@ -1,17 +1,15 @@
 
-//buildDir = rootDir.resolve("build").resolve("widgets")
+buildDir = rootDir.resolve("build").resolve("widgets")
 
 plugins {
     kotlin("jvm")
 }
 
-/*
 java.sourceSets {
     getByName("main") {
-        java.srcDir("../widgets")
+        java.srcDir(".")
     }
 }
-*/
 
 dependencies {
     // include all libs from the actual Project

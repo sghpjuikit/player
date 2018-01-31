@@ -6,10 +6,10 @@ working dir/lib
 working dir/jre
 working dir/kotlinc
 working dir/log/*zip
-working dir/log/*log
 working dir/user
 working dir/vlc/
 working dir/widgets/**/*class
+*.log
 
 # Gradle
 .gradle/

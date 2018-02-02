@@ -2,6 +2,7 @@ package sp.it.pl.layout.widget
 
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.util.functional.Util.toS
+import sp.it.pl.util.type.isSuperclassOf
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 
@@ -37,7 +38,7 @@ interface WidgetInfo: ComponentInfo {
     /** @return formatted how-to-use text */
     fun howto(): String
 
-    /** @return formatted author notes, generally motivation, bugs or roadmap, but literally anything */
+    /** @return formatted author notes, generally motivation, bugs or road map, but literally anything */
     fun notes(): String
 
     /** @return widget group */
@@ -54,7 +55,7 @@ interface WidgetInfo: ComponentInfo {
             .toList()
 
     /** @return true iff widget's controller implements feature of given type */
-    fun hasFeature(feature: Class<*>) = feature.isAssignableFrom(type())
+    fun hasFeature(feature: Class<*>) = feature.isSuperclassOf(type())
 
     /** @return true iff widget's controller implements feature of given type */
     fun hasFeature(feature: KClass<*>) = hasFeature(feature.java)

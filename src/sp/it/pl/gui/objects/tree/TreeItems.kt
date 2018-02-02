@@ -63,7 +63,7 @@ import java.util.stream.Stream
 import kotlin.streams.asSequence
 import kotlin.streams.toList
 
-private typealias Settings = ConfiguringFeature
+private typealias Settings = ConfiguringFeature<Any>
 private val logger = KotlinLogging.logger { }
 
 @Suppress("UNCHECKED_CAST")

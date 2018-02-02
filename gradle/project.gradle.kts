@@ -36,9 +36,6 @@ val kotlinVersion: String? by extra {
 
 // common configuration
 allprojects {
-    repositories {
-        jcenter()
-    }
 
     tasks.withType<JavaCompile> {
         options.encoding = UTF_8.name()
@@ -53,6 +50,7 @@ allprojects {
                 "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
         )
     }
+
     tasks.withType<KotlinCompile> {
         kaptOptions.supportInheritedAnnotations = true
         kotlinOptions.jvmTarget = "1.8"
@@ -60,6 +58,11 @@ allprojects {
         kotlinOptions.allWarningsAsErrors = false
         kotlinOptions.includeRuntime = true
     }
+
+    repositories {
+        jcenter()
+    }
+
 }
 
 dependencies {

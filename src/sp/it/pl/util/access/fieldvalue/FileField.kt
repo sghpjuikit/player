@@ -10,6 +10,7 @@ import sp.it.pl.util.file.mimetype.mimeType
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
 import sp.it.pl.util.localDateTimeFromMillis
+import sp.it.pl.util.math.toDate
 import sp.it.pl.util.units.FileSize
 import java.io.File
 import java.io.IOException
@@ -18,7 +19,6 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileTime
 import java.time.LocalDateTime
 import java.util.Date
-import kotlin.collections.HashSet
 import kotlin.reflect.KClass
 
 class FileField<T: Any>: ObjectFieldBase<File, T> {
@@ -53,11 +53,11 @@ class FileField<T: Any>: ObjectFieldBase<File, T> {
                         .getFirstDirectoryOfType(XmpDirectory::class.java)
                         .getDate(XmpDirectory.TAG_CREATE_DATE)
             } catch (e: IOException) {
-                null
+                TIME_CREATED.getOf(it)?.toDate()
             } catch (e: ImageProcessingException) {
-                null
+                TIME_CREATED.getOf(it)?.toDate()
             } catch (e: NullPointerException) {
-                null
+                TIME_CREATED.getOf(it)?.toDate()
             }
         }
         @JvmField val TIME_ACCESSED = FileField("Time Accessed", "Time Accessed", FileTime::class) {

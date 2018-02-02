@@ -4,7 +4,7 @@ import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.control.ScrollBar
 import javafx.scene.control.skin.ScrollBarSkin
 import javafx.scene.layout.StackPane
-import sp.it.pl.util.animation.Anim
+import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.graphics.onHoverOrDragEnd
 import sp.it.pl.util.graphics.onHoverOrDragStart
 import sp.it.pl.util.math.millis
@@ -22,7 +22,7 @@ open class ImprovedScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar)
 
     fun initHoverAnimation() {
         val thumb = getFieldValue<StackPane>(this, "thumb")!!
-        val a = Anim(millis(350)) {
+        val a = anim(millis(350)) {
             val isVertical = skinnable.orientation==VERTICAL
             val p = 1+1*it*it
             thumb.scaleX = if (isVertical) p else 1.0
@@ -34,8 +34,7 @@ open class ImprovedScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar)
 
     fun initHoverParentAnimation() {
         val disposer = Disposer()
-        val a = Anim(millis(350)) { node.opacity = 0.6+0.4*it*it }
-        a.applier.accept(0.0)
+        val a = anim(millis(350)) { node.opacity = 0.6+0.4*it*it }.applyNow()
         skinnable.parentProperty() sync {
             disposer()
             disposer += it.onHoverOrDragStart { a.playOpen() }

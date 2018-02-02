@@ -1,6 +1,5 @@
 package sp.it.pl.util.system;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -20,63 +19,63 @@ import static sp.it.pl.util.async.AsyncKt.runFX;
  * It is not recommended to create multiple instances, instead observe this stream with multiple listeners..
  */
 public class SystemOutListener extends PrintStream {
-	private final SystemOutDuplicateStream stream;
+    private final SystemOutDuplicateStream stream;
 
-	public SystemOutListener() {
-		this(new SystemOutDuplicateStream());
-		System.setOut(this);
-	}
+    public SystemOutListener() {
+        this(new SystemOutDuplicateStream());
+        System.setOut(this);
+    }
 
-	private SystemOutListener(SystemOutDuplicateStream cloned) {
-		super(cloned);
-		this.stream = cloned;
-	}
+    private SystemOutListener(SystemOutDuplicateStream cloned) {
+        super(cloned);
+        this.stream = cloned;
+    }
 
-	/**
-	 * Add listener that will receive the stream data (always on fx thread).
-	 *
-	 * @return action that removes the listener
-	 */
-	public Subscription addListener(Consumer<String> listener) {
-		stream.listeners.add(listener);
-		return () -> stream.listeners.remove(listener);
-	}
+    /**
+     * Add listener that will receive the stream data (always on fx thread).
+     *
+     * @return action that removes the listener
+     */
+    public Subscription addListener(Consumer<String> listener) {
+        stream.listeners.add(listener);
+        return () -> stream.listeners.remove(listener);
+    }
 
-	public void removeListener(Consumer<String> listener) {
-		stream.listeners.remove(listener);
-	}
+    public void removeListener(Consumer<String> listener) {
+        stream.listeners.remove(listener);
+    }
 
-	/** Helper class for {@link SystemOutListener}. */
-	private static class SystemOutDuplicateStream extends OutputStream {
-		private final PrintStream sout = System.out;
-		private final List<Consumer<String>> listeners = new ArrayList<>();
+    /** Helper class for {@link SystemOutListener}. */
+    private static class SystemOutDuplicateStream extends OutputStream {
+        private final PrintStream sout = System.out;
+        private final List<Consumer<String>> listeners = new ArrayList<>();
 
-		@Override
-		public void write(int b) throws IOException {
-			// Less efficient
-			// sout.write(b);
-			// if (!listeners.isEmpty())
-			//     runFX(() -> listeners.forEach(l -> l.accept(b)));
-			throw new AssertionError("Operation not allowed for performance reasons.");
-		}
+        @Override
+        public void write(int b) {
+            // Less efficient
+            // sout.write(b);
+            // if (!listeners.isEmpty())
+            //     runFX(() -> listeners.forEach(l -> l.accept(b)));
+            throw new AssertionError("Operation not allowed for performance reasons.");
+        }
 
-		@Override
-		public void write(byte[] b, int off, int len) throws IOException {
-			// copied from super.write(...) implementation
-			if (b==null) {
-				throw new NullPointerException();
-			} else if ((off<0) || (off>b.length) || (len<0) || (off + len>b.length) || (off + len<0)) {
-				throw new IndexOutOfBoundsException();
-			} else if (len==0) {
-				return;
-			}
+        @Override
+        public void write(byte[] b, int off, int len) {
+            // copied from super.write(...) implementation
+            if (b==null) {
+                throw new NullPointerException();
+            } else if ((off<0) || (off>b.length) || (len<0) || (off + len>b.length) || (off + len<0)) {
+                throw new IndexOutOfBoundsException();
+            } else if (len==0) {
+                return;
+            }
 
-			// for (int i=0 ; i<len ; i++) write(b[off + i]);
-			sout.write(b, off, len);
-			if (!listeners.isEmpty()) {
-				String s = new String(b, off, len, StandardCharsets.UTF_8);
-				runFX(() -> listeners.forEach(l -> l.accept(s)));
-			}
-		}
-	}
+            // for (int i=0 ; i<len ; i++) write(b[off + i]);
+            sout.write(b, off, len);
+            if (!listeners.isEmpty()) {
+                String s = new String(b, off, len, StandardCharsets.UTF_8);
+                runFX(() -> listeners.forEach(l -> l.accept(s)));
+            }
+        }
+    }
 }

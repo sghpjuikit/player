@@ -35,6 +35,7 @@ import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.Vo;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
+import sp.it.pl.util.access.fieldvalue.ObjectField;
 import sp.it.pl.util.async.executor.ExecuteN;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.IsConfig;
@@ -91,7 +92,6 @@ import static sp.it.pl.util.reactive.Util.maintain;
             "    Column right click: show column menu\n" +
             "    Click column : Sort - ascending | descending | none\n" +
             "    Click column + SHIFT : Sorts by multiple columns\n",
-    notes = "",
     version = "1",
     year = "2015",
     group = LIBRARY
@@ -127,11 +127,12 @@ public class LibraryView extends FXMLController {
 
     private final ExecuteN runOnce = new ExecuteN(1);
 
+    @SuppressWarnings({"ConstantConditions", "unchecked"})
     @Override
     public void init() {
         out_sel = outputs.create(widget.id,"Selected Group", MetadataGroup.class, null);
         out_sel_met = outputs.create(widget.id,"Selected", List.class, listRO());
-        in_items = inputs.create("To display", List.class, listRO(), this::setItems);
+        in_items = inputs.create("To display", (Class)List.class, listRO(), this::setItems);
 
         // add table to scene graph
         root.getChildren().add(table.getRoot());
@@ -153,7 +154,7 @@ public class LibraryView extends FXMLController {
         table.setColumnFactory(f -> {
             if (f instanceof MetadataGroup.Field) {
                 MetadataGroup.Field<?> mgf = (MetadataGroup.Field) f;
-                Metadata.Field mf = fieldFilter.getValue();
+                Metadata.Field<?> mf = fieldFilter.getValue();
                 TableColumn<MetadataGroup,Object> c = new TableColumn<>(mgf.toString(mf));
                 c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV<>(mgf.getOf(cf.getValue())));
                 Pos a = mgf.getType(mf)==String.class ? CENTER_LEFT : CENTER_RIGHT;
@@ -162,7 +163,7 @@ public class LibraryView extends FXMLController {
                         : mgf==W_RATING
                                 ? (Callback) NumberRatingCellFactory.INSTANCE
                                 : col -> {
-                                    TableCell cel = table.buildDefaultCell(mgf);
+                                    TableCell<MetadataGroup,Object> cel = (TableCell) table.buildDefaultCell(mgf);
                                     cel.setAlignment(a);
                                     return cel;
                                 }
@@ -199,7 +200,8 @@ public class LibraryView extends FXMLController {
 
 
         // column context menu - add change VALUE column menus
-        Menu m = (Menu)table.columnVisibleMenu.getItems().stream().filter(i->i.getText().equals("Value")).findFirst().get();
+        Menu m = (Menu) table.columnVisibleMenu.getItems().stream().filter(i -> i.getText().equals("Value")).findFirst()
+            .orElseThrow(() -> new RuntimeException("Menu must contain a 'Value' item"));
         m.getItems().addAll(
             buildSingleSelectionMenu(
                 list(Metadata.Field.FIELDS),
@@ -313,10 +315,10 @@ public class LibraryView extends FXMLController {
         });
 
         // update filters
-        Metadata.Field f = fieldFilter.getValue();
+        Metadata.Field<?> f = fieldFilter.getValue();
         table.filterPane.inconsistent_state = true;
         table.filterPane.setPrefTypeSupplier(() -> PredicateData.ofField(VALUE));
-        table.filterPane.setData(map(MetadataGroup.Field.FIELDS, mgf -> new PredicateData(mgf.toString(f),mgf.getType(f),mgf)));
+        table.filterPane.setData(map(MetadataGroup.Field.FIELDS, mgf -> new PredicateData<ObjectField<MetadataGroup,Object>>(mgf.toString(f), mgf.getType(f),  (MetadataGroup.Field) mgf)));
         table.filterPane.shrinkTo(0);
         Object c = table.filterPane.onItemChange;
         table.filterPane.onItemChange = v -> {};
@@ -380,9 +382,9 @@ public class LibraryView extends FXMLController {
     // (previously selected) that are still in the table
     private boolean sel_ignore = false;
     private boolean sel_ignore_canturnback = true;
-    private Set sel_old;
+    private Set<Object> sel_old;
     // restoring selection from previous session, we serialize string
-    // representation and try to restre when application runs again
+    // representation and try to restore when application runs again
     // we restore only once
     @IsConfig(name = "Last selected", editable = EditMode.APP)
     private String sel_last = "null";
@@ -404,7 +406,7 @@ public class LibraryView extends FXMLController {
                 if (mg.getValueS("").equals(sel_last)) {
                     table.getSelectionModel().select(i);
                     sel_last_restored = true; // restore only once
-                    return;
+                    return; // TODO: this may be a bug
                 }
             });
 

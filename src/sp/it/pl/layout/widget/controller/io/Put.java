@@ -12,7 +12,7 @@ import sp.it.pl.util.type.typetoken.TypeToken;
 public class Put<T> implements XPut<T>, WritableValue<T> {
 
 	public TypeToken<? super T> typeT;  // TODO: fix
-	final Class<? super T> type;
+	public final Class<? super T> type;
 	final ObjectProperty<T> val = new SimpleObjectProperty<>();
 	protected final Set<Consumer<? super T>> monitors = new HashSet<>();
 

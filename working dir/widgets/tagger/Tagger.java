@@ -139,6 +139,7 @@ import static sp.it.pl.util.graphics.UtilKt.createIcon;
  * Currently supports files only. File types are limited to those supported
  * by the application.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 @Widget.Info(
     name = "Tagger",
     author = "Martin Polakovic",
@@ -164,8 +165,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     @FXML AnchorPane scrollContent;
     @FXML GridPane grid;
     @FXML DecoratedTextField titleF, albumF, artistF, albumArtistF, composerF, publisherF, trackF, tracksTotalF,
-			         discF, discsTotalF, genreF, categoryF, yearF, ratingF, ratingPF, playcountF, commentF,
-			         colorF, custom1F, custom2F, custom3F, custom4F, custom5F, playedFirstF, playedLastF, addedToLibF, tagsF;
+                     discF, discsTotalF, genreF, categoryF, yearF, ratingF, ratingPF, playcountF, commentF,
+                     colorF, custom1F, custom2F, custom3F, custom4F, custom5F, playedFirstF, playedLastF, addedToLibF, tagsF;
           MoodItemNode moodF = new MoodItemNode();
     @FXML ColorPicker colorFPicker;
     @FXML TextArea LyricsA;
@@ -190,8 +191,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
     @Override
     public void init() {
-    	Node okB = new Icon(FontAwesomeIcon.CHECK,25).onClick(this::write).withText("Save", Side.RIGHT);
-    	content.getChildren().add(okB);
+        Node okB = new Icon(FontAwesomeIcon.CHECK,25).onClick(this::write).withText("Save", Side.RIGHT);
+        content.getChildren().add(okB);
 
         CoverV = new ThumbnailWithAdd(FontAwesomeIcon.PLUS,"Add to Tag");
         CoverV.getPane().setPrefSize(200, 200);
@@ -429,7 +430,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
         Validation v = validators.stream().filter(Validation::isInValid).findFirst().orElse(null);
         if (v!=null) {
-            PopOver p = new PopOver<>(new Text(v.text));
+            PopOver<?> p = new PopOver<>(new Text(v.text));
             p.show(ScreenPos.APP_CENTER);
             return;
         }
@@ -617,21 +618,20 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         }
     }
 
-
-
 /******************************************************************************/
 
+    @SuppressWarnings("unused")
     private final class TagField {
         private final TextInputControl c;
-        private final Metadata.Field f;
+        private final Metadata.Field<?> f;
         public String histogramS;
         public int histogramI;
 
-        public TagField(TextInputControl control, Metadata.Field field) {
+        public TagField(TextInputControl control, Metadata.Field<?> field) {
             this(control, field, null);
         }
 
-        public TagField(TextInputControl control, Metadata.Field field, Predicate<String> valCond) {
+        public TagField(TextInputControl control, Metadata.Field<?> field, Predicate<String> valCond) {
             c = control;
             f = field;
 
@@ -643,14 +643,14 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 Validation v = new Validation(c, valCond , field + " field does not contain valid text.");
                 validators.add(v);
                 Icon l = new Icon(EXCLAMATION_TRIANGLE, 11);
-	            DecoratedTextField cf = (DecoratedTextField)c;
+                DecoratedTextField cf = (DecoratedTextField)c;
                 c.textProperty().addListener((o,ov,nv) -> {
                     boolean b = v.isValid();
                     l.setVisible(!b);
                     if (b) {
-                    	if (cf.right.getValue()==l) cf.right.setValue(new Region());
+                        if (cf.right.getValue()==l) cf.right.setValue(new Region());
                     } else {
-                    	if (cf.right.getValue()!=l) cf.right.setValue(l);
+                        if (cf.right.getValue()!=l) cf.right.setValue(l);
                     }
                 });
             }
@@ -668,15 +668,15 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             // if not committable yet, enable committable & set text to tag value on click
             c.setOnMouseClicked(e -> {
                 if (e.getButton()==PRIMARY) {
-	                onMouseClicked();
-	                e.consume();
+                    onMouseClicked();
+                    e.consume();
                 }
             });
 
             // disable committable if empty and backspace key pressed
-	        c.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            c.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
                 if (isContainedIn(e.getCode(),BACK_SPACE,ESCAPE)) {
-	                onBackspacePressed(e); // requires event filter
+                    onBackspacePressed(e); // requires event filter
                 }
             });
 
@@ -727,7 +727,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             }
         }
         void onBackspacePressed(KeyEvent e) {
-        	boolean setToInitial = c.getText().isEmpty();
+            boolean setToInitial = c.getText().isEmpty();
             if (setToInitial) {
                 c.setPromptText(c.getId());
                 c.setUserData(false);
@@ -758,6 +758,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             histogramI = 0;
             histogramS = "";
         }
+        @SuppressWarnings("unchecked")
         public void histogramDo(Metadata m, int i) {
             // check multiple values to determine general field values
             // the condition goes like this (for every field):
@@ -820,9 +821,9 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
 
     private static PseudoClass corrupt = PseudoClass.getPseudoClass("corrupt");
-    PopOver helpP;
+    PopOver<?> helpP;
 
-    private PopOver showItemsPopup() {
+    private PopOver<?> showItemsPopup() {
         // build popup
         ListView<Item> list = new ListView<>();
                        // factory is set dynamically

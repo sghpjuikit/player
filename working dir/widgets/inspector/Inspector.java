@@ -33,7 +33,6 @@ import static sp.it.pl.util.graphics.Util.setAnchor;
           + "    Double click widget file: Open widget\n"
           + "    Drag & drop file: Explore file\n"
           + "    Drag & drop files: Explore files' first common parent directory\n",
-    notes = "",
     version = "0.8",
     year = "2015",
     group = APP
@@ -78,11 +77,13 @@ public class Inspector extends ClassController implements FileExplorerFeature {
         setOnScroll(Event::consume);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public void init() {
         out_sel = outputs.create(widget.id,"Selected", Object.class, null);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void exploreFile(File f) {
         TreeItem<File> root = (TreeItem) tree.getRoot().getChildren().get(3);
@@ -113,8 +114,6 @@ public class Inspector extends ClassController implements FileExplorerFeature {
     public void onClose() {
         if (sel_node!=null) unhighlightNode(sel_node);
     }
-
-
 
     private static void highlightNode(Node n) {
         n.pseudoClassStateChanged(selectedPC, true);

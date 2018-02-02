@@ -28,8 +28,9 @@ import sp.it.pl.util.functional.seqRec
 import sp.it.pl.util.graphics.expandAndSelect
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
 import sp.it.pl.util.reactive.attach
-import java.util.*
+import java.util.ArrayList
 
+@Suppress("MemberVisibilityCanBePrivate")
 @Widget.Info(
         author = "Martin Polakovic",
         name = "Settings",
@@ -43,7 +44,7 @@ import java.util.*
         year = "2016",
         group = Widget.Group.APP
 )
-class Configurator: ClassController(), ConfiguringFeature {
+class Configurator: ClassController(), ConfiguringFeature<Any> {
 
     @FXML lateinit var groups: TreeView<Name>
     @FXML lateinit var controls: Pane
@@ -53,11 +54,11 @@ class Configurator: ClassController(), ConfiguringFeature {
     private val configSelectionName = "app.settings.selected_group"
     private var configSelectionAvoid = false
 
-    @IsConfig(editable = IsConfig.EditMode.APP)
-    @JvmField var showsAppSettings = true
+    @JvmField @IsConfig(editable = IsConfig.EditMode.APP)
+    var showsAppSettings = true
 
     init {
-        inputs.create("To configure", Configurable::class.java, { configure(it) })
+        inputs.create<Configurable<out Any>>("To configure", { configure(it) })
 
         ConventionFxmlLoader(this).loadNoEx<Any>()
 
@@ -89,12 +90,11 @@ class Configurator: ClassController(), ConfiguringFeature {
         else refreshConfigs()
     }
 
-    override fun configure(c: Collection<Config<*>>?) {
-        if (c==null) return
+    override fun configure(configurable: Collection<Config<out Any>>) {
         configs.clear()
-        configs += c
+        configs += configurable
         configSelectionAvoid = true
-        groups.root = tree(Name.treeOfPaths("Groups", c.map { it.group }))
+        groups.root = tree(Name.treeOfPaths("Groups", configurable.map { it.group }))
         groups.root.isExpanded = true
         configSelectionAvoid = false
         restoreAppSettingsSelection()

@@ -1,4 +1,7 @@
+import org.gradle.api.tasks.Copy
 import org.gradle.internal.impldep.org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
+import org.gradle.kotlin.dsl.extra
+import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile

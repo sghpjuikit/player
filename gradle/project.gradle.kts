@@ -42,7 +42,6 @@ val kotlinVersion: String? by extra {
 
 // common configuration
 allprojects {
-
     tasks.withType<JavaCompile> {
         options.encoding = UTF_8.name()
         options.isIncremental = true
@@ -58,16 +57,21 @@ allprojects {
     }
 
     tasks.withType<KotlinCompile> {
+        compilerJarFile
         kaptOptions.supportInheritedAnnotations = true
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.suppressWarnings = false
         kotlinOptions.allWarningsAsErrors = true
     }
 
+    tasks.withType<Jar> {
+        destinationDir = workingDir
+        archiveName = "PlayerFX.jar"
+    }
+
     repositories {
         jcenter()
     }
-
 }
 
 dependencies {
@@ -216,7 +220,7 @@ tasks {
 
     "run" {
         group = main
-        dependsOn(copyLibs, jre, kotlinc)
+        dependsOn(copyLibs, jre, kotlinc, tasks.withType<Jar>())
     }
 
 }

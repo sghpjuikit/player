@@ -299,9 +299,24 @@ public final class WidgetManager {
 			return listChildren(widgetDir).filter(f -> f.getPath().endsWith(".java") || f.getPath().endsWith(".kt"));
 		}
 
+		String getClassPath() {
+			File mainJarFile = childOf(AppUtil.APP.DIR_APP, "PlayerFX.jar");
+			String mainJar = mainJarFile.exists()
+				? mainJarFile.getAbsolutePath()
+				: stream(System.getProperty("java.class.path").split(";"))
+					.filter(p -> p.contains("build\\classes") || p.contains("build\\kotlin-classes"))
+					.collect(joining(";"));
+			return mainJar + ";" +
+				stream(
+						listChildren(childOf(AppUtil.APP.DIR_APP, "lib")).filter(f -> f.getPath().endsWith(".jar")),
+						getLibFiles()
+					)
+					.map(f -> f.getAbsolutePath())
+					.collect(joining(";"));
+		}
+
 		Stream<File> getLibFiles() {
-			return stream(listChildren(widgetDir), listChildren(widgetDir.getParentFile()))
-					   .filter(f -> f.getPath().endsWith(".jar"));
+			return listChildren(widgetDir).filter(f -> f.getPath().endsWith(".jar"));
 		}
 
 		private Try<Void,String> compile() {
@@ -309,8 +324,8 @@ public final class WidgetManager {
 
 			List<File> srcFiles = getSrcFiles().collect(toList());
 			boolean isKotlin = srcFiles.stream().anyMatch(f -> f.getPath().endsWith("kt"));
-			if (isKotlin) return compileKotlin(srcFiles.stream(), getLibFiles());
-			else return compileJava(srcFiles.stream(), getLibFiles());
+			if (isKotlin) return compileKotlin(srcFiles.stream());
+			else return compileJava(srcFiles.stream());
 		}
 
 		// TODO: collect compiler error output & clean-up
@@ -320,21 +335,20 @@ public final class WidgetManager {
 		 *
 		 * @param srcFiles .java files to compile
 		 */
-		private Try<Void,String> compileJava(Stream<File> srcFiles, Stream<File> libFiles) {
-			String classpath = System.getProperty("java.class.path");
+		private Try<Void,String> compileJava(Stream<File> srcFiles) {
 			Stream<String> options = stream(
 				"-encoding", APP.encoding.name(),
 				"-Xlint",
 				"-Xlint:-path",
 				"-Xlint:-processing",
-				"-cp", classpath + ";" + libFiles.map(File::getAbsolutePath).collect(joining(";"))
+				"-cp", getClassPath()
 			);
 			Stream<String> sourceFiles = srcFiles.map(File::getPath);   // One or more source files to be compiled
 			Stream<String> classes = stream();   // One or more classes to be processed for annotations
 			Stream<String> argFiles = stream();   // One or more files that lists options and source files. The -J options are not allowed in these files
 			String[] arguments = stream(options, sourceFiles, classes, argFiles).flatMap(s -> s).toArray(String[]::new);
 
-			LOGGER.info("Widget={} compiling with arguments: {} ", widgetName, toS(", ", arguments));
+			LOGGER.info("Widget={} compiling with arguments: {} ", widgetName, toS(" ", arguments));
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
 			int success = compiler.run(null, null, null, arguments);
@@ -347,10 +361,9 @@ public final class WidgetManager {
 				: Try.error("Widget " + widgetName + " compilation failed with errors");
 		}
 
-		private Try<Void,String> compileKotlin(Stream<File> srcFiles, Stream<File> libFiles) {
+		private Try<Void,String> compileKotlin(Stream<File> srcFiles) {
 			try {
 				File srcFile = srcFiles.findAny().get();        // TODO: improve
-				String classpath = System.getProperty("java.class.path");
 				File compilerFile = childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin", "kotlinc.bat");
 				if (Os.UNIX.isCurrent()) compilerFile = childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin", "kotlinc");
 
@@ -364,7 +377,9 @@ public final class WidgetManager {
 				command.add("-jvm-target");
 				command.add("1.8");
 				command.add("-cp");
-				command.add(classpath + ";" + libFiles.map(File::getAbsolutePath).collect(joining(";")));
+				command.add(getClassPath());
+
+				LOGGER.info("Widget={} compiling with command: {} ", widgetName, toS(" ", command));
 
 				int success = new ProcessBuilder(command)
 					.directory(childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin"))

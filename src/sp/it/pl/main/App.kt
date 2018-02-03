@@ -109,27 +109,25 @@ class App: Application(), Configurable<Any> {
     @F val DIR_TEMP = File(System.getProperty("java.io.tmpdir")).initForApp()
     /** Home directory of the os. */
     @F val DIR_HOME = File(System.getProperty("user.home")).initForApp()
-    /** Directory for application logging. */
-    @F val DIR_LOG = File(DIR_APP, "log").initForApp()
-    /** File for application logging configuration. */
-    @F val FILE_LOG_CONFIG = File(DIR_LOG, "log_configuration.xml")
     /** Directory containing widgets - source files, class files and widget's resources. */
     @F val DIR_WIDGETS = File(DIR_APP, "widgets").initForApp()
+    /** Directory containing application resources. */
+    @F val DIR_RESOURCES = File(DIR_APP, "resources").initForApp()
     /** Directory containing skins. */
-    @F val DIR_SKINS = File(DIR_APP, "skins").initForApp()
+    @F val DIR_SKINS = File(DIR_RESOURCES, "skins").initForApp()
     /** Directory containing user data created by application usage, such as customizations, song library, etc. */
     @F val DIR_USERDATA = File(DIR_APP, "user").initForApp()
     /** Directory containing library database. */
     @F val DIR_LIBRARY = File(DIR_USERDATA, "library").initForApp()
     /** Directory containing user gui state. */
     @F val DIR_LAYOUTS = File(DIR_USERDATA, "layouts").initForApp()
-    /** Directory containing application resources. */
-    @F val DIR_RESOURCES = File(DIR_APP, "resources").initForApp()
+    /** Directory for application logging. */
+    @F val DIR_LOG = File(DIR_USERDATA, "logs").initForApp()
     /** File for application configuration. */
     @F val FILE_SETTINGS = File(DIR_USERDATA, "application.properties")
 
     // cores (always active, mostly singletons)
-    @F val logging = CoreLogging(FILE_LOG_CONFIG, DIR_LOG)
+    @F val logging = CoreLogging(File(DIR_RESOURCES, "log_configuration.xml"), DIR_LOG)
     @F val serializerXml = CoreSerializerXml()
     @F val serializer = CoreSerializer
     @F val converter = CoreConverter()

@@ -5,10 +5,9 @@ private/
 working dir/lib
 working dir/jre
 working dir/kotlinc
-working dir/log/*zip
-working dir/log/*log
+working dir/log
 working dir/user
-working dir/vlc/
+working dir/vlc
 working dir/widgets/**/*class
 working dir/PlayerFX.jar
 *.log

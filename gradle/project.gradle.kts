@@ -210,14 +210,16 @@ tasks {
         group = main
         description = "Cleans up temporary files"
         doFirst {
-            file("working dir/log").listFiles { file -> file.extension in arrayOf("log", "zip") }.forEach { it.delete() }
+            file("working dir/log").deleteRecursively()
             file("working dir/lib").deleteRecursively()
+            file("working dir/widgets").listFiles { file -> file.isDirectory }
+                    .forEach { it.listFiles { f -> f.extension == "class" }.forEach { it.delete() } }
         }
     }
 
     "run" {
         group = main
-        dependsOn(copyLibs, jre, kotlinc, "jar")
+        dependsOn(copyLibs, jre, kotlinc)
     }
 
 }

@@ -57,6 +57,9 @@ allprojects {
     tasks.withType<KotlinCompile> {
         kaptOptions.supportInheritedAnnotations = true
         kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.suppressWarnings = false
+        kotlinOptions.allWarningsAsErrors = false
+        kotlinOptions.includeRuntime = true
     }
 
     repositories {
@@ -152,32 +155,38 @@ tasks {
         group = main
         description = "Downloads the kotlin compiler into \"working dir/kotlinc\""
         doFirst {
-            println("")
             val root = file("working dir")
             val kotlinc = root.resolve("kotlinc")
-            if (kotlinc.exists() && kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion!!) ?: false) {
-                println("Kotlin compiler is already up to date with $kotlinVersion!")
-                return@doFirst
-            }
-            try {
-                val url = URL("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/kotlin-compiler-$kotlinVersion.zip")
-                val zip = ZipInputStream(url.openStream())
-                while (true) {
-                    val next = zip.nextEntry ?: break
-                    if (!next.isDirectory) {
-                        val file = root.resolve(next.name)
-                        file.parentFile.mkdirs()
-                        val out = file.outputStream()
-                        zip.copyTo(out)
-                    } else {
-                        println("Downloading ${next.name}")
-                    }
+            val kotlincUpToDate = kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion!!) ?: false
+            if (kotlincUpToDate) {
+                println("Kotlin compiler is up to date, version=$kotlinVersion")
+            } else {
+                if (!kotlinc.exists()) {
+                    println("Previous version of Kotlin compiler exists. Deleting...")
+                    val success = kotlinc.deleteRecursively()
+                    if (!success) throw RuntimeException("Failed to remove Kotlin compiler, location=$kotlinc")
                 }
-                if (!kotlinc.exists())
-                    println("Nothing has been downloaded! Maybe the remote file is not a zip?")
-            } catch (e: FileNotFoundException) {
-                println("The remote file could not be found")
-                println(e.toString())
+
+                try {
+                    val url = URL("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/kotlin-compiler-$kotlinVersion.zip")
+                    val zip = ZipInputStream(url.openStream())
+                    while (true) {
+                        val next = zip.nextEntry ?: break
+                        if (!next.isDirectory) {
+                            val file = root.resolve(next.name)
+                            file.parentFile.mkdirs()
+                            val out = file.outputStream()
+                            zip.copyTo(out)
+                        } else {
+                            println("Downloading ${next.name}")
+                        }
+                    }
+                    if (!kotlinc.exists())
+                        println("Nothing has been downloaded! Maybe the remote file is not a zip?")
+                } catch (e: FileNotFoundException) {
+                    println("The remote file could not be found")
+                    println(e.toString())
+                }
             }
         }
     }

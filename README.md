@@ -317,62 +317,40 @@ Tips:
 
 # Development
 
-### Project setup
-
 - Language
-  - Java jdk-9.0.0 or higher
-  - and Kotlin (latest version) are both required.
+  - Java jdk-9
+  - Kotlin (latest version)
 - IDE: due to use of Kotlin, Intellij Idea is strongly recommended, although not required
-- dependencies
-  - Java/Kotlin: all jars are included in /working dir/lib
-  - VLC: installation must be placed in working dir/vlc directory. Obtain latest [here](https://www.videolan.org/vlc/). Without this step, audio playback will not be possible.
-  - Kotlin compiler: kotlinc must be placed in working dir/kotlinc directory. Obtain latest [here](https://github.com/JetBrains/kotlin/releases). Without this step, compiling widgets written in Kotlin will not be possible.
-  - Code style: import the project [code-style.xml](code-style.xml) into your IDE.
+
+### Preparations
+
+- Clone the repository
+- Import into IDE from Gradle 
+  - IDEA: Deselect 'Create separate module per source set', don't worry if Gradle buildscripts are not recognised, that's a known issue; it's also recommended to "Use auto-import"
+- To enable audio playback, a vlc installation must be placed in working dir/vlc directory. Obtain latest [here](https://www.videolan.org/vlc/)
+- To use widgets written in Kotlin (which includes the the Settings!) kotlinc must be placed in working dir/kotlinc directory. Obtain latest [here](https://github.com/JetBrains/kotlin/releases)
+- To use a jdk other than your default system one, create a `gradle.properties` file at project root with the following content: `org.gradle.java.home=/path/to/jdk`
+
+#### Running
+
+- `./gradlew run` will compile and run the application
+- `./gradlew build` will only build
 
 #### Widgets
 
-It is required to add widget source codes to the source code of the project. 
+Widgets don't need to be compiled by the IDE, the application will compile them itself. But for syntax highlighting and error reporting they should be included as separate module, depending on PlayerFX and all jars in the widgets directory. 
+This should automatically be setup by Gradle and imported into your IDE.
 
-In Netbeans: project > properties > sources > add folder. Add /src widgets directory. You should see 2 source directories in you project: 'src' and 'src widgets'.
+#### Debugging
 
-In Intellij Idea: create a separate module depending (type=PROVIDED) on the main module and all its dependensies plus all the jars (recursively) in the /widgets directory.
-    
-### Running
-
-  - main class: main.App
-  - annotation processing: must be enabled, set to obtain processor from classpath (classindex.jar)
-  - javac arg:<br>
-    -Xlint:unchecked<br/>
-    --add-exports javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED<br/>
-    --add-exports javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED<br/>
-    --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED<br/>
-    --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED<br/>
-  - jvm args:<br>
-    -Xmx3g<br>
-    --add-opens java.base/java.util=ALL-UNNAMED<br/>
-    --add-opens java.base/java.lang.reflect=ALL-UNNAMED<br/>
-    --add-opens java.base/java.text=ALL-UNNAMED<br/>
-    --add-opens java.base/java.util.stream=ALL-UNNAMED<br/>
-    --add-opens java.base/java.lang=ALL-UNNAMED<br/>
-    --add-opens java.desktop/java.awt.font=ALL-UNNAMED<br/>
-    --add-opens javafx.controls/javafx.scene.control=ALL-UNNAMED<br/>
-    --add-opens javafx.controls/javafx.scene.control.skin=ALL-UNNAMED<br/>
-    --add-opens javafx.graphics/com.sun.glass.ui=ALL-UNNAMED<br/>
-    --add-opens javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED<br/>
-    --add-opens javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED<br/>
-    --add-opens javafx.graphics/javafx.scene.image=ALL-UNNAMED<br/>
-    --add-opens javafx.web/com.sun.webkit=ALL-UNNAMED<br/>
-    
-### Debugging
-
-- use 'block current thread only' for breakpoints. Due to a mouse polling (using a native library), blocking all threads (like on a breakpoint) can cause major slow downs and unresponsive mouse (up to dozens of seconds) in the system.
+Use 'block current thread only' for breakpoints. Due to mouse polling (using a native library), blocking all threads (like on a breakpoint) can cause freezes.
 
 ### Coding style
 
 - Overall
   The project contains shared code style [code-style.xml](code-style.xml) with definitions that allow beneficial use of auto formatting. This decreases the amount of changes, mitigates the chance of mundane conflicts and standardizes the code base. 
   - Kotlin: follow [official style giude](https://kotlinlang.org/docs/reference/coding-conventions.html)
-  - Java: I encourage using Kotlin instead
+  - Java: It is encouraged to write any new code on Kotlin
       
 - Logging
 
@@ -390,7 +368,7 @@ In Intellij Idea: create a separate module depending (type=PROVIDED) on the main
   
   - Configuration
       - log_configuration.xml in /working dir/log, where the log output is also located
-      - the logger appends WARN, ERROR to file and everything to console (this can be changed in runtime by user in application settings)
+      - the logger appends WARN, ERROR to file and everything to console (this can be changed at runtime in the settings)
 
 - Imports
   - use static imports where possible (enum types, utility methods, etc.)

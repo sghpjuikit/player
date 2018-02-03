@@ -1,6 +1,8 @@
-# Project
+## Project
+
 out/
 private/
+working dir/lib
 working dir/jre
 working dir/kotlinc
 working dir/log/*zip
@@ -8,10 +10,21 @@ working dir/log/*log
 working dir/user
 working dir/vlc/
 working dir/widgets/**/*class
+working dir/PlayerFX.jar
+*.log
+
+# Gradle
+.gradle/
+build/
+gradle.properties
+
+## IDE
 
 # Idea
 .idea/
 *.iml
+*.ipr
+*.iws
 
 # NetBeans
 nbproject/
@@ -24,7 +37,6 @@ nb-configuration.xml
 build.xml
 nbbuild.xml
 manifest.mf
-
 
 # Eclipse
 *.pydevproject
@@ -44,6 +56,8 @@ local.properties
 *.launch
 .cproject
 .buildpath
+
+## OS
 
 # Windows
 Thumbs.db

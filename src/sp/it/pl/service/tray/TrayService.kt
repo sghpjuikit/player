@@ -51,7 +51,7 @@ class TrayService : ServiceBase(true) {
     private val onEnd = Disposer()
 
     private var tray: SystemTray? = null
-    private val trayIconImageDefault = File(APP.DIR_APP, "icon24.png")
+    private val trayIconImageDefault = File(APP.DIR_APP, "resources/icons/icon24.png")
     private var trayIconImage = trayIconImageDefault
     private var trayIcon: TrayIcon? = null
     private val onClickDefault = EventHandler<MouseEvent> { Gui.toggleMinimize() }

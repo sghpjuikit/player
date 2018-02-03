@@ -9,6 +9,8 @@ import java.io.FileNotFoundException
 import java.net.URL
 import java.util.zip.ZipInputStream
 import kotlin.text.Charsets.UTF_8
+import java.nio.file.Files
+import java.io.File
 
 plugins {
     kotlin("jvm") version "1.2.21"
@@ -31,6 +33,7 @@ kotlin {
     experimental.coroutines = Coroutines.ENABLE
 }
 
+val workingDir = file("working dir")
 val kotlinVersion: String? by extra {
     buildscript.configurations["classpath"]
             .resolvedConfiguration.firstLevelModuleDependencies
@@ -58,8 +61,7 @@ allprojects {
         kaptOptions.supportInheritedAnnotations = true
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.suppressWarnings = false
-        kotlinOptions.allWarningsAsErrors = false
-        kotlinOptions.includeRuntime = true
+        kotlinOptions.allWarningsAsErrors = true
     }
 
     repositories {
@@ -151,12 +153,29 @@ tasks {
         }
     }
 
+    val jre by creating {
+        group = main
+        description = "Makes JDK locally accessible in ${workingDir.resolve("jre")}"
+        doFirst {
+            val jdkLocal = workingDir.resolve("jre")
+            if (jdkLocal.exists()) {
+                println("JDK is already locally accessible")
+            } else {
+                println("Making JDK locally accessible...")
+                val jdkLocalPath = jdkLocal.toPath()
+                val jdkGlobalPath = System.getProperty("java.home").takeIf { it.isNotBlank() }
+                        ?.let { File(it).toPath() }
+                        ?: throw RuntimeException("Can not find JDK")
+                Files.createSymbolicLink(jdkLocalPath, jdkGlobalPath)
+            }
+        }
+    }
+
     val kotlinc by creating {
         group = main
-        description = "Downloads the kotlin compiler into \"working dir/kotlinc\""
+        description = "Downloads the kotlin compiler into ${workingDir.resolve("kotlinc")}"
         doFirst {
-            val root = file("working dir")
-            val kotlinc = root.resolve("kotlinc")
+            val kotlinc = workingDir.resolve("kotlinc")
             val kotlincUpToDate = kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion!!) ?: false
             if (kotlincUpToDate) {
                 println("Kotlin compiler is up to date, version=$kotlinVersion")
@@ -173,7 +192,7 @@ tasks {
                     while (true) {
                         val next = zip.nextEntry ?: break
                         if (!next.isDirectory) {
-                            val file = root.resolve(next.name)
+                            val file = workingDir.resolve(next.name)
                             file.parentFile.mkdirs()
                             val out = file.outputStream()
                             zip.copyTo(out)
@@ -197,7 +216,7 @@ tasks {
 
     "run" {
         group = main
-        dependsOn(copyLibs, kotlinc)
+        dependsOn(copyLibs, jre, kotlinc)
     }
 
 }
@@ -220,6 +239,6 @@ application {
             "--add-opens", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
             "--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
             "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED",
-            "-Duser.dir="+file("working dir")
+            "-Duser.dir=$workingDir"
     )
 }

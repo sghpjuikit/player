@@ -266,34 +266,34 @@ class App: Application(), Configurable<Any> {
 
         // add optional object instance -> info string converters
         instanceInfo.add(Void::class.java) { _, _ -> }
-        instanceInfo.add(String::class.java) { s, map -> map.put("Length", Integer.toString(s?.length ?: 0)) }
+        instanceInfo.add(String::class.java) { s, map -> map["Length"] = Integer.toString(s?.length ?: 0) }
         instanceInfo.add(File::class.java) { f, map ->
             val type = FileType.of(f)
-            map.put("File type", type.name)
+            map["File type"] = type.name
 
             if (type==FileType.FILE) {
                 val fs = FileSize(f)
-                map.put("Size", "" + fs + (if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else ""))
-                map.put("Format", f.name.substringAfterLast('.', "<none>"))
+                map["Size"] = "" + fs + (if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else "")
+                map["Format"] = f.name.substringAfterLast('.', "<none>")
             }
 
             val iff = ImageFileFormat.of(f.toURI())
             if (iff.isSupported) {
                 val res = getImageDim(f).map { "${it.width} x ${it.height}" }.getOr("n/a")
-                map.put("Resolution", res)
+                map["Resolution"] = res
             }
         }
-        instanceInfo.add(App::class.java) { v, map -> map.put("Name", v.name) }
-        instanceInfo.add(Component::class.java) { v, map -> map.put("Name", v.exportName) }
+        instanceInfo.add(App::class.java) { v, map -> map["Name"] = v.name }
+        instanceInfo.add(Component::class.java) { v, map -> map["Name"] = v.exportName }
         instanceInfo.add(Metadata::class.java) { m, map ->
             Metadata.Field.FIELDS.asSequence()
                     .filter { it.isTypeStringRepresentable() && !it.isFieldEmpty(m) }
-                    .forEach { map.put(it.name(), it.getOfS(m, "<none>")) }
+                    .forEach { map[it.name()] = it.getOfS(m, "<none>") }
         }
         instanceInfo.add(PlaylistItem::class.java) { p, map ->
             PlaylistItem.Field.FIELDS.asSequence()
                     .filter { it.isTypeStringRepresentable() }
-                    .forEach { map.put(it.name(), it.getOfS(p, "<none>")) }
+                    .forEach { map[it.name()] = it.getOfS(p, "<none>") }
         }
 
         // init cores

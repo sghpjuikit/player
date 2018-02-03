@@ -10,6 +10,7 @@ working dir/log/*log
 working dir/user
 working dir/vlc/
 working dir/widgets/**/*class
+working dir/PlayerFX.jar
 *.log
 
 # Gradle

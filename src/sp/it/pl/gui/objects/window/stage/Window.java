@@ -383,7 +383,7 @@ public class Window extends WindowBase {
 		Icon maxB = new Icon(WINDOW_MAXIMIZE, is, "Maximize\n\nExpand window to span whole screen",
 			this::toggleMaximize);
 //        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
-		Icon closeB = new Icon(CLOSE, is, "Close\n\nCloses window. If the window is is main, "
+		Icon closeB = new Icon(CLOSE, is, "Close\n\nCloses window. If the window is main, "
 			+ "application closes as well.", this::close);
 		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, is).scale(0.4)
 			.onClick(() -> APP.windowManager.setAsMain(this));

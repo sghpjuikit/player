@@ -57,9 +57,6 @@ allprojects {
     tasks.withType<KotlinCompile> {
         kaptOptions.supportInheritedAnnotations = true
         kotlinOptions.jvmTarget = "1.8"
-        kotlinOptions.suppressWarnings = false
-        kotlinOptions.allWarningsAsErrors = false
-        kotlinOptions.includeRuntime = true
     }
 
     repositories {
@@ -140,15 +137,6 @@ tasks {
         from(configurations.runtime.filter { !(it.name.contains("javadoc") || it.name.contains("sources")) })
     }
 
-    "build" {
-        group = main
-    }
-
-    "run" {
-        group = main
-        dependsOn(copyLibs)
-    }
-
     val cleanup by creating {
         group = main
         description = "Cleans up the working dir (does not delete settings or any the like)"
@@ -193,6 +181,16 @@ tasks {
             }
         }
     }
+
+    "build" {
+        group = main
+    }
+
+    "run" {
+        group = main
+        dependsOn(copyLibs, kotlinc)
+    }
+
 }
 
 application {

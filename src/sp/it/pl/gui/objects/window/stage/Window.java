@@ -90,7 +90,7 @@ import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.access.SequentialValue.next;
 import static sp.it.pl.util.access.SequentialValue.previous;
-import static sp.it.pl.util.animation.Anim.par;
+import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.dev.Util.throwIfNot;
 import static sp.it.pl.util.functional.Util.forEachIRStream;
@@ -383,7 +383,7 @@ public class Window extends WindowBase {
 		Icon maxB = new Icon(WINDOW_MAXIMIZE, is, "Maximize\n\nExpand window to span whole screen",
 			this::toggleMaximize);
 //        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
-		Icon closeB = new Icon(CLOSE, is, "Close\n\nCloses window. If the window is is main, "
+		Icon closeB = new Icon(CLOSE, is, "Close\n\nCloses window. If the window is main, "
 			+ "application closes as well.", this::close);
 		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, is).scale(0.4)
 			.onClick(() -> APP.windowManager.setAsMain(this));
@@ -536,12 +536,12 @@ public class Window extends WindowBase {
 			AnchorPane.setTopAnchor(lBorder, headerHeight);
 			AnchorPane.setTopAnchor(rBorder, headerHeight);
 
-			Anim.par(
-				par(
+			animPar(
+				animPar(
 					forEachIStream(leftHeaderBox.getChildren(), (i, icon) ->
 						new Anim(at -> setScaleXY(icon, at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
 				),
-				par(
+				animPar(
 					forEachIRStream(rightHeaderBox.getChildren(), (i, icon) ->
 						new Anim(at -> setScaleXY(icon, at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
 				)

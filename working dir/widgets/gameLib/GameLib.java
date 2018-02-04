@@ -55,8 +55,8 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.Gui.rowHeight;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.animation.Anim.par;
-import static sp.it.pl.util.animation.Anim.seq;
+import static sp.it.pl.util.animation.Anim.animPar;
+import static sp.it.pl.util.animation.Anim.animSeq;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
@@ -147,10 +147,10 @@ public class GameLib extends FXMLController {
         int name_len = g.getName().length();
         Interpolator i = new ElasticInterpolator();
         Function1<Double,String> ti = typeText(g.getName());
-        par(
-            seq(
-                new Anim(millis(450), i, at -> inforoot.setPrefSize(300*at,50)),
-                new Anim(millis(550), i, at -> inforoot.setPrefSize(300,50+(inforootroot.getHeight()-50)*at))
+        animPar(
+            animSeq(
+                new Anim(millis(450), at -> inforoot.setPrefSize(300*at,50)).intpl(i),
+                new Anim(millis(550), at -> inforoot.setPrefSize(300,50+(inforootroot.getHeight()-50)*at)).intpl(i)
             ),
             new Anim(millis(name_len*30), at -> titleL.setText(ti.invoke(at)))
         ).play();
@@ -251,6 +251,7 @@ public class GameLib extends FXMLController {
         game_list.getItems().setAll(items);
     }
 
+    @SuppressWarnings("unchecked")
     public void goTo(InfoType to) {
         if (game==null || at==to) return;
 

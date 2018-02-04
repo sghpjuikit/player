@@ -65,7 +65,7 @@ import sp.it.pl.gui.objects.popover.ScreenUse.APP_WINDOW
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.access.V
 import sp.it.pl.util.access.v
-import sp.it.pl.util.animation.Anim
+import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.centre
 import sp.it.pl.util.graphics.getScreen
@@ -74,7 +74,7 @@ import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.toP
 import sp.it.pl.util.math.P
 import sp.it.pl.util.math.millis
-import java.util.*
+import java.util.ArrayList
 import kotlin.test.fail
 
 private typealias F = JvmField
@@ -210,8 +210,8 @@ open class PopOver<N: Node>(): PopupControl() {
     /** Show/hide animation duration. */
     @F var animationDuration = V(millis(300))
     /** Show/hide animation. */
-    private val animation by lazy{
-        Anim {
+    private val animation by lazy {
+        anim {
             getSkinn().node.opacity = it*it
             getSkinn().node.setScaleXYByTo(it, -20.0, 0.0)  // TODO: causes slight position shift sometimes
         }
@@ -223,7 +223,7 @@ open class PopOver<N: Node>(): PopupControl() {
      * @return this popup with different content type.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T: Node> changeContentType(): PopOver<T> = this.apply { contentNode.set(null) } as PopOver<T>
+    fun <T: Node> changeContentType(): PopOver<T> = apply { contentNode.set(null) } as PopOver<T>
 
     /** @return concrete skin implementation (unlike [PopOver.getSkin]) */
     fun getSkinn(): PopOverSkin = skin as PopOverSkin
@@ -337,7 +337,7 @@ open class PopOver<N: Node>(): PopupControl() {
                 hideImmediately()
         }
     }
-    
+
     private fun position(position: () -> P) {
         var p = position()
         if (arrowSize.value>0)
@@ -376,7 +376,7 @@ open class PopOver<N: Node>(): PopupControl() {
         showThis(null, window)
         position({ P(x, y) })
     }
-    
+
     /** Show popup at specified screen coordinates. */
     fun show(window: Window, position: P) = show(window, position.x, position.y)
 
@@ -457,10 +457,10 @@ open class PopOver<N: Node>(): PopupControl() {
 
     private fun fadeOut() {
         animation.dur(animationDuration.value)
-        animation.playCloseDo { hideImmediately() }
+        animation.playCloseDo(Runnable { hideImmediately() })
     }
 
-/* --------------------- MOVE WITH OWNER ---------------------------------------------------------------------------- */
+    /* --------------------- MOVE WITH OWNER ---------------------------------------------------------------------------- */
 
     /**
      * Sets moving with owner behavior on or off. Default on (true).
@@ -550,7 +550,7 @@ open class PopOver<N: Node>(): PopupControl() {
     private fun installMoveWithWindow(owner: Window) {
         if (scene.properties.containsKey(KEY_MOVE_WITH_OWNER_WINDOW)) fail("'Move with window' already installed")
         scene.properties.put(KEY_MOVE_WITH_OWNER_WINDOW, KEY_MOVE_WITH_OWNER_WINDOW)
-        
+
         ownerMNode = null
         ownerMWindow = owner
         ownerMWindow!!.xProperty().addListener(winXListener)
@@ -567,8 +567,8 @@ open class PopOver<N: Node>(): PopupControl() {
 
     private fun installMoveWithNode(owner: Node) {
         if (scene.properties.containsKey(KEY_MOVE_WITH_OWNER_NODE)) fail("'Move with node' already installed")
-            scene.properties.put(KEY_MOVE_WITH_OWNER_NODE, KEY_MOVE_WITH_OWNER_NODE)
-        
+        scene.properties.put(KEY_MOVE_WITH_OWNER_NODE, KEY_MOVE_WITH_OWNER_NODE)
+
         ownerMNode = owner
         ownerMWindow = owner.scene.window
         ownerMWindow!!.xProperty().addListener(xListener)
@@ -643,8 +643,8 @@ open class PopOver<N: Node>(): PopupControl() {
         yProperty().removeListener(deltaYListener)
     }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
-    
+    /* ------------------------------------------------------------------------------------------------------------------ */
+
     companion object {
 
         @F val active_popups = observableArrayList(ArrayList<PopOver<*>>())!!

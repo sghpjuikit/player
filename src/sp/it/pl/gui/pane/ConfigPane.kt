@@ -15,8 +15,8 @@ import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.setMinPrefMaxWidth
 import java.util.stream.Stream
 
-class ConfigPane<T: Any>: FlowPane, ConfiguringFeature {
-    private var fields: List<ConfigField<T>> = listOf()
+class ConfigPane<T: Any>: FlowPane, ConfiguringFeature<T> {
+    private var fields: List<ConfigField<out T>> = listOf()
     @JvmField var onChange: Runnable? = null
 
     @SafeVarargs
@@ -28,15 +28,11 @@ class ConfigPane<T: Any>: FlowPane, ConfiguringFeature {
         configure(configs)
     }
 
-    // TODO: can something be done about this? generic class implements non-generic interface
-    @Suppress("UNCHECKED_CAST")
-    override fun configure(configs: Collection<Config<*>>?) {
-        if (configs==null) return
-
-        fields = configs.asSequence()
+    override fun configure(configurable: Collection<Config<out T>>) {
+        fields = configurable.asSequence()
                 .sortedBy { it.guiName.toLowerCase() }
                 .map {
-                    ConfigField.create(it as Config<T>).apply {
+                    ConfigField.create(it).apply {
                         onChange = this@ConfigPane.onChange
                     }
                 }
@@ -59,7 +55,7 @@ class ConfigPane<T: Any>: FlowPane, ConfiguringFeature {
         }
     }
 
-    fun getConfigFields(): List<ConfigField<T>> = fields
+    fun getConfigFields(): List<ConfigField<out T>> = fields
 
     fun getConfigValues(): Stream<T> = getConfigFields().stream().map { it.getValue() }
 

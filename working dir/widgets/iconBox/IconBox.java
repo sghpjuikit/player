@@ -28,7 +28,6 @@ import static sp.it.pl.util.reactive.Util.maintain;
     description = "Provides button with customizable action.",
     howto = "Available actions:\n" +
             "    Button click : execute action",
-    notes = "",
     version = "0.7",
     year = "2014",
     group = Widget.Group.OTHER
@@ -42,15 +41,16 @@ public class IconBox extends FXMLController implements HorizontalDock {
     @IsConfig(name = "Icon size", info = "Size of each icon")
     private final DoubleProperty icon_size = new SimpleDoubleProperty(13);
 
+    @SuppressWarnings("unchecked")
     @IsConfig(name = "Icons", info = "List of icons to show")
-    private final VarList<Icon> icons = new VarList<Icon>(Icon.class, () -> {
+    private final VarList<Icon> icons = new VarList<>(Icon.class, () -> {
             Icon i = new Icon(BUS);
             maintain(icon_size, v -> i.size(v.doubleValue()));
             return i;
         }, i ->
-        new ListConfigurable(
-            Config.forProperty(Icon.class, "Icon", new FAccessor<>(i::icon,i::getGlyph)),
-            Config.forProperty(String.class, "Action",new VarAction(i.getOnClickAction(),i::onClick))
+        new ListConfigurable<Object>(
+            (Config) Config.forProperty(Icon.class, "Icon", new FAccessor<>(i::icon, i::getGlyph)),
+            (Config) Config.forProperty(String.class, "Action", new VarAction(i.getOnClickAction(), i::onClick))
         )
     );
 

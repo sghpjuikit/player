@@ -987,11 +987,12 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             private final Class<T> type;
             private final ConfigPane<T> p = new ConfigPane<>();
 
+            @SuppressWarnings("unchecked")  // TODO: fix this by using proper generic type for lc.toConfigurable
             public ConfigurableField(Class<T> type, T value) {
                 this.type = type;
                 this.value = value;
                 p.onChange = () -> chain.onItemChange.accept(null);
-                p.configure(lc.toConfigurable.apply(this.value));
+                p.configure((Configurable) lc.toConfigurable.apply(this.value));
             }
 
             @Override
@@ -1002,7 +1003,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             @Override
             public T getValue() {
                 // TODO: why do we get 1st ConfigField? Makes no sense
-                Class<T> oType = p.getConfigFields().get(0).config.getType();
+                Class<? extends T> oType = p.getConfigFields().get(0).config.getType();
                 T o = p.getConfigFields().get(0).getValue();
                 if (type==oType) return o;
                 else return value;

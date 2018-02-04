@@ -1,0 +1,34 @@
+
+@import url("../Main/Main.css");
+
+.root {
+    -fx-font-family: "Arial";
+    -fx-font-size: 11;
+    -fx-def-font-color: rgb(139,139,170);
+    -fx-def-font-color-hover: rgb(190,205,220);
+    -fx-sel-font-color: rgb(175, 175, 176);
+    -fx-prompt-font-color: rgb(165, 165, 165);
+    -fx-focus-color: rgb(50, 50, 50);
+    
+    -fx-pane-color: rgb(241,241,255);
+    -fx-pane-color-darker: rgb(221,221,235);
+    -fx-popup-def-bgr-color: rgba(241,241,255,0.9);
+}
+
+.window {
+    -fx-background-color: -fx-pane-color-darker;
+    -fx-background-radius: 10;
+}
+.window:fullscreen {
+    -fx-background-radius: 0;
+}
+.window:moved {
+    -fx-background-radius: 10;
+}
+.block {
+    -fx-background-radius: 10;
+}
+
+.icon:hover {
+    -fx-fill: -fx-focus-color;
+}

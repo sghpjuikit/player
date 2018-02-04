@@ -38,12 +38,13 @@ object ImageStandardLoader: ImageLoader {
             "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, true)
             "application/x-msdownload",
             "application/x-ms-shortcut" -> IconExtractor.getFileIcon(p.file)
-            else -> {
+            "image/gif" -> {
                 val W = maxOf(0, p.size.width.toInt())
                 val H = maxOf(0, p.size.height.toInt())
                 val loadFullSize = W==0 && H==0
                 imgImplLoadFX(p.file, W, H, loadFullSize)
             }
+            else -> loadImagePsd(p.file, p.size.width, p.size.height, false)
         }
     }
 }

@@ -27,7 +27,8 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.util.animation.Anim.seq;
+import static sp.it.pl.util.animation.Anim.animPar;
+import static sp.it.pl.util.animation.Anim.animSeq;
 import static sp.it.pl.util.functional.Util.byNC;
 import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.list;
@@ -109,8 +110,7 @@ public class Picker<E> {
 				sp.setOpacity(x);
 				content.setOpacity(1 - x*x);
 				setScaleXY(sp, 0.7 + 0.3*x*x);
-			});
-			anim.applier.accept(0d);
+			}).applyNow();
 			cell.hoverProperty().addListener((o, ov, nv) -> anim.playFromDir(nv));
 		}
 
@@ -156,8 +156,8 @@ public class Picker<E> {
 
 		// animate & show
 		int s = getCells().size();
-		Anim.par(getCells(), (i, n) -> seq(
-			new Anim(n::setOpacity).dur(i*(750/s)).intpl(0),
+		animPar(getCells(), (i, n) -> animSeq(
+			new Anim(n::setOpacity).dur(i*(750/s)).intpl(x -> 0.0),
 			new Anim(n::setOpacity).dur(500).intpl(x -> sqrt(x))
 		)).play();
 	}

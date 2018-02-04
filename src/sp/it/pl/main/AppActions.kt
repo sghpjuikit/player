@@ -178,7 +178,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     IconMA.COLLECTIONS,
                     { items -> APP.widgetManager
                                 .find("Library", NEW, false)
-                                .ifPresent { it.controller.inputs.getInput("To display").setValue(items) }
+                                .ifPresent { it.controller.inputs.getInput<Collection<Item>>("To display").setValue(items) }
                     }
             ),
             FastColAction(
@@ -187,7 +187,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     MaterialIcon.COLLECTIONS,
                     { items -> APP.widgetManager
                                 .find("Library View", NEW, false)
-                                .ifPresent { it.controller.inputs.getInput("To display").setValue(items) }
+                                .ifPresent { it.controller.inputs.getInput<Collection<Item>>("To display").setValue(items) }
                     }
             )
     )

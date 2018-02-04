@@ -105,7 +105,7 @@ public class Library extends FXMLController implements SongReader {
     private @FXML AnchorPane root;
     private final FilteredTable<Metadata> table = new FilteredTable<>(Metadata.class, Metadata.EMPTY.getMainField());
     private final InfoTask<Task<?>> taskInfo = new InfoTask<>(null, new Label(), appProgressIndicator());
-    private final Anim hideInfo = new Anim(at-> setScaleXY(taskInfo.getProgress(),at*at))
+    private final Anim hideInfo = new Anim(at -> setScaleXY(taskInfo.getProgress(),at*at))
                                       .dur(500).intpl(reverse(new ElasticInterpolator()));
 
     private final ExecuteN runOnce = new ExecuteN(1);
@@ -126,6 +126,7 @@ public class Library extends FXMLController implements SongReader {
     @IsConfig(editable = EditMode.APP) @Constraint.FileType(FileActor.DIRECTORY)
     private File lastDir = null;
 
+    @SuppressWarnings({"unchecked", "ConstantConditions"})
     @Override
     public void init() {
         out_sel = outputs.create(widget.id, "Selected", Metadata.class, null);
@@ -260,8 +261,6 @@ public class Library extends FXMLController implements SongReader {
     /**
      * Converts items to Metadata using {@link Item#toMeta()} (using no I/O)
      * and displays them in the table.
-     * <p/>
-     * {@inheritDoc}
      */
     @Override
     public void read(List<? extends Item> items) {

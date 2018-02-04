@@ -104,27 +104,25 @@ class App: Application(), Configurable<Any> {
     @F val DIR_TEMP = File(System.getProperty("java.io.tmpdir")).initForApp()
     /** Home directory of the os. */
     @F val DIR_HOME = File(System.getProperty("user.home")).initForApp()
-    /** Directory for application logging. */
-    @F val DIR_LOG = File(DIR_APP, "log").initForApp()
-    /** File for application logging configuration. */
-    @F val FILE_LOG_CONFIG = File(DIR_LOG, "log_configuration.xml")
     /** Directory containing widgets - source files, class files and widget's resources. */
     @F val DIR_WIDGETS = File(DIR_APP, "widgets").initForApp()
+    /** Directory containing application resources. */
+    @F val DIR_RESOURCES = File(DIR_APP, "resources").initForApp()
     /** Directory containing skins. */
-    @F val DIR_SKINS = File(DIR_APP, "skins").initForApp()
+    @F val DIR_SKINS = File(DIR_RESOURCES, "skins").initForApp()
     /** Directory containing user data created by application usage, such as customizations, song library, etc. */
     @F val DIR_USERDATA = File(DIR_APP, "user").initForApp()
     /** Directory containing library database. */
     @F val DIR_LIBRARY = File(DIR_USERDATA, "library").initForApp()
     /** Directory containing user gui state. */
     @F val DIR_LAYOUTS = File(DIR_USERDATA, "layouts").initForApp()
-    /** Directory containing application resources. */
-    @F val DIR_RESOURCES = File(DIR_APP, "resources").initForApp()
+    /** Directory for application logging. */
+    @F val DIR_LOG = File(DIR_USERDATA, "logs").initForApp()
     /** File for application configuration. */
     @F val FILE_SETTINGS = File(DIR_USERDATA, "application.properties")
 
     // cores (always active, mostly singletons)
-    @F val logging = CoreLogging(FILE_LOG_CONFIG, DIR_LOG)
+    @F val logging = CoreLogging(File(DIR_RESOURCES, "log_configuration.xml"), DIR_LOG)
     @F val serializerXml = CoreSerializerXml()
     @F val serializer = CoreSerializer
     @F val converter = CoreConverter()
@@ -222,7 +220,7 @@ class App: Application(), Configurable<Any> {
         // trying to run and this instance's run parameters and close prematurely
         if (getInstances()>1) {
             logger.info { "App will close prematurely: Multiple app instances detected" }
-            appCommunicator.fireNewInstanceEvent(fetchParameters())
+            appCommunicator.fireNewInstanceEvent(fetchArguments())
             closedPrematurely = true
             return
         }
@@ -356,7 +354,7 @@ class App: Application(), Configurable<Any> {
 
             Player.initialize()
 
-            val ps = fetchParameters()
+            val ps = fetchArguments()
             normalLoad = normalLoad && ps.none { it.endsWith(".fxwl") || widgetManager.factories.get(it)!=null }
 
             // load windows, layouts, widgets
@@ -384,7 +382,7 @@ class App: Application(), Configurable<Any> {
             if (guide.first_time.get()) runAfter(millis(3000), { guide.start() })
 
             // process app parameters passed when app started
-            parameterProcessor.process(fetchParameters())
+            parameterProcessor.process(fetchArguments())
         }
     }
 
@@ -445,9 +443,11 @@ class App: Application(), Configurable<Any> {
         close()
     }
 
-    fun fetchParameters(): List<String> = parameters?.let { it.raw+it.unnamed+it.named.values } ?: listOf()
+    /** @return arguments supplied to this application when it was launched */
+    fun fetchArguments(): List<String> = parameters?.let { it.raw+it.unnamed+it.named.values } ?: listOf()
 
-    fun fetchVMParameters(): List<String> = ManagementFactory.getRuntimeMXBean().inputArguments
+    /** @return JVM arguments supplied to JVM this application is running in */
+    fun fetchVMArguments(): List<String> = ManagementFactory.getRuntimeMXBean().inputArguments
 
     /** @return number of instances of this application (including this one) running at this moment */
     fun getInstances(): Int = VirtualMachine.list().count { AppUtil::class.java.name==it.displayName() }
@@ -457,7 +457,7 @@ class App: Application(), Configurable<Any> {
 
     /** @return images of the icon of the application in all possible sizes */
     fun getIcons(): List<Image> = seqOf(16, 24, 32, 48, 128, 256, 512)
-            .map { File("icon$it.png").toURI().toString() }
+            .map { File("resources/icons/icon$it.png").toURI().toString() }
             .map { Image(it) }
             .toList()
 

@@ -1,5 +1,7 @@
 package sp.it.pl.gui
 
+import javafx.scene.image.Image
+import sp.it.pl.main.AppUtil.APP
 import java.io.File
 
 data class SkinCss(@JvmField val name: String, @JvmField val file: File) {
@@ -9,6 +11,6 @@ data class SkinCss(@JvmField val name: String, @JvmField val file: File) {
 }
 
 // TODO: implement cursor
-// Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());
-// ImageCursor c = new ImageCursor(image,3,3);
-// stage.getScene().setCursor(c);
+// val image = Image(File(APP.DIR_RESOURCES, "icons/cursor.png").getAbsoluteFile().toURI().toString());
+// val cursor = new ImageCursor(image,3,3);
+// stage.getScene().setCursor(cursor);

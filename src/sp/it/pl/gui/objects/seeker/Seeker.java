@@ -430,11 +430,10 @@ public final class Seeker extends AnchorPane {
 			root.setManaged(false);   // fixex a resizing issue
 			i.styleclass(STYLECLASS_CHAP_ADD_BUTTON);
 			i.setDisable(false);
-			i.tooltip("Create chapter.\n\nCreates a new empty comment at this "
-					+ "position and opens the editor.");
+			i.tooltip("Create chapter.\n\nCreates a new empty comment at this position and opens the editor.");
 
-			fade.applier.accept(0d);
-			select.applier.accept(0d);
+			fade.applyNow();
+			select.applyNow();
 		}
 
 		void show() {

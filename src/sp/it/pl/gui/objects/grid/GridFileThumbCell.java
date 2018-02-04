@@ -305,7 +305,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 
 			// stop any previous animation & revert visuals to normal
 			imgLoadAnimation.stop();
-			imgLoadAnimation.applier.accept(1);
+			imgLoadAnimation.applyAt(1.0);
 
 			// animate when image appears
 			if (animate && img!=null) doOnceIfImageLoaded(img, imgLoadAnimation::play);

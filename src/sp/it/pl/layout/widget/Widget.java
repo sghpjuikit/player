@@ -180,7 +180,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	 * @return graphical content of this widget
 	 */
 	@Override
-	public final Node load() {
+	public Node load() {
 		if (root==null) {
 			controller = instantiateController();
 			if (controller==null) {
@@ -536,6 +536,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
 	static final ArrayList<IO> ios = new ArrayList<>();
 
+	@SuppressWarnings({"unchecked", "UseBulkOperation", "deprecation"})
 	public static void deserializeWidgetIO() {
 		Set<Input<?>> is = new HashSet<>();
 		Map<Output.Id,Output<?>> os = APP.widgetManager.findAll(OPEN)
@@ -547,7 +548,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 
 		ios.forEach(io -> {
 			if (io.widget.controller==null) return;
-			Input i = io.widget.controller.getInputs().getInput(io.input_name);
+			Input i = io.widget.controller.getInputs().getInputRaw(io.input_name);
 			if (i==null) return;
 			io.outputs_ids.stream().map(os::get).filter(ISNTØ).forEach(i::bind);
 		});

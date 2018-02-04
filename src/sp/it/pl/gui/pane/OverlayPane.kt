@@ -23,12 +23,11 @@ import sp.it.pl.gui.objects.image.Thumbnail.FitFrom
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.main.resizeButton
 import sp.it.pl.util.access.V
-import sp.it.pl.util.animation.Anim
+import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.runAfter
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.Util.createFMNTStage
 import sp.it.pl.util.graphics.Util.layStack
@@ -119,7 +118,7 @@ abstract class OverlayPane<T>: StackPane() {
 /* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
 
     private lateinit var displayUsedForShow: Display // prevents inconsistency in start() and stop(), see use
-    private val animation: Anim by lazy { Anim(APP.animationFps, { animDo(it) }).dur(millis(200)).intpl { it*it } } // lowering fps can help on hd screens & low-end hardware
+    private val animation by lazy { anim(APP.animationFps) { animDo(it) }.dur(millis(200)).intpl { it*it } } // lowering fps can help on hd screens & low-end hardware
     private var stg: Stage? = null
     private val blurBack = BoxBlur(0.0, 0.0, 3)  // we need best possible quality
     private val blurFront = BoxBlur(0.0, 0.0, 1) // we do not need quality, hence iterations==1
@@ -143,7 +142,7 @@ abstract class OverlayPane<T>: StackPane() {
     open fun hide() {
         if (isShown()) {
             properties -= IS_SHOWN
-            animation.playCloseDo { animEnd() }
+            animation.playCloseDo(Runnable { animEnd() })
         }
     }
 
@@ -252,7 +251,7 @@ abstract class OverlayPane<T>: StackPane() {
                     op.blurBackNode!!.effect = op.blurBack
                     op.blurFrontNode!!.effect = op.blurFront
 
-                    op.animation.applier(0.0)
+                    op.animation.applyAt(0.0)
                     op.stg!!.show()
                     op.stg!!.requestFocus()
 

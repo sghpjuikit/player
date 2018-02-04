@@ -37,6 +37,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	public final AtomicBoolean cover_loadedThumb = new AtomicBoolean(false);
 	public final AtomicBoolean cover_loadedFull = new AtomicBoolean(false);
 	public double lastScrollPosition;
+	private volatile boolean disposed = false;  // TODO: this inherently can not work, use AtomicReference on fields
 
 	public Item(Item parent, File value, FileType valueType) {
 		super(value, parent);
@@ -67,6 +68,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		children = null;
 		all_children = null;
 		cover = null;
+		disposed = true;
 	}
 
 	public void disposeChildren() {
@@ -77,20 +79,29 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	private void buildChildren() {
-		all_children = new HashSet<>();
-		children = new HashSet<>();
+		if (disposed) return;
+
+		Set<String> all = new HashSet<>();
+		List<Item> dirs = new ArrayList<>();
 		List<Item> files = new ArrayList<>();
 		children_files().forEach(f -> {
-			all_children.add(f.getPath().toLowerCase());
-			FileType type = FileType.of(f);
-			if (type==DIRECTORY) {
-				children.add(createItem(this, f, type));
-			} else {
-				if (filterChildFile(f))
-					files.add(createItem(this, f, type));
+			if (!disposed) {
+				all.add(f.getPath().toLowerCase());
+				FileType type = FileType.of(f);
+				if (type==DIRECTORY) {
+					dirs.add(createItem(this, f, type));
+				} else {
+					if (filterChildFile(f)) files.add(createItem(this, f, type));
+				}
 			}
 		});
-		children.addAll(files);
+
+		if (!disposed) {
+			children = new HashSet<>(dirs.size() + files.size());
+			children.addAll(dirs);
+			children.addAll(files);
+			all_children = all;
+		}
 	}
 
 	protected Stream<File> children_files() {
@@ -104,6 +115,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	protected abstract Item createItem(Item parent, File value, FileType type);
 
 	private File getImage(File dir, String name) {
+		if (disposed) return null;
 		if (dir==null) return null;
 		for (ImageFileFormat format : ImageFileFormat.values()) {
 			if (format.isSupported()) {
@@ -126,6 +138,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	private File getImageT(File dir, String name) {
+		if (disposed) return null;
 		if (dir==null) return null;
 
 		for (ImageFileFormat format : ImageFileFormat.values()) {
@@ -139,6 +152,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	public Try<LoadResult> loadCover(boolean full, ImageSize size) {
 		throwIfFxThread();
+		if (disposed) return Try.error();
 
 		boolean wasCoverFile_loaded = coverFile_loaded;
 		File file = getCoverFile();
@@ -177,6 +191,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	// guaranteed to execute only once
 	protected File getCoverFile() {
+		if (disposed) return null;
 
 		if (coverFile_loaded) return cover_file;
 		coverFile_loaded = true;
@@ -207,7 +222,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	private static boolean file_exists(Item c, File f) {
-		return c!=null && f!=null && c.all_children.contains(f.getPath().toLowerCase());
+		return c!=null && f!=null && !c.disposed && c.all_children.contains(f.getPath().toLowerCase());
 	}
 
 	public static class LoadResult {

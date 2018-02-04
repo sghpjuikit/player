@@ -7,7 +7,6 @@ import java.util.Objects;
 import java.util.UUID;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
-import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.container.uncontainer.UniContainer;
 import sp.it.pl.util.file.Util;
 import static sp.it.pl.main.AppUtil.APP;
@@ -91,11 +90,6 @@ public final class Layout extends UniContainer {
         name = new_name;
         // save new
         serialize();
-    }
-
-    @Deprecated // remove this
-    public boolean isMain() {
-        return APP.windowManager.getMain().map(Window::getLayout).filter(l -> l==this).isPresent();
     }
 
     /**

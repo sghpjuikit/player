@@ -67,6 +67,7 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.capitalizeStrong;
 import static sp.it.pl.util.Util.filenamizeString;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.Util.writeFile;
 import static sp.it.pl.util.functional.Util.equalBy;
 import static sp.it.pl.util.functional.Util.filter;
@@ -88,6 +89,7 @@ import static sp.it.pl.util.graphics.Util.layVertically;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 
+@SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal", "unused"})
 @Widget.Info(
     author = "Martin Polakovic",
     name = "Converter",
@@ -123,7 +125,6 @@ import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
         + "\tDrag&drop files : Sets files as input\n"
         + "\tDrag&drop songs : Sets songs as input\n"
         + "\tDrag&drop text : Sets text as input\n",
-    notes = "",
     version = "1",
     year = "2015",
     group = Group.APP
@@ -131,9 +132,9 @@ import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 public class Converter extends ClassController implements Opener, SongWriter {
 
     private final ObservableList<Object> source = observableArrayList();
-    private final EditArea ta_in = new EditArea("In",true);
+    private final EditArea ta_in = new EditArea("In", true);
     private final ObservableList<EditArea> tas = observableArrayList(ta_in);
-    private final ClassListMap<Act> acts = new ClassListMap<>(act -> act.type);
+    private final ClassListMap<Act<?>> acts = new ClassListMap<>(act -> act.type);
     private final HBox outTFBox = new HBox(5);
     private final Applier applier = new Applier();
     private final HBox layout = new HBox(5,outTFBox, applier.root);
@@ -164,17 +165,17 @@ public class Converter extends ClassController implements Opener, SongWriter {
         source.addListener((Change<?> change) -> ta_in.setData(source));
 
         ta_in.onItemChange = lines -> {
-            List<EditArea> l = null;
+            List<EditArea> l;
             List<EditArea> custom_tas = filter(tas,ta -> ta.name.get().contains("Custom"));
             if (!ta_in.output.isEmpty() && ta_in.output.get(0) instanceof SplitData) {
-                List<SplitData> s = (List) ta_in.output;
+                List<SplitData> s = ta_in.output.stream().filter(SplitData.class::isInstance).map(SplitData.class::cast).collect(toList());
                 List<String> names = s.get(0).stream().map(split -> split.parse_key).collect(toList());
 
                 List<List<String>> outs = list(names.size(), ArrayList::new);
-                s.forEach(splitdata -> forEachWithI(map(splitdata,split -> split.split), (i,line)->outs.get(i).add(line)));
+                s.forEach(splits -> forEachWithI(map(splits,split -> split.split), (i,line) -> outs.get(i).add(line)));
 
                 List<EditArea> li = list(outs.size(), () -> new EditArea(""));
-                forEachWithI(outs, (i,lins) -> li.get(i).setData(names.get(i), lins));
+                forEachWithI(outs, (i, ls) -> li.get(i).setData(names.get(i),  ls));
 
                 l = li;
                 l.add(0, ta_in);
@@ -201,13 +202,13 @@ public class Converter extends ClassController implements Opener, SongWriter {
             Util.renameFile(file, name);
         }));
         acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(Metadata.Field.FIELDS, f -> f.name()), data -> {
-            List<Item> songs = (List)list(source);
+            List<Item> songs = source.stream().filter(Item.class::isInstance).map(Item.class::cast).collect(toList());
             if (songs.isEmpty()) return;
             Fut.fut()
                .then(Player.IO_THREAD, () -> {
                     for (int i=0; i<songs.size(); i++) {
                         int j = i;
-                        MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field,vals) -> w.setFieldS(Metadata.Field.valueOf(field), vals.get(j))));
+                        MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field, values) -> w.setFieldS(Metadata.Field.valueOf(field), values.get(j))));
                     }
 
                     Player.refreshItemsWith(stream(songs).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList()));
@@ -221,6 +222,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
         applier.fillActs(Void.class);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public void init() {
         Output<String> output = outputs.create(widget.id, "Text", String.class, "");
@@ -231,6 +233,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
         source.setAll(unpackData(o));
     }
 
+    @SuppressWarnings("unchecked")
     public static List<?> unpackData(Object o) {
         if (o instanceof String)
             return split((String) o, "\n", x->x);
@@ -246,15 +249,15 @@ public class Converter extends ClassController implements Opener, SongWriter {
         setData(map(items,Item::toMeta));
     }
 
-	@Override
-	public void open(Object data) {
-		setData(data);
-	}
+    @Override
+    public void open(Object data) {
+        setData(data);
+    }
 
-	/******************************* helper classes *******************************/
+/******************************* helper classes *******************************/
 
     /* Generates unique name in format 'CustomN', where N is integer. */
-    String taname() {
+    String taName() {
         return "Custom" + findFirstInt(1, i -> tas.stream().noneMatch(ta -> ta.name.get().equals("Custom"+i)));
     }
 
@@ -263,7 +266,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
         public final boolean isMain;
 
         EditArea() {
-            this(taname());
+            this(taName());
         }
 
         EditArea(String name) {
@@ -365,33 +368,36 @@ public class Converter extends ClassController implements Opener, SongWriter {
         }
 
     }
+
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "ConstantConditions"})
     private class Applier {
-        private final ImprovedComboBox<Act> actCB = new ImprovedComboBox<>(act -> act.name, "<none>");
+        private final ImprovedComboBox<Act<?>> actCB = new ImprovedComboBox<>(act -> act.name, "<none>");
         Ins ins;
-        BiConsumer<File,String> applier = (f,s) -> {
+        BiConsumer<File,String> applier = (f, s) -> {
             File rf = f.getParentFile().getAbsoluteFile();
             int dot = f.getPath().lastIndexOf('.');
             String p = f.getPath();
             String ext = p.substring(dot,p.length());
             f.renameTo(new File(rf, filenamizeString(s)+ext));
         };
+        @SuppressWarnings("unchecked")
         private final Icon runB = new Icon(PLAY_CIRCLE, 20, "Apply", () -> {
-            Act action = actCB.getValue();
+            Act<Object> action = (Act) actCB.getValue();
             if (action==null) return;
 
             if (action.isPartial()) {
-                boolean empty = source.isEmpty() || ins.vals().count()==0;
+                boolean empty = source.isEmpty() || ins.values().count()==0;
                 if (empty) return;
 
-                boolean in_out_type_match = true;//action.type.isInstance(source.get(0));
-                boolean same_size = equalBy(tas, ta->ta.getValue().size());
+                boolean in_out_type_match = true;   //action.type.isInstance(source.get(0));    // TODO: implement properly
+                boolean same_size = equalBy(tas, ta -> ta.getValue().size());
                 if (!in_out_type_match || !same_size) return;
 
-                Map<String,List<String>> m = ins.vals().collect(toMap(in->in.name,in ->in.ta.getValue()));
+                Map<String,List<String>> m = ins.values().collect(toMap(in->in.name, in ->in.ta.getValue()));
                 for (int i=0; i<source.size(); i++)
                     action.actionPartial.accept(source.get(i), mapSlice(m,i));
             } else {
-                Map<String,List<String>> m = ins.vals().collect(toMap(in->in.name,in ->in.ta.getValue()));
+                Map<String,List<String>> m = ins.values().collect(toMap(in->in.name, in ->in.ta.getValue()));
                 action.actionImpartial.accept(m);
             }
         });
@@ -414,48 +420,48 @@ public class Converter extends ClassController implements Opener, SongWriter {
         }
 
         public void fillActs(Class<?> c) {
-            List<Act> l = acts.getElementsOfSuperV(c);
+            List<Act<?>> l = acts.getElementsOfSuperV(c);
             actCB.getItems().setAll(l);
             if (!l.isEmpty()) actCB.setValue(l.get(0));
         }
     }
-    private class Act<V> {
+    private class Act<Y> {
         String name;
         int max = MAX_VALUE;
         Ƒ0<List<String>> names;
-        Class type;
+        Class<Y> type;
         boolean isNamesDeterminate;
-        BiConsumer<V,Map<String,String>> actionPartial = null;
+        BiConsumer<Y,Map<String,String>> actionPartial = null;
         Consumer<Map<String,List<String>>> actionImpartial = null;
 
-        private Act(String name, Class<V> type, int max, BiConsumer<V,Map<String,String>> action) {
+        private Act(String name, Class<Y> type, int max, BiConsumer<Y,Map<String,String>> action) {
             this.name = name;
             this.type = type;
             this.max = max;
             this.actionPartial = action;
         }
-        private Act(String name, Class<V> type, int max, Consumer<Map<String,List<String>>> action) {
+        private Act(String name, Class<Y> type, int max, Consumer<Map<String,List<String>>> action) {
             this.name = name;
             this.type = type;
             this.max = max;
             this.actionImpartial = action;
         }
-        Act(String name, Class<V> type, int max, Ƒ0<List<String>> names, BiConsumer<V,Map<String,String>> action) {
+        Act(String name, Class<Y> type, int max, Ƒ0<List<String>> names, BiConsumer<Y,Map<String,String>> action) {
             this(name, type, max, action);
             this.names = names;
             isNamesDeterminate = false;
         }
-        Act(String name, Class<V> type, int max, List<String> names, BiConsumer<V,Map<String,String>> action) {
+        Act(String name, Class<Y> type, int max, List<String> names, BiConsumer<Y,Map<String,String>> action) {
             this(name, type, max, action);
             this.names = () -> names;
             isNamesDeterminate = true;
         }
-        Act(String name, Class<V> type, int max, Ƒ0<List<String>> names, Consumer<Map<String,List<String>>> action) {
+        Act(String name, Class<Y> type, int max, Ƒ0<List<String>> names, Consumer<Map<String,List<String>>> action) {
             this(name, type, max, action);
             this.names = names;
             isNamesDeterminate = false;
         }
-        Act(String name, Class<V> type, int max, List<String> names, Consumer<Map<String,List<String>>> action) {
+        Act(String name, Class<Y> type, int max, List<String> names, Consumer<Map<String,List<String>>> action) {
             this(name, type, max, action);
             this.names = () -> names;
             isNamesDeterminate = true;
@@ -475,7 +481,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
         V<File> loc = new V<>(APP.DIR_APP);
 
         public WriteFileAct() {
-            super("Write file", Void.class, 1, list("Contents"), (Consumer)null);
+            super("Write file", Void.class, 1, list("Contents"), (Consumer<Map<String,List<String>>>) null);
             actionImpartial = data -> {
                 String filepath = new File(loc.get(), nam.get()+"."+ext.get()).getPath();
                 String contents = toS(data.get("Contents"),"\n");
@@ -500,27 +506,26 @@ public class Converter extends ClassController implements Opener, SongWriter {
         V<File> loc = new V<>(APP.DIR_HOME);
 
         public ActCreateDirs() {
-            super("Create directories", Void.class, 1, list("Names (Paths)"), (Consumer)null);
-            actionImpartial = data -> {
+            super("Create directories", Void.class, 1, list("Names (Paths)"), (Consumer<Map<String,List<String>>>) null);
+            actionImpartial = data ->
                 Fut.fut(data.get("Names (Paths)"))
                    .use(names -> {
                        File dir = loc.get();
                        names.forEach(name -> {
                            try {
-                               File newf;
+                               File newFile;
                                if (use_loc.get()) {
                                    name = name.startsWith(File.separator) ? name.substring(1) : name;
-                                   newf = new File(dir,filenamizeString(name));
+                                   newFile = new File(dir, filenamizeString(name));
                                } else {
-                                   newf = new File(name);
+                                   newFile = new File(name);
                                }
-                               Files.createDirectories(newf.toPath());
+                               Files.createDirectories(newFile.toPath());
                            } catch (IOException e) {
-                               sp.it.pl.util.dev.Util.logger(Converter.class).info("couldnt create file/directory", e);
+                               logger(Converter.class).info("Couldn't create file/directory",e);
                            }
                        });
                    });
-            };
         }
 
         @Override
@@ -549,21 +554,21 @@ public class Converter extends ClassController implements Opener, SongWriter {
     private class InPane extends ValueNode<In> {
         V<String> name;
         V<EditArea> input;
-        ConfigField<String> configfieldA;
-        ConfigField<EditArea> configfieldB;
+        ConfigField<String> configFieldA;
+        ConfigField<EditArea> configFieldB;
         HBox root;
 
-        InPane(Ƒ0<Collection<String>> actions) {
+        InPane(Ƒ0<? extends Collection<? extends String>> actions) {
             name = new VarEnum<>(actions.get().stream().findFirst().orElse(null), actions);
             input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in),tas);
-            configfieldA = ConfigField.create(Config.forProperty(String.class, "", name));
-            configfieldB = ConfigField.create(Config.forProperty(EditArea.class, "", input));
-            root = new HBox(5, configfieldA.getNode(),configfieldB.getNode());
+            configFieldA = ConfigField.create(Config.forProperty(String.class, "", name));
+            configFieldB = ConfigField.create(Config.forProperty(EditArea.class, "", input));
+            root = new HBox(5, configFieldA.getNode(), configFieldB.getNode());
         }
 
         @Override
         public In getValue() {
-            return new In(configfieldA.getValue(), configfieldB.getValue());
+            return new In(configFieldA.getValue(), configFieldB.getValue());
         }
 
         @Override
@@ -573,7 +578,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
     }
     private interface Ins {
         Node node();
-        Stream<In> vals();
+        Stream<In> values();
     }
     private class InsSimple implements Ins {
         ConfigPane<EditArea> ins;
@@ -589,7 +594,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
             return ins;
         }
 
-        public Stream<In> vals() {
+        public Stream<In> values() {
             return ins.getConfigFields().stream().map(c -> new In(c.getConfig().getName(),c.getValue()));
         }
 
@@ -597,7 +602,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
     private class InsComplex implements Ins {
         ListConfigField<In, InPane> ins;
 
-        InsComplex(Act a) {
+        InsComplex(Act<?> a) {
             ins = new ListConfigField<>(() -> new InPane(a.names));
             ins.maxChainLength.set(a.max);
         }
@@ -606,7 +611,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
             return ins.getNode();
         }
 
-        public Stream<In> vals() {
+        public Stream<In> values() {
             return ins.getValues();
         }
     }

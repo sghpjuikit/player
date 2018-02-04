@@ -63,6 +63,7 @@ import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 @Widget.Info(
     author = "Martin Polakovic",
     name = "Image Viewer",
@@ -89,7 +90,6 @@ import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
         + "    Thumbnail right click : Opens thumbnail context menu\n"
         + "    Drag&Drop audio : Displays images for the first dropped item\n"
         + "    Drag&Drop image : Show images\n",
-    notes = "",
     version = "1.0",
     year = "2015",
     group = OTHER
@@ -122,7 +122,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     });
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
     public final V<Duration> slideshow_dur = new V<>(seconds(15), slideshow::setTimeoutAndRestart);
-    @IsConfig(name = "Slideshow", info = "Turn sldideshow on/off.")
+    @IsConfig(name = "Slideshow", info = "Turn slideshow on/off.")
     public final V<Boolean> slideshow_on = new V<>(true, slideshow::setRunning);
     @IsConfig(name = "Show big image", info = "Show thumbnails.")
     public final V<Boolean> showImage = new V<>(true, mainImage.getPane()::setVisible);
@@ -150,16 +150,16 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
 
     @IsConfig(name = "Forbid no content", info = "Ignores empty directories and does not change displayed images if there is nothing to show.")
     public boolean keepContentOnEmpty = true;
-    @IsConfig(name = "File search depth", info = "Depth to searcho for files in folders. 1 for current folder only.")
+    @IsConfig(name = "File search depth", info = "Depth to search for files in folders. 1 for current folder only.")
     public int folderTreeDepth = 2;
-    @IsConfig(name = "Max amount of thubmnails", info = "Important for directories with lots of images.")
+    @IsConfig(name = "Max number of thumbnails", info = "Important for directories with lots of images.")
     public int thumbsLimit = 50;
     @IsConfig(name = "Displayed image", editable = EditMode.APP)
     private int active_image = -1;
 
     @Override
     public void init() {
-        inputs.getInput("Location of").bind(Player.playing.o);
+        inputs.getInput(Metadata.class, "Location of").bind(Player.playing.o);
 
         // main image
         mainImage.setBorderVisible(true);
@@ -191,11 +191,10 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             nextP.setOpacity(p);
             prevB.setTranslateX(+40*(p-1));
             nextB.setTranslateX(-40*(p-1));
-        });
-        navigAnim.applier.accept(0d);
+        }).applyNow();
 
-        EventReducer inactive = toLast(1000, () -> { if (!nextP.isHover() && !prevP.isHover()) navigAnim.playClose(); });
-        EventReducer active = toFirstDelayed(400, navigAnim::playOpen);
+        EventReducer<Object> inactive = toLast(1000, () -> { if (!nextP.isHover() && !prevP.isHover()) navigAnim.playClose(); });
+        EventReducer<Object> active = toFirstDelayed(400, navigAnim::playOpen);
         root.addEventFilter(MOUSE_MOVED, e -> {
             if (thumb_root.getOpacity()==0) {
                 if (prevP.getOpacity()!=1)
@@ -316,7 +315,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     public void showImages(Collection<File> imgFiles) {
         if (imgFiles.isEmpty()) return;
 
-        showImage(imgFiles.stream().findFirst().get());
+        showImage(imgFiles.stream().findFirst().orElse(null));
         active_image = 0;
         imgFiles.forEach(this::addThumbnail);
     }
@@ -338,9 +337,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     }
 
     @IsInput("Directory")
-    private void dataChanged(File i) {
-        // calculate new location
-        File new_folder = i;
+    private void dataChanged(File new_folder) {
         // prevent refreshing location if should not
         if (keepContentOnEmpty && new_folder==null) return;
         // refresh location
@@ -357,7 +354,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         List<Runnable> l = new ArrayList<>();
         boolean executing = false;
 
-        public void run(Runnable r) {
+        void run(Runnable r) {
             if (!l.isEmpty()) l.add(r);
             else {
                 e.execute(() -> {
@@ -370,12 +367,12 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             }
         }
 
-        public void stop() {
+        void stop() {
             l.clear();
         }
     }
 
-    Exec thumb_reader = new Exec();
+    private Exec thumb_reader = new Exec();
 
 
 
@@ -452,8 +449,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         if (index >= images.size()) index = images.size()-1;
 
         if (index == -1) {
-            Image i = null;
-            mainImage.loadImage(i);
+            mainImage.loadImage((Image) null);
             // this is unnecessary because we check the index for validity
             // also unwanted, sometimes this would erase our deserialized index
             //  active_image = -1;

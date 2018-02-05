@@ -5,6 +5,7 @@ import java.awt.color.ICC_Profile;
 import java.io.File;
 import java.net.URLConnection;
 import javafx.application.Application;
+import javax.imageio.ImageIO;
 import static sp.it.pl.util.file.Util.isValidatedDirectory;
 import static sp.it.pl.util.file.UtilKt.childOf;
 
@@ -23,6 +24,11 @@ public class AppUtil {
 
         // Disable url caching, which may cause jar files being held in memory
         URLConnection.setDefaultUseCaches("file", false);
+
+        File dirImageIoTmp = childOf(new File("").getAbsoluteFile(), "user", "tmp", "imageio");
+        isValidatedDirectory(dirImageIoTmp);
+        ImageIO.setCacheDirectory(dirImageIoTmp);
+        ImageIO.setUseCache(true);
 
         // Load deferred color space profiles to avoid ConcurrentModificationException due to JDK bug
         // https://github.com/haraldk/TwelveMonkeys/issues/402

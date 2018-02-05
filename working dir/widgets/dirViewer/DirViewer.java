@@ -2,7 +2,6 @@ package dirViewer;
 
 import java.io.File;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
@@ -17,13 +16,14 @@ import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.image.Thumbnail.FitFrom;
 import sp.it.pl.gui.objects.window.stage.Window;
+import sp.it.pl.util.file.FileFilterValue;
+import sp.it.pl.util.file.FileFilters;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
 import sp.it.pl.util.Sort;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.fieldvalue.FileField;
-import sp.it.pl.util.access.ref.LazyR;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.conf.Config.VarList.Elements;
@@ -31,8 +31,6 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.file.FileFlatter;
 import sp.it.pl.util.file.FileSort;
-import sp.it.pl.util.file.mimetype.MimeTypes;
-import sp.it.pl.util.functional.Functors.PƑ0;
 import sp.it.pl.util.graphics.Resolution;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.graphics.drag.Placeholder;
@@ -50,7 +48,6 @@ import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppBuildersKt.appTooltipForData;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Sort.ASCENDING;
-import static sp.it.pl.util.Util.capitalize;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.newSingleDaemonThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.newThreadPoolExecutor;
@@ -62,13 +59,9 @@ import static sp.it.pl.util.async.AsyncKt.threadFactory;
 import static sp.it.pl.util.file.FileSort.DIR_FIRST;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.Util.getCommonRoot;
-import static sp.it.pl.util.file.Util.getSuffix;
-import static sp.it.pl.util.file.mimetype.MimeTypesKt.mimeType;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
-import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.max;
-import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.reactive.Util.maintain;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
@@ -115,14 +108,8 @@ public class DirViewer extends ClassController {
 		() -> chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getWidget().getWindowOrActive().map(Window::getStage).orElse(null))
 				.ifOk(files.list::setAll)
     );
-    private final LazyR<PƑ0<File, Boolean>> filterPredicate = new LazyR<>(this::buildFilter);
-
-
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
-    final VarEnum<String> filter = new VarEnum<>("File - all", () -> map(filters, f -> f.name), v -> {
-	    filterPredicate.set(buildFilter());
-	    revisitCurrent();
-    });
+    final FileFilterValue filter = FileFilters.toEnumerableValue(v -> revisitCurrent());
     @IsConfig(name = "Sort", info = "Sorting effect.")
     final V<Sort> sort = new V<>(ASCENDING, this::applySort);
     @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
@@ -329,7 +316,7 @@ public class DirViewer extends ClassController {
     }
 
     private boolean applyFilter(File f) {
-        return !f.isHidden() && f.canRead() && filterPredicate.get().apply(f);
+        return !f.isHidden() && f.canRead() && filter.getValueAsFilter().apply(f);
     }
 
     /**
@@ -404,40 +391,4 @@ public class DirViewer extends ClassController {
         }
     }
 
-    /**
-     * Filter summary: because we can not yet serialize functions (see {@link sp.it.pl.util.functional.Functors} and
-     * {@link sp.it.pl.util.parsing.Converter}) in  a way that stores (e.g. negation or function chaining), we do not use
-     * predicates from function pool, but hardcoded filters, which we look up by name.
-     * <p/>
-     * We use String config field to save which filter we use. Of course, we give up filter chaining and other stuff...
-     * For now, it is good enough.
-     */
-    private static final List<PƑ0<File,Boolean>> filters = list();
-
-    static {
-        filters.add(new PƑ0<>("File - all", File.class, Boolean.class, file -> true));
-        filters.add(new PƑ0<>("File - none", File.class, Boolean.class, file -> false));
-        filters.add(new PƑ0<>("File type - file", File.class, Boolean.class, File::isFile));
-        filters.add(new PƑ0<>("File type - directory", File.class, Boolean.class, File::isDirectory));
-        MimeTypes.INSTANCE.setOfGroups().forEach(group -> {
-            filters.add(new PƑ0<>("Mime type group - is " + capitalize(group), File.class, Boolean.class, file -> group.equals(mimeType(file).getGroup())));
-            filters.add(new PƑ0<>("Mime type group - no " + capitalize(group), File.class, Boolean.class, file -> !group.equals(mimeType(file).getGroup())));
-        });
-        MimeTypes.INSTANCE.setOfMimeTypes().forEach(mime -> {
-            filters.add(new PƑ0<>("Mime type - is " + mime.getName(), File.class, Boolean.class, file -> mimeType(file)==mime));
-            filters.add(new PƑ0<>("Mime type - no " + mime.getName(), File.class, Boolean.class, file -> mimeType(file)!=mime));
-        });
-        MimeTypes.INSTANCE.setOfExtensions().forEach(extension -> {
-            filters.add(new PƑ0<>("Type - is " + extension, File.class, Boolean.class, file -> getSuffix(file).equalsIgnoreCase(extension)));
-            filters.add(new PƑ0<>("Type - no " + extension, File.class, Boolean.class, file -> !getSuffix(file).equalsIgnoreCase(extension)));
-        });
-    }
-
-    private PƑ0<File,Boolean> buildFilter() {
-        String type = filter.getValue();
-        return stream(filters)
-                .filter(f -> type.equals(f.name))
-                .findAny()
-                .orElseGet(() -> stream(filters).filter(f -> "File - all".equals(f.name)).findAny().get());
-    }
 }

@@ -16,7 +16,7 @@
 
 **PlayerFX** is a desktop audio player and audio management application, with a dynamic module system - a multipurpose extensible application capable of compiling and running custom java widgets.
 
-![Playlist View](https://raw.githubusercontent.com/sghpjuikit/player/master/extra/screenshot_playlists.jpg)
+![Playlist View](https://raw.githubusercontent.com/sghpjuikit/player/master/extra/assets/screenshot_playlists.jpg)
 
 ## Am I the target group?
 
@@ -239,28 +239,28 @@ Platforms:
 <details>
   <summary>Show</summary>
   
-![ScreenShot](/extra/screenshot_playlists.jpg)
+![ScreenShot](/extra/assets/screenshot_playlists.jpg)
 Depicts:
 - multiple playlists
 - drag&drop on 2nd playlist
 - time comment displayed in the popup
 
 
-![ScreenShot](/extra/screenshot_actions.jpg)
+![ScreenShot](/extra/assets/screenshot_actions.jpg)
 
 Depicts:
 - application support action menu
 - 'glass' effect
 
 
-![ScreenShot](/extra/screenshot_layoutmode.jpg)
+![ScreenShot](/extra/assets/screenshot_layoutmode.jpg)
 
 Depicts:
 - layout mode
 - widget input-output links
 
 
-![ScreenShot](/extra/screenshot_widgets.jpg)
+![ScreenShot](/extra/assets/screenshot_widgets.jpg)
 
 Depicts:
 - function plotting, audio spectrum, logger widgets
@@ -268,20 +268,20 @@ Depicts:
 - custom skin
 
 
-![ScreenShot](/extra/screenshot_comet1.jpg)
+![ScreenShot](/extra/assets/screenshot_comet1.jpg)
 
-![ScreenShot](/extra/screenshot_comet2.jpg)
+![ScreenShot](/extra/assets/screenshot_comet2.jpg)
 
 Depicts:
 - Comet game widget
 
 
-![ScreenShot](/extra/screenshot_old1.png)
+![ScreenShot](/extra/assets/screenshot_old1.png)
 
 Depicts an old build of the application with an old skin.
 
 
-![ScreenShot](/extra/screenshot_old2.png)
+![ScreenShot](/extra/assets/screenshot_old2.png)
 
 Depicts an old build of the application with an old skin.
 

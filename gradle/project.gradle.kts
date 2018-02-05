@@ -64,11 +64,6 @@ allprojects {
         kotlinOptions.allWarningsAsErrors = true
     }
 
-    tasks.withType<Jar> {
-        destinationDir = workingDir
-        archiveName = "PlayerFX.jar"
-    }
-
     repositories {
         jcenter()
     }
@@ -82,7 +77,6 @@ dependencies {
     compile("org.jetbrains.kotlin", "kotlin-test", kotlinVersion)
 
     // Java Native
-    compile("net.java.dev.jna", "jna", "4.5.1")
     compile("net.java.dev.jna", "jna-platform", "4.5.1")
 
     // Logging
@@ -93,11 +87,12 @@ dependencies {
     // JavaFX
     compile("de.jensd", "fontawesomefx", "8.9")
     compile("org.reactfx", "reactfx", "2.0-M5")
-    compile("eu.hansolo", "tilesfx", "1.5.2")
+    compile("eu.hansolo", "tilesfx", "1.5.2") {
+        exclude("com.googlecode.json-simple", "json-simple")
+    }
     compile("eu.hansolo", "Medusa", "7.9")
 
     // Image
-    compile("com.adobe.xmp", "xmpcore", "5.1.2")
     compile("com.drewnoakes", "metadata-extractor", "2.9.1")
 
     // Audio
@@ -112,7 +107,10 @@ dependencies {
     compile("com.1stleg", "jnativehook", "2.0.3")
     compile("net.objecthunter", "exp4j", "0.4.8")
     compile("org.atteo", "evo-inflector", "1.2.2")
-    compile("com.thoughtworks.xstream", "xstream", "1.4.10")
+    compile("com.thoughtworks.xstream", "xstream", "1.4.10") {
+        exclude("xmlpull", "xmlpull")
+        exclude("xpp3", "xpp3_min")
+    }
 
     //	compile("com.twelvemonkeys.imageio", "imageio-core", "3.3.2")
     //	compile("com.twelvemonkeys.imageio", "imageio-bmp", "3.3.2")
@@ -140,21 +138,10 @@ tasks {
 
     val copyLibs by creating(Copy::class) {
         group = main
-        description = "Copies all libraries into the working dir for deployment"
+        description = "Copies all libraries into the working dir"
         into("working dir/lib")
-        // TODO: the filter is only necessary because of the file dependencies, once these are gone it can be removed
-        from(configurations.runtime.filter { !(it.name.contains("javadoc") || it.name.contains("sources")) })
-    }
-
-    val cleanup by creating {
-        group = main
-        description = "Cleans up the working dir (does not delete settings or any the like)"
-        dependsOn("clean")
-        doFirst {
-            println("Cleaning up...")
-            file("working dir/log").listFiles { file -> file.extension in arrayOf("log", "zip") }.forEach { it.delete() }
-            file("working dir/lib").deleteRecursively()
-        }
+        from(configurations.compile)
+        exclude("*sources.jar", "*javadoc.jar") // TODO: this is only necessary because of the file dependencies, once these are gone it can be removed
     }
 
     val jre by creating {
@@ -182,7 +169,7 @@ tasks {
             val kotlinc = workingDir.resolve("kotlinc")
             val kotlincUpToDate = kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion!!) ?: false
             if (kotlincUpToDate) {
-                println("Kotlin compiler is up to date, version=$kotlinVersion")
+                println("Kotlin compiler is up to date, version $kotlinVersion")
             } else {
                 if (!kotlinc.exists()) {
                     println("Previous version of Kotlin compiler exists. Deleting...")
@@ -214,19 +201,31 @@ tasks {
         }
     }
 
-    "build" {
+    "jar"(Jar::class) {
+        destinationDir = workingDir
+        archiveName = "PlayerFX.jar"
+    }
+
+    "clean" {
         group = main
+        description = "Cleans up temporary files"
+        doFirst {
+            file("working dir/user/logs").deleteRecursively()
+            file("working dir/lib").deleteRecursively()
+            file("working dir/widgets").listFiles { file -> file.isDirectory }
+                    .forEach { it.listFiles { f -> f.extension == "class" }.forEach { it.delete() } }
+        }
     }
 
     "run" {
         group = main
-        dependsOn(copyLibs, jre, kotlinc, tasks.withType<Jar>())
+        dependsOn(copyLibs, jre, kotlinc, "jar")
     }
 
 }
 
 application {
-    applicationName = "PlayerFx"
+    applicationName = "PlayerFX"
     mainClassName = "sp.it.pl.main.AppUtil"
     applicationDefaultJvmArgs = listOf(
             "-Xmx3g",

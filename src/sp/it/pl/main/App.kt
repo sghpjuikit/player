@@ -65,6 +65,7 @@ import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.isValidatedDirectory
+import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.mimetype.MimeTypes
 import sp.it.pl.util.functional.Functors.Ƒ0
 import sp.it.pl.util.functional.Try
@@ -110,24 +111,24 @@ class App: Application(), Configurable<Any> {
     /** Home directory of the os. */
     @F val DIR_HOME = File(System.getProperty("user.home")).initForApp()
     /** Directory containing widgets - source files, class files and widget's resources. */
-    @F val DIR_WIDGETS = File(DIR_APP, "widgets").initForApp()
+    @F val DIR_WIDGETS = DIR_APP.childOf("widgets").initForApp()
     /** Directory containing application resources. */
-    @F val DIR_RESOURCES = File(DIR_APP, "resources").initForApp()
+    @F val DIR_RESOURCES = DIR_APP.childOf("resources").initForApp()
     /** Directory containing skins. */
-    @F val DIR_SKINS = File(DIR_RESOURCES, "skins").initForApp()
+    @F val DIR_SKINS = DIR_APP.childOf("skins").initForApp()
     /** Directory containing user data created by application usage, such as customizations, song library, etc. */
-    @F val DIR_USERDATA = File(DIR_APP, "user").initForApp()
+    @F val DIR_USERDATA = DIR_APP.childOf("user").initForApp()
     /** Directory containing library database. */
-    @F val DIR_LIBRARY = File(DIR_USERDATA, "library").initForApp()
+    @F val DIR_LIBRARY = DIR_USERDATA.childOf("library").initForApp()
     /** Directory containing user gui state. */
-    @F val DIR_LAYOUTS = File(DIR_USERDATA, "layouts").initForApp()
+    @F val DIR_LAYOUTS = DIR_USERDATA.childOf("layouts").initForApp()
     /** Directory for application logging. */
-    @F val DIR_LOG = File(DIR_USERDATA, "logs").initForApp()
+    @F val DIR_LOG = DIR_USERDATA.childOf("log").initForApp()
     /** File for application configuration. */
-    @F val FILE_SETTINGS = File(DIR_USERDATA, "application.properties")
+    @F val FILE_SETTINGS = DIR_USERDATA.childOf("application.properties")
 
     // cores (always active, mostly singletons)
-    @F val logging = CoreLogging(File(DIR_RESOURCES, "log_configuration.xml"), DIR_LOG)
+    @F val logging = CoreLogging(DIR_RESOURCES.childOf("log_configuration.xml"), DIR_LOG)
     @F val serializerXml = CoreSerializerXml()
     @F val serializer = CoreSerializer
     @F val converter = CoreConverter()

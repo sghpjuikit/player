@@ -19,28 +19,24 @@ import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 import static sp.it.pl.util.validation.Constraint.FileActor.FILE;
 
-/**
- * FXML Controller class
- */
 @Widget.Info(
     author = "Martin Polakovic",
     name = "Image",
     description = "Shows a static image",
     howto = "Available actions:\n" +
             "    Drag & drop image : Set custom image",
-    notes = "",
     version = "1.0",
     year = "2015",
     group = OTHER
 )
 public class Image extends FXMLController implements ImageDisplayFeature {
 
-    @FXML AnchorPane root;
+    private @FXML AnchorPane root;
     private final Thumbnail thumb = new Thumbnail();
 
 	@Constraint.FileType(FILE)
     @IsConfig(name = "Custom image", info = "Image file to display.")
-    private File img = new File("");
+    private File img = null;
 
     @Override
     public void init() {
@@ -69,7 +65,7 @@ public class Image extends FXMLController implements ImageDisplayFeature {
     @IsInput("To display")
     public void showImage(File imgFile) {
         thumb.loadImage(imgFile);
-        img = imgFile ==null ? new File("") : imgFile;
+        img = imgFile;
     }
 
 }

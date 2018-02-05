@@ -13,6 +13,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.file.FileType.FILE;
 import static sp.it.pl.util.graphics.drag.DragUtil.hasImage;
@@ -59,7 +60,7 @@ public class ThumbnailWithAdd extends Thumbnail {
 		// add image on click
 		root.addEventHandler(MOUSE_CLICKED, e -> {
 			if (e.getButton()==PRIMARY) {
-				chooseFile("Select image to add to tag", FILE, new File(""), root.getScene().getWindow())
+				chooseFile("Select image to add to tag", FILE, APP.DIR_APP, root.getScene().getWindow())
 						.ifOk(file -> {
 							if (onFileDropped!=null)
 								onFileDropped.accept(fut(file));

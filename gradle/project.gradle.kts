@@ -229,7 +229,8 @@ application {
     applicationName = "PlayerFX"
     mainClassName = "sp.it.pl.main.AppUtil"
     applicationDefaultJvmArgs = listOf(
-            "-Xmx3g",
+            "-Xmx15g",
+            "-Dfile.encoding=UTF-8",
             "--add-opens", "java.base/java.util=ALL-UNNAMED",
             "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
             "--add-opens", "java.base/java.text=ALL-UNNAMED",

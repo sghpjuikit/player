@@ -7,6 +7,8 @@ import sp.it.pl.util.file.mimetype.mimeType
 import sp.it.pl.util.graphics.IconExtractor
 import sp.it.pl.util.graphics.image.ImageLoader.Params
 import java.io.File
+import java.io.IOException
+import java.util.zip.ZipFile
 
 private val logger = KotlinLogging.logger {}
 
@@ -38,6 +40,16 @@ object ImageStandardLoader: ImageLoader {
             "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, true)
             "application/x-msdownload",
             "application/x-ms-shortcut" -> IconExtractor.getFileIcon(p.file)
+            "application/x-kra" -> {
+                try {
+                    ZipFile(p.file)
+                            .let { it.getInputStream(it.getEntry("mergedimage.png")) }
+                            ?.let { loadImagePsd(p.file, it, p.size.width, p.size.height, false) }
+                } catch (e: IOException) {
+                    logger.error(e) { "Unable to load image from ${p.file}" }
+                    null
+                }
+            }
             "image/gif" -> {
                 val W = maxOf(0, p.size.width.toInt())
                 val H = maxOf(0, p.size.height.toInt())

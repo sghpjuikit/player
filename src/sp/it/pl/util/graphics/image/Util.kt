@@ -8,6 +8,7 @@ import javafx.embed.swing.SwingFXUtils
 import javafx.scene.image.Image
 import javafx.scene.image.WritableImage
 import mu.KotlinLogging
+import sp.it.pl.util.dev.throwIfFxThread
 import sp.it.pl.util.file.Util.getSuffix
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.runTry
@@ -16,8 +17,10 @@ import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import javax.imageio.ImageIO
 import javax.imageio.ImageReader
+import javax.imageio.stream.ImageInputStream
 
 private typealias ImageFx = Image
 private typealias ImageBf = BufferedImage
@@ -84,19 +87,21 @@ fun loadImageThumb(file: File?, width: Double, height: Double): ImageFx? {
     }
 }
 
-fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean): ImageFx? {
-    if (Platform.isFxApplicationThread())
-        logger.warn(Throwable()) { "Loading image on FX thread!" }
+fun loadImagePsd(file: File, inS: InputStream, width: Double, height: Double, highQuality: Boolean) = loadImagePsd(file, ImageIO.createImageInputStream(inS), width, height, highQuality)
 
-    // negative values have same effect as 0, 0 loads image at its size
-    var w = maxOf(0, width.toInt())
-    var h = maxOf(0, height.toInt())
-    val loadFullSize = w==0 && h==0
+fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean) = loadImagePsd(file, ImageIO.createImageInputStream(file), width, height, highQuality)
 
-    ImageIO.createImageInputStream(file).use { input ->
+private fun loadImagePsd(file: File, imageInputStream: ImageInputStream, width: Double, height: Double, highQuality: Boolean): ImageFx? {
+    throwIfFxThread()
+
+    imageInputStream.use { input ->
         val readers = ImageIO.getImageReaders(input)
         if (!readers.hasNext()) return null
 
+        // negative values have same effect as 0, 0 loads image at its size
+        var w = maxOf(0, width.toInt())
+        var h = maxOf(0, height.toInt())
+        val loadFullSize = w==0 && h==0
         val scale = !loadFullSize
         val reader = readers.next()!!
         reader.input = input
@@ -219,5 +224,3 @@ fun createImageBlack(size: ImageSize) = BufferedImage(size.width.toInt(), size.h
 
 /** @return new transparent image of specified size */
 fun createImageTransparent(size: ImageSize) = BufferedImage(size.width.toInt(), size.height.toInt(), BufferedImage.TYPE_INT_ARGB)
-
-

@@ -20,6 +20,7 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfig.EditMode
 import sp.it.pl.util.conf.IsConfigurable
+import sp.it.pl.util.file.childOf
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.graphics.Util.menuItem
 import sp.it.pl.util.graphics.image.ImageSize
@@ -50,7 +51,7 @@ class TrayService : ServiceBase(true) {
     private val onEnd = Disposer()
 
     private var tray: SystemTray? = null
-    private val trayIconImageDefault = File(APP.DIR_RESOURCES, "icons/icon24.png")
+    private val trayIconImageDefault = APP.DIR_RESOURCES.childOf("icons", "icon24.png")
     private var trayIconImage = trayIconImageDefault
     private var trayIcon: TrayIcon? = null
     private val onClickDefault = EventHandler<MouseEvent> { Gui.toggleMinimize() }

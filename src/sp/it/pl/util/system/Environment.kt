@@ -24,6 +24,7 @@ import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util.isValidSkinFile
 import sp.it.pl.util.file.Util.isValidWidgetFile
+import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.find1stExistingParentDir
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
 import sp.it.pl.util.file.parentDirOrSelf
@@ -68,7 +69,7 @@ fun File.runAsProgram(vararg arguments: String): Fut<Try<Void>> = fut()
             val command = ArrayList<String>()
             try {
                 if (Os.WINDOWS.isCurrent)
-                    command += "elevate.exe"   // use elevate.exe to run command
+                    command += File("").absoluteFile.childOf("elevate.exe").absolutePath   // use elevate.exe to run command
 
                 command += absoluteFile.path
                 command += arguments.asSequence().filter { it.isNotBlank() }.map { "-$it" }

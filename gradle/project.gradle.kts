@@ -141,7 +141,7 @@ tasks {
         description = "Copies all libraries into the working dir"
         into("working dir/lib")
         from(configurations.compile)
-        exclude("*sources.jar", "*javadoc.jar") // TODO: this is only necessary because of the file dependencies, once these are gone it can be removed
+        exclude("*sources.jar", "*javadoc.jar")
     }
 
     val jre by creating {
@@ -210,10 +210,11 @@ tasks {
         group = main
         description = "Cleans up temporary files"
         doFirst {
-            file("working dir/user/logs").deleteRecursively()
+            file("working dir/user/log").deleteRecursively()
             file("working dir/lib").deleteRecursively()
-            file("working dir/widgets").listFiles { file -> file.isDirectory }
-                    .forEach { it.listFiles { f -> f.extension == "class" }.forEach { it.delete() } }
+            file("working dir/widgets").walkBottomUp()
+                    .filter { it.path.endsWith("class") }
+                    .fold(true, { res, it -> (it.delete() || !it.exists()) && res })
         }
     }
 
@@ -228,7 +229,8 @@ application {
     applicationName = "PlayerFX"
     mainClassName = "sp.it.pl.main.AppUtil"
     applicationDefaultJvmArgs = listOf(
-            "-Xmx3g",
+            "-Xmx15g",
+            "-Dfile.encoding=UTF-8",
             "--add-opens", "java.base/java.util=ALL-UNNAMED",
             "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
             "--add-opens", "java.base/java.text=ALL-UNNAMED",

@@ -1068,6 +1068,7 @@ application/x-hdf				hdf
 application/x-install-instructions		install
 application/x-iso9660-image			iso
 application/x-java-jnlp-file			jnlp
+application/x-kra					kra
 application/x-latex				latex
 application/x-lzh-compressed			lzh lha
 application/x-mie				mie

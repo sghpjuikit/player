@@ -60,6 +60,7 @@ import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.isValidatedDirectory
+import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.mimetype.MimeTypes
 import sp.it.pl.util.functional.Functors.Ƒ0
 import sp.it.pl.util.functional.Try
@@ -105,24 +106,24 @@ class App: Application(), Configurable<Any> {
     /** Home directory of the os. */
     @F val DIR_HOME = File(System.getProperty("user.home")).initForApp()
     /** Directory containing widgets - source files, class files and widget's resources. */
-    @F val DIR_WIDGETS = File(DIR_APP, "widgets").initForApp()
+    @F val DIR_WIDGETS = DIR_APP.childOf("widgets").initForApp()
     /** Directory containing application resources. */
-    @F val DIR_RESOURCES = File(DIR_APP, "resources").initForApp()
+    @F val DIR_RESOURCES = DIR_APP.childOf("resources").initForApp()
     /** Directory containing skins. */
-    @F val DIR_SKINS = File(DIR_RESOURCES, "skins").initForApp()
+    @F val DIR_SKINS = DIR_APP.childOf("skins").initForApp()
     /** Directory containing user data created by application usage, such as customizations, song library, etc. */
-    @F val DIR_USERDATA = File(DIR_APP, "user").initForApp()
+    @F val DIR_USERDATA = DIR_APP.childOf("user").initForApp()
     /** Directory containing library database. */
-    @F val DIR_LIBRARY = File(DIR_USERDATA, "library").initForApp()
+    @F val DIR_LIBRARY = DIR_USERDATA.childOf("library").initForApp()
     /** Directory containing user gui state. */
-    @F val DIR_LAYOUTS = File(DIR_USERDATA, "layouts").initForApp()
+    @F val DIR_LAYOUTS = DIR_USERDATA.childOf("layouts").initForApp()
     /** Directory for application logging. */
-    @F val DIR_LOG = File(DIR_USERDATA, "logs").initForApp()
+    @F val DIR_LOG = DIR_USERDATA.childOf("log").initForApp()
     /** File for application configuration. */
-    @F val FILE_SETTINGS = File(DIR_USERDATA, "application.properties")
+    @F val FILE_SETTINGS = DIR_USERDATA.childOf("application.properties")
 
     // cores (always active, mostly singletons)
-    @F val logging = CoreLogging(File(DIR_RESOURCES, "log_configuration.xml"), DIR_LOG)
+    @F val logging = CoreLogging(DIR_RESOURCES.childOf("log_configuration.xml"), DIR_LOG)
     @F val serializerXml = CoreSerializerXml()
     @F val serializer = CoreSerializer
     @F val converter = CoreConverter()
@@ -235,6 +236,7 @@ class App: Application(), Configurable<Any> {
         // add optional object class -> string converters
         className.addNoLookup(Void::class.java, "Nothing")
         className.add(String::class.java, "Text")
+        className.add(File::class.java, "File")
         className.add(App::class.java, "Application")
         className.add(Item::class.java, "Song")
         className.add(PlaylistItem::class.java, "Playlist Song")
@@ -259,34 +261,34 @@ class App: Application(), Configurable<Any> {
 
         // add optional object instance -> info string converters
         instanceInfo.add(Void::class.java) { _, _ -> }
-        instanceInfo.add(String::class.java) { s, map -> map.put("Length", Integer.toString(s?.length ?: 0)) }
+        instanceInfo.add(String::class.java) { s, map -> map["Length"] = Integer.toString(s?.length ?: 0) }
         instanceInfo.add(File::class.java) { f, map ->
             val type = FileType.of(f)
-            map.put("File type", type.name)
+            map["File type"] = type.name
 
             if (type==FileType.FILE) {
                 val fs = FileSize(f)
-                map.put("Size", "" + fs + (if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else ""))
-                map.put("Format", f.name.substringAfterLast('.', "<none>"))
+                map["Size"] = "" + fs + (if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else "")
+                map["Format"] = f.name.substringAfterLast('.', "<none>")
             }
 
             val iff = ImageFileFormat.of(f.toURI())
             if (iff.isSupported) {
                 val res = getImageDim(f).map { "${it.width} x ${it.height}" }.getOr("n/a")
-                map.put("Resolution", res)
+                map["Resolution"] = res
             }
         }
-        instanceInfo.add(App::class.java) { v, map -> map.put("Name", v.name) }
-        instanceInfo.add(Component::class.java) { v, map -> map.put("Name", v.exportName) }
+        instanceInfo.add(App::class.java) { v, map -> map["Name"] = v.name }
+        instanceInfo.add(Component::class.java) { v, map -> map["Name"] = v.exportName }
         instanceInfo.add(Metadata::class.java) { m, map ->
             Metadata.Field.FIELDS.asSequence()
                     .filter { it.isTypeStringRepresentable() && !it.isFieldEmpty(m) }
-                    .forEach { map.put(it.name(), it.getOfS(m, "<none>")) }
+                    .forEach { map[it.name()] = it.getOfS(m, "<none>") }
         }
         instanceInfo.add(PlaylistItem::class.java) { p, map ->
             PlaylistItem.Field.FIELDS.asSequence()
                     .filter { it.isTypeStringRepresentable() }
-                    .forEach { map.put(it.name(), it.getOfS(p, "<none>")) }
+                    .forEach { map[it.name()] = it.getOfS(p, "<none>") }
         }
 
         // init cores

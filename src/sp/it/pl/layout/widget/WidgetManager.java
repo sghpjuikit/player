@@ -77,6 +77,7 @@ public final class WidgetManager {
 	private boolean initialized = false;
 	private final WindowManager windowManager;
 	private final Consumer<? super String> userErrorLogger;
+	private final String classpathSeparator = Os.UNIX.isCurrent() ? ":" : ";";
 
 	public WidgetManager(WindowManager windowManager, Consumer<? super String> userErrorLogger) {
 		this.windowManager = windowManager;
@@ -303,20 +304,26 @@ public final class WidgetManager {
 			File mainJarFile = childOf(AppUtil.APP.DIR_APP, "PlayerFX.jar");
 			String mainJar = mainJarFile.exists()
 				? mainJarFile.getAbsolutePath()
-				: stream(System.getProperty("java.class.path").split(";"))
+				: stream(System.getProperty("java.class.path").split(classpathSeparator))
 					.filter(p -> p.contains("build\\classes") || p.contains("build\\kotlin-classes"))
-					.collect(joining(";"));
-			return mainJar + ";" +
+					.collect(joining(classpathSeparator));
+			return "." + classpathSeparator + mainJar + classpathSeparator +
 				stream(
-						listChildren(childOf(AppUtil.APP.DIR_APP, "lib")).filter(f -> f.getPath().endsWith(".jar")),
+						listChildren(childOf(AppUtil.APP.DIR_APP, "lib"))
+							.filter(f -> f.getPath().endsWith(".jar"))
+							.filter(f -> !f.getPath().endsWith("sources.jar"))
+							.filter(f -> !f.getPath().endsWith("javadoc.jar")),
 						getLibFiles()
 					)
 					.map(f -> f.getAbsolutePath())
-					.collect(joining(";"));
+					.collect(joining(classpathSeparator));
 		}
 
 		Stream<File> getLibFiles() {
-			return listChildren(widgetDir).filter(f -> f.getPath().endsWith(".jar"));
+			return listChildren(widgetDir)
+				.filter(f -> f.getPath().endsWith(".jar"))
+				.filter(f -> !f.getPath().endsWith("sources.jar"))
+				.filter(f -> !f.getPath().endsWith("javadoc.jar"));
 		}
 
 		private Try<String> compile() {
@@ -379,7 +386,7 @@ public final class WidgetManager {
 				command.add("-cp");
 				command.add(getClassPath());
 
-				LOGGER.info("Widget={} compiling with command: {} ", widgetName, toS(" ", command));
+				LOGGER.info("Widget={} compiling with command: {} ", widgetName, toS(command, " "));
 
 				int success = new ProcessBuilder(command)
 					.directory(childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin"))

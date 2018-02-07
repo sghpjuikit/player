@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import javafx.scene.image.Image;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.util.HierarchicalBase;
+import sp.it.pl.util.access.fieldvalue.CachingFile;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.functional.Try;
@@ -105,7 +106,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	protected Stream<File> children_files() {
-		return listChildren(val);
+		return listChildren(val).map(CachingFile::new);
 	}
 
 	protected boolean filterChildFile(File f) {

@@ -21,6 +21,7 @@ public enum ImageFileFormat {
 	png,
 	gif,
 	psd,
+	kra,
 	UNKNOWN;
 
 	public boolean isSupported() {

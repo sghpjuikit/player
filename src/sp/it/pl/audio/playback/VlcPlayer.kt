@@ -15,6 +15,7 @@ import sp.it.pl.util.functional.runTry
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.system.Os
 import uk.co.caprica.vlcj.discovery.NativeDiscovery
 import uk.co.caprica.vlcj.discovery.linux.DefaultLinuxNativeDiscoveryStrategy
 import uk.co.caprica.vlcj.discovery.mac.DefaultMacNativeDiscoveryStrategy
@@ -26,6 +27,7 @@ import uk.co.caprica.vlcj.player.media.simple.SimpleMedia
 import java.io.File
 import javax.print.attribute.standard.PrinterStateReason.PAUSED
 import kotlin.math.roundToInt
+
 
 class VlcPlayer: GeneralPlayer.Play {
 
@@ -74,7 +76,7 @@ class VlcPlayer: GeneralPlayer.Play {
         d += state.balance sync { }         // TODO: implement
         d += state.rate sync { p.rate = it.toFloat() }
 
-        p.prepareMedia(SimpleMedia(item.getFile().absolutePath))    // TODO: use URI instead
+        p.prepareMedia(SimpleMedia(item.uriAsVlcPath()))
         p.addMediaPlayerEventListener(object: MediaPlayerEventAdapter() {
 
             override fun lengthChanged(mediaPlayer: MediaPlayer?, newLength: Long) {
@@ -154,6 +156,14 @@ class VlcPlayer: GeneralPlayer.Play {
                 directoryNames.clear()
                 directoryNames += location.absolutePath
             }
+        }
+
+        private fun Item.uriAsVlcPath() = uri.toASCIIString().let {
+            // vlcj bug
+            // https://github.com/sghpjuikit/player/issues/40
+            // https://github.com/caprica/vlcj/issues/173
+            // https://github.com/caprica/vlcj/issues/424
+            if (Os.WINDOWS.isCurrent) it.replaceFirst("file:/".toRegex(), "file:///") else it
         }
 
     }

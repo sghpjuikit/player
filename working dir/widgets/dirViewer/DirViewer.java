@@ -16,6 +16,7 @@ import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.image.Thumbnail.FitFrom;
 import sp.it.pl.gui.objects.window.stage.Window;
+import sp.it.pl.util.access.fieldvalue.CachingFile;
 import sp.it.pl.util.file.FileFilterValue;
 import sp.it.pl.util.file.FileFilters;
 import sp.it.pl.layout.widget.Widget;
@@ -382,7 +383,7 @@ public class DirViewer extends ClassController {
 
         @Override
         protected Stream<File> children_files() {
-            return fileFlatter.get().flatten.invoke(files.list);
+            return fileFlatter.get().flatten.invoke(files.list).map(CachingFile::new);
         }
 
         @Override

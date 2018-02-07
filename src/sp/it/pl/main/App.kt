@@ -241,6 +241,7 @@ class App: Application(), Configurable<Any> {
         // add optional object class -> string converters
         className.addNoLookup(Void::class.java, "Nothing")
         className.add(String::class.java, "Text")
+        className.add(File::class.java, "File")
         className.add(App::class.java, "Application")
         className.add(Item::class.java, "Song")
         className.add(PlaylistItem::class.java, "Playlist Song")

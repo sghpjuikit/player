@@ -15,12 +15,7 @@ import sp.it.pl.audio.Player
 import sp.it.pl.audio.playlist.PlaylistItem
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
-import sp.it.pl.core.CoreConverter
-import sp.it.pl.core.CoreInstances
-import sp.it.pl.core.CoreLogging
-import sp.it.pl.core.CoreMouse
-import sp.it.pl.core.CoreSerializer
-import sp.it.pl.core.CoreSerializerXml
+import sp.it.pl.core.*
 import sp.it.pl.gui.Gui
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
@@ -201,7 +196,7 @@ class App: Application(), Configurable<Any> {
 
     @C(name = "Normal mode", info = "Whether application loads into previous/default state or no state at all.")
     @F var normalLoad = true
-    private var isInitialized: Try<Void, Throwable> = Try.error(Exception("Initialization has not run yet"))
+    private var isInitialized: Try<Void> = Try.error("Initialization has not run yet")
     private var closedPrematurely = false
 
     /** Manages persistence and in-memory storage. */
@@ -369,7 +364,7 @@ class App: Application(), Configurable<Any> {
             // Control Skins, it will only have effect when set before control is created
             configuration.getFields { it.group=="Gui" && it.guiName=="Skin" }.findFirst().orNull()!!.applyValue()
             windowManager.deserialize(normalLoad)
-        }.ifError {
+        }.handleException {
             logger.error(it) { "Application failed to start" }
             logger.info { "Application closing prematurely" }
 
@@ -378,7 +373,7 @@ class App: Application(), Configurable<Any> {
                     "Application did not start successfully and will close. Please fill an issue at $uriGithub " +
                     "providing the logs in $DIR_LOG. The exact problem was:\n ${it.stacktraceAsString}"
             )
-        }.ifOk {
+        }.handleOk {
             // initialization is complete -> apply all settings
             configuration.fields.forEach { it.applyValue() }
 

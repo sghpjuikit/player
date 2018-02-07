@@ -278,7 +278,7 @@ public class Library extends FXMLController implements SongReader {
         Window w = root.getScene().getWindow();
         FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
         chooseFile("Add folder to library", FileType.DIRECTORY, lastDir, w, ef)
-            .ifOk(file -> {
+            .handleOk(file -> {
                 APP.actionPane.show(file);
                 lastDir = file.getParentFile();
             });
@@ -288,7 +288,7 @@ public class Library extends FXMLController implements SongReader {
         Window w = root.getScene().getWindow();
         FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
         chooseFiles("Add files to library", lastFile, w, ef)
-            .ifOk(files -> {
+            .handleOk(files -> {
                 APP.actionPane.show(files);
                 lastFile = getCommonRoot(files);
             });

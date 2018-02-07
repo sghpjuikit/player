@@ -67,7 +67,7 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.capitalizeStrong;
 import static sp.it.pl.util.Util.filenamizeString;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.Util.writeFile;
 import static sp.it.pl.util.functional.Util.equalBy;
 import static sp.it.pl.util.functional.Util.filter;
@@ -522,7 +522,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
                                }
                                Files.createDirectories(newFile.toPath());
                            } catch (IOException e) {
-                               log(Converter.class).info("Couldn't create file/directory",e);
+                               logger(Converter.class).info("Couldn't create file/directory",e);
                            }
                        });
                    });

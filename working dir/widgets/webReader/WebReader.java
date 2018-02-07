@@ -12,11 +12,11 @@ import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.dev.Dependency;
+import sp.it.pl.util.dev.Util;
 import sp.it.pl.web.DuckDuckGoQBuilder;
 import sp.it.pl.web.SearchUriBuilder;
 import sp.it.pl.web.WebBarInterpreter;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.file.UtilKt.childOf;
 import static sp.it.pl.util.reactive.Util.maintain;
 import static sp.it.pl.util.type.Util.getFieldValue;
@@ -79,7 +79,7 @@ public class WebReader extends FXMLController {
 ////		    engine.setUserStyleSheetLocation(new File(APP.DIR_SKINS.getPath(), Gui.skin.get() + separator + Gui.skin.get() + ".css").toURI().toURL().toExternalForm());
 //		    engine.setUserStyleSheetLocation(new File(APP.DIR_SKINS.getPath(), "Test" + separator + "Test.css").toURI().toURL().toExternalForm());
 //	    } catch (MalformedURLException e) {
-//		    log(WebReader.class).error("Could not apply app skin on the web reader");
+//		    logger(WebReader.class).error("Could not apply app skin on the web reader");
 //	    }
 
     }
@@ -118,7 +118,7 @@ public class WebReader extends FXMLController {
 			if (webPage==null) return; // TODO: fix
 			invokeMethodP1(webPage, "setBackgroundColor", int.class, new java.awt.Color(255, 255, 255, 1).getRGB());
 		} catch (Exception e) {
-			log(WebReader.class).error("Could not change background color to transparent", e);
+			Util.logger(WebReader.class).error("Could not change background color to transparent", e);
 		}
 	}
 }

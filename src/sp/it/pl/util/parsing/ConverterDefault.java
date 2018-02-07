@@ -81,16 +81,16 @@ public class ConverterDefault extends Converter {
 	/** Default to string parser, which calls objects toString() or returns null constant. */
 	public final Function<Object,String> defaultTos = o -> o==null ? stringNull : o.toString();
 	/** Default from string parser. Always returns null. */
-	public final Function<String,Try<Object,String>> defaultFromS = o -> error("Object has no from-text converter");
+	public final Function<String,Try<Object>> defaultFromS = o -> error("Object has no from-text converter");
 
-    private final ClassMap<Function<? super Object,Try<String,String>>> parsersToS = new ClassMap<>();
-    private final ClassMap<Function<? super String,Try<Object,String>>> parsersFromS = new ClassMap<>();
+    private final ClassMap<Function<? super Object,Try<String>>> parsersToS = new ClassMap<>();
+    private final ClassMap<Function<? super String,Try<Object>>> parsersFromS = new ClassMap<>();
 
     public <T> void addParser(Class<T> c, ConverterString<T> parser) {
         addParser(c, parser::toS, parser::ofS);
     }
 
-    public <T> void addParser(Class<T> c, Function<? super T,String> to, Function<String,Try<T,String>> of) {
+    public <T> void addParser(Class<T> c, Function<? super T,String> to, Function<String,Try<T>> of) {
         addParserToS(c, to);
         addParserOfS(c, of);
     }
@@ -106,14 +106,14 @@ public class ConverterDefault extends Converter {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> void addParserOfS(Class<T> c, Function<String,Try<T,String>> parser) {
+    public <T> void addParserOfS(Class<T> c, Function<String,Try<T>> parser) {
         parsersFromS.put(c, (Function) parser);
     }
 
     @SuppressWarnings("unchecked")
     @NotNull
     @Override
-    public <T> Try<T,String> ofS(@NotNull Class<T> c, @NotNull String s) {
+    public <T> Try<T> ofS(@NotNull Class<T> c, @NotNull String s) {
         if (stringNull.equals(s)) return ok(null);
         return getParserOfS(c).apply(s);
     }
@@ -123,22 +123,22 @@ public class ConverterDefault extends Converter {
     @Override
     public <T> String toS(T o) {
         if (o==null) return stringNull;
-        String s = ((Function<T,Try<String,String>>) getParserToS(o.getClass())).apply(o).getOr(null);
+        String s = ((Function<T,Try<String>>) getParserToS(o.getClass())).apply(o).getOr(null);
         return noNull(s, stringNull);
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Function<? super String,Try<T,String>> getParserOfS(Class<T> c) {
+    private <T> Function<? super String,Try<T>> getParserOfS(Class<T> c) {
         return (Function) parsersFromS.computeIfAbsent(c, key -> (Function) findOfSparser(key));
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Function<? super T,Try<String,String>> getParserToS(Class<T> c) {
+    private <T> Function<? super T,Try<String>> getParserToS(Class<T> c) {
         return parsersToS.computeIfAbsent(c, key -> (Function) findToSparser(key));
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Function<? super String,Try<T,String>> findOfSparser(Class<T> c) {
+    private <T> Function<? super String,Try<T>> findOfSparser(Class<T> c) {
         return (Function) noNull(
             () -> parsersFromS.getElementOfSuper(c),
             () -> buildOfSParser(c),
@@ -147,7 +147,7 @@ public class ConverterDefault extends Converter {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Function<? super T,Try<String,String>> findToSparser(Class<T> c) {
+    private <T> Function<? super T,Try<String>> findToSparser(Class<T> c) {
         return (Function) noNull(
             () -> parsersToS.getElementOfSuper(c),
             () -> buildToSParser(c),
@@ -156,8 +156,8 @@ public class ConverterDefault extends Converter {
     }
 
     @SuppressWarnings("ConstantConditions")
-    private <T> Function<String,Try<T,String>> buildOfSParser(Class<T> type) {
-        Function<String,Try<T,String>> ofS = null;
+    private <T> Function<String,Try<T>> buildOfSParser(Class<T> type) {
+        Function<String,Try<T>> ofS = null;
         StringParseStrategy a = type.getAnnotation(StringParseStrategy.class);
 
         if (ofS==null && a!=null) {
@@ -224,7 +224,7 @@ public class ConverterDefault extends Converter {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Function<T,Try<String,String>> buildToSParser(Class<T> c) {
+    private <T> Function<T,Try<String>> buildToSParser(Class<T> c) {
         StringParseStrategy a = c.getAnnotation(StringParseStrategy.class);
         if (a!=null) {
             To strategy = a.to();

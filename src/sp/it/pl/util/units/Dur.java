@@ -28,7 +28,7 @@ public class Dur extends Duration {
 	}
 
 	@Dependency("toString")
-	public static Try<Dur,Throwable> fromString(String s) {
+	public static Try<Dur> fromString(String s) {
 		try {
 			// try parsing in hh:mm:ss format
 			if (s.contains(":")) {

@@ -34,7 +34,6 @@ import java.awt.SystemTray
 import java.awt.TrayIcon
 import java.awt.event.MouseAdapter
 import java.io.File
-import java.io.IOException
 
 /** Provides tray facilities, such as tray icon, tray tooltip, tray click actions or tray bubble notification. */
 @Suppress("unused")
@@ -91,7 +90,7 @@ class TrayService : ServiceBase(true) {
         EventQueue.invokeLater {
             tray = SystemTray.getSystemTray().apply {
                 val image = loadBufferedImage(trayIconImage)
-                        .ifError { logger.warn { "Failed to load tray icon" } }
+                        .handleError { logger.warn { "Failed to load tray icon" } }
                         .getOr(null)
                         ?.getScaledInstance(trayIconSize.width, -1, Image.SCALE_SMOOTH)
                         ?: createImageBlack(ImageSize(trayIconSize.size))
@@ -187,18 +186,18 @@ class TrayService : ServiceBase(true) {
     }
 
     /** Set tray icon. Null sets default icon. */
-    fun setIcon(img: File?): Try<Void, IOException> {
+    fun setIcon(img: File?): Try<Void> {
         trayIconImage = img ?: trayIconImageDefault
 
         if (!running || !supported) return Try.ok()
 
         return if (trayIcon != null) {
             loadBufferedImage(trayIconImage)
-                    .ifOk {
+                    .handleOk {
                         trayIcon?.image?.flush()
                         trayIcon?.image = it
                     }
-                    .map { null }
+                    .map { null } // fixme is this line neccessary?
         } else Try.ok()
     }
 

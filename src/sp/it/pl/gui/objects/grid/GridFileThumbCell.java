@@ -228,8 +228,8 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 					}
 
 					item.loadCover(false, IS)
-						.ifOk(result -> then.run(() -> setCoverPost(item, result.wasLoaded, result.file, result.cover, then)))
-						.ifError(e -> then.runNothing());
+						.handleOk(result -> then.run(() -> setCoverPost(item, result.wasLoaded, result.file, result.cover, then)))
+						.handleError(e -> then.runNothing());
 				}
 			));
 
@@ -257,8 +257,8 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 						};
 
 						item.loadCover(true, size)
-							.ifOk(result -> then.run(() -> setCoverPost(item, result.wasLoaded, result.file, result.cover, then)))
-							.ifError(e -> then.runNothing());
+							.handleOk(result -> then.run(() -> setCoverPost(item, result.wasLoaded, result.file, result.cover, then)))
+							.handleError(e -> then.runNothing());
 					}
 				));
 		}

@@ -636,8 +636,9 @@ class Metadata: Item, Serializable {
     }
 
     private fun readArt(): Artwork? {
-        val af = if (isFileBased()) getFile().readAudioFile().orNull() else null
-        return af?.tag?.firstArtwork
+        return if (isFileBased())
+            getFile().readAudioFile().orNull()?.tag?.firstArtwork
+        else null
     }
 
     /** @return the cover image file on a file system or null if this item is not file based */

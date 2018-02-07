@@ -751,10 +751,10 @@ public class MetadataWriter extends Item {
 		if (field==Metadata.Field.PUBLISHER) { setPublisher(data); return; }
 		if (field==Metadata.Field.TRACK) { setTrack(data); return; }
 		if (field==Metadata.Field.TRACKS_TOTAL) { setTracksTotal(data); return; }
-		if (field==Metadata.Field.TRACK_INFO) { NofX.fromString(data).ifOk(this::setTracksInfo); return; }
+		if (field==Metadata.Field.TRACK_INFO) { NofX.fromString(data).handleOk(this::setTracksInfo); return; }
 		if (field==Metadata.Field.DISC) { setDisc(data); return; }
 		if (field==Metadata.Field.DISCS_TOTAL) { setDiscsTotal(data); return; }
-		if (field==Metadata.Field.DISCS_INFO) { NofX.fromString(data).ifOk(this::setDiscsInfo); return; }
+		if (field==Metadata.Field.DISCS_INFO) { NofX.fromString(data).handleOk(this::setDiscsInfo); return; }
 		if (field==Metadata.Field.GENRE) { setGenre(data); return; }
 		if (field==Metadata.Field.YEAR) { setYear(data); return; }
 		if (field==Metadata.Field.COVER) return;

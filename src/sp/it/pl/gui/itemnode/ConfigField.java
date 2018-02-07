@@ -179,8 +179,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     public boolean applyOnChange = true;
     protected boolean inconsistentState = false;
     private Icon defB;
-    public Try<T,String> value = ok(null);
-    public Consumer<? super Try<T,String>> observer;
+    public Try<T> value = ok(null);
+    public Consumer<? super Try<T>> observer;
 
     private ConfigField(Config<T> c) {
         super(c);
@@ -299,9 +299,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         getControl().requestFocus();
     }
 
-    protected abstract Try<T,String> get();
+    protected abstract Try<T> get();
 
-    public Try<T,String> getValid() {
+    public Try<T> getValid() {
         value = get().and(v -> config.getConstraints().stream().map(c -> c.validate(v)).reduce(ok(),Try::and));
         if (observer!=null) observer.accept(value);
         return value;
@@ -334,7 +334,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     protected void apply(boolean user) {
         if (inconsistentState) return;
-        getValid().ifOk(v -> {
+        getValid().handleOk(v -> {
             boolean needsapply = !Objects.equals(v, config.getValue());
             if (!needsapply) return;
             inconsistentState = true;
@@ -367,7 +367,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Try<Void,String> get() {
+        public Try<Void> get() {
             return ok(null);
         }
 
@@ -389,7 +389,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Try<Password,String> get() {
+        public Try<Password> get() {
             return ok(new Password(graphics.getText()));
         }
 
@@ -451,7 +451,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             });
             // applying value
             n.textProperty().addListener((o,ov,nv)-> {
-                Try<T,String> t = getValid();
+                Try<T> t = getValid();
                 boolean applicable = t.map(v -> !Objects.equals(config.getValue(), v)).getOr(false);
                 showOkButton(!applyOnChange && applicable && t.isOk());
                 showWarnButton(t);
@@ -468,7 +468,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 }
             });
 
-            Try<T,String> t = getValid();
+            Try<T> t = getValid();
             showWarnButton(t);
         }
 
@@ -484,7 +484,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Try<T,String> get() {
+        public Try<T> get() {
             return config.ofS(n.getText());
         }
 
@@ -498,7 +498,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override
         protected void apply(boolean user) {
             if (inconsistentState) return;
-            getValid().ifOk(v -> {
+            getValid().handleOk(v -> {
                 boolean applicable = !Objects.equals(config.getValue(), v);
                 if (!applicable) return;
 
@@ -514,7 +514,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             okI.setVisible(val);
         }
 
-        private void showWarnButton(Try<?,String> value) {
+        private void showWarnButton(Try<?> value) {
             n.right.setValue(value.isError() ? warnB : null);
             warnB.setVisible(value.isError());
             warnTooltip.setText(value.map(v -> "").getAny());
@@ -549,7 +549,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Try<Boolean,String> get() {
+        public Try<Boolean> get() {
             return ok(graphics.selected.getValue());
         }
 
@@ -624,7 +624,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Try<Number,String> get() {
+        public Try<Number> get() {
             Double d = slider.getValue();
             Class type = config.getType();
             if (Integer.class==type) return ok(d.intValue());
@@ -668,7 +668,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Try<T,String> get() {
+        public Try<T> get() {
             return ok(n.getValue());
         }
 
@@ -809,7 +809,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Try<Action,String> get() {
+        public Try<Action> get() {
             return ok(a);
         }
 
@@ -833,7 +833,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override public Control getControl() {
             return picker;
         }
-        @Override public Try<Color,String> get() {
+        @Override public Try<Color> get() {
             return ok(picker.getValue());
         }
         @Override public void refreshItem() {
@@ -852,7 +852,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override public Control getControl() {
             return txtF;
         }
-        @Override public Try<Font,String> get() {
+        @Override public Try<Font> get() {
             return ok(txtF.getValue());
         }
         @Override public void refreshItem() {
@@ -889,7 +889,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Try<File,String> get() {
+        public Try<File> get() {
             return ok(editor.getValue());
         }
 
@@ -913,14 +913,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override public Control getControl() {
             return editor;
         }
-        @Override public Try<Effect,String> get() {
+        @Override public Try<Effect> get() {
             return ok(editor.getValue());
         }
         @Override public void refreshItem() {
             editor.setValue(config.getValue());
         }
         @Override protected void apply(boolean user) {
-            getValid().ifOk(v -> {
+            getValid().handleOk(v -> {
                 if (applyOnChange || user) config.setNapplyValue(v);
                 else config.setValue(v);
                 refreshItem();
@@ -942,7 +942,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Try<Configurable<?>,String> get() {
+        public Try<Configurable<?>> get() {
             return ok(config.getValue());
         }
 
@@ -976,7 +976,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        protected Try<ObservableList<T>,String> get() {
+        protected Try<ObservableList<T>> get() {
             return ok(config.getValue()); // return the ever-same observable list
         }
 
@@ -1053,7 +1053,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        protected Try<ObservableList<Configurable>,String> get() {
+        protected Try<ObservableList<Configurable>> get() {
             return ok(config.getValue()); // return the ever-same observable list
         }
 
@@ -1088,7 +1088,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        protected Try<T,String> get() {
+        protected Try<T> get() {
             return ok(config.getValue());
         }
 

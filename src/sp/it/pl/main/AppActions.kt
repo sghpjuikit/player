@@ -73,7 +73,7 @@ fun ActionPane.initAppActionPane(): ActionPane = also { ap ->
                     IconMD.EXPORT,
                     { app ->
                         chooseFile("Export to...", FileType.DIRECTORY, app.DIR_LAYOUTS, ap.scene.window)
-                                .ifOk { dir -> app.widgetManager.getFactories().forEach { it.create().exportFxwlDefault(dir) } }
+                                .handleOk { dir -> app.widgetManager.getFactories().forEach { it.create().exportFxwlDefault(dir) } }
                     }
             ),
             FastAction(IconMD.KEYBOARD_VARIANT, Action.get("Show shortcuts")),
@@ -105,7 +105,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Set as data",
                     "Sets the selected data as input.",
                     IconMD.DATABASE,
-                    ap.converting { Try.ok<Any, Void>(it) }
+                    ap.converting { Try.ok(it) }
             ),
             FastColAction(
                     "Open in Converter",
@@ -124,7 +124,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     IconMD.EXPORT,
                     { w ->
                         saveFile("Export to...", APP.DIR_LAYOUTS, w.exportName, APP.actionPane.scene.window, ExtensionFilter("Component", "*.fxwl"))
-                                .ifOk { w.exportFxwl(it) }
+                                .handleOk { w.exportFxwl(it) }
                     }
             )
     )
@@ -230,7 +230,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Looks for files recursively in the the data.",
                     IconMD.FILE_FIND,
                     // TODO: make fully configurable, recursion depth lvl, filtering, ...
-                    ap.converting { fs -> Try.ok<List<File>, Void>(Util.getFilesR(fs, Integer.MAX_VALUE).toList()) }
+                    ap.converting { fs -> Try.ok<List<File>>(Util.getFilesR(fs, Integer.MAX_VALUE).toList()) }
             ),
             SlowColAction<File>(
                     "Add to library",

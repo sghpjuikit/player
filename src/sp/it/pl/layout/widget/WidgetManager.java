@@ -209,7 +209,7 @@ public final class WidgetManager {
 		private final EventReducer<Void> scheduleRefresh = EventReducer.toLast(500,
 			() -> runFX(this::registerExternalFactory));
 		private final EventReducer<Void> scheduleCompilation = EventReducer.toLast(250,
-			() -> runNew(() -> compile().ifError(userErrorLogger)));
+			() -> runNew(() -> compile().handleError(userErrorLogger)));
 
 
 		WidgetDir(String name, File dir) {
@@ -286,12 +286,12 @@ public final class WidgetManager {
 				// provide all factories before widgets start loading so we compile on this (ui/fx)
 				// thread. This blocks and delays startup, but it is fine - it is necessary
 				if (initialized)
-					runNew(() -> compile());
+					runNew(() -> compile().log(LOGGER));
 				else {
 					// File monitoring is not and must not be running yet (as it creates factory
 					// asynchronously). We do it manually.
 					// TODO: use assert
-					compile().ifOk(v -> registerExternalFactory());
+					compile().log(LOGGER).handleOk(v -> registerExternalFactory());
 				}
 			}
 		}
@@ -326,7 +326,7 @@ public final class WidgetManager {
 				.filter(f -> !f.getPath().endsWith("javadoc.jar"));
 		}
 
-		private Try<Void,String> compile() {
+		private Try<String> compile() {
 			LOGGER.info("Widget={} compiling...", widgetName);
 
 			List<File> srcFiles = getSrcFiles().collect(toList());
@@ -342,7 +342,7 @@ public final class WidgetManager {
 		 *
 		 * @param srcFiles .java files to compile
 		 */
-		private Try<Void,String> compileJava(Stream<File> srcFiles) {
+		private Try<String> compileJava(Stream<File> srcFiles) {
 			Stream<String> options = stream(
 				"-encoding", APP.encoding.name(),
 				"-Xlint",
@@ -355,20 +355,20 @@ public final class WidgetManager {
 			Stream<String> argFiles = stream();   // One or more files that lists options and source files. The -J options are not allowed in these files
 			String[] arguments = stream(options, sourceFiles, classes, argFiles).flatMap(s -> s).toArray(String[]::new);
 
-			LOGGER.info("Widget={} compiling with arguments: {} ", widgetName, toS(" ", arguments));
+			LOGGER.info("Widget={} compiling", widgetName);
+			// since arguments become really long with the absolute Paths of all libs, hide them in TRACE
+			if(LOGGER.isTraceEnabled())
+				LOGGER.trace("arguments: {}", toS(", ", arguments));
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
 			int success = compiler.run(null, null, null, arguments);
 
-			boolean isSuccess = success==0;
-			if (isSuccess) LOGGER.info("Widget " + widgetName + " compilation succeeded");
-			else LOGGER.error("Widget " + widgetName + " compilation failed");
-			return isSuccess
-				? Try.ok()
-				: Try.error("Widget " + widgetName + " compilation failed with errors");
+			return success==0
+				? Try.ok("Widget " + widgetName + " compilation succeeded")
+				: Try.error("Widget " + widgetName + " compilation failed!");
 		}
 
-		private Try<Void,String> compileKotlin(Stream<File> srcFiles) {
+		private Try<String> compileKotlin(Stream<File> srcFiles) {
 			try {
 				File srcFile = srcFiles.findAny().get();        // TODO: improve
 				File compilerFile = childOf(AppUtil.APP.DIR_APP, "kotlinc", "bin", "kotlinc.bat");
@@ -395,15 +395,11 @@ public final class WidgetManager {
 					.start()
 					.waitFor();
 
-				boolean isSuccess = success==0;
-				if (isSuccess) LOGGER.info("Widget={} compilation succeeded", widgetName);
-				else LOGGER.error("Widget={} compilation failed", widgetName);
-				return isSuccess
-					? Try.ok()
-					: Try.error("Widget " + widgetName + " compilation failed with errors");
+				return success == 0
+					? Try.ok("Widget " + widgetName + " compilation succeeded")
+					: Try.error("Widget " + widgetName + " compilation failed!");
 			} catch (Exception e ) {
-				LOGGER.error("Widget={} compilation failed", widgetName);
-				return Try.error(e.getMessage());
+				return Try.error(e, "Widget " + widgetName + " compilation failed!");
 			}
 		}
 	}

@@ -678,7 +678,7 @@ public final class Seeker extends AnchorPane {
 				 warnB.styleclass(ConfigField.STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
 				 warnB.tooltip(warnTooltip);
 			maintain(ta.textProperty(), text -> {
-				Try<String,String> result = validateChapterText(text);
+				Try<String> result = validateChapterText(text);
 				warnB.setVisible(result.isError());
 				commitB.setDisable(result.isError());
 				warnTooltip.setText(result.map(t -> "").getAny());

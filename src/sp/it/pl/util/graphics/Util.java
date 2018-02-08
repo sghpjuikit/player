@@ -3,9 +3,7 @@ package sp.it.pl.util.graphics;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 import javafx.beans.value.ChangeListener;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -22,8 +20,6 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView.TableViewSelectionModel;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
@@ -36,6 +32,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
@@ -553,6 +550,10 @@ public interface Util {
 	}
 
 /* ---------- WINDOW ------------------------------------------------------------------------------------------------ */
+	// TODO: fix scaling screwing up initial window position
+	static Stage createFMNTStage(Screen screen) {
+		return createFMNTStage(screen, true);
+	}
 
 	/**
 	 * Create fullscreen modal no taskbar stage on given screen. The stage will have its owner,
@@ -568,28 +569,36 @@ public interface Util {
 	 * doable using owner stage with UTILITY style).
 	 * </ul>
 	 */
-	// TODO: fix scaling screwing up initial window position
-	static Stage createFMNTStage(Screen screen) {
-		return createFMNTStage(screen, true);
-	}
-
 	static Stage createFMNTStage(Screen screen, boolean show) {
-		// Using owner stage of UTILITY style is the only way to get a 'top level'
-		// window with no taskbar.
-		Stage owner = new Stage(UTILITY);
-		owner.setOpacity(0); // make sure it will never be visible
-		owner.setWidth(5); // stay small to leave small footprint, just in case
-		owner.setHeight(5);
+		Stage owner = new Stage(UTILITY);  // UTILITY owner is the only way to get a 'top level' window with no taskbar.
+		owner.setOpacity(0);
+		owner.setWidth(10);
+		owner.setHeight(10);
 		owner.show();
+		owner.setAlwaysOnTop(true);
 		owner.setX(screen.getBounds().getMinX() + 1);    // owner and child should be on the same screen
 		owner.setY(screen.getBounds().getMinY() + 1);
 
-		Stage s = new Stage(UNDECORATED); // no OS header & buttons, we want full space
+		Stage s = new Stage(UNDECORATED) {
+			@Override
+			public void hide() {
+				//  Due to JavaFX bugs it is impossible to hide the owner after this is hidden, so we reimplement hide()
+				//  so the owner is hidden first. It automatically trues to hide this, after which we call super.hide()
+				if (owner.isShowing()) {
+					owner.hide();
+				} else {
+					super.hide();
+				}
+			}
+		};
 		s.initOwner(owner);
-		s.initModality(APPLICATION_MODAL); // eliminates focus stealing form other apps
-		s.setAlwaysOnTop(true); // maybe not needed, but just in case
+		s.setAlwaysOnTop(true);
 
-		if (show) s.show();    // part of the workaround below
+		// Modality causes issue with focus not being returned to the correct window, unfortunately, this cant stay on
+		// s.initModality(APPLICATION_MODAL); // eliminates focus stealing from apps and taskbar being visible
+
+		if (show) s.show();
+
 		s.setX(screen.getBounds().getMinX()); // screen does not necessarily start at [0,0]
 		s.setY(screen.getBounds().getMinY());
 		s.setWidth(screen.getBounds().getWidth());
@@ -598,24 +607,11 @@ public interface Util {
 		// s.setWidth(screen.getVisualBounds().getWidth()/Screen.getPrimary().getOutputScaleX()*screen.getOutputScaleX());
 		// s.setHeight(screen.getVisualBounds().getHeight()/Screen.getPrimary().getOutputScaleY()*screen.getOutputScaleY());
 
-		// Going fullscreen actually breaks things.
-		// We do not need fullscreen, we use UNDECORATED stage of maximum size. Fullscreen
-		// was supposed to be more of a final nail to prevent possible focus stealing.
-		//
-		// In reality, using fullscreen actually causes this issue! - focus stealing
-		// and the consequent disappearance of the window (nearly impossible to bring it
-		// back). This is even when using modality on the window or even its owner stage.
-		//
-		// Fortunately things work as they should using things like we do.
-		//
-		// s.setFullScreen(true); // just in case
-		// s.setFullScreenExitHint(""); // completely annoying, remove
-		// // not always desired! and if we do not use fullscreen it wont work or we could just
-		// // introduce inconsistent behavior. Let the dev implement his own hide if he needs.
+		// Fullscreen window is the got to choice, but fullscreen has its own share of problems.., like focus
+		// stealing and the consequent disappearance of the window (nearly impossible to bring it back).
+		// s.setFullScreen(true);
+		// s.setFullScreenExitHint("");
 		// s.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
-
-		// The owner must not escape garbage collection or remain visible forever
-//        s.addEventFilter(WindowEvent.WINDOW_HIDDEN, e -> owner.hide());
 
 		return s;
 	}

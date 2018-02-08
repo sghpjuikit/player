@@ -3,18 +3,12 @@ package sp.it.pl.audio
 import java.io.File
 import java.net.URI
 
-/** Simplest [Item] implementation. Wraps [java.net.URI]. Immutable. */
-class SimpleItem: Item {
+/** Simplest [Item] implementation. Wraps [java.net.URI]. */
+class SimpleItem(resource: URI): Item() {
 
-    override val uri: URI
+    override val uri: URI = resource
 
-    constructor(resource: URI) {
-        uri = resource
-    }
-
-    constructor(resource: File) {
-        uri = resource.toURI()
-    }
+    constructor(resource: File): this(resource.toURI())
 
     override fun toSimple() = this
 

@@ -18,9 +18,7 @@ import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY;
 
-/**
- * Provides unified handling to everything playlist related in the application
- */
+/** Manages playlists. */
 @IsConfigurable("Playlist")
 @IsActionable
 public class PlaylistManager implements Configurable {
@@ -29,13 +27,9 @@ public class PlaylistManager implements Configurable {
 	public static UUID active = null;
 	public static final PlayingSequence playingItemSelector = new PlayingSequence();
 
-	/**
-	 * Last selected item on playlist or null if none.
-	 */
+	/** Last selected item on playlist or null if none. */
 	public static final ValueEventSource<PlaylistItem> selectedItemES = new ValueEventSource<>(null);
-	/**
-	 * Selected items on playlist or empty list if none.
-	 */
+	/** Selected items on playlist or empty list if none. */
 	public static final ValueEventSource<List<PlaylistItem>> selectedItemsES = new ValueEventSource<>(listRO());
 
 	public static void use(Consumer<Playlist> action) {
@@ -55,8 +49,6 @@ public class PlaylistManager implements Configurable {
 	@IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.")
 	@Constraint.FileType(DIRECTORY)
 	public static File browse = APP.DIR_APP;
-	@IsConfig(name = "File search depth", info = "Depth for recursive search within directories. 0 denotes specified directory.")
-	public static int folder_depth = 1;
 
 	/** Plays first item on playlist. */
 	@IsAction(name = "Play first", desc = "Plays first item on playlist.", keys = "ALT+W", global = true)
@@ -117,4 +109,5 @@ public class PlaylistManager implements Configurable {
 	public static void chooseUrlToPlay() {
 		use(p -> p.addOrEnqueueUrl(false));
 	}
+
 }

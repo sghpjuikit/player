@@ -52,11 +52,11 @@ public class GeneralPlayer {
 		} else {
 			p.createPlayback(item, state.playback,
 					() -> {
-						realTime.real_seek = state.playback.realTime.get();
-						realTime.curr_sek = ZERO;
+						realTime.realSeek = state.playback.realTime.get();
+						realTime.currentSeek = ZERO;
 						p.play();
 
-						realTime.synchroRealTime_onPlayed();
+						realTime.syncRealTimeOnPlay();
 						// throw item change event
 						Player.playingItem.itemChanged(item);
 						Player.suspension_flag = false;
@@ -105,7 +105,7 @@ public class GeneralPlayer {
 
 		runFX(() -> {
 			Player.playingItem.itemChanged(Metadata.EMPTY);
-			realTime.synchroRealTime_onStopped();
+			realTime.syncRealTimeOnStop();
 			Player.onPlaybackAt.forEach(PlayTimeHandler::stop);
 			PlaylistManager.playlists.forEach(p -> p.updatePlayingItem(-1));
 			PlaylistManager.active = null;
@@ -140,11 +140,11 @@ public class GeneralPlayer {
 	}
 
 	private void doSeek(Duration duration) {
-		realTime.synchroRealTime_onPreSeeked();
+		realTime.syncRealTimeOnPreSeek();
 		state.playback.currentTime.set(duration);    // allow next doSeek() target correct value even if this has not finished
 		installSingletonListener(state.playback.currentTime, Objects::nonNull, v -> Player.onSeekDone.run());
 		p.seek(duration);
-		realTime.synchroRealTime_onPostSeeked(duration);
+		realTime.syncRealTimeOnPostSeek(duration);
 	}
 
 	private boolean seekDone = true;

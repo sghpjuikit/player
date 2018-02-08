@@ -4,12 +4,13 @@ import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.core.CoreSerializer
-import java.util.*
+import java.util.ArrayList
+import java.util.UUID
 
 /** State of player. */
 class PlayerState {
 
-    @JvmField var playback: PlaybackState = PlaybackState.getDefault()
+    @JvmField var playback: PlaybackState = PlaybackState.default()
     @JvmField val playbacks: MutableList<PlaybackState> = ArrayList()
     @JvmField val playlists: MutableList<Playlist> = ArrayList()
     @JvmField var playlistId: UUID? = null
@@ -24,7 +25,7 @@ class PlayerState {
         playlists += s.playlists.map { it.toPlaylist() }
         playbackId = s.playbackId?.let { UUID.fromString(it) }
         playlistId = s.playlistId?.let { UUID.fromString(it) }
-        playback = playbacks.find { it.id==playbackId } ?: PlaybackState.getDefault()
+        playback = playbacks.find { it.id==playbackId } ?: PlaybackState.default()
     }
 
     fun serialize() {
@@ -45,7 +46,7 @@ class PlayerState {
         if (p!=null)
             p.change(playback)
         else {
-            val s = PlaybackState.getDefault()
+            val s = PlaybackState.default()
             s.change(playback)
             playbacks += s
         }

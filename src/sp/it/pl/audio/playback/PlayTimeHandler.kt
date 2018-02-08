@@ -4,9 +4,7 @@ import javafx.util.Duration
 import sp.it.pl.util.async.executor.FxTimer
 import sp.it.pl.util.math.Portion
 
-/**
- * Handler for handling events at specific point of song playback.
- */
+/** Handler for handling events at specific point of song playback. */
 class PlayTimeHandler {
 
     private val whenCalculator: (Duration) -> Duration
@@ -33,14 +31,11 @@ class PlayTimeHandler {
 
     companion object {
 
-        @JvmStatic
-        fun at(whenCalculator: (Duration) -> Duration, action: Runnable) = PlayTimeHandler(whenCalculator, action)
+        @JvmStatic fun at(whenCalculator: (Duration) -> Duration, action: Runnable) = PlayTimeHandler(whenCalculator, action)
 
-        @JvmStatic
-        fun at(at: Duration, action: Runnable) = PlayTimeHandler({ at }, action)
+        @JvmStatic fun at(at: Duration, action: Runnable) = PlayTimeHandler({ at }, action)
 
-        @JvmStatic
-        fun at(at: Portion, action: Runnable) = PlayTimeHandler({ total -> at*total }, action)
+        @JvmStatic fun at(at: Portion, action: Runnable) = PlayTimeHandler({ total -> at*total }, action)
 
     }
 

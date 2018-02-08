@@ -218,10 +218,10 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 		return root!=null;
 	}
 
+	@SuppressWarnings("unchecked")
 	private C instantiateController() {
 
 		// instantiate controller
-		@SuppressWarnings("unchecked")
 		Class<C> cc = (Class) factory.getControllerType(); // TODO: make factory type safe and avoid cast
 		LOGGER.info("Instantiating widget controller " + cc);
 		C c;
@@ -271,6 +271,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 								LOGGER.error("Input {} in widget {} failed to process value.", iName, name, e);
 							}
 						};
+
 				c.getInputs().create(iName, iType, iAction);
 			}
 		}

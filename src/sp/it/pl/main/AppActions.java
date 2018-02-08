@@ -201,6 +201,7 @@ public class AppActions {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@IsAction(name = "Open settings", desc = "Opens application settings.")
 	public void openSettings() {
 		APP.widgetManager.use(ConfiguringFeature.class, WidgetSource.NO_LAYOUT, c -> c.configure(APP.configuration.getFields()));
@@ -417,6 +418,7 @@ public class AppActions {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public void inspectObjectInInspector(Object o) {
 		APP.widgetManager.find("Inspector", WidgetSource.OPEN, true)
 			.ifPresent(w ->

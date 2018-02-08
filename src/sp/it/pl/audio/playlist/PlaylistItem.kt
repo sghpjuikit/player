@@ -19,7 +19,7 @@ import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.identityHashCode
 import sp.it.pl.util.units.Dur
 import java.net.URI
-import java.util.*
+import java.util.HashSet
 import kotlin.reflect.KClass
 
 /**
@@ -175,15 +175,15 @@ class PlaylistItem: Item {
     /** @return true iff this is the same object as the other, same as using === */
     override fun equals(other: Any?): Boolean = this===other
 
-    override fun hashCode()= identityHashCode()
+    override fun hashCode() = identityHashCode()
 
     override fun toString() = "$name\n$uri\n$time"
 
     /** @return deep copy of this item */
     fun copy() = PlaylistItem(uri, artist, title, timeMs).also {
-            it.isUpdated = isUpdated
-            it.isCorruptCached = isCorruptCached
-        }
+        it.isUpdated = isUpdated
+        it.isCorruptCached = isCorruptCached
+    }
 
     class Field<T: Any>: ObjectFieldBase<PlaylistItem, T> {
 
@@ -214,7 +214,7 @@ class PlaylistItem: Item {
             @JvmField val PATH = Field(String::class, "Path", "Song file path") { it.getPathAsString() }
             @JvmField val FORMAT = Field(AudioFileFormat::class, "Format", "Song file type") { it.getFormat() }
 
-            fun valueOf(s: String): Field<*> = when(s) {
+            fun valueOf(s: String): Field<*> = when (s) {
                 NAME.name() -> NAME
                 TITLE.name() -> TITLE
                 ARTIST.name() -> ARTIST

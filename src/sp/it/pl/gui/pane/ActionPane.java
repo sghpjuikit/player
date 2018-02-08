@@ -544,8 +544,9 @@ public class ActionPane extends OverlayPane<Object> {
 		public final Ƒ1<? super R, ? extends T> input;
 		public final Ƒ1<? super Supplier<T>, ? extends Node> gui;
 
+		@SuppressWarnings("unchecked")
 		public ComplexActionData(Ƒ1<? super R, Fut<? extends T>> input, Ƒ1<? super Supplier<T>, ? extends  Node> gui) {
-			this.input = (Ƒ1) input;
+			this.input = (Ƒ1) input;    // TODO: fix
 			this.gui = gui;
 		}
 	}

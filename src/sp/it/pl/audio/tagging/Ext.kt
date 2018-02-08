@@ -21,7 +21,8 @@ import java.io.IOException
 private val logger = KotlinLogging.logger {}
 
 /** @return maximal rating value */
-val Tag.ratingMax: Int get() = when (this) {
+val Tag.ratingMax: Int
+    get() = when (this) {
         is AbstractID3Tag -> 255
         is VorbisCommentTag -> 100
         else -> 100
@@ -60,17 +61,17 @@ fun File.readAudioFile(): Try<AudioFile, Void> =
 /** @return new metadata taking the data from this audio file */
 fun AudioFile.toMetadata() = Metadata(this)
 
-@Suppress("DEPRECATION")
 /** @return cover image or null if none or error */
-val Artwork.imageOrNull: BufferedImage? get() = try {
-    // TODO: avoid
-    // jaudiotagger bug, Artwork.getImage() can throw NullPointerException sometimes
-    // at java.io.ByteArrayInputStream.<init>(ByteArrayInputStream.java:106) ~[na:na]
-    // at org.jaudiotagger.tag.images.StandardArtwork.getImage(StandardArtwork.java:95) ~[jaudiotagger-2.2.6-SNAPSHOT.jar:na]
-    image as? BufferedImage
-} catch (e: NullPointerException) {
-    null
-}
+val Artwork.imageOrNull: BufferedImage?
+    get() = try {
+        // TODO: avoid
+        // jaudiotagger bug, Artwork.getImage() can throw NullPointerException sometimes
+        // at java.io.ByteArrayInputStream.<init>(ByteArrayInputStream.java:106) ~[na:na]
+        // at org.jaudiotagger.tag.images.StandardArtwork.getImage(StandardArtwork.java:95) ~[jaudiotagger-2.2.6-SNAPSHOT.jar:na]
+        image as? BufferedImage?
+    } catch (e: NullPointerException) {
+        null
+    }
 
 /** @return cover information */
 val Artwork.info: String? get() = "$description $mimeType ${width}x$height"

@@ -10,11 +10,12 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.util.math.millis
 import java.io.Serializable
 import java.net.URI
-import java.util.*
+import java.util.HashMap
+import java.util.UUID
 
-class MetadatasDB: HashMap<String,Metadata>, Serializable {
+class MetadatasDB: HashMap<String, Metadata>, Serializable {
     constructor(): super()
-    constructor(items: Map<String,Metadata>): super(items)
+    constructor(items: Map<String, Metadata>): super(items)
 }
 
 class PlayerStateDB: Serializable {
@@ -26,7 +27,7 @@ class PlayerStateDB: Serializable {
     constructor(s: PlayerState) {
         this.playbacks = s.playbacks.map { PlaybackStateDB(it) }
         this.playlists = s.playlists.map { PlaylistDB(it) }
-        this.playbackId = s.playback.id?.toString()
+        this.playbackId = s.playback.id.toString()
         this.playlistId = PlaylistManager.active?.toString()
     }
 

@@ -39,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.Player;
-import sp.it.pl.audio.tagging.chapter.Chapter;
 import sp.it.pl.service.notif.Notifier;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.file.AudioFileFormat;
@@ -536,8 +535,8 @@ public class MetadataWriter extends Item {
 	 * obtained and the modified list passed as an argument to this method.
 	 *
 	 * @param chapters chapters that to write to tag
-	 * @see #addChapter(sp.it.pl.audio.tagging.chapter.Chapter, Metadata)
-	 * @see #removeChapter(sp.it.pl.audio.tagging.chapter.Chapter, Metadata)
+	 * @see #addChapter(Chapter, Metadata)
+	 * @see #removeChapter(Chapter, Metadata)
 	 */
 	public void setChapters(Collection<Chapter> chapters) {
 		setCustom2(chapters.stream().map(Chapter::toString).collect(joining("|")));

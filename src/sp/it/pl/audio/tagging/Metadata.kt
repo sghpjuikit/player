@@ -21,9 +21,8 @@ import org.jaudiotagger.tag.wav.WavTag
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.playlist.PlaylistItem
 import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.audio.tagging.Chapter.Companion.chapter
 import sp.it.pl.audio.tagging.Metadata.Field
-import sp.it.pl.audio.tagging.chapter.Chapter
-import sp.it.pl.audio.tagging.chapter.Chapters
 import sp.it.pl.gui.objects.image.cover.Cover
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource
 import sp.it.pl.gui.objects.image.cover.FileCover
@@ -55,7 +54,6 @@ import java.time.LocalDateTime
 import java.time.Year
 import java.util.HashSet
 import java.util.Objects
-import kotlin.collections.HashMap
 import kotlin.collections.set
 import kotlin.reflect.KClass
 import kotlin.streams.toList
@@ -86,7 +84,6 @@ private typealias F = JvmField
  *
  * To access any field in a general way, see [Field]
  */
-@Suppress("unused")
 class Metadata: Item, Serializable {
 
     // file fields
@@ -208,8 +205,6 @@ class Metadata: Item, Serializable {
 
     /** Time this item was added to library as string or null if none */
     private var libraryAdded: String? = null
-
-    /* --------------------- AS OBJECT ---------------------------------------------------------------------------------- */
 
     /* Creates empty metadata */
     private constructor() {
@@ -665,14 +660,7 @@ class Metadata: Item, Serializable {
                 it.split(SEPARATOR_CHAPTER)
                         .asSequence()
                         .filter { !it.isEmpty() }
-                        .mapNotNull {
-                            try {
-                                Chapter(it)
-                            } catch (e: IllegalArgumentException) {
-                                logger.error(e) { "String '$it' is not a valid chapter, chapters=$custom2, uri=$uri" }
-                                null
-                            }
-                        }
+                        .mapNotNull { chapter(it) orNull { logger.error { it } } }
                         .sorted()
                         .toList()
                         .let { Chapters(it) }
@@ -708,8 +696,6 @@ class Metadata: Item, Serializable {
 
     override fun toPlaylist() = PlaylistItem(uri, artist, title, lengthInMs)
 
-    /* --------------------- AS FIELDED TYPE ---------------------------------------------------------------------------- */
-
     fun getMainField(): Field<*> = Field.TITLE
 
     private fun <T: Any> getField(field: Field<T>): T? = field.getOf(this)
@@ -728,7 +714,7 @@ class Metadata: Item, Serializable {
 
     override fun equals(other: Any?) = this===other || other is Metadata && id==other.id
 
-    override fun hashCode(): Int = 79*7+Objects.hashCode(this.id)
+    override fun hashCode() = 79*7+Objects.hashCode(this.id)
 
     /**
      * Compares by attributes in the exact order:
@@ -754,21 +740,21 @@ class Metadata: Item, Serializable {
     companion object: KLogging() {
 
         /** Delimiter between sections of data. In this case, between tags (concatenated to single string). */
-        @JvmField val SEPARATOR_GROUP: Char = 29.toChar()
+        const val SEPARATOR_GROUP: Char = 29.toChar()
         /** Delimiter between records or rows. In this case, between values in a tag. */
-        @JvmField val SEPARATOR_RECORD: Char = 30.toChar()
+        const val SEPARATOR_RECORD: Char = 30.toChar()
         /** Delimiter between fields of a record, or members of a row. In this case, between items in a tag value. */
-        @JvmField val SEPARATOR_UNIT: Char = 31.toChar()
+        const val SEPARATOR_UNIT: Char = 31.toChar()
         /** Delimiter between chapters */
-        @JvmField val SEPARATOR_CHAPTER: Char = '|'
+        const val SEPARATOR_CHAPTER: Char = '|'
 
         // Custom tag ids. Ordinary string. Length 10 mandatory. Unique. Dev is free to use any
         // value - there is no predefined set of ids. Once set, never change!
-        @JvmField val TAG_ID_PLAYED_LAST = "PLAYED_LST"
-        @JvmField val TAG_ID_PLAYED_FIRST = "PLAYED_1ST"
-        @JvmField val TAG_ID_LIB_ADDED = "LIB_ADDED_"
-        @JvmField val TAG_ID_COLOR = "COLOR_____"
-        @JvmField val TAG_ID_TAGS = "TAG_______"
+        const val TAG_ID_PLAYED_LAST = "PLAYED_LST"
+        const val TAG_ID_PLAYED_FIRST = "PLAYED_1ST"
+        const val TAG_ID_LIB_ADDED = "LIB_ADDED_"
+        const val TAG_ID_COLOR = "COLOR_____"
+        const val TAG_ID_TAGS = "TAG_______"
 
         /**
          * EMPTY metadata. Substitute for null. Always use instead of null. Also
@@ -848,7 +834,6 @@ class Metadata: Item, Serializable {
                 }
 
         fun getGroupedOf(): (Metadata) -> Any? = when (this) {
-        // Note that groups must include the 'empty' group for when the value is empty
             FILESIZE -> { m -> GROUPS_FILESIZE[64-java.lang.Long.numberOfLeadingZeros(m.fileSizeInB-1)] }
             RATING -> { m -> if (m.rating==null) -1.0 else GROUPS_RATING[(m.getRatingPercent()!!*100/5).toInt()] }
             else -> { m -> getOf(m) }
@@ -950,7 +935,7 @@ class Metadata: Item, Serializable {
                 when (it) {
                     0 -> FileSize(1)
                     in 1..62 -> FileSize(Math.pow(2.0, it.toDouble()).toLong())
-                    63 -> FileSize(java.lang.Long.MAX_VALUE)
+                    63 -> FileSize(Long.MAX_VALUE)
                     64 -> FileSize(0)
                     else -> throw SwitchException(it)
                 }

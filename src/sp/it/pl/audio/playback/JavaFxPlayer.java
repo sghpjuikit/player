@@ -21,7 +21,7 @@ import static sp.it.pl.util.reactive.Util.maintain;
 public class JavaFxPlayer implements GeneralPlayer.Play {
 
 	private MediaPlayer player;
-	private Subscription d1, d2, d3, d4, d5, d6, d7;
+	private Subscription d1, d2, d3, d4, d5, d6;
 
 	@Override
 	public void play() {
@@ -54,6 +54,7 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 			Media media;
 			try {
 				// TODO: Media creation throws MediaException (FileNotFoundException) for files containing some special chars (unicode?)
+				// TODO: Use getUri.toAsciiString()?
 				// If that happens, it can block thread for like half second!, so i execute this not on fx
 				media = new Media(item.getUri().toString());
 			} catch (MediaException e) {
@@ -85,10 +86,7 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 						if (nv==PLAYING || nv==PAUSED || nv==STOPPED) {
 							// bind (read only) values: new player -> global (manual initialization)
 							d5 = maintain(player.currentTimeProperty(), state.currentTime);
-							// we completely ignore javafx readings here, instead rely on jaudiotagger
-							// d6 = maintain(player.cycleDurationProperty(),state.duration);
-							// state.duration.set(player.cycleDurationProperty().get());
-							d7 = maintain(player.statusProperty(), s -> {
+							d6 = maintain(player.statusProperty(), s -> {
 								if (!Player.suspension_flag)
 									state.status.setValue(s);
 							});
@@ -121,14 +119,13 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 	public void disposePlayback() {
 		if (player==null) return;
 
-		// cut player sideffects, do so before disposing
+		// cut player side effects, do so before disposing
 		if (d1!=null) d1.unsubscribe();
 		if (d2!=null) d2.unsubscribe();
 		if (d3!=null) d3.unsubscribe();
 		if (d4!=null) d4.unsubscribe();
 		if (d5!=null) d5.unsubscribe();
 		if (d6!=null) d6.unsubscribe();
-		if (d7!=null) d7.unsubscribe();
 		player.setAudioSpectrumListener(null); // just in case
 		player.setOnEndOfMedia(null); // just in case
 

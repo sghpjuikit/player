@@ -664,8 +664,12 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		updateItems(ps);
 	}
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+	@Override
+	public String toString() {
+		return "Playlist: " + id + " " + toS(this);
+	}
 
+	// TODO: move methods to PlaylistManager
 	/**
 	 * Open chooser and add or play new items.
 	 *
@@ -708,7 +712,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 				.ifOk(dir -> {
 					PlaylistManager.browse = dir;
 					List<URI> queue = new ArrayList<>();
-					getFilesAudio(dir, Use.APP, PlaylistManager.folder_depth).forEach(f -> queue.add(f.toURI()));
+					getFilesAudio(dir, Use.APP, Integer.MAX_VALUE).forEach(f -> queue.add(f.toURI()));
 
 					if (add) addUris(queue);
 					else {
@@ -770,11 +774,6 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		p.getHeaderIcons().add(infoB);
 		p.show(ScreenPos.APP_CENTER);
 		p.detached.set(true);
-	}
-
-	@Override
-	public String toString() {
-		return "Playlist: " + id + " " + toS(this);
 	}
 
 }

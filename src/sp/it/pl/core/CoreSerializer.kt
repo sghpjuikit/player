@@ -49,7 +49,7 @@ object CoreSerializer: Core {
         try {
             FileInputStream(f).use {
                 ObjectInputStream(it).use {
-                    return it.readObject() as T
+                    return it.readObject() as T // TODO: handle case when class evolved and deserialization fails, use Try
                 }
             }
         } catch (e: Exception) {

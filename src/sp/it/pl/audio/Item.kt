@@ -42,7 +42,7 @@ abstract class Item {
     fun getLocation() = getFile().parentFile!!
 
     /** @return human-readable location of the resource this item represents */
-    fun getLocationAsString() = if (isFileBased()) getLocation().path else getPathAsString()
+    fun getLocationAsString() = if (isFileBased()) getLocation().path!! else getPathAsString()
 
     /** @return the filename without suffix or empty string if none */
     open fun getFilename() = getFilenameFull().substringBeforeLast(".")

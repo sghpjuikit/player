@@ -326,12 +326,14 @@ public class FunctorPool {
 	}
 
 	/** Returns all functions taking input I. */
+	@SuppressWarnings("unckeched")
 	public <I> PrefList<PƑ<I,?>> getI(Class<I> i) {
 		addSelfFunctor(i);
 		return (PrefList) fsI.getElementsOf(getSuperClassesInc(unPrimitivize(i)));
 	}
 
 	/** Returns all functions producing output O. */
+	@SuppressWarnings("unckeched")
 	public <O> PrefList<PƑ<?,O>> getO(Class<O> o) {
 		addSelfFunctor(o);
 		List ll = fsO.get(unPrimitivize(o));
@@ -339,6 +341,7 @@ public class FunctorPool {
 	}
 
 	/** Returns all functions taking input I and producing output O. */
+	@SuppressWarnings("unckeched")
 	public <I,O> PrefList<PƑ<I,O>> getIO(Class<I> i, Class<O> o) {
 		addSelfFunctor(i);
 		addSelfFunctor(o);

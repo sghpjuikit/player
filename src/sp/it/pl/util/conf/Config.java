@@ -517,6 +517,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		 * @param property WritableValue to wrap. Mostly a {@link Property}.
 		 * @throws IllegalStateException if the property field is not final
 		 */
+		@SuppressWarnings("unckeched")
 		public PropertyConfig(Class<T> property_type, String name, IsConfig c, Set<Constraint<? super T>> constraints, WritableValue<T> property, String category) {
 			super(property_type, name, c, constraints, property.getValue(), category);
 			value = property;
@@ -532,6 +533,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		 * @param info description, for tooltip for example
 		 * @throws IllegalStateException if the property field is not final
 		 */
+		@SuppressWarnings("unckeched")
 		public PropertyConfig(Class<T> property_type, String name, String gui_name, WritableValue<T> property, String category, String info, EditMode editable) {
 			super(property_type, name, gui_name, property.getValue(), category, info, editable);
 			value = property;
@@ -613,6 +615,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		 * @param property WritableValue to wrap. Mostly a {@link Property}.
 		 * @throws IllegalStateException if the property field is not final
 		 */
+		@SuppressWarnings("unchecked")
 		ReadOnlyPropertyConfig(Class<T> property_type, String name, IsConfig c, Set<Constraint<? super T>> constraints, ObservableValue<T> property, String category) {
 			super(property_type, name, c, constraints, property.getValue(), category);
 			value = property;
@@ -628,6 +631,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		 * @param info description, for tooltip for example
 		 * @throws IllegalStateException if the property field is not final
 		 */
+		@SuppressWarnings("unchecked")
 		public ReadOnlyPropertyConfig(Class<T> property_type, String name, String gui_name, ObservableValue<T> property, String category, String info) {
 			super(property_type, name, gui_name, property.getValue(), category, info, EditMode.NONE);
 			value = property;
@@ -855,6 +859,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 					.collect(joining(";;"));
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public Try<ObservableList<T>,String> ofS(String str) {
 			ObservableList<T> l = observableArrayList();

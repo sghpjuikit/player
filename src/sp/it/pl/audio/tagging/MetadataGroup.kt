@@ -7,7 +7,8 @@ import sp.it.pl.util.access.fieldvalue.ObjectFieldBase
 import sp.it.pl.util.units.Dur
 import sp.it.pl.util.units.FileSize
 import sp.it.pl.util.units.RangeYear
-import java.util.*
+import java.util.ArrayList
+import java.util.HashSet
 import java.util.stream.Stream
 import kotlin.reflect.KClass
 import kotlin.streams.asSequence
@@ -64,12 +65,7 @@ class MetadataGroup {
     /** @return true iff any of the songs belonging to this group is playing */
     fun isPlaying(): Boolean = field.getOf(Player.playingItem.get())==value // TODO: We need to check the contained metadata instead of just comparing the group value
 
-    override fun toString(): String {
-        return field.toString()+": "+value+", items: "+itemCount+
-                ", albums: "+albumCount+", length: "+getLength()+
-                ", size: "+getFileSize()+", avgrating: "+avgRating+
-                ", wighted rating: "+weighRating+", year: "+year
-    }
+    override fun toString() = "$field: $value, items: $itemCount, albums: $albumCount, length: ${getLength()}, size: ${getFileSize()}, avgRating: $avgRating, wighted rating: $weighRating, year: $year"
 
     class Field<T: Any>: ObjectFieldBase<MetadataGroup, T> {
 
@@ -120,7 +116,7 @@ class MetadataGroup {
             @JvmField val W_RATING = Field(Double::class, { it.weighRating }, "W rating", "Weighted rating of the group = sum(rating) = avg_rating*items")
             @JvmField val YEAR = Field(RangeYear::class, { it.year }, "Year", "Year or years of songs in the group")
 
-            @JvmStatic fun valueOf(s: String): Field<*> = when(s) {
+            @JvmStatic fun valueOf(s: String): Field<*> = when (s) {
                 ITEMS.name() -> ITEMS
                 ALBUMS.name() -> ALBUMS
                 LENGTH.name() -> LENGTH
@@ -139,7 +135,8 @@ class MetadataGroup {
 
         @JvmStatic fun groupOfUnrelated(ms: Collection<Metadata>) = MetadataGroup(Metadata.Field.ALBUM, true, null, ms)
 
-        @JvmStatic fun groupOf(f: Metadata.Field<*>, ms: Collection<Metadata>) = MetadataGroup(f, true, getAllValue(f), ms)
+        @JvmStatic
+        fun groupOf(f: Metadata.Field<*>, ms: Collection<Metadata>) = MetadataGroup(f, true, getAllValue(f), ms)
 
         @JvmStatic fun groupsOf(f: Metadata.Field<*>, ms: Collection<Metadata>): Stream<MetadataGroup> {
             val getGroupedOf = f.getGroupedOf()
@@ -148,9 +145,11 @@ class MetadataGroup {
                     .map { (key, value) -> MetadataGroup(f, false, key, value) }
         }
 
-        @JvmStatic fun ungroup(groups: Collection<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { it.grouped.asSequence() }.toSet()
+        @JvmStatic
+        fun ungroup(groups: Collection<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { it.grouped.asSequence() }.toSet()
 
-        @JvmStatic fun ungroup(groups: Stream<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { it.grouped.asSequence() }.toSet()
+        @JvmStatic
+        fun ungroup(groups: Stream<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { it.grouped.asSequence() }.toSet()
 
         // TODO: this may need some work"
         private fun getAllValue(f: Metadata.Field<*>): Any? = if (f.isTypeString) "" else null

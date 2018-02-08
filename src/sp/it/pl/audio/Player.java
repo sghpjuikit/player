@@ -593,25 +593,25 @@ public class Player {
 	/** Increment volume by elementary unit. */
 	@IsAction(name = "Volume up", desc = "Increment volume by elementary unit.", keys = "CTRL+SHIFT+2", repeat = true, global = true)
 	public static void volumeInc() {
-		state.playback.volume.inc();
+		state.playback.volume.incByStep();
 	}
 
 	/** Decrement volume by elementary unit. */
 	@IsAction(name = "Volume down", desc = "Decrement volume by elementary unit.", keys = "CTRL+SHIFT+1", repeat = true, global = true)
 	public static void volumeDec() {
-		state.playback.volume.dec();
+		state.playback.volume.decByStep();
 	}
 
 	/** Increment balance by elementary unit. */
 	@IsAction(name = "Balance right", desc = "Shift balance to right by elementary unit.", repeat = true)
 	public static void balanceRight() {
-		state.playback.balance.left();
+		state.playback.balance.leftByStep();
 	}
 
 	/** Decrement balance by elementary unit. */
 	@IsAction(name = "Balance left", desc = "Shift balance to left by elementary unit.", repeat = true)
 	public static void balanceLeft() {
-		state.playback.balance.right();
+		state.playback.balance.rightByStep();
 	}
 
 	public static PlayingSequence.LoopMode getLoopMode() {

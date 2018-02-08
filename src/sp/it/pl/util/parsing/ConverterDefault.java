@@ -155,7 +155,7 @@ public class ConverterDefault extends Converter {
         );
     }
 
-    @SuppressWarnings("ConstantConditions")
+    @SuppressWarnings({"ConstantConditions", "unchecked"})
     private <T> Function<String,Try<T,String>> buildOfSParser(Class<T> type) {
         Function<String,Try<T,String>> ofS = null;
         StringParseStrategy a = type.getAnnotation(StringParseStrategy.class);
@@ -174,7 +174,6 @@ public class ConverterDefault extends Converter {
 
                     ofS = text -> {
                         try {
-                            //noinspection unchecked
                             return Try.ok((T) f.get(null));
                         } catch (IllegalAccessException e) {
                             throw new IllegalStateException("Field " + f + " is not accessible");

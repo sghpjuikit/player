@@ -51,7 +51,11 @@ class VlcPlayer: GeneralPlayer.Play {
     }
 
     override fun seek(duration: Duration) {
-        player?.let { it.position = duration.toMillis().toFloat()/it.length.toFloat() }
+        player?.let {
+            val canSeek = it.length==-1L
+            if (canSeek) it.play()
+            else it.position = (duration.toMillis().toFloat()/it.length.toFloat()).coerceIn(0f..1f)
+        }
     }
 
     override fun stop() {

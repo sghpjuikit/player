@@ -343,7 +343,7 @@ public class Comet extends ClassController {
 		int PLAYER_LIVES_INITIAL = 5; // lives at the beginning of the game
 		int PLAYER_SCORE_NEW_LIFE = 10000; // we need int since we make use of int division
 
-		double SCORE_ASTEROID(Asteroid a) { return 30 + 2000 / (4 * a.radius); }
+		double SCORE_ASTEROID(Asteroid<?> a) { return 30 + 2000 / (4 * a.radius); }
 
 		double SCORE_UFO = 250;
 		double SCORE_UFO_DISC = 100;
@@ -1191,12 +1191,12 @@ public class Comet extends ClassController {
 			final int id;
 			final String name, scale, details;
 			final Colors colors = new Colors();
-			final Ƒ5<Double,Double,Double,Double,Double,Asteroid> planetoidConstructor;
+			final Ƒ5<Double,Double,Double,Double,Double,Asteroid<?>> planetoidConstructor;
 			Consumer<Game> initializer = game -> {};
 			Consumer<Game> disposer = game -> {};
 
 			public Mission(int ID, String NAME, String SCALE, String DETAILS, Color COLOR, Color CANVAS_REDRAW,
-					Ƒ5<Double,Double,Double,Double,Double,Asteroid> planetoidFactory) {
+					Ƒ5<Double,Double,Double,Double,Double,Asteroid<?>> planetoidFactory) {
 				id = ID;
 				name = NAME; scale = SCALE; details = DETAILS;
 				planetoidConstructor = planetoidFactory;
@@ -1298,7 +1298,7 @@ public class Comet extends ClassController {
 	}
 
 	/** Game player. Survives game sessions. */
-	public class Player implements LO, Configurable {
+	public class Player implements LO, Configurable<Object> {
 		@IsConfig(editable = EditMode.APP) public final V<Integer> id = new V<>(null);
 		@IsConfig public final V<String> name = new V<>("");
 		@IsConfig public final V<Color> color = new V<>(Color.WHITE);
@@ -1510,7 +1510,7 @@ public class Comet extends ClassController {
 	abstract class PO extends SO {
 		double mass = 0;
 		Engine engine = null;
-		Class type;
+		Class<?> type;
 		Draw graphics;
 		double graphicsDir = 0;
 		double graphicsScale = 1;
@@ -1518,7 +1518,7 @@ public class Comet extends ClassController {
 		double direction = -D90;
 		double ddirection = 0;
 
-		PO(Class TYPE, double X, double Y, double DX, double DY, double HIT_RADIUS, Image GRAPHICS) {
+		PO(Class<?> TYPE, double X, double Y, double DX, double DY, double HIT_RADIUS, Image GRAPHICS) {
 			type = TYPE;
 			x = X; y = Y; dx = DX; dy = DY;
 			radius = HIT_RADIUS;
@@ -1620,7 +1620,7 @@ public class Comet extends ClassController {
 		double dx_old = 0; // allows calculating ddx (2nd derivation - acceleration)
 		double dy_old = 0;
 
-		public Ship(Class TYPE, double X, double Y, double DX, double DY, double HIT_RADIUS, Image GRAPHICS, double E, double dE) {
+		public Ship(Class<?> TYPE, double X, double Y, double DX, double DY, double HIT_RADIUS, Image GRAPHICS, double E, double dE) {
 			super(TYPE, X, Y, DX, DY, HIT_RADIUS, GRAPHICS);
 			energy = E;
 			energy_buildup_rate = dE;
@@ -3180,7 +3180,7 @@ public class Comet extends ClassController {
 					if (owner instanceof Rocket)
 						((Rocket) owner).player.stats.accHitEnemy(game.loop.id);
 
-					Asteroid a = (Asteroid)e;
+					Asteroid<?> a = (Asteroid)e;
 					a.onHit(this);
 					a.explosion();
 					if (owner instanceof Rocket)
@@ -3618,7 +3618,7 @@ public class Comet extends ClassController {
 	}
 
 	private interface Mover {
-		void calcSpeed(Asteroid o);
+		void calcSpeed(Asteroid<?> o);
 	}
 	private interface Draw2 {
 		void drawBack();
@@ -3630,7 +3630,7 @@ public class Comet extends ClassController {
 			double ttldirchange = ttl(seconds(rand0N(12)));
 			double ttldirchanging = ttl(seconds(rand0N(3)));
 
-			public void calcSpeed(Asteroid o){
+			@Override public void calcSpeed(Asteroid<?> o){
 				// rotate at random time for random duration by random angle
 				ttldirchange--;
 				if (ttldirchange<0) {
@@ -4635,7 +4635,7 @@ public class Comet extends ClassController {
 			// Asteroids disintegrate due to BH tidal forces.
 			// It would be ugly for asteroids not do this...
 			if (o instanceof Asteroid) {
-				Asteroid a = ((Asteroid)o);
+				Asteroid<?> a = ((Asteroid)o);
 				if (dist/220<a.size) {
 					a.onHit(this);
 				}

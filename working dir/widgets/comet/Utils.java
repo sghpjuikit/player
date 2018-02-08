@@ -537,7 +537,7 @@ interface Utils {
 	static boolean randBoolean() {
 		return RAND.nextBoolean();
 	}
-	static <E extends Enum> E randEnum(Class<E> enumType) {
+	static <E extends Enum<E>> E randEnum(Class<E> enumType) {
 		return randOf(getEnumConstants(enumType));
 	}
 	static <T> T randOf(T a, T b) {
@@ -905,14 +905,14 @@ interface Utils {
 			return value;
 		}
 
-		InEffectValue inc() {
+		InEffectValue<T> inc() {
 			times++;
 			value = valueCalc.apply(times);
 			if (changeApplier!=null) changeApplier.accept(times);
 			return this;
 		}
 
-		InEffectValue dec() {
+		InEffectValue<T> dec() {
 			if (times<=0) return this;
 			times--;
 			value = valueCalc.apply(times);
@@ -1028,10 +1028,10 @@ interface Utils {
 	}
 
 	class ObjectStore<O> {
-		private final Map<Class,Set<O>> m = new HashMap<>();
-		private final Ƒ1<O,Class> mapper;
+		private final Map<Class<?>,Set<O>> m = new HashMap<>();
+		private final Ƒ1<O,Class<?>> mapper;
 
-		ObjectStore(Ƒ1<O,Class> classMapper) {
+		ObjectStore(Ƒ1<O,Class<?>> classMapper) {
 			mapper = classMapper;
 		}
 
@@ -1040,7 +1040,7 @@ interface Utils {
 		}
 
 		void remove(O o) {
-			Set l = m.get(mapper.apply(o));
+			Set<O> l = m.get(mapper.apply(o));
 			if (l!=null) l.remove(o);
 		}
 
@@ -1099,7 +1099,7 @@ interface Utils {
 	}
 	class PoolMap<P> {
 		private final ClassMap<Pool<P>> pools = new ClassMap<>();
-		private final ClassMap<Ƒ1<Class,Pool<P>>> factories = new ClassMap<>();
+		private final ClassMap<Ƒ1<Class<?>,Pool<P>>> factories = new ClassMap<>();
 
 		 PoolMap() {
 		}
@@ -1123,7 +1123,7 @@ interface Utils {
 		private final int bucketSpan;
 		private final Set<PO>[][] a;
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"unchecked", "rawtypes"})
 		SpatialHash(int width, int height, int bucket_SPAN) {
 			xMax = width;
 			yMax = height;

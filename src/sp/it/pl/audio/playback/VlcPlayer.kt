@@ -10,7 +10,6 @@ import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.functional.ifFalse
-import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.onE
 import sp.it.pl.util.functional.runTry
 import sp.it.pl.util.math.millis
@@ -62,7 +61,7 @@ class VlcPlayer: GeneralPlayer.Play {
         player?.stop()
     }
 
-    override fun createPlayback(item: Item, state: PlaybackState, onOK: Runnable, onFail: Runnable) {
+    override fun createPlayback(item: Item, state: PlaybackState, onOK: () -> Unit, onFail: () -> Unit) {
         if (!initialized && !discovered) {
             val location = APP.DIR_APP.childOf("vlc")
             discovered = true

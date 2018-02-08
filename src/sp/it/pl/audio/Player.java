@@ -521,7 +521,7 @@ public class Player {
 	/** Pauses/resumes player, if file is being played. Otherwise does nothing. */
 	@IsAction(name = "Pause/resume", desc = "Pauses/resumes playback, if file is being played.", keys = "ALT+S", global = true)
 	public static void pause_resume() {
-		player.pause_resume();
+		player.pauseResume();
 	}
 
 	/** Stops player. */
@@ -539,7 +539,7 @@ public class Player {
 	public static void seek(double at) {
 		if (at<0 || at>1) throw new IllegalArgumentException("Seek value must be 0-1");
 		seek(state.playback.duration.get().multiply(at));
-		if (state.playback.status.get()==PAUSED) player.pause_resume();
+		if (state.playback.status.get()==PAUSED) player.pauseResume();
 	}
 
 	/** Seek forward by specified duration */

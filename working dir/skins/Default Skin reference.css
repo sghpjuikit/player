@@ -3655,23 +3655,23 @@
  * inherits: .icon
  */
 .congfig-field-ok-button {
-    -glyph-name: CHECK;
+    -glyph-name: FontAwesomeIcon.CHECK;
 }
 
 .boolean-config-field {}
 
 .override-config-field {
-    -glyph-name: CHECKBOX_MULTIPLE_BLANK_OUTLINE;
+    -glyph-name: MaterialDesignIcon.CHECKBOX_MULTIPLE_BLANK_OUTLINE;
 }
 .override-config-field:selected {
-    -glyph-name: CHECKBOX_MULTIPLE_BLANK;
+    -glyph-name: MaterialDesignIcon.CHECKBOX_MULTIPLE_BLANK;
 }
 
 .shortcut-global-config-field {
-    -glyph-name: CAST;
+    -glyph-name: MaterialDesignIcon.CAST;
 }
 .shortcut-global-config-field:selected {
-    -glyph-name: CAST_CONNECTED;
+    -glyph-name: MaterialDesignIcon.CAST_CONNECTED;
 }
 
 /** 
@@ -3679,7 +3679,7 @@
  * inherits: .icon
  */
 .congfig-field-warn-button {
-    -glyph-name: EXCLAMATION_TRIANGLE;
+    -glyph-name: FontAwesomeIcon.EXCLAMATION_TRIANGLE;
     -fx-fill: -fx-focus-color;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }

@@ -109,7 +109,7 @@ public class Icon extends StackPane {
 	public static final MapSet<String,GlyphIcons> GLYPHS = stream(GLYPH_TYPES)
 		.flatMap(c -> stream(getEnumConstants(c)))
 		.filter(GlyphIcons.class::isInstance).map(GlyphIcons.class::cast)
-		.collect(toCollection(() -> new MapSet<>(glyph -> glyph.getFontFamily() + "." + glyph.name())));
+		.collect(toCollection(() -> new MapSet<>(glyph -> glyph.getClass().getSimpleName() + "." + glyph.name())));
 
 	// load fonts
 	static {

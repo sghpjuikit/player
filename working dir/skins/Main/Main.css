@@ -3198,7 +3198,7 @@
  */
 .icon {
     -fx-fill: -fx-def-font-color;
-    -glyph-name: "FontAwesome.CLOSE";
+    -glyph-name: "FontAwesomeIcon.CLOSE";
     -glyph-size: 12;
     -glyph-gap: 0;
 }
@@ -3234,10 +3234,10 @@
  * pseudoclasses: selected
  */
 .check-icon {
-   -glyph-name: "FontAwesome.TOGGLE_OFF";
+   -glyph-name: "FontAwesomeIcon.TOGGLE_OFF";
 }
 .check-icon:selected {
-   -glyph-name: "FontAwesome.TOGGLE_ON";
+   -glyph-name: "FontAwesomeIcon.TOGGLE_ON";
 }
 
 /** 
@@ -3257,10 +3257,10 @@
  * inherits: .check-icon
  */
 .filter-negate-icon {
-   -glyph-name: "FontAwesome.CIRCLE";
+   -glyph-name: "FontAwesomeIcon.CIRCLE";
 }
 .filter-negate-icon:selected {
-   -glyph-name: "FontAwesome.CIRCLE_ALT";
+   -glyph-name: "FontAwesomeIcon.CIRCLE_ALT";
 }
 .resize-content-icon {
    -glyph-name: "MaterialDesignIcon.RESIZE_BOTTOM_RIGHT";
@@ -3732,27 +3732,27 @@
  * inherits: .icon
  */
 .config-field-ok-button {
-    -glyph-name: "FontAwesome.CHECK";
+    -glyph-name: "FontAwesomeIcon.CHECK";
 }
 
 .runnable-config-field {
-    -glyph-name: "FontAwesome.REFRESH";
+    -glyph-name: "FontAwesomeIcon.REFRESH";
 }
 
 .boolean-config-field {}
 
 .override-config-field {
-    -glyph-name: "MaterialDesignIcons.CHECKBOX_MULTIPLE_BLANK_OUTLINE";
+    -glyph-name: "MaterialDesignIcon.CHECKBOX_MULTIPLE_BLANK_OUTLINE";
 }
 .override-config-field:selected {
-    -glyph-name: "MaterialDesignIcons.CHECKBOX_MULTIPLE_BLANK";
+    -glyph-name: "MaterialDesignIcon.CHECKBOX_MULTIPLE_BLANK";
 }
 
 .shortcut-global-config-field {
-    -glyph-name: "MaterialDesignIcons.CAST";
+    -glyph-name: "MaterialDesignIcon.CAST";
 }
 .shortcut-global-config-field:selected {
-    -glyph-name: "MaterialDesignIcons.CAST_CONNECTED";
+    -glyph-name: "MaterialDesignIcon.CAST_CONNECTED";
 }
 
 /** 
@@ -3760,7 +3760,7 @@
  * inherits: .icon
  */
 .config-field-warn-button {
-    -glyph-name: "FontAwesome.EXCLAMATION_TRIANGLE";
+    -glyph-name: "FontAwesomeIcon.EXCLAMATION_TRIANGLE";
     -fx-fill: -fx-focus-color;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
@@ -3786,13 +3786,13 @@
 
 /* Effect type chooser button for effect config field. */
 .effect-config-field-type-button {
-    -glyph-name: "MaterialDesignIcons.AUTO_FIX";
+    -glyph-name: "MaterialDesignIcon.AUTO_FIX";
     -glyph-size: 11;
 }
 
 /* Effect properties button for effect config field. */
 .effect-config-field-conf-button {
-    -glyph-name: "FontAwesome.GEAR";
+    -glyph-name: "FontAwesomeIcon.GEAR";
     -glyph-size: 11;
 }
 
@@ -3881,11 +3881,11 @@
 /* inherits: checkicon-menu-item-icon */
 .checkicon-menu-item-icon-single-selection {
     visibility: hidden;
-    -glyph-name: "FontAwesome.CHECK";
+    -glyph-name: "FontAwesomeIcon.CHECK";
 }
 .checkicon-menu-item-icon-single-selection:selected {
     visibility: visible;
-    -glyph-name: "FontAwesome.CHECK";
+    -glyph-name: "FontAwesomeIcon.CHECK";
 }
 
 /* hide the arrow if no children */
@@ -3910,7 +3910,7 @@
 .inode,
 .onode,
 .ionode {
-    -glyph-name: "FontAwesome.TOGGLE_RIGHT";
+    -glyph-name: "FontAwesomeIcon.TOGGLE_RIGHT";
     -glyph-size: 10;
 }
 

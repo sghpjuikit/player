@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -29,6 +30,7 @@ import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.animation.Anim;
+import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.dev.Dependency;
@@ -47,6 +49,8 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.util.async.AsyncKt.FX;
+import static sp.it.pl.util.async.AsyncKt.NEW;
 import static sp.it.pl.util.dev.Util.log;
 import static sp.it.pl.util.file.UtilKt.toFileOrNull;
 import static sp.it.pl.util.functional.Util.ISNTØ;
@@ -244,8 +248,17 @@ public class Thumbnail {
 		imageFile = img;
 		ImageSize size = calculateImageLoadSize();
 		Image c = getCached(img, size);
-		Image i = c!=null ? c : ImageStandardLoader.INSTANCE.invoke(img, size);
-		setImgA(i);
+		if (c!=null) {
+			setImgA(c);
+		} else {
+			if (Platform.isFxApplicationThread()) {
+				Fut.fut()
+					.supply(NEW, () -> ImageStandardLoader.INSTANCE.invoke(img, size))
+					.use(FX, this::setImgA);
+			} else {
+				setImgA(ImageStandardLoader.INSTANCE.invoke(img, size));
+			}
+		}
 	}
 
 	public void loadImage(Cover img) {

@@ -457,7 +457,7 @@ class App: Application(), Configurable<Any> {
     fun fetchVMArguments(): List<String> = ManagementFactory.getRuntimeMXBean().inputArguments
 
     /** @return number of instances of this application (including this one) running at this moment */
-    fun getInstances(): Int = VirtualMachine.list().count { AppUtil::class.java.name==it.displayName() }
+    fun getInstances(): Int = VirtualMachine.list().count { it.displayName().contains(AppUtil::class.java.name) }
 
     /** @return image of the icon of the application */
     fun getIcon(): Image = Image(File("icon512.png").toURI().toString())

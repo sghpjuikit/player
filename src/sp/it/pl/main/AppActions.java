@@ -2,6 +2,7 @@ package sp.it.pl.main;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
+import com.sun.tools.attach.VirtualMachine;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
@@ -391,8 +392,18 @@ public class AppActions {
 			APP.widgetManager.find(w -> w.name().equals("Logger"), WidgetSource.ANY); // open console automatically
 			System.out.println(sb.toString());
 		} catch (IOException|ImageProcessingException e) {
-			e.printStackTrace();
+			e.printStackTrace();    // TODO: improve
 		}
+	}
+
+	@IsAction(name = "Print running java processes")
+	public void printJavaProcesses() {
+		VirtualMachine.list().forEach(vm -> {
+			System.out.println("VM:");
+			System.out.println("    id: " + vm.id());
+			System.out.println("    displayName: " + vm.displayName());
+			System.out.println("    provider: " + vm.provider());
+		});
 	}
 
 	public void refreshItemsFromFileJob(List<? extends Item> items) {

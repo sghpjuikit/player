@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import sp.it.pl.util.dev.Dependency;
+import sp.it.pl.util.functional.Try;
 import static sp.it.pl.util.functional.Util.forEachBoth;
 import static sp.it.pl.util.functional.Util.repeat;
 
@@ -21,7 +23,7 @@ import static sp.it.pl.util.functional.Util.repeat;
  * <li> start and end with a parse key - must not start or end with delimiter
  * <li> have every two adjacent parse keys separated by delimiter
  * <li> no parse key can contain the {@link #PARSE_KEY_LIMITER} character
- * <li> parse keys dont have to have unique names
+ * <li> parse keys don't have to have unique names
  * </ul>
  * <p/>
  * Te output list is always of the
@@ -38,45 +40,12 @@ import static sp.it.pl.util.functional.Util.repeat;
 public class StringSplitParser implements Function<String,List<String>> {
 	public static final char PARSE_KEY_LIMITER = '%';
 
-	public final String pex;
+	public final String expression;
 	public final List<String> parse_keys = new ArrayList<>();
 	public final List<String> key_separators = new ArrayList<>();
 
-	/**
-	 * @param expression parsing expression
-	 * @throws IllegalArgumentException if expression parameter is not valid
-	 */
-	public StringSplitParser(String expression) {
-		this.pex = expression;
-
-		int limiter = 0;
-		String key = "";
-		String sep = "";
-		for (int i = 0; i<expression.length(); i++) {
-			char c = expression.charAt(i);
-			if (c==PARSE_KEY_LIMITER) {
-				if (limiter==1) {
-					limiter = 0;
-					if (!key.isEmpty()) parse_keys.add(key);
-					else
-						throw new IllegalArgumentException("Cant create split string expression. Wrong format. '" + expression + "'");
-					key = "";
-				} else {
-					limiter = 1;
-					if (!sep.isEmpty()) key_separators.add(sep);
-					if (sep.isEmpty() && i!=0)
-						throw new IllegalArgumentException("Cant create split string expression. Wrong format. '" + expression + "'");
-					sep = "";
-				}
-			} else {
-				if (limiter==1) key += c;
-				if (limiter==0) sep += c;
-			}
-		}
-		if (limiter==1)
-			throw new IllegalArgumentException("Cant create split string expression. Wrong format. '" + expression + "'");
-		if (parse_keys.isEmpty())
-			throw new IllegalArgumentException("Cant create split string expression. Wrong format. '" + expression + "'");
+	private StringSplitParser(String expression) {
+		this.expression = expression;
 	}
 
 	/**
@@ -106,7 +75,7 @@ public class StringSplitParser implements Function<String,List<String>> {
 	 * Same as {@link #apply(java.lang.String)}, but returns the keys too.
 	 *
 	 * @param text text to parse
-	 * @throws IllegalArgumentException if text parsing fails
+	 * @throws IllegalArgumentException if text parsing fails   // TODO: avoid this stupidity
 	 */
 	public Map<String,String> applyM(String text) {
 		List<String> splits = apply(text);
@@ -115,9 +84,50 @@ public class StringSplitParser implements Function<String,List<String>> {
 		return m;
 	}
 
+	@Dependency("fromString")
 	@Override
 	public String toString() {
-		return pex;
+		return expression;
+	}
+
+	public static StringSplitParser singular() {
+		return StringSplitParser.fromString("%all%").getOrThrow();
+	}
+
+	@Dependency("toString")
+	public static Try<StringSplitParser, String> fromString(String expression) {
+		StringSplitParser ssp = new StringSplitParser(expression);
+
+		int limiter = 0;
+		String key = "";
+		String sep = "";
+		for (int i = 0; i<expression.length(); i++) {
+			char c = expression.charAt(i);
+			if (c==PARSE_KEY_LIMITER) {
+				if (limiter==1) {
+					limiter = 0;
+					if (!key.isEmpty()) ssp.parse_keys.add(key);
+					else
+						return Try.error("Cant create split string expression. Wrong format. '" + expression + "'");
+					key = "";
+				} else {
+					limiter = 1;
+					if (!sep.isEmpty()) ssp.key_separators.add(sep);
+					if (sep.isEmpty() && i!=0)
+						return Try.error("Cant create split string expression. Wrong format. '" + expression + "'");
+					sep = "";
+				}
+			} else {
+				if (limiter==1) key += c;
+				if (limiter==0) sep += c;
+			}
+		}
+		if (limiter==1)
+			return Try.error("Cant create split string expression. Wrong format. '" + expression + "'");
+		if (ssp.parse_keys.isEmpty())
+			return Try.error("Cant create split string expression. Wrong format. '" + expression + "'");
+
+		return Try.ok(ssp);
 	}
 
 	public static class Split {

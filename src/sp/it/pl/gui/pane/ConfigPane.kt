@@ -49,14 +49,14 @@ class ConfigPane<T: Any>: FlowPane, ConfiguringFeature<T> {
                     textAlignment = TextAlignment.RIGHT
                     padding = Insets(0.0, 0.0, 0.0, 5.0)
                 }
-                children += it.node
-                HBox.setHgrow(it.node, ALWAYS)
+                children += it.getNode()
+                HBox.setHgrow(it.getNode(), ALWAYS)
             }
         }
     }
 
     fun getConfigFields(): List<ConfigField<out T>> = fields
 
-    fun getConfigValues(): Stream<T> = getConfigFields().stream().map { it.getValue() }
+    fun getConfigValues(): Stream<T> = getConfigFields().stream().map { it.getVal() }
 
 }

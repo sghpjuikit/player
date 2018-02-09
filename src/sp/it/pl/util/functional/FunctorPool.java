@@ -124,8 +124,8 @@ public class FunctorPool {
 		add("Remove chars",        S, S, sp.it.pl.util.Util::removeChars, Integer.class, StringDirection.class, 0, FROM_START);
 		add("Retain chars",        S, S, sp.it.pl.util.Util::retainChars, Integer.class, StringDirection.class, 0, FROM_START);
 		add("Trim",                S, S, String::trim);
-		add("Split",               S, SplitData.class, sp.it.pl.util.Util::split, StringSplitParser.class, new StringSplitParser("%all%"));
-		add("Split-join",          S, S, sp.it.pl.util.Util::splitJoin, StringSplitParser.class, StringSplitParser.class, new StringSplitParser("%all%"), new StringSplitParser("%all%"));
+		add("Split",               S, SplitData.class, sp.it.pl.util.Util::split, StringSplitParser.class, StringSplitParser.singular());
+		add("Split-join",          S, S, sp.it.pl.util.Util::splitJoin, StringSplitParser.class, StringSplitParser.class, StringSplitParser.singular(), StringSplitParser.singular());
 		add("Is",            S, B, sp.it.pl.util.Util::equalsNoCase, S, B, "", true);
 		add("Contains",      S, B, sp.it.pl.util.Util::containsNoCase, S, B, "", true, false, false, true);
 		add("Ends with",     S, B, sp.it.pl.util.Util::endsWithNoCase, S, B, "", true);
@@ -238,7 +238,8 @@ public class FunctorPool {
 			add(f.name(), MetadataGroup.class, f.getType(), m -> (f).getOf(m));
 	}
 
-	public <I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<? super I, ? extends O> f) {
+	@SuppressWarnings("unchecked")
+	public <I,O> void add(String name, Class<I> i , Class<O> o, Ƒ1<? super I, ? extends O> f) {
 		addF(new PƑ0(name,i,o,f));
 	}
 
@@ -336,8 +337,8 @@ public class FunctorPool {
 	@SuppressWarnings("unckeched")
 	public <O> PrefList<PƑ<?,O>> getO(Class<O> o) {
 		addSelfFunctor(o);
-		List ll = fsO.get(unPrimitivize(o));
-		return ll==null ? new PrefList() : (PrefList) ll;
+		List<?> ll = fsO.get(unPrimitivize(o));
+		return ll==null ? new PrefList<>() : (PrefList) ll;
 	}
 
 	/** Returns all functions taking input I and producing output O. */

@@ -14,7 +14,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import sp.it.pl.gui.itemnode.ItemNode.ValueNode;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
@@ -51,20 +50,24 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 	protected BiPredicate<Integer,V> isHomogeneous = (i, v) -> false;
 
 	/** Creates unlimited chain of 1 initial chained element. */
-	public ChainValueNode() {}
+	public ChainValueNode(V initialValue) {
+		super(initialValue);
+	}
 
 	/** Creates unlimited chain of 1 initial chained element. */
-	public ChainValueNode(Supplier<C> chainedFactory) {
-		this(1, chainedFactory);
+	public ChainValueNode(V initialValue, Supplier<C> chainedFactory) {
+		this(1, initialValue, chainedFactory);
 	}
 
 	/** Creates unlimited chain of i initial chained elements. */
-	public ChainValueNode(int i, Supplier<C> chainedFactory) {
-		this(i, Integer.MAX_VALUE, chainedFactory);
+	public ChainValueNode(int i, V initialValue, Supplier<C> chainedFactory) {
+		this(i, Integer.MAX_VALUE, initialValue, chainedFactory);
 	}
 
 	/** Creates limited chain of i initial chained elements. */
-	public ChainValueNode(int len, int max_len, Supplier<C> chainedFactory) {
+	public ChainValueNode(int len, int max_len, V initialValue, Supplier<C> chainedFactory) {
+		super(initialValue);
+
 		maxChainLength.set(max_len);
 		this.chainedFactory = chainedFactory;
 		growTo(len);
@@ -156,15 +159,15 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 	abstract protected V reduce(Stream<V> values);
 
 	public V getValueAt(int i) {
-		return i>=0 && i<chain.size() && chain.get(i).chained!=null && chain.get(i).chained.getValue()!=null
-				? chain.get(i).chained.getValue()
+		return i>=0 && i<chain.size() && chain.get(i).chained!=null && chain.get(i).chained.getVal()!=null
+				? chain.get(i).chained.getVal()
 				: null;
 	}
 
 	/** Return individual chained values that are enabled and non null. */
 	public Stream<V> getValues() {
 		return chain.stream().filter(g -> g.on.getValue())
-				.map(g -> g.chained.getValue())
+				.map(g -> g.chained.getVal())
 				.filter(ISNTØ);
 	}
 
@@ -239,8 +242,8 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 		private boolean isHomogeneous() {
 			int i = getIndex();
 			boolean hi = false;
-			if (chained!=null && chained.getValue()!=null) {
-				hi = isHomogeneous.test(i, chained.getValue());
+			if (chained!=null && chained.getVal()!=null) {
+				hi = isHomogeneous.test(i, chained.getVal());
 			}
 			return homogeneous || hi || i>=chain.size() - 1;
 
@@ -261,13 +264,13 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 	public static class ListConfigField<V, IN extends ValueNode<V>> extends ChainValueNode<V,IN> {
 
 		public ListConfigField(Supplier<IN> chainedFactory) {
-			super(chainedFactory);
+			super(null, chainedFactory);
 			inconsistent_state = false;
 			generateValue();
 		}
 
 		public ListConfigField(int length, Supplier<IN> chainedFactory) {
-			super(length, chainedFactory);
+			super(length, null, chainedFactory);
 			inconsistent_state = false;
 			generateValue();
 		}
@@ -280,11 +283,11 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 		@Override
 		protected void changeValue(V nv) {
 			value = nv;
-			if (onItemChange!=null) onItemChange.accept(nv);
+			onItemChange.accept(nv);
 		}
 
 		@Override
-		public V getValue() {
+		public V getVal() {
 			throw new UnsupportedOperationException();
 		}
 

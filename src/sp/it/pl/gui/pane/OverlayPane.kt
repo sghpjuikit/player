@@ -28,6 +28,7 @@ import sp.it.pl.util.async.runAfter
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.Util.createFMNTStage
 import sp.it.pl.util.graphics.Util.layStack
@@ -53,7 +54,7 @@ import kotlin.test.fail
  * Rather than using [StackPane.getChildren], use [.setContent], which applies further decoration.
  * Content will align to center unless set otherwise.
  */
-abstract class OverlayPane<T>: StackPane() {
+abstract class OverlayPane<in T>: StackPane() {
 
     /** Display method. */
     @IsConfig(name = "Display method", info = "Area of content. Screen provides more space than window, but can get in the way of other apps.")
@@ -82,7 +83,7 @@ abstract class OverlayPane<T>: StackPane() {
                 children.clear()
                 field!!.styleClass -= CONTENT_STYLECLASS
             } else {
-                children.setAll(c, layStack(resizeB, Pos.BOTTOM_RIGHT))
+                children clearSet listOf(c, layStack(resizeB, Pos.BOTTOM_RIGHT))
                 resizeB.parent.isManaged = false
                 resizeB.parent.isMouseTransparent = true
                 c.styleClass += CONTENT_STYLECLASS
@@ -307,9 +308,9 @@ abstract class OverlayPane<T>: StackPane() {
     }
 
     companion object {
-        private val IS_SHOWN = "visible"
-        private val ROOT_STYLECLASS = "overlay-pane"
-        private val CONTENT_STYLECLASS = "overlay-pane-content"
+        private const val IS_SHOWN = "visible"
+        private const val ROOT_STYLECLASS = "overlay-pane"
+        private const val CONTENT_STYLECLASS = "overlay-pane-content"
     }
 }
 

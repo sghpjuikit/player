@@ -1,6 +1,9 @@
 package sp.it.pl.util.functional
 
-import java.util.*
+import javafx.collections.ObservableList
+import sp.it.pl.util.type.union
+import java.util.Comparator
+import java.util.Optional
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 import java.util.function.DoubleConsumer
@@ -9,6 +12,7 @@ import java.util.function.LongConsumer
 import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.coroutines.experimental.buildSequence
+import kotlin.reflect.KClass
 
 operator fun <T> Consumer<T>.invoke(t: T) = accept(t)
 
@@ -68,3 +72,16 @@ fun <T> Comparator<T>.nullsLast(): Comparator<T?> = Comparator.nullsLast(this) a
 
 /** @return null-safe comparator wrapper putting nulls at the the start */
 fun <T> Comparator<T>.nullsFirst(): Comparator<T?> = Comparator.nullsFirst(this) as Comparator<T?>
+
+fun <E: Any> Collection<E?>.getElementType(): Class<*> {
+    return asSequence().filterNotNull()
+            .map { it::class as KClass<*> }.distinct()
+            .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }
+            ?.java ?: Void::class.java
+}
+
+inline infix fun <reified T: Any?> ObservableList<T>.clearSet(elements: Collection<T>) {
+    setAll(*elements.toTypedArray())
+}
+
+inline infix fun <reified T: Any?> ObservableList<T>.clearSet(elements: Sequence<T>) = this clearSet elements.toList()

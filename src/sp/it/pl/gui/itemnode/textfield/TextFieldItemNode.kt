@@ -3,6 +3,7 @@ package sp.it.pl.gui.itemnode.textfield
 import javafx.scene.control.TextField
 import sp.it.pl.gui.objects.textfield.DecoratedTextField
 import sp.it.pl.util.access.AccessibleValue
+import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.functional.invoke
 import java.util.function.BiConsumer
 
@@ -21,7 +22,7 @@ abstract class TextFieldItemNode<T>: DecoratedTextField, AccessibleValue<T> {
         this.textValueConverter = textValueConverter
 
         isEditable = false
-        styleClass.setAll(textFieldStyleClass())
+        styleClass clearSet textFieldStyleClass()
         text = nullText
         promptText = nullText
 

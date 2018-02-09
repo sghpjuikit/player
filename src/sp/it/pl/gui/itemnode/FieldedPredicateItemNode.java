@@ -10,7 +10,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.Callback;
-import sp.it.pl.gui.itemnode.ItemNode.ValueNode;
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
@@ -51,7 +50,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	// isEmpty() predicate should check: element.getField(field).equals(EMPTY_ELEMENT.getField(field))
 	// where null.equals(null) would return true, basically: element.hasDefaultValue(field).
 	// However, in my opinion, isNull predicate does not lose its value completely.
-	private static <V, T> Predicate<V> predicate(ObjectField<V,T> field, Function<? super T,Boolean> filter) {
+	private static <V, T> Predicate<V> predicate(ObjectField<V,T> field, Function<? super T, ? extends Boolean> filter) {
 		return Util.isAny(filter, ISØ, ISNTØ, IS, ISNT)
 				? element -> filter.apply(field.getOf(element))
 				: element -> {
@@ -70,13 +69,16 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	private Supplier<PredicateData<F>> prefTypeSupplier;
 	private boolean inconsistentState = false;
 
+	@SuppressWarnings("unchecked")
 	public FieldedPredicateItemNode(Callback<Class,PrefList<PƑ<Object,Boolean>>> predicatePool, Callback<Class,PƑ<Object,Boolean>> prefPredicatePool) {
+		super((Predicate) IS);
+
 		root.setAlignment(CENTER_LEFT);
 		typeCB.setVisibleRowCount(25);
 		typeCB.valueProperty().addListener((o, ov, nv) -> {
 			if (inconsistentState) return;
 			if (config!=null) root.getChildren().remove(config.getNode());
-			config = new FItemNode<>(() -> predicatePool.call(nv.type));
+			config = new FItemNode(() -> predicatePool.call(nv.type));
 			root.getChildren().add(config.getNode());
 			HBox.setHgrow(config.getNode(), ALWAYS);
 			config.onItemChange = v -> generatePredicate();
@@ -86,7 +88,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		negB.tooltip(negTooltip);
 	}
 
-	// TODO: this should be advertized that supplier can return null
+	// TODO: this should be advertised that supplier can return null
 	public void setPrefTypeSupplier(Supplier<PredicateData<F>> supplier) {
 		prefTypeSupplier = supplier;
 	}
@@ -144,7 +146,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	private void generatePredicate() {
 		if (inconsistentState) return;
 		empty = false;
-		Function<Object,Boolean> p = config.getValue();
+		Function<? super Object, ? extends Boolean> p = config.getVal();
 		F o = typeCB.getValue()==null ? null : typeCB.getValue().value;
 		if (p!=null && o!=null) {
 			Predicate<V> pr = predicate((ObjectField) o, p);

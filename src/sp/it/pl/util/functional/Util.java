@@ -621,7 +621,7 @@ public interface Util {
 	 * @param s delimiter/separator
 	 * @return s separated representation of the collection
 	 */
-	static <T> String toS(Collection<T> c, Function<? super T, ? extends String> m, String s) {
+	static <T> String toS(Collection<? extends T> c, Function<? super T, ? extends String> m, String s) {
 		return c.stream().map(m).collect(joining(s));
 	}
 
@@ -632,7 +632,7 @@ public interface Util {
 	 * @param s delimiter/separator
 	 * @return s separated representation of the collection
 	 */
-	static String toS(Collection<String> c, String s) {
+	static String toS(Collection<? extends String> c, String s) {
 		return c.stream().collect(joining(s));
 	}
 
@@ -644,7 +644,7 @@ public interface Util {
 	 * @param m element to string mapper
 	 * @return comma separated string representation of the objects in the collection
 	 */
-	static <T> String toS(Collection<T> c, Function<? super T, ? extends String> m) {
+	static <T> String toS(Collection<? extends T> c, Function<? super T, ? extends String> m) {
 		return c.stream().map(m).collect(toCSList);
 	}
 
@@ -654,7 +654,7 @@ public interface Util {
 	 * @param c collection
 	 * @return comma separated string representations of the objects in the collection
 	 */
-	static <T> String toS(Collection<T> c) {
+	static <T> String toS(Collection<? extends T> c) {
 		return c.stream().map(Objects::toString).collect(toCSList);
 	}
 
@@ -822,7 +822,7 @@ public interface Util {
 	 *
 	 * @return i-th slice of the map m
 	 */
-	static <K, T> Map<K,T> mapSlice(Map<K,List<T>> m, int i) {
+	static <K, T> Map<K,T> mapSlice(Map<K,List<? extends T>> m, int i) {
 		Map<K,T> o = new HashMap<>();
 		m.forEach((key, value) -> o.put(key, value.get(i)));
 		return o;
@@ -834,7 +834,7 @@ public interface Util {
 	 *
 	 * @return new map containing all elements mapped to transformed keys
 	 */
-	static <K1, K2, V> Map<K2,V> mapKeys(Map<K1,V> m, Function<K1,K2> f) {
+	static <K1, K2, V> Map<K2,V> mapKeys(Map<K1,V> m, Function<? super K1, ? extends K2> f) {
 		Map<K2,V> o = new HashMap<>();
 		m.forEach((key, val) -> o.put(f.apply(key), val));
 		return o;

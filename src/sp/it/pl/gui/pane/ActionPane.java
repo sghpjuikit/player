@@ -85,6 +85,7 @@ import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.functional.UtilKt.getElementType;
 import static sp.it.pl.util.graphics.Util.layHeaderTopBottom;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.layScrollVTextCenter;
@@ -364,7 +365,7 @@ public class ActionPane extends OverlayPane<Object> {
 		double gap = 0;
 		if (data instanceof Collection && !((Collection)data).isEmpty()) {
 			Collection<Object> items = (Collection) data;
-			Class itemType = getCollectionType(items);
+			Class itemType = getElementType(items);
 			if (APP.classFields.get(itemType) != null) {	// TODO: add support for any item by using generic ToString objectField and column
 				FilteredTable<Object> t = new FilteredTable<>(itemType, null);
 				maintain(Gui.font, f -> rowHeight(f), t.fixedCellSizeProperty());
@@ -504,13 +505,8 @@ public class ActionPane extends OverlayPane<Object> {
 		return d==null
 				? Void.class
 				: d instanceof Collection
-					? getCollectionType((Collection)d)
+					? getElementType((Collection)d)
 					: d.getClass();
-	}
-
-	private static Class<?> getCollectionType(Collection<?> c) {
-		// TODO: improve collection element type recognition
-		return stream(c).filter(o -> o!=null).findFirst().map(o -> (Class)o.getClass()).orElse(Void.class);
 	}
 
 	public static Collection<?> collectionWrap(Object o) {

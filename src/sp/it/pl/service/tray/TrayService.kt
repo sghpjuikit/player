@@ -22,6 +22,7 @@ import sp.it.pl.util.conf.IsConfig.EditMode
 import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.functional.Try
+import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.graphics.Util.menuItem
 import sp.it.pl.util.graphics.image.ImageSize
 import sp.it.pl.util.graphics.image.createImageBlack
@@ -210,7 +211,7 @@ class TrayService : ServiceBase(true) {
     /** Adjust or provide tray right mouse click context menu items. Null sets default context menu. */
     fun setContextMenuItems(menuItems: MutableList<MenuItem>?) {
         contextMenuItems = menuItems ?: ArrayList(contextMenuItemsDefault)
-        contextMenu?.items?.setAll(contextMenuItems)
+        contextMenu?.items?.clearSet(contextMenuItems)
     }
 
     companion object: KLogging()

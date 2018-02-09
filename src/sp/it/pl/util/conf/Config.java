@@ -517,14 +517,14 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		 * @param property WritableValue to wrap. Mostly a {@link Property}.
 		 * @throws IllegalStateException if the property field is not final
 		 */
-		@SuppressWarnings("unckeched")
-		public PropertyConfig(Class<T> property_type, String name, IsConfig c, Set<Constraint<? super T>> constraints, WritableValue<T> property, String category) {
-			super(property_type, name, c, constraints, property.getValue(), category);
+		@SuppressWarnings("unchecked")
+		public PropertyConfig(Class<T> propertyType, String name, IsConfig c, Set<Constraint<? super T>> constraints, WritableValue<T> property, String category) {
+			super(propertyType, name, c, constraints, property.getValue(), category);
 			value = property;
 
 			// support enumeration by delegation if property supports is
 			if (value instanceof EnumerableValue)
-				valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
+				valueEnumerator = ((EnumerableValue<T>) value)::enumerateValues;
 		}
 
 		/**
@@ -533,22 +533,22 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		 * @param info description, for tooltip for example
 		 * @throws IllegalStateException if the property field is not final
 		 */
-		@SuppressWarnings("unckeched")
-		public PropertyConfig(Class<T> property_type, String name, String gui_name, WritableValue<T> property, String category, String info, EditMode editable) {
-			super(property_type, name, gui_name, property.getValue(), category, info, editable);
+		@SuppressWarnings("unchecked")
+		public PropertyConfig(Class<T> propertyType, String name, String gui_name, WritableValue<T> property, String category, String info, EditMode editable) {
+			super(propertyType, name, gui_name, property.getValue(), category, info, editable);
 			value = property;
 
 			// support enumeration by delegation if property supports is
 			if (value instanceof EnumerableValue)
-				valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
+				valueEnumerator = ((EnumerableValue<T>) value)::enumerateValues;
 		}
 
 		/**
 		 * @param property WritableValue to wrap. Mostly a {@link Property}.
 		 * @throws IllegalStateException if the property field is not final
 		 */
-		public PropertyConfig(Class<T> property_type, String name, WritableValue<T> property) {
-			this(property_type, name, name, property, "", "", EditMode.USER);
+		public PropertyConfig(Class<T> propertyType, String name, WritableValue<T> property) {
+			this(propertyType, name, name, property, "", "", EditMode.USER);
 		}
 
 		/**
@@ -556,8 +556,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		 * @param info description, for tooltip for example
 		 * @throws IllegalStateException if the property field is not final
 		 */
-		public PropertyConfig(Class<T> property_type, String name, WritableValue<T> property, String info) {
-			this(property_type, name, name, property, "", info, EditMode.USER);
+		public PropertyConfig(Class<T> propertyType, String name, WritableValue<T> property, String info) {
+			this(propertyType, name, name, property, "", info, EditMode.USER);
 		}
 
 		@Override
@@ -622,7 +622,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 			// support enumeration by delegation if property supports is
 			if (value instanceof EnumerableValue)
-				valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
+				valueEnumerator = ((EnumerableValue<T>) value)::enumerateValues;
 		}
 
 		/**
@@ -637,7 +637,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			value = property;
 
 			if (value instanceof EnumerableValue)
-				valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
+				valueEnumerator = ((EnumerableValue<T>) value)::enumerateValues;
 		}
 
 		/**

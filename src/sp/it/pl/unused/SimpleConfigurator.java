@@ -139,7 +139,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
 
 	private Try<T,String> validate() {
 		Try<T,String> validation = configFields.stream()
-				.map(f -> f.value.mapError(e -> f.getConfig().getGuiName() + ": " + e))
+				.map(f -> f.value.mapError(e -> f.config.getGuiName() + ": " + e))
 				.reduce(Try::and).orElse(Try.ok(null));
 		showWarnButton(validation);
 		return validation;

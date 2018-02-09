@@ -21,7 +21,7 @@ import static sp.it.pl.util.functional.Util.IDENTITY;
  * <li> Is always reducible to single function called reduction function. Applying
  * reduction function is equivalent to applying all functions in the chain in
  * their chain order.
- * <li> can be used as a reduction function {@link #getValue()} or a stream of
+ * <li> can be used as a reduction function {@link #getVal()} or a stream of
  * the standalone functions can be obtained {@link #getValues()}.
  * <li> begins with an input type. It determines the type of input of the first
  * function in the chain and input type of the reduction function. By default it
@@ -39,27 +39,29 @@ import static sp.it.pl.util.functional.Util.IDENTITY;
  * consumers (no output) functions. They can be anywhere within the chain.
  * </ul>
  */
-public class FChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,FItemNode<Object,Object>> {
+public class FChainItemNode extends ChainValueNode<Ƒ1<? super Object, ? extends Object>, FItemNode<Object,Object>> {
 
-	private final Function<Class,PrefList<PƑ<Object,Object>>> fp;
+	private final Function<Class,PrefList<PƑ<? super Object, ?>>> fp;
 	private Class type_in = Void.class;
 	private NullIn handleNullIn = NullIn.NULL;
 	private NullOut handleNullOut = NullOut.NULL;
 
 	/** Creates unlimited chain starting with Void.class. */
-	public FChainItemNode(Function<Class,PrefList<PƑ<Object,Object>>> functionPool) {
+	public FChainItemNode(Function<Class,PrefList<PƑ<? super Object, ?>>> functionPool) {
 		this(Void.class, Integer.MAX_VALUE, functionPool);
 	}
 
 	/** Creates unlimited chain starting with specified type. */
-	public FChainItemNode(Class in, Function<Class,PrefList<PƑ<Object,Object>>> functionPool) {
+	public FChainItemNode(Class in, Function<Class,PrefList<PƑ<? super Object, ?>>> functionPool) {
 		this(in, Integer.MAX_VALUE, functionPool);
 	}
 
 	/** Creates limited chain starting with specified type. */
-	public FChainItemNode(Class in, int max_len, Function<Class,PrefList<PƑ<Object,Object>>> functionPool) {
+	@SuppressWarnings("SimplifiableConditionalExpression")
+	public FChainItemNode(Class in, int max_len, Function<Class,PrefList<PƑ<? super Object, ?>>> functionPool) {
+		super(null);
+
 //        super(len, max_len, () -> new ƑItemNode(functionPool));
-//        homogeneous = false;
 		fp = functionPool;
 		chainedFactory = () -> new FItemNode<>(() -> fp.apply(getTypeOut()));
 		isHomogeneous = (i, f) -> {
@@ -91,7 +93,7 @@ public class FChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,FItemNode<
 					: false;
 		};
 		homogeneous = false;
-		setTypeIn(in);  // initializes value, dont fire update yet
+		setTypeIn(in);  // initializes value, don't fire update yet
 
 		maxChainLength.addListener((o, ov, nv) -> {
 			int m = nv.intValue();
@@ -117,7 +119,7 @@ public class FChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,FItemNode<
 	 * <ul>
 	 * This parameter is:
 	 * <ul>
-	 * <li> determined by object type this chain's reduction function will be aplied to
+	 * <li> determined by object type this chain's reduction function will be applied to
 	 * <li> determines available functions in the dropdown box or the 1st chain element
 	 * <ul>
 	 * <p/>
@@ -155,10 +157,12 @@ public class FChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,FItemNode<
 		return chain.isEmpty() ? type_in : chain.get(chain.size() - 1).chained.getTypeOut();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	protected Ƒ1<Object,Object> reduce(Stream<Ƒ1<Object,Object>> ƒs) {
-		return ƒs.map(ƒ -> ƒ.wrap(handleNullIn, handleNullOut))
-				.reduce(Ƒ1::andThen).orElse(x -> x);
+	protected Ƒ1<? super Object, Object> reduce(Stream<Ƒ1<? super Object, ?>> ƒs) {
+		return ƒs.map(ƒ -> ((Ƒ1) ƒ).wrap(handleNullIn, handleNullOut))
+				.reduce(Ƒ1::andThen)
+				.orElse(x -> x);
 	}
 
 }

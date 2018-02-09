@@ -58,7 +58,7 @@ class CoreConverter: Core {
         addT<Char>(toS, tryF({ it[0] }, obe))
         addT<Byte>(toS, tryF({ it.toByte() }, nfe))
         addP<String>({ it }, { it })
-        addT<StringSplitParser>(toS, tryF({ StringSplitParser(it) }, iae))
+        addT<StringSplitParser>(toS, StringSplitParser::fromString)
         addT<Year>(toS, tryF({ Year.parse(it) }, DateTimeParseException::class))
         addP<File>(toS, { File(it) })
         addT<URI>(toS, tryF({ URI.create(it) }, iae))

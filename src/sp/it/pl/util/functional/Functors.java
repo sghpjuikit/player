@@ -662,6 +662,10 @@ public interface Functors {
 			// return i -> apply(i, is); // would not preserve I,O types
 		}
 
+		public Ƒ1<I,O> toƑ1(List<?> is) {
+			return toƑ1(is.toArray());
+		}
+
 	}
 
 	// solely to hide generic parameter of PF above, the 3rd parameter (F) is implementation

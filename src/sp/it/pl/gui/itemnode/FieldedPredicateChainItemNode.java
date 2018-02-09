@@ -19,7 +19,7 @@ public class FieldedPredicateChainItemNode<T, F extends ObjectField<T,Object>> e
 	protected final List<PredicateData<F>> data = new ArrayList<>();
 
 	public FieldedPredicateChainItemNode(Ƒ1<FieldedPredicateChainItemNode<T,F>,FieldedPredicateItemNode<T,F>> chainedFactory) {
-		super(0, Integer.MAX_VALUE, null);
+		super(0, Integer.MAX_VALUE, (Predicate) IS, null);
 		this.chainedFactory = () -> chainedFactory.apply(this);
 		inconsistent_state = false;
 		generateValue();

@@ -35,7 +35,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 import sp.it.pl.gui.itemnode.ChainValueNode.ListConfigField;
-import sp.it.pl.gui.itemnode.ItemNode.ConfigNode;
 import sp.it.pl.gui.itemnode.textfield.EffectItemNode;
 import sp.it.pl.gui.itemnode.textfield.FileItemNode;
 import sp.it.pl.gui.itemnode.textfield.FontItemNode;
@@ -954,9 +953,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private final ListConfig<T> lc;
         private final ListConfigField<T,ConfigurableField> chain;
 
+        @SuppressWarnings("unchecked")
         public ListField(Config<ObservableList<T>> c) {
             super(c);
-            lc = (ListConfig)c;
+            lc = (ListConfig) c;
             Predicate<T> p = c.getConstraints().stream().anyMatch(HasNonNullElements.class::isInstance)
                     ? Objects::nonNull
                     : (Predicate) IS;
@@ -989,8 +989,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
             @SuppressWarnings("unchecked")  // TODO: fix this by using proper generic type for lc.toConfigurable
             public ConfigurableField(Class<T> type, T value) {
+                super(value);
                 this.type = type;
-                this.value = value;
                 p.onChange = () -> chain.onItemChange.accept(null);
                 p.configure((Configurable) lc.toConfigurable.apply(this.value));
             }
@@ -1001,20 +1001,20 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             }
 
             @Override
-            public T getValue() {
+            public T getVal() {
                 // TODO: why do we get 1st ConfigField? Makes no sense
                 Class<? extends T> oType = p.getConfigFields().get(0).config.getType();
-                T o = p.getConfigFields().get(0).getValue();
+                T o = p.getConfigFields().get(0).getVal();
                 if (type==oType) return o;
                 else return value;
             }
 
         }
     }
-    private static class ListFieldPaginated extends ConfigField<ObservableList<Configurable>> {
+    private static class ListFieldPaginated extends ConfigField<ObservableList<Configurable<?>>> {
 
         private int at = -1;
-        private final ListConfig<Configurable> lc;
+        private final ListConfig<Configurable<?>> lc;
         Icon prevB = new Icon(FontAwesomeIcon.ANGLE_LEFT, 16, "Previous item", this::prev);
         Icon nextB = new Icon(FontAwesomeIcon.ANGLE_RIGHT, 16, "Next item", this::next);
         ConfigPane<Object> configPane = new ConfigPane<>();
@@ -1023,9 +1023,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             configPane
         );
 
-        public ListFieldPaginated(Config<ObservableList<Configurable>> c) {
+        public ListFieldPaginated(Config<ObservableList<Configurable<?>>> c) {
             super(c);
-            lc = (ListConfig<Configurable>)c;
+            lc = (ListConfig<Configurable<?>>) c;
             next();
         }
 
@@ -1053,7 +1053,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        protected Try<ObservableList<Configurable>,String> get() {
+        protected Try<ObservableList<Configurable<?>>,String> get() {
             return ok(config.getValue()); // return the ever-same observable list
         }
 

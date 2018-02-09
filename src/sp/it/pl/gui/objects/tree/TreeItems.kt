@@ -44,6 +44,7 @@ import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.functional.Util.stream
+import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.sortedBy
 import sp.it.pl.util.graphics.Util.menuItem
@@ -362,7 +363,7 @@ class FileTreeItem: SimpleTreeItem<File> {
 
     override fun getChildren(): ObservableList<TreeItem<File>> = super.getChildren().apply {
         if (isFirstTimeChildren) {
-            setAll(buildChildren(this@FileTreeItem))
+            this clearSet buildChildren(this@FileTreeItem)
             isFirstTimeChildren = false
         }
     }
@@ -394,7 +395,7 @@ class NodeTreeItem(value: Node): SimpleTreeItem<Node>(value) {
 
             // First getChildren() call, so we actually go off and
             // determine the children of the File contained in this TreeItem.
-            super.getChildren().setAll(buildChildren(this))
+            super.getChildren() clearSet buildChildren(this)
         }
         return super.getChildren()
     }

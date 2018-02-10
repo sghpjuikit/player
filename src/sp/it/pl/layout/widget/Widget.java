@@ -295,7 +295,10 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 		return controller;
 	}
 
+	@Override
 	public void close() {
+		LOGGER.info("Widget=" + name + " closing");
+
 		if (controller!=null) {
 			// We set controller null (before closing it). Makes sure that:
 			// 1) widget is unusable

@@ -324,6 +324,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      * <p/>
      * If this container is root (in case of {@link Layout}, only its children will close.
      */
+    @Override
     public void close() {
         getAllWidgets().forEach(Widget::close);
 

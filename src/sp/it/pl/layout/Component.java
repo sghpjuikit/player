@@ -51,6 +51,8 @@ public abstract class Component {
 	 */
 	abstract public Node load();
 
+	abstract public void close();
+
 	/**
 	 * Return if this is at the top of the hierarchy.
 	 * Equivalent to hasParent().

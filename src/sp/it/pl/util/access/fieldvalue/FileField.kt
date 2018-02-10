@@ -11,7 +11,6 @@ import sp.it.pl.util.file.mimetype.mimeType
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
 import sp.it.pl.util.localDateTimeFromMillis
-import sp.it.pl.util.math.toDate
 import sp.it.pl.util.units.FileSize
 import java.io.File
 import java.io.IOException
@@ -20,7 +19,11 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileTime
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import java.util.Date
+import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
+import java.time.format.DateTimeFormatterBuilder
+import java.time.format.DateTimeParseException
+import java.time.format.SignStyle
+import java.time.temporal.ChronoField
 import java.util.zip.ZipFile
 import kotlin.reflect.KClass
 
@@ -47,7 +50,7 @@ class FileField<T: Any>: ObjectFieldBase<File, T> {
         @F val SIZE = FileField("Size", "Size", FileSize::class) { FileSize(it) }
         @F val TIME_ACCESSED = FileField("Time Accessed", "Time Accessed", FileTime::class) { if (it is CachingFile) it.timeAccessed else it.readTimeAccessed() }
         @F val TIME_MODIFIED = FileField("Time Modified", "Time Modified", LocalDateTime::class) { if (it is CachingFile) it.timeModified else it.readTimeModified() }
-        @F val TIME_CREATED = FileField("Time Created", "Time Created", FileTime::class) { if (it is CachingFile) it.timeMinOfCreatedModified else it.readTimeMinOfCreatedAndModified() }
+        @F val TIME_CREATED = FileField("Time Created", "Time Created", FileTime::class) { if (it is CachingFile) it.timeCreated else it.readTimeCreated() }
         @F val TYPE = FileField("Type", "Type", FileType::class) { FileType.of(it) }
         @F val MIME = FileField("Mime Type", "Mime Type", MimeType::class) { it.mimeType() }
         @F val MIME_GROUP = FileField("Mime Group", "Mime Group", String::class) { it.mimeType().group }
@@ -77,7 +80,7 @@ class CachingFile(f: File): File(f.path) {
     /** Time this file was last modified or null if unable to find out */
     val timeModified: LocalDateTime? by lazy { readTimeModified() }
     /** Time this file was created or null if unable to find out. */
-    val timeCreated: Date? by lazy { readTimeCreated() }
+    val timeCreated: FileTime? by lazy { readTimeCreated() }
     /** The minimum of [timeCreated] and [timeModified] or null if unable to find out. */
     val timeMinOfCreatedModified: FileTime? by lazy { readTimeMinOfCreatedAndModified() }
 }
@@ -86,48 +89,82 @@ private fun File.readTimeAccessed(): FileTime? = readBasicFileAttributes()?.last
 
 private fun File.readTimeModified(): LocalDateTime? = lastModified().localDateTimeFromMillis()
 
-private fun File.readTimeCreated(): Date? =
+private fun File.readTimeCreated(): FileTime? =
         when (this.mimeType().name) {
-            "application/x-kra" -> {
-                try {
-                    ZipFile(this)
-                            .let { it.getInputStream(it.getEntry("documentinfo.xml")) }
-                            .reader(Charsets.UTF_8).useLines {
-                                it.find { it.contains("creation-date") }
-                                        ?.substringAfter(">")?.substringBefore("</")
-                                        ?.let { Date.from(LocalDateTime.parse(it).toInstant(ZoneOffset.UTC)) }
-                            }
-                            ?: readTimeMinOfCreatedAndModified()?.toDate()
-                } catch (e: IOException) {
-                    readTimeMinOfCreatedAndModified()?.toDate()
-                }
-            }
-            else -> {
-                try {
-                    ImageMetadataReader
-                            .readMetadata(this)
-                            .getFirstDirectoryOfType(XmpDirectory::class.java)
-                            ?.getDate(XmpDirectory.TAG_CREATE_DATE)
-                } catch (e: IOException) {
-                    readTimeMinOfCreatedAndModified()?.toDate()
-                } catch (e: ImageProcessingException) {
-                    readTimeMinOfCreatedAndModified()?.toDate()
-                }
-            }
+            "application/x-kra" -> readKritaTimeCreated() ?: readTimeMinOfCreatedAndModified()
+            else -> readXmpTimeCreated() ?: readTimeMinOfCreatedAndModified()
         }
 
-private fun File.readTimeMinOfCreatedAndModified(): FileTime? =
-        readBasicFileAttributes()?.run {
+private fun File.readTimeMinOfCreatedAndModified(): FileTime? = readBasicFileAttributes()
+        ?.run {
             val createdAt = creationTime()
             val modifiedAt = lastModified()
             if (createdAt.toMillis()<modifiedAt) createdAt else FileTime.fromMillis(modifiedAt)
         }
 
-private fun File.readBasicFileAttributes(): BasicFileAttributes? {
-    return try {
-        Files.readAttributes(toPath(), BasicFileAttributes::class.java)
-    } catch (e: IOException) {
-        logger.error(e) { "Unable to read basic file attributes for $this" }
-        null
-    }
-}
+private fun File.readBasicFileAttributes(): BasicFileAttributes? =
+        try {
+            Files.readAttributes(toPath(), BasicFileAttributes::class.java)
+        } catch (e: IOException) {
+            logger.error(e) { "Unable to read basic file attributes for $this" }
+            null
+        }
+
+private fun LocalDateTime.toFileTime() = FileTime.fromMillis(toInstant(ZoneOffset.UTC).toEpochMilli())
+
+private fun java.util.Date.toFileTime() = FileTime.fromMillis(time)
+
+private fun File.readXmpTimeCreated(): FileTime? =
+        try {
+            ImageMetadataReader
+                    .readMetadata(this)
+                    .getFirstDirectoryOfType(XmpDirectory::class.java)
+                    ?.getDate(XmpDirectory.TAG_CREATE_DATE)?.toFileTime()
+        } catch (e: IOException) {
+            logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
+            null
+        } catch (e: ImageProcessingException) {
+            logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
+            null
+        }
+
+private fun File.readKritaTimeCreated(): FileTime? =
+        try {
+            ZipFile(this)
+                    .let { it.getInputStream(it.getEntry("documentinfo.xml")) }
+                    .reader(Charsets.UTF_8).useLines {
+                it.find { it.contains("creation-date") }
+                        ?.substringAfter(">")?.substringBefore("</")
+                        ?.takeUnless { it.isBlank() }
+                        ?.parseKritaDateCreated()?.toFileTime()
+            }
+        } catch (e: IOException) {
+            logger.error(e) { "Unable to read Krita file creation date for $this" }
+            null
+        }
+
+private fun String.parseKritaDateCreated(): LocalDateTime? =
+        try {
+            LocalDateTime.parse(this, KRITA_CREATION_DATE_PARSER)
+        } catch (e: DateTimeParseException) {
+            logger.error(e) { "Unable to read Krita file creation date for $this" }
+            null
+        }
+
+private val KRITA_CREATION_DATE_PARSER = DateTimeFormatterBuilder()
+        .parseCaseInsensitive()
+        .append(ISO_LOCAL_DATE)
+        .appendLiteral('T')
+        .append(
+                DateTimeFormatterBuilder()
+                        .appendValue(ChronoField.HOUR_OF_DAY, 1, 2, SignStyle.NORMAL)
+                        .appendLiteral(':')
+                        .appendValue(ChronoField.MINUTE_OF_HOUR, 1, 2, SignStyle.NORMAL)
+                        .optionalStart()
+                        .appendLiteral(':')
+                        .appendValue(ChronoField.SECOND_OF_MINUTE, 1, 2, SignStyle.NORMAL)
+                        .optionalStart()
+                        .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
+                        .toFormatter()
+        )
+        .toFormatter()

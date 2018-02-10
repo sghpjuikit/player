@@ -175,4 +175,10 @@ public final class Layout extends UniContainer {
         return "layout " + UUID.randomUUID().toString();
     }
 
+    public static Layout openStandalone(AnchorPane root) {
+        Layout l = new Layout();
+        l.isStandalone = true;
+        l.load(root);
+        return l;
+    }
 }

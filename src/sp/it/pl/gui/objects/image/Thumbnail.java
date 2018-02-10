@@ -541,6 +541,10 @@ public class Thumbnail {
 
 /* ---------- properties -------------------------------------------------------------------------------------------- */
 
+	public boolean isDragEnabled() {
+		return dragHandler!=null;
+	}
+
 	/**
 	 * Allow image file drag from this thumbnail.
 	 * <p/>

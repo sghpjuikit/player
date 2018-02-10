@@ -448,7 +448,6 @@ public class WindowManager implements Configurable<Object> {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-
 	/**
 	 * @param widget non-null widget widget to open
 	 */
@@ -466,19 +465,13 @@ public class WindowManager implements Configurable<Object> {
 	public PopOver showFloating(Widget w) {
 		noØ(w);
 
-		// build layout
-		// We are building standalone widget here, but every widget must be part of the layout
-		Layout l = new Layout();
-		l.isStandalone = true;
-		l.load(new AnchorPane());
-
-		// build popup
+		Layout l = Layout.openStandalone(new AnchorPane());
 		PopOver<?> p = new PopOver<>(l.getRoot());
 		p.title.set(w.getInfo().nameGui());
 		p.setAutoFix(false);
 		p.show(ScreenPos.APP_CENTER);
 
-		p.addEventFilter(WINDOW_HIDING, we -> l.close());   // close widget on close
+		p.addEventFilter(WINDOW_HIDING, we -> l.close());
 		l.setChild(w);  // load widget when graphics ready & shown
 
 		return p;
@@ -507,6 +500,7 @@ public class WindowManager implements Configurable<Object> {
 	}
 
 	public void showSettingsSimple(Configurable<?> c, Node n) {
+		boolean isComponent = c instanceof Component;
 		String name = c instanceof Widget ? ((Widget) c).getName() : "";
 		SimpleConfigurator<?> sc = new SimpleConfigurator<>(c);
 		PopOver<?> p = new PopOver<>(sc);
@@ -514,6 +508,7 @@ public class WindowManager implements Configurable<Object> {
 		p.arrowSize.set(0); // auto-fix breaks the arrow position, turn off - sux
 		p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
 		p.setAutoHide(true);
+		if (isComponent) p.addEventFilter(WINDOW_HIDING, we -> ((Component) c).close());
 		p.show(n);
 	}
 

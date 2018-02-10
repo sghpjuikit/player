@@ -27,7 +27,6 @@ import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util.writeImage
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.Util.menuItem
-import sp.it.pl.util.graphics.getScreen
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.copyToSysClipboard
 import sp.it.pl.util.system.edit
@@ -206,8 +205,7 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
                     menuItem("Fullscreen") {
                         val f = cmd.fsImageFile
                         if (ImageFileFormat.isSupported(f)) {
-                            val screen = getScreen(contextMenu.x, contextMenu.y)
-                            APP.actions.openImageFullscreen(f, screen)
+                            APP.actions.openImageFullscreen(f)
                         }
                     }
             ),

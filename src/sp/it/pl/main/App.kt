@@ -35,8 +35,6 @@ import sp.it.pl.gui.pane.ShortcutPane
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.layout.widget.WidgetManager.WidgetSource.ANY
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource.NO_LAYOUT
-import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.plugin.AppSearchPlugin
 import sp.it.pl.plugin.DirSearchPlugin
@@ -483,7 +481,8 @@ class App: Application(), Configurable<Any> {
         )
         addFileProcessor(
                 { ImageFileFormat.isSupported(it) },
-                { fs -> widgetManager.use(ImageDisplayFeature::class.java, NO_LAYOUT) { it.showImages(fs) } }
+                // { fs -> widgetManager.use(ImageDisplayFeature::class.java, NO_LAYOUT) { it.showImages(fs) } }
+                { fs -> fs.firstOrNull()?.let { actions.openImageFullscreen(it) } } // More convenient for user, add option to call one or the other
         )
         addFileProcessor(
                 { it.path.endsWith(".fxwl") },

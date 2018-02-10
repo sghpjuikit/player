@@ -12,12 +12,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.function.Consumer;
+import javafx.event.Event;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
@@ -42,6 +44,7 @@ import sp.it.pl.gui.pane.ActionPane.FastAction;
 import sp.it.pl.gui.pane.OverlayPane;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.area.ContainerNode;
+import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.WidgetManager.WidgetSource;
 import sp.it.pl.layout.widget.feature.ConfiguringFeature;
@@ -60,9 +63,11 @@ import sp.it.pl.web.DuckDuckGoQBuilder;
 import sp.it.pl.web.WebBarInterpreter;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.PopupControl.USE_COMPUTED_SIZE;
+import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.paint.Color.BLACK;
+import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE;
 import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.NEW;
 import static sp.it.pl.main.AppUtil.APP;
@@ -82,6 +87,7 @@ import static sp.it.pl.util.graphics.Util.createFMNTStage;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.layVertically;
 import static sp.it.pl.util.graphics.UtilKt.bgr;
+import static sp.it.pl.util.graphics.UtilKt.getScreenForMouse;
 import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
 import static sp.it.pl.util.math.Util.millis;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
@@ -353,23 +359,38 @@ public class AppActions {
 		p.contentNode.getValue().hideOnOk.setValue(true);
 	}
 
+	public void openImageFullscreen(File image) {
+		openImageFullscreen(image, getScreenForMouse());
+	}
+
 	public void openImageFullscreen(File image, Screen screen) {
 		// find appropriate widget
 		Widget<?> c = APP.widgetManager.find(w -> w.hasFeature(ImageDisplayFeature.class),NEW,true).orElse(null);
 		if (c==null) return; // one can never know
+
+
+		Layout l = Layout.openStandalone(new AnchorPane());
+		AnchorPane root = l.getRoot();
 		Node cn = c.load();
 		setMinPrefMaxSize(cn, USE_COMPUTED_SIZE); // make sure no settings prevents full size
-		StackPane root = new StackPane(cn);
-		root.setBackground(bgr(BLACK));
-		Stage s = createFMNTStage(screen, false);
-		s.setScene(new Scene(root));
-		s.show();
+		Stage window = createFMNTStage(screen, false);
+		window.setScene(new Scene(root));
+		window.getScene().setFill(BLACK);
 
-		cn.requestFocus(); // for key events to work - just focus some root child
-		root.addEventFilter(KEY_PRESSED, ke -> {
-			if (ke.getCode()==ESCAPE)
-				s.hide();
+		window.addEventFilter(WINDOW_HIDING, e -> c.close());
+		root.addEventHandler(KEY_PRESSED, Event::consume);
+		root.addEventFilter(KEY_PRESSED, e -> {
+			e.consume();
+			if (e.getCode()==ESCAPE || e.getCode()==ENTER)
+				window.hide();
 		});
+
+		window.show();
+		cn.requestFocus();       // enables key events, focusing widget should do it, but we do not want assumptions
+		c.focus();
+		l.setChild(c);
+
+		root.setBackground(bgr(BLACK));
 
 		// use widget for image viewing
 		// note: although we know the image size (== screen size) we can not use it
@@ -377,8 +398,8 @@ public class AppActions {
 		//       so we need to delay execution
 		Functors.Ƒ a = () -> ((ImageDisplayFeature)c.getController()).showImage(image);
 		Functors.Ƒ r = () -> runFX(100, a); // give layout some time to initialize (could display wrong size)
-		if (s.isShowing()) r.apply(); /// execute when/after window is shown
-		else add1timeEventHandler(s, WindowEvent.WINDOW_SHOWN, t -> r.apply());
+		if (window.isShowing()) r.apply(); /// execute when/after window is shown
+		else add1timeEventHandler(window, WindowEvent.WINDOW_SHOWN, t -> r.apply());
 	}
 
 	public void printAllImageFileMetadata(File file) {

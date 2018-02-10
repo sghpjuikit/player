@@ -291,7 +291,7 @@ open class PopOver<N: Node>(): PopupControl() {
         active_popups.remove(this)
         uninstallMoveWith()
         super.hide()
-        if (properties.containsKey(KEY_CLOSE_OWNER)) getOwnerWindow()?.hide()
+        if (properties.containsKey(KEY_CLOSE_OWNER)) ownerWindow?.hide()
         properties.remove(KEY_CLOSE_OWNER)
     }
 

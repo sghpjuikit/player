@@ -505,7 +505,7 @@ public class ActionPane extends OverlayPane<Object> {
 		return d==null
 				? Void.class
 				: d instanceof Collection
-					? getElementType((Collection)d)
+					? getElementType((Collection<?>) d)
 					: d.getClass();
 	}
 

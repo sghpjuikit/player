@@ -169,7 +169,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
         o is WidgetFactory<*> -> o.nameGui()
         o::class.java.isEnum -> enumToHuman(o.toString())
         o is File -> o.nameOrRoot
-        o is Node -> o.id?.trim().orEmpty()+":"+APP.className.getOf(o)
+        o is Node -> o.id?.trim().orEmpty()+":"+APP.className.getOf(o) + (if (o.parent==null && o===o.scene.root) " (root)" else "")
         o is Window -> {
             var n = "window "+APP.windowManager.windows.indexOf(o)
             if (o===APP.windowManager.main.orNull()) n += " (main)"
@@ -348,7 +348,7 @@ open class STreeItem<T> @JvmOverloads constructor(v: T, private val childrenLazy
     override fun isLeaf() = isLeafLazy()
 }
 
-class WidgetItem(v: Widget<*>): STreeItem<Any>(v, { stream<Any>(v.areaTemp.root) }, { true })
+class WidgetItem(v: Widget<*>): STreeItem<Any>(v, { stream<Any>(v.areaTemp.root) }, { false })
 
 class LayoutItem(v: Component): STreeItem<Component>(v, { (v as? Container<*>)?.children?.values?.stream() ?: stream() })
 

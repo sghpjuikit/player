@@ -124,14 +124,11 @@ class CoreConverter: Core {
             try {
                 Try.ok(f(it))
             } catch (e: Throwable) {
-                ecs.asSequence()
-                        .find { it.isInstance(e) }
-                        ?.let { Try.errorOf<O>(e) }
-                        ?: throw RuntimeException("Unhandled exception thrown in Try operation", e)
+                ecs.find { it.isInstance(e) }?.let { Try.errorOf<O>(e) } ?: throw e
             }
         }
     }
 
-    private fun <T> Try<T, out Throwable>.orMessage() = mapError { it.message!! }
+    private fun <T> Try<T, out Throwable>.orMessage() = mapError { it.message ?: "null" }
 
 }

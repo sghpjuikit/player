@@ -23,6 +23,7 @@ import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.clearSet
+import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.Util.menuItem
 import sp.it.pl.util.graphics.image.ImageSize
 import sp.it.pl.util.graphics.image.createImageBlack
@@ -93,7 +94,7 @@ class TrayService : ServiceBase(true) {
             tray = SystemTray.getSystemTray().apply {
                 val image = loadBufferedImage(trayIconImage)
                         .ifError { logger.warn { "Failed to load tray icon" } }
-                        .getOr(null)
+                        .orNull()
                         ?.getScaledInstance(trayIconSize.width, -1, Image.SCALE_SMOOTH)
                         ?: createImageBlack(ImageSize(trayIconSize.size))
                 val trayIconTmp = TrayIcon(image).apply {
@@ -189,10 +190,9 @@ class TrayService : ServiceBase(true) {
 
     /** Set tray icon. Null sets default icon. */
     fun setIcon(img: File?): Try<Void, IOException> {
-        trayIconImage = img ?: trayIconImageDefault
-
         if (!running || !supported) return Try.ok()
 
+        trayIconImage = img ?: trayIconImageDefault
         return if (trayIcon != null) {
             loadBufferedImage(trayIconImage)
                     .ifOk {

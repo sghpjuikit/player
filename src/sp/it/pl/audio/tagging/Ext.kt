@@ -35,28 +35,27 @@ val Tag.ratingMin: Int get() = 0
 fun Tag.clipRating(v: Double): Double = clip(ratingMin.toDouble(), v, ratingMax.toDouble())
 
 /** @return audio file or error if fails */
-fun File.readAudioFile(): Try<AudioFile, Void> =
-        try {
-            Try.ok(AudioFileIO.read(this))
-        } catch (e: CannotReadVideoException) {
-            logger.warn { "Reading metadata failed for file $this: video not supported" }
-            Try.error<AudioFile>()
-        } catch (e: CannotReadException) {
-            logger.error(e) { "Reading metadata failed for file $this" }
-            Try.error<AudioFile>()
-        } catch (e: IOException) {
-            logger.error(e) { "Reading metadata failed for file $this" }
-            Try.error<AudioFile>()
-        } catch (e: TagException) {
-            logger.error(e) { "Reading metadata failed for file $this" }
-            Try.error<AudioFile>()
-        } catch (e: ReadOnlyFileException) {
-            logger.error(e) { "Reading metadata failed for file $this" }
-            Try.error<AudioFile>()
-        } catch (e: InvalidAudioFrameException) {
-            logger.error(e) { "Reading metadata failed for file $this" }
-            Try.error<AudioFile>()
-        }
+fun File.readAudioFile(): Try<AudioFile, Void> {
+    val onError = { e: Exception ->
+        logger.error(e) { "Reading metadata failed for file $this" }
+        Try.error<AudioFile>()
+    }
+    return try {
+        Try.ok(AudioFileIO.read(this))
+    } catch (e: CannotReadVideoException) {
+        onError(e)
+    } catch (e: CannotReadException) {
+        onError(e)
+    } catch (e: IOException) {
+        onError(e)
+    } catch (e: TagException) {
+        onError(e)
+    } catch (e: ReadOnlyFileException) {
+        onError(e)
+    } catch (e: InvalidAudioFrameException) {
+        onError(e)
+    }
+}
 
 /** @return new metadata taking the data from this audio file */
 fun AudioFile.toMetadata() = Metadata(this)

@@ -31,13 +31,13 @@ operator fun Runnable.invoke() = run()
 /** @return kotlin consumer that invokes java consumer */
 fun <T> consumer(consumer: Consumer<T>): (T) -> Unit = { consumer(it) }
 
-/** @return return value in the optional or null if empty */
+/** @return return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
 fun <T> Optional<T>.orNull(): T? = orElse(null)
 
-/** @return return value in the optional or null if empty */
+/** @return return value or null if error (if the value is nullable, this destroys the information of null's origin) */
 fun <R,E> Try<R,E>.orNull(): R? = getOr(null)
 
-/** @return return value in the optional or null if empty */
+/** @return return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
 infix fun <R,E> Try<R,E>.orNull(onError: (E) -> Unit): R? = ifError(onError).getOr(null)
 
 fun <R> runTry(block: () -> R): Try<R,Throwable> = Try.tryS(Supplier { block() }, Throwable::class.java)

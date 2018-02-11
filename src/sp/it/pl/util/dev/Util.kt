@@ -85,17 +85,11 @@ fun <T> measureTimeMs(block: () -> T): T {
 /** Prints the value to console immediately and then on every change. */
 fun <T> ObservableValue<T>.printOnChange(name: String = "") = maintain(Consumer { println("Value $name changed to=$it") })
 
-/** @return [org.slf4j.Logger] for the class of this object or this object if it is of type class. */
-fun Any.log() = (
-        when {
-            this is KClass<*> -> this
-            this is Class<*> -> this.kotlin
-            else -> this::class
-        }
-    ).log()
+/** @return [org.slf4j.Logger] for the class. */
+fun KClass<*>.logger() = java.logger()
 
 /** @return [org.slf4j.Logger] for the class. */
-fun KClass<*>.log() = KotlinLogging.logger(this.java.simpleName)
+fun Class<*>.logger() = KotlinLogging.logger(simpleName)
 
 /** @return all running threads (Incurs performance penalty, use only for debugging purposes) */
 fun activeThreads() = Thread.getAllStackTraces().keys.asSequence()

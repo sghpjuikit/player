@@ -62,7 +62,7 @@ import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.dev.Util.noØ;
 import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.ISNTØ;
@@ -81,7 +81,7 @@ import static sp.it.pl.util.reactive.Util.onScreenChange;
 @IsConfigurable("Gui.Window")
 public class WindowManager implements Configurable<Object> {
 
-	private static final Logger LOGGER = log(WindowManager.class);
+	private static final Logger LOGGER = logger(WindowManager.class);
 
 	public double screenMaxScaling;
 	/**

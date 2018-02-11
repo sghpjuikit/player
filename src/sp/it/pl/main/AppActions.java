@@ -77,7 +77,7 @@ import static sp.it.pl.util.async.AsyncKt.runAfter;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.future.Fut.fut;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.set;
@@ -334,7 +334,7 @@ public class AppActions {
 					URI uri = new URI(uriString);
 					browse(uri);
 				} catch (URISyntaxException e) {
-					log(AppActions.class).warn("{} is not a valid URI", uriString, e);
+					logger(AppActions.class).warn("{} is not a valid URI", uriString, e);
 				}
 			}
 		);

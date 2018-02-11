@@ -22,7 +22,7 @@ import sp.it.pl.util.conf.ValueConfig;
 import sp.it.pl.util.text.Password;
 import sp.it.pl.util.validation.Constraint.PasswordNonEmpty;
 import sp.it.pl.util.validation.Constraint.StringNonEmpty;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 
 // TODO: make thread-safe, remove static, implement Service
 @IsConfigurable("LastFM")
@@ -151,7 +151,7 @@ public class LastFM {
 	}
 
 	private static void scrobble(Metadata track) {
-		log(LastFM.class).info("Scrobbling: " + track.getArtist() + " - " + track.getTitle());
+		logger(LastFM.class).info("Scrobbling: " + track.getArtist() + " - " + track.getTitle());
 		int now = (int) (System.currentTimeMillis()/1000);
 		ScrobbleResult result = Track.scrobble(track.getArtist(), track.getTitle(), now, session);
 	}

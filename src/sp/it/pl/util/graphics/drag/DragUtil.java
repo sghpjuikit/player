@@ -38,7 +38,7 @@ import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.TransferMode.ANY;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.future.Fut.fut;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.Util.getFilesAudio;
 import static sp.it.pl.util.functional.Util.IS;
 import static sp.it.pl.util.functional.Util.filterMap;
@@ -488,7 +488,7 @@ public final class DragUtil {
 				f.deleteOnExit();
 				return f;
 			} catch (IOException e) {
-				log(DragUtil.class).error("Could not download from url", e);
+				logger(DragUtil.class).error("Could not download from url", e);
 				return null;
 			}
 		});

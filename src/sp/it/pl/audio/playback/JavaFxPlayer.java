@@ -17,7 +17,7 @@ import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import static sp.it.pl.audio.playback.VolumeProperty.linToLog;
 import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.reactive.Util.maintain;
 
 public class JavaFxPlayer implements GeneralPlayer.Play {
@@ -60,7 +60,7 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 				// If that happens, it can block thread for like half second!, so i execute this not on fx
 				media = new Media(item.getUri().toString());
 			} catch (MediaException e) {
-				log(JavaFxPlayer.class).error("Media creation error for {}", item.getUri());
+				logger(JavaFxPlayer.class).error("Media creation error for {}", item.getUri());
 				onFail.invoke();
 				return;
 			}

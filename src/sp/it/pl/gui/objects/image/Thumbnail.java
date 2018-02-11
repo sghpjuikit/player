@@ -51,7 +51,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.NEW;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.UtilKt.toFileOrNull;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.stream;
@@ -420,7 +420,7 @@ public class Thumbnail {
 		try {
 			return url==null ? imageFile : toFileOrNull(URI.create(url));
 		} catch (IllegalArgumentException e) {
-			log(Thumbnail.class).warn("Uri={} is not valid file", url, e);
+			logger(Thumbnail.class).warn("Uri={} is not valid file", url, e);
 			return null;
 		}
 	}

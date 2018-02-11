@@ -29,7 +29,7 @@ import sp.it.pl.util.serialize.xstream.StringPropertyConverter;
 import sp.it.pl.util.serialize.xstream.VConverter;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.Util.readFileLines;
 import static sp.it.pl.util.functional.Try.error;
 import static sp.it.pl.util.functional.Try.ok;
@@ -82,7 +82,7 @@ public final class CoreSerializerXml implements Core {
 			x.toXML(o, w);
 			return ok(null);
 		} catch (Throwable e) { // XStreamException | IOException is not enough
-			log(CoreSerializerXml.class).error("Couldn't serialize " + o.getClass() + " to file {}", file, e);
+			logger(CoreSerializerXml.class).error("Couldn't serialize " + o.getClass() + " to file {}", file, e);
 			return error(new SerializationException("Couldn't serialize to file " + file, e));
 		}
 	}
@@ -110,7 +110,7 @@ public final class CoreSerializerXml implements Core {
 		try {
 			return ok((T) x.fromXML(text));
 		} catch (Throwable e) { // ClassCastException | XStreamException | IOException is not enough
-			log(CoreSerializerXml.class).error("Couldn't deserialize " + type + " from file {}", file, e);
+			logger(CoreSerializerXml.class).error("Couldn't deserialize " + type + " from file {}", file, e);
 			return error(new SerializationException("Couldn't deserialize " + type + " from file " + file, e));
 		}
 	}

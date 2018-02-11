@@ -16,7 +16,7 @@ import sp.it.pl.web.DuckDuckGoQBuilder;
 import sp.it.pl.web.SearchUriBuilder;
 import sp.it.pl.web.WebBarInterpreter;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.UtilKt.childOf;
 import static sp.it.pl.util.reactive.Util.maintain;
 import static sp.it.pl.util.type.Util.getFieldValue;
@@ -118,7 +118,7 @@ public class WebReader extends FXMLController {
 			if (webPage==null) return; // TODO: fix
 			invokeMethodP1(webPage, "setBackgroundColor", int.class, new java.awt.Color(255, 255, 255, 1).getRGB());
 		} catch (Exception e) {
-			log(WebReader.class).error("Could not change background color to transparent", e);
+			logger(WebReader.class).error("Could not change background color to transparent", e);
 		}
 	}
 }

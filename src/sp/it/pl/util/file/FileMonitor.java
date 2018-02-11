@@ -24,7 +24,7 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.threadFactory;
 import static sp.it.pl.util.collections.Tuples.tuple;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 
 // TODO: use interface, leverage recursive directory watch on Windows
 // TODO: provide documentation
@@ -111,7 +111,7 @@ public class FileMonitor {
 					try {
 						watchKey = fm.watchService.take();
 					} catch (InterruptedException e) {
-						log(FileMonitor.class).error("Interrupted monitoring of directory {}", dir, e);
+						logger(FileMonitor.class).error("Interrupted monitoring of directory {}", dir, e);
 						return;
 					} catch (ClosedWatchServiceException e) {
 						// watching ended
@@ -143,7 +143,7 @@ public class FileMonitor {
 				} while (valid);
 			}).start();
 		} catch (IOException e) {
-			log(FileMonitor.class).error("Error when starting file monitoring {}", fm.monitoredFileDir, e);
+			logger(FileMonitor.class).error("Error when starting file monitoring {}", fm.monitoredFileDir, e);
 		}
 
 		return fm;
@@ -165,7 +165,7 @@ public class FileMonitor {
 			boolean recursiveUsed = !recursiveRequested || !recursiveSupported;
 
 			if (recursiveWarn)
-				log(FileMonitor.class).warn("Recursive file watcher is not supported, using standard, file={}", fm.monitoredFileDir);
+				logger(FileMonitor.class).warn("Recursive file watcher is not supported, using standard, file={}", fm.monitoredFileDir);
 
 			if (recursiveUsed) dir.register(fm.watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW);
 			else dir.register(fm.watchService, new Kind<?>[] {ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW}, FILE_TREE);
@@ -180,7 +180,7 @@ public class FileMonitor {
 					try {
 						watchKey = fm.watchService.take();
 					} catch (InterruptedException e) {
-						log(FileMonitor.class).error("Interrupted monitoring of directory {}", dir, e);
+						logger(FileMonitor.class).error("Interrupted monitoring of directory {}", dir, e);
 						return;
 					} catch (ClosedWatchServiceException e) {
 						// watching ended
@@ -202,7 +202,7 @@ public class FileMonitor {
 				} while (valid);
 			}).start();
 		} catch (IOException e) {
-			log(FileMonitor.class).error("Error when starting directory monitoring {}", fm.monitoredFileDir, e);
+			logger(FileMonitor.class).error("Error when starting directory monitoring {}", fm.monitoredFileDir, e);
 		}
 
 		return fm;
@@ -212,7 +212,7 @@ public class FileMonitor {
 		try {
 			if (watchService!=null) watchService.close();
 		} catch (IOException e) {
-			log(FileMonitor.class).error("Error when closing file monitoring {}", monitoredFileDir, e);
+			logger(FileMonitor.class).error("Error when closing file monitoring {}", monitoredFileDir, e);
 		}
 	}
 }

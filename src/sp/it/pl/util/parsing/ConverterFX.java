@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import sp.it.pl.util.conf.Configurable;
 import sp.it.pl.util.functional.Try;
 import static java.util.stream.Collectors.joining;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.functional.Try.error;
 import static sp.it.pl.util.functional.Try.ok;
 import static sp.it.pl.util.functional.Util.stream;
@@ -40,7 +40,7 @@ public class ConverterFX extends Converter {
                 });
             return ok(v);
         } catch (Exception e) {
-            log(ConverterFX.class).warn("Parsing failed, class={} text={}", type, text, e);
+            logger(ConverterFX.class).warn("Parsing failed, class={} text={}", type, text, e);
             return error(e.getMessage());
         }
     }

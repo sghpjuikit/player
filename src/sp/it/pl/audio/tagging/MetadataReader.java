@@ -13,7 +13,7 @@ import sp.it.pl.util.file.AudioFileFormat.Use;
 import static java.util.stream.Collectors.toList;
 import static sp.it.pl.audio.tagging.ExtKt.readAudioFile;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.dev.Util.noØ;
 import static sp.it.pl.util.dev.Util.throwIfFxThread;
 
@@ -52,7 +52,7 @@ public class MetadataReader {
 				// because PlaylistItem has advanced update() method? // probably
 				return new PlaylistItem(item.getUri(), "", "", m.getDuration().toMillis()).toMeta();
 			} catch (IllegalArgumentException|UnsupportedOperationException e) {
-				log(MetadataReader.class).error("Error creating metadata for non file based item: {}", item);
+				logger(MetadataReader.class).error("Error creating metadata for non file based item: {}", item);
 				return item.toMeta();
 			}
 		}
@@ -124,7 +124,7 @@ public class MetadataReader {
 
 				for (Item item : input) {
 					if (isCancelled()) {
-						log(MetadataReader.class).info("Metadata reading was canceled.");
+						logger(MetadataReader.class).info("Metadata reading was canceled.");
 						break;
 					}
 
@@ -144,7 +144,7 @@ public class MetadataReader {
 							skipped.add(item);
 						}
 					} catch (Exception e) {
-						log(MetadataReader.class).warn("Problem during reading tag of {}", item);
+						logger(MetadataReader.class).warn("Problem during reading tag of {}", item);
 					}
 
 					processed.add(item);

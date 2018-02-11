@@ -26,7 +26,7 @@ import java.util.Map.Entry;
 import static java.util.stream.Collectors.toMap;
 import static sp.it.pl.util.Util.hasNoReadableText;
 import static sp.it.pl.util.Util.hasReadableText;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.dev.Util.noØ;
 import static sp.it.pl.util.file.Util.isValidatedDirectory;
 import static sp.it.pl.util.functional.Util.byNC;
@@ -99,7 +99,7 @@ public interface Properties {
 				keyValues.put(key, value);
 			}
 		} catch (IOException e) {
-			log(Properties.class).error("Could not load properties from {}", lr);
+			logger(Properties.class).error("Could not load properties from {}", lr);
 			return keyValues;
 		}
 		return keyValues;
@@ -110,7 +110,7 @@ public interface Properties {
 		try (FileOutputStream os = new FileOutputStream(file)) {
 			save(os, comments, keyValues);
 		} catch (IOException e) {
-			log(Properties.class).error("Could not save properties into file {}", file, e);
+			logger(Properties.class).error("Could not save properties into file {}", file, e);
 		}
 	}
 
@@ -119,7 +119,7 @@ public interface Properties {
 		try (FileOutputStream os = new FileOutputStream(file)) {
 			saveP(os, comments, keyValues);
 		} catch (IOException e) {
-			log(Properties.class).error("Could not save properties into file {}", file, e);
+			logger(Properties.class).error("Could not save properties into file {}", file, e);
 		}
 	}
 
@@ -132,7 +132,7 @@ public interface Properties {
 				keyValues.entrySet().stream().collect(toMap(Entry::getKey, e -> new Property("", e.getValue())))
 			);
 		} catch (IOException e) {
-			log(Properties.class).error("Could not save properties into output stream {}", out, e);
+			logger(Properties.class).error("Could not save properties into output stream {}", out, e);
 		}
 	}
 
@@ -140,7 +140,7 @@ public interface Properties {
 		try {
 			store(new BufferedWriter(new OutputStreamWriter(out, "8859_1")), comments, true, keyValues);
 		} catch (IOException e) {
-			log(Properties.class).error("Could not save properties into output stream {}", out, e);
+			logger(Properties.class).error("Could not save properties into output stream {}", out, e);
 		}
 	}
 
@@ -149,7 +149,7 @@ public interface Properties {
 			BufferedWriter bw = writer instanceof BufferedWriter ? (BufferedWriter) writer : new BufferedWriter(writer);
 			store(bw, comments, false, keyValues.entrySet().stream().collect(toMap(Entry::getKey, e -> new Property("", e.getValue()))));
 		} catch (IOException e) {
-			log(Properties.class).error("Could not save properties with writer {}", writer, e);
+			logger(Properties.class).error("Could not save properties with writer {}", writer, e);
 		}
 	}
 

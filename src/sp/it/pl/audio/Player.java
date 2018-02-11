@@ -56,7 +56,7 @@ import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.async.AsyncKt.threadFactory;
 import static sp.it.pl.util.async.executor.EventReducer.toLast;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.dev.Util.noØ;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
@@ -236,20 +236,20 @@ public class Player {
 		public void itemChanged(Item item) {
 			if (item==null) {
 				set(true, Metadata.EMPTY);
-				log(Player.class).info("Current item metadata set to empty. No item playing.");
+				logger(Player.class).info("Current item metadata set to empty. No item playing.");
 			}
 			// if same item, still fire change
 			else if (val.same(item)) {
 				set(true, val);
-				log(Player.class).info("Current item metadata reused. Same item playing.");
+				logger(Player.class).info("Current item metadata reused. Same item playing.");
 			}
 			// if pre-loaded, set
 			else if (valNext.same(item)) {
 				set(true, valNext);
-				log(Player.class).info("Current item metadata copied from next item metadata cache.");
+				logger(Player.class).info("Current item metadata copied from next item metadata cache.");
 				// else load
 			} else {
-				log(Player.class).info("Next item metadata cache copy failed - content does not correspond to correct item. Loading now...");
+				logger(Player.class).info("Next item metadata cache copy failed - content does not correspond to correct item. Loading now...");
 				load(true, item);
 			}
 
@@ -265,7 +265,7 @@ public class Player {
 		}
 
 		private void preloadNext() {
-			log(Player.class).info("Pre-loading metadata for next item to play.");
+			logger(Player.class).info("Pre-loading metadata for next item to play.");
 
 			PlaylistItem next = PlaylistManager.use(Playlist::getNextPlaying, null);
 			if (next!=null) {

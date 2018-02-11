@@ -6,7 +6,7 @@ import de.umass.lastfm.scrobble.ScrobbleResult;
 import java.util.prefs.Preferences;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 
 public class Scrobbling {
 
@@ -34,7 +34,7 @@ public class Scrobbling {
 	}
 
 	protected void scrobble(Metadata track) {
-		log(Scrobbling.class).info("Scrobbling: {}", track);
+		logger(Scrobbling.class).info("Scrobbling: {}", track);
 		int now = (int) (System.currentTimeMillis()/1000);
 		ScrobbleResult result = Track.scrobble(
 				track.getArtist(),

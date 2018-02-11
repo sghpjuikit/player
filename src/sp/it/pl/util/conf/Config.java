@@ -37,7 +37,7 @@ import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.conf.Config.VarList.NULL_SUPPLIER;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.functional.Try.error;
 import static sp.it.pl.util.functional.Try.ok;
 import static sp.it.pl.util.functional.Util.forEachBoth;
@@ -201,7 +201,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			for (T v : enumerateValues())
 				if (Parsers.DEFAULT.toS(v).equalsIgnoreCase(s)) return ok(v);
 
-			log(Config.class).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", s, getGuiName());
+			logger(Config.class).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", s, getGuiName());
 			return error("Value does not correspond to any value of the enumeration.");
 		} else {
 			return Parsers.DEFAULT.ofS(getType(), s);

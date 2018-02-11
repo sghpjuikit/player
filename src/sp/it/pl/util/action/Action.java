@@ -34,7 +34,7 @@ import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.setRO;
 import static sp.it.pl.util.functional.Util.stream;
@@ -198,7 +198,7 @@ public final class Action extends Config<Action> implements Runnable {
 	@Override
 	public void run() {
 		runFX(() -> {
-			log(Action.class).info("Executing action {}", name);
+			logger(Action.class).info("Executing action {}", name);
 			action.run();
 			APP.actionStream.push(name);
 		});
@@ -242,7 +242,7 @@ public final class Action extends Config<Action> implements Runnable {
 			try {
 				this.keys = KeyCombination.keyCombination(keys);
 			} catch (Exception e) {
-				log(Action.class).warn("Illegal shortcut keys parameter. Shortcut {} disabled. Keys: {}", name, keys, e);
+				logger(Action.class).warn("Illegal shortcut keys parameter. Shortcut {} disabled. Keys: {}", name, keys, e);
 				this.keys = NO_MATCH;   // disable shortcut for wrong keys
 			}
 		}

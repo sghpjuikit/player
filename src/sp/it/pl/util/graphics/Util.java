@@ -32,7 +32,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
@@ -46,12 +45,11 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static javafx.stage.Modality.APPLICATION_MODAL;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.dev.Util.log;
+import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.dev.Util.noØ;
 
 /**
@@ -657,7 +655,7 @@ public interface Util {
 				BufferedImage img = robot.createScreenCapture(area);
 				action.accept(img);
 			} catch (Exception e) {
-				log(Util.class).error("Failed to screenshot the screen {}", area, e);
+				logger(Util.class).error("Failed to screenshot the screen {}", area, e);
 				action.accept(null);
 			}
 		});

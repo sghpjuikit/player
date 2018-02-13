@@ -61,7 +61,6 @@ allprojects {
         kaptOptions.supportInheritedAnnotations = true
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.suppressWarnings = false
-        kotlinOptions.allWarningsAsErrors = true
     }
 
     repositories {
@@ -171,10 +170,10 @@ tasks {
             if (kotlincUpToDate) {
                 println("Kotlin compiler is up to date, version $kotlinVersion")
             } else {
-                if (!kotlinc.exists()) {
+                if (kotlinc.exists()) {
                     println("Previous version of Kotlin compiler exists. Deleting...")
-                    val success = kotlinc.deleteRecursively()
-                    if (!success) throw RuntimeException("Failed to remove Kotlin compiler, location=$kotlinc")
+                    if (!kotlinc.deleteRecursively())
+                        throw RuntimeException("Failed to remove Kotlin compiler, location=$kotlinc")
                 }
 
                 try {
@@ -192,10 +191,11 @@ tasks {
                         }
                     }
                     if (!kotlinc.exists())
-                        println("Nothing has been downloaded! Maybe the remote file is not a zip?")
+                        throw RuntimeException("Kotlinc has not been downloaded succesfully! Maybe the remote file is not a zip?")
+                    File("$workingDir/kotlinc/bin/kotlinc").setExecutable(true) // Allow Unix kotlinc to be executed
                 } catch (e: FileNotFoundException) {
-                    println("The remote file could not be found")
                     println(e.toString())
+                    throw RuntimeException("The remote file could not be found", e)
                 }
             }
         }

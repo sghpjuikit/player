@@ -194,7 +194,6 @@ tasks {
                         throw RuntimeException("Kotlinc has not been downloaded succesfully! Maybe the remote file is not a zip?")
                     File("$workingDir/kotlinc/bin/kotlinc").setExecutable(true) // Allow Unix kotlinc to be executed
                 } catch (e: FileNotFoundException) {
-                    println(e.toString())
                     throw RuntimeException("The remote file could not be found", e)
                 }
             }

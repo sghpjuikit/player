@@ -8,7 +8,7 @@
 ## Preparations
 
 - Clone the repository
-- To enable audio playback, VLC must be installed on your system or placed in working dir/vlc directory. Obtain latest [here](https://www.videolan.org/vlc/)
+- To enable audio playback, VLC must be installed on your system or or in the working dir/vlc directory. Obtain latest [here](https://www.videolan.org/vlc/)
 - To use a jdk other than your default system one, create a `gradle.properties` file at project root with the following content: `org.gradle.java.home=/path/to/jdk`
 
 #### Intellij IDEA
@@ -35,7 +35,7 @@ Due to mouse polling (using a native library), blocking all threads (like on a b
 ## Widgets
 
 Widgets don't need to be compiled by the IDE, the application will compile them itself. 
-But for syntax highlighting and error reporting they should be included as separate module, depending on PlayerFX and all jars in the widgets directory. 
+But for syntax highlighting and error reporting it is recommended to create a separate module for them, depending on PlayerFX and all jars in the widgets directory. 
 This should automatically be setup by Gradle and imported into your IDE.
 
 ## Code style
@@ -82,7 +82,9 @@ The project contains a shared code style [code-style.xml](code-style.xml) for ID
 ## Skins
 
 A skin is a single css file that works similar to styling a html web site - see [javafx css reference guide](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html). 
-Skins can import each other.
+Skins can depend on each other.
 
 The application autodiscovers the skins when it starts and monitors them for changes. 
-The skins are located in separate folders in [working dir/skins](https://github.com/sghpjuikit/player/tree/readme/working%20dir/skins), where you will also find further instructions
+The skins are located in separate folders in [working dir/skins](https://github.com/sghpjuikit/player/tree/readme/working%20dir/skins), where you will also find further instructions.
+
+Customize the appearance of the application by creating a new skin depending on the default skin and modifying what you want. This way your changes won't be overriden by an update of the original skin. If you feel like you added substantial value, feel free to submit a pull request so it can be incorporated into the application!

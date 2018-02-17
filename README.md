@@ -9,7 +9,7 @@
 - [Screenshots](#screenshots)
 - [Issues](#issues)
 - [Download & Use](#download--use)
-- [Credits & Licence](#credits--license)
+- [Copyright](#copyright)
 
 ## What is this?
 
@@ -238,28 +238,28 @@ Platforms:
 <details>
   <summary>Show</summary>
   
-![ScreenShot](/extra/assets/screenshot_playlists.jpg)
+![Screenshot](/extra/assets/screenshot_playlists.jpg)
 Depicts:
 - multiple playlists
 - drag&drop on 2nd playlist
 - time comment displayed in the popup
 
 
-![ScreenShot](/extra/assets/screenshot_actions.jpg)
+![Screenshot](/extra/assets/screenshot_actions.jpg)
 
 Depicts:
 - application support action menu
 - 'glass' effect
 
 
-![ScreenShot](/extra/assets/screenshot_layoutmode.jpg)
+![Screenshot](/extra/assets/screenshot_layoutmode.jpg)
 
 Depicts:
 - layout mode
 - widget input-output links
 
 
-![ScreenShot](/extra/assets/screenshot_widgets.jpg)
+![Screenshot](/extra/assets/screenshot_widgets.jpg)
 
 Depicts:
 - function plotting, audio spectrum, logger widgets
@@ -267,20 +267,20 @@ Depicts:
 - custom skin
 
 
-![ScreenShot](/extra/assets/screenshot_comet1.jpg)
+![Screenshot](/extra/assets/screenshot_comet1.jpg)
 
-![ScreenShot](/extra/assets/screenshot_comet2.jpg)
+![Screenshot](/extra/assets/screenshot_comet2.jpg)
 
 Depicts:
 - Comet game widget
 
 
-![ScreenShot](/extra/assets/screenshot_old1.png)
+![Screenshot](/extra/assets/screenshot_old1.png)
 
 Depicts an old build of the application with an old skin.
 
 
-![ScreenShot](/extra/assets/screenshot_old2.png)
+![Screenshot](/extra/assets/screenshot_old2.png)
 
 Depicts an old build of the application with an old skin.
 
@@ -296,7 +296,7 @@ Depicts an old build of the application with an old skin.
 #### Performance
 
 - Memory consumption is usually worse compared to native applications. Normally i have get about 250-450MB, but it depends on use case. Lots of widgets will eat more memory. Handling large pictures (4000^2 px) on large monitors can also rapidly increase memory consumption (but picture quality stays great). 32-bit is more effective (64-bit effectively doubles memory consumption), so there will only be a 32-bit version for now.
-- Using shadows on text or icons (in custom skins) can severely impact performance, but that is a common issue.
+- Using shadows on text or icons (in custom skins) can severely impact performance, but that is a prevalent issue not specific to this application.
 - Visually big tables (full-hd and beyond) with lots of text can impact performance
 
 ## Download & Use
@@ -305,18 +305,25 @@ Download link coming soon.
 
 - download zip
 - extract anywhere
-- run the executable file
+  - Windows: run PlayerFX.exe
+  - Linux: run bin/PlayerFX
 
-  Starting the application for the first time will run a guide. Before you close it, read at least first couple of tips (like where to find the guide if you need it again...).
+Starting the application for the first time will run a guide. Before you close it, 
+read at least first couple of tips (like where to find the guide if you need it again...).
 
 Tips:
 - Do use tooltips!
 - If you get 'trapped' and 'locked in' with no idea what to do, press right ALT (layout edit mode) or click anywhere (mouse buttons often navigate) - once you get the hang of it, you will see how convenient it is.
 - widgets, popups and containers have informative "i" buttons that provide valuable info on possible course of action
 
-# Credits & Licence
+# Copyright
 
 You are free to use the application or make your own builds of the project for personal use.
 
-The project is to adopt MIT licence in the future, but for now remains personal. I would appreciate to be
-informed before taking any actions that could result in publicizing or sharing this project.
+The project is to adopt MIT licence in the future, but for now remains personal. 
+Before publicizing anything related to this project or publicly sharing builds you should contact me.
+
+## Contact
+
+Mail:
+Discord: 

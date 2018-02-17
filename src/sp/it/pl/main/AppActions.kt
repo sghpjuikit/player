@@ -43,6 +43,7 @@ import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.getCommonRoot
 import sp.it.pl.util.file.Util.getFilesAudio
+import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.graphics.Util.layHorizontally
@@ -369,7 +370,7 @@ class MultipleFiles(val files: Set<File>) {
 
     fun browseEach() = files.forEach { it.browse() }
 
-    fun browseEachLocation() = files.map { if (it.isFile) it.parentFile else it }.distinct().forEach { it.browse() }
+    fun browseEachLocation() = files.map { if (it.isFile) it.parentDirOrRoot else it }.distinct().forEach { it.browse() }
 
     fun browseCommonRoot() {
         getCommonRoot(files)?.browse()

@@ -5,6 +5,7 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.AudioFileFormat.Use.PLAYBACK
+import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.file.toFileOrNull
 import sp.it.pl.util.units.FileSize
 import java.net.URI
@@ -39,7 +40,7 @@ abstract class Item {
      * @return parent directory of the item in the file system
      * @throws RuntimeException if this item is not file based
      */
-    fun getLocation() = getFile().parentFile!!
+    fun getLocation() = getFile().parentDirOrRoot
 
     /** @return human-readable location of the resource this item represents */
     fun getLocationAsString() = if (isFileBased()) getLocation().path!! else getPathAsString()

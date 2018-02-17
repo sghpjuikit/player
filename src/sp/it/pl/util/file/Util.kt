@@ -35,13 +35,13 @@ val File.nameWithoutExtensionOrRoot: String get() = nameWithoutExtension.takeUnl
 /** @returns file itself if exists or its first existing parent or error if null or no parent exists */
 fun File.find1stExistingParentFile(): Try<File, Void> = when {
     exists() -> Try.ok(this)
-    else -> parentFile?.find1stExistingParentFile() ?: Try.error()
+    else -> parentDir?.find1stExistingParentFile() ?: Try.error()
 }
 
 /** @returns file's first existing parent or error if null or no parent exists */
 fun File.find1stExistingParentDir(): Try<File, Void> = when {
     exists() && isDirectory -> Try.ok(this)
-    else -> parentFile?.find1stExistingParentDir() ?: Try.error()
+    else -> parentDir?.find1stExistingParentDir() ?: Try.error()
 }
 
 fun File.childOf(childName: String) = File(this, childName)
@@ -52,9 +52,9 @@ fun File.childOf(childName: String, childName2: String, childName3: String) = ch
 
 fun File.childOf(vararg childNames: String) = childNames.fold(this, File::childOf)
 
-fun File.isParentOf(child: File) = child.parentFile==this
+fun File.isParentOf(child: File) = child.parentDir==this
 
-fun File.isAnyParentOf(child: File) = generateSequence(child, { it.parentFile }).any { isParentOf(it) }
+fun File.isAnyParentOf(child: File) = generateSequence(child, { it.parentDir }).any { isParentOf(it) }
 
 fun File.isChildOf(parent: File) = parent.isParentOf(this)
 
@@ -80,9 +80,10 @@ fun File.listChildren(filter: FileFilter): Stream<File> = listFiles(filter)?.asS
 fun File.listChildren(filter: FilenameFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
 
 /** @return parent file or self if is root */
-val File.parentDirOrSelf get() = parentDir ?: this
+val File.parentDirOrRoot get() = parentDir ?: this
 
 /** @return parent file or null if is root */
+@Suppress("DEPRECATION")
 val File.parentDir: File? get() = parentFile    // TODO: deprecate parentFile
 
 /** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown. */
@@ -117,7 +118,7 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>
 
 // TODO: optimize
 private fun File.hasCover(): Boolean {
-    val p = parentFile
+    val p = parentDir!!
     val n = nameWithoutExtension
     return ImageFileFormat.values().asSequence()
             .filter { it.isSupported }

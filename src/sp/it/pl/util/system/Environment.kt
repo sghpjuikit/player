@@ -27,7 +27,8 @@ import sp.it.pl.util.file.Util.isValidWidgetFile
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.find1stExistingParentDir
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
-import sp.it.pl.util.file.parentDirOrSelf
+import sp.it.pl.util.file.parentDir
+import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.file.toFileOrNull
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.Try.ok
@@ -64,17 +65,16 @@ fun copyToSysClipboard(df: DataFormat, o: Any?) {
  */
 fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = fut()
         .supply(Player.IO_THREAD, Supplier {
-            val dir = parentFile
             val command = ArrayList<String>()
+            if (Os.WINDOWS.isCurrent)
+                command += APP.DIR_APP.childOf("elevate.exe").absolutePath   // use elevate.exe to run command
+
+            command += absoluteFile.path
+            command += arguments.asSequence().filter { it.isNotBlank() }.map { "-$it" }
+
             try {
-                if (Os.WINDOWS.isCurrent)
-                    command += File("").absoluteFile.childOf("elevate.exe").absolutePath   // use elevate.exe to run command
-
-                command += absoluteFile.path
-                command += arguments.asSequence().filter { it.isNotBlank() }.map { "-$it" }
-
                 ProcessBuilder(command)
-                        .directory(dir)
+                        .directory(parentDirOrRoot)
                         .start()
 
                 ok<Exception>()
@@ -143,7 +143,7 @@ fun URI.browse() {
                 if (Os.WINDOWS.isCurrent) {
                     f.openWindowsExplorerAndSelect()
                 } else {
-                    f.parentDirOrSelf.open()
+                    f.parentDirOrRoot.open()
                 }
             }
         }
@@ -194,8 +194,8 @@ fun File.open() {
             isExecutable() -> runAsProgram()
             else ->
                 when {
-                    isDirectory && APP.DIR_SKINS==parentFile || isValidSkinFile(this) -> Gui.setSkin(this)
-                    isDirectory && APP.DIR_WIDGETS==parentFile || isValidWidgetFile(this) -> APP.widgetManager.find(nameWithoutExtensionOrRoot, WidgetManager.WidgetSource.NO_LAYOUT, false)
+                    isDirectory && APP.DIR_SKINS==parentDir || isValidSkinFile(this) -> Gui.setSkin(this)
+                    isDirectory && APP.DIR_WIDGETS==parentDir || isValidWidgetFile(this) -> APP.widgetManager.find(nameWithoutExtensionOrRoot, WidgetManager.WidgetSource.NO_LAYOUT, false)
                     else ->
                         if (Desktop.Action.OPEN.isSupportedOrWarn()) {
                             try {

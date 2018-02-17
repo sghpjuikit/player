@@ -43,6 +43,7 @@ import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.nameOrRoot
+import sp.it.pl.util.file.parentDir
 import sp.it.pl.util.functional.Util.stream
 import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.functional.orNull
@@ -189,9 +190,9 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
 
             val type = if (treeItem.isLeaf) FileType.FILE else FileType.of(p)
 
-            if (type==FileType.DIRECTORY && APP.DIR_SKINS==p.parentFile || Util.isValidSkinFile(p))
+            if (type==FileType.DIRECTORY && APP.DIR_SKINS==p.parentDir || Util.isValidSkinFile(p))
                 createIcon(FontAwesomeIcon.PAINT_BRUSH, 8.0)
-            if (type==FileType.DIRECTORY && APP.DIR_WIDGETS==p.parentFile || Util.isValidWidgetFile(p))
+            if (type==FileType.DIRECTORY && APP.DIR_WIDGETS==p.parentDir || Util.isValidWidgetFile(p))
                 createIcon(FontAwesomeIcon.GE, 8.0)
 
             if (type==FileType.FILE) createIcon(FontAwesomeIcon.FILE, 8.0)

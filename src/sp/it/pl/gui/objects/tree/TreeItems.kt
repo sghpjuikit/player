@@ -274,7 +274,7 @@ private fun doAction(o: Any?, otherwise: () -> Unit) {
     when (o) {
         is Node -> APP.widgetManager.use<Settings>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
         is Window -> APP.widgetManager.use<Settings>(ANY) { it.configure(configsFromFxPropertiesOf(o.stage)) }
-        is File -> o.openIn()
+        is File -> o.open()
         is Configurable<*> -> APP.widgetManager.use<Settings>(ANY) { it.configure(o) }
         is Name -> APP.widgetManager.use<Settings>(ANY) { it.configure(APP.configuration.fields.filter { it.group==o.pathUp }) }
         is TreeItem<*> -> doAction(o.value, otherwise)

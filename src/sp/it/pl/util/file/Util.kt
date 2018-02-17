@@ -20,8 +20,7 @@ import kotlin.streams.asStream
  *
  * @return name of the file with suffix
  */
-val File.nameOrRoot: String
-    get() = name.takeUnless { it.isEmpty() } ?: toString()
+val File.nameOrRoot: String get() = name.takeUnless { it.isEmpty() } ?: toString()
 
 /**
  * For files name with no extension is returned.
@@ -31,8 +30,7 @@ val File.nameOrRoot: String
  * @return name of the file without suffix
  */
 // TODO: does not work for directories with '.'
-val File.nameWithoutExtensionOrRoot: String
-    get() = nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
+val File.nameWithoutExtensionOrRoot: String get() = nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
 
 /** @returns file itself if exists or its first existing parent or error if null or no parent exists */
 fun File.find1stExistingParentFile(): Try<File, Void> = when {
@@ -73,13 +71,13 @@ fun File.isAnyChildOf(parent: File) = parent.isAnyParentOf(this)
  * @return child files of the directory or empty if parameter null, not a directory or I/O error occurs
  */
 @Suppress("DEPRECATION")
-fun File.listChildren(): Stream<File> = this.listFiles()?.asSequence()?.asStream() ?: Stream.empty()
+fun File.listChildren(): Stream<File> = listFiles()?.asSequence()?.asStream() ?: Stream.empty()
 
 @Suppress("DEPRECATION")
-fun File.listChildren(filter: FileFilter): Stream<File> = this.listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
+fun File.listChildren(filter: FileFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
 
 @Suppress("DEPRECATION")
-fun File.listChildren(filter: FilenameFilter): Stream<File> = this.listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
+fun File.listChildren(filter: FilenameFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
 
 /** @return parent file or self if is root */
 val File.parentDirOrSelf get() = parentDir ?: this
@@ -89,24 +87,25 @@ val File.parentDir: File? get() = parentFile    // TODO: deprecate parentFile
 
 /** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown. */
 @Suppress("DEPRECATION")
-fun URI.toFileOrNull() = try {
-        File(this)
-    } catch (e: IllegalArgumentException) {
-        null
-    }
+fun URI.toFileOrNull() =
+        try {
+            File(this)
+        } catch (e: IllegalArgumentException) {
+            null
+        }
 
 enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>) {
     NONE({ it.stream().distinct() }),
     DIRS({
         it.asSequence().distinct()
-                .flatMap { sequenceOf(it).filter { it.isFile } + it.walk().filter { it.isDirectory } }
+                .flatMap { sequenceOf(it).filter { it.isFile }+it.walk().filter { it.isDirectory } }
                 .asStream()
     }),
     TOP_LVL({ it.stream().distinct().flatMap { it.listChildren() } }),
     TOP_LVL_AND_DIRS({
         it.stream().distinct()
                 .flatMap { it.listChildren() }
-                .flatMap { (sequenceOf(it).filter { it.isFile } + it.walk().filter { it.isDirectory }).asStream() }
+                .flatMap { (sequenceOf(it).filter { it.isFile }+it.walk().filter { it.isDirectory }).asStream() }
     }),
     TOP_LVL_AND_DIRS_AND_WITH_COVER({
         it.stream().distinct()

@@ -77,7 +77,7 @@ public final class WidgetManager {
 	private boolean initialized = false;
 	private final WindowManager windowManager;
 	private final Consumer<? super String> userErrorLogger;
-	private final String classpathSeparator = Os.UNIX.isCurrent() ? ":" : ";";
+	private final String classpathSeparator = Os.WINDOWS.isCurrent() ? ";" : ":";
 
 	public WidgetManager(WindowManager windowManager, Consumer<? super String> userErrorLogger) {
 		this.windowManager = windowManager;

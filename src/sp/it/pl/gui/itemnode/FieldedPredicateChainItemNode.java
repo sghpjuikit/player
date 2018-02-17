@@ -18,6 +18,7 @@ public class FieldedPredicateChainItemNode<T, F extends ObjectField<T,Object>> e
 	protected Supplier<PredicateData<F>> supplier;
 	protected final List<PredicateData<F>> data = new ArrayList<>();
 
+	@SuppressWarnings("unchecked")
 	public FieldedPredicateChainItemNode(Ƒ1<FieldedPredicateChainItemNode<T,F>,FieldedPredicateItemNode<T,F>> chainedFactory) {
 		super(0, Integer.MAX_VALUE, (Predicate) IS, null);
 		this.chainedFactory = () -> chainedFactory.apply(this);
@@ -50,6 +51,7 @@ public class FieldedPredicateChainItemNode<T, F extends ObjectField<T,Object>> e
 		return chain.stream().allMatch(c -> c.chained.isEmpty());
 	}
 
+	@SuppressWarnings("unchecked")
 	public void clear() {
 		inconsistent_state = true;
 		if (!chain.isEmpty()) chain.setAll(chain.get(0));   // TODO: handle properly
@@ -58,6 +60,7 @@ public class FieldedPredicateChainItemNode<T, F extends ObjectField<T,Object>> e
 		generateValue();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected Predicate<T> reduce(Stream<Predicate<T>> values) {
 		return values.reduce(Predicate::and).orElse((Predicate) IS);

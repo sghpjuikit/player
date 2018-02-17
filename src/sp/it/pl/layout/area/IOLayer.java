@@ -84,8 +84,8 @@ public class IOLayer extends StackPane {
     static public final ObservableSet<Output<?>> all_outputs = FXCollections.observableSet();
     static public final ObservableSet<InOutput<?>> all_inoutputs = FXCollections.observableSet();
     static public final Map2D<Input<?>,Output<?>,IOLine> connections = new Map2D<>();
-    static public final Map<Input<?>,XNode> inputnodes = new HashMap<>();
-    static public final Map<Output<?>,XNode> outputnodes = new HashMap<>();
+    static public final Map<Input<?>,XNode<?,?,?>> inputnodes = new HashMap<>();
+    static public final Map<Output<?>,XNode<?,?,?>> outputnodes = new HashMap<>();
     static public final Map<InOutput<?>,InOutputNode> inoutputnodes = new HashMap<>();
 
 
@@ -116,6 +116,7 @@ public class IOLayer extends StackPane {
         c.getOutputs().getOutputs().forEach(this::remOutput);
     }
 
+    @SuppressWarnings("unchecked")
     private void addInput(Input<?> i) {
         all_inputs.add(i);
         inputnodes.computeIfAbsent(i, k -> {
@@ -144,6 +145,7 @@ public class IOLayer extends StackPane {
         removeXNode(outputnodes.remove(o));
         removeChildren(connections.removeIfKey2(o));
     }
+    @SuppressWarnings("unchecked")
     private void addInOutput(InOutput<?> io) {
         all_inoutputs.add(io);
         inoutputnodes.computeIfAbsent(io, k -> {
@@ -164,6 +166,7 @@ public class IOLayer extends StackPane {
         outputnodes.remove(io.o);
     }
 
+    @SuppressWarnings("unchecked")
     private void addConnection(Input<?> i, Output<?> o) {
         connections.computeIfAbsent(new Key(i,o), key -> new IOLine(i,o));
         drawGraph();
@@ -235,6 +238,7 @@ public class IOLayer extends StackPane {
     private XNode editFrom = null; // editFrom == edit.node, editFrom.output == edit.output
     private XNode editTo = null;
 
+    @SuppressWarnings("unchecked")
     void editBegin(XNode n) {
         if (n==null) return;
 
@@ -248,6 +252,7 @@ public class IOLayer extends StackPane {
         connections.forEach((input_and_output,line) -> line.onEditActive(true));
     }
 
+    @SuppressWarnings("unchecked")
     void editMove(MouseEvent e) {
         if (edit==null || editFrom ==null) return;
 
@@ -266,6 +271,7 @@ public class IOLayer extends StackPane {
         }
     }
 
+    @SuppressWarnings("unchecked")
     void editEnd() {
         if (edit==null) return;
 
@@ -441,6 +447,7 @@ public class IOLayer extends StackPane {
     }
     class InputNode<T> extends XNode<Input<T>,T,HBox> {
 
+        @SuppressWarnings("unchecked")
         InputNode(Input<T> input_) {
             super(input_);
 
@@ -494,6 +501,7 @@ public class IOLayer extends StackPane {
     }
     class InOutputNode<T> extends XNode<InOutput<T>,T,VBox> {
 
+        @SuppressWarnings("unchecked")
         InOutputNode(InOutput<T> inoutput_) {
             super(inoutput_);
 
@@ -644,6 +652,7 @@ public class IOLayer extends StackPane {
                    "\n" + APP.instanceName.get(o.getValue());
         }
     }
+
     public static String iToStr(Input<?> i) {
         return APP.className.get(i.getType()) + " : " + i.getName() + "\n";
     }

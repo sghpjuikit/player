@@ -190,6 +190,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 	/** Table's filter node. */
 	public class Filter extends FieldedPredicateChainItemNode<F,ObjectField<F,Object>> {
 
+		@SuppressWarnings("unchecked")
 		private Filter(Class<F> filterType, FilteredList<T> filterList) {
 			super(THIS -> {
 				FieldedPredicateItemNode<F,ObjectField<F,Object>> g = new FieldedPredicateItemNode<>(
@@ -234,6 +235,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private PredicateData<ObjectField<F,Object>> getPrimaryFilterPredicate() {
 		return Optional.ofNullable(grid.primaryFilterField)
 				.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
@@ -241,6 +243,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 				.orElse(null);
 	}
 
+	@SuppressWarnings("unchecked")
 	private List<PredicateData<ObjectField<F,Object>>> getFilterPredicates(Class<F> filterType) {
 		return stream(APP.classFields.get(filterType))
 				.filter(ObjectField::isTypeFilterable)
@@ -369,6 +372,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 	 */
 	public static class Flow<T, F> extends Pane {
 		private final GViewSkin<T,F> skin;
+		@SuppressWarnings("unchecked")
 		private List<GridCell<T,F>> visibleCells = (List) getChildren();
 		private ArrayLinkedList<GridCell<T,F>> cachedCells = new ArrayLinkedList<>();
 		private final Rectangle clipMask = new Rectangle(0, 0);

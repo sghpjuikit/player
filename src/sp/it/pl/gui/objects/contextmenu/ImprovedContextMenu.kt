@@ -35,9 +35,6 @@ import sp.it.pl.util.system.recycle
 import sp.it.pl.util.system.saveFile
 import sp.it.pl.web.SearchUriBuilder
 import java.io.File
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 import kotlin.test.fail
@@ -119,12 +116,12 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
             menuItem("Copy as ...") {
                 saveFile("Copy as...", APP.DIR_APP, file.name, contextMenu.ownerWindow, ImageFileFormat.filter())
                         .ifOk { nf ->
-                            // TODO: move low lvl impl. to utils
-                            try {
-                                Files.copy(file.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING)
-                            } catch (e: IOException) {
-                                logger.error(e) { "File copy failed" }
-                            }
+                                // TODO: use customization popup
+                                val success = file.copyRecursively(nf, false) { f,e ->
+                                    logger.error(e) { "File copy failed" }
+                                    OnErrorAction.SKIP
+                                }
+                                if (!success) APP.messagePane.show("File $file copy failed")
                         }
             }
     )}

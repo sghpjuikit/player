@@ -41,7 +41,7 @@ import java.io.IOException
 /** Provides tray facilities, such as tray icon, tray tooltip, tray click actions or tray bubble notification. */
 @Suppress("unused")
 @IsConfigurable("Tray")
-class TrayService : ServiceBase(true) {
+class TrayService : ServiceBase("Tray", true) {
 
     private var tooltipText = APP.name
     @IsConfig(name = "Show tooltip", info = "Enables tooltip displayed when mouse hovers tray icon.")

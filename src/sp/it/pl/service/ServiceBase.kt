@@ -4,9 +4,9 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.CachedConfigurable
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.IsConfig
-import java.util.*
+import java.util.HashMap
 
-abstract class ServiceBase(isEnabled: Boolean) : Service, CachedConfigurable<Any> {
+abstract class ServiceBase(override val name: String, isEnabled: Boolean) : Service, CachedConfigurable<Any> {
 
     @Suppress("unused")
     @IsConfig(name = "Enabled", info = "Starts or stops the service")

@@ -36,7 +36,7 @@ import kotlin.streams.asSequence
 @Suppress("unused")
 @IsActionable
 @IsConfigurable("Notifications")
-class Notifier: ServiceBase(true) {
+class Notifier: ServiceBase("Notifications", true) {
     @IsConfig(name = "On playback status change")
     var showStatusNotification = true
     @IsConfig(name = "On playing song change")

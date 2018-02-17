@@ -165,7 +165,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
     private fun computeText(o: Any?): String = when {
         o==null -> "<none>"
         o is Component -> o.name
-        o is Service -> o.javaClass.simpleName    // TODO: implement Service.name
+        o is Service -> o.name
         o is WidgetFactory<*> -> o.nameGui()
         o::class.java.isEnum -> enumToHuman(o.toString())
         o is File -> o.nameOrRoot
@@ -185,17 +185,17 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
         is Path -> computeGraphics(p.toFile())
         is File -> {
             if (p.path.endsWith(".css"))
-                createIcon(FontAwesomeIcon.CSS3, 11)
+                createIcon(FontAwesomeIcon.CSS3, 8.0)
 
             val type = if (treeItem.isLeaf) FileType.FILE else FileType.of(p)
 
             if (type==FileType.DIRECTORY && APP.DIR_SKINS==p.parentFile || Util.isValidSkinFile(p))
-                createIcon(FontAwesomeIcon.PAINT_BRUSH, 11)
+                createIcon(FontAwesomeIcon.PAINT_BRUSH, 8.0)
             if (type==FileType.DIRECTORY && APP.DIR_WIDGETS==p.parentFile || Util.isValidWidgetFile(p))
-                createIcon(FontAwesomeIcon.GE, 11)
+                createIcon(FontAwesomeIcon.GE, 8.0)
 
-            if (type==FileType.FILE) createIcon(FontAwesomeIcon.FILE, 11)
-            else createIcon(FontAwesomeIcon.FOLDER, 11)
+            if (type==FileType.FILE) createIcon(FontAwesomeIcon.FILE, 8.0)
+            else createIcon(FontAwesomeIcon.FOLDER, 8.0)
         }
         else -> null
     }

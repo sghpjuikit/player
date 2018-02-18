@@ -1,0 +1,12 @@
+/* 
+    Document    : FlowNoBgr
+    Author      : Martin Polakovic
+    Description : Flow skin with simple bgr to improve UI performance
+*/
+
+@import url("../Flow/Flow.css");
+
+.bgr-image {
+    -fx-background-color: rgb(0, 20, 40);
+    -fx-background-image: none;
+}

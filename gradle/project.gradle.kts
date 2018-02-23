@@ -1,16 +1,15 @@
 import org.gradle.api.tasks.Copy
-import org.gradle.internal.impldep.org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
-import org.gradle.kotlin.dsl.extra
-import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.tasks.throwGradleExceptionIfError
+import java.io.File
+import java.io.IOException
 import java.io.FileNotFoundException
+import java.nio.file.Files
 import java.net.URL
 import java.util.zip.ZipInputStream
 import kotlin.text.Charsets.UTF_8
-import java.nio.file.Files
-import java.io.File
 
 plugins {
     kotlin("jvm") version "1.2.21"
@@ -33,6 +32,7 @@ kotlin {
     experimental.coroutines = Coroutines.ENABLE
 }
 
+/** working directory of the application */
 val workingDir = file("working dir")
 val kotlinVersion: String? by extra {
     buildscript.configurations["classpath"]
@@ -57,7 +57,6 @@ allprojects {
     }
 
     tasks.withType<KotlinCompile> {
-        compilerJarFile
         kaptOptions.supportInheritedAnnotations = true
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.suppressWarnings = false
@@ -145,18 +144,30 @@ tasks {
 
     val jre by creating {
         group = main
-        description = "Makes JDK locally accessible in ${workingDir.resolve("jre")}"
+        val jdkLocal = workingDir.resolve("jre")
+        description = "Makes JDK locally accessible in $jdkLocal"
         doFirst {
-            val jdkLocal = workingDir.resolve("jre")
-            if (jdkLocal.exists()) {
-                println("JDK is already locally accessible")
-            } else {
+            if (!jdkLocal.exists()) {
                 println("Making JDK locally accessible...")
-                val jdkLocalPath = jdkLocal.toPath()
                 val jdkGlobalPath = System.getProperty("java.home").takeIf { it.isNotBlank() }
                         ?.let { File(it).toPath() }
-                        ?: throw RuntimeException("Can not find JDK")
-                Files.createSymbolicLink(jdkLocalPath, jdkGlobalPath)
+                        ?: throw FileNotFoundException("Unable to find JDK")
+                try {
+                    Files.createSymbolicLink(jdkLocal.toPath(), jdkGlobalPath)
+                } catch(e: Exception) {
+                    println("Couldn't create a symbolic link from $jdkLocal to $jdkGlobalPath: ${e.message}")
+                    if(System.getProperty("os.name").startsWith("Windows")) {
+                        println("Trying junction...")
+                        val process = Runtime.getRuntime().exec("cmd.exe /c mklink /j \"$jdkLocal\" \"$jdkGlobalPath\"")
+                        val exitValue = process.waitFor()
+                        if(exitValue == 0 && jdkLocal.exists())
+                            println("Junction successful!")
+                        else
+                            throw IOException("Unable to make JDK locally accessible!\nmklink exit code: $exitValue", e)
+                    } else {
+                        throw IOException("Unable to make JDK locally accessible!", e)
+                    }
+                }
             }
         }
     }
@@ -173,7 +184,7 @@ tasks {
                 if (kotlinc.exists()) {
                     println("Previous version of Kotlin compiler exists. Deleting...")
                     if (!kotlinc.deleteRecursively())
-                        throw RuntimeException("Failed to remove Kotlin compiler, location=$kotlinc")
+                        throw IOException("Failed to remove Kotlin compiler, location=$kotlinc")
                 }
 
                 try {
@@ -191,10 +202,10 @@ tasks {
                         }
                     }
                     if (!kotlinc.exists())
-                        throw RuntimeException("Kotlinc has not been downloaded succesfully! Maybe the remote file is not a zip?")
+                        throw IOException("Kotlinc was not downloaded! Maybe the remote file is not a zip?")
                     File("$workingDir/kotlinc/bin/kotlinc").setExecutable(true) // Allow Unix kotlinc to be executed
                 } catch (e: FileNotFoundException) {
-                    throw RuntimeException("The remote file could not be found", e)
+                    throw IOException("The remote file could not be found", e)
                 }
             }
         }
@@ -228,8 +239,7 @@ application {
     applicationName = "PlayerFX"
     mainClassName = "sp.it.pl.main.AppUtil"
     applicationDefaultJvmArgs = listOf(
-            "-Xmx15g",
-            "-Dfile.encoding=UTF-8",
+            "-Xmx15g", "-Dfile.encoding=UTF-8",
             "--add-opens", "java.base/java.util=ALL-UNNAMED",
             "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
             "--add-opens", "java.base/java.text=ALL-UNNAMED",
@@ -246,3 +256,6 @@ application {
             "-Duser.dir=$workingDir"
     )
 }
+
+if(JavaVersion.current() != JavaVersion.VERSION_1_9)
+    throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")

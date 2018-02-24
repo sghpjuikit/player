@@ -15,8 +15,9 @@ import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.objects.popover.ScreenPos.SCREEN_BOTTOM_RIGHT
 import sp.it.pl.gui.objects.popover.ScreenUse
 import sp.it.pl.gui.objects.popover.ScreenUse.APP_WINDOW
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource.NEW
+import sp.it.pl.layout.widget.WidgetSource.NEW
 import sp.it.pl.layout.widget.feature.SongReader
+import sp.it.pl.layout.widget.hasFeature
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.util.access.VarAction
@@ -30,7 +31,6 @@ import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
 import java.util.function.Consumer
-import kotlin.streams.asSequence
 
 /** Provides notification functionality. */
 @Suppress("unused")
@@ -60,8 +60,8 @@ class Notifier: ServiceBase("Notifications", true) {
     @IsConfig(name = "Playback change graphics")
     val graphics = VarEnum.ofSequence("Normal",
             {
-                APP.widgetManager.getFactories().asSequence()
-                        .filter { it.hasFeature(SongReader::class.java) }
+                APP.widgetManager.factories.getFactories()
+                        .filter { it.hasFeature<SongReader>() }
                         .map { it.nameGui() }
                         .plus("Normal")
                         .plus("Normal - no cover")
@@ -79,7 +79,7 @@ class Notifier: ServiceBase("Notifications", true) {
                         songNotificationGui = ii
                         (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
                     }
-                    else -> APP.widgetManager.find(it, NEW, true).ifPresentOrElse(
+                    else -> APP.widgetManager.widgets.find(it, NEW, true).ifPresentOrElse(
                             { wf ->
                                 songNotificationGui = wf.load()
                                 songNotificationInfo = wf.controller as SongReader

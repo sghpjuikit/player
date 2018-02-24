@@ -21,9 +21,9 @@ import sp.it.pl.gui.pane.ActionPane.SlowColAction
 import sp.it.pl.gui.pane.ConfigPane
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource.ANY
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource.NEW
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource.NO_LAYOUT
+import sp.it.pl.layout.widget.WidgetSource.ANY
+import sp.it.pl.layout.widget.WidgetSource.NEW
+import sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.layout.widget.feature.Opener
@@ -43,6 +43,7 @@ import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.getCommonRoot
 import sp.it.pl.util.file.Util.getFilesAudio
+import sp.it.pl.util.file.endsWithSuffix
 import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.invoke
@@ -74,7 +75,7 @@ fun ActionPane.initAppActionPane(): ActionPane = also { ap ->
                     IconMD.EXPORT,
                     { app ->
                         chooseFile("Export to...", FileType.DIRECTORY, app.DIR_LAYOUTS, ap.scene.window)
-                                .ifOk { dir -> app.widgetManager.getFactories().forEach { it.create().exportFxwlDefault(dir) } }
+                                .ifOk { dir -> app.widgetManager.factories.getFactories().forEach { it.create().exportFxwlDefault(dir) } }
                     }
             ),
             FastAction(IconMD.KEYBOARD_VARIANT, Action.get("Show shortcuts")),
@@ -113,7 +114,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Open data in Converter.",
                     IconMD.SWAP_HORIZONTAL,
                     // TODO: make sure it opens Converter or support multiple Opener types
-                    { f -> APP.widgetManager.use<Opener>(ANY) { it.open(f) } }
+                    { f -> APP.widgetManager.widgets.use<Opener>(ANY) { it.open(f) } }
             )
     )
     ap.register<Component>(
@@ -151,13 +152,13 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Add to new playlist",
                     "Add items to new playlist widget.",
                     IconMD.PLAYLIST_PLUS,
-                    { items -> APP.widgetManager.use<PlaylistFeature>(NEW) { it.playlist.addItems(items) } }
+                    { items -> APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { it.playlist.addItems(items) } }
             ),
             FastColAction(
                     "Add to existing playlist",
                     "Add items to existing playlist widget if possible or to a new one if not.",
                     IconMD.PLAYLIST_PLUS,
-                    { items -> APP.widgetManager.use<PlaylistFeature>(ANY) { it.playlist.addItems(items) } }
+                    { items -> APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(items) } }
             ),
             FastColAction(
                     "Update from file",
@@ -177,7 +178,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Show",
                     "Shows items in a table.",
                     IconMA.COLLECTIONS,
-                    { items -> APP.widgetManager
+                    { items -> APP.widgetManager.widgets
                                 .find("Library", NEW, false)
                                 .ifPresent { it.controller.inputs.getInput<Collection<Item>>("To display").setValue(items) }
                     }
@@ -186,7 +187,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Show as Group",
                     "Group items in a table.",
                     MaterialIcon.COLLECTIONS,
-                    { items -> APP.widgetManager
+                    { items -> APP.widgetManager.widgets
                                 .find("Library View", NEW, false)
                                 .ifPresent { it.controller.inputs.getInput<Collection<Item>>("To display").setValue(items) }
                     }
@@ -224,7 +225,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Add items to new playlist widget.",
                     IconMD.PLAYLIST_PLUS,
                     { f -> AudioFileFormat.isSupported(f, Use.APP) },
-                    { fs -> APP.widgetManager.use<PlaylistFeature>(NEW) { it.playlist.addFiles(fs) } }
+                    { fs -> APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { it.playlist.addFiles(fs) } }
             ),
             SlowColAction(
                     "Find files",
@@ -245,7 +246,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Add items to existing playlist widget if possible or to a new one if not.",
                     IconMD.PLAYLIST_PLUS,
                     { AudioFileFormat.isSupported(it, Use.APP) },
-                    { f -> APP.widgetManager.use<PlaylistFeature>(ANY) { it.playlist.addFiles(f) } }
+                    { f -> APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addFiles(f) } }
             ),
             FastAction(
                     "Apply skin",
@@ -259,20 +260,20 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Opens image in an image viewer widget.",
                     IconFA.IMAGE,
                     { ImageFileFormat.isSupported(it) },
-                    { img_file -> APP.widgetManager.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(img_file) } }
+                    { img_file -> APP.widgetManager.widgets.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(img_file) } }
             ),
             FastColAction(
                     "View image",
                     "Opens image in an image browser widget.",
                     IconFA.IMAGE,
                     { ImageFileFormat.isSupported(it) },
-                    { img_files -> APP.widgetManager.use<ImagesDisplayFeature>(NO_LAYOUT) { it.showImages(img_files) } }
+                    { img_files -> APP.widgetManager.widgets.use<ImagesDisplayFeature>(NO_LAYOUT) { it.showImages(img_files) } }
             ),
             FastAction(
                     "Open widget",
                     "Opens exported widget.",
                     IconMD.IMPORT,
-                    { it.path.endsWith(".fxwl") },
+                    { it endsWithSuffix "fxwl" },
                     { APP.windowManager.launchComponent(it) }
             )
     )
@@ -314,7 +315,7 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
                     state = Label(),
                     pi = appProgressIndicator()
             )
-            val tagger by lazy { APP.widgetManager.factories.find { it.name()=="Tagger" }.orEmpty().create() }   // TODO: no empty widget...
+            val tagger by lazy { APP.widgetManager.widgets.createNew("Tagger") }
 
             info.bind(task)
             layHorizontally(50.0, Pos.CENTER,
@@ -346,7 +347,7 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
                                                 (tagger.controller as SongReader).read(items)
                                             }
                                             if (enqueue.get() && !result.all.isEmpty()) {
-                                                APP.widgetManager.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
+                                                APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
                                             }
                                         })
                             }

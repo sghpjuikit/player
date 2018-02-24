@@ -36,7 +36,6 @@ import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.container.switchcontainer.SwitchPane;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource;
 import sp.it.pl.layout.widget.controller.Controller;
 import sp.it.pl.layout.widget.controller.io.InOutput;
 import sp.it.pl.layout.widget.controller.io.Input;
@@ -59,6 +58,7 @@ import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.util.Duration.millis;
+import static sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.forEachWithI;
@@ -309,7 +309,7 @@ public class IOLayer extends StackPane {
         double header_offset = switchpane.getRoot().localToScene(0,0).getY();
         double translation_offset = translation.get();
         double iconhalfsize = 5;
-        APP.widgetManager.findAll(WidgetSource.LAYOUT)
+        APP.widgetManager.widgets.findAll(OPEN_LAYOUT)
             .map(Widget::getController).filter(ISNTØ)
             .forEach(c -> {
                 List<XNode> is = c.getInputs().getInputs().stream().map(inputnodes::get).filter(ISNTØ).collect(toList());

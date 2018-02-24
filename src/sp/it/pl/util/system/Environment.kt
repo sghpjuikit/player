@@ -12,7 +12,7 @@ import mu.KotlinLogging
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.gui.Gui
-import sp.it.pl.layout.widget.WidgetManager
+import sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.main.AppUtil.APP
@@ -195,7 +195,7 @@ fun File.open() {
             else ->
                 when {
                     isDirectory && APP.DIR_SKINS==parentDir || isValidSkinFile(this) -> Gui.setSkin(this)
-                    isDirectory && APP.DIR_WIDGETS==parentDir || isValidWidgetFile(this) -> APP.widgetManager.find(nameWithoutExtensionOrRoot, WidgetManager.WidgetSource.NO_LAYOUT, false)
+                    isDirectory && APP.DIR_WIDGETS==parentDir || isValidWidgetFile(this) -> APP.widgetManager.widgets.find(nameWithoutExtensionOrRoot, NO_LAYOUT, false)
                     else ->
                         if (Desktop.Action.OPEN.isSupportedOrWarn()) {
                             try {
@@ -235,7 +235,7 @@ fun File.recycle(): Try<Void, Void> {
 fun File.openIn() {
     when {
         AudioFileFormat.isSupported(this, AudioFileFormat.Use.PLAYBACK) -> PlaylistManager.use { it.addUri(toURI()) }
-        ImageFileFormat.isSupported(this) -> APP.widgetManager.use(ImageDisplayFeature::class.java, WidgetManager.WidgetSource.NO_LAYOUT) { it.showImage(this) }
+        ImageFileFormat.isSupported(this) -> APP.widgetManager.widgets.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(this) }
         else -> open()
     }
 }
@@ -253,9 +253,9 @@ fun openIn(files: List<File>) {
             PlaylistManager.use { it.addUris(audio.map { it.toURI() }) }
 
         if (images.size==1) {
-            APP.widgetManager.use(ImageDisplayFeature::class.java, WidgetManager.WidgetSource.NO_LAYOUT) { it.showImage(images[0]) }
+            APP.widgetManager.widgets.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(images[0]) }
         } else if (images.size>1) {
-            APP.widgetManager.use(ImagesDisplayFeature::class.java, WidgetManager.WidgetSource.NO_LAYOUT) { it.showImages(images) }
+            APP.widgetManager.widgets.use<ImagesDisplayFeature>(NO_LAYOUT) { it.showImages(images) }
         }
     }
 }
@@ -341,6 +341,6 @@ private fun File.openWindowsExplorerAndSelect() {
 /** @return true if the file is an executable file */
 private fun File.isExecutable(): Boolean =
         when (Os.current) {
-            Os.WINDOWS -> path.endsWith("exe", true)
+            Os.WINDOWS -> path.endsWith(".exe", true)
             else -> false
         }

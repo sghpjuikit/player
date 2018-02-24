@@ -37,6 +37,8 @@ kotlin {
 }
 
 allprojects {
+    buildDir = File("Z://build")
+
     tasks.withType<JavaCompile> {
         options.encoding = UTF_8.name()
         options.isIncremental = true

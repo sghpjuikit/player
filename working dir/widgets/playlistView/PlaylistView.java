@@ -38,13 +38,14 @@ import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static sp.it.pl.gui.Gui.rowHeight;
 import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static sp.it.pl.layout.widget.Widget.Group.PLAYLIST;
-import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.NO_LAYOUT;
-import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.OPEN;
+import static sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT;
+import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.menuItem;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.reactive.Util.maintain;
@@ -184,7 +185,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         table.menuOrder.getItems().addAll(
             menuItem("Order reverse", e -> playlist.reverse()),
             menuItem("Order randomly", e -> playlist.randomize()),
-            menuItem("Edit selected", e -> APP.widgetManager.use(SongReader.class,NO_LAYOUT,w->w.read(table.getSelectedItems())))
+            menuItem("Edit selected", e -> APP.widgetManager.widgets.use(SongReader.class, NO_LAYOUT, consumer(w -> w.read(table.getSelectedItems()))))
             // menuItem("Save selected as...", e -> saveSelectedAsPlaylist())
         );
         Menu sortM = new Menu("Order by");
@@ -257,7 +258,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 
     private static Playlist getUnusedPlaylist(UUID id) {
         List<Playlist> pall = list(PlaylistManager.playlists);
-        APP.widgetManager.findAll(OPEN).filter(w -> w.getInfo().hasFeature(PlaylistFeature.class))
+        APP.widgetManager.widgets.findAll(OPEN).filter(w -> w.getInfo().hasFeature(PlaylistFeature.class))
                  .filter(w -> w.getController()!=null) // during load some widgets may not be loaded yet, not good
                  .map(w -> ((PlaylistFeature)w.getController()).getPlaylist())
                  .filter(ISNTØ)

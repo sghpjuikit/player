@@ -73,6 +73,7 @@ import static java.lang.Math.pow;
 import static java.lang.Math.signum;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyCode.TAB;
 import static javafx.scene.input.KeyCombination.keyCombination;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -290,6 +291,14 @@ public class Window extends WindowBase {
 		root.addEventFilter(MOUSE_PRESSED, e -> {
 			if (e.getButton()==PRIMARY)
 				Gui.focusClickedWidget(e);
+		});
+		root.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+			if (e.getCode()==TAB && e.isShortcutDown()) {
+				e.consume();
+
+				if (e.isShiftDown()) APP.widgetManager.widgets.selectPreviousWidget(layout);
+				else APP.widgetManager.widgets.selectNextWidget(layout);
+			}
 		});
 
 		// layout mode on key press/release

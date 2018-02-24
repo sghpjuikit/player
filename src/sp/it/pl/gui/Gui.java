@@ -24,7 +24,6 @@ import sp.it.pl.gui.objects.window.stage.WindowBase;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.container.switchcontainer.SwitchPane;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.action.IsAction;
@@ -38,6 +37,7 @@ import static java.util.stream.Collectors.toSet;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.Gui.OpenStrategy.INSIDE;
 import static sp.it.pl.gui.GuiKt.applySkin;
+import static sp.it.pl.layout.widget.WidgetSource.ANY;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.set;
@@ -59,10 +59,10 @@ public class Gui {
 	public static final BooleanProperty layout_mode = new SimpleBooleanProperty(false);
 	public static final Consumer<Node> focusChangedHandler = n -> {
 		Scene window = n==null ? null : n.getScene();
-		(n==null ? Stream.<Widget<?>>empty() : APP.widgetManager.findAll(WidgetSource.ANY))
+		(n==null ? Stream.<Widget<?>>empty() : APP.widgetManager.widgets.findAll(ANY))
 			.filter(w -> w.areaTemp!=null && isAnyParentOf(w.areaTemp.getRoot(), n))
 			.findAny().ifPresent(fw -> {
-				APP.widgetManager.findAll(WidgetSource.ANY)
+				APP.widgetManager.widgets.findAll(ANY)
 					.filter(w -> w!=fw)
 					.filter(w -> w.getWindow().map(Window::getStage).map(Stage::getScene).map(s -> s==window).orElse(false))
 					.forEach(w -> w.focused.set(false));
@@ -72,7 +72,7 @@ public class Gui {
 
 	public static void focusClickedWidget(MouseEvent e) {
 		Node n = e.getTarget() instanceof Node ? (Node) e.getTarget() : null;
-		(n==null ? Stream.<Widget<?>>empty() : APP.widgetManager.findAll(WidgetSource.ANY))
+		(n==null ? Stream.<Widget<?>>empty() : APP.widgetManager.widgets.findAll(ANY))
 			.filter(w -> !w.focused.get() && w.isLoaded() && isAnyParentOf(w.load(), n))
 			.findAny().ifPresent(w -> w.focus());
 	}
@@ -182,7 +182,7 @@ public class Gui {
 	/** Loads/refreshes active layout. */
 	@IsAction(name = "Reload layout", desc = "Reload layout.", keys = "F6")
 	public static void loadLayout() {
-		APP.widgetManager.getLayouts().forEach(Layout::load);
+		APP.widgetManager.layouts.findAllActive().forEach(Layout::load);
 	}
 
 	/** Toggles layout controlling mode. */
@@ -207,11 +207,11 @@ public class Gui {
 		// before invoking hide().
 		// This is important to maintain consistency. See documentation.
 		if (val) {
-			APP.widgetManager.getLayouts().forEach(Layout::show);
+			APP.widgetManager.layouts.findAllActive().forEach(Layout::show);
 			layout_mode.set(val);
 		} else {
 			layout_mode.set(val);
-			APP.widgetManager.getLayouts().forEach(Layout::hide);
+			APP.widgetManager.layouts.findAllActive().forEach(Layout::hide);
 			setZoomMode(false);
 		}
 		if (val) APP.actionStream.push("Layout mode");

@@ -37,8 +37,10 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	public boolean coverFile_loaded;
 	public final AtomicBoolean cover_loadedThumb = new AtomicBoolean(false);
 	public final AtomicBoolean cover_loadedFull = new AtomicBoolean(false);
-	public double lastScrollPosition;
 	private volatile boolean disposed = false;  // TODO: this inherently can not work, use AtomicReference on fields
+	public boolean loadStarted;
+	public double loadProgress; // 0-1
+	public double lastScrollPosition; // 0-1
 
 	public Item(Item parent, File value, FileType valueType) {
 		super(value, parent);
@@ -59,6 +61,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		coverFile_loaded = false;
 		cover_loadedThumb.set(false);
 		cover_loadedFull.set(false);
+		loadStarted = false;
+		loadProgress = 0;
 		lastScrollPosition = -1;
 	}
 

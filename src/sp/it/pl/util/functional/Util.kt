@@ -9,10 +9,12 @@ import java.util.function.Consumer
 import java.util.function.DoubleConsumer
 import java.util.function.Function
 import java.util.function.LongConsumer
+import java.util.function.Predicate
 import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.coroutines.experimental.buildSequence
 import kotlin.reflect.KClass
+import kotlin.streams.toList
 
 operator fun <T> Consumer<T>.invoke(t: T) = accept(t)
 
@@ -23,6 +25,8 @@ operator fun LongConsumer.invoke(t: Long) = accept(t)
 operator fun <T,U> BiConsumer<T,U>.invoke(t: T, u: U) = accept(t, u)
 
 operator fun <T,U> Function<T,U>.invoke(t: T) = apply(t)
+
+operator fun <T> Predicate<T>.invoke(t: T) = test(t)
 
 operator fun <T> Supplier<T>.invoke() = get()
 
@@ -40,6 +44,16 @@ fun <R,E> Try<R,E>.orNull(): R? = getOr(null)
 /** @return return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
 infix fun <R,E> Try<R,E>.orNull(onError: (E) -> Unit): R? = ifError(onError).getOr(null)
 
+/**
+ * Run the specified block if the condition is true
+ * @return the result or null (if the value is nullable, this destroys the information of null's origin)
+ */
+fun <R> runIf(condition: Boolean, block: () -> R): R? = if (condition) block() else null
+
+/**
+ * Run the specified block safely (no exception will be thrown).
+ * @return the result or any caught exception.
+ */
 fun <R> runTry(block: () -> R): Try<R,Throwable> = Try.tryS(Supplier { block() }, Throwable::class.java)
 
 infix fun <R,E> Try<R,E>.onE(handle: (E) -> Unit) = ifError(handle)!!
@@ -64,6 +78,12 @@ fun <E> E.seqRec(children: (E) -> Iterable<E>): Sequence<E> = buildSequence {
     // sequenceOf(this) + children(this).asSequence().flatMap { it.seqRec(children) }
 }
 
+/** @return an array containing all elements */
+inline fun <reified E> Sequence<E>.asArray() = toList().toTypedArray()
+
+/** @return an array containing all elements */
+inline fun <reified E> Stream<E>.asArray() = toList().toTypedArray()
+
 /** @return stream that yields elements of this stream sorted by value selected by specified [selector] function. */
 inline fun <T, R : Comparable<R>> Stream<T>.sortedBy(crossinline selector: (T) -> R?) = sorted(compareBy(selector))!!
 
@@ -73,6 +93,7 @@ fun <T> Comparator<T>.nullsLast(): Comparator<T?> = Comparator.nullsLast(this) a
 /** @return null-safe comparator wrapper putting nulls at the the start */
 fun <T> Comparator<T>.nullsFirst(): Comparator<T?> = Comparator.nullsFirst(this) as Comparator<T?>
 
+/** @return the most specific common supertype of all elements */
 fun <E: Any> Collection<E?>.getElementType(): Class<*> {
     return asSequence().filterNotNull()
             .map { it::class as KClass<*> }.distinct()
@@ -80,8 +101,15 @@ fun <E: Any> Collection<E?>.getElementType(): Class<*> {
             ?.java ?: Void::class.java
 }
 
-inline infix fun <reified T: Any?> ObservableList<T>.clearSet(elements: Collection<T>) {
-    setAll(*elements.toTypedArray())
+/** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */
+inline infix fun <reified T: Any?> MutableCollection<T>.clearSet(elements: Collection<T>) {
+    if (this is ObservableList<T>)
+        setAll(ArrayList(elements))
+    else {
+        this.clear()
+        this += elements
+    }
 }
 
-inline infix fun <reified T: Any?> ObservableList<T>.clearSet(elements: Sequence<T>) = this clearSet elements.toList()
+/** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */
+inline infix fun <reified T: Any?> MutableCollection<T>.clearSet(elements: Sequence<T>) = this clearSet elements.toList()

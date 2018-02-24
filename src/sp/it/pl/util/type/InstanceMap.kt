@@ -17,6 +17,6 @@ open class InstanceMap {
     fun <T> getInstances(type: Class<T>): List<T> = m[type].orEmpty().asSequence().toList() as List<T>
 
     /** @return instances of the specified type */
-    inline fun <reified T> getInstances(): List<T> = getInstances(T::class.java)
+    inline fun <reified T> getInstances(): Sequence<T> = getInstances(T::class.java).asSequence()
 
 }

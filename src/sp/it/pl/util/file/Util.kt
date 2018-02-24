@@ -6,10 +6,10 @@ import sp.it.pl.util.functional.Try
 import java.io.File
 import java.io.FileFilter
 import java.io.FilenameFilter
+import java.net.MalformedURLException
 import java.net.URI
 import java.util.stream.Stream
 import kotlin.streams.asStream
-
 
 /**
  * For files 'filename.extension' is returned.
@@ -73,18 +73,33 @@ fun File.isAnyChildOf(parent: File) = parent.isAnyParentOf(this)
 @Suppress("DEPRECATION")
 fun File.listChildren(): Stream<File> = listFiles()?.asSequence()?.asStream() ?: Stream.empty()
 
+fun File.seqChildren(): Sequence<File> = listFiles()?.asSequence() ?: sequenceOf()
+
 @Suppress("DEPRECATION")
 fun File.listChildren(filter: FileFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
 
 @Suppress("DEPRECATION")
 fun File.listChildren(filter: FilenameFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
 
+/**
+ * Safe version of [File.getParentFile].
+ *
+ * @return parent file or null if is root
+ */
+@Suppress("DEPRECATION")
+val File.parentDir: File? get() = parentFile
+
 /** @return parent file or self if is root */
 val File.parentDirOrRoot get() = parentDir ?: this
 
-/** @return parent file or null if is root */
-@Suppress("DEPRECATION")
-val File.parentDir: File? get() = parentFile    // TODO: deprecate parentFile
+/** @return true if the file path ends with '.' character followed by the specified suffix */
+infix fun File.endsWithSuffix(suffix: String) = path.endsWith('.'+suffix, true)
+
+/** @return true if the file path ends with '.' character followed by the one of the specified suffixes */
+fun File.endsWithSuffix(suffix1: String, suffix2: String) = endsWithSuffix(suffix1) || endsWithSuffix(suffix2)
+
+/** @return true if the file path ends with '.' character followed by the one of the specified suffixes */
+fun File.endsWithSuffix(suffix1: String, suffix2: String, suffix3: String) = endsWithSuffix(suffix1) || endsWithSuffix(suffix2) || endsWithSuffix(suffix3)
 
 /** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown. */
 @Suppress("DEPRECATION")
@@ -92,6 +107,14 @@ fun URI.toFileOrNull() =
         try {
             File(this)
         } catch (e: IllegalArgumentException) {
+            null
+        }
+
+/** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown. */
+fun File.toURLOrNull() =
+        try {
+            toURI().toURL()
+        } catch (e: MalformedURLException) {
             null
         }
 

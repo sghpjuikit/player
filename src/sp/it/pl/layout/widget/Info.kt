@@ -54,14 +54,14 @@ interface WidgetInfo: ComponentInfo {
             .distinct()
             .toList()
 
-    /** @return true iff widget's controller implements feature of given type */
-    fun hasFeature(feature: Class<*>) = feature.isSuperclassOf(type())
+    /** @return true iff widget's controller implements given feature */
+    fun hasFeature(feature: Feature) = hasFeature(feature.type)
 
     /** @return true iff widget's controller implements feature of given type */
     fun hasFeature(feature: KClass<*>) = hasFeature(feature.java)
 
-    /** @return true iff widget's controller implements given feature */
-    fun hasFeature(feature: Feature) = hasFeature(feature.type)
+    /** @return true iff widget's controller implements feature of given type */
+    fun hasFeature(feature: Class<*>) = feature.isSuperclassOf(type())
 
     /** @return true iff widget's controller implements all given features */
     fun hasFeatures(vararg features: Class<*>) = features.asSequence().all { hasFeature(it) }

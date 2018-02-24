@@ -46,7 +46,7 @@ import sp.it.pl.layout.Component;
 import sp.it.pl.layout.area.ContainerNode;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource;
+import sp.it.pl.layout.widget.WidgetSource;
 import sp.it.pl.layout.widget.feature.ConfiguringFeature;
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature;
 import sp.it.pl.unused.SimpleConfigurator;
@@ -69,7 +69,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE;
-import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.NEW;
+import static sp.it.pl.layout.widget.WidgetSource.NEW;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.urlEncodeUtf8;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -82,6 +82,7 @@ import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.add1timeEventHandler;
 import static sp.it.pl.util.graphics.Util.createFMNTStage;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
@@ -211,12 +212,12 @@ public class AppActions {
 	@SuppressWarnings("unchecked")
 	@IsAction(name = "Open settings", desc = "Opens application settings.")
 	public void openSettings() {
-		APP.widgetManager.use(ConfiguringFeature.class, WidgetSource.NO_LAYOUT, c -> c.configure(APP.configuration.getFields()));
+		APP.widgetManager.widgets.use(ConfiguringFeature.class, WidgetSource.NO_LAYOUT, consumer(c -> c.configure(APP.configuration.getFields())));
 	}
 
 	@IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
 	public void openLayoutManager() {
-		APP.widgetManager.find("Layouts", WidgetSource.NO_LAYOUT, false);
+		APP.widgetManager.widgets.find("Layouts", WidgetSource.NO_LAYOUT, false);
 	}
 
 	@IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
@@ -365,7 +366,7 @@ public class AppActions {
 
 	public void openImageFullscreen(File image, Screen screen) {
 		// find appropriate widget
-		Widget<?> c = APP.widgetManager.find(w -> w.hasFeature(ImageDisplayFeature.class),NEW,true).orElse(null);
+		Widget<?> c = APP.widgetManager.widgets.find(w -> w.hasFeature(ImageDisplayFeature.class),NEW,true).orElse(null);
 		if (c==null) return; // one can never know
 
 
@@ -410,7 +411,7 @@ public class AppActions {
 				sb.append("\nName: ").append(d.getName());
 				d.getTags().forEach(tag -> sb.append("\n\t").append(tag.toString()));
 			});
-			APP.widgetManager.find(w -> w.name().equals("Logger"), WidgetSource.ANY); // open console automatically
+			APP.widgetManager.widgets.find(w -> w.name().equals("Logger"), WidgetSource.ANY); // open console automatically
 			System.out.println(sb.toString());
 		} catch (IOException|ImageProcessingException e) {
 			e.printStackTrace();    // TODO: improve
@@ -452,7 +453,7 @@ public class AppActions {
 
 	@SuppressWarnings("unchecked")
 	public void inspectObjectInInspector(Object o) {
-		APP.widgetManager.find("Inspector", WidgetSource.OPEN, true)
+		APP.widgetManager.widgets.find("Inspector", WidgetSource.OPEN, true)
 			.ifPresent(w ->
 				((TreeView) getFieldValue(w.getController(), "tree"))    // TODO: improve
 					.getRoot().getChildren()

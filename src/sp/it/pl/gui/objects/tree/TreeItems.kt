@@ -16,22 +16,20 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.TransferMode
 import mu.KotlinLogging
-import sp.it.pl.gui.objects.contextmenu.ImprovedContextMenu
+import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.window.stage.Window
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetFactory
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource.ANY
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource.LAYOUT
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource.OPEN
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource.STANDALONE
+import sp.it.pl.layout.widget.WidgetSource
+import sp.it.pl.layout.widget.WidgetSource.ANY
+import sp.it.pl.layout.widget.WidgetSource.OPEN
+import sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT
+import sp.it.pl.layout.widget.WidgetSource.OPEN_STANDALONE
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.AppUtil.APP
-import sp.it.pl.main.browseMultipleFiles
-import sp.it.pl.main.use
 import sp.it.pl.service.Service
 import sp.it.pl.util.HierarchicalBase
 import sp.it.pl.util.Util.enumToHuman
@@ -41,27 +39,17 @@ import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.Util
+import sp.it.pl.util.file.endsWithSuffix
 import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.file.parentDir
-import sp.it.pl.util.functional.Util.stream
 import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.functional.sortedBy
-import sp.it.pl.util.graphics.Util.menuItem
 import sp.it.pl.util.graphics.createIcon
-import sp.it.pl.util.system.copyToSysClipboard
-import sp.it.pl.util.system.edit
 import sp.it.pl.util.system.open
-import sp.it.pl.util.system.openIn
-import sp.it.pl.util.type.ClassName
-import sp.it.pl.util.type.Util.getAllMethods
 import java.io.File
-import java.lang.reflect.InvocationTargetException
-import java.lang.reflect.Modifier
 import java.nio.file.Path
 import java.util.ArrayList
-import java.util.stream.Stream
 import kotlin.streams.asSequence
 import kotlin.streams.toList
 
@@ -73,43 +61,41 @@ fun <T> tree(o: T): SimpleTreeItem<T> = when (o) {
     is SimpleTreeItem<*> -> o
     is Widget<*> -> WidgetItem(o)
     is WidgetFactory<*> -> SimpleTreeItem(o)
-    is Widget.Group -> STreeItem(o, { APP.widgetManager.findAll(OPEN).filter { it.info.group()==o }.sortedBy { it.name } })
-    is WidgetSource -> STreeItem(o, { APP.widgetManager.findAll(o).sortedBy { it.name } })
-    is Feature -> STreeItem(o.name, { APP.widgetManager.getFactories().filter { it.hasFeature(o) }.sortedBy { it.nameGui() } })
+    is Widget.Group -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(OPEN).asSequence().filter { it.info.group()==o }.sortedBy { it.name } })
+    is WidgetSource -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(o).asSequence().sortedBy { it.name } })
+    is Feature -> STreeItem<Any>(o, { APP.widgetManager.factories.getFactories().filter { it.hasFeature(o) }.sortedBy { it.nameGui() } })
     is Container<*> -> LayoutItem(o)
     is File -> FileTreeItem(o)
     is Node -> NodeTreeItem(o)
-    is Window -> STreeItem(o, { stream(o.stage.scene.root, o.layout) })
-    is Name -> STreeItem(o, { o.hChildren.stream() }, { o.hChildren.isEmpty() })
-    else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().stream() }, { true }) else SimpleTreeItem(o)
+    is Window -> STreeItem(o, { sequenceOf(o.stage.scene.root, o.layout) })
+    is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
+    else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().asSequence() }, { true }) else SimpleTreeItem(o)
 }.let { it as SimpleTreeItem<T> }
 
 fun <T> tree(v: T, vararg children: Any): SimpleTreeItem<Any> = SimpleTreeItem(v as Any).apply {
     this.children += children.asSequence().map { tree(it) }
 }
 
-fun tree(v: Any, cs: List<Any>): SimpleTreeItem<Any> = SimpleTreeItem(v, cs.stream())
+fun tree(v: Any, cs: List<Any>): SimpleTreeItem<Any> = SimpleTreeItem(v, cs.asSequence())
 
-fun tree(v: Any, cs: Stream<out Any>): SimpleTreeItem<Any> = STreeItem(v, { cs })
-
-fun tree(v: Any, cs: () -> Stream<out Any>): SimpleTreeItem<Any> = STreeItem(v, cs)
+fun tree(v: Any, cs: () -> Sequence<Any>): SimpleTreeItem<Any> = STreeItem(v, cs)
 
 fun treeApp(): SimpleTreeItem<Any> {
     val widgetT = tree("Widgets",
             tree("Categories", Widget.Group.values().asList()),
-            tree("Types", { APP.widgetManager.getFactories().sortedBy { it.nameGui() } }),
-            tree("Open", listOf(ANY, LAYOUT, STANDALONE)),
-            tree("Features", { APP.widgetManager.features.sortedBy { it.name } })
+            tree("Types", { APP.widgetManager.factories.getFactories().sortedBy { it.nameGui() } }),
+            tree("Open", { sequenceOf(ANY, OPEN_LAYOUT, OPEN_STANDALONE) }),
+            tree("Features", { APP.widgetManager.factories.getFeatures().sortedBy { it.name } })
     )
     return tree("App",
             tree("Behavior",
                     widgetT,
-                    tree("Services", { APP.services.getAllServices().sortedBy { ClassName.of(it.javaClass) } })
+                    tree("Services", { APP.services.getAllServices().sortedBy { it.name } })
             ),
             tree("UI",
                     widgetT,
-                    tree("Windows", { APP.windowManager.windows.stream() }),
-                    tree("Layouts", { APP.widgetManager.layouts.sortedBy { it.name } })
+                    tree("Windows", { APP.windowManager.windows.asSequence() }),
+                    tree("Layouts", { APP.widgetManager.layouts.findAllActive().asSequence().sortedBy { it.name } })
             ),
             tree("Location", APP.DIR_APP),
             tree("File system", File.listRoots().map { FileTreeItem(it) }),
@@ -127,8 +113,7 @@ fun <T: Any> initTreeView(tree: TreeView<T>) = tree.apply {
                 doAction(selectionModel.selectedItem?.value, {})
                 it.consume()
             }
-            else -> {
-            }
+            else -> {}
         }
     }
     setOnDragDetected { e ->
@@ -178,6 +163,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
             n
         }
         o is Name -> o.`val`
+        o is Feature -> o.name
         o is HierarchicalBase<*, *> -> computeText(o.`val`)
         else -> o.toString()
     }
@@ -185,7 +171,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
     private fun computeGraphics(p: Any): Node? = when (p) {
         is Path -> computeGraphics(p.toFile())
         is File -> {
-            if (p.path.endsWith(".css"))
+            if (p endsWithSuffix "css")
                 createIcon(FontAwesomeIcon.CSS3, 8.0)
 
             val type = if (treeItem.isLeaf) FileType.FILE else FileType.of(p)
@@ -225,8 +211,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
                         }
                     }
                 }
-                else -> {
-                }
+                else -> {}
             }
         }
     }
@@ -241,78 +226,29 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
         doAction(o, { treeItem?.expandedProperty()?.toggle() })
     }
 
-    // TODO: implement properly
     fun <T> showMenu(o: T?, t: TreeView<T>, n: Node, e: MouseEvent) {
-        when (o) {
-            is File -> {
-                val files = t.selectionModel.selectedItems.filterIsInstance<File>()
-                when (files.size) {
-                    0 -> m.items.forEach { it.isDisable = true }
-                    1 -> {
-                        m.items.forEach { it.isDisable = false }
-                        m.items[2].isDisable = !files[0].isFile
-                    }
-                    else -> {
-                        m.items.forEach { it.isDisable = false }
-                        m.items[0].isDisable = true
-                        m.items[2].isDisable = true
-                    }
-                }
-                m.value = files
-                m.show(n, e)
-            }
-            is Window -> {
-                windowMenu.value = o
-                windowMenu.show(n, e)
-            }
-        //	    if (o instance of HierarchicalBase) showMenu(((HierarchicalBase)o).val, t, n, e); // requires mapping Hierarchical -> T
-        }
+        globalContextMenu.setValueAndItems(t.selectionModel.selectedItems.map { it.value })
+        globalContextMenu.show(n, e)
     }
 
 }
 
 private fun doAction(o: Any?, otherwise: () -> Unit) {
     when (o) {
-        is Node -> APP.widgetManager.use<Settings>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
-        is Window -> APP.widgetManager.use<Settings>(ANY) { it.configure(configsFromFxPropertiesOf(o.stage)) }
+        is Node -> APP.widgetManager.widgets.use<Settings>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
+        is Window -> APP.widgetManager.widgets.use<Settings>(ANY) { it.configure(configsFromFxPropertiesOf(o.stage)) }
         is File -> o.open()
-        is Configurable<*> -> APP.widgetManager.use<Settings>(ANY) { it.configure(o) }
-        is Name -> APP.widgetManager.use<Settings>(ANY) { it.configure(APP.configuration.fields.filter { it.group==o.pathUp }) }
+        is Configurable<*> -> APP.widgetManager.widgets.use<Settings>(ANY) { it.configure(o) }
+        is Name -> APP.widgetManager.widgets.use<Settings>(ANY) { it.configure(APP.configuration.fields.filter { it.group==o.pathUp }) }
         is TreeItem<*> -> doAction(o.value, otherwise)
         is HierarchicalBase<*, *> -> doAction(o.`val`, otherwise)
         else -> otherwise()
     }
 }
 
-private val m = ImprovedContextMenu<List<File>>().apply {
-    items += listOf(
-            menuItem("Open") { value[0].open() },
-            menuItem("Open in-app") { openIn(value) },
-            menuItem("Edit") { value[0].edit() },
-            menuItem("Copy") { copyToSysClipboard(DataFormat.FILES, value) },
-            menuItem("Explore in browser") { browseMultipleFiles(value.asSequence()) }
-    )
-}
+private val globalContextMenu by lazy { ValueContextMenu() }
 
-private val windowMenu = ImprovedContextMenu<Window>().apply {
-    items += getAllMethods(Window::class.java).asSequence()
-            .filter { Modifier.isPublic(it.modifiers) }
-            .filter { it.parameterCount==0 }
-            .filter { it.returnType==Void.TYPE }
-            .map {
-                menuItem(it.name) {
-                    try {
-                        it(value)
-                    } catch (e: IllegalAccessException) {
-                        logger.error(e) { "Could not invoke method $it on object $value" }
-                    } catch (e: InvocationTargetException) {
-                        logger.error(e) { "Could not invoke method $it on object $value" }
-                    }
-                }
-            }
-}
-
-open class SimpleTreeItem<T> @JvmOverloads constructor(v: T, children: Stream<out T> = stream()): TreeItem<T>(v) {
+open class SimpleTreeItem<T> @JvmOverloads constructor(v: T, children: Sequence<T> = sequenceOf()): TreeItem<T>(v) {
     val showLeaves = V(true)
 
     init {
@@ -333,7 +269,7 @@ open class SimpleTreeItem<T> @JvmOverloads constructor(v: T, children: Stream<ou
 
 }
 
-open class STreeItem<T> @JvmOverloads constructor(v: T, private val childrenLazy: () -> Stream<out T>, private val isLeafLazy: () -> Boolean = { false }): SimpleTreeItem<T>(v) {
+open class STreeItem<T> @JvmOverloads constructor(v: T, private val childrenLazy: () -> Sequence<T>, private val isLeafLazy: () -> Boolean = { false }): SimpleTreeItem<T>(v) {
     private var isFirstTimeChildren = true
     private val isLeaf: Boolean? = null
 
@@ -341,7 +277,7 @@ open class STreeItem<T> @JvmOverloads constructor(v: T, private val childrenLazy
         if (isFirstTimeChildren) {
             isFirstTimeChildren = false
             super.getChildren().clear()
-            super.getChildren() += childrenLazy().asSequence().map { tree(it) }
+            super.getChildren() += childrenLazy().map { tree(it) }
         }
         return super.getChildren()
     }
@@ -349,9 +285,9 @@ open class STreeItem<T> @JvmOverloads constructor(v: T, private val childrenLazy
     override fun isLeaf() = isLeafLazy()
 }
 
-class WidgetItem(v: Widget<*>): STreeItem<Any>(v, { stream<Any>(v.areaTemp.root) }, { false })
+class WidgetItem(v: Widget<*>): STreeItem<Any>(v, { sequenceOf(v.areaTemp?.root).filterNotNull() }, { false })
 
-class LayoutItem(v: Component): STreeItem<Component>(v, { (v as? Container<*>)?.children?.values?.stream() ?: stream() })
+class LayoutItem(v: Component): STreeItem<Component>(v, { (v as? Container<*>)?.children?.values?.asSequence() ?: sequenceOf() })
 
 class FileTreeItem: SimpleTreeItem<File> {
     private val isLeaf: Boolean

@@ -25,7 +25,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
-import sp.it.pl.gui.objects.contextmenu.ImprovedContextMenu;
+import sp.it.pl.gui.objects.contextmenu.ValueContextMenu;
 import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.ref.SingleR;
@@ -659,8 +659,8 @@ public class Thumbnail {
 
 /* --------------------- CONTEXT MENU ------------------------------------------------------------------------------- */
 
-	private static final SingleR<ImprovedContextMenu<ContextMenuData>,Thumbnail> contextMenu = new SingleR<>(
-			ImprovedContextMenu::new,
+	private static final SingleR<ValueContextMenu,Thumbnail> contextMenu = new SingleR<>(
+			ValueContextMenu::new,
 			(menu, thumbnail) -> menu.setValueAndItems(thumbnail.new ContextMenuData())
 	);
 

@@ -29,8 +29,8 @@ import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.gui.objects.popover.ScreenPos;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.layout.Layout;
+import sp.it.pl.layout.widget.ComponentFactory;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.WidgetFactory;
 import sp.it.pl.layout.widget.feature.HorizontalDock;
 import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.access.V;
@@ -126,7 +126,7 @@ public class WindowManager implements Configurable<Object> {
 
     @IsConfig(name="Mini widget", info="Widget to use in mini window.")
     public final VarEnum<String> mini_widget = VarEnum.ofStream("PlayerControlsTiny",
-        () -> APP.widgetManager.getFactories().filter(wf -> wf.hasFeature(HorizontalDock.class)).map(WidgetFactory::name)
+        () -> APP.widgetManager.factories.getFactoriesWith(HorizontalDock.class).map(w -> w.nameGui())
     );
 
     public WindowManager() {
@@ -310,12 +310,11 @@ public class WindowManager implements Configurable<Object> {
             miniWindow.disposables.add(maintain(
                 mini_widget,
                 name -> {
-                    // Create widget or supply empty if not available
-                    Widget<?> newW = APP.widgetManager.factories.get(name,"Empty").create();
-                    // Close old widget if any to free resources
-                    Widget<?> oldW = (Widget) content.getProperties().get("widget");
-                    if (oldW!=null) oldW.close();
-                    // set new widget
+                    Component newW = APP.widgetManager.factories.getFactoryOrEmpty(name).create();
+	                Component oldW = (Widget) content.getProperties().get("widget");
+
+	                if (oldW!=null) oldW.close();
+
                     content.getProperties().put("widget",newW);
                     content.setCenter(newW.load());
                 }
@@ -529,7 +528,7 @@ public class WindowManager implements Configurable<Object> {
 	}
 
 	public void launchComponent(String componentName) {
-		WidgetFactory<?> wf = APP.widgetManager.factories.get(componentName);
+		ComponentFactory<?> wf = APP.widgetManager.factories.getFactory(componentName);
 		Component w = wf==null ? null : wf.create();
 		launchComponent(w);
 	}
@@ -545,13 +544,13 @@ public class WindowManager implements Configurable<Object> {
 	}
 
 	public Component instantiateComponent(File launcher) {
-		WidgetFactory<?> wf;
+		ComponentFactory<?> wf;
 		Component c = null;
 
 		// try to build widget using just launcher filename
 		boolean isLauncherEmpty = Util.readFileLines(launcher).count()==0;
 		String wn = isLauncherEmpty ? Util.getName(launcher) : "";
-		wf = APP.widgetManager.factories.get(wn);
+		wf = APP.widgetManager.factories.getFactory(wn);
 		if (wf!=null)
 			c = wf.create();
 

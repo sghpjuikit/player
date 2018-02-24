@@ -12,6 +12,9 @@ import kotlin.text.Charsets.UTF_8
 import java.nio.file.Files
 import java.io.File
 
+val workingDir = file("working dir")
+val kotlinVersion: String = "1.2.21"
+
 plugins {
     kotlin("jvm") version "1.2.21"
     application
@@ -33,14 +36,6 @@ kotlin {
     experimental.coroutines = Coroutines.ENABLE
 }
 
-val workingDir = file("working dir")
-val kotlinVersion: String? by extra {
-    buildscript.configurations["classpath"]
-            .resolvedConfiguration.firstLevelModuleDependencies
-            .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }?.moduleVersion
-}
-
-// common configuration
 allprojects {
     tasks.withType<JavaCompile> {
         options.encoding = UTF_8.name()
@@ -57,10 +52,9 @@ allprojects {
     }
 
     tasks.withType<KotlinCompile> {
-        compilerJarFile
-        kaptOptions.supportInheritedAnnotations = true
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.suppressWarnings = false
+        kaptOptions.supportInheritedAnnotations = true
     }
 
     repositories {
@@ -148,9 +142,7 @@ tasks {
         description = "Makes JDK locally accessible in ${workingDir.resolve("jre")}"
         doFirst {
             val jdkLocal = workingDir.resolve("jre")
-            if (jdkLocal.exists()) {
-                println("JDK is already locally accessible")
-            } else {
+            if (!jdkLocal.exists()) {
                 println("Making JDK locally accessible...")
                 val jdkLocalPath = jdkLocal.toPath()
                 val jdkGlobalPath = System.getProperty("java.home").takeIf { it.isNotBlank() }
@@ -166,10 +158,8 @@ tasks {
         description = "Downloads the kotlin compiler into ${workingDir.resolve("kotlinc")}"
         doFirst {
             val kotlinc = workingDir.resolve("kotlinc")
-            val kotlincUpToDate = kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion!!) ?: false
-            if (kotlincUpToDate) {
-                println("Kotlin compiler is up to date, version $kotlinVersion")
-            } else {
+            val kotlincUpToDate = kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion) ?: false
+            if (!kotlincUpToDate) {
                 if (kotlinc.exists()) {
                     println("Previous version of Kotlin compiler exists. Deleting...")
                     if (!kotlinc.deleteRecursively())
@@ -191,8 +181,9 @@ tasks {
                         }
                     }
                     if (!kotlinc.exists())
-                        throw RuntimeException("Kotlinc has not been downloaded succesfully! Maybe the remote file is not a zip?")
-                    File("$workingDir/kotlinc/bin/kotlinc").setExecutable(true) // Allow Unix kotlinc to be executed
+                        throw RuntimeException("Kotlinc has not been downloaded successfully! Maybe the remote file is not a zip?")
+
+                    File("$workingDir/kotlinc/bin/kotlinc").setExecutable(true) // Allow kotlinc to be executed on Unix
                 } catch (e: FileNotFoundException) {
                     throw RuntimeException("The remote file could not be found", e)
                 }
@@ -230,6 +221,7 @@ application {
     applicationDefaultJvmArgs = listOf(
             "-Xmx15g",
             "-Dfile.encoding=UTF-8",
+            "-XX:+UseSerialGC",
             "--add-opens", "java.base/java.util=ALL-UNNAMED",
             "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
             "--add-opens", "java.base/java.text=ALL-UNNAMED",

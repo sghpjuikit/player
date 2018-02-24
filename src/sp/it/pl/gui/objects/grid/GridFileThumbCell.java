@@ -50,7 +50,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	public GridFileThumbCell(Loader imgLoader) {
 		noØ(imgLoader);
 		loader = imgLoader;
-		setCoverLater = EventReducer.toLast(100, this::setCoverNow);
+		setCoverLater = EventReducer.toLast(10, this::setCoverNow);
 	}
 
 	protected String computeName(Item item) {

@@ -487,9 +487,9 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			scrollbar.updating = true;
 			scrollbar.setVisible(computeMaxFullyVisibleCells()<=itemsAllCount);
 			scrollbar.setMin(0);
-			scrollbar.setMax(scrollableHeight-viewHeight);
+			scrollbar.setMax(scrollableHeight);
+			scrollbar.setVisibleAmount((viewHeight/(scrollableHeight+viewHeight))*(scrollableHeight));
 			scrollbar.setValue(viewStart);
-			scrollbar.setVisibleAmount(viewHeight);
 			scrollbar.updating = false;
 
 			// update cells

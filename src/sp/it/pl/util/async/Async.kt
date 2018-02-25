@@ -69,7 +69,7 @@ fun runAfter(delay: Duration, action: () -> Unit) {
 
 /**
  * Executes the action on current thread after specified delay from now.
- * Equivalent to `new FxTimer(delay, action, 1).restart();`.
+ * Equivalent to `new FxTimer(delay, 1, action).restart();`.
  *
  * @param delay delay in milliseconds
  */

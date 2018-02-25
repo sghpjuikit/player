@@ -16,7 +16,9 @@ import sp.it.pl.layout.widget.controller.io.Inputs;
 import sp.it.pl.layout.widget.controller.io.Outputs;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.dev.Dependency;
-import static sp.it.pl.util.dev.Util.noØ;
+import sp.it.pl.util.dev.Util;
+
+import static sp.it.pl.util.dev.Util.noNull;
 
 /**
  * Controller for widgets built around fxml files. See {@link javafx.fxml.FXMLLoader}.
@@ -32,7 +34,7 @@ abstract public class FXMLController implements Controller<Widget<?>> {
 
 	@Override
 	public Widget<?> getWidget() {
-		noØ(widget);
+		noNull(widget);
 		return widget;
 	}
 

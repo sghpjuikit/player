@@ -7,8 +7,10 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.skin.ComboBoxListViewSkin;
 import javafx.scene.input.KeyCode;
 import sp.it.pl.gui.objects.search.Search;
+import sp.it.pl.util.dev.Util;
+
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 
 /**
  * ComboBox with added functionalities.
@@ -72,7 +74,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 	 * @param empty_text text to use for null value
 	 */
 	public ImprovedComboBox(Function<T,String> toS, String empty_text) {
-		noØ(toS, empty_text);
+		noNull(toS, empty_text);
 
 		emptyText = empty_text;
 		toStringConverter = toS;

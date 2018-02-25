@@ -52,7 +52,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static sp.it.pl.util.collections.Tuples.tuple;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.dev.Util.throwIf;
 import static sp.it.pl.util.dev.Util.throwIfNot;
 
@@ -289,7 +289,7 @@ public interface Util {
 	 * @throws NullPointerException if argument is null
 	 */
 	static <E, C extends Comparable<? super C>> Comparator<E> by(Function<? super E,? extends C> extractor) {
-		noØ(extractor);
+		sp.it.pl.util.dev.Util.noNull(extractor);
 		return by(extractor, Comparable::compareTo);
 	}
 
@@ -327,8 +327,8 @@ public interface Util {
 	 * }</pre>
 	 */
 	static <E, C> Comparator<E> by(Function<? super E,? extends C> extractor, Comparator<? super C> comparator) {
-		noØ(extractor);
-		noØ(comparator);
+		sp.it.pl.util.dev.Util.noNull(extractor);
+		sp.it.pl.util.dev.Util.noNull(comparator);
 		return (Comparator<E> & Serializable) (a, b) -> comparator.compare(extractor.apply(a), extractor.apply(b));
 	}
 
@@ -349,8 +349,8 @@ public interface Util {
 	 * {@link Comparator#nullsFirst(java.util.Comparator)}).
 	 */
 	static <E, C extends Comparable<? super C>> Comparator<E> by(Function<? super E,? extends C> extractor, Function<Comparator<? super C>,Comparator<? super C>> comparatorModifier) {
-		noØ(extractor);
-		noØ(comparatorModifier);
+		sp.it.pl.util.dev.Util.noNull(extractor);
+		sp.it.pl.util.dev.Util.noNull(comparatorModifier);
 		return (Comparator<E> & Serializable) (a, b) -> comparatorModifier.apply(Comparator.naturalOrder()).compare(extractor.apply(a), extractor.apply(b));
 	}
 
@@ -376,7 +376,7 @@ public interface Util {
 
 	@SuppressWarnings("unchecked")
 	static <NN> Ƒ1<?,NN> mapNulls(NN non_null) {
-		noØ(non_null);
+		sp.it.pl.util.dev.Util.noNull(non_null);
 		return (Ƒ1) in -> in==null ? non_null : in;
 	}
 

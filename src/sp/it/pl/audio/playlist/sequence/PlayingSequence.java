@@ -5,7 +5,9 @@ import java.util.List;
 import sp.it.pl.audio.playlist.PlaylistItem;
 import sp.it.pl.util.access.CyclicEnum;
 import sp.it.pl.util.access.SequentialValue;
-import static sp.it.pl.util.dev.Util.noØ;
+import sp.it.pl.util.dev.Util;
+
+import static sp.it.pl.util.dev.Util.noNull;
 
 /**
  * Determines playing items. Provides customizable item selector and also the
@@ -20,7 +22,7 @@ public class PlayingSequence {
      * Sets the logic that determines how the next item should be selected.
      */
     public void setSelector(ItemSelector<PlaylistItem> selector) {
-        noØ(selector);
+        noNull(selector);
         this.selector = selector;
     }
 

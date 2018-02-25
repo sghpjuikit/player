@@ -40,6 +40,7 @@ import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.Loop;
 import sp.it.pl.util.animation.interpolator.CircularInterpolator;
 import sp.it.pl.util.async.executor.FxTimer;
+import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.graphics.UtilKt;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOWN;
@@ -76,7 +77,7 @@ import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.animation.Anim.mapConcave;
 import static sp.it.pl.util.animation.Anim.mapTo01;
 import static sp.it.pl.util.async.AsyncKt.run;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.minBy;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.setAnchor;
@@ -304,7 +305,7 @@ public final class Seeker extends AnchorPane {
 
 	/** Reload chapters. Use on chapter data change, e.g., on chapter add/remove. */
 	public void reloadChapters(Metadata m) {
-		noØ(m);
+		noNull(m);
 
 		getChildren().removeAll(chapters);
 		chapters.clear();

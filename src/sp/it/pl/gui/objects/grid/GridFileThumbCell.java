@@ -20,6 +20,7 @@ import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.async.future.Fut;
+import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.image.ImageSize;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -28,7 +29,7 @@ import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.newSingleDaemonThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.sleep;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.dev.Util.throwIf;
 import static sp.it.pl.util.dev.Util.throwIfFxThread;
 import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
@@ -48,7 +49,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	protected Anim imgLoadAnimation;
 
 	public GridFileThumbCell(Loader imgLoader) {
-		noØ(imgLoader);
+		noNull(imgLoader);
 		loader = imgLoader;
 		setCoverLater = EventReducer.toLast(100, this::setCoverNow);
 	}

@@ -8,7 +8,9 @@ import javafx.beans.property.LongProperty;
 import javafx.beans.property.ReadOnlyLongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import sp.it.pl.util.async.future.ConvertListTask.Result;
-import static sp.it.pl.util.dev.Util.noØ;
+import sp.it.pl.util.dev.Util;
+
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
 
 public abstract class ConvertListTask<T, R> extends FTask<Collection<? extends T>,Result<T,R>> {
@@ -18,7 +20,7 @@ public abstract class ConvertListTask<T, R> extends FTask<Collection<? extends T
 	private final LongProperty skipped = new SimpleLongProperty(this, "skipped", 0);
 
 	public ConvertListTask(String title) {
-		updateTitle(noØ(title));
+		updateTitle(noNull(title));
 		updateMessage("Progress: -");
 		updateProgress(0, 1);
 	}
@@ -55,10 +57,10 @@ public abstract class ConvertListTask<T, R> extends FTask<Collection<? extends T
 		public final List<T> skipped;
 
 		public Result(List<T> all, List<T> processed, List<R> converted, List<T> skipped) {
-			this.all = noØ(all);
-			this.processed = noØ(processed);
-			this.converted = noØ(converted);
-			this.skipped = noØ(skipped);
+			this.all = noNull(all);
+			this.processed = noNull(processed);
+			this.converted = noNull(converted);
+			this.skipped = noNull(skipped);
 		}
 	}
 

@@ -31,6 +31,7 @@ import sp.it.pl.gui.objects.window.stage.WindowBase;
 import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.ValueConfig;
+import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
@@ -40,7 +41,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
 import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.Util.getFilesAudio;
 import static sp.it.pl.util.functional.Util.map;
@@ -498,7 +499,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	 * @throws NullPointerException if param null.
 	 */
 	public void setNplay(Stream<? extends Item> items) {
-		noØ(items);
+		noNull(items);
 		clear();
 		addItems(items.collect(toList()));
 		playFirstItem();
@@ -515,7 +516,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	 * @throws NullPointerException if param null.
 	 */
 	public void setNplayFrom(Stream<? extends Item> items, int from) {
-		noØ(items);
+		noNull(items);
 		clear();
 		addItems(items.collect(toList()));
 		playItem(get(from));

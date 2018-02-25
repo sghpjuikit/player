@@ -50,7 +50,7 @@ import static javafx.stage.StageStyle.UTILITY;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 
 /**
  * Graphic utility methods.
@@ -523,7 +523,7 @@ public interface Util {
 	 * @throws java.lang.RuntimeException if any param null
 	 */
 	static MenuItem menuItem(String text, EventHandler<ActionEvent> action) {
-		noØ(action);
+		sp.it.pl.util.dev.Util.noNull(action);
 		MenuItem i = new MenuItem(text);
 		i.setOnAction(action);
 		return i;

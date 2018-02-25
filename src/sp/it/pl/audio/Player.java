@@ -1,17 +1,5 @@
 package sp.it.pl.audio;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.media.AudioSpectrumListener;
 import javafx.scene.media.MediaPlayer.Status;
@@ -41,6 +29,15 @@ import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.math.Portion;
 import sp.it.pl.util.reactive.SetƑ;
 import sp.it.pl.util.validation.Constraint;
+
+import java.net.URI;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
 import static java.lang.Double.max;
 import static java.lang.Double.min;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -51,13 +48,10 @@ import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.playback.PlayTimeHandler.at;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.async.AsyncKt.FX;
-import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.async.AsyncKt.runNew;
-import static sp.it.pl.util.async.AsyncKt.threadFactory;
+import static sp.it.pl.util.async.AsyncKt.*;
 import static sp.it.pl.util.async.executor.EventReducer.toLast;
 import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
 
@@ -303,7 +297,7 @@ public class Player {
 
 	/** Singleton variant of {@link #refreshItems(java.util.Collection)}. */
 	public static void refreshItem(Item i) {
-		noØ(i);
+		noNull(i);
 		refreshItems(list(i));
 	}
 
@@ -315,7 +309,7 @@ public class Player {
 	 * Use when metadata of the items changed.
 	 */
 	public static void refreshItems(Collection<? extends Item> is) {
-		noØ(is);
+		noNull(is);
 		if (is.isEmpty()) return;
 
 		runNew(MetadataReader.buildReadMetadataTask(is, (ok, m) -> {
@@ -325,13 +319,13 @@ public class Player {
 
 	/** Singleton variant of {@link #refreshItemsWith(java.util.List)}. */
 	public static void refreshItemWith(Metadata m) {
-		noØ(m);
+		noNull(m);
 		refreshItemsWith(list(m));
 	}
 
 	/** Singleton variant of {@link #refreshItemsWith(java.util.List, boolean)}. */
 	public static void refreshItemWith(Metadata m, boolean allowDelay) {
-		noØ(m);
+		noNull(m);
 		refreshItemsWith(list(m), allowDelay);
 	}
 
@@ -355,7 +349,7 @@ public class Player {
 	 * refreshes execute all at once).
 	 */
 	public static void refreshItemsWith(List<Metadata> ms, boolean allowDelay) {
-		noØ(ms);
+		noNull(ms);
 		if (allowDelay) runFX(() -> red.push(ms));
 		else refreshItemsWithNow(ms);
 	}
@@ -371,7 +365,7 @@ public class Player {
 
 	// runs refresh on bgr thread, thread safe
 	private static void refreshItemsWithNow(List<Metadata> ms) {
-		noØ(ms);
+		noNull(ms);
 		if (ms.isEmpty()) return;
 
 		// always on br thread

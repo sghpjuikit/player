@@ -63,7 +63,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.mapB;
@@ -234,7 +234,7 @@ public class WindowManager implements Configurable<Object> {
 	}
 
     void setAsMain(Window w) {
-        noØ(w);
+        sp.it.pl.util.dev.Util.noNull(w);
 	    if (mainWindow==w) return;
 	    if (mainWindow!=null) mainWindow.isMainDisposables.forEach(Subscription::unsubscribe);
 	    if (mainWindow!=null) mainWindow.isMain.setValue(false);
@@ -452,7 +452,7 @@ public class WindowManager implements Configurable<Object> {
 	 * @param widget non-null widget widget to open
 	 */
 	public Window showWindow(Component widget) {
-		noØ(widget);
+		sp.it.pl.util.dev.Util.noNull(widget);
 
 		Window w = create();
 		w.initLayout();
@@ -463,7 +463,7 @@ public class WindowManager implements Configurable<Object> {
 	}
 
 	public PopOver showFloating(Widget w) {
-		noØ(w);
+		sp.it.pl.util.dev.Util.noNull(w);
 
 		Layout l = Layout.openStandalone(new AnchorPane());
 		PopOver<?> p = new PopOver<>(l.getRoot());
@@ -513,8 +513,8 @@ public class WindowManager implements Configurable<Object> {
 	}
 
 	public PopOver showFloating(Node content, String title) {
-		noØ(content);
-		noØ(title);  // we could use null, but disallow
+		sp.it.pl.util.dev.Util.noNull(content);
+		sp.it.pl.util.dev.Util.noNull(title);  // we could use null, but disallow
 
 		PopOver<?> p = new PopOver<>(content);
 		p.title.set(title);

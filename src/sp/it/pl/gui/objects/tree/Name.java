@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import sp.it.pl.util.HierarchicalBase;
-import static sp.it.pl.util.dev.Util.noØ;
+import sp.it.pl.util.dev.Util;
+
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.stream;
 
@@ -31,7 +33,7 @@ public class Name extends HierarchicalBase<String,Name> {
 	}
 
 	public void addPath(String path) {
-		if (noØ(path).isEmpty()) return;
+		if (noNull(path).isEmpty()) return;
 
 		int i = path.indexOf(DELIMITER);
 		boolean isLeaf = i<0;

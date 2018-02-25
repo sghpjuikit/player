@@ -30,7 +30,7 @@ import static java.util.stream.Collectors.toList;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.filenamizeString;
 import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.file.UtilKt.childOf;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static sp.it.pl.util.file.UtilKt.listChildren;
@@ -405,7 +405,7 @@ public interface Util {
 	 * @see ImageFileFormat for specifications
 	 */
 	static void writeImage(Image img, File f) {
-		noØ(img, f);
+		sp.it.pl.util.dev.Util.noNull(img, f);
 
 		ImageFileFormat t = ImageFileFormat.of(f.toURI());
 		if (!t.isSupported()) {

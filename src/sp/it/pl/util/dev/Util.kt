@@ -28,29 +28,23 @@ fun throwIfNot(v: Boolean, s: String) {
     if (!v) throw IllegalStateException("Requirement condition not met: $s")
 }
 
-fun <T> noØ(o: T?): T {
+fun <T> noNull(o: T?): T {
     if (o==null) throw IllegalStateException("Null forbidden")
     return o
 }
 
-fun <T> noØ(o: T?, message: String): T {
+fun <T> noNull(o: T?, message: String): T {
     if (o==null) throw IllegalStateException("Null forbidden: $message")
     return o
 }
 
-fun noØ(o1: Any?, o2: Any?) {
+fun noNull(o1: Any?, o2: Any?) {
     if (o1==null || o2==null) throw IllegalStateException("Null forbidden")
 }
 
-fun noØ(o1: Any?, o2: Any?, o3: Any?) {
-    if (o1==null || o2==null || o3==null) throw IllegalStateException("Null forbidden")
+fun noNull(vararg objects: Any?) {
+    if (objects.any { it==null }) throw IllegalStateException("Null forbidden")
 }
-
-fun noØ(o1: Any?, o2: Any?, o3: Any?, o4: Any?) {
-    if (o1==null || o2==null || o3==null || o4==null) throw IllegalStateException("Null forbidden")
-}
-
-fun noØ(vararg os: Any?) = os.forEach { if (it==null) throw IllegalStateException("Null forbidden") }
 
 fun throwIfFxThread() {
     if (Platform.isFxApplicationThread())

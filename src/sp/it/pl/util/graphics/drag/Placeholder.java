@@ -8,7 +8,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import org.reactfx.Subscription;
 import sp.it.pl.gui.objects.icon.Icon;
-import static sp.it.pl.util.dev.Util.noØ;
+import sp.it.pl.util.dev.Util;
+
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.graphics.Util.layHeaderBottom;
 import static sp.it.pl.util.graphics.UtilKt.removeFromParent;
 import static sp.it.pl.util.reactive.Util.maintain;
@@ -34,9 +36,9 @@ public class Placeholder extends StackPane {
 	 * @param action non null action
 	 */
 	public Placeholder(GlyphIcons actionIcon, String actionName, Runnable action) {
-		icon.icon(noØ(actionIcon));
-		desc.setText(noØ(actionName));
-		icon.onClick(noØ(action));
+		icon.icon(noNull(actionIcon));
+		desc.setText(noNull(actionName));
+		icon.onClick(noNull(action));
 		getStyleClass().add(STYLECLASS);
 		setOnMouseClicked(e -> { action.run(); e.consume(); });
 //		setOnKeyPressed(e -> { if (ENTER) action.run(); e.consume(); });   // TODO: implement sth along these lines

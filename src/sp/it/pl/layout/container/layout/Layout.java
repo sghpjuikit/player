@@ -10,7 +10,7 @@ import javafx.scene.layout.AnchorPane;
 import sp.it.pl.layout.container.uncontainer.UniContainer;
 import sp.it.pl.util.file.Util;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 
 public final class Layout extends UniContainer {
@@ -101,7 +101,7 @@ public final class Layout extends UniContainer {
      */
     @Override
     public Node load(AnchorPane parentPane) {
-        noØ(parentPane);
+        sp.it.pl.util.dev.Util.noNull(parentPane);
 
         // load
         Node n = super.load(parentPane);

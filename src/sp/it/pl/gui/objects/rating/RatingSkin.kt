@@ -97,7 +97,7 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
     }
 
     private fun recreateButtons() {
-        fun createButton(icon: GlyphIcons) = createIcon(icon, skinnable.icons.get(), 10).apply {    // TODO: scale with font + center vertically
+        fun createButton(icon: GlyphIcons) = createIcon(icon, skinnable.icons.get(), 8.0).apply {
             isCache = true
             cacheHint = CacheHint.SPEED
             styleClass.setAll("rating-button")

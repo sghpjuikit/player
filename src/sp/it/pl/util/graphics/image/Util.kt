@@ -82,7 +82,7 @@ fun loadImageThumb(file: File?, width: Double, height: Double): ImageFx? {
     val loadFullSize = w==0 && h==0
 
     // psd special case
-    return if (!file.path.endsWith("psd")) {
+    return if (!file.path.endsWith(".psd", true)) {
         imgImplLoadFX(file, w, h, loadFullSize)
     } else {
         loadImagePsd(file, width, height, false)

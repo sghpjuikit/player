@@ -14,6 +14,7 @@ import sp.it.pl.layout.area.ContainerNode;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.Controller;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.type.ClassName;
 import static java.util.stream.Collectors.toList;
@@ -154,6 +155,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     public abstract Map<Integer, Component> getChildren();
     boolean b = false;
 
+    // TODO: this should close previous component
     /**
      * Adds component to specified index as child of the container.
      * @param index index of a child. Determines its position within container.
@@ -168,28 +170,24 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      * @param c component to remove
      */
     public void removeChild(Component c) {
-        addChild(indexOf(c), null);
-        closeChild(c);
+        Integer i = indexOf(c);
+        if (i!=null) {
+            addChild(i, null);
+            c.close();
+        }
     }
 
     /**
      * Removes child of this container at specified index.
      * <p/>
-     * Equivalent to: addChild(index, null);
+     * Equivalent to: addChild(index, null);   // TODO: no it isnt! fix
      * @param index of the child to remove. Null is ignored.
      */
     public void removeChild(Integer index) {
-        Component c = getChildren().get(index); // capture before reload
-        addChild(index, null);  // reload
-        closeChild(c);
-    }
-
-    protected void closeChild(Component c) {
-        if (c instanceof Container) {
-//            ((Container)c).close();
-        }
-        else if (c instanceof Widget) {
-            ((Widget)c).close();
+        if (index!=null) {
+            Component c = getChildren().get(index); // capture before reload
+            addChild(index, null);  // reload
+            if (c!=null) c.close();
         }
     }
 
@@ -264,13 +262,14 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      *
      * @return widgets
      */
-    public Stream<Widget<?>> getAllWidgets() {
-        List<Widget<?>> out = new ArrayList<>();
+    @SuppressWarnings("unchecked")
+    public Stream<Widget<Controller>> getAllWidgets() {
+        List<Widget<Controller>> out = new ArrayList<>();
         for (Component w: getChildren().values()) {
             if (w instanceof Container)
                 out.addAll(((Container<?>)w).getAllWidgets().collect(toList()));
             else if (w instanceof Widget)
-                out.add((Widget)w);
+                out.add((Widget<Controller>) w);
         }
         return out.stream();
     }

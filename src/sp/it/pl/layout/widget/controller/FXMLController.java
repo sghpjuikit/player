@@ -21,7 +21,7 @@ import static sp.it.pl.util.dev.Util.noØ;
 /**
  * Controller for widgets built around fxml files. See {@link javafx.fxml.FXMLLoader}.
  */
-abstract public class FXMLController implements Controller<Widget<?>> {
+abstract public class FXMLController implements Controller {
 
 	@Dependency("DO NOT RENAME - accessed using reflection")
 	public final Widget<?> widget = null;

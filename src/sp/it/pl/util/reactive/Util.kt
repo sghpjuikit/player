@@ -3,6 +3,7 @@
 
 package sp.it.pl.util.reactive
 
+import javafx.beans.binding.Bindings
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
@@ -12,14 +13,17 @@ import javafx.event.Event
 import javafx.event.EventType
 import javafx.scene.Node
 import javafx.scene.image.Image
+import javafx.scene.image.ImageView
 import javafx.stage.Screen
 import org.reactfx.EventStreams
 import org.reactfx.Subscription
+import sp.it.pl.util.dev.Experimental
 import sp.it.pl.util.functional.invoke
 import java.util.Objects
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 import java.util.function.Predicate
+import kotlin.reflect.KCallable
 
 /** Sets a value consumer to be fired immediately and on every value change. */
 infix fun <O> ObservableValue<O>.sync(u: (O) -> Unit) = maintain(Consumer { u(it) })
@@ -74,6 +78,21 @@ infix fun <T> ObservableList<T>.attachSize(action: (Int) -> Unit): Subscription 
     return Subscription { removeListener(l) }
 }
 
+@Experimental
+fun <O,R> ObservableValue<O>.select(extractor: KCallable<ObservableValue<R>>): ObservableValue<R> {
+    return Bindings.select(this, extractor.name.removeSuffix("Property"))
+}
+
+@Experimental
+fun <O,R> ObservableValue<O>.into(extractor: (O) -> ObservableValue<R>, action: (O, R) -> Unit): Subscription {
+    var s = Subscription { }
+    return this attach { v1 ->
+        s.unsubscribe()
+        if (v1 !=null) s = extractor(v1) sync { v2 ->
+            action(v1, v2)
+        }
+    }
+}
 
 fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, u: Consumer<in V>): Subscription {
     u(m(this.value))
@@ -114,25 +133,27 @@ infix fun <O> ObservableValue<O>.maintain(w: WritableValue<in O>): Subscription 
 }
 
 /**
- * [.doOnceIf]
- * testing the value for nullity.<br></br>
+ * [doOnceIf] testing the value for nullity.
+ *
  * The action executes when value is not null.
  */
-fun <T> doOnceIfNonNull(property: ObservableValue<T>, action: Consumer<in T>): Subscription {
-    return doOnceIf(property, Predicate { Objects.nonNull(it) }, action)
-}
+fun <T> doOnceIfNonNull(property: ObservableValue<T>, action: Consumer<in T>) =
+        doOnceIf(property, Predicate { Objects.nonNull(it) }, action)
 
 /**
- * [.doOnceIf]
- * testing the image for loading being complete.<br></br>
+ * [doOnceIf] testing the image for loading being complete.
+ *
  * The action executes when image finishes loading. Note that image may be constructed in a way that makes it
  * loaded at once, in which case the action runs immediately - in this method.
 
  * @throws java.lang.RuntimeException if any param null
  */
-fun <T> doOnceIfImageLoaded(image: Image, action: Runnable): Subscription {
-    return doOnceIf(image.progressProperty(), Predicate { progress -> progress.toDouble()==1.0 }, Consumer { _ -> action() })
-}
+fun doOnceIfImageLoaded(image: Image, action: Runnable) =
+        doOnceIf(image.progressProperty(), Predicate { progress -> progress.toDouble()==1.0 }, Consumer { _ -> action() })
+
+@Experimental
+fun doIfImageLoaded(imageView: ImageView, action: Consumer<Image>) =
+        imageView.imageProperty().into(Image::progressProperty) { i, p -> if (p==1.0) action(i) }
 
 /**
  * Runs action (consuming the property's value) as soon as the condition is met. Useful to execute initialization,

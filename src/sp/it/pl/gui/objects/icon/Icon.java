@@ -297,7 +297,7 @@ public class Icon extends StackPane {
 			t.setOnShowing(e -> {
 				GlyphIcons g = getGlyph();
 				if (g!=null) {
-					t.setGraphic(createIcon(g, 30));
+					t.setGraphic(createIcon(g, 24.0));
 					t.setGraphicTextGap(15);
 				}
 			});

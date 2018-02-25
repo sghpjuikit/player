@@ -59,6 +59,7 @@ import static sp.it.pl.util.type.Util.getSuperClassesInc;
 import static sp.it.pl.util.type.Util.isEnum;
 import static sp.it.pl.util.type.Util.unPrimitivize;
 
+@SuppressWarnings({"MismatchedQueryAndUpdateOfCollection", "unchecked"})
 public class FunctorPool {
 
 	// functor pools must not be accessed directly, as accessor must insert IDENTITY functor

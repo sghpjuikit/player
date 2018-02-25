@@ -73,8 +73,8 @@ public final class Layouts extends ClassController {
      * Completely refreshes layouts - rereads them from files, etc...
      */
     public void refresh() {
-        layoutsCB.getItems().setAll(APP.widgetManager.getAllLayoutsNames().collect(toList()));
-        layoutsCB.getSelectionModel().select(APP.widgetManager.getActive().getName());
+        layoutsCB.getItems().setAll(APP.widgetManager.layouts.getAllNames().collect(toList()));
+        layoutsCB.getSelectionModel().select(APP.widgetManager.layouts.findActive().getName());
     }
 
     @FXML
@@ -122,7 +122,7 @@ public final class Layouts extends ClassController {
         // create 'empty' layout based on name
         String name = layoutsCB.getSelectionModel().getSelectedItem();
         // attempt to get layout from active layouts
-        Layout l = APP.widgetManager.getLayouts().filter(al->al.getName().equals(name)).findAny().orElse(null);
+        Layout l = APP.widgetManager.layouts.findAllActive().filter(al->al.getName().equals(name)).findAny().orElse(null);
         // attempt to deserialize the layout if not active
         if (l==null) {
             l = new Layout(name);

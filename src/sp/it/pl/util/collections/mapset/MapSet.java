@@ -299,16 +299,4 @@ public class MapSet<K, E> implements Set<E> {
 		return v;
 	}
 
-	public E computeIfAbsent(K key, Supplier<? extends E> supplier) {
-		E v = m.get(key);
-		if (v==null) {
-			E nv = supplier.get();
-			if (nv!=null) {
-				m.put(key, nv);
-				return nv;
-			}
-		}
-		return v;
-	}
-
 }

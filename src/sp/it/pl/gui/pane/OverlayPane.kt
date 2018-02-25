@@ -157,7 +157,7 @@ abstract class OverlayPane<in T>: StackPane() {
             resizeB.parent.resizeRelocate(content!!.layoutX, content!!.layoutY, content!!.width, content!!.height)
     }
 
-    fun makeResizableByUser() { // TODO: impl true/false
+    fun makeResizableByUser() {
         if (resizeB.isVisible) return
         resizeB.isVisible = true
         PolarResize().install(resizeB, this, content)

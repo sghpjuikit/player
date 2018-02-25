@@ -16,7 +16,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.image.Thumbnail;
-import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.async.future.Fut;
@@ -33,6 +32,7 @@ import static sp.it.pl.util.dev.Util.throwIf;
 import static sp.it.pl.util.dev.Util.throwIfFxThread;
 import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
+import static sp.it.pl.util.reactive.Util.doIfImageLoaded;
 import static sp.it.pl.util.reactive.Util.doOnceIfImageLoaded;
 
 /**
@@ -46,19 +46,16 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	protected final Loader loader;
 	protected final EventReducer<Item> setCoverLater;	// TODO: is this necessary?
 	protected Anim imgLoadAnimation;
+	private Item imgLoadAnimationItem;
 
 	public GridFileThumbCell(Loader imgLoader) {
 		noØ(imgLoader);
 		loader = imgLoader;
-		setCoverLater = EventReducer.toLast(100, this::setCoverNow);
+		setCoverLater = EventReducer.toLast(10, this::setCoverNow);
 	}
 
 	protected String computeName(Item item) {
 		return item.valType==FileType.DIRECTORY ? item.val.getName() : getNameWithoutExtensionOrRoot(item.val);
-	}
-
-	protected AnimateOn computeAnimateOn() {
-		return AnimateOn.IMAGE_CHANGE_1ST_TIME;
 	}
 
 	protected double computeCellTextHeight() {
@@ -74,8 +71,15 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 
 	@Override
 	protected void updateItem(Item item, boolean empty) {
+
 		if (item==getItem()) return;
 		super.updateItem(item, empty);
+
+		if (imgLoadAnimation!=null) {
+			imgLoadAnimation.stop();
+			imgLoadAnimationItem = item;
+			imgLoadAnimation.applyAt(item.loadProgress);
+		}
 
 		if (item==null) {
 			// empty cell has no graphics
@@ -102,9 +106,11 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 			// Solved by delaying the image loading & drawing, which reduces subsequent
 			// invokes into single update (last).
 //			boolean loaded = item.cover_loadedFull.get();	// TODO: do this properly
+
 			boolean loaded = item.cover_loadedThumb.get();
 			if (loaded) setCoverNow(item);
 			else setCoverLater(item);
+
 		}
 	}
 
@@ -127,8 +133,22 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		thumb.setBorderVisible(false);
 		thumb.getPane().setSnapToPixel(true);
 		thumb.getView().setSmooth(true);
+		doIfImageLoaded(thumb.getView(), img -> {
+			imgLoadAnimation.stop();
+			imgLoadAnimationItem = getItem();
+			if (img==null) {
+				imgLoadAnimation.applyAt(0);
+			} else
+				imgLoadAnimation.playOpenFrom(imgLoadAnimationItem.loadProgress);
+		});
 
-		imgLoadAnimation = new Anim(thumb.getView()::setOpacity).dur(200).intpl(x -> x*x*x*x);
+		imgLoadAnimation = new Anim(x -> {
+				if (imgLoadAnimationItem!=null) {
+					imgLoadAnimationItem.loadProgress = x;
+					thumb.getView().setOpacity(x*x*x*x);
+				}
+			})
+			.dur(200);
 
 		// TODO: remove workaround for fuzzy edges & incorrect layout
 		// Problem: OS scaling will change width of the border, for non-integer widths it may produce visual artifacts
@@ -204,7 +224,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		if (isInvalidItem(item) || isInvalidVisibility()) return;
 
 		if (item.cover_loadedThumb.get()) {
-			setCoverPost(item, true, item.cover_file, item.cover, null);
+			setCoverPost(item, item.cover_file, item.cover, null);
 		} else {
 			ImageSize size = thumb.calculateImageLoadSize();
 			throwIf(size.width<0 || size.height<0);
@@ -228,7 +248,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 					}
 
 					item.loadCover(false, IS)
-						.ifOk(result -> then.run(() -> setCoverPost(item, result.wasLoaded, result.file, result.cover, then)))
+						.ifOk(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))
 						.ifError(e -> then.runNothing());
 				}
 			));
@@ -249,15 +269,15 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 						if (isInvisible)  {
 							then.runNothing();
 							return;
-						};
+						}
 
 						if (isInvalidItem(item) || isInvalidVisibility())  {
 							then.runNothing();
 							return;
-						};
+						}
 
 						item.loadCover(true, size)
-							.ifOk(result -> then.run(() -> setCoverPost(item, result.wasLoaded, result.file, result.cover, then)))
+							.ifOk(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))
 							.ifError(e -> then.runNothing());
 					}
 				));
@@ -289,26 +309,18 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		setCoverLater.push(item);
 	}
 
-	private void setCoverPost(Item item, boolean imgAlreadyLoaded, File imgFile, Image img, RunnableLocked then) {
+	private void setCoverPost(Item item, File imgFile, Image img, RunnableLocked then) {
 		runFX(() -> {
 			if (isInvalidItem(item) || isInvalidVisibility() || img==null) {
 				if (then!=null) then.finish();
 				return;
 			}
 
-			boolean animate = computeAnimateOn().needsAnimation(this, imgAlreadyLoaded, img);
 			thumb.loadImage(img, imgFile);
 			if (then!=null) {
 				if (img==null) then.finish();
 				else doOnceIfImageLoaded(img, then::finish);
 			}
-
-			// stop any previous animation & revert visuals to normal
-			imgLoadAnimation.stop();
-			imgLoadAnimation.applyAt(1.0);
-
-			// animate when image appears
-			if (animate && img!=null) doOnceIfImageLoaded(img, imgLoadAnimation::play);
 		});
 	}
 
@@ -351,21 +363,6 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 			if (r!=null) r.run();
 			while(waitPost.get()) sleep(2);
 //			if (r!=null) sleep(5);
-		}
-	}
-
-	public enum AnimateOn {
-		IMAGE_CHANGE, IMAGE_CHANGE_1ST_TIME, IMAGE_CHANGE_FROM_EMPTY;
-
-		public boolean needsAnimation(GridFileThumbCell cell, boolean imgAlreadyLoaded, Image img) {
-			if (this==IMAGE_CHANGE)
-				return cell.thumb.image.get()!=img;
-			else if (this==IMAGE_CHANGE_FROM_EMPTY)
-				return cell.thumb.image.get()==null && img!=null;
-			else if (this==IMAGE_CHANGE_1ST_TIME)
-				return !imgAlreadyLoaded && img!=null;
-			else
-				throw new SwitchException(this);
 		}
 	}
 

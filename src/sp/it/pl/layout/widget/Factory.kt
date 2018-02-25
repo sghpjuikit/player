@@ -7,6 +7,7 @@ import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.type.ClassName
 import java.io.File
+import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 
 /** Component factory that creates component by deserializing it from file. */
@@ -15,9 +16,8 @@ interface ComponentFactory<out T: Component>: ComponentInfo {
 }
 
 /** Component factory that creates widgets. */
-@Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
 @Widget.Info
-class WidgetFactory<C: Controller<*>>: ComponentFactory<Widget<C>>, WidgetInfo {
+class WidgetFactory<C: Controller>: ComponentFactory<Widget<C>>, WidgetInfo {
 
     val controllerType: Class<C>
     val location: File?
@@ -43,10 +43,10 @@ class WidgetFactory<C: Controller<*>>: ComponentFactory<Widget<C>>, WidgetInfo {
      * @param controllerType of the controller of the widget this factory will create
      * @param location parent directory of the widget
      */
-    @JvmOverloads constructor(controllerType: Class<C>, location: File? = null) {
-        val i: Widget.Info = controllerType.kotlin.findAnnotation() ?: WidgetFactory::class.findAnnotation()!!
-        this.name = ClassName.of(controllerType)
-        this.controllerType = controllerType
+    constructor(controllerType: KClass<C>, location: File?) {
+        val i: Widget.Info = controllerType.findAnnotation() ?: WidgetFactory::class.findAnnotation()!!
+        this.name = ClassName.of(controllerType.java)
+        this.controllerType = controllerType.java
         this.location = location
         this.locationUser = location?.let { APP.DIR_USERDATA.childOf("widgets", it.nameOrRoot) }
         this.nameGui = if (i.name.isEmpty()) name else i.name

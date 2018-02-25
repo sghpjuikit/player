@@ -10,6 +10,7 @@ import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Config.VarList
 import sp.it.pl.util.conf.Config.VarList.Elements
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.file.endsWithSuffix
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
 import sp.it.pl.util.system.runAsProgram
 import sp.it.pl.util.validation.Constraint
@@ -34,7 +35,7 @@ class AppSearchPlugin: PluginBase(NAME) {
     private val searchDo = Config.RunnableConfig("rescan", "Rescan apps", GROUP, "", { findApps() })
 
     private var searchSource: List<File> = emptyList()
-    private val searchProvider = { searchSource.stream().map { it.toRunApplicationEntry() } }
+    private val searchProvider = { searchSource.asSequence().map { it.toRunApplicationEntry() } }
 
     override fun onStart() {
         findApps()
@@ -56,7 +57,7 @@ class AppSearchPlugin: PluginBase(NAME) {
         return rootDir.walkTopDown()
                 .onFail { file, e -> logger.warn(e) { "Ignoring file=$file. No read/access permission" } }
                 .maxDepth(searchDepth.value)
-                .filter { it.path.endsWith(".exe") }
+                .filter { it endsWithSuffix "exe" }
     }
 
     private fun File.toRunApplicationEntry() = ConfigSearch.Entry.of(

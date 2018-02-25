@@ -38,7 +38,6 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	public final AtomicBoolean cover_loadedThumb = new AtomicBoolean(false);
 	public final AtomicBoolean cover_loadedFull = new AtomicBoolean(false);
 	private volatile boolean disposed = false;  // TODO: this inherently can not work, use AtomicReference on fields
-	public boolean loadStarted;
 	public double loadProgress; // 0-1
 	public double lastScrollPosition; // 0-1
 
@@ -61,7 +60,6 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		coverFile_loaded = false;
 		cover_loadedThumb.set(false);
 		cover_loadedFull.set(false);
-		loadStarted = false;
 		loadProgress = 0;
 		lastScrollPosition = -1;
 	}
@@ -166,18 +164,15 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 				cover = IconExtractor.getFileIcon(val);
 				cover_loadedFull.set(true);
 				cover_loadedThumb.set(true);
-				return Try.ok(new LoadResult(false, null, cover));
+				return Try.ok(new LoadResult(null, cover));
 			}
 		} else {
 			if (full) {
-				// Normally, we would use: boolean was_loaded = cover_loadedFull;
-				// but that would cause animation to be played again, which we do not want
-				boolean wasLoaded = cover_loadedThumb.get() || cover_loadedFull.get();
 				if (!cover_loadedFull.get()) {
 					Image img = Image2PassLoader.INSTANCE.getHq().invoke(file, size);
 					if (img!=null) {
 						cover = img;
-						return Try.ok(new LoadResult(wasLoaded, file, cover));
+						return Try.ok(new LoadResult(file, cover));
 					}
 					cover_loadedFull.set(true);
 				}
@@ -188,7 +183,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					cover = imgCached!=null ? imgCached : Image2PassLoader.INSTANCE.getLq().invoke(file, size);
 					cover_loadedThumb.set(true);
 				}
-				return Try.ok(new LoadResult(wasLoaded, file, cover));
+				return Try.ok(new LoadResult(file, cover));
 			}
 		}
 		return Try.error();
@@ -231,12 +226,10 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	public static class LoadResult {
-		public final boolean wasLoaded;
 		public final File file;
 		public final Image cover;
 
-		public LoadResult(boolean wasLoaded, File file, Image cover) {
-			this.wasLoaded = wasLoaded;
+		public LoadResult(File file, Image cover) {
 			this.file = file;
 			this.cover = cover;
 		}

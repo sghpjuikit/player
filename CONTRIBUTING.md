@@ -1,9 +1,9 @@
 # Contributing
 
 - Language
-  - Java jdk-9
-  - Kotlin (latest version)
-- IDE: due to use of Kotlin, Intellij Idea is strongly recommended, although not required
+  - Java: jdk-9
+  - Kotlin: latest version
+- IDE: due to use of Kotlin, Intellij IDEA is strongly recommended, although not required
 
 ## Preparations
 
@@ -17,7 +17,7 @@ Import Project -> Select PlayerFX directory<br>
 Import from external model - Gradle 
 - "Use auto-import"
 - Disable "Create separate module per source set"
-- Don't worry if Gradle buildscripts (*.kts) are not recognised, that's a known issue and does not affect the build process
+- Don't worry if Gradle buildscripts (*.kts) are not recognised, that is a known issue and does not affect the build process
 
 ## Running
 
@@ -46,15 +46,15 @@ The project contains a shared code style [code-style.xml](code-style.xml) for ID
       
 #### Logging
  - Mechanism
-   - java: [sl4j](https://github.com/qos-ch/slf4j) + [logback](https://github.com/qos-ch/logback)
-   - kotlin: [sl4j](https://github.com/qos-ch/slf4j) + [kotlin-logging](https://github.com/MicroUtils/kotlin-logging)
+   - java: [slf4j](https://github.com/qos-ch/slf4j) + [logback](https://github.com/qos-ch/logback)
+   - kotlin: [slf4j](https://github.com/qos-ch/slf4j) + [kotlin-logging](https://github.com/MicroUtils/kotlin-logging)
 
  - Obtain logger instance
    - java:<br>
       old school: `private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(This.class);`<br>
       convenience method: `util.dev.UtilKt.log(this)`, `util.dev.UtilKt.log(this.getClass())`, `util.dev.UtilKt.log(This.class)`
    - kotlin:<br>
-      classes: companion object: `mu.internal.KLoggerFactory.KLogging()`<br>
+      classes: `companion object: mu.internal.KLoggerFactory.KLogging()`
       
       top level functions: `private val logger = mu.internal.KLoggerFactory.KotlinLogging.logger {}`
   
@@ -66,18 +66,18 @@ The project contains a shared code style [code-style.xml](code-style.xml) for ID
  - use static imports where possible (enum types, utility methods, etc.)
  - no empty lines, just alphabetical sort
  - separate imports and static imports
- - never use package imports
+ - never use package (star) imports
 
 #### Assertions
  - always try to avoid implicit conditions with proper design and typesafety
  - always check method parameters for all required conditions, always document these in @param tags
  - do not use java assertions
- - use runtime exceptions (e.g. AssertionError) or methods like Objects.requireNonNull(), util.dev.throwIf, kotlin.test.fail and never document them in @throw (to avoid anyone catching them)
+ - use runtime exceptions (e.g. AssertionError) or methods like Objects.requireNonNull(), util.dev.throwIf, util.dev.fail and never document them in @throw (to avoid anyone catching them)
 
 #### Comments
  - always write javadoc for public elements, be as concise as possible, but describe and define full contract
  - use simple comments (//) to provide code intention
- - avoid using comments by using proper names, proper code structure and avoiding arbitrary/exceptional/edge cases 
+ - avoid using comments by using proper names and code structure and avoiding arbitrary/exceptional/edge cases 
 
 ## Skins
 

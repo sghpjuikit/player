@@ -1,23 +1,19 @@
 
 # PlayerFX
 
-## Overview
-
 - [What is this?](#what-is-this)
-- [Am I the target group?](#am-i-the-target-group)
 - [Features](#features)
+- [Download](#download)
 - [Screenshots](#screenshots)
 - [Issues](#issues)
-- [Download & Use](#download--use)
 - [Copyright](#copyright)
+- [Contributing](/CONTRIBUTING.md)
 
 ## What is this?
 
 **PlayerFX** is a desktop audio player and audio management application, with a dynamic module system - a multipurpose extensible application capable of compiling and running custom java widgets.
 
-![Playlist View](https://raw.githubusercontent.com/sghpjuikit/player/master/extra/assets/screenshot_playlists.jpg)
-
-## Am I the target group?
+![Playlist View](/extra/assets/screenshot_playlists.jpg)
 
 There are two reasons to be interested in this project:
 
@@ -286,20 +282,7 @@ Depicts an old build of the application with an old skin.
 
 </details>
 
-## Issues
-
-- Some of the widgets or features are **experimental**, buggy or confusing (its being worked on, so stay tuned).
-- Linux support is in the ways, Mac is completely untested
-- No playlist files (.m3u, etc) supported yet
-- No transparent background for now (due to a java bug causing massive performance degradation)
-
-#### Performance
-
-- Memory consumption is usually worse compared to native applications. Normally i have get about 250-450MB, but it depends on use case. Lots of widgets will eat more memory. Handling large pictures (4000^2 px) on large monitors can also rapidly increase memory consumption (but picture quality stays great). 32-bit is more effective (64-bit effectively doubles memory consumption), so there will only be a 32-bit version for now.
-- Using shadows on text or icons (in custom skins) can severely impact performance, but that is a prevalent issue not specific to this application.
-- Visually big tables (full-hd and beyond) with lots of text can impact performance
-
-## Download & Use
+## Download
 
 Download link coming soon.
 
@@ -316,14 +299,22 @@ Tips:
 - If you get 'trapped' and 'locked in' with no idea what to do, press right ALT (layout edit mode) or click anywhere (mouse buttons often navigate) - once you get the hang of it, you will see how convenient it is.
 - widgets, popups and containers have informative "i" buttons that provide valuable info on possible course of action
 
+## Issues
+
+- Some of the widgets or features are **experimental**, buggy or confusing (its being worked on, so stay tuned).
+- Linux support is in the ways, Mac is completely untested
+- No playlist files (.m3u, etc) supported yet
+- No transparent background for now (due to a java bug causing massive performance degradation)
+
+#### Performance
+
+- Memory consumption is usually worse compared to native applications. Normally i have get about 250-450MB, but it depends on use case. Lots of widgets will eat more memory. Handling large pictures (4000^2 px) on large monitors can also rapidly increase memory consumption (but picture quality stays great). 32-bit is more effective (64-bit effectively doubles memory consumption), so there will only be a 32-bit version for now.
+- Using shadows on text or icons (in custom skins) can severely impact performance, but that is a prevalent issue not specific to this application.
+- Visually big tables (full-hd and beyond) with lots of text can impact performance
+
 # Copyright
 
 You are free to use the application or make your own builds of the project for personal use.
 
 The project is to adopt MIT licence in the future, but for now remains personal. 
 Before publicizing anything related to this project or publicly sharing builds you should contact me.
-
-## Contact
-
-Mail:
-Discord: 

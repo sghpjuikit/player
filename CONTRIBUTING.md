@@ -85,6 +85,8 @@ A skin is a single css file that works similar to styling a html web site - see 
 Skins can depend on each other.
 
 The application autodiscovers the skins when it starts and monitors them for changes. 
-The skins are located in separate folders in [working dir/skins](https://github.com/sghpjuikit/player/tree/readme/working%20dir/skins), where you will also find further instructions.
+The skins are located in separate folders in [working dir/skins](/working%20dir/skins), where you will also find further instructions on how to create your own skin.
 
-Customize the appearance of the application by creating a new skin depending on the default skin and modifying what you want. This way your changes won't be overriden by an update of the original skin. If you feel like you added substantial value, feel free to submit a pull request so it can be incorporated into the application!
+Customize the appearance of the application by creating a new skin depending on the default skin and modifying what you want. 
+This way your changes won't be overridden by an update of the original skin. 
+If you feel like you added substantial value, feel free to submit a pull request so it can be incorporated into the application!

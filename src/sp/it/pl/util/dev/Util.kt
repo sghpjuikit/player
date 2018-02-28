@@ -12,6 +12,9 @@ import java.lang.reflect.Modifier
 import java.util.function.Consumer
 import kotlin.reflect.KClass
 
+fun fail(message: String? = null): Nothing =
+        throw AssertionError(message)
+
 fun throwIf(v: Boolean) {
     if (v) throw IllegalStateException("Requirement condition not met")
 }

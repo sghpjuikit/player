@@ -92,7 +92,7 @@ import java.lang.management.ManagementFactory
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
-import kotlin.test.fail
+import sp.it.pl.util.dev.fail
 
 private typealias F = JvmField
 private typealias C = IsConfig

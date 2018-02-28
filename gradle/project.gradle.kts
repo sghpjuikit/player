@@ -9,18 +9,22 @@ import java.nio.file.Files
 import java.util.zip.ZipInputStream
 import kotlin.text.Charsets.UTF_8
 
-/** working directory of the application */
-val workingDir = file("working dir")
-
+// Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
     kotlin("jvm") version "1.2.21"
     application
     id("com.github.ben-manes.versions") version "0.17.0"
 }
 
+/** working directory of the application */
+val workingDir = file("working dir")
+val javaVersion = JavaVersion.VERSION_1_9
+if (JavaVersion.current()!=javaVersion)
+    throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
+
 java {
-    targetCompatibility = JavaVersion.VERSION_1_9
-    sourceCompatibility = JavaVersion.VERSION_1_9
+    targetCompatibility = javaVersion
+    sourceCompatibility = javaVersion
     sourceSets {
         getByName("main") {
             java.srcDir("src")
@@ -34,13 +38,10 @@ kotlin {
     experimental.coroutines = Coroutines.ENABLE
 }
 
-val kotlinVersion: String by extra {
-    buildscript.configurations["classpath"]
-            .resolvedConfiguration.firstLevelModuleDependencies
-            .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
-}
-
 allprojects {
+    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+    buildDir = file(properties["player.buildDir"] ?: "build").resolve(name)
+
     tasks.withType<JavaCompile> {
         options.encoding = UTF_8.name()
         options.isIncremental = true
@@ -57,13 +58,18 @@ allprojects {
 
     tasks.withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
-        kotlinOptions.suppressWarnings = false
         kaptOptions.supportInheritedAnnotations = true
     }
 
     repositories {
         jcenter()
     }
+}
+
+val kotlinVersion: String by extra {
+    buildscript.configurations["classpath"]
+            .resolvedConfiguration.firstLevelModuleDependencies
+            .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
 
 dependencies {
@@ -131,7 +137,7 @@ tasks {
     val main = "_Main"
 
     val copyLibs by creating(Copy::class) {
-        group = main
+        group = "build"
         description = "Copies all libraries into the working dir"
         into("working dir/lib")
         from(configurations.compile)
@@ -140,7 +146,7 @@ tasks {
 
     val jre by creating {
         val jdkLocal = workingDir.resolve("jre")
-        group = main
+        group = "build setup"
         description = "Makes JDK locally accessible in $jdkLocal"
         doFirst {
             if (!jdkLocal.exists()) {
@@ -170,7 +176,7 @@ tasks {
 
     val kotlinc by creating {
         val kotlinc = workingDir.resolve("kotlinc")
-        group = main
+        group = "build setup"
         description = "Downloads the kotlin compiler into $kotlinc"
         doFirst {
             val kotlincUpToDate = kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion)==true
@@ -207,6 +213,7 @@ tasks {
     }
 
     "jar"(Jar::class) {
+        group = main
         destinationDir = workingDir
         archiveName = "PlayerFX.jar"
     }
@@ -215,9 +222,10 @@ tasks {
         group = main
         description = "Cleans up temporary files"
         doFirst {
-            file("working dir/user/log").deleteRecursively()
-            file("working dir/lib").deleteRecursively()
-            file("working dir/widgets").walkBottomUp()
+            workingDir.resolve("user/log").deleteRecursively()
+            workingDir.resolve("user/tmp").deleteRecursively()
+            workingDir.resolve("lib").deleteRecursively()
+            workingDir.resolve("widgets").walkBottomUp()
                     .filter { it.path.endsWith("class") }
                     .fold(true, { res, it -> (it.delete() || !it.exists()) && res })
         }
@@ -253,6 +261,3 @@ application {
             "-Duser.dir=$workingDir"
     )
 }
-
-if (JavaVersion.current()!=JavaVersion.VERSION_1_9)
-    throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")

@@ -9,6 +9,9 @@ import java.nio.file.Files
 import java.util.zip.ZipInputStream
 import kotlin.text.Charsets.UTF_8
 
+/** working directory of the application */
+val workingDir = file("working dir")
+
 plugins {
     kotlin("jvm") version "1.2.21"
     application
@@ -31,8 +34,6 @@ kotlin {
     experimental.coroutines = Coroutines.ENABLE
 }
 
-/** working directory of the application */
-val workingDir = file("working dir")
 val kotlinVersion: String by extra {
     buildscript.configurations["classpath"]
             .resolvedConfiguration.firstLevelModuleDependencies
@@ -72,8 +73,8 @@ dependencies {
     compile("org.jetbrains.kotlin", "kotlin-reflect", kotlinVersion)
 
     // Logging
-    compile("org.slf4j", "slf4j-api", "1.8.0-beta1")
-    compile("ch.qos.logback", "logback-classic", "1.3.0-alpha4")
+    compile("org.slf4j", "slf4j-api", "1.7.25")
+    compile("ch.qos.logback", "logback-classic", "1.2.3")
     compile("io.github.microutils", "kotlin-logging", "1.5.3")
 
     // JavaFX
@@ -233,8 +234,9 @@ application {
     applicationName = "PlayerFX"
     mainClassName = "sp.it.pl.main.AppUtil"
     applicationDefaultJvmArgs = listOf(
-            "-Xmx15g", "-Dfile.encoding=UTF-8",
-            "-XX:+UseSerialGC",
+            "-Dfile.encoding=UTF-8",
+            "-ms100m",
+            "-mx"+(properties["player.memoryMax"] ?: "3g"),
             "--add-opens", "java.base/java.util=ALL-UNNAMED",
             "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
             "--add-opens", "java.base/java.text=ALL-UNNAMED",

@@ -1,24 +1,18 @@
 import org.gradle.api.tasks.Copy
-import org.gradle.internal.impldep.org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
-import org.gradle.kotlin.dsl.extra
-import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.net.URL
+import java.nio.file.Files
 import java.util.zip.ZipInputStream
 import kotlin.text.Charsets.UTF_8
-import java.nio.file.Files
-import java.io.File
-import java.io.IOException
-
-val workingDir = file("working dir")
-val kotlinVersion: String = "1.2.21"
 
 plugins {
     kotlin("jvm") version "1.2.21"
     application
+    id("com.github.ben-manes.versions") version "0.17.0"
 }
 
 java {
@@ -35,6 +29,14 @@ java {
 kotlin {
     copyClassesToJavaOutput = true
     experimental.coroutines = Coroutines.ENABLE
+}
+
+/** working directory of the application */
+val workingDir = file("working dir")
+val kotlinVersion: String by extra {
+    buildscript.configurations["classpath"]
+            .resolvedConfiguration.firstLevelModuleDependencies
+            .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
 
 allprojects {
@@ -68,14 +70,10 @@ dependencies {
     // Kotlin
     compile("org.jetbrains.kotlin", "kotlin-stdlib-jdk8", kotlinVersion)
     compile("org.jetbrains.kotlin", "kotlin-reflect", kotlinVersion)
-    compile("org.jetbrains.kotlin", "kotlin-test", kotlinVersion)
-
-    // Java Native
-    compile("net.java.dev.jna", "jna-platform", "4.5.1")
 
     // Logging
-    compile("org.slf4j", "slf4j-api", "1.7.25")
-    compile("ch.qos.logback", "logback-classic", "1.2.3")
+    compile("org.slf4j", "slf4j-api", "1.8.0-beta1")
+    compile("ch.qos.logback", "logback-classic", "1.3.0-alpha4")
     compile("io.github.microutils", "kotlin-logging", "1.5.3")
 
     // JavaFX
@@ -86,9 +84,6 @@ dependencies {
     }
     compile("eu.hansolo", "Medusa", "7.9")
 
-    // Image
-    compile("com.drewnoakes", "metadata-extractor", "2.9.1")
-
     // Audio
     compile("uk.co.caprica", "vlcj", "3.10.1")
     compile("de.u-mass", "lastfm-java", "0.1.2")
@@ -98,7 +93,9 @@ dependencies {
     kapt("org.atteo.classindex", "classindex", "3.4")
 
     // misc
-    compile("com.1stleg", "jnativehook", "2.0.3")
+    compile("net.java.dev.jna", "jna-platform", "4.5.1")
+    compile("com.1stleg", "jnativehook", "2.1.0")
+
     compile("net.objecthunter", "exp4j", "0.4.8")
     compile("org.atteo", "evo-inflector", "1.2.2")
     compile("com.thoughtworks.xstream", "xstream", "1.4.10") {
@@ -106,22 +103,24 @@ dependencies {
         exclude("xpp3", "xpp3_min")
     }
 
-    //	compile("com.twelvemonkeys.imageio", "imageio-core", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-bmp", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-jpeg", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-iff", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-icns", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pcx", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pict", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-clippath", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-hdr", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pdf", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pnm", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-psd", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-tga", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-sgi", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-thumbsdb", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-tiff", "3.3.2")
+    // Image
+    compile("com.drewnoakes", "metadata-extractor", "2.11.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-core", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-bmp", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-jpeg", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-iff", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-icns", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-pcx", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-pict", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-clippath", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-hdr", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-pdf", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-pnm", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-psd", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-tga", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-sgi", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-thumbsdb", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-tiff", "3.4.0")
 
     compile(files(file("extra/lib").listFiles()))
 
@@ -146,7 +145,7 @@ tasks {
             if (!jdkLocal.exists()) {
                 println("Making JDK locally accessible...")
                 val jdkGlobalPath = System.getProperty("java.home").takeIf { it.isNotBlank() }
-                        ?.let { File(it).toPath() }
+                        ?.let { file(it).toPath() }
                         ?: throw FileNotFoundException("Unable to find JDK")
                 try {
                     Files.createSymbolicLink(jdkLocal.toPath(), jdkGlobalPath)
@@ -173,8 +172,7 @@ tasks {
         group = main
         description = "Downloads the kotlin compiler into $kotlinc"
         doFirst {
-            val kotlincUpToDate = kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion)
-                    ?: false
+            val kotlincUpToDate = kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion)==true
             if (!kotlincUpToDate) {
                 if (kotlinc.exists()) {
                     println("Previous version of Kotlin compiler exists. Deleting...")
@@ -199,7 +197,7 @@ tasks {
                     if (!kotlinc.exists())
                         throw IOException("Kotlinc has not been downloaded successfully! Maybe the remote file is not a zip?")
 
-                    File("$workingDir/kotlinc/bin/kotlinc").setExecutable(true) // Allow kotlinc to be executed on Unix
+                    file("$workingDir/kotlinc/bin/kotlinc").setExecutable(true) // Allow kotlinc to be executed on Unix
                 } catch (e: FileNotFoundException) {
                     throw IOException("The remote file could not be found", e)
                 }

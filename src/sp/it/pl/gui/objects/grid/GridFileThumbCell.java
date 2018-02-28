@@ -317,10 +317,8 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 			}
 
 			thumb.loadImage(img, imgFile);
-			if (then!=null) {
-				if (img==null) then.finish();
-				else doOnceIfImageLoaded(img, then::finish);
-			}
+			if (then!=null)
+				doOnceIfImageLoaded(img, then::finish);
 		});
 	}
 

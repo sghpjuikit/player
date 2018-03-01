@@ -245,7 +245,7 @@ application {
     mainClassName = "sp.it.pl.main.AppUtil"
     applicationDefaultJvmArgs = listOf(
             "-Dfile.encoding=UTF-8",
-            "-ms100m",
+            "-ms"+(properties["player.memoryMin"] ?: "100m"),
             "-mx"+(properties["player.memoryMax"] ?: "3g"),
             "--add-opens", "java.base/java.util=ALL-UNNAMED",
             "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",

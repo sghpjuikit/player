@@ -1,4 +1,5 @@
 import org.gradle.api.tasks.Copy
+import org.gradle.kotlin.dsl.apply
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -17,7 +18,7 @@ plugins {
 }
 
 /** working directory of the application */
-val workingDir = file("working dir")
+val workDir = file("working dir")
 val javaVersion = JavaVersion.VERSION_1_9
 if (JavaVersion.current()!=javaVersion)
     throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
@@ -136,7 +137,7 @@ dependencies {
 tasks {
     val main = "_Main"
 
-    val copyLibs by creating(Copy::class) {
+    val copyLibs by creating(Sync::class) {
         group = "build"
         description = "Copies all libraries into the working dir"
         into("working dir/lib")
@@ -145,7 +146,7 @@ tasks {
     }
 
     val jre by creating {
-        val jdkLocal = workingDir.resolve("jre")
+        val jdkLocal = workDir.resolve("jre")
         group = "build setup"
         description = "Makes JDK locally accessible in $jdkLocal"
         doFirst {
@@ -175,7 +176,7 @@ tasks {
     }
 
     val kotlinc by creating {
-        val kotlinc = workingDir.resolve("kotlinc")
+        val kotlinc = workDir.resolve("kotlinc")
         group = "build setup"
         description = "Downloads the kotlin compiler into $kotlinc"
         doFirst {
@@ -193,7 +194,7 @@ tasks {
                     while (true) {
                         val next = zip.nextEntry ?: break
                         if (!next.isDirectory) {
-                            val file = workingDir.resolve(next.name)
+                            val file = workDir.resolve(next.name)
                             file.parentFile.mkdirs()
                             val out = file.outputStream()
                             zip.copyTo(out)
@@ -204,7 +205,7 @@ tasks {
                     if (!kotlinc.exists())
                         throw IOException("Kotlinc has not been downloaded successfully! Maybe the remote file is not a zip?")
 
-                    file("$workingDir/kotlinc/bin/kotlinc").setExecutable(true) // Allow kotlinc to be executed on Unix
+                    file("$workDir/kotlinc/bin/kotlinc").setExecutable(true) // Allow kotlinc to be executed on Unix
                 } catch (e: FileNotFoundException) {
                     throw IOException("The remote file could not be found", e)
                 }
@@ -214,7 +215,7 @@ tasks {
 
     "jar"(Jar::class) {
         group = main
-        destinationDir = workingDir
+        destinationDir = workDir
         archiveName = "PlayerFX.jar"
     }
 
@@ -222,17 +223,18 @@ tasks {
         group = main
         description = "Cleans up temporary files"
         doFirst {
-            workingDir.resolve("user/log").deleteRecursively()
-            workingDir.resolve("user/tmp").deleteRecursively()
-            workingDir.resolve("lib").deleteRecursively()
-            workingDir.resolve("widgets").walkBottomUp()
+            workDir.resolve("user/log").deleteRecursively()
+            workDir.resolve("user/tmp").deleteRecursively()
+            workDir.resolve("lib").deleteRecursively()
+            workDir.resolve("widgets").walkBottomUp()
                     .filter { it.path.endsWith("class") }
                     .fold(true, { res, it -> (it.delete() || !it.exists()) && res })
         }
     }
 
-    "run" {
+    "run"(JavaExec::class) {
         group = main
+        workingDir = workDir
         dependsOn(copyLibs, jre, kotlinc, "jar")
     }
 
@@ -257,7 +259,6 @@ application {
             "--add-opens", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED",
             "--add-opens", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
             "--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
-            "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED",
-            "-Duser.dir=$workingDir"
+            "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED"
     )
 }

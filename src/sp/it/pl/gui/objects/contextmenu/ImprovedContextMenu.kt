@@ -15,7 +15,7 @@ import sp.it.pl.audio.tagging.Metadata.Field
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistItemGroup
 import sp.it.pl.gui.objects.image.Thumbnail
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource.NO_LAYOUT
+import sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT
 import sp.it.pl.layout.widget.feature.FileExplorerFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
@@ -25,6 +25,9 @@ import sp.it.pl.util.access.AccessibleValue
 import sp.it.pl.util.collections.map.ClassListMap
 import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util.writeImage
+import sp.it.pl.util.functional.asArray
+import sp.it.pl.util.functional.getElementType
+import sp.it.pl.util.functional.runIf
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.Util.menuItem
 import sp.it.pl.util.system.browse
@@ -33,36 +36,45 @@ import sp.it.pl.util.system.edit
 import sp.it.pl.util.system.open
 import sp.it.pl.util.system.recycle
 import sp.it.pl.util.system.saveFile
+import sp.it.pl.util.type.Util.getAllMethods
 import sp.it.pl.web.SearchUriBuilder
 import java.io.File
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
-import java.util.stream.Stream
-import kotlin.streams.asSequence
-import kotlin.test.fail
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Modifier
+import sp.it.pl.util.dev.fail
 
-/** Context menu wrapping a value - usually an object set before showing, for menu items' action. */
-open class ImprovedContextMenu<E: Any>: ContextMenu(), AccessibleValue<E> {
+private typealias ItemsSupply = (ImprovedContextMenu<*>, Any?) -> Sequence<MenuItem>
 
-    private lateinit var v: E
+val logger = KotlinLogging.logger { }
+
+/**
+ * Context menu wrapping a value - usually an object set before showing, for menu items' action. It can then generate
+ * the items based on the value from supported actions.
+ *
+ * Usually [ValueContextMenu] is better choice.
+ */
+open class ImprovedContextMenu<E: Any?>: ContextMenu(), AccessibleValue<E> {
+
+    protected var v: E? = null
 
     init {
         consumeAutoHidingEvents = false
     }
 
-    override fun getValue(): E = v
+    @Suppress("UNCHECKED_CAST")
+    override fun getValue(): E = v as E
 
     override fun setValue(value: E) {
         v = value
     }
 
-    fun setValueAndItems(value: E) {
-        v = value
+    /** Convenience for [setValue] & [setItemsForValue]. */
+    open fun setValueAndItems(value: E) {
+        setValue(value)
         setItemsForValue()
     }
 
-    override fun show(n: Node, screenX: Double, screenY: Double) = super.show(n.scene.window, screenX, screenY)
+    override fun show(n: Node, screenX: Double, screenY: Double) = show(n.scene.window, screenX, screenY)
 
     /**
      * Shows the context menu for node at proper coordinates of the event.
@@ -71,46 +83,111 @@ open class ImprovedContextMenu<E: Any>: ContextMenu(), AccessibleValue<E> {
      * there is a difference between show(Window,x,y) and (Node,x,y). The former will not hide the menu when next click
      * happens within the node itself! This method avoids that.
      */
-    fun show(n: Node, e: MouseEvent) = super.show(n.scene.window, e.screenX, e.screenY)
+    fun show(n: Node, e: MouseEvent) = show(n.scene.window, e.screenX, e.screenY)
 
-    fun show(n: Node, e: ContextMenuEvent) = super.show(n.scene.window, e.screenX, e.screenY)
+    fun show(n: Node, e: ContextMenuEvent) = show(n.scene.window, e.screenX, e.screenY)
 
-    @JvmOverloads
-    fun addItemsForValue(value: Any? = v) {
+    /**
+     * Add menu items for specified value or current value if none is specified. Previous items are not removed.
+     *
+     * Usually [setItemsForValue] is better choice.
+     */
+    fun addItemsForValue(value: E? = v) {
         items += CONTEXT_MENUS[this, value]
     }
 
-    @JvmOverloads
-    fun setItemsForValue(value: Any? = v) {
+    /**
+     * Clear and add menu items for specified value or current value if none is specified. Previous items are removed.
+     */
+    fun setItemsForValue(value: E? = v) {
         items.clear()
         addItemsForValue(value)
     }
 
 }
 
-private typealias ItemsSupply = (ImprovedContextMenu<*>, Any?) -> Sequence<MenuItem>
-val logger = KotlinLogging.logger { }
+/**
+ * Generic [ImprovedContextMenu], which supports collection unwrapping in [setValue] (empty collection will be handled
+ * as null and collection with one element handled as that one element). This is convenient for multi-select controls.
+ */
+class ValueContextMenu: ImprovedContextMenu<Any?>() {
+
+    override fun setValue(value: Any?) {
+        v = when (value) {
+            is Collection<*> -> {
+                when (value.size) {
+                    0 -> null
+                    1 -> value.firstOrNull()
+                    else -> value
+                }
+            }
+            else -> value
+        }
+    }
+
+}
 
 class ContextMenuItemSuppliers {
-    private val m = ClassListMap<ItemsSupply> { fail() }
+    private val mSingle = ClassListMap<ItemsSupply> { fail() }
+    private val mMany = ClassListMap<ItemsSupply> { fail() }
 
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> add(type: Class<T>, items: (ImprovedContextMenu<*>, T) -> Sequence<MenuItem>) {
-        m.accumulate(type, items as ItemsSupply)
+        mSingle.accumulate(type, items as ItemsSupply)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T: Any> addMany(type: Class<T>, items: (ImprovedContextMenu<*>, Collection<T>) -> Sequence<MenuItem>) {
+        mMany.accumulate(type, items as ItemsSupply)
     }
 
     inline fun <reified T: Any> add(noinline items: (ImprovedContextMenu<*>, T) -> Sequence<MenuItem>) {
         add(T::class.java, items)
     }
 
+    inline fun <reified T: Any> addMany(noinline items: (ImprovedContextMenu<*>, Collection<T>) -> Sequence<MenuItem>) {
+        addMany(T::class.java, items)
+    }
+
     operator fun get(contextMenu: ImprovedContextMenu<*>, value: Any?): Sequence<MenuItem> {
-        return m.getElementsOfSuperV(value?.javaClass ?: Void::class.java).asSequence()
+        val items1 = mSingle.getElementsOfSuperV(value?.javaClass ?: Void::class.java).asSequence()
                 .map { it(contextMenu, value) }
                 .flatMap { it }
+        val itemsN = if (value is Collection<*>) {
+            mMany.getElementsOfSuperV(value.getElementType()).asSequence()
+                    .map { it(contextMenu, contextMenu.value) }
+                    .flatMap { it }
+        } else {
+            sequenceOf()
+        }
+        return items1 + itemsN
     }
+
 }
 
 val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
+    add<Any> { contextMenu, o -> notNullSeqOf(
+            menuItem("Show detail") { APP.actionPane.show(o) },
+            runIf(APP.developerMode) {
+                menuWithItems(
+                        "Public methods",
+                        getAllMethods(o::class.java).asSequence()
+                                .filter { Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) }
+                                .filter { it.parameterCount==0 && it.returnType==Void.TYPE },
+                        { it.name },
+                        {
+                            try {
+                                it(o)
+                            } catch (e: IllegalAccessException) {
+                                logger.error(e) { "Could not invoke method $it on object $o" }
+                            } catch (e: InvocationTargetException) {
+                                logger.error(e) { "Could not invoke method $it on object $o" }
+                            }
+                        }
+                ).takeIf { it.items.isNotEmpty() }
+            }
+    )
+    }
     add<File> { contextMenu, file -> notNullSeqOf(
             menuItem("Browse location") { file.browse() },
             menuItem("Open (in associated program)") { file.open() },
@@ -119,14 +196,18 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
             menuItem("Copy as ...") {
                 saveFile("Copy as...", APP.DIR_APP, file.name, contextMenu.ownerWindow, ImageFileFormat.filter())
                         .ifOk { nf ->
-                            // TODO: move low lvl impl. to utils
-                            try {
-                                Files.copy(file.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING)
-                            } catch (e: IOException) {
+                            // TODO: use customization popup
+                            val success = file.copyRecursively(nf, false) { f,e ->
                                 logger.error(e) { "File copy failed" }
+                                OnErrorAction.SKIP
                             }
+                            if (!success) APP.messagePane.show("File $file copy failed")
                         }
             }
+    )}
+    addMany<File> { contextMenu, files -> notNullSeqOf(
+            menuItem("Copy") { copyToSysClipboard(DataFormat.FILES, files) },
+            menuItem("Explore in browser") { browseMultipleFiles(files.asSequence()) }
     )}
     add<MetadataGroup> { contextMenu, mg -> notNullSeqOf(
             menuItem("Play items") { PlaylistManager.use { it.setNplay(mg.grouped.stream().sorted(APP.db.libraryComparator.get())) } },
@@ -135,45 +216,46 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
             menuItem("Remove items from library") { APP.db.removeItems(mg.grouped) },
             menuWithItems(
                     "Show in",
-                    APP.widgetManager.getFactories().filter { it.hasFeature(SongReader::class) },
+                    APP.widgetManager.factories.getFactoriesWith<SongReader>(),
                     { it.nameGui() },
-                    { APP.widgetManager.use(it.nameGui(), NO_LAYOUT) { c -> (c.controller as SongReader).read(mg.grouped) } }
+                    { it.use(NO_LAYOUT) { it.read(mg.grouped) } }
             ),
             menuWithItems(
                     "Edit tags in",
-                    APP.widgetManager.getFactories().filter { it.hasFeature(SongWriter::class) },
+                    APP.widgetManager.factories.getFactoriesWith<SongWriter>(),
                     { it.nameGui() },
-                    { APP.widgetManager.use(it.nameGui(), NO_LAYOUT) { c -> (c.controller as SongWriter).read(mg.grouped) } }
+                    { it.use(NO_LAYOUT) { it.read(mg.grouped) } }
             ),
             menuItem("Explore items's directory") { browseMultipleFiles(mg.grouped.asSequence().filter { it.isFileBased() }.map { it.getFile() }) },
             menuWithItems(
                     "Explore items' directory in",
-                    APP.widgetManager.getFactories().filter { it.hasFeature(FileExplorerFeature::class) },
+                    APP.widgetManager.factories.getFactoriesWith<FileExplorerFeature>(),
                     { it.nameGui() },
-                    { APP.widgetManager.use(it.nameGui(), NO_LAYOUT) { c -> (c.controller as FileExplorerFeature).exploreFile(mg.grouped[0].getFile()) } }
+                    { it.use(NO_LAYOUT) { it.exploreFile(mg.grouped[0].getFile()) } }
             ),
-            if (mg.field!=Field.ALBUM) null
-            else menuWithItems(
-                    "Search cover in",
-                    APP.instances.getInstances<SearchUriBuilder>().stream(),
-                    { "in ${it.name}" },
-                    { it(mg.getValueS("<none>")).browse() }
-            )
+            runIf(mg.field==Field.ALBUM) {
+                menuWithItems(
+                        "Search cover in",
+                        APP.instances.getInstances<SearchUriBuilder>(),
+                        { "in ${it.name}" },
+                        { it(mg.getValueS("<none>")).browse() }
+                )
+            }
     )}
     add<PlaylistItemGroup> { contextMenu, pig -> notNullSeqOf(
             menuItem("Play items") { PlaylistManager.use { it.playItem(pig.items[0]) } },
             menuItem("Remove items") { PlaylistManager.use { it.removeAll(pig.items) } },
             menuWithItems(
                     "Show in",
-                    APP.widgetManager.getFactories().filter { it.hasFeature(SongReader::class) },
+                    APP.widgetManager.factories.getFactoriesWith<SongReader>(),
                     { it.nameGui() },
-                    { APP.widgetManager.use(it.nameGui(), NO_LAYOUT) { c -> (c.controller as SongReader).read(pig.items) } }
+                    { it.use(NO_LAYOUT) { it.read(pig.items) } }
             ),
             menuWithItems(
                     "Edit tags in",
-                    APP.widgetManager.getFactories().filter { it.hasFeature(SongWriter::class) },
+                    APP.widgetManager.factories.getFactoriesWith<SongWriter>(),
                     { it.nameGui() },
-                    { APP.widgetManager.use(it.nameGui(), NO_LAYOUT) { c -> (c.controller as SongWriter).read(pig.items) } }
+                    { it.use(NO_LAYOUT) { it.read(pig.items) } }
             ),
             menuItem("Crop items") { PlaylistManager.use { it.retainAll(pig.items) } },
             menuItem("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(pig.items) } },
@@ -182,45 +264,49 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
             menuItem("Add items to library") { APP.db.addItems(pig.items.map { it.toMeta() }) },
             menuWithItems(
                     "Search album cover",
-                    APP.instances.getInstances<SearchUriBuilder>().stream(),
+                    APP.instances.getInstances<SearchUriBuilder>(),
                     { "in ${it.name}" },
                     { APP.actions.itemToMeta(pig.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
             )
     )}
     add<Thumbnail.ContextMenuData> { contextMenu, cmd -> notNullSeqOf(
-            if (cmd.image==null) null
-            else Menu("Image", null,
+            runIf(cmd.image!=null) {
+                Menu("Image", null,
                         menuItem("Save image as ...") {
                             saveFile("Save image as...", APP.DIR_APP, cmd.iFile?.name ?: "new_image", contextMenu.ownerWindow, ImageFileFormat.filter())
                                     .ifOk { writeImage(cmd.image, it) }
                         },
                         menuItem("Copy to clipboard") { copyToSysClipboard(DataFormat.IMAGE, cmd.image) }
-                ),
-            if (cmd.fsDisabled) null
-            else Menu("Image file", null,
-                    menuItem("Browse location") { cmd.fsImageFile.browse() },
-                    menuItem("Open (in associated program)") { cmd.fsImageFile.open() },
-                    menuItem("Edit (in associated editor)") { cmd.fsImageFile.edit() },
-                    menuItem("Delete from disc") { cmd.fsImageFile.recycle() },
-                    menuItem("Fullscreen") {
-                        val f = cmd.fsImageFile
-                        if (ImageFileFormat.isSupported(f)) {
-                            APP.actions.openImageFullscreen(f)
+                )
+            },
+            runIf(!cmd.fsDisabled) {
+                Menu("Image file", null,
+                        menuItem("Browse location") { cmd.fsImageFile.browse() },
+                        menuItem("Open (in associated program)") { cmd.fsImageFile.open() },
+                        menuItem("Edit (in associated editor)") { cmd.fsImageFile.edit() },
+                        menuItem("Delete from disc") { cmd.fsImageFile.recycle() },
+                        menuItem("Fullscreen") {
+                            val f = cmd.fsImageFile
+                            if (ImageFileFormat.isSupported(f)) {
+                                APP.actions.openImageFullscreen(f)
+                            }
                         }
-                    }
-            ),
-            if (cmd.representant==null) null else menuOfItemsFor(contextMenu, cmd.representant)
+                )
+            },
+            runIf(cmd.representant!=null) {
+                menuOfItemsFor(contextMenu, cmd.representant)
+            }
     )}
 
 }
 
 private fun <T: Any> notNullSeqOf(vararg elements: T?) = seqOf(*elements).filterNotNull()
 
-private fun menu(text: String, items: Sequence<MenuItem> = seqOf()) = Menu(text, null, *items.toList().toTypedArray())
+private fun menu(text: String, items: Sequence<MenuItem> = seqOf()) = Menu(text, null, *items.asArray())
 
-private fun <A> menuWithItems(text: String, from: Stream<A>, toStr: (A) -> String, action: (A) -> Unit) = menu(text, items(from, toStr, action).asSequence())
+private fun <A> menuWithItems(text: String, from: Sequence<A>, toStr: (A) -> String, action: (A) -> Unit) = menu(text, items(from, toStr, action))
 
-private fun <A> items(from: Stream<A>, toStr: (A) -> String, action: (A) -> Unit) = from.map { menuItem(toStr(it)) { e -> action(it) } }
+private fun <A> items(from: Sequence<A>, toStr: (A) -> String, action: (A) -> Unit) = from.map { menuItem(toStr(it)) { e -> action(it) } }
 
 private fun menuOfItemsFor(contextMenu: ImprovedContextMenu<*>, menuName: String, value: Any?) = menu(menuName, CONTEXT_MENUS[contextMenu, value])
 

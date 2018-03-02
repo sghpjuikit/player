@@ -12,7 +12,7 @@ import mu.KotlinLogging
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.gui.Gui
-import sp.it.pl.layout.widget.WidgetManager
+import sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.main.AppUtil.APP
@@ -27,11 +27,11 @@ import sp.it.pl.util.file.Util.isValidWidgetFile
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.find1stExistingParentDir
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
-import sp.it.pl.util.file.parentDirOrSelf
+import sp.it.pl.util.file.parentDir
+import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.file.toFileOrNull
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.Try.ok
-import sp.it.pl.util.functional.Util
 import sp.it.pl.util.graphics.ordinal
 import java.awt.Desktop
 import java.io.File
@@ -65,17 +65,16 @@ fun copyToSysClipboard(df: DataFormat, o: Any?) {
  */
 fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = fut()
         .supply(Player.IO_THREAD, Supplier {
-            val dir = parentFile
             val command = ArrayList<String>()
+            if (Os.WINDOWS.isCurrent)
+                command += APP.DIR_APP.childOf("elevate.exe").absolutePath   // use elevate.exe to run command
+
+            command += absoluteFile.path
+            command += arguments.asSequence().filter { it.isNotBlank() }.map { "-$it" }
+
             try {
-                if (Os.WINDOWS.isCurrent)
-                    command += File("").absoluteFile.childOf("elevate.exe").absolutePath   // use elevate.exe to run command
-
-                command += absoluteFile.path
-                command += arguments.asSequence().filter { it.isNotBlank() }.map { "-$it" }
-
                 ProcessBuilder(command)
-                        .directory(dir)
+                        .directory(parentDirOrRoot)
                         .start()
 
                 ok<Exception>()
@@ -144,7 +143,7 @@ fun URI.browse() {
                 if (Os.WINDOWS.isCurrent) {
                     f.openWindowsExplorerAndSelect()
                 } else {
-                    f.parentDirOrSelf.open()
+                    f.parentDirOrRoot.open()
                 }
             }
         }
@@ -179,30 +178,37 @@ fun File.edit() {
 /**
  * Opens the file, in order:
  * * if is executable, it will be executed using [runAsProgram]
+ * * if is application skin, it will be applied
+ * * if is application component, it will be opened
  * * if is directory, it will be opened in default system's browser
- * * file will be opened in the default associated program.
+ * * if it is file, it will be opened in the default associated program.
  *
  * On some platforms the operation may be unsupported. In that case this method is a no-op.
  */
 fun File.open() {
     runNotFX {
-        if (isExecutable()) {
+        when {
             // If the file is executable, Desktop#open() will execute it, however the spawned process' working directory
             // will be set to the working directory of this application, which is not illegal, but definitely dangerous
-            // Hence, we executable files specifically
-            runAsProgram()
-        } else {
-            if (Desktop.Action.OPEN.isSupportedOrWarn()) {
-                try {
-                    Desktop.getDesktop().open(this)
-                } catch (e: IOException) {
-                    val noApp = "No application is associated with the specified file for this operation" in e.message.orEmpty()
-                    if (noApp) logger.warn(e) { "Opening file=$this in native app failed" }
-                    else logger.error(e) { "Opening file=$this in native app failed" }
-                } catch (e: IllegalArgumentException) {
-                    // file does not exists, nothing to do
+            // Hence, we executable files on our own
+            isExecutable() -> runAsProgram()
+            else ->
+                when {
+                    isDirectory && APP.DIR_SKINS==parentDir || isValidSkinFile(this) -> Gui.setSkin(this)
+                    isDirectory && APP.DIR_WIDGETS==parentDir || isValidWidgetFile(this) -> APP.widgetManager.widgets.find(nameWithoutExtensionOrRoot, NO_LAYOUT, false)
+                    else ->
+                        if (Desktop.Action.OPEN.isSupportedOrWarn()) {
+                            try {
+                                Desktop.getDesktop().open(this)
+                            } catch (e: IOException) {
+                                val noApp = "No application is associated with the specified file for this operation" in e.message.orEmpty()
+                                if (noApp) logger.warn(e) { "Opening file=$this in native app failed" }
+                                else logger.error(e) { "Opening file=$this in native app failed" }
+                            } catch (e: IllegalArgumentException) {
+                                // file does not exists, nothing to do
+                            }
+                        }
                 }
-            }
         }
     }
 }
@@ -227,21 +233,11 @@ fun File.recycle(): Try<Void, Void> {
 }
 
 fun File.openIn() {
-    // open skin - always in app
-    if (isDirectory && APP.DIR_SKINS==parentFile || isValidSkinFile(this)) {
-        Gui.setSkin(this)
-    } else if (isDirectory && APP.DIR_WIDGETS==parentFile || isValidWidgetFile(this)) {
-        APP.widgetManager.find(nameWithoutExtensionOrRoot, WidgetManager.WidgetSource.NO_LAYOUT, false)
-    } else if (AudioFileFormat.isSupported(this, AudioFileFormat.Use.PLAYBACK)) {
-        PlaylistManager.use { it.addUri(toURI()) }
-    } else if (ImageFileFormat.isSupported(this)) {
-        APP.widgetManager.use(ImageDisplayFeature::class.java, WidgetManager.WidgetSource.NO_LAYOUT) { it.showImage(this) }
-    } else {
-        open() // delegate to native app cant handle
+    when {
+        AudioFileFormat.isSupported(this, AudioFileFormat.Use.PLAYBACK) -> PlaylistManager.use { it.addUri(toURI()) }
+        ImageFileFormat.isSupported(this) -> APP.widgetManager.widgets.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(this) }
+        else -> open()
     }
-    // open image file
-    // open audio file
-    // open widget
 }
 
 fun openIn(files: List<File>) {
@@ -257,9 +253,9 @@ fun openIn(files: List<File>) {
             PlaylistManager.use { it.addUris(audio.map { it.toURI() }) }
 
         if (images.size==1) {
-            APP.widgetManager.use(ImageDisplayFeature::class.java, WidgetManager.WidgetSource.NO_LAYOUT) { it.showImage(images[0]) }
+            APP.widgetManager.widgets.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(images[0]) }
         } else if (images.size>1) {
-            APP.widgetManager.use(ImagesDisplayFeature::class.java, WidgetManager.WidgetSource.NO_LAYOUT) { it.showImages(images) }
+            APP.widgetManager.widgets.use<ImagesDisplayFeature>(NO_LAYOUT) { it.showImages(images) }
         }
     }
 }
@@ -341,9 +337,10 @@ private fun File.openWindowsExplorerAndSelect() {
     }
 }
 
-// TODO: implement properly
+// TODO: implement
 /** @return true if the file is an executable file */
-private fun File.isExecutable(): Boolean = when (Os.current) {
-    Os.WINDOWS -> Util.isContainedIn(extension.toLowerCase(), "exe")    // TODO: use MimeExt
-    else -> false
-}
+private fun File.isExecutable(): Boolean =
+        when (Os.current) {
+            Os.WINDOWS -> path.endsWith(".exe", true)
+            else -> false
+        }

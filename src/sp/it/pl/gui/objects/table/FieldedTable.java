@@ -122,6 +122,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			.collect(toList());
 	}
 
+	@SuppressWarnings("unchecked")
 	public void setColumnFactory(Ƒ1<? super ObjectField<? super T,Object>,TableColumn<T,Object>> columnFactory) {
 		colFact = f -> {
 			TableColumn<T,?> c = f==ColumnField.INDEX ? columnIndex : (TableColumn) ((Ƒ1) columnFactory).call(f);
@@ -130,6 +131,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		};
 	}
 
+	@SuppressWarnings("unchecked")
 	public <X> Ƒ1<? super ObjectField<? super T,X>,TableColumn<T,X>> getColumnFactory() {
 		return (Ƒ1) colFact;
 	}
@@ -362,7 +364,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			.orElseThrow(() -> new RuntimeException("Cant find '" + name + "' field"));
 	}
 
-	@SuppressWarnings("RedundantCast")
+	@SuppressWarnings({"RedundantCast","unchecked"})
 	private ObjectField<T,?> nameToCF(String name) {
 		return ColumnField.INDEX.name().equals(name) ? (ObjectField) ColumnField.INDEX : nameToF(name);
 	}

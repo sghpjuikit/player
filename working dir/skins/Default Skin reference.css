@@ -111,7 +111,6 @@
      * -fx-text-base-color for text on top of -fx-base, -fx-color, and -fx-body-color
      * -fx-text-background-color for text on top of -fx-background
      * -fx-text-inner-color for text on top of -fx-control-inner-color
-     * -fx-selection-bar-text for text on top of -fx-selection-bar
      */
     -fx-dark-text-color: black;
     -fx-mid-text-color: #333;
@@ -331,13 +330,6 @@
     /* Background color to use for selection of list cells etc. This is when
      * the control doesn't have focus or the row of a previously selected item. */
     -fx-selection-bar-non-focused: lightgrey;
-
-    /* The color to use as -fx-text-fill when painting text on top of
-     * backgrounds filled with -fx-selection-bar.
-     *
-     * TODO: this can be removed
-     */
-    -fx-selection-bar-text: -fx-text-background-color;
 
     /* These are needed for Popup */
     -fx-background-color: inherit;
@@ -1771,7 +1763,7 @@
 .tab-pane:right > .tab-header-area {
     -fx-padding: 0.416667em 0.416667em 0.166667em 0.0em; /* 5 5 2 0 */
 }
-/* TODO: scaling the shape seems to make it way too large */
+
 /* TODO: scaling the shape seems to make it way too large */
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-close-button {
     -fx-background-color: grey;// -fx-mark-color; << this color (original Modena)

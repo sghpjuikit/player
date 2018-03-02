@@ -5,10 +5,23 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
 
-fun <T,U> Class<T>.isSuperclassOf(type: Class<U>) = isAssignableFrom(type)
+fun Class<*>.isSuperclassOf(type: Class<*>) = isAssignableFrom(type)
 
-fun <T,U> Class<T>.isSubclassOf(type: Class<U>) = type.isSuperclassOf(this)
+fun Class<*>.isSubclassOf(type: Class<*>) = type.isSuperclassOf(this)
 
+fun KClass<*>.isSuperclassOf(type: Class<*>) = isSuperclassOf(type.kotlin)
+
+fun KClass<*>.isSubclassOf(type: Class<*>) = isSubclassOf(type.kotlin)
+
+inline fun <reified T> KClass<*>.isSuperclassOf() = isSuperclassOf(T::class)
+
+inline fun <reified T> KClass<*>.isSubclassOf() = isSubclassOf(T::class)
+
+inline fun <reified T> Class<*>.isSuperclassOf() = isSuperclassOf(T::class.java)
+
+inline fun <reified T> Class<*>.isSubclassOf() = isSubclassOf(T::class.java)
+
+/** @return the most specific common supertype of the specified types */
 infix fun KClass<*>.union(type: KClass<*>): KClass<*> = when {
     this==Any::class || type==Any::class -> Any::class
     this==type -> this

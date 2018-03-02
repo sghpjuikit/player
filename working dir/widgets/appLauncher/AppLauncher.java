@@ -8,7 +8,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import sp.it.pl.gui.objects.grid.GridFileThumbCell;
-import sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn;
 import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader;
 import sp.it.pl.gui.objects.grid.GridView;
 import sp.it.pl.gui.objects.grid.GridView.CellSize;
@@ -33,7 +32,6 @@ import sp.it.pl.util.graphics.drag.Placeholder;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppUtil.APP;
@@ -70,8 +68,6 @@ public class AppLauncher extends ClassController {
     final V<CellSize> cellSize = new V<>(NORMAL, this::applyCellSize);
     @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
     final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5, this::applyCellSize);
-    @IsConfig(name = "Thumbnail animate on", info = "Determines when the thumbnail image transition is played.")
-    final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width,cellSize.get().width*cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT,5,5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
@@ -193,11 +189,6 @@ public class AppLauncher extends ClassController {
     private class Cell extends GridFileThumbCell {
         public Cell() {
             super(imageLoader);
-        }
-
-        @Override
-        protected AnimateOn computeAnimateOn() {
-            return animateThumbOn.get();
         }
 
         @Override

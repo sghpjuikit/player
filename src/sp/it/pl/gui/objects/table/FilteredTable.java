@@ -306,6 +306,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	/** Table's filter node. */
 	public class Filter extends FieldedPredicateChainItemNode<T,ObjectField<T,Object>> {
 
+		@SuppressWarnings("unchecked")
 		public Filter(Class<T> filterType, FilteredList<T> filterList) {
 			super(THIS -> {
 				FieldedPredicateItemNode<T,ObjectField<T,Object>> g = new FieldedPredicateItemNode<>(
@@ -323,6 +324,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private PredicateData<ObjectField<T,Object>> getPrimaryFilterPredicate() {
 		return Optional.ofNullable(primaryFilterField)
 			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
@@ -330,6 +332,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			.orElse(null);
 	}
 
+	@SuppressWarnings("unchecked")
 	private List<PredicateData<ObjectField<T,Object>>> getFilterPredicates(Class<T> filterType) {
 		return stream(APP.classFields.get(filterType))
 			.filter(ObjectField::isTypeFilterable)

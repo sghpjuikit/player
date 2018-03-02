@@ -46,7 +46,7 @@ import sp.it.pl.util.reactive.SetƑ
 import sp.it.pl.util.reactive.maintain
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.system.getWallpaperFile
-import kotlin.test.fail
+import sp.it.pl.util.dev.fail
 
 /**
  * Pane laying 'above' standard content.
@@ -157,7 +157,7 @@ abstract class OverlayPane<in T>: StackPane() {
             resizeB.parent.resizeRelocate(content!!.layoutX, content!!.layoutY, content!!.width, content!!.height)
     }
 
-    fun makeResizableByUser() { // TODO: impl true/false
+    fun makeResizableByUser() {
         if (resizeB.isVisible) return
         resizeB.isVisible = true
         PolarResize().install(resizeB, this, content)

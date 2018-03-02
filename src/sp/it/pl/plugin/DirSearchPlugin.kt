@@ -45,7 +45,7 @@ class DirSearchPlugin: PluginBase(NAME) {
     private val cacheUpdate = AtomicLong(0)
 
     private var dirs: List<File> = emptyList()
-    private val searchProvider = { dirs.stream().map { it.toOpenDirEntry() } }
+    private val searchProvider = { dirs.asSequence().map { it.toOpenDirEntry() } }
 
     override fun onStart() {
         computeFiles()

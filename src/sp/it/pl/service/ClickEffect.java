@@ -59,7 +59,7 @@ public class ClickEffect extends ServiceBase {
 	private final List<Effect> pool = new ArrayList<>();
 
 	public ClickEffect() {
-		super(false);
+		super("ClickEffect", false);
 	}
 
 	// creating

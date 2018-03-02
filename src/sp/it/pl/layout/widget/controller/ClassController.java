@@ -12,7 +12,7 @@ import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.reactive.Disposer;
 
-abstract public class ClassController extends AnchorPane implements Controller<Widget<?>> {
+abstract public class ClassController extends AnchorPane implements Controller {
 
 	@Dependency("DO NOT RENAME - accessed using reflection")
 	public final Widget<?> widget = null;

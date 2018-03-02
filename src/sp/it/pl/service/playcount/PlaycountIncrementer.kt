@@ -29,11 +29,11 @@ import sp.it.pl.util.math.Portion
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.validation.Constraint
 import java.awt.TrayIcon.MessageType.INFO
-import java.util.*
+import java.util.ArrayList
 
 /** Playcount incrementing service.  */
 @IsConfigurable(value = "Playback.Playcount.Incrementing")
-class PlaycountIncrementer : ServiceBase(false) {
+class PlaycountIncrementer : ServiceBase("Playcount Incrementer", false) {
 
     @IsConfig(name = "Incrementing strategy", info = "Playcount strategy for incrementing playback.")
     val whenStrategy = v(ON_PERCENT) { this.apply() }

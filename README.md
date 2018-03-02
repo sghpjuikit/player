@@ -1,24 +1,19 @@
 
 # PlayerFX
 
-## Overview
-
 - [What is this?](#what-is-this)
-- [Am I the target group?](#am-i-the-target-group)
 - [Features](#features)
+- [Download](#download)
 - [Screenshots](#screenshots)
 - [Issues](#issues)
-- [Download & Use](#download--use)
-- [Development](#development)
-- [Credits & Licence](#credits--license)
+- [Copyright](#copyright)
+- [Contributing](/CONTRIBUTING.md)
 
 ## What is this?
 
 **PlayerFX** is a desktop audio player and audio management application, with a dynamic module system - a multipurpose extensible application capable of compiling and running custom java widgets.
 
-![Playlist View](https://raw.githubusercontent.com/sghpjuikit/player/master/extra/assets/screenshot_playlists.jpg)
-
-## Am I the target group?
+![Playlist View](/extra/assets/screenshot_playlists.jpg)
 
 There are two reasons to be interested in this project:
 
@@ -239,28 +234,28 @@ Platforms:
 <details>
   <summary>Show</summary>
   
-![ScreenShot](/extra/assets/screenshot_playlists.jpg)
+![Screenshot](/extra/assets/screenshot_playlists.jpg)
 Depicts:
 - multiple playlists
 - drag&drop on 2nd playlist
 - time comment displayed in the popup
 
 
-![ScreenShot](/extra/assets/screenshot_actions.jpg)
+![Screenshot](/extra/assets/screenshot_actions.jpg)
 
 Depicts:
 - application support action menu
 - 'glass' effect
 
 
-![ScreenShot](/extra/assets/screenshot_layoutmode.jpg)
+![Screenshot](/extra/assets/screenshot_layoutmode.jpg)
 
 Depicts:
 - layout mode
 - widget input-output links
 
 
-![ScreenShot](/extra/assets/screenshot_widgets.jpg)
+![Screenshot](/extra/assets/screenshot_widgets.jpg)
 
 Depicts:
 - function plotting, audio spectrum, logger widgets
@@ -268,24 +263,41 @@ Depicts:
 - custom skin
 
 
-![ScreenShot](/extra/assets/screenshot_comet1.jpg)
+![Screenshot](/extra/assets/screenshot_comet1.jpg)
 
-![ScreenShot](/extra/assets/screenshot_comet2.jpg)
+![Screenshot](/extra/assets/screenshot_comet2.jpg)
 
 Depicts:
 - Comet game widget
 
 
-![ScreenShot](/extra/assets/screenshot_old1.png)
+![Screenshot](/extra/assets/screenshot_old1.png)
 
 Depicts an old build of the application with an old skin.
 
 
-![ScreenShot](/extra/assets/screenshot_old2.png)
+![Screenshot](/extra/assets/screenshot_old2.png)
 
 Depicts an old build of the application with an old skin.
 
 </details>
+
+## Download
+
+Download link coming soon.
+
+- download zip
+- extract anywhere
+  - Windows: run PlayerFX.exe
+  - Linux: run bin/PlayerFX
+
+Starting the application for the first time will run a guide. Before you close it, 
+read at least first couple of tips (like where to find the guide if you need it again...).
+
+Tips:
+- Do use tooltips!
+- If you get 'trapped' and 'locked in' with no idea what to do, press right ALT (layout edit mode) or click anywhere (mouse buttons often navigate) - once you get the hang of it, you will see how convenient it is.
+- widgets, popups and containers have informative "i" buttons that provide valuable info on possible course of action
 
 ## Issues
 
@@ -297,104 +309,12 @@ Depicts an old build of the application with an old skin.
 #### Performance
 
 - Memory consumption is usually worse compared to native applications. Normally i have get about 250-450MB, but it depends on use case. Lots of widgets will eat more memory. Handling large pictures (4000^2 px) on large monitors can also rapidly increase memory consumption (but picture quality stays great). 32-bit is more effective (64-bit effectively doubles memory consumption), so there will only be a 32-bit version for now.
-- Using shadows on text or icons (in custom skins) can severely impact performance, but that is a common issue.
+- Using shadows on text or icons (in custom skins) can severely impact performance, but that is a prevalent issue not specific to this application.
 - Visually big tables (full-hd and beyond) with lots of text can impact performance
 
-## Download & Use
-
-Download link coming soon.
-
-- download zip
-- extract anywhere
-- run the executable file
-
-  Starting the application for the first time will run a guide. Before you close it, read at least first couple of tips (like where to find the guide if you need it again...).
-
-Tips:
-- Do use tooltips!
-- If you get 'trapped' and 'locked in' with no idea what to do, press right ALT (layout edit mode) or click anywhere (mouse buttons often navigate) - once you get the hang of it, you will see how convenient it is.
-- widgets, popups and containers have informative "i" buttons that provide valuable info on possible course of action
-
-# Development
-
-- Language
-  - Java jdk-9
-  - Kotlin (latest version)
-- IDE: due to use of Kotlin, Intellij Idea is strongly recommended, although not required
-
-### Preparations
-
-- Clone the repository
-- Import into IDE from Gradle 
-  - IDEA: Deselect 'Create separate module per source set', don't worry if Gradle buildscripts are not recognised, that's a known issue; it's also recommended to "Use auto-import"
-- To enable audio playback, a vlc installation must be placed in working dir/vlc directory. Obtain latest [here](https://www.videolan.org/vlc/)
-- To use widgets written in Kotlin (which includes the the Settings!) kotlinc must be placed in working dir/kotlinc directory. Obtain latest [here](https://github.com/JetBrains/kotlin/releases)
-- To use a jdk other than your default system one, create a `gradle.properties` file at project root with the following content: `org.gradle.java.home=/path/to/jdk`
-
-#### Running
-
-- `./gradlew run` will compile and run the application
-- `./gradlew build` will only build
-
-#### Widgets
-
-Widgets don't need to be compiled by the IDE, the application will compile them itself. But for syntax highlighting and error reporting they should be included as separate module, depending on PlayerFX and all jars in the widgets directory. 
-This should automatically be setup by Gradle and imported into your IDE.
-
-#### Debugging
-
-Use 'block current thread only' for breakpoints. Due to mouse polling (using a native library), blocking all threads (like on a breakpoint) can cause freezes.
-
-### Coding style
-
-- Overall
-  The project contains shared code style [code-style.xml](code-style.xml) with definitions that allow beneficial use of auto formatting. This decreases the amount of changes, mitigates the chance of mundane conflicts and standardizes the code base. 
-  - Kotlin: follow [official style giude](https://kotlinlang.org/docs/reference/coding-conventions.html)
-  - Java: It is encouraged to write any new code on Kotlin
-      
-- Logging
-
-  - Mechanism
-    - java: [sl4j](https://github.com/qos-ch/slf4j) + [logback](https://github.com/qos-ch/logback)
-    - kotlin: [sl4j](https://github.com/qos-ch/slf4j) + [kotlin-logging](https://github.com/MicroUtils/kotlin-logging)
-
-  - Obtain logger instance
-    - java:<br>
-      old school: `private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(This.class);`<br>
-      convenience method: `util.dev.UtilKt.log(this)`, `util.dev.UtilKt.log(this.getClass())`, `util.dev.UtilKt.log(This.class)`
-    - kotlin:<br>
-      classes: companion object: `mu.internal.KLoggerFactory.KLogging()`<br>
-      top level functions: `private val logger = mu.internal.KLoggerFactory.KotlinLogging.logger {}`
-  
-  - Configuration
-      - log_configuration.xml in /working dir/log, where the log output is also located
-      - the logger appends WARN, ERROR to file and everything to console (this can be changed at runtime in the settings)
-
-- Imports
-  - use static imports where possible (enum types, utility methods, etc.)
-  - no empty lines, just alphabetical sort
-  - separate imports and static imports
-  - never use package imports
-
-- Assertions
-  - always try to avoid implicit conditions with proper design and typesafety
-  - always check method parameters for all required conditions, always document these in @param tags
-  - do not use java assertions
-  - use runtime exceptions (e.g. AssertionError) or methods like Objects.requireNonNull(), util.dev.throwIf, kotlin.test.fail and never document them in @throw (to avoid anyone catching them)
-
-- Comments
-  - always write javadoc for public elements, be as concise as possible, but describe and define full contract
-  - use simple comments (//) to provide code intention
-  - avoid using comments by using proper names, proper code structure and avoiding arbitrary/exceptional/edge cases 
-
-### Skinning
-
-A skin is a single css file that works similar to styling a html web site - see [javafx css reference guide](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html). Skins can import each other.
-The application autodiscovers the skins when it starts and monitors them for changes. The skins are located in working dir/skins, in separate folders.
-
-# Credits & Licence
+# Copyright
 
 You are free to use the application or make your own builds of the project for personal use.
 
-The project is to adopt MIT licence in the future, but for now remains personal. I would appreciate to be
-informed before taking any actions that could result in publicizing or sharing this project.
+The project is to adopt MIT licence in the future, but for now remains personal. 
+Before publicizing anything related to this project or publicly sharing builds you should contact me.

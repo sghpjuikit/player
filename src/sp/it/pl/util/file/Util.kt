@@ -6,10 +6,10 @@ import sp.it.pl.util.functional.Try
 import java.io.File
 import java.io.FileFilter
 import java.io.FilenameFilter
+import java.net.MalformedURLException
 import java.net.URI
 import java.util.stream.Stream
 import kotlin.streams.asStream
-
 
 /**
  * For files 'filename.extension' is returned.
@@ -20,8 +20,7 @@ import kotlin.streams.asStream
  *
  * @return name of the file with suffix
  */
-val File.nameOrRoot: String
-    get() = name.takeUnless { it.isEmpty() } ?: toString()
+val File.nameOrRoot: String get() = name.takeUnless { it.isEmpty() } ?: toString()
 
 /**
  * For files name with no extension is returned.
@@ -31,19 +30,18 @@ val File.nameOrRoot: String
  * @return name of the file without suffix
  */
 // TODO: does not work for directories with '.'
-val File.nameWithoutExtensionOrRoot: String
-    get() = nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
+val File.nameWithoutExtensionOrRoot: String get() = nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
 
 /** @returns file itself if exists or its first existing parent or error if null or no parent exists */
 fun File.find1stExistingParentFile(): Try<File, Void> = when {
     exists() -> Try.ok(this)
-    else -> parentFile?.find1stExistingParentFile() ?: Try.error()
+    else -> parentDir?.find1stExistingParentFile() ?: Try.error()
 }
 
 /** @returns file's first existing parent or error if null or no parent exists */
 fun File.find1stExistingParentDir(): Try<File, Void> = when {
     exists() && isDirectory -> Try.ok(this)
-    else -> parentFile?.find1stExistingParentDir() ?: Try.error()
+    else -> parentDir?.find1stExistingParentDir() ?: Try.error()
 }
 
 fun File.childOf(childName: String) = File(this, childName)
@@ -54,9 +52,9 @@ fun File.childOf(childName: String, childName2: String, childName3: String) = ch
 
 fun File.childOf(vararg childNames: String) = childNames.fold(this, File::childOf)
 
-fun File.isParentOf(child: File) = child.parentFile==this
+fun File.isParentOf(child: File) = child.parentDir==this
 
-fun File.isAnyParentOf(child: File) = generateSequence(child, { it.parentFile }).any { isParentOf(it) }
+fun File.isAnyParentOf(child: File) = generateSequence(child, { it.parentDir }).any { isParentOf(it) }
 
 fun File.isChildOf(parent: File) = parent.isParentOf(this)
 
@@ -73,40 +71,65 @@ fun File.isAnyChildOf(parent: File) = parent.isAnyParentOf(this)
  * @return child files of the directory or empty if parameter null, not a directory or I/O error occurs
  */
 @Suppress("DEPRECATION")
-fun File.listChildren(): Stream<File> = this.listFiles()?.asSequence()?.asStream() ?: Stream.empty()
+fun File.listChildren(): Stream<File> = listFiles()?.asSequence()?.asStream() ?: Stream.empty()
+
+fun File.seqChildren(): Sequence<File> = listFiles()?.asSequence() ?: sequenceOf()
 
 @Suppress("DEPRECATION")
-fun File.listChildren(filter: FileFilter): Stream<File> = this.listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
+fun File.listChildren(filter: FileFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
 
 @Suppress("DEPRECATION")
-fun File.listChildren(filter: FilenameFilter): Stream<File> = this.listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
+fun File.listChildren(filter: FilenameFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
+
+/**
+ * Safe version of [File.getParentFile].
+ *
+ * @return parent file or null if is root
+ */
+@Suppress("DEPRECATION")
+val File.parentDir: File? get() = parentFile
 
 /** @return parent file or self if is root */
-val File.parentDirOrSelf get() = parentDir ?: this
+val File.parentDirOrRoot get() = parentDir ?: this
 
-/** @return parent file or null if is root */
-val File.parentDir: File? get() = parentFile    // TODO: deprecate parentFile
+/** @return true if the file path ends with '.' character followed by the specified suffix */
+infix fun File.endsWithSuffix(suffix: String) = path.endsWith('.'+suffix, true)
+
+/** @return true if the file path ends with '.' character followed by the one of the specified suffixes */
+fun File.endsWithSuffix(suffix1: String, suffix2: String) = endsWithSuffix(suffix1) || endsWithSuffix(suffix2)
+
+/** @return true if the file path ends with '.' character followed by the one of the specified suffixes */
+fun File.endsWithSuffix(suffix1: String, suffix2: String, suffix3: String) = endsWithSuffix(suffix1) || endsWithSuffix(suffix2) || endsWithSuffix(suffix3)
 
 /** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown. */
 @Suppress("DEPRECATION")
-fun URI.toFileOrNull() = try {
-        File(this)
-    } catch (e: IllegalArgumentException) {
-        null
-    }
+fun URI.toFileOrNull() =
+        try {
+            File(this)
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+
+/** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown. */
+fun File.toURLOrNull() =
+        try {
+            toURI().toURL()
+        } catch (e: MalformedURLException) {
+            null
+        }
 
 enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>) {
     NONE({ it.stream().distinct() }),
     DIRS({
         it.asSequence().distinct()
-                .flatMap { sequenceOf(it).filter { it.isFile } + it.walk().filter { it.isDirectory } }
+                .flatMap { sequenceOf(it).filter { it.isFile }+it.walk().filter { it.isDirectory } }
                 .asStream()
     }),
     TOP_LVL({ it.stream().distinct().flatMap { it.listChildren() } }),
     TOP_LVL_AND_DIRS({
         it.stream().distinct()
                 .flatMap { it.listChildren() }
-                .flatMap { (sequenceOf(it).filter { it.isFile } + it.walk().filter { it.isDirectory }).asStream() }
+                .flatMap { (sequenceOf(it).filter { it.isFile }+it.walk().filter { it.isDirectory }).asStream() }
     }),
     TOP_LVL_AND_DIRS_AND_WITH_COVER({
         it.stream().distinct()
@@ -118,7 +141,7 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>
 
 // TODO: optimize
 private fun File.hasCover(): Boolean {
-    val p = parentFile
+    val p = parentDir!!
     val n = nameWithoutExtension
     return ImageFileFormat.values().asSequence()
             .filter { it.isSupported }

@@ -1,25 +1,37 @@
 import org.gradle.api.tasks.Copy
-import org.gradle.internal.impldep.org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
-import org.gradle.kotlin.dsl.extra
-import org.gradle.kotlin.dsl.kotlin
+import org.gradle.kotlin.dsl.apply
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.net.URL
+import java.nio.file.Files
 import java.util.zip.ZipInputStream
 import kotlin.text.Charsets.UTF_8
-import java.nio.file.Files
-import java.io.File
 
+// Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
     kotlin("jvm") version "1.2.21"
     application
+    id("com.github.ben-manes.versions") version "0.17.0"
 }
 
+/** working directory of the application */
+val workDir = file("working dir")
+val javaVersion = JavaVersion.VERSION_1_9
+val kotlinVersion: String by extra {
+    buildscript.configurations["classpath"]
+            .resolvedConfiguration.firstLevelModuleDependencies
+            .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
+}
+
+if (JavaVersion.current()!=javaVersion)
+    throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
+
 java {
-    targetCompatibility = JavaVersion.VERSION_1_9
-    sourceCompatibility = JavaVersion.VERSION_1_9
+    targetCompatibility = javaVersion
+    sourceCompatibility = javaVersion
     sourceSets {
         getByName("main") {
             java.srcDir("src")
@@ -33,15 +45,10 @@ kotlin {
     experimental.coroutines = Coroutines.ENABLE
 }
 
-val workingDir = file("working dir")
-val kotlinVersion: String? by extra {
-    buildscript.configurations["classpath"]
-            .resolvedConfiguration.firstLevelModuleDependencies
-            .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }?.moduleVersion
-}
-
-// common configuration
 allprojects {
+    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+    buildDir = file(properties["player.buildDir"] ?: "build").resolve(name)
+
     tasks.withType<JavaCompile> {
         options.encoding = UTF_8.name()
         options.isIncremental = true
@@ -57,10 +64,8 @@ allprojects {
     }
 
     tasks.withType<KotlinCompile> {
-        compilerJarFile
-        kaptOptions.supportInheritedAnnotations = true
         kotlinOptions.jvmTarget = "1.8"
-        kotlinOptions.suppressWarnings = false
+        kaptOptions.supportInheritedAnnotations = true
     }
 
     repositories {
@@ -73,10 +78,6 @@ dependencies {
     // Kotlin
     compile("org.jetbrains.kotlin", "kotlin-stdlib-jdk8", kotlinVersion)
     compile("org.jetbrains.kotlin", "kotlin-reflect", kotlinVersion)
-    compile("org.jetbrains.kotlin", "kotlin-test", kotlinVersion)
-
-    // Java Native
-    compile("net.java.dev.jna", "jna-platform", "4.5.1")
 
     // Logging
     compile("org.slf4j", "slf4j-api", "1.7.25")
@@ -91,9 +92,6 @@ dependencies {
     }
     compile("eu.hansolo", "Medusa", "7.9")
 
-    // Image
-    compile("com.drewnoakes", "metadata-extractor", "2.9.1")
-
     // Audio
     compile("uk.co.caprica", "vlcj", "3.10.1")
     compile("de.u-mass", "lastfm-java", "0.1.2")
@@ -103,7 +101,9 @@ dependencies {
     kapt("org.atteo.classindex", "classindex", "3.4")
 
     // misc
-    compile("com.1stleg", "jnativehook", "2.0.3")
+    compile("net.java.dev.jna", "jna-platform", "4.5.1")
+    compile("com.1stleg", "jnativehook", "2.1.0")
+
     compile("net.objecthunter", "exp4j", "0.4.8")
     compile("org.atteo", "evo-inflector", "1.2.2")
     compile("com.thoughtworks.xstream", "xstream", "1.4.10") {
@@ -111,22 +111,24 @@ dependencies {
         exclude("xpp3", "xpp3_min")
     }
 
-    //	compile("com.twelvemonkeys.imageio", "imageio-core", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-bmp", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-jpeg", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-iff", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-icns", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pcx", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pict", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-clippath", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-hdr", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pdf", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pnm", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-psd", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-tga", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-sgi", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-thumbsdb", "3.3.2")
-    //	compile("com.twelvemonkeys.imageio", "imageio-tiff", "3.3.2")
+    // Image
+    compile("com.drewnoakes", "metadata-extractor", "2.11.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-core", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-bmp", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-jpeg", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-iff", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-icns", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-pcx", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-pict", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-clippath", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-hdr", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-pdf", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-pnm", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-psd", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-tga", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-sgi", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-thumbsdb", "3.4.0")
+    //	compile("com.twelvemonkeys.imageio", "imageio-tiff", "3.4.0")
 
     compile(files(file("extra/lib").listFiles()))
 
@@ -135,8 +137,8 @@ dependencies {
 tasks {
     val main = "_Main"
 
-    val copyLibs by creating(Copy::class) {
-        group = main
+    val copyLibs by creating(Sync::class) {
+        group = "build"
         description = "Copies all libraries into the working dir"
         into("working dir/lib")
         from(configurations.compile)
@@ -144,36 +146,46 @@ tasks {
     }
 
     val jre by creating {
-        group = main
-        description = "Makes JDK locally accessible in ${workingDir.resolve("jre")}"
+        val jdkLocal = workDir.resolve("jre")
+        group = "build setup"
+        description = "Makes JDK locally accessible in $jdkLocal"
         doFirst {
-            val jdkLocal = workingDir.resolve("jre")
-            if (jdkLocal.exists()) {
-                println("JDK is already locally accessible")
-            } else {
+            if (!jdkLocal.exists()) {
                 println("Making JDK locally accessible...")
-                val jdkLocalPath = jdkLocal.toPath()
                 val jdkGlobalPath = System.getProperty("java.home").takeIf { it.isNotBlank() }
-                        ?.let { File(it).toPath() }
-                        ?: throw RuntimeException("Can not find JDK")
-                Files.createSymbolicLink(jdkLocalPath, jdkGlobalPath)
+                        ?.let { file(it).toPath() }
+                        ?: throw FileNotFoundException("Unable to find JDK")
+                try {
+                    Files.createSymbolicLink(jdkLocal.toPath(), jdkGlobalPath)
+                } catch (e: Exception) {
+                    println("Couldn't create a symbolic link from $jdkLocal to $jdkGlobalPath: ${e.message}")
+                    if (System.getProperty("os.name").startsWith("Windows")) {
+                        println("Trying junction...")
+                        val process = Runtime.getRuntime().exec("cmd.exe /c mklink /j \"$jdkLocal\" \"$jdkGlobalPath\"")
+                        val exitValue = process.waitFor()
+                        if (exitValue==0 && jdkLocal.exists())
+                            println("Junction successful!")
+                        else
+                            throw IOException("Unable to make JDK locally accessible!\nmklink exit code: $exitValue", e)
+                    } else {
+                        throw IOException("Unable to make JDK locally accessible!", e)
+                    }
+                }
             }
         }
     }
 
     val kotlinc by creating {
-        group = main
-        description = "Downloads the kotlin compiler into ${workingDir.resolve("kotlinc")}"
+        val kotlinc = workDir.resolve("kotlinc")
+        group = "build setup"
+        description = "Downloads the kotlin compiler into $kotlinc"
         doFirst {
-            val kotlinc = workingDir.resolve("kotlinc")
-            val kotlincUpToDate = kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion!!) ?: false
-            if (kotlincUpToDate) {
-                println("Kotlin compiler is up to date, version $kotlinVersion")
-            } else {
+            val kotlincUpToDate = kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion)==true
+            if (!kotlincUpToDate) {
                 if (kotlinc.exists()) {
                     println("Previous version of Kotlin compiler exists. Deleting...")
                     if (!kotlinc.deleteRecursively())
-                        throw RuntimeException("Failed to remove Kotlin compiler, location=$kotlinc")
+                        throw IOException("Failed to remove Kotlin compiler, location=$kotlinc")
                 }
 
                 try {
@@ -182,7 +194,7 @@ tasks {
                     while (true) {
                         val next = zip.nextEntry ?: break
                         if (!next.isDirectory) {
-                            val file = workingDir.resolve(next.name)
+                            val file = workDir.resolve(next.name)
                             file.parentFile.mkdirs()
                             val out = file.outputStream()
                             zip.copyTo(out)
@@ -191,17 +203,19 @@ tasks {
                         }
                     }
                     if (!kotlinc.exists())
-                        throw RuntimeException("Kotlinc has not been downloaded succesfully! Maybe the remote file is not a zip?")
-                    File("$workingDir/kotlinc/bin/kotlinc").setExecutable(true) // Allow Unix kotlinc to be executed
+                        throw IOException("Kotlinc has not been downloaded successfully! Maybe the remote file is not a zip?")
+
+                    file("$workDir/kotlinc/bin/kotlinc").setExecutable(true) // Allow kotlinc to be executed on Unix
                 } catch (e: FileNotFoundException) {
-                    throw RuntimeException("The remote file could not be found", e)
+                    throw IOException("The remote file could not be found", e)
                 }
             }
         }
     }
 
     "jar"(Jar::class) {
-        destinationDir = workingDir
+        group = main
+        destinationDir = workDir
         archiveName = "PlayerFX.jar"
     }
 
@@ -209,16 +223,18 @@ tasks {
         group = main
         description = "Cleans up temporary files"
         doFirst {
-            file("working dir/user/log").deleteRecursively()
-            file("working dir/lib").deleteRecursively()
-            file("working dir/widgets").walkBottomUp()
+            workDir.resolve("user/log").deleteRecursively()
+            workDir.resolve("user/tmp").deleteRecursively()
+            workDir.resolve("lib").deleteRecursively()
+            workDir.resolve("widgets").walkBottomUp()
                     .filter { it.path.endsWith("class") }
                     .fold(true, { res, it -> (it.delete() || !it.exists()) && res })
         }
     }
 
-    "run" {
+    "run"(JavaExec::class) {
         group = main
+        workingDir = workDir
         dependsOn(copyLibs, jre, kotlinc, "jar")
     }
 
@@ -228,8 +244,9 @@ application {
     applicationName = "PlayerFX"
     mainClassName = "sp.it.pl.main.AppUtil"
     applicationDefaultJvmArgs = listOf(
-            "-Xmx15g",
             "-Dfile.encoding=UTF-8",
+            "-ms"+(properties["player.memoryMin"] ?: "100m"),
+            "-mx"+(properties["player.memoryMax"] ?: "3g"),
             "--add-opens", "java.base/java.util=ALL-UNNAMED",
             "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
             "--add-opens", "java.base/java.text=ALL-UNNAMED",
@@ -242,7 +259,6 @@ application {
             "--add-opens", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED",
             "--add-opens", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
             "--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
-            "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED",
-            "-Duser.dir=$workingDir"
+            "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED"
     )
 }

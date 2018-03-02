@@ -135,6 +135,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		return empty;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void clear() {
 		inconsistentState = true;
 		if (config!=null) config.clear();
@@ -143,6 +144,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		changeValue((Predicate<V>) IS);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void generatePredicate() {
 		if (inconsistentState) return;
 		empty = false;

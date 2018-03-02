@@ -11,6 +11,7 @@ import javafx.beans.property.SimpleDoubleProperty
 import javafx.event.EventHandler
 import javafx.util.Duration
 import javafx.util.Duration.millis
+import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.math.divMillis
 import sp.it.pl.util.math.minus
@@ -19,7 +20,6 @@ import java.lang.Math.abs
 import java.lang.Math.sqrt
 import java.util.function.DoubleConsumer
 import java.util.stream.Stream
-import kotlin.streams.toList
 
 private typealias S = JvmStatic
 private typealias O = JvmOverloads
@@ -305,12 +305,12 @@ open class Anim: Transition {
         @S @O fun animSeq(vararg ts: Transition, init: SequentialTransition.() -> Unit = {}) = SequentialTransition(*ts).apply { init() }
 
         /** @return sequential animation playing the specified animations sequentially */
-        @S @O fun animSeq(ts: Stream<Transition>, init: SequentialTransition.() -> Unit = {}) = animSeq(*ts.toList().toTypedArray()).apply { init() }
+        @S @O fun animSeq(ts: Stream<Transition>, init: SequentialTransition.() -> Unit = {}) = animSeq(*ts.asArray()).apply { init() }
 
         @S fun <T> animSeq(animated: List<T>, animFactory: (Int, T) -> Transition) = animSeq(animated.mapIndexed(animFactory).stream())
 
         /** @return parallel animation playing the specified animations in parallel */
-        @S @O fun animPar(ts: Stream<Transition>, init: ParallelTransition.() -> Unit = {}) = animPar(*ts.toList().toTypedArray()).apply { init() }
+        @S @O fun animPar(ts: Stream<Transition>, init: ParallelTransition.() -> Unit = {}) = animPar(*ts.asArray()).apply { init() }
 
         /** @return parallel animation playing the specified animations in parallel */
         @S @O fun animPar(vararg ts: Transition, init: ParallelTransition.() -> Unit = {}) = ParallelTransition(*ts).apply { init() }

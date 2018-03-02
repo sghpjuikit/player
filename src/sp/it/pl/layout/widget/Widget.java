@@ -40,12 +40,13 @@ import sp.it.pl.util.conf.Configuration;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.dev.Dependency;
+import sp.it.pl.util.reactive.Disposer;
 import sp.it.pl.util.type.Util;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.deepEquals;
 import static java.util.stream.Collectors.toMap;
-import static sp.it.pl.layout.widget.WidgetManager.WidgetSource.OPEN;
+import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.file.Util.deleteFile;
@@ -71,7 +72,7 @@ import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
  * standalone object if implementation allows). The type of widget influences
  * the lifecycle.
  */
-public class Widget<C extends Controller<?>> extends Component implements CachedCompositeConfigurable<Object>, Locatable {
+public class Widget<C extends Controller> extends Component implements CachedCompositeConfigurable<Object>, Locatable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
 	private static final Set<String> ignoredConfigs = set("Is preferred", "Is ignored", "Custom name"); // avoids data duplication
@@ -111,6 +112,8 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	 * This field allows widget to control its lifecycle and context from its controller.
 	 */
 	@XStreamOmitField public ContainerNode areaTemp;
+
+	@XStreamOmitField Disposer onClose = new Disposer();
 
 	// configuration
 
@@ -306,16 +309,14 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 			// Avoids:
 			// 1) stackoverflow if controller.close() calls widget.close() for some reason
 			// 2) stackoverflow when widget==controller, so close() would execute recursively
-			Controller<?> c = controller;
+			Controller c = controller;
 			controller = null;
 
 			IOLayer.all_inputs.removeAll(c.getInputs().getInputs());
 			IOLayer.all_outputs.removeAll(c.getOutputs().getOutputs());
 			c.close();
 		}
-
-		// Not the best handling, but at least dev does not have to do this manually and concern himself
-		APP.widgetManager.standaloneWidgets.remove(this);
+		onClose.invoke();
 	}
 
 	/** @return factory information about this widget */
@@ -351,7 +352,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	 *
 	 * @param w widget to copy state from
 	 */
-	public void setStateFrom(Widget<C> w) {
+	public void setStateFrom(Widget<? extends C> w) {
 		// if widget was loaded we store its latest state, otherwise it contains serialized pme
 		if (w.controller!=null)
 			w.storeConfigs();
@@ -456,8 +457,8 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	protected Object readResolve() throws ObjectStreamException {
 		super.readResolve();
 
-		// try to assign factory (it must exist) or fallback to empty eidget
-		if (factory==null) Util.setField(this, "factory", APP.widgetManager.factories.get(name));
+		// try to assign factory (it must exist) or fallback to empty widget
+		if (factory==null) Util.setField(this, "factory", APP.widgetManager.factories.getFactory(name));
 		if (factory==null) return Widget.EMPTY();
 
 		if (configs==null) configs = new HashMap<>();
@@ -465,6 +466,8 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 			Util.setField(this, "focused", new V<>(false));
 			focused.addListener(computeFocusChangeHandler());
 		}
+
+		if (onClose==null) Util.setField(this, "onClose", new Disposer());
 
 		// accumulate serialized inputs for later deserialization when all widgets are ready
 		properties.entrySet().stream()
@@ -543,7 +546,7 @@ public class Widget<C extends Controller<?>> extends Component implements Cached
 	@SuppressWarnings({"unchecked", "UseBulkOperation", "deprecation"})
 	public static void deserializeWidgetIO() {
 		Set<Input<?>> is = new HashSet<>();
-		Map<Output.Id,Output<?>> os = APP.widgetManager.findAll(OPEN)
+		Map<Output.Id,Output<?>> os = APP.widgetManager.widgets.findAll(OPEN)
 				.filter(w -> w.controller!=null)
 				.peek(w -> w.controller.getInputs().getInputs().forEach(is::add))
 				.flatMap(w -> w.controller.getOutputs().getOutputs().stream())

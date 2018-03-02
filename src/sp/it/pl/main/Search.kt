@@ -11,11 +11,10 @@ import sp.it.pl.gui.objects.textfield.DecoratedTextField
 import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.attach
-import java.util.*
-import java.util.stream.Stream
+import kotlin.streams.asStream
 
 class Search {
-    val sources = HashSet<() -> Stream<ConfigSearch.Entry>>()
+    val sources = HashSet<() -> Sequence<ConfigSearch.Entry>>()
     val history = ConfigSearch.History()
 
     fun build(): Node {
@@ -51,7 +50,7 @@ class Search {
             }
         }
 
-        ConfigSearch(tf, history, { sources.stream().flatMap { it() } })
+        ConfigSearch(tf, history, { sources.stream().flatMap { it().asStream() } })
         return tf
     }
 }

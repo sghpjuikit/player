@@ -37,7 +37,6 @@ import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
 import javafx.stage.Screen
 import org.reactfx.Subscription
-import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.window.stage.Window
 import sp.it.pl.util.math.P
@@ -61,19 +60,20 @@ fun border(c: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(BorderStr
 
 fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
 
-@JvmOverloads fun createIcon(icon: GlyphIcons, iconSize: Int = 12) = Text(icon.characterToString()).apply {
-    style = "-fx-font-family: ${icon.fontFamily}; -fx-font-size: $iconSize;"
+@JvmOverloads fun createIcon(icon: GlyphIcons, iconSize: Double? = null) = Text(icon.characterToString()).apply {
+    val fontSize = iconSize?.let { it/12.0 } ?: 1.0
+    style = "-fx-font-family: ${icon.fontFamily}; -fx-font-size: ${fontSize}em;"
     styleClass += "icon"
 }
 
-fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Int = 12): Text {
-    Icon.USE_PREF_SIZE
+fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Double? = null): Text {
+    val fontSize = iconSize?.let { it/12.0 } ?: 1.0
     val s = icon.characterToString()
     val sb = StringBuilder(icons)
     for (i in 0 until icons) sb.append(s)
 
     return Text(sb.toString()).apply {
-        style = "-fx-font-family: ${icon.fontFamily}; -fx-font-size: $iconSize;"
+        style = "-fx-font-family: ${icon.fontFamily}; -fx-font-size: ${fontSize}em;"
         styleClass += "icon"
     }
 }

@@ -2,6 +2,7 @@ package sp.it.pl.util.access.fieldvalue
 
 import com.drew.imaging.ImageMetadataReader
 import com.drew.imaging.ImageProcessingException
+import com.drew.metadata.Schema
 import com.drew.metadata.xmp.XmpDirectory
 import mu.KotlinLogging
 import sp.it.pl.util.SwitchException
@@ -97,9 +98,7 @@ private fun File.readTimeCreated(): FileTime? =
 
 private fun File.readTimeMinOfCreatedAndModified(): FileTime? = readBasicFileAttributes()
         ?.run {
-            val createdAt = creationTime()
-            val modifiedAt = lastModified()
-            if (createdAt.toMillis()<modifiedAt) createdAt else FileTime.fromMillis(modifiedAt)
+            minOf(creationTime(), lastModifiedTime())
         }
 
 private fun File.readBasicFileAttributes(): BasicFileAttributes? =
@@ -110,21 +109,22 @@ private fun File.readBasicFileAttributes(): BasicFileAttributes? =
             null
         }
 
-private fun LocalDateTime.toFileTime() = FileTime.fromMillis(toInstant(ZoneOffset.UTC).toEpochMilli())
+private fun Long.toFileTime() = FileTime.fromMillis(this)
 
-private fun java.util.Date.toFileTime() = FileTime.fromMillis(time)
+private fun LocalDateTime.toFileTime() = toInstant(ZoneOffset.UTC).toEpochMilli().toFileTime()
 
 private fun File.readXmpTimeCreated(): FileTime? =
         try {
-            ImageMetadataReader
-                    .readMetadata(this)
-                    .getFirstDirectoryOfType(XmpDirectory::class.java)
-                    ?.getDate(XmpDirectory.TAG_CREATE_DATE)?.toFileTime()
+            ImageMetadataReader.readMetadata(this).getFirstDirectoryOfType(XmpDirectory::class.java)
+                    ?.xmpMeta?.getPropertyDate(Schema.XMP_PROPERTIES, "CreateDate")
+                    ?.calendar?.timeInMillis?.toFileTime()
         } catch (e: IOException) {
             logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
             null
         } catch (e: ImageProcessingException) {
-            logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
+            // 12Monkey bug: exception type !tell us when we are dealing with an error and when an unsupported file type
+            if (e.message!="File format is not supported")
+                logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
             null
         }
 

@@ -49,7 +49,7 @@ import sp.it.pl.util.conf.CachedConfigurable;
  * - controller is garbage collected
  * </pre>
  */
-public interface Controller<W extends Widget<?>> extends CachedConfigurable<Object>, Locatable {
+public interface Controller extends CachedConfigurable<Object>, Locatable {
 
 	/** Loads the widget. Called once, before {@link #init()}. The result is then cached. */
 	default Node loadFirstTime() throws Exception {
@@ -90,7 +90,7 @@ public interface Controller<W extends Widget<?>> extends CachedConfigurable<Obje
 	 * Returns widget in relationship with this Controller object.
 	 * @return associated widget or null if none.
 	 */
-	W getWidget();
+	Widget<?> getWidget();
 
 	/**
 	 * Executes immediately before widget is closed. Widget is not

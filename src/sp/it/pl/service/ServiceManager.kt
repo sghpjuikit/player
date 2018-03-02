@@ -3,10 +3,10 @@ package sp.it.pl.service
 import org.reactfx.Subscription
 import sp.it.pl.util.collections.map.ClassMap
 import java.lang.reflect.InvocationTargetException
-import java.util.*
+import java.util.HashSet
+import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
-import java.util.stream.Stream
 import kotlin.reflect.KClass
 
 class ServiceManager {
@@ -24,7 +24,7 @@ class ServiceManager {
     @Suppress("UNCHECKED_CAST")
     fun <S : Service> getService(type: Class<S>): Optional<S> = Optional.ofNullable(services[type] as S)
 
-    fun getAllServices(): Stream<Service> = services.values.stream()
+    fun getAllServices(): Sequence<Service> = services.values.asSequence()
 
     inline fun <reified S: Service> use(noinline action: (S) -> Unit) = use(S::class.java, Consumer(action))
 

@@ -12,6 +12,8 @@ import sp.it.pl.util.conf.Configurable
  */
 interface Service: Configurable<Any> {
 
+    val name: String
+
     /**
      * @implSpec starting the service must not depend on any other service
      */

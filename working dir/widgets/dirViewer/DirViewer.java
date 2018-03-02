@@ -9,7 +9,6 @@ import java.util.stream.Stream;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.ScrollEvent;
 import sp.it.pl.gui.objects.grid.GridFileThumbCell;
-import sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn;
 import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader;
 import sp.it.pl.gui.objects.grid.GridView;
 import sp.it.pl.gui.objects.grid.GridView.CellSize;
@@ -43,7 +42,6 @@ import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.gui.objects.grid.GridFileThumbCell.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppBuildersKt.appTooltipForData;
@@ -94,8 +92,6 @@ public class DirViewer extends ClassController {
     final V<Resolution> cellSizeRatio = new V<>(Resolution.R_1x1, this::applyCellSize);
     @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
     final V<FitFrom> fitFrom = new V<>(FitFrom.OUTSIDE);
-    @IsConfig(name = "Thumbnail animate on", info = "Determines when the thumbnail image transition is played.")
-    final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width, cellSize.get().width/cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT, 5, 5);
     private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
@@ -328,11 +324,6 @@ public class DirViewer extends ClassController {
     private class Cell extends GridFileThumbCell {
         public Cell() {
             super(imageLoader);
-        }
-
-        @Override
-        protected AnimateOn computeAnimateOn() {
-            return animateThumbOn.get();
         }
 
         @Override

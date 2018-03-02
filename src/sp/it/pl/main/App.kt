@@ -33,14 +33,19 @@ import sp.it.pl.gui.pane.InfoPane
 import sp.it.pl.gui.pane.MessagePane
 import sp.it.pl.gui.pane.ShortcutPane
 import sp.it.pl.layout.Component
+import sp.it.pl.layout.container.Container
+import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetManager
-import sp.it.pl.layout.widget.WidgetManager.WidgetSource.ANY
+import sp.it.pl.layout.widget.WidgetSource.ANY
+import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.plugin.AppSearchPlugin
 import sp.it.pl.plugin.DirSearchPlugin
+import sp.it.pl.plugin.Plugin
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.ScreenRotator
 import sp.it.pl.service.ClickEffect
+import sp.it.pl.service.Service
 import sp.it.pl.service.ServiceManager
 import sp.it.pl.service.database.Db
 import sp.it.pl.service.notif.Notifier
@@ -64,6 +69,7 @@ import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
+import sp.it.pl.util.file.endsWithSuffix
 import sp.it.pl.util.file.mimetype.MimeTypes
 import sp.it.pl.util.functional.Functors.Ƒ0
 import sp.it.pl.util.functional.Try
@@ -86,7 +92,7 @@ import java.lang.management.ManagementFactory
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
-import kotlin.test.fail
+import sp.it.pl.util.dev.fail
 
 private typealias F = JvmField
 private typealias C = IsConfig
@@ -199,6 +205,10 @@ class App: Application(), Configurable<Any> {
 
     @C(name = "Normal mode", info = "Whether application loads into previous/default state or no state at all.")
     @F var normalLoad = true
+
+    @C(name = "Developer mode", info = "Unlock developer features.")
+    @F var developerMode = false
+
     private var isInitialized: Try<Void, Throwable> = Try.error(Exception("Initialization has not run yet"))
     private var closedPrematurely = false
 
@@ -245,20 +255,28 @@ class App: Application(), Configurable<Any> {
         className.add(PlaylistItem::class.java, "Playlist Song")
         className.add(Metadata::class.java, "Library Song")
         className.add(MetadataGroup::class.java, "Song Group")
+        className.add(Service::class.java, "Service")
+        className.add(Plugin::class.java, "Plugin")
+        className.add(Widget::class.java, "Widget")
+        className.add(Container::class.java, "Container")
+        className.add(Feature::class.java, "Feature")
         className.add(List::class.java, "List")
 
         // add optional object instance -> string converters
         instanceName.add(Void::class.java) { "<none>" }
+        instanceName.add(File::class.java, { it.path })
         instanceName.add(App::class.java) { "This application" }
         instanceName.add(Item::class.java, { it.getPathAsString() })
         instanceName.add(PlaylistItem::class.java, { it.getTitle() })
         instanceName.add(Metadata::class.java, { it.getTitleOrEmpty() })
         instanceName.add(MetadataGroup::class.java) { it.getValueS("<none>") }
+        instanceName.add(Service::class.java, { it.name })
+        instanceName.add(Plugin::class.java, { it.name })
         instanceName.add(Component::class.java, { it.exportName })
-        instanceName.add(File::class.java, { it.path })
+        instanceName.add(Feature::class.java, { "Feature" })
         instanceName.add(Collection::class.java) {
             val eType = sp.it.pl.util.type.Util.getGenericPropertyType(it.javaClass)
-            val eName = if (eType==null || eType==Any::class.java) "Item" else className.get(eType)
+            val eName = if (eType==null || eType==Any::class.java) "Item" else className[eType]
             it.size.toString()+" "+plural(eName, it.size)
         }
 
@@ -294,6 +312,10 @@ class App: Application(), Configurable<Any> {
             PlaylistItem.Field.FIELDS.asSequence()
                     .filter { it.isTypeStringRepresentable() }
                     .forEach { map[it.name()] = it.getOfS(p, "<none>") }
+        }
+        instanceInfo.add(Feature::class.java) { f, map ->
+            map["Name"] = f.name
+            map["Description"] = f.description
         }
 
         // init cores
@@ -335,7 +357,7 @@ class App: Application(), Configurable<Any> {
                     actions,
                     windowManager,
                     guide,
-                    services.getAllServices()
+                    services.getAllServices().toList()
             )
 
             // ui
@@ -362,7 +384,7 @@ class App: Application(), Configurable<Any> {
             Player.initialize()
 
             val ps = fetchArguments()
-            normalLoad = normalLoad && ps.none { it.endsWith(".fxwl") || widgetManager.factories.get(it)!=null }
+            normalLoad = normalLoad && ps.none { it.endsWith(".fxwl") || widgetManager.factories.getFactory(it)!=null }
 
             // load windows, layouts, widgets
             // we must apply skin before we load graphics, solely because if skin defines custom
@@ -473,7 +495,7 @@ class App: Application(), Configurable<Any> {
     private fun AppParameterProcessor.initForApp() {
         addFileProcessor(
                 { AudioFileFormat.isSupported(it, Use.APP) },
-                { fs -> widgetManager.use(PlaylistFeature::class.java, ANY) { it.playlist.addFiles(fs) } }
+                { fs -> widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addFiles(fs) } }
         )
         addFileProcessor(
                 { Util.isValidSkinFile(it) },
@@ -485,11 +507,11 @@ class App: Application(), Configurable<Any> {
                 { fs -> fs.firstOrNull()?.let { actions.openImageFullscreen(it) } } // More convenient for user, add option to call one or the other
         )
         addFileProcessor(
-                { it.path.endsWith(".fxwl") },
+                { it endsWithSuffix "fxwl" },
                 { it.forEach { windowManager.launchComponent(it) } }
         )
         addStringProcessor(
-                { s -> widgetManager.getFactories().anyMatch { it.nameGui()==s || it.name()==s } },
+                { s -> widgetManager.factories.getFactories().any { it.nameGui()==s || it.name()==s } },
                 { it.forEach { windowManager.launchComponent(it) } }
         )
     }
@@ -503,11 +525,9 @@ class App: Application(), Configurable<Any> {
     }
 
     private fun Search.initForApp() {
-        sources += listOf(
-                { configuration.fields.stream().map { ConfigSearch.Entry.of(it) } },
-                { widgetManager.componentFactories.map { ConfigSearch.Entry.of(it) } },
-                { Gui.skin.streamValues().map { ConfigSearch.Entry.of(Ƒ0 { "Open skin: $it" }, { Gui.skin.setNapplyValue(it) }, Ƒ0 { Icon(MaterialIcon.BRUSH) }) } }
-        )
+        sources += { configuration.fields.asSequence().map { ConfigSearch.Entry.of(it) } }
+        sources += { widgetManager.factories.getComponentFactories().map { ConfigSearch.Entry.of(it) } }
+        sources += { Gui.skin.enumerateValues().asSequence().map { ConfigSearch.Entry.of(Ƒ0 { "Open skin: $it" }, { Gui.skin.setNapplyValue(it) }, Ƒ0 { Icon(MaterialIcon.BRUSH) }) } }
     }
 
     private fun AppInstanceComm.initForApp() {

@@ -20,6 +20,12 @@ plugins {
 /** working directory of the application */
 val workDir = file("working dir")
 val javaVersion = JavaVersion.VERSION_1_9
+val kotlinVersion: String by extra {
+    buildscript.configurations["classpath"]
+            .resolvedConfiguration.firstLevelModuleDependencies
+            .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
+}
+
 if (JavaVersion.current()!=javaVersion)
     throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
 
@@ -65,12 +71,6 @@ allprojects {
     repositories {
         jcenter()
     }
-}
-
-val kotlinVersion: String by extra {
-    buildscript.configurations["classpath"]
-            .resolvedConfiguration.firstLevelModuleDependencies
-            .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
 
 dependencies {

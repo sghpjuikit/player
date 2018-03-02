@@ -98,9 +98,7 @@ private fun File.readTimeCreated(): FileTime? =
 
 private fun File.readTimeMinOfCreatedAndModified(): FileTime? = readBasicFileAttributes()
         ?.run {
-            val createdAt = creationTime()
-            val modifiedAt = lastModifiedTime()
-            if (createdAt < modifiedAt) createdAt else modifiedAt
+            minOf(creationTime(), lastModifiedTime())
         }
 
 private fun File.readBasicFileAttributes(): BasicFileAttributes? =

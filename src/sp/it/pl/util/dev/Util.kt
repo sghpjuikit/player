@@ -99,3 +99,6 @@ fun activeThreads() = Thread.getAllStackTraces().keys.asSequence()
 
 /** Prints names and status of all threads. Debugging only. */
 fun printThreads() = activeThreads().forEach { println("${it.name} ${it.state}") }
+
+/** Prints this and returns it again. Debugging only. */
+fun <T> T.printIt() = also { println(it) }

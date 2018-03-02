@@ -1,5 +1,3 @@
-buildDir = rootDir.resolve("build").resolve("widgets")
-
 plugins {
     kotlin("jvm")
 }

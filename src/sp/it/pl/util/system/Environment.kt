@@ -260,7 +260,7 @@ fun openIn(files: List<File>) {
     }
 }
 
-fun chooseFile(title: String, type: FileType, initial: File?, w: Window?, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void> {
+fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void> {
     when (type) {
         FileType.DIRECTORY -> {
             val c = DirectoryChooser().apply {
@@ -282,7 +282,7 @@ fun chooseFile(title: String, type: FileType, initial: File?, w: Window?, vararg
     }
 }
 
-fun chooseFiles(title: String, initial: File?, w: Window?, vararg extensions: FileChooser.ExtensionFilter): Try<List<File>, Void> {
+fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<List<File>, Void> {
     val c = FileChooser().apply {
         this.title = title
         this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(APP.DIR_APP)

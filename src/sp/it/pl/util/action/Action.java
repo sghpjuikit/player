@@ -27,6 +27,7 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.hotkey.Hotkeys;
+import sp.it.pl.util.system.Os;
 import sp.it.pl.util.validation.Constraint;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.stream.Collectors.toCollection;
@@ -435,11 +436,11 @@ public final class Action extends Config<Action> implements Runnable {
 
 	@SuppressWarnings("FieldCanBeLocal")
 	@IsConfig(name = "Global shortcuts supported", editable = EditMode.NONE, info = "Whether global shortcuts are supported on this system")
-	private static final boolean isGlobalShortcutsSupported = true;
+	private static final boolean isGlobalShortcutsSupported = !Os.UNIX.isCurrent();
 	@IsConfig(name = "Media shortcuts supported", editable = EditMode.NONE, info = "Whether media shortcuts are supported on this system")
 	private static final boolean isMedialShortcutsSupported = true;
 	private static boolean isRunning = false;
-	private static Hotkeys hotkeys = new Hotkeys(Platform::runLater);
+	private static Hotkeys hotkeys = isGlobalShortcutsSupported ? new Hotkeys(Platform::runLater) : null;
 
 	/**
 	 * Activates listening process for hotkeys. Not running this method will cause hotkeys to not
@@ -518,7 +519,8 @@ public final class Action extends Config<Action> implements Runnable {
 	 * Does nothing if not supported.
 	 */
 	private static void startGlobalListening() {
-		hotkeys.start();
+		if(isGlobalShortcutsSupported)
+			hotkeys.start();
 	}
 
 	/**
@@ -529,7 +531,8 @@ public final class Action extends Config<Action> implements Runnable {
 	 * because bgr listening thread will not close.
 	 */
 	private static void stopGlobalListening() {
-		hotkeys.stop();
+		if(isGlobalShortcutsSupported)
+			hotkeys.stop();
 	}
 
 	/**

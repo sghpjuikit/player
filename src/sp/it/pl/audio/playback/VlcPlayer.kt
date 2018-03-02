@@ -16,7 +16,6 @@ import sp.it.pl.util.functional.runTry
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.sync
-import sp.it.pl.util.system.Os
 import uk.co.caprica.vlcj.discovery.NativeDiscovery
 import uk.co.caprica.vlcj.discovery.linux.DefaultLinuxNativeDiscoveryStrategy
 import uk.co.caprica.vlcj.discovery.mac.DefaultMacNativeDiscoveryStrategy
@@ -179,7 +178,9 @@ class VlcPlayer: GeneralPlayer.Play {
             // https://github.com/sghpjuikit/player/issues/40
             // https://github.com/caprica/vlcj/issues/173
             // https://github.com/caprica/vlcj/issues/424
-            if (Os.WINDOWS.isCurrent) it.replaceFirst("file:/".toRegex(), "file:///") else it
+            if (it.startsWith("file:/") && it[6] != '/')
+                it.replaceFirst("file:/", "file:///")
+            else it
         }
 
     }

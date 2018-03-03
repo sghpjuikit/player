@@ -19,7 +19,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
-import org.atteo.classindex.ClassIndex;
 import sp.it.pl.util.access.Vo;
 import sp.it.pl.util.action.Action;
 import sp.it.pl.util.collections.mapset.MapSet;
@@ -108,16 +107,17 @@ public class Configuration {
 		for (Configurable<C> c : cs) collect(c);
 	}
 
+	public void collectStaticImplicit() {
+//		ConfigurableTypesPool.types.forEach(c -> {
+//			discoverConfigFieldsOf(c);
+//			discoverMethodsOf(c);
+//		});
+	}
 	public void collectStatic(Class<?>... notAnnotatedClasses) {
-		stream(
-				stream(notAnnotatedClasses),
-				stream(ClassIndex.getAnnotated(IsConfigurable.class))
-			)
-			.distinct()
-			.forEach(c -> {
-				discoverConfigFieldsOf(c);
-				discoverMethodsOf(c);
-			});
+		stream(notAnnotatedClasses).distinct().forEach(c -> {
+			discoverConfigFieldsOf(c);
+			discoverMethodsOf(c);
+		});
 	}
 
 	@SuppressWarnings("unchecked")

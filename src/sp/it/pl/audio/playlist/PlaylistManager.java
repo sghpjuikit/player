@@ -15,13 +15,18 @@ import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.reactive.ValueEventSource;
 import sp.it.pl.util.validation.Constraint;
 import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY;
 
 /** Manages playlists. */
-@IsConfigurable("Playlist")
 @IsActionable
+@IsConfigurable("Playlist")
 public class PlaylistManager implements Configurable {
+
+	static {
+		initStaticConfigs(PlaylistManager.class);
+	}
 
 	public static final MapSet<UUID,Playlist> playlists = new MapSet<>(p -> p.id);
 	public static UUID active = null;

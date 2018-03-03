@@ -12,7 +12,7 @@ import kotlin.text.Charsets.UTF_8
 
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
-    kotlin("jvm") version "1.2.21"
+    kotlin("jvm") version "1.2.30"
     application
     id("com.github.ben-manes.versions") version "0.17.0"
 }
@@ -65,7 +65,6 @@ allprojects {
 
     tasks.withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
-        kaptOptions.supportInheritedAnnotations = true
     }
 
     repositories {
@@ -95,10 +94,6 @@ dependencies {
     // Audio
     compile("uk.co.caprica", "vlcj", "3.10.1")
     compile("de.u-mass", "lastfm-java", "0.1.2")
-
-    // annotation processor
-    compile("org.atteo.classindex", "classindex", "3.4")
-    kapt("org.atteo.classindex", "classindex", "3.4")
 
     // misc
     compile("net.java.dev.jna", "jna-platform", "4.5.1")

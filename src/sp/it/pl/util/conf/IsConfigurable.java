@@ -5,7 +5,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.atteo.classindex.IndexAnnotated;
 
 /**
  * Marks any class that can be configured. This is different from {@link Configurable}
@@ -19,11 +18,8 @@ import org.atteo.classindex.IndexAnnotated;
  * <p/>
  * Also allows to specify default category name for all configuration fields
  * within the annotated class.
- * <p/>
- * For detection purpose, this annotation itself is annotated by {@link IndexAnnotated}.
  */
 @Documented
-@IndexAnnotated
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface IsConfigurable {

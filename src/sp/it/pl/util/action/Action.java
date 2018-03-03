@@ -436,11 +436,11 @@ public final class Action extends Config<Action> implements Runnable {
 
 	@SuppressWarnings("FieldCanBeLocal")
 	@IsConfig(name = "Global shortcuts supported", editable = EditMode.NONE, info = "Whether global shortcuts are supported on this system")
-	private static final boolean isGlobalShortcutsSupported = !Os.UNIX.isCurrent();
+	private static final boolean isGlobalShortcutsSupported = true;
 	@IsConfig(name = "Media shortcuts supported", editable = EditMode.NONE, info = "Whether media shortcuts are supported on this system")
 	private static final boolean isMedialShortcutsSupported = true;
 	private static boolean isRunning = false;
-	private static Hotkeys hotkeys = isGlobalShortcutsSupported ? new Hotkeys(Platform::runLater) : null;
+	private static Hotkeys hotkeys = isGlobalShortcutsSupported() ? new Hotkeys(Platform::runLater) : null;
 
 	/**
 	 * Activates listening process for hotkeys. Not running this method will cause hotkeys to not
@@ -453,7 +453,8 @@ public final class Action extends Config<Action> implements Runnable {
 	public static void startActionListening() {
 		if (isRunning) throw new IllegalStateException("Action listening already running");
 		startLocalListening();
-		if (isGlobalShortcutsSupported() && globalShortcuts.get()) startGlobalListening();
+		if (isGlobalShortcutsSupported() && globalShortcuts.get())
+			startGlobalListening();
 		isRunning = true;
 	}
 
@@ -465,7 +466,8 @@ public final class Action extends Config<Action> implements Runnable {
 	 */
 	public static void stopActionListening() {
 		stopLocalListening();
-		stopGlobalListening();
+		if(isGlobalShortcutsSupported())
+			stopGlobalListening();
 		isRunning = false;
 	}
 
@@ -519,8 +521,7 @@ public final class Action extends Config<Action> implements Runnable {
 	 * Does nothing if not supported.
 	 */
 	private static void startGlobalListening() {
-		if(isGlobalShortcutsSupported)
-			hotkeys.start();
+		hotkeys.start();
 	}
 
 	/**
@@ -531,12 +532,11 @@ public final class Action extends Config<Action> implements Runnable {
 	 * because bgr listening thread will not close.
 	 */
 	private static void stopGlobalListening() {
-		if(isGlobalShortcutsSupported)
-			hotkeys.stop();
+		hotkeys.stop();
 	}
 
 	/**
-	 * Returns true iff global shortcuts are supported at running platform.
+	 * Returns true if global shortcuts are supported at running platform.
 	 * Otherwise false. In such case, global shortcuts will run as local and
 	 * {@link #startGlobalListening()} and {@link #stopGlobalListening()} will
 	 * have no effect.

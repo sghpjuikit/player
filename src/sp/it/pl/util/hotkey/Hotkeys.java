@@ -126,6 +126,7 @@ public class Hotkeys {
 	public void stop() {
 		if (isRunning()) {
 			try {
+				LOGGER.info("Stopping global hotkeys");
 				GlobalScreen.removeNativeKeyListener(keyListener);
 				keyListener = null;
 				GlobalScreen.unregisterNativeHook();

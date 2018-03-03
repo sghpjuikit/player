@@ -179,7 +179,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Shows items in a table.",
                     IconMA.COLLECTIONS,
                     { items -> APP.widgetManager.widgets
-                                .find("Library", NEW, false)
+                                .find(Widgets.LIBRARY, NEW, false)
                                 .ifPresent { it.controller.inputs.getInput<Collection<Item>>("To display").setValue(items) }
                     }
             ),
@@ -188,7 +188,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Group items in a table.",
                     MaterialIcon.COLLECTIONS,
                     { items -> APP.widgetManager.widgets
-                                .find("Library View", NEW, false)
+                            .find(Widgets.LIBRARY_VIEW, NEW, false)
                                 .ifPresent { it.controller.inputs.getInput<Collection<Item>>("To display").setValue(items) }
                     }
             )
@@ -315,14 +315,14 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
                     state = Label(),
                     pi = appProgressIndicator()
             )
-            val tagger by lazy { APP.widgetManager.widgets.createNew("Tagger") }
+            val tagger by lazy { APP.widgetManager.widgets.createNew(Widgets.TAGGER) }
 
             info.bind(task)
             layHorizontally(50.0, Pos.CENTER,
                     layVertically(50.0, Pos.CENTER,
                             ConfigPane(
                                     Config.forProperty(Boolean::class.java, "Make writable if read-only", makeWritable),
-                                    Config.forProperty(Boolean::class.java, "Edit in Tagger", editInTagger),
+                                    Config.forProperty(Boolean::class.java, "Edit in " + Widgets.TAGGER, editInTagger),
                                     Config.forProperty(Boolean::class.java, "Edit only added files", editOnlyAdded),
                                     Config.forProperty(Boolean::class.java, "Enqueue in playlist", enqueue)
                             ),

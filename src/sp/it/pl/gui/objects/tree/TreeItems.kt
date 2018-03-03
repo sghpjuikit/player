@@ -16,6 +16,9 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.TransferMode
 import mu.KotlinLogging
+import sp.it.pl.audio.Item
+import sp.it.pl.audio.tagging.MetadataGroup
+import sp.it.pl.audio.tagging.PlaylistItemGroup
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.window.stage.Window
 import sp.it.pl.layout.Component
@@ -44,9 +47,12 @@ import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.file.parentDir
 import sp.it.pl.util.functional.clearSet
+import sp.it.pl.util.functional.getElementType
 import sp.it.pl.util.functional.orNull
+import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.createIcon
 import sp.it.pl.util.system.open
+import sp.it.pl.util.text.plural
 import java.io.File
 import java.nio.file.Path
 import java.util.ArrayList
@@ -67,8 +73,13 @@ fun <T> tree(o: T): SimpleTreeItem<T> = when (o) {
     is Container<*> -> LayoutItem(o)
     is File -> FileTreeItem(o)
     is Node -> NodeTreeItem(o)
-    is Window -> STreeItem(o, { sequenceOf(o.stage.scene.root, o.layout) })
+    is Window -> STreeItem(o, { seqOf(o.stage.scene.root, o.layout) })
     is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
+    is Item -> STreeItem(o.uri, { seqOf() }, { true })
+    is MetadataGroup -> STreeItem<Any?>(o.getValueS("<none>"), { o.grouped.asSequence() }, { o.grouped.isEmpty() })
+    is PlaylistItemGroup -> STreeItem<Any?>("Playlist Items", { o.items.asSequence() }, { o.items.isEmpty() })
+    is List<*> -> STreeItem<Any?>("List of " + APP.className.get(o.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
+    is Set<*> -> STreeItem<Any?>("Set of " + APP.className.get(o.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
     else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().asSequence() }, { true }) else SimpleTreeItem(o)
 }.let { it as SimpleTreeItem<T> }
 
@@ -84,7 +95,7 @@ fun treeApp(): SimpleTreeItem<Any> {
     val widgetT = tree("Widgets",
             tree("Categories", Widget.Group.values().asList()),
             tree("Types", { APP.widgetManager.factories.getFactories().sortedBy { it.nameGui() } }),
-            tree("Open", { sequenceOf(ANY, OPEN_LAYOUT, OPEN_STANDALONE) }),
+            tree("Open", { seqOf(ANY, OPEN_LAYOUT, OPEN_STANDALONE) }),
             tree("Features", { APP.widgetManager.factories.getFeatures().sortedBy { it.name } })
     )
     return tree("App",
@@ -248,7 +259,7 @@ private fun doAction(o: Any?, otherwise: () -> Unit) {
 
 private val globalContextMenu by lazy { ValueContextMenu() }
 
-open class SimpleTreeItem<T> @JvmOverloads constructor(v: T, children: Sequence<T> = sequenceOf()): TreeItem<T>(v) {
+open class SimpleTreeItem<T> @JvmOverloads constructor(v: T, children: Sequence<T> = seqOf()): TreeItem<T>(v) {
     val showLeaves = V(true)
 
     init {
@@ -285,9 +296,9 @@ open class STreeItem<T> @JvmOverloads constructor(v: T, private val childrenLazy
     override fun isLeaf() = isLeafLazy()
 }
 
-class WidgetItem(v: Widget<*>): STreeItem<Any>(v, { sequenceOf(v.areaTemp?.root).filterNotNull() }, { false })
+class WidgetItem(v: Widget<*>): STreeItem<Any>(v, { seqOf(v.areaTemp?.root).filterNotNull() }, { false })
 
-class LayoutItem(v: Component): STreeItem<Component>(v, { (v as? Container<*>)?.children?.values?.asSequence() ?: sequenceOf() })
+class LayoutItem(v: Component): STreeItem<Component>(v, { (v as? Container<*>)?.children?.values?.asSequence() ?: seqOf() })
 
 class FileTreeItem: SimpleTreeItem<File> {
     private val isLeaf: Boolean

@@ -446,7 +446,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         fun <F> find(feature: Class<F>, source: WidgetSource, ignore: Boolean = false): Optional<F> =
                 find({ it.hasFeature(feature) }, source, ignore).map { it.getController() as F }
 
-        fun find(name: String, source: WidgetSource, ignore: Boolean): Optional<Widget<*>> =
+        @JvmOverloads
+        fun find(name: String, source: WidgetSource, ignore: Boolean = false): Optional<Widget<*>> =
                 find({ it.name()==name || it.nameGui()==name }, source, ignore)
 
         /** Equivalent to: `getWidget(type, source).ifPresent(action)` */

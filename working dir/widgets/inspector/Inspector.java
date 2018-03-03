@@ -15,15 +15,18 @@ import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.FileExplorerFeature;
+import sp.it.pl.layout.widget.feature.Opener;
+import sp.it.pl.main.Widgets;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static sp.it.pl.layout.widget.Widget.Group.APP;
 import static sp.it.pl.util.graphics.Util.setAnchor;
+import static sp.it.pl.util.graphics.UtilKt.expandAndSelect;
 
 @Widget.Info(
     author = "Martin Polakovic",
-    name = "Inspector",
+    name = Widgets.INSPECTOR,
     description = "Inspects application as hierarchy. Displays windows, widgets,"
                 + "file system and more. Allows editing if possible.",
     howto = "Available actions:\n"
@@ -37,7 +40,7 @@ import static sp.it.pl.util.graphics.Util.setAnchor;
     year = "2015",
     group = APP
 )
-public class Inspector extends ClassController implements FileExplorerFeature {
+public class Inspector extends ClassController implements FileExplorerFeature, Opener {
 
     private static final PseudoClass selectedPC = getPseudoClass("selected");
     private Node sel_node = null;
@@ -113,6 +116,13 @@ public class Inspector extends ClassController implements FileExplorerFeature {
     @Override
     public void onClose() {
         if (sel_node!=null) unhighlightNode(sel_node);
+    }
+
+    @Override
+    public void open(Object data) {
+        TreeItem<Object> item = TreeItemsKt.tree(data);
+        tree.getRoot().getChildren().add(item);
+        expandAndSelect(tree, item);
     }
 
     private static void highlightNode(Node n) {

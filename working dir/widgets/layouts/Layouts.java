@@ -18,6 +18,7 @@ import sp.it.pl.layout.container.switchcontainer.SwitchContainer;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Group;
 import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.main.Widgets;
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
 import static java.util.stream.Collectors.toList;
 import static sp.it.pl.main.AppUtil.APP;
@@ -27,7 +28,7 @@ import static sp.it.pl.util.system.EnvironmentKt.browse;
 @SuppressWarnings({"WeakerAccess", "unused"})
 @Widget.Info(
     author = "Martin Polakovic",
-    name = "Layouts",
+    name = Widgets.LAYOUTS,
     version = "0.4",
     year = "2014",
     group = Group.APP

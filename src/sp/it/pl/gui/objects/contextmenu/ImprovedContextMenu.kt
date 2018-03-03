@@ -17,12 +17,14 @@ import sp.it.pl.audio.tagging.PlaylistItemGroup
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT
 import sp.it.pl.layout.widget.feature.FileExplorerFeature
+import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.main.browseMultipleFiles
 import sp.it.pl.util.access.AccessibleValue
 import sp.it.pl.util.collections.map.ClassListMap
+import sp.it.pl.util.dev.fail
 import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util.writeImage
 import sp.it.pl.util.functional.asArray
@@ -41,7 +43,6 @@ import sp.it.pl.web.SearchUriBuilder
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
-import sp.it.pl.util.dev.fail
 
 private typealias ItemsSupply = (ImprovedContextMenu<*>, Any?) -> Sequence<MenuItem>
 
@@ -166,8 +167,9 @@ class ContextMenuItemSuppliers {
 }
 
 val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
-    add<Any> { contextMenu, o -> notNullSeqOf(
+    add<Any> { contextMenu, o -> menuItems(
             menuItem("Show detail") { APP.actionPane.show(o) },
+            menuWithWidgetItems<Opener>("Examine in") { println("" + o::class + " " + o); it.open(o) },
             runIf(APP.developerMode) {
                 menuWithItems(
                         "Public methods",
@@ -184,11 +186,10 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
                                 logger.error(e) { "Could not invoke method $it on object $o" }
                             }
                         }
-                ).takeIf { it.items.isNotEmpty() }
+                )
             }
-    )
-    }
-    add<File> { contextMenu, file -> notNullSeqOf(
+    )}
+    add<File> { contextMenu, file -> menuItems(
             menuItem("Browse location") { file.browse() },
             menuItem("Open (in associated program)") { file.open() },
             menuItem("Edit (in associated editor)") { file.edit() },
@@ -205,34 +206,19 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
                         }
             }
     )}
-    addMany<File> { contextMenu, files -> notNullSeqOf(
+    addMany<File> { contextMenu, files -> menuItems(
             menuItem("Copy") { copyToSysClipboard(DataFormat.FILES, files) },
             menuItem("Explore in browser") { browseMultipleFiles(files.asSequence()) }
     )}
-    add<MetadataGroup> { contextMenu, mg -> notNullSeqOf(
+    add<MetadataGroup> { contextMenu, mg -> menuItems(
             menuItem("Play items") { PlaylistManager.use { it.setNplay(mg.grouped.stream().sorted(APP.db.libraryComparator.get())) } },
             menuItem("Enqueue items") { PlaylistManager.use { it.addItems(mg.grouped) } },
             menuItem("Update items from file") { APP.actions.refreshItemsFromFileJob(mg.grouped) },
             menuItem("Remove items from library") { APP.db.removeItems(mg.grouped) },
-            menuWithItems(
-                    "Show in",
-                    APP.widgetManager.factories.getFactoriesWith<SongReader>(),
-                    { it.nameGui() },
-                    { it.use(NO_LAYOUT) { it.read(mg.grouped) } }
-            ),
-            menuWithItems(
-                    "Edit tags in",
-                    APP.widgetManager.factories.getFactoriesWith<SongWriter>(),
-                    { it.nameGui() },
-                    { it.use(NO_LAYOUT) { it.read(mg.grouped) } }
-            ),
+            menuWithWidgetItems<SongReader>("Show in") { it.read(mg.grouped) },
+            menuWithWidgetItems<SongWriter>("Edit tags in") { it.read(mg.grouped) },
             menuItem("Explore items's directory") { browseMultipleFiles(mg.grouped.asSequence().filter { it.isFileBased() }.map { it.getFile() }) },
-            menuWithItems(
-                    "Explore items' directory in",
-                    APP.widgetManager.factories.getFactoriesWith<FileExplorerFeature>(),
-                    { it.nameGui() },
-                    { it.use(NO_LAYOUT) { it.exploreFile(mg.grouped[0].getFile()) } }
-            ),
+            menuWithWidgetItems<FileExplorerFeature>("Explore items' directory in") { it.exploreFile(mg.grouped[0].getFile()) },
             runIf(mg.field==Field.ALBUM) {
                 menuWithItems(
                         "Search cover in",
@@ -242,21 +228,11 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
                 )
             }
     )}
-    add<PlaylistItemGroup> { contextMenu, pig -> notNullSeqOf(
+    add<PlaylistItemGroup> { contextMenu, pig -> menuItems(
             menuItem("Play items") { PlaylistManager.use { it.playItem(pig.items[0]) } },
             menuItem("Remove items") { PlaylistManager.use { it.removeAll(pig.items) } },
-            menuWithItems(
-                    "Show in",
-                    APP.widgetManager.factories.getFactoriesWith<SongReader>(),
-                    { it.nameGui() },
-                    { it.use(NO_LAYOUT) { it.read(pig.items) } }
-            ),
-            menuWithItems(
-                    "Edit tags in",
-                    APP.widgetManager.factories.getFactoriesWith<SongWriter>(),
-                    { it.nameGui() },
-                    { it.use(NO_LAYOUT) { it.read(pig.items) } }
-            ),
+            menuWithWidgetItems<SongReader>("Show in") { it.read(pig.items) },
+            menuWithWidgetItems<SongWriter>("Edit tags in") { it.read(pig.items) },
             menuItem("Crop items") { PlaylistManager.use { it.retainAll(pig.items) } },
             menuItem("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(pig.items) } },
             menuItem("Duplicate items individually") { PlaylistManager.use { it.duplicateItemsByOne(pig.items) } },
@@ -269,7 +245,7 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
                     { APP.actions.itemToMeta(pig.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
             )
     )}
-    add<Thumbnail.ContextMenuData> { contextMenu, cmd -> notNullSeqOf(
+    add<Thumbnail.ContextMenuData> { contextMenu, cmd -> menuItems(
             runIf(cmd.image!=null) {
                 Menu("Image", null,
                         menuItem("Save image as ...") {
@@ -300,7 +276,7 @@ val CONTEXT_MENUS = ContextMenuItemSuppliers().apply {
 
 }
 
-private fun <T: Any> notNullSeqOf(vararg elements: T?) = seqOf(*elements).filterNotNull()
+private fun <T: MenuItem> menuItems(vararg elements: T?) = seqOf(*elements).filterNotNull().filterNot { it is Menu && it.items.isEmpty() }
 
 private fun menu(text: String, items: Sequence<MenuItem> = seqOf()) = Menu(text, null, *items.asArray())
 
@@ -314,3 +290,10 @@ private fun menuOfItemsFor(contextMenu: ImprovedContextMenu<*>, value: Any?): Me
     val menuName = APP.className.get(value?.javaClass ?: Void::class.java)
     return menuOfItemsFor(contextMenu, menuName, value)
 }
+
+private inline fun <reified W> menuWithWidgetItems(name: String, crossinline action: (W) -> Unit) = menuWithItems(
+        name,
+        APP.widgetManager.factories.getFactoriesWith<W>(),
+        { it.nameGui() },
+        { it.use(NO_LAYOUT) { action(it) } }
+)

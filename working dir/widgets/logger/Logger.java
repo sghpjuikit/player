@@ -12,6 +12,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.TextArea;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.main.Widgets;
 import sp.it.pl.util.conf.IsConfig;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.graphics.Util.setAnchors;
@@ -22,7 +23,7 @@ import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
  */
 @Widget.Info(
 		author = "Martin Polakovic",
-		name = "Logger",
+		name = Widgets.LOGGER,
 		description = "Displays console output by listening to System.out, which contains application logging.",
 //		howto = "",
 //		notes = "",

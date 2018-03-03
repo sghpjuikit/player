@@ -453,7 +453,7 @@ public final class Action extends Config<Action> implements Runnable {
 	public static void startActionListening() {
 		if (isRunning) throw new IllegalStateException("Action listening already running");
 		startLocalListening();
-		startGlobalListening();
+		if (isGlobalShortcutsSupported() && globalShortcuts.get()) startGlobalListening();
 		isRunning = true;
 	}
 
@@ -694,14 +694,14 @@ public final class Action extends Config<Action> implements Runnable {
 	public static final V<Boolean> globalShortcuts = new V<>(true, v -> {
 		if (isGlobalShortcutsSupported()) {
 			if (v) {
-				hotkeys.start();
+				startGlobalListening();
 				// re-register shortcuts to switch from local
 				getActions().forEach(a -> {
 					a.unregister();
 					a.register();
 				});
 			} else {
-				hotkeys.stop();
+				stopGlobalListening();
 				// re-register shortcuts to switch to local
 				getActions().forEach(a -> {
 					a.unregister();

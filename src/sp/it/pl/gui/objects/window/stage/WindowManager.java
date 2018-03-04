@@ -468,11 +468,11 @@ public class WindowManager implements Configurable<Object> {
 		PopOver<?> p = new PopOver<>(l.getRoot());
 		p.title.set(w.getInfo().nameGui());
 		p.setAutoFix(false);
-		p.show(ScreenPos.APP_CENTER);
 
 		p.addEventFilter(WINDOW_HIDING, we -> l.close());
 		l.setChild(w);  // load widget when graphics ready & shown
 
+		p.show(ScreenPos.APP_CENTER);
 		return p;
 	}
 

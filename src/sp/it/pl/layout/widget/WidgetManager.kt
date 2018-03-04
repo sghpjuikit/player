@@ -193,8 +193,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         /** @return primary source file (either Kotlin or Java) or null if none exists */
         fun findSrcFile() = null
-                ?: widgetDir.childOf(widgetName+".java").takeIf { it.exists() }
-                ?: widgetDir.childOf(widgetName+".kt").takeIf { it.exists() }
+                ?: widgetDir.childOf("$widgetName.java").takeIf { it.exists() }
+                ?: widgetDir.childOf("$widgetName.kt").takeIf { it.exists() }
 
         fun findSrcFiles() = widgetDir.seqChildren().filter { it.endsWithSuffix("java", "kt") }
 
@@ -263,7 +263,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             logger.info { "Widget=$widgetName factory updating" }
 
             val srcFiles = findSrcFiles().toList()
-            val classFile = widgetDir.childOf(widgetName+".class")
+            val classFile = widgetDir.childOf("$widgetName.class")
             val srcFile = findSrcFile()
 
             val srcFileAvailable = srcFile!=null

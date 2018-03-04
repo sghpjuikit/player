@@ -134,7 +134,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         outSelected = outputs.create(id,"Selected", Item.class, null);
         outPlaying = outputs.create(id,"Playing", Item.class, null);
         d(Player.playlistSelected.i.bind(outSelected));
-        d(maintain(playlist.playingI, ι -> playlist.getPlaying(), outPlaying));
+        d(maintain(playlist.playingI, i -> playlist.getPlaying(), outPlaying));
         d(Player.onItemRefresh(ms -> {
             if (outPlaying.getValue()!=null)
                 ms.ifHasK(outPlaying.getValue().getUri(), m -> outPlaying.setValue(m.toPlaylist()));

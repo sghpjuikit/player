@@ -184,7 +184,7 @@ public class Configuration {
 
 		Map<String, Properties.Property> properties = stream(getFields())
 				.filter(c -> c.getType()!=Void.class)
-				.collect(toMap(configs.keyMapper, c -> new Property(c.getInfo(), c.getValueS())));
+				.collect(toMap(c -> configs.keyMapper.invoke(c), c -> new Property(c.getInfo(), c.getValueS())));
 
 		properties.putAll(
 			rawGet().entrySet().stream()

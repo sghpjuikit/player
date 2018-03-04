@@ -23,6 +23,7 @@ import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static sp.it.pl.layout.widget.Widget.Group.APP;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.UtilKt.expandAndSelect;
+import static sp.it.pl.util.graphics.UtilKt.propagateESCAPE;
 
 @Widget.Info(
     author = "Martin Polakovic",
@@ -72,6 +73,7 @@ public class Inspector extends ClassController implements FileExplorerFeature, O
                 n.setStyle("-fx-background-color: rgba(90,200,200,0.2);");
             }
         });
+	    propagateESCAPE(tree);
 
         setOnDragOver(DragUtil.fileDragAcceptHandler);
         setOnDragDropped(e -> exploreFiles(DragUtil.getFiles(e)));

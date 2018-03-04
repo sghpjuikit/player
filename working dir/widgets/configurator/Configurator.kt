@@ -27,6 +27,7 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.functional.seqRec
 import sp.it.pl.util.graphics.expandAndSelect
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
+import sp.it.pl.util.graphics.propagateESCAPE
 import sp.it.pl.util.reactive.attach
 import java.util.ArrayList
 
@@ -65,6 +66,7 @@ class Configurator: ClassController(), ConfiguringFeature<Any> {
         configsRootPane.children += configsPane
         groups.selectionModel.selectionMode = SINGLE
         groups.cellFactory = Callback { buildTreeCell(it) }
+        groups.propagateESCAPE()
         onClose += groups.selectionModel.selectedItemProperty() attach { nv ->
             storeAppSettingsSelection(nv)
             showConfigs(configs.filter { it.group==nv?.value?.pathUp })

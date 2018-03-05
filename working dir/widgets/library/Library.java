@@ -33,6 +33,7 @@ import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.SongReader;
+import sp.it.pl.main.Widgets;
 import sp.it.pl.util.access.Vo;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.animation.Anim;
@@ -77,7 +78,7 @@ import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
 
 @Info(
     author = "Martin Polakovic",
-    name = "Library",
+    name = Widgets.LIBRARY,
     description = "Provides access to database.",
     howto = "Available actions:\n" +
             "    Item left click : Selects item\n" +

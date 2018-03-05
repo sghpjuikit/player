@@ -8,6 +8,7 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.audio.tagging.MetadataWriter
 import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.Widgets
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.service.notif.Notifier
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.NEVER
@@ -88,7 +89,7 @@ class PlaycountIncrementer : ServiceBase("Playcount Incrementer", false) {
                 if (showNotification.value)
                     APP.services.use<Notifier> { it.showTextNotification("Song playcount incrementing scheduled", "Playcount") }
                 if (showBubble.value)
-                    APP.services.use<TrayService> { it.showNotification("Tagger", "Playcount incremented scheduled", INFO) }
+                    APP.services.use<TrayService> { it.showNotification(Widgets.TAGGER, "Playcount incremented scheduled", INFO) }
             } else {
                 val pc = 1 + m.getPlaycountOr0()
                 MetadataWriter.use(m, { it.setPlaycount(pc) }) { ok ->
@@ -96,7 +97,7 @@ class PlaycountIncrementer : ServiceBase("Playcount Incrementer", false) {
                         if (showNotification.value)
                             APP.services.use<Notifier> { it.showTextNotification("Song playcount incremented to: $pc", "Playcount") }
                         if (showBubble.value)
-                            APP.services.use<TrayService> { it.showNotification("Tagger", "Playcount incremented to: $pc", INFO) }
+                            APP.services.use<TrayService> { it.showNotification(Widgets.TAGGER, "Playcount incremented to: $pc", INFO) }
                     }
                 }
             }

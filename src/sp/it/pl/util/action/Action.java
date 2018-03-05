@@ -34,6 +34,7 @@ import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
+import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.setRO;
@@ -41,7 +42,6 @@ import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.reactive.Util.doOnceIfNonNull;
 import static sp.it.pl.util.reactive.Util.listChangeHandlerEach;
 import static sp.it.pl.util.system.EnvironmentKt.runCommand;
-import static sp.it.pl.util.type.Util.getAnnotated;
 
 /**
  * Behavior with a name and possible shortcut.
@@ -54,6 +54,10 @@ import static sp.it.pl.util.type.Util.getAnnotated;
  */
 @IsConfigurable(Action.CONFIG_GROUP)
 public final class Action extends Config<Action> implements Runnable {
+
+	static {
+		initStaticConfigs(Action.class);
+	}
 
 	/** Action that does nothing. Use where null inappropriate. */
 	public static final Action EMPTY = new Action("None", () -> {}, "Action that does nothing", "", "", false, false);
@@ -452,7 +456,7 @@ public final class Action extends Config<Action> implements Runnable {
 	public static void startActionListening() {
 		if (isRunning) throw new IllegalStateException("Action listening already running");
 		startLocalListening();
-		startGlobalListening();
+		if (isGlobalShortcutsSupported() && globalShortcuts.get()) startGlobalListening();
 		isRunning = true;
 	}
 
@@ -582,7 +586,7 @@ public final class Action extends Config<Action> implements Runnable {
 	}
 
 	private static final MapSet<Integer,Action> actions = new MapSet<>(new ConcurrentHashMap<>(), Action::getID) {{
-		getAnnotated(IsActionable.class).flatMap(type -> gatherActions(type, null)).forEach(this::add);
+//		ConfigurableTypesPool.types.stream().flatMap(type -> gatherActions(type, null)).forEach(this::add);
 		add(EMPTY);
 	}};
 
@@ -595,19 +599,19 @@ public final class Action extends Config<Action> implements Runnable {
 					if (o instanceof Collection) return Stream.concat(Stream.of(o), ((Collection<?>)o).stream());
 					return stream(o);
 				})
-				.forEach(o -> gatherActions(o).forEach(actions::add));
+				.forEach(o -> gatherActions(o));
 	}
 
-	public static Stream<Action> gatherActions(Object object) {
-		return gatherActions(object.getClass(), object);
+	public static void gatherActions(Object object) {
+		gatherActions(object.getClass(), object);
 	}
 
-	private static <T> Stream<Action> gatherActions(Class<? extends T> type, T instance) {
-		boolean findInstance = instance!=null;
+	public static <T> void gatherActions(Class<? extends T> type, T instance) {
+		boolean useStatic = instance!=null;
 		Lookup method_lookup = MethodHandles.lookup();
-		return stream(type.getDeclaredMethods())
+		stream(type.getDeclaredMethods())
 				.map(m -> new Pair<>(m, isStatic(m.getModifiers())))
-				.filter(m -> findInstance^m.getValue())
+				.filter(m -> useStatic^m.getValue())
 				.flatMap(m -> stream(m.getKey().getAnnotationsByType(IsAction.class))
 						.map(a -> {
 							if (m.getKey().getParameters().length>0)
@@ -632,7 +636,9 @@ public final class Action extends Config<Action> implements Runnable {
 							};
 							return new Action(a, group, r);
 						})
-				);
+
+				)
+				.forEach(actions::add);
 	}
 
 	public static void loadCommandActions() {
@@ -691,14 +697,14 @@ public final class Action extends Config<Action> implements Runnable {
 	public static final V<Boolean> globalShortcuts = new V<>(true, v -> {
 		if (isGlobalShortcutsSupported()) {
 			if (v) {
-				hotkeys.start();
+				startGlobalListening();
 				// re-register shortcuts to switch from local
 				getActions().forEach(a -> {
 					a.unregister();
 					a.register();
 				});
 			} else {
-				hotkeys.stop();
+				stopGlobalListening();
 				// re-register shortcuts to switch to local
 				getActions().forEach(a -> {
 					a.unregister();

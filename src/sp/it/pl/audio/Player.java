@@ -50,6 +50,7 @@ import static sp.it.pl.audio.playback.PlayTimeHandler.at;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.*;
 import static sp.it.pl.util.async.executor.EventReducer.toLast;
+import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.list;
@@ -59,6 +60,10 @@ import static sp.it.pl.util.system.EnvironmentKt.browse;
 @IsActionable
 @IsConfigurable("Playback")
 public class Player {
+
+	static {
+		initStaticConfigs(Player.class);
+	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Player.class);
 

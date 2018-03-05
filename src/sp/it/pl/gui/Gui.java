@@ -39,6 +39,7 @@ import static sp.it.pl.gui.Gui.OpenStrategy.INSIDE;
 import static sp.it.pl.gui.GuiKt.applySkin;
 import static sp.it.pl.layout.widget.WidgetSource.ANY;
 import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
 import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.graphics.UtilKt.isAnyParentOf;
@@ -46,6 +47,10 @@ import static sp.it.pl.util.graphics.UtilKt.isAnyParentOf;
 @IsActionable
 @IsConfigurable
 public class Gui {
+
+	static {
+		initStaticConfigs(Gui.class);
+	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Gui.class);
 

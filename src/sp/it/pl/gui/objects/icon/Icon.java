@@ -126,7 +126,7 @@ public class Icon extends StackPane {
 
 	private final Text node = new Text();
 	private StringProperty glyphStyle; // needed as setStyle() is final in javafx.scene.text.Text
-	private final SimpleStyleableObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", GLYPHS.keyMapper.apply(ADJUST));
+	private final SimpleStyleableObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", GLYPHS.keyMapper.invoke(ADJUST));
 	private boolean isGlyphSetProgrammatically = false;
 	private final SimpleStyleableObjectProperty<Number> size = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_SIZE, Icon.this, "glyphSize", DEFAULT_ICON_SIZE);
 	private boolean isGlyphSizeSetProgrammatically = false;
@@ -234,7 +234,7 @@ public class Icon extends StackPane {
 	public Icon icon(GlyphIcons i) {
 		isGlyphSetProgrammatically |= i!=null;
 		glyph = i;
-		setGlyphName(i==null ? "null" : GLYPHS.keyMapper.apply(i));
+		setGlyphName(i==null ? "null" : GLYPHS.keyMapper.invoke(i));
 		return this;
 	}
 
@@ -401,7 +401,7 @@ public class Icon extends StackPane {
 
 	public GlyphIcons getGlyph() {
 		String n = getGlyphName();
-		if (glyph==null || !GLYPHS.keyMapper.apply(glyph).equals(n))
+		if (glyph==null || !GLYPHS.keyMapper.invoke(glyph).equals(n))
 			glyph = GLYPHS.getOr(n, DEFAULT_GLYPH);
 		return glyph;
 	}

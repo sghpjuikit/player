@@ -32,6 +32,7 @@ import sp.it.pl.layout.widget.Widget.Info;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
+import sp.it.pl.main.Widgets;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.Vo;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
@@ -77,7 +78,7 @@ import static sp.it.pl.util.reactive.Util.maintain;
 
 @Info(
     author = "Martin Polakovic",
-    name = "Library View",
+    name = Widgets.LIBRARY_VIEW,
     description = "Provides database filtering.",
     howto = "Available actions:\n" +
             "    Item left click : Selects item\n" +

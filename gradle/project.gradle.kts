@@ -46,7 +46,6 @@ kotlin {
 }
 
 allprojects {
-    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     buildDir = file(properties["player.buildDir"] ?: "build").resolve(name)
 
     tasks.withType<JavaCompile> {

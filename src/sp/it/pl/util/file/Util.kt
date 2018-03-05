@@ -10,6 +10,7 @@ import java.net.MalformedURLException
 import java.net.URI
 import java.util.stream.Stream
 import kotlin.streams.asStream
+import kotlin.streams.toList
 
 /**
  * For files 'filename.extension' is returned.
@@ -132,18 +133,36 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>
                 .flatMap { (sequenceOf(it).filter { it.isFile }+it.walk().filter { it.isDirectory }).asStream() }
     }),
     TOP_LVL_AND_DIRS_AND_WITH_COVER({
+
+        class CCFile(f: File): File(f.path) {
+            val cIsDirectory = f.isDirectory
+
+            override fun isDirectory(): Boolean = cIsDirectory
+
+            fun hasCover(cache: HashSet<File>): Boolean {
+                val n = nameWithoutExtension
+                return ImageFileFormat.values().asSequence()
+                        .filter { it.isSupported }
+                        .any { cache.contains(childOf("$n.$it")) }
+            }
+        }
+
+        fun CCFile.walkDirsAndWithCover(cache: HashSet<File>): Sequence<CCFile> {
+            val fs = listChildren().map(::CCFile).toList()
+            cache += fs
+            return sequenceOf(this) + fs.asSequence().flatMap { it.walkDirsAndWithCover(cache) }
+        }
+
+        fun File.walkDirsAndWithCover(): Stream<File> {
+            val cache = HashSet<File>()
+            return CCFile(this).walkDirsAndWithCover(cache).filter { it.isDirectory || it.hasCover(cache) }.asStream()
+        }
+
         it.stream().distinct()
                 .flatMap { it.listChildren() }
-                .flatMap { it.walk().filter { it.isDirectory || it.hasCover() }.asStream() }
+                .flatMap { it.walkDirsAndWithCover() }
     }),
     ALL({ it.stream().distinct().flatMap { it.walk().asStream().filter(File::isFile) } });
 }
 
-// TODO: optimize
-private fun File.hasCover(): Boolean {
-    val p = parentDir!!
-    val n = nameWithoutExtension
-    return ImageFileFormat.values().asSequence()
-            .filter { it.isSupported }
-            .any { p.childOf("$n.$it").exists() }
-}
+

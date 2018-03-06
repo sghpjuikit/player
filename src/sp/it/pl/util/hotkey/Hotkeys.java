@@ -37,6 +37,8 @@ public class Hotkeys {
 
 	public void start() {
 		if (!isRunning()) {
+			LOGGER.info("Starting global hotkeys");
+
 			// Disable library logging.
 			java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GlobalScreen.class.getPackage().getName());
 			logger.setLevel(java.util.logging.Level.OFF);

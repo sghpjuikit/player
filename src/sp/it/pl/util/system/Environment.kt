@@ -292,7 +292,7 @@ fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg 
     return if (fs!=null && !fs.isEmpty()) ok<List<File>, Void>(fs) else Try.error()
 }
 
-fun saveFile(title: String, initial: File?, initialName: String, w: Window?, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void> {
+fun saveFile(title: String, initial: File? = null, initialName: String, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void> {
     val c = FileChooser().apply {
         this.title = title
         this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(APP.DIR_APP)

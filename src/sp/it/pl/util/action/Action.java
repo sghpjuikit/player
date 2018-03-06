@@ -27,6 +27,7 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.hotkey.Hotkeys;
+import sp.it.pl.util.system.Os;
 import sp.it.pl.util.validation.Constraint;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.stream.Collectors.toCollection;
@@ -440,8 +441,9 @@ public final class Action extends Config<Action> implements Runnable {
 	@SuppressWarnings("FieldCanBeLocal")
 	@IsConfig(name = "Global shortcuts supported", editable = EditMode.NONE, info = "Whether global shortcuts are supported on this system")
 	private static final boolean isGlobalShortcutsSupported = true;
+	private static final boolean isGlobalShortcutsRecommended = Os.WINDOWS.isCurrent();
 	@IsConfig(name = "Media shortcuts supported", editable = EditMode.NONE, info = "Whether media shortcuts are supported on this system")
-	private static final boolean isMedialShortcutsSupported = true;
+	private static final boolean isMediaShortcutsSupported = true;
 	private static boolean isRunning = false;
 	private static Hotkeys hotkeys = new Hotkeys(Platform::runLater);
 
@@ -694,7 +696,7 @@ public final class Action extends Config<Action> implements Runnable {
 /* ---------- CONFIGURATION ----------------------------------------------------------------------------------------- */
 
 	@IsConfig(name = "Global shortcuts enabled", info = "Allows using the shortcuts even if application is not focused.")
-	public static final V<Boolean> globalShortcuts = new V<>(true, v -> {
+	public static final V<Boolean> globalShortcuts = new V<>(isGlobalShortcutsRecommended, v -> {
 		if (isGlobalShortcutsSupported()) {
 			if (v) {
 				startGlobalListening();

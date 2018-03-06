@@ -241,6 +241,7 @@ application {
             "-Dfile.encoding=UTF-8",
             "-ms"+(properties["player.memoryMin"] ?: "100m"),
             "-mx"+(properties["player.memoryMax"] ?: "3g"),
+            *properties["player.jvmArgs"]?.run { toString().split(' ').toTypedArray() } ?: emptyArray(),
             "--add-opens", "java.base/java.util=ALL-UNNAMED",
             "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
             "--add-opens", "java.base/java.text=ALL-UNNAMED",

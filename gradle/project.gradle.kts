@@ -96,7 +96,7 @@ dependencies {
 
     // misc
     compile("net.java.dev.jna", "jna-platform", "4.5.1")
-    compile("com.1stleg", "jnativehook", "2.1.0")
+    compile("com.1stleg", "jnativehook", "2.0.2")
 
     compile("net.objecthunter", "exp4j", "0.4.8")
     compile("org.atteo", "evo-inflector", "1.2.2")

@@ -31,22 +31,18 @@ fun throwIfNot(v: Boolean, s: String) {
     if (!v) throw IllegalStateException("Requirement condition not met: $s")
 }
 
-fun <T> noNull(o: T?): T {
-    if (o==null) throw IllegalStateException("Null forbidden")
-    return o
-}
+fun <T> noNull(o: T?): T = o ?: throw IllegalStateException("Null forbidden")
 
-fun <T> noNull(o: T?, message: String): T {
-    if (o==null) throw IllegalStateException("Null forbidden: $message")
-    return o
-}
+fun <T> noNull(o: T?, message: String): T = o ?: throw IllegalStateException("Null forbidden: $message")
 
 fun noNull(o1: Any?, o2: Any?) {
-    if (o1==null || o2==null) throw IllegalStateException("Null forbidden")
+    if (o1==null || o2==null)
+        throw IllegalStateException("Null forbidden")
 }
 
 fun noNull(vararg objects: Any?) {
-    if (objects.any { it==null }) throw IllegalStateException("Null forbidden")
+    if (objects.any { it==null })
+        throw IllegalStateException("Null forbidden")
 }
 
 fun throwIfFxThread() {

@@ -63,7 +63,7 @@ public enum ImageFileFormat {
 	 * Equivalent to {@link #isSupported(java.net.URI)} using file.toURI().
 	 */
 	public static boolean isSupported(File file) {
-		sp.it.pl.util.dev.Util.noNull(file);
+		noNull(file);
 		return of(file.toURI()).isSupported();
 	}
 

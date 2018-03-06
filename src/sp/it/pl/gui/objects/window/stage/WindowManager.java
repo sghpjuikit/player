@@ -451,7 +451,7 @@ public class WindowManager implements Configurable<Object> {
 	 * @param widget non-null widget widget to open
 	 */
 	public Window showWindow(Component widget) {
-		sp.it.pl.util.dev.Util.noNull(widget);
+		noNull(widget);
 
 		Window w = create();
 		w.initLayout();
@@ -462,7 +462,7 @@ public class WindowManager implements Configurable<Object> {
 	}
 
 	public PopOver showFloating(Widget w) {
-		sp.it.pl.util.dev.Util.noNull(w);
+		noNull(w);
 
 		Layout l = Layout.openStandalone(new AnchorPane());
 		PopOver<?> p = new PopOver<>(l.getRoot());
@@ -512,8 +512,8 @@ public class WindowManager implements Configurable<Object> {
 	}
 
 	public PopOver showFloating(Node content, String title) {
-		sp.it.pl.util.dev.Util.noNull(content);
-		sp.it.pl.util.dev.Util.noNull(title);  // we could use null, but disallow
+		noNull(content);
+		noNull(title);  // we could use null, but disallow
 
 		PopOver<?> p = new PopOver<>(content);
 		p.title.set(title);

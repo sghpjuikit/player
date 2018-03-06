@@ -523,7 +523,7 @@ public interface Util {
 	 * @throws java.lang.RuntimeException if any param null
 	 */
 	static MenuItem menuItem(String text, EventHandler<ActionEvent> action) {
-		sp.it.pl.util.dev.Util.noNull(action);
+		noNull(action);
 		MenuItem i = new MenuItem(text);
 		i.setOnAction(action);
 		return i;

@@ -5,6 +5,7 @@ import javafx.application.Platform
 import javafx.util.Duration
 import mu.KotlinLogging
 import sp.it.pl.util.async.executor.FxTimer
+import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.dev.throwIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.math.millis
@@ -187,7 +188,7 @@ fun runFX(delay: Double, r: Runnable) {
     if (delay==0.0)
         runFX(r)
     else
-        FxTimer(delay, 1) { runFX(r) }.start()
+        fxTimer(delay, 1) { runFX(r) }.start()
 }
 
 fun runFX(delay1: Double, r1: Runnable, delay2: Double, r2: Runnable) {
@@ -203,9 +204,8 @@ fun runFX(delay1: Double, r1: Runnable, delay2: Double, r2: Runnable) {
  *
  * @param delay delay
  */
-fun runFX(delay: Duration, r: Runnable) {
-    FxTimer(delay, 1) { runFX(r) }.start()
-}
+fun runFX(delay: Duration, r: Runnable) =
+    fxTimer(delay, 1) { runFX(r) }.start()
 
 /**
  * Executes the runnable on fx thread at unspecified time in the future.

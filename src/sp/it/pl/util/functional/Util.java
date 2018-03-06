@@ -289,7 +289,7 @@ public interface Util {
 	 * @throws NullPointerException if argument is null
 	 */
 	static <E, C extends Comparable<? super C>> Comparator<E> by(Function<? super E,? extends C> extractor) {
-		sp.it.pl.util.dev.Util.noNull(extractor);
+		noNull(extractor);
 		return by(extractor, Comparable::compareTo);
 	}
 
@@ -327,8 +327,8 @@ public interface Util {
 	 * }</pre>
 	 */
 	static <E, C> Comparator<E> by(Function<? super E,? extends C> extractor, Comparator<? super C> comparator) {
-		sp.it.pl.util.dev.Util.noNull(extractor);
-		sp.it.pl.util.dev.Util.noNull(comparator);
+		noNull(extractor);
+		noNull(comparator);
 		return (Comparator<E> & Serializable) (a, b) -> comparator.compare(extractor.apply(a), extractor.apply(b));
 	}
 
@@ -349,8 +349,8 @@ public interface Util {
 	 * {@link Comparator#nullsFirst(java.util.Comparator)}).
 	 */
 	static <E, C extends Comparable<? super C>> Comparator<E> by(Function<? super E,? extends C> extractor, Function<Comparator<? super C>,Comparator<? super C>> comparatorModifier) {
-		sp.it.pl.util.dev.Util.noNull(extractor);
-		sp.it.pl.util.dev.Util.noNull(comparatorModifier);
+		noNull(extractor);
+		noNull(comparatorModifier);
 		return (Comparator<E> & Serializable) (a, b) -> comparatorModifier.apply(Comparator.naturalOrder()).compare(extractor.apply(a), extractor.apply(b));
 	}
 
@@ -376,7 +376,7 @@ public interface Util {
 
 	@SuppressWarnings("unchecked")
 	static <NN> Ƒ1<?,NN> mapNulls(NN non_null) {
-		sp.it.pl.util.dev.Util.noNull(non_null);
+		noNull(non_null);
 		return (Ƒ1) in -> in==null ? non_null : in;
 	}
 

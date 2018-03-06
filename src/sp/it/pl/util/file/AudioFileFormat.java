@@ -117,7 +117,7 @@ public enum AudioFileFormat {
 	 * @throws NullPointerException if param is null
 	 */
 	public static boolean isSupported(URI uri, Use use) {
-		sp.it.pl.util.dev.Util.noNull(uri);
+		noNull(uri);
 		return of(uri).isSupported(use);
 	}
 
@@ -127,7 +127,7 @@ public enum AudioFileFormat {
 	 * @throws NullPointerException if param is null
 	 */
 	public static boolean isSupported(File file, Use use) {
-		sp.it.pl.util.dev.Util.noNull(file);
+		noNull(file);
 		return of(file.toURI()).isSupported(use);
 	}
 

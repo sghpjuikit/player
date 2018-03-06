@@ -32,6 +32,7 @@ import sp.it.pl.util.graphics.drag.Placeholder;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppUtil.APP;
@@ -109,8 +110,8 @@ public class AppLauncher extends ClassController {
         FxTimer resizeTimer = new FxTimer(delay, 1, () -> isResizing = false);
         grid.widthProperty().addListener((o,ov,nv) -> isResizing = true);
         grid.heightProperty().addListener((o,ov,nv) -> isResizing = true);
-        grid.widthProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
-        grid.heightProperty().addListener((o,ov,nv) -> resizeTimer.start(300));
+        grid.widthProperty().addListener((o,ov,nv) -> resizeTimer.start(millis(300)));
+        grid.heightProperty().addListener((o,ov,nv) -> resizeTimer.start(millis(300)));
         grid.setOnKeyPressed(e -> {
             if (e.getCode()==ENTER) {
                 Item si = grid.selectedItem.get();

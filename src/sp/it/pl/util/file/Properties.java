@@ -34,7 +34,7 @@ import static sp.it.pl.util.functional.Util.byNC;
 public interface Properties {
 
 	static Map<String,String> load(File file) {
-		sp.it.pl.util.dev.Util.noNull(file);
+		noNull(file);
 		try (InputStream is = new FileInputStream(file)) {
 			return load(is);
 		} catch (IOException e) {
@@ -43,12 +43,12 @@ public interface Properties {
 	}
 
 	static Map<String,String> load(Reader reader) {
-		sp.it.pl.util.dev.Util.noNull(reader);
+		noNull(reader);
 		return load(new LineReader(reader));
 	}
 
 	static Map<String,String> load(InputStream inStream) {
-		sp.it.pl.util.dev.Util.noNull(inStream);
+		noNull(inStream);
 		return load(new LineReader(inStream));
 	}
 

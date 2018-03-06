@@ -5,18 +5,22 @@ import java.util.concurrent.Executor
 /**
  * Executor with an execution count limit.
  *
- * Guarantees the number of executions (irrelevant of the Runnable), as
+ * Guarantees the number of executions (irrelevant of the [Runnable]), as
  * one may wish for this executor to execute at most n times.
  */
-class ExecuteN
-/** @param limit maximum number of times this executors will [execute] */
-(private val max: Long) : Executor {
+class ExecuteN : Executor {
+
+    /** @param limit maximum number of times this executor will [execute] */
+    constructor(max: Long) { this.max = max }
+
+    private val max: Long
 
     private var executed: Long = 0
 
     override fun execute(r: Runnable) {
-        if (executed < max)
-            r.run()
+        if (executed >= max)
+            return
+        r.run()
         executed++
     }
 

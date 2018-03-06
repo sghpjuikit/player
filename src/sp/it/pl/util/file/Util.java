@@ -405,7 +405,7 @@ public interface Util {
 	 * @see ImageFileFormat for specifications
 	 */
 	static void writeImage(Image img, File f) {
-		sp.it.pl.util.dev.Util.noNull(img, f);
+		noNull(img, f);
 
 		ImageFileFormat t = ImageFileFormat.of(f.toURI());
 		if (!t.isSupported()) {

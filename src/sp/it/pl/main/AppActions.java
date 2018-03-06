@@ -17,7 +17,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -39,7 +38,6 @@ import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.icon.IconInfo;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.gui.objects.popover.ScreenPos;
-import sp.it.pl.gui.objects.tree.TreeItemsKt;
 import sp.it.pl.gui.pane.ActionPane.FastAction;
 import sp.it.pl.gui.pane.OverlayPane;
 import sp.it.pl.layout.Component;
@@ -94,7 +92,6 @@ import static sp.it.pl.util.math.Util.millis;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
 import static sp.it.pl.util.system.EnvironmentKt.open;
 import static sp.it.pl.util.type.Util.getEnumConstants;
-import static sp.it.pl.util.type.Util.getFieldValue;
 
 @SuppressWarnings("unused")
 @IsActionable("Shortcuts")
@@ -217,7 +214,7 @@ public class AppActions {
 
 	@IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
 	public void openLayoutManager() {
-		APP.widgetManager.widgets.find("Layouts", WidgetSource.NO_LAYOUT, false);
+		APP.widgetManager.widgets.find(Widgets.LAYOUTS, WidgetSource.NO_LAYOUT, false);
 	}
 
 	@IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
@@ -411,7 +408,7 @@ public class AppActions {
 				sb.append("\nName: ").append(d.getName());
 				d.getTags().forEach(tag -> sb.append("\n\t").append(tag.toString()));
 			});
-			APP.widgetManager.widgets.find(w -> w.name().equals("Logger"), WidgetSource.ANY); // open console automatically
+			APP.widgetManager.widgets.find(Widgets.LOGGER, WidgetSource.ANY); // open console automatically
 			System.out.println(sb.toString());
 		} catch (IOException|ImageProcessingException e) {
 			e.printStackTrace();    // TODO: improve
@@ -451,13 +448,4 @@ public class AppActions {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public void inspectObjectInInspector(Object o) {
-		APP.widgetManager.widgets.find("Inspector", WidgetSource.OPEN, true)
-			.ifPresent(w ->
-				((TreeView) getFieldValue(w.getController(), "tree"))    // TODO: improve
-					.getRoot().getChildren()
-					.add(TreeItemsKt.tree(o))
-			);
-	}
 }

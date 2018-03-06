@@ -44,7 +44,6 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.action.Action;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
-import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.graphics.UtilKt;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
@@ -106,7 +105,6 @@ import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.reactive.Util.maintain;
 
 /** Window for application. */
-@IsConfigurable
 public class Window extends WindowBase {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Window.class);

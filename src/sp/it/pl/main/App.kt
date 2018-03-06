@@ -13,6 +13,7 @@ import org.reactfx.EventSource
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.playlist.PlaylistItem
+import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.core.CoreConverter
@@ -23,7 +24,9 @@ import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerXml
 import sp.it.pl.gui.Gui
 import sp.it.pl.gui.objects.icon.Icon
+import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.popover.PopOver
+import sp.it.pl.gui.objects.search.SearchAutoCancelable
 import sp.it.pl.gui.objects.tablecell.RatingCellFactory
 import sp.it.pl.gui.objects.tablecell.RatingRatingCellFactory
 import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
@@ -34,6 +37,7 @@ import sp.it.pl.gui.pane.MessagePane
 import sp.it.pl.gui.pane.ShortcutPane
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
+import sp.it.pl.layout.container.switchcontainer.SwitchContainer
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.layout.widget.WidgetSource.ANY
@@ -48,6 +52,7 @@ import sp.it.pl.service.ClickEffect
 import sp.it.pl.service.Service
 import sp.it.pl.service.ServiceManager
 import sp.it.pl.service.database.Db
+import sp.it.pl.service.lasfm.LastFM
 import sp.it.pl.service.notif.Notifier
 import sp.it.pl.service.playcount.PlaycountIncrementer
 import sp.it.pl.service.tray.TrayService
@@ -62,6 +67,7 @@ import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.Configuration
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
+import sp.it.pl.util.dev.fail
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.FileType
@@ -92,7 +98,6 @@ import java.lang.management.ManagementFactory
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
-import sp.it.pl.util.dev.fail
 
 private typealias F = JvmField
 private typealias C = IsConfig
@@ -352,6 +357,14 @@ class App: Application(), Configurable<Any> {
             services.addService(ClickEffect())
 
             // install actions
+            Action.gatherActions(Player::class.java, null)
+            Action.gatherActions(PlaylistManager::class.java, null)
+            Action.gatherActions(Gui::class.java, null)
+            Action.gatherActions(Thumbnail::class.java, null)
+            Action.gatherActions(SearchAutoCancelable::class.java, null)
+            Action.gatherActions(SwitchContainer::class.java, null)
+            Action.gatherActions(LastFM::class.java, null)
+            Action.gatherActions(Action::class.java, null)
             Action.installActions(
                     this,
                     actions,
@@ -369,7 +382,18 @@ class App: Application(), Configurable<Any> {
 
             // gather configs
             configuration.rawAdd(FILE_SETTINGS)
-            configuration.collectStatic()
+            configuration.collectStaticImplicit()
+
+            configuration.collectStatic(
+                    Player::class.java,
+                    PlaylistManager::class.java,
+                    Gui::class.java,
+                    Thumbnail::class.java,
+                    SearchAutoCancelable::class.java,
+                    SwitchContainer::class.java,
+                    LastFM::class.java,
+                    Action::class.java
+            )
             configuration.collect(Action.getActions())
             services.getAllServices().forEach { configuration.collect(it) }
             configuration.collect(this, windowManager, guide)

@@ -63,6 +63,7 @@ import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.feature.SongReader;
 import sp.it.pl.layout.widget.feature.SongWriter;
+import sp.it.pl.main.Widgets;
 import sp.it.pl.service.notif.Notifier;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.async.future.Fut;
@@ -141,7 +142,7 @@ import static sp.it.pl.util.graphics.UtilKt.createIcon;
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 @Widget.Info(
-    name = "Tagger",
+    name = Widgets.TAGGER,
     author = "Martin Polakovic",
     howto = "Available actions:\n"
           + "    Drag cover away : Removes cover\n"
@@ -481,7 +482,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             runFX(() -> {
                 writing = false;
                 populate(items);
-                APP.services.use(Notifier.class, s -> s.showTextNotification("Tagging complete", "Tagger"));
+                APP.services.use(Notifier.class, s -> s.showTextNotification("Tagging complete", Widgets.TAGGER));
             });
         });
 

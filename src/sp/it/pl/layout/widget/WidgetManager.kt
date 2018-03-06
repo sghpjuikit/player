@@ -77,7 +77,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             logger.error { "Kotlin compiler is missing. Please install kotlinc in ${APP.DIR_APP.childOf("kotlinc")}" }
 
         // internal factories
-        factoriesW.add(emptyWidgetFactory)
+        factoriesW += emptyWidgetFactory
+        factoriesC += emptyWidgetFactory
 
         // external factories
         val dirW = APP.DIR_WIDGETS
@@ -140,17 +141,17 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
     private fun registerFactory(factory: ComponentFactory<*>): Boolean {
         logger.info { "Registering $factory" }
 
-        if (factory is WidgetFactory<*>) factoriesW += factory
-        val exists = factoriesC.containsValue(factory)
-        factoriesC += factory
+        if (factory is WidgetFactory<*>) factoriesW put factory
+        val exists = factory in factoriesC
+        factoriesC put factory
         return exists
     }
 
     private fun unregisterFactory(factory: ComponentFactory<*>) {
         logger.info { "Unregistering $factory" }
 
-        if (factory is WidgetFactory<*>) factoriesW.remove(factory)
-        factoriesC.remove(factory)
+        if (factory is WidgetFactory<*>) factoriesW -= factory
+        factoriesC -= factory
     }
 
     private fun createFactory(controllerType: Class<*>?, dir: File) {
@@ -192,8 +193,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         /** @return primary source file (either Kotlin or Java) or null if none exists */
         fun findSrcFile() = null
-                ?: widgetDir.childOf(widgetName+".java").takeIf { it.exists() }
-                ?: widgetDir.childOf(widgetName+".kt").takeIf { it.exists() }
+                ?: widgetDir.childOf("$widgetName.java").takeIf { it.exists() }
+                ?: widgetDir.childOf("$widgetName.kt").takeIf { it.exists() }
 
         fun findSrcFiles() = widgetDir.seqChildren().filter { it.endsWithSuffix("java", "kt") }
 
@@ -262,7 +263,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             logger.info { "Widget=$widgetName factory updating" }
 
             val srcFiles = findSrcFiles().toList()
-            val classFile = widgetDir.childOf(widgetName+".class")
+            val classFile = widgetDir.childOf("$widgetName.class")
             val srcFile = findSrcFile()
 
             val srcFileAvailable = srcFile!=null
@@ -446,7 +447,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         fun <F> find(feature: Class<F>, source: WidgetSource, ignore: Boolean = false): Optional<F> =
                 find({ it.hasFeature(feature) }, source, ignore).map { it.getController() as F }
 
-        fun find(name: String, source: WidgetSource, ignore: Boolean): Optional<Widget<*>> =
+        @JvmOverloads
+        fun find(name: String, source: WidgetSource, ignore: Boolean = false): Optional<Widget<*>> =
                 find({ it.name()==name || it.nameGui()==name }, source, ignore)
 
         /** Equivalent to: `getWidget(type, source).ifPresent(action)` */

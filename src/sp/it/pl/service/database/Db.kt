@@ -13,7 +13,7 @@ import sp.it.pl.util.collections.mapset.MapSet
 import sp.it.pl.util.dev.ThreadSafe
 import java.io.File
 import java.net.URI
-import java.util.*
+import java.util.Comparator
 import java.util.UUID.fromString
 import java.util.concurrent.ConcurrentHashMap
 
@@ -61,7 +61,7 @@ class Db {
     fun getItem(item: Item) = getItem(item.uri)
 
     /** @return item from library with the specified URI or null if not found */
-    fun getItem(uri: URI): Metadata? = itemsById.get(uri.toString())
+    fun getItem(uri: URI): Metadata? = itemsById[uri.toString()]
 
     fun getAllItems(): MetadatasDB = CoreSerializer.readSingleStorage() ?: MetadatasDB()
 
@@ -71,7 +71,7 @@ class Db {
 
         CoreSerializer.useAtomically {
             val ms = MetadatasDB(itemsById.backingMap())
-            items.forEach { ms.put(it.id, it) }
+            items.forEach { ms[it.id] = it }
             writeSingleStorage(ms)
 
             updateInMemoryDbFromPersisted()

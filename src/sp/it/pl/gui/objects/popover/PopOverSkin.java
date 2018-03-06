@@ -35,7 +35,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.collections.ListChangeListener;
+import javafx.collections.ListChangeListener.Change;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -124,7 +124,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		});
 		maintain(p.autoHideProperty(), mapB(PIN_OFF, PIN), pinB::icon);
 
-		HBox headerControls = new HBox(closeB);
+		HBox headerControls = new HBox();
 		headerControls.setSpacing(5);
 		headerControls.setAlignment(Pos.CENTER_RIGHT);
 		headerControls.getStyleClass().add("header-buttons");
@@ -132,18 +132,17 @@ public class PopOverSkin implements Skin<PopOver> {
 		headerControls.getChildren().setAll(p.getHeaderIcons());
 		headerControls.getChildren().addAll(pinB);
 		// maintain proper header content
-		p.getHeaderIcons().addListener((ListChangeListener.Change<? extends Node> e) -> {
-			while (e.next()) {
-				headerControls.getChildren().clear();
-				headerControls.getChildren().setAll(p.getHeaderIcons());
-				headerControls.getChildren().addAll(pinB);
-			}
-		});
-		maintain(p.autoHideProperty(), v -> {
-			if (v) headerControls.getChildren().remove(closeB);
-			else headerControls.getChildren().add(closeB);
-		});
+		Runnable updateHeaderButtons = () -> {
+			List<Node> bs = new ArrayList<>();
+			bs.addAll(p.getHeaderIcons());
+			bs.add(pinB);
+			if (!p.isAutoHide()) bs.add(closeB);
 
+			headerControls.getChildren().setAll(bs);
+		};
+		p.getHeaderIcons().addListener((Change<?> e) -> { while (e.next()) updateHeaderButtons.run(); });
+		p.autoHideProperty().addListener((o,ov,nv) -> updateHeaderButtons.run());
+		updateHeaderButtons.run();
 
 		// content
 		content = new BorderPane();

@@ -20,6 +20,7 @@ import sp.it.pl.util.identityHashCode
 import sp.it.pl.util.units.Dur
 import java.net.URI
 import java.util.HashSet
+import java.util.function.Consumer
 import kotlin.reflect.KClass
 
 /**
@@ -114,7 +115,7 @@ class PlaylistItem: Item {
         // improves performance almost 100-fold when item in library
         val id = id
         if (APP.db.itemsById.containsKey(id)) {
-            update(APP.db.itemsById.get(id))
+            APP.db.itemsById.ifHasK(id, Consumer { update(it) })
             return
         }
 

@@ -9,6 +9,7 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.search.SearchAutoCancelable.Match.CONTAINS;
+import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
 import static sp.it.pl.util.type.Util.mapEnumConstantName;
 
 /**
@@ -16,6 +17,10 @@ import static sp.it.pl.util.type.Util.mapEnumConstantName;
  */
 @IsConfigurable("Search")
 public abstract class SearchAutoCancelable extends Search {
+
+	static {
+		initStaticConfigs(SearchAutoCancelable.class);
+	}
 
 	@IsConfig(name = "Search delay", info = "Maximal time delay between key strokes. Search text is reset after the delay runs out.")
 	public static Duration cancelQueryDelay = millis(500);

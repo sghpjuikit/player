@@ -15,6 +15,8 @@ import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseDragEvent
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.AnchorPane
@@ -344,6 +346,16 @@ fun <T> TreeItem<T>.expandToRoot() = generateSequence(this, { it.parent }).forEa
 fun <T> TreeView<T>.expandAndSelect(item: TreeItem<T>) {
     item.expandToRoot()
     selectionModel.select(item)
+}
+
+/** Bypass consuming ESCAPE key events, which [TreeView] does by default. */
+fun TreeView<*>.propagateESCAPE() {
+    addEventHandler(KeyEvent.ANY, { e ->
+        if (editingItem==null && e.code==KeyCode.ESCAPE) {
+            parent?.fireEvent(e)
+            e.consume()
+        }
+    })
 }
 
 /* ---------- EVENT ------------------------------------------------------------------------------------------------- */

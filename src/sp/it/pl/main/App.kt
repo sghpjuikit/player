@@ -229,7 +229,7 @@ class App: Application(), Configurable<Any> {
     @F val plugins = PluginManager(configuration, { messagePane.show(it) })
 
     init {
-        AppUtil.APP = takeIf { AppUtil.APP==null } ?: fail("Multiple application instances disallowed")
+        AppUtil.APP = this.takeIf { AppUtil.APP==null } ?: fail("Multiple application instances disallowed")
     }
 
     override fun init() {
@@ -243,6 +243,8 @@ class App: Application(), Configurable<Any> {
             closedPrematurely = true
             return
         }
+
+        logger.info { "JVM Args: ${fetchVMArguments()}" }
 
         // add optional object fields
         classFields.add(PlaylistItem::class.java, PlaylistItem.Field.FIELDS)

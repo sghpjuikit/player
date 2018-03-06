@@ -14,10 +14,15 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.validation.Constraint;
+import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
 import static sp.it.pl.util.reactive.Util.maintain;
 
 @IsConfigurable("Tabs")
 public class SwitchContainer extends Container<SwitchPane> {
+
+    static {
+        initStaticConfigs(SwitchContainer.class);
+    }
 
     @IsConfig(name = "Discrete mode (D)", info = "Use discrete (D) and forbid seamless (S) tab switching."
             + " Tabs are always aligned. Seamless mode allows any tab position.")

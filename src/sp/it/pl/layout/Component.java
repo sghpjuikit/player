@@ -9,7 +9,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import org.atteo.classindex.IndexSubclasses;
 import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.container.Container;
@@ -26,7 +25,6 @@ import static sp.it.pl.main.AppUtil.APP;
  * Defines wrapper of loadable graphical component.
  * Basis for wrappers - containers or wrapped widgets.
  */
-@IndexSubclasses()
 public abstract class Component {
 
 	/** Unique ID. Permanent. Persists application life cycle. */

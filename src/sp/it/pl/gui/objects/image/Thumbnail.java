@@ -51,6 +51,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.NEW;
+import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.UtilKt.toFileOrNull;
 import static sp.it.pl.util.functional.Util.ISNTØ;
@@ -104,6 +105,10 @@ import static sp.it.pl.util.type.Util.getFieldValue;
  */
 @IsConfigurable("Images")
 public class Thumbnail {
+
+	static {
+		initStaticConfigs(Thumbnail.class);
+	}
 
 	private static final String styleclassBgr = "thumbnail";
 	private static final String styleclassBorder = "thumbnail-border";

@@ -244,7 +244,7 @@ class App: Application(), Configurable<Any> {
             return
         }
 
-        logger.info("JVM Args: " + ManagementFactory.getRuntimeMXBean().inputArguments)
+        logger.info { "JVM Args: ${fetchVMArguments()}" }
 
         // add optional object fields
         classFields.add(PlaylistItem::class.java, PlaylistItem.Field.FIELDS)

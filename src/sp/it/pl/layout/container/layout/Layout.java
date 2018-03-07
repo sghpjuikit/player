@@ -101,7 +101,7 @@ public final class Layout extends UniContainer {
      */
     @Override
     public Node load(AnchorPane parentPane) {
-        sp.it.pl.util.dev.Util.noNull(parentPane);
+        noNull(parentPane);
 
         // load
         Node n = super.load(parentPane);

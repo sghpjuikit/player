@@ -9,13 +9,7 @@ import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.dev.throwIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.math.millis
-import java.util.concurrent.Executor
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.ThreadFactory
-import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 
@@ -235,7 +229,7 @@ fun newSingleDaemonThreadExecutor() = Executors.newSingleThreadExecutor(threadFa
  */
 fun newThreadPoolExecutor(maxPoolSize: Int, keepAliveTime: Long, unit: TimeUnit, threadFactory: ThreadFactory): ExecutorService {
     // TODO: implement properly
-    return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime, unit, LinkedBlockingQueue(), threadFactory).apply {
+    return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime, unit, LinkedBlockingQueue<Runnable>(), threadFactory).apply {
         allowCoreThreadTimeOut(true)
     }
 }

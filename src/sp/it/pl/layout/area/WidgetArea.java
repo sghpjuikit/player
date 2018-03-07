@@ -100,7 +100,7 @@ public final class WidgetArea extends Area<Container<?>> {
     }
     
     private void loadWidget(boolean forceloading) {
-        sp.it.pl.util.dev.Util.noNull(widget);
+        noNull(widget);
         if (s2!=null) s2.unsubscribe();
 
         // We load the widget, but uphold loading type settings. Only user can load widget manually.

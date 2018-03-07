@@ -8,7 +8,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import sp.it.pl.gui.objects.icon.CheckIcon;
-import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.by;

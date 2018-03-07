@@ -8,8 +8,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import org.reactfx.Subscription;
 import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.util.dev.Util;
-
 import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.graphics.Util.layHeaderBottom;
 import static sp.it.pl.util.graphics.UtilKt.removeFromParent;

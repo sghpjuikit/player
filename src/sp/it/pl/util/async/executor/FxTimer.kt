@@ -1,25 +1,23 @@
+/*
+ * Implementation based on ReactFX by Tomas Mikula, https://github.com/TomasMikula/ReactFX
+ */
+
 package sp.it.pl.util.async.executor
 
 import javafx.animation.KeyFrame
 import javafx.animation.Timeline
 import javafx.event.EventHandler
 import javafx.util.Duration
+import javafx.util.Duration.millis
+import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.functional.invoke
 
 /**
- * Provides factory methods for timers that are manipulated from and execute
- * their action on the JavaFX application thread.
- *
- * @author Tomas Mikula (original Java code)
+ * Lightweight timer constrained to JavaFX application thread.
+ * Allows running an action with delay or periodically as well as restarting or querying state.
  */
-class FxTimer
-/** @see fxTimer */
-(delay: Duration, cycles: Int, private val action: Runnable) {
+class FxTimer {
 
-    /** @see fxTimer */
-    constructor(delayMillis: Double, cycles: Int, action: Runnable): this(Duration.millis(delayMillis), cycles, action)
-
-    private val timeline: Timeline
     /**
      * Sets the delay for the task. Takes effect only if set before the task
      * execution is planned. It will not affect currently running cycle. It will
@@ -27,24 +25,30 @@ class FxTimer
      * method if this timer is non-periodic.
      */
     var period: Duration
+    private val action: Runnable
+    private val timeline: Timeline
     private var seq: Long = 0
-
-    init {
-        period = Duration.millis(delay.toMillis())
-        timeline = Timeline()
-        timeline.cycleCount = cycles
-    }
 
     /** Returns true if not stopped or paused */
     val isRunning: Boolean
         get() = timeline.currentRate!=0.0
 
+    /** @see fxTimer */
+    constructor(delay: Duration, cycles: Int, action: Runnable) {
+        this.action = action
+        this.period = millis(delay.toMillis())
+        this.timeline = Timeline()
+        this.timeline.cycleCount = cycles
+    }
+
+    /** @see fxTimer */
+    constructor(delayMillis: Double, cycles: Int, action: Runnable): this(millis(delayMillis), cycles, action)
+
+
     /** @param run if true, [start] will be called, otherwise calls [stop]. */
     fun setRunning(run: Boolean) {
-        if (run)
-            start()
-        else
-            stop()
+        if (run) start()
+        else stop()
     }
 
     /** Equivalent to setting [period] and then calling [start]. */
@@ -88,11 +92,11 @@ class FxTimer
             period = timeout
     }
 
-    fun setTimeoutAndRestart(timeoutInMillis: Double) {
+    fun setTimeoutAndRestart(timeoutMs: Double) {
         if (isRunning)
-            start(Duration.millis(timeoutInMillis))
+            start(millis(timeoutMs))
         else
-            period = Duration.millis(timeoutInMillis)
+            period = millis(timeoutMs)
     }
 
     companion object {
@@ -103,7 +107,7 @@ class FxTimer
          * @param cycles denotes number of executions, use -1 for infinite executions
          * @param action action to execute
          */
-        fun fxTimer(delayMillis: Double, cycles: Int, action: () -> Unit) = FxTimer(Duration.millis(delayMillis), cycles, Runnable { action() })
+        fun fxTimer(delayMillis: Double, cycles: Int, action: () -> Unit) = FxTimer(millis(delayMillis), cycles, Runnable { action() })
 
         /** Equivalent to `fxTimer(Duration.millis(delay), action, cycles);`
          * @see fxTimer */

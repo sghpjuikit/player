@@ -37,7 +37,6 @@ import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.search.SearchAutoCancelable;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
-import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.functional.Functors;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;

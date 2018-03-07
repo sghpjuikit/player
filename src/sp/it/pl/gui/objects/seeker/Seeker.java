@@ -40,7 +40,6 @@ import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.Loop;
 import sp.it.pl.util.animation.interpolator.CircularInterpolator;
 import sp.it.pl.util.async.executor.FxTimer;
-import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.graphics.UtilKt;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOWN;

@@ -5,8 +5,6 @@ import java.io.File;
 import java.util.Objects;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
-import sp.it.pl.util.dev.Util;
-
 import static sp.it.pl.util.dev.Util.noNull;
 
 /**

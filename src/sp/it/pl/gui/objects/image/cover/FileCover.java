@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.Objects;
 import javafx.scene.image.Image;
 import sp.it.pl.gui.objects.image.Thumbnail;
-import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.graphics.image.ImageSize;
 import sp.it.pl.util.graphics.image.ImageStandardLoader;
 import static sp.it.pl.util.dev.Util.noNull;

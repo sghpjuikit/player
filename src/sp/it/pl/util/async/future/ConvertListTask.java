@@ -8,8 +8,6 @@ import javafx.beans.property.LongProperty;
 import javafx.beans.property.ReadOnlyLongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import sp.it.pl.util.async.future.ConvertListTask.Result;
-import sp.it.pl.util.dev.Util;
-
 import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
 

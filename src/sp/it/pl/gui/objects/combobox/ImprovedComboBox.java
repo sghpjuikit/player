@@ -7,7 +7,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.skin.ComboBoxListViewSkin;
 import javafx.scene.input.KeyCode;
 import sp.it.pl.gui.objects.search.Search;
-import sp.it.pl.util.dev.Util;
 
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static sp.it.pl.util.dev.Util.noNull;

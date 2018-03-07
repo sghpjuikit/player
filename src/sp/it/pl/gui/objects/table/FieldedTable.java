@@ -31,7 +31,6 @@ import sp.it.pl.gui.objects.table.TableColumnInfo.ColumnInfo;
 import sp.it.pl.util.Sort;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
-import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Side.BOTTOM;

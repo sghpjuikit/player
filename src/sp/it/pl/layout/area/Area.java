@@ -54,7 +54,7 @@ public abstract class Area<T extends Container<?>> implements ContainerNode {
      */
     public Area(T c, Integer i) {
         // init final 1:1 container-area relationship
-	    sp.it.pl.util.dev.Util.noNull(c);
+	    noNull(c);
         container = c;
         index = i;
 

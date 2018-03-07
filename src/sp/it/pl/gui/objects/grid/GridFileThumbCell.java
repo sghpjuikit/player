@@ -19,7 +19,6 @@ import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.async.future.Fut;
-import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.image.ImageSize;
 import static javafx.scene.input.MouseButton.PRIMARY;

@@ -1,5 +1,17 @@
 package sp.it.pl.audio;
 
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.media.AudioSpectrumListener;
 import javafx.scene.media.MediaPlayer.Status;
@@ -29,15 +41,6 @@ import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.math.Portion;
 import sp.it.pl.util.reactive.SetƑ;
 import sp.it.pl.util.validation.Constraint;
-
-import java.net.URI;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-
 import static java.lang.Double.max;
 import static java.lang.Double.min;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -48,7 +51,10 @@ import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.playback.PlayTimeHandler.at;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.async.AsyncKt.*;
+import static sp.it.pl.util.async.AsyncKt.FX;
+import static sp.it.pl.util.async.AsyncKt.runFX;
+import static sp.it.pl.util.async.AsyncKt.runNew;
+import static sp.it.pl.util.async.AsyncKt.threadFactory;
 import static sp.it.pl.util.async.executor.EventReducer.toLast;
 import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
 import static sp.it.pl.util.dev.Util.logger;

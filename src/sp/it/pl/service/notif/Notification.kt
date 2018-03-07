@@ -7,7 +7,6 @@ import javafx.scene.layout.StackPane
 import javafx.util.Duration
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
-import sp.it.pl.util.async.executor.FxTimer
 import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.functional.invoke
 

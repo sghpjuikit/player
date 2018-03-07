@@ -52,7 +52,6 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static sp.it.pl.util.collections.Tuples.tuple;
-import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.dev.Util.throwIf;
 import static sp.it.pl.util.dev.Util.throwIfNot;
 

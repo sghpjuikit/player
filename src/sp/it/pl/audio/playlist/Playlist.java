@@ -682,8 +682,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 				PlaylistManager.browse,
 				APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
 				AudioFileFormat.filter(Use.PLAYBACK)
-		)
-				.ifOk(files -> {
+		).ifOk(files -> {
 					PlaylistManager.browse = files.get(0).getParentFile();
 					List<URI> queue = new ArrayList<>();
 					files.forEach(f -> queue.add(f.toURI()));
@@ -695,7 +694,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 						addUris(queue);
 						playFirstItem();
 					}
-				});
+		});
 	}
 
 	/**
@@ -709,8 +708,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 						DIRECTORY,
 						PlaylistManager.browse,
 						APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner())
-				)
-				.ifOk(dir -> {
+		).ifOk(dir -> {
 					PlaylistManager.browse = dir;
 					List<URI> queue = new ArrayList<>();
 					getFilesAudio(dir, Use.APP, Integer.MAX_VALUE).forEach(f -> queue.add(f.toURI()));
@@ -722,7 +720,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 						addUris(queue);
 						playFirstItem();
 					}
-				});
+		});
 	}
 
 	/**

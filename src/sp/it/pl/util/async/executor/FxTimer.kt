@@ -15,6 +15,8 @@ import sp.it.pl.util.functional.invoke
 /**
  * Lightweight timer constrained to JavaFX application thread.
  * Allows running an action with delay or periodically as well as restarting or querying state.
+ *
+ * Not thread safe! must only be used on FxApplication thread.
  */
 class FxTimer {
 

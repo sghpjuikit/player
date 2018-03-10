@@ -165,7 +165,7 @@ class TrayService : ServiceBase("Tray", true) {
 
         tooltipText = text?.takeIf { it.isNotBlank() } ?: APP.name
         val t = text.takeIf { tooltipShow.value }
-        EventQueue.invokeLater { trayIcon!!.toolTip = t }
+        EventQueue.invokeLater { trayIcon?.toolTip = t }
     }
 
     /** Equivalent to: `showNotification(caption,text,NONE)`.  */

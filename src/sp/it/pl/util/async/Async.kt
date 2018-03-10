@@ -8,6 +8,7 @@ import sp.it.pl.util.async.executor.FxTimer
 import sp.it.pl.util.dev.throwIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.math.millis
+import java.awt.EventQueue
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -155,20 +156,10 @@ fun runNewAfter(delay: Duration, r: Runnable) {
     thread.start()
 }
 
-/**
- * Executes runnable on fx thread, immediately id called on fx thread, or
- * using Platform.runLater() otherwise.
- *
- * Use to execute the action on fx as soon as possible.
- *
- * Equivalent to
- * <pre>
- * `if (Platform.isFxApplicationThread())
- * r.run();
- * else
- * Platform.runLater(r);
-`* </pre>
- */
+/** Executes runnable on awt thread, immediately if called on fx thread, or using [EventQueue.invokeLater] otherwise. */
+fun runAwt(block: () -> Unit) = if (EventQueue.isDispatchThread()) block() else EventQueue.invokeLater(block)
+
+/** Executes runnable on fx thread, immediately if called on fx thread, or using [Platform.runLater] otherwise. */
 fun runFX(r: Runnable): Unit = if (Platform.isFxApplicationThread()) r() else Platform.runLater(r)
 
 fun runFX(r: () -> Unit) = runFX(Runnable { r() })

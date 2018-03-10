@@ -1,7 +1,5 @@
 package sp.it.pl.service.tray
 
-import javafx.application.Platform.runLater
-import javafx.event.EventHandler
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.MenuItem
 import javafx.scene.input.MouseButton.MIDDLE
@@ -17,6 +15,8 @@ import sp.it.pl.gui.Gui
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.util.access.v
+import sp.it.pl.util.async.runAwt
+import sp.it.pl.util.async.runFX
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfig.EditMode
 import sp.it.pl.util.conf.IsConfigurable
@@ -30,7 +30,6 @@ import sp.it.pl.util.graphics.image.createImageBlack
 import sp.it.pl.util.graphics.image.loadBufferedImage
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.syncFalse
-import java.awt.EventQueue
 import java.awt.Image
 import java.awt.SystemTray
 import java.awt.TrayIcon
@@ -57,7 +56,7 @@ class TrayService : ServiceBase("Tray", true) {
     private val trayIconImageDefault = APP.DIR_RESOURCES.childOf("icons", "icon24.png")
     private var trayIconImage = trayIconImageDefault
     private var trayIcon: TrayIcon? = null
-    private val onClickDefault = EventHandler<MouseEvent> { Gui.toggleMinimize() }
+    private val onClickDefault: (MouseEvent) -> Unit = { Gui.toggleMinimize() }
     private var onClick = onClickDefault
     private var contextMenu: ContextMenu? = null
     private var contextMenuOwner: Stage? = null
@@ -90,7 +89,7 @@ class TrayService : ServiceBase("Tray", true) {
         contextMenuOwner = cmOwner
 
         // build tray
-        EventQueue.invokeLater {
+        runAwt {
             tray = SystemTray.getSystemTray().apply {
                 val image = loadBufferedImage(trayIconImage)
                         .ifError { logger.warn { "Failed to load tray icon" } }
@@ -111,8 +110,8 @@ class TrayService : ServiceBase("Tray", true) {
 
                             // show menu on right click
                             when (me.button) {
-                                PRIMARY -> runLater { onClick.handle(me) }
-                                SECONDARY -> runLater {
+                                PRIMARY -> runFX { onClick(me) }
+                                SECONDARY -> runFX {
                                     cmOwner.show()
                                     cmOwner.requestFocus()
                                     cm.show(cmOwner, me.screenX, me.screenY - 40)
@@ -146,7 +145,7 @@ class TrayService : ServiceBase("Tray", true) {
 
         onEnd()
 
-        EventQueue.invokeLater {
+        runAwt {
             tray?.remove(trayIcon)
             tray = null
         }
@@ -165,19 +164,19 @@ class TrayService : ServiceBase("Tray", true) {
 
         tooltipText = text?.takeIf { it.isNotBlank() } ?: APP.name
         val t = text.takeIf { tooltipShow.value }
-        EventQueue.invokeLater { trayIcon?.toolTip = t }
+        runAwt { trayIcon?.toolTip = t }
     }
 
     /** Equivalent to: `showNotification(caption,text,NONE)`.  */
     fun showNotification(caption: String, text: String) {
         if (!running || !supported) return
 
-        EventQueue.invokeLater { trayIcon?.displayMessage(caption, text, TrayIcon.MessageType.NONE) }
+        runAwt { trayIcon?.displayMessage(caption, text, TrayIcon.MessageType.NONE) }
     }
 
     /**
      * Shows an OS tray bubble message notification.
-
+     *
      * @param caption - the caption displayed above the text, usually in bold
      * @param text - the text displayed for the particular message
      * @param type - an enum indicating the message type
@@ -185,7 +184,7 @@ class TrayService : ServiceBase("Tray", true) {
     fun showNotification(caption: String, text: String, type: TrayIcon.MessageType) {
         if (!running || !supported) return
 
-        EventQueue.invokeLater { trayIcon?.displayMessage(caption, text, type) }
+        runAwt { trayIcon?.displayMessage(caption, text, type) }
     }
 
     /** Set tray icon. Null sets default icon. */
@@ -204,7 +203,7 @@ class TrayService : ServiceBase("Tray", true) {
     }
 
     /** Set action on left mouse tray click. Null sets default behavior. */
-    fun setOnTrayClick(action: EventHandler<MouseEvent>?) {
+    fun setOnTrayClick(action: ((MouseEvent) -> Unit)?) {
         onClick = action ?: onClickDefault
     }
 

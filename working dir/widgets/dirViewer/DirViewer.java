@@ -31,6 +31,7 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.file.FileFlatter;
 import sp.it.pl.util.file.FileSort;
+import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.Resolution;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.graphics.drag.Placeholder;
@@ -351,12 +352,12 @@ public class DirViewer extends ClassController {
 
     private class FItem extends Item {
 
-        public FItem(Item parent, File value, sp.it.pl.util.file.FileType type) {
+        public FItem(Item parent, File value, FileType type) {
             super(parent, value, type);
         }
 
         @Override
-        protected Item createItem(Item parent, File value, sp.it.pl.util.file.FileType type) {
+        protected Item createItem(Item parent, File value, FileType type) {
             return new FItem(parent, value, type);
         }
 

@@ -10,7 +10,7 @@ import java.util.concurrent.Executor
  */
 class ExecuteN : Executor {
 
-    /** @param limit maximum number of times this executor will [execute] */
+    /** @param max maximum number of times this executor will [execute] */
     constructor(max: Long) { this.max = max }
 
     private val max: Long

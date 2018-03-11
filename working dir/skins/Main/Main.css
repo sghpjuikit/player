@@ -3199,13 +3199,6 @@
 .icon:selected {
     -fx-fill: -fx-def-font-color-hover;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
-    /*
-    This enlarges the icon on hover. It works, however since javafx css does not support animation,
-    the Icon uses its own non css implementation for this. Enabling it here would interfere with the
-    code.
-    -fx-scale-x: 1.1;
-    -fx-scale-y: 1.1;
-    */
 }
 .icon:disabled {
     -fx-opacity: 0.4; /* imitate disabled style, should be consistent with it */
@@ -3639,13 +3632,6 @@
  * inherits: .control
  */
 .balancer {}
-.balancer > .container {}
-.balancer-bgr {
-    -fx-image: url("balancer-bgr.png");
-}
-.balancer-fgr {
-    -fx-image: url("balancer-fgr.png");
-}
 
 /********************************** SEEKER *****************************************************************************
  * Control for playback seeking.

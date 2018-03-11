@@ -74,6 +74,7 @@ fun File.isAnyChildOf(parent: File) = parent.isAnyParentOf(this)
 @Suppress("DEPRECATION")
 fun File.listChildren(): Stream<File> = listFiles()?.asSequence()?.asStream() ?: Stream.empty()
 
+@Suppress("DEPRECATION")
 fun File.seqChildren(): Sequence<File> = listFiles()?.asSequence() ?: sequenceOf()
 
 @Suppress("DEPRECATION")
@@ -94,7 +95,7 @@ val File.parentDir: File? get() = parentFile
 val File.parentDirOrRoot get() = parentDir ?: this
 
 /** @return true if the file path ends with '.' character followed by the specified suffix */
-infix fun File.endsWithSuffix(suffix: String) = path.endsWith('.'+suffix, true)
+infix fun File.endsWithSuffix(suffix: String) = path.endsWith(".$suffix", true)
 
 /** @return true if the file path ends with '.' character followed by the one of the specified suffixes */
 fun File.endsWithSuffix(suffix1: String, suffix2: String) = endsWithSuffix(suffix1) || endsWithSuffix(suffix2)

@@ -16,6 +16,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.media.AudioSpectrumListener;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,8 +146,8 @@ public class Player {
 		private Metadata val = Metadata.EMPTY;
 		private Metadata valNext = Metadata.EMPTY;
 		private final FxTimer valNextLoader = new FxTimer(400, 1, () -> preloadNext());
-		private final List<BiConsumer<Metadata,Metadata>> changes = new ArrayList<>();
-		private final List<BiConsumer<Metadata,Metadata>> updates = new ArrayList<>();
+		private final List<BiConsumer<? super Metadata,? super Metadata>> changes = new ArrayList<>();
+		private final List<BiConsumer<? super Metadata,? super Metadata>> updates = new ArrayList<>();
 
 		/**
 		 * Returns the playing item and all its information.
@@ -179,7 +181,7 @@ public class Player {
 			updates.forEach(h -> h.accept(ov, nv));
 		}
 
-		public Subscription onChange(BiConsumer<Metadata,Metadata> bc) {
+		public Subscription onChange(BiConsumer<? super Metadata,? super Metadata> bc) {
 			changes.add(bc);
 			return () -> changes.remove(bc);
 		}
@@ -196,7 +198,7 @@ public class Player {
 		 * Note: It is safe to call {@link #get()} method when this even fires.
 		 * It has already been updated.
 		 */
-		public Subscription onChange(Consumer<Metadata> bc) {
+		public Subscription onChange(Consumer<? super Metadata> bc) {
 			return onChange((o, n) -> bc.accept(n));
 		}
 
@@ -220,11 +222,16 @@ public class Player {
 		 * Note: It is safe to call {@link #get()} method when this even fires.
 		 * It has already been updated.
 		 */
-		public Subscription onUpdate(Consumer<Metadata> bc) {
+		public Subscription onUpdate(Consumer<? super Metadata> bc) {
 			return onUpdate((o, n) -> bc.accept(n));
 		}
 
-		public Subscription onUpdate(BiConsumer<Metadata,Metadata> bc) {
+		public Subscription onUpdateAndNow(Function1<? super Metadata, ? extends Unit> bc) {
+			bc.invoke(val);
+			return onUpdate((o, n) -> bc.invoke(n));
+		}
+
+		public Subscription onUpdate(BiConsumer<? super Metadata,? super Metadata> bc) {
 			updates.add(bc);
 			return () -> updates.remove(bc);
 		}

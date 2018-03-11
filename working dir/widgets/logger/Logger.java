@@ -21,6 +21,7 @@ import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
 /**
  * Logger widget controller.
  */
+// see https://stackoverflow.com/questions/24116858/most-efficient-way-to-log-messages-to-javafx-textarea-via-threads-with-simple-cu
 @Widget.Info(
 		author = "Martin Polakovic",
 		name = Widgets.LOGGER,

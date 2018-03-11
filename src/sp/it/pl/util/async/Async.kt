@@ -9,7 +9,14 @@ import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.dev.throwIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.math.millis
-import java.util.concurrent.*
+import java.awt.EventQueue
+import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadFactory
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 
@@ -24,6 +31,7 @@ private val logger = KotlinLogging.logger { }
 
 fun FX_AFTER(delay: Double): Consumer<Runnable> = Consumer { runFX(delay, it) }
 fun FX_AFTER(delay: Duration): Consumer<Runnable> = Consumer { runFX(delay, it) }
+
 @JvmField val eFX = Executor { FX(it) }
 @JvmField val eFX_LATER = Executor { FX_LATER(it) }
 @JvmField val eBGR = Executor { NEW(it) }
@@ -150,20 +158,10 @@ fun runNewAfter(delay: Duration, r: Runnable) {
     thread.start()
 }
 
-/**
- * Executes runnable on fx thread, immediately id called on fx thread, or
- * using Platform.runLater() otherwise.
- *
- * Use to execute the action on fx as soon as possible.
- *
- * Equivalent to
- * <pre>
- * `if (Platform.isFxApplicationThread())
- * r.run();
- * else
- * Platform.runLater(r);
-`* </pre>
- */
+/** Executes runnable on awt thread, immediately if called on fx thread, or using [EventQueue.invokeLater] otherwise. */
+fun runAwt(block: () -> Unit) = if (EventQueue.isDispatchThread()) block() else EventQueue.invokeLater(block)
+
+/** Executes runnable on fx thread, immediately if called on fx thread, or using [Platform.runLater] otherwise. */
 fun runFX(r: Runnable): Unit = if (Platform.isFxApplicationThread()) r() else Platform.runLater(r)
 
 fun runFX(r: () -> Unit) = runFX(Runnable { r() })
@@ -198,8 +196,9 @@ fun runFX(delay1: Double, r1: Runnable, delay2: Double, r2: Runnable) {
  *
  * @param delay delay
  */
-fun runFX(delay: Duration, r: Runnable) =
+fun runFX(delay: Duration, r: Runnable) {
     fxTimer(delay, 1) { runFX(r) }.start()
+}
 
 /**
  * Executes the runnable on fx thread at unspecified time in the future.
@@ -249,7 +248,7 @@ fun threadFactory(nameBase: String, daemon: Boolean): ThreadFactory {
         Thread(r).apply {
             name = "$nameBase-${id.getAndIncrement()}"
             isDaemon = daemon
-            setUncaughtExceptionHandler{ _, e -> logger.error(e) { "Uncaught exception" } }
+            setUncaughtExceptionHandler { _, e -> logger.error(e) { "Uncaught exception" } }
         }
     }
 }

@@ -44,7 +44,7 @@ class FxTimer {
     }
 
     /** @see fxTimer */
-    constructor(delayMillis: Double, cycles: Int, action: Runnable): this(millis(delayMillis), cycles, action)
+    constructor(delayMs: Double, cycles: Int, action: Runnable): this(millis(delayMs), cycles, action)
 
 
     /** @param run if true, [start] will be called, otherwise calls [stop]. */
@@ -71,7 +71,7 @@ class FxTimer {
         }
     }
 
-    fun runNow() = action.invoke()
+    fun runNow() = action()
 
     fun pause() = timeline.pause()
 
@@ -105,11 +105,11 @@ class FxTimer {
         /**
          * Creates a (stopped) timer that executes the given action a specified number of times with a delay period.
          *
-         * @param delay Time to wait before each execution. The first execution is already delayed.
+         * @param delayMs Time to wait before each execution. The first execution is already delayed.
          * @param cycles denotes number of executions, use -1 for infinite executions
          * @param action action to execute
          */
-        fun fxTimer(delayMillis: Double, cycles: Int, action: () -> Unit) = FxTimer(millis(delayMillis), cycles, Runnable { action() })
+        fun fxTimer(delayMs: Double, cycles: Int, action: () -> Unit) = FxTimer(millis(delayMs), cycles, Runnable { action() })
 
         /** Equivalent to `fxTimer(Duration.millis(delay), action, cycles);`
          * @see fxTimer */

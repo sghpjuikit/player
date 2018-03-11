@@ -4,6 +4,7 @@
 package sp.it.pl.util.reactive
 
 import javafx.beans.binding.Bindings
+import javafx.beans.property.Property
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
@@ -62,6 +63,12 @@ infix fun <T> ObservableList<T>.syncSize(action: (Int) -> Unit): Subscription {
     l.onChanged(null)
     addListener(l)
     return Subscription { removeListener(l) }
+}
+
+/** Binds the two properties bi-directionally. */
+infix fun <O> Property<O>.syncBi(w: Property<O>): Subscription {
+    bindBidirectional(w)
+    return Subscription { unbindBidirectional(w) }
 }
 
 /** Sets a size consumer to be fired on every list size change. */

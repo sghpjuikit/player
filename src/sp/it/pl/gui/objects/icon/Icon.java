@@ -43,6 +43,7 @@ import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
+import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.util.SwitchException;
@@ -379,6 +380,11 @@ public class Icon extends StackPane {
 				e.consume();
 			}
 		});
+	}
+
+	@SuppressWarnings("FunctionalExpressionCanBeFolded")
+	public final Icon onClickDo(Function1<MouseEvent,Unit> action) {
+		return onClick(action::invoke);
 	}
 
 	public Pane withText(String text) {

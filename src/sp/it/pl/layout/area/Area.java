@@ -15,7 +15,7 @@ import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.util.graphics.Util;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 
@@ -54,7 +54,7 @@ public abstract class Area<T extends Container<?>> implements ContainerNode {
      */
     public Area(T c, Integer i) {
         // init final 1:1 container-area relationship
-	    noØ(c);
+	    noNull(c);
         container = c;
         index = i;
 

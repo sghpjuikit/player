@@ -27,7 +27,7 @@ import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.newSingleDaemonThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.sleep;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.dev.Util.throwIf;
 import static sp.it.pl.util.dev.Util.throwIfFxThread;
 import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
@@ -49,7 +49,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	private Item imgLoadAnimationItem;
 
 	public GridFileThumbCell(Loader imgLoader) {
-		noØ(imgLoader);
+		noNull(imgLoader);
 		loader = imgLoader;
 		setCoverLater = EventReducer.toLast(10, this::setCoverNow);
 	}

@@ -22,7 +22,7 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.Config.AccessorConfig;
 import sp.it.pl.util.conf.Configurable;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.IDENTITY;
 import static sp.it.pl.util.functional.Util.IS;
 import static sp.it.pl.util.functional.Util.ISNT;
@@ -222,13 +222,13 @@ public interface Functors {
 
 		@Override
 		default <R> Ƒ1<I,R> andThen(Function<? super O,? extends R> after) {
-			noØ(after);
+			noNull(after);
 			return (I t) -> after.apply(apply(t));
 		}
 
 		//* Purely to avoid ambiguity of method overloading. Same as andThen(Function). */
 		default <R> Ƒ1<I,R> andThen(Ƒ1<? super O,? extends R> after) {
-			noØ(after);
+			noNull(after);
 			return (I t) -> after.apply(apply(t));
 		}
 
@@ -239,7 +239,7 @@ public interface Functors {
 		 * @return function identical to this one, but one which runs the runnable after it computes
 		 */
 		default Ƒ1<I,O> andThen(Runnable after) {
-			noØ(after);
+			noNull(after);
 			return i -> {
 				O o = apply(i);
 				after.run();
@@ -259,7 +259,7 @@ public interface Functors {
 
 		@Override
 		default <R> Ƒ1<R,O> compose(Function<? super R,? extends I> before) {
-			noØ(before);
+			noNull(before);
 			return (R v) -> apply(before.apply(v));
 		}
 
@@ -612,7 +612,7 @@ public interface Functors {
 
 		public Parameter(Class<P> type, P defaultValue) {
 			this("", "", type, defaultValue);
-			noØ(type, defaultValue);
+			noNull(type, defaultValue);
 		}
 
 		public Parameter(String name, String description, Class<P> type, P defaultValue) {
@@ -620,7 +620,7 @@ public interface Functors {
 			this.description = description.isEmpty() ? this.name : description;
 			this.type = unPrimitivize(type);
 			this.defaultValue = defaultValue;
-			noØ(type, description, type, defaultValue);
+			noNull(type, description, type, defaultValue);
 		}
 
 		public static <P> Parameter<P> p(String name, String description, Class<P> type, P defaultValue) {

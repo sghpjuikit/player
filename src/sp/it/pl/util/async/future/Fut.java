@@ -13,7 +13,7 @@ import sp.it.pl.util.functional.Functors.Ƒ1;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.eFX;
 import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 
 /**
  * Future monad implementation.
@@ -47,7 +47,7 @@ public class Fut<T> {
 	}
 
 	public static <T> Fut<T> futWith(Supplier<T> t) {
-		noØ(t);
+		noNull(t);
 		return new Fut<>(CompletableFuture.supplyAsync(t));
 	}
 
@@ -202,7 +202,7 @@ public class Fut<T> {
 	 * @throws java.lang.RuntimeException if any param null
 	 */
 	public Fut<T> showProgress(ProgressIndicator p) {
-		noØ(p);
+		noNull(p);
 		return new Fut<>(CompletableFuture
 				.runAsync(() -> p.setProgress(-1), eFX)
 				.thenComposeAsync(res -> f)

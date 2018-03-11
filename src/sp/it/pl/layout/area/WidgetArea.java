@@ -24,7 +24,7 @@ import static de.jensd.fx.glyphs.octicons.OctIcon.UNFOLD;
 import static sp.it.pl.gui.Gui.openAndDo;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.graphics.Util.setAnchors;
@@ -100,7 +100,7 @@ public final class WidgetArea extends Area<Container<?>> {
     }
     
     private void loadWidget(boolean forceloading) {
-        noØ(widget);
+        noNull(widget);
         if (s2!=null) s2.unsubscribe();
 
         // We load the widget, but uphold loading type settings. Only user can load widget manually.

@@ -16,6 +16,7 @@ import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.container.freeformcontainer.FreeFormContainer;
 import sp.it.pl.util.animation.interpolator.CircularInterpolator;
 import sp.it.pl.util.collections.Tuple3;
+import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static javafx.animation.Interpolator.LINEAR;
@@ -30,7 +31,7 @@ import static sp.it.pl.gui.Gui.openAndDo;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_OUT;
 import static sp.it.pl.util.collections.Tuples.tuple;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.Util.setAnchors;
@@ -66,7 +67,7 @@ public final class Layouter implements ContainerNode {
     private final EventHandler<MouseEvent> exitHider;
 
     public Layouter(Container<?> c, int index) {
-        noØ(c);
+        noNull(c);
         this.index = index;
         this.container = c;
 

@@ -106,7 +106,7 @@ public abstract class EventReducer<E> {
 
 		@Override
 		public void handle() {
-			t.start(inter_period);
+			t.start(millis(inter_period));
 		}
 
 		public boolean hasEventsQueued() {

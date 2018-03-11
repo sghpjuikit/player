@@ -5,6 +5,7 @@ import javafx.application.Platform
 import javafx.util.Duration
 import mu.KotlinLogging
 import sp.it.pl.util.async.executor.FxTimer
+import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.dev.throwIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.math.millis
@@ -30,6 +31,7 @@ private val logger = KotlinLogging.logger { }
 
 fun FX_AFTER(delay: Double): Consumer<Runnable> = Consumer { runFX(delay, it) }
 fun FX_AFTER(delay: Duration): Consumer<Runnable> = Consumer { runFX(delay, it) }
+
 @JvmField val eFX = Executor { FX(it) }
 @JvmField val eFX_LATER = Executor { FX_LATER(it) }
 @JvmField val eBGR = Executor { NEW(it) }
@@ -70,7 +72,7 @@ fun runAfter(delay: Duration, action: () -> Unit) {
 
 /**
  * Executes the action on current thread after specified delay from now.
- * Equivalent to `new FxTimer(delay, action, 1).restart();`.
+ * Equivalent to `new FxTimer(delay, 1, action).restart();`.
  *
  * @param delay delay in milliseconds
  */
@@ -178,7 +180,7 @@ fun runFX(delay: Double, r: Runnable) {
     if (delay==0.0)
         runFX(r)
     else
-        FxTimer(delay, 1) { runFX(r) }.start()
+        fxTimer(delay, 1) { runFX(r) }.start()
 }
 
 fun runFX(delay1: Double, r1: Runnable, delay2: Double, r2: Runnable) {
@@ -195,7 +197,7 @@ fun runFX(delay1: Double, r1: Runnable, delay2: Double, r2: Runnable) {
  * @param delay delay
  */
 fun runFX(delay: Duration, r: Runnable) {
-    FxTimer(delay, 1) { runFX(r) }.start()
+    fxTimer(delay, 1) { runFX(r) }.start()
 }
 
 /**
@@ -226,7 +228,7 @@ fun newSingleDaemonThreadExecutor() = Executors.newSingleThreadExecutor(threadFa
  */
 fun newThreadPoolExecutor(maxPoolSize: Int, keepAliveTime: Long, unit: TimeUnit, threadFactory: ThreadFactory): ExecutorService {
     // TODO: implement properly
-    return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime, unit, LinkedBlockingQueue(), threadFactory).apply {
+    return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime, unit, LinkedBlockingQueue<Runnable>(), threadFactory).apply {
         allowCoreThreadTimeOut(true)
     }
 }
@@ -246,7 +248,7 @@ fun threadFactory(nameBase: String, daemon: Boolean): ThreadFactory {
         Thread(r).apply {
             name = "$nameBase-${id.getAndIncrement()}"
             isDaemon = daemon
-            setUncaughtExceptionHandler{ _, e -> logger.error(e) { "Uncaught exception" } }
+            setUncaughtExceptionHandler { _, e -> logger.error(e) { "Uncaught exception" } }
         }
     }
 }

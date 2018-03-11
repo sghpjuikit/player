@@ -27,14 +27,14 @@ import static java.util.stream.Collectors.toMap;
 import static sp.it.pl.util.Util.hasNoReadableText;
 import static sp.it.pl.util.Util.hasReadableText;
 import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.file.Util.isValidatedDirectory;
 import static sp.it.pl.util.functional.Util.byNC;
 
 public interface Properties {
 
 	static Map<String,String> load(File file) {
-		noØ(file);
+		noNull(file);
 		try (InputStream is = new FileInputStream(file)) {
 			return load(is);
 		} catch (IOException e) {
@@ -43,12 +43,12 @@ public interface Properties {
 	}
 
 	static Map<String,String> load(Reader reader) {
-		noØ(reader);
+		noNull(reader);
 		return load(new LineReader(reader));
 	}
 
 	static Map<String,String> load(InputStream inStream) {
-		noØ(inStream);
+		noNull(inStream);
 		return load(new LineReader(inStream));
 	}
 

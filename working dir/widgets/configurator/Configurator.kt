@@ -64,6 +64,7 @@ class Configurator: ClassController(), ConfiguringFeature<Any> {
         ConventionFxmlLoader(this).loadNoEx<Any>()
 
         configsRootPane.children += configsPane
+        groups.isShowRoot = false
         groups.selectionModel.selectionMode = SINGLE
         groups.cellFactory = Callback { buildTreeCell(it) }
         groups.propagateESCAPE()

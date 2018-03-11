@@ -202,7 +202,8 @@ class App: Application(), Configurable<Any> {
             { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
     )
 
-    @C(name = "Level (file)", group = "Logging", info = "Logging level for logging to file") @ConstraintBy(PreserveOrder::class)
+    @C(name = "Level (file)", group = "Logging", info = "Logging level for logging to file")
+    @ConstraintBy(PreserveOrder::class)
     @F val logLevelFile = VarEnum.ofSequence(Level.WARN,
             { seqOf(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF) },
             { logging.changeLogBackLoggerAppenderLevel("FILE", it) }
@@ -296,7 +297,7 @@ class App: Application(), Configurable<Any> {
 
             if (type==FileType.FILE) {
                 val fs = FileSize(f)
-                map["Size"] = "" + fs + (if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else "")
+                map["Size"] = ""+fs+(if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else "")
                 map["Format"] = f.name.substringAfterLast('.', "<none>")
                 map[FileField.TIME_CREATED.name()] = FileField.TIME_CREATED.getOfS(f, "n/a")
                 map[FileField.TIME_MODIFIED.name()] = FileField.TIME_MODIFIED.getOfS(f, "n/a")
@@ -423,8 +424,8 @@ class App: Application(), Configurable<Any> {
 
             messagePane.onHidden += Runnable { close() }
             messagePane.show(
-                    "Application did not start successfully and will close. Please fill an issue at $uriGithub " +
-                    "providing the logs in $DIR_LOG. The exact problem was:\n ${it.stacktraceAsString}"
+                    "Application did not start successfully and will close. Please fill an issue at $uriGithub "+
+                            "providing the logs in $DIR_LOG. The exact problem was:\n ${it.stacktraceAsString}"
             )
         }.ifOk {
             // initialization is complete -> apply all settings

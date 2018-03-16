@@ -78,7 +78,7 @@ import static sp.it.pl.util.animation.Anim.mapTo01;
 import static sp.it.pl.util.async.AsyncKt.run;
 import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.minBy;
-import static sp.it.pl.util.graphics.Util.layHorizontally;
+import static sp.it.pl.util.graphics.Util.layHeaderRight;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.reactive.Util.maintain;
 
@@ -508,6 +508,12 @@ public final class Seeker extends AnchorPane {
 		Icon helpB, prevB, nextB, editB, commitB, delB, cancelB; // popup controls
 		Anim hover = new Anim(millis(150), this::setScaleX).intpl(x -> 1 + 7*x);
 
+		private boolean can_hide = true;
+		private FxTimer delayerCloser = new FxTimer(200, 1, () -> {
+			if (can_hide) p.hideStrong();
+			can_hide = true;
+		});
+
 		Chap(double x) {
 			this(new Chapter(timeTot.get().multiply(x), ""), x);
 			just_created = true;
@@ -632,12 +638,6 @@ public final class Seeker extends AnchorPane {
 			if (just_created) startEdit();
 		}
 
-		private boolean can_hide = true;
-		private FxTimer delayerCloser = new FxTimer(200, 1, () -> {
-			if (can_hide) p.hideStrong();
-			can_hide = true;
-		});
-
 		/** Returns whether editing is currently active. */
 		public boolean isEdited() {
 			return isEdited.getValue();
@@ -686,7 +686,7 @@ public final class Seeker extends AnchorPane {
 
 			// maintain proper content
 			content.getChildren().remove(message);
-			content.getChildren().add(layHorizontally(5, Pos.CENTER, ta, warnB));
+			content.getChildren().add(layHeaderRight(5, Pos.CENTER, ta, warnB));
 			p.getHeaderIcons().setAll(helpB, commitB, cancelB);
 		}
 

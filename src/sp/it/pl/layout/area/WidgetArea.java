@@ -11,6 +11,8 @@ import sp.it.pl.gui.Gui;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.main.AnimationBuilder;
+import sp.it.pl.main.DelayAnimator;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.functional.Util;
@@ -21,7 +23,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLOCK;
 import static de.jensd.fx.glyphs.octicons.OctIcon.UNFOLD;
-import static sp.it.pl.gui.Gui.openAndDo;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
 import static sp.it.pl.util.dev.Util.noNull;
@@ -39,6 +40,8 @@ import static sp.it.pl.util.reactive.Util.maintain;
  * at the creation and it can not be changed (although the parent container can create another one).
  */
 public final class WidgetArea extends Area<Container<?>> {
+
+    private static final AnimationBuilder animation = new DelayAnimator();
 
     @FXML private AnchorPane content;
     @FXML public StackPane content_padding;
@@ -113,7 +116,7 @@ public final class WidgetArea extends Area<Container<?>> {
             content.getChildren().clear();
             content.getChildren().add(wNode);
             setAnchors(wNode,0d);
-            openAndDo(content_root, null);
+            animation.openAndDo(content_root, null);
 
             // put controls to new widget
             s2 = maintain(widget.custom_name, controls.title.textProperty()); // widget - area.controls must be final 1:1 relationship
@@ -128,7 +131,7 @@ public final class WidgetArea extends Area<Container<?>> {
         } else
         if (widget.loadType.get()==MANUAL) {
             content.getChildren().clear();
-            openAndDo(content_root, null);
+            animation.openAndDo(content_root, null);
 
             // put controls to new widget
             s2 = maintain(widget.custom_name, controls.title.textProperty()); // widget - area.controls must be final 1:1 relationship

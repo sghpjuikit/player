@@ -22,6 +22,7 @@ import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.main.AppAnimator;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLONE;
@@ -37,11 +38,10 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLOCK;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static sp.it.pl.gui.Gui.closeAndDo;
 import static sp.it.pl.layout.area.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
 import static sp.it.pl.layout.area.Area.DRAGGED_PSEUDOCLASS;
-import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.reactive.Util.maintain;
@@ -134,7 +134,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
         root.setOnMouseClicked(e -> {
             // close on right click
             if (isAlt && !isAltCon && e.getButton()==SECONDARY && container.getChildren().isEmpty()){
-                closeAndDo(root, container::close);
+	            AppAnimator.INSTANCE.closeAndDo(root, container::close);
                 e.consume();
                 return;
             }

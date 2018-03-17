@@ -33,7 +33,6 @@ import de.jensd.fx.glyphs.GlyphIcons
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STAR
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STAR_ALT
 import javafx.event.EventHandler
-import javafx.geometry.Pos
 import javafx.scene.CacheHint
 import javafx.scene.Node
 import javafx.scene.control.SkinBase
@@ -46,6 +45,7 @@ import javafx.scene.shape.Rectangle
 import sp.it.pl.util.Util.clip
 import sp.it.pl.util.graphics.createIcon
 import sp.it.pl.util.graphics.pseudoclass
+import sp.it.pl.util.reactive.syncFrom
 import java.lang.Math.ceil
 
 /** Skin for [Rating]. */
@@ -59,7 +59,7 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
     private var ratingOld = r.rating.get()
 
     init {
-        backgroundContainer.alignment = Pos.CENTER
+        backgroundContainer.alignmentProperty() syncFrom r.alignment
         backgroundContainer.onMouseMoved = EventHandler<MouseEvent> {
             if (skinnable.editable.get()) {
                 val v = computeRating(it.sceneX, it.sceneY)
@@ -76,7 +76,7 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
                 it.consume()
             }
         }
-        foregroundContainer.alignment = Pos.CENTER
+        foregroundContainer.alignmentProperty() syncFrom r.alignment
         foregroundContainer.isMouseTransparent = true
         foregroundContainer.clip = foregroundMask
         children.setAll(backgroundContainer, foregroundContainer)

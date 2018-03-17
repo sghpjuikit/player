@@ -1,12 +1,15 @@
 package sp.it.pl.gui.infonode
 
 import javafx.fxml.FXML
+import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.layout.AnchorPane
+import javafx.scene.layout.Pane
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY
+import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.util.async.FX
 import sp.it.pl.util.async.future.Fut
@@ -27,11 +30,15 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): AnchorPane(
     @FXML private lateinit var albumL: Label
     @FXML private lateinit var infoContainer: AnchorPane
     @FXML private var coverContainer: AnchorPane? = null
+    private val rating = Rating()
     private val thumb: Thumbnail?
     private var dataId = null.identityHashCode()
 
     init {
         ConventionFxmlLoader(ItemInfo::class.java, this).loadNoEx<Any>()
+
+        rating.alignment.value = Pos.CENTER_LEFT
+        (albumL.parent as Pane).children.apply { add(indexOf(albumL), rating) }
 
         if (showCover) {
             thumb = Thumbnail()
@@ -58,6 +65,7 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): AnchorPane(
         indexL.text = m.getPlaylistIndexInfo().toString()
         songL.text = m.getTitle() ?: m.getFilename()
         artistL.text = m.getArtist()
+        rating.rating.value = m.getRatingPercent()
         albumL.text = m.getAlbum()
     }
 

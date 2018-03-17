@@ -1,5 +1,6 @@
 package sp.it.pl.gui.objects.rating
 
+import javafx.geometry.Pos
 import javafx.scene.control.Control
 import sp.it.pl.util.Util.clip
 import sp.it.pl.util.access.V
@@ -14,6 +15,9 @@ class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double
             super.set(nv?.let { clip(0.0, it, 1.0) })
         }
     }
+
+    /** The alignment of the graphics. Default [Pos.CENTER]. */
+    @JvmField val alignment = v(Pos.CENTER)
 
     /** The maximum-allowed rating value. Default 5. */
     @JvmField val icons = v(iconCount)

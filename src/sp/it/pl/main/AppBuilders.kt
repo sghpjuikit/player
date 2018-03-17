@@ -115,5 +115,6 @@ fun computeDataInfo(data: Any?): Fut<String> = futureWrap(data).map {
 
 fun resizeButton(): Icon = Icon(MaterialDesignIcon.RESIZE_BOTTOM_RIGHT).apply {
     cursor = Cursor.SE_RESIZE
+    isAnimated.value = false
     styleclass("resize-content-icon")
 }

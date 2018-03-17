@@ -47,6 +47,7 @@ import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.util.SwitchException;
+import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.ref.LazyR;
 import sp.it.pl.util.action.Action;
 import sp.it.pl.util.animation.Anim;
@@ -220,13 +221,14 @@ public class Icon extends StackPane {
 
 	private final LazyR<Anim> ra = new LazyR<>(() -> Ahover.apply(this));
 	private boolean isSelected = false;
+	public final V<Boolean> isAnimated = new V<>(true);
 
 	public void select(boolean value) {
 		if (value==isSelected) return;
 		isSelected = value;
 		pseudoClassStateChanged(PseudoClass.getPseudoClass("hover"), value);
 		node.pseudoClassStateChanged(PseudoClass.getPseudoClass("hover"), value);
-		ra.get(this, Ahover).playFromDir(value);
+		if (isAnimated.get()) ra.get(this, Ahover).playFromDir(value);
 	}
 
 	/********************************* FLUENT API *********************************/

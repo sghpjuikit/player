@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package sp.it.pl.util.graphics
 
 import de.jensd.fx.glyphs.GlyphIcons
@@ -63,13 +61,13 @@ fun border(c: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(BorderStr
 fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
 
 @JvmOverloads fun createIcon(icon: GlyphIcons, iconSize: Double? = null) = Text(icon.characterToString()).apply {
-    val fontSize = iconSize?.let { it/12.0 } ?: 1.0
+    val fontSize = iconSize?.let { it.EM } ?: 1.0
     style = "-fx-font-family: ${icon.fontFamily}; -fx-font-size: ${fontSize}em;"
     styleClass += "icon"
 }
 
 fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Double? = null): Text {
-    val fontSize = iconSize?.let { it/12.0 } ?: 1.0
+    val fontSize = iconSize?.let { it.EM } ?: 1.0
     val s = icon.characterToString()
     val sb = StringBuilder(icons)
     for (i in 0 until icons) sb.append(s)
@@ -316,6 +314,16 @@ fun Node.screenToLocal(e: MouseEvent) = screenToLocal(e.screenX, e.screenY)!!
 fun Node.sceneToLocal(e: MouseEvent) = sceneToLocal(e.sceneX, e.sceneY)!!
 
 /* ---------- TEXT -------------------------------------------------------------------------------------------------- */
+
+object EM {
+    fun toDouble() = 12.0
+}
+
+/** @returns value in [EM] units */
+val Double.EM get() = this/sp.it.pl.util.graphics.EM.toDouble()
+
+/** @returns value in [EM] units */
+val Int.EM get() = this/sp.it.pl.util.graphics.EM.toDouble()
 
 /** Sets font, overriding css style. */
 fun Parent.setFontAsStyle(font: Font) {

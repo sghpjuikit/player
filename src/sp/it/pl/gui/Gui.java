@@ -117,7 +117,7 @@ public class Gui {
 	@IsConfig(name = "Snap", info = "Allows snapping feature for windows and controls.")
 	public static final V<Boolean> snapping = new V<>(true);
 	@IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
-	public static final V<Double> snapDistance = new V<>(6d);
+	public static final V<Double> snapDistance = new V<>(12d);
 	@IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
 	public final static BooleanProperty locked_layout = new SimpleBooleanProperty(false) {
 		@Override

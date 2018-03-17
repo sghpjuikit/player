@@ -5,7 +5,6 @@ import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.HBox
-import javafx.scene.layout.Pane
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.objects.image.Thumbnail
@@ -25,6 +24,7 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), Son
     @FXML private lateinit var indexL: Label
     @FXML private lateinit var songL: Label
     @FXML private lateinit var artistL: Label
+    @FXML private lateinit var ratingL: Label
     @FXML private lateinit var albumL: Label
     @FXML private var coverContainer: AnchorPane? = null
     private val rating = Rating()
@@ -34,8 +34,8 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), Son
     init {
         ConventionFxmlLoader(ItemInfo::class.java, this).loadNoEx<Any>()
 
+        ratingL.graphic = rating
         rating.alignment.value = Pos.CENTER_LEFT
-        (albumL.parent as Pane).children.apply { add(indexOf(albumL), rating) }
 
         if (showCover) {
             thumb = Thumbnail()
@@ -59,9 +59,9 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), Son
         thumb?.loadCoverOf(m)
         indexL.text = m.getPlaylistIndexInfo().toString()
         songL.text = m.getTitle() ?: m.getFilename()
-        artistL.text = m.getArtist()
+        artistL.text = m.getArtist() ?: "<none>"
         rating.rating.value = m.getRatingPercent()
-        albumL.text = m.getAlbum()
+        albumL.text = m.getAlbum() ?: "<none>"
     }
 
     private fun Thumbnail.loadCoverOf(data: Metadata) {

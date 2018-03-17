@@ -6,14 +6,14 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-
 <fx:root spacing="15.0" type="HBox" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
    <children>
        <AnchorPane fx:id="coverContainer" />
         <VBox alignment="CENTER_LEFT" prefHeight="-1.0" prefWidth="-1.0" spacing="5.0">
             <Label fx:id="indexL" text="Index" />
-            <Label fx:id="songL" styleClass="text-weight-bold" text="Song name or info" />
+            <Label fx:id="songL" text="Song name or info" />
             <Label fx:id="artistL" text="Artist" />
+         <Label fx:id="ratingL" text=" " />
             <Label fx:id="albumL" text="Album" />
         </VBox>
    </children>

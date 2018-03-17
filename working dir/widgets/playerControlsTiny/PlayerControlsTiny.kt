@@ -42,6 +42,7 @@ import sp.it.pl.util.graphics.drag.DragUtil.getAudioItems
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
 import sp.it.pl.util.reactive.maintain
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.reactive.syncTo
 import java.lang.Double.max
 
 @Widget.Info(
@@ -94,7 +95,7 @@ class PlayerControlsTiny: FXMLController(), PlaybackFeature, HorizontalDock {
         val ps = Player.state.playback
 
         initClose { seeker.bindTime(ps.duration, ps.currentTime) }
-        initClose { Gui.snapDistance.maintain(seeker.chapterSnapDistance) }
+        initClose { Gui.snapDistance syncTo seeker.chapterSnapDistance }
         layout.children.add(2, seeker)
         HBox.setHgrow(seeker, ALWAYS)
 

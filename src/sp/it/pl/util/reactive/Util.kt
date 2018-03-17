@@ -29,7 +29,12 @@ import kotlin.reflect.KCallable
 /** Sets a value consumer to be fired immediately and on every value change. */
 infix fun <O> ObservableValue<O>.sync(u: (O) -> Unit) = maintain(Consumer { u(it) })
 
-infix fun <O> WritableValue<O>.sync(o: ObservableValue<out O>): Subscription = o maintain this
+infix fun <O> ObservableValue<O>.syncTo(w: WritableValue<in O>): Subscription {
+    w.value = value
+    return this attachTo w
+}
+
+infix fun <O> WritableValue<O>.syncFrom(o: ObservableValue<out O>): Subscription = o syncTo this
 
 /** Sets a value consumer to be fired on every value change. */
 infix fun <O> ObservableValue<O>.attach(u: (O) -> Unit): Subscription {
@@ -37,6 +42,14 @@ infix fun <O> ObservableValue<O>.attach(u: (O) -> Unit): Subscription {
     addListener(l)
     return Subscription { removeListener(l) }
 }
+
+infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>): Subscription {
+    val l = ChangeListener<O> { _, _, nv -> w.value = nv }
+    this.addListener(l)
+    return Subscription { this.removeListener(l) }
+}
+
+infix fun <O> WritableValue<O>.attachFrom(o: ObservableValue<out O>): Subscription = o syncTo this
 
 /** Sets a value change consumer to be fired on every value change. */
 infix fun <O> ObservableValue<O>.changes(u: (O, O) -> Unit): Subscription {

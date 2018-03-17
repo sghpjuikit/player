@@ -38,6 +38,7 @@ import sp.it.pl.util.graphics.setAnchors
 import sp.it.pl.util.reactive.maintain
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncBi
+import sp.it.pl.util.reactive.syncTo
 import java.io.File
 
 @Widget.Info(
@@ -121,7 +122,7 @@ class PlayerControls: FXMLController(), PlaybackFeature {
         entireArea.children += seeker
         seeker.prefHeight = 30.0
         seeker.setAnchors(null, 0.0, 0.0, 0.0)
-        initClose { Gui.snapDistance maintain seeker.chapterSnapDistance }
+        initClose { Gui.snapDistance syncTo seeker.chapterSnapDistance }
 
         playButtons.children.setAll(f1, f2, f3, f4, f5, loopB)
         soundPane.children.add(0, muteB)

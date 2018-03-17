@@ -342,7 +342,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         if (keepContentOnEmpty && new_folder==null) return;
         // refresh location
         folder.set(new_folder);
-        if (theater_mode.getValue()) itemPane.setValue("", data);
+        if (theater_mode.getValue()) itemPane.setValue(data);
     }
 
     class Exec {
@@ -494,7 +494,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             itemPane.toFront();
             AnchorPane.setBottomAnchor(itemPane, 20d);
             AnchorPane.setRightAnchor(itemPane, 20d);
-            itemPane.setValue("", data);
+            itemPane.setValue(data);
 
             itemPane.setOnMouseClicked(ee -> {
                 if (ee.getButton()==SECONDARY) {

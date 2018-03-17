@@ -129,6 +129,7 @@ class PlayerControls: FXMLController(), PlaybackFeature {
         initClose { ps.duration sync { totTime.text = it.print() } }
         initClose { ps.currentTime sync { timeChanged(ps) } }
         initClose { ps.status sync { statusChanged(it) } }
+        initClose { ps.loopMode sync { loopModeChanged(it) } }
         initClose { ps.mute sync { muteChanged(ps) } }
         initClose { ps.volume sync { muteChanged(ps) } }
         initClose { Player.onSeekDone.addS { lastUpdateTime = Double.MIN_VALUE } }

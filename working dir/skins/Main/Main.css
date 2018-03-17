@@ -3247,6 +3247,11 @@
 .filter-negate-icon:selected {
    -glyph-name: "FontAwesomeIcon.CIRCLE_ALT";
 }
+
+/**
+ * Resize icon for resizing popups and the like.
+ * inherits: .icon
+ */
 .resize-content-icon {
    -glyph-name: "MaterialDesignIcon.RESIZE_BOTTOM_RIGHT";
    scaleX: 1.5;

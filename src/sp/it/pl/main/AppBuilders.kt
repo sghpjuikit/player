@@ -122,18 +122,19 @@ fun resizeButton(): Icon = Icon(MaterialDesignIcon.RESIZE_BOTTOM_RIGHT).apply {
     styleclass("resize-content-icon")
 }
 
-fun nodeAnimation(n: Node)= anim(millis(300), { n.opacity = it*it })
+fun nodeAnimation(n: Node) = anim(millis(300), { n.opacity = it*it }).apply { playAgainIfFinished = false }
 
 open class AnimationBuilder {
+    protected open val key = "ANIMATION_OPEN_CLOSE"
 
     open fun closeAndDo(n: Node, action: Runnable?) {
-        val a = n.properties.getOrPut("ANIMATION_OPEN_CLOSE") { buildAnimation(n) } as Anim
+        val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
         if (!a.isRunning()) a.applyAt(1.0)
         a.playCloseDo(action)
     }
 
     open fun openAndDo(n: Node, action: Runnable?) {
-        val a = n.properties.getOrPut("ANIMATION_OPEN_CLOSE") { buildAnimation(n) } as Anim
+        val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
         if (!a.isRunning()) a.applyAt(0.0)
         a.playOpenDo(action)
     }
@@ -144,6 +145,7 @@ open class AnimationBuilder {
 object AppAnimator: AnimationBuilder()
 
 class DelayAnimator: AnimationBuilder() {
+    override val key = "ANIMATION_OPEN_CLOSE_DELAYED"
     private val animDelay = AtomicLong(0)
     private val animDelayResetter = EventReducer.toLast<Void>(200.0, Runnable { animDelay.set(0) })
 

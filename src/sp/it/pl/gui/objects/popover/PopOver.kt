@@ -66,6 +66,7 @@ import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.access.V
 import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim
+import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.centre
 import sp.it.pl.util.graphics.getScreen
@@ -75,7 +76,6 @@ import sp.it.pl.util.graphics.toP
 import sp.it.pl.util.math.P
 import sp.it.pl.util.math.millis
 import java.util.ArrayList
-import sp.it.pl.util.dev.fail
 
 private typealias F = JvmField
 
@@ -363,12 +363,15 @@ open class PopOver<N: Node>(): PopupControl() {
     }
 
     /** Show popup. Equivalent to: show(owner,0,0). */
-    fun show(owner: Node) = show(owner, 0.0, 0.0)
+    fun showInCenterOf(owner: Node) = show(owner, owner.layoutBounds.width/2, owner.layoutBounds.height/2)
 
     /** Show popup at specified designated position relative to node. */
     fun show(owner: Node, pos: NodePos) {
         showThis(owner, owner.scene.window)
+
         position({ pos.computeXY(owner, this) })
+        x = pos.computeXY(owner, this).x
+        y = pos.computeXY(owner, this).y
     }
 
     /** Show popup at specified screen coordinates. */
@@ -415,10 +418,10 @@ open class PopOver<N: Node>(): PopupControl() {
     /* Move the window so that the arrow will end up pointing at the target coordinates. */
     private fun adjustWindowLocation(): P {
         val bounds = this@PopOver.skin.node.layoutBounds
-        return when (arrowLocation.value!!) {   // TODO: remove !! without warning
+        return when (arrowLocation.value) {
             TOP_CENTER, TOP_LEFT, TOP_RIGHT -> P(
-                    +bounds.minX-computeXOffset(),
-                    +bounds.minY+arrowSize.value
+                    computeXOffset(),
+                    0.0
             )
             LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM -> P(
                     +bounds.minX+arrowSize.value,
@@ -435,18 +438,30 @@ open class PopOver<N: Node>(): PopupControl() {
         }
     }
 
+    fun computeArrowMarginX(): Double = when(arrowLocation.value) {
+        LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM -> -arrowSize.value
+        RIGHT_TOP, RIGHT_CENTER, RIGHT_BOTTOM -> arrowSize.value
+        else -> 0.0
+    }
+
+    fun computeArrowMarginY(): Double = when(arrowLocation.value) {
+        TOP_LEFT, TOP_CENTER, TOP_RIGHT -> -arrowSize.value
+        BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT -> arrowSize.value
+        else -> 0.0
+    }
+
     private fun computeXOffset(): Double = when (arrowLocation.value) {
-        TOP_LEFT, BOTTOM_LEFT -> cornerRadius.value+arrowIndent.value+arrowSize.value
-        TOP_CENTER, BOTTOM_CENTER -> width/2-arrowSize.value
+        TOP_LEFT, BOTTOM_LEFT -> arrowIndent.value+arrowSize.value
+        TOP_CENTER, BOTTOM_CENTER -> -this@PopOver.skin.node.layoutBounds.width/2
     //				return getContentNode().prefWidth(-1)/2 + arrowSize.value + arrowIndent.value;
-        TOP_RIGHT, BOTTOM_RIGHT -> (contentNode.value.prefWidth(-1.0)-arrowIndent.value-cornerRadius.value-arrowSize.value)
+        TOP_RIGHT, BOTTOM_RIGHT -> contentNode.value.prefWidth(-1.0)-arrowIndent.value-arrowSize.value
         else -> 0.0
     }
 
     private fun computeYOffset(): Double = when (arrowLocation.value) {
-        LEFT_TOP, RIGHT_TOP -> cornerRadius.value+arrowIndent.value+arrowSize.value
+        LEFT_TOP, RIGHT_TOP -> arrowIndent.value+arrowSize.value
         LEFT_CENTER, RIGHT_CENTER -> contentNode.value.prefHeight(-1.0)/2+arrowSize.value+arrowIndent.value
-        LEFT_BOTTOM, RIGHT_BOTTOM -> (contentNode.value.prefHeight(-1.0)-arrowIndent.value-cornerRadius.value-arrowSize.value)
+        LEFT_BOTTOM, RIGHT_BOTTOM -> contentNode.value.prefHeight(-1.0)-arrowIndent.value-arrowSize.value
         else -> 0.0
     }
 

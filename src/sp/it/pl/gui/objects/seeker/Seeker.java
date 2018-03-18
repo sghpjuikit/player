@@ -12,6 +12,7 @@ import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
@@ -21,7 +22,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import kotlin.jvm.functions.Function1;
 import org.reactfx.EventSource;
@@ -31,7 +31,6 @@ import sp.it.pl.audio.tagging.Chapter;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataWriter;
 import sp.it.pl.gui.itemnode.ConfigField;
-import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.ArrowLocation;
 import sp.it.pl.gui.objects.popover.PopOver;
@@ -41,7 +40,6 @@ import sp.it.pl.util.animation.Loop;
 import sp.it.pl.util.animation.interpolator.CircularInterpolator;
 import sp.it.pl.util.async.executor.FxTimer;
 import sp.it.pl.util.functional.Try;
-import sp.it.pl.util.graphics.UtilKt;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CHECK;
@@ -80,6 +78,7 @@ import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.minBy;
 import static sp.it.pl.util.graphics.Util.layHeaderRight;
 import static sp.it.pl.util.graphics.Util.setAnchor;
+import static sp.it.pl.util.graphics.UtilKt.typeText;
 import static sp.it.pl.util.reactive.Util.maintain;
 
 /**
@@ -501,7 +500,7 @@ public final class Seeker extends AnchorPane {
 		private final V<Boolean> isEdited = new V<>(false);
 
 		StackPane content;
-		Text message;
+		TextArea message;
 		Anim messageAnimation;
 		TextArea ta;                    // edit text area
 		PopOver<?> p, helpP;            // main & help popup
@@ -547,13 +546,15 @@ public final class Seeker extends AnchorPane {
 			// build popup if not yet
 			if (p==null) {
 				// text content
-				message = new Text();
-				message.wrappingWithNatural.setValue(true);
-				message.setTextAlignment(TextAlignment.JUSTIFY);
-				Function1<Double,String> messageInterpolator = UtilKt.typeText(c.getText());
-				messageAnimation = new Anim(millis(300), p -> message.setText(messageInterpolator.invoke(p)));
+				message = new TextArea();
+				message.setWrapText(true);
+				message.setEditable(false);
+				message.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
+				Function1<Double,String> messageInterpolator = typeText(c.getText(), "\u2007");
+				messageAnimation = new Anim(millis(10*c.getText().length()), p -> message.setText(messageInterpolator.invoke(p))).delay(millis(200));
 				content = new StackPane(message);
 				content.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
+				content.setPrefSize(300, 200);
 				content.setPadding(new Insets(10));
 				content.addEventHandler(Event.ANY, e -> { if (isEdited.getValue()) e.consume(); });
 				content.addEventHandler(KeyEvent.ANY, Event::consume);
@@ -587,11 +588,11 @@ public final class Seeker extends AnchorPane {
 					prevB.setDisable(true);
 				helpB = createInfoIcon(
 						"Single click : Close\n"
-								+ "Double L click : Play from this chapter\n"
-								+ "Double R click : Start edit\n"
-								+ "Enter : Apply edit changes\n"
-								+ "Shift + Enter : Append new line\n"
-								+ "Escape : If editing cancel edit, else hide"
+						+ "Double L click : Play from this chapter\n"
+						+ "Double R click : Start edit\n"
+						+ "Enter : Apply edit changes\n"
+						+ "Shift + Enter : Append new line\n"
+						+ "Escape : If editing cancel edit, else hide"
 				).size(11);
 				// popup
 				p = new PopOver<>(content);
@@ -629,9 +630,9 @@ public final class Seeker extends AnchorPane {
 					e.consume();
 				});
 			}
-			// show if not already
+
 			if (!p.isShowing()) {
-				p.show(this);
+				p.showInCenterOf(this);
 				messageAnimation.play();
 			}
 
@@ -685,8 +686,10 @@ public final class Seeker extends AnchorPane {
 			});
 
 			// maintain proper content
-			content.getChildren().remove(message);
-			content.getChildren().add(layHeaderRight(5, Pos.CENTER, ta, warnB));
+			List<Node> children = new ArrayList<>(content.getChildren());
+			children.remove(message);
+			children.add(layHeaderRight(5, Pos.CENTER, ta, warnB));
+			content.getChildren().setAll(children);
 			p.getHeaderIcons().setAll(helpB, commitB, cancelB);
 		}
 
@@ -697,7 +700,6 @@ public final class Seeker extends AnchorPane {
 			if (!c.getText().equals(text)) {
 				// persist changes visually
 				message.setText(text);
-				message.wrappingWithNatural.set(true);
 				// and physically
 				c.setText(text);
 				Metadata m = Player.playingItem.get();

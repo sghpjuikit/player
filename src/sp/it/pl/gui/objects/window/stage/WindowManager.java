@@ -508,7 +508,7 @@ public class WindowManager implements Configurable<Object> {
 		p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
 		p.setAutoHide(true);
 		if (isComponent) p.addEventFilter(WINDOW_HIDING, we -> ((Component) c).close());
-		p.show(n);
+		p.showInCenterOf(n);
 	}
 
 	public PopOver showFloating(Node content, String title) {

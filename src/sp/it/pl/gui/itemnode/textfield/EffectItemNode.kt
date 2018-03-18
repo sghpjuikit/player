@@ -90,7 +90,7 @@ class EffectItemNode: TextFieldItemNode<Effect> {
                 }
             }.node
         }
-        p.show(propB)
+        p.showInCenterOf(propB)
     }
 
     private fun openProperties(me: MouseEvent) {

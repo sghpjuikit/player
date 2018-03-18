@@ -334,17 +334,35 @@ fun Parent.setFontAsStyle(font: Font) {
     val weightS = if (weight==FontWeight.BOLD) "bold" else "normal"
     setStyle(
             "-fx-font-family: \"${font.family}\";"+
-                    "-fx-font-style: $styleS;"+
-                    "-fx-font-weight: $weightS;"+
-                    "-fx-font-size: ${font.size};"
+            "-fx-font-style: $styleS;"+
+            "-fx-font-weight: $weightS;"+
+            "-fx-font-size: ${font.size};"
     )
 }
 
-/** @return Linear text interpolator computing substrings of specified text from beginning */
-fun typeText(text: String): (Double) -> String {
+/**
+ * @param text text to interpolate from 0 to full length
+ * @param padLength 'empty' value with which to pad the result to preserve original length or null to not preserve it.
+ * @return linear text interpolator computing substrings of specified text from beginning
+ */
+@JvmOverloads fun typeText(text: String, padLength: String? = null): (Double) -> String {
     val length = text.length
-    val sb = StringBuilder(text)
-    return { sb.substring(0, Math.floor(length*it).toInt()) }
+    val sbOriginal = StringBuilder(text)
+    fun mapper(c: Char) = if (c.isWhitespace()) c.toString() else (padLength ?: c.toString())
+
+    var lengthsSum = 0
+    val lengths = IntArray(text.length) { i -> lengthsSum += mapper(text[i]).length; lengthsSum-mapper(text[i]).length }
+
+    val sbInterpolated = StringBuilder(lengthsSum)
+    generateSequence(0) { it+1 }.take(sbOriginal.length).forEach { sbInterpolated.append(mapper(sbOriginal[it])) }
+
+    return if (padLength!=null) { {
+        val i = Math.floor((length-1)*it).toInt()
+        sbOriginal.substring(0, i) + sbInterpolated.substring(lengths[i])
+    } } else { {
+        val i = Math.floor((length-1)*it).toInt()
+        sbOriginal.substring(0, i)
+    } }
 }
 
 /* ---------- TREE VIEW --------------------------------------------------------------------------------------------- */

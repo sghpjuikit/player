@@ -67,7 +67,7 @@ fun createInfoIcon(text: String): Icon = Icon(FontAwesomeIcon.INFO)
             helpPopOver(text).apply {
                     contentNode.value.wrappingWidth = 400.0
                     getSkinn().setTitleAsOnlyHeaderContent(false)
-                    show(e.source as Node)
+                    showInCenterOf(e.source as Node)
                 }
         }
 

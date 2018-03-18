@@ -31,15 +31,14 @@ import sp.it.pl.gui.objects.window.stage.WindowBase;
 import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.ValueConfig;
-import sp.it.pl.util.dev.Util;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
@@ -766,7 +765,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 				browse(URI.create(uri));
 				pe.consume();
 			});
-			helpP.show(infoB);
+			helpP.showInCenterOf(infoB);
 		});
 		// build popup
 		PopOver<?> p = new PopOver<>(title, content);

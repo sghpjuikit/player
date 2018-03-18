@@ -296,7 +296,7 @@ public final class AreaControls {
 
     void showInfo() {
         if (Gui.open_strategy==POPUP) {
-            helpP.getM(this).show(infoB);
+            helpP.getM(this).showInCenterOf(infoB);
         } else if (Gui.open_strategy==INSIDE) {
             AppAnimator.INSTANCE.closeAndDo(area.content_root, () -> {
                 Text t = new Text(getInfo());

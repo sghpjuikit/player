@@ -30,7 +30,7 @@ private val logger = KotlinLogging.logger { }
 @JvmField val CURR = Consumer<Runnable> { it() }
 
 fun FX_AFTER(delay: Double): Consumer<Runnable> = Consumer { runFX(delay, it) }
-fun FX_AFTER(delay: Duration): Consumer<Runnable> = Consumer { runFX(delay, it) }
+fun FX_AFTER(delay: Duration): Consumer<Runnable> = Consumer { runFX(delay, { it.run() }) }
 
 @JvmField val eFX = Executor { FX(it) }
 @JvmField val eFX_LATER = Executor { FX_LATER(it) }
@@ -185,18 +185,14 @@ fun runFX(delay: Double, r: Runnable) {
 
 fun runFX(delay1: Double, r1: Runnable, delay2: Double, r2: Runnable) {
     throwIf(delay1<0)
-    runFX(millis(delay1), Runnable {
+    runFX(millis(delay1)) {
         r1()
         runFX(delay2, r2)
-    })
+    }
 }
 
-/**
- * Executes the action on fx thread after specified delay from now.
- *
- * @param delay delay
- */
-fun runFX(delay: Duration, r: Runnable) {
+/** Executes the action on fx thread after specified delay from now. */
+fun runFX(delay: Duration, r: () -> Unit) {
     fxTimer(delay, 1) { runFX(r) }.start()
 }
 

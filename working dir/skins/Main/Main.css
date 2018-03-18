@@ -3191,12 +3191,11 @@
 .icon {
     -fx-fill: -fx-def-font-color;
     -glyph-name: "FontAwesomeIcon.CLOSE";
-    -glyph-size: 12;
+    -glyph-size: 1em;
     -glyph-gap: 0;
 }
 
-.icon:hover,
-.icon:selected {
+.icon:hover {
     -fx-fill: -fx-def-font-color-hover;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
@@ -3309,8 +3308,6 @@
  * inherits: .header
  */
 .window .header {
-    /* bug causing artifacts on bgr color of nodes in header may appear, in such
-       case emulate rgba(x,x,x,a) color manually using rgb(x,x,x) and opacity */
     -fx-background-color: -fx-pane-color;
 }
 
@@ -3770,13 +3767,13 @@
 /* Effect type chooser button for effect config field. */
 .effect-config-field-type-button {
     -glyph-name: "MaterialDesignIcon.AUTO_FIX";
-    -glyph-size: 11;
+    -glyph-size: 0.91667em; /* 11 */
 }
 
 /* Effect properties button for effect config field. */
 .effect-config-field-conf-button {
     -glyph-name: "FontAwesomeIcon.GEAR";
-    -glyph-size: 11;
+    -glyph-size: 0.91667em; /* 11 */
 }
 
 /************************************ RATING ***************************************************************************
@@ -3833,11 +3830,19 @@
 .spinner {
     -fx-fill: null;
     -fx-stroke: -fx-def-font-color;
-    -fx-stroke-width: 2;
+    -fx-stroke-width: 0.208333em; /* 2.5 */
     -fx-stroke-type: inside;
 }
 .spinner-progress {
     -fx-fill: -fx-def-font-color;
+}
+.spinner-in {
+    -fx-radiusX: 0.5em /* 6 */
+    -fx-radiusY: 0.5em /* 6 */
+}
+.spinner-out {
+    -fx-radiusX: 0.75em /* 9 */
+    -fx-radiusY: 0.75em /* 9 */
 }
 
 /********************************** MENU *******************************************************************************
@@ -3894,7 +3899,7 @@
 .onode,
 .ionode {
     -glyph-name: "FontAwesomeIcon.TOGGLE_RIGHT";
-    -glyph-size: 10;
+    -glyph-size: 0.833334em; /* 10 */
 }
 
 .inode:drag-over,
@@ -3909,7 +3914,7 @@
 .onode:selected,
 .ionode:selected {
     -fx-fill: -fx-focus-color;
-    -glyph-size: 15;
+    -glyph-size: 1.25em; /* 15 */
 }
 
 
@@ -3976,7 +3981,7 @@
  * inherits: .icon
  */
 .action-pane-action-icon {
-    -glyph-size: 25;
+    -glyph-size: 2em; /* 24 */
 }
 
 /*************************** SHORTCUT PANE *******************************
@@ -4032,7 +4037,7 @@
  * inherits: .icon
  */
 .placeholder-pane-icon {
-    -glyph-size: 25; 
+    -glyph-size: 2em; /* 24 */
 }
 
 /******************** DRAG PANE *********************

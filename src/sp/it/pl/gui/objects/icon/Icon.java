@@ -55,6 +55,7 @@ import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static java.lang.Math.signum;
+import static java.lang.Math.sqrt;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
@@ -127,7 +128,7 @@ public class Icon extends StackPane {
 	}
 
 	private final Text node = new Text();
-	private StringProperty glyphStyle; // needed as setStyle() is final in javafx.scene.text.Text
+	private StringProperty glyphStyle = new SimpleStringProperty(""); // needed as setStyle() is final in javafx.scene.text.Text
 	private final SimpleStyleableObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", GLYPHS.keyMapper.invoke(ADJUST));
 	private boolean isGlyphSetProgrammatically = false;
 	private final SimpleStyleableObjectProperty<Number> size = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_SIZE, Icon.this, "glyphSize", DEFAULT_ICON_SIZE);
@@ -153,10 +154,10 @@ public class Icon extends StackPane {
 	}
 
 	public Icon(GlyphIcons i, double size, String tooltip, EventHandler<MouseEvent> onClick) {
-		glyphSizeProperty().addListener((o, ov, nv) -> updateSize());
-		glyphGapProperty().addListener((o, ov, nv) -> updateSize());
-		glyphStyleProperty().addListener((o, ov, nv) -> updateStyle());
-		glyphNameProperty().addListener((o, ov, nv) -> updateIcon());
+		this.size.addListener((o, ov, nv) -> updateSize());
+		gap.addListener((o, ov, nv) -> updateSize());
+		glyphStyle.addListener((o, ov, nv) -> updateStyle());
+		icon.addListener((o, ov, nv) -> updateIcon());
 
 		node.getStyleClass().clear();
 		node.getStyleClass().add(STYLECLASS);
@@ -179,9 +180,6 @@ public class Icon extends StackPane {
 		addEventHandler(MouseEvent.MOUSE_EXITED, e -> select(false));
 		addEventHandler(MouseEvent.MOUSE_ENTERED, e -> select(e.getX()>0 && e.getX()<getPrefWidth() && e.getY()>0 && e.getY()<getPrefHeight()));
 		addEventHandler(MouseEvent.MOUSE_MOVED, e -> select(e.getX()>0 && e.getX()<getPrefWidth() && e.getY()>0 && e.getY()<getPrefHeight()));
-
-		// debug
-		// setBackground(bgr(Color.color(Math.random(),Math.random(),Math.random())));
 	}
 
 	public Icon(GlyphIcons ico, double size, String tooltip, Runnable onClick) {
@@ -243,7 +241,7 @@ public class Icon extends StackPane {
 
 	@SuppressWarnings("unchecked")
 	public Icon size(double s) {
-		isGlyphSizeSetProgrammatically = true;
+//		isGlyphSizeSetProgrammatically = true;
 		setGlyphSize(s);
 		return this;
 	}
@@ -384,7 +382,6 @@ public class Icon extends StackPane {
 		});
 	}
 
-	@SuppressWarnings("FunctionalExpressionCanBeFolded")
 	public final Icon onClickDo(Function1<MouseEvent,Unit> action) {
 		return onClick(action::invoke);
 	}
@@ -418,89 +415,51 @@ public class Icon extends StackPane {
 		node.setFill(value);
 	}
 
-	public final Paint getFill() {
+	private final Paint getFill() {
 		return node.getFill();
 	}
 
-	private ObjectProperty<Effect> iconEffectProperty() {
-		return node.effectProperty();
-	}
-
-	private void setIconEffect(Effect value) {
-		node.setEffect(value);
-	}
-
-	private Effect getIconEffect() {
-		return node.getEffect();
-	}
-
-	public final ObjectProperty<Paint> fillProperty() {
+	private final ObjectProperty<Paint> fillProperty() {
 		return node.fillProperty();
 	}
 
-	public final StringProperty glyphStyleProperty() {
+	private final StringProperty glyphStyleProperty() {
 		if (glyphStyle==null) {
 			glyphStyle = new SimpleStringProperty("");
 		}
 		return glyphStyle;
 	}
 
-	public final String getGlyphStyle() {
+	private final String getGlyphStyle() {
 		return glyphStyleProperty().getValue();
 	}
 
-	public final void setGlyphStyle(String style) {
-		glyphStyleProperty().setValue(style);
-	}
+	private final String getGlyphName() { return icon.getValue(); }
 
-	public final ObjectProperty<String> glyphNameProperty() { return icon; }
+	private final void setGlyphName(String glyphName) { icon.setValue(glyphName); }
 
-	public final String getGlyphName() { return icon.getValue(); }
-
-	public final void setGlyphName(String glyphName) { icon.setValue(glyphName); }
-
-	public final ObjectProperty<Number> glyphGapProperty() {
+	private final ObjectProperty<Number> glyphGapProperty() {
 		return gap;
 	}
 
-	public final Number getGlyphGap() {
-		return glyphGapProperty().getValue();
-	}
-
-	public final void setGlyphGap(Number gap) {
+	private final void setGlyphGap(Number gap) {
 		gap = (gap==null) ? DEFAULT_ICON_GAP : gap;
 		glyphGapProperty().setValue(gap);
 	}
 
-	public final ObjectProperty<Number> glyphSizeProperty() {
-		return size;
-	}
-
-	public final Number getGlyphSize() {
-		return glyphSizeProperty().getValue();
-	}
-
-	public final void setGlyphSize(Number size) {
-		size = (size==null) ? DEFAULT_ICON_SIZE : size;
-		glyphSizeProperty().setValue(size);
-	}
-
-	// kept for compatibility reasons and for SceneBuilder/FXML support
-	public final String getSize() {
-		return getGlyphSize().toString();
-	}
-
-	// kept for compatibility reasons and for SceneBuilder/FXML support
-	public final void setSize(String sizeExpr) {
-		Number s = convert(sizeExpr);
-		setGlyphSize(s);
+	private final void setGlyphSize(Number size) {
+		Number sn = (size==null) ? DEFAULT_ICON_SIZE : size;
+//		setStyle("-glyph-size: " + sn.doubleValue()/12.0 + "em;");
+		setStyle("-glyph-size: " + sqrt(sn.doubleValue()/12.0) + "em;");
+		// glyphSizeProperty().setValue(s);
 	}
 
 	private void updateSize() {
-		double glyphSize = getGlyphSize().doubleValue();
+		double glyphSize = size.getValue().doubleValue();
 		Font f = new Font(node.getFont().getFamily(), glyphScale*glyphSize);
 		node.setFont(f);
-		setMinPrefMaxSize(this, (glyphSize/DEFAULT_ICON_SIZE)*glyphSize + gap.getValue().doubleValue());
+//		setMinPrefMaxSize(this, (glyphSize/DEFAULT_ICON_SIZE)*glyphSize + gap.getValue().doubleValue());
+		setMinPrefMaxSize(this, (glyphSize/DEFAULT_ICON_SIZE)*glyphSize + 0);
 	}
 
 	private void updateIcon() {
@@ -547,7 +506,7 @@ public class Icon extends StackPane {
 
 			@Override
 			public boolean isSettable(Icon node) {
-				return node.iconEffectProperty()==null || !node.iconEffectProperty().isBound();
+				return node.node.effectProperty()==null || !node.node.effectProperty().isBound();
 			}
 
 			@Override

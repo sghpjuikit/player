@@ -39,7 +39,7 @@
     -glyph-gap: 12;
 
     -fx-border-color: -fx-def-icon-border-color;
-    -fx-border-width: 1;
+    -fx-border-width: 0.083333em; /* 1 */
     -fx-border-radius: 11111; /* big value to always achieve perfect circle */
 
     /* decreases performance */

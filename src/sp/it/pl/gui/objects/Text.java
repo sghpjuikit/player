@@ -9,7 +9,30 @@ import javafx.beans.value.ChangeListener;
  * support for automatic wrap width based on contained text value.
  */
 public class Text extends javafx.scene.text.Text {
+
 	public static final String STYLECLASS = "text-shape";
+
+	/**
+	 * Whether wrapping width is automatically changed to maintain natural width/height ratio of the area.
+	 * Default false.
+	 */
+	public final BooleanProperty wrappingWithNatural = new SimpleBooleanProperty(false) {
+		@Override
+		public void set(boolean newV) {
+			super.set(newV);
+			if (newV) {
+				textProperty().addListener(wrapWidthSetter);
+				// fire to initialize
+				wrapWidthSetter.changed(null, null, getText());
+			} else {
+				textProperty().removeListener(wrapWidthSetter);
+			}
+		}
+	};
+	private final ChangeListener<String> wrapWidthSetter = (o, ov, nv) -> {
+		String s = nv==null ? "" : nv;
+		setWrappingWidth(110 + s.length()/4);
+	};
 
 	public Text() {
 		super();
@@ -43,26 +66,5 @@ public class Text extends javafx.scene.text.Text {
 	public void wrapWidthNaturally() {
 		wrapWidthSetter.changed(null, null, getText());
 	}
-
-	ChangeListener<String> wrapWidthSetter = (o, ov, nv) -> {
-		String s = nv==null ? "" : nv;
-		setWrappingWidth(110 + s.length()/4);
-	};
-
-	/**
-	 * Whether wrapping width is automatically changed to maintain natural width/height ratio of the area.
-	 * Default false.
-	 */
-	public final BooleanProperty wrappingWithNatural = new SimpleBooleanProperty(false) {
-		@Override
-		public void set(boolean newV) {
-			super.set(newV);
-			if (newV) {
-				textProperty().addListener(wrapWidthSetter);
-				// fire to initialize
-				wrapWidthSetter.changed(null, null, getText());
-			} else textProperty().removeListener(wrapWidthSetter);
-		}
-	};
 
 }

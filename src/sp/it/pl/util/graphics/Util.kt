@@ -357,11 +357,11 @@ fun Parent.setFontAsStyle(font: Font) {
     generateSequence(0) { it+1 }.take(sbOriginal.length).forEach { sbInterpolated.append(mapper(sbOriginal[it])) }
 
     return if (padLength!=null) { {
-        val i = Math.floor((length-1)*it).toInt()
-        sbOriginal.substring(0, i) + sbInterpolated.substring(lengths[i])
+        val i = Math.floor(length*it).toInt().coerceIn(0 until text.length)
+        sbOriginal.substring(0, i+1) + sbInterpolated.substring(lengths[i])
     } } else { {
-        val i = Math.floor((length-1)*it).toInt()
-        sbOriginal.substring(0, i)
+        val i = Math.floor(length*it).toInt().coerceIn(0 until text.length)
+        sbOriginal.substring(0, i+1)
     } }
 }
 

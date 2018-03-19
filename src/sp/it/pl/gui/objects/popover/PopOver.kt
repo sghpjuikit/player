@@ -45,6 +45,7 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
+import javafx.scene.layout.Pane
 import javafx.stage.Stage
 import javafx.stage.Window
 import javafx.stage.WindowEvent
@@ -75,6 +76,9 @@ import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.toP
 import sp.it.pl.util.math.P
 import sp.it.pl.util.math.millis
+import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.reactive.onEventUp
+import sp.it.pl.util.reactive.sync
 import java.util.ArrayList
 
 private typealias F = JvmField
@@ -168,6 +172,7 @@ open class PopOver<N: Node>(): PopupControl() {
                 hideOnClick = null
             }
         }
+    private val disposersOnHide = Disposer()
 
     private var hideOnClick: EventHandler<MouseEvent>? = null
     /** Focus this popover on shown event to receive input events. Use true for interactive content. Default true. */
@@ -229,10 +234,24 @@ open class PopOver<N: Node>(): PopupControl() {
     fun getSkinn(): PopOverSkin = skin as PopOverSkin
 
     init {
+        fun initCloseWithOwner() {
+            // JavaFX bug may result in owner being closed before the child (this) -> we need to close immediately
+            val d = Disposer()
+            disposersOnHide += d
+            ownerWindowProperty() sync {
+                d()
+                if (it!=null) {
+                    d += it.onEventUp(WindowEvent.WINDOW_HIDING) { if (isShowing) hideImmediately() }
+                    d += it.onEventUp(WindowEvent.WINDOW_CLOSE_REQUEST) { if (isShowing) hideImmediately() }
+                }
+            }
+        }
+
         styleClass += STYLE_CLASS
         consumeAutoHidingEvents = false
         isAutoFix = false
         skin = createDefaultSkin()
+        initCloseWithOwner()
     }
 
     /**
@@ -288,6 +307,7 @@ open class PopOver<N: Node>(): PopupControl() {
      * has been observed to cause serious problems.
      */
     fun hideImmediately() {
+        disposersOnHide()
         active_popups.remove(this)
         uninstallMoveWith()
         super.hide()
@@ -304,11 +324,9 @@ open class PopOver<N: Node>(): PopupControl() {
         if (ownerNode!=null) {
             this.ownerMNode = ownerNode
             this.ownerMWindow = ownerNode.scene.window
-            if (this.ownerMWindow is PopOver<*>) {
-                setParentPopup((this.ownerMWindow as PopOver<*>?)!!)
-            }
-        } else
+        } else {
             this.ownerMWindow = ownerWindow
+        }
 
         detached.set(false)
 
@@ -328,14 +346,6 @@ open class PopOver<N: Node>(): PopupControl() {
         }
 
         if (animated.value) fadeIn()
-    }
-
-    private fun setParentPopup(popover: PopOver<*>) {
-        // JavaFX bug may result in owner being closed before the child (this) -> we need to close immediately
-        popover.addEventFilter(WindowEvent.WINDOW_HIDING) {
-            if (isShowing)
-                hideImmediately()
-        }
     }
 
     private fun position(position: () -> P) {
@@ -385,6 +395,24 @@ open class PopOver<N: Node>(): PopupControl() {
 
     /** Show popup at specified screen position. */
     open fun show(pos: ScreenPos) {
+
+        fun ScreenPos.normalize(owner: Window?) = takeIf { owner!=null } ?: toScreenCentric()
+
+        fun grabFocus() {
+            ownerWindow?.requestFocus()
+            requestFocus()
+        }
+
+        fun fixWrongCoordinatesWhenShownWithDifferentContentWhenShowing() {
+            if (isShowing) {
+                // hideImmediately() // This solution works but introduces a visual glitch
+                skin.node.applyCss()
+                skin.node.autosize()
+                (skin.node as? Pane)?.requestLayout()
+                (skin.node as? Pane)?.layout()
+            }
+        }
+
         arrowSize.value = 0.0
         val ownerF: Window? = APP.windowManager.focused.orNull()?.takeIf { pos.isAppCentric() }?.stage
         val ownerS: Window? = ownerF ?: ownerWindow?.takeIf { it.isShowing }
@@ -392,26 +420,18 @@ open class PopOver<N: Node>(): PopupControl() {
         val wasOwnerCreated = ownerS==null && focusOnShow.value
         val position = pos.normalize(ownerF)
 
-        if (isShowing) hideImmediately()    // showing when shown can get us into trouble -> hide first // TODO: remove
-
+        fixWrongCoordinatesWhenShownWithDifferentContentWhenShowing()
         showThis(null, owner)
         position({ position.computeXY(this) })
 
-        if (focusOnShow.value) focus()
+        if (focusOnShow.value) grabFocus()
         if (!position.isAppCentric()) uninstallMoveWith()
-        if (wasOwnerCreated) properties.put(KEY_CLOSE_OWNER, KEY_CLOSE_OWNER)
+        if (wasOwnerCreated) properties[KEY_CLOSE_OWNER] = KEY_CLOSE_OWNER
     }
 
     override fun show(window: Window) {
         showThis(null, window)
         uninstallMoveWith()
-    }
-
-    private fun ScreenPos.normalize(owner: Window?) = takeIf { owner!=null } ?: toScreenCentric()
-
-    private fun focus() {
-        ownerWindow?.takeIf { it.isFocused }?.requestFocus()
-        requestFocus()
     }
 
     // TODO: fix this computing wrong coordinates

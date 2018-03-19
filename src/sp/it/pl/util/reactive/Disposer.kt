@@ -2,10 +2,10 @@ package sp.it.pl.util.reactive
 
 import org.reactfx.Subscription
 
-class Disposer {
+class Disposer: () -> Unit {
     private val disposers = ArrayList<() -> Unit>()
 
-    operator fun invoke() {
+    override fun invoke() {
         disposers.forEach { it() }
         disposers.clear()
     }

@@ -458,8 +458,7 @@ public class Icon extends StackPane {
 		double glyphSize = size.getValue().doubleValue();
 		Font f = new Font(node.getFont().getFamily(), glyphScale*glyphSize);
 		node.setFont(f);
-//		setMinPrefMaxSize(this, (glyphSize/DEFAULT_ICON_SIZE)*glyphSize + gap.getValue().doubleValue());
-		setMinPrefMaxSize(this, (glyphSize/DEFAULT_ICON_SIZE)*glyphSize + 0);
+		setMinPrefMaxSize(this, (glyphSize/DEFAULT_ICON_SIZE)*glyphSize + gap.getValue().doubleValue());
 	}
 
 	private void updateIcon() {

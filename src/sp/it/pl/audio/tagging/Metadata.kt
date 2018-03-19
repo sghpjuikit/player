@@ -265,26 +265,30 @@ class Metadata: Item, Serializable {
 
         // track
         val tr = loadAsString(this, FieldKey.TRACK)
-        val i = tr!!.indexOf('/')
-        if (i!=-1) {
-            // some apps use TRACK for "x/y" string format, we cover that
-            track = tr.substring(0, i).toIntOrNull()
-            tracksTotal = tr.substring(i+1, tr.length).toIntOrNull()
-        } else {
-            track = tr.toIntOrNull()
-            tracksTotal = loadAsInt(this, FieldKey.TRACK_TOTAL)
+        if (tr!=null) {
+            val i = tr.indexOf('/')
+            if (i!=-1) {
+                // some apps use TRACK for "x/y" string format, we cover that
+                track = tr.substring(0, i).toIntOrNull()
+                tracksTotal = tr.substring(i+1, tr.length).toIntOrNull()
+            } else {
+                track = tr.toIntOrNull()
+                tracksTotal = loadAsInt(this, FieldKey.TRACK_TOTAL)
+            }
         }
 
         // disc
         val dr = loadAsString(this, FieldKey.DISC_NO)
-        val j = dr!!.indexOf('/')
-        if (j!=-1) {
-            // some apps use DISC_NO for "x/y" string format, we cover that
-            disc = dr.substring(0, j).toIntOrNull()
-            discsTotal = dr.substring(j+1, dr.length).toIntOrNull()
-        } else {
-            disc = dr.toIntOrNull()
-            discsTotal = loadAsInt(this, FieldKey.DISC_TOTAL)
+        if (dr!=null) {
+            val j = dr.indexOf('/')
+            if (j!=-1) {
+                // some apps use DISC_NO for "x/y" string format, we cover that
+                disc = dr.substring(0, j).toIntOrNull()
+                discsTotal = dr.substring(j+1, dr.length).toIntOrNull()
+            } else {
+                disc = dr.toIntOrNull()
+                discsTotal = loadAsInt(this, FieldKey.DISC_TOTAL)
+            }
         }
 
         playcount = loadAsInt(this, FieldKey.CUSTOM3)

@@ -144,7 +144,7 @@ public class MetadataReader {
 							skipped.add(item);
 						}
 					} catch (Exception e) {
-						logger(MetadataReader.class).warn("Problem during reading tag of {}", item);
+						logger(MetadataReader.class).warn("Problem during reading tag of {}", item, e);
 					}
 
 					processed.add(item);

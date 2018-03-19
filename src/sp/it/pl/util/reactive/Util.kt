@@ -16,6 +16,7 @@ import javafx.scene.Node
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.stage.Screen
+import javafx.stage.Window
 import org.reactfx.EventStreams
 import org.reactfx.Subscription
 import sp.it.pl.util.dev.Experimental
@@ -280,12 +281,25 @@ fun <T> listChangeHandler(addedHandler: Consumer<in List<T>>, removedHandler: Co
     }
 }
 
+/** Equivalent to [Window.addEventHandler]. */
+fun <T: Event> Window.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+    addEventHandler(eventType, eventHandler)
+    return Subscription { removeEventHandler(eventType, eventHandler) }
+}
 
+/** Equivalent to [Window.addEventFilter]. */
+fun <T: Event> Window.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+    addEventFilter(eventType, eventHandler)
+    return Subscription { removeEventFilter(eventType, eventHandler) }
+}
+
+/** Equivalent to [Node.addEventHandler]. */
 fun <T: Event> Node.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
     addEventHandler(eventType, eventHandler)
     return Subscription { removeEventHandler(eventType, eventHandler) }
 }
 
+/** Equivalent to [Node.addEventFilter]. */
 fun <T: Event> Node.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
     addEventFilter(eventType, eventHandler)
     return Subscription { removeEventFilter(eventType, eventHandler) }

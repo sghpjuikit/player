@@ -42,6 +42,8 @@ open class V<T> : SimpleObjectProperty<T>, ApplicableValue<T> {
 
     fun onChange(action: Consumer<in T>) = attach { action(it) }
 
+    fun initOnChange(action: Consumer<in T>) = apply { attach { action(it) } }
+
     fun onChange(action: BiConsumer<in T, in T>) = changes { ov, nv -> action(ov, nv) }
 
     fun maintain(action: Consumer<in T>): Subscription {

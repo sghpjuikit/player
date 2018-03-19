@@ -203,8 +203,8 @@ public class WindowManager implements Configurable<Object> {
 		w.initialize();
 
         // bind properties
-        w.disposables.add(maintain(window_borderless, w::setBorderless));
-        w.disposables.add(maintain(window_headerless, v -> !v, w::setHeaderVisible));
+        w.disposables.add(maintain(window_borderless, v -> w.isBorderless.set(v)));
+        w.disposables.add(maintain(window_headerless, v -> w.isHeaderVisible.set(!v)));
 	    w.getStage().setTitle(APP.name);
 	    w.getStage().getIcons().addAll(APP.getIcons());
 
@@ -322,8 +322,8 @@ public class WindowManager implements Configurable<Object> {
 
             // show and apply state
             miniWindow.show();
-            miniWindow.setHeaderAllowed(false);
-            miniWindow.setBorderless(true);
+            miniWindow.isHeaderAllowed.set(false);
+            miniWindow.isBorderless.set(true);
             miniWindow.update();
             miniWindow.back.setStyle("-fx-background-size: cover;"); // disallow bgr stretching
             miniWindow.content.setStyle("-fx-background-color: -fx-pane-color;"); // imitate widget area bgr

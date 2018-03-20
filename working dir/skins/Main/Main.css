@@ -3776,6 +3776,54 @@
     -glyph-size: 0.91667em; /* 11 */
 }
 
+/************************************ SEARCH ***************************************************************************
+ * Search control
+ * inherits: .text-field
+ */
+
+.search {}
+
+/*
+ * Search sign icon on on the left of the search
+ * inherits: .icon
+ */
+.search-icon-sign {
+    -glyph-name: "FontAwesomeIcon.SEARCH";
+    -glyph-size: 0.91667em; /* 11 */
+}
+
+/*
+ * Search clear button on on the right of the search
+ * inherits: .icon
+ */
+.search-clear-button {
+    -glyph-name: "OctIcon.CIRCLE_SLASH";
+    -glyph-size: 0.91667em; /* 11 */
+}
+
+/************************************ ICON CHOOSER *********************************************************************
+ * Search control
+ * inherits: .text-field
+ */
+
+/**
+ * Cell displaying icon. Used in icon browser.
+ */
+.icon-grid-cell,
+.icon-grid-cell:selected {
+    -fx-background-color: transparent;
+}
+
+/*
+ * Icon-info icon showing the icon graphics
+ * inherits: .icon
+ */
+icon-info-icon {
+    -glyph-size: 2em; /* 24 */
+    -glyph-size: 0.91667em; /* 11 */
+}
+
+
 /************************************ RATING ***************************************************************************
  * Rating control displaying number of 'stars'. The number of icons and glyph is customizable.
  */
@@ -4117,14 +4165,6 @@
 /* Unmatched items. */
 .grid-cell:searchmatchnot {
     -fx-opacity: 0.4;
-}
-
-/**
- * Cell displaying icon. Used in icon browser.
- */
-.icon-grid-cell,
-.icon-grid-cell:selected {
-    -fx-background-color: null;
 }
 
 /***************************** FONT PICKER DIALOG *****************************

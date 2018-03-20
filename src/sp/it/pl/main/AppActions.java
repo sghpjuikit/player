@@ -114,15 +114,15 @@ public class AppActions {
 
 	@IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
 	public void openIconViewer() {
-		double iconSize = 45;
-		GridView<GlyphIcons,GlyphIcons> grid = new GridView<>(GlyphIcons.class, x -> x, iconSize+25,iconSize+35,5,5);
+		double iconSize = 80;
+		GridView<GlyphIcons,GlyphIcons> grid = new GridView<>(GlyphIcons.class, x -> x, iconSize,iconSize+30, 5, 5);
 		grid.search.field = (object, substitute) -> object==null ? substitute : object.name();
 		grid.selectOn.addAll(set(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS));
 		grid.setCellFactory(view -> new GridCell<>() {
-//			    Anim a;
 
 			{
 				getStyleClass().add("icon-grid-cell");
+				setPickOnBounds(true);
 			}
 
 			@Override
@@ -132,15 +132,10 @@ public class AppActions {
 				if (getGraphic() instanceof IconInfo)
 					graphics = (IconInfo) getGraphic();
 				else {
-					graphics = new IconInfo(null,iconSize);
+					graphics = new IconInfo(null, iconSize);
 					setGraphic(graphics);
-//					    a = new Anim(graphics::setOpacity).dur(100).intpl(x -> x*x*x*x);
 				}
 				graphics.setGlyph(empty ? null : icon);
-
-				// really cool when scrolling with scrollbar
-				// but when using mouse wheel it is very ugly & distracting
-				// a.play();
 			}
 
 			@Override
@@ -151,7 +146,6 @@ public class AppActions {
 			}
 		});
 		StackPane root = new StackPane(grid);
-		root.setPrefSize(600, 720); // determines popup size
 		List<Button> groups = stream(Icon.GLYPH_TYPES)
 			  .map(c -> {
 				  Button b = new Button(c.getSimpleName());
@@ -164,8 +158,11 @@ public class AppActions {
 				  return b;
 			  })
 			  .collect(toList());
-		PopOver o = new PopOver<>(layVertically(20, Pos.TOP_CENTER,layHorizontally(8,Pos.CENTER,groups), root));
-		o.show(ScreenPos.APP_CENTER);
+
+		Pane layout = layVertically(20, Pos.TOP_CENTER,layHorizontally(8,Pos.CENTER,groups), root);
+		layout.setPrefSize(600, 720);
+
+		new PopOver<>(layout).show(ScreenPos.APP_CENTER);
 	}
 
 	@IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")

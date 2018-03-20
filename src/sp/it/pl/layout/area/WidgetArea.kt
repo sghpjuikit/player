@@ -39,9 +39,9 @@ class WidgetArea: Area<Container<*>> {
     private var s: Subscription? = null
     private var s2: Subscription? = null
     private val passiveLoadPane = SingleR<Placeholder, Widget<*>>(
-                { Placeholder(UNFOLD, "") { loadWidget(true) } },
-                { ph, w -> ph.desc.text = "Unfold ${w.custom_name.value} (Left Click)" }
-        )
+            { Placeholder(UNFOLD, "") { loadWidget(true) } },
+            { ph, w -> ph.desc.text = "Unfold ${w.custom_name.value} (Left Click)" }
+    )
 
     /**
      * Creates area for the container and its child widget at specified child position.
@@ -86,7 +86,7 @@ class WidgetArea: Area<Container<*>> {
                     animation.openAndDo(content_root, null)
                     val wNode = widget.load()
                     content.children.clear()
-                    content.children.add(wNode)
+                    content.children += wNode
                     wNode.setAnchors(0.0)
 
                     // put controls to new widget

@@ -11,6 +11,8 @@ import java.util.function.Consumer
 class Outputs {
     private val m = HashMap<String, Output<*>>()
 
+    inline fun <reified T> create(id: UUID, name: String, value: T?) = create<T>(id, name, T::class.java, value)
+
     fun <T> create(id: UUID, name: String, type: TypeToken<in T?>, value: T?): Output<T?> {
         val o = create(id, name, type.rawType, value)
         o.typeT = type

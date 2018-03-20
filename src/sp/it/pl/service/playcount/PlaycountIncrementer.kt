@@ -19,7 +19,6 @@ import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_T
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_AND_PERCENT
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_OR_PERCENT
 import sp.it.pl.service.tray.TrayService
-import sp.it.pl.util.SwitchException
 import sp.it.pl.util.access.v
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.conf.IsConfig
@@ -32,29 +31,29 @@ import sp.it.pl.util.validation.Constraint
 import java.awt.TrayIcon.MessageType.INFO
 import java.util.ArrayList
 
-/** Playcount incrementing service.  */
+/** Playcount incrementing service. */
 @IsConfigurable(value = "Playback.Playcount.Incrementing")
-class PlaycountIncrementer : ServiceBase("Playcount Incrementer", false) {
+class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
 
     @IsConfig(name = "Incrementing strategy", info = "Playcount strategy for incrementing playback.")
-    val whenStrategy = v(ON_PERCENT) { this.apply() }
+    val whenStrategy = v(ON_PERCENT) { apply() }
     @Constraint.MinMax(min = 0.0, max = 1.0)
     @IsConfig(name = "Increment at percent", info = "Percent at which playcount is incremented.")
-    val whenPercent = v(0.4) { this.apply() }
+    val whenPercent = v(0.4) { apply() }
     @IsConfig(name = "Increment at time", info = "Time at which playcount is incremented.")
-    val whenTime = v(seconds(5.0)) { this.apply() }
+    val whenTime = v(seconds(5.0)) { apply() }
     @IsConfig(name = "Show notification", info = "Shows notification when playcount is incremented.")
     val showNotification = v(false)
     @IsConfig(name = "Show tray bubble", info = "Shows tray bubble notification when playcount is incremented.")
     val showBubble = v(false)
     @IsConfig(name = "Delay writing", info = "Delays writing playcount to tag for more seamless "
-            + "playback experience. In addition, reduces multiple consecutive increments in a row "
-            + "to a single operation. The writing happens when different song starts playing "
-            + "(but the data in the application may update visually even later).")
+            +"playback experience. In addition, reduces multiple consecutive increments in a row "
+            +"to a single operation. The writing happens when different song starts playing "
+            +"(but the data in the application may update visually even later).")
     val delay = v(true)
 
     private val queue = ArrayList<Metadata>()
-    private val incrementer = Runnable { this.increment() }
+    private val incrementer = Runnable { increment() }
     private var incHandler: PlayTimeHandler? = null
     private var running = false
     private val onStop = Disposer()
@@ -91,7 +90,7 @@ class PlaycountIncrementer : ServiceBase("Playcount Incrementer", false) {
                 if (showBubble.value)
                     APP.services.use<TrayService> { it.showNotification(Widgets.TAGGER, "Playcount incremented scheduled", INFO) }
             } else {
-                val pc = 1 + m.getPlaycountOr0()
+                val pc = 1+m.getPlaycountOr0()
                 MetadataWriter.use(m, { it.setPlaycount(pc) }) { ok ->
                     if (ok!!) {
                         if (showNotification.value)
@@ -128,7 +127,6 @@ class PlaycountIncrementer : ServiceBase("Playcount Incrementer", false) {
             ON_START -> Player.onPlaybackStart += incrementer
             ON_END -> Player.onPlaybackEnd += incrementer
             NEVER -> {}
-            else -> throw SwitchException(whenStrategy.value)
         }
     }
 
@@ -140,9 +138,9 @@ class PlaycountIncrementer : ServiceBase("Playcount Incrementer", false) {
 
     private fun incrementQueued(m: Metadata) {
         val queuedTimes = queue.count { it.same(m) }
-        if (queuedTimes > 0) {
+        if (queuedTimes>0) {
             queue.removeIf { it.same(m) }
-            val p = queuedTimes + m.getPlaycountOr0()
+            val p = queuedTimes+m.getPlaycountOr0()
             Player.IO_THREAD.execute {
                 MetadataWriter.useNoRefresh(m) { it.setPlaycount(p) }
                 Player.refreshItemWith(MetadataReader.readMetadata(m), true)
@@ -150,21 +148,22 @@ class PlaycountIncrementer : ServiceBase("Playcount Incrementer", false) {
         }
     }
 
-    /** Strategy for incrementing playcount.  */
+    /** Strategy for incrementing playcount. */
     enum class PlaycountIncStrategy {
-        /** Increment when song starts playing.  */
+        /** Increment when song starts playing. */
         ON_START,
-        /** Increment when song stops playing naturally.  */
+        /** Increment when song stops playing naturally. */
         ON_END,
-        /** Increment when song is playing for specified time.  */
+        /** Increment when song is playing for specified time. */
         ON_TIME,
-        /** Increment when song is playing for portion of its time.  */
+        /** Increment when song is playing for portion of its time. */
         ON_PERCENT,
-        /** Increment when song is playing for specified time or portion of its time.  */
+        /** Increment when song is playing for specified time or portion of its time. */
         ON_TIME_OR_PERCENT,
-        /** Increment when song is playing for specified time and portion of its time.  */
+        /** Increment when song is playing for specified time and portion of its time. */
         ON_TIME_AND_PERCENT,
-        /** Never increment.  */
+        /** Never increment. */
         NEVER
     }
+
 }

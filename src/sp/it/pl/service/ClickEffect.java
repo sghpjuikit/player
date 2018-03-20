@@ -29,17 +29,17 @@ public class ClickEffect extends ServiceBase {
 
 	// configuration
 	@IsConfig(name = "Show click effect", info = "Show effect on click.")
-	public final V<Boolean> show_clickEffect = new V<>(true, this::applyC);
+	public final V<Boolean> show_clickEffect = new V<>(true, v -> applyC());
 	@IsConfig(name = "Click effect duration", info = "Duration of the click effect in milliseconds.")
-	public final V<Double> DURATION = new V<>(350d, this::apply);
+	public final V<Double> DURATION = new V<>(350d, v -> apply());
 	@IsConfig(name = "Click effect min", info = "Starting scale value of cursor click effect animation.")
-	public final V<Double> MIN_SCALE = new V<>(0.2d, this::apply);
+	public final V<Double> MIN_SCALE = new V<>(0.2d, v -> apply());
 	@IsConfig(name = "Click effect max", info = "Ending scale value of cursor click effect animation.")
-	public final V<Double> MAX_SCALE = new V<>(0.7d, this::apply);
+	public final V<Double> MAX_SCALE = new V<>(0.7d, v -> apply());
 	@IsConfig(name = "Click effect delay", info = "Delay of the click effect in milliseconds.")
-	public final V<Double> DELAY = new V<>(0d, this::apply);
+	public final V<Double> DELAY = new V<>(0d, v -> apply());
 	@IsConfig(name = "Blend Mode", info = "Blending mode for the effect.")
-	public final V<BlendMode> blend_mode = new V<>(BlendMode.SRC_OVER, this::apply);
+	public final V<BlendMode> blend_mode = new V<>(BlendMode.SRC_OVER, v -> apply());
 
 	private void applyC() {
 		List<Window> ws = APP.windowManager.windows;

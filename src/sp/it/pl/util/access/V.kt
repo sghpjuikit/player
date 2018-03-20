@@ -34,8 +34,6 @@ open class V<T> : SimpleObjectProperty<T>, ApplicableValue<T> {
         this.applier = applier
     }
 
-    constructor(value: T, applier: Runnable) : this(value, Consumer { applier() })
-
     @Suppress("RedundantOverride")  // helps Kotlin with null-safety inference
     override fun getValue(): T = super.getValue()
 

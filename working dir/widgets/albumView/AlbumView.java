@@ -83,9 +83,9 @@ public class AlbumView extends ClassController {
 	static final double CELL_TEXT_HEIGHT = 40;
 
 	@IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-	final V<CellSize> cellSize = new V<>(NORMAL, this::applyCellSize);
+	final V<CellSize> cellSize = new V<>(NORMAL, v -> applyCellSize());
 	@IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-	final V<Resolution> cellSizeRatio = new V<>(Resolution.R_1x1, this::applyCellSize);
+	final V<Resolution> cellSizeRatio = new V<>(Resolution.R_1x1, v -> applyCellSize());
 	@IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
 	final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
 

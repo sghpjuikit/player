@@ -88,9 +88,9 @@ public class DirViewer extends ClassController {
     final V<FileFlatter> fileFlatter = new V<>(FileFlatter.TOP_LVL, ff -> revisitCurrent());
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-    final V<CellSize> cellSize = new V<>(NORMAL, this::applyCellSize);
+    final V<CellSize> cellSize = new V<>(NORMAL, v -> applyCellSize());
     @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-    final V<Resolution> cellSizeRatio = new V<>(Resolution.R_1x1, this::applyCellSize);
+    final V<Resolution> cellSizeRatio = new V<>(Resolution.R_1x1, v -> applyCellSize());
     @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
     final V<FitFrom> fitFrom = new V<>(FitFrom.OUTSIDE);
 
@@ -109,11 +109,11 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
     final FileFilterValue filter = FileFilters.toEnumerableValue(v -> revisitCurrent());
     @IsConfig(name = "Sort", info = "Sorting effect.")
-    final V<Sort> sort = new V<>(ASCENDING, this::applySort);
+    final V<Sort> sort = new V<>(ASCENDING, v -> applySort());
     @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
-    final V<FileSort> sort_file = new V<>(DIR_FIRST, this::applySort);
+    final V<FileSort> sort_file = new V<>(DIR_FIRST, v -> applySort());
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
-    final VarEnum<FileField<?>> sortBy = new VarEnum<>(FileField.NAME, () -> FileField.FIELDS, f -> applySort());
+    final VarEnum<FileField<?>> sortBy = new VarEnum<>(FileField.NAME, () -> FileField.FIELDS, v -> applySort());
 
 	@Constraint.FileType(Constraint.FileActor.DIRECTORY)
     @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)

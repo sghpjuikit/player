@@ -92,8 +92,8 @@ fun run(delay: Double, action: () -> Unit) {
  * @param action action. Takes the timer as a parameter. Use it to stop the periodic execution. Otherwise it will
  * never stop !
  */
-fun runPeriodic(period: Duration, action: Runnable): FxTimer {
-    val t = FxTimer(period, INDEFINITE, action)
+fun runPeriodic(period: Duration, action: () -> Unit): FxTimer {
+    val t = fxTimer(period, INDEFINITE, action)
     t.start()
     return t
 }

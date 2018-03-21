@@ -1,7 +1,7 @@
 package sp.it.pl.util.collections.map;
 
 import java.util.HashMap;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 
 /** HashMap for properties with additional utility methods. */
 public final class PropertyMap<K> extends HashMap<K,Object> {
@@ -89,7 +89,7 @@ public final class PropertyMap<K> extends HashMap<K,Object> {
 	 */
 	public String getSorThrow(K key) {
 		Object o = get(key);
-		noØ(o);
+		noNull(o);
 		return (String) o;
 	}
 

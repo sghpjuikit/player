@@ -8,12 +8,16 @@ import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.picker.Picker;
 import sp.it.pl.gui.objects.picker.WidgetPicker;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.container.freeformcontainer.FreeFormContainer;
+import sp.it.pl.main.AppAnimator;
+import sp.it.pl.main.AppBuildersKt;
 import sp.it.pl.util.animation.interpolator.CircularInterpolator;
 import sp.it.pl.util.collections.Tuple3;
 import sp.it.pl.util.graphics.drag.DragUtil;
@@ -24,13 +28,10 @@ import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static sp.it.pl.gui.Gui.ANIM_DUR;
-import static sp.it.pl.gui.Gui.closeAndDo;
-import static sp.it.pl.gui.Gui.openAndDo;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_OUT;
 import static sp.it.pl.util.collections.Tuples.tuple;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.Util.setAnchors;
@@ -66,7 +67,7 @@ public final class Layouter implements ContainerNode {
     private final EventHandler<MouseEvent> exitHider;
 
     public Layouter(Container<?> c, int index) {
-        noØ(c);
+        noNull(c);
         this.index = index;
         this.container = c;
 
@@ -79,7 +80,7 @@ public final class Layouter implements ContainerNode {
         );
         cp.textConverter = layout_action -> layout_action._1;
         cp.infoConverter = layout_action -> layout_action._3;
-        cp.onSelect = layout_action -> closeAndDo(cp.root, layout_action._2);
+        cp.onSelect = layout_action -> AppAnimator.INSTANCE.closeAndDo(cp.root, layout_action._2);
         cp.onCancel = () -> {
             isCancelPlaying = true;
             hide();
@@ -88,9 +89,10 @@ public final class Layouter implements ContainerNode {
         cp.buildContent();
         setAnchor(root, cp.root,0d);
 
-        a1 = new FadeTransition(ANIM_DUR, cp.root);
+        Duration dur = AppBuildersKt.nodeAnimation(new Rectangle()).getCycleDuration();
+        a1 = new FadeTransition(dur, cp.root);
         a1.setInterpolator(LINEAR);
-        a2 = new ScaleTransition(ANIM_DUR, cp.root);
+        a2 = new ScaleTransition(dur, cp.root);
         a2.setInterpolator(new CircularInterpolator(EASE_OUT));
 
         cp.root.setOpacity(0);
@@ -197,7 +199,7 @@ public final class Layouter implements ContainerNode {
     private void showWidgetArea() {
         wp = new WidgetPicker();
         wp.onSelect = factory -> {
-            closeAndDo(wp.root, () -> {
+            AppAnimator.INSTANCE.closeAndDo(wp.root, () -> {
                 root.getChildren().remove(wp.root);
                 root.setOnMouseExited(null);
                 // this is the crucial part
@@ -206,16 +208,16 @@ public final class Layouter implements ContainerNode {
                 APP.actionStream.push("New widget");
             });
         };
-        wp.onCancel = () -> closeAndDo(wp.root, () -> {
+        wp.onCancel = () -> AppAnimator.INSTANCE.closeAndDo(wp.root, () -> {
             root.getChildren().remove(wp.root);
             showControls(true);
         });
         wp.consumeCancelClick = true; // we need right click to not close container
-        wp.root.addEventHandler(MOUSE_CLICKED, Event::consume); // also left click to not open continer chooser
+        wp.root.addEventHandler(MOUSE_CLICKED, Event::consume); // also left click to not open container chooser
         wp.buildContent();
         root.getChildren().add(wp.root);
         setAnchors(wp.root, 0d);
-        openAndDo(wp.root, null);
+        AppAnimator.INSTANCE.openAndDo(wp.root, null);
     }
     private void showSplitV() {
         container.addChild(index, new BiContainer(HORIZONTAL));

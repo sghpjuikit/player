@@ -2,7 +2,7 @@ package sp.it.pl.util.access.ref;
 
 import java.util.function.Supplier;
 import sp.it.pl.util.functional.Functors;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 
 /**
  * Lazy reference.
@@ -21,7 +21,7 @@ public class LazyR<V> extends R<V> {
 	 * more than once.
 	 */
 	public LazyR(Supplier<V> builder) {
-		noØ(builder);
+		noNull(builder);
 		this.builder = builder;
 	}
 

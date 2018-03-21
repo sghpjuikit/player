@@ -342,7 +342,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         if (keepContentOnEmpty && new_folder==null) return;
         // refresh location
         folder.set(new_folder);
-        if (theater_mode.getValue()) itemPane.setValue("", data);
+        if (theater_mode.getValue()) itemPane.setValue(data);
     }
 
     class Exec {
@@ -433,7 +433,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         thumbnails.add(t);
         images.add(t.getFile());
         thumb_pane.getChildren().add(t.getPane());
-        // if this is first thumbnail display it immediatelly
+        // if this is first thumbnail display it immediately
         // but only if the displayed image is not one of the thumbnails - is not located
         // in folder.get() directory
         // avoids image loading + necessary to display custom image, which fires
@@ -494,7 +494,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             itemPane.toFront();
             AnchorPane.setBottomAnchor(itemPane, 20d);
             AnchorPane.setRightAnchor(itemPane, 20d);
-            itemPane.setValue("", data);
+            itemPane.setValue(data);
 
             itemPane.setOnMouseClicked(ee -> {
                 if (ee.getButton()==SECONDARY) {

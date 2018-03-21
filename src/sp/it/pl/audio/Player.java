@@ -16,6 +16,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.media.AudioSpectrumListener;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +60,7 @@ import static sp.it.pl.util.async.AsyncKt.threadFactory;
 import static sp.it.pl.util.async.executor.EventReducer.toLast;
 import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
 import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
 
@@ -144,8 +146,8 @@ public class Player {
 		private Metadata val = Metadata.EMPTY;
 		private Metadata valNext = Metadata.EMPTY;
 		private final FxTimer valNextLoader = new FxTimer(400, 1, () -> preloadNext());
-		private final List<BiConsumer<Metadata,Metadata>> changes = new ArrayList<>();
-		private final List<BiConsumer<Metadata,Metadata>> updates = new ArrayList<>();
+		private final List<BiConsumer<? super Metadata,? super Metadata>> changes = new ArrayList<>();
+		private final List<BiConsumer<? super Metadata,? super Metadata>> updates = new ArrayList<>();
 
 		/**
 		 * Returns the playing item and all its information.
@@ -179,7 +181,7 @@ public class Player {
 			updates.forEach(h -> h.accept(ov, nv));
 		}
 
-		public Subscription onChange(BiConsumer<Metadata,Metadata> bc) {
+		public Subscription onChange(BiConsumer<? super Metadata,? super Metadata> bc) {
 			changes.add(bc);
 			return () -> changes.remove(bc);
 		}
@@ -196,7 +198,7 @@ public class Player {
 		 * Note: It is safe to call {@link #get()} method when this even fires.
 		 * It has already been updated.
 		 */
-		public Subscription onChange(Consumer<Metadata> bc) {
+		public Subscription onChange(Consumer<? super Metadata> bc) {
 			return onChange((o, n) -> bc.accept(n));
 		}
 
@@ -220,11 +222,16 @@ public class Player {
 		 * Note: It is safe to call {@link #get()} method when this even fires.
 		 * It has already been updated.
 		 */
-		public Subscription onUpdate(Consumer<Metadata> bc) {
+		public Subscription onUpdate(Consumer<? super Metadata> bc) {
 			return onUpdate((o, n) -> bc.accept(n));
 		}
 
-		public Subscription onUpdate(BiConsumer<Metadata,Metadata> bc) {
+		public Subscription onUpdateAndNow(Function1<? super Metadata, ? extends Unit> bc) {
+			bc.invoke(val);
+			return onUpdate((o, n) -> bc.invoke(n));
+		}
+
+		public Subscription onUpdate(BiConsumer<? super Metadata,? super Metadata> bc) {
 			updates.add(bc);
 			return () -> updates.remove(bc);
 		}
@@ -308,7 +315,7 @@ public class Player {
 
 	/** Singleton variant of {@link #refreshItems(java.util.Collection)}. */
 	public static void refreshItem(Item i) {
-		noØ(i);
+		noNull(i);
 		refreshItems(list(i));
 	}
 
@@ -320,7 +327,7 @@ public class Player {
 	 * Use when metadata of the items changed.
 	 */
 	public static void refreshItems(Collection<? extends Item> is) {
-		noØ(is);
+		noNull(is);
 		if (is.isEmpty()) return;
 
 		runNew(MetadataReader.buildReadMetadataTask(is, (ok, m) -> {
@@ -330,13 +337,13 @@ public class Player {
 
 	/** Singleton variant of {@link #refreshItemsWith(java.util.List)}. */
 	public static void refreshItemWith(Metadata m) {
-		noØ(m);
+		noNull(m);
 		refreshItemsWith(list(m));
 	}
 
 	/** Singleton variant of {@link #refreshItemsWith(java.util.List, boolean)}. */
 	public static void refreshItemWith(Metadata m, boolean allowDelay) {
-		noØ(m);
+		noNull(m);
 		refreshItemsWith(list(m), allowDelay);
 	}
 
@@ -360,7 +367,7 @@ public class Player {
 	 * refreshes execute all at once).
 	 */
 	public static void refreshItemsWith(List<Metadata> ms, boolean allowDelay) {
-		noØ(ms);
+		noNull(ms);
 		if (allowDelay) runFX(() -> red.push(ms));
 		else refreshItemsWithNow(ms);
 	}
@@ -376,7 +383,7 @@ public class Player {
 
 	// runs refresh on bgr thread, thread safe
 	private static void refreshItemsWithNow(List<Metadata> ms) {
-		noØ(ms);
+		noNull(ms);
 		if (ms.isEmpty()) return;
 
 		// always on br thread

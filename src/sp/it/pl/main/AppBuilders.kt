@@ -12,15 +12,18 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.spinner.Spinner
 import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator
 import sp.it.pl.util.async.FX
+import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.graphics.setScaleXY
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.math.seconds
 import sp.it.pl.util.reactive.changes
+import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 
 private typealias In<T> = Consumer<in T>
@@ -64,7 +67,7 @@ fun createInfoIcon(text: String): Icon = Icon(FontAwesomeIcon.INFO)
             helpPopOver(text).apply {
                     contentNode.value.wrappingWidth = 400.0
                     getSkinn().setTitleAsOnlyHeaderContent(false)
-                    show(e.source as Node)
+                    showInCenterOf(e.source as Node)
                 }
         }
 
@@ -115,5 +118,48 @@ fun computeDataInfo(data: Any?): Fut<String> = futureWrap(data).map {
 
 fun resizeButton(): Icon = Icon(MaterialDesignIcon.RESIZE_BOTTOM_RIGHT).apply {
     cursor = Cursor.SE_RESIZE
+    isAnimated.value = false
     styleclass("resize-content-icon")
+}
+
+fun nodeAnimation(n: Node) = anim(millis(300), { n.opacity = it*it }).apply { playAgainIfFinished = false }
+
+open class AnimationBuilder {
+    protected open val key = "ANIMATION_OPEN_CLOSE"
+
+    open fun closeAndDo(n: Node, action: Runnable?) {
+        val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
+        if (!a.isRunning()) a.applyAt(1.0)
+        a.playCloseDo(action)
+    }
+
+    open fun openAndDo(n: Node, action: Runnable?) {
+        val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
+        if (!a.isRunning()) a.applyAt(0.0)
+        a.playOpenDo(action)
+    }
+
+    protected open fun buildAnimation(n: Node) = nodeAnimation(n)
+}
+
+object AppAnimator: AnimationBuilder()
+
+class DelayAnimator: AnimationBuilder() {
+    override val key = "ANIMATION_OPEN_CLOSE_DELAYED"
+    private val animDelay = AtomicLong(0)
+    private val animDelayResetter = EventReducer.toLast<Void>(200.0, Runnable { animDelay.set(0) })
+
+    override fun closeAndDo(n: Node, action: Runnable?) {
+        super.closeAndDo(n, action)
+        animDelay.incrementAndGet()
+        animDelayResetter.push(null)
+    }
+
+    override fun openAndDo(n: Node, action: Runnable?) {
+        super.openAndDo(n, action)
+        animDelay.incrementAndGet()
+        animDelayResetter.push(null)
+    }
+
+    override fun buildAnimation(n: Node) = super.buildAnimation(n).delay(millis(animDelay.get()*300.0))
 }

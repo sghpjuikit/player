@@ -4,6 +4,7 @@
 package sp.it.pl.util.reactive
 
 import javafx.beans.binding.Bindings
+import javafx.beans.property.Property
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
@@ -15,6 +16,7 @@ import javafx.scene.Node
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.stage.Screen
+import javafx.stage.Window
 import org.reactfx.EventStreams
 import org.reactfx.Subscription
 import sp.it.pl.util.dev.Experimental
@@ -28,7 +30,12 @@ import kotlin.reflect.KCallable
 /** Sets a value consumer to be fired immediately and on every value change. */
 infix fun <O> ObservableValue<O>.sync(u: (O) -> Unit) = maintain(Consumer { u(it) })
 
-infix fun <O> WritableValue<O>.sync(o: ObservableValue<out O>): Subscription = o maintain this
+infix fun <O> ObservableValue<O>.syncTo(w: WritableValue<in O>): Subscription {
+    w.value = value
+    return this attachTo w
+}
+
+infix fun <O> WritableValue<O>.syncFrom(o: ObservableValue<out O>): Subscription = o syncTo this
 
 /** Sets a value consumer to be fired on every value change. */
 infix fun <O> ObservableValue<O>.attach(u: (O) -> Unit): Subscription {
@@ -36,6 +43,14 @@ infix fun <O> ObservableValue<O>.attach(u: (O) -> Unit): Subscription {
     addListener(l)
     return Subscription { removeListener(l) }
 }
+
+infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>): Subscription {
+    val l = ChangeListener<O> { _, _, nv -> w.value = nv }
+    this.addListener(l)
+    return Subscription { this.removeListener(l) }
+}
+
+infix fun <O> WritableValue<O>.attachFrom(o: ObservableValue<out O>): Subscription = o syncTo this
 
 /** Sets a value change consumer to be fired on every value change. */
 infix fun <O> ObservableValue<O>.changes(u: (O, O) -> Unit): Subscription {
@@ -62,6 +77,12 @@ infix fun <T> ObservableList<T>.syncSize(action: (Int) -> Unit): Subscription {
     l.onChanged(null)
     addListener(l)
     return Subscription { removeListener(l) }
+}
+
+/** Binds the two properties bi-directionally. */
+infix fun <O> Property<O>.syncBi(w: Property<O>): Subscription {
+    bindBidirectional(w)
+    return Subscription { unbindBidirectional(w) }
 }
 
 /** Sets a size consumer to be fired on every list size change. */
@@ -260,12 +281,25 @@ fun <T> listChangeHandler(addedHandler: Consumer<in List<T>>, removedHandler: Co
     }
 }
 
+/** Equivalent to [Window.addEventHandler]. */
+fun <T: Event> Window.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+    addEventHandler(eventType, eventHandler)
+    return Subscription { removeEventHandler(eventType, eventHandler) }
+}
 
+/** Equivalent to [Window.addEventFilter]. */
+fun <T: Event> Window.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+    addEventFilter(eventType, eventHandler)
+    return Subscription { removeEventFilter(eventType, eventHandler) }
+}
+
+/** Equivalent to [Node.addEventHandler]. */
 fun <T: Event> Node.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
     addEventHandler(eventType, eventHandler)
     return Subscription { removeEventHandler(eventType, eventHandler) }
 }
 
+/** Equivalent to [Node.addEventFilter]. */
 fun <T: Event> Node.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
     addEventFilter(eventType, eventHandler)
     return Subscription { removeEventFilter(eventType, eventHandler) }

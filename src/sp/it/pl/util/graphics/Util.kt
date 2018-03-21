@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package sp.it.pl.util.graphics
 
 import de.jensd.fx.glyphs.GlyphIcons
@@ -63,13 +61,13 @@ fun border(c: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(BorderStr
 fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
 
 @JvmOverloads fun createIcon(icon: GlyphIcons, iconSize: Double? = null) = Text(icon.characterToString()).apply {
-    val fontSize = iconSize?.let { it/12.0 } ?: 1.0
+    val fontSize = iconSize?.let { it.EM } ?: 1.0
     style = "-fx-font-family: ${icon.fontFamily}; -fx-font-size: ${fontSize}em;"
     styleClass += "icon"
 }
 
 fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Double? = null): Text {
-    val fontSize = iconSize?.let { it/12.0 } ?: 1.0
+    val fontSize = iconSize?.let { it.EM } ?: 1.0
     val s = icon.characterToString()
     val sb = StringBuilder(icons)
     for (i in 0 until icons) sb.append(s)
@@ -317,6 +315,16 @@ fun Node.sceneToLocal(e: MouseEvent) = sceneToLocal(e.sceneX, e.sceneY)!!
 
 /* ---------- TEXT -------------------------------------------------------------------------------------------------- */
 
+object EM {
+    fun toDouble() = 12.0
+}
+
+/** @returns value in [EM] units */
+val Double.EM get() = this/sp.it.pl.util.graphics.EM.toDouble()
+
+/** @returns value in [EM] units */
+val Int.EM get() = this/sp.it.pl.util.graphics.EM.toDouble()
+
 /** Sets font, overriding css style. */
 fun Parent.setFontAsStyle(font: Font) {
     val tmp = font.style.toLowerCase()
@@ -326,17 +334,35 @@ fun Parent.setFontAsStyle(font: Font) {
     val weightS = if (weight==FontWeight.BOLD) "bold" else "normal"
     setStyle(
             "-fx-font-family: \"${font.family}\";"+
-                    "-fx-font-style: $styleS;"+
-                    "-fx-font-weight: $weightS;"+
-                    "-fx-font-size: ${font.size};"
+            "-fx-font-style: $styleS;"+
+            "-fx-font-weight: $weightS;"+
+            "-fx-font-size: ${font.size};"
     )
 }
 
-/** @return Linear text interpolator computing substrings of specified text from beginning */
-fun typeText(text: String): (Double) -> String {
+/**
+ * @param text text to interpolate from 0 to full length
+ * @param padLength 'empty' value with which to pad the result to preserve original length or null to not preserve it.
+ * @return linear text interpolator computing substrings of specified text from beginning
+ */
+@JvmOverloads fun typeText(text: String, padLength: String? = null): (Double) -> String {
     val length = text.length
-    val sb = StringBuilder(text)
-    return { sb.substring(0, Math.floor(length*it).toInt()) }
+    val sbOriginal = StringBuilder(text)
+    fun mapper(c: Char) = if (c.isWhitespace()) c.toString() else (padLength ?: c.toString())
+
+    var lengthsSum = 0
+    val lengths = IntArray(text.length) { i -> lengthsSum += mapper(text[i]).length; lengthsSum-mapper(text[i]).length }
+
+    val sbInterpolated = StringBuilder(lengthsSum)
+    generateSequence(0) { it+1 }.take(sbOriginal.length).forEach { sbInterpolated.append(mapper(sbOriginal[it])) }
+
+    return if (padLength!=null) { {
+        val i = Math.floor(length*it).toInt().coerceIn(0 until text.length)
+        sbOriginal.substring(0, i+1) + sbInterpolated.substring(lengths[i])
+    } } else { {
+        val i = Math.floor(length*it).toInt().coerceIn(0 until text.length)
+        sbOriginal.substring(0, i+1)
+    } }
 }
 
 /* ---------- TREE VIEW --------------------------------------------------------------------------------------------- */

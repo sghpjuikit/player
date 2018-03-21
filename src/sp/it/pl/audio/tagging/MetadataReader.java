@@ -14,7 +14,7 @@ import static java.util.stream.Collectors.toList;
 import static sp.it.pl.audio.tagging.ExtKt.readAudioFile;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.dev.Util.throwIfFxThread;
 
 public class MetadataReader {
@@ -68,8 +68,8 @@ public class MetadataReader {
 	 * @throws NullPointerException if any parameter null
 	 */
 	public static Task<List<Metadata>> buildReadMetadataTask(Collection<? extends Item> items, BiConsumer<Boolean,List<Metadata>> onEnd) {
-		noØ(items);
-		noØ(onEnd);
+		noNull(items);
+		noNull(onEnd);
 		return new SuccessTask<List<Metadata>,SuccessTask>("Reading metadata", onEnd) {
 			private final int all = items.size();
 			private int completed = 0;
@@ -144,7 +144,7 @@ public class MetadataReader {
 							skipped.add(item);
 						}
 					} catch (Exception e) {
-						logger(MetadataReader.class).warn("Problem during reading tag of {}", item);
+						logger(MetadataReader.class).warn("Problem during reading tag of {}", item, e);
 					}
 
 					processed.add(item);

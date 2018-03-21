@@ -3,7 +3,7 @@ package sp.it.pl.util.conf;
 import java.util.function.Consumer;
 import sp.it.pl.util.conf.Config.ConfigBase;
 import sp.it.pl.util.conf.IsConfig.EditMode;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 
 /**
  * {@link sp.it.pl.util.conf.Config} wrapper for a standalone object. This is the only implementation
@@ -104,7 +104,7 @@ public final class ValueConfig<V> extends ConfigBase<V> {
 	 */
 	@Override
 	public void setValue(V val) {
-		noØ(val);
+		noNull(val);
 		value = val;
 	}
 

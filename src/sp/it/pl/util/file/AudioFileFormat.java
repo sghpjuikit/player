@@ -10,7 +10,7 @@ import sp.it.pl.audio.Item;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.util.SwitchException;
 import static java.util.stream.Collectors.toList;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 
 /**
  * All audio file formats known and supported by application except for UNKNOWN that
@@ -117,7 +117,7 @@ public enum AudioFileFormat {
 	 * @throws NullPointerException if param is null
 	 */
 	public static boolean isSupported(URI uri, Use use) {
-		noØ(uri);
+		noNull(uri);
 		return of(uri).isSupported(use);
 	}
 
@@ -127,7 +127,7 @@ public enum AudioFileFormat {
 	 * @throws NullPointerException if param is null
 	 */
 	public static boolean isSupported(File file, Use use) {
-		noØ(file);
+		noNull(file);
 		return of(file.toURI()).isSupported(use);
 	}
 

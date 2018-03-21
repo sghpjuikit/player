@@ -29,12 +29,13 @@ class Spinner: ProgressIndicator {
         constructor(spinner: Spinner): super(spinner) {
             val arcInner = Arc().apply {
                 length = 270.0
+                startAngle = 180.0
                 radiusX = 6.0
                 radiusY = 6.0
-                startAngle = 180.0
                 strokeType = StrokeType.INSIDE
                 strokeWidth = 2.5
                 styleClass += "spinner"
+                styleClass += "spinner-in"
                 StackPane.setAlignment(this, Pos.BOTTOM_RIGHT)
             }
             val arcOuter = Arc().apply {
@@ -44,6 +45,7 @@ class Spinner: ProgressIndicator {
                 strokeType = StrokeType.INSIDE
                 strokeWidth = 2.5
                 styleClass += "spinner"
+                styleClass += "spinner-out"
                 StackPane.setAlignment(this, Pos.TOP_LEFT)
             }
             inner = StackPane(arcInner).apply {

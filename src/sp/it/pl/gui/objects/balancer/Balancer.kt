@@ -3,12 +3,11 @@ package sp.it.pl.gui.objects.balancer
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.scene.control.Control
 import javafx.scene.control.SkinBase
-import javafx.scene.image.ImageView
+import javafx.scene.control.Slider
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
-import javafx.scene.input.MouseEvent.MOUSE_PRESSED
-import javafx.scene.shape.Rectangle
+import sp.it.pl.audio.playback.BalanceProperty
+import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.sync
 import java.lang.Math.abs
 
@@ -35,7 +34,8 @@ class Balancer: Control {
         }
     }
 
-    /** Creates balancer with specified balance, min, max values. */
+    constructor(balance: BalanceProperty): this(balance.get(), balance.min, balance.max)
+
     constructor(balance: Double, min: Double, max: Double) {
         styleClass.setAll(STYLECLASS)
         this.min.value = min
@@ -56,70 +56,33 @@ class Balancer: Control {
 }
 
 class BalancerSkin(b: Balancer): SkinBase<Balancer>(b) {
-    private val bgrContainer: ImageView
-    private val fgrContainer: ImageView
-    private val fgrClipRect: Rectangle
+    private val slider = Slider()
 
     init {
-        registerChangeListener(b.balance) { updateClip() }
-        registerChangeListener(b.max) { updateClip() }
-        registerChangeListener(b.min) { updateClip() }
+        children += slider.apply {
+            valueProperty() attach {
+                if (!slider.isValueChanging)
+                    b.balance.value = it.toDouble()
+            }
+            prefWidth = 100.0
+        }
 
-        // create graphics
-        bgrContainer = ImageView()
-        bgrContainer.isPreserveRatio = false
-        bgrContainer.fitHeightProperty() sync skinnable.prefHeightProperty()
-        bgrContainer.fitWidthProperty() sync skinnable.prefWidthProperty()
-        bgrContainer.styleClass += "balancer-bgr"
-        children += bgrContainer
-
-        fgrContainer = ImageView()
-        fgrContainer.isPreserveRatio = false
-        fgrContainer.fitHeightProperty() sync skinnable.prefHeightProperty()
-        fgrContainer.fitWidthProperty() sync skinnable.prefWidthProperty()
-
-        fgrContainer.styleClass += "balancer-fgr"
-        fgrContainer.isMouseTransparent = true
-        children += fgrContainer
-
-        fgrClipRect = Rectangle()
-        fgrContainer.clip = fgrClipRect
-
-        skinnable.addEventHandler(KEY_PRESSED) {
-            if (it.code==KeyCode.RIGHT) {
-                skinnable.incToRight()
-                it.consume()
-            } else if (it.code==KeyCode.LEFT) {
-                skinnable.incToLeft()
-                it.consume()
+        b.max sync { slider.max = it.toDouble() }
+        b.min sync { slider.min = it.toDouble() }
+        b.balance sync { slider.value = it.toDouble() }
+        b.addEventFilter(KEY_PRESSED) {
+            when (it.code) {
+                KeyCode.RIGHT -> {
+                    skinnable.incToRight()
+                    it.consume()
+                }
+                KeyCode.LEFT -> {
+                    skinnable.incToLeft()
+                    it.consume()
+                }
+                else -> {}
             }
         }
-        skinnable.addEventHandler(MOUSE_DRAGGED) {
-            val x = it.x-fgrContainer.layoutX
-            if (skinnable.contains(x, it.y))
-                skinnable.balance.value = (x/fgrContainer.fitWidth-0.5)*2
-            it.consume()
-        }
-        skinnable.addEventHandler(MOUSE_PRESSED) {
-            val x = it.x-fgrContainer.layoutX
-            if (skinnable.contains(x, it.y))
-                skinnable.balance.value = (x/fgrContainer.fitWidth-0.5)*2
-            it.consume()
-        }
-
-        updateClip()
     }
 
-    private fun updateClip(value: Double = skinnable.balance.value) {
-        val control = skinnable
-        val w = control.prefWidth // - (snappedLeftInset() + snappedRightInset());
-        val h = control.prefHeight // - (snappedTopInset() + snappedBottomInset());
-
-        val start = if (value<0) 0.0 else value*w/2
-        val end = if (value>0) w else w/2+(value+1)*w/2
-
-        fgrClipRect.relocate(start, 0.0)
-        fgrClipRect.width = end-start
-        fgrClipRect.height = h
-    }
 }

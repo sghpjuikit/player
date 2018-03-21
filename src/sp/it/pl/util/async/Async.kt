@@ -5,9 +5,11 @@ import javafx.application.Platform
 import javafx.util.Duration
 import mu.KotlinLogging
 import sp.it.pl.util.async.executor.FxTimer
+import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.dev.throwIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.math.millis
+import java.awt.EventQueue
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -28,7 +30,8 @@ private val logger = KotlinLogging.logger { }
 @JvmField val CURR = Consumer<Runnable> { it() }
 
 fun FX_AFTER(delay: Double): Consumer<Runnable> = Consumer { runFX(delay, it) }
-fun FX_AFTER(delay: Duration): Consumer<Runnable> = Consumer { runFX(delay, it) }
+fun FX_AFTER(delay: Duration): Consumer<Runnable> = Consumer { runFX(delay, { it.run() }) }
+
 @JvmField val eFX = Executor { FX(it) }
 @JvmField val eFX_LATER = Executor { FX_LATER(it) }
 @JvmField val eBGR = Executor { NEW(it) }
@@ -69,7 +72,7 @@ fun runAfter(delay: Duration, action: () -> Unit) {
 
 /**
  * Executes the action on current thread after specified delay from now.
- * Equivalent to `new FxTimer(delay, action, 1).restart();`.
+ * Equivalent to `new FxTimer(delay, 1, action).restart();`.
  *
  * @param delay delay in milliseconds
  */
@@ -89,8 +92,8 @@ fun run(delay: Double, action: () -> Unit) {
  * @param action action. Takes the timer as a parameter. Use it to stop the periodic execution. Otherwise it will
  * never stop !
  */
-fun runPeriodic(period: Duration, action: Runnable): FxTimer {
-    val t = FxTimer(period, INDEFINITE, action)
+fun runPeriodic(period: Duration, action: () -> Unit): FxTimer {
+    val t = fxTimer(period, INDEFINITE, action)
     t.start()
     return t
 }
@@ -155,20 +158,10 @@ fun runNewAfter(delay: Duration, r: Runnable) {
     thread.start()
 }
 
-/**
- * Executes runnable on fx thread, immediately id called on fx thread, or
- * using Platform.runLater() otherwise.
- *
- * Use to execute the action on fx as soon as possible.
- *
- * Equivalent to
- * <pre>
- * `if (Platform.isFxApplicationThread())
- * r.run();
- * else
- * Platform.runLater(r);
-`* </pre>
- */
+/** Executes runnable on awt thread, immediately if called on fx thread, or using [EventQueue.invokeLater] otherwise. */
+fun runAwt(block: () -> Unit) = if (EventQueue.isDispatchThread()) block() else EventQueue.invokeLater(block)
+
+/** Executes runnable on fx thread, immediately if called on fx thread, or using [Platform.runLater] otherwise. */
 fun runFX(r: Runnable): Unit = if (Platform.isFxApplicationThread()) r() else Platform.runLater(r)
 
 fun runFX(r: () -> Unit) = runFX(Runnable { r() })
@@ -187,24 +180,20 @@ fun runFX(delay: Double, r: Runnable) {
     if (delay==0.0)
         runFX(r)
     else
-        FxTimer(delay, 1) { runFX(r) }.start()
+        fxTimer(delay, 1) { runFX(r) }.start()
 }
 
 fun runFX(delay1: Double, r1: Runnable, delay2: Double, r2: Runnable) {
     throwIf(delay1<0)
-    runFX(millis(delay1), Runnable {
+    runFX(millis(delay1)) {
         r1()
         runFX(delay2, r2)
-    })
+    }
 }
 
-/**
- * Executes the action on fx thread after specified delay from now.
- *
- * @param delay delay
- */
-fun runFX(delay: Duration, r: Runnable) {
-    FxTimer(delay, 1) { runFX(r) }.start()
+/** Executes the action on fx thread after specified delay from now. */
+fun runFX(delay: Duration, r: () -> Unit) {
+    fxTimer(delay, 1) { runFX(r) }.start()
 }
 
 /**
@@ -235,7 +224,7 @@ fun newSingleDaemonThreadExecutor() = Executors.newSingleThreadExecutor(threadFa
  */
 fun newThreadPoolExecutor(maxPoolSize: Int, keepAliveTime: Long, unit: TimeUnit, threadFactory: ThreadFactory): ExecutorService {
     // TODO: implement properly
-    return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime, unit, LinkedBlockingQueue(), threadFactory).apply {
+    return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime, unit, LinkedBlockingQueue<Runnable>(), threadFactory).apply {
         allowCoreThreadTimeOut(true)
     }
 }
@@ -255,7 +244,7 @@ fun threadFactory(nameBase: String, daemon: Boolean): ThreadFactory {
         Thread(r).apply {
             name = "$nameBase-${id.getAndIncrement()}"
             isDaemon = daemon
-            setUncaughtExceptionHandler{ _, e -> logger.error(e) { "Uncaught exception" } }
+            setUncaughtExceptionHandler { _, e -> logger.error(e) { "Uncaught exception" } }
         }
     }
 }

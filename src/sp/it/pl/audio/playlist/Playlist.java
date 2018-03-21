@@ -37,10 +37,10 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.Util.getFilesAudio;
 import static sp.it.pl.util.functional.Util.map;
@@ -498,7 +498,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	 * @throws NullPointerException if param null.
 	 */
 	public void setNplay(Stream<? extends Item> items) {
-		noØ(items);
+		noNull(items);
 		clear();
 		addItems(items.collect(toList()));
 		playFirstItem();
@@ -515,7 +515,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	 * @throws NullPointerException if param null.
 	 */
 	public void setNplayFrom(Stream<? extends Item> items, int from) {
-		noØ(items);
+		noNull(items);
 		clear();
 		addItems(items.collect(toList()));
 		playItem(get(from));
@@ -765,7 +765,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 				browse(URI.create(uri));
 				pe.consume();
 			});
-			helpP.show(infoB);
+			helpP.showInCenterOf(infoB);
 		});
 		// build popup
 		PopOver<?> p = new PopOver<>(title, content);

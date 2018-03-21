@@ -26,8 +26,8 @@ import java.net.MalformedURLException
 import java.util.function.Consumer
 
 private val logger = KotlinLogging.logger { }
-private val skinKey = "skin_old_url"
-private val skinInitMarker = "HAS_BEEN_INITIALIZED"
+private const val skinKey = "skin_old_url"
+private const val skinInitMarker = "HAS_BEEN_INITIALIZED"
 
 fun initSkins() {
     skins.clear()
@@ -40,21 +40,20 @@ private fun monitorSkinFiles() {
     FileMonitor.monitorDirectory(APP.DIR_SKINS, true) { type, file ->
         logger.info { "Change=$type detected in skin directory for $file" }
 
-        // register skins
         skins.clear()
         skins += getSkins()
 
-        // refresh current skin
+        val refreshAlways = true    // skins may import each other hence it is more convenient to refresh always
         val currentSkinDir = APP.DIR_SKINS.childOf(skin.get())
         val isActive = currentSkinDir.isParentOf(file)
-        if (isActive) reloadSkin()
+        if (isActive || refreshAlways) reloadSkin()
     }
 }
 
 private fun observeWindowsAndApplySkin() {
     fun Parent.initializeFontAndSkin() {
         if (properties.containsKey(skinInitMarker)) return
-        properties.put(skinInitMarker, skinInitMarker)
+        properties[skinInitMarker] = skinInitMarker
 
         Gui.skin sync { applySkinGui(it) }
         Gui.font sync { applyFontGui(it) }

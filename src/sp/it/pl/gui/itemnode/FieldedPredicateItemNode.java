@@ -19,7 +19,7 @@ import sp.it.pl.util.functional.Util;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.IS;
 import static sp.it.pl.util.functional.Util.ISNT;
 import static sp.it.pl.util.functional.Util.ISNTØ;
@@ -172,7 +172,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		}
 
 		public PredicateData(String name, Class type, T value) {
-			noØ(name, type, value);
+			noNull(name, type, value);
 			this.name = name;
 			this.type = type;
 			this.value = value;

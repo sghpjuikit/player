@@ -31,7 +31,6 @@ package sp.it.pl.gui.objects.popover;
 
 import java.util.ArrayList;
 import java.util.List;
-import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -65,7 +64,6 @@ import static javafx.beans.binding.Bindings.multiply;
 import static javafx.beans.binding.Bindings.subtract;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static sp.it.pl.main.AppBuildersKt.resizeButton;
-import static sp.it.pl.util.async.AsyncKt.run;
 import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.graphics.MouseDragKt.initMouseDrag;
 import static sp.it.pl.util.graphics.UtilKt.initClip;
@@ -93,16 +91,16 @@ public class PopOverSkin implements Skin<PopOver> {
 	public PopOverSkin(PopOver<? extends Node> popover) {
 		p = popover;
 
-		root = new StackPane();
-		// TODO: make sure this is not necessary
-		//		root = new StackPane() {
-		//			@Override
-		//			protected void layoutChildren() {
-		//				popover.setPrefSize(getWidth(), getHeight());
-		//				super.layoutChildren();
-		//				updatePath();
-		//			}
-		//		};
+		root = new StackPane() {
+			@Override
+			protected void layoutChildren() {
+				popover.setPrefSize(getWidth(), getHeight());
+				super.layoutChildren();
+
+				path.relocate(p.computeArrowMarginX(), p.computeArrowMarginY());
+				// path.resize(getWidth()+Math.abs(p.computeArrowMarginX()), getHeight()+Math.abs(p.computeArrowMarginY()));
+			}
+		};
 		root.setPickOnBounds(false);
 		root.getStyleClass().add(ROOT_STYLECLASS);
 		setMinPrefMaxSize(root, Pane.USE_COMPUTED_SIZE, Pane.USE_COMPUTED_SIZE);
@@ -172,23 +170,11 @@ public class PopOverSkin implements Skin<PopOver> {
 			drag -> content.setPrefSize(drag.data.getX() + drag.diff.getX(), drag.data.getY() + drag.diff.getY())
 		);
 
-		// the delay in the execution is essential for updatePath to work - unknown reason
-		InvalidationListener uPLd = o -> run(25, this::updatePath);
-		InvalidationListener uPL = o -> updatePath();
-
-		p.getScene().getWindow().xProperty().addListener(uPL);
-		p.getScene().getWindow().yProperty().addListener(uPL);
-		p.arrowLocation.addListener(uPL);
-
-		// show new content when changes
-		content.widthProperty().addListener(uPLd);
-		content.heightProperty().addListener(uPLd);
-
-		// this block must be done before the next one
 		path = new Path();
 		path.getStyleClass().add(SHAPE_STYLECLASS);
 		path.setManaged(false);
 		createPathElements();
+		p.arrowLocation.addListener((o,ov,nv) -> updatePath());
 		updatePath();
 
 		// react on detached state change and initialize

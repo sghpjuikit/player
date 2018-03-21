@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 
 /**
  * All image file types known and supported by application except for UNKNOWN that
@@ -63,7 +63,7 @@ public enum ImageFileFormat {
 	 * Equivalent to {@link #isSupported(java.net.URI)} using file.toURI().
 	 */
 	public static boolean isSupported(File file) {
-		noØ(file);
+		noNull(file);
 		return of(file.toURI()).isSupported();
 	}
 

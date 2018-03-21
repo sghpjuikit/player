@@ -18,7 +18,7 @@
     -fx-prompt-font-color: rgba(165, 165, 165, 0.4);
     
     -fx-pane-color: rgba(100,130,180,0.1);
-    -fx-popup-def-bgr-color: rgba(15,30,55,0.8);
+    -fx-popup-def-bgr-color: rgba(15,30,55,0.9);
 
     -fx-focus-color: #ffcc66;
     -fx-faint-focus-color: #ffcc66;
@@ -29,28 +29,20 @@
     -fx-background-color: -fx-pane-color;
 }
 
-
 .bgr-image {
-    -fx-opacity:1;
+    -fx-opacity: 1;
     -fx-background-image: url("bgr.jpg");
     -fx-background-size: stretch;
 }
 
-.window .header {
-    -fx-background-color: rgb(100,130,180); /* bugfix */
-    -fx-opacity: 0.1;
-}
-
-
 .icon {
     -glyph-gap: 12;
-    -fx-fill: -fx-def-font-color;
 
     -fx-border-color: -fx-def-icon-border-color;
-    -fx-border-width: 1;
-    -fx-border-radius: 11111; 	/* big value to always achieve perfect circle */
+    -fx-border-width: 0.083333em; /* 1 */
+    -fx-border-radius: 11111; /* big value to always achieve perfect circle */
 
-    /* decreaes performance */
+    /* decreases performance */
     -fx-effect: dropshadow(gaussian, rgba(130,170,255, 0.5), 12, 0.2 , 0, 0);
 }
 
@@ -58,13 +50,6 @@
     -fx-fill: -fx-focus-color;
     -fx-border-color:  -fx-focus-color;
     -fx-effect: dropshadow(gaussian, yellow, 12, 0.2 , 0, 0);
-}
-
-/* an icon with glow effect on hover */
-.glow-icon,
-.glow-icon:hover {
-    -fx-effect: none;
-    -fx-fill: -fx-def-font-color;
 }
 
 .resize-content-icon,
@@ -77,7 +62,6 @@
 .seeker-add-chapter-button:hover {
     -fx-effect: none;
 }
-
 
 .indexed-cell:played,
 .indexed-cell:played:selected {

@@ -51,7 +51,7 @@ import static sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSele
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.zeroPad;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.filter;
 import static sp.it.pl.util.functional.Util.stream;
@@ -88,7 +88,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public FilteredTable(Class<T> type, ObjectField<T,?> mainField, ObservableList<T> backing_list) {
 		super(type);
 
-		allItems = noØ(backing_list);
+		allItems = noNull(backing_list);
 		filteredItems = new FilteredList<>(allItems);
 		sortedItems = new SortedList<>(filteredItems);
 		itemsPredicate = filteredItems.predicateProperty();

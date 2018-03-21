@@ -7,8 +7,8 @@ import java.util.function.Consumer
 class Inputs {
     private val m = HashMap<String, Input<*>>()
 
-    inline fun <reified T> create(name: String, crossinline action: (T?) -> Unit): Input<T?> = create<T>(name, T::class.java, Consumer<T?> { action(it) })
-    inline fun <reified T> create(name: String, initialValue: T?, crossinline action: (T?) -> Unit): Input<T?> = create<T>(name, T::class.java, initialValue, Consumer { action(it) })
+    inline fun <reified T> create(name: String, crossinline action: (T?) -> Unit) = create<T>(name, T::class.java, Consumer { action(it) })
+    inline fun <reified T> create(name: String, initialValue: T?, crossinline action: (T?) -> Unit) = create<T>(name, T::class.java, initialValue, Consumer { action(it) })
 
     @Suppress("UNCHECKED_CAST")
     fun <T> create(name: String, type: Class<T>, action: Consumer<in T?>): Input<T?> {

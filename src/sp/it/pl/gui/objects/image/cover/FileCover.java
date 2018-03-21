@@ -6,7 +6,7 @@ import javafx.scene.image.Image;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.util.graphics.image.ImageSize;
 import sp.it.pl.util.graphics.image.ImageStandardLoader;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 
 /**
  * Denotes Cover represented by a {@link java.io.File}.
@@ -20,7 +20,7 @@ public class FileCover implements Cover {
 	private final String info;
 
 	public FileCover(File image, String description) {
-		noØ(description);
+		noNull(description);
 
 		this.file = image;
 		this.info = description;

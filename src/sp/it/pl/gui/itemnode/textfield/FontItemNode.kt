@@ -8,7 +8,7 @@ import sp.it.pl.main.AppUtil.APP
 class FontItemNode: TextFieldItemNode<Font>({ APP.converter.general.toS(it) }) {
 
     override fun onDialogAction() {
-        FontSelectorDialog(value, { value = it }).show(this)
+        FontSelectorDialog(value, { value = it }).showInCenterOf(this)
     }
 
 }

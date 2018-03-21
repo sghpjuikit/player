@@ -134,7 +134,7 @@ public class FileInfo extends FXMLController implements SongReader {
     private final HandlerLast<Item> dataReading = EventReducer.toLast(200, this::setValue);
 
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
-    public final V<Double> minColumnWidth = new V<>(150.0, tiles::layout);
+    public final V<Double> minColumnWidth = new V<>(150.0, v -> tiles.layout());
     @IsConfig(name = "Cover source", info = "Source for cover image.")
     public final V<CoverSource> cover_source = new V<>(ANY, this::setCover);
     @IsConfig(name = "Text clipping method", info = "Style of clipping text when too long.")
@@ -144,9 +144,9 @@ public class FileInfo extends FXMLController implements SongReader {
     @IsConfig(name = "Show fields", info = "Show fields.")
     public final V<Boolean> showFields = new V<>(true, layout::setContentVisible);
     @IsConfig(name = "Show empty fields", info = "Show empty fields.")
-    public final V<Boolean> showEmptyFields = new V<>(true, this::update);
+    public final V<Boolean> showEmptyFields = new V<>(true, v -> update());
     @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")
-    public final V<Sort> groupFields = new V<>(Sort.SEMANTIC,this::update);
+    public final V<Sort> groupFields = new V<>(Sort.SEMANTIC, v -> update());
     @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
     public boolean allowNoContent = false;
     private final Map<String,Config<Boolean>> fieldConfigs = fields.stream()
@@ -362,7 +362,7 @@ public class FileInfo extends FXMLController implements SongReader {
 
         public LField(Field<?> field, int i) {
             this.field = field;
-            this.visibleConfig = new V<>(true,FileInfo.this::update);
+            this.visibleConfig = new V<>(true, v -> update());
             this.semantic_index = i;
 
             if (field==DISCS_TOTAL) name = "disc";

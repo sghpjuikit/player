@@ -45,6 +45,7 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
+import javafx.scene.layout.Pane
 import javafx.stage.Stage
 import javafx.stage.Window
 import javafx.stage.WindowEvent
@@ -66,6 +67,7 @@ import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.access.V
 import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim
+import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.centre
 import sp.it.pl.util.graphics.getScreen
@@ -74,8 +76,10 @@ import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.toP
 import sp.it.pl.util.math.P
 import sp.it.pl.util.math.millis
+import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.reactive.onEventUp
+import sp.it.pl.util.reactive.sync
 import java.util.ArrayList
-import sp.it.pl.util.dev.fail
 
 private typealias F = JvmField
 
@@ -168,6 +172,7 @@ open class PopOver<N: Node>(): PopupControl() {
                 hideOnClick = null
             }
         }
+    private val disposersOnHide = Disposer()
 
     private var hideOnClick: EventHandler<MouseEvent>? = null
     /** Focus this popover on shown event to receive input events. Use true for interactive content. Default true. */
@@ -229,10 +234,24 @@ open class PopOver<N: Node>(): PopupControl() {
     fun getSkinn(): PopOverSkin = skin as PopOverSkin
 
     init {
+        fun initCloseWithOwner() {
+            // JavaFX bug may result in owner being closed before the child (this) -> we need to close immediately
+            val d = Disposer()
+            disposersOnHide += d
+            ownerWindowProperty() sync {
+                d()
+                if (it!=null) {
+                    d += it.onEventUp(WindowEvent.WINDOW_HIDING) { if (isShowing) hideImmediately() }
+                    d += it.onEventUp(WindowEvent.WINDOW_CLOSE_REQUEST) { if (isShowing) hideImmediately() }
+                }
+            }
+        }
+
         styleClass += STYLE_CLASS
         consumeAutoHidingEvents = false
         isAutoFix = false
         skin = createDefaultSkin()
+        initCloseWithOwner()
     }
 
     /**
@@ -288,6 +307,7 @@ open class PopOver<N: Node>(): PopupControl() {
      * has been observed to cause serious problems.
      */
     fun hideImmediately() {
+        disposersOnHide()
         active_popups.remove(this)
         uninstallMoveWith()
         super.hide()
@@ -304,11 +324,9 @@ open class PopOver<N: Node>(): PopupControl() {
         if (ownerNode!=null) {
             this.ownerMNode = ownerNode
             this.ownerMWindow = ownerNode.scene.window
-            if (this.ownerMWindow is PopOver<*>) {
-                setParentPopup((this.ownerMWindow as PopOver<*>?)!!)
-            }
-        } else
+        } else {
             this.ownerMWindow = ownerWindow
+        }
 
         detached.set(false)
 
@@ -328,14 +346,6 @@ open class PopOver<N: Node>(): PopupControl() {
         }
 
         if (animated.value) fadeIn()
-    }
-
-    private fun setParentPopup(popover: PopOver<*>) {
-        // JavaFX bug may result in owner being closed before the child (this) -> we need to close immediately
-        popover.addEventFilter(WindowEvent.WINDOW_HIDING) {
-            if (isShowing)
-                hideImmediately()
-        }
     }
 
     private fun position(position: () -> P) {
@@ -363,12 +373,15 @@ open class PopOver<N: Node>(): PopupControl() {
     }
 
     /** Show popup. Equivalent to: show(owner,0,0). */
-    fun show(owner: Node) = show(owner, 0.0, 0.0)
+    fun showInCenterOf(owner: Node) = show(owner, owner.layoutBounds.width/2, owner.layoutBounds.height/2)
 
     /** Show popup at specified designated position relative to node. */
     fun show(owner: Node, pos: NodePos) {
         showThis(owner, owner.scene.window)
+
         position({ pos.computeXY(owner, this) })
+        x = pos.computeXY(owner, this).x
+        y = pos.computeXY(owner, this).y
     }
 
     /** Show popup at specified screen coordinates. */
@@ -382,6 +395,24 @@ open class PopOver<N: Node>(): PopupControl() {
 
     /** Show popup at specified screen position. */
     open fun show(pos: ScreenPos) {
+
+        fun ScreenPos.normalize(owner: Window?) = takeIf { owner!=null } ?: toScreenCentric()
+
+        fun grabFocus() {
+            ownerWindow?.requestFocus()
+            requestFocus()
+        }
+
+        fun fixWrongCoordinatesWhenShownWithDifferentContentWhenShowing() {
+            if (isShowing) {
+                // hideImmediately() // This solution works but introduces a visual glitch
+                skin.node.applyCss()
+                skin.node.autosize()
+                (skin.node as? Pane)?.requestLayout()
+                (skin.node as? Pane)?.layout()
+            }
+        }
+
         arrowSize.value = 0.0
         val ownerF: Window? = APP.windowManager.focused.orNull()?.takeIf { pos.isAppCentric() }?.stage
         val ownerS: Window? = ownerF ?: ownerWindow?.takeIf { it.isShowing }
@@ -389,14 +420,13 @@ open class PopOver<N: Node>(): PopupControl() {
         val wasOwnerCreated = ownerS==null && focusOnShow.value
         val position = pos.normalize(ownerF)
 
-        if (isShowing) hideImmediately()    // showing when shown can get us into trouble -> hide first // TODO: remove
-
+        fixWrongCoordinatesWhenShownWithDifferentContentWhenShowing()
         showThis(null, owner)
         position({ position.computeXY(this) })
 
-        if (focusOnShow.value) focus()
+        if (focusOnShow.value) grabFocus()
         if (!position.isAppCentric()) uninstallMoveWith()
-        if (wasOwnerCreated) properties.put(KEY_CLOSE_OWNER, KEY_CLOSE_OWNER)
+        if (wasOwnerCreated) properties[KEY_CLOSE_OWNER] = KEY_CLOSE_OWNER
     }
 
     override fun show(window: Window) {
@@ -404,21 +434,14 @@ open class PopOver<N: Node>(): PopupControl() {
         uninstallMoveWith()
     }
 
-    private fun ScreenPos.normalize(owner: Window?) = takeIf { owner!=null } ?: toScreenCentric()
-
-    private fun focus() {
-        ownerWindow?.takeIf { it.isFocused }?.requestFocus()
-        requestFocus()
-    }
-
     // TODO: fix this computing wrong coordinates
     /* Move the window so that the arrow will end up pointing at the target coordinates. */
     private fun adjustWindowLocation(): P {
         val bounds = this@PopOver.skin.node.layoutBounds
-        return when (arrowLocation.value!!) {   // TODO: remove !! without warning
+        return when (arrowLocation.value) {
             TOP_CENTER, TOP_LEFT, TOP_RIGHT -> P(
-                    +bounds.minX-computeXOffset(),
-                    +bounds.minY+arrowSize.value
+                    computeXOffset(),
+                    0.0
             )
             LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM -> P(
                     +bounds.minX+arrowSize.value,
@@ -435,18 +458,30 @@ open class PopOver<N: Node>(): PopupControl() {
         }
     }
 
+    fun computeArrowMarginX(): Double = when(arrowLocation.value) {
+        LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM -> -arrowSize.value
+        RIGHT_TOP, RIGHT_CENTER, RIGHT_BOTTOM -> arrowSize.value
+        else -> 0.0
+    }
+
+    fun computeArrowMarginY(): Double = when(arrowLocation.value) {
+        TOP_LEFT, TOP_CENTER, TOP_RIGHT -> -arrowSize.value
+        BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT -> arrowSize.value
+        else -> 0.0
+    }
+
     private fun computeXOffset(): Double = when (arrowLocation.value) {
-        TOP_LEFT, BOTTOM_LEFT -> cornerRadius.value+arrowIndent.value+arrowSize.value
-        TOP_CENTER, BOTTOM_CENTER -> width/2-arrowSize.value
+        TOP_LEFT, BOTTOM_LEFT -> arrowIndent.value+arrowSize.value
+        TOP_CENTER, BOTTOM_CENTER -> -this@PopOver.skin.node.layoutBounds.width/2
     //				return getContentNode().prefWidth(-1)/2 + arrowSize.value + arrowIndent.value;
-        TOP_RIGHT, BOTTOM_RIGHT -> (contentNode.value.prefWidth(-1.0)-arrowIndent.value-cornerRadius.value-arrowSize.value)
+        TOP_RIGHT, BOTTOM_RIGHT -> contentNode.value.prefWidth(-1.0)-arrowIndent.value-arrowSize.value
         else -> 0.0
     }
 
     private fun computeYOffset(): Double = when (arrowLocation.value) {
-        LEFT_TOP, RIGHT_TOP -> cornerRadius.value+arrowIndent.value+arrowSize.value
+        LEFT_TOP, RIGHT_TOP -> arrowIndent.value+arrowSize.value
         LEFT_CENTER, RIGHT_CENTER -> contentNode.value.prefHeight(-1.0)/2+arrowSize.value+arrowIndent.value
-        LEFT_BOTTOM, RIGHT_BOTTOM -> (contentNode.value.prefHeight(-1.0)-arrowIndent.value-cornerRadius.value-arrowSize.value)
+        LEFT_BOTTOM, RIGHT_BOTTOM -> contentNode.value.prefHeight(-1.0)-arrowIndent.value-arrowSize.value
         else -> 0.0
     }
 

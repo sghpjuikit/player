@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import javafx.animation.Animation;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -28,7 +27,6 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.action.IsAction;
 import sp.it.pl.util.action.IsActionable;
-import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.file.Util;
@@ -117,7 +115,7 @@ public class Gui {
 	@IsConfig(name = "Snap", info = "Allows snapping feature for windows and controls.")
 	public static final V<Boolean> snapping = new V<>(true);
 	@IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
-	public static final V<Double> snapDistance = new V<>(6d);
+	public static final V<Double> snapDistance = new V<>(12d);
 	@IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
 	public final static BooleanProperty locked_layout = new SimpleBooleanProperty(false) {
 		@Override
@@ -353,26 +351,6 @@ public class Gui {
 			.orElseGet(() -> registerSkin(new SkinCss(cssFile)));
 		setSkin(s);
 	}
-
-
-	public static final Duration ANIM_DUR = Duration.millis(300);
-
-    public static void closeAndDo(Node n, Runnable action) {
-    	Anim a = (Anim) n.getProperties().computeIfAbsent("ANIMATION_OPEN_CLOSE", k -> buildAnimation(n));
-    	if (!a.isRunning()) a.applyAt(1.0);
-    	a.playCloseDo(action);
-    }
-
-    public static void openAndDo(Node n, Runnable action) {
-	    Anim a = (Anim) n.getProperties().computeIfAbsent("ANIMATION_OPEN_CLOSE", k -> buildAnimation(n));
-    	if (!a.isRunning()) a.applyAt(0.0);
-	    a.playOpenDo(action);
-    }
-
-    private static Animation buildAnimation(Node n) {
-        return new Anim(ANIM_DUR, x -> n.setOpacity(x*x));
-    }
-
 
 	public enum OpenStrategy {
 		POPUP, INSIDE

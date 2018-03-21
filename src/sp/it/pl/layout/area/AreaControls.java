@@ -29,6 +29,7 @@ import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.main.AppAnimator;
 import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.animation.Anim;
@@ -56,8 +57,6 @@ import static javafx.scene.input.ScrollEvent.SCROLL;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static sp.it.pl.gui.Gui.OpenStrategy.INSIDE;
 import static sp.it.pl.gui.Gui.OpenStrategy.POPUP;
-import static sp.it.pl.gui.Gui.closeAndDo;
-import static sp.it.pl.gui.Gui.openAndDo;
 import static sp.it.pl.layout.area.Area.DRAGGED_PSEUDOCLASS;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
@@ -275,7 +274,7 @@ public final class AreaControls {
         if (Gui.open_strategy==POPUP) {
             APP.windowManager.showSettings(w,propB);
         } else if (Gui.open_strategy==INSIDE) {
-            closeAndDo(area.content_root, () -> {
+            AppAnimator.INSTANCE.closeAndDo(area.content_root, () -> {
                 // TODO: decide whether we use SimpleConfigurator or Configurator widget
                 // Configurator sc = new Configurator(true);
                 //              sc.configure(w);
@@ -283,12 +282,12 @@ public final class AreaControls {
                 sc.getStyleClass().addAll("block", "area", "widget-area");// imitate area looks
                 sc.setOnMouseClicked(me -> {
                     if (me.getButton()==SECONDARY)
-                        closeAndDo(sc, () -> {
+                        AppAnimator.INSTANCE.closeAndDo(sc, () -> {
                             area.root.getChildren().remove(sc);
-                            openAndDo(area.content_root, null);
+                            AppAnimator.INSTANCE.openAndDo(area.content_root, null);
                         });
                 });
-                openAndDo(sc, null);
+                AppAnimator.INSTANCE.openAndDo(sc, null);
                 area.root.getChildren().add(sc);
                 setAnchors(sc, 0d);
             });
@@ -297,9 +296,9 @@ public final class AreaControls {
 
     void showInfo() {
         if (Gui.open_strategy==POPUP) {
-            helpP.getM(this).show(infoB);
+            helpP.getM(this).showInCenterOf(infoB);
         } else if (Gui.open_strategy==INSIDE) {
-            closeAndDo(area.content_root, () -> {
+            AppAnimator.INSTANCE.closeAndDo(area.content_root, () -> {
                 Text t = new Text(getInfo());
                      t.setMouseTransparent(true);
                 ScrollPane s = layScrollVText(t);
@@ -312,12 +311,12 @@ public final class AreaControls {
                 sa.addEventFilter(MOUSE_RELEASED, Event::consume);
                 sa.addEventFilter(MOUSE_CLICKED, e -> {
                     if (e.getButton()==SECONDARY)
-                        closeAndDo(sa, () -> {
+                        AppAnimator.INSTANCE.closeAndDo(sa, () -> {
                             area.root.getChildren().remove(sa);
-                            openAndDo(area.content_root, null);
+                            AppAnimator.INSTANCE.openAndDo(area.content_root, null);
                         });
                 });
-                openAndDo(sa, null);
+                AppAnimator.INSTANCE.openAndDo(sa, null);
                 area.root.getChildren().add(sa);
                 setAnchors(sa, 0d);
             });
@@ -326,9 +325,9 @@ public final class AreaControls {
 
     void close() {
         if (area.index==null)
-            closeAndDo(area.container.ui.getRoot(), () -> area.container.close());
+            AppAnimator.INSTANCE.closeAndDo(area.container.ui.getRoot(), () -> area.container.close());
         else
-            closeAndDo(area.content_root, () -> area.container.removeChild(area.index));
+            AppAnimator.INSTANCE.closeAndDo(area.content_root, () -> area.container.removeChild(area.index));
     }
 
     private void toggleAbsSize() {

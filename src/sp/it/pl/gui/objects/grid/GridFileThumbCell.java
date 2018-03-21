@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -22,12 +21,13 @@ import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.image.ImageSize;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.newSingleDaemonThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.sleep;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.dev.Util.throwIf;
 import static sp.it.pl.util.dev.Util.throwIfFxThread;
 import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
@@ -49,7 +49,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	private Item imgLoadAnimationItem;
 
 	public GridFileThumbCell(Loader imgLoader) {
-		noØ(imgLoader);
+		noNull(imgLoader);
 		loader = imgLoader;
 		setCoverLater = EventReducer.toLast(10, this::setCoverNow);
 	}
@@ -183,7 +183,8 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		root.setMinSize(-1, -1);
 		root.setPrefSize(-1, -1);
 		root.setMaxSize(-1, -1);
-		root.hoverProperty().addListener((o, ov, nv) -> thumb.getView().setEffect(nv ? new ColorAdjust(0, 0, 0.15, 0) : null));
+		Anim a = new Anim(x -> root.setTranslateY(-5*x*x)).dur(millis(200));
+		thumb.getView().hoverProperty().addListener((o, ov, nv) -> a.playFromDir(nv));
 		root.setOnMouseClicked(e -> {
 			if (e.getButton()==PRIMARY && e.getClickCount()==2) {
 				onAction(getItem(), e.isShiftDown());

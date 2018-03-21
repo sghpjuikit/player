@@ -38,7 +38,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.SAME;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.map;
@@ -165,7 +165,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	}
 
 	public void setColumnState(TableColumnInfo state) {
-		noØ(state);
+		noNull(state);
 
 		List<TableColumn<T,?>> visibleColumns = new ArrayList<>();
 		state.columns.stream().filter(c -> c.visible).sorted().forEach(c -> {

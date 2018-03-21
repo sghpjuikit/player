@@ -21,12 +21,12 @@ object CoreSerializer: Core {
     private lateinit var executor: ExecutorService
 
     override fun init() {
-        if (!this::executor.isInitialized)
+        if (!::executor.isInitialized)
             executor = Executors.newSingleThreadExecutor(threadFactory("Serialization", false))!!
     }
 
     override fun dispose() {
-        if (this::executor.isInitialized)
+        if (::executor.isInitialized)
             executor.shutdown()
     }
 

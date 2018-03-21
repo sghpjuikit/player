@@ -17,4 +17,6 @@ class SetƑ: HashSet<Runnable>(2), Ƒ {
         return Subscription { remove(r) }
     }
 
+    fun addS(r: () -> Unit) = addS(Runnable { r() })
+
 }

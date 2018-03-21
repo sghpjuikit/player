@@ -34,13 +34,19 @@ open class V<T> : SimpleObjectProperty<T>, ApplicableValue<T> {
         this.applier = applier
     }
 
-    constructor(value: T, applier: Runnable) : this(value, Consumer { applier() })
+    @Suppress("RedundantOverride")  // helps Kotlin with null-safety inference
+    override fun getValue(): T = super.getValue()
+
+    @Suppress("RedundantOverride")  // helps Kotlin with null-safety inference
+    override fun setValue(v: T) = super.setValue(v)
 
     override fun applyValue(value: T) {
         applier(value)
     }
 
     fun onChange(action: Consumer<in T>) = attach { action(it) }
+
+    fun initOnChange(action: Consumer<in T>) = apply { attach { action(it) } }
 
     fun onChange(action: BiConsumer<in T, in T>) = changes { ov, nv -> action(ov, nv) }
 

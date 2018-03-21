@@ -44,6 +44,7 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.action.Action;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
+import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.graphics.UtilKt;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
@@ -80,9 +81,11 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.paint.Color.BLACK;
 import static sp.it.pl.gui.objects.window.Resize.NONE;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
@@ -130,21 +133,15 @@ public class Window extends WindowBase {
 	/**
 	 * Scene root. Assigned '.window' styleclass.
 	 */
-	@FXML
-	public AnchorPane root = new AnchorPane();
+	@FXML public AnchorPane root = new AnchorPane();
 	/**
 	 * Single child of the root.
 	 */
-	@FXML
-	public StackPane subroot;
-	@FXML
-	public StackPane back, backImage;
-	@FXML
-	public AnchorPane bordersVisual;
-	@FXML
-	public AnchorPane front, content;
-	@FXML
-	HBox rightHeaderBox;
+	@FXML public StackPane subroot;
+	@FXML public StackPane back, backImage;
+	@FXML public AnchorPane bordersVisual;
+	@FXML public AnchorPane front, content;
+	@FXML HBox rightHeaderBox;
 	private final double headerHeight = 30;
 
 	/**
@@ -249,25 +246,34 @@ public class Window extends WindowBase {
 		});
 
 		// header double click maximize, show header on/off
-		header.setMouseTransparent(false);
-		header.setOnMouseClicked(e -> {
+		headerContainer.setMouseTransparent(false);
+		headerContainer.setOnMouseClicked(e -> {
 			if (e.getButton()==PRIMARY)
 				if (e.getClickCount()==2)
 					toggleMaximize();
 			if (e.getButton()==SECONDARY)
 				if (e.getClickCount()==2)
-					setHeaderVisible(!headerVisible);
+					isHeaderVisible.set(!isHeaderVisible.get());
 		});
 
-		// header open/close
+		// show header by hovering over a thin activator
 		header_activator.addEventFilter(MOUSE_ENTERED, e -> {
-			if (!headerVisible)
+			if (!_headerVisible)
 				applyHeaderVisible(true);
 		});
-		header.addEventFilter(MOUSE_EXITED_TARGET, e -> {
-			if (!headerVisible && !moving.get() && resizing.get()==NONE && e.getSceneY()>20)
-				applyHeaderVisible(false);
+
+		// hide header on long mouse exit if specified so
+		EventReducer<Boolean> headerContainerMouseExited = EventReducer.toLast(300, v -> {
+			if (!v) applyHeaderVisible(false);
 		});
+		headerContainer.addEventFilter(MOUSE_ENTERED_TARGET, e ->
+			headerContainerMouseExited.push(true)
+		);
+		headerContainer.addEventFilter(MOUSE_EXITED_TARGET, e -> {
+			if ((!isHeaderVisible.get() || isFullscreen()) && !moving.get() && resizing.get()==NONE && e.getSceneY()>20)    // TODO: 20?
+				headerContainerMouseExited.push(false);
+		});
+		fullscreen.addListener((o,ov,nv) -> applyHeaderVisible(_headerVisible));
 
 		titleL.setMinWidth(0);
 
@@ -342,9 +348,9 @@ public class Window extends WindowBase {
 				else if (LastFM.isLoginSuccess())
 					LastFM.toggleScrobbling();
 				else
-					new PopOver<>("LastFM login", LastFM.getLastFMconfig()).show(b);
+					new PopOver<>("LastFM login", LastFM.getLastFMconfig()).showInCenterOf(b);
 			else if (e.getButton()==SECONDARY)
-				new PopOver<>("LastFM login", LastFM.getLastFMconfig()).show(b);
+				new PopOver<>("LastFM login", LastFM.getLastFMconfig()).showInCenterOf(b);
 		});
 		maintain(LastFM.scrobblingEnabledProperty(), mapB(LASTFM_SQUARE, LASTFM), lastFMB::icon);
 		lastFMB.setDisable(true);
@@ -421,10 +427,6 @@ public class Window extends WindowBase {
 		content.getChildren().add(n);
 		setAnchors(n, 0d);
 	}
-
-//    public Node getContent() {
-//        return content.getChildren().isEmpty() ? null : content.getChildren().get(0);
-//    }
 
 	public void setContent(Component c) {
 		if (c!=null)
@@ -503,73 +505,50 @@ public class Window extends WindowBase {
 
 /* ---------- HEADER & BORDER --------------------------------------------------------------------------------------- */
 
-	@FXML
-	public BorderPane header;
-	@FXML
-	private Pane header_activator;
-	@FXML
-	private Region lBorder;
-	@FXML
-	private Region rBorder;
-	@FXML
-	private Label titleL;
-	@FXML
-	private HBox leftHeaderBox;
-	private boolean headerVisible = true;
-	private boolean headerAllowed = true;
-	private boolean borderless = false;
+	@FXML private StackPane headerContainer;
+	@FXML private BorderPane header;
+	@FXML private Pane header_activator;
+	@FXML private Region lBorder;
+	@FXML private Region rBorder;
+	@FXML private Label titleL;
+	@FXML private HBox leftHeaderBox;
+	private boolean _headerVisible = true;
 
-	/**
-	 * Sets visibility of the window header, including its buttons for control
-	 * of the window (close, etc).
-	 */
-	public void setHeaderVisible(boolean val) {
-		headerVisible = val;
-		applyHeaderVisible(val);
-	}
+	/** Whether window borders are displayed (when {@link #isFullscreen()} is true, they never are). Default true. */
+	public final V<Boolean> isBorderless = new V<>(false).initOnChange(v -> applyHeaderVisible(_headerVisible));
+	/** Whether header can be ever visible. Default true. */
+	public final V<Boolean> isHeaderAllowed = new V<>(true).initOnChange(v -> applyHeaderVisible(_headerVisible));
+	/** Visibility of the window header, including its buttons for control of the window (close, etc). Default true. */
+	public final V<Boolean> isHeaderVisible = new V<>(true).initOnChange(v -> applyHeaderVisible(v && !isFullscreen()));
 
-	public boolean isHeaderVisible() {
-		return headerVisible;
-	}
+	private void applyHeaderVisible(boolean headerOn) {
+		boolean bOn = !isBorderless.get() && !isFullscreen();
+		boolean hOn = headerOn && isHeaderAllowed.get();
 
-	private void applyHeaderVisible(boolean val) {
-		if (!headerAllowed&val) return;
-		if (rightHeaderBox.isVisible()==val) return;
-		rightHeaderBox.setVisible(val);
-		leftHeaderBox.setVisible(val);
-		if (val) {
-			header.setPrefHeight(headerHeight);
-			AnchorPane.setTopAnchor(content, headerHeight);
-			AnchorPane.setTopAnchor(lBorder, headerHeight);
-			AnchorPane.setTopAnchor(rBorder, headerHeight);
+		bordersVisual.setVisible(bOn);
+		content.setPadding(bOn ? new Insets(0.0, 5.0, 5.0, 5.0) : Insets.EMPTY);
+		headerContainer.setMinHeight(hOn ? USE_COMPUTED_SIZE : bOn ? 5 : 0);
+		headerContainer.setPrefHeight(hOn ? USE_COMPUTED_SIZE : bOn ? 5 : 0);
+		headerContainer.setMaxHeight(hOn ? USE_COMPUTED_SIZE : bOn ? 5 : 0);
 
-			animPar(
+		if (hOn != _headerVisible) {
+			_headerVisible = headerOn;
+			header.setVisible(hOn);
+			if (hOn) {
 				animPar(
-					forEachIStream(leftHeaderBox.getChildren(), (i, icon) ->
-						new Anim(at -> setScaleXY(icon, at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
-				),
-				animPar(
-					forEachIRStream(rightHeaderBox.getChildren(), (i, icon) ->
-						new Anim(at -> setScaleXY(icon, at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
-				)
-			).play();
-		} else {
-			header.setPrefHeight(isBorderlessApplied() ? 0 : 5);
-			AnchorPane.setTopAnchor(content, 5d);
-			AnchorPane.setTopAnchor(lBorder, 5d);
-			AnchorPane.setTopAnchor(rBorder, 5d);
+					animPar(
+						forEachIStream(leftHeaderBox.getChildren(), (i, icon) ->
+							new Anim(at -> setScaleXY(icon, at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
+					),
+					animPar(
+						forEachIRStream(rightHeaderBox.getChildren(), (i, icon) ->
+							new Anim(at -> setScaleXY(icon, at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
+					)
+				).play();
+			}
 		}
 	}
 
-	/** Set false to never show header. */
-	public void setHeaderAllowed(boolean val) {
-		setHeaderVisible(val && headerVisible);
-		headerAllowed = val;
-	}
-
-	public boolean isHeaderVisibleApplied() {
-		return AnchorPane.getTopAnchor(content)==headerHeight;
-	}
 
 	/**
 	 * Set title for this window shown in the header.
@@ -633,29 +612,7 @@ public class Window extends WindowBase {
 	@Override
 	public void setFullscreen(boolean v) {
 		super.setFullscreen(v);
-		applyBorderless(v || borderless);
-		applyHeaderVisible(!v && headerVisible);
-	}
-
-	public boolean isBorderless() {
-		return borderless;
-	}
-
-	public void setBorderless(boolean v) {
-		borderless = v;
-		applyBorderless(v);
-	}
-
-	private void applyBorderless(boolean v) {
-		double tp = isHeaderVisibleApplied() ? headerHeight : v ? 0 : 5;
-		double p = v ? 0 : 5;
-		sp.it.pl.util.graphics.Util.setAnchors(content, tp, p, p, p);
-		header.setPrefHeight(tp);
-		bordersVisual.setVisible(!v);
-	}
-
-	public boolean isBorderlessApplied() {
-		return AnchorPane.getBottomAnchor(content)==0;
+		applyHeaderVisible(!v && _headerVisible);
 	}
 
 /* ---------- MOVING ------------------------------------------------------------------------------------------------ */

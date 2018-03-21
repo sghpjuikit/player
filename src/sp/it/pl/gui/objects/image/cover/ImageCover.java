@@ -5,7 +5,7 @@ import java.io.File;
 import java.util.Objects;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
-import static sp.it.pl.util.dev.Util.noØ;
+import static sp.it.pl.util.dev.Util.noNull;
 
 /**
  * Denotes Cover represented by a {@link javafx.scene.image.Image} or {@link java.awt.image.BufferedImage}.
@@ -20,7 +20,7 @@ public class ImageCover implements Cover {
 	private final String info;
 
 	public ImageCover(Image image, String description) {
-		noØ(description);
+		noNull(description);
 
 		this.imageI = image;
 		this.imageB = null;
@@ -28,7 +28,7 @@ public class ImageCover implements Cover {
 	}
 
 	public ImageCover(BufferedImage image, String description) {
-		noØ(description);
+		noNull(description);
 
 		this.imageB = image;
 		this.imageI = null;

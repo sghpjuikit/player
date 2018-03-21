@@ -19,6 +19,7 @@ import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.core.CoreConverter
 import sp.it.pl.core.CoreInstances
 import sp.it.pl.core.CoreLogging
+import sp.it.pl.core.CoreMenus
 import sp.it.pl.core.CoreMouse
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerXml
@@ -147,6 +148,7 @@ class App: Application(), Configurable<Any> {
     @F val instanceName = InstanceName()
     @F val instanceInfo = InstanceInfo()
     @F val classFields = ObjectFieldMap()
+    @F val contextMenus = CoreMenus()
     @F val mouse = CoreMouse
 
     // app stuff
@@ -331,6 +333,7 @@ class App: Application(), Configurable<Any> {
         serializerXml.init()
         converter.init()
         instances.init()
+        contextMenus.init();
         mouse.init()
 
         // init app stuff
@@ -459,6 +462,7 @@ class App: Application(), Configurable<Any> {
 
         // cores
         mouse.dispose()
+        contextMenus.dispose()
         instances.dispose()
         serializer.dispose()
         serializerXml.dispose()

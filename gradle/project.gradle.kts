@@ -217,7 +217,6 @@ tasks {
         group = main
         description = "Cleans up temporary files"
         doFirst {
-            workDir.resolve("user/log").deleteRecursively()
             workDir.resolve("user/tmp").deleteRecursively()
             workDir.resolve("lib").deleteRecursively()
             workDir.resolve("widgets").walkBottomUp()

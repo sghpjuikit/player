@@ -3,28 +3,30 @@ package sp.it.pl.gui.pane
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
-import javafx.scene.layout.FlowPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority.ALWAYS
+import javafx.scene.layout.VBox
 import javafx.scene.text.TextAlignment
 import sp.it.pl.gui.itemnode.ConfigField
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
+import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.graphics.hBox
-import sp.it.pl.util.graphics.setMinPrefMaxWidth
+import sp.it.pl.util.reactive.sync
 import java.util.stream.Stream
 
-class ConfigPane<T: Any>: FlowPane, ConfiguringFeature<T> {
+class ConfigPane<T: Any>: VBox, ConfiguringFeature<T> {
     private var fields: List<ConfigField<out T>> = listOf()
-    @JvmField var onChange: Runnable? = null
+    var onChange: Runnable? = null
+    var labelWidth = v(250.0)
 
     @SafeVarargs
     constructor(vararg configs: Config<T>): this(configs.asList())
 
     constructor(configs: Configurable<T>): this(configs.fields)
 
-    constructor(configs: Collection<Config<T>>): super(5.0, 5.0) {
+    constructor(configs: Collection<Config<T>>): super(5.0) {
         configure(configs)
     }
 
@@ -44,7 +46,7 @@ class ConfigPane<T: Any>: FlowPane, ConfiguringFeature<T> {
                 spacing = 20.0
                 alignment = CENTER_LEFT
                 children += it.createLabel().apply {
-                    setMinPrefMaxWidth(250.0)
+                    labelWidth sync ::setPrefWidth
                     alignment = CENTER_RIGHT
                     textAlignment = TextAlignment.RIGHT
                     padding = Insets(0.0, 0.0, 0.0, 5.0)

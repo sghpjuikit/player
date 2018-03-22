@@ -26,8 +26,11 @@ val kotlinVersion: String by extra {
             .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
 
-if (JavaVersion.current()!=javaVersion)
+if (JavaVersion.current()!=javaVersion) {
+    println("org.gradle.java.home=${property("org.gradle.java.home")}")
+    println("Java version is not correct. Set $javaVersion as system default or create a \"gradle.properties\" file with \"org.gradle.java.home\" pointing to JDK $javaVersion")
     throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
+}
 
 java {
     targetCompatibility = javaVersion
@@ -223,6 +226,11 @@ tasks {
                     .filter { it.path.endsWith("class") }
                     .fold(true, { res, it -> (it.delete() || !it.exists()) && res })
         }
+    }
+    
+    "build" {
+        group = main
+        dependsOn(":widgets:build")
     }
 
     "run"(JavaExec::class) {

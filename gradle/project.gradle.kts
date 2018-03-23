@@ -12,7 +12,7 @@ import kotlin.text.Charsets.UTF_8
 
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
-    kotlin("jvm") version "1.2.30"
+    kotlin("jvm") version "1.2.31"
     application
     id("com.github.ben-manes.versions") version "0.17.0"
 }
@@ -27,8 +27,8 @@ val kotlinVersion: String by extra {
 }
 
 if (JavaVersion.current()!=javaVersion) {
-    println("org.gradle.java.home=${property("org.gradle.java.home")}")
-    println("Java version is not correct. Set $javaVersion as system default or create a \"gradle.properties\" file with \"org.gradle.java.home\" pointing to JDK $javaVersion")
+    println("""org.gradle.java.home=${properties["org.gradle.java.home"]}
+		|Java version ${JavaVersion.current()} can't be used. Set $javaVersion as system default or create a "gradle.properties" file with "org.gradle.java.home" pointing to JDK $javaVersion""".trimMargin())
     throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
 }
 
@@ -180,29 +180,40 @@ tasks {
             val kotlincUpToDate = kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion)==true
             if (!kotlincUpToDate) {
                 if (kotlinc.exists()) {
-                    println("Previous version of Kotlin compiler exists. Deleting...")
+                    println("Deleting obsolete version of Kotlin compiler...")
                     if (!kotlinc.deleteRecursively())
                         throw IOException("Failed to remove Kotlin compiler, location=$kotlinc")
                 }
 
                 try {
                     val url = URL("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/kotlin-compiler-$kotlinVersion.zip")
-                    val zip = ZipInputStream(url.openStream())
+                    val con = url.openConnection()
+                    val zip = ZipInputStream(con.getInputStream())
+                    val max = con.contentLengthLong / 1000
+                    var downloaded = 0L
+                    var last = ""
                     while (true) {
                         val next = zip.nextEntry ?: break
+                        downloaded += next.size / 1000
                         if (!next.isDirectory) {
-                            val file = workDir.resolve(next.name)
+                            val file = if (next.name=="kotlinc/build.txt") buildDir.resolve("build.txt")
+                            else workDir.resolve(next.name).also {
+                                if (last!=it.parent) {
+                                    last = it.parent
+                                    println("Downloading ${it.parentFile.relativeTo(workDir)} downloaded: $downloaded/${max}k")
+                                }
+                            }
                             file.parentFile.mkdirs()
                             val out = file.outputStream()
                             zip.copyTo(out)
-                        } else {
-                            println("Downloading ${next.name}")
                         }
                     }
+                    zip.close()
                     if (!kotlinc.exists())
                         throw IOException("Kotlinc has not been downloaded successfully! Maybe the remote file is not a zip?")
 
                     file("$workDir/kotlinc/bin/kotlinc").setExecutable(true) // Allow kotlinc to be executed on Unix
+                    buildDir.resolve("build.txt").renameTo(kotlinc.resolve("build.txt"))
                 } catch (e: FileNotFoundException) {
                     throw IOException("The remote file could not be found", e)
                 }
@@ -227,7 +238,7 @@ tasks {
                     .fold(true, { res, it -> (it.delete() || !it.exists()) && res })
         }
     }
-    
+
     "build" {
         group = main
         dependsOn(":widgets:build")

@@ -31,6 +31,7 @@ import sp.it.pl.util.file.toURLOrNull
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.clearSet
+import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.runIf
 import sp.it.pl.util.system.Os
 import sp.it.pl.util.type.isSubclassOf
@@ -589,9 +590,9 @@ class FactoryRef<out FEATURE>(private val factory: ComponentFactory<*>) {
     fun nameGui() = factory.nameGui()
 
     @Suppress("UNCHECKED_CAST")
-    fun use(source: WidgetSource, ignore: Boolean = false, action: (FEATURE) -> Unit) {
-        APP.widgetManager.widgets.find(nameGui(), source, ignore).ifPresent { action(it.getController() as FEATURE) }
-    }
+    fun use(source: WidgetSource, ignore: Boolean = false, action: (FEATURE) -> Unit) = APP.widgetManager.widgets
+                .find(nameGui(), source, ignore).orNull()
+                ?.let { it.load(); action(it.getController() as FEATURE) }    // TODO fix it.load()
 }
 
 /** Source for widgets when looking for a widget. */

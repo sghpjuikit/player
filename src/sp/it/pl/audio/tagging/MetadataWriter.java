@@ -790,15 +790,14 @@ public class MetadataWriter extends Item {
 	 * or writing failed.
 	 */
 	private boolean write() {
-		if (!hasFields()) return false; // nothing to write
+		if (!hasFields()) return false;
 		LOGGER.debug("Writing {} tag fields to: {}", fields_changed, file);
 
 		if (hasCorruptedTag) {
 			LOGGER.warn("Can not write to tag, because it could not be read: {} ", file);
-			return false; // writing impossible
+			return false;
 		}
 
-		// save tag
 		try {
 			audioFile.commit();
 		} catch (Exception ex) {
@@ -814,8 +813,10 @@ public class MetadataWriter extends Item {
 						audioFile.commit();
 						break;
 					} catch (CannotWriteException|InterruptedException e) {
-						if (i>=3) {
-							LOGGER.info("Can not write file tag (attempt {}): {} {}", 1 + i/2, audioFile.getFile().getPath(), e);
+						if (i<3) {
+							LOGGER.info("Can not write file tag (attempt {}): {} {}", 1 + i/2, audioFile.getFile().getPath());
+						} else {
+							LOGGER.error("Can not write file tag (attempt {}): {} {}", 1 + i/2, audioFile.getFile().getPath(), e);
 							Player.activate();
 							return false;
 						}
@@ -823,7 +824,7 @@ public class MetadataWriter extends Item {
 				}
 				Player.activate();
 			} else {
-				LOGGER.debug("Can not write file tag: {}", audioFile.getFile().getPath(), ex);
+				LOGGER.error("Can not write file tag: {}", audioFile.getFile().getPath(), ex);
 				return false;
 			}
 		}

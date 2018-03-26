@@ -141,10 +141,11 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>
             override fun isDirectory(): Boolean = cIsDirectory
 
             fun hasCover(cache: HashSet<File>): Boolean {
+                val p = parentDirOrRoot
                 val n = nameWithoutExtension
                 return ImageFileFormat.values().asSequence()
                         .filter { it.isSupported }
-                        .any { cache.contains(childOf("$n.$it")) }
+                        .any { cache.contains(p.childOf("$n.$it")) }
             }
         }
 

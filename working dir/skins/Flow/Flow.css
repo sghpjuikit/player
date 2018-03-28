@@ -52,6 +52,10 @@
     -fx-effect: dropshadow(gaussian, yellow, 12, 0.2 , 0, 0);
 }
 
+.icon-info-icon,
+.icon-info-icon:hover,
+.search-icon-sign,
+.search-icon-sign:hover,
 .resize-content-icon,
 .resize-content-icon:hover {
     -fx-border-color:  none;
@@ -285,4 +289,9 @@
     -fx-background-insets: -2;
     -fx-background-color: rgba(0,0,0,0.4);
     -fx-padding: -2;
+}
+
+.icon-grid-cell,
+.icon-grid-cell:selected {
+    -fx-background-color: transparent;
 }

@@ -126,6 +126,10 @@ private fun File.readXmpTimeCreated(): FileTime? =
             if (e.message!="File format is not supported")
                 logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
             null
+        } catch (e: Exception) {
+            // 12Monkey bug: java.lang.NegativeArraySizeException
+            logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
+            null
         }
 
 private fun File.readKritaTimeCreated(): FileTime? =

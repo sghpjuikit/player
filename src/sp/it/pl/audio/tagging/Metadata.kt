@@ -304,7 +304,7 @@ class Metadata: Item, Serializable {
         custom5 = loadAsString(this, FieldKey.CUSTOM5)
 
         // Read synthetic fields
-        if (!custom5!!.isEmpty()) {
+        if (!custom5.isNullOrBlank()) {
             for (tagField in custom5?.split(SEPARATOR_GROUP.toString().toRegex()).orEmpty()) {
                 if (tagField.length<10) continue      // skip deformed to avoid exception
                 val tagId = tagField.substring(0, 10)

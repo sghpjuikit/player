@@ -85,9 +85,9 @@ public class Player {
 	public static final InOutput<Item> anySelected = new InOutput<>(UUID.fromString("1a01ca96-2e60-426e-831d-93b24605595f"), "Selected anywhere", Item.class);
 
 	@IsConfig(name = "Remember playback state", info = "Continue last remembered playback when application starts.")
-	public static boolean continuePlaybackOnStart = true;
+	public static boolean continuePlaybackOnStart = false;
 	@IsConfig(name = "Pause playback on start", info = "Continue last remembered playback paused on application start.")
-	public static boolean continuePlaybackPaused = false;
+	public static boolean continuePlaybackPaused = true;
 	@IsConfig(name = "Seek time unit", info = "Fixed time unit to jump, when seeking forward/backward.")
 	public static Duration seekUnitT = millis(4000);
 	@Constraint.MinMax(min = 0, max = 1)

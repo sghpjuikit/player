@@ -22,7 +22,6 @@ import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.type.Util.getFieldValue
 import sp.it.pl.util.type.Util.invokeMethodP1
-import sp.it.pl.util.type.Util.invokeMethodP2
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.pl.web.WebBarInterpreter

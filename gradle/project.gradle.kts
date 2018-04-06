@@ -77,8 +77,8 @@ allprojects {
 dependencies {
 
     // Kotlin
-    compile("org.jetbrains.kotlin", "kotlin-stdlib-jdk8", kotlinVersion)
-    compile("org.jetbrains.kotlin", "kotlin-reflect", kotlinVersion)
+    compile(kotlin("stdlib-jdk8"))
+    compile(kotlin("reflect"))
 
     // Logging
     compile("org.slf4j", "slf4j-api", "1.7.25")
@@ -259,7 +259,7 @@ application {
             "-Dfile.encoding=UTF-8",
             "-ms"+(properties["player.memoryMin"] ?: "100m"),
             "-mx"+(properties["player.memoryMax"] ?: "3g"),
-            *properties["player.jvmArgs"]?.let { it.toString().split(' ').toTypedArray() }.orEmpty(),
+            *properties["player.jvmArgs"]?.toString()?.split(' ')?.toTypedArray().orEmpty(),
             "--add-opens", "java.base/java.util=ALL-UNNAMED",
             "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
             "--add-opens", "java.base/java.text=ALL-UNNAMED",

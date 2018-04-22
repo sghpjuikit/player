@@ -2,7 +2,6 @@ package sp.it.pl.util.conf;
 
 import java.util.function.Consumer;
 import sp.it.pl.util.conf.Config.ConfigBase;
-import sp.it.pl.util.conf.IsConfig.EditMode;
 import static sp.it.pl.util.dev.Util.noNull;
 
 /**

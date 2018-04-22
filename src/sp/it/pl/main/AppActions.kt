@@ -10,7 +10,6 @@ import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.SimpleItem
 import sp.it.pl.audio.tagging.MetadataReader
-import sp.it.pl.gui.Gui
 import sp.it.pl.gui.infonode.ConvertTaskInfo
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.pane.ActionPane
@@ -253,7 +252,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Apply skin on the application.",
                     IconMD.BRUSH,
                     { Util.isValidSkinFile(it) },
-                    { it -> Gui.setSkin(it) }
+                    { it -> APP.ui.setSkin(it) }
             ),
             FastAction(
                     "View image",

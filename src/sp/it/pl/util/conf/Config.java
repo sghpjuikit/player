@@ -4,7 +4,6 @@ import java.lang.invoke.MethodHandle;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -15,15 +14,15 @@ import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import org.slf4j.Logger;
 import sp.it.pl.util.access.ApplicableValue;
 import sp.it.pl.util.access.FAccessibleValue;
 import sp.it.pl.util.access.TypedValue;
 import sp.it.pl.util.access.V;
-import sp.it.pl.util.access.VNullable;
 import sp.it.pl.util.access.Vo;
 import sp.it.pl.util.access.fieldvalue.EnumerableValue;
 import sp.it.pl.util.conf.Config.VarList.Elements;
-import sp.it.pl.util.conf.IsConfig.EditMode;
+import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.parsing.Converter;
@@ -69,6 +68,8 @@ import static sp.it.pl.util.type.Util.unPrimitivize;
  * @param <T> type of value of this config
  */
 public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, ConverterString<T>, TypedValue<T>, EnumerableValue<T> {
+
+	private static final Logger LOGGER = logger(Config.class);
 
 	@Override
 	public abstract T getValue();
@@ -161,7 +162,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 	 * @param s string to parse
 	 */
 	public void setValueS(String s) {
-		ofS(s).ifOk(this::setValue);
+		ofS(s).ifOk(this::setValue).ifError(e -> LOGGER.warn("Unable to set value from text={}, reason={}", s, e));
 	}
 
 	/**
@@ -326,7 +327,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		private final String group;
 		private final String info;
 		private final EditMode editable;
-		@sp.it.pl.util.dev.Dependency("DO NOT RENAME - accessed using reflection")
+		@Dependency("DO NOT RENAME - accessed using reflection")
 		private final T defaultValue;
 		Set<Constraint<? super T>> constraints;
 
@@ -402,37 +403,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		}
 	}
 
-	/**
-	 * Stateless {@link sp.it.pl.util.conf.Config} of type {@link java.lang.Void}, with a user invokable action. This is
-	 * useful for giving user the option to invoke a (possibly long running) action at will. As a valueless config,
-	 * there is no need for persistence. The only allowed value is null and it can not change.
-	 */
-	public static final class RunnableConfig extends ConfigBase<Void> implements Runnable {
-
-		private final Runnable action;
-
-		public RunnableConfig(String name, String guiName, String category, String info, Runnable action) {
-			super(Void.class, name, guiName, null, category, info, EditMode.USER);
-			this.action = action;
-		}
-
-		@Override
-		public void applyValue(Void val) {}
-
-		@Override
-		public Void getValue() {
-			return null;
-		}
-
-		@Override
-		public void setValue(Void val) {}
-
-		@Override
-		public void run() {
-			if (action!=null) action.run();
-		}
-	}
-
 	/** {@link Config} wrapping {@link java.lang.reflect.Field}. Can wrap both static or instance fields. */
 	public static class FieldConfig<T> extends ConfigBase<T> {
 
@@ -481,34 +451,28 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			}
 		}
 
-		/**
-		 * Equals if and only if non null, is Config type and source field is equal.
-		 */
-		@Override
-		public boolean equals(Object o) {
-			if (this==o) return true;
-
-			if (o==null || !(o instanceof FieldConfig)) return false;
-
-			FieldConfig c = (FieldConfig) o;
-			return setter.equals(c.setter) && getter.equals(c.getter) &&
-					applier.equals(c.applier);
-		}
-
-		@Override
-		public int hashCode() {
-			int hash = 5;
-			hash = 23*hash + Objects.hashCode(this.applier);
-			hash = 23*hash + Objects.hashCode(this.getter);
-			hash = 23*hash + Objects.hashCode(this.setter);
-			return hash;
-		}
-
 	}
 
 	public static class PropertyConfig<T> extends ConfigBase<T> {
 
 		protected final WritableValue<T> value;
+
+		/**
+		 * Constructor to be used with framework
+		 *
+		 * @param c the annotation
+		 * @param property WritableValue to wrap. Mostly a {@link Property}.
+		 * @throws IllegalStateException if the property field is not final
+		 */
+		@SuppressWarnings("unchecked")
+		public PropertyConfig(Class<T> propertyType, String name, IsConfig c, Set<Constraint<? super T>> constraints, WritableValue<T> property, T defaultValue, String category) {
+			super(propertyType, name, c, constraints, defaultValue, category);
+			value = property;
+
+			// support enumeration by delegation if property supports is
+			if (value instanceof EnumerableValue)
+				valueEnumerator = ((EnumerableValue<T>) value)::enumerateValues;
+		}
 
 		/**
 		 * Constructor to be used with framework
@@ -587,21 +551,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			return value;
 		}
 
-		/**
-		 * Equals if and only if object instance of PropertyConfig and its property
-		 * is the same property as property of this: property==o.property;
-		 */
-		@Override
-		public boolean equals(Object o) {
-			if (o==this) return true;
-			return (o instanceof PropertyConfig && value==((PropertyConfig) o).value);
-		}
-
-		@Override
-		public int hashCode() {
-			return 43*7 + Objects.hashCode(this.value);
-		}
-
 	}
 
 	public static class ReadOnlyPropertyConfig<T> extends ConfigBase<T> {
@@ -673,21 +622,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 		public ObservableValue<T> getProperty() {
 			return value;
-		}
-
-		/**
-		 * Equals if and only if object instance of PropertyConfig and its property
-		 * is the same property as property of this: property==o.property;
-		 */
-		@Override
-		public boolean equals(Object o) {
-			if (o==this) return true;
-			return (o instanceof ReadOnlyPropertyConfig && value==((ReadOnlyPropertyConfig) o).value);
-		}
-
-		@Override
-		public int hashCode() {
-			return 43*7 + Objects.hashCode(this.value);
 		}
 
 	}
@@ -785,7 +719,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 	}
 
-	public static final class ListConfig<T> extends ConfigBase<ObservableList<T>> {
+	public static class ListConfig<T> extends ConfigBase<ObservableList<T>> {
 
 		public final VarList<T> a;
 		public final Ƒ1<? super T,? extends Configurable<?>> toConfigurable;
@@ -882,7 +816,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		}
 	}
 
-	public static class VarList<T> extends VNullable<ObservableList<T>> {
+	public static class VarList<T> extends V<ObservableList<T>> {
 
 		public enum Elements {
 			NULLABLE, NOT_NULL

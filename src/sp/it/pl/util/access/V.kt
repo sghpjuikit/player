@@ -5,13 +5,9 @@ import org.reactfx.Subscription
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.changes
+import sp.it.pl.util.reactive.sync
 import java.util.function.BiConsumer
 import java.util.function.Consumer
-
-fun <T> v(value: T): V<T> = V(value)
-fun <T> v(value: T, onChange: (T) -> Unit): V<T> = V(value, Consumer { onChange(it) } )
-fun <T> vn(value: T? = null): V<T?> = V(value)
-fun <T> vn(value: T?, onChange: (T?) -> Unit): V<T?> = V(value, Consumer { onChange(it) } )
 
 /**
  * Var/variable - simple object wrapper similar to [javafx.beans.property.Property], but
@@ -19,7 +15,7 @@ fun <T> vn(value: T?, onChange: (T?) -> Unit): V<T?> = V(value, Consumer { onCha
  *
  * Does not permit null values.
  */
-open class V<T> : SimpleObjectProperty<T>, ApplicableValue<T> {
+open class V<T>: SimpleObjectProperty<T>, ApplicableValue<T> {
 
     var applier: Consumer<in T>
 
@@ -46,7 +42,9 @@ open class V<T> : SimpleObjectProperty<T>, ApplicableValue<T> {
 
     fun onChange(action: Consumer<in T>) = attach { action(it) }
 
-    fun initOnChange(action: Consumer<in T>) = apply { attach { action(it) } }
+    fun initAttachC(action: Consumer<in T>) = apply { attach { action(it) } }
+
+    fun initSyncC(action: Consumer<in T>) = apply { sync { action(it) } }
 
     fun onChange(action: BiConsumer<in T, in T>) = changes { ov, nv -> action(ov, nv) }
 
@@ -55,13 +53,16 @@ open class V<T> : SimpleObjectProperty<T>, ApplicableValue<T> {
         return attach { action(it) }
     }
 
-    fun onInvalid(action: Runnable) = attach { action() }
-
 }
 
-open class VNullable<T>: V<T?> {
+fun <T> v(value: T): V<T> = V(value)
 
-    @JvmOverloads
-    constructor(value: T?, applier: Consumer<T?> = Consumer {}) : super(value, applier)
+fun <T> v(value: T, onChange: (T) -> Unit): V<T> = V(value, Consumer { onChange(it) })
 
-}
+fun <T> vn(value: T? = null): V<T?> = V(value)
+
+fun <T> vn(value: T?, onChange: (T?) -> Unit): V<T?> = V(value, Consumer { onChange(it) })
+
+fun <T, W: V<T>> W.initAttach(action: (T) -> Unit) = apply { attach { action(it) } }
+
+fun <T, W: V<T>> W.initSync(action: (T) -> Unit) = apply { sync(action) }

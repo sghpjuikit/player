@@ -71,7 +71,6 @@ import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.centre
 import sp.it.pl.util.graphics.getScreen
-import sp.it.pl.util.graphics.setScaleXYByTo
 import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.toP
 import sp.it.pl.util.math.P
@@ -218,7 +217,7 @@ open class PopOver<N: Node>(): PopupControl() {
     private val animation by lazy {
         anim {
             getSkinn().node.opacity = it*it
-            getSkinn().node.setScaleXYByTo(it, -20.0, 0.0)  // TODO: causes slight position shift sometimes
+            // getSkinn().node.setScaleXYByTo(it, -20.0, 0.0)  // TODO: causes slight position shift sometimes
         }
     }
 
@@ -405,11 +404,13 @@ open class PopOver<N: Node>(): PopupControl() {
 
         fun fixWrongCoordinatesWhenShownWithDifferentContentWhenShowing() {
             if (isShowing) {
-                // hideImmediately() // This solution works but introduces a visual glitch
+                // This solution works but introduces a visual glitch
+                // hideImmediately()
+
                 skin.node.applyCss()
-                skin.node.autosize()
                 (skin.node as? Pane)?.requestLayout()
                 (skin.node as? Pane)?.layout()
+                skin.node.autosize()
             }
         }
 
@@ -486,11 +487,13 @@ open class PopOver<N: Node>(): PopupControl() {
     }
 
     private fun fadeIn() {
+        animation.applyNow()
         animation.dur(animationDuration.value)
         animation.playOpenDo(null)
     }
 
     private fun fadeOut() {
+        animation.applyNow()
         animation.dur(animationDuration.value)
         animation.playCloseDo(Runnable { hideImmediately() })
     }

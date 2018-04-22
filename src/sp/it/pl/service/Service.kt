@@ -1,32 +1,32 @@
 package sp.it.pl.service
 
+import sp.it.pl.main.MultiConfigurable
+import sp.it.pl.main.Settings
 import sp.it.pl.util.conf.Configurable
-
+import sp.it.pl.util.dev.Idempotent
 
 /**
- * <ul>
- * <li> all public methods of the service must be thread-safe
- * <li> starting and stopping the service must not depend on any other service. Service should in fact never make
- *     assumptions about other services
- * </ul>
+ * Requirements:
+ * * all public methods of the service must be thread-safe
+ * * service should never make assumptions about other services
+ * * [start] and [stop] must never assume any state of the service
  */
-interface Service: Configurable<Any> {
+interface Service: Configurable<Any>, MultiConfigurable {
 
     val name: String
 
-    /**
-     * @implSpec starting the service must not depend on any other service
-     */
+    override val configurableDiscriminant get() = "${Settings.SERVICES}.$name"
+
+    @Idempotent
     fun start()
 
     fun isRunning(): Boolean
 
-    /**
-     * @implSpec stopping the service must not depend on any other service
-     */
+    @Idempotent
     fun stop()
 
     fun isSupported() = true
 
     fun isDependency() = false
+
 }

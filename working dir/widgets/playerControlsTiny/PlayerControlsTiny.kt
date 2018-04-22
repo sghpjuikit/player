@@ -22,13 +22,13 @@ import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.gui.Gui
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.seeker.Seeker
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.FXMLController
 import sp.it.pl.layout.widget.feature.HorizontalDock
 import sp.it.pl.layout.widget.feature.PlaybackFeature
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.main.initClose
 import sp.it.pl.main.onDispose
 import sp.it.pl.util.Util.clip
@@ -40,7 +40,6 @@ import sp.it.pl.util.graphics.Util.layStack
 import sp.it.pl.util.graphics.drag.DragUtil
 import sp.it.pl.util.graphics.drag.DragUtil.getAudioItems
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
-import sp.it.pl.util.reactive.maintain
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncTo
 import java.lang.Double.max
@@ -95,7 +94,7 @@ class PlayerControlsTiny: FXMLController(), PlaybackFeature, HorizontalDock {
         val ps = Player.state.playback
 
         initClose { seeker.bindTime(ps.duration, ps.currentTime) }
-        initClose { Gui.snapDistance syncTo seeker.chapterSnapDistance }
+        initClose { APP.ui.snapDistance syncTo seeker.chapterSnapDistance }
         layout.children.add(2, seeker)
         HBox.setHgrow(seeker, ALWAYS)
 

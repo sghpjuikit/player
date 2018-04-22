@@ -1,6 +1,7 @@
 package sp.it.pl.util.functional
 
 import javafx.collections.ObservableList
+import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.type.union
 import java.util.Comparator
 import java.util.Optional
@@ -32,8 +33,15 @@ operator fun <T> Supplier<T>.invoke() = get()
 
 operator fun Runnable.invoke() = run()
 
+operator fun EventReducer<Void>.invoke() = push(null)
+
+fun <A,B,C> compose(f1: (A) -> B, f2: (B) -> C): (A) -> C = { f2(f1(it)) }
+
 /** @return kotlin consumer that invokes java consumer */
 fun <T> consumer(consumer: Consumer<T>): (T) -> Unit = { consumer(it) }
+
+/** @return return value if it has been initialized or null otherwise */
+fun <T> Lazy<T>.orNull() = if (isInitialized()) value else null
 
 /** @return return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
 fun <T> Optional<T>.orNull(): T? = orElse(null)
@@ -57,6 +65,9 @@ fun <R> runIf(condition: Boolean, block: () -> R): R? = if (condition) block() e
 fun <R> runTry(block: () -> R): Try<R,Throwable> = Try.tryS(Supplier { block() }, Throwable::class.java)
 
 infix fun <R,E> Try<R,E>.onE(handle: (E) -> Unit) = ifError(handle)!!
+
+/** Invokes the block if this is null and returns this value. */
+inline fun <T> T?.ifNull(block: () -> Unit) = apply { if (this==null) block() }
 
 /** Invokes the block if this is true and returns this value. */
 inline fun Boolean.ifTrue(block: (Boolean) -> Unit) = apply { if (this) block(this) }

@@ -64,6 +64,10 @@ public interface Functors {
 		default void run() {
 			apply();
 		}
+
+		static Ƒ f(Runnable r) {
+			return r::run;
+		}
 	}
 
 	/**

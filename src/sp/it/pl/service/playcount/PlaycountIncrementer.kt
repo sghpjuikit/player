@@ -9,6 +9,8 @@ import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.audio.tagging.MetadataWriter
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.main.Widgets
+import sp.it.pl.main.between
+import sp.it.pl.main.cv
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.service.notif.Notifier
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.NEVER
@@ -19,41 +21,38 @@ import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_T
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_AND_PERCENT
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_OR_PERCENT
 import sp.it.pl.service.tray.TrayService
+import sp.it.pl.util.access.initAttach
 import sp.it.pl.util.access.v
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.functional.Util.max
 import sp.it.pl.util.functional.Util.min
 import sp.it.pl.util.math.Portion
 import sp.it.pl.util.reactive.Disposer
-import sp.it.pl.util.validation.Constraint
 import java.awt.TrayIcon.MessageType.INFO
 import java.util.ArrayList
 
 /** Playcount incrementing service. */
-@IsConfigurable(value = "Playback.Playcount.Incrementing")
 class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
 
     @IsConfig(name = "Incrementing strategy", info = "Playcount strategy for incrementing playback.")
-    val whenStrategy = v(ON_PERCENT) { apply() }
-    @Constraint.MinMax(min = 0.0, max = 1.0)
+    val whenStrategy by cv(ON_PERCENT) { v(it).initAttach { apply() } }
     @IsConfig(name = "Increment at percent", info = "Percent at which playcount is incremented.")
-    val whenPercent = v(0.4) { apply() }
+    val whenPercent by cv(0.4) { v(it).initAttach { apply() } }.between(0.0, 1.0)
     @IsConfig(name = "Increment at time", info = "Time at which playcount is incremented.")
-    val whenTime = v(seconds(5.0)) { apply() }
+    val whenTime by cv(seconds(5.0)) { v(it).initAttach { apply() } }
     @IsConfig(name = "Show notification", info = "Shows notification when playcount is incremented.")
-    val showNotification = v(false)
+    val showNotification by cv(false)
     @IsConfig(name = "Show tray bubble", info = "Shows tray bubble notification when playcount is incremented.")
-    val showBubble = v(false)
+    val showBubble by cv(false)
     @IsConfig(name = "Delay writing", info = "Delays writing playcount to tag for more seamless "
             +"playback experience. In addition, reduces multiple consecutive increments in a row "
             +"to a single operation. The writing happens when different song starts playing "
             +"(but the data in the application may update visually even later).")
-    val delay = v(true)
+    val delay by cv(true)
 
     private val queue = ArrayList<Metadata>()
-    private val incrementer = Runnable { increment() }
+    private val incrementer = { increment() }
     private var incHandler: PlayTimeHandler? = null
     private var running = false
     private val onStop = Disposer()

@@ -6,10 +6,9 @@ package sp.it.pl.util.dev
 import javafx.application.Platform
 import javafx.beans.value.ObservableValue
 import mu.KotlinLogging
-import sp.it.pl.util.reactive.maintain
+import sp.it.pl.util.reactive.attach
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
-import java.util.function.Consumer
 import kotlin.reflect.KClass
 
 fun fail(message: String? = null): Nothing =
@@ -76,7 +75,7 @@ fun <T> measureTimeMs(block: () -> T): T {
 }
 
 /** Prints the value to console immediately and then on every change. */
-fun <T> ObservableValue<T>.printOnChange(name: String = "") = maintain(Consumer { println("Value $name changed to=$it") })
+fun <T> ObservableValue<T>.printOnChange(name: String = "") = attach { println("Value $name changed to=$it") }
 
 /** @return [org.slf4j.Logger] for the class. */
 fun KClass<*>.logger() = java.logger()

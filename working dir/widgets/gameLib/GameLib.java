@@ -21,7 +21,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import kotlin.jvm.functions.Function1;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.gui.objects.image.cover.Cover;
@@ -52,8 +51,8 @@ import static javafx.scene.control.SelectionMode.SINGLE;
 import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.gui.Gui.rowHeight;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
+import static sp.it.pl.main.AppBuildersKt.rowHeight;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.animation.Anim.animSeq;
@@ -215,9 +214,8 @@ public class GameLib extends FXMLController {
         controls.setSpacing(17);
         controls.getChildren().setAll(editInfoB,playB,exploreB,wikiB);
 
-
         file_tree.setShowRoot(false);
-        d(maintain(Gui.font, f -> rowHeight(f), file_tree.fixedCellSizeProperty()));
+        d(maintain(APP.ui.getFont(), f -> rowHeight(f), file_tree.fixedCellSizeProperty()));
         file_tree.getSelectionModel().setSelectionMode(SINGLE);
         TreeItemsKt.initTreeView(file_tree);
         file_tree.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {

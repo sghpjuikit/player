@@ -20,14 +20,19 @@ import javafx.stage.Stage
 import org.reactfx.Subscription
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.image.Thumbnail.FitFrom
+import sp.it.pl.gui.pane.OverlayPane.Companion.globalDisplay
+import sp.it.pl.gui.pane.OverlayPane.Companion.globalDisplayBgr
 import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.MultiConfigurableBase
+import sp.it.pl.main.cv
 import sp.it.pl.main.resizeButton
-import sp.it.pl.util.access.V
+import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.runAfter
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.Util.createFMNTStage
@@ -42,33 +47,28 @@ import sp.it.pl.util.graphics.screenToLocal
 import sp.it.pl.util.graphics.size
 import sp.it.pl.util.math.P
 import sp.it.pl.util.math.millis
-import sp.it.pl.util.reactive.SetƑ
+import sp.it.pl.util.reactive.Handler0
 import sp.it.pl.util.reactive.maintain
 import sp.it.pl.util.reactive.onEventDown
+import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.system.getWallpaperFile
-import sp.it.pl.util.dev.fail
 
 /**
  * Pane laying 'above' standard content.
  *
- * Rather than using [StackPane.getChildren], use [.setContent], which applies further decoration.
+ * Rather than using [StackPane.getChildren], use [content], which applies further decoration.
  * Content will align to center unless set otherwise.
  */
 abstract class OverlayPane<in T>: StackPane() {
 
     /** Display method. */
-    @IsConfig(name = "Display method", info = "Area of content. Screen provides more space than window, but can get in the way of other apps.")
-    val display = V(Display.SCREEN_OF_MOUSE)
-
+    val display = v(Display.SCREEN_OF_MOUSE)
     /** Display bgr (for SCREEN variants only). */
-    @IsConfig(name = "Display background", info = "Content background")
-    val displayBgr = V(ScreenImgGetter.SCREEN_BGR)
-
+    val displayBgr = v(ScreenImgGetter.SCREEN_BGR)
     /** Handlers called just after this pane was shown. */
-    val onShown = SetƑ()
-
+    val onShown = Handler0()
     /** Handlers called just after this pane was hidden. */
-    val onHidden = SetƑ()
+    val onHidden = Handler0()
 
     private val resizeB: Icon
     private var resizing: Subscription? = null
@@ -307,11 +307,21 @@ abstract class OverlayPane<in T>: StackPane() {
         }
     }
 
-    companion object {
+    companion object: MultiConfigurableBase("View") {
         private const val IS_SHOWN = "visible"
         private const val ROOT_STYLECLASS = "overlay-pane"
         private const val CONTENT_STYLECLASS = "overlay-pane-content"
+
+        @IsConfig(name = "Display method", group = "View", info = "Area of content. Screen provides more space than window, but can get in the way of other apps.")
+        val globalDisplay by cv(Display.SCREEN_OF_MOUSE)
+        @IsConfig(name = "Display background", group = "View", info = "Content background")
+        val globalDisplayBgr by cv(ScreenImgGetter.SCREEN_BGR)
     }
+}
+
+fun <T, P: OverlayPane<T>> P.initApp() = apply {
+    display syncFrom globalDisplay
+    displayBgr syncFrom globalDisplayBgr
 }
 
 enum class ScreenImgGetter {

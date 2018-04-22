@@ -11,15 +11,14 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.stage.Stage
 import mu.KLogging
 import sp.it.pl.audio.Player
-import sp.it.pl.gui.Gui
 import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.c
+import sp.it.pl.main.cv
 import sp.it.pl.service.ServiceBase
-import sp.it.pl.util.access.v
 import sp.it.pl.util.async.runAwt
 import sp.it.pl.util.async.runFX
+import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.IsConfig.EditMode
-import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.clearSet
@@ -38,17 +37,15 @@ import java.io.File
 import java.io.IOException
 
 /** Provides tray facilities, such as tray icon, tray tooltip, tray click actions or tray bubble notification. */
-@Suppress("unused")
-@IsConfigurable("Tray")
-class TrayService : ServiceBase("Tray", true) {
+class TrayService: ServiceBase("Tray", true) {
 
     private var tooltipText = APP.name
     @IsConfig(name = "Show tooltip", info = "Enables tooltip displayed when mouse hovers tray icon.")
-    val tooltipShow = v(true) { setTooltipText(tooltipText) }
+    val tooltipShow by cv(true)
     @IsConfig(name = "Show playing in tooltip", info = "Shows playing song title in tray tooltip.")
-    val showPlayingInTooltip = v(true)
+    val showPlayingInTooltip by cv(true)
     @IsConfig(name = "Is supported", info = "Shows playing song title in tray tooltip.", editable = EditMode.NONE)
-    private val supported = SystemTray.isSupported()
+    private val supported by c(SystemTray.isSupported())
     private var running = false
     private val onEnd = Disposer()
 
@@ -56,7 +53,7 @@ class TrayService : ServiceBase("Tray", true) {
     private val trayIconImageDefault = APP.DIR_RESOURCES.childOf("icons", "icon24.png")
     private var trayIconImage = trayIconImageDefault
     private var trayIcon: TrayIcon? = null
-    private val onClickDefault: (MouseEvent) -> Unit = { Gui.toggleMinimize() }
+    private val onClickDefault: (MouseEvent) -> Unit = { APP.ui.toggleMinimize() }
     private var onClick = onClickDefault
     private var contextMenu: ContextMenu? = null
     private var contextMenuOwner: Stage? = null
@@ -97,16 +94,16 @@ class TrayService : ServiceBase("Tray", true) {
                         ?.getScaledInstance(trayIconSize.width, -1, Image.SCALE_SMOOTH)
                         ?: createImageBlack(ImageSize(trayIconSize.size))
                 val trayIconTmp = TrayIcon(image).apply {
-                    toolTip = APP.name
-                    addMouseListener(object : MouseAdapter() {
+                    toolTip = tooltipText
+                    addMouseListener(object: MouseAdapter() {
                         override fun mouseClicked(e: java.awt.event.MouseEvent) {
                             // transform to javaFX MouseEvent
                             val bi = e.button
-                            val b = if (bi == 1) PRIMARY else if (bi == 3) SECONDARY else if (bi == 2) MIDDLE else NONE
+                            val b = if (bi==1) PRIMARY else if (bi==3) SECONDARY else if (bi==2) MIDDLE else NONE
                             val me = MouseEvent(MOUSE_CLICKED, -1.0, -1.0,
                                     e.xOnScreen.toDouble(), e.yOnScreen.toDouble(), b, e.clickCount,
                                     e.isShiftDown, e.isControlDown, e.isAltDown, e.isMetaDown,
-                                    b == PRIMARY, false, b == SECONDARY, false, true, true, null)
+                                    b==PRIMARY, false, b==SECONDARY, false, true, true, null)
 
                             // show menu on right click
                             when (me.button) {
@@ -114,9 +111,10 @@ class TrayService : ServiceBase("Tray", true) {
                                 SECONDARY -> runFX {
                                     cmOwner.show()
                                     cmOwner.requestFocus()
-                                    cm.show(cmOwner, me.screenX, me.screenY - 40)
+                                    cm.show(cmOwner, me.screenX, me.screenY-40)
                                 }
-                                else -> {}
+                                else -> {
+                                }
                             }
                         }
                     })
@@ -192,7 +190,7 @@ class TrayService : ServiceBase("Tray", true) {
         if (!running || !supported) return Try.ok()
 
         trayIconImage = img ?: trayIconImageDefault
-        return if (trayIcon != null) {
+        return if (trayIcon!=null) {
             loadBufferedImage(trayIconImage)
                     .ifOk {
                         trayIcon?.image?.flush()

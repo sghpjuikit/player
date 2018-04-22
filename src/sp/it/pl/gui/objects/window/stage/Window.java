@@ -31,17 +31,15 @@ import org.reactfx.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.audio.Player;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.gui.objects.window.Resize;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.container.switchcontainer.SwitchContainer;
 import sp.it.pl.layout.container.switchcontainer.SwitchPane;
-import sp.it.pl.service.lasfm.LastFM;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.action.Action;
+import sp.it.pl.util.action.ActionManager;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
 import sp.it.pl.util.async.executor.EventReducer;
@@ -56,8 +54,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COLUMNS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GEARS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GRADUATION_CAP;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LASTFM;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LASTFM_SQUARE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SQUARE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SQUARE_ALT;
@@ -291,10 +287,10 @@ public class Window extends WindowBase {
 		KeyCombination minimize = keyCombination("Alt+Down");
 
 		// report focus changes
-		getStage().getScene().focusOwnerProperty().addListener((o,ov,nv) -> Gui.focusChangedHandler.accept(nv));
+		getStage().getScene().focusOwnerProperty().addListener((o,ov,nv) -> APP.ui.getFocusChangedHandler().invoke(nv));
 		root.addEventFilter(MOUSE_PRESSED, e -> {
 			if (e.getButton()==PRIMARY)
-				Gui.focusClickedWidget(e);
+				APP.ui.focusClickedWidget(e);
 		});
 		root.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
 			if (e.getCode()==TAB && e.isShortcutDown()) {
@@ -307,8 +303,8 @@ public class Window extends WindowBase {
 
 		// layout mode on key press/release
 		root.addEventFilter(KeyEvent.ANY, e -> {
-			if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
-				Gui.setLayoutMode(e.getEventType().equals(KEY_PRESSED));
+			if (e.getCode().equals(ActionManager.INSTANCE.getShortcut_ALTERNATE())) {
+				APP.ui.setLayoutMode(e.getEventType().equals(KEY_PRESSED));
 				if (e.getEventType().equals(KEY_PRESSED) && getSwitchPane()!=null)
 					runLater(() -> {
 						getSwitchPane().widget_io.layout();
@@ -339,29 +335,14 @@ public class Window extends WindowBase {
 		Icon propB = new Icon(GEARS, is, Action.get("Open settings"));
 		Icon runB = new Icon(GAVEL, is, Action.get("Open app actions"));
 		Icon layB = new Icon(COLUMNS, is, Action.get("Open layout manager"));
-		Icon lastFMB = new Icon(null, is, "LastFM\n\nEnable/configure last fm with left/right "
-			+ "click. Currently, lastFM support is disabled.", e -> {
-			Node b = (Node) e.getSource();
-			if (e.getButton()==PRIMARY)
-				if (LastFM.getScrobblingEnabled())
-					LastFM.toggleScrobbling();
-				else if (LastFM.isLoginSuccess())
-					LastFM.toggleScrobbling();
-				else
-					new PopOver<>("LastFM login", LastFM.getLastFMconfig()).showInCenterOf(b);
-			else if (e.getButton()==SECONDARY)
-				new PopOver<>("LastFM login", LastFM.getLastFMconfig()).showInCenterOf(b);
-		});
-		maintain(LastFM.scrobblingEnabledProperty(), mapB(LASTFM_SQUARE, LASTFM), lastFMB::icon);
-		lastFMB.setDisable(true);
 		Icon lockB = new Icon(null, is, "Lock layout\n\nRestricts certain layout operations to "
 			+ "prevent accidents and configuration getting in the way. Widgets, containers and "
-			+ "layouts can also be locked individually.", Gui::toggleLayoutLocked);
-		maintain(Gui.layoutLockedProperty(), mapB(LOCK, UNLOCK), lockB::icon);
-		Icon lmB = new Icon(null, is, Action.get("Manage Layout & Zoom"));
-		Icon ltB = new Icon(CARET_LEFT, is, "Previous layout\n\nSwitch to next layout", () -> getSwitchPane().alignLeftTab());
-		Icon rtB = new Icon(CARET_RIGHT, is, "Next layout\n\nSwitch to next layout", () -> getSwitchPane().alignRightTab());
-		maintain(Gui.layout_mode, mapB(TH, TH_LARGE), lmB::icon);
+			+ "layouts can also be locked individually.", () -> APP.ui.toggleLayoutLocked());
+		maintain(APP.ui.getLockedLayout(), mapB(LOCK, UNLOCK), lockB::icon);
+		Icon lmB = new Icon(null, is, Action.get("Layout zoom overlay in/out"));
+		Icon ltB = new Icon(CARET_LEFT, is, Action.get("Layout move left"));
+		Icon rtB = new Icon(CARET_RIGHT, is, Action.get("Layout move right"));
+		maintain(APP.ui.getLayoutMode(), mapB(TH, TH_LARGE), lmB::icon);
 		Icon guideB = new Icon(GRADUATION_CAP, is, Action.get("Open guide"));
 		Icon helpB = createInfoIcon("Available actions:\n"
 			+ "\tHeader icons : Providing custom functionalities. See tooltips.\n"
@@ -376,7 +357,7 @@ public class Window extends WindowBase {
 			+ "\tContent right drag : drag tabs.").size(is);
 
 		leftHeaderBox.getChildren().addAll(
-			layB, propB, runB, lastFMB, new Label(" "),
+			layB, propB, runB, new Label(" "),
 			ltB, lockB, lmB, rtB, new Label(" "),
 			guideB, helpB
 		);
@@ -515,11 +496,11 @@ public class Window extends WindowBase {
 	private boolean _headerVisible = true;
 
 	/** Whether window borders are displayed (when {@link #isFullscreen()} is true, they never are). Default true. */
-	public final V<Boolean> isBorderless = new V<>(false).initOnChange(v -> applyHeaderVisible(_headerVisible));
+	public final V<Boolean> isBorderless = new V<>(false).initAttachC(v -> applyHeaderVisible(_headerVisible));
 	/** Whether header can be ever visible. Default true. */
-	public final V<Boolean> isHeaderAllowed = new V<>(true).initOnChange(v -> applyHeaderVisible(_headerVisible));
+	public final V<Boolean> isHeaderAllowed = new V<>(true).initAttachC(v -> applyHeaderVisible(_headerVisible));
 	/** Visibility of the window header, including its buttons for control of the window (close, etc). Default true. */
-	public final V<Boolean> isHeaderVisible = new V<>(true).initOnChange(v -> applyHeaderVisible(v && !isFullscreen()));
+	public final V<Boolean> isHeaderVisible = new V<>(true).initAttachC(v -> applyHeaderVisible(v && !isFullscreen()));
 
 	private void applyHeaderVisible(boolean headerOn) {
 		boolean bOn = !isBorderless.get() && !isFullscreen();

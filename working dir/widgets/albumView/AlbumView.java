@@ -14,6 +14,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
+import kotlin.Unit;
 import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataGroup;
@@ -32,8 +33,8 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.async.executor.EventReducer;
+import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.functional.TriConsumer;
 import sp.it.pl.util.functional.Util;
 import sp.it.pl.util.graphics.Resolution;
@@ -49,7 +50,7 @@ import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.async.AsyncKt.newSingleDaemonThreadExecutor;
+import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.AsyncKt.sleep;
@@ -61,7 +62,7 @@ import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.setAnchor;
-import static sp.it.pl.util.reactive.Util.doOnceIfNonNull;
+import static sp.it.pl.util.reactive.Util.sync1If;
 
 /**
  * Logger widget controller.
@@ -93,8 +94,8 @@ public class AlbumView extends ClassController {
 	Output<List<Metadata>> out_sel_met;
 	Input<List<Metadata>> in_items;
 	final GridView<Album,MetadataGroup> view = new GridView<>(MetadataGroup.class, a -> a.items, cellSize.get().width, cellSize.get().width*cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT, 5, 5);
-	final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
-	final ExecutorService executorImage = newSingleDaemonThreadExecutor(); // 2 threads perform better, but cause bugs
+	final ExecutorService executorThumbs = oneThreadExecutor();
+	final ExecutorService executorImage = oneThreadExecutor(); // 2 threads perform better, but cause bugs
 
 	@SuppressWarnings("unchecked")
 	public AlbumView() {
@@ -113,7 +114,7 @@ public class AlbumView extends ClassController {
 		});
 
 		// update filters of VALUE type, we must wat until skin has been built
-		doOnceIfNonNull(view.skinProperty(), skin -> {
+		sync1If(view.skinProperty(), v -> v!=null, skin -> {
 			Metadata.Field<String> f = ALBUM;
 			view.implGetSkin().filter.inconsistent_state = true;
 			view.implGetSkin().filter.setPrefTypeSupplier(() -> PredicateData.ofField(VALUE));
@@ -121,6 +122,7 @@ public class AlbumView extends ClassController {
 			view.implGetSkin().filter.shrinkTo(0);
 			view.implGetSkin().filter.growTo1();
 			view.implGetSkin().filter.clear();
+			return Unit.INSTANCE;
 		});
 	}
 

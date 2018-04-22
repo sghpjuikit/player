@@ -25,6 +25,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import kotlin.Unit;
 import sp.it.pl.gui.itemnode.FieldedPredicateChainItemNode;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
@@ -48,8 +49,8 @@ import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.repeat;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.layHeaderTop;
-import static sp.it.pl.util.reactive.Util.listChangeListener;
 import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.Util.onChange;
 
 public class GViewSkin<T, F> implements Skin<GridView> {
 
@@ -76,7 +77,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		grid.focusedProperty().addListener((o, ov, nv) -> {
 			if (nv) flow.requestFocus();
 		});
-		grid.getItemsShown().addListener(listChangeListener(e -> flow.changeItems()));
+		onChange(grid.getItemsShown(), () -> { flow.changeItems(); return Unit.INSTANCE; });
 
 		root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, flow.root);
 		filter = new Filter(grid.type, grid.itemsFiltered);

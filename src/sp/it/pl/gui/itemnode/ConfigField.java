@@ -23,7 +23,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.Effect;
 import javafx.scene.input.KeyCode;
@@ -50,7 +49,6 @@ import sp.it.pl.util.conf.Config.ListConfig;
 import sp.it.pl.util.conf.Config.OverridablePropertyConfig;
 import sp.it.pl.util.conf.Config.PropertyConfig;
 import sp.it.pl.util.conf.Config.ReadOnlyPropertyConfig;
-import sp.it.pl.util.conf.Config.RunnableConfig;
 import sp.it.pl.util.conf.Configurable;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.functional.Functors.Ƒ1;
@@ -80,6 +78,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
+import static sp.it.pl.main.TmpKt.isEditableByUser;
 import static sp.it.pl.util.Util.enumToHuman;
 import static sp.it.pl.util.async.AsyncKt.run;
 import static sp.it.pl.util.functional.Try.ok;
@@ -121,8 +120,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     private static Map<Class<?>,Ƒ1<Config,ConfigField>> CF_BUILDERS = new HashMap<>() {{
         put(boolean.class, BooleanField::new);
         put(Boolean.class, BooleanField::new);
-        put(void.class, RunnableField::new);
-        put(Void.class, RunnableField::new);
         put(String.class, GeneralField::new);
         put(Action.class, ShortcutField::new);
         put(Color.class, ColorField::new);
@@ -151,7 +148,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         else if (isMinMax(c)) cf = new SliderField(c);
         else cf = CF_BUILDERS.computeIfAbsent(c.getType(), key -> GeneralField::new).apply(c);
 
-        cf.setEditable(c.isEditable().isByUser());
+        cf.setEditable(isEditableByUser(c));
 
         return cf;
     }
@@ -201,7 +198,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 if (root.isHover()) {
                     // lazily build the button when requested
                     // we do not want hundreds of buttons we will never use anyway
-                    if (defB==null && c.isEditable().isByUser()) {
+                    if (defB==null && isEditableByUser(c)) {
                         defB = new Icon(RECYCLE, 11, null, this::setNapplyDefault);
                         defB.tooltip(defTooltip);
                         defB.styleclass("config-field-default-button");
@@ -243,7 +240,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     /**
      * Sets editability by disabling the Nodes responsible for value change
      */
-    public void setEditable(boolean val) {
+    void setEditable(boolean val) {
         getControl().setDisable(!val);
     }
 
@@ -316,7 +313,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     /** Sets and applies default value of the config if it has different value set and if editable by user. */
     public void setNapplyDefault() {
-        if (config.isEditable().isByUser()) {
+        if (isEditableByUser(config)) {
             T t = config.getDefaultValue();
             if (!Objects.equals(config.getValue(), t)) {
                 config.setNapplyValue(t);
@@ -348,32 +345,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
 
 /* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
-    private static class RunnableField extends ConfigField<Void> {
-        protected final Icon graphics;
 
-        private RunnableField(Config<Void> c) {
-            super(c);
-
-            boolean isSupported = c instanceof RunnableConfig;
-            RunnableConfig rc = isSupported ? (RunnableConfig) c : null;
-            graphics = new Icon();
-            graphics.styleclass("runnable-config-field");
-            if (isSupported) graphics.onClick(rc);
-        }
-
-        @Override
-        public Icon getControl() {
-            return graphics;
-        }
-
-        @Override
-        public Try<Void,String> get() {
-            return ok(null);
-        }
-
-        @Override
-        public void refreshItem() {}
-    }
     private static class PasswordField extends ConfigField<Password> {
         javafx.scene.control.PasswordField graphics = new javafx.scene.control.PasswordField();
 
@@ -712,26 +684,34 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     }
     private static class ShortcutField extends ConfigField<Action> {
-        TextField txtF;
+        DecoratedTextField txtF;
         CheckIcon globB;
         HBox group;
         String t="";
         Action a;
+        Icon runB;
 
         private ShortcutField(Config<Action> con) {
             super(con);
             a = con.getValue();
-            txtF = new TextField();
-            txtF.setPromptText(a.getKeys());
+
+            globB = new CheckIcon();
+            globB.styleclass("config-shortcut-global-icon");
+            globB.selected.setValue(a.isGlobal());
+            globB.tooltip(globTooltip);
+            globB.selected.addListener((o,ov,nv) -> apply(false));
+
+            txtF = new DecoratedTextField();
+            txtF.setPromptText(computePromptText());
             txtF.setOnKeyReleased(e -> {
                 KeyCode c = e.getCode();
                 // handle subtraction
                 if (c==BACK_SPACE || c==DELETE) {
-                    txtF.setPromptText("");
-                    if (!txtF.getText().isEmpty()) txtF.setPromptText(a.getKeys());
+                    txtF.setPromptText("<none>");
+                    if (!txtF.getText().isEmpty()) txtF.setPromptText(computePromptText());
 
                     if (t.isEmpty()) {  // set back to empty
-                        txtF.setPromptText(a.getKeys());
+                        txtF.setPromptText(computePromptText());
                     } else {            // subtract one key
                         if (t.indexOf('+') == -1) t="";
                         else t=t.substring(0,t.lastIndexOf('+'));
@@ -760,15 +740,21 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                         txtF.setText("");
                 }
             });
+            txtF.left.setValue(globB);
 
-            globB = new CheckIcon();
-            globB.styleclass("shortcut-global-config-field");
-            globB.selected.setValue(a.isGlobal());
-            globB.tooltip(globTooltip);
-            globB.selected.addListener((o,ov,nv) -> apply(false));
-            group = new HBox(5, globB,txtF);
+            runB = new Icon();
+            runB.styleclass("config-shortcut-run-icon");
+            runB.onClick(a);
+            runB.tooltip("Run " + a.getGuiName());
+
+            group = new HBox(5, runB, txtF);
             group.setAlignment(CENTER_LEFT);
             group.setPadding(Insets.EMPTY);
+        }
+
+        private String computePromptText() {
+            String keys = a.getKeys();
+            return keys.isEmpty() ? "<none>" : keys;
         }
 
         @Override

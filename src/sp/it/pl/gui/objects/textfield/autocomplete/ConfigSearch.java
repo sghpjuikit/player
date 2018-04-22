@@ -339,10 +339,8 @@ public class ConfigSearch extends AutoCompletion<Entry> {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void run() {
-				if (Runnable.class.isAssignableFrom(config.getClass()))
-					((Runnable) config).run();
-				else if (Runnable.class.isAssignableFrom(config.getType()) && config.getValue()!=null)
-					((Runnable) config.getValue()).run();
+				if (Runnable.class.isAssignableFrom(config.getClass())) ((Runnable) config).run();
+				else if (Runnable.class.isAssignableFrom(config.getType()) && config.getValue()!=null) ((Runnable) config.getValue()).run();
 				else if (Boolean.class.isAssignableFrom(config.getType()) && config.getValue()!=null) {
 					((Config) config).setNapplyValue(!(Boolean) config.getValue());
 				}

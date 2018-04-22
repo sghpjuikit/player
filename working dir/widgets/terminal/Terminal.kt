@@ -18,6 +18,7 @@ import sp.it.pl.util.graphics.drag.Placeholder
 import sp.it.pl.util.graphics.setAnchors
 import sp.it.pl.util.reactive.syncSize
 import sp.it.pl.util.system.Os
+import sp.it.pl.util.text.keys
 import sp.it.pl.util.validation.Constraint.FileActor.FILE
 import sp.it.pl.util.validation.Constraint.FileType
 import java.io.File
@@ -35,11 +36,11 @@ class Terminal: ClassController() {
     private val tConfig = TerminalConfig()
     private val tBuilder = TerminalBuilder(tConfig)
     private val tabPane = TabPane()
-    private val placeholder = Placeholder(FontAwesomeIcon.TERMINAL, "New terminal (Ctrl+T)", { openNewTab() })
+    private val placeholder = Placeholder(FontAwesomeIcon.TERMINAL, "New terminal (${keys("CTRL+T")})", { openNewTab() })
 
     @FileType(FILE)
-    @IsConfig(name = "Shell path", info = "Path to the shell or none for default")
-    private val shellPath = v<File?>(null) {
+    @field: IsConfig(name = "Shell path", info = "Path to the shell or none for default")
+    val shellPath = v<File?>(null) {
         closeAllTabs()
         when (Os.current) {
             Os.WINDOWS -> tConfig.windowsTerminalStarter = it?.absolutePath ?: "cmd.exe"

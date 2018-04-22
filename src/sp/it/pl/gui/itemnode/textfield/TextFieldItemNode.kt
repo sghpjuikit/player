@@ -60,7 +60,7 @@ abstract class TextFieldItemNode<T>: DecoratedTextField, AccessibleValue<T> {
     companion object {
 
         /** @return style class as [TextField] */
-        @JvmStatic fun textFieldStyleClass() = listOf("text-input", "text-field")   // == new TextField().getStyleClass().forEach(System.out::println);
+        @JvmStatic fun textFieldStyleClass() = TextField().styleClass.toList()
 
     }
 

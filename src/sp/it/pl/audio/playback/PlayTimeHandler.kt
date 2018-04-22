@@ -2,6 +2,7 @@ package sp.it.pl.audio.playback
 
 import javafx.util.Duration
 import sp.it.pl.util.async.executor.FxTimer
+import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.math.Portion
 
 /** Handler for handling events at specific point of song playback. */
@@ -16,9 +17,9 @@ class PlayTimeHandler {
      *
      * @param action action to execute
      */
-    private constructor(whenCalculator: (Duration) -> Duration, action: Runnable) {
+    private constructor(whenCalculator: (Duration) -> Duration, action: () -> Unit) {
         this.whenCalculator = whenCalculator
-        this.timer = FxTimer(Duration.INDEFINITE, 1, action)
+        this.timer = fxTimer(Duration.INDEFINITE, 1, action)
     }
 
     fun pause() = timer.pause()
@@ -31,11 +32,11 @@ class PlayTimeHandler {
 
     companion object {
 
-        @JvmStatic fun at(whenCalculator: (Duration) -> Duration, action: Runnable) = PlayTimeHandler(whenCalculator, action)
+        @JvmStatic fun at(whenCalculator: (Duration) -> Duration, action: () -> Unit) = PlayTimeHandler(whenCalculator, action)
 
-        @JvmStatic fun at(at: Duration, action: Runnable) = PlayTimeHandler({ at }, action)
+        @JvmStatic fun at(at: Duration, action: () -> Unit) = PlayTimeHandler({ at }, action)
 
-        @JvmStatic fun at(at: Portion, action: Runnable) = PlayTimeHandler({ total -> at*total }, action)
+        @JvmStatic fun at(at: Portion, action: () -> Unit) = PlayTimeHandler({ total -> at*total }, action)
 
     }
 

@@ -13,6 +13,7 @@ import java.io.ObjectOutputStream
 import java.io.Serializable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.reflect.jvm.jvmName
 
 val logger = KotlinLogging.logger { }
 
@@ -42,7 +43,7 @@ object CoreSerializer: Core {
      */
     @Blocks
     inline fun <reified T: Serializable> readSingleStorage(): T? {
-        val f = APP.DIR_LIBRARY.childOf(T::class.simpleName!!)
+        val f = APP.DIR_LIBRARY.childOf(T::class.simpleName ?: T::class.jvmName)
 
         if (!f.exists()) return null
 
@@ -66,7 +67,7 @@ object CoreSerializer: Core {
      */
     @Blocks
     inline fun <reified T: Serializable> writeSingleStorage(o: T) {
-        val f = APP.DIR_LIBRARY.childOf(T::class.simpleName!!)
+        val f = APP.DIR_LIBRARY.childOf(T::class.simpleName ?: T::class.jvmName)
         try {
             FileOutputStream(f).use {
                 ObjectOutputStream(it).use {

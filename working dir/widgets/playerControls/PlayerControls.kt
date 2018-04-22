@@ -20,29 +20,30 @@ import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.BITRATE
-import sp.it.pl.gui.Gui
 import sp.it.pl.gui.objects.balancer.Balancer
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.seeker.Seeker
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.FXMLController
 import sp.it.pl.layout.widget.feature.PlaybackFeature
+import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.initClose
 import sp.it.pl.util.Util.formatDuration
 import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.graphics.EM
 import sp.it.pl.util.graphics.drag.DragUtil.getAudioItems
 import sp.it.pl.util.graphics.drag.DragUtil.hasAudio
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
 import sp.it.pl.util.graphics.setAnchors
-import sp.it.pl.util.reactive.maintain
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncBi
 import sp.it.pl.util.reactive.syncTo
 import java.io.File
 
 @Widget.Info(
-        name = "Playback",
+        name = PLAYBACK,
         author = "Martin Polakovic",
         howto = "Playback actions:\n"
                 +"    Control Playback\n"
@@ -81,13 +82,13 @@ class PlayerControls: FXMLController(), PlaybackFeature {
 
     lateinit var balance: Balancer
     val seeker = Seeker()
-    val f1 = Icon(FontAwesomeIcon.ANGLE_DOUBLE_LEFT, 15.0).onClickDo { Player.seekBackward(seekType.get()) }
-    val f2 = Icon(FontAwesomeIcon.FAST_BACKWARD, 15.0).onClickDo { PlaylistManager.playPreviousItem() }
-    val f3 = Icon(FontAwesomeIcon.PLAY, 30.0).onClickDo { Player.pause_resume() }
-    val f4 = Icon(FontAwesomeIcon.FAST_FORWARD, 15.0).onClickDo { PlaylistManager.playNextItem() }
-    val f5 = Icon(FontAwesomeIcon.ANGLE_DOUBLE_RIGHT, 15.0).onClickDo { Player.seekForward(seekType.get()) }
-    val muteB = Icon(FontAwesomeIcon.VOLUME_UP, 15.0).onClickDo { Player.toggleMute() }
-    val loopB = Icon(FontAwesomeIcon.RANDOM, 15.0).onClickDo { Player.toggleLoopMode(it) }
+    val f1 = Icon(FontAwesomeIcon.ANGLE_DOUBLE_LEFT, 24.0).onClickDo { Player.seekBackward(seekType.get()) }
+    val f2 = Icon(FontAwesomeIcon.FAST_BACKWARD, 24.0).onClickDo { PlaylistManager.playPreviousItem() }
+    val f3 = Icon(FontAwesomeIcon.PLAY, 48.0).gap(36.0).onClickDo { Player.pause_resume() }
+    val f4 = Icon(FontAwesomeIcon.FAST_FORWARD, 24.0).onClickDo { PlaylistManager.playNextItem() }
+    val f5 = Icon(FontAwesomeIcon.ANGLE_DOUBLE_RIGHT, 24.0).onClickDo { Player.seekForward(seekType.get()) }
+    val muteB = Icon(FontAwesomeIcon.VOLUME_UP).onClickDo { Player.toggleMute() }
+    val loopB = Icon(FontAwesomeIcon.RANDOM, 24.0).onClickDo { Player.toggleLoopMode(it) }
     var lastUpdateTime = Double.MIN_VALUE // reduces time update events
 
     @IsConfig(name = "Seek type", info = "Seek by time (absolute) or fraction of total duration (relative).")
@@ -122,7 +123,7 @@ class PlayerControls: FXMLController(), PlaybackFeature {
         entireArea.children += seeker
         seeker.prefHeight = 30.0
         seeker.setAnchors(null, 0.0, 0.0, 0.0)
-        initClose { Gui.snapDistance syncTo seeker.chapterSnapDistance }
+        initClose { APP.ui.snapDistance syncTo seeker.chapterSnapDistance }
 
         playButtons.children.setAll(f1, f2, f3, f4, f5, loopB)
         soundPane.children.add(0, muteB)
@@ -187,6 +188,10 @@ class PlayerControls: FXMLController(), PlaybackFeature {
                 Status.PLAYING -> FontAwesomeIcon.PAUSE
                 else -> FontAwesomeIcon.PLAY
             })
+            f3.glyphOffsetX.value = when (newStatus) {
+                Status.PLAYING -> -APP.ui.font.value.size.EM*0.2
+                else -> APP.ui.font.value.size.EM*3.0
+            }
         }
     }
 

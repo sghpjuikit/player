@@ -3192,7 +3192,7 @@
     -fx-fill: -fx-def-font-color;
     -glyph-name: "FontAwesomeIcon.CLOSE";
     -glyph-size: 1em;
-    -glyph-gap: 0;
+    -glyph-gap: 12;
 }
 
 .icon:hover {
@@ -3715,10 +3715,6 @@
     -glyph-name: "FontAwesomeIcon.CHECK";
 }
 
-.runnable-config-field {
-    -glyph-name: "FontAwesomeIcon.REFRESH";
-}
-
 .boolean-config-field {}
 
 .override-config-field {
@@ -3728,10 +3724,14 @@
     -glyph-name: "MaterialDesignIcon.CHECKBOX_MULTIPLE_BLANK";
 }
 
-.shortcut-global-config-field {
+
+.config-shortcut-run-icon {
+    -glyph-name: "FontAwesomeIcon.REFRESH";
+}
+.config-shortcut-global-icon {
     -glyph-name: "MaterialDesignIcon.CAST";
 }
-.shortcut-global-config-field:selected {
+.config-shortcut-global-icon:selected {
     -glyph-name: "MaterialDesignIcon.CAST_CONNECTED";
 }
 
@@ -3885,12 +3885,12 @@ icon-info-icon {
     -fx-fill: -fx-def-font-color;
 }
 .spinner-in {
-    -fx-radiusX: 0.5em /* 6 */
-    -fx-radiusY: 0.5em /* 6 */
+    -fx-radiusX: 0.5em; /* 6 */
+    -fx-radiusY: 0.5em; /* 6 */
 }
 .spinner-out {
-    -fx-radiusX: 0.75em /* 9 */
-    -fx-radiusY: 0.75em /* 9 */
+    -fx-radiusX: 0.75em; /* 9 */
+    -fx-radiusY: 0.75em; /* 9 */
 }
 
 /********************************** MENU *******************************************************************************

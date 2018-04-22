@@ -24,7 +24,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
-import static sp.it.pl.util.async.AsyncKt.newSingleDaemonThreadExecutor;
+import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.sleep;
 import static sp.it.pl.util.dev.Util.noNull;
@@ -33,7 +33,7 @@ import static sp.it.pl.util.dev.Util.throwIfFxThread;
 import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static sp.it.pl.util.reactive.Util.doIfImageLoaded;
-import static sp.it.pl.util.reactive.Util.doOnceIfImageLoaded;
+import static sp.it.pl.util.reactive.Util.sync1IfImageLoaded;
 
 /**
  * {@link sp.it.pl.gui.objects.grid.GridCell} implementation for file using {@link sp.it.pl.gui.objects.hierarchy.Item}
@@ -319,7 +319,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 
 			thumb.loadImage(img, imgFile);
 			if (then!=null)
-				doOnceIfImageLoaded(img, then::finish);
+				sync1IfImageLoaded(img, then::finish);
 		});
 	}
 
@@ -327,8 +327,8 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		public final ExecutorService executorThumbs;
 		public final ExecutorService executorImage;
 		public final AtomicBoolean twoPass = new AtomicBoolean(false);
-		public final ExecutorService loadSynchronizerThumb = newSingleDaemonThreadExecutor();
-		public final ExecutorService loadSynchronizerFull = newSingleDaemonThreadExecutor();
+		public final ExecutorService loadSynchronizerThumb = oneThreadExecutor();
+		public final ExecutorService loadSynchronizerFull = oneThreadExecutor();
 
 		public Loader(ExecutorService executorThumbs, ExecutorService executorImage) {
 			this.executorThumbs = executorThumbs;

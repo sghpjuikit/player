@@ -41,7 +41,7 @@ java {
 }
 
 kotlin {
-    copyClassesToJavaOutput = true
+    copyClassesToJavaOutput = false
     experimental.coroutines = Coroutines.ENABLE
 }
 
@@ -79,6 +79,7 @@ dependencies {
 
     // Logging
     compile("org.slf4j", "slf4j-api", "1.7.25")
+    compile("org.slf4j", "jul-to-slf4j", "1.7.25")
     compile("ch.qos.logback", "logback-classic", "1.2.3")
     compile("io.github.microutils", "kotlin-logging", "1.5.3")
 

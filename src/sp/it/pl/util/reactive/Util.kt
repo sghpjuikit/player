@@ -1,15 +1,16 @@
 @file:JvmName("Util")
-@file:Suppress("unused")
 
 package sp.it.pl.util.reactive
 
 import javafx.beans.binding.Bindings
+import javafx.beans.binding.Bindings.size
 import javafx.beans.property.Property
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
+import javafx.collections.ObservableSet
 import javafx.event.Event
 import javafx.event.EventType
 import javafx.scene.Node
@@ -21,10 +22,7 @@ import org.reactfx.EventStreams
 import org.reactfx.Subscription
 import sp.it.pl.util.dev.Experimental
 import sp.it.pl.util.functional.invoke
-import java.util.Objects
-import java.util.function.BiConsumer
 import java.util.function.Consumer
-import java.util.function.Predicate
 import kotlin.reflect.KCallable
 
 /** Sets a value consumer to be fired immediately and on every value change. */
@@ -51,6 +49,41 @@ infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>): Subscription 
 }
 
 infix fun <O> WritableValue<O>.attachFrom(o: ObservableValue<out O>): Subscription = o syncTo this
+
+fun <O1, O2> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, u: (O1, O2) -> Unit): Subscription {
+    val l1 = ChangeListener<O1> { _, _, nv -> u(nv, o2.value) }
+    val l2 = ChangeListener<O2> { _, _, nv -> u(o1.value, nv) }
+    o1.addListener(l1)
+    o2.addListener(l2)
+    return Subscription {
+        o1.removeListener(l1)
+        o2.removeListener(l2)
+    }
+}
+
+fun <O1, O2> syncTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, u: (O1, O2) -> Unit): Subscription {
+    u(o1.value, o2.value)
+    return attachTo(o1, o2, u)
+}
+
+fun <O1, O2, O3> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, o3: ObservableValue<O3>, u: (O1, O2, O3) -> Unit): Subscription {
+    val l1 = ChangeListener<O1> { _, _, nv -> u(nv, o2.value, o3.value) }
+    val l2 = ChangeListener<O2> { _, _, nv -> u(o1.value, nv, o3.value) }
+    val l3 = ChangeListener<O3> { _, _, nv -> u(o1.value, o2.value, nv) }
+    o1.addListener(l1)
+    o2.addListener(l2)
+    o3.addListener(l3)
+    return Subscription {
+        o1.removeListener(l1)
+        o2.removeListener(l2)
+        o3.removeListener(l3)
+    }
+}
+
+fun <O1, O2, O3> syncTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, o3: ObservableValue<O3>, u: (O1, O2, O3) -> Unit): Subscription {
+    u(o1.value, o2.value, o3.value)
+    return attachTo(o1, o2, o3, u)
+}
 
 /** Sets a value change consumer to be fired on every value change. */
 infix fun <O> ObservableValue<O>.changes(u: (O, O) -> Unit): Subscription {
@@ -79,12 +112,6 @@ infix fun <T> ObservableList<T>.syncSize(action: (Int) -> Unit): Subscription {
     return Subscription { removeListener(l) }
 }
 
-/** Binds the two properties bi-directionally. */
-infix fun <O> Property<O>.syncBi(w: Property<O>): Subscription {
-    bindBidirectional(w)
-    return Subscription { unbindBidirectional(w) }
-}
-
 /** Sets a size consumer to be fired on every list size change. */
 infix fun <T> ObservableList<T>.attachSize(action: (Int) -> Unit): Subscription {
     var s = size
@@ -99,27 +126,41 @@ infix fun <T> ObservableList<T>.attachSize(action: (Int) -> Unit): Subscription 
     return Subscription { removeListener(l) }
 }
 
+/** Binds the two properties bi-directionally. */
+infix fun <O> Property<O>.syncBi(w: Property<O>): Subscription {
+    bindBidirectional(w)
+    return Subscription { unbindBidirectional(w) }
+}
+
+/** @returns observable size of this list */
+fun <T> ObservableList<T>.sizes() = size(this)!!
+
+/** @returns observable size of this set */
+fun <T> ObservableSet<T>.sizes() = size(this)!!
+
 @Experimental
-fun <O,R> ObservableValue<O>.select(extractor: KCallable<ObservableValue<R>>): ObservableValue<R> {
+fun <O, R> ObservableValue<O>.select(extractor: KCallable<ObservableValue<R>>): ObservableValue<R> {
     return Bindings.select(this, extractor.name.removeSuffix("Property"))
 }
 
 @Experimental
-fun <O,R> ObservableValue<O>.into(extractor: (O) -> ObservableValue<R>, action: (O, R) -> Unit): Subscription {
+fun <O, R> ObservableValue<O>.into(extractor: (O) -> ObservableValue<R>, action: (O, R) -> Unit): Subscription {
     var s = Subscription { }
     return this attach { v1 ->
         s.unsubscribe()
-        if (v1 !=null) s = extractor(v1) sync { v2 ->
+        if (v1!=null) s = extractor(v1) sync { v2 ->
             action(v1, v2)
         }
     }
 }
 
+// TODO: remove
 fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, u: Consumer<in V>): Subscription {
     u(m(this.value))
     return EventStreams.valuesOf(this).map(m).subscribe(u)
 }
 
+// TODO: remove
 fun <O> ObservableValue<O>.maintain(u: Consumer<O>): Subscription {
     val l = ChangeListener<O> { _, _, nv -> u(nv) }
     u(this.value)
@@ -127,6 +168,7 @@ fun <O> ObservableValue<O>.maintain(u: Consumer<O>): Subscription {
     return Subscription { this.removeListener(l) }
 }
 
+// TODO: remove
 fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, w: WritableValue<in V>): Subscription {
     w.value = m(this.value)
     val l = ChangeListener<O> { _, _, nv -> w.value = m(nv) }
@@ -134,18 +176,7 @@ fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, w: WritableValue<in V>): Sub
     return Subscription { this.removeListener(l) }
 }
 
-fun <O1, O2> maintain(o1: ObservableValue<O1>, o2: ObservableValue<O2>, u: BiConsumer<in O1, in O2>): Subscription {
-    val l1 = ChangeListener<O1> { _, _, nv -> u(nv, o2.value) }
-    val l2 = ChangeListener<O2> { _, _, nv -> u(o1.value, nv) }
-    u(o1.value, o2.value)
-    o1.addListener(l1)
-    o2.addListener(l2)
-    return Subscription {
-        o1.removeListener(l1)
-        o2.removeListener(l2)
-    }
-}
-
+// TODO: remove
 infix fun <O> ObservableValue<O>.maintain(w: WritableValue<in O>): Subscription {
     w.value = value
     val l = ChangeListener<O> { _, _, nv -> w.value = nv }
@@ -154,27 +185,21 @@ infix fun <O> ObservableValue<O>.maintain(w: WritableValue<in O>): Subscription 
 }
 
 /**
- * [doOnceIf] testing the value for nullity.
- *
- * The action executes when value is not null.
+ * Same as [sync1If], but will not run immediately if the value already passes the condition - only reacts on value
+ * changes.
  */
-fun <T> doOnceIfNonNull(property: ObservableValue<T>, action: Consumer<in T>) =
-        doOnceIf(property, Predicate { Objects.nonNull(it) }, action)
-
-/**
- * [doOnceIf] testing the image for loading being complete.
- *
- * The action executes when image finishes loading. Note that image may be constructed in a way that makes it
- * loaded at once, in which case the action runs immediately - in this method.
-
- * @throws java.lang.RuntimeException if any param null
- */
-fun doOnceIfImageLoaded(image: Image, action: Runnable) =
-        doOnceIf(image.progressProperty(), Predicate { progress -> progress.toDouble()==1.0 }, Consumer { _ -> action() })
-
-@Experimental
-fun doIfImageLoaded(imageView: ImageView, action: Consumer<Image>) =
-        imageView.imageProperty().into(Image::progressProperty) { i, p -> if (p==1.0) action(i) }
+fun <T> ObservableValue<T>.attach1If(condition: (T) -> Boolean, action: (T) -> Unit): Subscription {
+    val l = object: ChangeListener<T> {
+        override fun changed(observable: ObservableValue<out T>, ov: T, nv: T) {
+            if (condition(nv)) {
+                action(nv)
+                removeListener(this)
+            }
+        }
+    }
+    addListener(l)
+    return Subscription { removeListener(l) }
+}
 
 /**
  * Runs action (consuming the property's value) as soon as the condition is met. Useful to execute initialization,
@@ -187,98 +212,71 @@ fun doIfImageLoaded(imageView: ImageView, action: Consumer<Image>) =
  *  *  action executes at most once
  *
  * It is not guaranteed:
- *  *  action will execute - it maye never execute either because the value never met the condition or the
- * listener was unregistered manually using the returned subscription.
+ *  *  action will execute, because the value may never meet the condition or it was unsubscribed before it happened
  *
-
- * @param property observable value to consume
  * @param condition test the value must pass for the action to execute
- * @param action action receiving the value and that runs exactly once when the condition is first met
+ * @param action action receiving the value as argument and that runs exactly once when the condition is first met
  */
-fun <T> doOnceIf(property: ObservableValue<T>, condition: Predicate<in T>, action: Consumer<in T>): Subscription {
-    return if (condition.test(property.value)) {
-        action(property.value)
-        Subscription {}
-    } else {
-        val l = singletonListener(property, condition, action)
-        property.addListener(l)
-        Subscription { property.removeListener(l) }
-    }
-}
-
-fun <T> singletonListener(property: ObservableValue<T>, condition: Predicate<in T>, action: Consumer<in T>): ChangeListener<T> {
-    return object: ChangeListener<T> {
-        override fun changed(observable: ObservableValue<out T>, ov: T, nv: T) {
-            if (condition.test(nv)) {
-                action(nv)
-                property.removeListener(this)
-            }
+fun <T> ObservableValue<T>.sync1If(condition: (T) -> Boolean, action: (T) -> Unit): Subscription =
+        if (condition(value)) {
+            action(value)
+            Subscription {}
+        } else {
+            attach1If(condition, action)
         }
-    }
-}
 
-fun <T> installSingletonListener(property: ObservableValue<T>, condition: Predicate<in T>, action: Consumer<in T>): Subscription {
-    val l = singletonListener(property, condition, action)
-    property.addListener(l)
-    return Subscription { property.removeListener(l) }
-}
+/** [sync1If] testing the value is not null. */
+fun <T> ObservableValue<T>.sync1IfNonNull(action: (T) -> Unit) = sync1If({ it!=null }, action)
 
-/** Creates list change listener which calls an action for every added or removed item.  */
-fun onScreenChange(onChange: Consumer<in Screen>): Subscription {
-    val l = listChangeListener(ListChangeListener<Screen> { if (it.wasAdded()) onChange(it.addedSubList[0]) })
-    Screen.getScreens().addListener(l)
-    return Subscription { Screen.getScreens().removeListener(l) }
-}
+// TODO: move out
+fun sync1IfImageLoaded(image: Image, action: Runnable) = image.progressProperty().sync1If({ it.toDouble()==1.0 }) { action() }
 
-fun <T> listChangeListener(onAdded: ListChangeListener<T>, onRemoved: ListChangeListener<T>): ListChangeListener<T> {
-    return ListChangeListener {
-        while (it.next()) {
-            if (!it.wasPermutated() && !it.wasUpdated()) {
-                if (it.wasAdded()) onAdded.onChanged(it)
-                if (it.wasAdded()) onRemoved.onChanged(it)
-            }
-        }
-    }
-}
+// TODO: move out
+fun doIfImageLoaded(imageView: ImageView, action: Consumer<Image>) = imageView.imageProperty().into(Image::progressProperty) { i, p -> if (p==1.0) action(i) }
 
-/**
- * Creates list change listener which calls the provided listeners on every change.
- *
- * This is a convenience method taking care of the while(change.next()) code pattern explained in
- * [javafx.collections.ListChangeListener.Change].
- */
-fun <T> listChangeListener(onChange: ListChangeListener<T>): ListChangeListener<T> {
-    return ListChangeListener {
-        while (it.next()) {
-            onChange.onChanged(it)
-        }
-    }
-}
-
+// TODO: move out
 /** Creates list change listener which calls an action for every added or removed item. */
-@JvmOverloads
-fun <T> listChangeHandlerEach(addedHandler: Consumer<in T>, removedHandler: Consumer<in T> = Consumer {}): ListChangeListener<T> {
-    return ListChangeListener {
+fun onScreenChange(onChange: Consumer<in Screen>): Subscription {
+    val s1 = Screen.getScreens().onItemAdded { onChange(it) }
+    val s2 = Screen.getScreens().onItemRemoved { onChange(it) }
+    return s1.and(s2)
+}
+
+/** Call specified handler every time an item this list changes */
+fun <T> ObservableList<T>.onChange(changeHandler: () -> Unit): Subscription {
+    val l = ListChangeListener<T> {
+        while (it.next()) {
+            changeHandler()
+        }
+    }
+    addListener(l)
+    return Subscription { removeListener(l) }
+}
+
+/** Call specified handler every time an item is added to this list passing it as argument */
+fun <T> ObservableList<T>.onItemAdded(addedHandler: (T) -> Unit): Subscription {
+    val l = ListChangeListener<T> {
         while (it.next()) {
             if (!it.wasPermutated() && !it.wasUpdated()) {
                 if (it.wasAdded()) it.addedSubList.forEach(addedHandler)
+            }
+        }
+    }
+    addListener(l)
+    return Subscription { removeListener(l) }
+}
+
+/** Call specified handler every time an item is removed from this list passing it as argument */
+fun <T> ObservableList<T>.onItemRemoved(removedHandler: (T) -> Unit): Subscription {
+    val l = ListChangeListener<T> {
+        while (it.next()) {
+            if (!it.wasPermutated() && !it.wasUpdated()) {
                 if (it.wasRemoved()) it.removed.forEach(removedHandler)
             }
         }
     }
-}
-
-/** Creates list change listener which calls an action added or removed item list. */
-@JvmOverloads
-fun <T> listChangeHandler(addedHandler: Consumer<in List<T>>, removedHandler: Consumer<in List<T>> = Consumer {}): ListChangeListener<T> {
-    return ListChangeListener {
-        while (it.next()) {
-            if (!it.wasPermutated() && !it.wasUpdated()) {
-                if (it.wasAdded()) addedHandler(it.addedSubList)
-                if (it.wasRemoved()) removedHandler(it.removed)
-            }
-        }
-    }
+    addListener(l)
+    return Subscription { removeListener(l) }
 }
 
 /** Equivalent to [Window.addEventHandler]. */

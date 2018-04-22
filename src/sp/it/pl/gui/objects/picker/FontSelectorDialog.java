@@ -81,7 +81,7 @@ public class FontSelectorDialog extends PopOver<VBox> {
 					hide();
 					onOk.accept(fontPanel.getFont());
 				}).withText("Use"),
-				new Icon(FontAwesomeIcon.TIMES, 22, "Select font", this::hide).withText("Cancel")
+				new Icon(FontAwesomeIcon.TIMES, 22, "Select font", this::hideStrong).withText("Cancel")
 			)
 		);
 		layout.setPadding(new Insets(15));

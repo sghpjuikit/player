@@ -36,10 +36,9 @@ import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.async.executor.EventReducer.HandlerLast;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config;
-import sp.it.pl.util.conf.Config.ConfigBase;
 import sp.it.pl.util.conf.Config.PropertyConfig;
+import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import static java.lang.Double.max;
 import static java.lang.Math.ceil;
@@ -88,6 +87,7 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.hasAudio;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.util.reactive.Util.maintain;
 
 @Widget.Info(
     author = "Martin Polakovic",
@@ -208,10 +208,9 @@ public class FileInfo extends FXMLController implements SongReader {
         rating.setContentDisplay(ContentDisplay.RIGHT);
 
         // bind rating to app configs
-        rater.icons.bind(APP.maxRating);
-        rater.partialRating.bind(APP.partialRating);
-        rater.editable.bind(APP.allowRatingChange);
-        // write metadata on rating change
+        d(maintain(APP.getMaxRating(),rater.icons));
+        d(maintain(APP.getPartialRating(), rater.partialRating));
+        rater.editable.set(true);
         rater.onRatingEdited = consumer(r -> {
             if (r != null) MetadataWriter.useToRate(data, r);
         });

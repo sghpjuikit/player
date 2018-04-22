@@ -560,7 +560,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                         fields.forEach(f -> f.histogramEnd(formats));
 
                         // handle cover separately
-                        CoverL.setText(mapRef(c, 0,1,2, APP.textNoVal,s,APP.textManyVal)); // set image info
+                        CoverL.setText(mapRef(c, 0,1,2, APP.getTextNoVal(),s,APP.getTextManyVal())); // set image info
                         CoverV.loadImage(c==1 ? co.getImage() : null);  // set image
 
                         // enable/disable fields
@@ -614,7 +614,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             CoverL.setUserData(true);
         } else {
             CoverV.loadImage((Image)null);
-            CoverL.setText(APP.textNoVal);
+            CoverL.setText(APP.getTextNoVal());
             CoverL.setUserData(true);
         }
     }
@@ -721,7 +721,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 c.setUserData(true);
                 c.setText("");
                 c.setText("");
-                c.setText(isContainedIn(c.getPromptText(), APP.textNoVal, APP.textManyVal)
+                c.setText(isContainedIn(c.getPromptText(), APP.getTextNoVal(), APP.getTextManyVal())
                                 ? "" : c.getPromptText());
                 c.setPromptText("");
                 c.selectAll();
@@ -790,9 +790,9 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 colorF.setText("");
             }
 
-            if      (histogramI == 0)   c.setPromptText(APP.textNoVal);
+            if      (histogramI == 0)   c.setPromptText(APP.getTextNoVal());
             else if (histogramI == 1)   c.setPromptText(histogramS);
-            else if (histogramI == 2)   c.setPromptText(APP.textManyVal);
+            else if (histogramI == 2)   c.setPromptText(APP.getTextManyVal());
 
             // remember prompt text
             c.setId(c.getPromptText());
@@ -879,7 +879,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         PopOver<?> p = new PopOver<>(list);
                    p.title.set("Active Items");
                    p.getHeaderIcons().addAll(helpB);
-                   p.show(infoL);
+                   p.showInCenterOf(infoL);
         return p;
     }
 

@@ -16,8 +16,9 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import sp.it.pl.gui.objects.icon.CheckIcon
+import sp.it.pl.main.MultiConfigurable
 import sp.it.pl.main.createInfoIcon
-import sp.it.pl.util.access.V
+import sp.it.pl.main.cv
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.graphics.Util.layHeaderTop
@@ -26,15 +27,15 @@ import sp.it.pl.util.graphics.Util.layStack
 import sp.it.pl.util.graphics.Util.layVertically
 import sp.it.pl.util.reactive.attach
 
-class ShortcutPane: OverlayPane<Collection<Action>> {
+class ShortcutPane(override val configurableDiscriminant: String): OverlayPane<Collection<Action>>(), MultiConfigurable {
 
     private val g = GridPane()
     private var value: Collection<Action> = emptySet()
 
     @IsConfig(name = HE_TITLE, info = HE_INFO)
-    val hideEmptyShortcuts = V(true)
+    val hideEmptyShortcuts by cv(true)
 
-    constructor(): super() {
+    init {
         styleClass += STYLECLASS
 
         val helpI = createInfoIcon("Shortcut viewer\n\nDisplays available shortcuts. Optionally also those that have not been assigned yet.")

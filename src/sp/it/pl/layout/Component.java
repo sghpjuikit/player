@@ -9,7 +9,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.Widget;
@@ -188,8 +187,8 @@ public abstract class Component {
 		// cal when component parent changes
 		public void initLocked(Component p) {
 			unbind();
-			if (p==null) bind(locked.or(Gui.locked_layout));
-			else bind(p.lockedUnder.or(locked).or(Gui.locked_layout));
+			if (p==null) bind(locked.or(APP.ui.getLockedLayout()));
+			else bind(p.lockedUnder.or(locked).or(APP.ui.getLockedLayout()));
 		}
 
 		// call when cosing component

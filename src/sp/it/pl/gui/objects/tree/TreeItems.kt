@@ -110,7 +110,7 @@ fun treeApp(): SimpleTreeItem<Any> {
             ),
             tree("Location", APP.DIR_APP),
             tree("File system", File.listRoots().map { FileTreeItem(it) }),
-            tree(Name.treeOfPaths("Settings", APP.configuration.fields.stream().map { it.group }.toList()))
+            tree(Name.treeOfPaths("Settings", APP.configuration.getFields().stream().map { it.group }.toList()))
     )
 }
 
@@ -250,7 +250,7 @@ private fun doAction(o: Any?, otherwise: () -> Unit) {
         is Window -> APP.widgetManager.widgets.use<Settings>(ANY) { it.configure(configsFromFxPropertiesOf(o.stage)) }
         is File -> o.open()
         is Configurable<*> -> APP.widgetManager.widgets.use<Settings>(ANY) { it.configure(o) }
-        is Name -> APP.widgetManager.widgets.use<Settings>(ANY) { it.configure(APP.configuration.fields.filter { it.group==o.pathUp }) }
+        is Name -> APP.widgetManager.widgets.use<Settings>(ANY) { it.configure(APP.configuration.getFields().filter { it.group==o.pathUp }) }
         is TreeItem<*> -> doAction(o.value, otherwise)
         is HierarchicalBase<*, *> -> doAction(o.`val`, otherwise)
         else -> otherwise()

@@ -33,16 +33,12 @@ import sp.it.pl.audio.tagging.MetadataReader;
 import sp.it.pl.audio.tagging.MetadataWriter;
 import sp.it.pl.layout.widget.controller.io.InOutput;
 import sp.it.pl.util.action.IsAction;
-import sp.it.pl.util.action.IsActionable;
 import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.async.executor.FxTimer;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.collections.mapset.MapSet;
-import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.math.Portion;
-import sp.it.pl.util.reactive.SetƑ;
-import sp.it.pl.util.validation.Constraint;
+import sp.it.pl.util.reactive.Handler0;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -50,7 +46,6 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
-import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.playback.PlayTimeHandler.at;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -58,20 +53,12 @@ import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.async.AsyncKt.threadFactory;
 import static sp.it.pl.util.async.executor.EventReducer.toLast;
-import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
-import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.functional.Functors.Ƒ.f;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
 
-@SuppressWarnings("unused")
-@IsActionable
-@IsConfigurable("Playback")
 public class Player {
-
-	static {
-		initStaticConfigs(Player.class);
-	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Player.class);
 
@@ -83,16 +70,6 @@ public class Player {
 	public static final InOutput<PlaylistItem> playlistSelected = new InOutput<>(UUID.fromString("ca002c1d-8689-49f6-b1a0-0d0f8ff2e2a8"), "Selected in playlist", PlaylistItem.class);
 	public static final InOutput<Metadata> librarySelected = new InOutput<>(UUID.fromString("ba002c1d-2185-49f6-b1a0-0d0f8ff2e2a8"), "Selected in Library", Metadata.class);
 	public static final InOutput<Item> anySelected = new InOutput<>(UUID.fromString("1a01ca96-2e60-426e-831d-93b24605595f"), "Selected anywhere", Item.class);
-
-	@IsConfig(name = "Remember playback state", info = "Continue last remembered playback when application starts.")
-	public static boolean continuePlaybackOnStart = true;
-	@IsConfig(name = "Pause playback on start", info = "Continue last remembered playback paused on application start.")
-	public static boolean continuePlaybackPaused = false;
-	@IsConfig(name = "Seek time unit", info = "Fixed time unit to jump, when seeking forward/backward.")
-	public static Duration seekUnitT = millis(4000);
-	@Constraint.MinMax(min = 0, max = 1)
-	@IsConfig(name = "Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.")
-	public static double seekUnitP = 0.05;
 
 	public static void initialize() {
 		anySelected.i.bind(playlistSelected.o);
@@ -112,9 +89,9 @@ public class Player {
 			})
 		);
 
-		player.realTime.initialize();
-		onPlaybackAt.add(at(new Portion(1), () -> onPlaybackAt.forEach(h -> h.restart(Player.playingItem.get().getLength())))); // TODO: fix possible StackOverflowError
-		onPlaybackEnd.add(() -> {
+		player.getRealTime().initialize();
+		onPlaybackAt.add(at(new Portion(1), f(() -> onPlaybackAt.forEach(h -> h.restart(Player.playingItem.get().getLength()))))); // TODO: fix possible StackOverflowError
+		onPlaybackEnd.add(f(() -> {
 			switch (state.playback.loopMode.get()) {
 				case OFF: stop();
 					break;
@@ -124,7 +101,7 @@ public class Player {
 					break;
 				default:
 			}
-		});
+		}));
 	}
 
 	public static void dispose() {
@@ -133,10 +110,10 @@ public class Player {
 
 	/** Initialize state from last session */
 	public static void loadLastState() {
-		if (!continuePlaybackOnStart) return;
+		if (!PlayerConfiguration.Companion.getContinuePlaybackOnStart()) return;
 		if (PlaylistManager.use(Playlist::getPlaying, null)==null) return;
 
-		if (continuePlaybackPaused)
+		if (PlayerConfiguration.Companion.getContinuePlaybackPaused())
 			state.playback.status.set(Status.PAUSED);
 
 		activate();
@@ -248,20 +225,20 @@ public class Player {
 		public void itemChanged(Item item) {
 			if (item==null) {
 				set(true, Metadata.EMPTY);
-				logger(Player.class).info("Current item metadata set to empty. No item playing.");
+				LOGGER.info("Current item metadata set to empty. No item playing.");
 			}
 			// if same item, still fire change
 			else if (val.same(item)) {
 				set(true, val);
-				logger(Player.class).info("Current item metadata reused. Same item playing.");
+				LOGGER.info("Current item metadata reused. Same item playing.");
 			}
 			// if pre-loaded, set
 			else if (valNext.same(item)) {
 				set(true, valNext);
-				logger(Player.class).info("Current item metadata copied from next item metadata cache.");
+				LOGGER.info("Current item metadata copied from next item metadata cache.");
 				// else load
 			} else {
-				logger(Player.class).info("Next item metadata cache copy failed - content does not correspond to correct item. Loading now...");
+				LOGGER.info("Next item metadata cache copy failed - content does not correspond to correct item. Loading now...");
 				load(true, item);
 			}
 
@@ -277,7 +254,7 @@ public class Player {
 		}
 
 		private void preloadNext() {
-			logger(Player.class).info("Pre-loading metadata for next item to play.");
+			LOGGER.info("Pre-loading metadata for next item to play.");
 
 			PlaylistItem next = PlaylistManager.use(Playlist::getNextPlaying, null);
 			if (next!=null) {
@@ -458,12 +435,12 @@ public class Player {
 	 * item will be updated before this event. Therefore using cached information
 	 * can result in misbehavior due to outdated information.
 	 */
-	public static final SetƑ onPlaybackStart = new SetƑ();
+	public static final Handler0 onPlaybackStart = new Handler0();
 
 	/**
 	 * Set of actions that will execute when song playback seek completes.
 	 */
-	public static final SetƑ onSeekDone = new SetƑ();
+	public static final Handler0 onSeekDone = new Handler0();
 
 	/**
 	 * Set of actions that will execute when song playback ends.
@@ -471,7 +448,7 @@ public class Player {
 	 * It is safe to use in-app cache of currently played item inside
 	 * the behavior parameter.
 	 */
-	public static final SetƑ onPlaybackEnd = new SetƑ();
+	public static final Handler0 onPlaybackEnd = new Handler0();
 
 	/**
 	 * Set of time-specific actions that individually execute when song playback reaches point of handler's interest.
@@ -568,13 +545,13 @@ public class Player {
 	/** Seek forward by small duration unit. */
 	@IsAction(name = "Seek forward", desc = "Seek playback forward by small duration unit.", keys = "ALT+D", repeat = true, global = true)
 	public static void seekForwardAbsolute() {
-		seek(state.playback.currentTime.get().add(seekUnitT));
+		seek(state.playback.currentTime.get().add(PlayerConfiguration.Companion.getSeekUnitT()));
 	}
 
 	/** Seek forward by small fraction unit. */
 	@IsAction(name = "Seek forward (%)", desc = "Seek playback forward by fraction.", keys = "SHIFT+ALT+D", repeat = true, global = true)
 	public static void seekForwardRelative() {
-		double d = state.playback.currentTime.get().toMillis()/state.playback.duration.get().toMillis() + seekUnitP;
+		double d = state.playback.currentTime.get().toMillis()/state.playback.duration.get().toMillis() + PlayerConfiguration.Companion.getSeekUnitP();
 		seek(min(d, 1));
 	}
 
@@ -586,13 +563,13 @@ public class Player {
 	/** Seek backward by small duration unit. */
 	@IsAction(name = "Seek backward", desc = "Seek playback backward by small duration unit.", keys = "ALT+A", repeat = true, global = true)
 	public static void seekBackwardAbsolute() {
-		seek(state.playback.currentTime.get().subtract(seekUnitT));
+		seek(state.playback.currentTime.get().subtract(PlayerConfiguration.Companion.getSeekUnitT()));
 	}
 
 	/** Seek backward by small fraction unit. */
 	@IsAction(name = "Seek backward (%)", desc = "Seek playback backward by fraction.", keys = "SHIFT+ALT+A", repeat = true, global = true)
 	public static void seekBackwardRelative() {
-		double d = state.playback.currentTime.get().toMillis()/state.playback.duration.get().toMillis() - seekUnitP;
+		double d = state.playback.currentTime.get().toMillis()/state.playback.duration.get().toMillis() - PlayerConfiguration.Companion.getSeekUnitP();
 		seek(max(d, 0));
 	}
 

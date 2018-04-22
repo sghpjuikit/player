@@ -31,7 +31,6 @@ package sp.it.pl.gui.objects.textfield.autocomplete;
 
 import java.util.Collection;
 import javafx.application.Platform;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
@@ -152,8 +151,8 @@ public abstract class AutoCompletionBinding<T> {
 	 *
 	 * @return an property representing the maximum number of rows to be visible in the popup when it is showing.
 	 */
-	public final IntegerProperty visibleRowCountProperty() {
-		return popup.visibleRowCountProperty();
+	public final V<Integer> visibleRowCountProperty() {
+		return popup.visibleRowCount;
 	}
 
 	/**

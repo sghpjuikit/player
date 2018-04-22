@@ -1,6 +1,7 @@
 package sp.it.pl.util.access
 
 import sp.it.pl.util.action.Action
+import sp.it.pl.util.action.ActionRegistrar
 import sp.it.pl.util.functional.invoke
 import java.util.function.Consumer
 
@@ -10,12 +11,12 @@ class VarAction: VarEnum<String> {
 
     @JvmOverloads
     constructor(a: Action, applier: Consumer<in Action> = Consumer {})
-            : super(a.name, { Action.getActions().map { it.name } }, Consumer { applier(Action.get(it)) })
+            : super(a.name, { ActionRegistrar.getActions().map { it.name } }, Consumer { applier(ActionRegistrar[it]) })
 
     @JvmOverloads
     constructor(action_name: String, applier: Consumer<in Action> = Consumer {})
-            : super(action_name, { Action.getActions().map { it.name } }, Consumer { applier(Action.get(it)) })
+            : super(action_name, { ActionRegistrar.getActions().map { it.name } }, Consumer { applier(ActionRegistrar[it]) })
 
-    fun getValueAction(): Action = Action.get(value)
+    fun getValueAction(): Action = ActionRegistrar[value]
 
 }

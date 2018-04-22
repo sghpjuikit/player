@@ -47,49 +47,55 @@ interface Constraint<in T> {
     annotation class IsConstraint(val value: KClass<*>)
 
     @MustBeDocumented
-    @Target(AnnotationTarget.FIELD)
+    @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
     @Retention(RUNTIME)
     @IsConstraint(Any::class)
     annotation class ConstraintBy(val value: KClass<out Constraint<*>>)
 
     @MustBeDocumented
-    @Target(AnnotationTarget.FIELD)
+    @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
     @Retention(RUNTIME)
     @IsConstraint(File::class)
     annotation class FileType(val value: FileActor = FileActor.ANY)
 
     @MustBeDocumented
-    @Target(AnnotationTarget.FIELD)
+    @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
     @Retention(RUNTIME)
     @IsConstraint(Number::class)
     annotation class Min(val value: Double)
 
     @MustBeDocumented
-    @Target(AnnotationTarget.FIELD)
+    @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
     @Retention(RUNTIME)
     @IsConstraint(Number::class)
     annotation class Max(val value: Double)
 
     @MustBeDocumented
-    @Target(AnnotationTarget.FIELD)
+    @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
     @Retention(RUNTIME)
     @IsConstraint(Number::class)
     annotation class MinMax(val min: Double, val max: Double)
 
     @MustBeDocumented
-    @Target(AnnotationTarget.FIELD)
+    @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
     @Retention(RUNTIME)
     @IsConstraint(String::class)
     annotation class NonEmpty
 
     @MustBeDocumented
-    @Target(AnnotationTarget.FIELD)
+    @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
     @Retention(RUNTIME)
     @IsConstraint(String::class)
     annotation class Length(val min: Int, val max: Int)
 
     @MustBeDocumented
-    @Target(AnnotationTarget.FIELD)
+    @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
+    @Retention(RUNTIME)
+    @IsConstraint(Any::class)
+    annotation class NonNull
+
+    @MustBeDocumented
+    @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
     @Retention(RUNTIME)
     @IsConstraint(Collection::class)
     annotation class NonNullElements
@@ -154,11 +160,20 @@ interface Constraint<in T> {
         override fun message() = "All items of the list must be non null"
     }
 
+    class ObjectNonNull: Constraint<Any> {
+        override fun isValid(value: Any?) = value!=null
+        override fun message() = "Value must not be null"
+    }
+
     class PreserveOrder: Constraint<Any> {
         override fun isValid(value: Any?) = true
         override fun message() = "Items must preserve original order"
     }
 
+    class ReadOnlyIf(val condition: () -> Boolean): Constraint<Any> {
+        override fun isValid(value: Any?) = true
+        override fun message() = "Is disabled"
+    }
 }
 
 /* ---------- ANNOTATION -> IMPLEMENTATION MAPPING ------------------------------------------------------------------ */
@@ -179,6 +194,7 @@ class Constraints {
                 register<Constraint.NonEmpty> { Constraint.StringNonEmpty() }
                 register<Constraint.Length> { Constraint.StringLength(it.min, it.max) }
                 register<Constraint.NonNullElements> { Constraint.HasNonNullElements() }
+                register<Constraint.NonNull> { Constraint.ObjectNonNull() }
                 register<Constraint.ConstraintBy> { instantiateOrThrow(it.value.java) }
                 registerByType<Duration, Constraint.DurationNonNegative>()
             }
@@ -202,8 +218,9 @@ class Constraints {
             }
         }
 
-        @JvmStatic fun <A: Annotation, X> toConstraint(a: A): Constraint<*> {
-            return MAPPER[a.annotationClass.java]!!.invoke(a)
+        @Suppress("UNCHECKED_CAST")
+        @JvmStatic fun <X> toConstraint(a: Annotation): Constraint<X> {
+            return MAPPER[a.annotationClass.java]!!.invoke(a) as Constraint<X>
         }
 
     }

@@ -19,7 +19,7 @@ import java.lang.annotation.Target;
  * be derived from the method.
  * <p/>
  * In order for the static method to be discovered the class the method resides within
- * must itself be annotated by {@link IsActionable} which auto-discovers the
+ * must itself be annotated by {@link sp.it.pl.util.conf.IsConfigurable} which auto-discovers the
  * class in order to scan it for action candidate methods.
  */
 @Documented

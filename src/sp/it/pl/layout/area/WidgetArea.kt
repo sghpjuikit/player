@@ -7,13 +7,13 @@ import javafx.fxml.FXML
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.StackPane
 import org.reactfx.Subscription
-import sp.it.pl.gui.Gui
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
 import sp.it.pl.layout.widget.Widget.LoadType.MANUAL
 import sp.it.pl.main.AppAnimator
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.main.DelayAnimator
 import sp.it.pl.util.access.ref.SingleR
 import sp.it.pl.util.graphics.drag.DragUtil
@@ -68,7 +68,7 @@ class WidgetArea: Area<Container<*>> {
         )
 
         loadWidget()
-        if (Gui.isLayoutMode()) show() else hide()
+        if (APP.ui.isLayoutMode) show() else hide()
     }
 
     override fun getWidget() = widget
@@ -81,8 +81,7 @@ class WidgetArea: Area<Container<*>> {
 
         when {
             widget.isLoaded || forceLoading || widget.loadType.get()==AUTOMATIC -> {
-                // load widget
-                AppAnimator.closeAndDo(content_root, Runnable {
+                    // load widget
                     animation.openAndDo(content_root, null)
                     val wNode = widget.load()
                     content.children.clear()
@@ -98,11 +97,10 @@ class WidgetArea: Area<Container<*>> {
                     // workaround code
                     widget.lockedUnder.initLocked(container)
                     s = widget.locked sync { controls.lockB.icon(if (it) FontAwesomeIcon.LOCK else FontAwesomeIcon.UNLOCK) }
-                })
             }
             widget.loadType.get()==MANUAL -> {
-                content.children.clear()
                 AppAnimator.closeAndDo(content_root, Runnable {
+                    content.children.clear()
                     animation.openAndDo(content_root, null)
 
                     // put controls to new widget

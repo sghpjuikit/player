@@ -74,9 +74,9 @@ private typealias F = JvmField
  *
  * The getters of this class return mostly string. For empty fields the output
  * is "" (empty string) and for non-string getters it varies, but it is never
- * null. See documentation
- * for the specific field. The rule is however, that the check for empty value
- * should be necessary only in rare cases.
+ * null. See documentation for the specific field. // TODO outdated?
+ * The rule is however, that the check for empty value should be necessary only
+ * in rare cases.
  *
  * Every field returns string, primitive, or Object with toString method that
  * returns the best possible string representation of the field's value, including
@@ -235,7 +235,6 @@ class Metadata: Item, Serializable {
 
     private fun AudioFile.loadHeaderFields() {
         val header = this.audioHeader
-        header.bitRate
         bitrate = header.bitRateAsNumber.toInt()*(if (header.isVariableBitRate) -1 else 1)
         lengthInMs = (1000*header.trackLength).toDouble()
         encodingType = header.format.orNull()   // format and encoding type are switched in jaudiotagger library...

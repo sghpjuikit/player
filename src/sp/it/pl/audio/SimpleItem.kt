@@ -12,8 +12,6 @@ class SimpleItem(resource: URI): Item() {
 
     override fun toSimple() = this
 
-    override fun toString(): String {
-        return "$javaClass $uri"
-    }
+    override fun toString() = "$javaClass[$uri]"
 
 }

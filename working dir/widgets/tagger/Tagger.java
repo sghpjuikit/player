@@ -879,7 +879,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         PopOver<?> p = new PopOver<>(list);
                    p.title.set("Active Items");
                    p.getHeaderIcons().addAll(helpB);
-                   p.show(infoL);
+                   p.showInCenterOf(infoL);
         return p;
     }
 

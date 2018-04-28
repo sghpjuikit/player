@@ -84,8 +84,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
     fun init() {
         if (initialized) return
 
-        if (!APP.DIR_APP.childOf("jre", "bin").exists())
-            logger.error { "Java development kit is missing. Please install JDK in ${APP.DIR_APP.childOf("jre")}" }
+        if (!APP.DIR_APP.childOf("java", "bin").exists())
+            logger.error { "Java development kit is missing. Please install JDK in ${APP.DIR_APP.childOf("java")}" }
         if (!APP.DIR_APP.childOf("kotlinc", "bin").exists())
             logger.error { "Kotlin compiler is missing. Please install kotlinc in ${APP.DIR_APP.childOf("kotlinc")}" }
 
@@ -352,7 +352,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 command.add("-d")
                 command.add(APP.DIR_WIDGETS.absolutePath)
                 command.add("-jdk-home")
-                command.add(APP.DIR_APP.childOf("jre").absolutePath)
+                command.add(APP.DIR_APP.childOf("java").absolutePath)
                 command.add("-jvm-target")
                 command.add("1.8")
                 command.add("-cp")

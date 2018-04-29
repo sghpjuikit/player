@@ -44,10 +44,11 @@ object ActionManager {
     val Shortcut_COLAPSE by c("Shift+C")
 
     /**
-     * Returns true iff global shortcuts are supported at running platform.
-     * Otherwise false. In such case, global shortcuts will run as local and
-     * [.startGlobalListening] and [.stopGlobalListening] will
-     * have no effect.
+     * Whether global shortcuts are supported by the active platform.
+     * If not, global shortcuts will run as local and [startGlobalListening] 
+     * and [stopGlobalListening] will have no effect.
+     *
+     * @return true iff global shortcuts are supported at running platform 
      */
     @IsConfig(name = "Global shortcuts supported", editable = EditMode.NONE, info = "Whether global shortcuts are supported on this system")
     val isGlobalShortcutsSupported by c(true)
@@ -103,7 +104,7 @@ object ActionManager {
      * Must not be ran more than once.
      * Does nothing if not supported.
      *
-     * @throws IllegalStateException if ran more than once without calling [.stopActionListening]
+     * @throws IllegalStateException if ran more than once without calling [stopActionListening] in between
      */
     fun startActionListening() {
         if (isActionListening) throw IllegalStateException("Action listening already running")
@@ -114,7 +115,7 @@ object ActionManager {
 
     /**
      * Deactivates listening process for hotkeys (global and local), causing them to stop working.
-     * Frees resources. This method should should always be ran when [.startActionListening]
+     * Frees resources. This method should should always be ran when [startActionListening]
      * was invoked. Not doing so may prevent the application from closing successfully, due to non
      * daemon thread involved here.
      */
@@ -152,7 +153,7 @@ object ActionManager {
     /**
      * Deactivates listening process for global hotkeys. Frees resources. This
      * method should should always be ran at the end of application's life cycle
-     * if [.startGlobalListening] ()} was invoked at least once.
+     * if [startGlobalListening] ()} was invoked at least once.
      * Not doing so might prevent from the application to close successfully,
      * because bgr listening thread will not close.
      */
@@ -169,30 +170,27 @@ object ActionRegistrar {
             .apply { this += Action.EMPTY }
 
     /**
-     * Returns modifiable collection of all actions mapped by their name. Actions
-     * can be added and removed, which modifies the underlying collection.
-     *
-     * @return all actions.
+     * Returns the MutableCollection of all actions mapped by their name.
+     * 
+     * @return all actions
      */
     fun getActions(): MutableCollection<Action> = actions
 
     /**
-     * @throws RuntimeException if no such action
+     * @return the action with the given [id]
+     * @throws RuntimeException if no action with that id exists (programmatic error)
      */
     operator fun get(id: Int): Action = actions[id]
             ?: throw IllegalArgumentException("No such action: '$id'. Make sure the action is declared and annotation processing is enabled and functioning properly.")
 
     /**
-     *
-     * @param name name of the action
-     * @return the action with specified name or throws an exception (it is a programmatic error if an action does not exist)
-     * @throws RuntimeException if no such action
+     * @return the action with the given [name]
+     * @throws RuntimeException if no action with that name exists (programmatic error)
      */
     operator fun get(name: String): Action = actions[idOf(name)]
             ?: throw IllegalArgumentException("No such action: '$name'. Make sure the action is declared and annotation processing is enabled and functioning properly.")
 
     // Guarantees consistency
-    fun idOf(actionName: String): Int {
-        return actionName.hashCode()
-    }
+    fun idOf(actionName: String) = actionName.hashCode()
+    
 }

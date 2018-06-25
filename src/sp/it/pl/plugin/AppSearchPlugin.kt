@@ -10,7 +10,7 @@ import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Config.VarList
 import sp.it.pl.util.conf.Config.VarList.Elements
 import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.file.endsWithSuffix
+import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
 import sp.it.pl.util.system.runAsProgram
 import sp.it.pl.util.validation.Constraint
@@ -57,7 +57,7 @@ class AppSearchPlugin: PluginBase(NAME) {
         return rootDir.walkTopDown()
                 .onFail { file, e -> logger.warn(e) { "Ignoring file=$file. No read/access permission" } }
                 .maxDepth(searchDepth.value)
-                .filter { it endsWithSuffix "exe" }
+                .filter { it hasExtension "exe" }
     }
 
     private fun File.toRunApplicationEntry() = ConfigSearch.Entry.of(

@@ -76,7 +76,7 @@ import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
-import sp.it.pl.util.file.endsWithSuffix
+import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.mimetype.MimeTypes
 import sp.it.pl.util.functional.Functors.Ƒ0
 import sp.it.pl.util.functional.Try
@@ -538,7 +538,7 @@ class App: Application(), Configurable<Any> {
                 { fs -> fs.firstOrNull()?.let { actions.openImageFullscreen(it) } } // More convenient for user, add option to call one or the other
         )
         addFileProcessor(
-                { it endsWithSuffix "fxwl" },
+                { it hasExtension "fxwl" },
                 { it.forEach { windowManager.launchComponent(it) } }
         )
         addStringProcessor(

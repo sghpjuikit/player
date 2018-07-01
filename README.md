@@ -1,5 +1,5 @@
 
-# ![icon](assets/icons/icon128.png) PlayerFX
+# ![icon](assets/icons/icon128.png) PlayerFX [![Build status](https://ci.appveyor.com/api/projects/status/uxtvscyxb7dewki6?svg=true)](https://ci.appveyor.com/project/Xerus2000/player)
 
 - [What is this?](#what-is-this)
 - [Features](#features)

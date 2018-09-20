@@ -72,16 +72,27 @@ fun File.isAnyChildOf(parent: File) = parent.isAnyParentOf(this)
  * @return child files of the directory or empty if parameter null, not a directory or I/O error occurs
  */
 @Suppress("DEPRECATION")
-fun File.listChildren(): Stream<File> = listFiles()?.asSequence()?.asStream() ?: Stream.empty()
+fun File.listChildren(): Stream<File> = 
+        listFiles().asStream()
 
 @Suppress("DEPRECATION")
-fun File.seqChildren(): Sequence<File> = listFiles()?.asSequence() ?: sequenceOf()
+fun File.listChildren(filter: FileFilter): Stream<File> = 
+        listFiles(filter).asStream()
 
 @Suppress("DEPRECATION")
-fun File.listChildren(filter: FileFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
+fun File.listChildren(filter: FilenameFilter): Stream<File> =
+        listFiles(filter).asStream()
 
 @Suppress("DEPRECATION")
-fun File.listChildren(filter: FilenameFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
+fun File.seqChildren(): Sequence<File> =
+        listFiles()?.asSequence().orEmpty()
+
+/** @return a Stream built from this array, which is empty if the array is null */
+fun <T> Array<T>?.asStream() = this?.asSequence()?.asStream() ?: Stream.empty()
+
+fun <T> Stream<T>?.orEmpty() = this ?: Stream.empty()
+
+fun <T> Sequence<T>?.orEmpty() = this ?: emptySequence()
 
 /**
  * Safe version of [File.getParentFile].
@@ -89,7 +100,8 @@ fun File.listChildren(filter: FilenameFilter): Stream<File> = listFiles(filter)?
  * @return parent file or null if is root
  */
 @Suppress("DEPRECATION")
-val File.parentDir: File? get() = parentFile
+val File.parentDir: File?
+    get() = parentFile
 
 /** @return parent file or self if is root */
 val File.parentDirOrRoot get() = parentDir ?: this
@@ -152,7 +164,7 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>
         fun CCFile.walkDirsAndWithCover(cache: HashSet<File>): Sequence<CCFile> {
             val fs = listChildren().map(::CCFile).toList()
             cache += fs
-            return sequenceOf(this) + fs.asSequence().flatMap { it.walkDirsAndWithCover(cache) }
+            return sequenceOf(this)+fs.asSequence().flatMap { it.walkDirsAndWithCover(cache) }
         }
 
         fun File.walkDirsAndWithCover(): Stream<File> {

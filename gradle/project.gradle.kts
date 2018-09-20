@@ -17,10 +17,10 @@ import kotlin.text.Charsets.UTF_8
 
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
-    kotlin("jvm") version "1.2.40"
     application
-    id("com.github.ben-manes.versions") version "0.17.0"
-    id("de.undercouch.download") version "3.4.2"
+    kotlin("jvm") version "1.2.71"
+    id("com.github.ben-manes.versions") version "0.20.0"
+    id("de.undercouch.download") version "3.4.3"
 }
 
 /** working directory of the application */
@@ -38,12 +38,10 @@ if (JavaVersion.current() !in supportedJavaVersions) {
     throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
 }
 
-java {
-    sourceSets {
-        getByName("main") {
-            java.srcDir("src")
-            resources.srcDir("src")
-        }
+sourceSets {
+    getByName("main") {
+        java.srcDir("src")
+        resources.srcDir("src")
     }
 }
 
@@ -53,7 +51,8 @@ kotlin {
 }
 
 allprojects {
-    buildDir = file(properties["player.buildDir"] ?: "build").resolve(name)
+    apply(plugin = "kotlin")
+    buildDir = file(properties["player.buildDir"] ?: rootDir.resolve("build")).resolve(name)
 
     tasks.withType<JavaCompile> {
         options.encoding = UTF_8.name()
@@ -75,6 +74,8 @@ allprojects {
 
     repositories {
         jcenter()
+        mavenCentral()
+        maven("https://jitpack.io")
     }
 }
 
@@ -87,19 +88,20 @@ dependencies {
     // Logging
     compile("org.slf4j", "slf4j-api", "1.7.25")
     compile("ch.qos.logback", "logback-classic", "1.2.3")
-    compile("io.github.microutils", "kotlin-logging", "1.5.3")
+    compile("io.github.microutils", "kotlin-logging", "1.6.10")
 
     // JavaFX
     compile("de.jensd", "fontawesomefx", "8.9")
     compile("org.reactfx", "reactfx", "2.0-M5")
-    compile("eu.hansolo", "tilesfx", "1.5.2") {
+    compile("eu.hansolo", "tilesfx", "1.6.4") {
         exclude("com.googlecode.json-simple", "json-simple")
     }
-    compile("eu.hansolo", "Medusa", "7.9")
+    compile("eu.hansolo", "Medusa", "8.0")
 
     // Audio
     compile("uk.co.caprica", "vlcj", "3.10.1")
     compile("de.u-mass", "lastfm-java", "0.1.2")
+    compile("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
 
     // misc
     compile("net.java.dev.jna", "jna-platform", "4.5.1")
@@ -112,26 +114,25 @@ dependencies {
         exclude("xpp3", "xpp3_min")
     }
 
-    // Image
+    // Images
     compile("com.drewnoakes", "metadata-extractor", "2.11.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-core", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-bmp", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-jpeg", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-iff", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-icns", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pcx", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pict", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-clippath", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-hdr", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pdf", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pnm", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-psd", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-tga", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-sgi", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-thumbsdb", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-tiff", "3.4.0")
-
-    compile(files(file("extra/lib").listFiles()))
+    val imageioVersion = "3.4.1"
+    compile("com.twelvemonkeys.imageio", "imageio-core", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-bmp", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-jpeg", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-iff", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-icns", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-pcx", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-pict", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-clippath", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-hdr", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-pdf", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-pnm", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-psd", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-tga", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-sgi", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-thumbsdb", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-tiff", imageioVersion)
 
 }
 
@@ -190,7 +191,7 @@ tasks {
         }
         src("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/kotlin-compiler-$kotlinVersion.zip")
         dest(buildDir)
-        doLast { 
+        doLast {
             copy {
                 from(zipTree(buildDir.resolve("kotlin-compiler-$kotlinVersion.zip")))
                 into(workDir)
@@ -213,7 +214,7 @@ tasks {
             workDir.resolve("lib").deleteRecursively()
             workDir.resolve("widgets").walkBottomUp()
                     .filter { it.path.endsWith("class") }
-                    .fold(true, { res, it -> (it.delete() || !it.exists()) && res })
+                    .fold(true) { res, it -> (it.delete() || !it.exists()) && res }
         }
     }
 

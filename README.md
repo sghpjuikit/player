@@ -1,5 +1,5 @@
 
-# PlayerFX
+# ![icon](assets/icons/icon128.png) PlayerFX
 
 - [What is this?](#what-is-this)
 - [Features](#features)
@@ -13,7 +13,7 @@
 
 **PlayerFX** is a desktop audio player and audio management application, with a dynamic module system - a multipurpose extensible application capable of compiling and running custom java widgets.
 
-![Playlist View](extra/assets/screenshot_playlists.jpg)
+![Playlist View](assets/screenshots/screenshot_playlists.jpg)
 
 There are two main major use cases for this application:
 
@@ -274,26 +274,26 @@ actively tested on Windows and Linux.
   <summary>Show</summary>
 
 #### Playlist view & timed comments
-![Screenshot](extra/assets/screenshot_playlists.jpg)
+![Screenshot](assets/screenshots/screenshot_playlists.jpg)
 
 #### Action menu with "glass" effect
-![Screenshot](extra/assets/screenshot_actions.jpg)
+![Screenshot](assets/screenshots/screenshot_actions.jpg)
 
 #### Layout mode with widget links
-![Screenshot](extra/assets/screenshot_layoutmode.jpg)
+![Screenshot](assets/screenshots/screenshot_layoutmode.jpg)
 
 #### Some widgets on white skin
-![Screenshot](extra/assets/screenshot_widgets.jpg)
+![Screenshot](assets/screenshots/screenshot_widgets.jpg)
 
 #### Comet Game
-![Screenshot](extra/assets/screenshot_comet1.jpg)
+![Screenshot](assets/screenshots/screenshot_comet1.jpg)
 
-![Screenshot](extra/assets/screenshot_comet2.jpg)
+![Screenshot](assets/screenshots/screenshot_comet2.jpg)
 
 ### Old skins
-![Screenshot](extra/assets/screenshot_old1.png)
+![Screenshot](assets/screenshots/screenshot_old1.png)
 
-![Screenshot](extra/assets/screenshot_old2.png)
+![Screenshot](assets/screenshots/screenshot_old2.png)
 
 </details>
 

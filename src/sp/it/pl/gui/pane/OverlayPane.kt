@@ -46,7 +46,7 @@ import sp.it.pl.util.reactive.SetƑ
 import sp.it.pl.util.reactive.maintain
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.system.getWallpaperFile
-import kotlin.test.fail
+import sp.it.pl.util.dev.fail
 
 /**
  * Pane laying 'above' standard content.

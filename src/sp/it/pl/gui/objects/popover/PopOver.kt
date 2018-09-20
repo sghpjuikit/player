@@ -75,7 +75,7 @@ import sp.it.pl.util.graphics.toP
 import sp.it.pl.util.math.P
 import sp.it.pl.util.math.millis
 import java.util.ArrayList
-import kotlin.test.fail
+import sp.it.pl.util.dev.fail
 
 private typealias F = JvmField
 

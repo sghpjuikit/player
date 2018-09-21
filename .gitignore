@@ -1,6 +1,5 @@
 ## Project
 
-out/
 private/
 working dir/lib
 working dir/jre
@@ -20,14 +19,15 @@ gradle.properties
 ## IDE
 
 # Idea
-.idea/
+out/
+.idea/*
+!.idea/codeStyles/
 *.iml
 *.ipr
 *.iws
 
 # NetBeans
 nbproject/
-#nbproject/private/
 build/
 nbbuild/
 nbdist/
@@ -57,11 +57,7 @@ local.properties
 .buildpath
 
 ## OS
-
-# Windows
 Thumbs.db
 ehthumbs.db
 Desktop.ini
-
-# Mac
 .DS_Store

@@ -11,7 +11,8 @@
 
 ## What is this?
 
-**PlayerFX** is a desktop audio player and audio management application, with a dynamic module system - a multipurpose extensible application capable of compiling and running custom java widgets.
+**PlayerFX** is a desktop audio player and audio management application, with a dynamic module system - 
+a multipurpose extensible application capable of compiling and running custom java widgets.
 
 ![Playlist View](assets/screenshots/screenshot_playlists.jpg)
 
@@ -29,7 +30,8 @@ This application addresses a lot of such issues.
 ##### Multiapplication
 Collection of unrelated miniapplications. Image browser, movie explorer, file renamer and more. 
 
-If you know Java/Kotlin, you can make your own app with simple text editor and literaly dozen lines of code - without java, without IDE and without hassles of creating and deploying your application. 
+If you know Java/Kotlin, you can make your own app with simple text editor and literaly dozen lines of code - 
+without JDK, without IDE and without hassles of creating and deploying your application. 
 Just write your code, hit save and watch as it autocompiles and runs as widget, which you can run as a standalone application! 
 All that with included support for configurations, skins and full access to player internals.
 
@@ -43,7 +45,7 @@ All that with included support for configurations, skins and full access to play
 - **Modular user interface** - User has the ability to 'make his own gui'. Completely custom component layout. He can create all-in-one GUI or use separate windows or - anything really.
 - **Fancy features** like: rating in tag, time comments, good image support, advanced & intuitive library management, etc.
 - **Library independence** - Moving & renaming files will not result in loss of any information. Every single bit is in the tag. Always. If you move on to different application or lose your library - you never lose data. Ever again.
-- **Usability** - Ease of use and efficient workflow due to minimalistic and unobtursive graphical user interface design. Think shortcuts, swiping, icons instead buttons, closing with right click instead of trying to hit small button somewhere in the corner of whatever you are doing..., etc.
+- **Usability** - Ease of use and efficient workflow due to minimalistic and unobtrusive graphical user interface design. Think shortcuts, swiping, icons instead buttons, closing with right click instead of trying to hit small button somewhere in the corner of whatever you are doing..., etc.
 - **Responsive** - fast and responsive. Minimal modal dialogs. No more stuck windows while your library is scanning that big fat audio collection of yours
 - **Sexy** - Your way of sexy if you know a tiny bit about css.
 

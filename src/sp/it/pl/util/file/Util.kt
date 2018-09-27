@@ -73,26 +73,19 @@ fun File.isAnyChildOf(parent: File) = parent.isAnyParentOf(this)
  */
 @Suppress("DEPRECATION")
 fun File.listChildren(): Stream<File> = 
-        listFiles().asStream()
+        listFiles()?.asSequence()?.asStream() ?: Stream.empty()
 
 @Suppress("DEPRECATION")
 fun File.listChildren(filter: FileFilter): Stream<File> = 
-        listFiles(filter).asStream()
+        listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
 
 @Suppress("DEPRECATION")
 fun File.listChildren(filter: FilenameFilter): Stream<File> =
-        listFiles(filter).asStream()
+        listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
 
 @Suppress("DEPRECATION")
 fun File.seqChildren(): Sequence<File> =
-        listFiles()?.asSequence().orEmpty()
-
-/** @return a Stream built from this array, which is empty if the array is null */
-fun <T> Array<T>?.asStream() = this?.asSequence()?.asStream() ?: Stream.empty()
-
-fun <T> Stream<T>?.orEmpty() = this ?: Stream.empty()
-
-fun <T> Sequence<T>?.orEmpty() = this ?: emptySequence()
+        listFiles()?.asSequence() ?: emptySequence()
 
 /**
  * Safe version of [File.getParentFile].

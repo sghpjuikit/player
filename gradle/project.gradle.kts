@@ -98,15 +98,12 @@ dependencies {
     }
     compile("eu.hansolo", "Medusa", "8.0")
 
-    // Audio
-    compile("uk.co.caprica", "vlcj", "3.10.1")
-    compile("de.u-mass", "lastfm-java", "0.1.2")
-    compile("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
-
-    // misc
-    compile("net.java.dev.jna", "jna-platform", "4.5.1")
+    // Native
+    compile("net.java.dev.jna", "jna-platform", "4.5.2")
+    // due to a critical error on linux, don't update this to 2.1.0
     compile("com.1stleg", "jnativehook", "2.0.2")
 
+    //Misc
     compile("net.objecthunter", "exp4j", "0.4.8")
     compile("org.atteo", "evo-inflector", "1.2.2")
     compile("com.thoughtworks.xstream", "xstream", "1.4.10") {
@@ -114,7 +111,12 @@ dependencies {
         exclude("xpp3", "xpp3_min")
     }
 
-    // Images
+    // Audio
+    compile("uk.co.caprica", "vlcj", "3.10.1")
+    compile("de.u-mass", "lastfm-java", "0.1.2")
+    compile("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
+
+    // Image
     compile("com.drewnoakes", "metadata-extractor", "2.11.0")
     val imageioVersion = "3.4.1"
     compile("com.twelvemonkeys.imageio", "imageio-core", imageioVersion)

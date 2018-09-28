@@ -106,9 +106,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     private static final Tooltip warnTooltip = appTooltip("Erroneous value");
     private static final Tooltip defTooltip = appTooltip("Default value");
     private static final Tooltip globTooltip = appTooltip("Global shortcut"
-            + "\n\nGlobal shortcut can be used even when application doesn't have focus. Note, that "
-            + "only one application can use this shortcut. If multiple applications use the same "
-            + "shortcut, the one started later will have it disabled.");
+            + "\n\nGlobal shortcuts can be used even when the application doesn't have focus.\n"
+            + "Note that only one application can use this shortcut. If multiple applications use "
+            + "the same shortcut, only the one that was first started will work.");
     private static final Tooltip overTooltip = appTooltip("Override value"
             + "\n\nUses local value if true and global value if false.");
 

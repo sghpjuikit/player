@@ -13,10 +13,11 @@
 
 #### Intellij IDEA
 
-Import Project -> Select Player directory<br>
-Import from external model -> Gradle 
-- "Use auto-import"
-- Disable "Create separate module per source set"
+1) Import Project -> Select project folder  
+2) Import from external model -> Gradle 
+3) Check "Use auto-import"  
+   Disable "Create separate module per source set"
+4) Run `git checkout .idea` in the Terminal to regain the codeStyles
 
 ## Running
 
@@ -41,7 +42,7 @@ This should be set up automatically by Gradle and imported into your IDE.
 
 ## Code style
 
-The project contains a shared code style [code-style.xml](code-style.xml) for IDEA with definitions that allows beneficial use of auto formatting
+The project contains a shared code style in .idea/codeStyles for IDEA with definitions for auto formatting
   - Kotlin: Follow [official style giude](https://kotlinlang.org/docs/reference/coding-conventions.html)
   - Java: It is encouraged to write any new code on Kotlin
       

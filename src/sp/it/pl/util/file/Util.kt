@@ -13,21 +13,23 @@ import kotlin.streams.asStream
 import kotlin.streams.toList
 
 /**
- * Returns the [File.getName] or [File.toString] if this is the root directory,
+ * Returns [File.getName] or [File.toString] if this is the root directory,
  * since that returns an empty string otherwise.
  *
- * @return name of the file with suffix
+ * @return name of the file with extension
  */
 val File.nameOrRoot: String
     get() = name.takeUnless { it.isEmpty() } ?: toString()
 
 /**
- * Returns the [File.nameWithoutExtension] or [File.nameOrRoot] if this is a directory.
+ * Returns [File.nameWithoutExtension] or [File.toString] if this is the root directory,
+ * since that returns an empty string otherwise.
  *
  * @return name of the file without extension
  */
+// TODO problematic for directories containing '.'
 val File.nameWithoutExtensionOrRoot: String
-    get() = if(isDirectory) nameWithoutExtension else nameOrRoot
+    get() = name.takeUnless { it.isEmpty() }?.substringAfterLast('.') ?: toString()
 
 /** @return file itself if exists or its first existing parent or error if no parent exists */
 fun File.find1stExistingParentFile(): Try<File, Void> = when {
@@ -41,21 +43,29 @@ fun File.find1stExistingParentDir(): Try<File, Void> = when {
     else -> parentDir?.find1stExistingParentDir() ?: Try.error()
 }
 
-inline fun File.childOf(childName: String) = File(this, childName)
+inline fun File.childOf(childName: String) =
+        File(this, childName)
 
-inline fun File.childOf(childName: String, childName2: String) = childOf(childName).childOf(childName2)
+inline fun File.childOf(childName: String, childName2: String) =
+        childOf(childName).childOf(childName2)
 
-inline fun File.childOf(childName: String, childName2: String, childName3: String) = childOf(childName, childName2).childOf(childName3)
+inline fun File.childOf(childName: String, childName2: String, childName3: String) =
+        childOf(childName, childName2).childOf(childName3)
 
-inline fun File.childOf(vararg childNames: String) = childNames.fold(this, File::childOf)
+inline fun File.childOf(vararg childNames: String) =
+        childNames.fold(this, File::childOf)
 
-inline infix fun File.isChildOf(parent: File) = parent.isParentOf(this)
+inline infix fun File.isChildOf(parent: File) =
+        parent.isParentOf(this)
 
-inline fun File.isAnyChildOf(parent: File) = parent.isAnyParentOf(this)
+inline fun File.isAnyChildOf(parent: File) =
+        parent.isAnyParentOf(this)
 
-inline infix fun File.isParentOf(child: File) = child.parentDir==this
+inline infix fun File.isParentOf(child: File) =
+        child.parentDir==this
 
-fun File.isAnyParentOf(child: File) = generateSequence(child) { it.parentDir }.any { isParentOf(it) }
+fun File.isAnyParentOf(child: File) =
+        generateSequence(child) { it.parentDir }.any { isParentOf(it) }
 
 /**
  * Safe version of [File.listFiles]
@@ -67,20 +77,30 @@ fun File.isAnyParentOf(child: File) = generateSequence(child) { it.parentDir }.a
  *
  * @return child files of the directory or empty if parameter null, not a directory or I/O error occurs
  */
-fun File.listChildren(): Stream<File> = listFiles()?.asSequence()?.asStream() ?: Stream.empty()
+@Suppress("DEPRECATION")
+fun File.listChildren(): Stream<File> =
+        listFiles()?.asSequence()?.asStream() ?: Stream.empty()
 
-fun File.seqChildren(): Sequence<File> = listFiles()?.asSequence() ?: sequenceOf()
+@Suppress("DEPRECATION")
+fun File.listChildren(filter: FileFilter): Stream<File> =
+        listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
 
-fun File.listChildren(filter: FileFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
+@Suppress("DEPRECATION")
+fun File.listChildren(filter: FilenameFilter): Stream<File> =
+        listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
 
-fun File.listChildren(filter: FilenameFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
+@Suppress("DEPRECATION")
+fun File.seqChildren(): Sequence<File> =
+        listFiles()?.asSequence() ?: emptySequence()
 
 /**
  * Safe version of [File.getParentFile].
  *
  * @return parent file or null if is root
  */
-val File.parentDir: File? get() = parentFile
+@Suppress("DEPRECATION")
+val File.parentDir: File?
+    get() = parentFile
 
 /** @return [File.getParentFile] or self if there is no parent */
 val File.parentDirOrRoot get() = parentDir ?: this
@@ -140,7 +160,7 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>
         fun CCFile.walkDirsAndWithCover(cache: HashSet<File>): Sequence<CCFile> {
             val fs = listChildren().map(::CCFile).toList()
             cache += fs
-            return sequenceOf(this) + fs.asSequence().flatMap { it.walkDirsAndWithCover(cache) }
+            return sequenceOf(this)+fs.asSequence().flatMap { it.walkDirsAndWithCover(cache) }
         }
 
         fun File.walkDirsAndWithCover(): Stream<File> {

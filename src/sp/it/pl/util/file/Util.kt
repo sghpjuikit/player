@@ -1,4 +1,4 @@
-@file:Suppress("unused", "NOTHING_TO_INLINE")
+@file:Suppress("unused")
 
 package sp.it.pl.util.file
 
@@ -43,28 +43,28 @@ fun File.find1stExistingParentDir(): Try<File, Void> = when {
     else -> parentDir?.find1stExistingParentDir() ?: Try.error()
 }
 
-inline fun File.childOf(childName: String) =
+fun File.childOf(childName: String) =
         File(this, childName)
 
-inline fun File.childOf(childName: String, childName2: String) =
+fun File.childOf(childName: String, childName2: String) =
         childOf(childName).childOf(childName2)
 
-inline fun File.childOf(childName: String, childName2: String, childName3: String) =
+fun File.childOf(childName: String, childName2: String, childName3: String) =
         childOf(childName, childName2).childOf(childName3)
 
-inline fun File.childOf(vararg childNames: String) =
+fun File.childOf(vararg childNames: String) =
         childNames.fold(this, File::childOf)
 
-inline infix fun File.isChildOf(parent: File) =
+infix fun File.isChildOf(parent: File) =
         parent.isParentOf(this)
 
-inline fun File.isAnyChildOf(parent: File) =
+infix fun File.isAnyChildOf(parent: File) =
         parent.isAnyParentOf(this)
 
-inline infix fun File.isParentOf(child: File) =
+infix fun File.isParentOf(child: File) =
         child.parentDir==this
 
-fun File.isAnyParentOf(child: File) =
+infix fun File.isAnyParentOf(child: File) =
         generateSequence(child) { it.parentDir }.any { isParentOf(it) }
 
 /**

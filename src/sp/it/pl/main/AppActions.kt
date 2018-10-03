@@ -43,7 +43,7 @@ import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.getCommonRoot
 import sp.it.pl.util.file.Util.getFilesAudio
-import sp.it.pl.util.file.endsWithSuffix
+import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.invoke
@@ -273,7 +273,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Open widget",
                     "Opens exported widget.",
                     IconMD.IMPORT,
-                    { it endsWithSuffix "fxwl" },
+                    { it hasExtension "fxwl" },
                     { APP.windowManager.launchComponent(it) }
             )
     )

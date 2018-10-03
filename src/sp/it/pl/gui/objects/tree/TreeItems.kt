@@ -42,7 +42,7 @@ import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.Util
-import sp.it.pl.util.file.endsWithSuffix
+import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.file.parentDir
@@ -182,7 +182,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
     private fun computeGraphics(p: Any): Node? = when (p) {
         is Path -> computeGraphics(p.toFile())
         is File -> {
-            if (p endsWithSuffix "css")
+            if (p hasExtension "css")
                 createIcon(FontAwesomeIcon.CSS3, 8.0)
 
             val type = if (treeItem.isLeaf) FileType.FILE else FileType.of(p)

@@ -22,6 +22,7 @@ gradle.properties
 out/
 .idea/*
 !.idea/codeStyles/
+!.idea/annotations.xml
 *.iml
 *.ipr
 *.iws

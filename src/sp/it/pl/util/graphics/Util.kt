@@ -319,10 +319,10 @@ object EM {
     fun toDouble() = 12.0
 }
 
-/** @returns value in [EM] units */
+/** @return value in [EM] units */
 val Double.EM get() = this/sp.it.pl.util.graphics.EM.toDouble()
 
-/** @returns value in [EM] units */
+/** @return value in [EM] units */
 val Int.EM get() = this/sp.it.pl.util.graphics.EM.toDouble()
 
 /** Sets font, overriding css style. */

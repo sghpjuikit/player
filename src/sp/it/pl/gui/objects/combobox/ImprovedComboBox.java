@@ -73,7 +73,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 	 * @param empty_text text to use for null value
 	 */
 	public ImprovedComboBox(Function<T,String> toS, String empty_text) {
-		noNull(toS, empty_text);
+		noNull(toS, () -> empty_text);
 
 		emptyText = empty_text;
 		toStringConverter = toS;

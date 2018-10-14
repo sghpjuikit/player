@@ -15,7 +15,7 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import sp.it.pl.main.AppUtil
-import sp.it.pl.main.MultiConfigurable
+import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.main.createInfoIcon
 import sp.it.pl.util.graphics.Util.layHeaderTop
 import sp.it.pl.util.graphics.Util.layHorizontally

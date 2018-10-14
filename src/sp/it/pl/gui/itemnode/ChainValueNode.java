@@ -118,8 +118,8 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 	 * If the chain is already at least as long as n, no elements are added.
 	 */
 	public void growTo(int n) {
-		throwIfNot(n>=0, "Chain length must not be negative");
-		throwIfNot(n<=maxChainLength.get(), "Chain length must not be larger than max length");
+		throwIfNot(n>=0, () -> "Chain length must not be negative");
+		throwIfNot(n<=maxChainLength.get(), () -> "Chain length must not be larger than max length");
 		if (n>chain.size()) {
 			repeat(n - chain.size(), (Runnable) this::addChained);
 			generateValue();

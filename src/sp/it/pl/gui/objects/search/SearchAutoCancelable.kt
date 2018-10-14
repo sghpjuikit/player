@@ -1,10 +1,10 @@
 package sp.it.pl.gui.objects.search
 
 import sp.it.pl.gui.objects.search.SearchAutoCancelable.Match.CONTAINS
-import sp.it.pl.main.MultiConfigurableBase
+import sp.it.pl.util.conf.MultiConfigurableBase
 import sp.it.pl.main.Settings
-import sp.it.pl.main.c
-import sp.it.pl.main.cv
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.math.millis

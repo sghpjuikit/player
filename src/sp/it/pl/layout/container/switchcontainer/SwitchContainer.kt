@@ -8,10 +8,10 @@ package sp.it.pl.layout.container.switchcontainer
 import javafx.scene.Node
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
-import sp.it.pl.main.MultiConfigurableBase
+import sp.it.pl.util.conf.MultiConfigurableBase
 import sp.it.pl.main.Settings
-import sp.it.pl.main.between
-import sp.it.pl.main.cv
+import sp.it.pl.util.conf.between
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.reactive.attachFrom
 import java.util.HashMap

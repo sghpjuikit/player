@@ -1,7 +1,7 @@
 package sp.it.pl.service
 
 import mu.KLogging
-import sp.it.pl.main.cv
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.access.V
 import sp.it.pl.util.access.initSync
 import sp.it.pl.util.conf.IsConfig

@@ -565,7 +565,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		 * @throws IllegalStateException if the property field is not final
 		 */
 		@SuppressWarnings("unchecked")
-		ReadOnlyPropertyConfig(Class<T> property_type, String name, IsConfig c, Set<Constraint<? super T>> constraints, ObservableValue<T> property, String category) {
+		public ReadOnlyPropertyConfig(Class<T> property_type, String name, IsConfig c, Set<Constraint<? super T>> constraints, ObservableValue<T> property, String category) {
 			super(property_type, name, c, constraints, property.getValue(), category);
 			value = property;
 

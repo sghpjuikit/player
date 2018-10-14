@@ -20,9 +20,9 @@ import sp.it.pl.layout.widget.WidgetSource.ANY
 import sp.it.pl.main.Actions
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.main.Settings
-import sp.it.pl.main.between
-import sp.it.pl.main.c
-import sp.it.pl.main.cv
+import sp.it.pl.util.conf.between
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.access.VarEnum
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.conf.Configurable
@@ -97,47 +97,28 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val lockedLayout by cv(false) { SimpleBooleanProperty(it).apply { attach { APP.actionStream.push("Layout lock") } } }
     @C(name = "Layout open strategy", info = "How will certain layout element open and close.")
     val openStrategy by cv(INSIDE)
-    @C(name = "Table orientation", group = Settings.UI_TABLE, info = "Orientation of the table.")
+    @C(name = "Table orientation", group = Settings.Ui.TABLE, info = "Orientation of the table.")
     val tableOrient by cv(NodeOrientation.INHERIT)
-    @C(name = "Zeropad numbers", group = Settings.UI_TABLE, info = "Adds 0s for number length consistency.")
+    @C(name = "Zeropad numbers", group = Settings.Ui.TABLE, info = "Adds 0s for number length consistency.")
     val tableZeropad by cv(false)
-    @C(name = "Search show original index", group = Settings.UI_TABLE, info = "Show unfiltered table item index when filter applied.")
+    @C(name = "Search show original index", group = Settings.Ui.TABLE, info = "Show unfiltered table item index when filter applied.")
     val tableOrigIndex by cv(false)
-    @C(name = "Show table header", group = Settings.UI_TABLE, info = "Show table header with columns.")
+    @C(name = "Show table header", group = Settings.Ui.TABLE, info = "Show table header with columns.")
     val tableShowHeader by cv(true)
-    @C(name = "Show table controls", group = Settings.UI_TABLE, info = "Show table controls at the bottom of the table. Displays menu bar and table items information")
+    @C(name = "Show table controls", group = Settings.Ui.TABLE, info = "Show table controls at the bottom of the table. Displays menu bar and table items information")
     val tableShowFooter by cv(true)
     @C(name = "Thumbnail anim duration", group = "${Settings.UI}.Images", info = "Preferred hover scale animation duration for thumbnails.")
     val thumbnailAnimDur by cv(millis(100))
 
     /**
-     * Component might rely on this method to alter its behavior. For example
-     * it can leave layout mode on its own independently but forbid this
-     * behavior if this method returns TRUE.
+     * Sets layout mode for all active components.
      *
      * Note that this method consistently returns FALSE at the time
      * of entering and leaving the layout mode, thus allowing to safely query
-     * layout mode state just before the state change. In other words the state
-     * change itself will not influence the result, which changes only after the
-     * change occurred. not after it was invoked.
+     * layout mode state just before the state change.
      *
-     * Basically, at the time of invoking show() and hide() methods the flag
-     * is (and must be) FALSE and never TRUE
-     *
-     * @return whether layout mode was on or not.
+     * @return whether layout mode is on or not.
      */
-    /**
-     * Sets layout mode on/off.
-     *
-     * Note that [.isLayoutMode] consistently returns FALSE at the time
-     * of entering and leaving the layout mode.
-     *
-     * @see .isLayoutMode
-     */
-    // avoid pointless operation
-    // Note that we set the layout mode flag after invoking show() but
-    // before invoking hide().
-    // This is important to maintain consistency. See documentation.
     var isLayoutMode: Boolean
         get() = layoutMode.get()
         set(v) {

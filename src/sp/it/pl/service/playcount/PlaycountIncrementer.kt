@@ -9,8 +9,8 @@ import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.audio.tagging.MetadataWriter
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.main.Widgets
-import sp.it.pl.main.between
-import sp.it.pl.main.cv
+import sp.it.pl.util.conf.between
+import sp.it.pl.util.conf.cv
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.service.notif.Notifier
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.NEVER

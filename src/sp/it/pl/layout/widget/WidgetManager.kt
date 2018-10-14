@@ -11,10 +11,10 @@ import sp.it.pl.layout.widget.WidgetSource.OPEN_STANDALONE
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.AppUtil.APP
-import sp.it.pl.main.c
-import sp.it.pl.main.cr
-import sp.it.pl.main.cv
-import sp.it.pl.main.readOnlyUnless
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cr
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.access.SequentialValue
 import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.oneCachedThreadExecutor
@@ -111,10 +111,11 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 } else if (dirW.isParentOf(f)) {
                     val name = f.nameWithoutExtension.capitalize()
                     if (type===ENTRY_CREATE) {
-                        monitors.computeIfAbsent(name) { WidgetDir(name, f) }.registerExternalFactory()
+                        if (f.isDirectory) {
+                            monitors.computeIfAbsent(name) { WidgetDir(name, f) }.registerExternalFactory()
+                        }
                     } else if (type===ENTRY_DELETE) {
-                        val wd = monitors[name]
-                        wd?.dispose()
+                        monitors[name]?.dispose()
                     }
                 } else {
                     monitors.find { it.widgetDir.isAnyParentOf(f) }?.handleResourceChange(type, f)

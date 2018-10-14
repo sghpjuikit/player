@@ -35,7 +35,7 @@ import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
-import sp.it.pl.main.MultiConfigurable;
+import sp.it.pl.util.conf.MultiConfigurable;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.action.Action;

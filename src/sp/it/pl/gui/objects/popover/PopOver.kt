@@ -29,7 +29,6 @@
 
 package sp.it.pl.gui.objects.popover
 
-import javafx.application.Platform
 import javafx.beans.InvalidationListener
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -46,7 +45,6 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.Pane
-import javafx.stage.Stage
 import javafx.stage.Window
 import javafx.stage.WindowEvent
 import javafx.stage.WindowEvent.WINDOW_HIDING
@@ -685,16 +683,13 @@ open class PopOver<N: Node>(): PopupControl() {
 
     companion object {
 
-        @F val active_popups = observableArrayList(ArrayList<PopOver<*>>())!!
+        val active_popups = observableArrayList(ArrayList<PopOver<*>>())!!
         private val KEY_CLOSE_OWNER = Any()
         private val KEY_MOVE_WITH_OWNER_NODE = Any()
         private val KEY_MOVE_WITH_OWNER_WINDOW = Any()
-        private val STYLE_CLASS = "popover"
+        private const val STYLE_CLASS = "popover"
 
-        private lateinit var UNFOCUSED_OWNER: Stage
+        private val UNFOCUSED_OWNER by lazy { APP.windowManager.createStageOwner() }
 
-        init {
-            Platform.runLater { UNFOCUSED_OWNER = APP.windowManager.createStageOwner() }
-        }
     }
 }

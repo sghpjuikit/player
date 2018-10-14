@@ -616,7 +616,8 @@ public interface Functors {
 
 		public Parameter(Class<P> type, P defaultValue) {
 			this("", "", type, defaultValue);
-			noNull(type, defaultValue);
+			noNull(type);
+			noNull(defaultValue);
 		}
 
 		public Parameter(String name, String description, Class<P> type, P defaultValue) {
@@ -624,7 +625,10 @@ public interface Functors {
 			this.description = description.isEmpty() ? this.name : description;
 			this.type = unPrimitivize(type);
 			this.defaultValue = defaultValue;
-			noNull(type, description, type, defaultValue);
+			noNull(type);
+			noNull(description);
+			noNull(type);
+			noNull(defaultValue);
 		}
 
 		public static <P> Parameter<P> p(String name, String description, Class<P> type, P defaultValue) {

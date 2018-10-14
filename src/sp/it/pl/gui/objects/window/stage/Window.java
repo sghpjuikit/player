@@ -403,7 +403,7 @@ public class Window extends WindowBase {
 	}
 
 	public void setContent(Node n) {
-		throwIfNot(layout==null, "Layout already initialized");
+		throwIfNot(layout==null, () -> "Layout already initialized");
 		content.getChildren().clear();
 		content.getChildren().add(n);
 		setAnchors(n, 0d);
@@ -424,7 +424,7 @@ public class Window extends WindowBase {
 	}
 
 	public void initLayout(Layout l) {
-		throwIfNot(layout==null, "Layout already initialized");
+		throwIfNot(layout==null, () -> "Layout already initialized");
 		layout = l;
 		if (layout.getName()==null) layout.setName("Layout");
 		content.getChildren().clear();

@@ -70,6 +70,11 @@ import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.conf.MainConfiguration
+import sp.it.pl.util.conf.between
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cr
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.conf.preserveOrder
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
@@ -463,7 +468,7 @@ class App: Application(), Configurable<Any> {
         }
     }
 
-    /** Close this app normally. Invokes [stop] as a result. */
+    /** Close this app normally. Causes invocation of [stop] as a result. */
     @IsAction(name = "Close app", desc = "Closes this application.")
     fun close() {
         windowManager.windows.forEach { it.hide() }     // close app in bgr (assumes we don't restore window visibility state!)

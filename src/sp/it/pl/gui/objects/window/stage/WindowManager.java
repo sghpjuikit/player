@@ -79,7 +79,7 @@ import static sp.it.pl.util.reactive.Util.onScreenChange;
 /**
  * Manages windows.
  */
-@IsConfigurable(value = Settings.UI_WINDOW)
+@IsConfigurable(value = Settings.Ui.WINDOW)
 public class WindowManager implements Configurable<Object> {
 
     private static final Logger LOGGER = logger(WindowManager.class);
@@ -229,7 +229,7 @@ public class WindowManager implements Configurable<Object> {
     }
 
     void setAsMain(Window w) {
-        sp.it.pl.util.dev.Util.noNull(w);
+        noNull(w);
         if (mainWindow==w) return;
         if (mainWindow!=null) mainWindow.isMainDisposables.forEach(Subscription::unsubscribe);
         if (mainWindow!=null) mainWindow.isMain.setValue(false);
@@ -518,7 +518,7 @@ public class WindowManager implements Configurable<Object> {
 
     public PopOver showFloating(Node content, String title) {
         noNull(content);
-        noNull(title);  // we could use null, but disallow
+        noNull(title);
 
         PopOver<?> p = new PopOver<>(content);
         p.title.set(title);
@@ -545,7 +545,6 @@ public class WindowManager implements Configurable<Object> {
             if (windows.isEmpty()) {
                 getActiveOrNew().setContent(w);
             } else {
-                System.out.println("3 " + w);
                 createWindow(w);
             }
         }

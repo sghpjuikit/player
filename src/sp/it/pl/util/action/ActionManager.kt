@@ -3,9 +3,9 @@ package sp.it.pl.util.action
 import javafx.application.Platform
 import javafx.scene.input.KeyCode.ALT_GRAPH
 import javafx.stage.Stage
-import sp.it.pl.main.c
-import sp.it.pl.main.cv
-import sp.it.pl.main.readOnlyUnless
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.access.initSync
 import sp.it.pl.util.access.v
 import sp.it.pl.util.action.ActionRegistrar.hotkeys

@@ -5,10 +5,10 @@ import mu.KLogging
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
 import sp.it.pl.main.AppUtil.APP
-import sp.it.pl.main.cList
-import sp.it.pl.main.cr
-import sp.it.pl.main.cv
-import sp.it.pl.main.only
+import sp.it.pl.util.conf.cList
+import sp.it.pl.util.conf.cr
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.conf.only
 import sp.it.pl.util.async.oneCachedThreadExecutor
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.async.threadFactory

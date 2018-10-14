@@ -2,7 +2,7 @@ package sp.it.pl.plugin
 
 import mu.KLogging
 import sp.it.pl.main.AppUtil.APP
-import sp.it.pl.main.cr
+import sp.it.pl.util.conf.cr
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.graphics.getScreenForMouse

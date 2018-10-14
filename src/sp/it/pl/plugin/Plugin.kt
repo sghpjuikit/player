@@ -1,7 +1,7 @@
 package sp.it.pl.plugin
 
 import sp.it.pl.main.AppUtil.APP
-import sp.it.pl.main.MultiConfigurable
+import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.main.Settings
 import sp.it.pl.util.Locatable
 import sp.it.pl.util.conf.Configurable

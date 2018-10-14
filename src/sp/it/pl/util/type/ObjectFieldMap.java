@@ -19,19 +19,22 @@ public class ObjectFieldMap {
 	private final ClassMap<Set> cache2 = new ClassMap<>();
 
 	public <T> void add(Class<T> c, Collection<? extends ObjectField<T,?>> fields) {
-		noNull(c, fields);
+		noNull(c);
+		noNull(fields);
 		fields.forEach(field -> add(c, field));
 	}
 
 	@SafeVarargs
 	public final <T> void add(Class<T> c, ObjectField<T,?>... fields) {
-		noNull(c, fields);
+		noNull(c);
+		noNull(fields);
 		stream(fields).forEach(field -> add(c, field));
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> void add(Class<T> c, ObjectField<T,?> field) {
-		noNull(c, field);
+		noNull(c);
+		noNull(fields);
 		fields.computeIfAbsent(c, key -> new HashSet<>()).add(field);
 		cache.remove(c);
 		cache2.remove(c);

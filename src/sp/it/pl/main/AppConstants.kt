@@ -17,8 +17,10 @@ object Actions {
 
 object Settings {
     const val UI = "Ui"
-    const val UI_TABLE = "Ui.Table"
-    const val UI_WINDOW = "Ui.Window"
+    object Ui {
+        const val TABLE = "$UI.Table"
+        const val WINDOW = "$UI.Window"
+    }
     const val SERVICES = "Services"
     const val PLUGINS = "Plugins"
 }

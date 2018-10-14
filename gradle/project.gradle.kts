@@ -2,7 +2,11 @@ import de.undercouch.gradle.tasks.download.Download
 import de.undercouch.gradle.tasks.download.DownloadExtension
 import de.undercouch.gradle.tasks.download.DownloadTaskPlugin
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.JavaExec
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import org.gradle.kotlin.dsl.apply
+import org.gradle.kotlin.dsl.extra
+import org.gradle.kotlin.dsl.kotlin
 import org.gradle.kotlin.dsl.support.zipTo
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
@@ -17,10 +21,10 @@ import kotlin.text.Charsets.UTF_8
 
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
-    kotlin("jvm") version "1.2.40"
+    kotlin("jvm") version "1.2.71"
     application
-    id("com.github.ben-manes.versions") version "0.17.0"
-    id("de.undercouch.download") version "3.4.2"
+    id("com.github.ben-manes.versions") version "0.20.0"
+    id("de.undercouch.download") version "3.4.3"
 }
 
 /** working directory of the application */
@@ -34,16 +38,17 @@ val supportedJavaVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION
 
 if (JavaVersion.current() !in supportedJavaVersions) {
     println("""org.gradle.java.home=${properties["org.gradle.java.home"]}
-		|Java version ${JavaVersion.current()} can't be used. Set one of ${supportedJavaVersions.joinToString()} as system default or create a "gradle.properties" file with "org.gradle.java.home" pointing to a supported Java version""".trimMargin())
+        |Java version ${JavaVersion.current()} can't be used.
+        | Set one of ${supportedJavaVersions.joinToString()} as system default or create a "gradle.properties"
+        | file with "org.gradle.java.home" pointing to a supported Java version""".trimMargin())
     throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
 }
 
-java {
-    sourceSets {
-        getByName("main") {
-            java.srcDir("src")
-            resources.srcDir("src")
-        }
+
+sourceSets {
+    getByName("main") {
+        java.srcDir("src")
+        resources.srcDir("src")
     }
 }
 
@@ -191,7 +196,7 @@ tasks {
         }
         src("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/kotlin-compiler-$kotlinVersion.zip")
         dest(buildDir)
-        doLast { 
+        doLast {
             copy {
                 from(zipTree(buildDir.resolve("kotlin-compiler-$kotlinVersion.zip")))
                 into(workDir)

@@ -1,7 +1,6 @@
 package sp.it.pl.util.conf
 
 import kotlin.annotation.AnnotationRetention.RUNTIME
-import kotlin.annotation.AnnotationTarget.EXPRESSION
 import kotlin.annotation.AnnotationTarget.FIELD
 import kotlin.annotation.AnnotationTarget.FUNCTION
 import kotlin.annotation.AnnotationTarget.LOCAL_VARIABLE
@@ -46,7 +45,7 @@ import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
  */
 @MustBeDocumented
 @Retention(RUNTIME)
-@Target(FIELD, PROPERTY, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER, LOCAL_VARIABLE, EXPRESSION)
+@Target(FIELD, PROPERTY, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER, LOCAL_VARIABLE)
 annotation class IsConfig(
         /**
          * @return human readable name of the field. Default value is "". If not provided, the name will match the name of

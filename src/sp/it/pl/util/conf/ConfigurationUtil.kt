@@ -1,6 +1,5 @@
 package sp.it.pl.util.conf
 
-import sp.it.pl.main.MultiConfigurable
 import sp.it.pl.util.dev.throwIf
 import sp.it.pl.util.type.Util.unPrimitivize
 import sp.it.pl.util.type.isSuperclassOf
@@ -10,13 +9,14 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.jvmName
 
-
 object MainConfiguration: Configuration()
+
+fun <T> Config<T>.isEditableByUser() = isEditable.isByUser && constraints.asSequence().none { it is Constraint.ReadOnlyIf && it.condition() }
 
 fun computeConfigGroup(declaringRef: Any): String {
     val groupDiscriminant = (declaringRef as? MultiConfigurable)
             ?.configurableDiscriminant
-            ?.apply { throwIf(isBlank(), "Configurable discriminant is empty") }
+            ?.apply { throwIf(isBlank()) { "Configurable discriminant is empty" } }
             ?: ""
 
     return if (groupDiscriminant.isEmpty()) {
@@ -33,7 +33,7 @@ fun IsConfig.computeConfigGroup(declaringRef: Any): String {
 
     val groupDiscriminant = (declaringRef as? MultiConfigurable)
             ?.configurableDiscriminant
-            ?.apply { throwIf(isBlank(), "Configurable discriminant is empty") }
+            ?.apply { throwIf(isBlank()) { "Configurable discriminant is empty" } }
             ?: ""
 
     return if (groupDiscriminant.isEmpty()) {

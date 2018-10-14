@@ -23,8 +23,6 @@ import sp.it.pl.gui.objects.image.Thumbnail.FitFrom
 import sp.it.pl.gui.pane.OverlayPane.Companion.globalDisplay
 import sp.it.pl.gui.pane.OverlayPane.Companion.globalDisplayBgr
 import sp.it.pl.main.AppUtil.APP
-import sp.it.pl.main.MultiConfigurableBase
-import sp.it.pl.main.cv
 import sp.it.pl.main.resizeButton
 import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim
@@ -32,6 +30,8 @@ import sp.it.pl.util.async.runAfter
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.MultiConfigurableBase
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.functional.orNull

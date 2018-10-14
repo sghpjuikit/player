@@ -17,8 +17,8 @@ import sp.it.pl.layout.widget.WidgetSource.NEW
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.hasFeature
 import sp.it.pl.main.AppUtil.APP
-import sp.it.pl.main.c
-import sp.it.pl.main.cv
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cv
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.util.access.VarAction
 import sp.it.pl.util.access.VarEnum

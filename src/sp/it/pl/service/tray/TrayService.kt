@@ -12,8 +12,8 @@ import javafx.stage.Stage
 import mu.KLogging
 import sp.it.pl.audio.Player
 import sp.it.pl.main.AppUtil.APP
-import sp.it.pl.main.c
-import sp.it.pl.main.cv
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cv
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.util.async.runAwt
 import sp.it.pl.util.async.runFX

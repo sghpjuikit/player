@@ -172,7 +172,9 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		}
 
 		public PredicateData(String name, Class type, T value) {
-			noNull(name, type, value);
+			noNull(name);
+			noNull(type);
+			noNull(value);
 			this.name = name;
 			this.type = type;
 			this.value = value;

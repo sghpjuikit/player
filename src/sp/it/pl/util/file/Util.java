@@ -405,7 +405,8 @@ public interface Util {
 	 * @see ImageFileFormat for specifications
 	 */
 	static void writeImage(Image img, File f) {
-		noNull(img, f);
+		noNull(img);
+		noNull(f);
 
 		ImageFileFormat t = ImageFileFormat.of(f.toURI());
 		if (!t.isSupported()) {

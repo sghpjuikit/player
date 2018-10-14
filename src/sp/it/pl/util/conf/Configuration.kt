@@ -1,6 +1,5 @@
 package sp.it.pl.util.conf
 
-import sp.it.pl.main.isEditableByUser
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.action.ActionRegistrar
 import sp.it.pl.util.collections.mapset.MapSet

@@ -16,9 +16,7 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.dev.Dependency
-import sp.it.pl.util.dev.printIt
 import sp.it.pl.util.file.childOf
-import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.type.Util.getFieldValue
@@ -26,8 +24,6 @@ import sp.it.pl.util.type.Util.invokeMethodP1
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.pl.web.WebBarInterpreter
-import java.io.File
-import java.nio.file.Files.lines
 
 @Widget.Info(
         name = "WebReader",

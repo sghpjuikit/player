@@ -3,7 +3,6 @@ import de.undercouch.gradle.tasks.download.DownloadExtension
 import de.undercouch.gradle.tasks.download.DownloadTaskPlugin
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
-import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.kotlin
@@ -44,7 +43,6 @@ if (JavaVersion.current() !in supportedJavaVersions) {
     throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
 }
 
-
 sourceSets {
     getByName("main") {
         java.srcDir("src")
@@ -53,12 +51,13 @@ sourceSets {
 }
 
 kotlin {
-    copyClassesToJavaOutput = false
+    copyClassesToJavaOutput = true
     experimental.coroutines = Coroutines.ENABLE
 }
 
 allprojects {
-    buildDir = file(properties["player.buildDir"] ?: "build").resolve(name)
+    apply(plugin = "kotlin")
+    buildDir = file(properties["player.buildDir"] ?: rootDir.resolve("build")).resolve(name)
 
     tasks.withType<JavaCompile> {
         options.encoding = UTF_8.name()
@@ -80,6 +79,8 @@ allprojects {
 
     repositories {
         jcenter()
+        mavenCentral()
+        maven("https://jitpack.io")
     }
 }
 
@@ -93,24 +94,22 @@ dependencies {
     compile("org.slf4j", "slf4j-api", "1.7.25")
     compile("org.slf4j", "jul-to-slf4j", "1.7.25")
     compile("ch.qos.logback", "logback-classic", "1.2.3")
-    compile("io.github.microutils", "kotlin-logging", "1.5.3")
+    compile("io.github.microutils", "kotlin-logging", "1.6.10")
 
     // JavaFX
     compile("de.jensd", "fontawesomefx", "8.9")
     compile("org.reactfx", "reactfx", "2.0-M5")
-    compile("eu.hansolo", "tilesfx", "1.5.2") {
+    compile("eu.hansolo", "tilesfx", "1.6.4") {
         exclude("com.googlecode.json-simple", "json-simple")
     }
-    compile("eu.hansolo", "Medusa", "7.9")
+    compile("eu.hansolo", "Medusa", "8.0")
 
-    // Audio
-    compile("uk.co.caprica", "vlcj", "3.10.1")
-    compile("de.u-mass", "lastfm-java", "0.1.2")
-
-    // misc
-    compile("net.java.dev.jna", "jna-platform", "4.5.1")
+    // Native
+    compile("net.java.dev.jna", "jna-platform", "4.5.2")
+    // due to a critical error on linux, don't update this to 2.1.0
     compile("com.1stleg", "jnativehook", "2.0.2")
 
+    //Misc
     compile("net.objecthunter", "exp4j", "0.4.8")
     compile("org.atteo", "evo-inflector", "1.2.2")
     compile("com.thoughtworks.xstream", "xstream", "1.4.10") {
@@ -118,26 +117,30 @@ dependencies {
         exclude("xpp3", "xpp3_min")
     }
 
-    // Image
-    compile("com.drewnoakes", "metadata-extractor", "2.11.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-core", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-bmp", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-jpeg", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-iff", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-icns", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pcx", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pict", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-clippath", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-hdr", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pdf", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-pnm", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-psd", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-tga", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-sgi", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-thumbsdb", "3.4.0")
-    //	compile("com.twelvemonkeys.imageio", "imageio-tiff", "3.4.0")
+    // Audio
+    compile("uk.co.caprica", "vlcj", "3.10.1")
+    compile("de.u-mass", "lastfm-java", "0.1.2")
+    compile("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
 
-    compile(files(file("extra/lib").listFiles()))
+    // Image
+    val imageioVersion = "3.4.1"
+    compile("com.drewnoakes", "metadata-extractor", "2.11.0")
+    compile("com.twelvemonkeys.imageio", "imageio-core", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-bmp", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-jpeg", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-iff", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-icns", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-pcx", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-pict", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-clippath", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-hdr", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-pdf", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-pnm", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-psd", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-tga", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-sgi", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-thumbsdb", imageioVersion)
+    compile("com.twelvemonkeys.imageio", "imageio-tiff", imageioVersion)
 
 }
 
@@ -219,7 +222,7 @@ tasks {
             workDir.resolve("lib").deleteRecursively()
             workDir.resolve("widgets").walkBottomUp()
                     .filter { it.path.endsWith("class") }
-                    .fold(true, { res, it -> (it.delete() || !it.exists()) && res })
+                    .fold(true) { res, it -> (it.delete() || !it.exists()) && res }
         }
     }
 

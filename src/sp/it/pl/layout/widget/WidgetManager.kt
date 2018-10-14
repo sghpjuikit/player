@@ -29,7 +29,7 @@ import sp.it.pl.util.dev.Idempotent
 import sp.it.pl.util.file.FileMonitor
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
-import sp.it.pl.util.file.endsWithSuffix
+import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.isAnyParentOf
 import sp.it.pl.util.file.isParentOf
 import sp.it.pl.util.file.listChildren
@@ -129,11 +129,11 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             logger.error { "External .fxwl widgets registration failed." }
         } else {
             dirL.listChildren()
-                    .filter { it endsWithSuffix "fxwl" }
+                    .filter { it hasExtension "fxwl" }
                     .filter { it.useLines { it.take(1).any { it.startsWith("<Widget") } } }
                     .forEach { fxwl -> factoriesC.computeIfAbsent(fxwl.nameWithoutExtension.capitalize()) { DeserializingFactory(fxwl) } }
 
-            FileMonitor.monitorDirsFiles(dirL, { it endsWithSuffix "fxwl" }) { type, fxwl ->
+            FileMonitor.monitorDirsFiles(dirL, { it hasExtension "fxwl" }) { type, fxwl ->
                 if (type===ENTRY_CREATE) {
                     registerFactory(DeserializingFactory(fxwl))
                 }
@@ -209,7 +209,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 ?: widgetDir.childOf("$widgetName.java").takeIf { it.exists() }
                 ?: widgetDir.childOf("$widgetName.kt").takeIf { it.exists() }
 
-        fun findSrcFiles() = widgetDir.seqChildren().filter { it.endsWithSuffix("java", "kt") }
+        fun findSrcFiles() = widgetDir.seqChildren().filter { it.hasExtension("java", "kt") }
 
         fun computeClassPath(): String = computeClassPathElements().joinToString(classpathSeparator)
 
@@ -231,7 +231,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         }
 
         private fun Sequence<File>.filterSourceJars() = this
-                .filter { it endsWithSuffix "jar" }
+                .filter { it hasExtension "jar" }
                 .filter { !it.path.endsWith("sources.jar") }
                 .filter { !it.path.endsWith("javadoc.jar") }
 
@@ -254,7 +254,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                                     }
                         }
                     }
-                    file endsWithSuffix "class" -> {
+                    file hasExtension "class" -> {
                         logger.info { "Widget=$widgetName class file=${file.name} changed $type" }
                         if (widgets.autoRecompile.value && widgets.autoRecompileSupported)
                             scheduleRefresh()
@@ -307,8 +307,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             logger.info { "Widget=$widgetName compiling..." }
 
             val srcFiles = findSrcFiles().toList()
-            val isKotlin = srcFiles.any { it endsWithSuffix "kt" }
-            val isJava = srcFiles.any { it endsWithSuffix "java" }
+            val isKotlin = srcFiles.any { it hasExtension "kt" }
+            val isJava = srcFiles.any { it hasExtension "java" }
             val result = when {
                 isJava && isKotlin -> Try.error("Mixed Kotlin-Java source code for widget is not supported")
                 isKotlin -> compileKotlin(srcFiles.asSequence())
@@ -558,7 +558,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 return
             }
 
-            layoutsAvailable clearSet dir.seqChildren().filter { it endsWithSuffix "l" }.map { it.nameWithoutExtension }
+            layoutsAvailable clearSet dir.seqChildren().filter { it hasExtension "l" }.map { it.nameWithoutExtension }
         }
     }
 

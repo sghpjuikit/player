@@ -54,102 +54,13 @@ import static sp.it.pl.util.reactive.Util.onChange;
 
 public class GViewSkin<T, F> implements Skin<GridView> {
 
+	private static final int NO_SELECT = Integer.MIN_VALUE;
 	private final GridView<T,F> grid;
 	private final Flow<T,F> flow;
 	private final VBox root;
 	private final StackPane filterPane = new StackPane();
-
-	public GViewSkin(GridView<T,F> control) {
-		this.grid = control;
-		this.flow = new Flow<>(this);
-
-		maintain(grid.cellHeightProperty(), e -> flow.changeItems());
-		maintain(grid.cellWidthProperty(), e -> flow.changeItems());
-		maintain(grid.horizontalCellSpacingProperty(), e -> flow.changeItems());
-		maintain(grid.verticalCellSpacingProperty(), e -> flow.changeItems());
-		maintain(grid.widthProperty(), e -> flow.changeItems());
-		maintain(grid.heightProperty(), e -> flow.changeItems());
-		maintain(grid.cellFactoryProperty(), e -> flow.changeItems());
-		maintain(grid.parentProperty(), e -> {
-			if (grid.getParent()!=null && grid.isVisible())
-				grid.requestLayout();
-		});
-		grid.focusedProperty().addListener((o, ov, nv) -> {
-			if (nv) flow.requestFocus();
-		});
-		onChange(grid.getItemsShown(), () -> { flow.changeItems(); return Unit.INSTANCE; });
-
-		root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, flow.root);
-		filter = new Filter(grid.type, grid.itemsFiltered);
-
-		// selection
-		flow.addEventHandler(KEY_PRESSED, e -> {
-			KeyCode c = e.getCode();
-			if (c.isNavigationKey()) {
-				if (grid.selectOn.contains(SelectionOn.KEY_PRESS)) {
-					if (c==KeyCode.UP || c==KeyCode.KP_UP) selectIfNoneOr(this::selectFirst, this::selectUp);
-					if (c==KeyCode.DOWN || c==KeyCode.KP_DOWN) selectIfNoneOr(this::selectFirst, this::selectDown);
-					if (c==KeyCode.LEFT || c==KeyCode.KP_LEFT) selectIfNoneOr(this::selectFirst, this::selectLeft);
-					if (c==KeyCode.RIGHT || c==KeyCode.KP_RIGHT) selectIfNoneOr(this::selectFirst, this::selectRight);
-					if (c==KeyCode.PAGE_UP) selectIfNoneOr(this::selectFirst, this::selectPageUp);
-					if (c==KeyCode.PAGE_DOWN) selectIfNoneOr(this::selectFirst, this::selectPageDown);
-					if (c==KeyCode.HOME) selectFirst();
-					if (c==KeyCode.END) selectLast();
-				}
-				e.consume();
-			} else if (c==ESCAPE && !e.isConsumed()) {
-				if (selectedCI>=0) {
-					selectNone();
-					e.consume();
-				}
-			}
-		});
-		flow.addEventHandler(MOUSE_CLICKED, e -> {
-			if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK))
-				selectNone();
-			flow.requestFocus();
-		});
-
-		flow.changeItems();
-	}
-
-	// TODO: improve API
-	public double getPosition() {
-		return flow.getPosition();
-	}
-
-	// TODO: improve API
-	public void setPosition(double position) {
-		flow.scrollTo(position);
-	}
-
-	// TODO: improve API
-	public void requestFocus() {
-		flow.requestFocus();
-	}
-
-	@Override
-	public GridView<T,F> getSkinnable() {
-		return grid;
-	}
-
-	@Override
-	public Node getNode() {
-		return root;
-	}
-
-	@Override
-	public void dispose() {}
-
-	public Stream<GridCell<T,F>> getCells() {
-		return flow.getCells();
-	}
-
-/* ---------- FILTER ------------------------------------------------------------------------------------------------ */
-
 	/** Filter pane in the top of the table. */
 	public final Filter filter;
-
 	/**
 	 * Visibility of the filter pane.
 	 * Filter is displayed in the top of the table.
@@ -175,8 +86,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 
 			Node sn = filter.getNode();
 			if (v) {
-				if (!filterPane.getChildren().contains(sn))
-					filterPane.getChildren().add(0, sn);
+				if (!filterPane.getChildren().contains(sn)) filterPane.getChildren().add(0, sn);
 			} else {
 				filterPane.getChildren().clear();
 			}
@@ -187,78 +97,109 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			if (v) runLater(filter::focus);
 		}
 	};
+	int selectedCI = NO_SELECT;
+	private GridCell<T,F> selectedC = null;
 
-	/** Table's filter node. */
-	public class Filter extends FieldedPredicateChainItemNode<F,ObjectField<F,Object>> {
+	public GViewSkin(GridView<T,F> control) {
+		this.grid = control;
+		this.flow = new Flow<>(this);
 
-		@SuppressWarnings("unchecked")
-		private Filter(Class<F> filterType, FilteredList<T> filterList) {
-			super(THIS -> {
-				FieldedPredicateItemNode<F,ObjectField<F,Object>> g = new FieldedPredicateItemNode<>(
-						in -> Functors.pool.getIO(in, Boolean.class),
-						in -> Functors.pool.getPrefIO(in, Boolean.class)
-				);
-				g.setPrefTypeSupplier(THIS.getPrefTypeSupplier());
-				g.setData(THIS.getData());
-				return g;
-			});
-			setPrefTypeSupplier(GViewSkin.this::getPrimaryFilterPredicate);
-			setData(getFilterPredicates(filterType));
-			growTo1();
-			onItemChange = predicate -> filterList.setPredicate(item -> predicate.test(getSkinnable().filterByMapper.apply(item)));
+		maintain(grid.cellHeightProperty(), e -> flow.changeItems());
+		maintain(grid.cellWidthProperty(), e -> flow.changeItems());
+		maintain(grid.horizontalCellSpacingProperty(), e -> flow.changeItems());
+		maintain(grid.verticalCellSpacingProperty(), e -> flow.changeItems());
+		maintain(grid.widthProperty(), e -> flow.changeItems());
+		maintain(grid.heightProperty(), e -> flow.changeItems());
+		maintain(grid.cellFactoryProperty(), e -> flow.changeItems());
+		maintain(grid.parentProperty(), e -> {
+			if (grid.getParent()!=null && grid.isVisible()) grid.requestLayout();
+		});
+		grid.focusedProperty().addListener((o, ov, nv) -> {
+			if (nv) flow.requestFocus();
+		});
+		onChange(grid.getItemsShown(), () -> {
+			flow.changeItems();
+			return Unit.INSTANCE;
+		});
 
-			EventHandler<KeyEvent> filterKeyHandler = e -> {
-				KeyCode k = e.getCode();
-				// CTRL+F -> toggle filter
-				if (k==KeyCode.F && e.isShortcutDown()) {
-					filterVisible.set(!filterVisible.get());
-					if (!filterVisible.get()) GViewSkin.this.flow.requestFocus();
+		root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, flow.root);
+		filter = new Filter(grid.type, grid.itemsFiltered);
+
+		// selection
+		flow.addEventHandler(KEY_PRESSED, e -> {
+			KeyCode c = e.getCode();
+			if (c.isNavigationKey()) {
+				if (grid.selectOn.contains(SelectionOn.KEY_PRESS)) {
+					if (c==KeyCode.UP || c==KeyCode.KP_UP) selectIfNoneOr(this::selectFirst, this::selectUp);
+					if (c==KeyCode.DOWN || c==KeyCode.KP_DOWN) selectIfNoneOr(this::selectFirst, this::selectDown);
+					if (c==KeyCode.LEFT || c==KeyCode.KP_LEFT) selectIfNoneOr(this::selectFirst, this::selectLeft);
+					if (c==KeyCode.RIGHT || c==KeyCode.KP_RIGHT) selectIfNoneOr(this::selectFirst, this::selectRight);
+					if (c==KeyCode.PAGE_UP) selectIfNoneOr(this::selectFirst, this::selectPageUp);
+					if (c==KeyCode.PAGE_DOWN) selectIfNoneOr(this::selectFirst, this::selectPageDown);
+					if (c==KeyCode.HOME) selectFirst();
+					if (c==KeyCode.END) selectLast();
+				}
+				e.consume();
+			} else if (c==ESCAPE && !e.isConsumed()) {
+				if (selectedCI >= 0) {
+					selectNone();
 					e.consume();
-					return;
 				}
+			}
+		});
+		flow.addEventHandler(MOUSE_CLICKED, e -> {
+			if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK)) selectNone();
+			flow.requestFocus();
+		});
 
-				if (e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
-				// ESC, filter not focused -> close filter
-				if (k==ESCAPE) {
-					if (filterVisible.get()) {
-						if (isEmpty()) {
-							filterVisible.set(false);
-							GViewSkin.this.flow.requestFocus();
-						} else {
-							clear();
-						}
-						e.consume();
-					}
-				}
-			};
-			getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
-			getSkinnable().addEventHandler(KEY_PRESSED, filterKeyHandler); // even filter would cause ignoring first key stroke when filter turns visible
-		}
+		flow.changeItems();
 	}
+
+	// TODO: improve API
+	public double getPosition() {
+		return flow.getPosition();
+	}
+
+	// TODO: improve API
+	public void setPosition(double position) {
+		flow.scrollTo(position);
+	}
+
+	/* ---------- FILTER ------------------------------------------------------------------------------------------------ */
+
+	// TODO: improve API
+	public void requestFocus() {
+		flow.requestFocus();
+	}
+
+	@Override
+	public GridView<T,F> getSkinnable() {
+		return grid;
+	}
+
+	@Override
+	public Node getNode() {
+		return root;
+	}
+
+	@Override
+	public void dispose() {}
+
+	public Stream<GridCell<T,F>> getCells() {
+		return flow.getCells();
+	}
+
+	/* ---------- SELECTION --------------------------------------------------------------------------------------------- */
 
 	@SuppressWarnings("unchecked")
 	private PredicateData<ObjectField<F,Object>> getPrimaryFilterPredicate() {
-		return Optional.ofNullable(grid.primaryFilterField)
-				.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
-				.map(f -> (PredicateData<ObjectField<F,Object>>) f)
-				.orElse(null);
+		return Optional.ofNullable(grid.primaryFilterField).map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField).map(f -> (PredicateData<ObjectField<F,Object>>) f).orElse(null);
 	}
 
 	@SuppressWarnings("unchecked")
 	private List<PredicateData<ObjectField<F,Object>>> getFilterPredicates(Class<F> filterType) {
-		return stream(APP.classFields.get(filterType))
-				.filter(ObjectField::isTypeFilterable)
-				.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
-				.map(f -> (PredicateData<ObjectField<F,Object>>) f)
-				.sorted(by(e -> e.name))
-				.collect(toList());
+		return stream(APP.classFields.get(filterType)).filter(ObjectField::isTypeFilterable).map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField).map(f -> (PredicateData<ObjectField<F,Object>>) f).sorted(by(e -> e.name)).collect(toList());
 	}
-
-/* ---------- SELECTION --------------------------------------------------------------------------------------------- */
-
-	private static final int NO_SELECT = Integer.MIN_VALUE;
-	int selectedCI = NO_SELECT;
-	private GridCell<T,F> selectedC = null;
 
 	public void selectIfNoneOr(Runnable ifEmpty, Runnable otherwise) {
 		if (selectedCI<0) ifEmpty.run();
@@ -446,8 +387,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 				}
 			});
 			cell.hoverProperty().addListener((o, ov, nv) -> {
-				if (nv && grid.selectOn.contains(SelectionOn.MOUSE_HOVER))
-					getSkinnable().implGetSkin().select(cell);
+				if (nv && grid.selectOn.contains(SelectionOn.MOUSE_HOVER)) getSkinnable().implGetSkin().select(cell);
 			});
 			cell.pseudoClassStateChanged(Search.PC_SEARCH_MATCH, false);
 			cell.pseudoClassStateChanged(Search.PC_SEARCH_MATCH_NOT, false);
@@ -489,7 +429,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			scrollbar.setVisible(computeMaxFullyVisibleCells()<=itemsAllCount);
 			scrollbar.setMin(0);
 			scrollbar.setMax(scrollableHeight);
-			scrollbar.setVisibleAmount((viewHeight/(scrollableHeight+viewHeight))*(scrollableHeight));
+			scrollbar.setVisibleAmount((viewHeight/(scrollableHeight + viewHeight))*(scrollableHeight));
 			scrollbar.setValue(viewStart);
 			scrollbar.updating = false;
 
@@ -506,7 +446,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 					throwIf(itemsAllCount<=indexEnd);
 
 					// If the cell count decreased, put the removed cells to cache
-					for (int i = visibleCells.size() - 1; i>=itemsVisibleCount; i--) {
+					for (int i = visibleCells.size() - 1; i >= itemsVisibleCount; i--) {
 						GridCell<T,F> cell = visibleCells.remove(i);
 						cell.setItem(null);
 						cell.updateIndex(-1);
@@ -544,12 +484,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 //					if (i>=itemCount) break;	// last row may not be full
 					GridCell<T,F> cell = getAt(i, visibleCells);
 					if (cell!=null) {
-						cell.resizeRelocate(
-								snapPositionX(xPos + hGap),
-								snapPositionY(yPos + vGap),
-								snapSizeX(cellWidth),
-								snapSizeY(cellHeight)
-						);
+						cell.resizeRelocate(snapPositionX(xPos + hGap), snapPositionY(yPos + vGap), snapSizeX(cellWidth), snapSizeY(cellHeight));
 						cell.updateIndex(cellI);
 						cell.update(getAt(cellI, items), cellI==skin.selectedCI);
 					}
@@ -574,7 +509,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			int fvr = fvc.getIndex()/rowSize;
 			int lvr = lvc.getIndex()/rowSize;
 			boolean isUp = row<=fvr;
-			boolean isDown = row>=lvr;
+			boolean isDown = row >= lvr;
 			boolean isSingleRow = isUp && isDown;
 			if (isSingleRow) return;
 			if (isUp) scrollToRowTop(row);
@@ -922,6 +857,51 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			int direction = (int) Math.signum(newValue - oldValue);
 			flow.scrollByPage(direction);
 			adjusting = false;
+		}
+	}
+
+	/** Table's filter node. */
+	public class Filter extends FieldedPredicateChainItemNode<F,ObjectField<F,Object>> {
+
+		@SuppressWarnings("unchecked")
+		private Filter(Class<F> filterType, FilteredList<T> filterList) {
+			super(THIS -> {
+				FieldedPredicateItemNode<F,ObjectField<F,Object>> g = new FieldedPredicateItemNode<>(in -> Functors.pool.getIO(in, Boolean.class), in -> Functors.pool.getPrefIO(in, Boolean.class));
+				g.setPrefTypeSupplier(THIS.getPrefTypeSupplier());
+				g.setData(THIS.getData());
+				return g;
+			});
+			setPrefTypeSupplier(GViewSkin.this::getPrimaryFilterPredicate);
+			setData(getFilterPredicates(filterType));
+			growTo1();
+			onItemChange = predicate -> filterList.setPredicate(item -> predicate.test(getSkinnable().filterByMapper.apply(item)));
+
+			EventHandler<KeyEvent> filterKeyHandler = e -> {
+				KeyCode k = e.getCode();
+				// CTRL+F -> toggle filter
+				if (k==KeyCode.F && e.isShortcutDown()) {
+					filterVisible.set(!filterVisible.get());
+					if (!filterVisible.get()) GViewSkin.this.flow.requestFocus();
+					e.consume();
+					return;
+				}
+
+				if (e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
+				// ESC, filter not focused -> close filter
+				if (k==ESCAPE) {
+					if (filterVisible.get()) {
+						if (isEmpty()) {
+							filterVisible.set(false);
+							GViewSkin.this.flow.requestFocus();
+						} else {
+							clear();
+						}
+						e.consume();
+					}
+				}
+			};
+			getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
+			getSkinnable().addEventHandler(KEY_PRESSED, filterKeyHandler); // even filter would cause ignoring first key stroke when filter turns visible
 		}
 	}
 }

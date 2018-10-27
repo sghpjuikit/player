@@ -106,10 +106,9 @@ dependencies {
 
     // Native
     compile("net.java.dev.jna", "jna-platform", "4.5.2")
-    // due to a critical error on linux, don't update this to 2.1.0
-    compile("com.1stleg", "jnativehook", "2.0.2")
+    compile("com.1stleg", "jnativehook", "2.0.2")   // due to a critical error on linux, don't update to 2.1.0
 
-    //Misc
+    // Misc
     compile("net.objecthunter", "exp4j", "0.4.8")
     compile("org.atteo", "evo-inflector", "1.2.2")
     compile("com.thoughtworks.xstream", "xstream", "1.4.10") {

@@ -11,6 +11,7 @@ import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.parsing.StringParseStrategy
 import sp.it.pl.util.parsing.StringParseStrategy.From
 import sp.it.pl.util.parsing.StringParseStrategy.To
+import sp.it.pl.util.reactive.syncFrom
 
 /** Cell for rating displaying the value as rating control. */
 @StringParseStrategy(from = From.SINGLETON, to = To.CONSTANT, constant = "Stars")
@@ -22,9 +23,9 @@ object RatingRatingCellFactory: RatingCellFactory {
         init {
             contentDisplay = GRAPHIC_ONLY
             alignment = Pos.CENTER
-            r.icons.bind(APP.maxRating)
-            r.partialRating.bind(APP.partialRating)
-            r.editable.bind(APP.allowRatingChange)
+            r.icons syncFrom APP.maxRating
+            r.partialRating syncFrom APP.partialRating
+            r.editable.value = true
             if (c.userData==Metadata.Field.RATING)
                 r.onRatingEdited = { it?.let { MetadataWriter.useToRate(c.tableView.items[index], it) } }
         }
@@ -38,6 +39,7 @@ object RatingRatingCellFactory: RatingCellFactory {
                 if (graphic == null) graphic = r
             }
         }
+
     }
 
 }

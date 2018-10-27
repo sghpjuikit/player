@@ -21,9 +21,6 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
-import sp.it.pl.gui.objects.Text;
-import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.pane.OverlayPane;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -72,19 +69,22 @@ import org.gamepad4j.Controllers;
 import org.gamepad4j.IController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sp.it.pl.util.functional.TriConsumer;
-import sp.it.pl.util.access.ref.R;
+import sp.it.pl.gui.objects.Text;
+import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.gui.pane.OverlayPane;
 import sp.it.pl.util.SwitchException;
+import sp.it.pl.util.access.ref.R;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.collections.Tuple2;
 import sp.it.pl.util.collections.map.ClassMap;
 import sp.it.pl.util.collections.map.Map2D;
 import sp.it.pl.util.collections.mapset.MapSet;
+import sp.it.pl.util.functional.Functors.Ƒ;
 import sp.it.pl.util.functional.Functors.Ƒ0;
 import sp.it.pl.util.functional.Functors.Ƒ1;
+import sp.it.pl.util.functional.TriConsumer;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.functional.Util;
-import sp.it.pl.util.reactive.SetƑ;
 import static comet.Comet.Constants.FPS;
 import static comet.Utils.Achievement.achievement01;
 import static comet.Utils.Achievement.achievement0N;
@@ -1179,12 +1179,12 @@ interface Utils {
 		final List<Ttl> lt = new ArrayList<>();
 		final List<TtlC> ltc = new ArrayList<>();
 		final List<PTtl> lpt = new ArrayList<>();
-		final SetƑ lr = new SetƑ();
+		final Set<Runnable> lr = new HashSet<>();
 		final Set<Runnable> temp = new HashSet<>();
 
 		/** Adds runnable that will run next time this runs. */
 		void add(Runnable r) {
-			lr.add(r);
+			lr.add(Ƒ.f(r));
 		}
 
 		/** Adds runnable that will run after this runs specified number of times. */
@@ -1251,7 +1251,7 @@ interface Utils {
 				else t.run();
 			}
 
-			lr.apply();
+			lr.forEach(Runnable::run);
 			lr.clear();
 		}
 

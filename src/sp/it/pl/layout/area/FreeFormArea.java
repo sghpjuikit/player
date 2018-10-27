@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package sp.it.pl.layout.area;
 
 import java.util.HashMap;
@@ -14,7 +9,6 @@ import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.window.Resize;
 import sp.it.pl.gui.objects.window.pane.PaneWindowControls;
@@ -29,6 +23,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DAS
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static sp.it.pl.layout.area.Area.DRAGGED_PSEUDOCLASS;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.functional.Util.findFirstEmptyKey;
 import static sp.it.pl.util.graphics.Util.setAnchor;
@@ -59,7 +54,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         BooleanProperty any_window_clicked = new SimpleBooleanProperty(false);
         rt.setOnMousePressed(e -> any_window_clicked.set(isHere(e)));
         rt.setOnMouseClicked(e -> {
-            if (!isAltCon && (Gui.isLayoutMode() || !container.lockedUnder.get())) {
+            if (!isAltCon && (APP.ui.isLayoutMode() || !container.lockedUnder.get())) {
                 any_window_clicked.set(any_window_clicked.get() && isHere(e));
                 // add new widget on left click
                 if (e.getButton()==PRIMARY && any_window_clicked.get() && !any_window_resizing) {
@@ -91,7 +86,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 double ww = container.properties.getD(i+"w");
                 if (container.properties.containsKey(i+"x")) w.x.set(wx*nv.doubleValue());
                 if (container.properties.containsKey(i+"w")) w.w.set((ww-wx)*nv.doubleValue());
-                maintain(Gui.snapping, w.snappable);    // this is bad!
+                maintain(APP.ui.getSnapping(), w.snappable);    // this is bad!
             });
             resizing = false;
         });
@@ -105,7 +100,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 double wh = container.properties.getD(i+"h");
                 if (container.properties.containsKey(i+"y")) w.y.set(wy*nv.doubleValue());
                 if (container.properties.containsKey(i+"h")) w.h.set((wh-wy)*nv.doubleValue());
-                maintain(Gui.snapping, w.snappable);    // this is bad!
+                maintain(APP.ui.getSnapping(), w.snappable);    // this is bad!
             });
             resizing = false;
         });
@@ -203,8 +198,8 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             maintain(w.y, v -> { if (!resizing) container.properties.put(i+"y", v.doubleValue()/rt.getHeight());});
             maintain(w.w, v -> { if (!resizing) container.properties.put(i+"w", (w.x.get()+v.doubleValue())/rt.getWidth());});
             maintain(w.h, v -> { if (!resizing) container.properties.put(i+"h", (w.y.get()+v.doubleValue())/rt.getHeight());});
-            maintain(Gui.snapDistance, d->d, w.snapDistance);
-            maintain(Gui.snapping, w.snappable);
+            maintain(APP.ui.getSnapDistance(), d->d, w.snapDistance);
+            maintain(APP.ui.getSnapping(), w.snappable);
         });
         maintain(container.lockedUnder, l -> !l, w.resizable);
         maintain(container.lockedUnder, l -> !l, w.movable);

@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -53,6 +54,7 @@ import sp.it.pl.util.action.Action;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.functional.Functors.Ƒ1;
+import sp.it.pl.util.text.UtilKt;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
@@ -128,6 +130,8 @@ public class Icon extends StackPane {
 	}
 
 	private final Text node = new Text();
+	public DoubleProperty glyphOffsetX = node.translateXProperty();
+	public DoubleProperty glyphOffsetY = node.translateYProperty();
 	private StringProperty glyphStyle = new SimpleStringProperty(""); // needed as setStyle() is final in javafx.scene.text.Text
 	private final SimpleStyleableObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", GLYPHS.keyMapper.invoke(ADJUST));
 	private boolean isGlyphSetProgrammatically = false;
@@ -371,7 +375,11 @@ public class Icon extends StackPane {
 	public final Icon onClick(Runnable action) {
 		if (action instanceof Action) {
 			Action a = (Action) action;
-			tooltip(a.getName() + "\n\n" + a.getInfo());
+			String title = a.getName();
+			String body = a.getInfo();
+			String keysRaw = UtilKt.getKeysPretty(a);
+			String keys = keysRaw.isEmpty() ? keysRaw : " (" + keysRaw + ")";
+			tooltip(title + keys + "\n\n" + body);
 		}
 		click_runnable = action;
 		return onClick(action==null ? null : e -> {
@@ -458,7 +466,8 @@ public class Icon extends StackPane {
 		double glyphSize = size.getValue().doubleValue();
 		Font f = new Font(node.getFont().getFamily(), glyphScale*glyphSize);
 		node.setFont(f);
-		setMinPrefMaxSize(this, (glyphSize/DEFAULT_ICON_SIZE)*glyphSize + gap.getValue().doubleValue());
+
+		setMinPrefMaxSize(this, 1.3*glyphSize + gap.getValue().doubleValue());
 	}
 
 	private void updateIcon() {

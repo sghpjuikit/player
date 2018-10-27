@@ -32,6 +32,7 @@ import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.widget.ComponentFactory;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.feature.HorizontalDock;
+import sp.it.pl.main.Settings;
 import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
@@ -78,22 +79,22 @@ import static sp.it.pl.util.reactive.Util.onScreenChange;
 /**
  * Manages windows.
  */
-@IsConfigurable("Gui.Window")
+@IsConfigurable(value = Settings.Ui.WINDOW)
 public class WindowManager implements Configurable<Object> {
 
-	private static final Logger LOGGER = logger(WindowManager.class);
+    private static final Logger LOGGER = logger(WindowManager.class);
 
-	public double screenMaxScaling;
-	/**
-	 * Main application window, see {@link sp.it.pl.gui.objects.window.stage.Window#isMain}. May be null.
-	 */ private Window mainWindow;
-	/**
-	 * Observable list of all application windows.
-	 */ public final ObservableList<Window> windows = Window.WINDOWS;
-	/**
-	 * Dock window. Null if not active.
-	 */ public Window miniWindow;
-	static volatile boolean canBeMainTemp = false; // TODO: remove hack
+    public double screenMaxScaling;
+    /**
+     * Main application window, see {@link sp.it.pl.gui.objects.window.stage.Window#isMain}. May be null.
+     */ private Window mainWindow;
+    /**
+     * Observable list of all application windows.
+     */ public final ObservableList<Window> windows = Window.WINDOWS;
+    /**
+     * Dock window. Null if not active.
+     */ public Window miniWindow;
+    static volatile boolean canBeMainTemp = false; // TODO: remove hack
 
     @IsConfig(name = "Opacity", info = "Window opacity.")
     @Constraint.MinMax(min=0, max=1)
@@ -107,7 +108,7 @@ public class WindowManager implements Configurable<Object> {
 
     @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in mini mode.")
     public final V<Boolean> show_windows = new V<>(true, v -> {
-        if (!APP.normalLoad) return;
+        if (!APP.getNormalLoad()) return;
         if (v) windows.stream().filter(w->w!=miniWindow).forEach(Window::show);
         else windows.stream().filter(w->w!=miniWindow).forEach(Window::hide);
     });
@@ -125,21 +126,21 @@ public class WindowManager implements Configurable<Object> {
     public Duration mini_inactive_delay = millis(700);
 
     @IsConfig(name="Mini widget", info="Widget to use in mini window.")
-    public final VarEnum<String> mini_widget = VarEnum.ofStream("PlayerControlsTiny",
+    public final VarEnum<String> mini_widget = VarEnum.ofStream("Playback Mini",
         () -> APP.widgetManager.factories.getFactoriesWith(HorizontalDock.class).map(w -> w.nameGui())
     );
 
     public WindowManager() {
-    	Runnable computeMaxUsedScaling = () -> screenMaxScaling = Screen.getScreens().stream()
-			.mapToDouble(s -> max(s.getOutputScaleX(), s.getOutputScaleY())).max()
-			.orElse(1);
-    	computeMaxUsedScaling.run();
-		Screen.getScreens().addListener((ListChangeListener<Screen>) change -> computeMaxUsedScaling.run());
-	}
+        Runnable computeMaxUsedScaling = () -> screenMaxScaling = Screen.getScreens().stream()
+            .mapToDouble(s -> max(s.getOutputScaleX(), s.getOutputScaleY())).max()
+            .orElse(1);
+        computeMaxUsedScaling.run();
+        Screen.getScreens().addListener((ListChangeListener<Screen>) change -> computeMaxUsedScaling.run());
+    }
 
-	public Optional<Window> getMain() {
-		return Optional.ofNullable(mainWindow);
-	}
+    public Optional<Window> getMain() {
+        return Optional.ofNullable(mainWindow);
+    }
 
     /**
      * Get focused window. There is zero or one focused window in the application at any given time.
@@ -148,7 +149,7 @@ public class WindowManager implements Configurable<Object> {
      * @return focused window or null if none focused.
      */
     public Optional<Window> getFocused() {
-		return stream(windows).filter(w -> w.focused.get()).findAny();
+        return stream(windows).filter(w -> w.focused.get()).findAny();
     }
 
     /**
@@ -165,18 +166,18 @@ public class WindowManager implements Configurable<Object> {
      * @return focused window or main window if none.
      */
     public Optional<Window> getActive() {
-		return getFocused().or(this::getMain);
+        return getFocused().or(this::getMain);
     }
 
     public Window getActiveOrNew() {
-	    return getActive().orElseGet(this::createWindow);
+        return getActive().orElseGet(this::createWindow);
     }
 
     public Window create() {
-    	return create(false);
+        return create(false);
     }
 
-	public Stage createStageOwner() {
+    public Stage createStageOwner() {
         Stage s = new Stage(UTILITY); // utility means no taskbar
               s.setWidth(10);
               s.setHeight(10);
@@ -185,7 +186,7 @@ public class WindowManager implements Configurable<Object> {
               s.setOpacity(0);
               s.setScene(new Scene(new Pane())); // allows child stages (e.g. popup) to receive key events
               s.show();
-		return s;
+        return s;
     }
 
     Window create(boolean canBeMain) {
@@ -195,79 +196,73 @@ public class WindowManager implements Configurable<Object> {
     public Window create(Stage owner, StageStyle style, boolean canBeMain) {
         Window w = new Window(owner,style);
 
-		// load fxml part
+        // load fxml part
         new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();
         if (canBeMain && mainWindow==null) setAsMain(w); // TODO: improve main window detection/decision strategy
         windows.add(w); // add to list of active windows
 
-		w.initialize();
+        w.initialize();
 
         // bind properties
         w.disposables.add(maintain(window_borderless, v -> w.isBorderless.set(v)));
         w.disposables.add(maintain(window_headerless, v -> w.isHeaderVisible.set(!v)));
-	    w.getStage().setTitle(APP.name);
-	    w.getStage().getIcons().addAll(APP.getIcons());
+        w.getStage().setTitle(APP.name);
+        w.getStage().getIcons().addAll(APP.getIcons());
 
         return w;
     }
 
     private Window createWindow(boolean canBeMain) {
-	    LOGGER.debug("Creating default window");
-	    Window w = create(canBeMain);
-	    w.setXYSizeInitial();
-	    w.initLayout();
-	    w.update();
-	    w.show();
-	    w.setXYToCenter(getScreenForMouse());
-	    return w;
+        LOGGER.debug("Creating default window");
+        Window w = create(canBeMain);
+        w.setXYSizeInitial();
+        w.initLayout();
+        w.update();
+        w.show();
+        w.setXYToCenter(getScreenForMouse());
+        return w;
     }
 
-	@IsAction(name = "Open new window", desc = "Opens new application window")
-	public Window createWindow() {
-		return createWindow(false);
-	}
-
-	public Window createWindow(Component widget) {
-		Window w = createWindow();
-		w.setContent(widget);
-		return w;
-	}
+    @IsAction(name = "Open new window", desc = "Opens new application window")
+    public Window createWindow() {
+        return createWindow(false);
+    }
 
     void setAsMain(Window w) {
-        sp.it.pl.util.dev.Util.noNull(w);
-	    if (mainWindow==w) return;
-	    if (mainWindow!=null) mainWindow.isMainDisposables.forEach(Subscription::unsubscribe);
-	    if (mainWindow!=null) mainWindow.isMain.setValue(false);
-		mainWindow = w;
-		w.isMain.setValue(true);
-	    w.isMainDisposables.add(() -> w.isMain.setValue(false));
+        noNull(w);
+        if (mainWindow==w) return;
+        if (mainWindow!=null) mainWindow.isMainDisposables.forEach(Subscription::unsubscribe);
+        if (mainWindow!=null) mainWindow.isMain.setValue(false);
+        mainWindow = w;
+        w.isMain.setValue(true);
+        w.isMainDisposables.add(() -> w.isMain.setValue(false));
     }
 
-	@IsAction(name = "Close active window", keys = "CTRL+W", desc = "Opens new application window")
-	private void closeActiveWindow() {
-		getActive().ifPresent(Window::close);
-	}
+    @IsAction(name = "Close active window", keys = "CTRL+W", desc = "Opens new application window")
+    private void closeActiveWindow() {
+        getActive().ifPresent(Window::close);
+    }
 
-	// TODO: create dynamically from config annotation
-	@IsAction(name = "Mini mode", global = true, keys = "F9", desc = "Dock auxiliary window with playback control to the screen edge")
+    // TODO: create dynamically from config annotation
+    @IsAction(name = "Mini mode", global = true, keys = "F9", desc = "Dock auxiliary window with playback control to the screen edge")
     private void toggleMini() {
         setMini(!mini.get());
     }
 
     private void toggleMiniFull() {
-        if (!APP.normalLoad) return;
+        if (!APP.getNormalLoad()) return;
         if (mini.get()) mainWindow.show();
         else mainWindow.hide();
         setMini(!mini.get());
     }
 
     private void toggleShowWindows() {
-        if (!APP.normalLoad) return;
+        if (!APP.getNormalLoad()) return;
         show_windows.set(!show_windows.get());
     }
 
     private void setMini(boolean val) {
-        if (!APP.normalLoad) return;
+        if (!APP.getNormalLoad()) return;
 
         mini.set(val);
         if (val) {
@@ -280,15 +275,15 @@ public class WindowManager implements Configurable<Object> {
             miniWindow.disposables.add(onScreenChange(screen -> {
                 // maintain proper widget content until window closes
                 if (screen.equals(miniWindow.getScreen()))
-		            runLater(() -> {
-			            miniWindow.setScreen(screen);
-			            miniWindow.setXYSize(
-				            screen.getBounds().getMinX(),
-				            screen.getBounds().getMinY(),
-				            screen.getBounds().getWidth(),
-				            miniWindow.getHeight()
-			            );
-		            });
+                    runLater(() -> {
+                        miniWindow.setScreen(screen);
+                        miniWindow.setXYSize(
+                            screen.getBounds().getMinX(),
+                            screen.getBounds().getMinY(),
+                            screen.getBounds().getWidth(),
+                            miniWindow.getHeight()
+                        );
+                    });
             }));
 
             // content controls
@@ -311,9 +306,9 @@ public class WindowManager implements Configurable<Object> {
                 mini_widget,
                 name -> {
                     Component newW = APP.widgetManager.factories.getFactoryOrEmpty(name).create();
-	                Component oldW = (Widget) content.getProperties().get("widget");
+                    Component oldW = (Widget) content.getProperties().get("widget");
 
-	                if (oldW!=null) oldW.close();
+                    if (oldW!=null) oldW.close();
 
                     content.getProperties().put("widget",newW);
                     content.setCenter(newW.load());
@@ -375,8 +370,8 @@ public class WindowManager implements Configurable<Object> {
             });
         } else {
             if (miniWindow!=null) {
-	            miniWindow.close();
-	            miniWindow = null;
+                miniWindow.close();
+                miniWindow = null;
             }
         }
     }
@@ -385,104 +380,114 @@ public class WindowManager implements Configurable<Object> {
         // make sure directory is accessible
         File dir = new File(APP.DIR_LAYOUTS,"current");
         if (!Util.isValidatedDirectory(dir)) {
-	        LOGGER.error("Serialization of windows and layouts failed. {} not accessible.", dir);
+            LOGGER.error("Serialization of windows and layouts failed. {} not accessible.", dir);
             return;
         }
 
         Set<File> filesOld = listChildren(dir).collect(toSet());
         List<Window> windows = stream(Window.WINDOWS).filter(w -> w!=miniWindow).collect(toList());
-	    LOGGER.info("Serializing " + windows.size() + " application windows");
+        LOGGER.info("Serializing " + windows.size() + " application windows");
 
         // serialize - for now each window to its own file with .ws extension
-	    String sessionUniqueName = System.currentTimeMillis()+"";
-	    boolean isError = false;
-	    Set<File> filesNew = new HashSet<>();
+        String sessionUniqueName = System.currentTimeMillis()+"";
+        boolean isError = false;
+        Set<File> filesNew = new HashSet<>();
         for (int i=0; i<windows.size(); i++) {
             Window w = windows.get(i);
             File f = new File(dir, "window_" + sessionUniqueName + "_" + i + ".ws");
-	        filesNew.add(f);
-	        isError |= APP.serializerXml.toXML(new WindowState(w), f).isError();
-	        if (isError) break;
+            filesNew.add(f);
+            isError |= APP.serializerXml.toXML(new WindowState(w), f).isError();
+            if (isError) break;
         }
 
-	    // remove unneeded files, either old or new session will remain
+        // remove unneeded files, either old or new session will remain
         (isError ? filesNew : filesOld).forEach(File::delete);
     }
 
     public void deserialize(boolean load_normally) {
-	    Set<Window> ws = set();
+        Set<Window> ws = set();
         if (load_normally) {
-	        canBeMainTemp = true;
+            canBeMainTemp = true;
 
             File dir = new File(APP.DIR_LAYOUTS, "current");
             if (Util.isValidatedDirectory(dir)) {
-	            File[] fs = listChildren(dir)
-		            .filter(f -> f.getPath().endsWith(".ws"))
-		            .toArray(File[]::new);
-		        stream(fs)
-			        .map(f -> APP.serializerXml.fromXML(WindowState.class, f)
-						        .map(WindowState::toWindow)
-						        .getOr(null)
-			        )
-					.filter(ISNTØ)
-					.forEach(ws::add);
-		        canBeMainTemp = false;
-			    LOGGER.info("Restored " + fs.length + "/" + ws.size() + " windows.");
+                File[] fs = listChildren(dir)
+                    .filter(f -> f.getPath().endsWith(".ws"))
+                    .toArray(File[]::new);
+                stream(fs)
+                    .map(f -> APP.serializerXml.fromXML(WindowState.class, f)
+                                .map(WindowState::toWindow)
+                                .getOr(null)
+                    )
+                    .filter(ISNTØ)
+                    .forEach(ws::add);
+                canBeMainTemp = false;
+                LOGGER.info("Restored " + fs.length + "/" + ws.size() + " windows.");
             } else {
-	            LOGGER.error("Restoring windows/layouts failed: {} not accessible.", dir);
+                LOGGER.error("Restoring windows/layouts failed: {} not accessible.", dir);
                 return;
             }
          }
 
         // show windows
         if (ws.isEmpty()) {
-        	if(load_normally)
-		        ws.add(createWindow(true));
+            if(load_normally)
+                ws.add(createWindow(true));
         } else {
             ws.forEach(w -> add1timeEventHandler(w.s, WINDOW_SHOWING, e -> w.update()));
-	        ws.forEach(Window::show);
+            ws.forEach(Window::show);
             Widget.deserializeWidgetIO();
         }
     }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-	/**
-	 * @param widget non-null widget widget to open
-	 */
-	public Window showWindow(Component widget) {
-		noNull(widget);
+    // TODO: remove
+    public Window createWindow(Component c) {
+        Window w = createWindow();
+        w.setContent(c);
+        if (c instanceof Widget<?>) ((Widget<?>) c).focus();
+        return w;
+    }
 
-		Window w = create();
-		w.initLayout();
-		w.setContent(widget);
-		w.show();
-		w.setXYToCenter(getScreenForMouse());
-		return w;
-	}
+    /**
+     * @param c non-null widget widget to open
+     */
+    public Window showWindow(Component c) {
+        noNull(c);
 
-	public PopOver showFloating(Widget w) {
-		noNull(w);
+        Window w = create();
+        w.initLayout();
+        w.setContent(c);
+        if (c instanceof Widget<?>) ((Widget<?>) c).focus();
+        w.show();
+        w.setXYToCenter(getScreenForMouse());
+        return w;
+    }
 
-		Layout l = Layout.openStandalone(new AnchorPane());
-		PopOver<?> p = new PopOver<>(l.getRoot());
-		p.title.set(w.getInfo().nameGui());
-		p.setAutoFix(false);
+    public PopOver showFloating(Widget c) {
+        noNull(c);
 
-		p.addEventFilter(WINDOW_HIDING, we -> l.close());
-		l.setChild(w);  // load widget when graphics ready & shown
+        Layout l = Layout.openStandalone(new AnchorPane());
+        PopOver<?> p = new PopOver<>(l.getRoot());
+        p.title.set(c.getInfo().nameGui());
+        p.setAutoFix(false);
 
-		p.show(ScreenPos.APP_CENTER);
-		return p;
-	}
+        p.addEventFilter(WINDOW_HIDING, we -> l.close());
+        l.setChild(c);  // load widget when graphics ready & shown
+        c.focus();
 
-	public void showSettings(Configurable c, MouseEvent e) {
-		showSettings(c, (Node) e.getSource());
-	}
+        p.show(ScreenPos.APP_CENTER);
+        return p;
+    }
 
-	public void showSettings(Configurable c, Node n) {
-		showSettingsSimple(c, n);
-		// TODO: decide whether we use SimpleConfigurator or Configurator widget
+    public void showSettings(Configurable c, MouseEvent e) {
+        showSettings(c, (Node) e.getSource());
+    }
+
+    public void showSettings(Configurable c, Node n) {
+        showSettingsSimple(c, n);
+        // TODO: decide whether we use SimpleConfigurator or Configurator widget
 //		String name = c instanceof Widget ? ((Widget)c).getName() : "";
 //		Configurator sc = new Configurator(true);
 //		sc.configure(c);
@@ -492,73 +497,78 @@ public class WindowManager implements Configurable<Object> {
 //		p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
 //		p.setAutoHide(true);
 //		p.show(n);
-	}
+    }
 
-	public void showSettingsSimple(Configurable<?> c, MouseEvent e) {
-		showSettingsSimple(c, (Node) e.getSource());
-	}
+    public void showSettingsSimple(Configurable<?> c, MouseEvent e) {
+        showSettingsSimple(c, (Node) e.getSource());
+    }
 
-	public void showSettingsSimple(Configurable<?> c, Node n) {
-		boolean isComponent = c instanceof Component;
-		String name = c instanceof Widget ? ((Widget) c).getName() : "";
-		SimpleConfigurator<?> sc = new SimpleConfigurator<>(c);
-		PopOver<?> p = new PopOver<>(sc);
-		p.title.set((name==null ? "" : name + " ") + " Settings");
-		p.arrowSize.set(0); // auto-fix breaks the arrow position, turn off - sux
-		p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
-		p.setAutoHide(true);
-		if (isComponent) p.addEventFilter(WINDOW_HIDING, we -> ((Component) c).close());
-		p.showInCenterOf(n);
-	}
+    public void showSettingsSimple(Configurable<?> c, Node n) {
+        boolean isComponent = c instanceof Component;
+        String name = c instanceof Widget ? ((Widget) c).getName() : "";
+        SimpleConfigurator<?> sc = new SimpleConfigurator<>(c);
+        PopOver<?> p = new PopOver<>(sc);
+        p.title.set((name==null ? "" : name + " ") + " Settings");
+        p.arrowSize.set(0); // auto-fix breaks the arrow position, turn off - sux
+        p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
+        p.setAutoHide(true);
+        if (isComponent) p.addEventFilter(WINDOW_HIDING, we -> ((Component) c).close());
+        p.showInCenterOf(n);
+    }
 
-	public PopOver showFloating(Node content, String title) {
-		noNull(content);
-		noNull(title);  // we could use null, but disallow
+    public PopOver showFloating(Node content, String title) {
+        noNull(content);
+        noNull(title);
 
-		PopOver<?> p = new PopOver<>(content);
-		p.title.set(title);
-		p.setAutoFix(false);
-		Window w = getActive().get();
-		p.show(w.getStage(), w.getCenterX(), w.getCenterY());
-		return p;
-	}
+        PopOver<?> p = new PopOver<>(content);
+        p.title.set(title);
+        p.setAutoFix(false);
+        Window w = getActive().get();
+        p.show(w.getStage(), w.getCenterX(), w.getCenterY());
+        return p;
+    }
 
-	public void launchComponent(File launcher) {
-		launchComponent(instantiateComponent(launcher));
-	}
+    public void launchComponent(File launcher) {
+        launchComponent(instantiateComponent(launcher));
+    }
 
-	public void launchComponent(String componentName) {
-		ComponentFactory<?> wf = APP.widgetManager.factories.getFactory(componentName);
-		Component w = wf==null ? null : wf.create();
-		launchComponent(w);
-	}
+    public void launchComponent(String componentName) {
+        ComponentFactory<?> wf = APP.widgetManager.factories.getFactory(componentName);
+        Component w = wf==null ? null : wf.create();
+        launchComponent(w);
+    }
 
-	public void launchComponent(Component w) {
-		if (w!=null) {
-			if (APP.windowManager.windows.isEmpty()) {
-				APP.windowManager.getActiveOrNew().setContent(w);
-			} else {
-				APP.windowManager.createWindow(w);
-			}
-		}
-	}
+    public void launchComponent(Component w) {
+        try {
 
-	public Component instantiateComponent(File launcher) {
-		ComponentFactory<?> wf;
-		Component c = null;
+        if (w!=null) {
+            if (windows.isEmpty()) {
+                getActiveOrNew().setContent(w);
+            } else {
+                createWindow(w);
+            }
+        }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
 
-		// try to build widget using just launcher filename
-		boolean isLauncherEmpty = Util.readFileLines(launcher).count()==0;
-		String wn = isLauncherEmpty ? Util.getName(launcher) : "";
-		wf = APP.widgetManager.factories.getFactory(wn);
-		if (wf!=null)
-			c = wf.create();
+    public Component instantiateComponent(File launcher) {
+        ComponentFactory<?> wf;
+        Component c = null;
 
-		// try to deserialize normally
-		if (c==null)
-			c = APP.serializerXml.fromXML(Component.class, launcher).getOr(null);
+        // try to build widget using just launcher filename
+        boolean isLauncherEmpty = Util.readFileLines(launcher).count()==0;
+        String wn = isLauncherEmpty ? Util.getName(launcher) : "";
+        wf = APP.widgetManager.factories.getFactory(wn);
+        if (wf!=null)
+            c = wf.create();
 
-		return c;
-	}
+        // try to deserialize normally
+        if (c==null)
+            c = APP.serializerXml.fromXML(Component.class, launcher).getOr(null);
+
+        return c;
+    }
 
 }

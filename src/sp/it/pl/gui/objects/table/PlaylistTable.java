@@ -22,7 +22,6 @@ import sp.it.pl.audio.playlist.Playlist;
 import sp.it.pl.audio.playlist.PlaylistItem;
 import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.tagging.PlaylistItemGroup;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.contextmenu.TableContextMenuR;
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
 import sp.it.pl.util.access.V;
@@ -38,6 +37,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static sp.it.pl.audio.playlist.PlaylistItem.Field.LENGTH;
 import static sp.it.pl.audio.playlist.PlaylistItem.Field.NAME;
 import static sp.it.pl.audio.playlist.PlaylistItem.Field.TITLE;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.functional.Util.SAME;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
@@ -154,7 +154,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 			getColumn(ColumnField.INDEX).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth()));
 			getColumn(LENGTH).ifPresent(c -> {
 				double mt = getItems().stream().mapToDouble(PlaylistItem::getTimeMs).max().orElse(6000);
-				double width = computeFontWidth(Gui.font.getValue(), new Dur(mt).toString()) + 5;
+				double width = computeFontWidth(APP.ui.getFont().getValue(), new Dur(mt).toString()) + 5;
 				c.setPrefWidth(width);
 			});
 

@@ -1,4 +1,3 @@
-
 package sp.it.pl.layout.area;
 
 import javafx.beans.value.ChangeListener;
@@ -9,7 +8,6 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.layout.AltState;
 import sp.it.pl.layout.Component;
@@ -29,6 +27,7 @@ import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.access.SequentialValue.next;
 import static sp.it.pl.util.async.AsyncKt.run;
 import static sp.it.pl.util.async.AsyncKt.runFX;
@@ -189,7 +188,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
             n = l.getRoot();
             as = l;
         }
-        if (Gui.isLayoutMode()) as.show();
+        if (APP.ui.isLayoutMode()) as.show();
 
         r.getChildren().setAll(n);
         setAnchors(n, 0d);

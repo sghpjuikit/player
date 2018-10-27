@@ -7,6 +7,7 @@ import javafx.scene.Cursor
 import javafx.scene.Node
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Tooltip
+import javafx.scene.text.Font
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
@@ -120,6 +121,12 @@ fun resizeButton(): Icon = Icon(MaterialDesignIcon.RESIZE_BOTTOM_RIGHT).apply {
     cursor = Cursor.SE_RESIZE
     isAnimated.value = false
     styleclass("resize-content-icon")
+}
+
+fun Font.rowHeight(): Double {
+    var h = (size*1.5).toLong()  // decimal number helps pixel alignment
+    h = if (h%2==0L) h else h+1   // even number helps layout symmetry
+    return h.toDouble()
 }
 
 fun nodeAnimation(n: Node) = anim(millis(300), { n.opacity = it*it }).apply { playAgainIfFinished = false }

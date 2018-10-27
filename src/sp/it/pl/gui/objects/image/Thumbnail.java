@@ -25,14 +25,13 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
+import kotlin.Unit;
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu;
 import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.async.future.Fut;
-import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.graphics.image.ImageSize;
@@ -47,17 +46,15 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
-import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.NEW;
-import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.UtilKt.toFileOrNull;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXYByTo;
-import static sp.it.pl.util.reactive.Util.doOnceIf;
+import static sp.it.pl.util.reactive.Util.sync1If;
 import static sp.it.pl.util.type.Util.getFieldValue;
 
 /**
@@ -103,19 +100,11 @@ import static sp.it.pl.util.type.Util.getFieldValue;
  * the application, and more.
  * </ul>
  */
-@IsConfigurable("Images")
 public class Thumbnail {
-
-	static {
-		initStaticConfigs(Thumbnail.class);
-	}
 
 	private static final String styleclassBgr = "thumbnail";
 	private static final String styleclassBorder = "thumbnail-border";
 	private static final String styleclassImage = "thumbnail-image";
-
-	@IsConfig(name = "Thumbnail anim duration", info = "Preferred hover scale animation duration for thumbnails.")
-	public static Duration animDur = millis(100);
 
 	protected final ImageView imageView = new ImageView();
 	protected final StackPane root = new StackPane(imageView) {
@@ -306,7 +295,7 @@ public class Thumbnail {
 		if (i==null) {
 			setImg(null, id);
 		} else {
-			doOnceIf(i.progressProperty(), p -> p.doubleValue()==1, p -> setImg(i, id));
+			sync1If(i.progressProperty(), p -> p.doubleValue()==1, p -> { setImg(i, id) ; return Unit.INSTANCE; });
 		}
 	}
 
@@ -607,7 +596,7 @@ public class Thumbnail {
 /* ---------- HOVER ------------------------------------------------------------------------------------------------- */
 
 	/** Duration of the scaling animation effect when transitioning to hover state. */
-	public final V<Duration> durationOnHover = new V<>(animDur);
+	public final V<Duration> durationOnHover = new V<>(APP.ui.getThumbnailAnimDur().getValue());
 	private final Anim hoverAnimation = new Anim(durationOnHover.get(), at -> setScaleXYByTo(root, at, 0, 2));
 	private final EventHandler<MouseEvent> hoverHandler = e -> {
 		hoverAnimation.dur(durationOnHover.get());

@@ -1,32 +1,18 @@
 package sp.it.pl.audio.playlist;
 
-import java.io.File;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence;
 import sp.it.pl.util.action.IsAction;
-import sp.it.pl.util.action.IsActionable;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.Configurable;
-import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.reactive.ValueEventSource;
-import sp.it.pl.util.validation.Constraint;
-import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
 import static sp.it.pl.util.functional.Util.listRO;
-import static sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY;
 
 /** Manages playlists. */
-@IsActionable
-@IsConfigurable("Playlist")
 public class PlaylistManager implements Configurable {
-
-	static {
-		initStaticConfigs(PlaylistManager.class);
-	}
 
 	public static final MapSet<UUID,Playlist> playlists = new MapSet<>(p -> p.id);
 	public static UUID active = null;
@@ -50,10 +36,6 @@ public class PlaylistManager implements Configurable {
 		if (p==null) p = playlists.stream().findAny().orElse(null);
 		return p==null ? or : action.apply(p);
 	}
-
-	@IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.")
-	@Constraint.FileType(DIRECTORY)
-	public static File browse = APP.DIR_APP;
 
 	/** Plays first item on playlist. */
 	@IsAction(name = "Play first", desc = "Plays first item on playlist.", keys = "ALT+W", global = true)

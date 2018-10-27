@@ -1,26 +1,29 @@
 package sp.it.pl.service
 
-import sp.it.pl.util.access.v
-import sp.it.pl.util.conf.CachedConfigurable
-import sp.it.pl.util.conf.Config
+import mu.KLogging
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.access.V
+import sp.it.pl.util.access.initSync
 import sp.it.pl.util.conf.IsConfig
-import java.util.HashMap
 
-abstract class ServiceBase(override val name: String, isEnabled: Boolean) : Service, CachedConfigurable<Any> {
+abstract class ServiceBase(override val name: String, isEnabledByDefault: Boolean): Service {
 
-    @Suppress("unused")
     @IsConfig(name = "Enabled", info = "Starts or stops the service")
-    private val enabled = v(isEnabled, { enable(it) })
-    private val configs = HashMap<String, Config<Any>>()
+    private val enabled by cv(isEnabledByDefault) { V(it).apply { initSync { runWhenReady { enable(it) } } } }
 
     private fun enable(isToBeRunning: Boolean) {
         val wasRunning = isRunning()
-        if (wasRunning == isToBeRunning) return
+        if (wasRunning==isToBeRunning) return
 
-        if (isToBeRunning && !isDependency() && isSupported()) start()
-        if (!isToBeRunning) stop()
+        if (isToBeRunning && !isDependency() && isSupported()) {
+            logger.info { "Service $name starting..." }
+            start()
+        }
+        if (!isToBeRunning) {
+            logger.info { "Service $name stopping..." }
+            stop()
+        }
     }
 
-    override fun getFieldsMap(): Map<String, Config<Any>> = configs
-
+    companion object: KLogging()
 }

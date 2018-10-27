@@ -29,12 +29,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
-import sp.it.pl.gui.Gui;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
+import sp.it.pl.util.conf.MultiConfigurable;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.action.Action;
@@ -64,12 +65,12 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
-import static sp.it.pl.gui.Gui.rowHeight;
 import static sp.it.pl.gui.pane.ActionPane.GroupApply.FOR_ALL;
 import static sp.it.pl.gui.pane.ActionPane.GroupApply.FOR_EACH;
 import static sp.it.pl.gui.pane.ActionPane.GroupApply.NONE;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
+import static sp.it.pl.main.AppBuildersKt.rowHeight;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -78,6 +79,7 @@ import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.AsyncKt.sleeping;
 import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.async.future.Fut.futAfter;
+import static sp.it.pl.util.conf.ConfigurationUtilKt.computeConfigGroup;
 import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
 import static sp.it.pl.util.functional.Util.IS;
 import static sp.it.pl.util.functional.Util.ISNT;
@@ -95,12 +97,14 @@ import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.reactive.Util.maintain;
 
 /** Action chooser pane. Displays icons representing certain actions. */
-public class ActionPane extends OverlayPane<Object> {
+public class ActionPane extends OverlayPane<Object> implements MultiConfigurable {
 
 	private static final String ROOT_STYLECLASS = "action-pane";
 	private static final String ICON_STYLECLASS = "action-pane-action-icon";
 	private static final String COD_TITLE = "Close when action ends";
 	private static final String COD_INFO = "Closes the chooser when action finishes running.";
+
+	private final String configurableDiscriminant;
 
 	@IsConfig(name = COD_TITLE, info = COD_INFO)
 	public final V<Boolean> closeOnDone = new V<>(true);
@@ -112,7 +116,8 @@ public class ActionPane extends OverlayPane<Object> {
 	private boolean showIcons = true;
 	private Node insteadIcons = null;
 
-	public ActionPane(ClassName className, InstanceName instanceName, InstanceInfo instanceInfo) {
+	public ActionPane(String configurableDiscriminant, ClassName className, InstanceName instanceName, InstanceInfo instanceInfo) {
+		this.configurableDiscriminant = configurableDiscriminant;
 		this.className = className;
 		this.instanceName = instanceName;
 		this.instanceInfo = instanceInfo;
@@ -181,7 +186,19 @@ public class ActionPane extends OverlayPane<Object> {
 		makeResizableByUser();
 	}
 
-/* ---------- PRE-CONFIGURED ACTIONS --------------------------------------------------------------------------------- */
+	@NotNull
+	@Override
+	public String getConfigurableDiscriminant() {
+		return configurableDiscriminant;
+	}
+
+	@NotNull
+	@Override
+	public String getConfigurableGroup() {
+		return computeConfigGroup(this);
+	}
+
+	/* ---------- PRE-CONFIGURED ACTIONS --------------------------------------------------------------------------------- */
 
 	public final ClassListMap<ActionData<?,?>> actions = new ClassListMap<>(null);
 
@@ -368,7 +385,7 @@ public class ActionPane extends OverlayPane<Object> {
 			Class itemType = getElementType(items);
 			if (APP.classFields.get(itemType) != null) {	// TODO: add support for any item by using generic ToString objectField and column
 				FilteredTable<Object> t = new FilteredTable<>(itemType, null);
-				maintain(Gui.font, f -> rowHeight(f), t.fixedCellSizeProperty());
+				maintain(APP.ui.getFont(), f -> rowHeight(f), t.fixedCellSizeProperty());
 				t.getSelectionModel().setSelectionMode(MULTIPLE);
 				t.setColumnFactory(f -> {
 					TableColumn<?,Object> c = new TableColumn<>(f.toString());
@@ -509,7 +526,7 @@ public class ActionPane extends OverlayPane<Object> {
 					: d.getClass();
 	}
 
-	public static Collection<?> collectionWrap(Object o) {
+	private static Collection<?> collectionWrap(Object o) {
 		return o instanceof Collection ? (Collection)o : listRO(o);
 	}
 

@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
+import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.functional.TriConsumer;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.functional.Util.isNoneØ;
@@ -306,6 +308,11 @@ public interface Util {
 		if (typename.contains("Integer")) return Integer.class;
 		if (typename.contains("Float")) return Float.class;
 		if (typename.contains("Long")) return Double.class;
+
+		// TODO: handle better
+		// Some types may use their generic type indirectly, like: X<T> extends Property<Generic<T>>
+		// we should detect such cases and handle them in a generic way
+		if (typename.contains(VarList.class.getSimpleName())) return ObservableList.class;
 
 		// This method is called recursively, but if ParameterizedType is passed in, we are halfway
 		// there. We just return generic type if it is available. If not we return null and the

@@ -15,11 +15,11 @@ import sp.it.pl.audio.playlist.Playlist;
 import sp.it.pl.audio.playlist.PlaylistItem;
 import sp.it.pl.audio.playlist.PlaylistItem.Field;
 import sp.it.pl.audio.playlist.PlaylistManager;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.table.PlaylistTable;
 import sp.it.pl.gui.objects.table.TableColumnInfo;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.Widget.Group;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.PlaylistFeature;
@@ -35,13 +35,13 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FILTER_OUTLINE;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
-import static sp.it.pl.gui.Gui.rowHeight;
 import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
-import static sp.it.pl.layout.widget.Widget.Group.PLAYLIST;
 import static sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
+import static sp.it.pl.main.AppBuildersKt.rowHeight;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
+import static sp.it.pl.main.Widgets.PLAYLIST;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.stream;
@@ -56,7 +56,7 @@ import static sp.it.pl.util.reactive.Util.maintain;
  */
 @Widget.Info(
     author = "Martin Polakovic",
-    name = "Playlist",
+    name = PLAYLIST,
     description = "Provides list of items to play. Highlights playing and unplayable "
                 + "items.",
     howto = "Available actions:\n" +
@@ -78,7 +78,7 @@ import static sp.it.pl.util.reactive.Util.maintain;
     notes = "Plans: multiple playlists through tabs",
     version = "1",
     year = "2015",
-    group = PLAYLIST
+    group = Group.PLAYLIST
 )
 public class PlaylistView extends FXMLController implements PlaylistFeature {
 
@@ -91,15 +91,15 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final Vo<NodeOrientation> orient = new Vo<>(Gui.table_orient);
+    public final Vo<NodeOrientation> orient = new Vo<>(APP.ui.getTableOrient());
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    public final Vo<Boolean> zeropad = new Vo<>(Gui.table_zeropad);
+    public final Vo<Boolean> zeropad = new Vo<>(APP.ui.getTableZeropad());
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    public final Vo<Boolean> orig_index = new Vo<>(Gui.table_orig_index);
+    public final Vo<Boolean> orig_index = new Vo<>(APP.ui.getTableOrigIndex());
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Vo<Boolean> show_header = new Vo<>(Gui.table_show_header);
+    public final Vo<Boolean> show_header = new Vo<>(APP.ui.getTableShowHeader());
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
-    public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
+    public final Vo<Boolean> show_footer = new Vo<>(APP.ui.getTableShowFooter());
     @IsConfig(name = "Scroll to playing", info = "Scroll table to playing item when it changes.")
     public final V<Boolean> scrollToPlaying = new V<>(true);
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
@@ -124,7 +124,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 
         // obtain playlist by id, we will use this widget's id
         UUID id = getWidget().id;
-        playlist = PlaylistManager.playlists.computeIfAbsent(id, PlaylistView::getUnusedPlaylist);
+        playlist = PlaylistManager.playlists.computeIfAbsent(id, PlaylistView::getUnusedPlaylist);  // TODO: fix concurrent modification exception
         // when widget closes we must remove the playlist or it would get saved
         // and playlist list would infinitely grow. When widgets close naturally
         // on app close, the playlist will get removed after app state was saved => no problem
@@ -145,7 +145,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         table = new PlaylistTable(playlist);
         table.search.setColumn(Field.NAME);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
-        d(maintain(Gui.font, f -> rowHeight(f), table.fixedCellSizeProperty()));
+        d(maintain(APP.ui.getFont(), f -> rowHeight(f), table.fixedCellSizeProperty()));
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));

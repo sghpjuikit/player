@@ -6,65 +6,41 @@ package sp.it.pl.util.dev
 import javafx.application.Platform
 import javafx.beans.value.ObservableValue
 import mu.KotlinLogging
-import sp.it.pl.util.reactive.maintain
+import sp.it.pl.util.reactive.attach
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
-import java.util.function.Consumer
 import kotlin.reflect.KClass
 
-fun fail(message: String? = null): Nothing =
-        throw AssertionError(message)
+fun fail(message: String? = null): Nothing = throw AssertionError(message)
 
-fun throwIf(v: Boolean) {
-    if (v) throw IllegalStateException("Requirement condition not met")
+fun throwIf(v: Boolean) = throwIf(v, { "" })
+
+inline fun throwIf(v: Boolean, s: () -> String) {
+    if (v) fail("Requirement condition not met: ${s()}")
 }
 
-fun throwIf(v: Boolean, s: String) {
-    if (v) throw IllegalStateException("Requirement condition not met: $s")
-}
+fun throwIfNot(v: Boolean) = throwIf(!v, { "" })
 
-fun throwIfNot(v: Boolean) {
-    if (!v) throw IllegalStateException("Requirement condition not met")
-}
+inline fun throwIfNot(v: Boolean, s: () -> String) = throwIf(!v, s)
 
-fun throwIfNot(v: Boolean, s: String) {
-    if (!v) throw IllegalStateException("Requirement condition not met: $s")
-}
+fun <T> noNull(o: T?) = o.noNull()
 
-fun <T> noNull(o: T?): T = o ?: throw IllegalStateException("Null forbidden")
-
-fun <T> noNull(o: T?, message: String): T = o ?: throw IllegalStateException("Null forbidden: $message")
-
-fun noNull(o1: Any?, o2: Any?) {
-    if (o1==null || o2==null)
-        throw IllegalStateException("Null forbidden")
-}
-
-fun noNull(vararg objects: Any?) {
-    if (objects.any { it==null })
-        throw IllegalStateException("Null forbidden")
-}
+inline fun <T> T?.noNull(message: () -> String = { "" }): T = this ?: fail("Null forbidden: ${message()}")
 
 fun throwIfFxThread() {
-    if (Platform.isFxApplicationThread())
-        throw IllegalStateException("Must not be invoked on FX application thread!")
+    throwIf(Platform.isFxApplicationThread()) { "Must not be invoked on FX application thread!" }
 }
 
 fun throwIfNotFxThread() {
-    if (!Platform.isFxApplicationThread())
-        throw IllegalStateException("Must be invoked on FX application thread!")
+    throwIf(!Platform.isFxApplicationThread()) { "Must be invoked on FX application thread!" }
 }
 
-fun Field.throwIfFinal(): Field {
-    if (Modifier.isFinal(modifiers))
-        throw IllegalStateException("Final field forbidden. Field=$declaringClass.$name")
-    return this
+fun Field.throwIfFinal() = apply {
+    throwIf(Modifier.isFinal(modifiers)) { "Final field forbidden. Field=$declaringClass.$name" }
 }
 
-fun Field.throwIfNotFinal(): Field {
-    if (!Modifier.isFinal(modifiers))
-        throw IllegalStateException("Non final field forbidden. Field=$declaringClass.$name")
-    return this
+fun Field.throwIfNotFinal() = apply {
+    throwIf(!Modifier.isFinal(modifiers)) { "Non final field forbidden. Field=$declaringClass.$name" }
 }
 
 /** Prints the time it takes to execute specified block in milliseconds. Debugging only. */
@@ -76,7 +52,7 @@ fun <T> measureTimeMs(block: () -> T): T {
 }
 
 /** Prints the value to console immediately and then on every change. */
-fun <T> ObservableValue<T>.printOnChange(name: String = "") = maintain(Consumer { println("Value $name changed to=$it") })
+fun <T> ObservableValue<T>.printOnChange(name: String = "") = attach { println("Value $name changed to=$it") }
 
 /** @return [org.slf4j.Logger] for the class. */
 fun KClass<*>.logger() = java.logger()

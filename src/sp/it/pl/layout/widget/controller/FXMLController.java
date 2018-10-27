@@ -25,6 +25,9 @@ abstract public class FXMLController implements Controller {
 
 	@Dependency("DO NOT RENAME - accessed using reflection")
 	public final Widget<?> widget = null;
+	@Dependency("DO NOT RENAME - accessed using reflection")
+	public final boolean isInitialized = false;
+
 	public final Outputs outputs = new Outputs();
 	public final Inputs inputs = new Inputs();
 	private final HashMap<String,Config<Object>> configs = new HashMap<>();

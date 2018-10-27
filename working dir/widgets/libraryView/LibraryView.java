@@ -19,7 +19,6 @@ import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.Metadata.Field;
 import sp.it.pl.audio.tagging.MetadataGroup;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.gui.objects.contextmenu.SelectionMenuItem;
 import sp.it.pl.gui.objects.contextmenu.TableContextMenuR;
@@ -39,8 +38,8 @@ import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
 import sp.it.pl.util.async.executor.ExecuteN;
 import sp.it.pl.util.conf.Config;
+import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import static java.time.Duration.ofMillis;
 import static java.util.stream.Collectors.toList;
@@ -60,9 +59,9 @@ import static sp.it.pl.audio.tagging.MetadataGroup.Field.AVG_RATING;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.W_RATING;
 import static sp.it.pl.audio.tagging.MetadataGroup.ungroup;
-import static sp.it.pl.gui.Gui.rowHeight;
 import static sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static sp.it.pl.layout.widget.Widget.Group.LIBRARY;
+import static sp.it.pl.main.AppBuildersKt.rowHeight;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.future.Fut.fut;
@@ -111,15 +110,15 @@ public class LibraryView extends FXMLController {
 
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final Vo<NodeOrientation> orient = new Vo<>(Gui.table_orient);
+    public final Vo<NodeOrientation> orient = new Vo<>(APP.ui.getTableOrient());
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    public final Vo<Boolean> zeropad = new Vo<>(Gui.table_zeropad);
+    public final Vo<Boolean> zeropad = new Vo<>(APP.ui.getTableZeropad());
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    public final Vo<Boolean> orig_index = new Vo<>(Gui.table_orig_index);
+    public final Vo<Boolean> orig_index = new Vo<>(APP.ui.getTableOrigIndex());
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Vo<Boolean> show_header = new Vo<>(Gui.table_show_header);
+    public final Vo<Boolean> show_header = new Vo<>(APP.ui.getTableShowHeader());
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table items information.")
-    public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
+    public final Vo<Boolean> show_footer = new Vo<>(APP.ui.getTableShowFooter());
     @IsConfig(name = "Field")
     public final VarEnum<Metadata.Field<?>> fieldFilter = new VarEnum<>(CATEGORY,
         filter(Metadata.Field.FIELDS, Field::isTypeStringRepresentable),
@@ -142,7 +141,7 @@ public class LibraryView extends FXMLController {
         // table properties
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.search.setColumn(VALUE);
-        d(maintain(Gui.font, f -> rowHeight(f), table.fixedCellSizeProperty()));
+        d(maintain(APP.ui.getFont(), f -> rowHeight(f), table.fixedCellSizeProperty()));
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));
@@ -160,7 +159,7 @@ public class LibraryView extends FXMLController {
                 c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV<>(mgf.getOf(cf.getValue())));
                 Pos a = mgf.getType(mf)==String.class ? CENTER_LEFT : CENTER_RIGHT;
                 c.setCellFactory(mgf==AVG_RATING
-                        ? (Callback) APP.ratingCell.getValue()
+                        ? (Callback) APP.getRatingCell().getValue()
                         : mgf==W_RATING
                                 ? (Callback) NumberRatingCellFactory.INSTANCE
                                 : col -> {
@@ -178,7 +177,7 @@ public class LibraryView extends FXMLController {
             }
         });
         // maintain rating column cell style
-        d(APP.ratingCell.maintain(cf -> table.getColumn(AVG_RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));
+        d(APP.getRatingCell().maintain(cf -> table.getColumn(AVG_RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));
 
         table.getDefaultColumnInfo();
 

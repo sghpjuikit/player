@@ -8,6 +8,7 @@ import ch.qos.logback.core.util.StatusPrinter
 import mu.KLogging
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.slf4j.bridge.SLF4JBridgeHandler
 import java.io.File
 import java.util.logging.LogManager
 
@@ -16,8 +17,12 @@ class CoreLogging(val loggingConfigurationFile: File, val loggingOutputDir: File
     override fun init() {
         // disable java.util.logging logging
         // Not sure this is really wise, but otherwise we get a lot of unwanted log content in console from libs
-        // TODO: see https://stackoverflow.com/questions/6020545/send-redirect-route-java-util-logging-logger-jul-to-logback-using-slf4j
+        // See https://stackoverflow.com/questions/6020545/send-redirect-route-java-util-logging-logger-jul-to-logback-using-slf4j
         LogManager.getLogManager().reset()
+
+        // redirect java util logging to sl4j
+        SLF4JBridgeHandler.removeHandlersForRootLogger()
+        SLF4JBridgeHandler.install()
 
         // configure slf4 logging
         val lc = LoggerFactory.getILoggerFactory() as LoggerContext
@@ -39,6 +44,8 @@ class CoreLogging(val loggingConfigurationFile: File, val loggingOutputDir: File
     }
 
     fun changeLogBackLoggerAppenderLevel(appenderName: String, level: Level) {
+        LogManager.getLogManager().reset()
+
         val logger = (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) ?: null)
                 as? ch.qos.logback.classic.Logger
         val filter = logger

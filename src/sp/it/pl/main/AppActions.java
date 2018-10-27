@@ -30,7 +30,6 @@ import sp.it.pl.audio.Item;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataReader;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.grid.GridCell;
 import sp.it.pl.gui.objects.grid.GridView;
 import sp.it.pl.gui.objects.grid.GridView.SelectionOn;
@@ -48,9 +47,9 @@ import sp.it.pl.layout.widget.WidgetSource;
 import sp.it.pl.layout.widget.feature.ConfiguringFeature;
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature;
 import sp.it.pl.unused.SimpleConfigurator;
-import sp.it.pl.util.action.Action;
+import sp.it.pl.util.action.ActionRegistrar;
 import sp.it.pl.util.action.IsAction;
-import sp.it.pl.util.action.IsActionable;
+import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.conf.ValueConfig;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
@@ -94,7 +93,7 @@ import static sp.it.pl.util.system.EnvironmentKt.open;
 import static sp.it.pl.util.type.Util.getEnumConstants;
 
 @SuppressWarnings("unused")
-@IsActionable("Shortcuts")
+@IsConfigurable("Shortcuts")
 public class AppActions {
 
 	@IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
@@ -245,7 +244,7 @@ public class AppActions {
 					fc.getExtensionFilters().add(new ExtensionFilter("skin file","*.css"));
 					fc.setTitle("Open skin...");
 					File f = fc.showOpenDialog(APP.actionAppPane.getScene().getWindow());
-					if (f!=null) Gui.setSkin(f);
+					if (f!=null) APP.ui.setSkin(f);
 				}
 			),
 			new FastAction<>(
@@ -268,7 +267,7 @@ public class AppActions {
 
 	@IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "COMMA")
 	public void showShortcuts() {
-		APP.shortcutPane.show(Action.getActions());
+		APP.shortcutPane.show(ActionRegistrar.INSTANCE.getActions());
 	}
 
 	@IsAction(name = "Show system info", desc = "Display system information.")

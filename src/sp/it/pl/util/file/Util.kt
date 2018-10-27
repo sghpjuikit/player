@@ -2,7 +2,9 @@
 
 package sp.it.pl.util.file
 
+import mu.KotlinLogging
 import sp.it.pl.util.functional.Try
+import sp.it.pl.util.system.Os
 import java.io.File
 import java.io.FileFilter
 import java.io.FilenameFilter
@@ -10,7 +12,8 @@ import java.net.MalformedURLException
 import java.net.URI
 import java.util.stream.Stream
 import kotlin.streams.asStream
-import kotlin.streams.toList
+
+private val logger = KotlinLogging.logger { }
 
 /**
  * Returns [File.getName] or [File.toString] if this is the root directory,
@@ -27,9 +30,8 @@ val File.nameOrRoot: String
  *
  * @return name of the file without extension
  */
-// TODO problematic for directories containing '.'
-val File.nameWithoutExtensionOrRoot: String
-    get() = name.takeUnless { it.isEmpty() }?.substringAfterLast('.') ?: toString()
+// TODO: does not work for directories with '.'
+val File.nameWithoutExtensionOrRoot: String get() = nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
 
 /** @return file itself if exists or its first existing parent or error if no parent exists */
 fun File.find1stExistingParentFile(): Try<File, Void> = when {
@@ -143,36 +145,74 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>
     }),
     TOP_LVL_AND_DIRS_AND_WITH_COVER({
 
-        class CCFile(f: File): File(f.path) {
-            val cIsDirectory = f.isDirectory
+        fun File.walkDirsAndWithCover(): Sequence<File> {
+            return if (isDirectory) {
+                val dir = this
+                val cmdDirs = """cmd /c dir /s /b /ad "${dir.absolutePath}""""
+                val cmdFiles = """cmd /c dir /s /b /a-d "${dir.absolutePath}""""
 
-            override fun isDirectory(): Boolean = cIsDirectory
+                val dirs = try {
+                    Runtime.getRuntime().exec(cmdDirs)
+                            .inputStream.bufferedReader()
+                            .useLines { it.map { FastFile(it, true, false) }.toList() }
+                } catch (e: Throwable) {
+                    logger.error(e) { "Failed to read files in $this using command $cmdDirs" }
+                    listOf<FastFile>()
+                }
+                val files = try {
+                    Runtime.getRuntime().exec(cmdFiles)
+                            .inputStream.bufferedReader()
+                            .useLines { it.map { FastFile(it, false, true) }.toList() }
+                } catch (e: Throwable) {
+                    logger.error(e) { "Failed to read files in $this using command $cmdFiles" }
+                    listOf<FastFile>()
+                }
 
-            fun hasCover(cache: HashSet<File>): Boolean {
-                val p = parentDirOrRoot
-                val n = nameWithoutExtension
-                return ImageFileFormat.values().asSequence()
-                        .filter { it.isSupported }
-                        .any { cache.contains(p.childOf("$n.$it")) }
+                val cache = (dirs+files).toHashSet()
+                cache.asSequence().filter { it.isDirectory || it.hasCover(cache) }
+            } else {
+                sequenceOf(this)
             }
         }
 
-        fun CCFile.walkDirsAndWithCover(cache: HashSet<File>): Sequence<CCFile> {
-            val fs = listChildren().map(::CCFile).toList()
-            cache += fs
-            return sequenceOf(this)+fs.asSequence().flatMap { it.walkDirsAndWithCover(cache) }
-        }
-
-        fun File.walkDirsAndWithCover(): Stream<File> {
-            val cache = HashSet<File>()
-            return CCFile(this).walkDirsAndWithCover(cache).filter { it.isDirectory || it.hasCover(cache) }.asStream()
-        }
-
-        it.stream().distinct()
-                .flatMap { it.listChildren() }
-                .flatMap { it.walkDirsAndWithCover() }
+        it.asSequence().distinct().flatMap { it.walkDirsAndWithCover() }.asStream()
     }),
-    ALL({ it.stream().distinct().flatMap { it.walk().asStream().filter(File::isFile) } });
+    ALL({ it.asSequence().distinct().flatMap { it.asFileTree() }.asStream() });
 }
 
+private class FastFile(path: String, private val isDir: Boolean, private val isFil: Boolean): File(path) {
+    override fun isDirectory(): Boolean = isDir
+    override fun isFile(): Boolean = isFil
 
+    fun hasCover(cache: HashSet<FastFile>): Boolean {
+        val p = parentDirOrRoot
+        val n = nameWithoutExtension
+        return ImageFileFormat.values().asSequence()
+                .filter { it.isSupported }
+                .any { cache.contains(p.childOf("$n.$it")) }
+    }
+}
+
+private fun File.asFileTree(): Sequence<File> =
+        when (Os.current) {
+            Os.WINDOWS -> {
+                if (isDirectory) {
+                    val dir = this
+                    val cmdFiles = """cmd /c dir /s /b /a-d "${dir.absolutePath}""""
+                    try {
+                        val files = Runtime.getRuntime().exec(cmdFiles)
+                                .inputStream.bufferedReader()
+                                .useLines { it.map { FastFile(it, false, true) }.toList() }
+                        files.asSequence()
+                    } catch (e: Throwable) {
+                        logger.error(e) { "Failed to read files in $this using command $cmdFiles" }
+                        sequenceOf<File>()
+                    }
+                } else {
+                    sequenceOf(this)
+                }
+            }
+            else -> {
+                walk().filter(File::isFile)
+            }
+        }

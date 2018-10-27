@@ -23,13 +23,13 @@ import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
 import sp.it.pl.util.Util;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
 import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.zeroPad;
 import static sp.it.pl.util.graphics.Util.computeFontWidth;
 import static sp.it.pl.util.graphics.Util.selectRows;
@@ -225,7 +225,7 @@ public class ImprovedTable<T> extends TableView<T> {
 		// need this weird method to get 9s as 9 is a wide char (font is not always proportional)
 		int s = getMaxIndex();
 		int i = Util.decMin1(s);
-		return computeFontWidth(Gui.font.get(), i + ".") + 5;
+		return computeFontWidth(APP.ui.getFont().get(), i + ".") + 5;
 	}
 
 	/** Returns vertical scrollbar width or 0 if not visible. */

@@ -9,39 +9,29 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
-import javafx.application.Platform;
-import javafx.collections.ListChangeListener;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Pair;
-import sp.it.pl.util.access.V;
-import sp.it.pl.util.collections.mapset.MapSet;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 import sp.it.pl.util.conf.Config;
-import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.IsConfig.EditMode;
-import sp.it.pl.util.conf.IsConfigurable;
-import sp.it.pl.util.hotkey.Hotkeys;
-import sp.it.pl.util.system.Os;
+import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.validation.Constraint;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.stream.Collectors.toCollection;
-import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
+import static sp.it.pl.util.conf.ConfigurationUtilKt.computeConfigGroup;
+import static sp.it.pl.util.conf.ConfigurationUtilKt.obtainConfigGroup;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.setRO;
 import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.reactive.Util.doOnceIfNonNull;
-import static sp.it.pl.util.reactive.Util.listChangeHandlerEach;
 import static sp.it.pl.util.system.EnvironmentKt.runCommand;
 
 /**
@@ -53,12 +43,7 @@ import static sp.it.pl.util.system.EnvironmentKt.runCommand;
  * <p/>
  * Action is also {@link Config} so it can be configured and serialized.
  */
-@IsConfigurable(Action.CONFIG_GROUP)
-public final class Action extends Config<Action> implements Runnable {
-
-	static {
-		initStaticConfigs(Action.class);
-	}
+public class Action extends Config<Action> implements Runnable, Function0<Unit> {
 
 	/** Action that does nothing. Use where null inappropriate. */
 	public static final Action EMPTY = new Action("None", () -> {}, "Action that does nothing", "", "", false, false);
@@ -209,6 +194,12 @@ public final class Action extends Config<Action> implements Runnable {
 		});
 	}
 
+	@Override
+	public Unit invoke() {
+		run();
+		return Unit.INSTANCE;
+	}
+
 	/**
 	 * Activates shortcut. Only registered shortcuts can be invoked.
 	 * <p/>
@@ -227,14 +218,14 @@ public final class Action extends Config<Action> implements Runnable {
 	public void register() {
 		if (!hasKeysAssigned()) return;
 
-		boolean can_be_global = global && globalShortcuts.getValue() && isGlobalShortcutsSupported();
+		boolean can_be_global = global && ActionManager.INSTANCE.getGlobalShortcuts().getValue() && ActionManager.INSTANCE.isGlobalShortcutsSupported();
 		if (can_be_global) registerGlobal();
 		else registerLocal();
 	}
 
 	public void unregister() {
 		// unregister both local and global to prevent illegal states
-		if (isGlobalShortcutsSupported()) unregisterGlobal();
+		if (ActionManager.INSTANCE.isGlobalShortcutsSupported()) unregisterGlobal();
 		unregisterLocal();
 	}
 
@@ -254,7 +245,7 @@ public final class Action extends Config<Action> implements Runnable {
 	}
 
 	private void registerLocal() {
-		if (!isActionListening()) return; // make sure there is no illegal state
+		if (!ActionManager.INSTANCE.isActionListening()) return; // make sure there is no illegal state
 
 		KeyCombination k = getKeysForLocalRegistering();
 //        Stage.getWindows().stream().map(Window::getScene).forEach(this::registerInScene);
@@ -273,27 +264,27 @@ public final class Action extends Config<Action> implements Runnable {
 				w.getScene().getAccelerators().remove(k);
 	}
 
-	private void registerInScene(Scene s) {
-		if (!isActionListening()) return; // make sure there is no illegal state
+	void registerInScene(Scene s) {
+		if (!ActionManager.INSTANCE.isActionListening()) return; // make sure there is no illegal state
 		s.getAccelerators().put(getKeysForLocalRegistering(), this);
 	}
 
-	private void unregisterInScene(Scene s) {
+	void unregisterInScene(Scene s) {
 		if (s==null) return;
 		s.getAccelerators().remove(getKeysForLocalRegistering());
 	}
 
 	private void registerGlobal() {
-		if (!isActionListening()) return; // make sure there is no illegal state
-		hotkeys.register(this, getKeys());
+		if (!ActionManager.INSTANCE.isActionListening()) return; // make sure there is no illegal state
+		ActionRegistrar.INSTANCE.getHotkeys().register(this, getKeys());
 	}
 
 	private void unregisterGlobal() {
-		hotkeys.unregister(this);
+		ActionRegistrar.INSTANCE.getHotkeys().unregister(this);
 	}
 
 	public int getID() {
-		return idOf(name);
+		return ActionRegistrar.INSTANCE.idOf(name);
 	}
 
 	private KeyCombination getKeysForLocalRegistering() {
@@ -436,172 +427,26 @@ public final class Action extends Config<Action> implements Runnable {
 		return global + "," + getKeys();
 	}
 
-/* ---------- SHORTCUT HANDLING ON APP LEVEL ------------------------------------------------------------------------ */
 
-	@SuppressWarnings("FieldCanBeLocal")
-	@IsConfig(name = "Global shortcuts supported", editable = EditMode.NONE, info = "Whether global shortcuts are supported on this system")
-	private static final boolean isGlobalShortcutsSupported = true;
-	private static final boolean isGlobalShortcutsRecommended = Os.WINDOWS.isCurrent();
-	@IsConfig(name = "Media shortcuts supported", editable = EditMode.NONE, info = "Whether media shortcuts are supported on this system")
-	private static final boolean isMediaShortcutsSupported = true;
-	private static boolean isRunning = false;
-	private static Hotkeys hotkeys = new Hotkeys(Platform::runLater);
-
-	/**
-	 * Activates listening process for hotkeys. Not running this method will cause hotkeys to not
-	 * get invoked.
-	 * Must not be ran more than once.
-	 * Does nothing if not supported.
-	 *
-	 * @throws IllegalStateException if ran more than once without calling {@link #stopActionListening()}
-	 */
-	public static void startActionListening() {
-		if (isRunning) throw new IllegalStateException("Action listening already running");
-		startLocalListening();
-		if (isGlobalShortcutsSupported() && globalShortcuts.get()) startGlobalListening();
-		isRunning = true;
-	}
-
-	/**
-	 * Deactivates listening process for hotkeys (global and local), causing them to stop working.
-	 * Frees resources. This method should should always be ran when {@link #startActionListening()}
-	 * was invoked. Not doing so may prevent the application from closing successfully, due to non
-	 * daemon thread involved here.
-	 */
-	public static void stopActionListening() {
-		stopLocalListening();
-		stopGlobalListening();
-		isRunning = false;
-	}
-
-	/** @return whether the action listening is running */
-	public static boolean isActionListening() {
-		return isRunning;
-	}
-
-/* ---------- HELPER METHODS ---------------------------------------------------------------------------------------- */
-
-	private static final ListChangeListener<Window> localActionRegisterer = listChangeHandlerEach(
-			window -> doOnceIfNonNull(window.sceneProperty(),
-					scene -> getActions().stream().filter(a -> !a.isGlobal()).forEach(a -> a.registerInScene(scene))),
-			window -> {
-				Scene scene = window.getScene();
-				if (scene!=null)
-					getActions().stream().filter(a -> !a.isGlobal()).forEach(a -> a.unregisterInScene(scene));
-			}
-	);
-
-	/** Activates listening process for local hotkeys. */
-	private static void startLocalListening() {
-		// Normally we first register for all visible windows.
-		// But its handled when applying the action as a Config.
-		// Stage.getWindows().forEach(window -> executeWhenNonNull(window.sceneProperty(), scene -> getActions().forEach(a -> a.registerInScene(scene))));
-
-		// keep registering when new windows are showed
-		Stage.getWindows().addListener(localActionRegisterer);
-
-		// Normally, we should also observe Actions and register/unregister on add/remove or we effectively
-		// support only pre-created actions.
-		// But its handled when applying the action as a Config.
-	}
-
-	/**
-	 * Deactivates listening process for local hotkeys.
-	 */
-	private static void stopLocalListening() {
-		Stage.getWindows().removeListener(localActionRegisterer);
-		Stage.getWindows().forEach(window -> {
-			Scene scene = window.getScene();
-			if (scene!=null)
-				Action.getActions().forEach(a -> a.unregisterInScene(scene));
-		});
-	}
-
-	/**
-	 * Activates listening process for global hotkeys. Not running this method
-	 * will cause registered global hotkeys to not get invoked. Use once when
-	 * application initializes.
-	 * Does nothing if not supported.
-	 */
-	private static void startGlobalListening() {
-		hotkeys.start();
-	}
-
-	/**
-	 * Deactivates listening process for global hotkeys. Frees resources. This
-	 * method should should always be ran at the end of application's life cycle
-	 * if {@link #startGlobalListening()} ()} was invoked at least once.
-	 * Not doing so might prevent from the application to close successfully,
-	 * because bgr listening thread will not close.
-	 */
-	private static void stopGlobalListening() {
-		hotkeys.stop();
-	}
-
-	/**
-	 * Returns true iff global shortcuts are supported at running platform.
-	 * Otherwise false. In such case, global shortcuts will run as local and
-	 * {@link #startGlobalListening()} and {@link #stopGlobalListening()} will
-	 * have no effect.
-	 */
-	public static boolean isGlobalShortcutsSupported() {
-		return isGlobalShortcutsSupported;
-	}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-	/**
-	 * Returns modifiable collection of all actions mapped by their name. Actions
-	 * can be added and removed, which modifies the underlying collection.
-	 *
-	 * @return all actions.
-	 */
-	public static Collection<Action> getActions() {
-		return actions;
+	public static Action get(String name) {
+		return ActionRegistrar.INSTANCE.get(name);
 	}
 
 	public static Action get(int id) {
-		Action a = actions.get(id);
-		if (a==null) throw new IllegalArgumentException("No such action: '" + id + "'. Make sure the action is " +
-				"declared and annotation processing is enabled and functioning properly.");
-		return a;
+		return ActionRegistrar.INSTANCE.get(id);
 	}
 
-	/**
-	 * Returns the action with specified name or throws an exception. It is a programmatic error if an action does
-	 * not exist.
-	 *
-	 * @param name name of the action
-	 * @return action. Never null.
-	 * @throws IllegalArgumentException if no such action
-	 */
-	public static Action get(String name) {
-		Action a = actions.get(idOf(name));
-		if (a==null) throw new IllegalArgumentException("No such action: '" + name + "'. Make sure the action is " +
-				"declared and annotation processing is enabled and functioning properly.");
-		return a;
-	}
 
-	// Guarantees consistency
-	private static int idOf(String actionName) {
-		return actionName.hashCode();
-	}
-
-	private static final MapSet<Integer,Action> actions = new MapSet<>(new ConcurrentHashMap<>(), Action::getID) {{
-//		ConfigurableTypesPool.types.stream().flatMap(type -> gatherActions(type, null)).forEach(this::add);
-		add(EMPTY);
-	}};
-
-	public static void installActions(Object... os) {
+		public static void installActions(Object... os) {
 		stream(os)
-				.flatMap(o -> {
-					if (o instanceof Stream) return (Stream<?>) o;
-					if (o instanceof Optional) return ((Optional<?>) o).stream();
-					if (o instanceof Object[]) return stream(((Object[]) o));
-					if (o instanceof Collection) return Stream.concat(Stream.of(o), ((Collection<?>)o).stream());
-					return stream(o);
-				})
-				.forEach(o -> gatherActions(o));
+			.flatMap(o -> {
+				if (o instanceof Stream) return (Stream<?>) o;
+				if (o instanceof Optional) return ((Optional<?>) o).stream();
+				if (o instanceof Object[]) return stream(((Object[]) o));
+				if (o instanceof Collection) return Stream.concat(Stream.of(o), ((Collection<?>)o).stream());
+				return stream(o);
+			})
+			.forEach(o -> gatherActions(o));
 	}
 
 	public static void gatherActions(Object object) {
@@ -612,35 +457,35 @@ public final class Action extends Config<Action> implements Runnable {
 		boolean useStatic = instance!=null;
 		Lookup method_lookup = MethodHandles.lookup();
 		stream(type.getDeclaredMethods())
-				.map(m -> new Pair<>(m, isStatic(m.getModifiers())))
-				.filter(m -> useStatic^m.getValue())
-				.flatMap(m -> stream(m.getKey().getAnnotationsByType(IsAction.class))
-						.map(a -> {
-							if (m.getKey().getParameters().length>0)
-								throw new RuntimeException("Action Method must have 0 parameters!");
+			.map(m -> new Pair<>(m, isStatic(m.getModifiers())))
+			.filter(m -> useStatic^m.getValue())
+			.flatMap(m -> stream(m.getKey().getAnnotationsByType(IsAction.class))
+				.map(a -> {
+					if (m.getKey().getParameters().length>0)
+						throw new RuntimeException("Action Method must have 0 parameters!");
 
-							String group = getActionGroup(type);
-							MethodHandle mh;
-							try {
-								m.getKey().setAccessible(true);
-								mh = method_lookup.unreflect(m.getKey());
-							} catch (IllegalAccessException e) {
-								throw new RuntimeException(e);
-							}
+					String group = instance==null ? obtainConfigGroup(null, type) : computeConfigGroup(instance);
+					MethodHandle mh;
+					try {
+						m.getKey().setAccessible(true);
+						mh = method_lookup.unreflect(m.getKey());
+					} catch (IllegalAccessException e) {
+						throw new RuntimeException(e);
+					}
 
-							Runnable r = () -> {
-								try {
-									if (m.getValue()) mh.invokeExact();
-									else mh.invoke(instance);
-								} catch (Throwable e) {
-									throw new RuntimeException("Error during running action", e);
-								}
-							};
-							return new Action(a, group, r);
-						})
+					Runnable r = () -> {
+						try {
+							if (m.getValue()) mh.invokeExact();
+							else mh.invoke(instance);
+						} catch (Throwable e) {
+							throw new RuntimeException("Error during running action", e);
+						}
+					};
+					return new Action(a, group, r);
+				})
 
-				)
-				.forEach(actions::add);
+			)
+			.forEach(APP.configuration::collect);
 	}
 
 	public static void loadCommandActions() {
@@ -652,8 +497,7 @@ public final class Action extends Config<Action> implements Runnable {
 			.stream()
 			.filter(a -> a.isEnabled)
 			.map(Command::toAction)
-			.peek(Action::register)
-			.peek(actions::add)
+			.peek(APP.configuration::collect)
 			.count();
 		// Generate default template for the user if necessary (shows how to define commands).
 		// Note we must not overwrite existing file, possibly containing already defined commands, hence the
@@ -675,64 +519,13 @@ public final class Action extends Config<Action> implements Runnable {
 
 		public Action toAction() {
 			return new Action(
-					name,
-					isAppCommand ? () -> APP.parameterProcessor.process(list(command)) : () -> runCommand(command),
-					isAppCommand ? "Runs app command '" + command + "'" : "Runs system command '" + command + "'",
-					isAppCommand ? "Shortcuts.command.app" : "Shortcuts.command.system",
-					keys, isGlobal, false
+				name,
+				isAppCommand ? () -> APP.parameterProcessor.process(list(command)) : () -> runCommand(command),
+				isAppCommand ? "Runs app command '" + command + "'" : "Runs system command '" + command + "'",
+				isAppCommand ? "Shortcuts.command.app" : "Shortcuts.command.system",
+				keys, isGlobal, false
 			);
 		}
 	}
-
-	private static String getActionGroup(Class<?> c) {
-		IsConfigurable ac = c.getAnnotation(IsConfigurable.class);
-		if (ac!=null && !ac.value().isEmpty())
-			return ac.value();
-
-		IsActionable aa = c.getAnnotation(IsActionable.class);
-		return aa==null || aa.value().isEmpty() ? c.getSimpleName() : aa.value();
-	}
-
-/* ---------- CONFIGURATION ----------------------------------------------------------------------------------------- */
-
-	@IsConfig(name = "Global shortcuts enabled", info = "Allows using the shortcuts even if application is not focused.")
-	public static final V<Boolean> globalShortcuts = new V<>(isGlobalShortcutsRecommended, v -> {
-		if (isGlobalShortcutsSupported()) {
-			if (v) {
-				startGlobalListening();
-				// re-register shortcuts to switch from local
-				getActions().forEach(a -> {
-					a.unregister();
-					a.register();
-				});
-			} else {
-				stopGlobalListening();
-				// re-register shortcuts to switch to local
-				getActions().forEach(a -> {
-					a.unregister();
-					a.register();
-				});
-			}
-		}
-	});
-
-	@IsConfig(name = "Media shortcuts enabled", info = "Allows using shortcuts for media keys on the keyboard.")
-	public static final V<Boolean> globalMediaShortcuts = new V<>(true);
-
-//    @IsConfig(name = "Allow in-app shortcuts", info = "Allows using standard shortcuts.", group = "Shortcuts")
-//    public static final V<Boolean> local_shortcuts = new V<>(true, v -> {
-//        if (isLocalShortcutsSupported()) {
-//            if (v){
-//            } else {
-//
-//            }
-//        }
-//    });
-
-	@IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.")
-	public static KeyCode Shortcut_ALTERNATE = ALT_GRAPH;
-
-	@IsConfig(name = "Collapse layout", info = "Collapses focused container within layout.", editable = EditMode.NONE)
-	public static final String Shortcut_COLAPSE = "Shift+C";
 
 }

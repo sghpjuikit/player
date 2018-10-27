@@ -11,7 +11,6 @@ import javafx.stage.Window
 import mu.KotlinLogging
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.playlist.PlaylistManager
-import sp.it.pl.gui.Gui
 import sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
@@ -120,7 +119,7 @@ fun File.browse() = toURI().browse()
  * On some platforms the operation may be unsupported. In that case this method is a no-op.
  */
 fun URI.browse() {
-    println("browsing uri=$this")
+    logger.info { "Browsing uri=$this" }
     runNotFX {
         val f = toFileOrNull()
         if (f==null) {
@@ -158,6 +157,7 @@ fun URI.browse() {
  * On some platforms the operation may be unsupported. In that case this method is a no-op.
  */
 fun File.edit() {
+    logger.info { "Editing file=$this" }
     runNotFX {
         if (isDirectory) {
             open()
@@ -186,6 +186,7 @@ fun File.edit() {
  * On some platforms the operation may be unsupported. In that case this method is a no-op.
  */
 fun File.open() {
+    logger.info { "Opening file=$this" }
     runNotFX {
         when {
             // If the file is executable, Desktop#open() will execute it, however the spawned process' working directory
@@ -194,7 +195,7 @@ fun File.open() {
             isExecutable() -> runAsProgram()
             else ->
                 when {
-                    isDirectory && APP.DIR_SKINS==parentDir || isValidSkinFile(this) -> Gui.setSkin(this)
+                    isDirectory && APP.DIR_SKINS==parentDir || isValidSkinFile(this) -> APP.ui.setSkin(this)
                     isDirectory && APP.DIR_WIDGETS==parentDir || isValidWidgetFile(this) -> APP.widgetManager.widgets.find(nameWithoutExtensionOrRoot, NO_LAYOUT, false)
                     else ->
                         if (Desktop.Action.OPEN.isSupportedOrWarn()) {
@@ -221,6 +222,7 @@ fun File.open() {
  *  @return success if file was deleted or did not exist or error if error occurs during deletion
  */
 fun File.recycle(): Try<Void, Void> {
+    logger.info { "Recycling file=$this" }
     return if (Desktop.Action.MOVE_TO_TRASH.isSupportedOrWarn()) {
         try {
             if (Desktop.getDesktop().moveToTrash(this)) Try.ok<Void>() else Try.error()

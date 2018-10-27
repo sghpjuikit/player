@@ -104,9 +104,6 @@ public class PlayingSequence {
                             if (size==0) return null;
                             // generate random index
                             history_pos--;
-                            for (int k = 0; k<history.size(); k++) {
-                                System.out.println(k + " " + history.get(k));
-                            }
                             if (history_pos>0 && history_pos<history.size() - 1) {
                                 return history.get(history_pos);
                             }
@@ -115,9 +112,6 @@ public class PlayingSequence {
                         },
                         (size, index, current_item, playlist) -> {
                             if (size==0) return null;
-                            for (int k = 0; k<history.size(); k++) {
-                                System.out.println(k + " " + history.get(k));
-                            }
                             if (history_pos>-1 && history_pos<history.size() - 2) {
                                 history_pos++;
                                 return history.get(history_pos);

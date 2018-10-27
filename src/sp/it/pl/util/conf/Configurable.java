@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import sp.it.pl.util.type.Util;
-import static sp.it.pl.util.conf.Configuration.configsOf;
+import static sp.it.pl.util.conf.ConfigurationUtil.configsOf;
+import static sp.it.pl.util.conf.ConfigurationUtil.createConfig;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.type.Util.forEachJavaFXProperty;
 
@@ -144,7 +145,7 @@ public interface Configurable<T> {
 		try {
 			Class<?> c = this.getClass();
 			Field f = Util.getField(c, name);
-			return (Config<T>) Configuration.createConfig(c, f, this, false, true);
+			return (Config<T>) createConfig(c, f, this, false, true);
 		} catch (NoSuchFieldException|SecurityException e) {
 			throw new IllegalArgumentException("Config field '" + name + "' not found.");
 		}

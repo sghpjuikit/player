@@ -71,9 +71,8 @@ public abstract class Search {
 	 */
 	private void onKeyTyped(KeyEvent e) {
 		if (pressedKeyCode==null || pressedKeyCode==ESCAPE || pressedKeyCode==TAB || pressedKeyCode==ENTER || pressedKeyCode==DELETE) return;
-		if (pressedKeyCode.isNavigationKey() || pressedKeyCode.isFunctionKey() || e.isAltDown() || e.isShortcutDown())
-			return;
-		if ((!isActive() && (e.isShiftDown() || pressedKeyCode==SPACE))) return;
+		if (pressedKeyCode.isNavigationKey() || pressedKeyCode.isFunctionKey() || e.isAltDown() || e.isShortcutDown()) return;
+		if (!isActive() && (e.isShiftDown() || pressedKeyCode==SPACE)) return;
 
 		KeyCode k = pressedKeyCode;
 		String letter = e.getCharacter();

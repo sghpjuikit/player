@@ -23,6 +23,7 @@ import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Configurable
+import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.functional.seqRec
 import sp.it.pl.util.graphics.expandAndSelect
@@ -55,7 +56,7 @@ class Configurator: ClassController(), ConfiguringFeature<Any> {
     private val configSelectionName = "app.settings.selected_group"
     private var configSelectionAvoid = false
 
-    @JvmField @IsConfig(editable = IsConfig.EditMode.APP)
+    @field: IsConfig(editable = EditMode.APP)
     var showsAppSettings = true
 
     init {
@@ -74,7 +75,7 @@ class Configurator: ClassController(), ConfiguringFeature<Any> {
         }
 
         controls.children += listOf(
-                Icon(HOME, 13.0, "AppUtil settings", Runnable { showsAppSettings = true; configure(APP.configuration.fields) }),
+                Icon(HOME, 13.0, "AppUtil settings", Runnable { showsAppSettings = true; configure(APP.configuration.getFields()) }),
                 Label("    "),
                 Icon(REFRESH, 13.0, "Refresh all", Runnable { refresh() }),
                 Icon(RECYCLE, 13.0, "Set all to default", Runnable { defaults() })
@@ -89,7 +90,7 @@ class Configurator: ClassController(), ConfiguringFeature<Any> {
     fun defaults() = configsPane.getConfigFields().forEach { it.setNapplyDefault() }
 
     override fun refresh() {
-        if (showsAppSettings) configure(APP.configuration.fields)
+        if (showsAppSettings) configure(APP.configuration.getFields())
         else refreshConfigs()
     }
 
@@ -110,12 +111,12 @@ class Configurator: ClassController(), ConfiguringFeature<Any> {
     private fun storeAppSettingsSelection(item: TreeItem<Name>?) {
         if (!showsAppSettings || configSelectionAvoid) return
         val selectedGroupPath = item?.value?.pathUp ?: ""
-        APP.configuration.rawAddProperty(configSelectionName, selectedGroupPath)
+        APP.configuration.rawAdd(configSelectionName, selectedGroupPath)
     }
 
     private fun restoreAppSettingsSelection() {
         if (!showsAppSettings) return
-        val path = APP.configuration.rawGet()[configSelectionName]
+        val path = APP.configuration.rawGetAll()[configSelectionName]
         val item = groups.root.seqRec { it.children }.find { it.value.pathUp==path; } ?: groups.root
         groups.expandAndSelect(item)    // invokes showConfigs()
     }

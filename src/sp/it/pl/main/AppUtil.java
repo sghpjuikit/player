@@ -1,11 +1,8 @@
 package sp.it.pl.main;
 
-import java.awt.color.ColorSpace;
-import java.awt.color.ICC_Profile;
 import java.io.File;
 import java.net.URLConnection;
 import javafx.application.Application;
-import javax.imageio.ImageIO;
 import static sp.it.pl.util.file.Util.isValidatedDirectory;
 import static sp.it.pl.util.file.UtilKt.childOf;
 
@@ -24,21 +21,6 @@ public class AppUtil {
 
         // Disable url caching, which may cause jar files being held in memory
         URLConnection.setDefaultUseCaches("file", false);
-
-        File dirImageIoTmp = childOf(new File("").getAbsoluteFile(), "user", "tmp", "imageio");
-        isValidatedDirectory(dirImageIoTmp);
-        ImageIO.setCacheDirectory(dirImageIoTmp);
-        ImageIO.setUseCache(true);
-
-        // Load deferred color space profiles to avoid ConcurrentModificationException due to JDK bug
-        // https://github.com/haraldk/TwelveMonkeys/issues/402
-        // https://bugs.openjdk.java.net/browse/JDK-6986863
-        // https://stackoverflow.com/questions/26297491/imageio-thread-safety
-        ICC_Profile.getInstance(ColorSpace.CS_sRGB).getData();
-        ICC_Profile.getInstance(ColorSpace.CS_PYCC).getData();
-        ICC_Profile.getInstance(ColorSpace.CS_GRAY).getData();
-        ICC_Profile.getInstance(ColorSpace.CS_CIEXYZ).getData();
-        ICC_Profile.getInstance(ColorSpace.CS_LINEAR_RGB).getData();
 
         Application.launch(App.class, args);
     }

@@ -29,7 +29,6 @@
 
 package sp.it.pl.gui.objects.popover
 
-import javafx.application.Platform
 import javafx.beans.InvalidationListener
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -46,7 +45,6 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.Pane
-import javafx.stage.Stage
 import javafx.stage.Window
 import javafx.stage.WindowEvent
 import javafx.stage.WindowEvent.WINDOW_HIDING
@@ -71,7 +69,6 @@ import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.centre
 import sp.it.pl.util.graphics.getScreen
-import sp.it.pl.util.graphics.setScaleXYByTo
 import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.toP
 import sp.it.pl.util.math.P
@@ -218,7 +215,7 @@ open class PopOver<N: Node>(): PopupControl() {
     private val animation by lazy {
         anim {
             getSkinn().node.opacity = it*it
-            getSkinn().node.setScaleXYByTo(it, -20.0, 0.0)  // TODO: causes slight position shift sometimes
+            // getSkinn().node.setScaleXYByTo(it, -20.0, 0.0)  // TODO: causes slight position shift sometimes
         }
     }
 
@@ -405,11 +402,13 @@ open class PopOver<N: Node>(): PopupControl() {
 
         fun fixWrongCoordinatesWhenShownWithDifferentContentWhenShowing() {
             if (isShowing) {
-                // hideImmediately() // This solution works but introduces a visual glitch
+                // This solution works but introduces a visual glitch
+                // hideImmediately()
+
                 skin.node.applyCss()
-                skin.node.autosize()
                 (skin.node as? Pane)?.requestLayout()
                 (skin.node as? Pane)?.layout()
+                skin.node.autosize()
             }
         }
 
@@ -486,11 +485,13 @@ open class PopOver<N: Node>(): PopupControl() {
     }
 
     private fun fadeIn() {
+        animation.applyNow()
         animation.dur(animationDuration.value)
         animation.playOpenDo(null)
     }
 
     private fun fadeOut() {
+        animation.applyNow()
         animation.dur(animationDuration.value)
         animation.playCloseDo(Runnable { hideImmediately() })
     }
@@ -682,16 +683,13 @@ open class PopOver<N: Node>(): PopupControl() {
 
     companion object {
 
-        @F val active_popups = observableArrayList(ArrayList<PopOver<*>>())!!
+        val active_popups = observableArrayList(ArrayList<PopOver<*>>())!!
         private val KEY_CLOSE_OWNER = Any()
         private val KEY_MOVE_WITH_OWNER_NODE = Any()
         private val KEY_MOVE_WITH_OWNER_WINDOW = Any()
-        private val STYLE_CLASS = "popover"
+        private const val STYLE_CLASS = "popover"
 
-        private lateinit var UNFOCUSED_OWNER: Stage
+        private val UNFOCUSED_OWNER by lazy { APP.windowManager.createStageOwner() }
 
-        init {
-            Platform.runLater { UNFOCUSED_OWNER = APP.windowManager.createStageOwner() }
-        }
     }
 }

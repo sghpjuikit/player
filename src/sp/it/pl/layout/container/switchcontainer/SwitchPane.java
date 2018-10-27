@@ -1,4 +1,3 @@
-
 package sp.it.pl.layout.container.switchcontainer;
 
 import java.util.HashMap;
@@ -14,7 +13,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.layout.AltState;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.area.ContainerNode;
@@ -75,11 +73,11 @@ public class SwitchPane implements ContainerNode {
 
     public final V<Boolean> align = new V<>(true, v -> { if (v) alignTabs(); });
     public final V<Boolean> snap = new V<>(true, v -> { if (v) snapTabs(); });
-    public final V<Double> switch_dist_abs = new V<>(150.0);
-    public final V<Double> switch_dist_rel = new V<>(0.15); // 0 - 1
-    public final V<Double> drag_inertia = new V<>(1.5);
-    public final V<Double> snap_threshold_rel = new V<>(0.05); // 0 - 0.5
-    public final V<Double> snap_threshold_abs = new V<>(25.0);
+    public final V<Double> switchDistAbs = new V<>(150.0);
+    public final V<Double> switchDistRel = new V<>(0.15); // 0 - 1
+    public final V<Double> dragInertia = new V<>(1.5);
+    public final V<Double> snapThresholdRel = new V<>(0.05); // 0 - 0.5
+    public final V<Double> snapThresholdAbs = new V<>(25.0);
     public final V<Double> zoomScaleFactor = new V<>(0.7); // 0.2 - 1
 
     public SwitchPane(SwitchContainer container) {
@@ -130,7 +128,7 @@ public class SwitchPane implements ContainerNode {
         root.addEventFilter(MOUSE_EXITED, this::dragUiEnd);
 
         root.addEventHandler(SCROLL, e-> {
-            if (Gui.isLayoutMode()) {
+            if (APP.ui.isLayoutMode()) {
                 double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/10d;
                        i = clip(0.2d,i,1d);
                 byx = signum(-1*e.getDeltaY())*(e.getX()-uiWidth()/2);
@@ -217,7 +215,7 @@ public class SwitchPane implements ContainerNode {
             n = l.getRoot();
             as = l;
         }
-        if (Gui.isLayoutMode()) as.show();
+        if (APP.ui.isLayoutMode()) as.show();
         tab.getChildren().setAll(n);
     }
 
@@ -280,7 +278,7 @@ public class SwitchPane implements ContainerNode {
             double x = ui.getTranslateX();
             double traveled = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;
             // simulate mass - the more traveled the longer ease out
-            uiDrag.setToX(x + traveled * drag_inertia.get());
+            uiDrag.setToX(x + traveled * dragInertia.get());
             uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
             // snap at the end of animation
             uiDrag.setOnFinished( a -> {
@@ -396,8 +394,8 @@ public class SwitchPane implements ContainerNode {
         double is = ui.getTranslateX();
         double should_be = -getTabX(currTab());
         double dist = Math.abs(is-should_be);
-        double threshold1 = ui.getWidth()* snap_threshold_rel.get();
-        double threshold2 = snap_threshold_abs.get();
+        double threshold1 = ui.getWidth()* snapThresholdRel.get();
+        double threshold2 = snapThresholdAbs.get();
 
         return dist < Math.max(threshold1, threshold2) ? alignTabs() : i;
     }
@@ -432,8 +430,8 @@ public class SwitchPane implements ContainerNode {
         double dist = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;   // distance
         int byT = 0;                            // tabs to travel by
         double dAbs = Math.abs(dist);
-        double threshold1 = ui.getWidth()*switch_dist_rel.get();
-        double threshold2 = switch_dist_abs.get();
+        double threshold1 = ui.getWidth()*switchDistRel.get();
+        double threshold2 = switchDistAbs.get();
         if (dAbs > Math.min(threshold1, threshold2))
             byT = (int) -Math.signum(dist);
 
@@ -489,7 +487,7 @@ public class SwitchPane implements ContainerNode {
         // if (d!=1) zoomScaleFactor.set(d);
         // play
         z.stop();
-        z.setDuration(Gui.duration_LM);
+        z.setDuration(APP.ui.getDurationLM());
         z.setToX(d);
         z.play();
         zt.stop();

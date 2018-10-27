@@ -1,4 +1,3 @@
-
 package sp.it.pl.layout.area;
 
 import javafx.animation.FadeTransition;
@@ -10,7 +9,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.picker.Picker;
 import sp.it.pl.gui.objects.picker.WidgetPicker;
 import sp.it.pl.layout.container.Container;
@@ -140,7 +138,7 @@ public final class Layouter implements ContainerNode {
     @Override
     public void hide() {
         // prevent leaving layout mode when layout mode active
-        if (Gui.isLayoutMode()) return;
+        if (APP.ui.isLayoutMode()) return;
         showControls(false);
 //        closeAndDo(cp.root, null);
     }
@@ -204,7 +202,7 @@ public final class Layouter implements ContainerNode {
                 root.setOnMouseExited(null);
                 // this is the crucial part
                 container.addChild(index, factory.create());
-                if (Gui.isLayoutMode()) container.show();
+                if (APP.ui.isLayoutMode()) container.show();
                 APP.actionStream.push("New widget");
             });
         };

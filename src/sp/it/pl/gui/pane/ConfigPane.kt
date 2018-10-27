@@ -1,6 +1,7 @@
 package sp.it.pl.gui.pane
 
 import javafx.geometry.Insets
+import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.layout.HBox
@@ -10,6 +11,7 @@ import javafx.scene.text.TextAlignment
 import sp.it.pl.gui.itemnode.ConfigField
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.util.access.v
+import sp.it.pl.util.action.Action
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.graphics.hBox
@@ -20,6 +22,9 @@ class ConfigPane<T: Any>: VBox, ConfiguringFeature<T> {
     private var fields: List<ConfigField<out T>> = listOf()
     var onChange: Runnable? = null
     var labelWidth = v(250.0)
+    val configOrder = compareBy<Config<out T>> { 0 }
+            .thenBy { if (it.type == Action::class.java) 1.0 else -1.0 }
+            .thenBy { it.guiName.toLowerCase() }
 
     @SafeVarargs
     constructor(vararg configs: Config<T>): this(configs.asList())
@@ -32,7 +37,7 @@ class ConfigPane<T: Any>: VBox, ConfiguringFeature<T> {
 
     override fun configure(configurable: Collection<Config<out T>>) {
         fields = configurable.asSequence()
-                .sortedBy { it.guiName.toLowerCase() }
+                .sortedWith(configOrder)
                 .map {
                     ConfigField.create(it).apply {
                         onChange = this@ConfigPane.onChange
@@ -40,6 +45,7 @@ class ConfigPane<T: Any>: VBox, ConfiguringFeature<T> {
                 }
                 .toList()
 
+        alignment = CENTER
         children.clear()
         children += fields.map {
             hBox {

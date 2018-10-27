@@ -196,6 +196,9 @@ fun runFX(delay: Duration, r: () -> Unit) {
     fxTimer(delay, 1) { runFX(r) }.start()
 }
 
+/** Executes the specified block using the specified executor. */
+fun runOn(executor: Executor, block: () -> Unit) = executor.execute(block)
+
 /**
  * Executes the runnable on fx thread at unspecified time in the future.
  *
@@ -216,12 +219,14 @@ fun onlyIfMatches(r: Runnable, counter: AtomicLong): Runnable {
     }
 }
 
-fun newSingleDaemonThreadExecutor() = Executors.newSingleThreadExecutor(threadFactory(true))!!
+/** @return single thread executor using specified thread factory */
+fun oneThreadExecutor() = Executors.newSingleThreadExecutor(threadFactory(true))!!
 
-/**
- * Resolves:<br></br>
- * https://stackoverflow.com/questions/19528304/how-to-get-the-threadpoolexecutor-to-increase-threads-to-max-before-queueing/19528305#19528305
- */
+/** @return single thread executor keeping the thread alive for specified time and using specified thread factory */
+fun oneCachedThreadExecutor(keepAliveTime: Duration, threadFactory: ThreadFactory) =
+        ThreadPoolExecutor(0, 1, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue<Runnable>(), threadFactory)
+
+/** Resolves: https://stackoverflow.com/questions/19528304/how-to-get-the-threadpoolexecutor-to-increase-threads-to-max-before-queueing/19528305#19528305 */
 fun newThreadPoolExecutor(maxPoolSize: Int, keepAliveTime: Long, unit: TimeUnit, threadFactory: ThreadFactory): ExecutorService {
     // TODO: implement properly
     return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime, unit, LinkedBlockingQueue<Runnable>(), threadFactory).apply {

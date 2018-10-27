@@ -37,8 +37,8 @@ import sp.it.pl.util.conf.CachedCompositeConfigurable;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.Configurable;
 import sp.it.pl.util.conf.Configuration;
+import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.reactive.Disposer;
 import sp.it.pl.util.type.Util;
@@ -200,12 +200,13 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 					// however that does not happen here. The root Container and Node should be passed
 					// as parameters to this method
 					controller.init();
+
 					restoreDefaultConfigs();
 					restoreConfigs();
 					controller.refresh();
 
 					updateIO();
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					root = Widget.EMPTY().load();
 					LOGGER.error("Widget {} graphics creation failed. Using empty widget instead.", getName(), e);
 				}

@@ -1,7 +1,11 @@
 package sp.it.pl.util.type
 
 import java.lang.reflect.Field
+import java.util.concurrent.atomic.AtomicReference
+import java.util.logging.Level
+import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
 
@@ -30,4 +34,24 @@ infix fun KClass<*>.union(type: KClass<*>): KClass<*> = when {
     else -> Any::class
 }
 
-inline fun <reified T : Annotation> Field.findAnnotation(): T? = getAnnotation(T::class.java)
+inline fun <reified T: Annotation> Class<*>.findAnnotation(): T? = getAnnotation(T::class.java)
+
+inline fun <reified T: Annotation> Field.findAnnotation(): T? = getAnnotation(T::class.java)
+
+/** Set [java.util.logging.Logger] of specified package to specified level. Helpful for stubborn libraries. */
+fun setLoggingLevelForPackage(logPackage: Package, logLevel: Level) {
+    java.util.logging.Logger.getLogger(logPackage.name).apply {
+        level = logLevel
+        useParentHandlers = false
+    }
+}
+
+/** @return thread-safe [ReadWriteProperty] backed by [AtomicReference] */
+fun <T> atomic(initialValue: T) = object: ReadWriteProperty<Any?, T> {
+
+    private val ref = AtomicReference<T>(initialValue)
+
+    override fun getValue(thisRef: Any?, property: KProperty<*>) = ref.get()
+
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) = ref.set(value)
+}

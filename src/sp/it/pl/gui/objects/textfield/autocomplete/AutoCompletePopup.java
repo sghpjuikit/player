@@ -29,9 +29,7 @@
 
 package sp.it.pl.gui.objects.textfield.autocomplete;
 
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -42,6 +40,7 @@ import javafx.scene.control.PopupControl;
 import javafx.scene.control.Skin;
 import javafx.stage.Window;
 import javafx.util.StringConverter;
+import sp.it.pl.util.access.V;
 import static javafx.collections.FXCollections.observableArrayList;
 
 /**
@@ -60,7 +59,7 @@ public class AutoCompletePopup<T> extends PopupControl {
 	 * showing. By default this value is 10, but this can be changed to increase
 	 * or decrease the height of the popup.
 	 */
-	private IntegerProperty visibleRowCount = new SimpleIntegerProperty(this, "visibleRowCount", 10);
+	public final V<Integer> visibleRowCount = new V<>(10);
 
 	/**
 	 * Represents an Event which is fired when the user has selected a suggestion for auto-complete
@@ -140,13 +139,9 @@ public class AutoCompletePopup<T> extends PopupControl {
 		return visibleRowCount.get();
 	}
 
-	public final IntegerProperty visibleRowCountProperty() {
-		return visibleRowCount;
-	}
-
 	@Override
 	protected Skin<AutoCompletePopup<T>> createDefaultSkin() {
-		return new AutoCompletePopupSkin<>(this);
+		return new AutoCompletePopupSkin<>(this, 1);
 	}
 
 	public final ObjectProperty<EventHandler<SuggestionEvent<T>>> onSuggestion = new SimpleObjectProperty<>();

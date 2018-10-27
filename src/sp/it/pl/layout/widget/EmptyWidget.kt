@@ -17,7 +17,7 @@ import java.io.ObjectStreamException
         year = "2014",
         group = Widget.Group.OTHER
 )
-internal class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller {
+class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller {
 
     private val o = Outputs()
     private val i = Inputs()
@@ -63,4 +63,4 @@ internal class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Co
 
 }
 
-internal val emptyWidgetFactory: WidgetFactory<*> = WidgetFactory(EmptyWidget::class, null)
+val emptyWidgetFactory: WidgetFactory<*> = WidgetFactory(EmptyWidget::class, null)

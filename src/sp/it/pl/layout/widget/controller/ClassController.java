@@ -16,6 +16,9 @@ abstract public class ClassController extends AnchorPane implements Controller {
 
 	@Dependency("DO NOT RENAME - accessed using reflection")
 	public final Widget<?> widget = null;
+	@Dependency("DO NOT RENAME - accessed using reflection")
+	public boolean isInitialized = false;
+
 	public final Outputs outputs = new Outputs();
 	public final Inputs inputs = new Inputs();
 	private final HashMap<String,Config<Object>> configs = new HashMap<>();

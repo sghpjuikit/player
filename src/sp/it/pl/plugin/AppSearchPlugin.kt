@@ -1,45 +1,45 @@
 package sp.it.pl.plugin
 
 import de.jensd.fx.glyphs.materialicons.MaterialIcon
-import mu.KotlinLogging
+import mu.KLogging
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
 import sp.it.pl.main.AppUtil.APP
-import sp.it.pl.util.access.v
-import sp.it.pl.util.conf.Config
-import sp.it.pl.util.conf.Config.VarList
-import sp.it.pl.util.conf.Config.VarList.Elements
+import sp.it.pl.util.conf.cList
+import sp.it.pl.util.conf.cr
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.conf.only
+import sp.it.pl.util.async.oneCachedThreadExecutor
+import sp.it.pl.util.async.runOn
+import sp.it.pl.util.async.threadFactory
+import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
+import sp.it.pl.util.math.seconds
 import sp.it.pl.util.system.runAsProgram
-import sp.it.pl.util.validation.Constraint
+import sp.it.pl.util.type.atomic
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 
-private const val NAME = "App Search"
-private const val GROUP = "${Plugin.CONFIG_GROUP}.$NAME"
-private val logger = KotlinLogging.logger {}
+class AppSearchPlugin: PluginBase("App Search", false) {
 
-class AppSearchPlugin: PluginBase(NAME) {
+    @IsConfig(name = "Location", info = "Locations to find applications in.")
+    private val searchDirs by cList<File>().only(DIRECTORY)
 
-    @Constraint.FileType(DIRECTORY)
-    @IsConfig(name = "Location", group = GROUP, info = "Root directories to search through")
-    private val searchDirs = VarList(File::class.java, Elements.NOT_NULL)
+    @IsConfig(name = "Search depth")
+    private val searchDepth by cv(Int.MAX_VALUE)
 
-    @IsConfig(name = "Search depth", group = GROUP)
-    private val searchDepth = v(Int.MAX_VALUE)
+    @IsConfig(name = "Re-scan apps")
+    private val searchDo by cr { findApps() }
 
-    @Suppress("unused")
-    @IsConfig(name = "Re-scan", group = GROUP)
-    private val searchDo = Config.RunnableConfig("rescan", "Rescan apps", GROUP, "", { findApps() })
-
-    private var searchSource: List<File> = emptyList()
+    private val thread by lazy { oneCachedThreadExecutor(seconds(2), threadFactory("appFinder", true)) }
+    private var searchSource by atomic(listOf<File>())
     private val searchProvider = { searchSource.asSequence().map { it.toRunApplicationEntry() } }
 
     override fun onStart() {
-        findApps()
         APP.search.sources += searchProvider
+        findApps()
     }
 
     override fun onStop() {
@@ -47,14 +47,17 @@ class AppSearchPlugin: PluginBase(NAME) {
     }
 
     private fun findApps() {
-        searchSource = searchDirs.list.asSequence()
-                .distinct()
-                .flatMap { findApps(it) }
-                .toList()
+        runOn(thread) {
+            // TODO: show progress
+            searchSource = searchDirs.materialize().asSequence()
+                    .distinct()
+                    .flatMap { findApps(it) }
+                    .toList()
+        }
     }
 
-    private fun findApps(rootDir: File): Sequence<File> {
-        return rootDir.walkTopDown()
+    private fun findApps(dir: File): Sequence<File> {
+        return dir.walkTopDown()
                 .onFail { file, e -> logger.warn(e) { "Ignoring file=$file. No read/access permission" } }
                 .maxDepth(searchDepth.value)
                 .filter { it hasExtension "exe" }
@@ -68,4 +71,5 @@ class AppSearchPlugin: PluginBase(NAME) {
             { Icon(MaterialIcon.APPS) }
     )
 
+    companion object: KLogging()
 }

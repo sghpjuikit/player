@@ -1,5 +1,6 @@
 package sp.it.pl.audio.playback
 
+import javafx.beans.property.ReadOnlyObjectWrapper
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
@@ -15,18 +16,18 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.runFX
-import sp.it.pl.util.reactive.installSingletonListener
+import sp.it.pl.util.reactive.attach1If
 import java.lang.Math.pow
-import java.util.function.Consumer
-import java.util.function.Predicate
 
 /** Audio player which abstracts away from the implementation. */
 class GeneralPlayer {
 
     private val state: PlayerState
     private var p: Play? = null
+    private val _pInfo = ReadOnlyObjectWrapper<String>("<none>")
+    val pInfo = _pInfo.readOnlyProperty!!
     private var i: Item? = null
-    @JvmField val realTime: RealTimeProperty    // TODO: move to state
+    val realTime: RealTimeProperty    // TODO: move to state
     private var seekDone = true
     private var lastValidVolume = -1.0
     private var volumeAnim: Anim? = null
@@ -48,7 +49,15 @@ class GeneralPlayer {
         i = item
         p?.disposePlayback()
         p = computePlayer(item)
-        val player = p;
+
+        _pInfo.value = when (p) {
+            null -> "<none>"
+            is VlcPlayer -> "VlcPlayer"
+            is JavaFxPlayer -> "JavaFX"
+            else -> "Unknown"
+        }
+
+        val player = p
         if (player==null) {
             logger.info("Player {} can not play item {}", player, item)
             item.playbackError = true
@@ -65,7 +74,7 @@ class GeneralPlayer {
                         Player.playingItem.itemChanged(item)
                         Player.suspension_flag = false
                         // fire other events (may rely on the above)
-                        Player.onPlaybackStart.run()
+                        Player.onPlaybackStart()
                         if (Player.post_activating_1st || !Player.post_activating)
                         // bug fix, not updated playlist items can get here, but should not!
                             if (item.timeMs>0)
@@ -151,8 +160,8 @@ class GeneralPlayer {
 
     private fun doSeek(duration: Duration) {
         realTime.syncRealTimeOnPreSeek()
-        state.playback.currentTime.set(duration)    // allow next doSeek() target correct value even if this has not finished
-        installSingletonListener(state.playback.currentTime, Predicate { it!=null }, Consumer { Player.onSeekDone.run() })
+        state.playback.currentTime.value = duration // allow next doSeek() target correct value even if this has not finished
+        state.playback.currentTime.attach1If({ it!=null }) { Player.onSeekDone.run() }
         p?.seek(duration)
         realTime.syncRealTimeOnPostSeek(duration)
     }

@@ -17,7 +17,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import sp.it.pl.gui.Gui;
+import kotlin.Unit;
 import sp.it.pl.gui.objects.window.Resize;
 import sp.it.pl.util.access.CyclicEnum;
 import sp.it.pl.util.dev.Dependency;
@@ -29,10 +29,11 @@ import static javafx.stage.StageStyle.TRANSPARENT;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.ALL;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.NONE;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.run;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.reactive.Util.installSingletonListener;
 import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.Util.sync1If;
 
 /**
  * Customized Stage, window of the application.
@@ -528,9 +529,9 @@ public class WindowBase {
 	public void snap() {
 		// avoid snapping while isResizing. It leads to unwanted behavior
 		// avoid when not desired
-		if (!Gui.snapping.get() || resizing.get()!=Resize.NONE) return;
+		if (!APP.ui.getSnapping().get() || resizing.get()!=Resize.NONE) return;
 
-		double S = Gui.snapDistance.get();
+		double S = APP.ui.getSnapDistance().get();
 
 		// snap to screen edges (x and y separately)
 		double SWm = screen.getBounds().getMinX();
@@ -681,7 +682,7 @@ public class WindowBase {
 	public void setNonInteractingOnBottom() {
 		if (!Os.WINDOWS.isCurrent()) return;
 
-		installSingletonListener(s.showingProperty(), v -> v, v -> {
+		sync1If(s.showingProperty(), v -> v, v -> {
 			User32 user32 = User32.INSTANCE;
 			String titleOriginal = s.getTitle();
 			String titleUnique = UUID.randomUUID().toString();
@@ -702,6 +703,8 @@ public class WindowBase {
 			int SWP_NOACTIVATE = 0x0010;
 			int HWND_BOTTOM = 1;
 			user32.SetWindowPos(hwnd, new HWND(new Pointer(HWND_BOTTOM)), 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE|SWP_NOACTIVATE);
+
+			return Unit.INSTANCE;
 		});
 	}
 
@@ -717,7 +720,7 @@ public class WindowBase {
 		if (s.getStyle()!=UNDECORATED && s.getStyle()!=TRANSPARENT) return;
 		if (!Os.WINDOWS.isCurrent()) return;
 
-		installSingletonListener(s.showingProperty(), v -> v, v -> {
+		sync1If(s.showingProperty(), v -> v, v -> {
 			User32 user32 = User32.INSTANCE;
 			String titleOriginal = s.getTitle();
 			String titleUnique = UUID.randomUUID().toString();
@@ -737,6 +740,8 @@ public class WindowBase {
 			int SWP_FRAMECHANGED = 0x0020;
 			int SWP_NOZORDER = 0x0004;
 			user32.SetWindowPos(hwnd, null, 0, 0, 0, 0, SWP_FRAMECHANGED|SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_NOOWNERZORDER);
+
+			return Unit.INSTANCE;
 		});
 	}
 

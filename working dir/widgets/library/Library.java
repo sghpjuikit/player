@@ -21,7 +21,6 @@ import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataGroup;
 import sp.it.pl.audio.tagging.MetadataReader;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.infonode.InfoTask;
 import sp.it.pl.gui.objects.contextmenu.TableContextMenuR;
 import sp.it.pl.gui.objects.table.FilteredTable;
@@ -41,8 +40,8 @@ import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
 import sp.it.pl.util.async.executor.ExecuteN;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config;
+import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.IsConfig.EditMode;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.file.FileType;
@@ -59,9 +58,9 @@ import static javafx.scene.input.TransferMode.COPY;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.audio.tagging.Metadata.Field.RATING;
 import static sp.it.pl.audio.tagging.Metadata.Field.TITLE;
-import static sp.it.pl.gui.Gui.rowHeight;
 import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static sp.it.pl.layout.widget.Widget.Group.LIBRARY;
+import static sp.it.pl.main.AppBuildersKt.rowHeight;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.util.animation.Anim.Interpolators.reverse;
@@ -113,15 +112,15 @@ public class Library extends FXMLController implements SongReader {
     private Output<Metadata> out_sel;
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final Vo<NodeOrientation> orient = new Vo<>(Gui.table_orient);
+    public final Vo<NodeOrientation> orient = new Vo<>(APP.ui.getTableOrient());
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    public final Vo<Boolean> zeropad = new Vo<>(Gui.table_zeropad);
+    public final Vo<Boolean> zeropad = new Vo<>(APP.ui.getTableZeropad());
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    public final Vo<Boolean> orig_index = new Vo<>(Gui.table_orig_index);
+    public final Vo<Boolean> orig_index = new Vo<>(APP.ui.getTableOrigIndex());
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Vo<Boolean> show_header = new Vo<>(Gui.table_show_header);
+    public final Vo<Boolean> show_header = new Vo<>(APP.ui.getTableShowHeader());
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table items information.")
-    public final Vo<Boolean> show_footer = new Vo<>(Gui.table_show_footer);
+    public final Vo<Boolean> show_footer = new Vo<>(APP.ui.getTableShowFooter());
     @IsConfig(editable = EditMode.APP) @Constraint.FileType(FileActor.ANY)
     private File lastFile = null;
     @IsConfig(editable = EditMode.APP) @Constraint.FileType(FileActor.DIRECTORY)
@@ -140,7 +139,7 @@ public class Library extends FXMLController implements SongReader {
         // table properties
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.search.setColumn(TITLE);
-        d(maintain(Gui.font, f -> rowHeight(f), table.fixedCellSizeProperty()));
+        d(maintain(APP.ui.getFont(), f -> rowHeight(f), table.fixedCellSizeProperty()));
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));
@@ -173,13 +172,13 @@ public class Library extends FXMLController implements SongReader {
             TableColumn<Metadata,Object> c = new TableColumn<>(f.toString());
             c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue())));
             c.setCellFactory(f==(Metadata.Field) RATING
-                ? (Callback) APP.ratingCell.getValue()
+                ? (Callback) APP.getRatingCell().getValue()
                 : column -> table.buildDefaultCell(f)
             );
             return c;
         });
         // maintain rating column cell style
-        d(APP.ratingCell.maintain(cf -> table.getColumn(RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));
+        d(APP.getRatingCell().maintain(cf -> table.getColumn(RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));
 
         // let resizing as it is
         table.setColumnResizePolicy(resize -> {

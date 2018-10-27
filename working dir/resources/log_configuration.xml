@@ -25,7 +25,7 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <!-- overridden in java-->
-            <level>DEBUG</level>
+            <level>INFO</level>
         </filter>
         <encoder>
             <!-- {0} log only class name (no packages)-->

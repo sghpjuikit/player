@@ -15,6 +15,7 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import sp.it.pl.main.AppUtil
+import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.main.createInfoIcon
 import sp.it.pl.util.graphics.Util.layHeaderTop
 import sp.it.pl.util.graphics.Util.layHorizontally
@@ -24,7 +25,7 @@ import sp.it.pl.util.system.copyToSysClipboard
 import sp.it.pl.util.toLocalDateTime
 import sp.it.pl.util.units.Dur
 
-class InfoPane: OverlayPane<Void>() {
+class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>(), MultiConfigurable {
 
     private val g = GridPane()
 
@@ -43,9 +44,9 @@ class InfoPane: OverlayPane<Void>() {
         content = layHeaderTop(5.0, CENTER,
                 layHorizontally(5.0, CENTER_RIGHT, helpI),
                 layStack(sp, CENTER)
-        ).apply {
-            maxWidth = 800.0
-            maxHeightProperty().bind(this@InfoPane.heightProperty().subtract(100))
+        ).also {
+            it.maxWidth = 800.0
+            it.maxHeightProperty().bind(heightProperty().subtract(100))
         }
     }
 
@@ -117,8 +118,8 @@ class InfoPane: OverlayPane<Void>() {
     }
 
     companion object {
-        private val STYLECLASS = "info-pane"
-        private val STYLECLASS_GROUP = "info-pane-group-label"
+        private const val STYLECLASS = "info-pane"
+        private const val STYLECLASS_GROUP = "info-pane-group-label"
     }
 
 }

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package sp.it.pl.layout.area;
 
 import java.util.HashMap;
@@ -30,7 +25,6 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
-import sp.it.pl.gui.Gui;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.window.stage.Window;
@@ -70,7 +64,6 @@ import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
  * Display for {@link sp.it.pl.layout.widget.controller.io.XPut} of components, displaying their relations as am editable graph.
  */
 public class IOLayer extends StackPane {
-
     public static final String INODE_STYLECLASS = "inode";
     public static final String ONODE_STYLECLASS = "onode";
     public static final String IONODE_STYLECLASS = "ionode";
@@ -79,6 +72,7 @@ public class IOLayer extends StackPane {
     public static final PseudoClass XNODE_DRAGOVER = getPseudoClass("drag-over");
     public static final PseudoClass XNODE_SELECTED = getPseudoClass("selected");
     private static final Object XNODE_KEY = new Object();
+    private static final double IO_WIDTH = 200;
 
     static public final ObservableSet<Input<?>> all_inputs = FXCollections.observableSet();
     static public final ObservableSet<Output<?>> all_outputs = FXCollections.observableSet();
@@ -198,7 +192,7 @@ public class IOLayer extends StackPane {
 
         setMouseTransparent(false);
         setPickOnBounds(false);
-        visibleProperty().bind(Gui.layout_mode);
+        visibleProperty().bind(APP.ui.getLayoutMode());
 //        scaleXProperty().bind(scalex);
 //        scaleYProperty().bind(scaley);
         translateXProperty().bind(translation.multiply(scalex));
@@ -342,7 +336,7 @@ public class IOLayer extends StackPane {
             });
 
         forEachWithI(inoutputnodes.values(), (i,o) -> {
-            o.cx = (i+1)*200;
+            o.cx = (i+1)*IO_WIDTH;
             o.cy = H-120;
             o.graphics.relocate(o.cx-iconhalfsize,o.cy-iconhalfsize+27);
         });
@@ -455,6 +449,7 @@ public class IOLayer extends StackPane {
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_LEFT);
             graphics.getProperties().put(XNODE_KEY, this);
+            graphics.setMouseTransparent(true);
             i.styleclass(INODE_STYLECLASS);
 
             // drag&drop
@@ -489,6 +484,7 @@ public class IOLayer extends StackPane {
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_RIGHT);
             graphics.getProperties().put(XNODE_KEY, this);
+            graphics.setMouseTransparent(true);
             i.styleclass(ONODE_STYLECLASS);
 
             // drag&drop
@@ -509,6 +505,7 @@ public class IOLayer extends StackPane {
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_LEFT);
             graphics.getProperties().put(XNODE_KEY, this);
+            graphics.setMouseTransparent(true);
             i.styleclass(IONODE_STYLECLASS);
 
             // drag&drop

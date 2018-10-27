@@ -11,11 +11,10 @@ import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.controller.FXMLController
 import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.main.initClose
-import sp.it.pl.main.onDispose
 import sp.it.pl.util.access.VarEnum
 import sp.it.pl.util.access.v
+import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.IsConfig.EditMode
 import sp.it.pl.util.dev.Dependency
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.reactive.attach
@@ -25,7 +24,6 @@ import sp.it.pl.util.type.Util.invokeMethodP1
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.pl.web.WebBarInterpreter
-import java.awt.SystemColor.text
 
 @Widget.Info(
         name = "WebReader",
@@ -41,13 +39,13 @@ class WebReader: FXMLController() {
     @FXML private lateinit var webView: WebView
     private lateinit var engine: WebEngine
 
-    @IsConfig(name = "Last visited address", info = "Last visited address", editable = EditMode.APP)
+    @field: IsConfig(name = "Last visited address", info = "Last visited address", editable = EditMode.APP)
     private var url = "https://duckduckgo.com/"
 
-    @IsConfig(name = "Search engine")
+    @field: IsConfig(name = "Search engine")
     private val searchEngine = VarEnum.ofInstances(DuckDuckGoQBuilder, SearchUriBuilder::class.java, APP.instances)
 
-    @IsConfig(name = "No background")
+    @field: IsConfig(name = "No background")
     private val noBgr = v(false)
 
     override fun init() {
@@ -82,7 +80,7 @@ class WebReader: FXMLController() {
     }
 
     fun loadHtml(html: String?) {
-//        val s = "<body text=white>" + html + "</body>";
+        //        val s = "<body text=white>" + html + "</body>";
         val s = html?.replaceFirst("<body", """<body text=blue style="background-color:transparent"""")
         engine.loadContent(s ?: "")
     }

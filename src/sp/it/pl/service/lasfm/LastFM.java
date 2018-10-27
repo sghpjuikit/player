@@ -22,16 +22,11 @@ import sp.it.pl.util.conf.ValueConfig;
 import sp.it.pl.util.text.Password;
 import sp.it.pl.util.validation.Constraint.PasswordNonEmpty;
 import sp.it.pl.util.validation.Constraint.StringNonEmpty;
-import static sp.it.pl.util.conf.PoolKt.initStaticConfigs;
 import static sp.it.pl.util.dev.Util.logger;
 
 // TODO: make thread-safe, remove static, implement Service
-@IsConfigurable("LastFM")
+@IsConfigurable("Services.LastFM")
 public class LastFM {
-
-	static {
-		initStaticConfigs(LastFM.class);
-	}
 
 	private static String username;
 	private static final String apiKey = "f429ccceafc6b81a6ffad442cec758c3";

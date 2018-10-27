@@ -2,7 +2,10 @@ import de.undercouch.gradle.tasks.download.Download
 import de.undercouch.gradle.tasks.download.DownloadExtension
 import de.undercouch.gradle.tasks.download.DownloadTaskPlugin
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.JavaExec
 import org.gradle.kotlin.dsl.apply
+import org.gradle.kotlin.dsl.extra
+import org.gradle.kotlin.dsl.kotlin
 import org.gradle.kotlin.dsl.support.zipTo
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
@@ -17,8 +20,8 @@ import kotlin.text.Charsets.UTF_8
 
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
-    application
     kotlin("jvm") version "1.2.71"
+    application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
 }
@@ -34,7 +37,9 @@ val supportedJavaVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION
 
 if (JavaVersion.current() !in supportedJavaVersions) {
     println("""org.gradle.java.home=${properties["org.gradle.java.home"]}
-		|Java version ${JavaVersion.current()} can't be used. Set one of ${supportedJavaVersions.joinToString()} as system default or create a "gradle.properties" file with "org.gradle.java.home" pointing to a supported Java version""".trimMargin())
+        |Java version ${JavaVersion.current()} can't be used.
+        | Set one of ${supportedJavaVersions.joinToString()} as system default or create a "gradle.properties"
+        | file with "org.gradle.java.home" pointing to a supported Java version""".trimMargin())
     throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
 }
 
@@ -87,6 +92,7 @@ dependencies {
 
     // Logging
     compile("org.slf4j", "slf4j-api", "1.7.25")
+    compile("org.slf4j", "jul-to-slf4j", "1.7.25")
     compile("ch.qos.logback", "logback-classic", "1.2.3")
     compile("io.github.microutils", "kotlin-logging", "1.6.10")
 
@@ -117,8 +123,8 @@ dependencies {
     compile("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
 
     // Image
-    compile("com.drewnoakes", "metadata-extractor", "2.11.0")
     val imageioVersion = "3.4.1"
+    compile("com.drewnoakes", "metadata-extractor", "2.11.0")
     compile("com.twelvemonkeys.imageio", "imageio-core", imageioVersion)
     compile("com.twelvemonkeys.imageio", "imageio-bmp", imageioVersion)
     compile("com.twelvemonkeys.imageio", "imageio-jpeg", imageioVersion)

@@ -19,6 +19,7 @@ import sp.it.pl.util.Sort;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.fieldvalue.FileField;
+import sp.it.pl.util.async.AsyncKt;
 import sp.it.pl.util.async.executor.FxTimer;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config.VarList;
@@ -38,7 +39,7 @@ import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Sort.ASCENDING;
 import static sp.it.pl.util.async.AsyncKt.FX;
-import static sp.it.pl.util.async.AsyncKt.newSingleDaemonThreadExecutor;
+import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.run;
 import static sp.it.pl.util.file.FileSort.DIR_FIRST;
 import static sp.it.pl.util.file.FileType.FILE;
@@ -71,8 +72,8 @@ public class AppLauncher extends ClassController {
     final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5, v -> applyCellSize());
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width,cellSize.get().width*cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT,5,5);
-    private final ExecutorService executorIO = newSingleDaemonThreadExecutor();
-    private final ExecutorService executorThumbs = newSingleDaemonThreadExecutor();
+    private final ExecutorService executorIO = oneThreadExecutor();
+    private final ExecutorService executorThumbs = oneThreadExecutor();
     private final Loader imageLoader = new Loader(executorThumbs, null);
     boolean initialized = false;
     private volatile boolean isResizing = false;

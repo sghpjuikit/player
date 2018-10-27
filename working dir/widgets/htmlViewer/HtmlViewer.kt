@@ -6,8 +6,6 @@ import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.ClassController
 import sp.it.pl.util.access.v
 import sp.it.pl.util.async.runPeriodic
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.IsConfig.EditMode
 import sp.it.pl.util.graphics.setAnchors
 import sp.it.pl.util.reactive.sync
 
@@ -23,8 +21,6 @@ import sp.it.pl.util.reactive.sync
 class HtmlViewer: ClassController() {
 
     val editor = HTMLEditor()
-
-    @IsConfig(name = "Last visited address", info = "Last visited address", editable = EditMode.APP)
     val text = v("") { editor.htmlText = it }
 
     override fun init() {

@@ -61,28 +61,14 @@ import kotlin.streams.toList
 private typealias F = JvmField
 
 /**
- * Information about audio file.
- * Provided by reading tag and audio file header (mostly).
- * Everything that is possible to know about the audio file is accessible through
- * this class. This class also provides some non-tag, application specific
- * or external information associated with this song, like cover files.
+ * Information about audio file, usually from audio file tag and header.
  *
  * The class is practically immutable and does not provide any setters, nor
  * allows updating of its state or any of its values.
  *
  * Metadata can be empty and should be used instead of null. See [.EMPTY]
  *
- * The getters of this class return mostly string. For empty fields the output
- * is "" (empty string) and for non-string getters it varies, but it is never
- * null. See documentation for the specific field. // TODO outdated?
- * The rule is however, that the check for empty value should be necessary only
- * in rare cases.
- *
- * Every field returns string, primitive, or Object with toString method that
- * returns the best possible string representation of the field's value, including
- * its empty value.
- *
- * To access any field in a general way, see [Field]
+ * To access any field in a generic way, see [Field].
  */
 class Metadata: Item, Serializable {
 

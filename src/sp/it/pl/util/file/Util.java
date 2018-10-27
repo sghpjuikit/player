@@ -498,8 +498,9 @@ public interface Util {
 		if (file.exists()) file.delete();
 		URL u = new URL(url);
 		try (
-				InputStream is = u.openStream();
-				OutputStream os = new FileOutputStream(file)) {
+			InputStream is = u.openStream();
+			OutputStream os = new FileOutputStream(file)
+		) {
 			byte[] b = new byte[2048];
 			int length;
 			while ((length = is.read(b))>0)
@@ -518,7 +519,7 @@ public interface Util {
 	static File saveFileTo(String url, File dir) throws IOException {
 		int i = url.lastIndexOf('/');
 		if (i==-1) throw new IOException("url does not contain name. No '/' character found.");
-		String name = url.substring(1 + i);
+		String name = filenamizeString(url.substring(1 + i));
 
 		File df = new File(dir, name);
 		saveFileAs(url, df);

@@ -110,10 +110,10 @@ public class Player {
 
 	/** Initialize state from last session */
 	public static void loadLastState() {
-		if (!PlayerConfiguration.Companion.getContinuePlaybackOnStart()) return;
+		if (!PlayerConfiguration.getContinuePlaybackOnStart()) return;
 		if (PlaylistManager.use(Playlist::getPlaying, null)==null) return;
 
-		if (PlayerConfiguration.Companion.getContinuePlaybackPaused())
+		if (PlayerConfiguration.getContinuePlaybackPaused())
 			state.playback.status.set(Status.PAUSED);
 
 		activate();
@@ -545,13 +545,13 @@ public class Player {
 	/** Seek forward by small duration unit. */
 	@IsAction(name = "Seek forward", desc = "Seek playback forward by small duration unit.", keys = "ALT+D", repeat = true, global = true)
 	public static void seekForwardAbsolute() {
-		seek(state.playback.currentTime.get().add(PlayerConfiguration.Companion.getSeekUnitT()));
+		seek(state.playback.currentTime.get().add(PlayerConfiguration.getSeekUnitT()));
 	}
 
 	/** Seek forward by small fraction unit. */
 	@IsAction(name = "Seek forward (%)", desc = "Seek playback forward by fraction.", keys = "SHIFT+ALT+D", repeat = true, global = true)
 	public static void seekForwardRelative() {
-		double d = state.playback.currentTime.get().toMillis()/state.playback.duration.get().toMillis() + PlayerConfiguration.Companion.getSeekUnitP();
+		double d = state.playback.currentTime.get().toMillis()/state.playback.duration.get().toMillis() + PlayerConfiguration.getSeekUnitP();
 		seek(min(d, 1));
 	}
 
@@ -563,13 +563,13 @@ public class Player {
 	/** Seek backward by small duration unit. */
 	@IsAction(name = "Seek backward", desc = "Seek playback backward by small duration unit.", keys = "ALT+A", repeat = true, global = true)
 	public static void seekBackwardAbsolute() {
-		seek(state.playback.currentTime.get().subtract(PlayerConfiguration.Companion.getSeekUnitT()));
+		seek(state.playback.currentTime.get().subtract(PlayerConfiguration.getSeekUnitT()));
 	}
 
 	/** Seek backward by small fraction unit. */
 	@IsAction(name = "Seek backward (%)", desc = "Seek playback backward by fraction.", keys = "SHIFT+ALT+A", repeat = true, global = true)
 	public static void seekBackwardRelative() {
-		double d = state.playback.currentTime.get().toMillis()/state.playback.duration.get().toMillis() - PlayerConfiguration.Companion.getSeekUnitP();
+		double d = state.playback.currentTime.get().toMillis()/state.playback.duration.get().toMillis() - PlayerConfiguration.getSeekUnitP();
 		seek(max(d, 0));
 	}
 

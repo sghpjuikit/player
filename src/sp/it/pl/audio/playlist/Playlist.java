@@ -679,11 +679,11 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	public void addOrEnqueueFiles(boolean add) {
 		chooseFiles(
 				"Choose Audio Files",
-				PlayerConfiguration.Companion.getBrowse(),
+				PlayerConfiguration.getBrowse(),
 				APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
 				AudioFileFormat.filter(Use.PLAYBACK)
 		).ifOk(files -> {
-					PlayerConfiguration.Companion.setBrowse(files.get(0).getParentFile());
+					PlayerConfiguration.setBrowse(files.get(0).getParentFile());
 					List<URI> queue = new ArrayList<>();
 					files.forEach(f -> queue.add(f.toURI()));
 
@@ -706,10 +706,10 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		chooseFile(
 						"Choose Audio Files From Directory Tree",
 						DIRECTORY,
-						PlayerConfiguration.Companion.getBrowse(),
+						PlayerConfiguration.getBrowse(),
 						APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner())
 		).ifOk(dir -> {
-					PlayerConfiguration.Companion.setBrowse(dir);
+					PlayerConfiguration.setBrowse(dir);
 					List<URI> queue = new ArrayList<>();
 					getFilesAudio(dir, Use.APP, Integer.MAX_VALUE).forEach(f -> queue.add(f.toURI()));
 

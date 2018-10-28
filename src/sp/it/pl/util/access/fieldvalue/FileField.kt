@@ -123,8 +123,11 @@ private fun File.readXmpTimeCreated(): FileTime? =
             null
         } catch (e: ImageProcessingException) {
             // 12Monkey bug: exception type !tell us when we are dealing with an error and when an unsupported file type
-            if (e.message!="File format is not supported")
-                logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
+            when {
+                e.message=="File format is not supported" -> {}
+                e.message=="File format could not be determined" -> {}
+                else -> logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
+            }
             null
         } catch (e: Exception) {
             // 12Monkey bug: java.lang.NegativeArraySizeException

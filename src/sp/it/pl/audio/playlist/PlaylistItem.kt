@@ -121,7 +121,7 @@ class PlaylistItem: Item {
 
         if (isFileBased()) {
             throwIfFxThread()
-            getFile().readAudioFile().orNull()?.let { f ->
+            getFile()!!.readAudioFile().orNull()?.let { f ->
                 val t = f.tag ?: null
                 val h = f.audioHeader
 

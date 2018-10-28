@@ -36,6 +36,7 @@ import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util.EMPTY_URI
 import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
+import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.localDateTimeFromMillis
@@ -619,21 +620,18 @@ class Metadata: Item, Serializable {
         null
     }
 
-    private fun readArt(): Artwork? {
-        val af = if (isFileBased()) getFile().readAudioFile().orNull() else null
-        return af?.tag?.firstArtwork
-    }
+    private fun readArt(): Artwork? = getFile()?.let { it.readAudioFile().orNull() }?.tag?.firstArtwork
 
     /** @return the cover image file on a file system or null if this item is not file based */
     private fun readCoverOfDir(): Cover? {
-        if (!isFileBased()) return null
-
-        val fs = getLocation().listChildren().toList()
-        return seqOf(getFilename().takeIf { it.isNotBlank() }, title, album, "cover", "folder")
-                .filterNotNull()
-                .flatMap { filename -> fs.asSequence().filter { it.nameWithoutExtensionOrRoot.equals(filename, true) } }
-                .find { ImageFileFormat.isSupported(it) }
-                ?.let { FileCover(it, "") }
+        return getFile()?.let { file ->
+            val fs = file.parentDirOrRoot.listChildren().toList()
+            return seqOf(getFilename().takeIf { it.isNotBlank() }, title, album, "cover", "folder")
+                    .filterNotNull()
+                    .flatMap { filename -> fs.asSequence().filter { it.nameWithoutExtensionOrRoot.equals(filename, true) } }
+                    .find { ImageFileFormat.isSupported(it) }
+                    ?.let { FileCover(it, "") }
+        }
     }
 
     /**

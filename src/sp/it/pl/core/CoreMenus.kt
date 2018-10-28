@@ -114,9 +114,9 @@ class CoreMenus: Core {
                     menu("Edit tags in") {
                         widgetItems<SongWriter> { it.read(mg.grouped) }
                     },
-                    menuItem("Explore items's directory") { browseMultipleFiles(mg.grouped.asSequence().filter { it.isFileBased() }.map { it.getFile() }) },
+                    menuItem("Explore items's directory") { browseMultipleFiles(mg.grouped.asSequence().mapNotNull { it.getFile() }) },
                     menu("Explore items' directory in") {
-                        widgetItems<FileExplorerFeature> { it.exploreFile(mg.grouped[0].getFile()) }
+                        widgetItems<FileExplorerFeature> { it.exploreFiles(mg.grouped.mapNotNull { it.getFile() }) }
                     },
                     runIf(mg.field==Metadata.Field.ALBUM) {
                         menu("Search cover in") {
@@ -142,7 +142,7 @@ class CoreMenus: Core {
                     menuItem("Crop items") { PlaylistManager.use { it.retainAll(pig.items) } },
                     menuItem("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(pig.items) } },
                     menuItem("Duplicate items individually") { PlaylistManager.use { it.duplicateItemsByOne(pig.items) } },
-                    menuItem("Explore items's directory") { browseMultipleFiles(pig.items.asSequence().filter { it.isFileBased() }.map { it.getFile() }) },
+                    menuItem("Explore items's directory") { browseMultipleFiles(pig.items.asSequence().mapNotNull { it.getFile() }) },
                     menuItem("Add items to library") { APP.db.addItems(pig.items.map { it.toMeta() }) },
                     menu("Search album cover") {
                         items(

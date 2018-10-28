@@ -41,6 +41,7 @@ import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import static java.lang.Double.max;
+import static java.lang.Integer.max;
 import static java.lang.Math.ceil;
 import static java.lang.Math.floor;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -167,32 +168,39 @@ public class FileInfo extends FXMLController implements SongReader {
         cover.getPane().setDisable(true);
         cover.setBackgroundVisible(false);
         cover.setBorderToImage(false);
-        cover.onFileDropped = fut_file ->
-            APP.actionPane.show(File.class, fut_file, true,
-                new SlowAction<>("Copy and set as album cover",
-                        "Sets image as cover. Copies file to destination and renames it "
-                      + "to 'cover' so it is recognized as album cover. Any previous cover file "
-                      + "will be preserved by renaming."
-                      + "\n\nDestination: " + data.getLocation().getPath(),
-                        FontAwesomeIcon.PASTE,
-                        f -> setAsCover(f, true)),
-                new SlowAction<>("Copy to location",
-                        "Copies image to destination. Any such existing file is overwritten."
-                      + "\n\nDestination: " + data.getLocation().getPath(),
-                        FontAwesomeIcon.COPY,
-                        f -> setAsCover(f, false)),
-                new SlowAction<>("Write to tag (single)",
-                        "Writes image as cover to song tag. Other songs of the song's album remain "
-                      + "untouched.",
-                        FontAwesomeIcon.TAG,
-                        f -> tagAsCover(f,false)),
-                new SlowAction<>("Write to tag (album)",
-                        "Writes image as cover to all songs in this song's album. Only songs in the "
-                      + "library are considered. Songs with no album are ignored. At minimum the "
-                      + "displayed song will be updated (even if not in library or has no album).",
-                        FontAwesomeIcon.TAGS,
-                        f -> tagAsCover(f,true))
-            );
+        cover.onFileDropped = fut_file -> {
+        	if (data.isFileBased()) {
+	            APP.actionPane.show(File.class, fut_file, true,
+	                new SlowAction<>("Copy and set as album cover",
+	                        "Sets image as cover. Copies file to destination and renames it "
+	                      + "to 'cover' so it is recognized as album cover. Any previous cover file "
+	                      + "will be preserved by renaming."
+	                      + "\n\nDestination: " + data.getLocation().getPath(),
+	                        FontAwesomeIcon.PASTE,
+	                        f -> setAsCover(f, true)
+	                ),
+	                new SlowAction<>("Copy to location",
+	                        "Copies image to destination. Any such existing file is overwritten."
+	                      + "\n\nDestination: " + data.getLocation().getPath(),
+	                        FontAwesomeIcon.COPY,
+	                        f -> setAsCover(f, false)
+	                ),
+	                new SlowAction<>("Write to tag (single)",
+	                        "Writes image as cover to song tag. Other songs of the song's album remain "
+	                      + "untouched.",
+	                        FontAwesomeIcon.TAG,
+	                        f -> tagAsCover(f,false)
+	                ),
+	                new SlowAction<>("Write to tag (album)",
+	                        "Writes image as cover to all songs in this song's album. Only songs in the "
+	                      + "library are considered. Songs with no album are ignored. At minimum the "
+	                      + "displayed song will be updated (even if not in library or has no album).",
+	                        FontAwesomeIcon.TAGS,
+	                        f -> tagAsCover(f,true)
+	                )
+	            );
+	        }
+        };
 
         setAnchor(root,layout,0d);
         layout.setMinContentSize(200,120);
@@ -325,7 +333,7 @@ public class FileInfo extends FXMLController implements SongReader {
     }
 
     private void setAsCover(File file, boolean setAsCover) {
-        if (file==null) return;
+        if (file==null || !data.isFileBased()) return;
 
         if (setAsCover)
             copyFileSafe(file, data.getLocation(), "cover");
@@ -336,7 +344,7 @@ public class FileInfo extends FXMLController implements SongReader {
     }
 
     private void tagAsCover(File file, boolean includeAlbum) {
-        if (file==null) return;
+        if (file==null || !data.isFileBased()) return;
 
         Collection<Metadata> items = includeAlbum
             // get all known songs from album
@@ -402,9 +410,8 @@ public class FileInfo extends FXMLController implements SongReader {
             double height = getHeight();
 
             double cellH = 15+tiles.getVgap();
-            int rows = (int)floor(max(height, 5)/cellH);
-            if (rows==0) rows=1;
-            int columns = 1+(int) ceil(labels.size()/rows);
+            int rows = max(1, (int) floor(max(height, 5)/cellH));
+            int columns = max(1, (int) ceil(((double)labels.size())/((double) rows)));
             double cellW = columns==1 || columns==0
                 // do not allow 0 columns & set whole width if 1 column
                 // handle 1 column manually - the below caused some problems

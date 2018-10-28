@@ -864,8 +864,7 @@ public class MetadataWriter extends Item {
 	}
 
 	public void reset(Item i) {
-		file = i.isFileBased() ? i.getFile() : null;
-		Optional.ofNullable(file)
+		Optional.ofNullable(i.getFile())
 			.map(f -> readAudioFile(f).getOr(null))
 			.ifPresentOrElse(
 				f -> {

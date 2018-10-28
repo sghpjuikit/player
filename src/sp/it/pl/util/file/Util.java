@@ -518,7 +518,7 @@ public interface Util {
 	static File saveFileTo(String url, File dir) throws IOException {
 		int i = url.lastIndexOf('/');
 		if (i==-1) throw new IOException("url does not contain name. No '/' character found.");
-		String name = url.substring(1 + i);
+		String name = filenamizeString(url.substring(1 + i));
 
 		File df = new File(dir, name);
 		saveFileAs(url, df);

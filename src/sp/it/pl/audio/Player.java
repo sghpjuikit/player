@@ -54,6 +54,7 @@ import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.async.AsyncKt.threadFactory;
 import static sp.it.pl.util.async.executor.EventReducer.toLast;
 import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
 import static sp.it.pl.util.functional.Functors.Ƒ.f;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
@@ -137,6 +138,8 @@ public class Player {
 		}
 
 		private void set(boolean change, Metadata new_metadata) {
+			throwIfNotFxThread();
+
 			Metadata ov = val;
 			Metadata nv = new_metadata;
 			val = nv;
@@ -238,7 +241,7 @@ public class Player {
 				LOGGER.info("Current item metadata copied from next item metadata cache.");
 				// else load
 			} else {
-				LOGGER.info("Next item metadata cache copy failed - content does not correspond to correct item. Loading now...");
+				LOGGER.info("Current item metadata is not actual. Attempting to reload...");
 				load(true, item);
 			}
 

@@ -16,6 +16,8 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.runFX
+import sp.it.pl.util.async.runOn
+import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.reactive.attach1If
 import java.lang.Math.pow
 
@@ -57,38 +59,49 @@ class GeneralPlayer {
             else -> "Unknown"
         }
 
+        val onUnableToPlay = { it: PlaylistItem -> runFX {
+            it.playbackError = true
+            // TODO: handle within playlist
+            // TODO: handle looping playlist forever
+            PlaylistManager.use { it.playNextItem() }
+        }}
         val player = p
         if (player==null) {
             logger.info("Player {} can not play item {}", player, item)
-            item.playbackError = true
-            PlaylistManager.use { it.playNextItem() } // TODO: handle within playlist
+            onUnableToPlay(item)
         } else {
-            player.createPlayback(item, state.playback,
-                    {
-                        realTime.realSeek = state.playback.realTime.get()
-                        realTime.currentSeek = ZERO
-                        player.play()
+            runOn(Player.IO_THREAD) {
+                if (item.isCorrupt(AudioFileFormat.Use.PLAYBACK)) {
+                    onUnableToPlay(item)
+                } else {
+                    runFX {
+                        player.createPlayback(item, state.playback,
+                            {
+                                realTime.realSeek = state.playback.realTime.get()
+                                realTime.currentSeek = ZERO
+                                player.play()
 
-                        realTime.syncRealTimeOnPlay()
-                        // throw item change event
-                        Player.playingItem.itemChanged(item)
-                        Player.suspension_flag = false
-                        // fire other events (may rely on the above)
-                        Player.onPlaybackStart()
-                        if (Player.post_activating_1st || !Player.post_activating)
-                        // bug fix, not updated playlist items can get here, but should not!
-                            if (item.timeMs>0)
-                                Player.onPlaybackAt.forEach { t -> t.restart(item.time) }
-                        Player.post_activating = false
-                        Player.post_activating_1st = false
-                    },
-                    {
-                        runFX {
-                            logger.info("Player {} can not play item {}", p, item)   // TODO: handle looping playlist forever
-                            item.playbackError = true
-                            PlaylistManager.use { it.playNextItem() } // TODO: handle within playlist
-                        }
-                    })
+                                realTime.syncRealTimeOnPlay()
+                                // throw item change event
+                                Player.playingItem.itemChanged(item)
+                                Player.suspension_flag = false
+                                // fire other events (may rely on the above)
+                                Player.onPlaybackStart()
+                                if (Player.post_activating_1st || !Player.post_activating)
+                                // bug fix, not updated playlist items can get here, but should not!
+                                    if (item.timeMs>0)
+                                        Player.onPlaybackAt.forEach { t -> t.restart(item.time) }
+                                Player.post_activating = false
+                                Player.post_activating_1st = false
+                            },
+                            {
+                                logger.info("Player {} can not play item {}", p, item)
+                                onUnableToPlay(item)
+                            }
+                        )
+                    }
+                }
+            }
         }
     }
 

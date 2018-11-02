@@ -2,7 +2,6 @@ package sp.it.pl.util.conf;
 
 import java.util.function.Consumer;
 import sp.it.pl.util.conf.Config.ConfigBase;
-import static sp.it.pl.util.dev.Util.noNull;
 
 /**
  * {@link sp.it.pl.util.conf.Config} wrapper for a standalone object. This is the only implementation
@@ -79,8 +78,6 @@ public final class ValueConfig<V> extends ConfigBase<V> {
 	 * use {@link PropertyConfig}). After the change the result can only be
 	 * obtained by calling this method and the old results will not == equal
 	 * with it anymore.
-	 *
-	 * @return the wrapped value. Never null. The wrapped value must no be null.
 	 */
 	@Override
 	public V getValue() {
@@ -98,12 +95,9 @@ public final class ValueConfig<V> extends ConfigBase<V> {
 	 * use {@link PropertyConfig}). After the change the result can only be
 	 * obtained by calling this method and the old results will not == equal
 	 * with it anymore.
-	 *
-	 * @throws NullPointerException if param null. The wrapped value must no be null.
 	 */
 	@Override
 	public void setValue(V val) {
-		noNull(val);
 		value = val;
 	}
 
@@ -139,19 +133,6 @@ public final class ValueConfig<V> extends ConfigBase<V> {
 	 */
 	public void setApplier(Consumer<V> applier) {
 		this.applier = applier;
-	}
-
-	/**
-	 * Equivalent to this==o
-	 */
-	@Override
-	public boolean equals(Object o) {
-		return this==o;
-	}
-
-	@Override
-	public int hashCode() {
-		return System.identityHashCode(this);
 	}
 
 }

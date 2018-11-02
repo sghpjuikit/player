@@ -732,8 +732,8 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		// build content
 		String title = add ? "Add url item." : "Play url item.";
 		SimpleConfigurator content = new SimpleConfigurator<>(
-				new ValueConfig<>(URI.class, "Url", URI.create("http://www.example.com"), title),
-				(URI url) -> {
+			new ValueConfig<>(URI.class, "Url", URI.create("http://www.example.com"), title),
+			(URI url) -> {
 					if (add) {
 						addUri(url);
 					} else {
@@ -742,7 +742,8 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 						addUri(url);
 						playFirstItem();
 					}
-				});
+			}
+		);
 
 		// build help content
 		String uri = "http://www.musicaddict.com";

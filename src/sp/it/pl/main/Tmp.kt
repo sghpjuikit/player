@@ -2,7 +2,6 @@ package sp.it.pl.main
 
 import org.reactfx.Subscription
 import sp.it.pl.gui.pane.ActionPane
-import sp.it.pl.layout.widget.controller.ClassController
 import sp.it.pl.layout.widget.controller.FXMLController
 import sp.it.pl.util.access.V
 import sp.it.pl.util.access.v
@@ -19,13 +18,13 @@ infix fun FXMLController.onDispose(s: () -> Unit) = d({ s() })
 infix fun FXMLController.initClose(s: () -> Subscription) = d(s())
 
 @Deprecated("experimental", level = DeprecationLevel.HIDDEN)
-fun <T: Any> ClassController.v(initialValue: T, onChange: (T) -> Unit) = VLate(initialValue, onChange)
+fun <T: Any> FXMLController.v(initialValue: T, onChange: (T) -> Unit) = VLate(initialValue, onChange)
 
 class VLate<T>(private val initialValue: T, private val onChange: (T) -> Unit) {
-    operator fun provideDelegate(ref: ClassController, property: KProperty<*>): ReadOnlyProperty<ClassController, V<T>> {
+    operator fun provideDelegate(ref: FXMLController, property: KProperty<*>): ReadOnlyProperty<FXMLController, V<T>> {
         val v = v(initialValue) { if (ref.isInitialized) onChange(it) }
-        return object: ReadOnlyProperty<ClassController, V<T>> {
-            override fun getValue(thisRef: ClassController, property: KProperty<*>): V<T> {
+        return object: ReadOnlyProperty<FXMLController, V<T>> {
+            override fun getValue(thisRef: FXMLController, property: KProperty<*>): V<T> {
                 return v
             }
         }

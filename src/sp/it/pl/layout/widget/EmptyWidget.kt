@@ -37,11 +37,11 @@ class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller 
 
     override fun refresh() {}
 
-    override fun getWidget() = this
+    override fun getOwnerWidget() = this
 
-    override fun getOutputs() = o
+    override fun getOwnedOutputs() = o
 
-    override fun getInputs() = i
+    override fun getOwnedInputs() = i
 
     override fun getField(n: String) = null
 

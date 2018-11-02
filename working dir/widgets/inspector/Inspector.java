@@ -12,7 +12,7 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import sp.it.pl.gui.objects.tree.TreeItemsKt;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.FileExplorerFeature;
 import sp.it.pl.layout.widget.feature.Opener;
@@ -41,14 +41,16 @@ import static sp.it.pl.util.graphics.UtilKt.propagateESCAPE;
     year = "2015",
     group = APP
 )
-public class Inspector extends ClassController implements FileExplorerFeature, Opener {
+public class Inspector extends SimpleController implements FileExplorerFeature, Opener {
 
     private static final PseudoClass selectedPC = getPseudoClass("selected");
     private Node sel_node = null;
     private TreeView<Object> tree = TreeItemsKt.buildTreeView();
     private Output<Object> out_sel;
 
-    public Inspector() {
+    public Inspector(Widget<?> widget) {
+        super(widget);
+
         setAnchor(this, tree,0d);
 
         tree.getSelectionModel().setSelectionMode(MULTIPLE);
@@ -67,10 +69,8 @@ public class Inspector extends ClassController implements FileExplorerFeature, O
                 sel_node = null;
             }
             if (ni instanceof Node) {
-                Node n = (Node)ni;
-                sel_node = n;
-                n.pseudoClassStateChanged(selectedPC, true);
-                n.setStyle("-fx-background-color: rgba(90,200,200,0.2);");
+                sel_node = (Node) ni;
+                highlightNode(sel_node);
             }
         });
 	    propagateESCAPE(tree);
@@ -82,10 +82,10 @@ public class Inspector extends ClassController implements FileExplorerFeature, O
         setOnScroll(Event::consume);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void init() {
         out_sel = outputs.create(widget.id,"Selected", Object.class, null);
+        onClose.plusAssign(() -> unhighlightNode(sel_node));
     }
 
     @SuppressWarnings("unchecked")
@@ -116,11 +116,6 @@ public class Inspector extends ClassController implements FileExplorerFeature, O
     }
 
     @Override
-    public void onClose() {
-        if (sel_node!=null) unhighlightNode(sel_node);
-    }
-
-    @Override
     public void open(Object data) {
         TreeItem<Object> item = TreeItemsKt.tree(data);
         tree.getRoot().getChildren().add(item);
@@ -128,10 +123,13 @@ public class Inspector extends ClassController implements FileExplorerFeature, O
     }
 
     private static void highlightNode(Node n) {
+        if (n==null) return;
         n.pseudoClassStateChanged(selectedPC, true);
         n.setStyle("-fx-background-color: rgba(90,200,200,0.2);");
     }
+
     private static void unhighlightNode(Node n) {
+        if (n==null) return;
         n.pseudoClassStateChanged(selectedPC, false);
         n.setStyle("");
     }

@@ -123,7 +123,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
     public void init() {
 
         // obtain playlist by id, we will use this widget's id
-        UUID id = getWidget().id;
+        UUID id = widget.id;
         playlist = PlaylistManager.playlists.computeIfAbsent(id, PlaylistView::getUnusedPlaylist);  // TODO: fix concurrent modification exception
         // when widget closes we must remove the playlist or it would get saved
         // and playlist list would infinitely grow. When widgets close naturally
@@ -209,14 +209,14 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
     @Override
     public Collection<Config<Object>> getFields() {
         // serialize column state when requested
-        getWidget().properties.put("columns", table.getColumnState().toString());
+        widget.properties.put("columns", table.getColumnState().toString());
         return super.getFields();
     }
 
     @Override
     public void refresh() {
         columnInitializer.execute(() -> {
-            String c = getWidget().properties.getS("columns");
+            String c = widget.properties.getS("columns");
             table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
         });
         filter_for_playback.applyValue();

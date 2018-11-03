@@ -6,7 +6,8 @@ import javafx.concurrent.Worker.State.SCHEDULED
 import javafx.scene.control.Labeled
 import javafx.scene.control.ProgressIndicator
 import sp.it.pl.util.reactive.Disposer
-import sp.it.pl.util.reactive.maintain
+import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.reactive.syncTo
 
 /** Provides information about the task and its progress. */
 open class InfoTask<T: Task<*>>: InfoNode<T> {
@@ -34,9 +35,10 @@ open class InfoTask<T: Task<*>>: InfoNode<T> {
 
     override fun bind(t: T) {
         unbind()
-        if (title!=null) disposer += t.titleProperty() maintain title.textProperty()
-        if (message!=null) disposer += t.messageProperty() maintain message.textProperty()
-        if (progress!=null) disposer += t.progressProperty().maintain({ if (t.state==SCHEDULED || t.state==READY) 1.0 else it }, progress.progressProperty())
+        val computeProgress = { it: Number -> if (t.state==SCHEDULED || t.state==READY) 1.0 else it.toDouble() }
+        if (title!=null) disposer += t.titleProperty() syncTo title.textProperty()
+        if (message!=null) disposer += t.messageProperty() syncTo message.textProperty()
+        if (progress!=null) disposer += t.progressProperty() sync { progress.progress = computeProgress(it) }
     }
 
     override fun unbind() = disposer()

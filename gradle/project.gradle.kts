@@ -76,8 +76,6 @@ allprojects {
     tasks.withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.jdkHome = dirJdk.path
-        kotlinOptions.apiVersion = "1.3"
-        kotlinOptions.languageVersion = "1.3"
         kotlinOptions.verbose = true
         kotlinOptions.suppressWarnings = false
         kotlinOptions.freeCompilerArgs += listOf("-progressive", "-Xjvm-default=enable")
@@ -95,8 +93,9 @@ dependencies {
     // Kotlin
     compile(kotlin("stdlib-jdk8"))
     compile(kotlin("reflect"))
-    compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.0")
-    compile("org.jetbrains.kotlinx:kotlinx-coroutines-javafx:1.0.0")
+    val coroutinesVersion = "1.0.0"
+    compile("org.jetbrains.kotlinx", "kotlinx-coroutines-core", coroutinesVersion)
+    compile("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", coroutinesVersion)
 
     // Logging
     compile("org.slf4j", "slf4j-api", "1.7.25")
@@ -114,16 +113,12 @@ dependencies {
 
     // Native
     compile("net.java.dev.jna", "jna-platform", "4.5.2")
-    // due to a critical error on linux, don't update this to 2.1.0
-    compile("com.1stleg", "jnativehook", "2.0.2")
+    compile("com.1stleg", "jnativehook", "2.0.2") // don't update this to 2.1.0, it causes a critical error on linux
 
     //Misc
     compile("net.objecthunter", "exp4j", "0.4.8")
     compile("org.atteo", "evo-inflector", "1.2.2")
-    compile("com.thoughtworks.xstream", "xstream", "1.4.10") {
-        exclude("xmlpull", "xmlpull")
-        exclude("xpp3", "xpp3_min")
-    }
+    compile("com.thoughtworks.xstream", "xstream", "1.4.10")
 
     // Audio
     compile("uk.co.caprica", "vlcj", "3.10.1")
@@ -163,7 +158,7 @@ tasks {
         exclude("*sources.jar", "*javadoc.jar")
     }
 
-    val jdk by creating {
+    val linkJdk by creating {
         group = "build setup"
         description = "Links $dirJdk to JDK"
         doFirst {
@@ -221,28 +216,25 @@ tasks {
         archiveName = "PlayerFX.jar"
     }
 
-    "clean" {
+    "clean"(Delete::class) {
         group = main
         description = "Cleans up temporary files"
-        doFirst {
-            dirProject.resolve("user/tmp").deleteRecursively()
-            dirProject.resolve("lib").deleteRecursively()
-            dirProject.resolve("widgets").walkBottomUp()
-                    .filter { it.path.endsWith("class") }
-                    .fold(true) { res, it -> (it.delete() || !it.exists()) && res }
-        }
+        delete(dirProject.resolve("user/tmp"), buildDir,
+                dirProject.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList())
     }
 
     "build" {
-        group = main
         dependsOn(":widgets:build")
+        group = main
     }
 
     "run"(JavaExec::class) {
+        dependsOn(copyLibs, kotlinc, "jar")
         group = main
         workingDir = dirProject
-        dependsOn(copyLibs, jdk, kotlinc, "jar")
     }
+
+    getByName("compileKotlin").dependsOn(linkJdk)
 
 }
 

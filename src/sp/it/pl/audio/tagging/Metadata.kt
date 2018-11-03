@@ -605,8 +605,8 @@ class Metadata: Item, Serializable {
     fun getCover(source: CoverSource): Cover {
         throwIfFxThread()
         return when (source) {
-            Cover.CoverSource.TAG -> getReadCoverOfTag() ?: Cover.EMPTY
-            Cover.CoverSource.DIRECTORY -> readCoverOfDir() ?: Cover.EMPTY
+            Cover.CoverSource.TAG -> readCoverFromTag() ?: Cover.EMPTY
+            Cover.CoverSource.DIRECTORY -> readCoverFromDir() ?: Cover.EMPTY
             Cover.CoverSource.ANY -> seqOf(CoverSource.TAG, CoverSource.DIRECTORY)
                     .mapNotNull { getCover(it) }
                     .firstOrNull { !it.isEmpty }
@@ -614,16 +614,16 @@ class Metadata: Item, Serializable {
         }
     }
 
-    private fun getReadCoverOfTag(): Cover? = try {
-        readArt()?.let { ImageCover(it.imageOrNull, it.info ?: "") }
+    private fun readCoverFromTag(): Cover? = try {
+        readArtworkFromTag()?.let { ImageCover(it.imageOrNull, it.info ?: "") }
     } catch (e: IOException) {
         null
     }
 
-    private fun readArt(): Artwork? = getFile()?.let { it.readAudioFile().orNull() }?.tag?.firstArtwork
+    private fun readArtworkFromTag(): Artwork? = getFile()?.let { it.readAudioFile().orNull() }?.tag?.firstArtwork
 
     /** @return the cover image file on a file system or null if this item is not file based */
-    private fun readCoverOfDir(): Cover? {
+    private fun readCoverFromDir(): Cover? {
         return getFile()?.let { file ->
             val fs = file.parentDirOrRoot.listChildren().toList()
             return seqOf(getFilename().takeIf { it.isNotBlank() }, title, album, "cover", "folder")
@@ -874,7 +874,7 @@ class Metadata: Item, Serializable {
             @F val DISCS_INFO = field({ it.getDiscInfo() }, "Discs_info", "Complete disc number in format: disc/disc total")
             @F val GENRE = field({ it.genre }, "Genre", "Genre of the song")
             @F val YEAR = field({ it.getYear() }, "Year", "Year the album was published")
-            @F val COVER = field({ it.getReadCoverOfTag() }, "Cover", "Cover of the song")
+            @F val COVER = field({ it.readCoverFromTag() }, "Cover", "Cover of the song")
             @F val RATING = field({ it.getRatingPercent() }, "Rating", "Song rating in 0-1 range")
             @F val RATING_RAW = field({ it.rating }, "Rating_raw", "Song rating tag value. Depends on tag type")
             @F val PLAYCOUNT = field({ it.getPlaycount() }, "Playcount", "Number of times the song was played.")

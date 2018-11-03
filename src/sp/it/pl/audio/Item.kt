@@ -7,7 +7,9 @@ import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.AudioFileFormat.Use.PLAYBACK
 import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.file.toFileOrNull
+import sp.it.pl.util.functional.net
 import sp.it.pl.util.units.FileSize
+import java.io.File
 import java.net.URI
 
 /** Representation of audio resource based on [URI]. */
@@ -23,10 +25,9 @@ abstract class Item {
     fun isFileBased(): Boolean = "file"==uri.scheme
 
     /**
-     * @return absolute file this item represents
-     * @throws RuntimeException if this item is not file based
+     * @return absolute file this item represents or null if it is not based on file
      */
-    open fun getFile() = uri.toFileOrNull()!!.absoluteFile!!
+    open fun getFile(): File? = if (isFileBased()) uri.toFileOrNull()!!.absoluteFile else  null
 
     /** @return human-readable path of the resource this item represents */
     open fun getPathAsString(): String {
@@ -37,16 +38,15 @@ abstract class Item {
     /**
      * Parent directory of the resource. Only for file based items.
      *
-     * @return parent directory of the item in the file system
-     * @throws RuntimeException if this item is not file based
+     * @return parent directory of the item in the file system or null if it is not based on file
      */
-    fun getLocation() = getFile().parentDirOrRoot
+    fun getLocation(): File? = getFile()?.parentDirOrRoot
 
     /** @return human-readable location of the resource this item represents */
-    fun getLocationAsString() = if (isFileBased()) getLocation().path!! else getPathAsString()
+    fun getLocationAsString(): String = getLocation()?.net { it.path } ?: getPathAsString()
 
-    /** @return the filename without suffix or empty string if none */
-    open fun getFilename() = getFilenameFull().substringBeforeLast(".")
+    /** @return filename without suffix or empty string if none */
+    open fun getFilename(): String = getFilenameFull().substringBeforeLast(".")
 
     /** @return filename with suffix or empty string if none */
     fun getFilenameFull(): String {
@@ -57,7 +57,7 @@ abstract class Item {
     }
 
     /** @return the suffix of the resource of this item or empty string if none, e.g.: mp3 */
-    fun getSuffix() = uri.path.substringAfterLast('.', "")
+    fun getSuffix() = uri.path?.let { it.substringAfterLast('.', "") } ?: ""
 
     /**
      * @return file format of this item as recognized by the application. It can differ from simple suffix string. This
@@ -66,12 +66,11 @@ abstract class Item {
     open fun getFormat(): AudioFileFormat = AudioFileFormat.of(uri)
 
     /**
-     * Returns filesize of the file resource of this item. The filesize will
-     * remain unknown if unable to determine.
+     * Returns filesize of the file resource of this item. The filesize will remain unknown if unable to determine.
      *
-     * @return the filesize of this item. Never null.
+     * @return the filesize of this item
      */
-    open fun getFileSize(): FileSize = if (isFileBased()) FileSize(getFile()) else FileSize(0)
+    open fun getFileSize(): FileSize = getFile()?.let { FileSize(it) } ?: FileSize(0)
 
     /**
      * Returns initial name. Name derived purely from URI of the item.
@@ -81,7 +80,7 @@ abstract class Item {
      * Use as an initialization value when only URI is known about the item and
      * more user-friendly information is desired than the raw uri.
      *
-     * Default implementation is equivalent to [.getFilename]
+     * Default implementation is equivalent to [getFilename]
      *
      * @return initial name of the item.
      */
@@ -109,12 +108,7 @@ abstract class Item {
      */
     open fun isCorrupt(use: Use): Boolean = !getFormat().isSupported(use) || isCorruptWeak()
 
-    protected fun isCorruptWeak(): Boolean =
-            if (isFileBased()) {
-                getFile().let { !it.isFile || !it.exists() || !it.canRead() }
-            } else {
-                false
-            }
+    protected fun isCorruptWeak(): Boolean = getFile()?.net { !it.isFile || !it.exists() || !it.canRead() } ?: false
 
     /** @return true iff the URIs of the items are equal */
     fun same(i: Item?): Boolean = i!=null && i.uri==uri
@@ -129,6 +123,6 @@ abstract class Item {
     open fun toPlaylist() = PlaylistItem(uri)
 
     /** @return simple item representation this item */
-    open fun toSimple() = SimpleItem(getFile())
+    open fun toSimple() = SimpleItem(uri)
 
 }

@@ -63,11 +63,11 @@ public final class InfoTable<E> implements InfoNode<TableView<E>> {
 	}
 
 	@Override
-	public void bind(TableView<E> t) {
+	public void bind(TableView<E> bindable) {
 		unbind();
 
-		ObservableList<E> al = t.getItems();
-		ObservableList<E> sl = t.getSelectionModel().getSelectedItems();
+		ObservableList<E> al = bindable.getItems();
+		ObservableList<E> sl = bindable.getSelectionModel().getSelectedItems();
 		ListChangeListener<E> l = o -> {
 			if (o.next()) {
 				updateText(al, sl);

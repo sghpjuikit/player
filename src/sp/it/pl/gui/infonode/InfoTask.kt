@@ -33,12 +33,12 @@ open class InfoTask<T: Task<*>>: InfoNode<T> {
         progress?.isVisible = v
     }
 
-    override fun bind(t: T) {
+    override fun bind(bindable: T) {
         unbind()
-        val computeProgress = { it: Number -> if (t.state==SCHEDULED || t.state==READY) 1.0 else it.toDouble() }
-        if (title!=null) disposer += t.titleProperty() syncTo title.textProperty()
-        if (message!=null) disposer += t.messageProperty() syncTo message.textProperty()
-        if (progress!=null) disposer += t.progressProperty() sync { progress.progress = computeProgress(it) }
+        val computeProgress = { it: Number -> if (bindable.state==SCHEDULED || bindable.state==READY) 1.0 else it.toDouble() }
+        if (title!=null) disposer += bindable.titleProperty() syncTo title.textProperty()
+        if (message!=null) disposer += bindable.messageProperty() syncTo message.textProperty()
+        if (progress!=null) disposer += bindable.progressProperty() sync { progress.progress = computeProgress(it) }
     }
 
     override fun unbind() = disposer()

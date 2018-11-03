@@ -20,10 +20,10 @@ class ConvertTaskInfo: InfoTask<ConvertListTask<*, *>> {
         skipped?.isVisible = v
     }
 
-    override fun bind(t: ConvertListTask<*, *>) {
-        super.bind(t)
-        if (skipped!=null) disposer += t.skippedProperty() sync { skipped.text = "Skipped: $it" }
-        if (state!=null) disposer += t.stateProperty() sync { state.text = "State: ${enumToHuman(it)}" }
+    override fun bind(bindable: ConvertListTask<*, *>) {
+        super.bind(bindable)
+        if (skipped!=null) disposer += bindable.skippedProperty() sync { skipped.text = "Skipped: $it" }
+        if (state!=null) disposer += bindable.stateProperty() sync { state.text = "State: ${enumToHuman(it)}" }
     }
 
 }

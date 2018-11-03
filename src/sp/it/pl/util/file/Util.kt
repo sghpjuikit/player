@@ -113,7 +113,7 @@ infix fun File.hasExtension(suffix: String) = path.endsWith(".$suffix", true)
 /** @return true if the file path ends with '.' followed by the one of the specified [suffixes] */
 fun File.hasExtension(vararg suffixes: String) = suffixes.any { this hasExtension it }
 
-/** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown. */
+/** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown */
 @Suppress("DEPRECATION")
 fun URI.toFileOrNull() =
         try {
@@ -122,7 +122,7 @@ fun URI.toFileOrNull() =
             null
         }
 
-/** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown. */
+/** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown */
 fun File.toURLOrNull() =
         try {
             toURI().toURL()

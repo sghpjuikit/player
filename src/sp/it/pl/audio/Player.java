@@ -54,6 +54,7 @@ import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.async.AsyncKt.threadFactory;
 import static sp.it.pl.util.async.executor.EventReducer.toLast;
 import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
 import static sp.it.pl.util.functional.Functors.Ƒ.f;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
@@ -137,6 +138,8 @@ public class Player {
 		}
 
 		private void set(boolean change, Metadata new_metadata) {
+			throwIfNotFxThread();
+
 			Metadata ov = val;
 			Metadata nv = new_metadata;
 			val = nv;
@@ -225,20 +228,24 @@ public class Player {
 		public void itemChanged(Item item) {
 			if (item==null) {
 				set(true, Metadata.EMPTY);
-				LOGGER.info("Current item metadata set to empty. No item playing.");
+				LOGGER.info("Current song changed to none.");
+				LOGGER.info("Current song metadata set to empty.");
 			}
 			// if same item, still fire change
 			else if (val.same(item)) {
 				set(true, val);
-				LOGGER.info("Current item metadata reused. Same item playing.");
+				LOGGER.info("Current song changed to the same song.");
+				LOGGER.info("Current song metadata reused.");
 			}
 			// if pre-loaded, set
 			else if (valNext.same(item)) {
 				set(true, valNext);
-				LOGGER.info("Current item metadata copied from next item metadata cache.");
-				// else load
+				LOGGER.info("Current song changed to song in order.");
+				LOGGER.info("Current song metadata copied from cache of next song metadata.");
+			// else load
 			} else {
-				LOGGER.info("Next item metadata cache copy failed - content does not correspond to correct item. Loading now...");
+				LOGGER.info("Current song changed to song not in order.");
+				LOGGER.info("Current item metadata will be loaded...");
 				load(true, item);
 			}
 
@@ -254,7 +261,7 @@ public class Player {
 		}
 
 		private void preloadNext() {
-			LOGGER.info("Pre-loading metadata for next item to play.");
+			LOGGER.info("Pre-loading metadata for next song to play.");
 
 			PlaylistItem next = PlaylistManager.use(Playlist::getNextPlaying, null);
 			if (next!=null) {
@@ -339,7 +346,7 @@ public class Player {
 	 * @param allowDelay flag for using delayed refresh to reduce refresh successions to single refresh. Normally false
 	 * is used.
 	 * <p/>
-	 * Use false to refresh immediatelly and true to queue the refresh for future execution (will wait few seconds for
+	 * Use false to refresh immediately and true to queue the refresh for future execution (will wait few seconds for
 	 * next refresh request and if it comes, will wait again and so on until none will come, which is when all queued
 	 * refreshes execute all at once).
 	 */

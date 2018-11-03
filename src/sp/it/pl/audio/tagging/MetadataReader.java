@@ -37,7 +37,7 @@ public class MetadataReader {
 		}
 
 		if (item.isFileBased()) {
-			return readAudioFile(item.getFile())
+			return readAudioFile(noNull(item.getFile()))
 				.map(Metadata::new)
 				.getOr(Metadata.EMPTY);
 		} else {
@@ -192,7 +192,7 @@ public class MetadataReader {
 
 					completed++;
 
-					if (m.isFileBased() && !m.getFile().exists()) {
+					if (m.isFileBased() && !noNull(m.getFile()).exists()) {
 						removed++;
 						removedItems.add(m);
 					}

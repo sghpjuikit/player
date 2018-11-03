@@ -1,6 +1,7 @@
 package sp.it.pl.util.functional;
 
 import java.io.File;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -221,6 +222,7 @@ public class FunctorPool {
 		add("Is",      LocalDateTime.class,B, LocalDateTime::isEqual,  LocalDateTime.class,LocalDateTime.now());
 
 		add("File",    Item.class,File.class, Item::getFile);
+		add("URI",     Item.class,URI.class, Item::getUri);
 
 		add("Is supported",     AudioFileFormat.class,B, x -> x.isSupported(APP));
 		add("Is playable",      AudioFileFormat.class,B, x -> x.isSupported(PLAYBACK));

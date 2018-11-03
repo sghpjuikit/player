@@ -332,7 +332,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         // remember data
         data = m;
         // calculate new location
-        File new_folder = (data==null || !data.isFileBased()) ? null : data.getLocation();
+        File new_folder = data==null ? null : data.getLocation();
         dataChanged(new_folder);
     }
 

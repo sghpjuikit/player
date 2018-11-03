@@ -346,20 +346,16 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		return factory;
 	}
 
+	@NotNull
 	@Override
 	public File getLocation() {
 		return factory.getLocation();
 	}
 
+	@NotNull
 	@Override
 	public File getUserLocation() {
 		return factory.getLocationUser();
-	}
-
-	@NotNull
-	@Override
-	public File getUserResource(@NotNull String path) {
-		return Locatable.super.getUserResource(path);
 	}
 
 	/** Creates a launcher for this widget with default (no predefined) settings. */

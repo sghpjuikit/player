@@ -5,7 +5,9 @@ import javafx.scene.layout.Region
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.controller.io.Inputs
 import sp.it.pl.layout.widget.controller.io.Outputs
+import sp.it.pl.main.AppUtil.APP
 import sp.it.pl.util.conf.Config
+import sp.it.pl.util.file.childOf
 import java.io.ObjectStreamException
 
 /** Empty widget. Useful for certain layout operations and as a fill in for null. */
@@ -21,6 +23,8 @@ class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller 
 
     private val o = Outputs()
     private val i = Inputs()
+    override val location = super<Widget>.location
+    override val userLocation = super<Widget>.userLocation
 
     init {
         controller = this
@@ -50,10 +54,6 @@ class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller 
 
     override fun getFieldsMap() = emptyMap<String, Config<Any>>()
 
-    override fun getLocation() = super<Widget>.getLocation()!!
-
-    override fun getUserLocation() = super<Widget>.getUserLocation()!!
-
     @Throws(ObjectStreamException::class)
     override fun readResolve(): Any {
         root = Region()
@@ -63,4 +63,4 @@ class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller 
 
 }
 
-val emptyWidgetFactory: WidgetFactory<*> = WidgetFactory(EmptyWidget::class, null)
+val emptyWidgetFactory: WidgetFactory<*> = WidgetFactory(EmptyWidget::class, APP.DIR_WIDGETS.childOf("Empty"))

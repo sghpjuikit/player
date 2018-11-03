@@ -3,6 +3,7 @@ package sp.it.pl.layout.widget.controller;
 import java.io.File;
 import java.util.List;
 import javafx.scene.Node;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.io.Inputs;
 import sp.it.pl.layout.widget.controller.io.Outputs;
@@ -88,6 +89,7 @@ public interface Controller extends CachedConfigurable<Object>, Locatable {
 
 	/**
 	 * Returns widget in relationship with this Controller object.
+	 *
 	 * @return associated widget or null if none.
 	 */
 	Widget<?> getWidget();
@@ -119,13 +121,16 @@ public interface Controller extends CachedConfigurable<Object>, Locatable {
 		return getWidget().factory.getFeatures();
 	}
 
+	@NotNull
 	@Override
 	default File getLocation() {
 		return getWidget().getLocation();
 	}
 
+	@NotNull
 	@Override
 	default File getUserLocation() {
 		return getWidget().getUserLocation();
 	}
+
 }

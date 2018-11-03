@@ -20,25 +20,26 @@ import kotlin.text.Charsets.UTF_8
 
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
-    kotlin("jvm") version "1.2.71"
+    kotlin("jvm") version "1.3.0"
     application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
 }
 
 /** working directory of the application */
-val workDir = file("working dir")
+val dirProject = file("working dir")
+val dirJdk = dirProject.resolve("java")
 val kotlinVersion: String by extra {
     buildscript.configurations["classpath"]
             .resolvedConfiguration.firstLevelModuleDependencies
             .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
-val supportedJavaVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10)
+val javaSupportedVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10)
 
-if (JavaVersion.current() !in supportedJavaVersions) {
+if (JavaVersion.current() !in javaSupportedVersions) {
     println("""org.gradle.java.home=${properties["org.gradle.java.home"]}
         |Java version ${JavaVersion.current()} can't be used.
-        | Set one of ${supportedJavaVersions.joinToString()} as system default or create a "gradle.properties"
+        | Set one of ${javaSupportedVersions.joinToString()} as system default or create a "gradle.properties"
         | file with "org.gradle.java.home" pointing to a supported Java version""".trimMargin())
     throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
 }
@@ -52,7 +53,6 @@ sourceSets {
 
 kotlin {
     copyClassesToJavaOutput = true
-    experimental.coroutines = Coroutines.ENABLE
 }
 
 allprojects {
@@ -75,6 +75,12 @@ allprojects {
 
     tasks.withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jdkHome = dirJdk.path
+        kotlinOptions.apiVersion = "1.3"
+        kotlinOptions.languageVersion = "1.3"
+        kotlinOptions.verbose = true
+        kotlinOptions.suppressWarnings = false
+        kotlinOptions.freeCompilerArgs += listOf("-progressive", "-Xjvm-default=enable")
     }
 
     repositories {
@@ -89,6 +95,8 @@ dependencies {
     // Kotlin
     compile(kotlin("stdlib-jdk8"))
     compile(kotlin("reflect"))
+    compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.0")
+    compile("org.jetbrains.kotlinx:kotlinx-coroutines-javafx:1.0.0")
 
     // Logging
     compile("org.slf4j", "slf4j-api", "1.7.25")
@@ -156,24 +164,23 @@ tasks {
     }
 
     val jdk by creating {
-        val jdkLocal = workDir.resolve("java")
         group = "build setup"
-        description = "Links $jdkLocal to JDK"
+        description = "Links $dirJdk to JDK"
         doFirst {
-            if (!jdkLocal.exists()) {
+            if (!dirJdk.exists()) {
                 println("Making JDK locally accessible...")
                 val jdkPath = System.getProperty("java.home").takeIf { it.isNotBlank() }
                         ?.let { Paths.get(it) }
                         ?: throw FileNotFoundException("Unable to find JDK")
                 try {
-                    Files.createSymbolicLink(jdkLocal.toPath(), jdkPath)
+                    Files.createSymbolicLink(dirJdk.toPath(), jdkPath)
                 } catch (e: Exception) {
-                    println("Couldn't create a symbolic link from $jdkLocal to $jdkPath: $e")
+                    println("Couldn't create a symbolic link from $dirJdk to $jdkPath: $e")
                     if (System.getProperty("os.name").startsWith("Windows")) {
                         println("Trying junction...")
-                        val process = Runtime.getRuntime().exec("cmd.exe /c mklink /j \"$jdkLocal\" \"$jdkPath\"")
+                        val process = Runtime.getRuntime().exec("cmd.exe /c mklink /j \"$dirJdk\" \"$jdkPath\"")
                         val exitValue = process.waitFor()
-                        if (exitValue==0 && jdkLocal.exists())
+                        if (exitValue==0 && dirJdk.exists())
                             println("Junction successful!")
                         else
                             throw IOException("Unable to make JDK locally accessible!\nmklink exit code: $exitValue", e)
@@ -186,7 +193,7 @@ tasks {
     }
 
     val kotlinc by creating(Download::class) {
-        val kotlinc = workDir.resolve("kotlinc")
+        val kotlinc = dirProject.resolve("kotlinc")
         group = "build setup"
         description = "Downloads the kotlin compiler into $kotlinc"
         onlyIf { kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion)!=true }
@@ -202,15 +209,15 @@ tasks {
         doLast {
             copy {
                 from(zipTree(buildDir.resolve("kotlin-compiler-$kotlinVersion.zip")))
-                into(workDir)
+                into(dirProject)
             }
-            file("$workDir/kotlinc/bin/kotlinc").setExecutable(true)
+            file("$dirProject/kotlinc/bin/kotlinc").setExecutable(true)
         }
     }
 
     "jar"(Jar::class) {
         group = main
-        destinationDir = workDir
+        destinationDir = dirProject
         archiveName = "PlayerFX.jar"
     }
 
@@ -218,9 +225,9 @@ tasks {
         group = main
         description = "Cleans up temporary files"
         doFirst {
-            workDir.resolve("user/tmp").deleteRecursively()
-            workDir.resolve("lib").deleteRecursively()
-            workDir.resolve("widgets").walkBottomUp()
+            dirProject.resolve("user/tmp").deleteRecursively()
+            dirProject.resolve("lib").deleteRecursively()
+            dirProject.resolve("widgets").walkBottomUp()
                     .filter { it.path.endsWith("class") }
                     .fold(true) { res, it -> (it.delete() || !it.exists()) && res }
         }
@@ -233,7 +240,7 @@ tasks {
 
     "run"(JavaExec::class) {
         group = main
-        workingDir = workDir
+        workingDir = dirProject
         dependsOn(copyLibs, jdk, kotlinc, "jar")
     }
 

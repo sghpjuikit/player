@@ -13,7 +13,6 @@ import java.util.function.LongConsumer
 import java.util.function.Predicate
 import java.util.function.Supplier
 import java.util.stream.Stream
-import kotlin.coroutines.experimental.buildSequence
 import kotlin.reflect.KClass
 import kotlin.streams.toList
 
@@ -82,7 +81,7 @@ fun <T> supplyFirst(vararg suppliers: () -> T?): T? = seqOf(*suppliers).map { it
 fun <T> seqOf(vararg elements: T) = sequenceOf(*elements)
 
 /** @return lazy recursive sequence in depth-first order */
-fun <E> E.seqRec(children: (E) -> Iterable<E>): Sequence<E> = buildSequence {
+fun <E> E.seqRec(children: (E) -> Iterable<E>): Sequence<E> = sequence {
     yield(this@seqRec)
     children(this@seqRec).forEach { it.seqRec(children).forEach { yield(it) } }
     // eager version

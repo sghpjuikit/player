@@ -27,7 +27,7 @@ import sp.it.pl.gui.objects.image.cover.Cover
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource
 import sp.it.pl.gui.objects.image.cover.FileCover
 import sp.it.pl.gui.objects.image.cover.ImageCover
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.SwitchException
 import sp.it.pl.util.access.fieldvalue.ObjectFieldBase
 import sp.it.pl.util.dev.throwIfFxThread

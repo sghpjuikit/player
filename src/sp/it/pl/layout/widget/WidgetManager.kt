@@ -10,7 +10,7 @@ import sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT
 import sp.it.pl.layout.widget.WidgetSource.OPEN_STANDALONE
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.feature.Feature
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cr
 import sp.it.pl.util.conf.cv

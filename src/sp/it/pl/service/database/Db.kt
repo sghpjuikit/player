@@ -5,7 +5,7 @@ import sp.it.pl.audio.MetadatasDB
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.layout.widget.controller.io.InOutput
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.access.v
 import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.async.runFX

@@ -2,7 +2,7 @@ package sp.it.pl.layout.widget
 
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.controller.Controller
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.type.ClassName

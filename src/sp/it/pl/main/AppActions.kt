@@ -28,7 +28,7 @@ import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.access.V
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.async.FX

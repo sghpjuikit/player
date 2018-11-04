@@ -26,7 +26,7 @@ import mu.KLogging
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.picker.Picker
 import sp.it.pl.gui.objects.popover.PopOver
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
 import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.pl.util.functional.Util.stream

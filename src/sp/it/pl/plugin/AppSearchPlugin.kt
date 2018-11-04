@@ -4,7 +4,7 @@ import de.jensd.fx.glyphs.materialicons.MaterialIcon
 import mu.KLogging
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.conf.cList
 import sp.it.pl.util.conf.cr
 import sp.it.pl.util.conf.cv

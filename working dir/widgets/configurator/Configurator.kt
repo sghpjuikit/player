@@ -20,7 +20,7 @@ import sp.it.pl.gui.pane.ConfigPane
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.ClassController
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.EditMode

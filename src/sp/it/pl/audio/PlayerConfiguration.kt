@@ -1,6 +1,6 @@
 package sp.it.pl.audio
 
-import sp.it.pl.main.AppUtil
+import sp.it.pl.main.APP
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.MultiConfigurableBase
@@ -30,7 +30,7 @@ class PlayerConfiguration {
         val playerInfo by cvro("<none>") { Player.player.pInfo }
 
         @IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.")
-        var browse by c(AppUtil.APP.DIR_APP).only(DIRECTORY)
+        var browse by c(APP.DIR_APP).only(DIRECTORY)
 
     }
 }

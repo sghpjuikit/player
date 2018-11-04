@@ -1,7 +1,7 @@
 package sp.it.pl.core
 
 import mu.KotlinLogging
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.async.threadFactory
 import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.ThreadSafe

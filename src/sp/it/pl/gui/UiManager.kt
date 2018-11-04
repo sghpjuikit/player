@@ -18,7 +18,7 @@ import sp.it.pl.gui.UiManager.OpenStrategy.INSIDE
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.layout.widget.WidgetSource.ANY
 import sp.it.pl.main.Actions
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.main.Settings
 import sp.it.pl.util.conf.between
 import sp.it.pl.util.conf.c

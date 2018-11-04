@@ -22,7 +22,7 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.image.Thumbnail.FitFrom
 import sp.it.pl.gui.pane.OverlayPane.Companion.globalDisplay
 import sp.it.pl.gui.pane.OverlayPane.Companion.globalDisplayBgr
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.main.resizeButton
 import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim

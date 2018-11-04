@@ -10,7 +10,7 @@ import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.controller.FXMLController
 import sp.it.pl.layout.widget.controller.io.IsInput
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.async.FX
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.graphics.Util.setAnchor

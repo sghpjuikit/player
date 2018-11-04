@@ -38,7 +38,7 @@ import sp.it.pl.layout.container.Container.testControlContainer
 import sp.it.pl.layout.container.bicontainer.BiContainer
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.orEmpty
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.Widgets.PLAYLIST
 import sp.it.pl.util.access.v
@@ -82,7 +82,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
     private val proceedAnim = anim(millis(400)) { popupContent.opacity = -(it*it-1) }
     val hints = Hints()
 
-    init {
+    fun init() {
         if (firstTime.value) APP.onStarted += { runFX(millis(3000)) { open() } }
     }
 

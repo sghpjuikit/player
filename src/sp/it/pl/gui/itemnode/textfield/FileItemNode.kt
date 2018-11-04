@@ -5,7 +5,7 @@ import javafx.geometry.Pos
 import javafx.scene.input.DragEvent.DRAG_DROPPED
 import javafx.scene.input.DragEvent.DRAG_OVER
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.access.V
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.graphics.Util.layHorizontally

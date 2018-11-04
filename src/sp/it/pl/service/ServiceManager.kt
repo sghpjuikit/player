@@ -1,7 +1,7 @@
 package sp.it.pl.service
 
 import org.reactfx.Subscription
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.collections.map.ClassMap
 import java.lang.reflect.InvocationTargetException
 import java.util.HashSet

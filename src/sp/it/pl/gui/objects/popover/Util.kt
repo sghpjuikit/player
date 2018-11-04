@@ -4,7 +4,7 @@ import javafx.geometry.Rectangle2D
 import javafx.scene.Node
 import javafx.stage.Screen
 import javafx.stage.Window
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.graphics.centreX
 import sp.it.pl.util.graphics.centreY
 import sp.it.pl.util.graphics.getScreenForMouse

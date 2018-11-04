@@ -32,7 +32,7 @@ import sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT
 import sp.it.pl.layout.widget.WidgetSource.OPEN_STANDALONE
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.Feature
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.service.Service
 import sp.it.pl.util.HierarchicalBase
 import sp.it.pl.util.Util.enumToHuman

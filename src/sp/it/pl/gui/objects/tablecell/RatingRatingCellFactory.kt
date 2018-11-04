@@ -7,7 +7,7 @@ import javafx.scene.control.TableColumn
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataWriter
 import sp.it.pl.gui.objects.rating.Rating
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.parsing.StringParseStrategy
 import sp.it.pl.util.parsing.StringParseStrategy.From
 import sp.it.pl.util.parsing.StringParseStrategy.To

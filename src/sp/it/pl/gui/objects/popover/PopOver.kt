@@ -61,7 +61,7 @@ import sp.it.pl.gui.objects.popover.ArrowLocation.TOP_CENTER
 import sp.it.pl.gui.objects.popover.ArrowLocation.TOP_LEFT
 import sp.it.pl.gui.objects.popover.ArrowLocation.TOP_RIGHT
 import sp.it.pl.gui.objects.popover.ScreenUse.APP_WINDOW
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.access.V
 import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim

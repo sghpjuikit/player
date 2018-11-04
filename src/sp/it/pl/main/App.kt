@@ -241,11 +241,12 @@ class App: Application(), Configurable<Any> {
     @F val plugins = PluginManager()
 
     init {
-        AppUtil.APP = this.takeIf { AppUtil.APP==null } ?: fail("Multiple application instances disallowed")
+        APP = this.takeUnless { isAPPInitialized } ?: fail("Multiple application instances disallowed")
     }
 
     override fun init() {
         logging.init()
+        guide.init()
 
         // Forbid multiple application instances, instead notify the 1st instance of 2nd (this one)
         // trying to run and this instance's run parameters and close prematurely

@@ -102,6 +102,7 @@ import java.lang.management.ManagementFactory
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
+import kotlin.reflect.jvm.reflect
 
 private typealias F = JvmField
 private typealias C = IsConfig
@@ -490,7 +491,7 @@ class App: Application(), Configurable<Any> {
     fun fetchVMArguments(): List<String> = ManagementFactory.getRuntimeMXBean().inputArguments
 
     /** @return number of instances of this application (including this one) running at this moment */
-    fun getInstances(): Int = VirtualMachine.list().count { it.displayName().contains(AppUtil::class.java.name) }
+    fun getInstances(): Int = VirtualMachine.list().count { it.displayName().contains(App::class.java.name + "Util") }
 
     /** @return image of the icon of the application */
     fun getIcon(): Image = Image(File("icon512.png").toURI().toString())

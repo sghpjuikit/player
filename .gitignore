@@ -8,6 +8,7 @@ working dir/kotlinc
 working dir/user
 working dir/vlc/
 working dir/widgets/**/*class
+working dir/widgets/META-INF/
 working dir/PlayerFX.jar
 *.log
 

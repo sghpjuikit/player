@@ -82,7 +82,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
     private val proceedAnim = anim(millis(400)) { popupContent.opacity = -(it*it-1) }
     val hints = Hints()
 
-    fun init() {
+    init {
         if (firstTime.value) APP.onStarted += { runFX(millis(3000)) { open() } }
     }
 

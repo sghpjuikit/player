@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.ObjectStreamException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -58,6 +59,7 @@ import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.split;
 import static sp.it.pl.util.functional.Util.toS;
+import static sp.it.pl.util.functional.UtilKt.supplyFirst;
 import static sp.it.pl.util.graphics.UtilKt.findParent;
 import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 
@@ -228,58 +230,77 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		// instantiate controller
 		Class<C> cc = (Class) factory.getControllerType(); // TODO: make factory type safe and avoid cast
 		LOGGER.info("Instantiating widget controller " + cc);
-		C c;
-		try {
-			c = cc.getConstructor().newInstance();
-		} catch (IllegalAccessException|InstantiationException|NoSuchMethodException|InvocationTargetException e) {
-			LOGGER.error("Instantiating widget controller failed {}", cc, e);
-			return null;
-		}
+		C c = supplyFirst(
+			() -> {
+				try {
+					Constructor<C> ccc = cc.getDeclaredConstructor(Widget.class);
+					LOGGER.debug("Instantiating widget controller using 1 arg constructor");
+					return ccc.newInstance(this);
+				} catch (NoSuchMethodException e) {
+					return null;
+				} catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
+					LOGGER.error("Instantiating widget controller failed {}", cc, e);
+					return null;
+				}
+			},
+			() -> {
+				try {
+					Constructor<C> ccc = cc.getDeclaredConstructor();
+					LOGGER.debug("Instantiating widget controller using 0 arg constructor");
+					C cn = ccc.newInstance();
 
-		// inject this widget into the controller
-		// temporary 'dirty' solution
-		try {
-			Util.getField(c.getClass(), "widget"); // we use this as a check, throws Exception on fail
-			Util.setField(c, "widget", this); // executes only if the field exists
-		} catch (NoSuchFieldException ex) {
-			// TODO: warn developer
-		}
+					// inject this widget into the controller
+					try {
+						Util.getField(cc, "widget"); // we use this as a check, throws Exception on fail
+						Util.setField(cn, "widget", this); // executes only if the field exists
+					} catch (NoSuchFieldException ex) {
+						LOGGER.warn("Controller instantiated with 0 arg constructor should have a 'widget' field, class=" + cc);
+					}
 
-		// generate inputs
-		for (Method m : cc.getDeclaredMethods()) {
-			IsInput a = m.getAnnotation(IsInput.class);
-			if (a!=null) {
-				int params = m.getParameterCount();
-				if (Modifier.isStatic(m.getModifiers()) || params>1)
-					throw new RuntimeException("Method " + m + " can not be an input.");
+					return cn;
+				} catch (NoSuchMethodException e) {
+					return null;
+				} catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
+					LOGGER.error("Instantiating widget controller failed {}", cc, e);
+					return null;
+				}
+			}
+		);
 
-				String iName = a.value();
-				boolean isVoid = params==0;
-				Class iType = isVoid ? Void.class : m.getParameterTypes()[0];
-				Consumer iAction = isVoid
-					? value -> {
-							if (value!=null)
-								throw new ClassCastException(cc + " " + m + ": Can not cast " + value + " into Void.class");
-							try {
-								m.setAccessible(true);
-								m.invoke(c);
-							} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
-								LOGGER.error("Input {} in widget {} failed to process value.", iName, name, e);
+		if (c!=null) {
+			// generate inputs
+			for (Method m : cc.getDeclaredMethods()) {
+				IsInput a = m.getAnnotation(IsInput.class);
+				if (a!=null) {
+					int params = m.getParameterCount();
+					if (Modifier.isStatic(m.getModifiers()) || params>1) throw new RuntimeException("Method " + m + " can not be an input.");
+
+					String iName = a.value();
+					boolean isVoid = params==0;
+					Class iType = isVoid ? Void.class : m.getParameterTypes()[0];
+					Consumer iAction = isVoid
+						? value -> {
+								if (value!=null) throw new ClassCastException(cc + " " + m + ": Can not cast " + value + " into Void.class");
+								try {
+									m.setAccessible(true);
+									m.invoke(c);
+								} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
+									LOGGER.error("Input {} in widget {} failed to process value.", iName, name, e);
+								}
 							}
-						}
-					: value -> {
-							try {
-								m.setAccessible(true);
-								m.invoke(c, value);
-							} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
-								LOGGER.error("Input {} in widget {} failed to process value.", iName, name, e);
-							}
-						};
+						: value -> {
+								try {
+									m.setAccessible(true);
+									m.invoke(c, value);
+								} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
+									LOGGER.error("Input {} in widget {} failed to process value.", iName, name, e);
+								}
+							};
 
-				c.getInputs().create(iName, iType, iAction);
+					c.getOwnedInputs().create(iName, iType, iAction);
+				}
 			}
 		}
-
 		return c;
 	}
 
@@ -313,8 +334,8 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 			Controller c = controller;
 			controller = null;
 
-			IOLayer.all_inputs.removeAll(c.getInputs().getInputs());
-			IOLayer.all_outputs.removeAll(c.getOutputs().getOutputs());
+			IOLayer.all_inputs.removeAll(c.getOwnedInputs().getInputs());
+			IOLayer.all_outputs.removeAll(c.getOwnedOutputs().getOutputs());
 			c.close();
 		}
 		onClose.invoke();
@@ -433,7 +454,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		// Prepare input-outputs
 		// If widget is loaded, we serialize inputs & outputs
 		if (isLoaded) {
-			getController().getInputs().getInputs().forEach(i ->
+			getController().getOwnedInputs().getInputs().forEach(i ->
 					properties.put("io" + i.getName(), toS(i.getSources(), o -> o.id.toString(), ":"))
 			);
 			// Otherwise we still have the deserialized inputs/outputs leave them as they are
@@ -549,14 +570,14 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		Set<Input<?>> is = new HashSet<>();
 		Map<Output.Id,Output<?>> os = APP.widgetManager.widgets.findAll(OPEN)
 				.filter(w -> w.controller!=null)
-				.peek(w -> w.controller.getInputs().getInputs().forEach(is::add))
-				.flatMap(w -> w.controller.getOutputs().getOutputs().stream())
+				.peek(w -> w.controller.getOwnedInputs().getInputs().forEach(is::add))
+				.flatMap(w -> w.controller.getOwnedOutputs().getOutputs().stream())
 				.collect(toMap(i -> i.id, i -> i));
 		IOLayer.all_inoutputs.forEach(io -> os.put(io.o.id, io.o));
 
 		ios.forEach(io -> {
 			if (io.widget.controller==null) return;
-			Input i = io.widget.controller.getInputs().getInputRaw(io.input_name);
+			Input i = io.widget.controller.getOwnedInputs().getInputRaw(io.input_name);
 			if (i==null) return;
 			io.outputs_ids.stream().map(os::get).filter(ISNTØ).forEach(i::bind);
 		});
@@ -573,8 +594,8 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		// because widget inputs can be bound to other widget outputs, and because widgets can be
 		// loaded passively (then its i/o does not exists yet), we need to update all widget i/os
 		// because we do not know which bind to this widget
-		IOLayer.all_inputs.addAll(controller.getInputs().getInputs());
-		IOLayer.all_outputs.addAll(controller.getOutputs().getOutputs());
+		IOLayer.all_inputs.addAll(controller.getOwnedInputs().getInputs());
+		IOLayer.all_outputs.addAll(controller.getOwnedOutputs().getOutputs());
 		deserializeWidgetIO();
 	}
 

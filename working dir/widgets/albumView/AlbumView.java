@@ -25,7 +25,7 @@ import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.util.SwitchException;
@@ -79,7 +79,7 @@ import static sp.it.pl.util.reactive.Util.sync1If;
 		year = "2015",
 		group = Widget.Group.DEVELOPMENT
 )
-public class AlbumView extends ClassController {
+public class AlbumView extends SimpleController {
 
 	static final double CELL_TEXT_HEIGHT = 40;
 
@@ -98,7 +98,9 @@ public class AlbumView extends ClassController {
 	final ExecutorService executorImage = oneThreadExecutor(); // 2 threads perform better, but cause bugs
 
 	@SuppressWarnings("unchecked")
-	public AlbumView() {
+	public AlbumView(Widget<?> widget) {
+		super(widget);
+
 		view.search.field = VALUE;
 		view.primaryFilterField = VALUE;
 		view.setCellFactory(grid -> new AlbumCell());
@@ -129,7 +131,7 @@ public class AlbumView extends ClassController {
 	@SuppressWarnings({"ConstantConditions", "unchecked"})
 	@Override
 	public void init() {
-		in_items = getInputs().create("To display", (Class) List.class, listRO(), this::setItems);
+		in_items = inputs.create("To display", (Class) List.class, listRO(), this::setItems);
 		out_sel = outputs.create(widget.id,"Selected Album", MetadataGroup.class, null);
 		out_sel_met = outputs.create(widget.id,"Selected", List.class, listRO());
 	}

@@ -15,6 +15,8 @@ import sp.it.pl.util.access.VarEnum
 import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.dev.Dependency
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.reactive.attach
@@ -39,14 +41,16 @@ class WebReader: FXMLController() {
     @FXML private lateinit var webView: WebView
     private lateinit var engine: WebEngine
 
-    @field: IsConfig(name = "Last visited address", info = "Last visited address", editable = EditMode.APP)
-    private var url = "https://duckduckgo.com/"
+    @IsConfig(name = "Last visited address", info = "Last visited address", editable = EditMode.APP)
+    private var url by c("https://duckduckgo.com/")
 
-    @field: IsConfig(name = "Search engine")
-    private val searchEngine = VarEnum.ofInstances(DuckDuckGoQBuilder, SearchUriBuilder::class.java, APP.instances)
+    @IsConfig(name = "Search engine")
+    private val searchEngine by cv(DuckDuckGoQBuilder as SearchUriBuilder) {
+        VarEnum.ofInstances(DuckDuckGoQBuilder, SearchUriBuilder::class.java, APP.instances)
+    }
 
-    @field: IsConfig(name = "No background")
-    private val noBgr = v(false)
+    @IsConfig(name = "No background")
+    private val noBgr by cv(false)
 
     override fun init() {
         engine = webView.engine
@@ -64,8 +68,8 @@ class WebReader: FXMLController() {
         }
 
         initClose { engine.documentProperty() sync { if (noBgr.get()) engine.setTransparentBgrColor() } }
-        getInputs().create<String>("Html") { loadHtml(it) }
-        getInputs().create<String>("Url") { loadPage(it) }
+        inputs.create<String>("Html") { loadHtml(it) }
+        inputs.create<String>("Url") { loadPage(it) }
     }
 
     @FXML

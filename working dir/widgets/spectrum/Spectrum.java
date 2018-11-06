@@ -8,7 +8,7 @@ import javafx.scene.media.AudioSpectrumListener;
 import javafx.scene.paint.Color;
 import sp.it.pl.audio.Player;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.util.animation.Loop;
 import static java.lang.Math.PI;
 import static java.lang.Math.cos;
@@ -30,20 +30,18 @@ import static javafx.util.Duration.seconds;
     year = "2016",
     group = Widget.Group.VISUALISATION
 )
-public class Spectrum extends ClassController  {
-    private final SpectrumNode n = new SpectrumNode();
+public class Spectrum extends SimpleController {
 
-    public Spectrum() {
-        getChildren().add(n);
+	public Spectrum(Widget<?> widget) {
+    	super(widget);
+
+		SpectrumNode n = new SpectrumNode();
         n.heightProperty().bind(heightProperty());
         n.widthProperty().bind(widthProperty());
+		getChildren().add(n);
 
         n.start();
-    }
-
-    @Override
-    public void onClose() {
-        n.stop();
+        onClose.plusAssign(n::stop);
     }
 
     private static class SpectrumNode extends Canvas implements AudioSpectrumListener {

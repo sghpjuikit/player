@@ -90,7 +90,7 @@ public interface Controller extends CachedConfigurable<Object>, Locatable {
 	 * Returns widget in relationship with this Controller object.
 	 * @return associated widget or null if none.
 	 */
-	Widget<?> getWidget();
+	Widget<?> getOwnerWidget();
 
 	/**
 	 * Executes immediately before widget is closed. Widget is not
@@ -110,22 +110,22 @@ public interface Controller extends CachedConfigurable<Object>, Locatable {
 	 */
 	default boolean isEmpty() { return false; }
 
-	Outputs getOutputs();
+	Outputs getOwnedOutputs();
 
-	Inputs getInputs();
+	Inputs getOwnedInputs();
 
 	/** @return all implemented features */
 	default List<Feature> getFeatures() {
-		return getWidget().factory.getFeatures();
+		return getOwnerWidget().factory.getFeatures();
 	}
 
 	@Override
 	default File getLocation() {
-		return getWidget().getLocation();
+		return getOwnerWidget().getLocation();
 	}
 
 	@Override
 	default File getUserLocation() {
-		return getWidget().getUserLocation();
+		return getOwnerWidget().getUserLocation();
 	}
 }

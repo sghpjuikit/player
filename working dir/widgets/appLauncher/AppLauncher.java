@@ -14,12 +14,11 @@ import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.util.Sort;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.fieldvalue.FileField;
-import sp.it.pl.util.async.AsyncKt;
 import sp.it.pl.util.async.executor.FxTimer;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config.VarList;
@@ -60,7 +59,7 @@ import static sp.it.pl.util.system.EnvironmentKt.open;
     year = "2016",
     group = OTHER
 )
-public class AppLauncher extends ClassController {
+public class AppLauncher extends SimpleController {
 
     private static final double CELL_TEXT_HEIGHT = 40;
 
@@ -80,7 +79,7 @@ public class AppLauncher extends ClassController {
 	private final AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
         FOLDER_PLUS, "Click to add launcher or drag & drop a file",
-        () -> chooseFile("Choose program or file", FILE, APP.DIR_HOME, getWidget().getWindowOrActive().map(Window::getStage).orElse(null))
+        () -> chooseFile("Choose program or file", FILE, APP.DIR_HOME, getOwnerWidget().getWindowOrActive().map(Window::getStage).orElse(null))
 				.ifOk(files.list::setAll)
     );
 
@@ -95,7 +94,9 @@ public class AppLauncher extends ClassController {
     @IsConfig(name = "Close on right click", info = "Close this widget when right click is detected.")
     final V<Boolean> closeOnRightClick = new V<>(false);
 
-    public AppLauncher() {
+    public AppLauncher(Widget<?> widget) {
+        super(widget);
+
         setPrefSize(500,500);
 
         files.onListInvalid(list -> visit());

@@ -18,10 +18,10 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.paint.Color;
-import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.controller.ClassController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.animation.Loop;
 import sp.it.pl.util.functional.Try;
@@ -41,24 +41,22 @@ import static sp.it.pl.util.Util.pyth;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.stream;
 
-/**
- * Displays animated Voronoi diagram.
- */
 @Widget.Info(
 	author = "Martin Polakovic",
 	name = "Voronoi",
 	description = "Playground to experiment and visualize voronoi diagrams of moving points",
 	howto = "To configure the visualization edit the source code.",
-//	notes = "",
 	version = "1",
 	year = "2016",
 	group = Widget.Group.VISUALISATION
 )
-public class Voronoi extends ClassController  {
+public class Voronoi extends SimpleController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Voronoi.class);
 	private final RenderNode canvas = new RenderNode();
 
-	public Voronoi() {
+	public Voronoi(Widget<?> widget) {
+		super(widget);
+
 		getChildren().add(canvas);
 		canvas.heightProperty().bind(heightProperty());
 		canvas.widthProperty().bind(widthProperty());
@@ -66,11 +64,8 @@ public class Voronoi extends ClassController  {
 		setOnMouseClicked(e -> canvas.pause(false));
 		focusedProperty().addListener((o,ov,nv) -> canvas.pause(!nv));
 		addEventHandler(Event.ANY, Event::consume);
-	}
 
-	@Override
-	public void onClose() {
-		canvas.loop.stop();
+		onClose.plusAssign(canvas.loop::stop);
 	}
 
 	private static class RenderNode extends Canvas {

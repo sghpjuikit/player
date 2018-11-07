@@ -76,8 +76,6 @@ allprojects {
     tasks.withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.jdkHome = dirJdk.path
-        kotlinOptions.apiVersion = "1.3"
-        kotlinOptions.languageVersion = "1.3"
         kotlinOptions.verbose = true
         kotlinOptions.suppressWarnings = false
         kotlinOptions.freeCompilerArgs += listOf("-progressive", "-Xjvm-default=enable")
@@ -93,62 +91,56 @@ allprojects {
 dependencies {
 
     // Kotlin
-    compile(kotlin("stdlib-jdk8"))
-    compile(kotlin("reflect"))
-    compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.0")
-    compile("org.jetbrains.kotlinx:kotlinx-coroutines-javafx:1.0.0")
+    implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("reflect"))
 
-    // Logging
-    compile("org.slf4j", "slf4j-api", "1.7.25")
-    compile("org.slf4j", "jul-to-slf4j", "1.7.25")
-    compile("ch.qos.logback", "logback-classic", "1.2.3")
-    compile("io.github.microutils", "kotlin-logging", "1.6.10")
-
-    // JavaFX
-    compile("de.jensd", "fontawesomefx", "8.9")
-    compile("org.reactfx", "reactfx", "2.0-M5")
-    compile("eu.hansolo", "tilesfx", "1.6.4") {
-        exclude("com.googlecode.json-simple", "json-simple")
-    }
-    compile("eu.hansolo", "Medusa", "8.0")
-
-    // Native
-    compile("net.java.dev.jna", "jna-platform", "4.5.2")
-    // due to a critical error on linux, don't update this to 2.1.0
-    compile("com.1stleg", "jnativehook", "2.0.2")
-
-    //Misc
-    compile("net.objecthunter", "exp4j", "0.4.8")
-    compile("org.atteo", "evo-inflector", "1.2.2")
-    compile("com.thoughtworks.xstream", "xstream", "1.4.10") {
-        exclude("xmlpull", "xmlpull")
-        exclude("xpp3", "xpp3_min")
-    }
+    implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core")
+    implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.0.+")
 
     // Audio
-    compile("uk.co.caprica", "vlcj", "3.10.1")
-    compile("de.u-mass", "lastfm-java", "0.1.2")
-    compile("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
+    implementation("uk.co.caprica", "vlcj", "3.10.+")
+    implementation("de.u-mass", "lastfm-java", "0.1.2")
+    implementation("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
+
+    // JavaFX
+    implementation("de.jensd", "fontawesomefx", "8.9")
+    implementation("org.reactfx", "reactfx", "2.0-M5")
+    implementation("eu.hansolo", "tilesfx", "1.6.+") { exclude("junit", "junit") }
+    implementation("eu.hansolo", "Medusa", "8.0")
+
+    // Logging
+    implementation("org.slf4j", "slf4j-api")
+    implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
+    implementation("ch.qos.logback", "logback-classic", "1.2.3")
+    implementation("io.github.microutils", "kotlin-logging", "1.6.+")
+
+    // Native
+    implementation("net.java.dev.jna", "jna-platform", "5.0.+")
+    implementation("com.1stleg", "jnativehook", "2.0.2") // don't update this to 2.1.0, it causes a critical error on linux
+
+    // Misc
+    implementation("net.objecthunter", "exp4j", "0.4.+")
+    implementation("org.atteo", "evo-inflector", "1.2.+")
+    implementation("com.thoughtworks.xstream", "xstream", "1.4.+")
 
     // Image
+    implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
     val imageioVersion = "3.4.1"
-    compile("com.drewnoakes", "metadata-extractor", "2.11.0")
-    compile("com.twelvemonkeys.imageio", "imageio-core", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-bmp", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-jpeg", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-iff", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-icns", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-pcx", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-pict", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-clippath", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-hdr", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-pdf", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-pnm", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-psd", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-tga", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-sgi", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-thumbsdb", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-tiff", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-bmp", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-jpeg", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-iff", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-icns", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-pcx", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-pict", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-clippath", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-hdr", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-pdf", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-pnm", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-psd", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-tga", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-sgi", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-thumbsdb", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-tiff", imageioVersion)
 
 }
 
@@ -163,7 +155,7 @@ tasks {
         exclude("*sources.jar", "*javadoc.jar")
     }
 
-    val jdk by creating {
+    val linkJdk by creating {
         group = "build setup"
         description = "Links $dirJdk to JDK"
         doFirst {
@@ -221,28 +213,25 @@ tasks {
         archiveName = "PlayerFX.jar"
     }
 
-    "clean" {
+    "clean"(Delete::class) {
         group = main
         description = "Cleans up temporary files"
-        doFirst {
-            dirProject.resolve("user/tmp").deleteRecursively()
-            dirProject.resolve("lib").deleteRecursively()
-            dirProject.resolve("widgets").walkBottomUp()
-                    .filter { it.path.endsWith("class") }
-                    .fold(true) { res, it -> (it.delete() || !it.exists()) && res }
-        }
+        delete(dirProject.resolve("user/tmp"), buildDir,
+                dirProject.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList())
     }
 
     "build" {
-        group = main
         dependsOn(":widgets:build")
+        group = main
     }
 
     "run"(JavaExec::class) {
+        dependsOn(copyLibs, kotlinc, "jar")
         group = main
         workingDir = dirProject
-        dependsOn(copyLibs, jdk, kotlinc, "jar")
     }
+
+    getByName("compileKotlin").dependsOn(linkJdk)
 
 }
 

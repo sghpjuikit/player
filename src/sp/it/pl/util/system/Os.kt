@@ -45,20 +45,20 @@ enum class Os {
     companion object {
 
         /** @return the current operating system */
-        @JvmStatic val current: Os
-            get() {
-                val osName = System.getProperty("os.name")
-                if (osName.startsWith("Windows")) return WINDOWS
-                if (osName.startsWith("Mac")) return OSX
-                if (osName.startsWith("SunOS")) return UNIX
-                if (osName.startsWith("Linux")) {
-                    val javafxPlatform = System.getProperty("javafx.platform")
-                    if (!("android"==javafxPlatform || "Dalvik"==System.getProperty("java.vm.name")))  // if not Android
-                        return UNIX
-                }
-                return UNKNOWN
+        @JvmStatic val current: Os = run {
+            val osName = System.getProperty("os.name")
+            when {
+                osName.indexOf("win")!=-1 -> WINDOWS
+                osName.indexOf("mac")!=-1 -> OSX
+                // various forms of unix
+                osName.startsWith("SunOS") || osName.indexOf("nix")>-1 || osName.indexOf("freebsd")>-1
+                -> UNIX
+                // Linux without Android
+                osName.indexOf("nux")>-1 && "android"!=System.getProperty("javafx.platform") && "Dalvik"!=System.getProperty("java.vm.name")
+                -> UNIX
+                else -> UNKNOWN
             }
-
+        }
     }
 
 }

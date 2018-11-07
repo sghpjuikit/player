@@ -3,7 +3,7 @@ package htmlViewer
 import javafx.scene.web.HTMLEditor
 import javafx.util.Duration.seconds
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.ClassController
+import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.util.access.v
 import sp.it.pl.util.async.runPeriodic
 import sp.it.pl.util.graphics.setAnchors
@@ -18,16 +18,16 @@ import sp.it.pl.util.reactive.sync
         year = "2016",
         group = Widget.Group.OTHER
 )
-class HtmlViewer: ClassController() {
+class HtmlViewer(widget: Widget<*>): SimpleController(widget) {
 
     val editor = HTMLEditor()
     val text = v("") { editor.htmlText = it }
 
     override fun init() {
-        val input = getInputs().create<String>("Html") { text.setValue(it ?: "") }
+        val input = inputs.create<String>("Html") { text.setValue(it ?: "") }
         onClose += input.monitor { text.setValue(it ?: "") }
 
-        val output = getOutputs().create(widget.id, "Html", "")
+        val output = outputs.create(widget.id, "Html", "")
         onClose += text sync { output.setValue(it) }
 
         val t = runPeriodic(seconds(5.0)) { text.setValue(editor.htmlText) }
@@ -35,7 +35,6 @@ class HtmlViewer: ClassController() {
 
         children += editor
         editor.setAnchors(0.0)
-
     }
 
 }

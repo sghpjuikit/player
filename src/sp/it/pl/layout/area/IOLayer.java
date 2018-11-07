@@ -101,13 +101,13 @@ public class IOLayer extends StackPane {
 
 
     public void addController(Controller c) {
-        c.getInputs().getInputs().forEach(this::addInput);
-        c.getOutputs().getOutputs().forEach(this::addOutput);
+        c.getOwnedInputs().getInputs().forEach(this::addInput);
+        c.getOwnedOutputs().getOutputs().forEach(this::addOutput);
     }
 
     public void remController(Controller c) {
-        c.getInputs().getInputs().forEach(this::remInput);
-        c.getOutputs().getOutputs().forEach(this::remOutput);
+        c.getOwnedInputs().getInputs().forEach(this::remInput);
+        c.getOwnedOutputs().getOutputs().forEach(this::remOutput);
     }
 
     @SuppressWarnings("unchecked")
@@ -306,15 +306,15 @@ public class IOLayer extends StackPane {
         APP.widgetManager.widgets.findAll(OPEN_LAYOUT)
             .map(Widget::getController).filter(ISNTØ)
             .forEach(c -> {
-                List<XNode> is = c.getInputs().getInputs().stream().map(inputnodes::get).filter(ISNTØ).collect(toList());
-                List<XNode> os = c.getOutputs().getOutputs().stream().map(outputnodes::get).filter(ISNTØ).collect(toList());
+                List<XNode> is = c.getOwnedInputs().getInputs().stream().map(inputnodes::get).filter(ISNTØ).collect(toList());
+                List<XNode> os = c.getOwnedOutputs().getOutputs().stream().map(outputnodes::get).filter(ISNTØ).collect(toList());
 
                 // Apparently during initiaization we are not ready yet
                 // I dont like this, but Im not going to hunt for this subtle bug, which may
                 // not be a bug at all
-                if (c.getWidget()==null || c.getWidget().areaTemp==null || c.getWidget().areaTemp.getRoot()==null) return;
+                if (c.getOwnerWidget()==null || c.getOwnerWidget().areaTemp==null || c.getOwnerWidget().areaTemp.getRoot()==null) return;
 
-                Node wr = c.getWidget().areaTemp.getRoot();
+                Node wr = c.getOwnerWidget().areaTemp.getRoot();
                 Bounds b = wr.localToScene(wr.getBoundsInLocal());
                 double basex = b.getMinX()/scalex.doubleValue()-translation_offset;
                 double basey = b.getMinY()-header_offset;

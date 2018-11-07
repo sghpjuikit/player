@@ -89,7 +89,7 @@ import sp.it.pl.gui.itemnode.ConfigField;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.animation.Anim;
@@ -226,7 +226,7 @@ import static sp.it.pl.util.reactive.Util.maintain;
 	year = "2015",
 	group = Widget.Group.OTHER
 )
-public class Comet extends ClassController {
+public class Comet extends SimpleController {
 	private static Logger LOGGER = LoggerFactory.getLogger(Comet.class);
 
 	final Pane playfield = new Pane();  // play field, contains scenegraph game graphics
@@ -237,7 +237,9 @@ public class Comet extends ClassController {
 	final Text message = new Text();
 	final Game game = new Game();
 
-	public Comet() {
+	public Comet(Widget<?> widget) {
+		super(widget);
+
 		// message
 		message.setOpacity(0);
 		message.setFont(new Font(FONT_UI.getName(), 50));
@@ -325,11 +327,8 @@ public class Comet extends ClassController {
 		playfield.focusedProperty().addListener((o,ov,nv) -> game.pause(!nv));
 
 		addEventHandler(Event.ANY, Event::consume);
-	}
 
-	@Override
-	public void onClose() {
-		game.dispose();
+		onClose.plusAssign(game::dispose);
 	}
 
 	interface Constants {

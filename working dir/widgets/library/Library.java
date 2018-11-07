@@ -243,7 +243,7 @@ public class Library extends FXMLController implements SongReader {
     @Override
     public void refresh() {
         runOnce.execute(() -> {
-            String c = getWidget().properties.getS("columns");
+            String c = widget.properties.getS("columns");
             table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
         });
 
@@ -254,7 +254,7 @@ public class Library extends FXMLController implements SongReader {
     @Override
     public Collection<Config<Object>> getFields() {
         // serialize column state when requested
-        getWidget().properties.put("columns", table.getColumnState().toString());
+        widget.properties.put("columns", table.getColumnState().toString());
         return super.getFields();
     }
 

@@ -18,13 +18,14 @@ import sp.it.pl.gui.objects.tree.buildTreeCell
 import sp.it.pl.gui.objects.tree.tree
 import sp.it.pl.gui.pane.ConfigPane
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.ClassController
+import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.main.APP
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.c
 import sp.it.pl.util.functional.seqRec
 import sp.it.pl.util.graphics.expandAndSelect
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
@@ -46,7 +47,7 @@ import java.util.ArrayList
         year = "2016",
         group = Widget.Group.APP
 )
-class Configurator: ClassController(), ConfiguringFeature<Any> {
+class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeature<Any> {
 
     @FXML lateinit var groups: TreeView<Name>
     @FXML lateinit var controls: Pane
@@ -56,8 +57,8 @@ class Configurator: ClassController(), ConfiguringFeature<Any> {
     private val configSelectionName = "app.settings.selected_group"
     private var configSelectionAvoid = false
 
-    @field: IsConfig(editable = EditMode.APP)
-    var showsAppSettings = true
+    @IsConfig(editable = EditMode.APP)
+    var showsAppSettings by c(true)
 
     init {
         inputs.create<Configurable<out Any>>("To configure", { configure(it) })

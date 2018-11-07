@@ -35,7 +35,6 @@ import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
-import sp.it.pl.util.conf.MultiConfigurable;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.action.Action;
@@ -43,7 +42,11 @@ import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.collections.map.ClassListMap;
+import sp.it.pl.util.conf.Config;
+import sp.it.pl.util.conf.ConfigValueSource;
 import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.conf.MainConfiguration;
+import sp.it.pl.util.conf.MultiConfigurable;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.type.ClassName;
@@ -196,6 +199,21 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	@Override
 	public String getConfigurableGroup() {
 		return computeConfigGroup(this);
+	}
+
+	@Override
+	public ConfigValueSource getConfigurableValueStore() {
+		return new ConfigValueSource() {
+			@Override
+			public void register(Config<?> config) {
+				MainConfiguration.INSTANCE.collect(config);
+			}
+
+			@Override
+			public void initialize(Config<?> config) {
+				MainConfiguration.INSTANCE.rawSet(config);
+			}
+		};
 	}
 
 	/* ---------- PRE-CONFIGURED ACTIONS --------------------------------------------------------------------------------- */

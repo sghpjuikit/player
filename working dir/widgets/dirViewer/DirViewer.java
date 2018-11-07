@@ -15,22 +15,20 @@ import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.image.Thumbnail.FitFrom;
 import sp.it.pl.gui.objects.window.stage.Window;
-import sp.it.pl.util.access.fieldvalue.CachingFile;
-import sp.it.pl.util.action.Action;
-import sp.it.pl.util.async.AsyncKt;
-import sp.it.pl.util.file.FileFilterValue;
-import sp.it.pl.util.file.FileFilters;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.util.Sort;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
+import sp.it.pl.util.access.fieldvalue.CachingFile;
 import sp.it.pl.util.access.fieldvalue.FileField;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.conf.Config.VarList.Elements;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.file.FileFilterValue;
+import sp.it.pl.util.file.FileFilters;
 import sp.it.pl.util.file.FileFlatter;
 import sp.it.pl.util.file.FileSort;
 import sp.it.pl.util.file.FileType;
@@ -51,8 +49,8 @@ import static sp.it.pl.main.AppBuildersKt.appTooltipForData;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Sort.ASCENDING;
 import static sp.it.pl.util.async.AsyncKt.FX;
-import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.newThreadPoolExecutor;
+import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.onlyIfMatches;
 import static sp.it.pl.util.async.AsyncKt.runAfter;
 import static sp.it.pl.util.async.AsyncKt.runFX;
@@ -79,7 +77,7 @@ import static sp.it.pl.util.system.EnvironmentKt.open;
         year = "2015",
         group = OTHER
 )
-public class DirViewer extends ClassController {
+public class DirViewer extends SimpleController {
 
     private static final double CELL_TEXT_HEIGHT = 20;
 
@@ -101,11 +99,11 @@ public class DirViewer extends ClassController {
     private final ExecutorService executorThumbs = newThreadPoolExecutor(8, 1,MINUTES, threadFactory("dirView-img-thumb", true));
     private final ExecutorService executorImage = newThreadPoolExecutor(8, 1, MINUTES, threadFactory("dirView-img-full", true));
     private final Loader imageLoader = new Loader(executorThumbs, executorImage);
-    boolean initialized = false;
+    private boolean initialized = false;
     private AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
     	FOLDER_PLUS, "Click to explore directory",
-		() -> chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getWidget().getWindowOrActive().map(Window::getStage).orElse(null))
+		() -> chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getOwnerWidget().getWindowOrActive().map(Window::getStage).orElse(null))
 				.ifOk(files.list::setAll)
     );
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
@@ -122,7 +120,9 @@ public class DirViewer extends ClassController {
     File lastVisited = null;
     Item item = null;   // item, children of which are displayed
 
-    public DirViewer() {
+    public DirViewer(Widget<?> widget) {
+        super(widget);
+
         files.onListInvalid(list -> revisitTop());
         files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
         grid.search.field = FileField.PATH;
@@ -219,7 +219,7 @@ public class DirViewer extends ClassController {
                     grid.requestFocus();    // fixes focus problem
                     runAfter(millis(500), grid::requestFocus);
                 })
-                .showProgress(getWidget().getWindowOrActive().map(Window::taskAdd));
+                .showProgress(getOwnerWidget().getWindowOrActive().map(Window::taskAdd));
     }
 
     /**

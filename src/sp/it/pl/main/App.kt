@@ -135,6 +135,12 @@ class App: Application(), Configurable<Any> {
         APP = this.takeUnless { ::APP.isInitialized } ?: fail("Multiple application instances disallowed")
     }
 
+    var isInitialized: Try<Void, Throwable> = Try.error(Exception("Initialization has not run yet"))
+        private set(value) {
+            field = value
+        }
+    private var closedPrematurely = false
+
     /** Name of this application. */
     @F val name = "PlayerFX"
     /** Application code encoding. Useful for compilation during runtime. */
@@ -247,13 +253,6 @@ class App: Application(), Configurable<Any> {
 
     @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
     val actionSettingsSave by cr { configuration.save(name, FILE_SETTINGS) }
-
-    private var closedPrematurely = false
-    var isInitialized: Try<Void, Throwable> = Try.error(Exception("Initialization has not run yet"))
-        private set(value) {
-            field = value
-        }
-
 
     /** Manages persistence and in-memory storage. */
     @F val db = Db()

@@ -76,7 +76,7 @@ class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeat
         }
 
         controls.children += listOf(
-                Icon(HOME, 13.0, "AppUtil settings", Runnable { showsAppSettings = true; configure(APP.configuration.getFields()) }),
+                Icon(HOME, 13.0, "App settings", Runnable { showsAppSettings = true; configure(APP.configuration.getFields()) }),
                 Label("    "),
                 Icon(REFRESH, 13.0, "Refresh all", Runnable { refresh() }),
                 Icon(RECYCLE, 13.0, "Set all to default", Runnable { defaults() })

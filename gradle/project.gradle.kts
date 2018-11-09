@@ -7,6 +7,7 @@ import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.kotlin
 import org.gradle.kotlin.dsl.support.zipTo
+import org.jetbrains.kotlin.backend.common.onlyIf
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -95,33 +96,33 @@ dependencies {
     implementation(kotlin("reflect"))
 
     implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core")
-    implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.0.+")
+    implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.0.1")
 
     // Audio
-    implementation("uk.co.caprica", "vlcj", "3.10.+")
+    implementation("uk.co.caprica", "vlcj", "3.10.1")
     implementation("de.u-mass", "lastfm-java", "0.1.2")
     implementation("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
 
     // JavaFX
     implementation("de.jensd", "fontawesomefx", "8.9")
     implementation("org.reactfx", "reactfx", "2.0-M5")
-    implementation("eu.hansolo", "tilesfx", "1.6.+") { exclude("junit", "junit") }
+    implementation("eu.hansolo", "tilesfx", "1.6.4") { exclude("junit", "junit") }
     implementation("eu.hansolo", "Medusa", "8.0")
 
     // Logging
     implementation("org.slf4j", "slf4j-api")
     implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
     implementation("ch.qos.logback", "logback-classic", "1.2.3")
-    implementation("io.github.microutils", "kotlin-logging", "1.6.+")
+    implementation("io.github.microutils", "kotlin-logging", "1.6.20")
 
     // Native
-    implementation("net.java.dev.jna", "jna-platform", "5.0.+")
+    implementation("net.java.dev.jna", "jna-platform", "5.0.0")
     implementation("com.1stleg", "jnativehook", "2.0.2") // don't update this to 2.1.0, it causes a critical error on linux
 
     // Misc
-    implementation("net.objecthunter", "exp4j", "0.4.+")
-    implementation("org.atteo", "evo-inflector", "1.2.+")
-    implementation("com.thoughtworks.xstream", "xstream", "1.4.+")
+    implementation("net.objecthunter", "exp4j", "0.4.8")
+    implementation("org.atteo", "evo-inflector", "1.2.2")
+    implementation("com.thoughtworks.xstream", "xstream", "1.4.11.1")
 
     // Image
     implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
@@ -158,27 +159,26 @@ tasks {
     val linkJdk by creating {
         group = "build setup"
         description = "Links $dirJdk to JDK"
+        this.onlyIf { !dirJdk.exists() }
         doFirst {
-            if (!dirJdk.exists()) {
-                println("Making JDK locally accessible...")
-                val jdkPath = System.getProperty("java.home").takeIf { it.isNotBlank() }
-                        ?.let { Paths.get(it) }
-                        ?: throw FileNotFoundException("Unable to find JDK")
-                try {
-                    Files.createSymbolicLink(dirJdk.toPath(), jdkPath)
-                } catch (e: Exception) {
-                    println("Couldn't create a symbolic link from $dirJdk to $jdkPath: $e")
-                    if (System.getProperty("os.name").startsWith("Windows")) {
-                        println("Trying junction...")
-                        val process = Runtime.getRuntime().exec("cmd.exe /c mklink /j \"$dirJdk\" \"$jdkPath\"")
-                        val exitValue = process.waitFor()
-                        if (exitValue==0 && dirJdk.exists())
-                            println("Junction successful!")
-                        else
-                            throw IOException("Unable to make JDK locally accessible!\nmklink exit code: $exitValue", e)
-                    } else {
-                        throw IOException("Unable to make JDK locally accessible!", e)
-                    }
+            println("Making JDK locally accessible...")
+            val jdkPath = System.getProperty("java.home").takeIf { it.isNotBlank() }
+                    ?.let { Paths.get(it) }
+                    ?: throw FileNotFoundException("Unable to find JDK")
+            try {
+                Files.createSymbolicLink(dirJdk.toPath(), jdkPath)
+            } catch (e: Exception) {
+                println("Couldn't create a symbolic link from $dirJdk to $jdkPath: $e")
+                if (System.getProperty("os.name").startsWith("Windows")) {
+                    println("Trying junction...")
+                    val process = Runtime.getRuntime().exec("cmd.exe /c mklink /j \"$dirJdk\" \"$jdkPath\"")
+                    val exitValue = process.waitFor()
+                    if (exitValue==0 && dirJdk.exists())
+                        println("Junction successful!")
+                    else
+                        throw IOException("Unable to make JDK locally accessible!\nmklink exit code: $exitValue", e)
+                } else {
+                    throw IOException("Unable to make JDK locally accessible!", e)
                 }
             }
         }

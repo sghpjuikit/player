@@ -18,6 +18,7 @@ import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.async.threadFactory
 import sp.it.pl.util.collections.mapset.MapSet
+import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
@@ -141,7 +142,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                     factoriesC.asSequence()
                             .filterIsInstance<DeserializingFactory>()
                             .filter { it.launcher==fxwl }
-                            .toSet()    // materialize iteration to avoid concurrent modification
+                            .materialize()
                             .forEach { unregisterFactory(it) }
                 }
             }
@@ -283,6 +284,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             val srcFiles = findSrcFiles().toList()
             val srcFilesKt = srcFiles.filter { it hasExtension "kt" }
             val srcFilesJava = srcFiles.filter { it hasExtension "java" }
+            val srcFilesKtExist = srcFilesKt.isNotEmpty()
+            val srcFilesJavaExist = srcFilesJava.isNotEmpty()
             val classFile = findClassFile()
             val classFiles = findClassFiles().toList()
             val classFilesKt = classFiles.filter { cf -> srcFilesKt.any { sf -> sf.nameWithoutExtension==cf.nameWithoutExtension } }
@@ -292,7 +295,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             val classFileAvailableKt = classFilesKt modifiedAfter srcFilesKt
             val classFileAvailableJava = classFilesJava modifiedAfter srcFilesJava
             val classFileAvailable = classFile.exists() && classFileAvailableKt && classFileAvailableJava
-            val isKtJavaCompilationActive = classFileAvailableKt xor classFileAvailableJava
+            val isKtJavaCompilationRequired = srcFilesKtExist && srcFilesJavaExist
+            val isKtJavaCompilationActive = isKtJavaCompilationRequired && (classFileAvailableKt xor classFileAvailableJava)
 
             if (isKtJavaCompilationActive) return
 

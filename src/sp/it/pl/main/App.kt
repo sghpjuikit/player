@@ -65,7 +65,6 @@ import sp.it.pl.util.access.fieldvalue.FileField
 import sp.it.pl.util.access.initSync
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.action.ActionManager
-import sp.it.pl.util.action.ActionRegistrar
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.runLater
 import sp.it.pl.util.conf.Configurable
@@ -366,8 +365,6 @@ class App: Application(), Configurable<Any> {
         instances.init()
         contextMenus.init()
         mouse.init()
-
-        ActionRegistrar.getActions().forEach { println(it.name) }
 
         // init app stuff
         parameterProcessor.initForApp()

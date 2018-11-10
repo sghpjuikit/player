@@ -20,8 +20,8 @@ interface ComponentFactory<out T: Component>: ComponentInfo {
 class WidgetFactory<C: Controller>: ComponentFactory<Widget<C>>, WidgetInfo {
 
     val controllerType: Class<C>
-    val location: File?
-    val locationUser: File?
+    val location: File
+    val locationUser: File
     private val name: String
     private val nameGui: String
     private val description: String
@@ -43,12 +43,12 @@ class WidgetFactory<C: Controller>: ComponentFactory<Widget<C>>, WidgetInfo {
      * @param controllerType of the controller of the widget this factory will create
      * @param location parent directory of the widget
      */
-    constructor(controllerType: KClass<C>, location: File?) {
+    constructor(controllerType: KClass<C>, location: File) {
         val i: Widget.Info = controllerType.findAnnotation() ?: WidgetFactory::class.findAnnotation()!!
         this.name = ClassName.of(controllerType.java)
         this.controllerType = controllerType.java
         this.location = location
-        this.locationUser = location?.let { APP.DIR_USERDATA.childOf("widgets", it.nameOrRoot) }
+        this.locationUser = APP.DIR_USERDATA.childOf("widgets", location.nameOrRoot)
         this.nameGui = if (i.name.isEmpty()) name else i.name
         this.description = i.description
         this.version = i.version

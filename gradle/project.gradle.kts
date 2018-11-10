@@ -7,6 +7,7 @@ import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.kotlin
 import org.gradle.kotlin.dsl.support.zipTo
+import org.jetbrains.kotlin.backend.common.onlyIf
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -20,25 +21,26 @@ import kotlin.text.Charsets.UTF_8
 
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
-    kotlin("jvm") version "1.2.71"
+    kotlin("jvm") version "1.3.0"
     application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
 }
 
 /** working directory of the application */
-val workDir = file("working dir")
+val dirProject = file("working dir")
+val dirJdk = dirProject.resolve("java")
 val kotlinVersion: String by extra {
     buildscript.configurations["classpath"]
             .resolvedConfiguration.firstLevelModuleDependencies
             .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
-val supportedJavaVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10)
+val javaSupportedVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10)
 
-if (JavaVersion.current() !in supportedJavaVersions) {
+if (JavaVersion.current() !in javaSupportedVersions) {
     println("""org.gradle.java.home=${properties["org.gradle.java.home"]}
         |Java version ${JavaVersion.current()} can't be used.
-        | Set one of ${supportedJavaVersions.joinToString()} as system default or create a "gradle.properties"
+        | Set one of ${javaSupportedVersions.joinToString()} as system default or create a "gradle.properties"
         | file with "org.gradle.java.home" pointing to a supported Java version""".trimMargin())
     throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
 }
@@ -52,7 +54,6 @@ sourceSets {
 
 kotlin {
     copyClassesToJavaOutput = true
-    experimental.coroutines = Coroutines.ENABLE
 }
 
 allprojects {
@@ -75,6 +76,10 @@ allprojects {
 
     tasks.withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jdkHome = dirJdk.path
+        kotlinOptions.verbose = true
+        kotlinOptions.suppressWarnings = false
+        kotlinOptions.freeCompilerArgs += listOf("-progressive", "-Xjvm-default=enable")
     }
 
     repositories {
@@ -87,60 +92,56 @@ allprojects {
 dependencies {
 
     // Kotlin
-    compile(kotlin("stdlib-jdk8"))
-    compile(kotlin("reflect"))
+    implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("reflect"))
 
-    // Logging
-    compile("org.slf4j", "slf4j-api", "1.7.25")
-    compile("org.slf4j", "jul-to-slf4j", "1.7.25")
-    compile("ch.qos.logback", "logback-classic", "1.2.3")
-    compile("io.github.microutils", "kotlin-logging", "1.6.10")
-
-    // JavaFX
-    compile("de.jensd", "fontawesomefx", "8.9")
-    compile("org.reactfx", "reactfx", "2.0-M5")
-    compile("eu.hansolo", "tilesfx", "1.6.4") {
-        exclude("com.googlecode.json-simple", "json-simple")
-    }
-    compile("eu.hansolo", "Medusa", "8.0")
-
-    // Native
-    compile("net.java.dev.jna", "jna-platform", "4.5.2")
-    // due to a critical error on linux, don't update this to 2.1.0
-    compile("com.1stleg", "jnativehook", "2.0.2")
-
-    //Misc
-    compile("net.objecthunter", "exp4j", "0.4.8")
-    compile("org.atteo", "evo-inflector", "1.2.2")
-    compile("com.thoughtworks.xstream", "xstream", "1.4.10") {
-        exclude("xmlpull", "xmlpull")
-        exclude("xpp3", "xpp3_min")
-    }
+    implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core")
+    implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.0.1")
 
     // Audio
-    compile("uk.co.caprica", "vlcj", "3.10.1")
-    compile("de.u-mass", "lastfm-java", "0.1.2")
-    compile("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
+    implementation("uk.co.caprica", "vlcj", "3.10.1")
+    implementation("de.u-mass", "lastfm-java", "0.1.2")
+    implementation("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
+
+    // JavaFX
+    implementation("de.jensd", "fontawesomefx", "8.9")
+    implementation("org.reactfx", "reactfx", "2.0-M5")
+    implementation("eu.hansolo", "tilesfx", "1.6.4") { exclude("junit", "junit") }
+    implementation("eu.hansolo", "Medusa", "8.0")
+
+    // Logging
+    implementation("org.slf4j", "slf4j-api")
+    implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
+    implementation("ch.qos.logback", "logback-classic", "1.2.3")
+    implementation("io.github.microutils", "kotlin-logging", "1.6.20")
+
+    // Native
+    implementation("net.java.dev.jna", "jna-platform", "5.0.0")
+    implementation("com.1stleg", "jnativehook", "2.0.2") // don't update this to 2.1.0, it causes a critical error on linux
+
+    // Misc
+    implementation("net.objecthunter", "exp4j", "0.4.8")
+    implementation("org.atteo", "evo-inflector", "1.2.2")
+    implementation("com.thoughtworks.xstream", "xstream", "1.4.11.1")
 
     // Image
+    implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
     val imageioVersion = "3.4.1"
-    compile("com.drewnoakes", "metadata-extractor", "2.11.0")
-    compile("com.twelvemonkeys.imageio", "imageio-core", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-bmp", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-jpeg", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-iff", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-icns", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-pcx", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-pict", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-clippath", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-hdr", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-pdf", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-pnm", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-psd", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-tga", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-sgi", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-thumbsdb", imageioVersion)
-    compile("com.twelvemonkeys.imageio", "imageio-tiff", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-bmp", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-jpeg", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-iff", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-icns", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-pcx", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-pict", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-clippath", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-hdr", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-pdf", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-pnm", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-psd", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-tga", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-sgi", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-thumbsdb", imageioVersion)
+    implementation("com.twelvemonkeys.imageio", "imageio-tiff", imageioVersion)
 
 }
 
@@ -155,38 +156,36 @@ tasks {
         exclude("*sources.jar", "*javadoc.jar")
     }
 
-    val jdk by creating {
-        val jdkLocal = workDir.resolve("java")
+    val linkJdk by creating {
         group = "build setup"
-        description = "Links $jdkLocal to JDK"
+        description = "Links $dirJdk to JDK"
+        this.onlyIf { !dirJdk.exists() }
         doFirst {
-            if (!jdkLocal.exists()) {
-                println("Making JDK locally accessible...")
-                val jdkPath = System.getProperty("java.home").takeIf { it.isNotBlank() }
-                        ?.let { Paths.get(it) }
-                        ?: throw FileNotFoundException("Unable to find JDK")
-                try {
-                    Files.createSymbolicLink(jdkLocal.toPath(), jdkPath)
-                } catch (e: Exception) {
-                    println("Couldn't create a symbolic link from $jdkLocal to $jdkPath: $e")
-                    if (System.getProperty("os.name").startsWith("Windows")) {
-                        println("Trying junction...")
-                        val process = Runtime.getRuntime().exec("cmd.exe /c mklink /j \"$jdkLocal\" \"$jdkPath\"")
-                        val exitValue = process.waitFor()
-                        if (exitValue==0 && jdkLocal.exists())
-                            println("Junction successful!")
-                        else
-                            throw IOException("Unable to make JDK locally accessible!\nmklink exit code: $exitValue", e)
-                    } else {
-                        throw IOException("Unable to make JDK locally accessible!", e)
-                    }
+            println("Making JDK locally accessible...")
+            val jdkPath = System.getProperty("java.home").takeIf { it.isNotBlank() }
+                    ?.let { Paths.get(it) }
+                    ?: throw FileNotFoundException("Unable to find JDK")
+            try {
+                Files.createSymbolicLink(dirJdk.toPath(), jdkPath)
+            } catch (e: Exception) {
+                println("Couldn't create a symbolic link from $dirJdk to $jdkPath: $e")
+                if (System.getProperty("os.name").startsWith("Windows")) {
+                    println("Trying junction...")
+                    val process = Runtime.getRuntime().exec("cmd.exe /c mklink /j \"$dirJdk\" \"$jdkPath\"")
+                    val exitValue = process.waitFor()
+                    if (exitValue==0 && dirJdk.exists())
+                        println("Junction successful!")
+                    else
+                        throw IOException("Unable to make JDK locally accessible!\nmklink exit code: $exitValue", e)
+                } else {
+                    throw IOException("Unable to make JDK locally accessible!", e)
                 }
             }
         }
     }
 
     val kotlinc by creating(Download::class) {
-        val kotlinc = workDir.resolve("kotlinc")
+        val kotlinc = dirProject.resolve("kotlinc")
         group = "build setup"
         description = "Downloads the kotlin compiler into $kotlinc"
         onlyIf { kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion)!=true }
@@ -202,40 +201,37 @@ tasks {
         doLast {
             copy {
                 from(zipTree(buildDir.resolve("kotlin-compiler-$kotlinVersion.zip")))
-                into(workDir)
+                into(dirProject)
             }
-            file("$workDir/kotlinc/bin/kotlinc").setExecutable(true)
+            file("$dirProject/kotlinc/bin/kotlinc").setExecutable(true)
         }
     }
 
     "jar"(Jar::class) {
         group = main
-        destinationDir = workDir
+        destinationDir = dirProject
         archiveName = "PlayerFX.jar"
     }
 
-    "clean" {
+    "clean"(Delete::class) {
         group = main
         description = "Cleans up temporary files"
-        doFirst {
-            workDir.resolve("user/tmp").deleteRecursively()
-            workDir.resolve("lib").deleteRecursively()
-            workDir.resolve("widgets").walkBottomUp()
-                    .filter { it.path.endsWith("class") }
-                    .fold(true) { res, it -> (it.delete() || !it.exists()) && res }
-        }
+        delete(dirProject.resolve("user/tmp"), buildDir,
+                dirProject.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList())
     }
 
     "build" {
-        group = main
         dependsOn(":widgets:build")
+        group = main
     }
 
     "run"(JavaExec::class) {
+        dependsOn(copyLibs, kotlinc, "jar")
         group = main
-        workingDir = workDir
-        dependsOn(copyLibs, jdk, kotlinc, "jar")
+        workingDir = dirProject
     }
+
+    getByName("compileKotlin").dependsOn(linkJdk)
 
 }
 

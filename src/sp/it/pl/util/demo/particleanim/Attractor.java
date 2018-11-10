@@ -10,7 +10,7 @@ import javafx.scene.text.TextBoundsType;
 /**
  * A simple node which serves as indicator for the wind direction
  */
-public class Attractor extends Sprite {
+class Attractor extends Sprite {
 
 	public Attractor(Vector2D location, Vector2D velocity, Vector2D acceleration, double width, double height) {
 		super(location, velocity, acceleration, width, height);

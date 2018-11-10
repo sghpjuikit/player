@@ -21,7 +21,7 @@ import javafx.stage.Stage;
  * @see <a href="http://gist.github.com/Roland09">gist.github.com/Roland09</a>
  * @see <a href="http://wecode4fun.blogspot.co.at">wecode4fun.blogspot.co.at</a>
  */
-public class Main extends Application {
+class ParticleAnimationDemo extends Application {
 
 	private static Random random = new Random();
 

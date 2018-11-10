@@ -1,6 +1,6 @@
 package sp.it.pl.util.demo.particleanim;
 
-public class Vector2D {
+class Vector2D {
 
 	public double x;
 	public double y;

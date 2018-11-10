@@ -13,7 +13,7 @@ import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
 import sp.it.pl.layout.widget.Widget.LoadType.MANUAL
 import sp.it.pl.main.AppAnimator
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.main.DelayAnimator
 import sp.it.pl.util.access.ref.SingleR
 import sp.it.pl.util.graphics.drag.DragUtil

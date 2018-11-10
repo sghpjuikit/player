@@ -20,7 +20,7 @@ import sp.it.pl.gui.pane.ConfigPane
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.EditMode
@@ -76,7 +76,7 @@ class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeat
         }
 
         controls.children += listOf(
-                Icon(HOME, 13.0, "AppUtil settings", Runnable { showsAppSettings = true; configure(APP.configuration.getFields()) }),
+                Icon(HOME, 13.0, "App settings", Runnable { showsAppSettings = true; configure(APP.configuration.getFields()) }),
                 Label("    "),
                 Icon(REFRESH, 13.0, "Refresh all", Runnable { refresh() }),
                 Icon(RECYCLE, 13.0, "Set all to default", Runnable { defaults() })

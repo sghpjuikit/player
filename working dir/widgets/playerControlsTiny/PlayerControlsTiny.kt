@@ -28,7 +28,7 @@ import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.FXMLController
 import sp.it.pl.layout.widget.feature.HorizontalDock
 import sp.it.pl.layout.widget.feature.PlaybackFeature
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.main.initClose
 import sp.it.pl.main.onDispose
 import sp.it.pl.util.Util.clip

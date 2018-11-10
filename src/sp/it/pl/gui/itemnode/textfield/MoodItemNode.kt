@@ -6,7 +6,7 @@ import sp.it.pl.gui.objects.picker.MoodPicker
 import sp.it.pl.gui.objects.popover.NodePos
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.textfield.autocomplete.AutoCompletion.autoComplete
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.access.V
 import java.util.function.Consumer
 

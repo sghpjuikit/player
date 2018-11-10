@@ -38,7 +38,7 @@ import sp.it.pl.layout.container.Container.testControlContainer
 import sp.it.pl.layout.container.bicontainer.BiContainer
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.orEmpty
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.Widgets.PLAYLIST
 import sp.it.pl.util.access.v

@@ -1,7 +1,7 @@
 package sp.it.pl.plugin
 
 import mu.KLogging
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.access.V
 import sp.it.pl.util.access.initSync

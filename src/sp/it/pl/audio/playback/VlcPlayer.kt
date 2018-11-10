@@ -6,7 +6,7 @@ import javafx.util.Duration
 import mu.KLogging
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.async.runAfter
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.file.childOf

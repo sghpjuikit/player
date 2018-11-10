@@ -11,7 +11,7 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.stage.Stage
 import mu.KLogging
 import sp.it.pl.audio.Player
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
 import sp.it.pl.service.ServiceBase

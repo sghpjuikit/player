@@ -14,9 +14,9 @@ import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
-import sp.it.pl.main.AppUtil
-import sp.it.pl.util.conf.MultiConfigurable
+import sp.it.pl.main.APP
 import sp.it.pl.main.createInfoIcon
+import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.util.graphics.Util.layHeaderTop
 import sp.it.pl.util.graphics.Util.layHorizontally
 import sp.it.pl.util.graphics.Util.layStack
@@ -78,7 +78,7 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
                     for (n in it.value) {
                         i++
 
-                        val hasGroupAsPrefix = n.name.length > it.key.length && n.name.startsWith(it.key)
+                        val hasGroupAsPrefix = n.name.length>it.key.length && n.name.startsWith(it.key)
                         val name = if (hasGroupAsPrefix) n.name.substring(it.key.length+1) else n.name
                         val value = n.value.fixASCII()
 
@@ -94,7 +94,7 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
     }
 
     private fun computeProperties(): Map<String, MutableList<Named>> {
-        fun <K,V> MutableMap<K,MutableList<V>>.group(key: K) = getOrPut(key) { ArrayList() }
+        fun <K, V> MutableMap<K, MutableList<V>>.group(key: K) = getOrPut(key) { ArrayList() }
         val ps = System.getProperties()
                 .entries.asSequence()
                 .filter { it.key is String && it.value is String }
@@ -112,7 +112,7 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
                 "running time" named pInfo.totalCpuDuration().map { Dur(it.toMillis().toDouble()).toString() }.orElse(""),
                 "user" named pInfo.user().orElse("")
         )
-        ps.group("java") += "vm.arguments" named AppUtil.APP.fetchVMArguments().joinToString(" ")
+        ps.group("java") += "vm.arguments" named APP.fetchVMArguments().joinToString(" ")
 
         return ps
     }

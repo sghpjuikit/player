@@ -10,7 +10,7 @@ import sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT
 import sp.it.pl.layout.widget.WidgetSource.OPEN_STANDALONE
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.feature.Feature
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.access.SequentialValue
 import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.oneCachedThreadExecutor
@@ -639,7 +639,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         private infix fun Collection<File>.modifiedAfter(that: Collection<File>) = (this.lastModifiedMax() ?: 0) >= (that.lastModifiedMax() ?: 0)
 
         private val Os.classpathSeparator
-            get() = when (this) { Os.WINDOWS -> ";"
+            get() = when (this) {
+                Os.WINDOWS -> ";"
                 else -> ":"
             }
     }

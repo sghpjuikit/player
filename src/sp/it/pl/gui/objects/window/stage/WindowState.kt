@@ -1,6 +1,6 @@
 package sp.it.pl.gui.objects.window.stage
 
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 
 internal class WindowState(window: Window) {
     val x = window.X.value!!

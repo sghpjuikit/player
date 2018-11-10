@@ -1,3 +1,5 @@
+@file:JvmName("AppUtil")
+
 package sp.it.pl.main
 
 import ch.qos.logback.classic.Level
@@ -99,8 +101,26 @@ import sp.it.pl.util.units.FileSize
 import java.io.File
 import java.lang.management.ManagementFactory
 import java.net.URI
+import java.net.URLConnection
 import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
+
+lateinit var APP: App
+
+fun main(args: Array<String>) {
+    // Relocate temp & home under working directory
+    // It is our principle to leave no trace of ever running on the system
+    // User can also better see what the application is doing
+    val tmp = File("").absoluteFile.childOf("user", "tmp")
+    isValidatedDirectory(tmp)
+    System.setProperty("java.io.tmpdir", tmp.absolutePath)
+    System.setProperty("user.home", tmp.absolutePath)
+
+    // Disable url caching, which may cause jar files being held in memory
+    URLConnection.setDefaultUseCaches("file", false)
+
+    Application.launch(App::class.java, *args)
+}
 
 private typealias F = JvmField
 private typealias C = IsConfig
@@ -109,6 +129,16 @@ private typealias C = IsConfig
 @Suppress("unused")
 @IsConfigurable("General")
 class App: Application(), Configurable<Any> {
+
+    init {
+        APP = this.takeUnless { ::APP.isInitialized } ?: fail("Multiple application instances disallowed")
+    }
+
+    var isInitialized: Try<Void, Throwable> = Try.error(Exception("Initialization has not run yet"))
+        private set(value) {
+            field = value
+        }
+    private var closedPrematurely = false
 
     /** Name of this application. */
     @F val name = "PlayerFX"
@@ -223,11 +253,6 @@ class App: Application(), Configurable<Any> {
     @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
     val actionSettingsSave by cr { configuration.save(name, FILE_SETTINGS) }
 
-    private var closedPrematurely = false
-    var isInitialized: Try<Void, Throwable> = Try.error(Exception("Initialization has not run yet"))
-        private set(value) { field = value }
-
-
     /** Manages persistence and in-memory storage. */
     @F val db = Db()
     /** Manages windows. */
@@ -238,10 +263,6 @@ class App: Application(), Configurable<Any> {
     @F val services = ServiceManager()
     /** Manages services. */
     @F val plugins = PluginManager()
-
-    init {
-        AppUtil.APP = this.takeIf { AppUtil.APP==null } ?: fail("Multiple application instances disallowed")
-    }
 
     override fun init() {
         logging.init()
@@ -340,7 +361,7 @@ class App: Application(), Configurable<Any> {
         serializer.init()
         serializerXml.init()
         imageIo.init()
-//        converter.init()
+        //        converter.init()
         instances.init()
         contextMenus.init()
         mouse.init()
@@ -486,7 +507,7 @@ class App: Application(), Configurable<Any> {
     fun fetchVMArguments(): List<String> = ManagementFactory.getRuntimeMXBean().inputArguments
 
     /** @return number of instances of this application (including this one) running at this moment */
-    fun getInstances(): Int = VirtualMachine.list().count { it.displayName().contains(AppUtil::class.java.name) }
+    fun getInstances(): Int = VirtualMachine.list().count { it.displayName().contains(App::class.java.packageName) }
 
     /** @return image of the icon of the application */
     fun getIcon(): Image = Image(File("icon512.png").toURI().toString())

@@ -35,7 +35,7 @@ import javafx.scene.control.cell.TextFieldListCell
 import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
 import sp.it.pl.gui.objects.textfield.autocomplete.AutoCompletePopup.SuggestionEvent
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.main.rowHeight
 import sp.it.pl.util.reactive.iff
 import sp.it.pl.util.reactive.sizes

@@ -45,9 +45,9 @@ fun IsConfig.computeConfigGroup(declaringRef: Any): String {
     }
 }
 
-fun obtainConfigGroup(info: IsConfig?, type: KClass<*>, or: String = type.simpleName ?: type.jvmName): String =
-        info?.group?.takeIf { it.isNotBlank() }
-        ?: type.findAnnotation<IsConfigurable>()?.value?.takeIf { it.isNotBlank() }
+fun obtainConfigGroup(info: IsConfig?, type: KClass<*>, or: String = type.simpleName ?: type.jvmName): String = null
+        ?: info?.let { it.group.takeIf { it.isNotBlank() } }
+        ?: type.findAnnotation<IsConfigurable>()?.let { it.value.takeIf { it.isNotBlank() } }
         ?: or
 
 fun obtainConfigGroup(info: IsConfig?, type: Class<*>): String = obtainConfigGroup(info, type.kotlin)
@@ -57,7 +57,7 @@ fun <T: Any> obtainConfigGroup(info: IsConfig?, type: Class<T>, instance: T?): S
 @Suppress("UNCHECKED_CAST")
 fun <T> obtainConfigConstraints(configType: Class<T>, annotations: List<Annotation>): Sequence<Constraint<T>> =
         annotations.asSequence()
-            .filter{ it.annotationClass.findAnnotation<Constraint.IsConstraint>()?.value?.isSuperclassOf(unPrimitivize(configType)) ?: false }
+            .filter { it.annotationClass.findAnnotation<Constraint.IsConstraint>()?.value?.isSuperclassOf(unPrimitivize(configType)) ?: false }
             .map { Constraints.toConstraint<T>(it) } +
         Constraints.IMPLICIT_CONSTRAINTS
             .getElementsOfSuper(configType).asSequence()

@@ -23,8 +23,9 @@ import static sp.it.pl.util.dev.Util.noNull;
  */
 abstract public class FXMLController implements Controller {
 
+	@SuppressWarnings("ConstantConditionalExpression")
 	@Dependency("DO NOT RENAME - accessed using reflection")
-	public final Widget<?> widget = null;
+	public final Widget<?> widget = true ? null : null;
 	@Dependency("DO NOT RENAME - accessed using reflection")
 	public final boolean isInitialized = false;
 
@@ -34,7 +35,7 @@ abstract public class FXMLController implements Controller {
 	private final List<Subscription> disposables = new ArrayList<>();
 
 	@Override
-	public Widget<?> getWidget() {
+	public Widget<?> getOwnerWidget() {
 		noNull(widget);
 		return widget;
 	}
@@ -63,12 +64,12 @@ abstract public class FXMLController implements Controller {
 	}
 
 	@Override
-	public Outputs getOutputs() {
+	public Outputs getOwnedOutputs() {
 		return outputs;
 	}
 
 	@Override
-	public Inputs getInputs() {
+	public Inputs getOwnedInputs() {
 		return inputs;
 	}
 

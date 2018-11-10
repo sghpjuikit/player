@@ -256,11 +256,11 @@ public interface Try<R, E> {
 		}
 	}
 
-	default Try<R,E> and(Function<? super R,Try<Void,E>> constraint) {
+	default Try<R,E> and(Function<? super R,Try<?,E>> constraint) {
 		if (isError())
 			return this;
 		else {
-			Try<Void,E> c = constraint.apply(get());
+			Try<?,E> c = constraint.apply(get());
 			return c.isOk() ? this : error(c.getError());
 		}
 	}

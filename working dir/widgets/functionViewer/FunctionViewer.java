@@ -1,7 +1,6 @@
 package functionViewer;
 
 import java.util.function.Function;
-
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
@@ -11,15 +10,17 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.*;
-
+import javafx.scene.shape.LineTo;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
+import javafx.scene.shape.PathElement;
+import javafx.scene.shape.Rectangle;
 import sp.it.pl.gui.itemnode.ConfigField;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.math.StrExF;
-
 import static java.lang.Math.max;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT;
@@ -33,12 +34,14 @@ import static sp.it.pl.util.graphics.Util.setAnchors;
     year = "2015",
     group = DEVELOPMENT
 )
-public class FunctionViewer extends ClassController  {
+public class FunctionViewer extends SimpleController {
     private final Axes axes = new Axes(400,300,  -1,1,0.2, -1,1,0.2);
     private final Plot plot = new Plot(-1,1, axes);
 	private final V<StrExF> function = new V<>(StrExF.fromString("x").getOrThrow(), this::plot);
 
-    public FunctionViewer() {
+    public FunctionViewer(Widget<?> widget) {
+        super(widget);
+
         this.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);

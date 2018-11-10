@@ -122,7 +122,7 @@ public class GameLib extends FXMLController {
 //        info_text.getChildren().clear();
 
         info_text.setText("");
-        if (gameOpening_progressI==null) gameOpening_progressI = getWidget().getWindowOrActive().map(Window::taskAdd).orElse(null);
+        if (gameOpening_progressI==null) gameOpening_progressI = widget.getWindowOrActive().map(Window::taskAdd).orElse(null);
         if (gameOpening_progressI!=null) gameOpening_progressI.setProgress(-1);
         runNew(() -> {
             File fileInfo = g.getInfoFile();

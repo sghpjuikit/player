@@ -11,10 +11,6 @@ import sp.it.pl.layout.widget.WidgetSource.OPEN_STANDALONE
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.AppUtil.APP
-import sp.it.pl.util.conf.c
-import sp.it.pl.util.conf.cr
-import sp.it.pl.util.conf.cv
-import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.access.SequentialValue
 import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.oneCachedThreadExecutor
@@ -22,9 +18,14 @@ import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.async.threadFactory
 import sp.it.pl.util.collections.mapset.MapSet
+import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cr
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.dev.Idempotent
 import sp.it.pl.util.file.FileMonitor
 import sp.it.pl.util.file.Util.isValidatedDirectory
@@ -141,7 +142,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                     factoriesC.asSequence()
                             .filterIsInstance<DeserializingFactory>()
                             .filter { it.launcher==fxwl }
-                            .toSet()    // materialize iteration to avoid concurrent modification
+                            .materialize()
                             .forEach { unregisterFactory(it) }
                 }
             }
@@ -211,9 +212,13 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         fun findSrcFiles() = widgetDir.seqChildren().filter { it.hasExtension("java", "kt") }
 
+        fun findClassFile() = widgetDir.childOf("$widgetName.class")
+
+        fun findClassFiles() = widgetDir.seqChildren().filter { it hasExtension "class" }
+
         fun computeClassPath(): String = computeClassPathElements().joinToString(classpathSeparator)
 
-        private fun computeClassPathElements() = sequenceOf(".")+getAppJarFile()+(findAppLibFiles()+findLibFiles()).map { it.absolutePath }
+        private fun computeClassPathElements() = sequenceOf(".")+getAppJarFile()+widgetDir+(findAppLibFiles()+findLibFiles()).map { it.absolutePath }
 
         private fun findLibFiles() = widgetDir.seqChildren().filterSourceJars()
 
@@ -275,12 +280,25 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         }
 
         fun registerExternalFactory() {
-            val srcFiles = findSrcFiles().toList()
-            val classFile = widgetDir.childOf("$widgetName.class")
             val srcFile = findSrcFile()
+            val srcFiles = findSrcFiles().toList()
+            val srcFilesKt = srcFiles.filter { it hasExtension "kt" }
+            val srcFilesJava = srcFiles.filter { it hasExtension "java" }
+            val srcFilesKtExist = srcFilesKt.isNotEmpty()
+            val srcFilesJavaExist = srcFilesJava.isNotEmpty()
+            val classFile = findClassFile()
+            val classFiles = findClassFiles().toList()
+            val classFilesKt = classFiles.filter { cf -> srcFilesKt.any { sf -> sf.nameWithoutExtension==cf.nameWithoutExtension } }
+            val classFilesJava = classFiles.filter { cf -> srcFilesJava.any { sf -> sf.nameWithoutExtension==cf.nameWithoutExtension } }
 
             val srcFileAvailable = srcFile!=null
-            val classFileAvailable = classFile.exists() && classFile.lastModified()>(srcFiles.lastModified() ?: 0)
+            val classFileAvailableKt = classFilesKt modifiedAfter srcFilesKt
+            val classFileAvailableJava = classFilesJava modifiedAfter srcFilesJava
+            val classFileAvailable = classFile.exists() && classFileAvailableKt && classFileAvailableJava
+            val isKtJavaCompilationRequired = srcFilesKtExist && srcFilesJavaExist
+            val isKtJavaCompilationActive = isKtJavaCompilationRequired && (classFileAvailableKt xor classFileAvailableJava)
+
+            if (isKtJavaCompilationActive) return
 
             logger.info { "Widget=$widgetName factory update, source files available=$srcFileAvailable class files available=$classFileAvailable" }
 
@@ -306,13 +324,27 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         private fun compile(): Try<Void, String> {
             logger.info { "Widget=$widgetName compiling..." }
 
+            val srcFile = findSrcFile()
+            val isKotlinMain = srcFile!=null && srcFile hasExtension "kt"
+            val isJavaMain = srcFile!=null && srcFile hasExtension "java"
             val srcFiles = findSrcFiles().toList()
-            val isKotlin = srcFiles.any { it hasExtension "kt" }
-            val isJava = srcFiles.any { it hasExtension "java" }
+            val hasKotlin = srcFiles.any { it hasExtension "kt" }
+            val hasJava = srcFiles.any { it hasExtension "java" }
             val result = when {
-                isJava && isKotlin -> Try.error("Mixed Kotlin-Java source code for widget is not supported")
-                isKotlin -> compileKotlin(srcFiles.asSequence())
-                else -> compileJava(srcFiles.asSequence())
+                hasJava && hasKotlin -> {
+                    when {
+                        isKotlinMain -> {
+                            Try.ok<String>()
+                                    .and { compileKotlin(srcFiles.asSequence().filter { it hasExtension "kt" }) }
+                                    .and { compileJava(srcFiles.asSequence().filter { it hasExtension "java" }) }
+                        }
+                        isJavaMain -> Try.error("Mixed Kotlin-Java source code for Java-based widget is not supported")
+                        else -> Try.error("No main widget source file available.")
+                    }
+                }
+                hasKotlin -> compileKotlin(srcFiles.asSequence())
+                hasJava -> compileJava(srcFiles.asSequence())
+                else -> Try.error("No source files available")
             }
             return result.mapError { "Widget $widgetName failed to compile. Reason: $it" }
         }
@@ -600,7 +632,11 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         private inline fun <T: Any?> T.ifNull(block: () -> Unit) = apply { if (this==null) block() }
 
-        private fun Collection<File>.lastModified() = asSequence().map { it.lastModified() }.max()
+        private fun Collection<File>.lastModifiedMax() = asSequence().map { it.lastModified() }.max()
+
+        private fun Collection<File>.lastModifiedMin() = asSequence().map { it.lastModified() }.min()
+
+        private infix fun Collection<File>.modifiedAfter(that: Collection<File>) = (this.lastModifiedMax() ?: 0) >= (that.lastModifiedMax() ?: 0)
 
         private val Os.classpathSeparator
             get() = when (this) { Os.WINDOWS -> ";"

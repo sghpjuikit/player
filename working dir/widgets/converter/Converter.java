@@ -38,7 +38,7 @@ import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.gui.pane.ConfigPane;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Group;
-import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.Opener;
 import sp.it.pl.layout.widget.feature.SongWriter;
@@ -129,7 +129,7 @@ import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
     year = "2015",
     group = Group.APP
 )
-public class Converter extends ClassController implements Opener, SongWriter {
+public class Converter extends SimpleController implements Opener, SongWriter {
 
     private final ObservableList<Object> source = observableArrayList();
     private final EditArea ta_in = new EditArea("In", true);
@@ -139,7 +139,9 @@ public class Converter extends ClassController implements Opener, SongWriter {
     private final Applier applier = new Applier();
     private final HBox layout = new HBox(5,outTFBox, applier.root);
 
-    public Converter() {
+    public Converter(Widget<?> widget) {
+	    super(widget);
+
         inputs.create("Input", Object.class, this::setData);
 
         setPrefSize(800, 500);
@@ -213,7 +215,7 @@ public class Converter extends ClassController implements Opener, SongWriter {
 
                     Player.refreshItemsWith(stream(songs).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList()));
                })
-               .showProgress(getWidget().getWindowOrActive().map(Window::taskAdd));
+               .showProgress(widget.getWindowOrActive().map(Window::taskAdd));
         }));
         acts.accumulate(new WriteFileAct());
         acts.accumulate(new ActCreateDirs());

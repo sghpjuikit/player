@@ -17,7 +17,7 @@ import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.container.switchcontainer.SwitchContainer;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Group;
-import sp.it.pl.layout.widget.controller.ClassController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.main.Widgets;
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
 import static java.util.stream.Collectors.toList;
@@ -33,7 +33,7 @@ import static sp.it.pl.util.system.EnvironmentKt.browse;
     year = "2014",
     group = Group.APP
 )
-public final class Layouts extends ClassController {
+public final class Layouts extends SimpleController {
 
     Text infoT = new Text();
     @FXML ComboBox<String> layoutsCB;
@@ -44,7 +44,8 @@ public final class Layouts extends ClassController {
     @FXML VBox box;
     Thumbnail thumb = new Thumbnail(250,250);
 
-    public Layouts() {
+    public Layouts(Widget<?> widget) {
+        super(widget);
 
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();

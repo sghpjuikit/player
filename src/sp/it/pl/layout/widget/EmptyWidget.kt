@@ -5,7 +5,7 @@ import javafx.scene.layout.Region
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.controller.io.Inputs
 import sp.it.pl.layout.widget.controller.io.Outputs
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.file.childOf
 import java.io.ObjectStreamException

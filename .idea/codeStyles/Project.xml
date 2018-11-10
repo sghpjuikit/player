@@ -33,6 +33,9 @@
     <editorconfig>
       <option name="ENABLED" value="false" />
     </editorconfig>
+    <yaml>
+      <option name="INDENT_SEQUENCE_VALUE" value="true" />
+    </yaml>
     <codeStyleSettings language="JAVA">
       <option name="RIGHT_MARGIN" value="120" />
       <option name="KEEP_LINE_BREAKS" value="false" />

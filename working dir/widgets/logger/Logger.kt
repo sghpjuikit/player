@@ -3,7 +3,7 @@ package logger
 import javafx.scene.control.TextArea
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.main.AppUtil.APP
+import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
@@ -26,7 +26,6 @@ class Logger(widget: Widget<*>): SimpleController(widget) {
     private val wrapText by cv(false)
 
     init {
-
         area.isEditable = false
         area.isWrapText = false
         area.wrapTextProperty().bind(wrapText)

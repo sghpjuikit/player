@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package sp.it.pl.util.file
 
 import mu.KotlinLogging
@@ -16,10 +14,9 @@ import kotlin.streams.asStream
 private val logger = KotlinLogging.logger { }
 
 /**
- * Returns [File.getName] or [File.toString] if this is the root directory,
- * since that returns an empty string otherwise.
+ * [File.getName], which returns partition name for root directories.
  *
- * @return name of the file with extension
+ * @return name of the file with extension, never empty string
  */
 val File.nameOrRoot: String
     get() = name.takeUnless { it.isEmpty() } ?: toString()
@@ -44,6 +41,9 @@ fun File.find1stExistingParentDir(): Try<File, Void> = when {
     exists() && isDirectory -> Try.ok(this)
     else -> parentDir?.find1stExistingParentDir() ?: Try.error()
 }
+
+/** Equivalent to [File.childOf]. */
+operator fun File.div(childName: String) = childOf(childName)
 
 fun File.childOf(childName: String) =
         File(this, childName)

@@ -33,7 +33,7 @@ val kotlinVersion: String by extra {
             .resolvedConfiguration.firstLevelModuleDependencies
             .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
-val supportedJavaVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10, JavaVersion.VERSION_11)
+val supportedJavaVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10)
 
 if (JavaVersion.current() !in supportedJavaVersions) {
     println("""org.gradle.java.home=${properties["org.gradle.java.home"]}

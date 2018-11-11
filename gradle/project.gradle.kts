@@ -28,8 +28,8 @@ plugins {
 }
 
 /** working directory of the application */
-val dirProject = file("working dir")
-val dirJdk = dirProject.resolve("java")
+val dirWorking = file("working dir")
+val dirJdk = dirWorking.resolve("java")
 val kotlinVersion: String by extra {
     buildscript.configurations["classpath"]
             .resolvedConfiguration.firstLevelModuleDependencies
@@ -185,7 +185,7 @@ tasks {
     }
 
     val kotlinc by creating(Download::class) {
-        val kotlinc = dirProject.resolve("kotlinc")
+        val kotlinc = dirWorking.resolve("kotlinc")
         group = "build setup"
         description = "Downloads the kotlin compiler into $kotlinc"
         onlyIf { kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion)!=true }
@@ -201,23 +201,26 @@ tasks {
         doLast {
             copy {
                 from(zipTree(buildDir.resolve("kotlin-compiler-$kotlinVersion.zip")))
-                into(dirProject)
+                into(dirWorking)
             }
-            file("$dirProject/kotlinc/bin/kotlinc").setExecutable(true)
+            file("$dirWorking/kotlinc/bin/kotlinc").setExecutable(true)
         }
     }
 
     "jar"(Jar::class) {
         group = main
-        destinationDir = dirProject
+        destinationDir = dirWorking
         archiveName = "PlayerFX.jar"
     }
 
     "clean"(Delete::class) {
         group = main
         description = "Cleans up temporary files"
-        delete(dirProject.resolve("user/tmp"), buildDir,
-                dirProject.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList())
+        delete(
+                dirWorking.resolve("user/tmp"),
+                buildDir,
+                dirWorking.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList()
+        )
     }
 
     "build" {
@@ -228,7 +231,7 @@ tasks {
     "run"(JavaExec::class) {
         dependsOn(copyLibs, kotlinc, "jar")
         group = main
-        workingDir = dirProject
+        workingDir = dirWorking
     }
 
     getByName("compileKotlin").dependsOn(linkJdk)

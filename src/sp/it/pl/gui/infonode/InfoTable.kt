@@ -3,7 +3,6 @@ package sp.it.pl.gui.infonode
 import javafx.scene.control.Labeled
 import javafx.scene.control.TableView
 import org.reactfx.Subscription
-import sp.it.pl.util.functional.Functors.Ƒ2
 import sp.it.pl.util.reactive.onChange
 import sp.it.pl.util.text.plural
 
@@ -21,12 +20,11 @@ class InfoTable<E>: InfoNode<TableView<E>> {
      * is empty, the other is the list of table items if selection is empty or
      * selected items if nonempty.
      */
-    @JvmField var textFactory: (Boolean, List<*>) -> String
+    @JvmField var textFactory: (Boolean, List<E>) -> String = DEFAULT_TEXT_FACTORY
     private var s: Subscription? = null
 
     constructor(node: Labeled) {
         this.node = node
-        this.textFactory = DEFAULT_TEXT_FACTORY
     }
 
     /**
@@ -74,10 +72,11 @@ class InfoTable<E>: InfoNode<TableView<E>> {
     companion object {
 
         /** Default text factory. Provides texts like 'All: 1 item' or 'Selected: 89 items'. */
-        @JvmField val DEFAULT_TEXT_FACTORY = Ƒ2<Boolean, List<*>, String> { isSelectionEmpty, list ->
+        @JvmField val DEFAULT_TEXT_FACTORY: (Boolean, List<*>) -> String = { isSelectionEmpty, list ->
             val prefix = if (isSelectionEmpty) "All: " else "Selected: "
             val size = list.size
             "$prefix$size ${"item".plural(size)}"
         }
+
     }
 }

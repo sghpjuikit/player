@@ -184,12 +184,15 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	 *
 	 * @return graphical content of this widget
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public Node load() {
 		if (root==null) {
 			controller = instantiateController();
 			if (controller==null) {
-				root = Widget.EMPTY().load();
+				Widget w = Widget.EMPTY();
+				root = w.load();
+				controller = (C) w.controller;
 			} else {
 				try {
 					root = controller.loadFirstTime();
@@ -209,7 +212,9 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 
 					updateIO();
 				} catch (Throwable e) {
-					root = Widget.EMPTY().load();
+					Widget w = Widget.EMPTY();
+					root = w.load();
+					controller = (C) w.controller;
 					LOGGER.error("Widget {} graphics creation failed. Using empty widget instead.", getName(), e);
 				}
 			}

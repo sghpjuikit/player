@@ -160,7 +160,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         // extend table items information
         table.items_info.textFactory = (all, list) -> {
             double lengthMs = list.stream().mapToDouble(PlaylistItem::getTimeMs).sum();
-            return DEFAULT_TEXT_FACTORY.invoke(all, list) + " - " + new Dur(lengthMs);
+            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new Dur(lengthMs);
         };
         // add more menu items
         table.menuAdd.getItems().addAll(

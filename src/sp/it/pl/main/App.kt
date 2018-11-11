@@ -564,7 +564,7 @@ class App: Application(), Configurable<Any> {
 
     private fun File.initForApp() = apply {
         if (!isAbsolute)
-            fail("File $this is absolute")
+            fail("File $this is not absolute")
 
         if (!isValidatedDirectory(this))
             fail("File $this is not accessible")

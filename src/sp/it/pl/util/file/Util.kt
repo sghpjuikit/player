@@ -33,7 +33,10 @@ val File.nameOrRoot: String
 // TODO: does not work for directories with '.'
 val File.nameWithoutExtensionOrRoot: String get() = nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
 
-/** @return file itself if exists or its first existing parent or error if no parent exists */
+val File.isPlayable
+    get() = AudioFileFormat.of(toURI()).isSupported(AudioFileFormat.Use.PLAYBACK)
+
+/** @return file itself if exists or its first existing parent or error if null or no parent exists */
 fun File.find1stExistingParentFile(): Try<File, Void> = when {
     exists() -> Try.ok(this)
     else -> parentDir?.find1stExistingParentFile() ?: Try.error()

@@ -2,8 +2,10 @@
 
 package sp.it.pl.gui.objects.contextmenu
 
+import javafx.event.ActionEvent
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
+import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.input.ContextMenuEvent
 import javafx.scene.input.MouseEvent
@@ -12,6 +14,7 @@ import sp.it.pl.util.access.AccessibleValue
 import sp.it.pl.util.collections.map.ClassListMap
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.getElementType
+import sp.it.pl.util.graphics.Util
 
 private typealias ItemsSupply = (ImprovedContextMenu<*>, Any?) -> Sequence<MenuItem>
 
@@ -103,20 +106,24 @@ class ContextMenuItemSuppliers {
     private val mMany = ClassListMap<ItemsSupply> { fail() }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T: Any> add(type: Class<T>, items: (ImprovedContextMenu<*>, T) -> Sequence<MenuItem>) {
-        mSingle.accumulate(type, items as ItemsSupply)
+    fun <T: Any> add(type: Class<T>, items: ContextMenuBuilder<T>.() -> Unit) {
+        mSingle.accumulate(type, { menu, item ->
+            ContextMenuBuilder(menu, item as T).also { items(it) }.menuItems.asSequence()
+        })
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T: Any> addMany(type: Class<T>, items: (ImprovedContextMenu<*>, Collection<T>) -> Sequence<MenuItem>) {
-        mMany.accumulate(type, items as ItemsSupply)
+    fun <T: Any> addMany(type: Class<T>, items: ContextMenuBuilder<Collection<T>>.() -> Unit) {
+        mMany.accumulate(type, { menu, item ->
+            ContextMenuBuilder(menu, item as Collection<T>).also { items(it) }.menuItems.asSequence()
+        })
     }
 
-    inline fun <reified T: Any> add(noinline items: (ImprovedContextMenu<*>, T) -> Sequence<MenuItem>) {
+    inline fun <reified T: Any> add(noinline items: ContextMenuBuilder<T>.() -> Unit) {
         add(T::class.java, items)
     }
 
-    inline fun <reified T: Any> addMany(noinline items: (ImprovedContextMenu<*>, Collection<T>) -> Sequence<MenuItem>) {
+    inline fun <reified T: Any> addMany(noinline items: ContextMenuBuilder<Collection<T>>.() -> Unit) {
         addMany(T::class.java, items)
     }
 
@@ -133,4 +140,18 @@ class ContextMenuItemSuppliers {
         }
         return items1+itemsN
     }
+
+}
+
+class ContextMenuBuilder<T>(val contextMenu: ImprovedContextMenu<*>, val selected: T) {
+
+    internal val menuItems = ArrayList<MenuItem>()
+
+    fun menuItem(text: String, handler: (ActionEvent) -> Unit) =
+            apply { menuItems.add(Util.menuItem(text, handler)) }
+
+    inline fun menu(text: String, graphics: Node? = null, items: Menu.() -> Unit) =
+            apply { Menu(text, graphics).apply { items() } }
+
+
 }

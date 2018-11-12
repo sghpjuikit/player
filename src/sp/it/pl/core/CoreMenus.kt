@@ -4,6 +4,8 @@ import javafx.scene.Node
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.input.DataFormat
+import sp.it.pl.audio.SimpleItem
+import sp.it.pl.audio.playlist.PlaylistItem
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
@@ -21,8 +23,8 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.browseMultipleFiles
 import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util.writeImage
+import sp.it.pl.util.file.isPlayable
 import sp.it.pl.util.functional.asArray
-import sp.it.pl.util.functional.runIf
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.Util.menuItem
 import sp.it.pl.util.system.browse
@@ -50,153 +52,143 @@ class CoreMenus: Core {
     override fun dispose() {}
 
     private fun ContextMenuItemSuppliers.init() = apply {
-        add<Any> { contextMenu, o ->
-            menuItems(
-                    menuItem("Show detail") { APP.actionPane.show(o) },
-                    menu("Examine in") {
-                        widgetItems<Opener> { it.open(o) }
-                    },
-                    runIf(APP.developerMode) {
-                        menu("Public methods") {
-                            items(
-                                    getAllMethods(o::class.java).asSequence()
-                                            .filter { Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) }
-                                            .filter { it.parameterCount==0 && it.returnType==Void.TYPE },
-                                    { it.name },
-                                    {
-                                        try {
-                                            it(o)
-                                        } catch (e: IllegalAccessException) {
-                                            logger.error(e) { "Could not invoke method $it on object $o" }
-                                        } catch (e: InvocationTargetException) {
-                                            logger.error(e) { "Could not invoke method $it on object $o" }
-                                        }
-                                    }
-                            )
-                        }
-                    }
-            )
-        }
-        add<File> { contextMenu, file ->
-            menuItems(
-                    menuItem("Browse location") { file.browse() },
-                    menuItem("Open (in associated program)") { file.open() },
-                    menuItem("Edit (in associated editor)") { file.edit() },
-                    menuItem("Delete from disc") { file.recycle() },
-                    menuItem("Copy as ...") {
-                        saveFile("Copy as...", APP.DIR_APP, file.name, contextMenu.ownerWindow, ImageFileFormat.filter())
-                                .ifOk { nf ->
-                                    // TODO: use customization popup
-                                    val success = file.copyRecursively(nf, false) { f, e ->
-                                        logger.error(e) { "File copy failed" }
-                                        OnErrorAction.SKIP
-                                    }
-                                    if (!success) APP.messagePane.show("File $file copy failed")
-                                }
-                    }
-            )
-        }
-        addMany<File> { contextMenu, files ->
-            menuItems(
-                    menuItem("Copy") { copyToSysClipboard(DataFormat.FILES, files) },
-                    menuItem("Explore in browser") { browseMultipleFiles(files.asSequence()) }
-            )
-        }
-        add<MetadataGroup> { contextMenu, mg ->
-            menuItems(
-                    menuItem("Play items") { PlaylistManager.use { it.setNplay(mg.grouped.stream().sorted(APP.db.libraryComparator.get())) } },
-                    menuItem("Enqueue items") { PlaylistManager.use { it.addItems(mg.grouped) } },
-                    menuItem("Update items from file") { APP.actions.refreshItemsFromFileJob(mg.grouped) },
-                    menuItem("Remove items from library") { APP.db.removeItems(mg.grouped) },
-                    menu("Show in") {
-                        widgetItems<SongReader> { it.read(mg.grouped) }
-                    },
-                    menu("Edit tags in") {
-                        widgetItems<SongWriter> { it.read(mg.grouped) }
-                    },
-                    menuItem("Explore items's directory") { browseMultipleFiles(mg.grouped.asSequence().mapNotNull { it.getFile() }) },
-                    menu("Explore items' directory in") {
-                        widgetItems<FileExplorerFeature> { it.exploreFiles(mg.grouped.mapNotNull { it.getFile() }) }
-                    },
-                    runIf(mg.field==Metadata.Field.ALBUM) {
-                        menu("Search cover in") {
-                            items(
-                                    APP.instances.getInstances<SearchUriBuilder>(),
-                                    { "in ${it.name}" },
-                                    { it(mg.getValueS("<none>")).browse() }
-                            )
-                        }
-                    }
-            )
-        }
-        add<PlaylistItemGroup> { contextMenu, pig ->
-            menuItems(
-                    menuItem("Play items") { PlaylistManager.use { it.playItem(pig.items[0]) } },
-                    menuItem("Remove items") { PlaylistManager.use { it.removeAll(pig.items) } },
-                    menu("Show in") {
-                        widgetItems<SongReader> { it.read(pig.items) }
-                    },
-                    menu("Edit tags in") {
-                        widgetItems<SongWriter> { it.read(pig.items) }
-                    },
-                    menuItem("Crop items") { PlaylistManager.use { it.retainAll(pig.items) } },
-                    menuItem("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(pig.items) } },
-                    menuItem("Duplicate items individually") { PlaylistManager.use { it.duplicateItemsByOne(pig.items) } },
-                    menuItem("Explore items's directory") { browseMultipleFiles(pig.items.asSequence().mapNotNull { it.getFile() }) },
-                    menuItem("Add items to library") { APP.db.addItems(pig.items.map { it.toMeta() }) },
-                    menu("Search album cover") {
-                        items(
-                                APP.instances.getInstances<SearchUriBuilder>(),
-                                { "in ${it.name}" },
-                                { APP.actions.itemToMeta(pig.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
-                        )
-                    }
-            )
-        }
-        add<Thumbnail.ContextMenuData> { contextMenu, cmd ->
-            menuItems(
-                    runIf(cmd.image!=null) {
-                        menu("Image") {
-                            item("Save image as ...") {
-                                saveFile("Save image as...", APP.DIR_APP, cmd.iFile?.name
-                                        ?: "new_image", contextMenu.ownerWindow, ImageFileFormat.filter())
-                                        .ifOk { writeImage(cmd.image, it) }
-                            }
-                            item("Copy to clipboard") { copyToSysClipboard(DataFormat.IMAGE, cmd.image) }
-                        }
-                    },
-                    runIf(!cmd.fsDisabled) {
-                        menu("Image file") {
-                            item("Browse location") { cmd.fsImageFile.browse() }
-                            item("Open (in associated program)") { cmd.fsImageFile.open() }
-                            item("Edit (in associated editor)") { cmd.fsImageFile.edit() }
-                            item("Delete from disc") { cmd.fsImageFile.recycle() }
-                            item("Fullscreen") {
-                                val f = cmd.fsImageFile
-                                if (ImageFileFormat.isSupported(f)) {
-                                    APP.actions.openImageFullscreen(f)
+        add<Any> {
+            menuItem("Show detail") { APP.actionPane.show(selected) }
+            menu("Examine in") {
+                widgetItems<Opener> { it.open(selected) }
+            }
+            if (APP.developerMode)
+                menu("Public methods") {
+                    items(
+                            getAllMethods(selected::class.java).asSequence()
+                                    .filter { Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) }
+                                    .filter { it.parameterCount==0 && it.returnType==Void.TYPE },
+                            { it.name },
+                            {
+                                try {
+                                    it(selected)
+                                } catch (e: IllegalAccessException) {
+                                    logger.error(e) { "Could not invoke method $it on object $selected" }
+                                } catch (e: InvocationTargetException) {
+                                    logger.error(e) { "Could not invoke method $it on object $selected" }
                                 }
                             }
-                        }
-                    },
-                    runIf(!cmd.fsDisabled) {
-                        menu("Image file") {
-                            item("Browse location") { cmd.fsImageFile.browse() }
-                            item("Open (in associated program)") { cmd.fsImageFile.open() }
-                            item("Edit (in associated editor)") { cmd.fsImageFile.edit() }
-                            item("Delete from disc") { cmd.fsImageFile.recycle() }
-                            item("Fullscreen") {
-                                val f = cmd.fsImageFile
-                                if (ImageFileFormat.isSupported(f)) {
-                                    APP.actions.openImageFullscreen(f)
-                                }
+                    )
+                }
+        }
+        add<File> {
+            if (selected.isPlayable) {
+                menuItem("Play") { PlaylistManager.use { it.playItem(PlaylistItem(selected.toURI())) } }
+                menuItem("Enqueue") { PlaylistManager.use { it.addFile(selected) } }
+            }
+            menuItem("Browse location") { selected.browse() }
+            menuItem("Open (in associated program)") { selected.open() }
+            menuItem("Edit (in associated editor)") { selected.edit() }
+            menuItem("Delete from disc") { selected.recycle() }
+            menuItem("Copy as ...") {
+                saveFile("Copy as...", APP.DIR_APP, selected.name, contextMenu.ownerWindow, ImageFileFormat.filter())
+                        .ifOk { nf ->
+                            // TODO: use customization popup
+                            val success = selected.copyRecursively(nf, false) { f, e ->
+                                logger.error(e) { "File copy failed" }
+                                OnErrorAction.SKIP
                             }
+                            if (!success) APP.messagePane.show("File $selected copy failed")
                         }
-                    },
-                    runIf(cmd.representant!=null) {
-                        menuOfItemsFor(contextMenu, cmd.representant)
+            }
+        }
+        addMany<File> {
+            if (selected.all { it.isPlayable }) {
+                menuItem("Play files") { PlaylistManager.use { it.setNplay(selected.map { SimpleItem(it) }) } }
+                menuItem("Enqueue files") { PlaylistManager.use { it.addFiles(selected) } }
+            }
+            menuItem("Copy") { copyToSysClipboard(DataFormat.FILES, selected) }
+            menuItem("Explore in browser") { browseMultipleFiles(selected.asSequence()) }
+        }
+        add<MetadataGroup> {
+            menuItem("Play items") { PlaylistManager.use { it.setNplay(selected.grouped.stream().sorted(APP.db.libraryComparator.get())) } }
+            menuItem("Enqueue items") { PlaylistManager.use { it.addItems(selected.grouped) } }
+            menuItem("Update items from file") { APP.actions.refreshItemsFromFileJob(selected.grouped) }
+            menuItem("Remove items from library") { APP.db.removeItems(selected.grouped) }
+            menu("Show in") {
+                widgetItems<SongReader> { it.read(selected.grouped) }
+            }
+            menu("Edit tags in") {
+                widgetItems<SongWriter> { it.read(selected.grouped) }
+            }
+            menuItem("Explore items's directory") { browseMultipleFiles(selected.grouped.asSequence().mapNotNull { it.getFile() }) }
+            menu("Explore items' directory in") {
+                widgetItems<FileExplorerFeature> { it.exploreFiles(selected.grouped.mapNotNull { it.getFile() }) }
+            }
+            if (selected.field==Metadata.Field.ALBUM)
+                menu("Search cover in") {
+                    items(
+                            APP.instances.getInstances<SearchUriBuilder>(),
+                            { "in ${it.name}" },
+                            { it(selected.getValueS("<none>")).browse() }
+                    )
+                }
+        }
+        add<PlaylistItemGroup> {
+            menuItem("Play items") { PlaylistManager.use { it.playItem(selected.items[0]) } }
+            menuItem("Remove items") { PlaylistManager.use { it.removeAll(selected.items) } }
+            menu("Show in") {
+                widgetItems<SongReader> { it.read(selected.items) }
+            }
+            menu("Edit tags in") {
+                widgetItems<SongWriter> { it.read(selected.items) }
+            }
+            menuItem("Crop items") { PlaylistManager.use { it.retainAll(selected.items) } }
+            menuItem("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(selected.items) } }
+            menuItem("Duplicate items individually") { PlaylistManager.use { it.duplicateItemsByOne(selected.items) } }
+            menuItem("Explore items's directory") { browseMultipleFiles(selected.items.asSequence().mapNotNull { it.getFile() }) }
+            menuItem("Add items to library") { APP.db.addItems(selected.items.map { it.toMeta() }) }
+            menu("Search album cover") {
+                items(
+                        APP.instances.getInstances<SearchUriBuilder>(),
+                        { "in ${it.name}" },
+                        { APP.actions.itemToMeta(selected.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
+                )
+            }
+        }
+        add<Thumbnail.ContextMenuData> {
+            if (selected.image!=null)
+                menu("Image") {
+                    item("Save image as ...") {
+                        saveFile("Save image as...", APP.DIR_APP, selected.iFile?.name
+                                ?: "new_image", contextMenu.ownerWindow, ImageFileFormat.filter())
+                                .ifOk { writeImage(selected.image, it) }
                     }
-            )
+                    item("Copy to clipboard") { copyToSysClipboard(DataFormat.IMAGE, selected.image) }
+                }
+            if (!selected.fsDisabled)
+                menu("Image file") {
+                    item("Browse location") { selected.fsImageFile.browse() }
+                    item("Open (in associated program)") { selected.fsImageFile.open() }
+                    item("Edit (in associated editor)") { selected.fsImageFile.edit() }
+                    item("Delete from disc") { selected.fsImageFile.recycle() }
+                    item("Fullscreen") {
+                        val f = selected.fsImageFile
+                        if (ImageFileFormat.isSupported(f)) {
+                            APP.actions.openImageFullscreen(f)
+                        }
+                    }
+                }
+            if (!selected.fsDisabled)
+                menu("Image file") {
+                    item("Browse location") { selected.fsImageFile.browse() }
+                    item("Open (in associated program)") { selected.fsImageFile.open() }
+                    item("Edit (in associated editor)") { selected.fsImageFile.edit() }
+                    item("Delete from disc") { selected.fsImageFile.recycle() }
+                    item("Fullscreen") {
+                        val f = selected.fsImageFile
+                        if (ImageFileFormat.isSupported(f)) {
+                            APP.actions.openImageFullscreen(f)
+                        }
+                    }
+                }
+            if (selected.representant!=null)
+                menuOfItemsFor(contextMenu, selected.representant)
         }
 
     }

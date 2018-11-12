@@ -42,7 +42,7 @@ fun File.find1stExistingParentDir(): Try<File, Void> = when {
     else -> parentDir?.find1stExistingParentDir() ?: Try.error()
 }
 
-/** Equivalent to [File.childOf]. */
+/** Equivalent to [File.childOf]. Allows for intuitive `File(...)/"..."/"..."` notation for resolving Files. */
 operator fun File.div(childName: String) = childOf(childName)
 
 fun File.childOf(childName: String) =

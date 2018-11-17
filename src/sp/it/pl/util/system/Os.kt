@@ -47,7 +47,7 @@ enum class Os {
         /** @return the current operating system */
         @JvmStatic val current: Os = run {
             val prop = { propertyName: String -> System.getProperty(propertyName) }
-            val osName = prop("os.name")
+            val osName = prop("os.name").toLowerCase()
             when {
                 osName.indexOf("win")!=-1 -> WINDOWS
                 osName.indexOf("mac")!=-1 -> OSX
@@ -60,6 +60,7 @@ enum class Os {
                 else -> UNKNOWN
             }
         }
+
     }
 
 }

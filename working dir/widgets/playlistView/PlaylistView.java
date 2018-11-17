@@ -124,7 +124,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
 
         // obtain playlist by id, we will use this widget's id
         UUID id = widget.id;
-        playlist = PlaylistManager.playlists.computeIfAbsent(id, PlaylistView::getUnusedPlaylist);  // TODO: fix concurrent modification exception
+        playlist = computeInitialPlaylist(id);
         // when widget closes we must remove the playlist or it would get saved
         // and playlist list would infinitely grow. When widgets close naturally
         // on app close, the playlist will get removed after app state was saved => no problem
@@ -186,7 +186,6 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
             menuItem("Order reverse", e -> playlist.reverse()),
             menuItem("Order randomly", e -> playlist.randomize()),
             menuItem("Edit selected", e -> APP.widgetManager.widgets.use(SongReader.class, NO_LAYOUT, consumer(w -> w.read(table.getSelectedItems()))))
-            // menuItem("Save selected as...", e -> saveSelectedAsPlaylist())
         );
         Menu sortM = new Menu("Order by");
         stream(Field.FIELDS)
@@ -227,24 +226,6 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         return playlist;
     }
 
-    // TODO: implement properly
-//    void saveSelectedAsPlaylist() {
-//        List<PlaylistItem> l = table.getSelectedItems();
-//        if (l.isEmpty()) return;
-//
-//        APP.actions.doWithUserString("Save selected items as...", "Name",
-//        Config<String> mc = new ValueConfig<>(String.class, "Name", "My Playlist").constraints(new StringNonEmpty());
-//        SimpleConfigurator<?> sc = new SimpleConfigurator<>(mc, (String name) -> {
-//            Playlist p = new Playlist(UUID.randomUUID());
-//                     p.setAll(l);
-//            APP.serializerXml.toXML(p, new File(APP.DIR_PLAYLISTS, name + ".xml"))
-//                .ifError(e -> log(PlaylistView.class).error("Could not save playlist", e));
-//        });
-//        PopOver p = new PopOver<>(sc);
-//                p.title.set("Save selected items as...");
-//                p.show(ScreenPos.APP_CENTER);
-//    }
-
     private void setUseFilterForPlayback(boolean v) {
         playlist.setTransformation(v
             ? orig -> list(table.getItems())
@@ -256,13 +237,24 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         filter_for_playback.setCycledNapplyValue();
     }
 
-    private static Playlist getUnusedPlaylist(UUID id) {
+    private Playlist computeInitialPlaylist(UUID id) {
+        if (PlaylistManager.playlists.containsKey(id)) {
+            return PlaylistManager.playlists.get(id);
+        } else {
+            Playlist p = getUnusedPlaylist(id);
+            PlaylistManager.playlists.put(p);
+            return p;
+        }
+    }
+
+    private Playlist getUnusedPlaylist(UUID id) {
         List<Playlist> pall = list(PlaylistManager.playlists);
-        APP.widgetManager.widgets.findAll(OPEN).filter(w -> w.getInfo().hasFeature(PlaylistFeature.class))
-                 .filter(w -> w.getController()!=null) // during load some widgets may not be loaded yet, not good
-                 .map(w -> ((PlaylistFeature)w.getController()).getPlaylist())
-                 .filter(ISNTØ)
-                 .forEach(p -> pall.removeIf(pl -> pl.id.equals(p.id)));
+        APP.widgetManager.widgets.findAll(OPEN)
+            .filter(w -> w.getInfo().hasFeature(PlaylistFeature.class))
+	        .filter(w -> w.getController()!=null) // during load some widgets may not be loaded yet, not good
+	        .map(w -> ((PlaylistFeature)w.getController()).getPlaylist())
+	        .filter(ISNTØ)
+	        .forEach(p -> pall.removeIf(pl -> pl.id.equals(p.id)));
 
         Playlist leaf = pall.isEmpty() ? null : pall.get(0);
         for (Playlist p : pall)

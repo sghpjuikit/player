@@ -46,16 +46,17 @@ enum class Os {
 
         /** @return the current operating system */
         @JvmStatic val current: Os = run {
-            val osName = System.getProperty("os.name")
+            val prop = { propertyName: String -> System.getProperty(propertyName) }
+            val osName = prop("os.name")
             when {
                 osName.indexOf("win")!=-1 -> WINDOWS
                 osName.indexOf("mac")!=-1 -> OSX
-                // various forms of unix
-                osName.startsWith("SunOS") || osName.indexOf("nix")>-1 || osName.indexOf("freebsd")>-1
-                -> UNIX
-                // Linux without Android
-                osName.indexOf("nux")>-1 && "android"!=System.getProperty("javafx.platform") && "Dalvik"!=System.getProperty("java.vm.name")
-                -> UNIX
+                osName.startsWith("SunOS") -> UNIX
+                osName.indexOf("nix")!=-1 -> UNIX
+                osName.indexOf("freebsd")!=-1 -> UNIX
+                osName.indexOf("nux")!=-1 && "android"!=prop("javafx.platform") && "Dalvik"!=prop("java.vm.name") -> {
+                    UNIX    // Linux without Android
+                }
                 else -> UNKNOWN
             }
         }

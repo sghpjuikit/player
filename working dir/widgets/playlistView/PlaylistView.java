@@ -35,7 +35,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FILTER_OUTLINE;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
-import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
+import static sp.it.pl.gui.nodeinfo.TableInfo.DEFAULT_TEXT_FACTORY;
 import static sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppBuildersKt.rowHeight;

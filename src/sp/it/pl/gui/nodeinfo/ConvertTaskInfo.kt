@@ -1,4 +1,4 @@
-package sp.it.pl.gui.infonode
+package sp.it.pl.gui.nodeinfo
 
 import javafx.scene.control.Labeled
 import javafx.scene.control.ProgressIndicator
@@ -6,7 +6,7 @@ import sp.it.pl.util.Util.enumToHuman
 import sp.it.pl.util.async.future.ConvertListTask
 import sp.it.pl.util.reactive.sync
 
-class ConvertTaskInfo: InfoTask<ConvertListTask<*, *>> {
+class ConvertTaskInfo: TaskInfo<ConvertListTask<*, *>> {
     val skipped: Labeled?
     val state: Labeled?
 

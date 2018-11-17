@@ -1,4 +1,4 @@
-package sp.it.pl.gui.infonode
+package sp.it.pl.gui.nodeinfo
 
 import javafx.scene.control.Labeled
 import javafx.scene.control.TableView
@@ -11,7 +11,7 @@ import sp.it.pl.util.text.plural
  *
  * @param <E> type of table element
  */
-class InfoTable<E>: InfoNode<TableView<E>> {
+class TableInfo<E>: NodeInfo<TableView<E>> {
 
     /** The graphical text element */
     @JvmField var node: Labeled
@@ -21,7 +21,7 @@ class InfoTable<E>: InfoNode<TableView<E>> {
      * selected items if nonempty.
      */
     @JvmField var textFactory: (Boolean, List<E>) -> String = DEFAULT_TEXT_FACTORY
-    private var s: Subscription? = null
+    private var tableMonitor: Subscription? = null
 
     constructor(node: Labeled) {
         this.node = node
@@ -46,15 +46,15 @@ class InfoTable<E>: InfoNode<TableView<E>> {
         val handleChange = { updateText(listAll, listSelected) }
 
         handleChange()
-        s = Subscription.multi(
+        tableMonitor = Subscription.multi(
                 listAll.onChange(handleChange),
                 listSelected.onChange(handleChange)
         )
     }
 
     override fun unbind() {
-        s?.unsubscribe()
-        s = null
+        tableMonitor?.unsubscribe()
+        tableMonitor = null
     }
 
     /**

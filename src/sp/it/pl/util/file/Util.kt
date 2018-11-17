@@ -14,9 +14,7 @@ import kotlin.streams.asStream
 private val logger = KotlinLogging.logger { }
 
 /**
- * @return [File.getName], but partition name for root directories
- *
- * @return name of the file with extension, never empty string
+ * @return File.getName], but partition name for root directories, never empty string
  */
 val File.nameOrRoot: String
     get() = name.takeUnless { it.isEmpty() } ?: toString()

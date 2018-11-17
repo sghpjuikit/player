@@ -3,7 +3,7 @@ package imageViewer;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.gui.infonode.ItemInfo;
+import sp.it.pl.gui.nodeinfo.ItemInfo;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import java.io.File;

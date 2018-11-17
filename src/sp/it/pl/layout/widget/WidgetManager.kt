@@ -30,6 +30,7 @@ import sp.it.pl.util.dev.Idempotent
 import sp.it.pl.util.file.FileMonitor
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
+import sp.it.pl.util.file.div
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.isAnyParentOf
 import sp.it.pl.util.file.isParentOf
@@ -86,9 +87,9 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         if (initialized) return
 
         if (!APP.DIR_APP.childOf("java", "bin").exists())
-            logger.error { "Java development kit is missing. Please install JDK in ${APP.DIR_APP.childOf("java")}" }
+            logger.error { "Java development kit is missing. Please install JDK in ${APP.DIR_APP/"java"}" }
         if (!APP.DIR_APP.childOf("kotlinc", "bin").exists())
-            logger.error { "Kotlin compiler is missing. Please install kotlinc in ${APP.DIR_APP.childOf("kotlinc")}" }
+            logger.error { "Kotlin compiler is missing. Please install kotlinc in ${APP.DIR_APP/"kotlinc"}" }
 
         // internal factories
         factoriesW += emptyWidgetFactory
@@ -212,22 +213,23 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         fun findSrcFiles() = widgetDir.seqChildren().filter { it.hasExtension("java", "kt") }
 
-        fun findClassFile() = widgetDir.childOf("$widgetName.class")
+        fun findClassFile() = widgetDir/"$widgetName.class"
 
         fun findClassFiles() = widgetDir.seqChildren().filter { it hasExtension "class" }
 
         fun computeClassPath(): String = computeClassPathElements().joinToString(classpathSeparator)
 
-        private fun computeClassPathElements() = sequenceOf(".")+getAppJarFile()+widgetDir+(findAppLibFiles()+findLibFiles()).map { it.absolutePath }
+        private fun computeClassPathElements() = sequenceOf(".")+getAppJarFile()+
+                (findAppLibFiles()+sequenceOf(widgetDir)+findLibFiles()).map { it.relativeToApp() }
 
         private fun findLibFiles() = widgetDir.seqChildren().filterSourceJars()
 
         private fun findAppLibFiles() = APP.DIR_APP.childOf("lib").seqChildren().filterSourceJars()
 
         private fun getAppJarFile(): Sequence<String> {
-            val mainJarFile = APP.DIR_APP.childOf("PlayerFX.jar")
+            val mainJarFile = APP.DIR_APP/"PlayerFX.jar"
             return if (mainJarFile.exists()) {
-                sequenceOf(mainJarFile.absolutePath)
+                sequenceOf(mainJarFile.relativeToApp())
             } else {
                 System.getProperty("java.class.path")
                         .splitToSequence(classpathSeparator)
@@ -377,26 +379,24 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         /** Compiles specified .kt files into .class files. */
         private fun compileKotlin(kotlinSrcFiles: Sequence<File>): Try<Void, String> {
             try {
-                var compilerFile = APP.DIR_APP.childOf("kotlinc", "bin", "kotlinc.bat")
-                if (Os.UNIX.isCurrent) compilerFile = APP.DIR_APP.childOf("kotlinc", "bin", "kotlinc")
-
-                val command = ArrayList<String>()
-                command.add(compilerFile.absolutePath)
-                command.add("-d")
-                command.add(APP.DIR_WIDGETS.absolutePath)
-                command.add("-jdk-home")
-                command.add(APP.DIR_APP.childOf("java").absolutePath)
-                command.add("-jvm-target")
-                command.add("1.8")
-                command.add("-cp")
-                command.add(computeClassPath())
-                command.add(kotlinSrcFiles.map { it.absolutePath }.joinToString(" "))
+                val compilerFile = when (Os.current) {
+                    Os.UNIX -> APP.DIR_APP/"kotlinc"/"bin"/"kotlinc"
+                    else -> APP.DIR_APP/"kotlinc"/"bin"/"kotlinc.bat"
+                }
+                val command = listOf(
+                        compilerFile.absolutePath,
+                        "-d", APP.DIR_WIDGETS.relativeToApp(),
+                        "-jdk-home", APP.DIR_APP.childOf("java").relativeToApp(),
+                        "-jvm-target", "1.8",
+                        "-cp", computeClassPath(),
+                        kotlinSrcFiles.joinToString(" ") { it.relativeToApp() }
+                )
 
                 logger.info("Compiling with command=${command.joinToString(" ")} ")
 
                 // TODO: capture output to result
                 val success = ProcessBuilder(command)
-                        .directory(APP.DIR_APP.childOf("kotlinc", "bin"))
+                        .directory(APP.DIR_APP)
                         .redirectOutput(Redirect.INHERIT)
                         .redirectError(Redirect.INHERIT)
                         .start()
@@ -406,8 +406,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 if (isSuccess) logger.info { "Compilation succeeded" }
                 else logger.error { "Compilation failed" }
 
-                return if (isSuccess) Try.ok()
-                else Try.error("Compilation failed with errors")
+                return if (isSuccess) Try.ok() else Try.error("Compilation failed with errors")
             } catch (e: Exception) {
                 logger.error { "Compilation failed" }
                 return Try.error(e.message)
@@ -636,7 +635,9 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         private fun Collection<File>.lastModifiedMin() = asSequence().map { it.lastModified() }.min()
 
-        private infix fun Collection<File>.modifiedAfter(that: Collection<File>) = (this.lastModifiedMax() ?: 0) >= (that.lastModifiedMax() ?: 0)
+        private infix fun Collection<File>.modifiedAfter(that: Collection<File>) = (this.lastModifiedMax() ?: 0)>=(that.lastModifiedMax() ?: 0)
+
+        private fun File.relativeToApp() = relativeTo(APP.DIR_APP).path
 
         private val Os.classpathSeparator
             get() = when (this) {

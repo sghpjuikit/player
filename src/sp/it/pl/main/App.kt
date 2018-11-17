@@ -518,8 +518,6 @@ class App: Application(), Configurable<Any> {
             .map { Image(it) }
             .toList()
 
-    companion object: KLogging()
-
     private fun AppParameterProcessor.initForApp() {
         addFileProcessor(
                 { AudioFileFormat.isSupported(it, Use.APP) },
@@ -569,5 +567,7 @@ class App: Application(), Configurable<Any> {
         if (!isValidatedDirectory(this))
             fail("File $this is not accessible")
     }
+
+    companion object: KLogging()
 
 }

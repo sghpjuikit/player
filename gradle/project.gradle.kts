@@ -151,15 +151,14 @@ tasks {
     val copyLibs by creating(Sync::class) {
         group = "build"
         description = "Copies all libraries into the working dir"
-        into("working dir/lib")
-        from(configurations.compile)
-        exclude("*sources.jar", "*javadoc.jar")
+        from(configurations.compileClasspath)
+        into(dirWorking.resolve("lib"))
     }
 
     val linkJdk by creating {
         group = "build setup"
         description = "Links $dirJdk to JDK"
-        this.onlyIf { !dirJdk.exists() }
+        onlyIf { !dirJdk.exists() }
         doFirst {
             println("Making JDK locally accessible...")
             val jdkPath = System.getProperty("java.home").takeIf { it.isNotBlank() }

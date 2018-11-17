@@ -27,6 +27,8 @@ plugins {
     id("de.undercouch.download") version "3.4.3"
 }
 
+fun Boolean.orFailIO(message: () -> String) = also { if (!this) throw IOException(message()) }
+
 /** working directory of the application */
 val dirWorking = file("working dir")
 val dirJdk = dirWorking.resolve("java")
@@ -35,14 +37,17 @@ val kotlinVersion: String by extra {
             .resolvedConfiguration.firstLevelModuleDependencies
             .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
-val javaSupportedVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10)
-
-if (JavaVersion.current() !in javaSupportedVersions) {
-    println("""org.gradle.java.home=${properties["org.gradle.java.home"]}
-        |Java version ${JavaVersion.current()} can't be used.
-        | Set one of ${javaSupportedVersions.joinToString()} as system default or create a "gradle.properties"
-        | file with "org.gradle.java.home" pointing to a supported Java version""".trimMargin())
-    throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
+val javaSupportedVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10).also {
+    val javaVersion = JavaVersion.current()
+    if (javaVersion !in it) {
+        println(""+
+                "org.gradle.java.home=${properties["org.gradle.java.home"]}"+
+                "Java version $javaVersion can't be used."+
+                "Set one of ${it.joinToString()} as system default or create a 'gradle.properties'"+
+                "file with 'org.gradle.java.home' pointing to a supported Java version"
+        )
+        throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
+    }
 }
 
 sourceSets {
@@ -184,25 +189,33 @@ tasks {
     }
 
     val kotlinc by creating(Download::class) {
-        val kotlinc = dirWorking.resolve("kotlinc")
+        val dirKotlinc = dirWorking.resolve("kotlinc")
+        val fileKotlinVersion = dirKotlinc.resolve("build.txt")
+        val nameKotlinc = "kotlin-compiler-$kotlinVersion.zip"
+        val fileKotlinc = dirKotlinc.resolve("bin/kotlinc")
+        val zipKotlinc = dirKotlinc.resolve(nameKotlinc)
         group = "build setup"
-        description = "Downloads the kotlin compiler into $kotlinc"
-        onlyIf { kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion)!=true }
+        description = "Downloads the kotlin compiler into $dirKotlinc"
+        onlyIf { !fileKotlinVersion.exists() || !fileKotlinVersion.readText().startsWith(kotlinVersion) }
+        src("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/$nameKotlinc")
+        dest(dirKotlinc)
         doFirst {
-            if (kotlinc.exists()) {
+            if (dirKotlinc.exists()) {
                 println("Deleting obsolete version of Kotlin compiler...")
-                if (!kotlinc.deleteRecursively())
-                    throw IOException("Failed to remove Kotlin compiler, location=$kotlinc")
+                dirKotlinc.deleteRecursively().orFailIO { "Failed to remove Kotlin compiler, location=$dirKotlinc" }
+            }
+            if (!dirKotlinc.exists()) {
+                dirKotlinc.mkdir().orFailIO { "Failed to create directory=$dirKotlinc" }
             }
         }
-        src("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/kotlin-compiler-$kotlinVersion.zip")
-        dest(buildDir)
         doLast {
             copy {
-                from(zipTree(buildDir.resolve("kotlin-compiler-$kotlinVersion.zip")))
+                from(zipTree(zipKotlinc))
                 into(dirWorking)
             }
-            file("$dirWorking/kotlinc/bin/kotlinc").setExecutable(true)
+            fileKotlinc.setExecutable(true).orFailIO { "Failed to file=$fileKotlinc executable" }
+            zipKotlinc.delete().orFailIO { "Failed to delete file=$zipKotlinc" } // clean up downloaded file
+            zipKotlinc.createNewFile()  // allows running this task in offline mode
         }
     }
 

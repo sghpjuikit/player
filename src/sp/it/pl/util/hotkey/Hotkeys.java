@@ -1,8 +1,11 @@
 package sp.it.pl.util.hotkey;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import javafx.scene.input.KeyCode;
 import org.jnativehook.GlobalScreen;
@@ -14,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.util.Util;
 import sp.it.pl.util.action.Action;
+import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.stream;
 
 /**
@@ -41,6 +45,40 @@ public class Hotkeys {
 			// logger.setUseParentHandlers(false);
 
 			try {
+				GlobalScreen.setEventDispatcher(new AbstractExecutorService() {
+					private boolean running = true;
+
+					@Override
+					public void shutdown() {
+						this.running = false;
+					}
+
+					@Override
+					public List<Runnable> shutdownNow() {
+						this.running = false;
+						return list();
+					}
+
+					@Override
+					public boolean isShutdown() {
+						return !this.running;
+					}
+
+					@Override
+					public boolean isTerminated() {
+						return !this.running;
+					}
+
+					@Override
+					public boolean awaitTermination(long amount, TimeUnit units) throws InterruptedException {
+						return true;
+					}
+
+					@Override
+					public void execute(Runnable action) {
+						action.run();
+					}
+				});
 				GlobalScreen.registerNativeHook();
 				keyListener = new NativeKeyListener() {
 					@Override
@@ -69,7 +107,7 @@ public class Hotkeys {
 
 					@Override
 					public void nativeKeyReleased(NativeKeyEvent e) {
-						keyCombos.values().forEach(k -> k.release(e));
+						keyCombos.values().stream().filter(k -> k.isPressed).forEach(k -> k.release(e));
 					}
 
 					@Override

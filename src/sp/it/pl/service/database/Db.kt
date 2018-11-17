@@ -1,8 +1,10 @@
 package sp.it.pl.service.database
 
+import javafx.concurrent.Task
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.MetadatasDB
 import sp.it.pl.audio.tagging.Metadata
+import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.APP
@@ -120,5 +122,13 @@ class Db {
 
     @ThreadSafe
     fun updateInMemoryDbFromPersisted() = setInMemoryDB(getAllItems().values.toList())
+
+    @ThreadSafe
+    fun removeInvalidItems(): Fut<Task<Void>> {
+        val t = MetadataReader.buildRemoveMissingFromLibTask()
+        return Fut.fut(t)
+                .use { it.run() }
+                .printExceptions()
+    }
 
 }

@@ -108,7 +108,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                     }
 
             FileMonitor.monitorDirectory(dirW, true) { type, f ->
-                if (dirW==f) {
+                if (dirW==f || f.name=="META-INF") {
 
                 } else if (dirW.isParentOf(f)) {
                     val name = f.nameWithoutExtension.capitalize()

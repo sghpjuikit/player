@@ -8,7 +8,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-public class JavaFxStagePlaygroundDemo extends Application {
+class JavaFxStagePlaygroundDemo extends Application {
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {

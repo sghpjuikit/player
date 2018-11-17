@@ -1,7 +1,7 @@
-package sp.it.pl.gui.infonode
+package sp.it.pl.gui.nodeinfo
 
 /** Node bindable to an element and displaying information about it. */
-interface InfoNode<B> {
+interface NodeInfo<B> {
 
     /**
      * Starts monitoring the bindable element.

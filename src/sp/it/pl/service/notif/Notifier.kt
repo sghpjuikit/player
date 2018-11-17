@@ -9,7 +9,7 @@ import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.gui.infonode.ItemInfo
+import sp.it.pl.gui.nodeinfo.ItemInfo
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.objects.popover.ScreenUse

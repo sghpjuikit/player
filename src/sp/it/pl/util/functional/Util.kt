@@ -126,7 +126,8 @@ infix fun <R,E> Try<R,E>.onE(handle: (E) -> Unit) = ifError(handle)!!
  * * None -> Some(R)      yes (but not deterministic, only if mapping does not return null)
  *
  * Unlike Optional model, the lack of determinism here is consistent (and recoverable), and again a consequence of
- * nullability being a broader concept than 'emptiness'. I.e., the monadic semantics can still be defined on top of it:
+ * nullability being a broader concept than 'emptiness'. I.e., the monadic model's 'emptiness' semantics can still be
+ * defined on top of it:
  * * None -> None         == ?: null or ?.let { it }
  * * None -> Some(R)      == ?: R!! or ?.let { when it==null -> R!! else -> it }
  * * Some(T) -> Some(R)   == .let { R!! }

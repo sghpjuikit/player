@@ -1,4 +1,4 @@
-package sp.it.pl.gui.infonode
+package sp.it.pl.gui.nodeinfo
 
 import javafx.fxml.FXML
 import javafx.geometry.Pos

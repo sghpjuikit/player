@@ -35,7 +35,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FILTER_OUTLINE;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
-import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
+import static sp.it.pl.gui.nodeinfo.TableInfo.DEFAULT_TEXT_FACTORY;
 import static sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppBuildersKt.rowHeight;
@@ -160,7 +160,7 @@ public class PlaylistView extends FXMLController implements PlaylistFeature {
         // extend table items information
         table.items_info.textFactory = (all, list) -> {
             double lengthMs = list.stream().mapToDouble(PlaylistItem::getTimeMs).sum();
-            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new Dur(lengthMs);
+            return DEFAULT_TEXT_FACTORY.invoke(all, list) + " - " + new Dur(lengthMs);
         };
         // add more menu items
         table.menuAdd.getItems().addAll(

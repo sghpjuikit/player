@@ -22,7 +22,7 @@ class Subscribed(private val subscribing: Subscribing) {
 }
 
 /** @return unsubscribed lazy [Subscribed] using the specified subscribing function. */
-fun subscribed(subscribing: Subscribing) = Subscribed(subscribing)
+fun subscribed(subscribing: Subscribing) = Subscribed(subscribing).subscribe()
 
 /**
  * Create [Subscribed] for specified subscribing that will be subscribed exactly when the specified value is true.

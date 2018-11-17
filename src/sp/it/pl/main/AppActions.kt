@@ -10,7 +10,7 @@ import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.SimpleItem
 import sp.it.pl.audio.tagging.MetadataReader
-import sp.it.pl.gui.infonode.ConvertTaskInfo
+import sp.it.pl.gui.nodeinfo.ConvertTaskInfo
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.pane.ActionPane
 import sp.it.pl.gui.pane.ActionPane.ComplexActionData
@@ -28,7 +28,6 @@ import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
-import sp.it.pl.main.APP
 import sp.it.pl.util.access.V
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.async.FX

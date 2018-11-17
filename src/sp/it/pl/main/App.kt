@@ -562,5 +562,12 @@ class App: Application(), Configurable<Any> {
         onNewInstanceHandlers += Consumer { parameterProcessor.process(it) }
     }
 
-    private fun File.initForApp() = apply { isValidatedDirectory(this) }
+    private fun File.initForApp() = apply {
+        if (!isAbsolute)
+            fail("File $this is not absolute")
+
+        if (!isValidatedDirectory(this))
+            fail("File $this is not accessible")
+    }
+
 }

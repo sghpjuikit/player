@@ -369,7 +369,7 @@ open class PopOver<N: Node>(): PopupControl() {
         position { owner.localToScreen(x, y).toP()+owner.layoutBounds.size/2.0 }
     }
 
-    /** Show popup. Equivalent to: show(owner,0,0). */
+    /** Show popup. Equivalent to: show(owner, 0, 0). */
     fun showInCenterOf(owner: Node) = show(owner, owner.layoutBounds.width/2, owner.layoutBounds.height/2)
 
     /** Show popup at specified designated position relative to node. */

@@ -1,4 +1,4 @@
-package sp.it.pl.gui.infonode
+package sp.it.pl.gui.nodeinfo
 
 import javafx.concurrent.Task
 import javafx.concurrent.Worker.State.READY
@@ -10,7 +10,7 @@ import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncTo
 
 /** Provides information about the task and its progress. */
-open class InfoTask<T: Task<*>>: InfoNode<T> {
+open class TaskInfo<T: Task<*>>: NodeInfo<T> {
 
     /** Title label or null if none. */
     val title: Labeled?

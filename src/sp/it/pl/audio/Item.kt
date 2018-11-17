@@ -102,7 +102,7 @@ abstract class Item {
      * * is not supported audio file
      * * file can not be read
      *
-     * Also see [.isCorruptWeak].
+     * Also see [isCorruptWeak].
      *
      * @return playability/validity of the item
      */

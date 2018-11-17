@@ -10,12 +10,12 @@ import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 
-public class Utils {
+class Utils {
 
 	/**
 	 * Clamp value between min and max
 	 */
-	public static double clamp(double value, double min, double max) {
+	static double clamp(double value, double min, double max) {
 
 		if (value<min)
 			return min;
@@ -29,14 +29,14 @@ public class Utils {
 	/**
 	 * Map value of a given range to a target range
 	 */
-	public static double map(double value, double currentRangeStart, double currentRangeStop, double targetRangeStart, double targetRangeStop) {
+	static double map(double value, double currentRangeStart, double currentRangeStop, double targetRangeStart, double targetRangeStop) {
 		return targetRangeStart + (targetRangeStop - targetRangeStart)*((value - currentRangeStart)/(currentRangeStop - currentRangeStart));
 	}
 
 	/**
 	 * Snapshot an image out of a node, consider transparency.
 	 */
-	public static Image createImage(Node node) {
+	static Image createImage(Node node) {
 
 		WritableImage wi;
 
@@ -58,7 +58,7 @@ public class Utils {
 	 *
 	 * @return pre-created images
 	 */
-	public static Image[] preCreateImages() {
+	static Image[] preCreateImages() {
 
 		int count = (int) Settings.PARTICLE_LIFE_SPAN_MAX;
 

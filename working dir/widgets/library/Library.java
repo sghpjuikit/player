@@ -21,7 +21,7 @@ import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataGroup;
 import sp.it.pl.audio.tagging.MetadataReader;
-import sp.it.pl.gui.infonode.InfoTask;
+import sp.it.pl.gui.nodeinfo.TaskInfo;
 import sp.it.pl.gui.objects.contextmenu.TableContextMenuR;
 import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
@@ -58,7 +58,7 @@ import static javafx.scene.input.TransferMode.COPY;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.audio.tagging.Metadata.Field.RATING;
 import static sp.it.pl.audio.tagging.Metadata.Field.TITLE;
-import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
+import static sp.it.pl.gui.nodeinfo.TableInfo.DEFAULT_TEXT_FACTORY;
 import static sp.it.pl.layout.widget.Widget.Group.LIBRARY;
 import static sp.it.pl.main.AppBuildersKt.rowHeight;
 import static sp.it.pl.main.AppUtil.APP;
@@ -104,7 +104,7 @@ public class Library extends FXMLController implements SongReader {
 
     private @FXML AnchorPane root;
     private final FilteredTable<Metadata> table = new FilteredTable<>(Metadata.class, Metadata.EMPTY.getMainField());
-    private final InfoTask<Task<?>> taskInfo = new InfoTask<>(null, new Label(), appProgressIndicator());
+    private final TaskInfo<Task<?>> taskInfo = new TaskInfo<>(null, new Label(), appProgressIndicator());
     private final Anim hideInfo = new Anim(at -> setScaleXY(taskInfo.getProgress(),at*at))
                                       .dur(500).intpl(reverse(new ElasticInterpolator()));
 
@@ -153,7 +153,7 @@ public class Library extends FXMLController implements SongReader {
         // extend table items information
         table.items_info.textFactory = (all, list) -> {
             double lengthMs = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
-            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new Dur(lengthMs);
+            return DEFAULT_TEXT_FACTORY.invoke(all, list) + " - " + new Dur(lengthMs);
         };
         // add more menu items
         table.menuAdd.getItems().addAll(

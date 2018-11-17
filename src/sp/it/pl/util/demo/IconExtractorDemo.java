@@ -14,7 +14,7 @@ import javafx.stage.Stage;
 import sp.it.pl.util.graphics.IconExtractor;
 import static javafx.collections.FXCollections.observableArrayList;
 
-public class IconExtractorDemo extends Application {
+class IconExtractorDemo extends Application {
 
 	public static void main(String[] args) {
 		launch(args);
@@ -45,6 +45,7 @@ public class IconExtractorDemo extends Application {
 	}
 
 	private static class AttachmentListCell extends ListCell<String> {
+
 		@Override
 		public void updateItem(String item, boolean empty) {
 			super.updateItem(item, empty);
@@ -58,6 +59,7 @@ public class IconExtractorDemo extends Application {
 				setText(item);
 			}
 		}
+
 	}
 
 }

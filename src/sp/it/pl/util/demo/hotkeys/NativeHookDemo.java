@@ -38,24 +38,14 @@ import org.jnativehook.mouse.NativeMouseWheelListener;
  * @see GlobalScreen
  * @see NativeKeyListener
  */
-public class NativeHookDemo extends JFrame implements ActionListener, ItemListener, NativeKeyListener, NativeMouseInputListener, NativeMouseWheelListener, WindowListener {
-	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1541183202160543102L;
+class NativeHookDemo extends JFrame implements ActionListener, ItemListener, NativeKeyListener, NativeMouseInputListener, NativeMouseWheelListener, WindowListener {
 
-	/** Menu Items */
 	private JMenu menuSubListeners;
 	private JMenuItem menuItemQuit, menuItemClear;
 	private JCheckBoxMenuItem menuItemEnable, menuItemKeyboardEvents, menuItemButtonEvents, menuItemMotionEvents, menuItemWheelEvents;
-
-	/** The text area to display event info. */
 	private JTextArea txtEventInfo;
-
-	/** Logging */
 	private static final Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
 
-	/**
-	 * Instantiates a new native hook demo.
-	 */
 	public NativeHookDemo() {
 		// Setup the main window.
 		setTitle("JNativeHook Demo");
@@ -454,4 +444,5 @@ public class NativeHookDemo extends JFrame implements ActionListener, ItemListen
 			return line.toString();
 		}
 	}
+
 }

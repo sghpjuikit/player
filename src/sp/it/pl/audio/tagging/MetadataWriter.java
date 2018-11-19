@@ -864,23 +864,28 @@ public class MetadataWriter extends Item {
 	}
 
 	public void reset(Item i) {
-		Optional.ofNullable(i.getFile())
-			.map(f -> readAudioFile(f).getOr(null))
-			.ifPresentOrElse(
-				f -> {
-					audioFile = f;
-					tag = audioFile.getTagOrCreateAndSetDefault(); // this can throw NullPointerException
-					hasCorruptedTag = false;
-				},
-				() -> {
-					audioFile = null;
-					tag = new ID3v24Tag(); // fake tag to write into
-					hasCorruptedTag = true;
-					LOGGER.warn("Couldn't initialize MetadataWriter, writing to tag will be ignored");
-				}
-			);
-		fields_changed = 0;
-		isWriting.set(false);
+		if (!i.isFileBased()) {
+			reset();
+		} else {
+			file = i.getFile();
+			Optional.ofNullable(file)
+				.map(f -> readAudioFile(f).getOr(null))
+				.ifPresentOrElse(
+					f -> {
+						audioFile = f;
+						tag = audioFile.getTagOrCreateAndSetDefault(); // this can throw NullPointerException
+						hasCorruptedTag = false;
+					},
+					() -> {
+						audioFile = null;
+						tag = new ID3v24Tag(); // fake tag to write into
+						hasCorruptedTag = true;
+						LOGGER.warn("Couldn't initialize MetadataWriter, writing to tag will be ignored");
+					}
+				);
+			fields_changed = 0;
+			isWriting.set(false);
+		}
 	}
 
 	/******************************************************************************/

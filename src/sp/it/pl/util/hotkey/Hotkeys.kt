@@ -137,12 +137,17 @@ class Hotkeys {
             this.key = key
             this.modifier = run {
                 var m = 0
-                if (KeyCode.SHIFT in modifiers) m += NativeInputEvent.SHIFT_L_MASK
-                if (KeyCode.CONTROL in modifiers) m += NativeInputEvent.CTRL_L_MASK
-                if (KeyCode.WINDOWS in modifiers || KeyCode.META in modifiers) m += NativeInputEvent.META_L_MASK
-                if (KeyCode.ALT in modifiers) m += NativeInputEvent.ALT_L_MASK
-                if (KeyCode.COMMAND in modifiers) m += NativeInputEvent.META_R_MASK
-                if (KeyCode.ALT_GRAPH in modifiers) m += NativeInputEvent.ALT_R_MASK
+                infix fun KeyCode.toMask(mask: Int) {
+                    if (this in modifiers)
+                        m += mask
+                }
+                KeyCode.SHIFT toMask NativeInputEvent.SHIFT_L_MASK
+                KeyCode.CONTROL toMask NativeInputEvent.CTRL_L_MASK
+                KeyCode.ALT toMask NativeInputEvent.ALT_L_MASK
+                KeyCode.COMMAND toMask NativeInputEvent.META_R_MASK
+                KeyCode.ALT_GRAPH toMask NativeInputEvent.ALT_R_MASK
+                KeyCode.WINDOWS toMask NativeInputEvent.META_L_MASK
+                KeyCode.META toMask NativeInputEvent.META_L_MASK
                 m
             }
         }

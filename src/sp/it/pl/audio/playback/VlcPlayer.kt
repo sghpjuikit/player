@@ -164,13 +164,9 @@ class VlcPlayer: GeneralPlayer.Play {
 
     companion object: KLogging() {
 
-        private fun discoverVlc(location: File) = NativeDiscovery(computeVlcDiscoverer(location), DefaultWindowsNativeDiscoveryStrategy(), DefaultLinuxNativeDiscoveryStrategy(), DefaultMacNativeDiscoveryStrategy()).discover()
-
-        private fun computeVlcDiscoverer(location: File) = object: DefaultWindowsNativeDiscoveryStrategy() {
-            override fun onGetDirectoryNames(directoryNames: MutableList<String>) {
-                directoryNames.clear()
-                directoryNames += location.absolutePath
-            }
+        private fun discoverVlc(location: File): Boolean {
+            val loc = location.absolutePath
+            return NativeDiscovery(WindowsDiscoverer(loc), LinuxDiscoverer(loc), MacDiscoverer(loc)).discover()
         }
 
         private fun Item.uriAsVlcPath() = uri.toASCIIString().let {
@@ -178,9 +174,32 @@ class VlcPlayer: GeneralPlayer.Play {
             // https://github.com/sghpjuikit/player/issues/40
             // https://github.com/caprica/vlcj/issues/173
             // https://github.com/caprica/vlcj/issues/424
-            if (it.startsWith("file:/") && it[6] != '/')
+            if (it.startsWith("file:/") && it[6]!='/')
                 it.replaceFirst("file:/", "file:///")
             else it
+        }
+
+        class WindowsDiscoverer(vararg val locations: String): DefaultWindowsNativeDiscoveryStrategy() {
+            override fun onGetDirectoryNames(directoryNames: MutableList<String>) {
+                super.onGetDirectoryNames(directoryNames)
+                directoryNames.addAll(locations)
+            }
+        }
+
+        class LinuxDiscoverer(vararg val locations: String): DefaultLinuxNativeDiscoveryStrategy() {
+            override fun onGetDirectoryNames(directoryNames: MutableList<String>) {
+                super.onGetDirectoryNames(directoryNames)
+                directoryNames.addAll(locations)
+                // temporary fix until https://github.com/caprica/vlcj/pull/612 is merged
+                directoryNames.addAll(arrayOf("/usr/lib64", "/usr/local/lib64", "/usr/lib/x86_64-linux-gnu", "/usr/lib/i386-linux-gnu"))
+            }
+        }
+
+        class MacDiscoverer(vararg val locations: String): DefaultMacNativeDiscoveryStrategy() {
+            override fun onGetDirectoryNames(directoryNames: MutableList<String>) {
+                super.onGetDirectoryNames(directoryNames)
+                directoryNames.addAll(locations)
+            }
         }
 
     }

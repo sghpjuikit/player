@@ -34,7 +34,9 @@ class Search {
             textProperty() attach { fade.playFromDir(!it.isNullOrBlank()) }
         }
 
-        ConfigSearch(tf, history, { sources.stream().flatMap { it().asStream() } })
+        ConfigSearch(tf, history, { sources.stream().flatMap { it().asStream() } }).apply {
+            hideOnSuggestion.value = true
+        }
         return tf
     }
 }

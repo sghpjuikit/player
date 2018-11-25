@@ -131,7 +131,7 @@ private typealias C = IsConfig
 class App: Application(), Configurable<Any> {
 
     init {
-        APP = this.takeUnless { ::APP.isInitialized } ?: fail("Multiple application instances disallowed")
+        APP = this.takeUnless { ::APP.isInitialized } ?: fail { "Multiple application instances disallowed" }
     }
 
     var isInitialized: Try<Void, Throwable> = Try.error(Exception("Initialization has not run yet"))
@@ -562,10 +562,10 @@ class App: Application(), Configurable<Any> {
 
     private fun File.initForApp() = apply {
         if (!isAbsolute)
-            fail("File $this is not absolute")
+            fail { "File $this is not absolute" }
 
         if (!isValidatedDirectory(this))
-            fail("File $this is not accessible")
+            fail { "File $this is not accessible" }
     }
 
     companion object: KLogging()

@@ -427,10 +427,6 @@ public class AppActions {
 		runFX(() -> APP.widgetManager.widgets.find(TextDisplayFeature.class, NEW).ifPresent(w -> w.showText(text)));
 	}
 
-	/**
-	 * The check whether file exists, is accessible or of correct type/format is left on the caller and behavior in
-	 * such cases is undefined.
-	 */
 	@Blocks
 	public void printAllAudioItemMetadata(Item item) {
 		throwIfFxThread();

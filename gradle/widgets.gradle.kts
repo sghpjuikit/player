@@ -7,6 +7,6 @@ sourceSets {
 }
 
 dependencies {
-    compile(rootProject)
-    compile(files(projectDir.walkTopDown().filter { it.path.endsWith(".jar") }.toList()))
+    implementation(rootProject)
+    implementation(files(projectDir.walkTopDown().filter { it.path.endsWith(".jar") }.toList()))
 }

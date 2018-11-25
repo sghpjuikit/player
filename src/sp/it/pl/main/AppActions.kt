@@ -16,6 +16,7 @@ import sp.it.pl.gui.pane.ActionPane
 import sp.it.pl.gui.pane.ActionPane.ComplexActionData
 import sp.it.pl.gui.pane.ActionPane.FastAction
 import sp.it.pl.gui.pane.ActionPane.FastColAction
+import sp.it.pl.gui.pane.ActionPane.SlowAction
 import sp.it.pl.gui.pane.ActionPane.SlowColAction
 import sp.it.pl.gui.pane.ConfigPane
 import sp.it.pl.layout.Component
@@ -146,6 +147,11 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             )
     )
     ap.register<Item>(
+            SlowAction(
+                    "Print raw metadata", "Prints all audio metadata to console.",
+                    IconMA.IMAGE_ASPECT_RATIO,
+                    { APP.actions.printAllAudioItemMetadata(it) }
+            ),
             FastColAction(
                     "Add to new playlist",
                     "Add items to new playlist widget.",
@@ -184,7 +190,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             FastColAction(
                     "Show as Group",
                     "Group items in a table.",
-                    MaterialIcon.COLLECTIONS,
+                    IconMA.COLLECTIONS,
                     { items -> APP.widgetManager.widgets
                             .find(Widgets.LIBRARY_VIEW, NEW, false)
                                 .ifPresent { it.controller.ownedInputs.getInput<Collection<Item>>("To display").setValue(items) }
@@ -197,11 +203,17 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     IconMA.DELETE,
                     { it.recycle() }
             ),
-            FastAction(
-                    "Read metadata", "Prints all image metadata to console.",
+            SlowAction(
+                    "Print raw  metadata", "Prints all image metadata to console.",
                     IconMA.IMAGE_ASPECT_RATIO,
                     { ImageFileFormat.isSupported(it) },
                     { APP.actions.printAllImageFileMetadata(it) }
+            ),
+            FastAction(
+                    "Print raw  metadata", "Prints all audio metadata to console.",
+                    IconMA.IMAGE_ASPECT_RATIO,
+                    { AudioFileFormat.isSupported(it, Use.APP) },
+                    { APP.actions.printAllAudioFileMetadata(it) }
             ),
             FastAction(
                     "Open (OS)", "Opens file in a native program associated with this file type.",

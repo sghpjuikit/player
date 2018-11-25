@@ -46,11 +46,13 @@ import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.WidgetSource;
 import sp.it.pl.layout.widget.feature.ConfiguringFeature;
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature;
+import sp.it.pl.layout.widget.feature.TextDisplayFeature;
 import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.action.ActionRegistrar;
 import sp.it.pl.util.action.IsAction;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.conf.ValueConfig;
+import sp.it.pl.util.dev.Blocks;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.functional.Functors;
@@ -58,6 +60,7 @@ import sp.it.pl.util.system.EnvironmentKt;
 import sp.it.pl.util.validation.Constraint.StringNonEmpty;
 import sp.it.pl.web.DuckDuckGoQBuilder;
 import sp.it.pl.web.WebBarInterpreter;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.PopupControl.USE_COMPUTED_SIZE;
 import static javafx.scene.input.KeyCode.ENTER;
@@ -65,6 +68,7 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
+import static sp.it.pl.audio.tagging.ExtKt.readAudioFile;
 import static sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE;
 import static sp.it.pl.layout.widget.WidgetSource.NEW;
 import static sp.it.pl.main.AppUtil.APP;
@@ -75,6 +79,8 @@ import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.dev.Util.logger;
+import static sp.it.pl.util.dev.Util.stackTraceAsString;
+import static sp.it.pl.util.dev.Util.throwIfFxThread;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.set;
@@ -132,6 +138,7 @@ public class AppActions {
 					graphics = (IconInfo) getGraphic();
 				else {
 					graphics = new IconInfo(null, iconSize);
+					graphics.setMouseTransparent(true);
 					setGraphic(graphics);
 				}
 				graphics.setGlyph(empty ? null : icon);
@@ -396,29 +403,80 @@ public class AppActions {
 		else add1timeEventHandler(window, WindowEvent.WINDOW_SHOWN, t -> r.apply());
 	}
 
+	/**
+	 * The check whether file exists, is accessible or of correct type/format is left on the caller and behavior in
+	 * such cases is undefined.
+	 */
+	@Blocks
 	public void printAllImageFileMetadata(File file) {
+		throwIfFxThread();
+
+		String t = "Metadata of " + file.getPath();
 		try {
-			StringBuilder sb = new StringBuilder("Metadata of ").append(file.getPath());
+			StringBuilder sb = new StringBuilder();
 			com.drew.metadata.Metadata metadata = ImageMetadataReader.readMetadata(file);
 			metadata.getDirectories().forEach(d -> {
 				sb.append("\nName: ").append(d.getName());
 				d.getTags().forEach(tag -> sb.append("\n\t").append(tag.toString()));
 			});
-			APP.widgetManager.widgets.find(Widgets.LOGGER, WidgetSource.ANY); // open console automatically
-			System.out.println(sb.toString());
-		} catch (IOException|ImageProcessingException e) {
-			e.printStackTrace();    // TODO: improve
+			t = t + sb.toString();
+		} catch (IOException | ImageProcessingException e) {
+			t = t + "\n" + stackTraceAsString(e);
 		}
+		String text = t;
+		runFX(() -> APP.widgetManager.widgets.find(TextDisplayFeature.class, NEW).ifPresent(w -> w.showText(text)));
+	}
+
+	/**
+	 * The check whether file exists, is accessible or of correct type/format is left on the caller and behavior in
+	 * such cases is undefined.
+	 */
+	@Blocks
+	public void printAllAudioItemMetadata(Item item) {
+		throwIfFxThread();
+
+		if (item.isFileBased()) {
+			printAllAudioFileMetadata(item.getFile());
+		} else {
+			String text = "Metadata of " + item.getUri()+ "\n<only supported for files>";
+			runFX(() -> APP.widgetManager.widgets.find(TextDisplayFeature.class, NEW).ifPresent(w -> w.showText(text)));
+		}
+	}
+
+	/**
+	 * The check whether file exists, is accessible or of correct type/format is left on the caller and behavior in
+	 * such cases is undefined.
+	 */
+	@Blocks
+	public void printAllAudioFileMetadata(File file) {
+		throwIfFxThread();
+
+		String text = ""
+			+ "Metadata of " + file.getPath()
+			+  readAudioFile(file)
+				.map(af -> ""
+						+ "\nHeader:" + "\n" + af.getAudioHeader().toString().replace("\n", "\n\t")
+						+ "\nTag:" + ((af.getTag()==null)
+							? " " + "<none>"
+							: stream(af.getTag().getFields()).map(it -> "\n\t" + it.getId() + ":" + it.toString()).collect(joining(""))
+						)
+				)
+				.getOrSupply(e -> "\n" + stackTraceAsString(e));
+		runFX(() -> APP.widgetManager.widgets.find(TextDisplayFeature.class, NEW).ifPresent(w -> w.showText(text)));
 	}
 
 	@IsAction(name = "Print running java processes")
 	public void printJavaProcesses() {
-		VirtualMachine.list().forEach(vm -> {
-			System.out.println("VM:");
-			System.out.println("    id: " + vm.id());
-			System.out.println("    displayName: " + vm.displayName());
-			System.out.println("    provider: " + vm.provider());
-		});
+		String text = VirtualMachine.list().stream()
+			.map(vm -> ""
+				+ "\nVM:"
+				+ "\n\tid: " + vm.id()
+				+ "\n\tdisplayName: " + vm.displayName()
+				+ "\n\tprovider: " + vm.provider()
+			)
+			.collect(joining(""));
+		System.out.println("displaying " + text);
+		APP.widgetManager.widgets.find(TextDisplayFeature.class, NEW).ifPresent(w -> w.showText(text));
 	}
 
 	public void refreshItemsFromFileJob(List<? extends Item> items) {

@@ -497,6 +497,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         /** Equivalent to: `getWidget(w->w.hasFeature(feature), source).map(w->(F)w.getController())` */
         @Suppress("UNCHECKED_CAST")
+        @JvmOverloads
         fun <F> find(feature: Class<F>, source: WidgetSource, ignore: Boolean = false): Optional<F> =
                 find({ it.hasFeature(feature) }, source, ignore).map { it.getController() as F }
 

@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import javafx.animation.Interpolator;
 import javafx.beans.property.DoubleProperty;
 import javafx.collections.ListChangeListener.Change;
@@ -81,7 +82,6 @@ import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.AsyncKt.sleeping;
 import static sp.it.pl.util.async.future.Fut.fut;
-import static sp.it.pl.util.async.future.Fut.futAfter;
 import static sp.it.pl.util.conf.ConfigurationUtilKt.computeConfigGroup;
 import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
 import static sp.it.pl.util.functional.Util.IS;
@@ -301,7 +301,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 
 	@SafeVarargs
 	@SuppressWarnings("unused")
-	public final <T> void show(Class<T> type, Fut<T> value, boolean exclusive, SlowAction<T,?>... actions) {
+	public final <T> void show(Class<T> type, Fut<T> value, boolean exclusive, SlowAction<T>... actions) {
 		data = value;
 		actionsIcons = list(actions);
 		use_registered_actions = !exclusive;
@@ -454,14 +454,14 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 				return a.condition.test(collectionWrap(d));
 			}
 			if (a.groupApply==FOR_EACH) {
-				List ds = list(d instanceof Collection ? (Collection)d : listRO(d));
-				return ds.stream().noneMatch(a.condition);
+				Stream<Object> ds = d instanceof Collection ? ((Collection)d).stream() : stream(d);
+				return ds.noneMatch(a.condition);
 			}
 			if (a.groupApply==NONE) {
 				Object o = collectionUnwrap(d);
 				return o instanceof Collection || !a.condition.test(o);
 			}
-			throw new RuntimeException("Illegal switch case");
+			throw new SwitchException(a.groupApply);
 		});
 
 		if (!showIcons) {
@@ -514,7 +514,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 			action.accept(data);
 			doneHide(action);
 		} else {
-			futAfter(fut(data))
+			fut(data)
 				.then(FX, () -> actionProgress.setProgress(-1))
 				// run action and obtain output
 				.use(action)
@@ -697,7 +697,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	}
 
 	/** Action that executes asynchronously - receives a future, processes the data and returns it. */
-	private static class SlowActionBase<C,T,R> extends ActionData<C,T> {
+	private static class SlowActionBase<C,T> extends ActionData<C,T> {
 
 		public SlowActionBase(String name, String description, GlyphIcons icon, GroupApply groupApply, Predicate<? super T> constriction, Consumer<? super T> act) {
 			super(name, description, icon, groupApply, constriction, true, act);
@@ -705,7 +705,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 
 	}
 	/** SlowAction that processes simple input - its type is the same as type of the action. */
-	public static class SlowAction<T,R> extends SlowActionBase<T,T,R> {
+	public static class SlowAction<T> extends SlowActionBase<T,T> {
 
 		public SlowAction(String name, String description, GlyphIcons icon, Consumer<? super T> act) {
 			super(name, description, icon, NONE, IS, act);
@@ -715,9 +715,13 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 			super(name, description, icon, groupApply, IS, act);
 		}
 
+		public SlowAction(String name, String description, GlyphIcons icon, Predicate<? super T> constriction, Consumer<? super T> act) {
+			super(name, description, icon, NONE, constriction, act);
+		}
+
 	}
 	/** SlowAction that processes collection input - its input type is collection of its type. */
-	public static class SlowColAction<T> extends SlowActionBase<T,Collection<T>,Void> {
+	public static class SlowColAction<T> extends SlowActionBase<T,Collection<T>> {
 
 		public SlowColAction(String name, String description, GlyphIcons icon, Consumer<? super Collection<T>> act) {
 			super(name, description, icon, FOR_ALL, ISNT, act);

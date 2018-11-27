@@ -12,6 +12,7 @@ import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.eFX;
+import static sp.it.pl.util.async.future.FutHelperKt.logging;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.dev.Util.noNull;
 
@@ -42,36 +43,19 @@ public class Fut<T> {
 		return new Fut<>();
 	}
 
-	public static <T> Fut<T> fut(T t) {
-		return new Fut<>(t);
+	public static <T> Fut<T> fut(T block) {
+		return new Fut<>(block);
 	}
 
-	public static <T> Fut<T> futWith(Supplier<T> t) {
-		noNull(t);
-		return new Fut<>(CompletableFuture.supplyAsync(t));
-	}
-
-	public static <T> Fut<T> futAfter(Fut<T> f) {
-		CompletableFuture<T> nf = f.f.handle((result, exception) -> {
-			if (exception!=null) throw new RuntimeException("Fut encountered an error ", exception);
-			else return result;
-		});
-		return new Fut<>(nf);
-	}
-
-	public static <T> Fut<T> after(Fut<T> f) {
-		CompletableFuture<T> nf = f.f.handle((result, exception) -> {
-			if (exception!=null) throw new RuntimeException("Fut encountered an error ", exception);
-			else return result;
-		});
-		return new Fut<>(nf);
+	public static <T> Fut<T> futWith(Supplier<T> block) {
+		noNull(block);
+		return new Fut<>(CompletableFuture.supplyAsync(logging(block)));
 	}
 
 	public boolean isDone() {
 		return f.isDone();
 	}
 
-	@SuppressWarnings("TryWithIdenticalCatches")
 	public T getDone() {
 		try {
 			return f.get();
@@ -84,7 +68,6 @@ public class Fut<T> {
 		}
 	}
 
-	@SuppressWarnings("TryWithIdenticalCatches")
 	public T getDoneOrNull() {
 		if (f.isDone()) {
 			try {
@@ -105,67 +88,68 @@ public class Fut<T> {
 		f.cancel(mayInterruptIfRunning);
 	}
 
-	public <R> Fut<R> map(Function<? super T,? extends R> action) {
-		return new Fut<>(f.thenApplyAsync(action));
+	public <R> Fut<R> map(Function<? super T,? extends R> block) {
+		return new Fut<>(f.thenApplyAsync(logging(block)));
 	}
 
-	public <R> Fut<R> map(Executor executor, Function<? super T, ? extends R> action) {
-		return new Fut<>(f.thenApplyAsync(action, executor));
+	public <R> Fut<R> map(Executor executor, Function<? super T, ? extends R> block) {
+		return new Fut<>(f.thenApplyAsync(logging(block), executor));
 	}
 
-	public <R> Fut<R> map(Consumer<Runnable> executor, Function<? super T,? extends R> action) {
-		return new Fut<>(f.thenApplyAsync(action, executor::accept));
+	public <R> Fut<R> map(Consumer<Runnable> executor, Function<? super T,? extends R> block) {
+		return new Fut<>(f.thenApplyAsync(logging(block), executor::accept));
 	}
 
 	public <R> Fut<R> supply(R value) {
 		return supply(() -> value);
 	}
 
-	public <R> Fut<R> supply(Supplier<? extends R> action) {
-		return map(r -> action.get());
+	public <R> Fut<R> supply(Supplier<? extends R> block) {
+		return map(r -> block.get());
 	}
 
-	public <R> Fut<R> supply(Fut<R> action) {
+	public <R> Fut<R> supply(Fut<R> block) {
 		return new Fut<>(CompletableFuture.<Void>completedFuture(null)
 				.thenCompose(res -> f)
-				.thenCompose(res -> action.f));
+				.thenCompose(res -> block.f));
 	}
 
-	public <R> Fut<R> supply(Executor executor, Supplier<? extends R> action) {
-		return map(executor, r -> action.get());
+	public <R> Fut<R> supply(Executor executor, Supplier<? extends R> block) {
+		return map(executor, r -> block.get());
 	}
 
-	public <R> Fut<R> supply(Consumer<Runnable> executor, Supplier<? extends R> action) {
-		return map(executor, r -> action.get());
+	public <R> Fut<R> supply(Consumer<Runnable> executor, Supplier<? extends R> block) {
+		return map(executor, r -> block.get());
 	}
 
-	public Fut<T> use(Consumer<? super T> action) {
-		return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }));
+	public Fut<T> use(Consumer<? super T> block) {
+		return new Fut<>(f.thenApplyAsync(r -> { logging(block).accept(r); return r; }));
 	}
 
-	public Fut<T> use(Executor executor, Consumer<? super T> action) {
-		return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }, executor));
+	public Fut<T> use(Executor executor, Consumer<? super T> block) {
+		return new Fut<>(f.thenApplyAsync(r -> { logging(block).accept(r); return r; }, executor));
 	}
 
-	public Fut<T> use(Consumer<? super Runnable> executor, Consumer<? super T> action) {
-		return new Fut<>(f.thenApplyAsync(r -> {action.accept(r); return r; }, executor::accept));
+	public Fut<T> use(Consumer<? super Runnable> executor, Consumer<? super T> block) {
+		return new Fut<>(f.thenApplyAsync(r -> { logging(block).accept(r); return r; }, executor::accept));
 	}
 
-	public Fut<T> then(Runnable action) {
-		return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }));
+	public Fut<T> then(Runnable block) {
+		return new Fut<>(f.thenApplyAsync(r -> { logging(block).run(); return r; }));
 	}
 
-	public Fut<T> then(Executor executor, Runnable action) {
-		return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }, executor));
+	public Fut<T> then(Executor executor, Runnable block) {
+		return new Fut<>(f.thenApplyAsync(r -> { logging(block).run(); return r; }, executor));
 	}
 
-	public Fut<T> then(Consumer<? super Runnable> executor, Runnable action) {
-		return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }, executor::accept));
+	public Fut<T> then(Consumer<? super Runnable> executor, Runnable block) {
+		return new Fut<>(f.thenApplyAsync(r -> { logging(block).run(); return r; }, executor::accept));
 	}
 
-	public <R> Fut<R> then(CompletableFuture<R> action) {
-		return new Fut<>(f.thenComposeAsync(res -> action));
-	}
+	// unsafe exception handling, disable for now
+//	public <R> Fut<R> then(CompletableFuture<R> block) {
+//		return new Fut<>(f.thenComposeAsync(res -> block));
+//	}
 
 	/**
 	 * Returns new future, which sets progress to 0 on fx thread, then executes
@@ -226,13 +210,4 @@ public class Fut<T> {
 		return then.apply(this);
 	}
 	
-	// TODO: shouldnt this be on by default? Solve the problem of common ForkJoinPool consuming exceptions
-	public Fut<T> printExceptions() {
-		f.exceptionally(x -> {
-			x.printStackTrace();
-			return null;
-		});
-		return this;
-	}
-
 }

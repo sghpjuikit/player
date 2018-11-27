@@ -35,10 +35,10 @@ val Tag.ratingMin: Int get() = 0
 fun Tag.clipRating(v: Double): Double = clip(ratingMin.toDouble(), v, ratingMax.toDouble())
 
 /** @return audio file or error if fails */
-fun File.readAudioFile(): Try<AudioFile, Void> {
+fun File.readAudioFile(): Try<AudioFile, Exception> {
     val onError = { e: Exception ->
         logger.error(e) { "Reading metadata failed for file $this" }
-        Try.error<AudioFile>()
+        Try.error<AudioFile, Exception>(e)
     }
     return try {
         Try.ok(AudioFileIO.read(this))

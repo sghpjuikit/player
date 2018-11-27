@@ -300,8 +300,7 @@ public class Library extends FXMLController implements SongReader {
             .use(FX, taskInfo::showNbind)
             .use(Task::run)
             .then(sleeping(seconds(5)))
-            .then(FX, () -> hideInfo.playOpenDo(taskInfo::hideNunbind))
-            .printExceptions();
+            .then(FX, () -> hideInfo.playOpenDo(taskInfo::hideNunbind));
     }
 
 }

@@ -1,8 +1,10 @@
 package logger
 
 import javafx.scene.control.TextArea
+import kotlinx.coroutines.NonCancellable.children
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.widget.feature.TextDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.util.conf.IsConfig
@@ -18,7 +20,7 @@ import sp.it.pl.util.graphics.setMinPrefMaxSize
         year = "2015",
         group = Widget.Group.DEVELOPMENT
 )
-class Logger(widget: Widget<*>): SimpleController(widget) {
+class Logger(widget: Widget<*>): SimpleController(widget), TextDisplayFeature {
 
     private val area = TextArea()
 
@@ -42,5 +44,7 @@ class Logger(widget: Widget<*>): SimpleController(widget) {
         //                System.setOut(con)
         //                System.setErr(con)
     }
+
+    override fun showText(text: String) = println(text)
 
 }

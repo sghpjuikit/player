@@ -26,7 +26,7 @@ class Search {
                 it.styleclass("search-icon-sign")
                 it.isMouseTransparent = true
             }
-            val fade = anim(millis(200)) { clearB.opacity = it }.applyNow()
+            val fade = anim(200.millis) { clearB.opacity = it }.applyNow()
 
             styleClass += "search"
             right.value = clearB

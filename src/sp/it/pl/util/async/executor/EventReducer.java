@@ -2,7 +2,9 @@ package sp.it.pl.util.async.executor;
 
 import java.util.function.Consumer;
 import sp.it.pl.util.functional.Functors.Ƒ2;
-import static sp.it.pl.util.math.Util.millis;
+import static javafx.util.Duration.millis;
+import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 
 /**
  * Event frequency reducer. Consumes events and reduces close temporal successions into (exactly)
@@ -101,7 +103,7 @@ public abstract class EventReducer<E> {
 
 		public HandlerLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
 			super(inter_period, reduction, handler);
-			t = new FxTimer(inter_period, 1, () -> action.accept(e));
+			t = fxTimer(millis(inter_period), 1, runnable(() -> action.accept(e)));
 		}
 
 		@Override
@@ -122,11 +124,11 @@ public abstract class EventReducer<E> {
 
 		public HandlerEvery(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
 			super(inter_period, reduction, handler);
-			t = new FxTimer(millis(inter_period), 1, () -> {
+			t = fxTimer(millis(inter_period), 1, runnable(() -> {
 				action.accept(e);
 				if (fired) t.start();
 				fired = false;
-			});
+			}));
 		}
 
 		@Override
@@ -170,7 +172,7 @@ public abstract class EventReducer<E> {
 
 		public HandlerFirstDelayed(double inter_period, Consumer<E> handler) {
 			super(inter_period, null, handler);
-			t = new FxTimer(inter_period, 1, () -> action.accept(e));
+			t = fxTimer(millis(inter_period), 1, runnable(() -> action.accept(e)));
 		}
 
 		@Override

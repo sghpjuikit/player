@@ -35,7 +35,6 @@ import sp.it.pl.layout.widget.controller.io.InOutput;
 import sp.it.pl.util.action.IsAction;
 import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.async.executor.FxTimer;
-import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.math.Portion;
 import sp.it.pl.util.reactive.Handler0;
@@ -46,6 +45,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.playback.PlayTimeHandler.at;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -53,10 +53,13 @@ import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.async.AsyncKt.threadFactory;
 import static sp.it.pl.util.async.executor.EventReducer.toLast;
+import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
+import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
 import static sp.it.pl.util.functional.Functors.Ƒ.f;
 import static sp.it.pl.util.functional.Util.list;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
 
 public class Player {
@@ -123,7 +126,7 @@ public class Player {
 	public static class CurrentItem {
 		private Metadata val = Metadata.EMPTY;
 		private Metadata valNext = Metadata.EMPTY;
-		private final FxTimer valNextLoader = new FxTimer(400, 1, () -> preloadNext());
+		private final FxTimer valNextLoader = fxTimer(millis(400), 1, runnable(() -> preloadNext()));
 		private final List<BiConsumer<? super Metadata,? super Metadata>> changes = new ArrayList<>();
 		private final List<BiConsumer<? super Metadata,? super Metadata>> updates = new ArrayList<>();
 
@@ -255,9 +258,9 @@ public class Player {
 
 		// load metadata, type indicates UPDATE vs CHANGE
 		private void load(boolean changeType, Item item) {
-			Fut.fut(item)
-				.map(Player.IO_THREAD, MetadataReader::readMetadata)
-				.use(FX, m -> set(changeType, m.isEmpty() ? item.toMeta() : m));
+			fut(item)
+				.then(Player.IO_THREAD, MetadataReader::readMetadata)
+				.useBy(FX, m -> set(changeType, m.isEmpty() ? item.toMeta() : m));
 		}
 
 		private void preloadNext() {
@@ -265,9 +268,9 @@ public class Player {
 
 			PlaylistItem next = PlaylistManager.use(Playlist::getNextPlaying, null);
 			if (next!=null) {
-				Fut.fut(next)
-					.map(Player.IO_THREAD, MetadataReader::readMetadata)
-					.use(FX, m -> valNext = m);
+				fut(next)
+					.then(Player.IO_THREAD, MetadataReader::readMetadata)
+					.useBy(FX, m -> valNext = m);
 			}
 		}
 	}
@@ -415,12 +418,12 @@ public class Player {
 		if (s==PAUSED) {
 			// THIS NEEDS TO GET FIXED
 			player.play(PlaylistManager.use(Playlist::getPlaying, null));
-			runFX(1000, player::pause);
+			runFX(millis(1000), player::pause);
 		}
 		if (s==PLAYING) {
 			player.play(PlaylistManager.use(Playlist::getPlaying, null));
 			// suspension_flag = false; // set inside player.play();
-			runFX(200, () -> suspension_flag = false); // just in case som condition prevents resetting flag
+			runFX(millis(200), () -> suspension_flag = false); // just in case som condition prevents resetting flag
 		} else {
 			suspension_flag = false;
 		}

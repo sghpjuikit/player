@@ -49,7 +49,7 @@ class Image: FXMLController(), ImageDisplayFeature {
                 root, DETAILS, "Display",
                 { DragUtil.hasImage(it) },
                 { e -> img!=null && img==DragUtil.getImageNoUrl(e) },
-                { e -> DragUtil.getImage(e).use(FX, Consumer<File> { this.showImage(it) }) }
+                { e -> DragUtil.getImage(e) ui { showImage(it) } }
         )
         root.setOnKeyPressed {
             if (it.code==KeyCode.ENTER) {

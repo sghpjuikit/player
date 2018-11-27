@@ -38,7 +38,6 @@ import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
 import sp.it.pl.util.async.executor.ExecuteN;
-import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
@@ -60,14 +59,15 @@ import static sp.it.pl.audio.tagging.Metadata.Field.RATING;
 import static sp.it.pl.audio.tagging.Metadata.Field.TITLE;
 import static sp.it.pl.gui.nodeinfo.TableInfo.DEFAULT_TEXT_FACTORY;
 import static sp.it.pl.layout.widget.Widget.Group.LIBRARY;
+import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.rowHeight;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.util.animation.Anim.Interpolators.reverse;
 import static sp.it.pl.util.async.AsyncKt.FX;
-import static sp.it.pl.util.async.AsyncKt.sleeping;
+import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.file.Util.getCommonRoot;
 import static sp.it.pl.util.functional.Util.map;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.menuItem;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
@@ -296,11 +296,11 @@ public class Library extends FXMLController implements SongReader {
 
     private void removeInvalid() {
         Task<Void> t = MetadataReader.buildRemoveMissingFromLibTask();
-        Fut.fut(t)
-            .use(FX, taskInfo::showNbind)
-            .use(Task::run)
-            .then(sleeping(seconds(5)))
-            .then(FX, () -> hideInfo.playOpenDo(taskInfo::hideNunbind));
+        fut(t)
+            .useBy(FX, taskInfo::showNbind)
+            .useBy(Task::run)
+            .thenWait(seconds(5))
+            .useBy(FX, it -> hideInfo.playOpenDo(runnable(taskInfo::hideNunbind)));
     }
 
 }

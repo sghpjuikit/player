@@ -22,7 +22,7 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.fieldvalue.CachingFile;
 import sp.it.pl.util.access.fieldvalue.FileField;
-import sp.it.pl.util.async.future.Fut;
+import sp.it.pl.util.async.AsyncKt;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.conf.Config.VarList.Elements;
 import sp.it.pl.util.conf.EditMode;
@@ -39,6 +39,7 @@ import sp.it.pl.util.validation.Constraint;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static java.util.Comparator.nullsLast;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -52,10 +53,10 @@ import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.newThreadPoolExecutor;
 import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.onlyIfMatches;
-import static sp.it.pl.util.async.AsyncKt.runAfter;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.AsyncKt.threadFactory;
+import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.file.FileSort.DIR_FIRST;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.Util.getCommonRoot;
@@ -208,16 +209,15 @@ public class DirViewer extends SimpleController {
 
         item = dir;
         lastVisited = dir.val;
-        Fut.fut(item)
-                .map(executorIO, Item::children)
-                .use(executorIO, cells -> cells.sort(buildSortComparator()))
-                .use(FX, cells -> {
+        fut(item)
+                .then(executorIO, it -> it.children().stream().sorted(buildSortComparator()).collect(toList()))
+                .useBy(FX, cells -> {
                     grid.getItemsRaw().setAll(cells);
                     if (item.lastScrollPosition>= 0)
                         grid.implGetSkin().setPosition(item.lastScrollPosition);
 
                     grid.requestFocus();    // fixes focus problem
-                    runAfter(millis(500), grid::requestFocus);
+                    runFX(millis(500), grid::requestFocus);
                 })
                 .showProgress(getOwnerWidget().getWindowOrActive().map(Window::taskAdd));
     }

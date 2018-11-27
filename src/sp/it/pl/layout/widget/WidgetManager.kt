@@ -81,7 +81,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
     /** Separates entries of a java classpath argument, passed to JVM. */
     private var classpathSeparator = Os.current.classpathSeparator
     private var initialized = false
-    private val compilerThread by lazy { oneCachedThreadExecutor(seconds(30), threadFactory("widgetCompiler", true)) }
+    private val compilerThread by lazy { oneCachedThreadExecutor(30.seconds, threadFactory("widgetCompiler", true)) }
 
     fun init() {
         if (initialized) return
@@ -96,31 +96,33 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         factoriesC += emptyWidgetFactory
 
         // external factories
+        val isMetaInfWidget: File.() -> Boolean = { path.contains("META-INF") }
         val dirW = APP.DIR_WIDGETS
         if (!isValidatedDirectory(dirW)) {
             logger.error { "External widgets registration failed." }
         } else {
             dirW.listChildren()
-                    .filter { it.isDirectory }
+                    .filter { it.isDirectory && !it.isMetaInfWidget() }
                     .forEach { widgetDir ->
                         val name = widgetDir.nameWithoutExtension.capitalize()
                         monitors.computeIfAbsent(name) { WidgetDir(name, widgetDir) }.registerExternalFactory()
                     }
 
             FileMonitor.monitorDirectory(dirW, true) { type, f ->
-                if (dirW==f || f.path.contains("META-INF")) {
-
-                } else if (dirW.isParentOf(f)) {
-                    val name = f.nameWithoutExtension.capitalize()
-                    if (type===ENTRY_CREATE) {
-                        if (f.isDirectory) {
-                            monitors.computeIfAbsent(name) { WidgetDir(name, f) }.registerExternalFactory()
+                when {
+                    dirW==f -> {}
+                    dirW.isMetaInfWidget() -> {}
+                    dirW.isParentOf(f) -> {
+                        val name = f.nameWithoutExtension.capitalize()
+                        if (type===ENTRY_CREATE) {
+                            if (f.isDirectory) {
+                                monitors.computeIfAbsent(name) { WidgetDir(name, f) }.registerExternalFactory()
+                            }
+                        } else if (type===ENTRY_DELETE) {
+                            monitors[name]?.dispose()
                         }
-                    } else if (type===ENTRY_DELETE) {
-                        monitors[name]?.dispose()
                     }
-                } else {
-                    monitors.find { it.widgetDir.isAnyParentOf(f) }?.handleResourceChange(type, f)
+                    else -> monitors.find { it.widgetDir.isAnyParentOf(f) }?.handleResourceChange(type, f)
                 }
             }
         }

@@ -8,7 +8,7 @@ import sp.it.pl.util.conf.between
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cvro
 import sp.it.pl.util.conf.only
-import sp.it.pl.util.math.millis
+import sp.it.pl.util.math.seconds
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 
 class PlayerConfiguration {
@@ -21,7 +21,7 @@ class PlayerConfiguration {
         var continuePlaybackPaused by c(false)
 
         @IsConfig(name = "Seek time unit", info = "Fixed time unit to jump, when seeking forward/backward.")
-        var seekUnitT by c(millis(4000))
+        var seekUnitT by c(4.seconds)
 
         @IsConfig(name = "Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.")
         var seekUnitP by c(0.05).between(0.0, 1.0)

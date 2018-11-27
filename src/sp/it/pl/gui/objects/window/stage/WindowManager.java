@@ -63,6 +63,7 @@ import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
+import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.file.UtilKt.listChildren;
@@ -71,6 +72,7 @@ import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.functional.Util.max;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.add1timeEventHandler;
 import static sp.it.pl.util.graphics.UtilKt.getScreenForMouse;
 import static sp.it.pl.util.reactive.Util.maintain;
@@ -328,7 +330,7 @@ public class WindowManager implements Configurable<Object> {
             Parent mw_root = miniWindow.getStage().getScene().getRoot();
             Anim a = new Anim(millis(200), x -> miniWindow.setY(-H.get()*x, false));
 
-            FxTimer hider = new FxTimer(0, 1, () -> {
+            FxTimer hider = fxTimer(ZERO, 1, runnable(() -> {
                 if (miniWindow==null) return;
                 if (miniWindow.getY()!=0) return;    // if not open
                 Duration d = a.getCurrentTime();
@@ -336,7 +338,7 @@ public class WindowManager implements Configurable<Object> {
                 a.stop();
                 a.setRate(1);
                 a.playFrom(millis(300).subtract(d));
-            });
+            }));
             mw_root.addEventFilter(MouseEvent.ANY, e -> {
                 if (!mini_hide_onInactive.get()) return;   // if disabled
                 if (mw_root.isHover()) return;       // if mouse still in (we only want MOUSE_EXIT)
@@ -344,7 +346,7 @@ public class WindowManager implements Configurable<Object> {
             });
             hider.runNow();
 
-            FxTimer shower = new FxTimer(0, 1, () -> {
+            FxTimer shower = fxTimer(ZERO, 1, runnable(() -> {
                 if (miniWindow==null) return;
                 if (miniWindow.getY()==0) return;    // if open
                 if (!mw_root.isHover()) return;      // if mouse left
@@ -353,7 +355,7 @@ public class WindowManager implements Configurable<Object> {
                 a.stop();
                 a.setRate(-1);
                 a.playFrom(d);
-            });
+            }));
             mw_root.addEventFilter(MOUSE_ENTERED, e -> {
                 if (!miniWindow.isShowing()) return;     // bug fix
                 shower.start(mini_hover_delay);         // open after delay

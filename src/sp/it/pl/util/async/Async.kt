@@ -3,11 +3,13 @@ package sp.it.pl.util.async
 import javafx.animation.Animation.INDEFINITE
 import javafx.application.Platform
 import javafx.util.Duration
+import javafx.util.Duration.ZERO
 import mu.KotlinLogging
 import sp.it.pl.util.async.executor.FxTimer
 import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.pl.util.dev.throwIf
+import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.functional.kt
 import sp.it.pl.util.math.millis
 import java.awt.EventQueue
 import java.util.concurrent.Executor
@@ -20,122 +22,101 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 
-// TODO: clean up entire file
-
 private val logger = KotlinLogging.logger { }
 
-@JvmField val FX = Consumer<Runnable> { runFX(it) }
-@JvmField val FX_LATER = Consumer<Runnable> { runLater(it) }
-@JvmField val NEW = Consumer<Runnable> { runNew(it) }
-@JvmField val CURR = Consumer<Runnable> { it() }
+operator fun Executor.invoke(block: Runnable) = execute(block)
+operator fun Executor.invoke(block: () -> Unit) = execute(block)
 
-fun FX_AFTER(delay: Double): Consumer<Runnable> = Consumer { runFX(delay, it) }
-fun FX_AFTER(delay: Duration): Consumer<Runnable> = Consumer { runFX(delay, { it.run() }) }
+@JvmField val FX = FxExecutor()
+@JvmField val FX_LATER = FxLaterExecutor()
+@JvmField val NEW = NewThreadExecutor()
+@JvmField val CURR = Executor { it() }
 
-@JvmField val eFX = Executor { FX(it) }
-@JvmField val eFX_LATER = Executor { FX_LATER(it) }
-@JvmField val eBGR = Executor { NEW(it) }
-@JvmField val eCURR = Executor { CURR(it) }
+class NewThreadExecutor: Executor {
+    override fun execute(command: Runnable) = runNew(command)
+    operator fun invoke(name: String) = Executor { runNew(name, it) }
+}
 
-/* --------------------- RUNNABLE ----------------------------------------------------------------------------------- */
+class FxExecutor: Executor {
+    override fun execute(command: Runnable) = runFX(command)
+    operator fun invoke(delay: Duration) = Executor { runFX(delay) { it() } }
+}
+
+class FxLaterExecutor: Executor {
+    override fun execute(command: Runnable) = runLater(command)
+    operator fun invoke(delay: Duration) = Executor { runFX(delay) { it() } }
+}
 
 /** Sleeps currently executing thread for specified duration. When interrupted, returns.  */
-fun sleep(d: Duration) = sleep(d.toMillis().toLong())
+fun sleep(duration: Duration) = sleep(duration.toMillis().toLong())
 
 /** Sleeps currently executing thread for duration specified in milliseconds. When interrupted, returns.  */
-fun sleep(millis: Long) {
+fun sleep(durationMillis: Long) {
     try {
-        Thread.sleep(millis)
+        Thread.sleep(durationMillis)
     } catch (e: InterruptedException) {
         logger.error { "Thread interrupted while sleeping" }
     }
 }
 
-/** Runnable that invokes [.sleep].  */
-fun sleeping(d: Duration): Runnable = Runnable { sleep(d) }
-
-/* --------------------- EXECUTORS ---------------------------------------------------------------------------------- */
+/** Executes the specified block using the specified executor. */
+fun runOn(executor: Executor, block: () -> Unit) = executor.execute(block)
 
 /**
- * Executes the action on current thread after specified delay from now.
- * Equivalent to `new FxTimer(delay, action, 1).restart();`.
- *
- * @param delay delay
- */
-fun runAfter(delay: Duration, action: Runnable) {
-    FxTimer(delay, 1, action).start()
-}
-
-fun runAfter(delay: Duration, action: () -> Unit) {
-    runAfter(delay, Runnable { action() })
-}
-
-/**
- * Executes the action on current thread after specified delay from now.
- * Equivalent to `new FxTimer(delay, 1, action).restart();`.
- *
- * @param delay delay in milliseconds
- */
-fun run(delay: Double, action: Runnable) {
-    FxTimer(delay, 1, action).start()
-}
-
-fun run(delay: Double, action: () -> Unit) {
-    run(delay, Runnable { action() })
-}
-
-/**
- * Executes the action on current thread repeatedly with given time period.
+ * Executes the specified block on current thread repeatedly with given time period.
  * Equivalent to `new FxTimer(delay, action, INDEFINITE).restart();`.
  *
  * @param period delay
- * @param action action. Takes the timer as a parameter. Use it to stop the periodic execution. Otherwise it will
+ * @param block action. Takes the timer as a parameter. Use it to stop the periodic execution. Otherwise it will
  * never stop !
  */
-fun runPeriodic(period: Duration, action: () -> Unit): FxTimer {
-    val t = fxTimer(period, INDEFINITE, action)
+fun runPeriodic(period: Duration, block: () -> Unit): FxTimer {
+    val t = fxTimer(period, INDEFINITE, block)
     t.start()
     return t
 }
 
 /**
- * Executes the runnable immediately on a new daemon thread.
- * Equivalent to
- * <pre>`Thread thread = new Thread(action);
+ * Executes the specified block immediately on a new daemon thread.
+ * Equivalent to:
+ * ```
+ * Thread thread = new Thread(action);
  * thread.setDaemon(true);
  * thread.start();
-`* </pre>
+ * ```
  */
-fun runNew(r: Runnable) {
-    Thread(r).apply {
+fun runNew(block: () -> Unit) {
+    Thread(block).apply {
         isDaemon = true
         start()
     }
 }
 
-fun runNew(r: () -> Unit) = runNew(Runnable { r() })
+/** Legacy version of [runNew] for Java taking a [Runnable]. */
+fun runNew(block: Runnable) = runNew(block.kt)
 
-fun runNew(threadName: String, r: Runnable) {
-    Thread(r).apply {
+fun runNew(threadName: String, block: () -> Unit) {
+    Thread(block).apply {
         isDaemon = true
         name = threadName
         start()
     }
 }
 
-fun runNew(threadName: String, r: () -> Unit) = runNew(threadName, Runnable { r() })
+/** Legacy version of [runNew] for Java taking a [Runnable]. */
+fun runNew(threadName: String, block: Runnable) = runNew(threadName, block.kt)
 
-fun runAfter(delay: Duration, executor: Consumer<Runnable>, r: Runnable) {
-    if (delay.lessThanOrEqualTo(Duration.ZERO)) {
-        executor(r)
+fun runAfter(delay: Duration, executor: Consumer<Runnable>, block: Runnable) {
+    if (delay.lessThanOrEqualTo(ZERO)) {
+        executor(block)
     } else {
         executor(Runnable {
             if (Platform.isFxApplicationThread()) {
-                FxTimer(delay, 1, r).start()
+                fxTimer(delay, 1, block.kt).start()
             } else {
                 try {
                     Thread.sleep(delay.toMillis().toLong())
-                    r()
+                    block()
                 } catch (e: InterruptedException) {
                     logger.error(e) { "Thread interrupted while sleeping" }
                 }
@@ -145,71 +126,76 @@ fun runAfter(delay: Duration, executor: Consumer<Runnable>, r: Runnable) {
     }
 }
 
-fun runNewAfter(delay: Duration, r: Runnable) {
-    val thread = Thread {
-        try {
-            Thread.sleep(delay.toMillis().toLong())
-            r()
-        } catch (e: InterruptedException) {
-            logger.error(e) { "Thread interrupted while sleeping" }
-        }
+fun runNewAfter(delay: Duration, block: Runnable) = runNew("delayed-bgr-action") {
+    try {
+        Thread.sleep(delay.toMillis().toLong())
+        block()
+    } catch (e: InterruptedException) {
+        logger.error(e) { "Thread interrupted while sleeping" }
     }
-    thread.isDaemon = true
-    thread.start()
 }
 
-/** Executes runnable on awt thread, immediately if called on fx thread, or using [EventQueue.invokeLater] otherwise. */
+/** Executes the specified block on awt thread, immediately if called on awt thread, or using [EventQueue.invokeLater] otherwise. */
 fun runAwt(block: () -> Unit) = if (EventQueue.isDispatchThread()) block() else EventQueue.invokeLater(block)
 
-/** Executes runnable on fx thread, immediately if called on fx thread, or using [Platform.runLater] otherwise. */
-fun runFX(r: Runnable): Unit = if (Platform.isFxApplicationThread()) r() else Platform.runLater(r)
+/** Legacy version of [runFX] for Java taking a [Runnable]. */
+fun runFX(block: Runnable): Unit = runFX(block.kt)
 
-fun runFX(r: () -> Unit) = runFX(Runnable { r() })
+/** Executes the specified block on fx thread, immediately if called on fx thread, or using [Platform.runLater] otherwise. */
+fun runFX(block: () -> Unit) = if (Platform.isFxApplicationThread()) block() else Platform.runLater(block)
 
-fun runNotFX(r: Runnable): Unit = if (Platform.isFxApplicationThread()) runNew(r) else r()
+/** Legacy version of [runFX] for Java taking a [Runnable]. */
+fun runFX(delay: Duration, block: Runnable) = runFX(delay, block.kt)
 
-fun runNotFX(r: () -> Unit) = runNotFX(Runnable { r() })
+fun runNotFX(block: () -> Unit): Unit = if (Platform.isFxApplicationThread()) runNew(block) else block()
+
+/** Legacy version of [runNotFX] for Java taking a [Runnable]. */
+fun runNotFX(block: Runnable) = runNotFX(block.kt)
+
 
 /**
- * Executes the action on fx thread after specified delay from now.
+ * Executes the specified block on fx thread after specified delay from now.
  *
- * @param delay delay in milliseconds
+ * If delay is
+ * * zero, block is invoked immediately if called on fx thread, or using [Platform.runLater] otherwise
+ * * less than zero exception is thrown.
+ * * more than zero, blocked is invoked after the delay
  */
-fun runFX(delay: Double, r: Runnable) {
-    throwIf(delay<0)
-    if (delay==0.0)
-        runFX(r)
-    else
-        fxTimer(delay, 1) { runFX(r) }.start()
-}
-
-fun runFX(delay1: Double, r1: Runnable, delay2: Double, r2: Runnable) {
-    throwIf(delay1<0)
-    runFX(millis(delay1)) {
-        r1()
-        runFX(delay2, r2)
+fun runFX(delay: Duration, block: () -> Unit) {
+    when {
+        delay < ZERO -> fail()
+        delay > ZERO -> {
+            val time = System.currentTimeMillis().toDouble()
+            runFX {
+                val diff = System.currentTimeMillis()-time
+                val duration = (delay.toMillis()-diff).coerceAtLeast(0.0)
+                fxTimer(duration.millis, 1, block).start()
+            }
+        }
+        else -> runFX(block)
     }
 }
 
-/** Executes the action on fx thread after specified delay from now. */
-fun runFX(delay: Duration, r: () -> Unit) {
-    fxTimer(delay, 1) { runFX(r) }.start()
+/* Executes the specified blocks on fx thread sequentially with the specified delays. */
+fun runFX(delay1: Double, block1: () -> Unit, delay2: Double, block2: () -> Unit) {
+    runFX(delay1.millis) {
+        block1()
+        runFX(delay2.millis, block2)
+    }
 }
 
-/** Executes the specified block using the specified executor. */
-fun runOn(executor: Executor, block: () -> Unit) = executor.execute(block)
+/** Legacy version of [runLater] for Java taking a [Runnable]. */
+fun runLater(block: Runnable) = runLater(block.kt)
 
 /**
- * Executes the runnable on fx thread at unspecified time in the future.
+ * Executes the specified block on fx thread at unspecified time in the future.
  *
- * Use to execute the action on fx thread, but not immediately. In practice
- * the delay is very small.
+ * Use to execute the action on fx thread, but not immediately (i.e. skip the current pulse).
+ * In practice the delay is very small.
  *
  * Equivalent to: `Platform.runLater(r);
  */
-fun runLater(r: Runnable) = Platform.runLater(r)
-
-fun runLater(r: () -> Unit) = runLater(Runnable { r() })
+fun runLater(block: () -> Unit) = Platform.runLater(block)
 
 fun onlyIfMatches(r: Runnable, counter: AtomicLong): Runnable {
     val c = counter.get()

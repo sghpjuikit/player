@@ -20,7 +20,7 @@ class PlayerConfiguration {
         @IsConfig(name = "Pause playback on start", info = "Continue last remembered playback paused on application start.")
         var continuePlaybackPaused by c(false)
 
-        @IsConfig(name = "Seek time unit", info = "Fixed time unit to jump, when seeking forward/backward.")
+        @IsConfig(name = "Seek time unit", info = "Time to jump by when seeking forward/backward.")
         var seekUnitT by c(4.seconds)
 
         @IsConfig(name = "Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.")

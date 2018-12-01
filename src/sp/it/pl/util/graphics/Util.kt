@@ -153,6 +153,16 @@ fun Node.setAnchors(top: Double?, right: Double?, bottom: Double?, left: Double?
     AnchorPane.setLeftAnchor(this, left)
 }
 
+fun Region.setMinWidth(minWidth: Number) = setMinWidth(minWidth.toDouble())
+fun Region.setMinHeight(minHeight: Number) = setMinHeight(minHeight.toDouble())
+fun Region.setMinSize(minWidth: Number, minHeight: Number) = setMinSize(minWidth.toDouble(), minHeight.toDouble())
+fun Region.setMaxWidth(maxWidth: Number) = setMaxWidth(maxWidth.toDouble())
+fun Region.setMaxHeight(maxHeight: Number) = setMaxHeight(maxHeight.toDouble())
+fun Region.setMaxSize(maxWidth: Number, maxHeight: Number) = setMaxSize(maxWidth.toDouble(), maxHeight.toDouble())
+fun Region.setPrefWidth(prefWidth: Number) = setPrefWidth(prefWidth.toDouble())
+fun Region.setPrefHeight(prefHeight: Number) = setPrefHeight(prefHeight.toDouble())
+fun Region.setPrefSize(prefWidth: Number, prefHeight: Number) = setPrefSize(prefWidth.toDouble(), prefHeight.toDouble())
+
 /**
  * Sets minimal, preferred and maximal width and height of this element to provided values.
  * Any bound property will be ignored. Null value will be ignored.

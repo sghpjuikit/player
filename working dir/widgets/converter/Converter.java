@@ -44,7 +44,6 @@ import sp.it.pl.layout.widget.feature.Opener;
 import sp.it.pl.layout.widget.feature.SongWriter;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
-import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.collections.map.ClassListMap;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.file.Util;
@@ -67,6 +66,7 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.capitalizeStrong;
 import static sp.it.pl.util.Util.filenamizeString;
+import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.Util.writeFile;
 import static sp.it.pl.util.functional.Util.equalBy;
@@ -206,8 +206,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(Metadata.Field.FIELDS, f -> f.name()), data -> {
             List<Item> songs = source.stream().filter(Item.class::isInstance).map(Item.class::cast).collect(toList());
             if (songs.isEmpty()) return;
-            Fut.fut()
-               .then(Player.IO_THREAD, () -> {
+            fut()
+               .useBy(Player.IO_THREAD, it -> {
                     for (int i=0; i<songs.size(); i++) {
                         int j = i;
                         MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field, values) -> w.setFieldS(Metadata.Field.valueOf(field), values.get(j))));
@@ -510,8 +510,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         public ActCreateDirs() {
             super("Create directories", Void.class, 1, list("Names (Paths)"), (Consumer<Map<String,List<? extends String>>>) null);
             actionImpartial = data ->
-                Fut.fut(data.get("Names (Paths)"))
-                   .use(names -> {
+                fut(data.get("Names (Paths)"))
+                   .useBy(names -> {
                        File dir = loc.get();
                        names.forEach((String name) -> {
                            try {

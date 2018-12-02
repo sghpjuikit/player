@@ -50,9 +50,9 @@ class PlaybackStateDB(s: PlaybackState): Serializable {
         it.balance.value = balance
         it.loopMode.value = LoopMode.valueOf(loopMode)
         it.status.value = Status.valueOf(status)
-        it.duration.value = millis(duration)
-        it.currentTime.value = millis(currentTime)
-        it.realTime.value = millis(realTime)
+        it.duration.value = duration.millis
+        it.currentTime.value = currentTime.millis
+        it.realTime.value = realTime.millis
         it.mute.value = mute
         it.rate.value = rate
     }

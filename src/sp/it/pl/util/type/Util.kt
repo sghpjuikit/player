@@ -54,4 +54,5 @@ fun <T> atomic(initialValue: T) = object: ReadWriteProperty<Any?, T> {
     override fun getValue(thisRef: Any?, property: KProperty<*>) = ref.get()
 
     override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) = ref.set(value)
+
 }

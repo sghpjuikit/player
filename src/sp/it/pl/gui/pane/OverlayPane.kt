@@ -26,7 +26,6 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.resizeButton
 import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim
-import sp.it.pl.util.async.runAfter
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.conf.IsConfig
@@ -119,7 +118,7 @@ abstract class OverlayPane<in T>: StackPane() {
 /* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
 
     private lateinit var displayUsedForShow: Display // prevents inconsistency in start() and stop(), see use
-    private val animation by lazy { anim(APP.animationFps) { animDo(it) }.dur(millis(200)).intpl { it*it } } // lowering fps can help on hd screens & low-end hardware
+    private val animation by lazy { anim(APP.animationFps) { animDo(it) }.dur(200.0).intpl { it*it } } // lowering fps can help on hd screens & low-end hardware
     private var stg: Stage? = null
     private val blurBack = BoxBlur(0.0, 0.0, 3)  // we need best possible quality
     private val blurFront = BoxBlur(0.0, 0.0, 1) // we do not need quality, hence iterations==1
@@ -143,7 +142,7 @@ abstract class OverlayPane<in T>: StackPane() {
     open fun hide() {
         if (isShown()) {
             properties -= IS_SHOWN
-            animation.playCloseDo(Runnable { animEnd() })
+            animation.playCloseDo { animEnd() }
         }
     }
 
@@ -258,7 +257,7 @@ abstract class OverlayPane<in T>: StackPane() {
 
                     // start showing
                     // the preparation may cause an animation lag, hence delay a bit
-                    runAfter(millis(30)) {
+                    runFX(30.millis) {
                         op.animation.playOpenDo(null)
                         op.onShown()
                     }

@@ -332,7 +332,7 @@ public class LibraryView extends FXMLController {
     private void setItems(List<Metadata> list) {
         if (list==null) return;
         fut(fieldFilter.getValue())
-            .use(f -> {
+            .useBy(f -> {
                 List<MetadataGroup> mgs = stream(MetadataGroup.groupOf(f,list), MetadataGroup.groupsOf(f,list)).collect(toList());
                 List<Metadata> fl = filterList(list,true);
                 runLater(() -> {

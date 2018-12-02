@@ -210,7 +210,7 @@ open class PopOver<N: Node>(): PopupControl() {
     /** Whether show/hide is animated. */
     @F var animated = V(true)
     /** Show/hide animation duration. */
-    @F var animationDuration = V(millis(300))
+    @F var animationDuration = V(300.millis)
     /** Show/hide animation. */
     private val animation by lazy {
         anim {
@@ -493,7 +493,7 @@ open class PopOver<N: Node>(): PopupControl() {
     private fun fadeOut() {
         animation.applyNow()
         animation.dur(animationDuration.value)
-        animation.playCloseDo(Runnable { hideImmediately() })
+        animation.playCloseDo { hideImmediately() }
     }
 
     /* --------------------- MOVE WITH OWNER ---------------------------------------------------------------------------- */

@@ -9,10 +9,11 @@ import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.math.seconds
 
 /** Notification popover. */
 class Notification: PopOver<Node>() {
-    private val closer = fxTimer(5000.0, 1, ::hide)
+    private val closer = fxTimer(5.seconds, 1, ::hide)
     private val root = StackPane()
 
     /** Executes on left mouse click. Default does nothing. */

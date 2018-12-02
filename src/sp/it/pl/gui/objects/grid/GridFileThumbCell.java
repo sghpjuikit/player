@@ -17,7 +17,6 @@ import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.async.executor.EventReducer;
-import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.image.ImageSize;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -27,6 +26,7 @@ import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.sleep;
+import static sp.it.pl.util.async.future.Fut.runFut;
 import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.dev.Util.throwIf;
 import static sp.it.pl.util.dev.Util.throwIfFxThread;
@@ -290,9 +290,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	private ImageSize computeImageSize(Item item) {
 		throwIfFxThread();
 		return Stream.generate(() -> {
-					ImageSize is =  Fut.fut()
-							.supply(FX, () -> thumb.calculateImageLoadSize())
-							.getDone();
+					ImageSize is = runFut(FX, () -> thumb.calculateImageLoadSize()).getDone().getOrSupply(() -> new ImageSize(-1,-1));
 					boolean isReady = is.width>0 || is.height>0;
 					if (!isReady && getIndex()<0 || getIndex()>=gridView.get().getItemsShown().size()) return new ImageSize(-1,-1);
 					if (!isReady) new RuntimeException("Image request size=" + is.width + "x" + is.height + " not valid").printStackTrace();

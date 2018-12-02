@@ -77,9 +77,10 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.util.Util.enumToHuman;
-import static sp.it.pl.util.async.AsyncKt.run;
+import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.conf.ConfigurationUtilKt.isEditableByUser;
 import static sp.it.pl.util.functional.Try.ok;
 import static sp.it.pl.util.functional.Util.IS;
@@ -193,7 +194,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         root.addEventFilter(MOUSE_ENTERED, e -> {
             if (config.isEditable().isByNone()) return;
             // wait delay
-            run(270, () -> {
+            runFX(millis(270), () -> {
                 // no need to do anything if hover ended
                 if (root.isHover()) {
                     // lazily build the button when requested
@@ -207,7 +208,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                         root.setPadding(Insets.EMPTY);
                     }
                     // show it
-                    FadeTransition fa = new FadeTransition(Duration.millis(450), defB);
+                    FadeTransition fa = new FadeTransition(millis(450), defB);
                     fa.stop();
                     fa.setToValue(1);
                     fa.play();
@@ -219,7 +220,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             // return if nothing to hide
             if (defB == null) return;
             // hide it
-            FadeTransition fa = new FadeTransition(Duration.millis(450), defB);
+            FadeTransition fa = new FadeTransition(millis(450), defB);
             fa.stop();
             fa.setDelay(Duration.ZERO);
             fa.setToValue(0);

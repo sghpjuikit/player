@@ -73,9 +73,11 @@ import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.animation.Anim.mapConcave;
 import static sp.it.pl.util.animation.Anim.mapTo01;
-import static sp.it.pl.util.async.AsyncKt.run;
+import static sp.it.pl.util.async.AsyncKt.runFX;
+import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.functional.Util.minBy;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.layHeaderRight;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.UtilKt.typeText;
@@ -133,7 +135,7 @@ public final class Seeker extends AnchorPane {
 					double p = e.getX()/getWidth();
 					p = clip(0, p, 1);
 					Player.seek(p);
-					run(100, () -> user_drag = false);
+					runFX(millis(100), () -> user_drag = false);
 					if (seeker.isHover()) addB.show(); // ~bug fix
 				}
 				if (e.getButton()==SECONDARY) {
@@ -437,7 +439,7 @@ public final class Seeker extends AnchorPane {
 
 		void show() {
 			i.setDisable(!Player.playingItem.get().isFileBased());
-			fade.playOpenDo(() -> visible = true);
+			fade.playOpenDo(runnable(() -> visible = true));
 		}
 
 		boolean isShown() {
@@ -457,10 +459,10 @@ public final class Seeker extends AnchorPane {
 		void select(Chap c) {
 			Runnable oc = chapterDisplayActivation.get()==ChapterDisplayActivation.HOVER ? c::showPopup : null;
 			chapterSelected = c;
-			setCenterX(c.getCenterX());             // move this to chapter
-			select.playOpen();                      // animate this
-			selectChapAnim.playOpenDoClose(oc);     // animate runners & open chap in middle
-			matox = c.getCenterX();                 // animate-move runners to chapter
+			setCenterX(c.getCenterX());                     // move this to chapter
+			select.playOpen();                              // animate this
+			selectChapAnim.playOpenDoClose(runnable(oc));   // animate runners & open chap in middle
+			matox = c.getCenterX();                         // animate-move runners to chapter
 		}
 
 		boolean isSelected() {
@@ -508,10 +510,10 @@ public final class Seeker extends AnchorPane {
 		Anim hover = new Anim(millis(150), this::setScaleX).intpl(x -> 1 + 7*x);
 
 		private boolean can_hide = true;
-		private FxTimer delayerCloser = new FxTimer(200, 1, () -> {
+		private FxTimer delayerCloser = fxTimer(millis(200), 1, runnable(() -> {
 			if (can_hide) p.hideStrong();
 			can_hide = true;
-		});
+		}));
 
 		Chap(double x) {
 			this(new Chapter(timeTot.get().multiply(x), ""), x);
@@ -531,7 +533,7 @@ public final class Seeker extends AnchorPane {
 		}
 
 		public void showPopup() {
-			hover.playOpenDo(chapterDisplayMode.get().isShownAsPopup() ? this::showPopupReal : null);
+			hover.playOpenDo(runnable(chapterDisplayMode.get().isShownAsPopup() ? this::showPopupReal : null));
 		}
 
 		public void hidePopup() {
@@ -604,7 +606,7 @@ public final class Seeker extends AnchorPane {
 				p.setAutoFix(false);
 				p.setOnHidden(e -> {
 					if (isEdited.getValue()) cancelEdit();
-					hover.playCloseDo(just_created ? () -> Seeker.this.getChildren().remove(this) : null);
+					hover.playCloseDo(runnable(just_created ? () -> Seeker.this.getChildren().remove(this) : null));
 				});
 				p.title.setValue(c.getTime().toString());
 				p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);

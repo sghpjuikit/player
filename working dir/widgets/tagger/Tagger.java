@@ -1,20 +1,6 @@
 package tagger;
 
-import sp.it.pl.audio.Item;
-import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.audio.tagging.MetadataReader;
-import sp.it.pl.audio.tagging.MetadataWriter;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import sp.it.pl.gui.itemnode.textfield.MoodItemNode;
-import sp.it.pl.gui.itemnode.textfield.TextFieldItemNode;
-import sp.it.pl.gui.objects.icon.CheckIcon;
-import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.image.ThumbnailWithAdd;
-import sp.it.pl.gui.objects.image.cover.Cover;
-import sp.it.pl.gui.objects.popover.NodePos;
-import sp.it.pl.gui.objects.popover.PopOver;
-import sp.it.pl.gui.objects.popover.ScreenPos;
-import sp.it.pl.gui.objects.textfield.DecoratedTextField;
 import java.io.File;
 import java.net.URI;
 import java.time.Year;
@@ -58,6 +44,20 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import sp.it.pl.audio.Item;
+import sp.it.pl.audio.tagging.Metadata;
+import sp.it.pl.audio.tagging.MetadataReader;
+import sp.it.pl.audio.tagging.MetadataWriter;
+import sp.it.pl.gui.itemnode.textfield.MoodItemNode;
+import sp.it.pl.gui.itemnode.textfield.TextFieldItemNode;
+import sp.it.pl.gui.objects.icon.CheckIcon;
+import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.gui.objects.image.ThumbnailWithAdd;
+import sp.it.pl.gui.objects.image.cover.Cover;
+import sp.it.pl.gui.objects.popover.NodePos;
+import sp.it.pl.gui.objects.popover.PopOver;
+import sp.it.pl.gui.objects.popover.ScreenPos;
+import sp.it.pl.gui.objects.textfield.DecoratedTextField;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
@@ -66,7 +66,6 @@ import sp.it.pl.layout.widget.feature.SongWriter;
 import sp.it.pl.main.Widgets;
 import sp.it.pl.service.notif.Notifier;
 import sp.it.pl.util.access.V;
-import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.file.AudioFileFormat;
@@ -74,6 +73,20 @@ import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.validation.InputConstraints;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static javafx.application.Platform.runLater;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
+import static javafx.scene.input.KeyCode.BACK_SPACE;
+import static javafx.scene.input.KeyCode.CONTROL;
+import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static org.atteo.evo.inflector.English.plural;
 import static sp.it.pl.audio.tagging.Metadata.Field.ADDED_TO_LIBRARY;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM_ARTIST;
@@ -103,28 +116,15 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TITLE;
 import static sp.it.pl.audio.tagging.Metadata.Field.TRACK;
 import static sp.it.pl.audio.tagging.Metadata.Field.TRACKS_TOTAL;
 import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.TAG;
 import static sp.it.pl.gui.objects.textfield.autocomplete.AutoCompletion.autoComplete;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static javafx.application.Platform.runLater;
-import static javafx.geometry.Pos.CENTER_LEFT;
-import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
-import static javafx.scene.input.KeyCode.BACK_SPACE;
-import static javafx.scene.input.KeyCode.CONTROL;
-import static javafx.scene.input.KeyCode.ESCAPE;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
-import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
-import static org.atteo.evo.inflector.English.plural;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
+import static sp.it.pl.util.async.AsyncKt.runNotFX;
 import static sp.it.pl.util.file.Util.EMPTY_COLOR;
 import static sp.it.pl.util.functional.Util.isContainedIn;
 import static sp.it.pl.util.functional.Util.mapRef;
@@ -197,7 +197,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
         CoverV = new ThumbnailWithAdd(FontAwesomeIcon.PLUS,"Add to Tag");
         CoverV.getPane().setPrefSize(200, 200);
-        CoverV.onFileDropped = f -> f.use(FX, this::addImg);
+        CoverV.onFileDropped = f -> f.useBy(FX, this::addImg);
         CoverV.onHighlight = v -> noCoverL.setVisible(!v);
         coverContainer.setCenter(CoverV.getPane());
 
@@ -527,54 +527,53 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             fields.forEach(f -> f.setEditable(true));
             coverSuperContainer.setDisable(false);
 
-            Fut.fut()
-               .then(() -> {
-                    // histogram init
-                    fields.forEach(TagField::histogramInit);
-                        // handle cover separately
-                    int coverI = 0;
-                    String covDesS = "";
-                    Cover CovS = null;
-                    Set<AudioFileFormat> formats = new HashSet<>();
+            runNotFX(() -> {
+                // histogram init
+                fields.forEach(TagField::histogramInit);
+                    // handle cover separately
+                int coverI = 0;
+                String covDesS = "";
+                Cover CovS = null;
+                Set<AudioFileFormat> formats = new HashSet<>();
 
-                    // histogram do
-                    for (Metadata m: items) {
-                        int i = items.indexOf(m);
-                        fields.forEach(f -> f.histogramDo(m, i));
-                        formats.add(m.getFormat());
-                        // handle cover separately
-                        Cover c = m.getCover(TAG);
-                        if (i==0 && !c.isEmpty())
-                            { coverI = 1; CovS = c; covDesS = c.getDescription(); }
-                        if (coverI == 0 && i != 0 && !c.isEmpty())
-                            { coverI = 2; CovS = c; covDesS = c.getDescription(); }
-                        if (coverI == 1 && !(!(c.isEmpty()&&CovS.isEmpty())||c.equals(CovS)))
-                            coverI = 2;
-                    }
+                // histogram do
+                for (Metadata m: items) {
+                    int i = items.indexOf(m);
+                    fields.forEach(f -> f.histogramDo(m, i));
+                    formats.add(m.getFormat());
+                    // handle cover separately
+                    Cover c = m.getCover(TAG);
+                    if (i==0 && !c.isEmpty())
+                        { coverI = 1; CovS = c; covDesS = c.getDescription(); }
+                    if (coverI == 0 && i != 0 && !c.isEmpty())
+                        { coverI = 2; CovS = c; covDesS = c.getDescription(); }
+                    if (coverI == 1 && !(!(c.isEmpty()&&CovS.isEmpty())||c.equals(CovS)))
+                        coverI = 2;
+                }
 
-                    // histogram end - set fields prompt text
-                    final int c = coverI;
-                    String s = covDesS;
-                    Cover co = CovS;
-                    runLater(() -> {
-                        fields.forEach(f -> f.histogramEnd(formats));
+                // histogram end - set fields prompt text
+                final int c = coverI;
+                String s = covDesS;
+                Cover co = CovS;
+                runLater(() -> {
+                    fields.forEach(f -> f.histogramEnd(formats));
 
-                        // handle cover separately
-                        CoverL.setText(mapRef(c, 0,1,2, APP.getTextNoVal(),s,APP.getTextManyVal())); // set image info
-                        CoverV.loadImage(c==1 ? co.getImage() : null);  // set image
+                    // handle cover separately
+                    CoverL.setText(mapRef(c, 0,1,2, APP.getTextNoVal(),s,APP.getTextManyVal())); // set image info
+                    CoverV.loadImage(c==1 ? co.getImage() : null);  // set image
 
-                        // enable/disable fields
-                        ratingF.setDisable(true);
-                        custom2F.setDisable(true);
-                        custom3F.setDisable(true);
-                        custom5F.setDisable(true);
-                        playedFirstF.setDisable(true);
-                        playedLastF.setDisable(true);
-                        addedToLibF.setDisable(true);
+                    // enable/disable fields
+                    ratingF.setDisable(true);
+                    custom2F.setDisable(true);
+                    custom3F.setDisable(true);
+                    custom5F.setDisable(true);
+                    playedFirstF.setDisable(true);
+                    playedLastF.setDisable(true);
+                    addedToLibF.setDisable(true);
 
-                        hideProgress();
-                    });
+                    hideProgress();
                 });
+            });
         }
     }
 

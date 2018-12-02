@@ -17,17 +17,17 @@ import mu.KLogging
 import sp.it.pl.gui.UiManager.OpenStrategy.INSIDE
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.layout.widget.WidgetSource.ANY
-import sp.it.pl.main.Actions
 import sp.it.pl.main.APP
+import sp.it.pl.main.Actions
 import sp.it.pl.main.Settings
-import sp.it.pl.util.conf.between
-import sp.it.pl.util.conf.c
-import sp.it.pl.util.conf.cv
 import sp.it.pl.util.access.VarEnum
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
+import sp.it.pl.util.conf.between
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.file.FileMonitor
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.childOf
@@ -88,7 +88,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     @C(name = "Layout mode blur intensity", info = "Layout mode blur effect intensity.")
     var blurLM by c(4.0).between(0.0, 20.0)
     @C(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
-    var durationLM by c(millis(250))
+    var durationLM by c(250.millis)
     @C(name = "Snap", info = "Allows snapping feature for windows and controls.")
     val snapping by cv(true)
     @C(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
@@ -108,7 +108,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     @C(name = "Show table controls", group = Settings.Ui.TABLE, info = "Show table controls at the bottom of the table. Displays menu bar and table items information")
     val tableShowFooter by cv(true)
     @C(name = "Thumbnail anim duration", group = "${Settings.UI}.Images", info = "Preferred hover scale animation duration for thumbnails.")
-    val thumbnailAnimDur by cv(millis(100))
+    val thumbnailAnimDur by cv(100.millis)
 
     /**
      * Sets layout mode for all active components.

@@ -26,7 +26,7 @@ open class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
 
     fun initHoverTrackAnimation() {
         val track = getFieldValue<StackPane>(this, "track")!!
-        val a = anim(millis(350)) {
+        val a = anim(350.millis) {
             val isVertical = skinnable.orientation==VERTICAL
             val p = 1+1*it*it
             track.scaleX = if (isVertical) p else 1.0
@@ -39,18 +39,18 @@ open class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
     }
 
     fun initFocusAnimation() {
-        val scaling = anim(millis(350)) { updateThumbScale(fxy = 1+1*it*it) }
+        val scaling = anim(350.millis) { updateThumbScale(fxy = 1+1*it*it) }
         skinnable.focusedProperty() attach { if (it) scaling.playOpenDoClose(null) }
     }
 
 
     fun initHoverThumbAnimation() {
-        val a = anim(millis(350)) {
+        val a = anim(350.millis) {
             val isVertical = skinnable.orientation==VERTICAL
             val p = 1+3*it*it
             updateThumbScale(hx = if (isVertical) 1.0 else p, hy = if (isVertical) p else 1.0)
         }
-        a.delay = millis(350)
+        a.delay = 350.millis
 
         skinnable.onHoverOrDragStart { a.playOpen() }
         skinnable.onHoverOrDragEnd { a.playClose() }

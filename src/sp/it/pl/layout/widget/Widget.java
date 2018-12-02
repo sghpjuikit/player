@@ -399,7 +399,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 
 	public void focus() {
 		if (isLoaded()) {
-			root.requestFocus();
+			controller.focus();
 		}
 	}
 

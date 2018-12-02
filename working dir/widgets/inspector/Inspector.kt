@@ -83,7 +83,9 @@ class Inspector(widget: Widget<*>): SimpleController(widget), FileExplorerFeatur
         tree.expandToRootAndSelect(item)
     }
 
-    companion object {
+    override fun focus() = tree.requestFocus()
+
+        companion object {
 
         private val selected = getPseudoClass("selected")
 

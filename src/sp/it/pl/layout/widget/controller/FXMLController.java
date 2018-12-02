@@ -28,6 +28,7 @@ abstract public class FXMLController implements Controller {
 	public final Widget<?> widget = true ? null : null;
 	@Dependency("DO NOT RENAME - accessed using reflection")
 	public final boolean isInitialized = false;
+	private Node root = null;
 
 	public final Outputs outputs = new Outputs();
 	public final Inputs inputs = new Inputs();
@@ -47,13 +48,18 @@ abstract public class FXMLController implements Controller {
 		FXMLLoader loader = new FXMLLoader();
 				   loader.setLocation(getResource(name + ".fxml").toURI().toURL());
 				   loader.setController(this);
-		Node root = loader.load();
-		if (root instanceof Pane) loadSkin("skin.css",(Pane)root);
+		root = loader.load();
+		if (root instanceof Pane) loadSkin("skin.css", (Pane) root);
 		return root;
 	}
 
 	@Override
 	abstract public void refresh();
+
+	@Override
+	public void focus() {
+		if (root!=null) root.requestFocus();
+	}
 
 	public void loadSkin(String filename, Pane root) {
 		try {

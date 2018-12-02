@@ -56,14 +56,11 @@ class FunctionViewer(widget: Widget<*>): SimpleController(widget) {
         }
     }
 
-    override fun requestFocus() {
-        super.requestFocus()
-        focusInput()
-    }
-
     override fun refresh() = plot(function.value)
 
     fun plot(function: (Double) -> Double) = plot.plot(function)
+
+    override fun focus() = focusInput()
 
     class Axes(width: Double, height: Double, xMin: Double, xMax: Double, xBy: Double, yMin: Double, yMax: Double, yBy: Double): Pane() {
         val xAxis: NumberAxis

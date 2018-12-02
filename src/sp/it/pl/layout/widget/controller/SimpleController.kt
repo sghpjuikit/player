@@ -42,6 +42,8 @@ open class SimpleController(@JvmField val widget: Widget<*>): AnchorPane(), Cont
 
     override fun refresh() {}
 
+    override fun focus() = requestFocus()
+
     override fun close() {
         onClose()
         inputs.getInputs().forEach { it.unbindAll() }

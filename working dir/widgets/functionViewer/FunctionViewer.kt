@@ -1,6 +1,7 @@
 package functionViewer
 
 import javafx.beans.binding.Bindings
+import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Side
 import javafx.scene.chart.NumberAxis
@@ -8,7 +9,6 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.StackPane
-import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
@@ -21,7 +21,10 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.functional.net
-import sp.it.pl.util.graphics.setAnchors
+import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.layFullArea
+import sp.it.pl.util.graphics.setMinPrefMaxSize
+import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.math.P
 import sp.it.pl.util.math.StrExF
 import java.lang.Math.max
@@ -38,25 +41,27 @@ class FunctionViewer(widget: Widget<*>): SimpleController(widget) {
     private val axes = Axes(400.0, 300.0, -1.0, 1.0, 0.2, -1.0, 1.0, 0.2)
     private val plot = Plot(-1.0, 1.0, axes)
     private val function = v(StrExF.fromString("x").orThrow, this::plot)
+    private var focusInput = {}
 
     init {
-        this.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
-        this.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
-        this.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
-
-        val c = ConfigField.create(Config.forProperty(StrExF::class.java, "Function", function))
-        val la = StackPane(HBox(5.0, c.createLabel(), c.getNode()))
-        val lb = StackPane(plot)
-        this.children += VBox(5.0, la, lb).apply {
-            setAnchors(0.0)
+        this.setMinPrefMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
+        this layFullArea vBox {
+            spacing = 5.0
             padding = Insets(20.0)
-            VBox.setVgrow(lb, ALWAYS)
-        }
 
-        refresh()
+            val c = ConfigField.create(Config.forProperty(StrExF::class.java, "Function", function))
+            focusInput = c::focus
+            lay() child StackPane(HBox(5.0, c.createLabel(), c.getNode()))
+            lay(ALWAYS) child StackPane(plot)
+        }
     }
 
-    override fun refresh() = plot.plot(function.value)
+    override fun requestFocus() {
+        super.requestFocus()
+        focusInput()
+    }
+
+    override fun refresh() = plot(function.value)
 
     fun plot(function: (Double) -> Double) = plot.plot(function)
 

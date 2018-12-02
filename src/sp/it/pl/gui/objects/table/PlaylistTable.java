@@ -256,13 +256,12 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 		// scroll to playing item
 		maintain(scrollToPlaying, v -> {
-			if (v) {
-				scrollToCenter(getItems().indexOf(playlist.getPlaying()));
-			}
+			if (v)
+				scrollToCenter(playlist.getPlaying());
 		});
 		playlist.playingI.addListener((o, ov, nv) -> {
 			if (scrollToPlaying.getValue())
-				scrollToCenter(getItems().indexOf(playlist.getPlaying()));
+				scrollToCenter(playlist.getPlaying());
 		});
 
 		// reflect selection for whole application

@@ -27,6 +27,7 @@ import javafx.scene.layout.BorderWidths
 import javafx.scene.layout.CornerRadii
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
@@ -43,6 +44,8 @@ import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.sync
 import java.awt.MouseInfo
 import java.awt.Point
+import kotlin.math.max
+import kotlin.math.min
 
 /* ---------- CONSTRUCTION ------------------------------------------------------------------------------------------ */
 
@@ -78,10 +81,6 @@ fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Double? = null): Text {
     }
 }
 
-inline fun hBox(initialization: HBox.() -> Unit) = HBox().apply { initialization() }
-
-inline fun vBox(initialization: VBox.() -> Unit) = VBox().apply { initialization() }
-
 /* ---------- LAYOUT ------------------------------------------------------------------------------------------------ */
 
 /** @return true iff this is direct parent of the specified node */
@@ -107,6 +106,31 @@ fun Node?.removeFromParent(parent: Node?) {
 
 /** Removes this from its parent's children if possible. */
 fun Node?.removeFromParent() = this?.removeFromParent(parent)
+
+interface Lay {
+    infix fun child(child: Node)
+}
+
+inline fun hBox(spacing: Double = 0.0, block: HBox.() -> Unit) = HBox(spacing).apply { block() }
+
+fun HBox.lay(priority: Priority = Priority.NEVER): Lay = object: Lay {
+    override fun child(child: Node) {
+        children += child
+        VBox.setVgrow(child, priority)
+    }
+}
+
+inline fun vBox(spacing: Double = 0.0, block: VBox.() -> Unit) = VBox(spacing).apply { block() }
+
+fun VBox.lay(priority: Priority = Priority.NEVER): Lay = object: Lay {
+    override fun child(child: Node) {
+        children += child
+        VBox.setVgrow(child, priority)
+    }
+}
+
+fun AnchorPane.lay(child: Node, anchors: Double) = Util.setAnchor(this, child, anchors)
+infix fun AnchorPane.layFullArea(child: Node) = lay(child, 0.0)
 
 /** Convenience for [AnchorPane.getTopAnchor] & [AnchorPane.setTopAnchor]. */
 var Node.topAnchor: Double?
@@ -152,6 +176,8 @@ fun Node.setAnchors(top: Double?, right: Double?, bottom: Double?, left: Double?
     AnchorPane.setBottomAnchor(this, bottom)
     AnchorPane.setLeftAnchor(this, left)
 }
+
+/* ---------- SIZE -------------------------------------------------------------------------------------------------- */
 
 fun Region.setMinWidth(minWidth: Number) = setMinWidth(minWidth.toDouble())
 fun Region.setMinHeight(minHeight: Number) = setMinHeight(minHeight.toDouble())
@@ -330,10 +356,7 @@ object EM {
 }
 
 /** @return value in [EM] units */
-val Double.EM get() = this/sp.it.pl.util.graphics.EM.toDouble()
-
-/** @return value in [EM] units */
-val Int.EM get() = this/sp.it.pl.util.graphics.EM.toDouble()
+val Number.EM get() = toDouble()/sp.it.pl.util.graphics.EM.toDouble()
 
 /** Sets font, overriding css style. */
 fun Parent.setFontAsStyle(font: Font) {
@@ -379,9 +402,13 @@ fun Parent.setFontAsStyle(font: Font) {
 
 fun <T> TreeItem<T>.expandToRoot() = generateSequence(this, { it.parent }).forEach { it.setExpanded(true) }
 
-fun <T> TreeView<T>.expandAndSelect(item: TreeItem<T>) {
+fun <T> TreeItem<T>.expandToRootAndSelect(tree: TreeView<in T>) = tree.expandToRootAndSelect(this)
+
+@Suppress("UNCHECKED_CAST")
+fun <T> TreeView<T>.expandToRootAndSelect(item: TreeItem<out T>) {
     item.expandToRoot()
-    selectionModel.select(item)
+    selectionModel.clearAndSelect(getRow(item as TreeItem<T>))
+    scrollToCenter(item)
 }
 
 /** Bypass consuming ESCAPE key events, which [TreeView] does by default. */
@@ -392,6 +419,30 @@ fun TreeView<*>.propagateESCAPE() {
             e.consume()
         }
     })
+}
+
+/** Scrolls to the row, so it is visible in the vertical center of the table. Does nothing if index out of bounds.  */
+fun <T> TreeView<T>.scrollToCenter(i: Int) {
+    var index = i
+    val items = expandedItemCount
+    if (index<0 || index>=items) return
+
+    val fixedCellHeightNotSet = fixedCellSize==Region.USE_COMPUTED_SIZE   // TODO: remove
+    if (fixedCellHeightNotSet) {
+        scrollTo(i)
+    } else {
+        val rows = height/fixedCellSize
+        index -= (rows/2).toInt()
+        index = min(items-rows.toInt()+1, max(0, index))
+        scrollTo(index)
+    }
+}
+
+/** Scrolls to the item, so it is visible in the vertical center of the table. Does nothing if item not in table.  */
+fun <T> TreeView<T>.scrollToCenter(item: TreeItem<T>) {
+    item.expandToRoot()
+    generateSequence(item) { it.parent }.toList().asReversed()
+    scrollToCenter(getRow(item))
 }
 
 /* ---------- EVENT ------------------------------------------------------------------------------------------------- */

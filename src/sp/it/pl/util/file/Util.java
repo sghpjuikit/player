@@ -222,11 +222,7 @@ public interface Util {
 				.collect(toList());
 	}
 
-	/**
-	 * Returns first common parent directory for specified files.
-	 *
-	 * @return common parent directory or null if list empty or its elements in multiple partitions
-	 */
+	/** @return first common parent directory for specified files or the parent if list size is 1 or null if empty or no shared root */
 	static File getCommonRoot(Collection<File> files) {
 		int size = files.size();
 		if (size==0) return null;
@@ -240,6 +236,22 @@ public interface Util {
 			}
 		}
 		return d==null ? null : d.isFile() ? d.getParentFile() : d;
+	}
+
+	/** @return first common parent directory for specified files or the file if list size is 1 or null if empty or no shared root */
+	static File getCommonFile(Collection<File> files) {
+		int size = files.size();
+		if (size==0) return null;
+		if (size==1) return files.stream().findFirst().get();
+
+		File d = null;
+		for (File f : files) {
+			if (f!=null) {
+				if (d==null) d = f;
+				if (d.toPath().compareTo(f.toPath())<0) d = f;
+			}
+		}
+		return d==null ? null : d;
 	}
 
 	/**

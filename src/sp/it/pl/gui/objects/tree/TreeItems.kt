@@ -7,6 +7,7 @@ import javafx.scene.Parent
 import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
+import javafx.scene.image.Image
 import javafx.scene.input.DataFormat
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
@@ -20,6 +21,7 @@ import sp.it.pl.audio.Item
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistItemGroup
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
+import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.window.stage.Window
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
@@ -62,7 +64,7 @@ import kotlin.streams.toList
 private typealias Settings = ConfiguringFeature<Any>
 private val logger = KotlinLogging.logger { }
 
-@Suppress("UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST", "RemoveExplicitTypeArguments")
 fun <T> tree(o: T): SimpleTreeItem<T> = when (o) {
     is SimpleTreeItem<*> -> o
     is Widget<*> -> WidgetItem(o)
@@ -73,6 +75,8 @@ fun <T> tree(o: T): SimpleTreeItem<T> = when (o) {
     is Container<*> -> LayoutItem(o)
     is File -> FileTreeItem(o)
     is Node -> NodeTreeItem(o)
+    is Image -> tree("Image", tree("Url", o.url), "Width${o.width}", "Height${o.height}")
+    is Thumbnail.ContextMenuData -> tree("Thumbnail", tree("Data", o.representant), tree("Image", o.image), tree("Image file", o.iFile))
     is Window -> STreeItem(o, { seqOf(o.stage.scene.root, o.layout) })
     is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
     is Item -> STreeItem(o.uri, { seqOf() }, { true })
@@ -311,8 +315,8 @@ class FileTreeItem: SimpleTreeItem<File> {
 
     override fun getChildren(): ObservableList<TreeItem<File>> = super.getChildren().apply {
         if (isFirstTimeChildren) {
-            this clearSet buildChildren(this@FileTreeItem)
             isFirstTimeChildren = false
+            this clearSet buildChildren(this@FileTreeItem)
         }
     }
 

@@ -27,7 +27,7 @@ import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.functional.seqRec
-import sp.it.pl.util.graphics.expandAndSelect
+import sp.it.pl.util.graphics.expandToRootAndSelect
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
 import sp.it.pl.util.graphics.propagateESCAPE
 import sp.it.pl.util.reactive.attach
@@ -49,9 +49,9 @@ import java.util.ArrayList
 )
 class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeature<Any> {
 
-    @FXML lateinit var groups: TreeView<Name>
-    @FXML lateinit var controls: Pane
-    @FXML lateinit var configsRootPane: AnchorPane
+    @FXML private lateinit var groups: TreeView<Name>
+    @FXML private lateinit var controls: Pane
+    @FXML private lateinit var configsRootPane: AnchorPane
     private val configsPane = ConfigPane<Any>()
     private val configs = ArrayList<Config<*>>()
     private val configSelectionName = "app.settings.selected_group"
@@ -119,7 +119,7 @@ class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeat
         if (!showsAppSettings) return
         val path = APP.configuration.rawGetAll()[configSelectionName]
         val item = groups.root.seqRec { it.children }.find { it.value.pathUp==path; } ?: groups.root
-        groups.expandAndSelect(item)    // invokes showConfigs()
+        groups.expandToRootAndSelect(item)    // invokes showConfigs()
     }
 
 }

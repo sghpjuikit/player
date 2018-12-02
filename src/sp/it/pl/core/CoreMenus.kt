@@ -114,9 +114,9 @@ class CoreMenus: Core {
                     menu("Edit tags in") {
                         widgetItems<SongWriter> { it.read(mg.grouped) }
                     },
-                    menuItem("Explore items's directory") { browseMultipleFiles(mg.grouped.asSequence().mapNotNull { it.getFile() }) },
-                    menu("Explore items' directory in") {
-                        widgetItems<FileExplorerFeature> { it.exploreFiles(mg.grouped.mapNotNull { it.getFile() }) }
+                    menuItem("Explore items's location") { browseMultipleFiles(mg.grouped.asSequence().mapNotNull { it.getFile() }) },
+                    menu("Explore items' location in") {
+                        widgetItems<FileExplorerFeature> { it.exploreCommonFileOf(mg.grouped.mapNotNull { it.getFile() }) }
                     },
                     runIf(mg.field==Metadata.Field.ALBUM) {
                         menu("Search cover in") {

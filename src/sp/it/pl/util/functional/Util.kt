@@ -193,14 +193,17 @@ infix fun <R,E> Try<R,E>.onE(handle: (E) -> Unit) = ifError(handle)!!
  */
 inline fun <T, R: Any> T.net(block: (T) -> R): R = let(block)
 
+/** Invokes the block if this is the specified type. */
+inline fun <reified T> Any?.ifIs(block: (T) -> Unit) = apply { if (this is T) block(this) }
+
 /** Invokes the block if this is null and returns this value. */
 inline fun <T> T?.ifNull(block: () -> Unit) = apply { if (this==null) block() }
 
 /** Invokes the block if this is true and returns this value. */
-inline fun Boolean.ifTrue(block: (Boolean) -> Unit) = apply { if (this) block(this) }
+inline fun Boolean.ifTrue(block: () -> Unit) = apply { if (this) block() }
 
 /** Invokes the block if this is false and returns this value. */
-inline fun Boolean.ifFalse(block: (Boolean) -> Unit) = apply { if (!this) block(this) }
+inline fun Boolean.ifFalse(block: () -> Unit) = apply { if (!this) block() }
 
 /** @return return value from the first supplier that supplied non null or null if no such supplier */
 fun <T> supplyFirst(vararg suppliers: () -> T?): T? = seqOf(*suppliers).map { it() }.find { it!=null }

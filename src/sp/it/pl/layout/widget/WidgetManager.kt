@@ -529,7 +529,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         fun selectNextWidget(root: Container<*>) {
             val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
             if (all.size<=1) return
-            val i = SequentialValue.incrIndex(all, all.indexOfFirst { it.focused.value })
+            val i = SequentialValue.incrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
             all.getOrNull(i)?.focus()
         }
 
@@ -537,7 +537,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         fun selectPreviousWidget(root: Container<*>) {
             val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
             if (all.size<=1) return
-            val iNew = SequentialValue.decrIndex(all, all.indexOfFirst { it.focused.value })
+            val iNew = SequentialValue.decrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
             all.getOrNull(iNew)?.focus()
         }
 

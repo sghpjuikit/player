@@ -34,7 +34,6 @@ import sp.it.pl.layout.widget.feature.SongReader;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.async.executor.EventReducer.HandlerLast;
-import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.Config.PropertyConfig;
 import sp.it.pl.util.conf.EditMode;
@@ -80,6 +79,7 @@ import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
+import static sp.it.pl.util.async.future.Fut.runFut;
 import static sp.it.pl.util.file.Util.copyFileSafe;
 import static sp.it.pl.util.file.Util.copyFiles;
 import static sp.it.pl.util.functional.Util.by;
@@ -227,8 +227,7 @@ public class FileInfo extends FXMLController implements SongReader {
         installDrag(
             root, MaterialIcon.DETAILS, "Display",
             e -> hasAudio(e),
-            e -> DragUtil.getSongs(e)
-                         .use(FX, items -> items.findFirst().ifPresent(this::read))
+            e -> DragUtil.getSongs(e).useBy(FX, items -> items.findFirst().ifPresent(this::read))
         );
     }
 
@@ -321,8 +320,8 @@ public class FileInfo extends FXMLController implements SongReader {
 
     private void setCover(CoverSource source) {
         Metadata id = data;
-        Fut.futWith(() -> data.getCover(source).getImage())
-            .use(FX, img -> {
+        runFut(() -> data.getCover(source).getImage())
+            .useBy(FX, img -> {
                 if (id==data)
                     cover.loadImage(img);
             });

@@ -22,7 +22,7 @@ open class ImprovedScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar)
 
     fun initHoverAnimation() {
         val thumb = getFieldValue<StackPane>(this, "thumb")!!
-        val a = anim(millis(350)) {
+        val a = anim(350.millis) {
             val isVertical = skinnable.orientation==VERTICAL
             val p = 1+1*it*it
             thumb.scaleX = if (isVertical) p else 1.0
@@ -34,7 +34,7 @@ open class ImprovedScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar)
 
     fun initHoverParentAnimation() {
         val disposer = Disposer()
-        val a = anim(millis(350)) { node.opacity = 0.6+0.4*it*it }.applyNow()
+        val a = anim(350.millis) { node.opacity = 0.6+0.4*it*it }.applyNow()
         skinnable.parentProperty() sync {
             disposer()
             disposer += it.onHoverOrDragStart { a.playOpen() }

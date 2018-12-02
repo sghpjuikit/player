@@ -57,6 +57,7 @@ import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.min;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 
@@ -416,7 +417,7 @@ public class IOLayer extends StackPane {
                 // i.setOnMouseEntered(e -> a.playOpen());
                 // t.setOnMouseExited(e -> a.playClose());
 
-                output.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(output))));
+                output.monitor(v -> a.playCloseDoOpen(runnable(() -> t.setText(oToStr(output)))));
                 output.monitor(v ->
                     inputnodes.values().stream().map(in -> in.input).filter(i -> i.getSources().contains(output)).forEach(input ->
                         connections.getOpt(new Key<>(input,output)).ifPresent(c -> c.send())

@@ -16,7 +16,7 @@ import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.util.async.future.Fut
-import sp.it.pl.util.async.future.Fut.fut
+import sp.it.pl.util.async.future.Fut.Companion.runFut
 import sp.it.pl.util.async.runNotFX
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.FileType
@@ -38,7 +38,6 @@ import java.io.IOException
 import java.net.URI
 import java.util.ArrayList
 import java.util.function.Consumer
-import java.util.function.Supplier
 
 private val logger = KotlinLogging.logger { }
 
@@ -62,8 +61,7 @@ fun copyToSysClipboard(df: DataFormat, o: Any?) {
  * @param arguments arguments to run the program with
  * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
  */
-fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = fut()
-        .supply(Player.IO_THREAD, Supplier {
+fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = runFut(Player.IO_THREAD) {
             val command = ArrayList<String>()
             if (Os.WINDOWS.isCurrent)
                 command += APP.DIR_APP.childOf("elevate.exe").absolutePath   // use elevate.exe to run command
@@ -81,7 +79,7 @@ fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = fut
                 logger.warn(e) { "Failed to launch program" }
                 Try.error<Void, Exception>(e)
             }
-        })
+        }
 
 /**
  * Runs a command in new background thread as a process and executes an action (on it) right after it launches.

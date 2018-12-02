@@ -11,12 +11,10 @@ import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY
 import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.layout.widget.feature.SongReader
-import sp.it.pl.util.async.FX
-import sp.it.pl.util.async.future.Fut
+import sp.it.pl.util.async.future.Fut.Companion.runFut
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
 import sp.it.pl.util.graphics.setAnchors
 import sp.it.pl.util.identityHashCode
-import java.util.function.Consumer
 
 /** Basic display for song information. */
 class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), SongReader {
@@ -66,8 +64,11 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), Son
 
     private fun Thumbnail.loadCoverOf(data: Metadata) {
         val id = data.identityHashCode()
-        Fut.futWith { data.getCover(ANY).image }
-           .use(FX, Consumer { if (dataId==id) loadImage(it) })
+        runFut {
+            data.getCover(ANY).image
+        } ui {
+            if (dataId==id) loadImage(it)
+        }
     }
 
 }

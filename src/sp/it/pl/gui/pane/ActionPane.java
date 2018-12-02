@@ -80,7 +80,6 @@ import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.async.AsyncKt.sleeping;
 import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.conf.ConfigurationUtilKt.computeConfigGroup;
 import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
@@ -382,8 +381,8 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		} else {
 			setDataInfo(null, false);
 			// obtain data & invoke again
-			data = ((Fut)data)
-					.use(FX, this::setData)
+			data = ((Fut) data)
+					.useBy(FX, this::setData)
 					.showProgress(dataProgress);
 		}
 	}
@@ -515,14 +514,14 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 			doneHide(action);
 		} else {
 			fut(data)
-				.then(FX, () -> actionProgress.setProgress(-1))
+				.useBy(FX, it -> actionProgress.setProgress(-1))
 				// run action and obtain output
-				.use(action)
+				.useBy(action)
 				// 1) the actions may invoke some action on FX thread, so we give it some by waiting a bit
 				// 2) very short actions 'pretend' to run for a while
-				.then(sleeping(millis(150)))
-				.then(FX, () -> actionProgress.setProgress(1))
-				.then(FX, () -> doneHide(action));
+				.thenWait(millis(150))
+				.useBy(FX, it -> actionProgress.setProgress(1))
+				.useBy(FX, it -> doneHide(action));
 		}
 	}
 

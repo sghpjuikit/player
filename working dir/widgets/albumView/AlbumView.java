@@ -150,7 +150,7 @@ public class AlbumView extends SimpleController {
 	private void setItems(List<Metadata> list) {
 		if (list==null) return;
 		fut(ALBUM)
-			.use(f -> {
+			.useBy(f -> {
 				List<MetadataGroup> mgs = MetadataGroup.groupsOf(f,list).collect(toList());
 				List<Metadata> fl = filterList(list,true);
 				runLater(() -> {

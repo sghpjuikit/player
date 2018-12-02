@@ -20,7 +20,6 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.fieldvalue.FileField;
 import sp.it.pl.util.async.executor.FxTimer;
-import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.conf.Config.VarList.Elements;
 import sp.it.pl.util.conf.IsConfig;
@@ -30,6 +29,7 @@ import sp.it.pl.util.graphics.Resolution;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.graphics.drag.Placeholder;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
+import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
@@ -39,10 +39,13 @@ import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Sort.ASCENDING;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
-import static sp.it.pl.util.async.AsyncKt.run;
+import static sp.it.pl.util.async.AsyncKt.runFX;
+import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
+import static sp.it.pl.util.async.future.Fut.runFut;
 import static sp.it.pl.util.file.FileSort.DIR_FIRST;
 import static sp.it.pl.util.file.FileType.FILE;
 import static sp.it.pl.util.functional.Util.by;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
@@ -109,7 +112,7 @@ public class AppLauncher extends SimpleController {
 
         // delay cell loading when content is being resized (increases resize performance)
         double delay = 200; // ms
-        FxTimer resizeTimer = new FxTimer(delay, 1, () -> isResizing = false);
+        FxTimer resizeTimer = fxTimer(millis(delay), 1, runnable(() -> isResizing = false));
         grid.widthProperty().addListener((o,ov,nv) -> isResizing = true);
         grid.heightProperty().addListener((o,ov,nv) -> isResizing = true);
         grid.widthProperty().addListener((o,ov,nv) -> resizeTimer.start(millis(300)));
@@ -144,10 +147,8 @@ public class AppLauncher extends SimpleController {
         Item item = new TopItem();
 //        item.lastScrollPosition = grid.implGetSkin().getFlow().getPosition(); // can cause null here
 	    visitId.incrementAndGet();
-        Fut.fut(item)
-                .map(executorIO, Item::children)
-                .use(executorIO, cells -> cells.sort(buildSortComparator()))
-                .use(FX, cells -> {
+        runFut(executorIO, () -> item.children().stream().sorted(buildSortComparator()).collect(toList()))
+                .useBy(FX, cells -> {
                     grid.getItemsRaw().setAll(cells);
                     if (item.lastScrollPosition>=0)
                         grid.implGetSkin().setPosition(item.lastScrollPosition);
@@ -159,7 +160,7 @@ public class AppLauncher extends SimpleController {
     private void doubleClickItem(Item i) {
         if (closeOnLaunch.get()) {
             widget.areaTemp.close();
-            run(250, () -> open(i.val));
+            runFX(millis(250), () -> open(i.val));
         } else {
             open(i.val);
         }

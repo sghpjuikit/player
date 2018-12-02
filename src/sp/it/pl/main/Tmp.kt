@@ -6,10 +6,11 @@ import sp.it.pl.layout.widget.controller.FXMLController
 import sp.it.pl.util.access.V
 import sp.it.pl.util.access.v
 import sp.it.pl.util.async.future.Fut
+import sp.it.pl.util.async.future.Fut.Companion.fut
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-fun futureWrap(data: Any?): Fut<*> = data as? Fut<*> ?: Fut.fut(data)!!
+fun futureWrap(data: Any?): Fut<*> = data as? Fut<*> ?: fut(data)
 
 inline fun <reified T> ActionPane.register(vararg actions: ActionPane.ActionData<T, *>) = register(T::class.java, *actions)
 

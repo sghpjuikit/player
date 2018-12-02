@@ -7,13 +7,13 @@ import mu.KLogging
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
 import sp.it.pl.main.APP
-import sp.it.pl.util.async.runAfter
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.functional.ifFalse
 import sp.it.pl.util.functional.onE
 import sp.it.pl.util.functional.runTry
 import sp.it.pl.util.math.millis
+import sp.it.pl.util.math.times
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.sync
 import uk.co.caprica.vlcj.discovery.NativeDiscovery
@@ -55,7 +55,7 @@ class VlcPlayer: GeneralPlayer.Play {
             val isSeekImpossible = it.length==-1L
             when {
                 // TODO: fix #38 better than delaying
-                isSeekToZero -> runAfter(millis(10)) {
+                isSeekToZero -> runFX(10.millis) {
                     it.play()
                     it.position = 0f
                 }
@@ -96,13 +96,13 @@ class VlcPlayer: GeneralPlayer.Play {
 
             override fun lengthChanged(mediaPlayer: MediaPlayer?, newLength: Long) {
                 runFX {
-                    state.duration.value = millis(newLength.toDouble())
+                    state.duration.value = newLength.millis
                 }
             }
 
             override fun positionChanged(mediaPlayer: MediaPlayer, newPosition: Float) {
                 runFX {
-                    state.currentTime.value = millis(state.duration.value.toMillis()*newPosition.toDouble())
+                    state.currentTime.value = state.duration.value*newPosition
                 }
             }
 
@@ -134,7 +134,7 @@ class VlcPlayer: GeneralPlayer.Play {
             override fun playing(mediaPlayer: MediaPlayer) {
                 runFX {
                     if (!Player.suspension_flag)
-                        Player.state.playback.status.set(Status.PLAYING)
+                        Player.state.playback.status.set(PLAYING)
 
                     if (Player.startTime!=null) {
                         seek(Player.startTime)

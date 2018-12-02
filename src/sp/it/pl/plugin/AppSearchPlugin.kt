@@ -5,15 +5,15 @@ import mu.KLogging
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
 import sp.it.pl.main.APP
-import sp.it.pl.util.conf.cList
-import sp.it.pl.util.conf.cr
-import sp.it.pl.util.conf.cv
-import sp.it.pl.util.conf.only
 import sp.it.pl.util.async.oneCachedThreadExecutor
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.async.threadFactory
 import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.cList
+import sp.it.pl.util.conf.cr
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.conf.only
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
 import sp.it.pl.util.math.seconds
@@ -33,7 +33,7 @@ class AppSearchPlugin: PluginBase("App Search", false) {
     @IsConfig(name = "Re-scan apps")
     private val searchDo by cr { findApps() }
 
-    private val thread by lazy { oneCachedThreadExecutor(seconds(2), threadFactory("appFinder", true)) }
+    private val thread by lazy { oneCachedThreadExecutor(2.seconds, threadFactory("appFinder", true)) }
     private var searchSource by atomic(listOf<File>())
     private val searchProvider = { searchSource.asSequence().map { it.toRunApplicationEntry() } }
 

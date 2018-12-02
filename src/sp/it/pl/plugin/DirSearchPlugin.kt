@@ -7,8 +7,7 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
 import sp.it.pl.main.APP
 import sp.it.pl.util.access.v
-import sp.it.pl.util.async.FX
-import sp.it.pl.util.async.future.Fut
+import sp.it.pl.util.async.future.Fut.Companion.fut
 import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cList
@@ -20,8 +19,6 @@ import sp.it.pl.util.type.atomic
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
-import java.util.function.Consumer
-import java.util.function.Function
 
 class DirSearchPlugin: PluginBase("Dir Search", false) {
 
@@ -67,15 +64,15 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
 
     private fun updateCache() {
         val id = cacheUpdate.getAndIncrement()
-        Fut.fut(searchDirs.materialize())
-                .map(Player.IO_THREAD, Function<List<File>, List<File>> {
+        fut(searchDirs.materialize())
+                .then(Player.IO_THREAD) {
                     it.asSequence()
                             .distinct()
                             .flatMap { dir -> findDirectories(dir, id) }
                             .toList()
-                })
-                .use(Player.IO_THREAD, Consumer { writeCache(it) })
-                .use(FX, Consumer { dirs = it })
+                            .also { writeCache(it) }
+                }
+                .ui { dirs = it }
                 .showProgressOnActiveWindow()
     }
 
@@ -94,4 +91,5 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
                     .maxDepth(searchDepth.value)
 
     companion object: KLogging()
+
 }

@@ -22,6 +22,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DASHBOARD;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.area.Area.DRAGGED_PSEUDOCLASS;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
@@ -205,7 +206,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         maintain(container.lockedUnder, l -> !l, w.movable);
         w.resizing.addListener((o,ov,nv) -> {
             if (nv!=Resize.NONE) any_window_resizing = true;
-            else runFX(100, () -> any_window_resizing = false);
+            else runFX(millis(100.0), () -> any_window_resizing = false);
         });
 
         return w;

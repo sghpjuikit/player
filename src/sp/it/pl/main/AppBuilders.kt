@@ -12,13 +12,12 @@ import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.spinner.Spinner
-import sp.it.pl.main.APP
 import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator
-import sp.it.pl.util.async.FX
 import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.future.Fut
+import sp.it.pl.util.functional.kt
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.graphics.setScaleXY
 import sp.it.pl.util.math.millis
@@ -81,7 +80,7 @@ fun appProgressIndicator(onStart: In<Progress> = In {}, onFinish: In<Progress> =
             a.playOpenDo(null)
         }
         if (nv.toDouble()==1.0) {
-            a.playCloseDo(Runnable { onFinish(this) })
+            a.playCloseDo { onFinish(this) }
         }
     }
 }
@@ -90,20 +89,20 @@ fun appProgressIndicator(onStart: In<Progress> = In {}, onFinish: In<Progress> =
 fun appTooltip(text: String = "") = Tooltip(text).apply {
     isHideOnEscape = true
     consumeAutoHidingEvents = true
-    showDelay = seconds(1.0)
-    showDuration = seconds(10.0)
-    hideDelay = millis(200.0)
+    showDelay = 1.seconds
+    showDuration = 10.seconds
+    hideDelay = 200.0.millis
 }
 
 fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
     val text = Text()
     graphic = text
     setOnShowing {
-        computeDataInfo(data()).use(FX, In { text.text = it })
+        computeDataInfo(data()) ui { text.text = it }
     }
 }
 
-fun computeDataInfo(data: Any?): Fut<String> = futureWrap(data).map {
+fun computeDataInfo(data: Any?): Fut<String> = futureWrap(data).then {
     val dName = APP.instanceName.get(it)
     val dKind = APP.className.get(it?.javaClass ?: Void::class.java)
     val dInfo = APP.instanceInfo.get(it)
@@ -129,7 +128,7 @@ fun Font.rowHeight(): Double {
     return h.toDouble()
 }
 
-fun nodeAnimation(n: Node) = anim(millis(300), { n.opacity = it*it }).apply { playAgainIfFinished = false }
+fun nodeAnimation(n: Node) = anim(300.millis, { n.opacity = it*it }).apply { playAgainIfFinished = false }
 
 open class AnimationBuilder {
     protected open val key = "ANIMATION_OPEN_CLOSE"
@@ -137,13 +136,13 @@ open class AnimationBuilder {
     open fun closeAndDo(n: Node, action: Runnable?) {
         val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
         if (!a.isRunning()) a.applyAt(1.0)
-        a.playCloseDo(action)
+        a.playCloseDo(action?.kt)
     }
 
     open fun openAndDo(n: Node, action: Runnable?) {
         val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
         if (!a.isRunning()) a.applyAt(0.0)
-        a.playOpenDo(action)
+        a.playOpenDo(action?.kt)
     }
 
     protected open fun buildAnimation(n: Node) = nodeAnimation(n)
@@ -168,5 +167,5 @@ class DelayAnimator: AnimationBuilder() {
         animDelayResetter.push(null)
     }
 
-    override fun buildAnimation(n: Node) = super.buildAnimation(n).delay(millis(animDelay.get()*300.0))
+    override fun buildAnimation(n: Node) = super.buildAnimation(n).delay((animDelay.get()*300.0).millis)
 }

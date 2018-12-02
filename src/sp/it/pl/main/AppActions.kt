@@ -34,8 +34,7 @@ import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.util.access.V
 import sp.it.pl.util.action.Action
-import sp.it.pl.util.async.FX
-import sp.it.pl.util.async.future.Fut.fut
+import sp.it.pl.util.async.future.Fut.Companion.fut
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
@@ -59,7 +58,6 @@ import sp.it.pl.util.system.open
 import sp.it.pl.util.system.recycle
 import sp.it.pl.util.system.saveFile
 import java.io.File
-import java.util.function.Consumer
 import kotlin.streams.toList
 
 private typealias IconMA = MaterialIcon
@@ -321,7 +319,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
 
 @Suppress("UNCHECKED_CAST")
 fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<File>, List<File>> = ComplexActionData(
-        { files -> fut(files).map { getFilesAudio(it, AudioFileFormat.Use.APP, Integer.MAX_VALUE).toList() } },
+        { files -> fut(files).then { getFilesAudio(it, AudioFileFormat.Use.APP, Integer.MAX_VALUE).toList() } },
         { files ->
             val makeWritable = V(true)
             val editInTagger = V(true)  // TODO: enable only if Tagger/SongReader is available and avoid casts
@@ -354,23 +352,24 @@ fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<F
                                     ),
                                     info.skipped
                             ),
-                            Icon(FontAwesomeIcon.CHECK, 25.0).onClick { e ->
-                                (e.source as Icon).isDisable = true
-                                fut(files())
-                                        .use { if (makeWritable.get()) it.forEach { it.setWritable(true) } }
-                                        .map { it.map { SimpleItem(it) } }
-                                        .map(task)
-                                        .showProgress(actionPane.actionProgress)
-                                        .use(FX, Consumer { result ->
-                                            if (editInTagger.get()) {
-                                                val items = if (editOnlyAdded.get()) result.converted else result.all
-                                                (tagger.controller as SongReader).read(items)
-                                            }
-                                            if (enqueue.get() && !result.all.isEmpty()) {
-                                                APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
-                                            }
-                                        })
-                            }
+                            Icon(FontAwesomeIcon.CHECK, 25.0)
+                                    .onClick { e ->
+                                        (e.source as Icon).isDisable = true
+                                        (e.source as Icon).parent.childrenUnmodifiable[0].isDisable = true
+                                        fut(files())
+                                                .use { if (makeWritable.get()) it.forEach { it.setWritable(true) } }
+                                                .then { task(it.map { SimpleItem(it) }) }
+                                                .ui { result ->
+                                                    if (editInTagger.get()) {
+                                                        val items = if (editOnlyAdded.get()) result.converted else result.all
+                                                        (tagger.controller as SongReader).read(items)
+                                                    }
+                                                    if (enqueue.get() && !result.all.isEmpty()) {
+                                                        APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
+                                                    }
+                                                }
+                                                .showProgress(actionPane.actionProgress)
+                                    }
                                     .withText("Execute")
                     ),
                     tagger.load()

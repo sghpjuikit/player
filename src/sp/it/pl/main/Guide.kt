@@ -38,7 +38,6 @@ import sp.it.pl.layout.container.Container.testControlContainer
 import sp.it.pl.layout.container.bicontainer.BiContainer
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.orEmpty
-import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.Widgets.PLAYLIST
 import sp.it.pl.util.access.v
@@ -46,8 +45,6 @@ import sp.it.pl.util.action.Action
 import sp.it.pl.util.action.ActionManager
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.animation.Anim.Companion.anim
-import sp.it.pl.util.async.run
-import sp.it.pl.util.async.runAfter
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
@@ -79,11 +76,11 @@ class Guide(guideEvents: EventSource<Any>? = null) {
     private val popup = lazy { buildPopup() }
     private val popupContent: VBox by lazy { buildContent() }
     private val eventConsumer = Event::consume
-    private val proceedAnim = anim(millis(400)) { popupContent.opacity = -(it*it-1) }
+    private val proceedAnim = anim(400.millis) { popupContent.opacity = -(it*it-1) }
     val hints = Hints()
 
     init {
-        if (firstTime.value) APP.onStarted += { runFX(millis(3000)) { open() } }
+        if (firstTime.value) APP.onStarted += { runFX(3000.millis) { open() } }
     }
 
     private fun buildContent() = VBox(25.0).apply {
@@ -93,8 +90,8 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                 !it.isStillSincePress -> {}
                 it.button==PRIMARY -> goToNext()
                 it.button==SECONDARY && hints[at].action=="Navigation" -> {
-                    runAfter(proceedAnim.cycleDuration*3.0) { goToNext() }
-                    runAfter(proceedAnim.cycleDuration*6.0) { goToNext() }
+                    runFX(proceedAnim.cycleDuration*3.0) { goToNext() }
+                    runFX(proceedAnim.cycleDuration*6.0) { goToNext() }
                 }
                 it.button==SECONDARY -> goToPrevious()
             }
@@ -131,7 +128,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
         getSkinn().contentPadding = Insets(8.0)
         arrowSize.value = 0.0
         detached.value = true
-        onHiding = EventHandler { run(20.0) { hints.h03_guideClose.proceedIfActive() } }
+        onHiding = EventHandler { runFX(20.millis) { hints.h03_guideClose.proceedIfActive() } }
         headerIcons += listOf(
                 createInfoIcon("Guide info popup."
                         +"\n\nThere are many others. If you see one for the first time, check it out."
@@ -149,7 +146,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
     private fun proceed() {
         if (hints.isEmpty()) return
         if (at<0 || at>=hints.size) at = 0
-        proceedAnim.playOpenDoClose(Runnable { this.proceedDo() })
+        proceedAnim.playOpenDoClose { proceedDo() }
         firstTime.set(false)
     }
 
@@ -292,7 +289,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                     layH(
                         Icon(WHEELCHAIR, ICON_SIZE).onClick { it -> (it.source as Icon).isDisable = true },
                         Icon(WALK, ICON_SIZE).onClick { it -> (it.source as Icon).isDisable = true },
-                        Icon(RUN, ICON_SIZE).onClick { _ -> runFX(millis(1500)) { proceedIfActive() } }
+                        Icon(RUN, ICON_SIZE).onClick { _ -> runFX(1500.millis) { proceedIfActive() } }
                     )
                 }
         )
@@ -304,7 +301,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                             Icon(GAMEPAD_VARIANT, ICON_SIZE).tooltip("Now switch to tooltip of the icon to the right"),
                             Icon(HAND_POINTING_RIGHT, ICON_SIZE).tooltip("Tooltip switching does not take as long as showing a new one."),
                             Icon(GRADUATION_CAP, ICON_SIZE).tooltip("Click to claim the trophy")
-                                    .onClick { _ -> runFX(millis(1000)) { proceedIfActive() } }
+                                    .onClick { _ -> runFX(1000.millis) { proceedIfActive() } }
                     )
                 }
         )
@@ -317,7 +314,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
         val hider = { close() }
         val shower = {
             open()
-            runFX(1000.0, Runnable { goToNext() })
+            runFX(1000.millis) { goToNext() }
         }
         val h07_uiShortcuts = hint("Shortcuts",
                 {
@@ -419,8 +416,8 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                         val i = w.topContainer.emptySpot
                         w.topContainer.ui.alignTab(i)
                         runFX(
-                                1000.0, Runnable { w.topContainer.addChild(i, testControlContainer()) },
-                                1000.0, Runnable { APP.ui.isLayoutMode = true }
+                                1000.0, { w.topContainer.addChild(i, testControlContainer()) },
+                                1000.0, { APP.ui.isLayoutMode = true }
                         )
                     }.withText("Start"))
                 }
@@ -505,7 +502,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                             val i = wd.topContainer.emptySpot
                             wd.topContainer.ui.alignTab(i)
 
-                            runFX(millis(1000)) {
+                            runFX(1000.millis) {
                                 val w = Widget.EMPTY()
                                 val root = BiContainer(HORIZONTAL)
                                 root.addChild(1, w)
@@ -515,8 +512,8 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                                         w.load(),
                                         DICE_2,
                                         ("Accepts text containing digit '2' and does nothing"
-                                        +"\n\t• Release mouse to drop drag and execute action"
-                                        +"\n\t• Continue moving to try elsewhere"),
+                                                +"\n\t• Release mouse to drop drag and execute action"
+                                                +"\n\t• Continue moving to try elsewhere"),
                                         { e -> DragUtil.hasText(e) && DragUtil.getText(e).contains("2") },
                                         { _ -> }
                                 )
@@ -524,8 +521,8 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                                         root.root,
                                         DICE_2,
                                         ("Accepts text containing digit '2' or '3' and does nothing"
-                                        +"\n\t• Release mouse to drop drag and execute action"
-                                        +"\n\t• Continue moving to try elsewhere"),
+                                                +"\n\t• Release mouse to drop drag and execute action"
+                                                +"\n\t• Continue moving to try elsewhere"),
                                         { e -> DragUtil.hasText(e) && (DragUtil.getText(e).contains("2") || DragUtil.getText(e).contains("3")) },
                                         { _ -> }
                                 )

@@ -127,6 +127,7 @@ import static sp.it.pl.util.functional.Util.repeat;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.setRO;
 import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.layHeaderTop;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.layStack;
@@ -262,7 +263,7 @@ interface Utils {
 		p.lives.onChange((ol,nl) -> {
 			repeat(ol-nl, i -> {
 				Icon ic = (Icon)lives.getChildren().get(lives.getChildren().size()-1-i);
-				createHyperSpaceAnim(ic).playOpenDo(() -> lives.getChildren().remove(ic));
+				createHyperSpaceAnim(ic).playOpenDo(runnable(() -> lives.getChildren().remove(ic)));
 			});
 			repeat(nl-ol, () -> {
 				Icon ic = createPlayerLiveIcon();

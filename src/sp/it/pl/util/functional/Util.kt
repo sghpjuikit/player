@@ -5,6 +5,7 @@ import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.type.union
 import java.util.Comparator
 import java.util.Optional
+import java.util.concurrent.Executor
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 import java.util.function.DoubleConsumer
@@ -16,15 +17,19 @@ import java.util.stream.Stream
 import kotlin.reflect.KClass
 import kotlin.streams.toList
 
+val Executor.kt: (Runnable) -> Unit get() = this::execute
+
+val Runnable.kt: () -> Unit get() = this::run
+
 operator fun <T> Consumer<T>.invoke(t: T) = accept(t)
 
 operator fun DoubleConsumer.invoke(t: Double) = accept(t)
 
 operator fun LongConsumer.invoke(t: Long) = accept(t)
 
-operator fun <T,U> BiConsumer<T,U>.invoke(t: T, u: U) = accept(t, u)
+operator fun <T, U> BiConsumer<T, U>.invoke(t: T, u: U) = accept(t, u)
 
-operator fun <T,U> Function<T,U>.invoke(t: T) = apply(t)
+operator fun <T, U> Function<T, U>.invoke(t: T) = apply(t)
 
 operator fun <T> Predicate<T>.invoke(t: T) = test(t)
 
@@ -34,10 +39,16 @@ operator fun Runnable.invoke() = run()
 
 operator fun EventReducer<Void>.invoke() = push(null)
 
-fun <A,B,C> compose(f1: (A) -> B, f2: (B) -> C): (A) -> C = { f2(f1(it)) }
+/** @return [Unit] effectively ignoring this value */
+fun Any.toUnit() = Unit
+
+fun <A, B, C> compose(f1: (A) -> B, f2: (B) -> C): (A) -> C = { f2(f1(it)) }
 
 /** @return kotlin consumer that invokes java consumer */
-fun <T> consumer(consumer: Consumer<T>): (T) -> Unit = { consumer(it) }
+fun <T> consumer(consumer: Consumer<T>?): ((T) -> Unit)? = consumer?.let { { consumer(it) } }
+
+/** @return kotlin runnable that invokes java runnable */
+fun <T> runnable(runnable: Runnable?): (() -> Unit)? = runnable?.let { { runnable() } }
 
 /** @return return value if it has been initialized or null otherwise */
 fun <T> Lazy<T>.orNull() = if (isInitialized()) value else null
@@ -46,10 +57,10 @@ fun <T> Lazy<T>.orNull() = if (isInitialized()) value else null
 fun <T> Optional<T>.orNull(): T? = orElse(null)
 
 /** @return return value or null if error (if the value is nullable, this destroys the information of null's origin) */
-fun <R,E> Try<R,E>.orNull(): R? = getOr(null)
+fun <R, E> Try<R, E>.orNull(): R? = getOr(null)
 
 /** @return return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
-infix fun <R,E> Try<R,E>.orNull(onError: (E) -> Unit): R? = ifError(onError).getOr(null)
+infix fun <R, E> Try<R, E>.orNull(onError: (E) -> Unit): R? = ifError(onError).getOr(null)
 
 /**
  * Run the specified block if the condition is true
@@ -61,9 +72,9 @@ fun <R> runIf(condition: Boolean, block: () -> R): R? = if (condition) block() e
  * Run the specified block safely (no exception will be thrown).
  * @return the result or any caught exception.
  */
-fun <R> runTry(block: () -> R): Try<R,Throwable> = Try.tryS(Supplier { block() }, Throwable::class.java)
+fun <R> runTry(block: () -> R): Try<R, Throwable> = Try.tryS(Supplier { block() }, Throwable::class.java)
 
-infix fun <R,E> Try<R,E>.onE(handle: (E) -> Unit) = ifError(handle)!!
+infix fun <R, E> Try<R, E>.onE(handle: (E) -> Unit) = ifError(handle)!!
 
 /**
  * Type-safe [let] with non null -> non null transformation and safe null propagation.
@@ -226,7 +237,7 @@ inline fun <reified E> Sequence<E>.asArray() = toList().toTypedArray()
 inline fun <reified E> Stream<E>.asArray() = toList().toTypedArray()
 
 /** @return stream that yields elements of this stream sorted by value selected by specified [selector] function. */
-inline fun <T, R : Comparable<R>> Stream<T>.sortedBy(crossinline selector: (T) -> R?) = sorted(compareBy(selector))!!
+inline fun <T, R: Comparable<R>> Stream<T>.sortedBy(crossinline selector: (T) -> R?) = sorted(compareBy(selector))!!
 
 /** @return null-safe comparator wrapper putting nulls at the end */
 fun <T> Comparator<T>.nullsLast(): Comparator<T?> = Comparator.nullsLast(this) as Comparator<T?>

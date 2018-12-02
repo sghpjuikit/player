@@ -7,7 +7,7 @@ import sp.it.pl.core.CoreSerializer
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.APP
 import sp.it.pl.util.access.v
-import sp.it.pl.util.async.future.Fut
+import sp.it.pl.util.async.future.Fut.Companion.runFut
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.collections.mapset.MapSet
 import sp.it.pl.util.dev.ThreadSafe
@@ -44,9 +44,7 @@ class Db {
         running = true
         moods = File(APP.DIR_RESOURCES, "moods.txt").useLines { it.toSet() }    // TODO: fix file !exist
 
-        Fut<Any>()
-                .then { updateInMemoryDbFromPersisted() }
-                .showProgressOnActiveWindow()
+        runFut { updateInMemoryDbFromPersisted() }.showProgressOnActiveWindow()
     }
 
     fun stop() {

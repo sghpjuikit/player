@@ -55,7 +55,6 @@ import sp.it.pl.util.conf.ValueConfig;
 import sp.it.pl.util.dev.Blocks;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
-import sp.it.pl.util.functional.Functors;
 import sp.it.pl.util.system.EnvironmentKt;
 import sp.it.pl.util.validation.Constraint.StringNonEmpty;
 import sp.it.pl.web.DuckDuckGoQBuilder;
@@ -68,13 +67,13 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.ExtKt.readAudioFile;
 import static sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE;
 import static sp.it.pl.layout.widget.WidgetSource.NEW;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.urlEncodeUtf8;
 import static sp.it.pl.util.async.AsyncKt.FX;
-import static sp.it.pl.util.async.AsyncKt.runAfter;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.future.Fut.fut;
@@ -93,7 +92,6 @@ import static sp.it.pl.util.graphics.Util.layVertically;
 import static sp.it.pl.util.graphics.UtilKt.bgr;
 import static sp.it.pl.util.graphics.UtilKt.getScreenForMouse;
 import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
-import static sp.it.pl.util.math.Util.millis;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
 import static sp.it.pl.util.system.EnvironmentKt.open;
 import static sp.it.pl.util.type.Util.getEnumConstants;
@@ -183,7 +181,7 @@ public class AppActions {
 					Pane componentRoot = (Pane) c.load();
 //					getChildren().add(componentRoot);   // alternatively for borderless/fullscreen experience
 					setContent(componentRoot);
-					runAfter(millis(500), () -> componentRoot.getChildren().stream()
+					runFX(millis(500), () -> componentRoot.getChildren().stream()
 							.filter(GridView.class::isInstance).map(GridView.class::cast)
 							.findAny()
 							.ifPresent(n -> n.implGetSkin().requestFocus())
@@ -397,10 +395,10 @@ public class AppActions {
 		// note: although we know the image size (== screen size) we can not use it
 		//       as widget will use its own size, which can take time to initialize,
 		//       so we need to delay execution
-		Functors.Ƒ a = () -> ((ImageDisplayFeature)c.getController()).showImage(image);
-		Functors.Ƒ r = () -> runFX(100, a); // give layout some time to initialize (could display wrong size)
-		if (window.isShowing()) r.apply(); /// execute when/after window is shown
-		else add1timeEventHandler(window, WindowEvent.WINDOW_SHOWN, t -> r.apply());
+		Runnable a = () -> ((ImageDisplayFeature)c.getController()).showImage(image);
+		Runnable r = () -> runFX(millis(100.0), a); // give layout some time to initialize (could display wrong size)
+		if (window.isShowing()) r.run(); /// execute when/after window is shown
+		else add1timeEventHandler(window, WindowEvent.WINDOW_SHOWN, t -> r.run());
 	}
 
 	/**
@@ -477,8 +475,8 @@ public class AppActions {
 
 	public void refreshItemsFromFileJob(List<? extends Item> items) {
 		fut(items)
-			.map(Player.IO_THREAD, is -> is.stream().map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList()))
-			.use(Player.IO_THREAD, Player::refreshItemsWith)
+			.then(Player.IO_THREAD, is -> is.stream().map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList()))
+			.useBy(Player.IO_THREAD, Player::refreshItemsWith)
 			.showProgressOnActiveWindow();
 	}
 
@@ -493,8 +491,8 @@ public class AppActions {
 			action.accept(m);
 		} else {
 			fut(i)
-				.map(Player.IO_THREAD, MetadataReader::readMetadata)
-				.use(FX, action);
+				.then(Player.IO_THREAD, MetadataReader::readMetadata)
+				.useBy(FX, action);
 		}
 	}
 

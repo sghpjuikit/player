@@ -52,6 +52,8 @@ fun readPlaylist(file: File): List<Item> {
 }
 
 fun writePlaylist(playlist: List<Item>, name: String, location: File) {
+    throwIfFxThread()
+
     val file = location/"$name.m3u8"
     file.bufferedWriter(Charsets.UTF_8).use { writer ->
         playlist.forEach {

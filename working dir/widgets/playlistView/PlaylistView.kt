@@ -32,6 +32,7 @@ import sp.it.pl.util.access.V
 import sp.it.pl.util.access.Vo
 import sp.it.pl.util.access.initSync
 import sp.it.pl.util.async.executor.ExecuteN
+import sp.it.pl.util.async.future.Fut.Companion.runFut
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.Config
@@ -173,7 +174,7 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
                     ).ifOk { file ->
                         lastSavePlaylistLocation = file.parentDirOrRoot
                         PlayerConfiguration.lastSavePlaylistLocation = file.parentDirOrRoot
-                        writePlaylist(table.selectedOrAllItemsCopy, file.name, file.parentDirOrRoot)
+                        runFut { writePlaylist(table.selectedOrAllItemsCopy, file.name, file.parentDirOrRoot) }
                     }
                 }
         )

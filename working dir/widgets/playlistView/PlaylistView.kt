@@ -32,6 +32,7 @@ import sp.it.pl.util.access.V
 import sp.it.pl.util.access.Vo
 import sp.it.pl.util.access.initSync
 import sp.it.pl.util.async.executor.ExecuteN
+import sp.it.pl.util.async.runOn
 import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.IsConfig
@@ -85,9 +86,9 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
 
     private val playlist = computeInitialPlaylist(widget.id)
     private val table = PlaylistTable(playlist)
-    private val columnInitializer = ExecuteN(1)
     private var outSelected: Output<PlaylistItem?> = outputs.create(widget.id, "Selected", PlaylistItem::class.java, null)
     private var outPlaying: Output<PlaylistItem?> = outputs.create(widget.id, "Playing", PlaylistItem::class.java, null)
+    private val once = ExecuteN(1)
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     val orient by cv(INHERIT) { Vo(APP.ui.tableOrient) }
@@ -164,7 +165,7 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
                 menuItem("Edit selected") { APP.widgetManager.widgets.use<SongReader>(NO_LAYOUT) { it.read(table.selectedItems) } },
                 menuItem("Save playlist") {
                     saveFile(
-                            "Choose playlist location",
+                            "Save playlist as...",
                             lastSavePlaylistLocation ?: PlayerConfiguration.lastSavePlaylistLocation,
                             "Playlist",
                             widget.windowOrActive.orNull()?.stage ?: APP.windowManager.createStageOwner(),
@@ -195,7 +196,7 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
     }
 
     override fun refresh() {
-        columnInitializer.execute {
+        runOn(once) {
             table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo
         }
         filter_for_playback.applyValue()

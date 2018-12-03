@@ -1,5 +1,6 @@
 package sp.it.pl.gui.objects.table;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.value.ChangeListener;
@@ -41,6 +42,8 @@ import static sp.it.pl.audio.playlist.PlaylistItem.Field.TITLE;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.isPlaylistFile;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.readPlaylist;
 import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.util.async.AsyncKt.FX;
+import static sp.it.pl.util.async.future.Fut.runFut;
 import static sp.it.pl.util.functional.Util.SAME;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
@@ -58,7 +61,6 @@ import static sp.it.pl.util.reactive.Util.maintain;
  * <p/>
  * Always call {@link #dispose()}
  */
-// TODO: fix duplicate code for dragging in case of empty table case
 public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 	private static final String STYLE_CORRUPT = "corrupt";
@@ -335,15 +337,21 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 		if (DragUtil.hasAudio(e)) {
 			List<Item> items = DragUtil.getAudioItems(e);
 			getPlaylist().addItems(items, index);
+
 			e.setDropCompleted(true);
 			e.consume();
 		}
 		if (e.getDragboard().hasFiles() && e.getDragboard().getFiles().stream().anyMatch(it -> isPlaylistFile(it))) {
-			List<Item> items = e.getDragboard().getFiles().stream()
-				.filter(it -> isPlaylistFile(it))
-				.flatMap(it -> readPlaylist(it).stream())
-				.collect(toList());
-			getPlaylist().addItems(items, index);
+			List<File> files = e.getDragboard().getFiles();
+			runFut(() ->
+				files.stream()
+					.filter(it -> isPlaylistFile(it))
+					.flatMap(it -> readPlaylist(it).stream())
+					.collect(toList())
+			).useBy(FX, items ->
+				getPlaylist().addItems(items, index)
+			);
+
 			e.setDropCompleted(true);
 			e.consume();
 		}

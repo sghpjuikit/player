@@ -290,7 +290,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	private ImageSize computeImageSize(Item item) {
 		throwIfFxThread();
 		return Stream.generate(() -> {
-					ImageSize is = runFut(FX, () -> thumb.calculateImageLoadSize()).getDone().getOrSupply(() -> new ImageSize(-1,-1));
+					ImageSize is = runFut(FX, () -> thumb.calculateImageLoadSize()).getDone().or(() -> new ImageSize(-1,-1));
 					boolean isReady = is.width>0 || is.height>0;
 					if (!isReady && getIndex()<0 || getIndex()>=gridView.get().getItemsShown().size()) return new ImageSize(-1,-1);
 					if (!isReady) new RuntimeException("Image request size=" + is.width + "x" + is.height + " not valid").printStackTrace();

@@ -29,10 +29,10 @@ class PlayerConfiguration {
         @IsConfig(name = "Player", info = "Exact player implementation currently in use.", editable = EditMode.NONE)
         val playerInfo by cvro("<none>") { Player.player.pInfo }
 
-        @IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.")
+        @IsConfig(name = "Last browse location")
         var browse by c(APP.DIR_USERDATA).only(DIRECTORY)
 
-        @IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.")
+        @IsConfig(name = "Last playlist export location")
         var lastSavePlaylistLocation by c(APP.DIR_USERDATA).only(DIRECTORY)
 
     }

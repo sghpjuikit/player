@@ -51,8 +51,7 @@ val javaSupportedVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION
 }
 
 sourceSets {
-    getByName("main").apply {
-        resources.srcDir("src")
+    getByName("main") {
         java.srcDir("src")
         resources.srcDir("src")
     }

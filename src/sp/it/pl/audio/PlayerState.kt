@@ -4,8 +4,12 @@ import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.core.CoreSerializer
+import sp.it.pl.layout.widget.WidgetSource
+import sp.it.pl.layout.widget.feature.PlaylistFeature
+import sp.it.pl.main.APP
 import java.util.ArrayList
 import java.util.UUID
+import kotlin.streams.asSequence
 
 /** State of player. */
 class PlayerState {
@@ -35,8 +39,13 @@ class PlayerState {
         playbackId = playback.id
         playlistId = PlaylistManager.active
 
+        val activePlaylists = APP.widgetManager.widgets.findAll(WidgetSource.OPEN).asSequence()
+                .filter { it.info.hasFeature(PlaylistFeature::class.java) }
+                .mapNotNull { (it.controller as PlaylistFeature?)?.playlist?.id }
+                .toSet()
         playlists.clear()
         playlists += PlaylistManager.playlists
+        playlists.removeIf { it.id !in activePlaylists }
 
         CoreSerializer.writeSingleStorage(PlayerStateDB(this))
     }

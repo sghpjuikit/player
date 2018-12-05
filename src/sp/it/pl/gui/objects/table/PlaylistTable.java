@@ -1,5 +1,6 @@
 package sp.it.pl.gui.objects.table;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.value.ChangeListener;
@@ -29,6 +30,7 @@ import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.units.Dur;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
+import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -37,7 +39,11 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static sp.it.pl.audio.playlist.PlaylistItem.Field.LENGTH;
 import static sp.it.pl.audio.playlist.PlaylistItem.Field.NAME;
 import static sp.it.pl.audio.playlist.PlaylistItem.Field.TITLE;
+import static sp.it.pl.audio.playlist.PlaylistReaderKt.isPlaylistFile;
+import static sp.it.pl.audio.playlist.PlaylistReaderKt.readPlaylist;
 import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.util.async.AsyncKt.FX;
+import static sp.it.pl.util.async.future.Fut.runFut;
 import static sp.it.pl.util.functional.Util.SAME;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
@@ -55,7 +61,6 @@ import static sp.it.pl.util.reactive.Util.maintain;
  * <p/>
  * Always call {@link #dispose()}
  */
-// TODO: fix duplicate code for dragging in case of empty table case
 public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 	private static final String STYLE_CORRUPT = "corrupt";
@@ -244,13 +249,18 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 			e.consume();
 		});
 
-		// drag&drop to
-		// handle drag (empty table has no rows so row drag event handlers
-		// will not work, events fall through on table and we handle it here
+		// drag&drop
+		// Note: Empty table has no rows => drag for empty table is handled here
 		installDrag(
-			this, PLAYLIST_PLUS, "Add to playlist after row",
+			this, PLAYLIST_PLUS, "Add to playlist",
 			DragUtil::hasAudio,
-			e -> e.getGestureSource()==this,
+			e -> e.getGestureSource()==this,// || !getItems().isEmpty(),
+			e -> dropDrag(e, 0)
+		);
+		installDrag(
+			this, PLAYLIST_PLUS, "Add to playlist",
+			e -> e.getDragboard().hasFiles() && e.getDragboard().getFiles().stream().anyMatch(it -> isPlaylistFile(it)),
+//			e -> !getItems().isEmpty(),
 			e -> dropDrag(e, 0)
 		);
 
@@ -327,6 +337,21 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 		if (DragUtil.hasAudio(e)) {
 			List<Item> items = DragUtil.getAudioItems(e);
 			getPlaylist().addItems(items, index);
+
+			e.setDropCompleted(true);
+			e.consume();
+		}
+		if (e.getDragboard().hasFiles() && e.getDragboard().getFiles().stream().anyMatch(it -> isPlaylistFile(it))) {
+			List<File> files = e.getDragboard().getFiles();
+			runFut(() ->
+				files.stream()
+					.filter(it -> isPlaylistFile(it))
+					.flatMap(it -> readPlaylist(it).stream())
+					.collect(toList())
+			).useBy(FX, items ->
+				getPlaylist().addItems(items, index)
+			);
+
 			e.setDropCompleted(true);
 			e.consume();
 		}

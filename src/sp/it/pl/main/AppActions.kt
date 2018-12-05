@@ -9,6 +9,9 @@ import javafx.stage.FileChooser.ExtensionFilter
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.SimpleItem
+import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.audio.playlist.isPlaylistFile
+import sp.it.pl.audio.playlist.readPlaylist
 import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.gui.nodeinfo.ConvertTaskInfo
 import sp.it.pl.gui.objects.icon.Icon
@@ -234,6 +237,13 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     IconMD.PLAYLIST_PLUS,
                     { f -> AudioFileFormat.isSupported(f, Use.APP) },
                     { fs -> APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { it.playlist.addFiles(fs) } }
+            ),
+            SlowAction(
+                    "Open playlist",
+                    "Add items to new playlist widget.",
+                    IconMD.PLAYLIST_PLAY,
+                    { it.isPlaylistFile() },
+                    { f -> PlaylistManager.use { it.setNplay(readPlaylist(f)) } }
             ),
             SlowColAction(
                     "Find files",

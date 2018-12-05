@@ -147,6 +147,7 @@ fun runFX(block: () -> Unit) = if (Platform.isFxApplicationThread()) block() els
 /** Legacy version of [runFX] for Java taking a [Runnable]. */
 fun runFX(delay: Duration, block: Runnable) = runFX(delay, block.kt)
 
+/** Executes the specified block immediately if called on non fx thread, or using [NEW] otherwise. */
 fun runNotFX(block: () -> Unit): Unit = if (Platform.isFxApplicationThread()) runNew(block) else block()
 
 /** Legacy version of [runNotFX] for Java taking a [Runnable]. */

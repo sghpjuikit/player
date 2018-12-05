@@ -6,6 +6,9 @@ import mu.KLogging
 import sp.it.pl.main.APP
 import sp.it.pl.util.async.FX
 import sp.it.pl.util.async.NEW
+import sp.it.pl.util.async.future.Fut.Result.ResultFail
+import sp.it.pl.util.async.future.Fut.Result.ResultInterrupted
+import sp.it.pl.util.async.future.Fut.Result.ResultOk
 import sp.it.pl.util.async.sleep
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.invoke
@@ -28,9 +31,11 @@ class Fut<T>(private var f: CompletableFuture<T>) {
 
     fun cancel(): Unit = f.cancel(true).toUnit()
 
+    /** @return future that waits for this to complete and then invokes the specified block and returns its result */
     @JvmOverloads
     fun <R> then(executor: Executor = defaultExecutor, block: (T) -> R) = Fut<R>(f.thenApplyAsync(block.logging(), executor.kt))
 
+    /** @return future that waits for this to complete and then invokes the specified future and returns its result */
     @JvmOverloads
     fun <R> then(executor: Executor = defaultExecutor, block: Fut<R>): Fut<R> = Fut(f.thenComposeAsync( { block.f }, executor.kt))
 
@@ -40,7 +45,7 @@ class Fut<T>(private var f: CompletableFuture<T>) {
     /** [then] with [FX] executor. Intended for simple and declarative use of asynchronous computation from ui. */
     infix fun <R> ui(block: (T) -> R) = then(FX, block)
 
-    /** [then] which returns the original value. Intended for side-effects. */
+    /** [then] which returns the original value. Intended for (blocking) side-effects. */
     fun use(executor: Executor = defaultExecutor, block: (T) -> Unit) = then(executor) { block(it); it }
 
     /** Legacy version of [use] for Java taking a [Consumer]. */
@@ -92,28 +97,17 @@ class Fut<T>(private var f: CompletableFuture<T>) {
 
     fun isDone(): Boolean = f.isDone
 
-    // TODO improve using sealed class
-    fun getDone(): Try<T,Exception> = try {
-            Try.ok(f.get())
+    fun getDone(): Result<T> = try {
+            ResultOk(f.get())
         } catch (e: InterruptedException) {
-            logger.error(e) { "Asynchronous computation was interrupted" }
-            Try.error(e)
+            ResultInterrupted(e)
         } catch (e: ExecutionException) {
-            logger.error(e) { "Asynchronous computation encountered a problem" }
-            Try.error(e)
+            ResultFail(e)
         }
 
-    // TODO improve using sealed class
+    @Deprecated("for removal")
     fun getDoneOrNull(): T? = if (f.isDone) {
-            try {
-                f.get()
-            } catch (e: InterruptedException) {
-                logger.error(e) { "Asynchronous computation was interrupted" }
-                null
-            } catch (e: ExecutionException) {
-                logger.error(e) { "Asynchronous computation encountered a problem" }
-                null
-            }
+            getDone().let { if (it is ResultOk) it.value else null }
         } else {
             null
         }
@@ -144,6 +138,14 @@ class Fut<T>(private var f: CompletableFuture<T>) {
             }
         }
 
+    }
+
+    sealed class Result<T> {
+        data class ResultOk<T>(val value: T): Result<T>()
+        data class ResultInterrupted<T>(val exception: InterruptedException): Result<T>()
+        data class ResultFail<T>(val error: ExecutionException): Result<T>()
+
+        fun or(block: () -> T): T = if (this is ResultOk) this.value else block.invoke()
     }
 
 }

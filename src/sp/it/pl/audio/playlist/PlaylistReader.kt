@@ -3,6 +3,7 @@ package sp.it.pl.audio.playlist
 import mu.KotlinLogging
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.SimpleItem
+import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.dev.throwIfFxThread
 import sp.it.pl.util.file.div
@@ -20,10 +21,11 @@ private const val EXTINF = "#EXTINF"
 private val logger = KotlinLogging.logger { }
 
 @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+@Blocks
 fun readPlaylist(file: File): List<Item> {
     throwIfFxThread()
 
-    val location = file.parentDir!!
+    val location = file.parentDir ?: fail { "File=$file is not a playlist file" }
     val encoding = when {
         file hasExtension "m3u" -> Charset.defaultCharset()
         file hasExtension "m3u8" -> Charsets.UTF_8
@@ -31,30 +33,27 @@ fun readPlaylist(file: File): List<Item> {
     }
 
     file.useLines(encoding) { lines ->
-        var isFirstLine = true
-        var isExtended = false
         return lines
-                .onEach { if (isFirstLine && EXTM3U==it) isExtended = true }
-                .onEach { isFirstLine = false }
-                .filter { !it.startsWith("#") && !it.isEmpty() }
-                .flatMap {
-                    null
-                        ?: it.toURIOrNull()?.net { sequenceOf(SimpleItem(it)) }
-                        ?: File(it).absoluteTo(location)
-                                ?.net {
-                                    if (it.isPlaylistFile()) readPlaylist(it).asSequence()
-                                    else sequenceOf(SimpleItem(it))
-                                }
-                                ?: sequenceOf()
-                }
-                .toList()
+            .filter { !it.startsWith("#") && !it.isEmpty() }
+            .flatMap {
+                null
+                    ?: it.toURIOrNull()?.net { sequenceOf(SimpleItem(it)) }
+                    ?: File(it).absoluteTo(location)
+                            ?.net {
+                                if (it.isPlaylistFile()) readPlaylist(it).asSequence()
+                                else sequenceOf(SimpleItem(it))
+                            }
+                            ?: sequenceOf()
+            }
+            .toList()
     }
 }
 
-fun writePlaylist(playlist: List<Item>, name: String, location: File) {
+@Blocks
+fun writePlaylist(playlist: List<Item>, name: String, dir: File) {
     throwIfFxThread()
 
-    val file = location/"$name.m3u8"
+    val file = dir/"$name.m3u8"
     file.bufferedWriter(Charsets.UTF_8).use { writer ->
         playlist.forEach {
             writer.appendln(it.uri.toString())
@@ -64,28 +63,22 @@ fun writePlaylist(playlist: List<Item>, name: String, location: File) {
 
 fun File.isPlaylistFile() = hasExtension("m3u", "m3u8")
 
-private val workingDirPath = File("").absolutePath
-
-private fun File.absoluteTo(location: File): File? {
+private fun File.absoluteTo(dir: File): File? {
     return if (isAbsolute) {
         this
     } else {
         try {
-            File(absolutePath.replace(workingDirPath, location.path)).canonicalFile
+            File(dir, this.path).canonicalFile
         } catch (e: IOException) {
-            logger.error(e) { "Failed to resolve relative path=$this to location=$location" }
+            logger.error(e) { "Failed to resolve relative path=$this to location=$dir" }
             null
         }
     }
 }
 
 private fun String.toURIOrNull() =
-        if (startsWith("file:") || startsWith("http:") || startsWith("https:")) {
-            try {
-                URI(this)
-            } catch (e: URISyntaxException) {
-                null
-            }
-        } else {
-            null
-        }
+    try {
+        URI(this).takeIf { it.isAbsolute }
+    } catch (e: URISyntaxException) {
+        null
+    }

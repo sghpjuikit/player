@@ -427,6 +427,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	}
 
 	// TODO: remove
+	@SuppressWarnings("deprecation")
 	private String computeDataInfo(Object data, boolean computed) {
 		Class<?> type = data==null ? Void.class : data.getClass();
 		Object d = computed ? data instanceof Fut ? ((Fut)data).getDoneOrNull() : data : null;
@@ -556,10 +557,12 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		return o;
 	}
 
+	@SuppressWarnings("deprecation")
 	private static Object futureUnwrap(Object o) {
 		return o instanceof Fut && ((Fut)o).isDone() ? ((Fut)o).getDoneOrNull() : o;
 	}
 
+	@SuppressWarnings("deprecation")
 	private static Object futureUnwrapOrThrow(Object o) {
 		if (o instanceof Fut && !((Fut)o).isDone()) throw new IllegalStateException("Future not done yet");
 		return o instanceof Fut ? ((Fut)o).getDoneOrNull() : o;

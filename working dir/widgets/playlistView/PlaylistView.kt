@@ -92,19 +92,19 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
     private val once = ExecuteN(1)
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    val orient by cv(INHERIT) { Vo(APP.ui.tableOrient) }
+    val tableOrient by cv(INHERIT) { Vo(APP.ui.tableOrient) }
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    val zeropad by cv(true) { Vo(APP.ui.tableZeropad) }
+    val tableZeropad by cv(true) { Vo(APP.ui.tableZeropad) }
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    val orig_index by cv(true) { Vo(APP.ui.tableOrigIndex) }
+    val tableOrigIndex by cv(true) { Vo(APP.ui.tableOrigIndex) }
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    val show_header by cv(true) { Vo(APP.ui.tableShowHeader) }
+    val tableShowHeader by cv(true) { Vo(APP.ui.tableShowHeader) }
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
-    val show_footer by cv(true) { Vo(APP.ui.tableShowFooter) }
+    val tableShowFooter by cv(true) { Vo(APP.ui.tableShowFooter) }
     @IsConfig(name = "Scroll to playing", info = "Scroll table to playing item when it changes.")
     val scrollToPlaying by cv(true)
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
-    val filter_for_playback by cv(false) {
+    val playVisible by cv(false) {
         V(it).initSync { v ->
             table.filterPane.button.icon(if (v) FILTER else FILTER_OUTLINE)
             table.filterPane.button.onClick(Runnable { filterToggle() })
@@ -134,11 +134,11 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
         table.selectionModel.selectionMode = MULTIPLE
         table.items_info.textFactory = { all, list -> DEFAULT_TEXT_FACTORY(all, list)+" - "+Dur(list.sumByDouble { it.timeMs }) }
         onClose += APP.ui.font sync { table.fixedCellSize = it.rowHeight() }
-        onClose += orient syncTo table.nodeOrientationProperty()
-        onClose += zeropad syncTo table.zeropadIndex
-        onClose += orig_index syncTo table.showOriginalIndex
-        onClose += show_header syncTo table.headerVisible
-        onClose += show_footer syncTo table.footerVisible
+        onClose += tableOrient syncTo table.nodeOrientationProperty()
+        onClose += tableZeropad syncTo table.zeropadIndex
+        onClose += tableOrigIndex syncTo table.showOriginalIndex
+        onClose += tableShowHeader syncTo table.headerVisible
+        onClose += tableShowFooter syncTo table.footerVisible
         onClose += scrollToPlaying syncTo table.scrollToPlaying
 
         this layFullArea table.root
@@ -200,12 +200,12 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
         runOn(once) {
             table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo
         }
-        filter_for_playback.applyValue()
+        playVisible.applyValue()
     }
 
     override fun getPlaylist() = playlist
 
-    private fun filterToggle(): Unit = filter_for_playback.setCycledNapplyValue()
+    private fun filterToggle(): Unit = playVisible.setCycledNapplyValue()
 
     private fun computeInitialPlaylist(id: UUID) = null
             ?: PlaylistManager.playlists[id]

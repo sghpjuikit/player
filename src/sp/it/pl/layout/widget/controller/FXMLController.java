@@ -33,7 +33,7 @@ abstract public class FXMLController implements Controller {
 	public final Outputs outputs = new Outputs();
 	public final Inputs inputs = new Inputs();
 	private final HashMap<String,Config<Object>> configs = new HashMap<>();
-	private final List<Subscription> disposables = new ArrayList<>();
+	public final List<Subscription> onClose = new ArrayList<>();
 
 	@Override
 	public Widget<?> getOwnerWidget() {
@@ -86,7 +86,7 @@ abstract public class FXMLController implements Controller {
 
 	@Override
 	public final void close() {
-		disposables.forEach(Subscription::unsubscribe);
+		onClose.forEach(Subscription::unsubscribe);
 		onClose();
 		inputs.getInputs().forEach(Input::unbindAll);
 	}
@@ -101,7 +101,7 @@ abstract public class FXMLController implements Controller {
 	 * time.
 	 */
 	public void d(Subscription d) {
-		disposables.add(d);
+		onClose.add(d);
 	}
 
 }

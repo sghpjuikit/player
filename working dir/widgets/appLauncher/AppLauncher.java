@@ -11,6 +11,7 @@ import sp.it.pl.gui.objects.grid.GridFileThumbCell;
 import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader;
 import sp.it.pl.gui.objects.grid.GridView;
 import sp.it.pl.gui.objects.grid.GridView.CellSize;
+import sp.it.pl.gui.objects.grid.GridView.SelectionOn;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.widget.Widget;
@@ -23,6 +24,7 @@ import sp.it.pl.util.async.executor.FxTimer;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.conf.Config.VarList.Elements;
 import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.file.FileSort;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.Resolution;
@@ -34,17 +36,21 @@ import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
+import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.KEY_PRESS;
+import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
+import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_HOVER;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Sort.ASCENDING;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
+import static sp.it.pl.util.async.AsyncKt.runOn;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
-import static sp.it.pl.util.async.future.Fut.runFut;
 import static sp.it.pl.util.file.FileSort.DIR_FIRST;
 import static sp.it.pl.util.file.FileType.FILE;
 import static sp.it.pl.util.functional.Util.by;
+import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
@@ -92,8 +98,10 @@ public class AppLauncher extends SimpleController {
     final V<FileSort> sort_file = new V<>(DIR_FIRST, v -> applySort());
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
     final VarEnum<FileField<?>> sortBy = new VarEnum<>(FileField.NAME, () -> FileField.FIELDS, v -> applySort());
+    @Dependency("name: used by reflection")
     @IsConfig(name = "Close on launch", info = "Close this widget when it launches a program.")
     final V<Boolean> closeOnLaunch = new V<>(false);
+    @Dependency("name: used by reflection")
     @IsConfig(name = "Close on right click", info = "Close this widget when right click is detected.")
     final V<Boolean> closeOnRightClick = new V<>(false);
 
@@ -106,6 +114,7 @@ public class AppLauncher extends SimpleController {
         files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
         grid.search.field = FileField.PATH;
         grid.primaryFilterField = FileField.NAME_FULL;
+        grid.selectOn.addAll(list(KEY_PRESS, MOUSE_CLICK, MOUSE_HOVER));
         grid.setCellFactory(grid -> new Cell());
         setAnchor(this,grid,0d);
         placeholder.showFor(this);
@@ -147,13 +156,13 @@ public class AppLauncher extends SimpleController {
         Item item = new TopItem();
 //        item.lastScrollPosition = grid.implGetSkin().getFlow().getPosition(); // can cause null here
 	    visitId.incrementAndGet();
-        runFut(executorIO, () -> item.children().stream().sorted(buildSortComparator()).collect(toList()))
+        runOn(executorIO, () -> item.children().stream().sorted(buildSortComparator()).collect(toList()))
                 .useBy(FX, cells -> {
                     grid.getItemsRaw().setAll(cells);
                     if (item.lastScrollPosition>=0)
                         grid.implGetSkin().setPosition(item.lastScrollPosition);
 
-	                grid.implGetSkin().requestFocus();    // fixes focus problem
+                    grid.requestFocus();    // fixes focus problem
                 });
     }
 

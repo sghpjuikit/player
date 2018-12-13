@@ -72,11 +72,12 @@ import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.functional.Util.max;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.add1timeEventHandler;
 import static sp.it.pl.util.graphics.UtilKt.getScreenForMouse;
 import static sp.it.pl.util.reactive.Util.maintain;
-import static sp.it.pl.util.reactive.Util.onScreenChange;
+import static sp.it.pl.util.reactive.Util.onItemRemoved;
 
 /**
  * Manages windows.
@@ -274,10 +275,10 @@ public class WindowManager implements Configurable<Object> {
             miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 40);
             miniWindow.resizable.set(true);
             miniWindow.setAlwaysOnTop(true);
-            miniWindow.disposables.add(onScreenChange(screen -> {
-                // maintain proper widget content until window closes
-                if (screen.equals(miniWindow.getScreen()))
+            miniWindow.disposables.add(onItemRemoved(Screen.getScreens(), consumer(it -> {
+                if (it.equals(miniWindow.getScreen()))
                     runLater(() -> {
+                        Screen screen = Screen.getPrimary();
                         miniWindow.setScreen(screen);
                         miniWindow.setXYSize(
                             screen.getBounds().getMinX(),
@@ -286,7 +287,8 @@ public class WindowManager implements Configurable<Object> {
                             miniWindow.getHeight()
                         );
                     });
-            }));
+
+            })));
 
             // content controls
             Icon miniB = new Icon(null, 13, "Docked mode", this::toggleMiniFull);

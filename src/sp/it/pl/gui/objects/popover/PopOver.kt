@@ -62,7 +62,6 @@ import sp.it.pl.gui.objects.popover.ArrowLocation.TOP_LEFT
 import sp.it.pl.gui.objects.popover.ArrowLocation.TOP_RIGHT
 import sp.it.pl.gui.objects.popover.ScreenUse.APP_WINDOW
 import sp.it.pl.main.APP
-import sp.it.pl.util.access.V
 import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.dev.fail
@@ -173,15 +172,15 @@ open class PopOver<N: Node>(): PopupControl() {
 
     private var hideOnClick: EventHandler<MouseEvent>? = null
     /** Focus this popover on shown event to receive input events. Use true for interactive content. Default true. */
-    @F val focusOnShow = V(true)
+    @F val focusOnShow = v(true)
     /** Whether this the popover can be detached. */
-    @F val detachable = V(true)
+    @F val detachable = v(true)
     /** Whether this popover is detached so it no longer displays an arrow pointing at the owner node. Default false */
-    @F val detached = V(false)
+    @F val detached = v(false)
     /** Header visibility. Header contains title and icons. Default true. */
-    @F val headerVisible = V(true)
+    @F val headerVisible = v(true)
     /** Title text. Default "". */
-    @F val title = V("")
+    @F val title = v("")
 
     /**
      * Modifiable list of the Nodes displayed in the header.
@@ -191,7 +190,7 @@ open class PopOver<N: Node>(): PopupControl() {
     val headerIcons by lazy { observableArrayList<Node>()!! }
 
     /** Whether resizing by user is allowed. */
-    @F val userResizable = V(true)
+    @F val userResizable = v(true)
     @F var screenPreference = APP_WINDOW
     /**
      * Controls the size of the arrow. 0 effectively disables arrow. Default 12.0.
@@ -208,9 +207,9 @@ open class PopOver<N: Node>(): PopupControl() {
     @F val arrowLocation = v(LEFT_TOP)
 
     /** Whether show/hide is animated. */
-    @F var animated = V(true)
+    @F var animated = v(true)
     /** Show/hide animation duration. */
-    @F var animationDuration = V(300.millis)
+    @F var animationDuration = v(300.millis)
     /** Show/hide animation. */
     private val animation by lazy {
         anim {

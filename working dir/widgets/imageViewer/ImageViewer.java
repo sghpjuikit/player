@@ -60,6 +60,7 @@ import static sp.it.pl.util.file.Util.getCommonRoot;
 import static sp.it.pl.util.file.Util.getFilesImage;
 import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.listRO;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.Util.setAnchors;
@@ -327,7 +328,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     @IsInput("Location of")
     private void dataChanged(Item i) {
         if (i==null) dataChanged(Metadata.EMPTY);
-        else APP.actions.itemToMeta(i, this::dataChanged);
+        else APP.actions.itemToMeta(i, consumer(this::dataChanged));
     }
 
     private void dataChanged(Metadata m) {

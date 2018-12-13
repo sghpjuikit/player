@@ -11,7 +11,7 @@ import java.io.File
 interface FileExplorerFeature {
 
     /** Explores file in the file system hierarchy.  */
-    fun exploreFile(f: File)
+    fun exploreFile(file: File)
 
     /**
      * Explores first common file in the file system hierarchy.

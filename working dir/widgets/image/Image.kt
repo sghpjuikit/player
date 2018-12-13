@@ -1,7 +1,7 @@
 package image
 
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS
 import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
@@ -9,16 +9,16 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.controller.io.IsInput
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.main.APP
-import sp.it.pl.util.async.FX
+import sp.it.pl.main.IconMD
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cn
 import sp.it.pl.util.conf.only
 import sp.it.pl.util.graphics.drag.DragUtil
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
 import sp.it.pl.util.graphics.layFullArea
+import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.validation.Constraint.FileActor.FILE
 import java.io.File
-import java.util.function.Consumer
 
 @Widget.Info(
         author = "Martin Polakovic",
@@ -41,17 +41,17 @@ class Image(widget: Widget<*>): SimpleController(widget), ImageDisplayFeature {
         thumb.borderVisible = false
         thumb.isDragEnabled = true
 
-        this layFullArea thumb.pane
+        layFullArea += thumb.pane
 
         installDrag(
-                this, DETAILS, "Display",
+                this, IconMD.DETAILS, "Display",
                 { DragUtil.hasImage(it) },
                 { e -> img!=null && img==DragUtil.getImageNoUrl(e) },
                 { e -> DragUtil.getImage(e) ui { showImage(it) } }
         )
-        setOnKeyPressed {
+        onEventDown(KEY_PRESSED) {
             if (it.code==KeyCode.ENTER) {
-                APP.actions.openImageFullscreen(img)
+                img?.let { APP.actions.openImageFullscreen(it) }
                 it.consume()
             }
         }

@@ -8,18 +8,18 @@ import javafx.scene.web.WebView
 import mu.KLogging
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
-import sp.it.pl.layout.widget.controller.FXMLController
+import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
-import sp.it.pl.main.initClose
 import sp.it.pl.util.access.VarEnum
-import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.dev.Dependency
 import sp.it.pl.util.file.childOf
+import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.type.Util.getFieldValue
 import sp.it.pl.util.type.Util.invokeMethodP1
@@ -35,11 +35,11 @@ import sp.it.pl.web.WebBarInterpreter
         year = "2015",
         group = OTHER
 )
-class WebReader: FXMLController() {
+class WebReader(widget: Widget<*>): SimpleController(widget) {
 
     @FXML private lateinit var addressBar: TextField
     @FXML private lateinit var webView: WebView
-    private lateinit var engine: WebEngine
+    private var engine: WebEngine
 
     @IsConfig(name = "Last visited address", info = "Last visited address", editable = EditMode.APP)
     private var url by c("https://duckduckgo.com/")
@@ -52,7 +52,9 @@ class WebReader: FXMLController() {
     @IsConfig(name = "No background")
     private val noBgr by cv(false)
 
-    override fun init() {
+    init {
+        ConventionFxmlLoader(this).loadNoEx<Any>()
+
         engine = webView.engine
         engine.userDataDirectory = userLocation.childOf("browser")
         engine.locationProperty() attach {
@@ -67,7 +69,7 @@ class WebReader: FXMLController() {
             }
         }
 
-        initClose { engine.documentProperty() sync { if (noBgr.get()) engine.setTransparentBgrColor() } }
+        engine.documentProperty() sync { if (noBgr.get()) engine.setTransparentBgrColor() } on onClose
         inputs.create<String>("Html") { loadHtml(it) }
         inputs.create<String>("Url") { loadPage(it) }
     }

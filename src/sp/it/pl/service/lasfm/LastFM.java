@@ -15,6 +15,7 @@ import org.reactfx.Subscription;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.unused.SimpleConfigurator;
+import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.conf.MapConfigurable;
@@ -106,11 +107,12 @@ public class LastFM {
 		}
 	}
 
-	public static SimpleConfigurator getLastFMconfig() {
+	@SuppressWarnings("unchecked")
+	public static SimpleConfigurator<Object> getLastFMconfig() {
 		return new SimpleConfigurator<>(
-				new MapConfigurable<>(
-						new ValueConfig<>(String.class, "Username", acquireUserName()).constraints(new StringNonEmpty()),
-						new ValueConfig<>(Password.class, "Password", acquirePassword()).constraints(new PasswordNonEmpty())
+				new MapConfigurable<Object>(
+					(Config) new ValueConfig<>(String.class, "Username", acquireUserName()).constraints(new StringNonEmpty()),
+					(Config) new ValueConfig<>(Password.class, "Password", acquirePassword()).constraints(new PasswordNonEmpty())
 				),
 				c -> saveLogin(
 						(String) c.getField("Username").getValue(),

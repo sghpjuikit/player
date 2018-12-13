@@ -13,7 +13,6 @@ import javafx.util.Duration
 import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.math.divMillis
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.math.minus
 import sp.it.pl.util.math.times
 import java.lang.Math.abs
@@ -90,14 +89,8 @@ open class Anim: Transition {
     /** Sets animation duration and returns this (fluent style). */
     fun dur(duration: Duration) = apply { cycleDuration = duration }
 
-    /** Sets animation duration in ms and returns this (fluent style). */
-    fun dur(durationMs: Double) = dur(durationMs.millis)
-
     /** Sets animation delay and returns this (fluent style). */
     fun delay(delay: Duration) = apply { this.delay = delay }
-
-    /** Sets animation delay in ms and returns this (fluent style). */
-    fun delay(delayMs: Double) = delay(delayMs.millis)
 
     /** Sets animation interpolator and returns this (fluent style). */
     fun intpl(interpolator: Interpolator) = apply { this.interpolator = interpolator }

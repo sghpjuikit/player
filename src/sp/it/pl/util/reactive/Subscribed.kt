@@ -3,26 +3,38 @@ package sp.it.pl.util.reactive
 import javafx.beans.value.ObservableValue
 import org.reactfx.Subscription
 
-/** Means of consuming producer - these are abstracted away, only resulting subscription is necessary. */
-private typealias Subscribing = () -> Subscription
+private typealias Subscribing = (Subscribed) -> Subscription
 
 /** Lazy subscribing. Convenient for creating toggleable features. */
-class Subscribed(private val subscribing: Subscribing) {
-
-    val isSubscribed get() = s!=null
+class Subscribed: Subscription {
+    private val subscribing: Subscribing
     private var s: Subscription? = null
+    val isSubscribed get() = s!=null
 
+    constructor(subscribing: Subscribing) {
+        this.subscribing = subscribing
+    }
+
+    /** Toggles this subscribed to specified value - true subscribes, false unsubscribes. */
     fun subscribe(on: Boolean = true) {
-        when (on) {
-            true -> if (s==null) s = subscribing()
-            false -> s?.unsubscribe()
+        if (on) {
+            if (s==null)
+                s = subscribing(this)
+        } else {
+            s?.unsubscribe()
+            s = null
         }
     }
 
-}
+    /** Equivalent to subscribe(!isSubscribed). */
+    fun subscribeToggle() = subscribe(!isSubscribed)
 
-/** @return unsubscribed lazy [Subscribed] using the specified subscribing function. */
-fun subscribed(subscribing: Subscribing) = Subscribed(subscribing).subscribe()
+    /** Equivalent to [subscribeToggle]. */
+    operator fun not() = subscribeToggle()
+
+    /** Equivalent to [subscribe] using false. */
+    override fun unsubscribe() = subscribe(false)
+}
 
 /**
  * Create [Subscribed] for specified subscribing that will be subscribed exactly when the specified value is true.

@@ -4,7 +4,6 @@ package sp.it.pl.main
 
 import ch.qos.logback.classic.Level
 import com.sun.tools.attach.VirtualMachine
-import de.jensd.fx.glyphs.materialicons.MaterialIcon
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.scene.image.Image
@@ -27,12 +26,12 @@ import sp.it.pl.core.CoreMouse
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerXml
 import sp.it.pl.gui.UiManager
+import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.search.SearchAutoCancelable
 import sp.it.pl.gui.objects.tablecell.RatingCellFactory
 import sp.it.pl.gui.objects.tablecell.RatingRatingCellFactory
-import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.window.stage.WindowManager
 import sp.it.pl.gui.pane.ActionPane
 import sp.it.pl.gui.pane.InfoPane
@@ -86,7 +85,6 @@ import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.mimetype.MimeTypes
-import sp.it.pl.util.functional.Functors.Ƒ0
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.image.getImageDim
@@ -220,13 +218,13 @@ class App: Application(), Configurable<Any> {
     @C(name = "Rating allow partial", info = "Allow partial values for rating.")
     val partialRating by cv(true)
 
-    @C(info = "Preferred text when no tag value for field. This value can be overridden.")
+    @C(name = "Text for no value", info = "Preferred text when no tag value for field. This value can be overridden.")
     var textNoVal by c("<none>")
 
-    @C(info = "Preferred text when multiple tag values per field. This value can be overridden.")
+    @C(name = "Text for multi value", info = "Preferred text when multiple tag values per field. This value can be overridden.")
     var textManyVal by c("<multi>")
 
-    @C(info = "Update frequency in Hz for performance-heavy animations.")
+    @C(name = "Animation FPS", info = "Update frequency in Hz for performance-heavy animations.")
     var animationFps by c(60.0).between(10.0, 60.0)
 
     private val logLevels = seqOf(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF)
@@ -551,9 +549,9 @@ class App: Application(), Configurable<Any> {
     }
 
     private fun Search.initForApp() {
-        sources += { configuration.getFields().asSequence().map { ConfigSearch.Entry.of(it) } }
-        sources += { widgetManager.factories.getComponentFactories().map { ConfigSearch.Entry.of(it) } }
-        sources += { ui.skin.enumerateValues().asSequence().map { ConfigSearch.Entry.of(Ƒ0 { "Open skin: $it" }, { ui.skin.setNapplyValue(it) }, Ƒ0 { Icon(MaterialIcon.BRUSH) }) } }
+        sources += { configuration.fields.asSequence().map { Entry.of(it) } }
+        sources += { widgetManager.factories.getComponentFactories().map { Entry.of(it) } }
+        sources += { ui.skin.enumerateValues().asSequence().map { Entry.of({ "Open skin: $it" }, graphicsΛ = { Icon(IconMA.BRUSH) }) { ui.skin.setNapplyValue(it) } } }
     }
 
     private fun AppInstanceComm.initForApp() {

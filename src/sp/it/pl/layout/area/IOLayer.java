@@ -450,7 +450,7 @@ public class IOLayer extends StackPane {
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_LEFT);
             graphics.getProperties().put(XNODE_KEY, this);
-            graphics.setMouseTransparent(true);
+            graphics.setMouseTransparent(false);
             i.styleclass(INODE_STYLECLASS);
 
             // drag&drop
@@ -485,7 +485,7 @@ public class IOLayer extends StackPane {
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_RIGHT);
             graphics.getProperties().put(XNODE_KEY, this);
-            graphics.setMouseTransparent(true);
+            graphics.setMouseTransparent(false);
             i.styleclass(ONODE_STYLECLASS);
 
             // drag&drop
@@ -506,7 +506,7 @@ public class IOLayer extends StackPane {
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_LEFT);
             graphics.getProperties().put(XNODE_KEY, this);
-            graphics.setMouseTransparent(true);
+            graphics.setMouseTransparent(false);
             i.styleclass(IONODE_STYLECLASS);
 
             // drag&drop

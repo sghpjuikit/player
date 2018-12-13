@@ -3,7 +3,6 @@ package sp.it.pl.util.async.future
 import javafx.scene.control.ProgressIndicator
 import javafx.util.Duration
 import mu.KLogging
-import sp.it.pl.main.APP
 import sp.it.pl.util.async.FX
 import sp.it.pl.util.async.NEW
 import sp.it.pl.util.async.future.Fut.Result.ResultFail
@@ -39,8 +38,8 @@ class Fut<T>(private var f: CompletableFuture<T>) {
     @JvmOverloads
     fun <R> then(executor: Executor = defaultExecutor, block: Fut<R>): Fut<R> = Fut(f.thenComposeAsync( { block.f }, executor.kt))
 
-    /** [then] which sleeps the specified duration on [NEW]. */
-    fun <R> thenWait(time: Duration) = then(NEW) { sleep(time) }
+    /** [use] which sleeps the specified duration on [NEW]. */
+    fun thenWait(time: Duration) = use(NEW) { sleep(time) }
 
     /** [then] with [FX] executor. Intended for simple and declarative use of asynchronous computation from ui. */
     infix fun <R> ui(block: (T) -> R) = then(FX, block)
@@ -72,23 +71,18 @@ class Fut<T>(private var f: CompletableFuture<T>) {
      */
     fun showProgress(p: Optional<ProgressIndicator>): Fut<T> = p.map { showProgress(it) }.orElse(this)
 
-    fun showProgress(p: ProgressIndicator?) = p?.let {
-        Fut<T>(
-                CompletableFuture
-                        .runAsync({ p.progress = -1.0 }, FX.kt)
-                        .thenComposeAsync { f }
-                        .thenApplyAsync({ p.progress = 1.0; it }, FX.kt)
-        )
-    } ?: this
-
-    /** Invokes [showProgress] using new progress indicator in the currently active window iff a window is active. */
-    fun showProgressOnActiveWindow() = showProgress(APP.windowManager.active.map { it.taskAdd() })
+    fun showProgress(p: ProgressIndicator) = apply {
+        CompletableFuture
+                .runAsync({ p.progress = -1.0 }, FX.kt)
+                .thenComposeAsync { f }
+                .thenApplyAsync({ p.progress = 1.0; it }, FX.kt)
+    }
 
     fun onOk(executor: Executor = defaultExecutor, block: (T) -> Unit) = onDone(executor) { it.ifOk(block) }
 
     fun onError(executor: Executor = defaultExecutor, block: (Throwable) -> Unit) = onDone(executor) { it.ifError(block) }
 
-    fun onDone(executor: Executor = defaultExecutor, block: (Try<T,Throwable>) -> Unit): Unit = run {
+    fun onDone(executor: Executor = defaultExecutor, block: (Try<T,Throwable>) -> Unit) = apply {
         f.handleAsync(
                 { t, e ->  block(if (e==null) Try.ok(t) else Try.error(e)) },
                 executor.kt
@@ -120,12 +114,7 @@ class Fut<T>(private var f: CompletableFuture<T>) {
 
         /** @return future completed with the specified value */
         @JvmStatic
-        fun <T> fut(value: T) = Fut(CompletableFuture.completedFuture(value))
-
-        /** @return future with promised value completed on the specified executor with the specified block */
-        @JvmStatic
-        @JvmOverloads
-        fun <T> runFut(executor: Executor = defaultExecutor, block: () -> T) = fut(null).then(executor) { block() }
+        fun <T> fut(value: T) = Fut<T>(CompletableFuture.completedFuture(value))
 
         private val defaultExecutor = CompletableFuture<Any>().defaultExecutor()!!
 

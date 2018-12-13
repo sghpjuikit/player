@@ -2,13 +2,16 @@ package sp.it.pl.service.database
 
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.MetadatasDB
+import sp.it.pl.audio.Player
 import sp.it.pl.audio.tagging.Metadata
+import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.APP
+import sp.it.pl.main.showAppProgress
 import sp.it.pl.util.access.v
-import sp.it.pl.util.async.future.Fut.Companion.runFut
 import sp.it.pl.util.async.runFX
+import sp.it.pl.util.async.runNew
 import sp.it.pl.util.collections.mapset.MapSet
 import sp.it.pl.util.dev.ThreadSafe
 import java.io.File
@@ -44,7 +47,7 @@ class Db {
         running = true
         moods = File(APP.DIR_RESOURCES, "moods.txt").useLines { it.toSet() }    // TODO: fix file !exist
 
-        runFut { updateInMemoryDbFromPersisted() }.showProgressOnActiveWindow()
+        runNew { updateInMemoryDbFromPersisted() }.showAppProgress("Loading song database")
     }
 
     fun stop() {
@@ -100,7 +103,7 @@ class Db {
         itemsById.clear()
         itemsById += l
         updateItemValues()
-        runFX { items.i.setValue(l) }
+        runFX { items.i.value = l }
     }
 
     private fun updateItemValues() {
@@ -119,4 +122,11 @@ class Db {
     @ThreadSafe
     fun updateInMemoryDbFromPersisted() = setInMemoryDB(getAllItems().values.toList())
 
+    @ThreadSafe
+    fun refreshItemsFromFile(items: List<Item>) {
+        runNew {
+            val metadatas = items.asSequence().map { MetadataReader.readMetadata(it) }.filter { !it.isEmpty() }.toList()
+            Player.refreshItemsWith(metadatas)
+        }.showAppProgress("Refreshing library from disk")
+    }
 }

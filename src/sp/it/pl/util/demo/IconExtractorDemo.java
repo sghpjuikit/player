@@ -49,7 +49,8 @@ class IconExtractorDemo extends Application {
 		@Override
 		public void updateItem(String item, boolean empty) {
 			super.updateItem(item, empty);
-			if (empty) {
+
+			if (empty || item == null) {
 				setGraphic(null);
 				setText(null);
 			} else {

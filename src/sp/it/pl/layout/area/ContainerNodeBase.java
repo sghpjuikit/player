@@ -38,6 +38,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLOCK;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.area.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
 import static sp.it.pl.layout.area.Area.DRAGGED_PSEUDOCLASS;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
@@ -199,7 +200,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
     void setAltCon(boolean b) {
         if (isAltCon==b) return;
         isAltCon = b;
-        new Anim(this::applyanim).dur(250).intpl(b ? x->x : x->1-x).play();
+        new Anim(this::applyanim).dur(millis(250)).intpl(b ? x->x : x->1-x).play();
         ctrls.toFront();
     }
 

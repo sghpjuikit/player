@@ -22,11 +22,9 @@ import sp.it.pl.util.graphics.image.ImageSize;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.sleep;
-import static sp.it.pl.util.async.future.Fut.runFut;
 import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.dev.Util.throwIf;
 import static sp.it.pl.util.dev.Util.throwIfFxThread;
@@ -71,7 +69,6 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 
 	@Override
 	protected void updateItem(Item item, boolean empty) {
-
 		if (item==getItem()) return;
 		super.updateItem(item, empty);
 
@@ -81,7 +78,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 			imgLoadAnimation.applyAt(item.loadProgress);
 		}
 
-		if (item==null) {
+		if (empty || item==null) {
 			// empty cell has no graphics
 			// we do not clear the content of the graphics however
 			setGraphic(null);
@@ -148,7 +145,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 					thumb.getView().setOpacity(x*x*x*x);
 				}
 			})
-			.dur(200);
+			.dur(millis(200));
 
 		// TODO: remove workaround for fuzzy edges & incorrect layout
 		// Problem: OS scaling will change width of the border, for non-integer widths it may produce visual artifacts
@@ -290,7 +287,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	private ImageSize computeImageSize(Item item) {
 		throwIfFxThread();
 		return Stream.generate(() -> {
-					ImageSize is = runFut(FX, () -> thumb.calculateImageLoadSize()).getDone().or(() -> new ImageSize(-1,-1));
+					ImageSize is = runFX(() -> thumb.calculateImageLoadSize()).getDone().or(() -> new ImageSize(-1,-1));
 					boolean isReady = is.width>0 || is.height>0;
 					if (!isReady && getIndex()<0 || getIndex()>=gridView.get().getItemsShown().size()) return new ImageSize(-1,-1);
 					if (!isReady) new RuntimeException("Image request size=" + is.width + "x" + is.height + " not valid").printStackTrace();

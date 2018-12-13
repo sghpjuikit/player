@@ -37,8 +37,8 @@ import static javafx.scene.input.DragEvent.DRAG_DROPPED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.TransferMode.ANY;
 import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.async.future.Fut.fut;
-import static sp.it.pl.util.async.future.Fut.runFut;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.Util.getFilesAudio;
 import static sp.it.pl.util.functional.Util.IS;
@@ -431,7 +431,7 @@ public final class DragUtil {
 		}
 		if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
 			String url = d.getUrl();
-			return runFut(() -> {
+			return runNew(() -> {
 				try {
 					File f = Util.saveFileTo(url, APP.DIR_TEMP);
 					f.deleteOnExit();
@@ -466,7 +466,7 @@ public final class DragUtil {
 		}
 		if (d.hasFiles()) {
 			List<File> files = d.getFiles();
-			return runFut(() -> getFilesAudio(files, Use.APP, MAX_VALUE).map(SimpleItem::new));
+			return runNew(() -> getFilesAudio(files, Use.APP, MAX_VALUE).map(SimpleItem::new));
 		}
 		if (d.hasUrl()) {
 			String url = d.getUrl();
@@ -478,7 +478,7 @@ public final class DragUtil {
 	}
 
 	private static Fut<File> futUrl(String url) {
-		return runFut(() -> {
+		return runNew(() -> {
 			try {
 				// this can all fail when the certificate is not trusted
 				// security is fine, but user does not care if a site he uses wont work due to this...

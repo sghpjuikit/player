@@ -1,7 +1,5 @@
 package sp.it.pl.main
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon
 import javafx.geometry.Insets
 import javafx.scene.Cursor
 import javafx.scene.Node
@@ -17,12 +15,12 @@ import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator
 import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.future.Fut
-import sp.it.pl.util.functional.kt
 import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.functional.kt
 import sp.it.pl.util.graphics.setScaleXY
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.math.seconds
-import sp.it.pl.util.reactive.changes
+import sp.it.pl.util.reactive.attachChanges
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 
@@ -59,23 +57,23 @@ fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> 
     }
 }
 
-fun createInfoIcon(text: String): Icon = Icon(FontAwesomeIcon.INFO)
+fun createInfoIcon(text: String): Icon = Icon(IconFA.INFO)
         .tooltip("Help")
         .onClick { e ->
             e.consume()
             APP.actionStream.push("Info popup")
             helpPopOver(text).apply {
-                    contentNode.value.wrappingWidth = 400.0
-                    getSkinn().setTitleAsOnlyHeaderContent(false)
-                    showInCenterOf(e.source as Node)
-                }
+                contentNode.value.wrappingWidth = 400.0
+                getSkinn().setTitleAsOnlyHeaderContent(false)
+                showInCenterOf(e.source as Node)
+            }
         }
 
 @JvmOverloads
 fun appProgressIndicator(onStart: In<Progress> = In {}, onFinish: In<Progress> = In {}) = Spinner().apply {
-    val a = anim({ setScaleXY(it*it) }).dur(500.0).intpl(ElasticInterpolator()).applyNow()
-    progressProperty() changes { ov, nv ->
-        if (ov.toDouble()==1.0 && nv.toDouble()!=1.0) {
+    val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(ElasticInterpolator()).applyNow()
+    progressProperty() attachChanges { ov, nv ->
+        if (ov.toDouble()==1.0) {
             onStart(this)
             a.playOpenDo(null)
         }
@@ -116,7 +114,7 @@ fun computeDataInfo(data: Any?): Fut<String> = futureWrap(data).then {
     "Data: $dName\nType: $dKind$dInfo"
 }
 
-fun resizeButton(): Icon = Icon(MaterialDesignIcon.RESIZE_BOTTOM_RIGHT).apply {
+fun resizeButton(): Icon = Icon(IconMD.RESIZE_BOTTOM_RIGHT).apply {
     cursor = Cursor.SE_RESIZE
     isAnimated.value = false
     styleclass("resize-content-icon")

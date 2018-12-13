@@ -52,7 +52,6 @@ import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
-import static sp.it.pl.main.AppBuildersKt.rowHeight;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.animation.Anim.animSeq;
@@ -65,7 +64,6 @@ import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.UtilKt.typeText;
-import static sp.it.pl.util.reactive.Util.maintain;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
 import static sp.it.pl.util.system.EnvironmentKt.edit;
 import static sp.it.pl.util.system.EnvironmentKt.open;
@@ -168,7 +166,7 @@ public class GameLib extends FXMLController {
             @Override
             protected void updateItem(GameItem item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty ? null : item.getName());
+                setText(empty || item==null ? null : item.getName());
             }
         });
         game_list.getSelectionModel().setSelectionMode(SINGLE);
@@ -215,7 +213,6 @@ public class GameLib extends FXMLController {
         controls.getChildren().setAll(editInfoB,playB,exploreB,wikiB);
 
         file_tree.setShowRoot(false);
-        d(maintain(APP.ui.getFont(), f -> rowHeight(f), file_tree.fixedCellSizeProperty()));
         file_tree.getSelectionModel().setSelectionMode(SINGLE);
         TreeItemsKt.initTreeView(file_tree);
         file_tree.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {

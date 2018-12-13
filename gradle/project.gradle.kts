@@ -27,11 +27,9 @@ plugins {
     id("de.undercouch.download") version "3.4.3"
 }
 
-fun Boolean.orFailIO(message: () -> String) = also { if (!this) throw IOException(message()) }
-
 /** working directory of the application */
 val dirWorking = file("working dir")
-val dirJdk = dirWorking.resolve("java")
+val dirJdk = dirWorking/"java"
 val kotlinVersion: String by extra {
     buildscript.configurations["classpath"]
             .resolvedConfiguration.firstLevelModuleDependencies
@@ -57,13 +55,9 @@ sourceSets {
     }
 }
 
-kotlin {
-    copyClassesToJavaOutput = true
-}
-
 allprojects {
     apply(plugin = "kotlin")
-    buildDir = file(properties["player.buildDir"] ?: rootDir.resolve("build")).resolve(name)
+    buildDir = file(properties["player.buildDir"] ?: rootDir/"build")/name
 
     tasks.withType<JavaCompile> {
         options.encoding = UTF_8.name()
@@ -72,19 +66,23 @@ allprojects {
         options.isDeprecation = true
         options.compilerArgs = listOf(
                 "-Xlint:unchecked",
-                "--add-exports", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
-                "--add-exports", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED",
-                "--add-exports", "javafx.web/com.sun.webkit=ALL-UNNAMED",
-                "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
+                "--add-exports", "javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED",
+                "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED",
+                "--add-exports", "javafx.web/com.sun.webkit=ALL-UNNAMED"
         )
     }
 
     tasks.withType<KotlinCompile> {
+        kotlinOptions.includeRuntime = true
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.jdkHome = dirJdk.path
         kotlinOptions.verbose = true
         kotlinOptions.suppressWarnings = false
-        kotlinOptions.freeCompilerArgs += listOf("-progressive", "-Xjvm-default=enable")
+        kotlinOptions.freeCompilerArgs += listOf(
+                "-progressive",
+                "-Xjvm-default=enable",
+                "-XXLanguage:+InlineClasses"
+        )
     }
 
     repositories {
@@ -157,7 +155,7 @@ tasks {
         group = "build"
         description = "Copies all libraries into the working dir"
         from(configurations.compileClasspath)
-        into(dirWorking.resolve("lib"))
+        into(dirWorking/"lib")
     }
 
     val linkJdk by creating {
@@ -166,34 +164,30 @@ tasks {
         onlyIf { !dirJdk.exists() }
         doFirst {
             println("Making JDK locally accessible...")
-            val jdkPath = System.getProperty("java.home").takeIf { it.isNotBlank() }
-                    ?.let { Paths.get(it) }
-                    ?: throw FileNotFoundException("Unable to find JDK")
+            val jdkPath = "java.home".sysProp.takeIf { it.isNotBlank() }?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
             try {
                 Files.createSymbolicLink(dirJdk.toPath(), jdkPath)
             } catch (e: Exception) {
                 println("Couldn't create a symbolic link from $dirJdk to $jdkPath: $e")
-                if (System.getProperty("os.name").startsWith("Windows")) {
+                if ("os.name".sysProp.startsWith("Windows")) {
                     println("Trying junction...")
-                    val process = Runtime.getRuntime().exec("cmd.exe /c mklink /j \"$dirJdk\" \"$jdkPath\"")
+                    val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$dirJdk" "$jdkPath"""")
                     val exitValue = process.waitFor()
-                    if (exitValue==0 && dirJdk.exists())
-                        println("Junction successful!")
-                    else
-                        throw IOException("Unable to make JDK locally accessible!\nmklink exit code: $exitValue", e)
+                    if (exitValue==0 && dirJdk.exists()) println("Junction successful!")
+                    else failIO(e) { "Unable to make JDK locally accessible!\nmklink exit code: $exitValue" }
                 } else {
-                    throw IOException("Unable to make JDK locally accessible!", e)
+                    failIO(e) { "Unable to make JDK locally accessible!" }
                 }
             }
         }
     }
 
     val kotlinc by creating(Download::class) {
-        val dirKotlinc = dirWorking.resolve("kotlinc")
-        val fileKotlinVersion = dirKotlinc.resolve("build.txt")
+        val dirKotlinc = dirWorking/"kotlinc"
+        val fileKotlinVersion = dirKotlinc/"build.txt"
         val nameKotlinc = "kotlin-compiler-$kotlinVersion.zip"
-        val fileKotlinc = dirKotlinc.resolve("bin/kotlinc")
-        val zipKotlinc = dirKotlinc.resolve(nameKotlinc)
+        val fileKotlinc = dirKotlinc/"bin"/"kotlinc"
+        val zipKotlinc = dirKotlinc/nameKotlinc
         group = "build setup"
         description = "Downloads the kotlin compiler into $dirKotlinc"
         onlyIf { !fileKotlinVersion.exists() || !fileKotlinVersion.readText().startsWith(kotlinVersion) }
@@ -229,7 +223,7 @@ tasks {
         group = main
         description = "Cleans up temporary files"
         delete(
-                dirWorking.resolve("user/tmp"),
+                dirWorking/"user"/"tmp",
                 buildDir,
                 dirWorking.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList()
         )
@@ -266,10 +260,15 @@ application {
             "--add-opens", "java.desktop/java.awt.font=ALL-UNNAMED",
             "--add-opens", "javafx.controls/javafx.scene.control=ALL-UNNAMED",
             "--add-opens", "javafx.controls/javafx.scene.control.skin=ALL-UNNAMED",
-            "--add-opens", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
-            "--add-opens", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED",
-            "--add-opens", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
             "--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
             "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED"
     )
 }
+
+operator fun File.div(childName: String) = this.resolve(childName)
+
+val String.sysProp: String get() = System.getProperty(this)
+
+fun failIO(cause: Throwable? = null, message: () -> String): Nothing  = throw IOException(message(), cause)
+
+fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, message) }

@@ -79,7 +79,7 @@ import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.async.future.Fut.runFut;
+import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.file.Util.copyFileSafe;
 import static sp.it.pl.util.file.Util.copyFiles;
 import static sp.it.pl.util.functional.Util.by;
@@ -274,7 +274,7 @@ public class FileInfo extends FXMLController implements SongReader {
     private void setValue(Item i) {
         if (i==null) setValue(Metadata.EMPTY);
         else if (i instanceof Metadata) setValue((Metadata)i);
-        else APP.actions.itemToMeta(i, this::setValue);
+        else APP.actions.itemToMeta(i, consumer(this::setValue));
     }
 
     private void setValue(Metadata m) {
@@ -320,7 +320,7 @@ public class FileInfo extends FXMLController implements SongReader {
 
     private void setCover(CoverSource source) {
         Metadata id = data;
-        runFut(() -> data.getCover(source).getImage())
+        runNew(() -> data.getCover(source).getImage())
             .useBy(FX, img -> {
                 if (id==data)
                     cover.loadImage(img);

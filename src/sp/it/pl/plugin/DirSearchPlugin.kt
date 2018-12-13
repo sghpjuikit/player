@@ -1,21 +1,23 @@
 package sp.it.pl.plugin
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 import mu.KLogging
-import sp.it.pl.audio.Player
+import sp.it.pl.gui.objects.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
 import sp.it.pl.main.APP
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.showAppProgress
 import sp.it.pl.util.access.v
-import sp.it.pl.util.async.future.Fut.Companion.fut
+import sp.it.pl.util.async.NEW
+import sp.it.pl.util.async.runFX
+import sp.it.pl.util.async.runNew
 import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cList
 import sp.it.pl.util.conf.cr
 import sp.it.pl.util.conf.only
+import sp.it.pl.util.dev.throwIfFxThread
 import sp.it.pl.util.file.Util.writeFile
 import sp.it.pl.util.system.browse
-import sp.it.pl.util.type.atomic
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
@@ -33,55 +35,62 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
 
     private val cacheFile = getUserResource("dirs.txt")
     private val cacheUpdate = AtomicLong(0)
-    private var dirs by atomic(listOf<File>())
-    private val searchProvider = { dirs.asSequence().map { it.toOpenDirEntry() } }
+    private var searchSourceDirs = listOf<File>()
+    private val searchSource = { searchSourceDirs.asSequence().map { it.toOpenDirEntry() } }
 
     override fun onStart() {
+        APP.search.sources += searchSource
         computeFiles()
-        APP.search.sources += searchProvider
     }
 
     override fun onStop() {
-        APP.search.sources -= searchProvider
+        APP.search.sources -= searchSource
     }
 
     private fun computeFiles() {
-        val cacheFileExists = cacheFile.exists()
-        val isCacheInvalid = !cacheFileExists
-
-        if (isCacheInvalid) updateCache()
-        else readCache()
+        runNew {
+            val isCacheInvalid = !cacheFile.exists()
+            if (isCacheInvalid) updateCache() else readCache()
+        }
     }
 
     private fun readCache() {
-        dirs = cacheFile.useLines { it.map { File(it) }.toList() }
-    }
+        throwIfFxThread()
 
-    private fun writeCache(files: List<File>) {
-        val lines = files.asSequence().map { it.absolutePath }.joinToString("\n")
-        writeFile(cacheFile, lines)
+        val dirs = cacheFile.useLines { it.map { File(it) }.toList() }
+        runFX {
+            searchSourceDirs = dirs
+        }
     }
 
     private fun updateCache() {
-        val id = cacheUpdate.getAndIncrement()
-        fut(searchDirs.materialize())
-                .then(Player.IO_THREAD) {
-                    it.asSequence()
-                            .distinct()
-                            .flatMap { dir -> findDirectories(dir, id) }
-                            .toList()
-                            .also { writeCache(it) }
-                }
-                .ui { dirs = it }
-                .showProgressOnActiveWindow()
+        runFX { searchDirs.materialize() }
+            .then(NEW) { dirs ->
+                val id = cacheUpdate.getAndIncrement()
+                dirs.asSequence()
+                        .distinct()
+                        .flatMap { findDirectories(it, id) }
+                        .toList()
+                        .also { writeCache(it) }
+            }.ui {
+                searchSourceDirs = it
+            }
+            .showAppProgress("$name: Searching for Directories")
+    }
+
+    private fun writeCache(files: List<File>) {
+        throwIfFxThread()
+
+        val lines = files.asSequence().map { it.absolutePath }.joinToString("\n")
+        writeFile(cacheFile, lines)
     }
 
     private fun File.toOpenDirEntry() = ConfigSearch.Entry.of(
             { "Open directory: $absolutePath" },
             { "Opens directory: $absolutePath" },
             { "Open directory: $absolutePath" },
-            { browse() },
-            { Icon(FontAwesomeIcon.FOLDER) }
+            { Icon(IconFA.FOLDER) },
+            { browse() }
     )
 
     private fun findDirectories(rootDir: File, id: Long) =

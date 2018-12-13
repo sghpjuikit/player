@@ -41,10 +41,10 @@ import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.file.toURLOrNull
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.asArray
-import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.runIf
+import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.math.seconds
 import sp.it.pl.util.system.Os
 import sp.it.pl.util.type.isSubclassOf
@@ -592,7 +592,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 return
             }
 
-            layoutsAvailable clearSet dir.seqChildren().filter { it hasExtension "l" }.map { it.nameWithoutExtension }
+            layoutsAvailable setTo dir.seqChildren().filter { it hasExtension "l" }.map { it.nameWithoutExtension }
         }
     }
 

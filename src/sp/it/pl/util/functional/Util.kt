@@ -1,6 +1,7 @@
 package sp.it.pl.util.functional
 
 import javafx.collections.ObservableList
+import javafx.util.Callback
 import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.type.union
 import java.util.Comparator
@@ -30,6 +31,8 @@ operator fun LongConsumer.invoke(t: Long) = accept(t)
 operator fun <T, U> BiConsumer<T, U>.invoke(t: T, u: U) = accept(t, u)
 
 operator fun <T, U> Function<T, U>.invoke(t: T) = apply(t)
+
+operator fun <T, U> Callback<T, U>.invoke(t: T): U = call(t)
 
 operator fun <T> Predicate<T>.invoke(t: T) = test(t)
 
@@ -204,11 +207,17 @@ infix fun <R, E> Try<R, E>.onE(handle: (E) -> Unit) = ifError(handle)!!
  */
 inline fun <T, R: Any> T.net(block: (T) -> R): R = let(block)
 
+/** @return this as specified type if this is of the type or null otherwise */
+inline fun <reified T> Any?.asIf(): T? = if (this is T) this else null
+
 /** Invokes the block if this is the specified type. */
 inline fun <reified T> Any?.ifIs(block: (T) -> Unit) = apply { if (this is T) block(this) }
 
 /** Invokes the block if this is null and returns this value. */
 inline fun <T> T?.ifNull(block: () -> Unit) = apply { if (this==null) block() }
+
+/** Invokes the block if this is null and returns this value. */
+inline fun <T> T?.ifNotNull(block: (T) -> Unit) = apply { if (this!=null) block(this) }
 
 /** Invokes the block if this is true and returns this value. */
 inline fun Boolean.ifTrue(block: () -> Unit) = apply { if (this) block() }
@@ -226,8 +235,6 @@ fun <T> seqOf(vararg elements: T) = sequenceOf(*elements)
 fun <E> E.seqRec(children: (E) -> Iterable<E>): Sequence<E> = sequence {
     yield(this@seqRec)
     children(this@seqRec).forEach { it.seqRec(children).forEach { yield(it) } }
-    // eager version
-    // sequenceOf(this) + children(this).asSequence().flatMap { it.seqRec(children) }
 }
 
 /** @return an array containing all elements */
@@ -250,13 +257,15 @@ fun <E: Any> Collection<E?>.getElementType(): Class<*> {
     return asSequence().filterNotNull()
             .map { it::class as KClass<*> }.distinct()
             .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }
-            ?.java ?: Void::class.java
+            ?.java
+            ?: Void::class.java
 }
 
 /** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */
-inline infix fun <reified T: Any?> MutableCollection<T>.clearSet(elements: Collection<T>) {
+@Suppress("DEPRECATION")
+infix fun <T> MutableCollection<T>.setTo(elements: Collection<T>) {
     if (this is ObservableList<T>)
-        setAll(ArrayList(elements))
+        this.setAll(if (elements is MutableCollection<T>) elements else ArrayList(elements))
     else {
         this.clear()
         this += elements
@@ -264,4 +273,7 @@ inline infix fun <reified T: Any?> MutableCollection<T>.clearSet(elements: Colle
 }
 
 /** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */
-inline infix fun <reified T: Any?> MutableCollection<T>.clearSet(elements: Sequence<T>) = this clearSet elements.toList()
+infix fun <T> MutableCollection<T>.setTo(elements: Sequence<T>) = this setTo elements.toList()
+
+/** Removes all elements and adds specified element to this collection. Atomic for [ObservableList]. */
+infix fun <T> MutableCollection<T>.setToOne(element: T) = this setTo listOf(element)

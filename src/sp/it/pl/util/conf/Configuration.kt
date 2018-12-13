@@ -12,19 +12,18 @@ import java.io.File
 import java.lang.invoke.MethodHandles
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
-import java.util.function.Predicate
-import java.util.stream.Stream
 
-/** Provides methods to access configs. */
-open class Configuration {
+/** Persistable collection of [Config]. */
+open class Configuration: Configurable<Any> {
 
     private val methodLookup = MethodHandles.lookup()
     private val mapper: (String) -> String = { s -> s.replace(' ', '_').toLowerCase() }
     private val configToRawKeyMapper = compose({ c: Config<*> -> "${c.group}.${c.name}" }, mapper)
     private val properties = ConcurrentHashMap<String, String>()
-    private val configs = MapSet(ConcurrentHashMap(), configToRawKeyMapper)
+    private val configs: MapSet<String, Config<*>> = MapSet(ConcurrentHashMap(), configToRawKeyMapper)
 
-    fun getFields(): Collection<Config<*>> = configs
+    @Suppress("UNCHECKED_CAST")
+    override fun getFields(): Collection<Config<Any>> = configs as Collection<Config<Any>>
 
     /**
      * Returns raw key-value ([java.lang.String]) pairs representing the serialized configs.
@@ -99,10 +98,8 @@ open class Configuration {
 
     fun <T> drop(configs: Collection<Config<T>>) = configs.forEach { drop(it) }
 
-    fun getFields(condition: Predicate<Config<*>>): Stream<Config<*>> = getFields().stream().filter(condition)
-
     /** Changes all config fields to their default value and applies them  */
-    fun toDefault() = getFields().forEach { it.setNapplyDefaultValue() }
+    fun toDefault() = fields.forEach { it.setNapplyDefaultValue() }
 
     /**
      * Saves configuration to the file. The file is created if it does not exist,

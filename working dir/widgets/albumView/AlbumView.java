@@ -46,6 +46,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
@@ -447,7 +448,7 @@ public class AlbumView extends SimpleController {
                     boolean animate = animateThumbOn.get().needsAnimation(this, imgAlreadyLoaded, img);
                     thumb.loadImage(img, imgFile);
                     if (animate)
-                        new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x * x * x * x).play();
+                        new Anim(thumb.getView()::setOpacity).dur(millis(400)).intpl(x -> x*x*x*x).play();
                 }
             });
 		}

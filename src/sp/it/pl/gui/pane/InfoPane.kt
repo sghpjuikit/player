@@ -8,7 +8,6 @@ import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.VPos
 import javafx.scene.Cursor
 import javafx.scene.control.Label
-import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy
 import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
@@ -19,8 +18,9 @@ import sp.it.pl.main.createInfoIcon
 import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.util.graphics.Util.layHeaderTop
 import sp.it.pl.util.graphics.Util.layHorizontally
-import sp.it.pl.util.graphics.Util.layStack
 import sp.it.pl.util.graphics.Util.layVertically
+import sp.it.pl.util.graphics.scrollPane
+import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.system.copyToSysClipboard
 import sp.it.pl.util.toLocalDateTime
 import sp.it.pl.util.units.Dur
@@ -33,9 +33,9 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
         styleClass += STYLECLASS
 
         val helpI = createInfoIcon("System information viewer\n\nDisplays available system properties. Click on the property to copy the value.")
-        val sp = ScrollPane().apply {
+        val sp = scrollPane {
             onScroll = EventHandler { it.consume() }
-            content = layStack(g, CENTER)
+            content = stackPane(g)
             isFitToWidth = true
             isFitToHeight = false
             hbarPolicy = ScrollBarPolicy.NEVER
@@ -43,7 +43,7 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
         }
         content = layHeaderTop(5.0, CENTER,
                 layHorizontally(5.0, CENTER_RIGHT, helpI),
-                layStack(sp, CENTER)
+                stackPane(sp)
         ).also {
             it.maxWidth = 800.0
             it.maxHeightProperty().bind(heightProperty().subtract(100))

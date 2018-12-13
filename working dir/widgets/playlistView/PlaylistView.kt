@@ -1,7 +1,5 @@
 package playlistView
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FILTER_OUTLINE
 import javafx.event.EventHandler
 import javafx.geometry.NodeOrientation.INHERIT
 import javafx.scene.control.Menu
@@ -26,13 +24,14 @@ import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.APP
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.PLAYLIST
-import sp.it.pl.main.rowHeight
-import sp.it.pl.util.access.V
 import sp.it.pl.util.access.Vo
 import sp.it.pl.util.access.initSync
+import sp.it.pl.util.access.v
 import sp.it.pl.util.async.executor.ExecuteN
-import sp.it.pl.util.async.future.Fut.Companion.runFut
+import sp.it.pl.util.async.runNew
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.Config
@@ -46,8 +45,9 @@ import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.Util.menuItem
 import sp.it.pl.util.graphics.layFullArea
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
-import sp.it.pl.util.reactive.syncTo
+import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.system.saveFile
 import sp.it.pl.util.type.Util
 import sp.it.pl.util.units.Dur
@@ -105,8 +105,8 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
     val scrollToPlaying by cv(true)
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
     val playVisible by cv(false) {
-        V(it).initSync { v ->
-            table.filterPane.button.icon(if (v) FILTER else FILTER_OUTLINE)
+        v(it).initSync { v ->
+            table.filterPane.button.icon(if (v) IconFA.FILTER else IconMD.FILTER_OUTLINE)
             table.filterPane.button.onClick(Runnable { filterToggle() })
             table.filterPane.button.tooltip(
                     if (v) "Disable filter for playback. Causes the playback "+"to ignore the filter."
@@ -123,25 +123,25 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
     var lastSavePlaylistLocation by cn(APP.DIR_USERDATA).only(Constraint.FileActor.DIRECTORY)
 
     init {
-        onClose += Player.playlistSelected.i.bind(outSelected)
-        onClose += playlist.playingI sync { outPlaying.value = playlist.playing }
-        onClose += Player.onItemRefresh { ms ->
+        playlist.playingI sync { outPlaying.value = playlist.playing } on onClose
+        Player.playlistSelected.i.bind(outSelected) on onClose
+        Player.onItemRefresh { ms ->
             outPlaying.value?.let { ms.ifHasK(it.uri, Consumer { outPlaying.value = it.toPlaylist() }) }
             outSelected.value?.let { ms.ifHasK(it.uri, Consumer { outSelected.value = it.toPlaylist() }) }
-        }
+        } on onClose
 
         table.search.setColumn(Field.NAME)
         table.selectionModel.selectionMode = MULTIPLE
-        table.items_info.textFactory = { all, list -> DEFAULT_TEXT_FACTORY(all, list)+" - "+Dur(list.sumByDouble { it.timeMs }) }
-        onClose += APP.ui.font sync { table.fixedCellSize = it.rowHeight() }
-        onClose += tableOrient syncTo table.nodeOrientationProperty()
-        onClose += tableZeropad syncTo table.zeropadIndex
-        onClose += tableOrigIndex syncTo table.showOriginalIndex
-        onClose += tableShowHeader syncTo table.headerVisible
-        onClose += tableShowFooter syncTo table.footerVisible
-        onClose += scrollToPlaying syncTo table.scrollToPlaying
 
-        this layFullArea table.root
+        table.items_info.textFactory = { all, list -> DEFAULT_TEXT_FACTORY(all, list)+" - "+Dur(list.sumByDouble { it.timeMs }) }
+        table.nodeOrientationProperty() syncFrom tableOrient on onClose
+        table.zeropadIndex syncFrom tableZeropad on onClose
+        table.showOriginalIndex syncFrom tableOrigIndex on onClose
+        table.headerVisible syncFrom tableShowHeader on onClose
+        table.footerVisible syncFrom tableShowFooter on onClose
+        table.scrollToPlaying syncFrom scrollToPlaying on onClose
+
+        layFullArea += table.root
 
         table.menuAdd.items.addAll(
                 menuItem("Add files") { PlaylistManager.chooseFilesToAdd() },
@@ -174,7 +174,7 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
                     ).ifOk { file ->
                         lastSavePlaylistLocation = file.parentDirOrRoot
                         PlayerConfiguration.lastSavePlaylistLocation = file.parentDirOrRoot
-                        runFut { writePlaylist(table.selectedOrAllItemsCopy, file.name, file.parentDirOrRoot) }
+                        runNew { writePlaylist(table.selectedOrAllItemsCopy, file.name, file.parentDirOrRoot) }
                     }
                 }
         )

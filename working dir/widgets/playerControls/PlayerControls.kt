@@ -1,11 +1,9 @@
 package playerControls
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon
 import javafx.fxml.FXML
 import javafx.scene.control.Label
 import javafx.scene.control.Slider
-import javafx.scene.layout.AnchorPane
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
@@ -24,22 +22,27 @@ import sp.it.pl.gui.objects.balancer.Balancer
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.seeker.Seeker
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.FXMLController
+import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.PlaybackFeature
 import sp.it.pl.main.APP
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.PLAYBACK
-import sp.it.pl.main.initClose
 import sp.it.pl.util.Util.formatDuration
 import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.EM
 import sp.it.pl.util.graphics.drag.DragUtil.getAudioItems
 import sp.it.pl.util.graphics.drag.DragUtil.hasAudio
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
-import sp.it.pl.util.graphics.setAnchors
+import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
+import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.reactive.on
+import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncBi
-import sp.it.pl.util.reactive.syncTo
+import sp.it.pl.util.reactive.syncFrom
 import java.io.File
 
 @Widget.Info(
@@ -64,9 +67,8 @@ import java.io.File
         year = "2014",
         group = Widget.Group.PLAYBACK
 )
-class PlayerControls: FXMLController(), PlaybackFeature {
+class PlayerControls(widget: Widget<*>): SimpleController(widget), PlaybackFeature {
 
-    @FXML lateinit var entireArea: AnchorPane
     @FXML lateinit var controlPanel: BorderPane
     @FXML lateinit var soundPane: HBox
     @FXML lateinit var volume: Slider
@@ -82,13 +84,13 @@ class PlayerControls: FXMLController(), PlaybackFeature {
 
     lateinit var balance: Balancer
     val seeker = Seeker()
-    val f1 = Icon(FontAwesomeIcon.ANGLE_DOUBLE_LEFT, 24.0).onClickDo { Player.seekBackward(seekType.get()) }
-    val f2 = Icon(FontAwesomeIcon.FAST_BACKWARD, 24.0).onClickDo { PlaylistManager.playPreviousItem() }
-    val f3 = Icon(FontAwesomeIcon.PLAY, 48.0).gap(36.0).onClickDo { Player.pause_resume() }
-    val f4 = Icon(FontAwesomeIcon.FAST_FORWARD, 24.0).onClickDo { PlaylistManager.playNextItem() }
-    val f5 = Icon(FontAwesomeIcon.ANGLE_DOUBLE_RIGHT, 24.0).onClickDo { Player.seekForward(seekType.get()) }
-    val muteB = Icon(FontAwesomeIcon.VOLUME_UP).onClickDo { Player.toggleMute() }
-    val loopB = Icon(FontAwesomeIcon.RANDOM, 24.0).onClickDo { Player.toggleLoopMode(it) }
+    val f1 = Icon(IconFA.ANGLE_DOUBLE_LEFT, 24.0).onClickDo { Player.seekBackward(seekType.get()) }
+    val f2 = Icon(IconFA.FAST_BACKWARD, 24.0).onClickDo { PlaylistManager.playPreviousItem() }
+    val f3 = Icon(IconFA.PLAY, 48.0).gap(36.0).onClickDo { Player.pause_resume() }
+    val f4 = Icon(IconFA.FAST_FORWARD, 24.0).onClickDo { PlaylistManager.playNextItem() }
+    val f5 = Icon(IconFA.ANGLE_DOUBLE_RIGHT, 24.0).onClickDo { Player.seekForward(seekType.get()) }
+    val muteB = Icon(IconFA.VOLUME_UP).onClickDo { Player.toggleMute() }
+    val loopB = Icon(IconFA.RANDOM, 24.0).onClickDo { Player.toggleLoopMode(it) }
     var lastUpdateTime = Double.MIN_VALUE // reduces time update events
 
     @IsConfig(name = "Seek type", info = "Seek by time (absolute) or fraction of total duration (relative).")
@@ -105,42 +107,43 @@ class PlayerControls: FXMLController(), PlaybackFeature {
     var playDropped = false
 
     override fun init() {
+        ConventionFxmlLoader(this).loadNoEx<Any>()
+
         val ps = Player.state.playback
 
         balance = Balancer(ps.balance)
         (soundPane.parent as Pane).children.add(0, balance)
         balance.step.set(BalanceProperty.STEP)
         balance.prefHeight = 100.0
-        initClose { balance.balance syncBi ps.balance }
+        balance.balance syncBi ps.balance on onClose
 
         volume.min = ps.volume.min
         volume.max = ps.volume.max
         volume.blockIncrement = VolumeProperty.STEP
         volume.value = ps.volume.get()
-        initClose { volume.valueProperty() syncBi ps.volume }
+        volume.valueProperty() syncBi ps.volume on onClose
 
-        initClose { seeker.bindTime(ps.duration, ps.currentTime) }
-        entireArea.children += seeker
+        seeker.bindTime(ps.duration, ps.currentTime) on onClose
+        seeker.chapterSnapDistance syncFrom APP.ui.snapDistance on onClose
         seeker.prefHeight = 30.0
-        seeker.setAnchors(null, 0.0, 0.0, 0.0)
-        initClose { APP.ui.snapDistance syncTo seeker.chapterSnapDistance }
+        lay(null, 0, 0, 0) += seeker
 
-        playButtons.children.setAll(f1, f2, f3, f4, f5, loopB)
+        playButtons.children setTo listOf(f1, f2, f3, f4, f5, loopB)
         soundPane.children.add(0, muteB)
 
-        initClose { ps.duration sync { totTime.text = it.print() } }
-        initClose { ps.currentTime sync { timeChanged(ps) } }
-        initClose { ps.status sync { statusChanged(it) } }
-        initClose { ps.loopMode sync { loopModeChanged(it) } }
-        initClose { ps.mute sync { muteChanged(ps) } }
-        initClose { ps.volume sync { muteChanged(ps) } }
-        initClose { Player.onSeekDone.addS { lastUpdateTime = Double.MIN_VALUE } }
-        initClose { Player.playingItem.onUpdateAndNow { playingItemChanged(it) } }
+        ps.duration sync { totTime.text = it.print() } on onClose
+        ps.currentTime sync { timeChanged(ps) } on onClose
+        ps.status sync { statusChanged(it) } on onClose
+        ps.loopMode sync { loopModeChanged(it) } on onClose
+        ps.mute sync { muteChanged(ps) } on onClose
+        ps.volume sync { muteChanged(ps) } on onClose
+        Player.onSeekDone.addS { lastUpdateTime = Double.MIN_VALUE } on onClose
+        Player.playingItem.onUpdateAndNow { playingItemChanged(it) } on onClose
 
-        currTime.setOnMouseClicked { cycleElapsed() }
+        currTime.onEventDown(MOUSE_CLICKED) { cycleElapsed() }
         installDrag(
-                entireArea,
-                MaterialDesignIcon.PLAYLIST_PLUS,
+                this,
+                IconMD.PLAYLIST_PLUS,
                 "Add to active playlist",
                 { e -> hasAudio(e) },
                 { e ->
@@ -149,8 +152,6 @@ class PlayerControls: FXMLController(), PlaybackFeature {
                 }
         )
     }
-
-    override fun refresh() {}
 
     private fun playFile(file: File) {
         PlaylistManager.use {
@@ -177,16 +178,17 @@ class PlayerControls: FXMLController(), PlaybackFeature {
 
     private fun statusChanged(newStatus: Status?) {
         lastUpdateTime = Double.MIN_VALUE
+
         if (newStatus==null || newStatus==Status.UNKNOWN) {
             controlPanel.isDisable = true
             seeker.isDisable = true
-            f3.icon(FontAwesomeIcon.PLAY)
+            f3.icon(IconFA.PLAY)
         } else {
             controlPanel.isDisable = false
             seeker.isDisable = false
             f3.icon(when (newStatus) {
-                Status.PLAYING -> FontAwesomeIcon.PAUSE
-                else -> FontAwesomeIcon.PLAY
+                Status.PLAYING -> IconFA.PAUSE
+                else -> IconFA.PLAY
             })
             f3.glyphOffsetX.value = when (newStatus) {
                 Status.PLAYING -> -APP.ui.font.value.size.EM*0.2
@@ -204,18 +206,18 @@ class PlayerControls: FXMLController(), PlaybackFeature {
             LoopMode.RANDOM -> "Loop mode: random"
         }
         loopB.icon(when (looping) {
-            LoopMode.OFF -> MaterialDesignIcon.REPEAT_OFF
-            LoopMode.PLAYLIST -> MaterialDesignIcon.REPEAT
-            LoopMode.SONG -> MaterialDesignIcon.REPEAT_ONCE
-            LoopMode.RANDOM -> FontAwesomeIcon.RANDOM
+            LoopMode.OFF -> IconMD.REPEAT_OFF
+            LoopMode.PLAYLIST -> IconMD.REPEAT
+            LoopMode.SONG -> IconMD.REPEAT_ONCE
+            LoopMode.RANDOM -> IconFA.RANDOM
         })
     }
 
     private fun muteChanged(pb: PlaybackState) {
         muteB.icon(when {
-            pb.mute.value -> FontAwesomeIcon.VOLUME_OFF
-            pb.volume.value>0.5 -> FontAwesomeIcon.VOLUME_UP
-            else -> FontAwesomeIcon.VOLUME_DOWN
+            pb.mute.value -> IconFA.VOLUME_OFF
+            pb.volume.value>0.5 -> IconFA.VOLUME_UP
+            else -> IconFA.VOLUME_DOWN
         })
     }
 

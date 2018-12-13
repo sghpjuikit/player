@@ -1,6 +1,5 @@
 package sp.it.pl.gui.itemnode;
 
-import com.sun.javafx.scene.traversal.Direction;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import java.io.File;
 import java.nio.charset.Charset;
@@ -50,7 +49,6 @@ import sp.it.pl.util.conf.Config.OverridablePropertyConfig;
 import sp.it.pl.util.conf.Config.PropertyConfig;
 import sp.it.pl.util.conf.Config.ReadOnlyPropertyConfig;
 import sp.it.pl.util.conf.Configurable;
-import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.text.Password;
@@ -131,7 +129,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         put(Charset.class, charset -> new EnumerableField<>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
         put(KeyCode.class, KeyCodeField::new);
         put(Configurable.class, ConfigurableField::new);
-        put(ObservableList.class, config -> Configurable.class.isAssignableFrom(((ListConfig)config).a.itemType) ? new ListFieldPaginated(config) : new ListField<>(config));
+        put(ObservableList.class, config -> {
+            if (config instanceof ListConfig) {
+                return Configurable.class.isAssignableFrom(((ListConfig)config).a.itemType)
+                    ? new ListFieldPaginated(config)
+                    : new ListField<>(config);
+            } else {
+                return new GeneralField<>(config);
+            }
+        });
         EffectItemNode.EFFECT_TYPES.stream().map(et -> et.getType()).filter(t -> t!=null).forEach(t -> put(t, config -> new EffectField(config, t)));
     }};
 
@@ -656,7 +662,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class KeyCodeField extends EnumerableField<KeyCode> {
 
-        @Dependency("requires access to com.sun.javafx.scene.traversal.Direction")
         private KeyCodeField(Config<KeyCode> c) {
             super(c);
 
@@ -671,14 +676,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 // be set twice, but should be all right since the value is the same anyway.
                 n.setValue(e.getCode());
 
-                // TODO: jigsaw
-                if (e.getEventType()==KEY_RELEASED) {
-                    // conveniently traverse focus by simulating TAB behavior
-                    // currently only hacks allow this
-                    // ((BehaviorSkinBase)n.getSkin()).getBehavior().traverseNext(); // !work since java9
-                    // n.traverse(Direction.NEXT); // !work since java 9 b135
-                    Util.invokeMethodP1(n, "traverse", Direction.class, Direction.NEXT);
-                }
                 e.consume();
             });
         }

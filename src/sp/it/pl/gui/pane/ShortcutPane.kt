@@ -1,7 +1,5 @@
 package sp.it.pl.gui.pane
 
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_CIRCLE_OUTLINE
 import javafx.event.EventHandler
 import javafx.geometry.HPos
 import javafx.geometry.Pos
@@ -9,22 +7,23 @@ import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.VPos
 import javafx.scene.control.Label
-import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy
 import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import sp.it.pl.gui.objects.icon.CheckIcon
-import sp.it.pl.util.conf.MultiConfigurable
+import sp.it.pl.main.IconMD
 import sp.it.pl.main.createInfoIcon
-import sp.it.pl.util.conf.cv
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.MultiConfigurable
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.graphics.Util.layHeaderTop
 import sp.it.pl.util.graphics.Util.layHorizontally
-import sp.it.pl.util.graphics.Util.layStack
 import sp.it.pl.util.graphics.Util.layVertically
+import sp.it.pl.util.graphics.scrollPane
+import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.reactive.attach
 
 class ShortcutPane(override val configurableDiscriminant: String): OverlayPane<Collection<Action>>(), MultiConfigurable {
@@ -40,12 +39,12 @@ class ShortcutPane(override val configurableDiscriminant: String): OverlayPane<C
 
         val helpI = createInfoIcon("Shortcut viewer\n\nDisplays available shortcuts. Optionally also those that have not been assigned yet.")
         val hideI = CheckIcon(hideEmptyShortcuts)
-                .icons(CHECKBOX_BLANK_CIRCLE_OUTLINE, CLOSE_CIRCLE_OUTLINE)
+                .icons(IconMD.CHECKBOX_BLANK_CIRCLE_OUTLINE, IconMD.CLOSE_CIRCLE_OUTLINE)
                 .tooltip("$HE_TITLE\n\n$HE_INFO")
 
-        val sp = ScrollPane().apply {
+        val sp = scrollPane {
             onScroll = EventHandler { it.consume() }
-            content = layStack(g, CENTER)
+            content = stackPane(g)
             isFitToWidth = true
             isFitToHeight = false
             hbarPolicy = ScrollBarPolicy.NEVER
@@ -53,7 +52,7 @@ class ShortcutPane(override val configurableDiscriminant: String): OverlayPane<C
         }
         content = layHeaderTop(5.0, CENTER,
                 layHorizontally(5.0, CENTER_RIGHT, hideI, helpI),
-                layStack(sp, CENTER)
+                stackPane(sp)
         ).apply {
             maxWidth = 500.0
             maxHeightProperty().bind(this@ShortcutPane.heightProperty().subtract(100))

@@ -50,9 +50,6 @@ import static sp.it.pl.util.type.Util.forEachJavaFXProperty;
  * cast.
  * <p/>
  * If all configs of this configurable contain the same type of value, use this generic parameter.
- *
- * @see MapConfigurable
- * @see ListConfigurable
  */
 public interface Configurable<T> {
 

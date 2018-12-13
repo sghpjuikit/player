@@ -43,7 +43,7 @@ import static sp.it.pl.audio.playlist.PlaylistReaderKt.isPlaylistFile;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.readPlaylist;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
-import static sp.it.pl.util.async.future.Fut.runFut;
+import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.functional.Util.SAME;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
@@ -343,7 +343,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 		}
 		if (e.getDragboard().hasFiles() && e.getDragboard().getFiles().stream().anyMatch(it -> isPlaylistFile(it))) {
 			List<File> files = e.getDragboard().getFiles();
-			runFut(() ->
+			runNew(() ->
 				files.stream()
 					.filter(it -> isPlaylistFile(it))
 					.flatMap(it -> readPlaylist(it).stream())

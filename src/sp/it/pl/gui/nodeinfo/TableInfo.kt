@@ -2,9 +2,11 @@ package sp.it.pl.gui.nodeinfo
 
 import javafx.scene.control.Labeled
 import javafx.scene.control.TableView
-import org.reactfx.Subscription
+import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onChange
 import sp.it.pl.util.text.plural
+import kotlin.properties.Delegates.observable
 
 /**
  * Provides information about table items and table item selection.
@@ -13,15 +15,16 @@ import sp.it.pl.util.text.plural
  */
 class TableInfo<E>: NodeInfo<TableView<E>> {
 
+    private var updateText = {}
+    private val listMonitorDisposer = Disposer()
     /** The graphical text element */
-    @JvmField var node: Labeled
+    val node: Labeled
     /**
      * Provides text to the node. The first parameters specifies whether selection
      * is empty, the other is the list of table items if selection is empty or
      * selected items if nonempty.
      */
-    @JvmField var textFactory: (Boolean, List<E>) -> String = DEFAULT_TEXT_FACTORY
-    private var tableMonitor: Subscription? = null
+    var textFactory by observable<(Boolean, List<E>) -> String>(DEFAULT_TEXT_FACTORY) { _, _, _ -> updateText() }
 
     constructor(node: Labeled) {
         this.node = node
@@ -43,18 +46,16 @@ class TableInfo<E>: NodeInfo<TableView<E>> {
 
         val listAll = bindable.items
         val listSelected = bindable.selectionModel.selectedItems
-        val handleChange = { updateText(listAll, listSelected) }
+        updateText = { updateText(listAll, listSelected) }
 
-        handleChange()
-        tableMonitor = Subscription.multi(
-                listAll.onChange(handleChange),
-                listSelected.onChange(handleChange)
-        )
+        updateText()
+        listAll.onChange(updateText) on listMonitorDisposer
+        listSelected.onChange(updateText) on listMonitorDisposer
+        listMonitorDisposer += { updateText = {} }
     }
 
     override fun unbind() {
-        tableMonitor?.unsubscribe()
-        tableMonitor = null
+        listMonitorDisposer()
     }
 
     /**

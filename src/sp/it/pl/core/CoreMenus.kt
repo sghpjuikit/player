@@ -106,7 +106,7 @@ class CoreMenus: Core {
             menuItems(
                     menuItem("Play items") { PlaylistManager.use { it.setNplay(mg.grouped.stream().sorted(APP.db.libraryComparator.get())) } },
                     menuItem("Enqueue items") { PlaylistManager.use { it.addItems(mg.grouped) } },
-                    menuItem("Update items from file") { APP.actions.refreshItemsFromFileJob(mg.grouped) },
+                    menuItem("Update items from file") { APP.db.refreshItemsFromFile(mg.grouped) },
                     menuItem("Remove items from library") { APP.db.removeItems(mg.grouped) },
                     menu("Show in") {
                         widgetItems<SongReader> { it.read(mg.grouped) }

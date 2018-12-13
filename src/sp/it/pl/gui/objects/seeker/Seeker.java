@@ -205,7 +205,7 @@ public final class Seeker extends AnchorPane {
 			r2.setScaleX(scale);
 			r2.setScaleY(scale);
 		}).intpl(new CircularInterpolator())
-			.delay(150);
+			.delay(millis(150));
 		onHoverChanged(sa::playFromDir);
 	}
 

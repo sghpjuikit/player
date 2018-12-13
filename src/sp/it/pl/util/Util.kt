@@ -1,5 +1,6 @@
 package sp.it.pl.util
 
+import javafx.util.Duration
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.time.DateTimeException
@@ -27,3 +28,15 @@ fun Long.localDateTimeFromMillis(): LocalDateTime? =
 /** @return string of printed stacktrace of this throwable */
 val Throwable.stacktraceAsString: String
     get() = StringWriter().also { printStackTrace(PrintWriter(it)) }.toString()
+
+/** @return human readable duration value in smallest possible units (millis if less than second, etc.)*/
+fun Duration.formatToSmallestUnit(): String {
+    val ms = toMillis()
+    return when {
+        ms<1000 -> "$ms ms"
+        ms<60000 -> "${toSeconds()} s"
+        ms<3600000000 -> "${toMinutes()} m"
+        ms<60000 -> "${toHours().toInt()} h"
+        else -> "${toHours().toInt()/24} ms"
+    }
+}

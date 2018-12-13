@@ -47,8 +47,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
-import static sp.it.pl.util.async.AsyncKt.NEW;
-import static sp.it.pl.util.async.future.Fut.runFut;
+import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.UtilKt.toFileOrNull;
 import static sp.it.pl.util.functional.Util.ISNTØ;
@@ -246,7 +245,7 @@ public class Thumbnail {
 			setImgA(c);
 		} else {
 			if (Platform.isFxApplicationThread()) {
-				runFut(NEW, () -> ImageStandardLoader.INSTANCE.invoke(img, size))
+				runNew(() -> ImageStandardLoader.INSTANCE.invoke(img, size))
 					.useBy(FX, this::setImgA);
 			} else {
 				setImgA(ImageStandardLoader.INSTANCE.invoke(img, size));

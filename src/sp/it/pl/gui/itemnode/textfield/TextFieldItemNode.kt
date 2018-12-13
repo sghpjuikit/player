@@ -3,8 +3,8 @@ package sp.it.pl.gui.itemnode.textfield
 import javafx.scene.control.TextField
 import sp.it.pl.gui.objects.textfield.DecoratedTextField
 import sp.it.pl.util.access.AccessibleValue
-import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.functional.setTo
 import java.util.function.BiConsumer
 
 /**
@@ -22,7 +22,7 @@ abstract class TextFieldItemNode<T>: DecoratedTextField, AccessibleValue<T> {
         this.textValueConverter = textValueConverter
 
         isEditable = false
-        styleClass clearSet textFieldStyleClass()
+        styleClass setTo textFieldStyleClass()
         text = nullText
         promptText = nullText
 
@@ -32,7 +32,7 @@ abstract class TextFieldItemNode<T>: DecoratedTextField, AccessibleValue<T> {
     }
 
     /** Value. */
-    protected var v: T? = null
+    protected var vl: T? = null
     /** Behavior executing when value changes. */
     var onValueChange: BiConsumer<T?, T?> = BiConsumer { _,_ -> }
     /** Value to string converter. */
@@ -41,18 +41,17 @@ abstract class TextFieldItemNode<T>: DecoratedTextField, AccessibleValue<T> {
     private val nullText = "<none>"
 
     override fun setValue(value: T?) {
-        if (v==value) return
+        if (vl==value) return
 
-        val valueOld = v
-        v = value
-        val valueText = value?.let { textValueConverter(it) } ?: nullText
-        text = valueText
-        promptText = valueText
+        val valueOld = vl
+        vl = value
+        text = value?.let { textValueConverter(it) } ?: nullText
+        promptText = text
         onValueChange(valueOld, value)
     }
 
     /** @return currently displayed value */
-    override fun getValue(): T? = v
+    override fun getValue(): T? = vl
 
     /** Behavior to be executed on dialog button click. Should invoke of an [.setValue]. */
     protected abstract fun onDialogAction()

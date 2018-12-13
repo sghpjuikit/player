@@ -1,16 +1,5 @@
 package sp.it.pl.main
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GRADUATION_CAP
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MUSIC
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.WHEELCHAIR
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DICE_2
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DICE_3
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.GAMEPAD_VARIANT
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.HAND_POINTING_RIGHT
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PALETTE_ADVANCED
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.RUN
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WALK
 import javafx.event.Event
 import javafx.event.EventHandler
 import javafx.geometry.Insets
@@ -28,7 +17,7 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.TransferMode
-import javafx.scene.layout.Priority
+import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
 import org.reactfx.EventSource
 import sp.it.pl.gui.objects.icon.Icon
@@ -45,6 +34,7 @@ import sp.it.pl.util.action.Action
 import sp.it.pl.util.action.ActionManager
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.animation.Anim.Companion.anim
+import sp.it.pl.util.async.future.Fut.Companion.fut
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
@@ -52,10 +42,15 @@ import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.functional.orNull
+import sp.it.pl.util.functional.setToOne
+import sp.it.pl.util.functional.toUnit
 import sp.it.pl.util.graphics.Util.layHorizontally
 import sp.it.pl.util.graphics.drag.DragUtil
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
+import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.math.millis
+import sp.it.pl.util.math.seconds
 import sp.it.pl.util.math.times
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.text.keys
@@ -83,7 +78,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
         if (firstTime.value) APP.onStarted += { runFX(3000.millis) { open() } }
     }
 
-    private fun buildContent() = VBox(25.0).apply {
+    private fun buildContent() = vBox(25) {
         padding = Insets(30.0)
         addEventHandler(MOUSE_CLICKED) {
             when {
@@ -110,8 +105,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                 else -> {}
             }
         }
-        children += TextArea().apply {
-            VBox.setVgrow(this, Priority.ALWAYS)
+        lay(ALWAYS) += TextArea().apply {
             isEditable = false
             isMouseTransparent = true
             isWrapText = true
@@ -164,7 +158,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
         popup.value.title.value = if (h.action.isEmpty()) "Guide" else "Guide - ${h.action}"
 
         guideText.value = h.text()
-        popupContent.children.setAll(popupContent.children[0])
+        popupContent.children setToOne popupContent.children[0]
         h.graphics?.invoke(h)?.let {
             it.addEventHandler(MOUSE_CLICKED, eventConsumer)
             popupContent.children += it
@@ -241,7 +235,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
         val h00_intro = hint("Intro",
                 "Hi, this is guide for this application. It will show you around. "+"\n\nBut first let's play some music.",
                 {
-                    layH(Icon(MUSIC, ICON_SIZE, null) { _ ->
+                    layH(Icon(IconFA.MUSIC, ICON_SIZE, null) { _ ->
                         // find spot
                         val la = APP.windowManager.activeOrNew.switchPane.container
                         // prepare container
@@ -279,7 +273,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                 +"from where you left off."
                 +"\nNow you will know where to go when you lose your way."
                 +"\n\nClick on the guide button in the app window top header. It looks like: ",
-                { layH(Icon(GRADUATION_CAP, ICON_SIZE)) }
+                { layH(Icon(IconFA.GRADUATION_CAP, ICON_SIZE)) }
         )
         val h05_uiIcons = hint("Icons",
                 "Icons, icons everywhere. Picture is worth a thousand words, they say."
@@ -287,9 +281,9 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                 +"\n\nOne icon leads to the next hint.",
                 {
                     layH(
-                        Icon(WHEELCHAIR, ICON_SIZE).onClick { it -> (it.source as Icon).isDisable = true },
-                        Icon(WALK, ICON_SIZE).onClick { it -> (it.source as Icon).isDisable = true },
-                        Icon(RUN, ICON_SIZE).onClick { _ -> runFX(1500.millis) { proceedIfActive() } }
+                        Icon(IconFA.WHEELCHAIR, ICON_SIZE).onClick { it -> (it.source as Icon).isDisable = true },
+                        Icon(IconMD.WALK, ICON_SIZE).onClick { it -> (it.source as Icon).isDisable = true },
+                        Icon(IconMD.RUN, ICON_SIZE).onClick { _ -> runFX(1500.millis) { proceedIfActive() } }
                     )
                 }
         )
@@ -298,9 +292,9 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                 +"\n\nThere can be a meaning where you don't see it. Hover above the icons to find out.",
                 {
                     layH(
-                            Icon(GAMEPAD_VARIANT, ICON_SIZE).tooltip("Now switch to tooltip of the icon to the right"),
-                            Icon(HAND_POINTING_RIGHT, ICON_SIZE).tooltip("Tooltip switching does not take as long as showing a new one."),
-                            Icon(GRADUATION_CAP, ICON_SIZE).tooltip("Click to claim the trophy")
+                            Icon(IconMD.GAMEPAD_VARIANT, ICON_SIZE).tooltip("Now switch to tooltip of the icon to the right"),
+                            Icon(IconMD.HAND_POINTING_RIGHT, ICON_SIZE).tooltip("Tooltip switching does not take as long as showing a new one."),
+                            Icon(IconFA.GRADUATION_CAP, ICON_SIZE).tooltip("Click to claim the trophy")
                                     .onClick { _ -> runFX(1000.millis) { proceedIfActive() } }
                     )
                 }
@@ -309,12 +303,12 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                 "There is more... Info buttons explain various app sections and how to "
                 +"use them in more detail."
                 +"\n\nSee the corner of this hint? Click the help button. It looks like:",
-                { layH(Icon(INFO, ICON_SIZE)) }
+                { layH(Icon(IconFA.INFO, ICON_SIZE)) }
         )
         val hider = { close() }
         val shower = {
             open()
-            runFX(1000.millis) { goToNext() }
+            runFX(1000.millis) { goToNext() }.toUnit()
         }
         val h07_uiShortcuts = hint("Shortcuts",
                 {
@@ -411,14 +405,15 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                 +"\n\t• Left click: go 'down' - visit children"
                 +"\n\nTry out container navigation:",
                 {
-                    layH(Icon(PALETTE_ADVANCED, ICON_SIZE, "") { _ ->
+                    layH(Icon(IconMD.PALETTE_ADVANCED, ICON_SIZE, "") { _ ->
                         val w = APP.windowManager.activeOrNew
                         val i = w.topContainer.emptySpot
                         w.topContainer.ui.alignTab(i)
-                        runFX(
-                                1000.0, { w.topContainer.addChild(i, testControlContainer()) },
-                                1000.0, { APP.ui.isLayoutMode = true }
-                        )
+                        fut()
+                            .thenWait(1.seconds)
+                            .ui { w.topContainer.addChild(i, testControlContainer()) }
+                            .thenWait(1.seconds)
+                            .ui { APP.ui.isLayoutMode = true }
                     }.withText("Start"))
                 }
         )
@@ -497,7 +492,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                 +"\n\nBelow you can start a tutorial and see the drag behavior by dragging '2' or '3' onto the test UI",
                 {
                     layH(
-                        Icon(PALETTE_ADVANCED, ICON_SIZE, "") { _ ->
+                        Icon(IconMD.PALETTE_ADVANCED, ICON_SIZE, "") { _ ->
                             val wd = APP.windowManager.activeOrNew
                             val i = wd.topContainer.emptySpot
                             wd.topContainer.ui.alignTab(i)
@@ -510,7 +505,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
 
                                 installDrag(
                                         w.load(),
-                                        DICE_2,
+                                        IconMD.DICE_2,
                                         ("Accepts text containing digit '2' and does nothing"
                                                 +"\n\t• Release mouse to drop drag and execute action"
                                                 +"\n\t• Continue moving to try elsewhere"),
@@ -519,7 +514,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                                 )
                                 installDrag(
                                         root.root,
-                                        DICE_2,
+                                        IconMD.DICE_2,
                                         ("Accepts text containing digit '2' or '3' and does nothing"
                                                 +"\n\t• Release mouse to drop drag and execute action"
                                                 +"\n\t• Continue moving to try elsewhere"),
@@ -528,13 +523,13 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                                 )
                             }
                         }.withText("Start"),
-                        Icon(DICE_2, ICON_SIZE).apply {
+                        Icon(IconMD.DICE_2, ICON_SIZE).apply {
                             setOnDragDetected {
                                 this.startDragAndDrop(TransferMode.COPY).setContent(mapOf(DataFormat.PLAIN_TEXT to "2"))
                                 it.consume()
                             }
                         }.withText("Drag '2'"),
-                        Icon(DICE_3, ICON_SIZE).apply {
+                        Icon(IconMD.DICE_3, ICON_SIZE).apply {
                             setOnDragDetected {
                                 this.startDragAndDrop(TransferMode.COPY).setContent(mapOf(DataFormat.PLAIN_TEXT to "3"))
                                 it.consume()

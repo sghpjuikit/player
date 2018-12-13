@@ -58,6 +58,7 @@ import sp.it.pl.gui.objects.popover.NodePos;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.gui.objects.popover.ScreenPos;
 import sp.it.pl.gui.objects.textfield.DecoratedTextField;
+import sp.it.pl.gui.objects.autocomplete.AutoCompletion;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
@@ -73,7 +74,6 @@ import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.validation.InputConstraints;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static javafx.application.Platform.runLater;
@@ -117,14 +117,12 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TRACK;
 import static sp.it.pl.audio.tagging.Metadata.Field.TRACKS_TOTAL;
 import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.TAG;
-import static sp.it.pl.gui.objects.textfield.autocomplete.AutoCompletion.autoComplete;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
-import static sp.it.pl.util.async.AsyncKt.runNotFX;
 import static sp.it.pl.util.file.Util.EMPTY_COLOR;
 import static sp.it.pl.util.functional.Util.isContainedIn;
 import static sp.it.pl.util.functional.Util.mapRef;
@@ -527,7 +525,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             fields.forEach(f -> f.setEditable(true));
             coverSuperContainer.setDisable(false);
 
-            runNotFX(() -> {
+            runNew(() -> {
                 // histogram init
                 fields.forEach(TagField::histogramInit);
                     // handle cover separately
@@ -642,7 +640,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             if (valCond!=null && c instanceof DecoratedTextField) {
                 Validation v = new Validation(c, valCond , field + " field does not contain valid text.");
                 validators.add(v);
-                Icon l = new Icon(EXCLAMATION_TRIANGLE, 11);
+                Icon l = new Icon(FontAwesomeIcon.EXCLAMATION_TRIANGLE, 11);
                 DecoratedTextField cf = (DecoratedTextField)c;
                 c.textProperty().addListener((o,ov,nv) -> {
                     boolean b = v.isValid();
@@ -684,10 +682,10 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             if (c instanceof TextField && !isContainedIn(f, TITLE, RATING_RAW, COMMENT, LYRICS, COLOR)) {
                Comparator<String> cmpRaw = String::compareTo;
                Comparator<String> cmp = f!=YEAR ? cmpRaw : cmpRaw.reversed();
-               autoComplete(
-                   (TextField)c,
-                   p -> APP.db.getItemUniqueValuesByField().get(f).stream()
-                          .filter(a -> a.startsWith(p.getUserText()))
+               AutoCompletion.Companion.autoComplete(
+                   (TextField) c,
+                   text -> APP.db.getItemUniqueValuesByField().get(f).stream()
+                          .filter(a -> a.startsWith(text))
                           .sorted(cmp)
                           .collect(toList())
                );
@@ -843,7 +841,11 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                             @Override
                             public void updateItem(Item item, boolean empty) {
                                 super.updateItem(item, empty);
-                                if (!empty) {
+
+                                if (empty || item==null) {
+                                    setText(null);
+                                    setGraphic(null);
+                                } else {
                                     int index = getIndex() + 1;
                                     setText(index + "   " + item.getFilenameFull());
                                     // handle untaggable
@@ -853,9 +855,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                                     cb.setDisable(untaggable);
 
                                     if (getGraphic()==null) setGraphic(cb);
-                                } else {
-                                    setText(null);
-                                    setGraphic(null);
                                 }
                             }
                         });

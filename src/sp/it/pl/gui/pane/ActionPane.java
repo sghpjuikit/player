@@ -74,7 +74,6 @@ import static sp.it.pl.gui.pane.ActionPane.GroupApply.FOR_EACH;
 import static sp.it.pl.gui.pane.ActionPane.GroupApply.NONE;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
-import static sp.it.pl.main.AppBuildersKt.rowHeight;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -96,7 +95,6 @@ import static sp.it.pl.util.graphics.Util.layScrollVTextCenter;
 import static sp.it.pl.util.graphics.Util.layStack;
 import static sp.it.pl.util.graphics.Util.layVertically;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
-import static sp.it.pl.util.reactive.Util.maintain;
 
 /** Action chooser pane. Displays icons representing certain actions. */
 public class ActionPane extends OverlayPane<Object> implements MultiConfigurable {
@@ -402,7 +400,6 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 			Class itemType = getElementType(items);
 			if (APP.classFields.get(itemType) != null) {	// TODO: add support for any item by using generic ToString objectField and column
 				FilteredTable<Object> t = new FilteredTable<>(itemType, null);
-				maintain(APP.ui.getFont(), f -> rowHeight(f), t.fixedCellSizeProperty());
 				t.getSelectionModel().setSelectionMode(MULTIPLE);
 				t.setColumnFactory(f -> {
 					TableColumn<?,Object> c = new TableColumn<>(f.toString());
@@ -505,7 +502,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		double delayRel = 200; // use for consistent frequency
 		double delay = delayAbs;
 		Interpolator intpl = new ElasticInterpolator();
-		animPar(icons, (i, icon) -> new Anim(at -> setScaleXY(icon,at*at)).dur(500).intpl(intpl).delay(350+i*delay))
+		animPar(icons, (i, icon) -> new Anim(at -> setScaleXY(icon, at*at)).dur(millis(500)).intpl(intpl).delay(millis(350+i*delay)))
 			.play();
 	}
 

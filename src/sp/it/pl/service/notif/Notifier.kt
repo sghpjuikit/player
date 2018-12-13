@@ -2,7 +2,6 @@ package sp.it.pl.service.notif
 
 import javafx.scene.Node
 import javafx.scene.layout.Pane
-import javafx.scene.layout.StackPane
 import javafx.scene.media.MediaPlayer.Status
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
@@ -26,6 +25,8 @@ import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
+import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
@@ -141,11 +142,12 @@ class Notifier: ServiceBase("Notifications", true) {
     /** Show notification displaying given text.  */
     fun showTextNotification(text: String, title: String) {
         if (running) {
-            val message = Text(text).apply {
-                wrappingWithNatural.value = true
-            }
-            val root = StackPane(message).apply {
+            val root = stackPane {
                 setMinSize(150.0, 70.0)
+
+                lay += Text(text).apply {
+                    wrappingWithNatural.value = true
+                }
             }
 
             showNotification(root, title)

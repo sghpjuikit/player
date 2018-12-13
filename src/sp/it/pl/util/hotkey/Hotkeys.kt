@@ -19,21 +19,24 @@ class Hotkeys {
     private val executor: (Runnable) -> Unit
     private val keyCombos = ConcurrentHashMap<Int, KeyCombo>()
     private var keyListener: NativeKeyListener? = null
+    private var isRunning = false
 
     constructor(executor: (Runnable) -> Unit) {
         this.executor = executor
+
+        // Disable library logging.
+         java.util.logging.Logger.getLogger(GlobalScreen::class.java.getPackage().name).apply {
+             level = java.util.logging.Level.OFF
+             useParentHandlers = false
+         }
     }
 
-    fun isRunning(): Boolean = GlobalScreen.isNativeHookRegistered()
+    fun isRunning(): Boolean = isRunning
 
     fun start() {
-        if (!isRunning()) {
+        if (!isRunning) {
             logger.info { "Starting global hotkeys" }
-
-            // Disable library logging.
-            // java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GlobalScreen.class.getPackage().getName());
-            // logger.setLevel(java.util.logging.Level.OFF);
-            // logger.setUseParentHandlers(false);
+            isRunning = true
 
             val eventDispatcher = object: AbstractExecutorService() {
                 private var running = true
@@ -91,7 +94,7 @@ class Hotkeys {
     }
 
     fun stop() {
-        if (isRunning()) {
+        if (isRunning) {
             try {
                 logger.info { "Stopping global hotkeys" }
                 GlobalScreen.removeNativeKeyListener(keyListener)
@@ -100,7 +103,7 @@ class Hotkeys {
             } catch (e: NativeHookException) {
                 logger.error(e) { "Failed to unregister global hotkeys" }
             }
-
+            isRunning = false
         }
     }
 

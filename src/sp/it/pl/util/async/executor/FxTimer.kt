@@ -9,6 +9,7 @@ import javafx.animation.Timeline
 import javafx.event.EventHandler
 import javafx.util.Duration
 import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.functional.setToOne
 import sp.it.pl.util.math.millis
 
 /**
@@ -57,10 +58,10 @@ class FxTimer {
         if (period.toMillis()==0.0) {
             runNow()
         } else {
-            timeline.keyFrames.setAll(KeyFrame(period, EventHandler {
+            timeline.keyFrames setToOne KeyFrame(period, EventHandler {
                 if (seq==expected)
                     runNow()
-            }))
+            })
             timeline.play()
         }
     }

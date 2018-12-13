@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import sp.it.pl.util.conf.Config.VarList;
@@ -51,9 +53,16 @@ public interface Util {
 						propertyName = methodName.substring(0, methodName.lastIndexOf("Property"));
 						method.setAccessible(true);
 						ObservableValue<?> property = (ObservableValue) method.invoke(o);
+						if (property instanceof Property && ((Property) property).isBound()) {
+							ReadOnlyObjectWrapper<Object> rop = new ReadOnlyObjectWrapper<>();
+							rop.bind(property);
+							property = rop.getReadOnlyProperty();
+						}
+
 						Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());
-						if (isNoneØ(property, propertyName, propertyType))
+						if (isNoneØ(property, propertyName, propertyType)) {
 							action.accept(property, propertyName, propertyType);
+						}
 					} catch (IllegalAccessException|InvocationTargetException e) {
 						logger(Util.class).error("Could not obtain property '{}' from object", propertyName);
 					}

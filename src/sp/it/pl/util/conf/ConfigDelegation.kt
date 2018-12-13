@@ -5,6 +5,8 @@ import javafx.beans.value.WritableValue
 import javafx.collections.ObservableList
 import sp.it.pl.util.access.V
 import sp.it.pl.util.access.VarEnum
+import sp.it.pl.util.access.v
+import sp.it.pl.util.access.vn
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.dev.noNull
@@ -23,10 +25,10 @@ import kotlin.reflect.jvm.javaType
 
 fun <T: Any> c(initialValue: T): ConfS<T> = ConfS(initialValue).but(Constraint.ObjectNonNull())
 fun <T: Any?> cn(initialValue: T?): ConfS<T?> = ConfS(initialValue)
-fun <T: Any> cv(initialValue: T): ConfV<T, V<T>> = ConfV<T, V<T>>(initialValue, { V(it) }).but(Constraint.ObjectNonNull())
+fun <T: Any> cv(initialValue: T): ConfV<T, V<T>> = ConfV<T, V<T>>(initialValue, { v(it) }).but(Constraint.ObjectNonNull())
 fun <T: Any, W: WritableValue<T>> cv(initialValue: T, valueSupplier: (T) -> W): ConfV<T, W> = ConfV(initialValue, valueSupplier).but(Constraint.ObjectNonNull())
 fun <T: Any, W: ObservableValue<T>> cvro(initialValue: T, valueSupplier: (T) -> W): ConfVRO<T, W> = ConfVRO(initialValue, valueSupplier).but(Constraint.ObjectNonNull())
-fun <T: Any?> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { V(it) })
+fun <T: Any?> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(it) })
 fun <T: Any?, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueSupplier)
 fun <T: Any?, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
 fun <T: () -> Unit> cr(action: T): ConfR<T> = ConfR(action)
@@ -163,7 +165,7 @@ class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
         obtainConfigValueStore(ref).initialize(c)
         validateValue(c.value)
 
-        return object: Config.PropertyConfig<T>(type, property.name, info, constraints, V<T>(c.value), initialValue, group), ReadOnlyProperty<Any, T>, ReadWriteProperty<Any, T> {
+        return object: Config.PropertyConfig<T>(type, property.name, info, constraints, vn(c.value), initialValue, group), ReadOnlyProperty<Any, T>, ReadWriteProperty<Any, T> {
             override fun getValue(thisRef: Any, property: KProperty<*>) = getValue()
             override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
                 setValue(value)

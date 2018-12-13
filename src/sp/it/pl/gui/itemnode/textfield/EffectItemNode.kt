@@ -94,7 +94,7 @@ class EffectItemNode: TextFieldItemNode<Effect> {
     }
 
     private fun openProperties(me: MouseEvent) {
-        if (v!=null) APP.windowManager.showSettings(configsFromFxPropertiesOf(v), me)
+        if (vl!=null) APP.windowManager.showSettings(configsFromFxPropertiesOf(vl), me)
         me.consume()
     }
 

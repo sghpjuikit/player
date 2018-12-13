@@ -1,12 +1,11 @@
 package sp.it.pl.layout.widget.controller.io
 
 import org.reactfx.Subscription
-import sp.it.pl.util.reactive.maintain
+import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.type.isSuperclassOf
 import sp.it.pl.util.type.typetoken.TypeToken
 import java.util.HashMap
 import java.util.UUID
-import java.util.function.Consumer
 
 class Outputs {
     private val m = HashMap<String, Output<*>>()
@@ -48,9 +47,9 @@ class Outputs {
     fun getOutputs(): Collection<Output<*>> = m.values
 
     @Suppress("IfThenToElvis", "UNCHECKED_CAST")
-    fun <T> monitor(name: String, action: Consumer<T>): Subscription {
+    fun <T> monitor(name: String, action: (T) -> Unit): Subscription {
         val o = m[name] as Output<T>?
-        return if (o==null) Subscription.EMPTY else o.`val`.maintain(action)
+        return if (o==null) Subscription.EMPTY else o.`val` sync action
     }
 
 }

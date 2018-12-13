@@ -962,7 +962,7 @@ public class Comet extends SimpleController {
 		void placeholder(String text, PO o, double x, double y) {
 			boolean isFollow = o!=null;
 			double fW = computeFontWidth(FONT_PLACEHOLDER, text);
-			double fH = computeFontHeight(FONT_PLACEHOLDER);
+			double fH = computeFontHeight(FONT_PLACEHOLDER, text);
 			game.runNext.addAnim01(seconds(2), p -> {
 				double s = sqrt(map01To010(p, 0.9));
 				double tx = game.field.modX(isFollow ? o.x-15 : x);
@@ -994,7 +994,7 @@ public class Comet extends SimpleController {
 
 		public void fillText(String text, double x, double y, double scale) {
 			double fW = computeFontWidth(FONT_PLACEHOLDER, text);
-			double fH = computeFontHeight(FONT_PLACEHOLDER);
+			double fH = computeFontHeight(FONT_PLACEHOLDER, text);
 			double tx = game.field.modX(x+15 - fW/2);
 			double ty = game.field.modY(y-15 - fH/2);
 			Affine sa = new Affine();

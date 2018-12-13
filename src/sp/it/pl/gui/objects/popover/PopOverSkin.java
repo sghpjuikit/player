@@ -65,6 +65,7 @@ import static javafx.beans.binding.Bindings.subtract;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static sp.it.pl.main.AppBuildersKt.resizeButton;
 import static sp.it.pl.util.functional.Util.mapB;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.MouseDragKt.initMouseDrag;
 import static sp.it.pl.util.graphics.UtilKt.initClip;
 import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
@@ -166,8 +167,8 @@ public class PopOverSkin implements Skin<PopOver> {
 		initMouseDrag(
 			resizeB,
 			new P(),
-			drag -> drag.data.setXY(content.getWidth(), content.getHeight()),
-			drag -> content.setPrefSize(drag.data.getX() + drag.diff.getX(), drag.data.getY() + drag.diff.getY())
+			consumer(drag -> drag.data.setXY(content.getWidth(), content.getHeight())),
+			consumer(drag -> content.setPrefSize(drag.data.getX() + drag.diff.getX(), drag.data.getY() + drag.diff.getY()))
 		);
 
 		path = new Path();

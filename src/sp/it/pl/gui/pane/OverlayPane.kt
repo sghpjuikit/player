@@ -32,8 +32,8 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.MultiConfigurableBase
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.dev.fail
-import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.functional.orNull
+import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.Util.createFMNTStage
 import sp.it.pl.util.graphics.Util.layStack
 import sp.it.pl.util.graphics.Util.screenCaptureAndDo
@@ -44,12 +44,13 @@ import sp.it.pl.util.graphics.image.imgImplLoadFX
 import sp.it.pl.util.graphics.minus
 import sp.it.pl.util.graphics.screenToLocal
 import sp.it.pl.util.graphics.size
+import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.math.P
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Handler0
-import sp.it.pl.util.reactive.maintain
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.syncFrom
+import sp.it.pl.util.reactive.syncTo
 import sp.it.pl.util.system.getWallpaperFile
 
 /**
@@ -82,11 +83,11 @@ abstract class OverlayPane<in T>: StackPane() {
                 children.clear()
                 field!!.styleClass -= CONTENT_STYLECLASS
             } else {
-                children clearSet listOf(c, layStack(resizeB, Pos.BOTTOM_RIGHT))
+                children setTo listOf(c, layStack(resizeB, Pos.BOTTOM_RIGHT))
                 resizeB.parent.isManaged = false
                 resizeB.parent.isMouseTransparent = true
                 c.styleClass += CONTENT_STYLECLASS
-                c.paddingProperty() maintain (resizeB.parent as StackPane).paddingProperty()
+                c.paddingProperty() syncTo (resizeB.parent as StackPane).paddingProperty()
             }
             field = c
         }
@@ -118,7 +119,7 @@ abstract class OverlayPane<in T>: StackPane() {
 /* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
 
     private lateinit var displayUsedForShow: Display // prevents inconsistency in start() and stop(), see use
-    private val animation by lazy { anim(APP.animationFps) { animDo(it) }.dur(200.0).intpl { it*it } } // lowering fps can help on hd screens & low-end hardware
+    private val animation by lazy { anim(APP.animationFps) { animDo(it) }.dur(200.millis).intpl { it*it } } // lowering fps can help on hd screens & low-end hardware
     private var stg: Stage? = null
     private val blurBack = BoxBlur(0.0, 0.0, 3)  // we need best possible quality
     private val blurFront = BoxBlur(0.0, 0.0, 1) // we do not need quality, hence iterations==1
@@ -230,7 +231,7 @@ abstract class OverlayPane<in T>: StackPane() {
                         fitHeight = screen.bounds.height
                         applyViewPort(image, FitFrom.OUTSIDE)
                     }
-                    val root = StackPane(StackPane(bgr, contentImg))
+                    val root = stackPane(stackPane(bgr, contentImg))
 
                     op.stg = createFMNTStage(screen, false).apply {
                         scene = Scene(root)

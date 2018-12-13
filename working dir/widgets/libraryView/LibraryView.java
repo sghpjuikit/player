@@ -61,7 +61,6 @@ import static sp.it.pl.audio.tagging.MetadataGroup.Field.W_RATING;
 import static sp.it.pl.audio.tagging.MetadataGroup.ungroup;
 import static sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static sp.it.pl.layout.widget.Widget.Group.LIBRARY;
-import static sp.it.pl.main.AppBuildersKt.rowHeight;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.future.Fut.fut;
@@ -141,7 +140,6 @@ public class LibraryView extends FXMLController {
         // table properties
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.search.setColumn(VALUE);
-        d(maintain(APP.ui.getFont(), f -> rowHeight(f), table.fixedCellSizeProperty()));
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));

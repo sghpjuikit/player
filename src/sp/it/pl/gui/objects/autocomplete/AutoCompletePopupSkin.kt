@@ -27,47 +27,53 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package sp.it.pl.gui.objects.textfield.autocomplete
+package sp.it.pl.gui.objects.autocomplete
 
+import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.Skin
 import javafx.scene.control.cell.TextFieldListCell
 import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton
-import sp.it.pl.gui.objects.textfield.autocomplete.AutoCompletePopup.SuggestionEvent
-import sp.it.pl.main.APP
-import sp.it.pl.main.rowHeight
-import sp.it.pl.util.reactive.iff
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.util.Callback
+import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sizes
-import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncTo
 
 open class AutoCompletePopupSkin<T> constructor(private val control: AutoCompletePopup<T>, activationClickCount: Int = 1): Skin<AutoCompletePopup<T>> {
     private val list: ListView<T>
-    private val heightGap = 12.0 // removes vertical scrollbar
+    private val heightGap = 12.0 // TODO removes vertical scrollbar
 
     init {
         list = ListView(control.suggestions).apply {
-            { APP.ui.font sync { fixedCellSize = it.rowHeight() } } iff control.showingProperty()
-
             syncTo(control.visibleRowCount, items.sizes(), fixedCellSizeProperty()) { rowCount, itemCount, cellSize ->
                 prefHeight = heightGap+cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
             }
-            setCellFactory { buildListViewCellFactory(it) }
-            setOnMouseClicked {
+            cellFactory = Callback { buildListViewCellFactory(it) }
+
+            onEventDown(MOUSE_CLICKED) {
                 if (it.button==MouseButton.PRIMARY && it.clickCount==activationClickCount) {
                     chooseSuggestion()
                     it.consume()
                 }
             }
-            setOnKeyPressed {
+            onEventDown(KEY_PRESSED) {
                 when (it.code) {
-                    KeyCode.ENTER -> chooseSuggestion()
-                    KeyCode.ESCAPE -> if (control.isHideOnEscape) control.hide()
-                    else -> {
+                    KeyCode.ENTER -> {
+                        chooseSuggestion()
+                        it.consume()
                     }
+                    KeyCode.ESCAPE -> {
+                        if (control.isHideOnEscape) {
+                            control.hide()
+                            it.consume()
+                        }
+                    }
+                    else -> {}
                 }
-                it.consume()
             }
         }
     }
@@ -80,9 +86,8 @@ open class AutoCompletePopupSkin<T> constructor(private val control: AutoComplet
 
     private fun chooseSuggestion(suggestion: T? = list.selectionModel.selectedItem) {
         if (suggestion!=null)
-            skinnable.onSuggestion.value?.handle(SuggestionEvent(suggestion))
+            skinnable.onSuggestion(suggestion)
     }
 
-    protected open fun buildListViewCellFactory(listView: ListView<T>) = TextFieldListCell.forListView(control.converter).call(listView)!!
-
+    protected open fun buildListViewCellFactory(listView: ListView<T>): ListCell<T> = TextFieldListCell.forListView(control.converter)(listView)
 }

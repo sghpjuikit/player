@@ -3,7 +3,6 @@ package sp.it.pl.gui.objects.spinner
 import javafx.animation.Interpolator
 import javafx.animation.RotateTransition
 import javafx.animation.Transition
-import javafx.beans.binding.Bindings
 import javafx.geometry.Pos
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.SkinBase
@@ -12,7 +11,9 @@ import javafx.scene.shape.Arc
 import javafx.scene.shape.StrokeType
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
+import sp.it.pl.util.access.minus
 import sp.it.pl.util.graphics.stackPane
+import sp.it.pl.util.reactive.syncFrom
 
 /** Very simple custom [ProgressIndicator]. */
 class Spinner: ProgressIndicator {
@@ -58,7 +59,7 @@ class Spinner: ProgressIndicator {
                 setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE)
             }
 
-            outer.rotateProperty().bind(Bindings.subtract(360, inner.rotateProperty()))
+            outer.rotateProperty() syncFrom 360-inner.rotateProperty()
             children += stackPane(inner, outer)
 
             registerChangeListener(spinner.indeterminateProperty()) { update() }

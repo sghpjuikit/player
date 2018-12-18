@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -31,6 +32,8 @@ import sp.it.pl.gui.objects.popover.ScreenPos;
 import sp.it.pl.gui.objects.window.stage.WindowBase;
 import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.collections.mapset.MapSet;
+import sp.it.pl.util.conf.Config;
+import sp.it.pl.util.conf.Configurable;
 import sp.it.pl.util.conf.ValueConfig;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
@@ -728,22 +731,25 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	 *
 	 * @param add true to add items, false to clear playlist and play items
 	 */
+	@SuppressWarnings("Convert2Lambda")
 	public void addOrEnqueueUrl(boolean add) {
 		// build content
 		String title = add ? "Add url item." : "Play url item.";
-		SimpleConfigurator content = new SimpleConfigurator<>(
-			new ValueConfig<>(URI.class, "Url", URI.create("http://www.example.com"), title),
-			(URI url) -> {
-					if (add) {
-						addUri(url);
-					} else {
-						Player.stop();
-						clear();
-						addUri(url);
-						playFirstItem();
-					}
+		Config<URI> conf = new ValueConfig<>(URI.class, "Url", URI.create("http://www.example.com"), title);
+		SimpleConfigurator<?> content = new SimpleConfigurator<Config<URI>>((Configurable) conf,
+			(Consumer) new Consumer<Config<URI>>() {
+			@Override
+			public void accept(Config<URI> url) {
+				if (add) {
+					addUri(url.getValue());
+				} else {
+					Player.stop();
+					clear();
+					addUri(url.getValue());
+					playFirstItem();
+				}
 			}
-		);
+		});
 
 		// build help content
 		String uri = "http://www.musicaddict.com";

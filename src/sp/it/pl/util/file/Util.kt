@@ -78,20 +78,19 @@ infix fun File.isAnyParentOf(child: File) =
  * @return child files of the directory or empty if parameter null, not a directory or I/O error occurs
  */
 @Suppress("DEPRECATION")
-fun File.listChildren(): Stream<File> =
-        listFiles()?.asSequence()?.asStream() ?: Stream.empty()
+fun File.listChildren(): Stream<File> = listFiles()?.asSequence()?.asStream() ?: Stream.empty()
 
+/** @see File.listChildren */
 @Suppress("DEPRECATION")
-fun File.listChildren(filter: FileFilter): Stream<File> =
-        listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
+fun File.listChildren(filter: FileFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
 
+/** @see File.listChildren */
 @Suppress("DEPRECATION")
-fun File.listChildren(filter: FilenameFilter): Stream<File> =
-        listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
+fun File.listChildren(filter: FilenameFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
 
+/** @see File.listChildren */
 @Suppress("DEPRECATION")
-fun File.seqChildren(): Sequence<File> =
-        listFiles()?.asSequence() ?: emptySequence()
+fun File.seqChildren(): Sequence<File> = listFiles()?.asSequence() ?: emptySequence()
 
 /**
  * Safe version of [File.getParentFile].
@@ -143,6 +142,13 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>
     }),
     TOP_LVL_AND_DIRS_AND_WITH_COVER({
 
+        fun File.hasCover(cache: HashSet<FastFile>): Boolean {
+            val p = parentDirOrRoot
+            val n = nameWithoutExtension
+            return ImageFileFormat.values().asSequence()
+                    .filter { it.isSupported }
+                    .any { cache.contains(p.childOf("$n.$it")) }
+        }
         fun File.walkDirsAndWithCover(): Sequence<File> {
             return if (isDirectory) {
                 val dir = this
@@ -181,14 +187,6 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>
 private class FastFile(path: String, private val isDir: Boolean, private val isFil: Boolean): File(path) {
     override fun isDirectory(): Boolean = isDir
     override fun isFile(): Boolean = isFil
-
-    fun hasCover(cache: HashSet<FastFile>): Boolean {
-        val p = parentDirOrRoot
-        val n = nameWithoutExtension
-        return ImageFileFormat.values().asSequence()
-                .filter { it.isSupported }
-                .any { cache.contains(p.childOf("$n.$it")) }
-    }
 }
 
 private fun File.asFileTree(): Sequence<File> =

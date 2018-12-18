@@ -2,6 +2,12 @@
 
 package sp.it.pl.util.validation
 
+import javafx.beans.InvalidationListener
+import javafx.beans.binding.BooleanBinding
+import javafx.beans.value.ChangeListener
+import javafx.beans.value.ObservableBooleanValue
+import javafx.beans.value.ObservableValue
+import javafx.collections.FXCollections.singletonObservableList
 import javafx.util.Duration
 import sp.it.pl.util.collections.map.ClassListMap
 import sp.it.pl.util.collections.map.ClassMap
@@ -170,7 +176,27 @@ interface Constraint<in T> {
         override fun message() = "Items must preserve original order"
     }
 
-    class ReadOnlyIf(val condition: () -> Boolean): Constraint<Any> {
+    class ReadOnlyIf(val condition: ObservableBooleanValue): Constraint<Any> {
+        constructor(condition: ObservableValue<Boolean>, unless: Boolean): this(
+                object: BooleanBinding() {
+                    init {
+                        super.bind(condition)
+                    }
+                    override fun dispose() = super.unbind(condition)
+                    override fun computeValue() = if (unless) !condition.value else condition.value
+                    override fun getDependencies() = singletonObservableList(condition)
+                }
+        )
+        constructor(condition: Boolean): this(
+                object: ObservableBooleanValue {
+                    override fun removeListener(listener: ChangeListener<in Boolean>) {}
+                    override fun removeListener(listener: InvalidationListener) {}
+                    override fun addListener(listener: ChangeListener<in Boolean>) {}
+                    override fun addListener(listener: InvalidationListener) {}
+                    override fun getValue() = condition
+                    override fun get() = condition
+                }
+        )
         override fun isValid(value: Any?) = true
         override fun message() = "Is disabled"
     }

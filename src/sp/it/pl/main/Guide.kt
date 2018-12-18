@@ -7,7 +7,6 @@ import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
-import javafx.scene.control.Label
 import javafx.scene.control.TextArea
 import javafx.scene.input.DataFormat
 import javafx.scene.input.KeyCode.LEFT
@@ -40,6 +39,7 @@ import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cr
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.setToOne
@@ -47,6 +47,7 @@ import sp.it.pl.util.functional.toUnit
 import sp.it.pl.util.graphics.Util.layHorizontally
 import sp.it.pl.util.graphics.drag.DragUtil
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
+import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.math.millis
@@ -61,8 +62,12 @@ class Guide(guideEvents: EventSource<Any>? = null) {
 
     @IsConfig(name = "Hint", editable = EditMode.APP)
     private var at by c(-1)
+
     @IsConfig(name = "Show guide on app start", info = "Show guide when application starts. Default true, but when guide is shown, it is set to false so the guide will never appear again on its own.")
     val firstTime by cv(true)
+
+    @IsAction(name = "Open guide", desc = "Resume or start the guide.")
+    private val openGuide by cr { open() }
 
     private var prevAt = -1
     private val guideTitleText = v("")
@@ -75,7 +80,8 @@ class Guide(guideEvents: EventSource<Any>? = null) {
     val hints = Hints()
 
     init {
-        if (firstTime.value) APP.onStarted += { runFX(3000.millis) { open() } }
+        if (firstTime.value)
+            APP.onStarted += { runFX(3000.millis) { open() } }
     }
 
     private fun buildContent() = vBox(25) {
@@ -129,11 +135,12 @@ class Guide(guideEvents: EventSource<Any>? = null) {
                         +"\n\nThis popup will close on its own when you clock somewhere. ESCAPE works too."
                 ),
                 // new Icon(ARROW_LEFT,11,"Previous",this::goToPrevious), // unnecessary, uses left+right mouse button navigation
-                Label().apply {
+                label {
+                    guideTitleText sync ::setText
                     guideTitleText sync ::setText
                 },
                 // new Icon(ARROW_RIGHT,11,"Next",this::goToNext) // unnecessary, uses left+right mouse button navigation
-                Label()
+                label()
         )
     }
 
@@ -171,7 +178,6 @@ class Guide(guideEvents: EventSource<Any>? = null) {
         if (hints[at].action==action) goToNext()
     }
 
-    @IsAction(name = "Open guide", desc = "Resume or start the guide.")
     fun open() {
         proceed()
         guideEvents.push("Guide opening")

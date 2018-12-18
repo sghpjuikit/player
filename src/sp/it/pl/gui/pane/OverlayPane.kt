@@ -62,9 +62,9 @@ import sp.it.pl.util.system.getWallpaperFile
 abstract class OverlayPane<in T>: StackPane() {
 
     /** Display method. */
-    val display = v(Display.SCREEN_OF_MOUSE)
+    val display = v<ScreenGetter>(Display.SCREEN_OF_MOUSE)
     /** Display bgr (for SCREEN variants only). */
-    val displayBgr = v(ScreenImgGetter.SCREEN_BGR)
+    val displayBgr = v(ScreenBgrGetter.SCREEN_BGR)
     /** Handlers called just after this pane was shown. */
     val onShown = Handler0()
     /** Handlers called just after this pane was hidden. */
@@ -87,7 +87,7 @@ abstract class OverlayPane<in T>: StackPane() {
                 resizeB.parent.isManaged = false
                 resizeB.parent.isMouseTransparent = true
                 c.styleClass += CONTENT_STYLECLASS
-                c.paddingProperty() syncTo (resizeB.parent as StackPane).paddingProperty()
+                resizing = c.paddingProperty() syncTo (resizeB.parent as StackPane).paddingProperty()
             }
             field = c
         }
@@ -118,7 +118,7 @@ abstract class OverlayPane<in T>: StackPane() {
 
 /* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
 
-    private lateinit var displayUsedForShow: Display // prevents inconsistency in start() and stop(), see use
+    private lateinit var displayUsedForShow: ScreenGetter // prevents inconsistency in start() and stop(), see use
     private val animation by lazy { anim(APP.animationFps) { animDo(it) }.dur(200.millis).intpl { it*it } } // lowering fps can help on hd screens & low-end hardware
     private var stg: Stage? = null
     private val blurBack = BoxBlur(0.0, 0.0, 3)  // we need best possible quality
@@ -176,134 +176,138 @@ abstract class OverlayPane<in T>: StackPane() {
         displayUsedForShow.animEnd(this)
     }
 
-    enum class Display {
+    interface ScreenGetter {
+        fun computeScreen(): Screen
+    }
+
+    enum class Display: ScreenGetter {
         WINDOW, SCREEN_OF_WINDOW, SCREEN_OF_MOUSE, SCREEN_PRIMARY;
 
-        private fun computeScreen(): Screen = when (this) {
+        override fun computeScreen(): Screen = when (this) {
             WINDOW -> fail()
             SCREEN_PRIMARY -> Screen.getPrimary()
             SCREEN_OF_WINDOW -> APP.windowManager.active.orNull()?.screen ?: SCREEN_OF_MOUSE.computeScreen()
             SCREEN_OF_MOUSE -> getScreenForMouse()
         }
+    }
 
-        internal fun animStart(op: OverlayPane<*>) {
-            if (this==WINDOW) {
-                APP.windowManager.active.ifPresentOrElse(
-                        { window ->
-                            // display overlay pane
-                            val root = window.root
-                            if (op !in root.children) {
-                                root.children += op
-                                setAnchors(op, 0.0)
-                                op.toFront()
-                            }
-                            op.isVisible = true
-                            op.requestFocus()     // 'bug fix' - we need focus or key events wont work
-
-                            // blur can reduce animation performance
-                            // - apply blur only on the content, it is generally smaller than this entire pane
-                            // - decrease blur iteration count (we don not need super blur quality here)
-                            // - decrease blur amount
-
-                            op.opacityNode = window.content
-                            op.blurBackNode = window.subroot
-                            if (!op.children.isEmpty()) op.blurFrontNode = op.children[0]
-                            op.blurBackNode!!.effect = op.blurBack
-                            op.blurFrontNode!!.effect = op.blurFront
-
-                            // start showing
-                            op.animation.playOpenDo(null)
-                            op.onShown()
-                        },
-                        {
-                            op.displayUsedForShow = SCREEN_OF_MOUSE
-                            SCREEN_OF_MOUSE.animStart(op)
+    fun ScreenGetter.animStart(op: OverlayPane<*>) {
+        if (this==Display.WINDOW) {
+            APP.windowManager.active.ifPresentOrElse(
+                    { window ->
+                        // display overlay pane
+                        val root = window.root
+                        if (op !in root.children) {
+                            root.children += op
+                            setAnchors(op, 0.0)
+                            op.toFront()
                         }
-                )
-            } else {
-                val screen = computeScreen()
-                op.displayBgr.get().getImgAndDo(screen) { image ->
-                    val bgr = Pane().apply {
-                        styleClass += "bgr-image"   // replicate app window bgr for style & consistency
-                    }
-                    val contentImg = ImageView(image).apply {
-                        fitWidth = screen.bounds.width
-                        fitHeight = screen.bounds.height
-                        applyViewPort(image, FitFrom.OUTSIDE)
-                    }
-                    val root = stackPane(stackPane(bgr, contentImg))
+                        op.isVisible = true
+                        op.requestFocus()     // 'bug fix' - we need focus or key events wont work
 
-                    op.stg = createFMNTStage(screen, false).apply {
-                        scene = Scene(root)
-                    }
+                        // blur can reduce animation performance
+                        // - apply blur only on the content, it is generally smaller than this entire pane
+                        // - decrease blur iteration count (we don not need super blur quality here)
+                        // - decrease blur amount
 
-                    // display overlay pane
-                    if (op !in root.children) {
-                        root.children += op
-                        op.toFront()
-                    }
-                    op.isVisible = true
-                    op.requestFocus()     // 'bug fix' - we need focus or key events wont work
+                        op.opacityNode = window.content
+                        op.blurBackNode = window.subroot
+                        if (!op.children.isEmpty()) op.blurFrontNode = op.children[0]
+                        op.blurBackNode!!.effect = op.blurBack
+                        op.blurFrontNode!!.effect = op.blurFront
 
-                    // apply effects (will be updated in animation)
-                    op.opacityNode = contentImg
-                    op.blurBackNode = contentImg
-                    if (!op.children.isEmpty()) op.blurFrontNode = op.children[0]
-                    op.blurBackNode!!.effect = op.blurBack
-                    op.blurFrontNode!!.effect = op.blurFront
-
-                    op.animation.applyAt(0.0)
-                    op.stg!!.show()
-                    op.stg!!.requestFocus()
-
-                    // start showing
-                    // the preparation may cause an animation lag, hence delay a bit
-                    runFX(30.millis) {
+                        // start showing
                         op.animation.playOpenDo(null)
                         op.onShown()
+                    },
+                    {
+                        op.displayUsedForShow = Display.SCREEN_OF_MOUSE
+                        Display.SCREEN_OF_MOUSE.animStart(op)
                     }
+            )
+        } else {
+            val screen = computeScreen()
+            op.displayBgr.get().getImgAndDo(screen) { image ->
+                val bgr = Pane().apply {
+                    styleClass += "bgr-image"   // replicate app window bgr for style & consistency
+                }
+                val contentImg = ImageView(image).apply {
+                    fitWidth = screen.bounds.width
+                    fitHeight = screen.bounds.height
+                    applyViewPort(image, FitFrom.OUTSIDE)
+                }
+                val root = stackPane(stackPane(bgr, contentImg))
+
+                op.stg = createFMNTStage(screen, false).apply {
+                    scene = Scene(root)
+                }
+
+                // display overlay pane
+                if (op !in root.children) {
+                    root.children += op
+                    op.toFront()
+                }
+                op.isVisible = true
+                op.requestFocus()     // 'bug fix' - we need focus or key events wont work
+
+                // apply effects (will be updated in animation)
+                op.opacityNode = contentImg
+                op.blurBackNode = contentImg
+                if (!op.children.isEmpty()) op.blurFrontNode = op.children[0]
+                op.blurBackNode!!.effect = op.blurBack
+                op.blurFrontNode!!.effect = op.blurFront
+
+                op.animation.applyAt(0.0)
+                op.stg!!.show()
+                op.stg!!.requestFocus()
+
+                // start showing
+                // the preparation may cause an animation lag, hence delay a bit
+                runFX(30.millis) {
+                    op.animation.playOpenDo(null)
+                    op.onShown()
                 }
             }
         }
+    }
 
-        internal fun animDo(op: OverlayPane<*>, x: Double) = op.apply {
-            if (opacityNode!=null) { // bug fix, not 100% sure why it is necessary
-                if (this@Display!=WINDOW && (op.displayBgr.get()==ScreenImgGetter.SCREEN_BGR || op.displayBgr.get()==ScreenImgGetter.NONE)) {
-                    stg!!.opacity = x
-                    opacityNode!!.opacity = 1-x*0.5
-                    opacity = 1.0
-                    blurBack.height = 15.0*x*x
-                    blurBack.width = 15.0*x*x
-                    blurFront.height = 20*(1-x*x)
-                    blurFront.width = 20*(1-x*x)
-                    scaleX = 1+0.2*(1-x)
-                    scaleY = 1+0.2*(1-x)
-                } else {
-                    opacityNode!!.opacity = 1-x*0.5
-                    opacity = x
-                    blurBack.height = 15.0*x*x
-                    blurBack.width = 15.0*x*x
-                    blurFront.height = 20*(1-x*x)
-                    blurFront.width = 20*(1-x*x)
-                    scaleX = 1+2*(1-x)
-                    scaleY = 1+2*(1-x)
-                }
-            }
-        }
-
-        internal fun animEnd(op: OverlayPane<*>) = op.apply {
-            opacityNode!!.effect = null
-            blurFrontNode!!.effect = null
-            blurBackNode!!.effect = null
-            opacityNode = null
-            blurFrontNode = null
-            blurBackNode = null
-            onHidden()
-            if (this@Display==WINDOW) {
-                setVisible(false)
+    fun ScreenGetter.animDo(op: OverlayPane<*>, x: Double) = op.apply {
+        if (opacityNode!=null) { // bug fix, not 100% sure why it is necessary
+            if (this!=Display.WINDOW && (op.displayBgr.get()==ScreenBgrGetter.SCREEN_BGR || op.displayBgr.get()==ScreenBgrGetter.NONE)) {
+                stg!!.opacity = x
+                opacityNode!!.opacity = 1-x*0.5
+                opacity = 1.0
+                blurBack.height = 15.0*x*x
+                blurBack.width = 15.0*x*x
+                blurFront.height = 20*(1-x*x)
+                blurFront.width = 20*(1-x*x)
+                scaleX = 1+0.2*(1-x)
+                scaleY = 1+0.2*(1-x)
             } else {
-                stg!!.close()
+                opacityNode!!.opacity = 1-x*0.5
+                opacity = x
+                blurBack.height = 15.0*x*x
+                blurBack.width = 15.0*x*x
+                blurFront.height = 20*(1-x*x)
+                blurFront.width = 20*(1-x*x)
+                scaleX = 1+2*(1-x)
+                scaleY = 1+2*(1-x)
             }
+        }
+    }
+
+    fun ScreenGetter.animEnd(op: OverlayPane<*>) = op.apply {
+        opacityNode!!.effect = null
+        blurFrontNode!!.effect = null
+        blurBackNode!!.effect = null
+        opacityNode = null
+        blurFrontNode = null
+        blurBackNode = null
+        onHidden()
+        if (this==Display.WINDOW) {
+            setVisible(false)
+        } else {
+            stg!!.close()
         }
     }
 
@@ -315,7 +319,7 @@ abstract class OverlayPane<in T>: StackPane() {
         @IsConfig(name = "Display method", group = "View", info = "Area of content. Screen provides more space than window, but can get in the way of other apps.")
         val globalDisplay by cv(Display.SCREEN_OF_MOUSE)
         @IsConfig(name = "Display background", group = "View", info = "Content background")
-        val globalDisplayBgr by cv(ScreenImgGetter.SCREEN_BGR)
+        val globalDisplayBgr by cv(ScreenBgrGetter.SCREEN_BGR)
     }
 }
 
@@ -324,7 +328,7 @@ fun <T, P: OverlayPane<T>> P.initApp() = apply {
     displayBgr syncFrom globalDisplayBgr
 }
 
-enum class ScreenImgGetter {
+enum class ScreenBgrGetter {
     NONE, SCREEN_SHOT, SCREEN_BGR;
 
     fun getImgAndDo(screen: Screen, action: (Image?) -> Unit) {

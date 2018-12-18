@@ -576,12 +576,12 @@ public class Comet extends SimpleController {
 				listener = new IControllerListener() {
 					@Override
 					public void connected(IController c) {
-						System.out.println("connected device:");
-						System.out.println("DeviceID = " + c.getDeviceID());
-						System.out.println("DeviceTypeIdentifier = " + c.getDeviceTypeIdentifier());
-						System.out.println("Description = " + c.getDescription());
-						System.out.println("ProductID = " + c.getProductID());
-						System.out.println("VendorID = " + c.getVendorID());
+//						System.out.println("connected device:");
+//						System.out.println("DeviceID = " + c.getDeviceID());
+//						System.out.println("DeviceTypeIdentifier = " + c.getDeviceTypeIdentifier());
+//						System.out.println("Description = " + c.getDescription());
+//						System.out.println("ProductID = " + c.getProductID());
+//						System.out.println("VendorID = " + c.getVendorID());
 
 						gamepadIds.add(c.getDeviceID());
 						stream(players).sorted(by(p -> p.id.get()))
@@ -591,12 +591,12 @@ public class Comet extends SimpleController {
 
 					@Override
 					public void disConnected(IController c) {
-						System.out.println("disconnected device:");
-						System.out.println("DeviceID = " + c.getDeviceID());
-						System.out.println("DeviceTypeIdentifier = " + c.getDeviceTypeIdentifier());
-						System.out.println("Description = " + c.getDescription());
-						System.out.println("ProductID = " + c.getProductID());
-						System.out.println("VendorID = " + c.getVendorID());
+//						System.out.println("disconnected device:");
+//						System.out.println("DeviceID = " + c.getDeviceID());
+//						System.out.println("DeviceTypeIdentifier = " + c.getDeviceTypeIdentifier());
+//						System.out.println("Description = " + c.getDescription());
+//						System.out.println("ProductID = " + c.getProductID());
+//						System.out.println("VendorID = " + c.getVendorID());
 
 						gamepadIds.remove(c.getDeviceID());
 						stream(players).filter(p -> p.gamepadId.get()!=null && p.gamepadId.get()==c.getDeviceID())
@@ -611,7 +611,7 @@ public class Comet extends SimpleController {
 
 					@Override
 					public void moveStick(IController iController, StickID stickID) {
-						System.out.println("stick moved");
+//						System.out.println("stick moved");
 					}
 				};
 				Controllers.instance().addListener(listener);
@@ -4655,7 +4655,6 @@ public class Comet extends SimpleController {
 				o.dead = true;
 				if (owner!=null) owner.score.setValueOf(score -> score + 20);
 				mass += o.mass;
-				System.out.println("consumed " + this.hashCode() + " " + mass);
 			}
 
 //            double dir = o.dir(this)+D90;

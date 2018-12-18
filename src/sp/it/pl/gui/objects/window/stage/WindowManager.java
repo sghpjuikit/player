@@ -61,6 +61,7 @@ import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
+import static sp.it.pl.layout.widget.WidgetManagerKt.orEmpty;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
@@ -74,7 +75,7 @@ import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.Util.add1timeEventHandler;
+import static sp.it.pl.util.graphics.Util.addEventHandler1Time;
 import static sp.it.pl.util.graphics.UtilKt.getScreenForMouse;
 import static sp.it.pl.util.reactive.Util.maintain;
 import static sp.it.pl.util.reactive.Util.onItemRemoved;
@@ -309,7 +310,7 @@ public class WindowManager implements Configurable<Object> {
             miniWindow.disposables.add(maintain(
                 mini_widget,
                 name -> {
-                    Component newW = APP.widgetManager.factories.getFactoryOrEmpty(name).create();
+                    Component newW = orEmpty(APP.widgetManager.factories.getComponentFactory(name)).create();
                     Component oldW = (Widget) content.getProperties().get("widget");
 
                     if (oldW!=null) oldW.close();
@@ -438,7 +439,7 @@ public class WindowManager implements Configurable<Object> {
             if(load_normally)
                 ws.add(createWindow(true));
         } else {
-            ws.forEach(w -> add1timeEventHandler(w.s, WINDOW_SHOWING, e -> w.update()));
+            ws.forEach(w -> addEventHandler1Time(w.s, WINDOW_SHOWING, e -> w.update()));
             ws.forEach(Window::show);
             Widget.deserializeWidgetIO();
         }
@@ -536,8 +537,8 @@ public class WindowManager implements Configurable<Object> {
         launchComponent(instantiateComponent(launcher));
     }
 
-    public void launchComponent(String componentName) {
-        ComponentFactory<?> wf = APP.widgetManager.factories.getFactory(componentName);
+    public void launchComponent(String name) {
+        ComponentFactory<?> wf = APP.widgetManager.factories.getComponentFactory(name);
         Component w = wf==null ? null : wf.create();
         launchComponent(w);
     }
@@ -564,7 +565,7 @@ public class WindowManager implements Configurable<Object> {
         // try to build widget using just launcher filename
         boolean isLauncherEmpty = Util.readFileLines(launcher).count()==0;
         String wn = isLauncherEmpty ? Util.getName(launcher) : "";
-        wf = APP.widgetManager.factories.getFactory(wn);
+        wf = APP.widgetManager.factories.getComponentFactory(wn);
         if (wf!=null)
             c = wf.create();
 

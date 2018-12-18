@@ -148,7 +148,7 @@ class CoreMenus: Core {
                         items(
                                 APP.instances.getInstances<SearchUriBuilder>(),
                                 { "in ${it.name}" },
-                                { APP.actions.itemToMeta(pig.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
+                                { APP.db.itemToMeta(pig.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
                         )
                     }
             )

@@ -11,7 +11,7 @@ import kotlin.reflect.jvm.jvmName
 
 object MainConfiguration: Configuration()
 
-fun <T> Config<T>.isEditableByUser() = isEditable.isByUser && constraints.asSequence().none { it is Constraint.ReadOnlyIf && it.condition() }
+fun <T> Config<T>.isEditableByUserRightNow() = isEditable.isByUser && constraints.asSequence().none { it is Constraint.ReadOnlyIf && !it.condition.value }
 
 fun computeConfigGroup(declaringRef: Any): String {
     val groupDiscriminant = (declaringRef as? MultiConfigurable)
@@ -28,8 +28,8 @@ fun computeConfigGroup(declaringRef: Any): String {
     }
 }
 
-fun IsConfig.computeConfigGroup(declaringRef: Any): String {
-    if (group.isNotBlank()) return group
+fun IsConfig?.computeConfigGroup(declaringRef: Any): String {
+    if (this!=null && group.isNotBlank()) return group
 
     val groupDiscriminant = (declaringRef as? MultiConfigurable)
             ?.configurableDiscriminant

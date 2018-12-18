@@ -25,7 +25,6 @@ import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
 import static javafx.scene.input.KeyCode.ENTER;
 import static sp.it.pl.gui.itemnode.ConfigField.STYLECLASS_CONFIG_FIELD_WARN_BUTTON;
 import static sp.it.pl.util.functional.Util.byNC;
-import static sp.it.pl.util.functional.Util.stream;
 
 /**
  * Configurable state transformer graphical control. Graphics to configure
@@ -74,21 +73,16 @@ public class SimpleConfigurator<T> extends AnchorPane {
 	 */
 	public final V<Boolean> hasAction = new V<>(false);
 
-	public SimpleConfigurator(Config<T> c, Consumer<? super T> on_OK) {
-		this((Configurable<T>) c, ignored -> on_OK.accept(c.getValue()));
-	}
-
 	/**
 	 * @param c configurable object
 	 * @param on_OK OK button click actions taking the configurable as input parameter. Affects visibility of the OK
 	 * button. It is only visible if there is an action to execute.
 	 */
-	@SafeVarargs
-	@SuppressWarnings("unchecked")
-	public <C extends Configurable<T>> SimpleConfigurator(C c, Consumer<? super C>... on_OK) {
+	@SuppressWarnings({"unchecked", "RedundantCast"})
+	public <C extends Configurable<T>> SimpleConfigurator(C c, Consumer<? super C> on_OK) {
 		configurable = c==null ? Configurable.EMPTY_CONFIGURABLE : c;
-		onOK = c==null ? cf -> {} : cf -> stream(on_OK).forEach(action -> action.accept((C) cf)); // cas is safe because we know its always C
-		hasAction.set(on_OK!=null && on_OK.length>0);
+		onOK = c==null ? cf -> {} : (Consumer) on_OK; // cas is safe because we know its always C
+		hasAction.set(on_OK!=null);
 
 		// load fxml part
 		new ConventionFxmlLoader(this).loadNoEx();

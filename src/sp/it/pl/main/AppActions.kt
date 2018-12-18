@@ -8,7 +8,6 @@ import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.TOP_CENTER
 import javafx.scene.Node
 import javafx.scene.Scene
-import javafx.scene.control.Button
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
@@ -23,9 +22,6 @@ import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.util.Callback
 import mu.KLogging
 import sp.it.pl.audio.Item
-import sp.it.pl.audio.Player
-import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.gui.objects.grid.GridCell
 import sp.it.pl.gui.objects.grid.GridView
@@ -52,7 +48,7 @@ import sp.it.pl.util.action.ActionRegistrar
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runLater
-import sp.it.pl.util.async.runOn
+import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.conf.ValueConfig
 import sp.it.pl.util.dev.Blocks
@@ -62,12 +58,12 @@ import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.ifNotNull
-import sp.it.pl.util.functional.ifNull
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.Util.createFMNTStage
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.bgr
+import sp.it.pl.util.graphics.button
 import sp.it.pl.util.graphics.getScreenForMouse
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.lay
@@ -75,6 +71,7 @@ import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.math.millis
+import sp.it.pl.util.math.times
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync1If
@@ -89,6 +86,7 @@ import java.io.File
 import java.io.IOException
 import java.net.URI
 import java.net.URISyntaxException
+import java.util.function.Consumer
 
 @IsConfigurable("Shortcuts")
 class AppActions {
@@ -147,10 +145,10 @@ class AppActions {
         }
         val root = stackPane(grid)
         val groups = Icon.GLYPH_TYPES.map { glyphType ->
-            Button(glyphType.simpleName).apply {
+            button(glyphType.simpleName) {
                 setOnMouseClicked {
                     if (it.button==MouseButton.PRIMARY) {
-                        grid.itemsRaw setTo getEnumConstants<GlyphIcons>(glyphType).asSequence()
+                        grid.itemsRaw setTo getEnumConstants<GlyphIcons>(glyphType)
                         it.consume()
                     }
                 }
@@ -285,29 +283,45 @@ class AppActions {
         APP.infoPane.show(null)
     }
 
+    @IsAction(name = "Show overlay", desc = "Display screen overlay.")
+    fun showOverlay() {
+        val overlays = ArrayList<OverlayPane<Unit>>()
+        fun <T> List<T>.forEachDelayed(block: (T) -> Unit) = forEachIndexed { i, it -> runFX(300.millis*i) { block(it) } }
+        var canHide = false
+        val showAll = {
+            overlays.forEachDelayed { it.show(Unit) }
+        }
+        val hideAll = {
+            canHide = true
+            overlays.forEachDelayed { it.hide() }
+        }
+        overlays += Screen.getScreens().map {
+            object: OverlayPane<Unit>() {
+
+                init {
+                    content = stackPane()
+                    display.value = object: ScreenGetter {
+                        override fun computeScreen() = it
+                    }
+                }
+
+                override fun show(data: Unit?) {
+                    super.show()
+                }
+
+                override fun hide() {
+                    if (canHide) super.hide()
+                    else hideAll()
+                }
+
+            }
+        }
+        showAll()
+    }
+
     @IsAction(name = "Run garbage collector", desc = "Runs java's garbage collector using 'System.gc()'.")
     fun runGarbageCollector() {
         System.gc()
-    }
-
-    @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)
-    fun runCommand() {
-        val sc = SimpleConfigurator(ValueConfig(String::class.java, "Command", "").constraints(StringNonEmpty())) {
-            runCommand(it)
-        }
-        val p = PopOver(sc)
-        p.title.set("Run system command")
-        p.show(ScreenPos.APP_CENTER)
-    }
-
-    @IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with the command as a parameter.")
-    fun runAppCommand() {
-        val sc = SimpleConfigurator(ValueConfig(String::class.java, "Command", "").constraints(StringNonEmpty())) {
-            APP.parameterProcessor.process(listOf(it))
-        }
-        val p = PopOver(sc)
-        p.title.set("Run app command")
-        p.show(ScreenPos.APP_CENTER)
     }
 
     @IsAction(name = "Search (os)", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
@@ -327,6 +341,20 @@ class AppActions {
         p.title.set("Search for an action or option")
         p.isAutoHide = true
         p.show(pos)
+    }
+
+    @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)
+    fun runCommand() {
+        doWithUserString("Run system command", "Command") {
+            runCommand(it)
+        }
+    }
+
+    @IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with the command as a parameter.")
+    fun runAppCommand() {
+        doWithUserString("Run app command", "Command") {
+            APP.parameterProcessor.process(listOf(it))
+        }
     }
 
     @IsAction(name = "Open web search", desc = "Opens website or search engine result for given phrase", keys = "CTRL + SHIFT + W", global = true)
@@ -351,13 +379,15 @@ class AppActions {
     }
 
     fun doWithUserString(title: String, inputName: String, action: (String) -> Unit) {
-        val sc = SimpleConfigurator(ValueConfig(String::class.java, inputName, "").constraints(StringNonEmpty()), action)
-        val p = PopOver(sc)
-        p.title.value = title
-        p.isAutoHide = true
-        p.show(ScreenPos.APP_CENTER)
-        p.contentNode.value.focusFirstConfigField()
-        p.contentNode.value.hideOnOk.value = true
+        fun <T, C: Configurable<T>> simpleConfigurator(configurable: C, onOk: (C) -> Unit) = SimpleConfigurator(configurable, Consumer { onOk(it) })
+        val conf = ValueConfig(String::class.java, inputName, "").constraints(StringNonEmpty())
+        val form = simpleConfigurator(conf) { action(it.value) }
+        val popup = PopOver(form)
+        popup.title.value = title
+        popup.isAutoHide = true
+        popup.show(ScreenPos.APP_CENTER)
+        popup.contentNode.value.focusFirstConfigField()
+        popup.contentNode.value.hideOnOk.value = true
     }
 
     @JvmOverloads
@@ -462,23 +492,6 @@ class AppActions {
             "\nVM:\n\tid: ${it.id()}\n\tdisplayName: ${it.displayName()}\n\tprovider: ${it.provider()}"
         }
         runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
-    }
-
-    fun itemToMeta(item: Item, action: (Metadata) -> Unit) {
-        if (item.same(Player.playingItem.get())) {
-            action(Player.playingItem.get())
-            return
-        }
-
-        APP.db.itemsById[item.id]
-                .ifNotNull { action(it) }
-                .ifNull {
-                    runOn(Player.IO_THREAD) {
-                        MetadataReader.readMetadata(item)
-                    } ui {
-                        action(it)
-                    }
-                }
     }
 
     companion object: KLogging()

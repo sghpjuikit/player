@@ -208,12 +208,12 @@ fun <O, R> ObservableValue<O>.syncIntoWhile(extractor: (O) -> ObservableValue<R>
         if (it==null) {
             superInner()
             superInner += action(null)
-        }
-        if (it!=null)
+        } else {
             inner += extractor(it) sync {
                 superInner()
                 superInner += action(it)
             }
+        }
     }
     return outer+inner+superInner
 }
@@ -340,7 +340,7 @@ fun <T> ObservableList<T>.onItemDo(block: (T) -> Unit): Subscription {
  * Subscribe specified handler for every current and future item of this collection until it is removed or unsubscribed.
  * Collection must not contain duplicates (defined as [Any.identityHashCode]).
  */
-fun <T> ObservableList<T>.onItemRegister(subscriber: (T) -> Subscription): Subscription {
+fun <T> ObservableList<T>.onItemSync(subscriber: (T) -> Subscription): Subscription {
     fun T.id() = identityHashCode()
     val ds = HashMap<Int, Subscription>(size)
     val disposer = Disposer()

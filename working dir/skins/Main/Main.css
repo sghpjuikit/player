@@ -4049,7 +4049,9 @@ icon-info-icon {
  * Overlay pane displaying shortcuts and their keys
  * inherits: .overlay-pane
  */
-.shortcut-pane{}
+.shortcut-pane{
+    -fx-padding: 10em;
+}
 
 /*
  * Group title label for shortcut group
@@ -4063,7 +4065,9 @@ icon-info-icon {
  * Overlay displaying system properties
  * inherits: .overlay-pane
  */
-.info-pane{}
+.info-pane{
+    -fx-padding: 10em;
+}
 
 /*
  * Group title label for shortcut group

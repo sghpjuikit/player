@@ -184,7 +184,6 @@ public class LastFM {
 		if ((timeSatisfied || percentSatisfied)
 				&& item.getLength().greaterThan(Duration.seconds(30))) {
 			scrobble(item);
-//                System.out.println("Conditions for scrobling satisfied. Track should scrobble now.");
 		}
 		updateNowPlaying();
 		reset();

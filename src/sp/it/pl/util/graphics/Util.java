@@ -324,7 +324,7 @@ public interface Util {
 		return s;
 	}
 
-	static <E extends Event> void add1timeEventHandler(Stage eTarget, EventType<E> eType, Consumer<E> eHandler) {
+	static <E extends Event> void addEventHandler1Time(Stage eTarget, EventType<E> eType, Consumer<E> eHandler) {
 		eTarget.addEventHandler(eType, new EventHandler<>() {
 			@Override
 			public void handle(E event) {
@@ -541,6 +541,7 @@ public interface Util {
 	}
 
 /* ---------- WINDOW ------------------------------------------------------------------------------------------------ */
+
 	// TODO: fix scaling screwing up initial window position
 	static Stage createFMNTStage(Screen screen) {
 		return createFMNTStage(screen, true);

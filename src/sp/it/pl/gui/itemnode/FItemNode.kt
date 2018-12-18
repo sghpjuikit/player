@@ -81,14 +81,15 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): Value
         generateValue()
     }
 
-}
+    companion object {
 
-// TODO: move out
-private fun <T> Functors.Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
-    val a = vn(defaultValue)
-    a.applier = Consumer { onChange(it) }
-    return AccessorConfig(type, name, description, Consumer { a.setNapplyValue(it) }, Supplier { a.value })
-}
+        private fun <T> Config<T>.toConfigField() = ConfigField.create(this)
 
-// TODO: move out
-private fun <T> Config<T>.toConfigField() = ConfigField.create(this)
+        private fun <T> Functors.Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
+            val a = vn(defaultValue)
+            a.applier = Consumer { onChange(it) }
+            return AccessorConfig(type, name, description, Consumer { a.setNapplyValue(it) }, Supplier { a.value })
+        }
+
+    }
+}

@@ -33,13 +33,17 @@ fun <T: Any?, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) ->
 fun <T: Any?, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
 fun <T: () -> Unit> cr(action: T): ConfR<T> = ConfR(action)
 inline fun <reified T: Any> cList(): ConfL<T> = ConfL(T::class.java)
+
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
+fun <T: String, C: Conf<T>> C.nonEmpty() = but(Constraint.StringNonEmpty())
 fun <T: Number, C: Conf<T>> C.min(min: T) = but(Constraint.NumberMinMax(min.toDouble(), Double.MAX_VALUE))
 fun <T: Number, C: Conf<T>> C.max(max: T) = but(Constraint.NumberMinMax(Double.MIN_VALUE, max.toDouble()))
 fun <T: Number, C: Conf<T>> C.between(min: T, max: T) = but(Constraint.NumberMinMax(min.toDouble(), max.toDouble()))
 fun <T: File?, C: Conf<T>> C.only(type: Constraint.FileActor) = but(type)
-fun <T: Any, C: Conf<T>> C.readOnlyIf(condition: () -> Boolean) = but(Constraint.ReadOnlyIf(condition))
-fun <T: Any, C: Conf<T>> C.readOnlyUnless(condition: () -> Boolean) = but(Constraint.ReadOnlyIf { !condition() })
+fun <T: Any, C: Conf<T>> C.readOnlyIf(condition: Boolean) = but(Constraint.ReadOnlyIf(condition))
+fun <T: Any, C: Conf<T>> C.readOnlyIf(condition: ObservableValue<Boolean>) = but(Constraint.ReadOnlyIf(condition, false))
+fun <T: Any, C: Conf<T>> C.readOnlyUnless(condition: Boolean) = but(Constraint.ReadOnlyIf(!condition))
+fun <T: Any, C: Conf<T>> C.readOnlyUnless(condition: ObservableValue<Boolean>) = but(Constraint.ReadOnlyIf(condition, true))
 fun <T: Any, W: VarEnum<T>> ConfV<T, W>.preserveOrder() = but(Constraint.PreserveOrder())
 
 /** Singleton configuration used by delegated configurable properties. */
@@ -58,18 +62,46 @@ interface MultiConfigurable {
     /** Group suffix shared by all configs of this configurable. Usually unique for every instances. */
     val configurableDiscriminant: String?
     /** Group (shared prefix path) shared by all configs of this configurable. Usually same for all instances. */
+    @JvmDefault
     val configurableGroup get() = computeConfigGroup(this)
     /** Config register and value provider. By default common value store. */
+    @JvmDefault
     val configurableValueStore: ConfigValueSource get() = configuration
 }
 
-/** Simple non-constant implementation of [MultiConfigurable] wit the discriminant supplied at creation time. */
+/** Implementation of [MultiConfigurable] with the [MultiConfigurable.configurableDiscriminant] supplied at creation time. */
 open class MultiConfigurableBase(override val configurableDiscriminant: String): MultiConfigurable
 
 interface ConfigValueSource {
     fun register(config: Config<*>)
     fun initialize(config: Config<*>)
+
+    companion object {
+
+        fun empty() = object: ConfigValueSource {
+            override fun initialize(config: Config<*>) {}
+            override fun register(config: Config<*>) {}
+        }
+
+        fun <T> simple() = SimpleConfigValueStore<T>()
+
+        open class SimpleConfigValueStore<T>: ConfigValueSource, Configurable<T> {
+            private val configs = ArrayList<Config<T>>()
+
+            override fun getField(name: String): Config<T>? = configs.find { it.name==name }
+
+            override fun getFields() = configs
+
+            override fun initialize(config: Config<*>) {}
+
+            override fun register(config: Config<*>) {
+                @Suppress("UNCHECKED_CAST")
+                configs += config as Config<T>
+            }
+        }
+    }
 }
+
 
 interface Delegator<REF: Any?, D: Any> {
     operator fun provideDelegate(ref: REF, property: KProperty<*>): D
@@ -111,19 +143,21 @@ abstract class Conf<T: Any?> {
 class ConfR<T: () -> Unit>(private val action: T): Conf<T>() {
     operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any, T> {
         property.makeAccessible()
-        val info = property.obtainConfigMetadata()
+        val info = property.findAnnotation<IsConfig>()
         val infoExt = property.findAnnotation<IsAction>()
         val group = info.computeConfigGroup(ref)
 
         val isFinal = property !is KMutableProperty
         throwIf(!isFinal) { "Property must be immutable" }
 
-        val name = info.name.takeIf { it.isNotBlank() } ?: property.name
+        fun String.orNull() = takeIf { it.isNotBlank() }
+        val name = infoExt?.name?.orNull() ?:  info?.name?.orNull() ?: property.name
+        val desc = infoExt?.desc?.orNull() ?:  info?.info?.orNull()
         val keys = infoExt?.keys ?: ""
         val isGlobal = infoExt?.global ?: false
         val isContinuous = infoExt?.repeat ?: false
 
-        return object: Action(name, Runnable { action() }, info.info, group, keys, isGlobal, isContinuous), ReadOnlyProperty<Any, T> {
+        return object: Action(name, Runnable { action() }, desc, group, keys, isGlobal, isContinuous), ReadOnlyProperty<Any, T> {
             override fun getValue(thisRef: Any, property: KProperty<*>) = action
         }.registerConfig(ref)
     }

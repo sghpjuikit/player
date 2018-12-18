@@ -73,7 +73,7 @@ public class IOLayer extends StackPane {
     public static final PseudoClass XNODE_DRAGOVER = getPseudoClass("drag-over");
     public static final PseudoClass XNODE_SELECTED = getPseudoClass("selected");
     private static final Object XNODE_KEY = new Object();
-    private static final double IO_WIDTH = 200;
+    private static final double IO_WIDTH = 230;
 
     static public final ObservableSet<Input<?>> all_inputs = FXCollections.observableSet();
     static public final ObservableSet<Output<?>> all_outputs = FXCollections.observableSet();

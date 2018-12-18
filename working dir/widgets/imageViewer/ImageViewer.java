@@ -328,7 +328,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     @IsInput("Location of")
     private void dataChanged(Item i) {
         if (i==null) dataChanged(Metadata.EMPTY);
-        else APP.actions.itemToMeta(i, consumer(this::dataChanged));
+        else APP.db.itemToMeta(i, consumer(this::dataChanged));
     }
 
     private void dataChanged(Metadata m) {

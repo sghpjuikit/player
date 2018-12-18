@@ -18,11 +18,12 @@ import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.reactive.sync
 
-class ConfigPane<T: Any>: VBox, ConfiguringFeature {
+class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
     private var fields: List<ConfigField<*>> = listOf()
     var onChange: Runnable? = null
     var labelWidth = v(250.0)
     val configOrder = compareBy<Config<*>> { 0 }
+            .thenBy { it.group.toLowerCase() }
             .thenBy { if (it.type==Action::javaClass) 1.0 else -1.0 }
             .thenBy { it.guiName.toLowerCase() }
 

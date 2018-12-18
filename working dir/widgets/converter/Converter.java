@@ -42,6 +42,7 @@ import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.Opener;
 import sp.it.pl.layout.widget.feature.SongWriter;
+import sp.it.pl.main.Widgets;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.collections.map.ClassListMap;
@@ -92,7 +93,7 @@ import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 @SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal", "unused"})
 @Widget.Info(
     author = "Martin Polakovic",
-    name = "Converter",
+    name = Widgets.CONVERTER,
     description = "Transformation utility. Capable of transforming objects "
         + "and chaining the transforming functions. Capable of text manipulation, file renaming and "
         + "audio tagging.",

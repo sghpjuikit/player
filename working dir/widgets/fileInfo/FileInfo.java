@@ -274,7 +274,7 @@ public class FileInfo extends FXMLController implements SongReader {
     private void setValue(Item i) {
         if (i==null) setValue(Metadata.EMPTY);
         else if (i instanceof Metadata) setValue((Metadata)i);
-        else APP.actions.itemToMeta(i, consumer(this::setValue));
+        else APP.db.itemToMeta(i, consumer(this::setValue));
     }
 
     private void setValue(Metadata m) {

@@ -30,10 +30,12 @@ import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
-import sp.it.pl.util.access.v
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.async.future.Fut.Companion.fut
-import sp.it.pl.util.conf.Config
+import sp.it.pl.util.conf.ConfigurableBase
+import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.FileType
@@ -316,10 +318,13 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
 private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<File>, List<File>> = ComplexActionData(
         { files -> fut(files).then { getFilesAudio(it, AudioFileFormat.Use.APP, Integer.MAX_VALUE).toList() } },
         { files ->
-            val makeWritable = v(true)
-            val editInTagger = v(true)  // TODO: enable only if Tagger/SongReader is available and avoid casts
-            val editOnlyAdded = v(false)
-            val enqueue = v(false)
+
+            val conf = object: ConfigurableBase<Boolean>() {
+                @IsConfig(name = "Make writable if read-only", group ="1") val makeWritable by cv(true)
+                @IsConfig(name = "Edit in ${Widgets.TAGGER}", group ="1") val editInTagger by cv(false)
+                @IsConfig(name = "Edit only added files", group ="1") val editOnlyAdded by cv(true).readOnlyUnless(editInTagger)
+                @IsConfig(name = "Enqueue in playlist", group ="2") val enqueue by cv(false)
+            }
             val task = MetadataReader.buildAddItemsToLibTask()
             val info = ConvertTaskInfo(
                     title = null,
@@ -327,18 +332,13 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                     skipped = Label(),
                     state = Label(),
                     pi = appProgressIndicator()
-            )
-            val tagger by lazy { APP.widgetManager.widgets.createNew(Widgets.TAGGER) }
+            ).apply {
+                bind(task)
+            }
 
-            info.bind(task)
             hBox(50, CENTER) {
                 lay += vBox(50, CENTER) {
-                    lay += ConfigPane(
-                            Config.forProperty(Boolean::class.java, "Make writable if read-only", makeWritable),
-                            Config.forProperty(Boolean::class.java, "Edit in ${Widgets.TAGGER}", editInTagger),
-                            Config.forProperty(Boolean::class.java, "Edit only added files", editOnlyAdded),
-                            Config.forProperty(Boolean::class.java, "Enqueue in playlist", enqueue)
-                    )
+                    lay += ConfigPane(conf)
                     lay += vBox(10, CENTER_LEFT) {
                         lay += info.state!!
                         lay += hBox(10, CENTER_LEFT) {
@@ -352,14 +352,18 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                                 (e.source as Icon).isDisable = true
                                 (e.source as Icon).parent.childrenUnmodifiable[0].isDisable = true
                                 fut(files())
-                                        .use { if (makeWritable.get()) it.forEach { it.setWritable(true) } }
+                                        .use { if (conf.makeWritable.value) it.forEach { it.setWritable(true) } }
                                         .then { task(it.map { SimpleItem(it) }) }
                                         .ui { result ->
-                                            if (editInTagger.get()) {
-                                                val items = if (editOnlyAdded.get()) result.converted else result.all
-                                                (tagger.controller as SongReader).read(items)
+                                            if (conf.editInTagger.value) {
+                                                val tagger = APP.widgetManager.factories.getFactory(Widgets.TAGGER)?.create()
+                                                val items = if (conf.editOnlyAdded.value) result.converted else result.all
+                                                if (tagger!=null) {
+                                                    lay += tagger.load()
+                                                    (tagger.controller as SongReader).read(items)
+                                                }
                                             }
-                                            if (enqueue.get() && !result.all.isEmpty()) {
+                                            if (conf.enqueue.value && !result.all.isEmpty()) {
                                                 APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
                                             }
                                         }
@@ -367,7 +371,6 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                             }
                             .withText("Execute")
                 }
-                lay += tagger.load()
             }
         }
 )

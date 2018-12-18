@@ -1,6 +1,7 @@
 package sp.it.pl.main
 
 object Widgets {
+    const val CONVERTER = "Converter"
     const val INSPECTOR = "Inspector"
     const val LAYOUTS = "Layouts"
     const val LIBRARY = "Library"

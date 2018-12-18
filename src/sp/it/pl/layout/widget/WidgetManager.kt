@@ -41,6 +41,7 @@ import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.file.toURLOrNull
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.asArray
+import sp.it.pl.util.functional.ifNull
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.runIf
@@ -423,7 +424,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         val autoRecompileSupported by c(Os.WINDOWS.isCurrent)
 
         @IsConfig(name = "Auto-compilation", info = "Automatic compilation and reloading of widgets when their source code changes")
-        val autoRecompile by cv(true).readOnlyUnless { autoRecompileSupported }
+        val autoRecompile by cv(true).readOnlyUnless(autoRecompileSupported)
 
         @IsConfig(name = "Recompile all widgets", info = "Re-compiles every widget. Useful when auto-compilation is disabled or unsupported.")
         val recompile by cr { monitors.forEach { it.scheduleCompilation() } }
@@ -442,8 +443,6 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             WidgetSource.NEW -> Stream.empty()
             WidgetSource.OPEN, WidgetSource.ANY -> Stream.concat(findAll(OPEN_STANDALONE), findAll(OPEN_LAYOUT))
         }
-
-        fun createNew(name: String) = factoriesW.find { it.name()==name }.orEmpty().create()   // TODO: no empty widget...
 
         /**
          * Returns widget fulfilling condition. Any widget can be returned (if it fulfills the condition), but:
@@ -550,9 +549,9 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         /** @return all features implemented by at least one widget */
         fun getFeatures(): Sequence<Feature> = getFactories().flatMap { it.getFeatures().asSequence() }.distinct()
 
-        fun getFactory(name: String): ComponentFactory<*>? = factoriesW[name] ?: factoriesC[name]
+        fun getFactory(name: String): WidgetFactory<*>? = factoriesW[name]
 
-        fun getFactoryOrEmpty(name: String): ComponentFactory<*> = getFactory(name).orEmpty()   // TODO: remove
+        fun getComponentFactory(name: String): ComponentFactory<*>? = factoriesW[name] ?: factoriesC[name]
 
         /** @return all widget factories */
         fun getFactories(): Sequence<WidgetFactory<*>> = factoriesW.streamV().asSequence()
@@ -631,8 +630,6 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                     .takeIf { it.all { it!=null } }
                     ?.let { URLClassLoader(it) }
         }
-
-        private inline fun <T: Any?> T.ifNull(block: () -> Unit) = apply { if (this==null) block() }
 
         private fun Collection<File>.lastModifiedMax() = asSequence().map { it.lastModified() }.max()
 

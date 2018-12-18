@@ -80,8 +80,7 @@ allprojects {
         kotlinOptions.suppressWarnings = false
         kotlinOptions.freeCompilerArgs += listOf(
                 "-progressive",
-                "-Xjvm-default=enable",
-                "-XXLanguage:+InlineClasses"
+                "-Xjvm-default=enable"
         )
     }
 

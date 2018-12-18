@@ -1,7 +1,6 @@
 package inspector
 
 import javafx.event.EventHandler
-import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
 import javafx.scene.Parent
@@ -42,7 +41,7 @@ import sp.it.pl.util.graphics.propagateESCAPE
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.onEventUp
-import sp.it.pl.util.reactive.onItemRegister
+import sp.it.pl.util.reactive.onItemSync
 import sp.it.pl.util.reactive.plus
 import sp.it.pl.util.reactive.syncIntoWhile
 import java.io.File
@@ -188,7 +187,7 @@ class Inspector(widget: Widget<*>): SimpleController(widget), FileExplorerFeatur
             }
         }
 
-        private fun observeWindowRoots(subscriber: (Parent) -> Subscription) = Stage.getWindows().onItemRegister {
+        private fun observeWindowRoots(subscriber: (Parent) -> Subscription) = Stage.getWindows().onItemSync {
             it.sceneProperty().syncIntoWhile(Scene::rootProperty) {
                 it?.net(subscriber) ?: Subscription.EMPTY
             }

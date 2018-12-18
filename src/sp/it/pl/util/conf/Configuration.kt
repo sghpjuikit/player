@@ -13,8 +13,8 @@ import java.lang.invoke.MethodHandles
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 
-/** Persistable collection of [Config]. */
-open class Configuration: Configurable<Any> {
+/** Persistable [Configurable]. */
+open class Configuration: Configurable<Any?> {
 
     private val methodLookup = MethodHandles.lookup()
     private val mapper: (String) -> String = { s -> s.replace(' ', '_').toLowerCase() }
@@ -23,7 +23,10 @@ open class Configuration: Configurable<Any> {
     private val configs: MapSet<String, Config<*>> = MapSet(ConcurrentHashMap(), configToRawKeyMapper)
 
     @Suppress("UNCHECKED_CAST")
-    override fun getFields(): Collection<Config<Any>> = configs as Collection<Config<Any>>
+    override fun getField(name: String): Config<Any?> = configs.find { it.name==name } as Config<Any?>
+
+    @Suppress("UNCHECKED_CAST")
+    override fun getFields(): Collection<Config<Any?>> = configs as Collection<Config<Any?>>
 
     /**
      * Returns raw key-value ([java.lang.String]) pairs representing the serialized configs.
@@ -65,11 +68,11 @@ open class Configuration: Configurable<Any> {
         configs += config
 
         // generate boolean toggle actions
-        config.takeIf { it.isEditableByUser() && it.type==Boolean::class.javaObjectType }
+        config.takeIf { it.type==Boolean::class.javaObjectType && it.isEditable.isByUser }
                 ?.let {
                     val name = "${it.guiName} - toggle"
                     val description = "Toggles value ${it.name} between true/false"
-                    val r = Runnable { if (it.isEditableByUser()) it.setNextNapplyValue() }
+                    val r = { if (it.isEditableByUserRightNow()) it.setNextNapplyValue() }
                     val a = Action(name, r, description, it.group, "", false, false)
                     ActionRegistrar.getActions() += a
                     configs += a

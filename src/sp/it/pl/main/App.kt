@@ -132,11 +132,9 @@ class App: Application(), Configurable<Any> {
         APP = this.takeUnless { ::APP.isInitialized } ?: fail { "Multiple application instances disallowed" }
     }
 
-    var isInitialized: Try<Void, Throwable> = Try.error(Exception("Initialization has not run yet"))
-        private set(value) {
-            field = value
-        }
     private var closedPrematurely = false
+    var isInitialized: Try<Void, Throwable> = Try.error(Exception("Initialization has not run yet"))
+        private set
 
     /** Name of this application. */
     @F val name = "PlayerFX"
@@ -183,6 +181,46 @@ class App: Application(), Configurable<Any> {
     @F val contextMenus = CoreMenus()
     @F val mouse = CoreMouse
 
+    @C(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")
+    val logLevelConsole by cv(Level.INFO) {
+        VarEnum.ofSequence(it) { logLevels }.initSync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
+    }.preserveOrder()
+
+    @C(name = "Level (file)", group = "Logging", info = "Logging level for logging to file")
+    val logLevelFile by cv(Level.WARN) {
+        VarEnum.ofSequence(it) { logLevels }.initSync { logging.changeLogBackLoggerAppenderLevel("FILE", it) }
+    }.preserveOrder()
+
+    @C(name = "Rating control", info = "The style of the graphics of the rating control.")
+    val ratingCell by cv(RatingRatingCellFactory as RatingCellFactory) { VarEnum.ofInstances(it, instances) }
+
+    @C(name = "Rating icon amount", info = "Number of icons in rating control.")
+    val maxRating by cv(5).between(0, 10)
+
+    @C(name = "Rating allow partial", info = "Allow partial values for rating.")
+    val partialRating by cv(true)
+
+    @C(name = "Text for no value", info = "Preferred text when no tag value for field. This value can be overridden.")
+    var textNoVal by c("<none>")
+
+    @C(name = "Text for multi value", info = "Preferred text when multiple tag values per field. This value can be overridden.")
+    var textManyVal by c("<multi>")
+
+    @C(name = "Animation FPS", info = "Update frequency in Hz for performance-heavy animations.")
+    var animationFps by c(60.0).between(10.0, 60.0)
+
+    @C(name = "Normal mode", info = "Whether application loads into previous/default state or no state at all.")
+    var normalLoad by c(true)
+
+    @C(name = "Developer mode", info = "Unlock developer features.")
+    var developerMode by c(false)
+
+    @C(group = "Settings", name = "Settings use default", info = "Set all settings to default values.")
+    val actionSettingsReset by cr { configuration.toDefault() }
+
+    @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
+    val actionSettingsSave by cr { configuration.save(name, FILE_SETTINGS) }
+
     // app stuff
     /** Application argument handler. */
     @F val parameterProcessor = AppParameterProcessor()
@@ -208,48 +246,6 @@ class App: Application(), Configurable<Any> {
     @F val infoPane = InfoPane("View.System").initApp()
     @F val guide = Guide(actionStream)
     @F val search = Search()
-
-    @C(name = "Rating control", info = "The style of the graphics of the rating control.")
-    val ratingCell by cv(RatingRatingCellFactory as RatingCellFactory) { VarEnum.ofInstances(it, instances) }
-
-    @C(name = "Rating icon amount", info = "Number of icons in rating control.")
-    val maxRating by cv(5).between(0, 10)
-
-    @C(name = "Rating allow partial", info = "Allow partial values for rating.")
-    val partialRating by cv(true)
-
-    @C(name = "Text for no value", info = "Preferred text when no tag value for field. This value can be overridden.")
-    var textNoVal by c("<none>")
-
-    @C(name = "Text for multi value", info = "Preferred text when multiple tag values per field. This value can be overridden.")
-    var textManyVal by c("<multi>")
-
-    @C(name = "Animation FPS", info = "Update frequency in Hz for performance-heavy animations.")
-    var animationFps by c(60.0).between(10.0, 60.0)
-
-    private val logLevels = seqOf(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF)
-
-    @C(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")
-    val logLevelConsole by cv(Level.INFO) {
-        VarEnum.ofSequence(it) { logLevels }.initSync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
-    }.preserveOrder()
-
-    @C(name = "Level (file)", group = "Logging", info = "Logging level for logging to file")
-    val logLevelFile by cv(Level.WARN) {
-        VarEnum.ofSequence(it) { logLevels }.initSync { logging.changeLogBackLoggerAppenderLevel("FILE", it) }
-    }.preserveOrder()
-
-    @C(name = "Normal mode", info = "Whether application loads into previous/default state or no state at all.")
-    var normalLoad by c(true)
-
-    @C(name = "Developer mode", info = "Unlock developer features.")
-    var developerMode by c(false)
-
-    @C(group = "Settings", name = "Settings use default", info = "Set all settings to default values.")
-    val actionSettingsReset by cr { configuration.toDefault() }
-
-    @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
-    val actionSettingsSave by cr { configuration.save(name, FILE_SETTINGS) }
 
     /** Manages persistence and in-memory storage. */
     @F val db = Db()
@@ -402,7 +398,6 @@ class App: Application(), Configurable<Any> {
                     ui,
                     actions,
                     windowManager,
-                    guide,
                     services.getAllServices().toList()
             )
 
@@ -418,7 +413,7 @@ class App: Application(), Configurable<Any> {
 
             Player.initialize()
 
-            normalLoad = normalLoad && fetchArguments().none { it.endsWith(".fxwl") || widgetManager.factories.getFactory(it)!=null }
+            normalLoad = normalLoad && fetchArguments().none { it.endsWith(".fxwl") || widgetManager.factories.getComponentFactory(it)!=null }
 
             windowManager.deserialize(normalLoad)
         }.ifError {
@@ -434,10 +429,6 @@ class App: Application(), Configurable<Any> {
             if (normalLoad) Player.loadLastState() // initialize non critical parts
             parameterProcessor.process(fetchArguments()) // process app parameters passed when app started
             runLater { onStarted() }
-
-            // reapply log level for newly initialized components // TODO: remove
-            logging.changeLogBackLoggerAppenderLevel("FILE", logLevelFile.get())
-            logging.changeLogBackLoggerAppenderLevel("STDOUT", logLevelConsole.get())
         }
     }
 
@@ -566,6 +557,10 @@ class App: Application(), Configurable<Any> {
             fail { "File $this is not accessible" }
     }
 
-    companion object: KLogging()
+    companion object: KLogging() {
+
+        private val logLevels = seqOf(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF)
+
+    }
 
 }

@@ -3,6 +3,8 @@ package sp.it.pl.util.action
 import javafx.application.Platform
 import javafx.scene.input.KeyCode.ALT_GRAPH
 import javafx.stage.Stage
+import javafx.stage.Window
+import org.reactfx.Subscription
 import sp.it.pl.util.access.initSync
 import sp.it.pl.util.access.v
 import sp.it.pl.util.action.ActionRegistrar.hotkeys
@@ -15,8 +17,8 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.hotkey.Hotkeys
 import sp.it.pl.util.reactive.Subscribed
-import sp.it.pl.util.reactive.onItemRegister
-import sp.it.pl.util.reactive.sync1IfNonNull
+import sp.it.pl.util.reactive.onItemSync
+import sp.it.pl.util.reactive.syncIntoWhile
 import sp.it.pl.util.system.Os
 import java.util.concurrent.ConcurrentHashMap
 
@@ -80,7 +82,7 @@ object ActionManager {
                 }
             }
         }
-    }.readOnlyUnless { isGlobalShortcutsSupported }
+    }.readOnlyUnless(isGlobalShortcutsSupported)
 
 
     /* ---------- HELPER METHODS ---------------------------------------------------------------------------------------- */
@@ -113,8 +115,15 @@ object ActionManager {
     }
 
     private val localActionRegisterer = Subscribed {
-        Stage.getWindows().onItemRegister {
-            it.sceneProperty().sync1IfNonNull { scene -> ActionRegistrar.getActions().forEach { it.unregisterInScene(scene) } }
+        Stage.getWindows().onItemSync {
+            v(it).syncIntoWhile(Window::sceneProperty) { scene ->
+                if (scene!=null) {
+                    ActionRegistrar.getActions().forEach { it.registerInScene(scene) }
+                    Subscription { ActionRegistrar.getActions().forEach { it.unregisterInScene(scene) } }
+                } else {
+                    Subscription.EMPTY
+                }
+            }
         }
     }
 

@@ -25,6 +25,7 @@ import sp.it.pl.util.action.Action
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.functional.setToOne
 import sp.it.pl.util.graphics.install
+import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.stackPane
@@ -51,86 +52,97 @@ class ConfigSearch: AutoCompletion<Entry> {
         this.textField = textField
         this.history = history
         this.textField.prefWidth = 450.0 // affects the popup width
+
+        this.textField.onEventUp(KEY_PRESSED) {
+            if (it.isControlDown && (it.code==KeyCode.UP || it.code==KeyCode.DOWN)) {
+                when (it.code) {
+                    KeyCode.UP -> history.up(this)
+                    KeyCode.DOWN -> history.down(this)
+                    else -> {}
+                }
+                it.consume()
+            }
+        }
     }
 
-    override fun buildPopup(): AutoCompletePopup<Entry> {
-        return object: AutoCompletePopup<Entry>() {
+    override fun buildPopup() = object: AutoCompletePopup<Entry>() {
 
-            override fun createDefaultSkin(): AutoCompletePopupSkin<Entry> {
-                return object: AutoCompletePopupSkin<Entry>(this, 2) {
+        override fun createDefaultSkin(): AutoCompletePopupSkin<Entry> {
+            return object: AutoCompletePopupSkin<Entry>(this, 2) {
 
-                    init {
-                        // set keys & allow typing
-                        skinnable.onEventUp(KEY_PRESSED) {
-                            if (!ignoreEvent)
-                                if (it.isControlDown && (it.code==KeyCode.UP || it.code==KeyCode.DOWN)) {
-                                    when (it.code) {
-                                        KeyCode.UP -> history.up(this@ConfigSearch)
-                                        KeyCode.DOWN -> history.down(this@ConfigSearch)
-                                        else -> {}
-                                    }
-                                } else if (it.code==KeyCode.BACK_SPACE) {
-                                    textField.deletePreviousChar()
-                                    it.consume()
-                                } else if (it.code==KeyCode.DELETE) {
-                                    textField.deleteNextChar()
-                                    it.consume()
-                                } else if (!it.code.isNavigationKey) {
-                                    // We re-fire event on text field so we can type even though it
-                                    // does not have focus. This causes event stack overflow, so we
-                                    // defend with a flag.
-                                    if (!textField.isFocused) {
-                                        ignoreEvent = true
-                                        completionTarget.fireEvent(it)
-                                    }
+                init {
+
+                    // set keys & allow typing
+                    skinnable.onEventUp(KEY_PRESSED) {
+                        if (!ignoreEvent)
+                            if (it.isControlDown && (it.code==KeyCode.UP || it.code==KeyCode.DOWN)) {
+                                when (it.code) {
+                                    KeyCode.UP -> history.up(this@ConfigSearch)
+                                    KeyCode.DOWN -> history.down(this@ConfigSearch)
+                                    else -> {}
                                 }
-                            ignoreEvent = false
-                        }
-                        node.onEventUp(KEY_PRESSED) {
-                            if (!ignoreEvent)
-                                if (it.isControlDown && (it.code==KeyCode.UP || it.code==KeyCode.DOWN)) {
-                                    when (it.code) {
-                                        KeyCode.UP -> history.up(this@ConfigSearch)
-                                        KeyCode.DOWN -> history.down(this@ConfigSearch)
-                                        else -> {}
-                                    }
-                                    it.consume()
-                                } else if (it.isControlDown && it.code==KeyCode.A) {
-                                    textField.selectAll()
-                                    it.consume()
-                                    // TODO:
-                                    // else if (e.getCode()==KeyCode.BACK_SPACE) {
-                                    //     textField.deletePreviousChar(); // doesn't work here
-                                    //     e.consume();
-                                } else if (it.code==KeyCode.END) {
-                                    if (it.isShiftDown) textField.selectEnd() else textField.positionCaret(textField.length)
-                                    it.consume()
-                                } else if (it.code==KeyCode.HOME) {
-                                    if (it.isShiftDown) textField.selectHome() else textField.positionCaret(0)
-                                    it.consume()
-                                } else if (it.code==KeyCode.LEFT) {
-                                    if (it.isControlDown) textField.selectPreviousWord() else textField.selectBackward()
-                                    if (!it.isShiftDown) textField.deselect()
-                                    it.consume()
-                                } else if (it.code==KeyCode.RIGHT) {
-                                    if (it.isControlDown) textField.selectNextWord() else textField.selectForward()
-                                    if (!it.isShiftDown) textField.deselect()
-                                    it.consume()
+                                it.consume()
+                            } else if (it.code==KeyCode.BACK_SPACE) {
+                                textField.deletePreviousChar()
+                                it.consume()
+                            } else if (it.code==KeyCode.DELETE) {
+                                textField.deleteNextChar()
+                                it.consume()
+                            } else if (!it.code.isNavigationKey) {
+                                // We re-fire event on text field so we can type even though it
+                                // does not have focus. This causes event stack overflow, so we
+                                // defend with a flag.
+                                if (!textField.isFocused) {
+                                    ignoreEvent = true
+                                    completionTarget.fireEvent(it)
                                 }
-                                // TODO: else if (!e.getCode().isNavigationKey()) {}
-                            ignoreEvent = false
-                        }
+                            }
+                        ignoreEvent = false
                     }
-
-                    override fun buildListViewCellFactory(listView: ListView<Entry>) = EntryListCell()
+                    node.onEventUp(KEY_PRESSED) {
+                        if (!ignoreEvent)
+                            if (it.isControlDown && (it.code==KeyCode.UP || it.code==KeyCode.DOWN)) {
+                                when (it.code) {
+                                    KeyCode.UP -> history.up(this@ConfigSearch)
+                                    KeyCode.DOWN -> history.down(this@ConfigSearch)
+                                    else -> {}
+                                }
+                                it.consume()
+                            } else if (it.isControlDown && it.code==KeyCode.A) {
+                                textField.selectAll()
+                                it.consume()
+                                // TODO:
+                                // else if (e.getCode()==KeyCode.BACK_SPACE) {
+                                //     textField.deletePreviousChar(); // doesn't work here
+                                //     e.consume();
+                            } else if (it.code==KeyCode.END) {
+                                if (it.isShiftDown) textField.selectEnd() else textField.positionCaret(textField.length)
+                                it.consume()
+                            } else if (it.code==KeyCode.HOME) {
+                                if (it.isShiftDown) textField.selectHome() else textField.positionCaret(0)
+                                it.consume()
+                            } else if (it.code==KeyCode.LEFT) {
+                                if (it.isControlDown) textField.selectPreviousWord() else textField.selectBackward()
+                                if (!it.isShiftDown) textField.deselect()
+                                it.consume()
+                            } else if (it.code==KeyCode.RIGHT) {
+                                if (it.isControlDown) textField.selectNextWord() else textField.selectForward()
+                                if (!it.isShiftDown) textField.deselect()
+                                it.consume()
+                            }
+                            // TODO: else if (!e.getCode().isNavigationKey()) {}
+                        ignoreEvent = false
+                    }
                 }
+
+                override fun buildListViewCellFactory(listView: ListView<Entry>) = EntryListCell()
             }
         }
     }
 
     override fun acceptSuggestion(suggestion: Entry) {
         suggestion.run()
-        history.add(this)
+        history.add(suggestion)
     }
 
     class History {
@@ -149,10 +161,9 @@ class ConfigSearch: AutoCompletion<Entry> {
             search.completionTargetTyped.text = history[historyIndex]
         }
 
-        fun add(search: ConfigSearch) {
-            val last = if (history.isEmpty()) null else history[history.size-1]
-            val curr = search.completionTargetTyped.text
-            val isDiff = last!=null && curr!=null && !last.equals(curr, ignoreCase = true)
+        fun add(suggestion: Entry) {
+            val curr = suggestion.name
+            val isDiff = history.isEmpty() || !history.last().equals(curr, ignoreCase = true)
             if (isDiff) {
                 history += curr
                 historyIndex = history.size-1
@@ -186,7 +197,7 @@ class ConfigSearch: AutoCompletion<Entry> {
             override val graphics by lazy {
                 when {
                     config is Action && config.hasKeysAssigned() -> {
-                        Label(config.keys).apply {
+                        label(config.keys) {
                             textAlignment = TextAlignment.RIGHT
                         }
                     }

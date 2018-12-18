@@ -275,5 +275,8 @@ infix fun <T> MutableCollection<T>.setTo(elements: Collection<T>) {
 /** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */
 infix fun <T> MutableCollection<T>.setTo(elements: Sequence<T>) = this setTo elements.toList()
 
+/** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */
+infix fun <T> MutableCollection<T>.setTo(elements: Array<T>) = this setTo elements.toList()
+
 /** Removes all elements and adds specified element to this collection. Atomic for [ObservableList]. */
 infix fun <T> MutableCollection<T>.setToOne(element: T) = this setTo listOf(element)

@@ -65,7 +65,7 @@ import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.createIcon
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.reactive.onItemRegister
+import sp.it.pl.util.reactive.onItemSync
 import sp.it.pl.util.system.open
 import sp.it.pl.util.text.plural
 import java.io.File
@@ -291,7 +291,7 @@ open class OTreeItem<T> constructor(v: T, private val childrenO: ObservableList<
     override fun getChildren(): ObservableList<TreeItem<T>> {
         return super.getChildren().also { children ->
             runOn(once) {
-                childrenDisposer += childrenO.onItemRegister {
+                childrenDisposer += childrenO.onItemSync {
                     val item = tree(it)
                     children += item
                     Subscription { children -= item.also { it.disposeIfDisposable() } }

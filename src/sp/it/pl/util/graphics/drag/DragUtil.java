@@ -375,16 +375,6 @@ public final class DragUtil {
 			List<File> fs = Util.getImageFiles(files);
 			if (!fs.isEmpty())
 				return fut(fs.get(0));
-
-//                // for debugging purposes to simulate long running actions
-//                return fut(() -> {System.out.println("IMAGE DROPPED");
-//                    try {
-//                        Thread.sleep(3000);
-//                    } catch (InterruptedException ex) {
-//                        Logger.getLogger(DragUtil.class.getName()).log(Level.SEVERE, null, ex);
-//                    }
-//                    return fs.get(0);
-//                });
 		}
 		if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
 			return futUrl(d.getUrl());

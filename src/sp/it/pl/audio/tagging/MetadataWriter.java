@@ -670,13 +670,7 @@ public class MetadataWriter extends Item {
 	private void setGeneralField(FieldKey field, String val) {
 		boolean empty = val==null || val.isEmpty();
 		try {
-//            System.out.println("BEFORE");
-//            tag.getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
-//            System.out.println(field + " " + val + " " + tag.getClass());
-			if (empty) tag.deleteField(field);
-			else tag.setField(field, val);
-//            System.out.println("AFTER");
-//            tag.getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
+			if (empty) tag.deleteField(field); else tag.setField(field, val);
 			fields_changed++;
 		} catch (KeyNotFoundException e) {
 			LOGGER.info(field + " field not found", e);

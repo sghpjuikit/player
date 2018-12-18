@@ -11,6 +11,7 @@ import javafx.geometry.Rectangle2D
 import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.Parent
+import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.Tooltip
@@ -159,6 +160,7 @@ inline fun vBox(spacing: Number = 0.0, alignment: Pos? = null, block: VBox.() ->
 inline fun scrollPane(block: ScrollPane.() -> Unit = {}) = ScrollPane().apply { block() }
 inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply { block() }
 inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply { block() }
+inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply { block() }
 
 interface Lay {
     operator fun plusAssign(child: Node)
@@ -166,14 +168,14 @@ interface Lay {
     operator fun plusAssign(children: Sequence<Node>) = children.forEach { this+=it }
 }
 
-inline class PaneLay(private val pane: Pane): Lay {
+class PaneLay(private val pane: Pane): Lay {
 
     override fun plusAssign(child: Node) {
         pane.children += child
     }
 }
 
-inline class HBoxLay(private val pane: HBox): Lay {
+class HBoxLay(private val pane: HBox): Lay {
 
     override fun plusAssign(child: Node) {
         pane.children += child
@@ -187,7 +189,7 @@ inline class HBoxLay(private val pane: HBox): Lay {
     }
 }
 
-inline class VBoxLay(private val pane: VBox): Lay {
+class VBoxLay(private val pane: VBox): Lay {
 
     override fun plusAssign(child: Node) {
         pane.children += child
@@ -201,7 +203,7 @@ inline class VBoxLay(private val pane: VBox): Lay {
     }
 }
 
-inline class StackLay(private val pane: StackPane): Lay {
+class StackLay(private val pane: StackPane): Lay {
 
     override fun plusAssign(child: Node) {
         pane.children += child
@@ -215,7 +217,7 @@ inline class StackLay(private val pane: StackPane): Lay {
     }
 }
 
-inline class AnchorPaneLay(private val pane: AnchorPane): Lay {
+class AnchorPaneLay(private val pane: AnchorPane): Lay {
 
     override fun plusAssign(child: Node) {
         pane.children += child
@@ -545,9 +547,10 @@ fun <T> TreeView<T>.scrollToCenter(i: Int) {
     val items = expandedItemCount
     if (index<0 || index>=items) return
 
-    val fixedCellHeightNotSet = fixedCellSize==Region.USE_COMPUTED_SIZE   // TODO: remove
+    val fixedCellHeightNotSet = fixedCellSize==Region.USE_COMPUTED_SIZE
     if (fixedCellHeightNotSet) {
         scrollTo(i)
+        // TODO: improve
     } else {
         val rows = height/fixedCellSize
         index -= (rows/2).toInt()

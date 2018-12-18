@@ -43,10 +43,7 @@ import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.collections.map.ClassListMap;
-import sp.it.pl.util.conf.Config;
-import sp.it.pl.util.conf.ConfigValueSource;
 import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.MainConfiguration;
 import sp.it.pl.util.conf.MultiConfigurable;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.functional.Try;
@@ -80,7 +77,6 @@ import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.future.Fut.fut;
-import static sp.it.pl.util.conf.ConfigurationUtilKt.computeConfigGroup;
 import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
 import static sp.it.pl.util.functional.Util.IS;
 import static sp.it.pl.util.functional.Util.ISNT;
@@ -190,27 +186,6 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	@Override
 	public String getConfigurableDiscriminant() {
 		return configurableDiscriminant;
-	}
-
-	@NotNull
-	@Override
-	public String getConfigurableGroup() {
-		return computeConfigGroup(this);
-	}
-
-	@Override
-	public ConfigValueSource getConfigurableValueStore() {
-		return new ConfigValueSource() {
-			@Override
-			public void register(Config<?> config) {
-				MainConfiguration.INSTANCE.collect(config);
-			}
-
-			@Override
-			public void initialize(Config<?> config) {
-				MainConfiguration.INSTANCE.rawSet(config);
-			}
-		};
 	}
 
 	/* ---------- PRE-CONFIGURED ACTIONS --------------------------------------------------------------------------------- */

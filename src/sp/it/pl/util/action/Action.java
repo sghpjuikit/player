@@ -459,9 +459,10 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 		stream(type.getDeclaredMethods())
 			.map(m -> new Pair<>(m, isStatic(m.getModifiers())))
 			.filter(m -> useStatic^m.getValue())
+			.filter(m -> m.getKey().isAnnotationPresent(IsAction.class))
 			.map(m -> {
 				if (m.getKey().getParameters().length>0)
-					throw new RuntimeException("Action Method must have 0 parameters!");
+					throw new RuntimeException("Action method=" + m.getKey() + " must have 0 parameters!");
 
 				IsAction a = m.getKey().getAnnotation(IsAction.class);
 				String group = instance==null ? obtainConfigGroup(null, type) : computeConfigGroup(instance);

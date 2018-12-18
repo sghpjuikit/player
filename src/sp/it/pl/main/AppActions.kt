@@ -41,14 +41,13 @@ import sp.it.pl.layout.widget.WidgetSource.NEW
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.TextDisplayFeature
-import sp.it.pl.unused.SimpleConfigurator
+import sp.it.pl.unused.SimpleConfigurator.Companion.simpleConfigurator
 import sp.it.pl.util.Util.urlEncodeUtf8
 import sp.it.pl.util.access.fieldvalue.StringGetter
 import sp.it.pl.util.action.ActionRegistrar
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runLater
-import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.conf.ValueConfig
 import sp.it.pl.util.dev.Blocks
@@ -86,7 +85,6 @@ import java.io.File
 import java.io.IOException
 import java.net.URI
 import java.net.URISyntaxException
-import java.util.function.Consumer
 
 @IsConfigurable("Shortcuts")
 class AppActions {
@@ -379,7 +377,6 @@ class AppActions {
     }
 
     fun doWithUserString(title: String, inputName: String, action: (String) -> Unit) {
-        fun <T, C: Configurable<T>> simpleConfigurator(configurable: C, onOk: (C) -> Unit) = SimpleConfigurator(configurable, Consumer { onOk(it) })
         val conf = ValueConfig(String::class.java, inputName, "").constraints(StringNonEmpty())
         val form = simpleConfigurator(conf) { action(it.value) }
         val popup = PopOver(form)

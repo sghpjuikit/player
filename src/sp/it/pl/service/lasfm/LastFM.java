@@ -24,6 +24,7 @@ import sp.it.pl.util.text.Password;
 import sp.it.pl.util.validation.Constraint.PasswordNonEmpty;
 import sp.it.pl.util.validation.Constraint.StringNonEmpty;
 import static sp.it.pl.util.dev.Util.logger;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 
 // TODO: make thread-safe, remove static, implement Service
 @IsConfigurable("Services.LastFM")
@@ -109,15 +110,15 @@ public class LastFM {
 
 	@SuppressWarnings("unchecked")
 	public static SimpleConfigurator<Object> getLastFMconfig() {
-		return new SimpleConfigurator<>(
+		return SimpleConfigurator.simpleConfigurator(
 				new MapConfigurable<Object>(
 					(Config) new ValueConfig<>(String.class, "Username", acquireUserName()).constraints(new StringNonEmpty()),
 					(Config) new ValueConfig<>(Password.class, "Password", acquirePassword()).constraints(new PasswordNonEmpty())
 				),
-				c -> saveLogin(
-						(String) c.getField("Username").getValue(),
-						(Password) c.getField("Password").getValue()
-				)
+				consumer(c -> saveLogin(
+					(String) c.getField("Username").getValue(),
+					(Password) c.getField("Password").getValue()
+				))
 		);
 
 	}

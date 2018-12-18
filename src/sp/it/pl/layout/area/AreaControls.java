@@ -61,6 +61,7 @@ import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
 import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.unused.SimpleConfigurator.simpleConfigurator;
 import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.graphics.Util.layScrollVText;
 import static sp.it.pl.util.graphics.Util.setAnchors;
@@ -274,10 +275,7 @@ public final class AreaControls {
             APP.windowManager.showSettings(w,propB);
         } else if (APP.ui.getOpenStrategy().getValue()==INSIDE) {
             AppAnimator.INSTANCE.closeAndDo(area.content_root, () -> {
-                // TODO: decide whether we use SimpleConfigurator or Configurator widget
-                // Configurator sc = new Configurator(true);
-                //              sc.configure(w);
-                SimpleConfigurator<?> sc = new SimpleConfigurator<>(w);
+                SimpleConfigurator<?> sc = simpleConfigurator(w);
                 sc.getStyleClass().addAll("block", "area", "widget-area");// imitate area looks
                 sc.setOnMouseClicked(me -> {
                     if (me.getButton()==SECONDARY)

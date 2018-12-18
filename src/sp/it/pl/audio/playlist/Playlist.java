@@ -33,7 +33,6 @@ import sp.it.pl.gui.objects.window.stage.WindowBase;
 import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.Config;
-import sp.it.pl.util.conf.Configurable;
 import sp.it.pl.util.conf.ValueConfig;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
@@ -43,12 +42,14 @@ import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
 import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.unused.SimpleConfigurator.simpleConfigurator;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.Util.getFilesAudio;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.toS;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
@@ -731,13 +732,13 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	 *
 	 * @param add true to add items, false to clear playlist and play items
 	 */
-	@SuppressWarnings("Convert2Lambda")
+	@SuppressWarnings({"Convert2Lambda", "unchecked"})
 	public void addOrEnqueueUrl(boolean add) {
 		// build content
 		String title = add ? "Add url item." : "Play url item.";
 		Config<URI> conf = new ValueConfig<>(URI.class, "Url", URI.create("http://www.example.com"), title);
-		SimpleConfigurator<?> content = new SimpleConfigurator<Config<URI>>((Configurable) conf,
-			(Consumer) new Consumer<Config<URI>>() {
+		SimpleConfigurator<?> content = simpleConfigurator(conf,
+			consumer((Consumer) new Consumer<Config<URI>>() {
 			@Override
 			public void accept(Config<URI> url) {
 				if (add) {
@@ -749,7 +750,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 					playFirstItem();
 				}
 			}
-		});
+		}));
 
 		// build help content
 		String uri = "http://www.musicaddict.com";

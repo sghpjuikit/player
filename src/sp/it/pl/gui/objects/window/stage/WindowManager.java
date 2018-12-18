@@ -63,6 +63,7 @@ import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.widget.WidgetManagerKt.orEmpty;
 import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.unused.SimpleConfigurator.simpleConfigurator;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.dev.Util.logger;
@@ -511,7 +512,7 @@ public class WindowManager implements Configurable<Object> {
     public void showSettingsSimple(Configurable<?> c, Node n) {
         boolean isComponent = c instanceof Component;
         String name = c instanceof Widget ? ((Widget) c).getName() : "";
-        SimpleConfigurator<?> sc = new SimpleConfigurator<>(c);
+        SimpleConfigurator<?> sc = simpleConfigurator(c);
         PopOver<?> p = new PopOver<>(sc);
         p.title.set((name==null ? "" : name + " ") + " Settings");
         p.arrowSize.set(0); // auto-fix breaks the arrow position, turn off - sux

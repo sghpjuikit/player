@@ -152,12 +152,12 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>
         fun File.walkDirsAndWithCover(): Sequence<File> {
             return if (isDirectory) {
                 val dir = this
-                val cmdDirs = """cmd /c dir /s /b /ad "${dir.absolutePath}""""
-                val cmdFiles = """cmd /c dir /s /b /a-d "${dir.absolutePath}""""
+                val cmdDirs = """cmd /U /c dir /s /b /ad "${dir.absolutePath}" 2>nul"""
+                val cmdFiles = """cmd /U /c dir /s /b /a-d "${dir.absolutePath}" 2>nul"""
 
                 val dirs = try {
                     Runtime.getRuntime().exec(cmdDirs)
-                            .inputStream.bufferedReader()
+                            .inputStream.bufferedReader(Charsets.UTF_16LE)
                             .useLines { it.map { FastFile(it, true, false) }.toList() }
                 } catch (e: Throwable) {
                     logger.error(e) { "Failed to read files in $this using command $cmdDirs" }
@@ -165,7 +165,7 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>
                 }
                 val files = try {
                     Runtime.getRuntime().exec(cmdFiles)
-                            .inputStream.bufferedReader()
+                            .inputStream.bufferedReader(Charsets.UTF_16LE)
                             .useLines { it.map { FastFile(it, false, true) }.toList() }
                 } catch (e: Throwable) {
                     logger.error(e) { "Failed to read files in $this using command $cmdFiles" }
@@ -184,7 +184,7 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>
     ALL({ it.asSequence().distinct().flatMap { it.asFileTree() }.asStream() });
 }
 
-private class FastFile(path: String, private val isDir: Boolean, private val isFil: Boolean): File(path) {
+class FastFile(path: String, private val isDir: Boolean, private val isFil: Boolean): File(path) {
     override fun isDirectory(): Boolean = isDir
     override fun isFile(): Boolean = isFil
 }
@@ -194,10 +194,10 @@ private fun File.asFileTree(): Sequence<File> =
             Os.WINDOWS -> {
                 if (isDirectory) {
                     val dir = this
-                    val cmdFiles = """cmd /c dir /s /b /a-d "${dir.absolutePath}""""
+                    val cmdFiles = """cmd /U /c chcp 65001 dir /s /b /a-d "${dir.absolutePath}" 2>nul"""
                     try {
                         val files = Runtime.getRuntime().exec(cmdFiles)
-                                .inputStream.bufferedReader()
+                                .inputStream.bufferedReader(Charsets.UTF_16LE)
                                 .useLines { it.map { FastFile(it, false, true) }.toList() }
                         files.asSequence()
                     } catch (e: Throwable) {

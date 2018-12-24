@@ -130,9 +130,9 @@ fun treeApp(): TreeItem<Any> {
     )
 }
 
-fun <T: Any> buildTreeView() = TreeView<T>().apply { initTreeView(this) }
+fun <T: Any> buildTreeView() = TreeView<T>().initTreeView()
 
-fun <T: Any> initTreeView(tree: TreeView<T>) = tree.apply {
+fun <T: Any> TreeView<T>.initTreeView() = apply {
 
     addEventFilter(KeyEvent.KEY_PRESSED) {
         when (it.code) {

@@ -30,7 +30,7 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.icon.IconInfo
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
-import sp.it.pl.gui.pane.ActionPane.FastAction
+import sp.it.pl.gui.pane.FastAction
 import sp.it.pl.gui.pane.OverlayPane
 import sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.pl.layout.area.ContainerNode
@@ -126,7 +126,7 @@ class AppActions {
                         if (empty || item==null) {
                             graphic = null
                         } else {
-                            val iconInfo = graphic.asIf<IconInfo>() ?: IconInfo(null, iconSize).apply { isMouseTransparent = true }
+                            val iconInfo = graphic as? IconInfo ?: IconInfo(null, iconSize).apply { isMouseTransparent = true }
                             iconInfo.setGlyph(if (empty) null else icon)
                             graphic = iconInfo
                         }

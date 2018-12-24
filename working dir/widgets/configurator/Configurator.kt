@@ -81,6 +81,8 @@ class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeat
                 Icon(IconFA.RECYCLE, 13.0, "Set all to default", Runnable { defaults() })
         )
         onScroll = EventHandler { it.consume() }
+
+        refresh()
     }
 
     /** Set and apply values. */

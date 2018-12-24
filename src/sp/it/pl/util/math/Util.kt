@@ -20,3 +20,6 @@ operator fun Duration.times(d: Number) = Duration(toMillis()*d.toDouble())
 
 infix fun Duration.divMillis(d: Duration) = toMillis()/d.toMillis()
 infix fun Duration.timesMillis(d: Duration) = toMillis()*d.toMillis()
+
+infix fun Double.max(number: Double) = this.coerceAtLeast(number)
+infix fun Double.min(number: Double) = this.coerceAtMost(number)

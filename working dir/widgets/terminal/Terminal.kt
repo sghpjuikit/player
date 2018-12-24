@@ -106,4 +106,5 @@ class Terminal(widget: Widget<*>): SimpleController(widget) {
             }
         }
     }
+
 }

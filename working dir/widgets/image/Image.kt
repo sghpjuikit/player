@@ -36,7 +36,7 @@ class Image(widget: Widget<*>): SimpleController(widget), ImageDisplayFeature {
     @IsConfig(name = "Custom image", info = "Image file to display.")
     private var img by cn<File?>(null).only(FILE)
 
-    override fun init() {
+    init {
         thumb.isBackgroundVisible = false
         thumb.borderVisible = false
         thumb.isDragEnabled = true
@@ -55,12 +55,14 @@ class Image(widget: Widget<*>): SimpleController(widget), ImageDisplayFeature {
                 it.consume()
             }
         }
+
+        showImage(img)
     }
 
-    override fun refresh() = thumb.loadImage(img)
+    override fun refresh() = showImage(img)
 
     @IsInput("To display")
-    override fun showImage(imgFile: File) {
+    override fun showImage(imgFile: File?) {
         img = imgFile
         thumb.loadImage(imgFile)
         requestFocus()

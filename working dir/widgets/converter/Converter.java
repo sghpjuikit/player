@@ -38,6 +38,7 @@ import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.gui.pane.ConfigPane;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Group;
+import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.Opener;
@@ -130,6 +131,7 @@ import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
     year = "2015",
     group = Group.APP
 )
+@LegacyController
 public class Converter extends SimpleController implements Opener, SongWriter {
 
     private final ObservableList<Object> source = observableArrayList();
@@ -221,15 +223,11 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         acts.accumulate(new WriteFileAct());
         acts.accumulate(new ActCreateDirs());
 
-        // set empty content
-        applier.fillActs(Void.class);
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Override
-    public void init() {
         Output<String> output = outputs.create(widget.id, "Text", String.class, "");
         ta_in.outputText.addListener((o, ov, nv) -> output.setValue(nv));
+
+        // set empty content
+        applier.fillActs(Void.class);
     }
 
     public void setData(Object o) {

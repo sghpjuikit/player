@@ -215,6 +215,14 @@ class StackLay(private val pane: StackPane): Lay {
             StackPane.setAlignment(child, alignment)
         }
     }
+
+    operator fun invoke(alignment: Pos, margin: Insets): Lay = object: Lay {
+        override fun plusAssign(child: Node) {
+            this@StackLay += child
+            StackPane.setAlignment(child, alignment)
+            StackPane.setMargin(child, margin)
+        }
+    }
 }
 
 class AnchorPaneLay(private val pane: AnchorPane): Lay {

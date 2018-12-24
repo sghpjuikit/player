@@ -24,14 +24,12 @@ class HtmlViewer(widget: Widget<*>): SimpleController(widget) {
 
     val editor = HTMLEditor()
     val text = v("").initAttach { editor.htmlText = it }
+    val input = inputs.create<String>("Html") { text.value = it ?: "" }
+    val output = outputs.create(widget.id, "Html", "")
 
-    override fun init() {
-        val input = inputs.create<String>("Html") { text.value = it ?: "" }
+    init {
         input.monitor { text.value = it ?: "" } on onClose
-
-        val output = outputs.create(widget.id, "Html", "")
         text sync { output.setValue(it) } on onClose
-
         runPeriodic(5.seconds) { text.value = editor.htmlText } on onClose
 
         layFullArea += editor

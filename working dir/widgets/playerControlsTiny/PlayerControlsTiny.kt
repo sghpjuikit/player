@@ -1,12 +1,12 @@
 package playerControlsTiny
 
+import de.jensd.fx.glyphs.GlyphIcons
 import javafx.animation.Animation.INDEFINITE
 import javafx.fxml.FXML
-import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER
 import javafx.scene.control.Label
-import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
@@ -16,7 +16,6 @@ import javafx.scene.media.MediaPlayer.Status.UNKNOWN
 import javafx.util.Duration
 import javafx.util.Duration.seconds
 import sp.it.pl.audio.Player
-import sp.it.pl.audio.Player.play
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode
@@ -73,13 +72,13 @@ class PlayerControlsTiny(widget: Widget<*>): SimpleController(widget), PlaybackF
     @FXML lateinit var currTime: Label
     val scrollLabel = Label("")
     val seeker = Seeker()
-    val prevB = Icon(IconFA.FAST_BACKWARD, 14.0).onClickDo { PlaylistManager.playPreviousItem() }
-    val playB = Icon(null, 14.0+3).onClickDo { Player.pause_resume() }
-    val nextB = Icon(IconFA.FAST_FORWARD, 14.0).onClickDo { PlaylistManager.playNextItem() }
-    val loopB = Icon(null, 14.0).onClickDo { Player.toggleLoopMode(it) }
-    val muteB = Icon(null, 14.0).onClickDo { Player.toggleMute() }
+    val prevB = icon(IconFA.FAST_BACKWARD, 14.0) { PlaylistManager.playPreviousItem() }
+    val playB = icon(null, 14.0+3) { Player.pause_resume() }
+    val nextB = icon(IconFA.FAST_FORWARD, 14.0) { PlaylistManager.playNextItem() }
+    val loopB = icon(null, 14.0) { Player.toggleLoopMode(it) }
+    val muteB = icon(null, 14.0) { Player.toggleMute() }
+    val scroller: Anim
     var lastUpdateTime = Double.MIN_VALUE // reduces time update events
-    lateinit var scroller: Anim
 
     @IsConfig(name = "Chapters show", info = "Display chapter marks on seeker.")
     val showChapters = seeker.chapterDisplayMode
@@ -92,7 +91,7 @@ class PlayerControlsTiny(widget: Widget<*>): SimpleController(widget), PlaybackF
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     var playDropped = false
 
-    override fun init() {
+    init {
         ConventionFxmlLoader(this).loadNoEx<Any>()
 
         val ps = Player.state.playback
@@ -150,8 +149,6 @@ class PlayerControlsTiny(widget: Widget<*>): SimpleController(widget), PlaybackF
         )
     }
 
-    override fun refresh() {}
-
     private fun cycleElapsed() {
         elapsedTime = !elapsedTime
         timeChanged(Player.state.playback)
@@ -208,5 +205,12 @@ class PlayerControlsTiny(widget: Widget<*>): SimpleController(widget), PlaybackF
         }
     }
 
-    private fun Duration.print() = formatDuration(this)
+    companion object {
+
+        private fun Duration.print() = formatDuration(this)
+
+        fun icon(icon: GlyphIcons?, size: Double, block: (MouseEvent) -> Unit) = Icon(icon, size).onClickDo(block)!!
+
+    }
+
 }

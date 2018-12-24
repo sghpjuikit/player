@@ -14,12 +14,13 @@ import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.gui.nodeinfo.ConvertTaskInfo
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.pane.ActionPane
-import sp.it.pl.gui.pane.ActionPane.ComplexActionData
-import sp.it.pl.gui.pane.ActionPane.FastAction
-import sp.it.pl.gui.pane.ActionPane.FastColAction
-import sp.it.pl.gui.pane.ActionPane.SlowAction
-import sp.it.pl.gui.pane.ActionPane.SlowColAction
+import sp.it.pl.gui.pane.ComplexActionData
 import sp.it.pl.gui.pane.ConfigPane
+import sp.it.pl.gui.pane.FastAction
+import sp.it.pl.gui.pane.FastColAction
+import sp.it.pl.gui.pane.SlowAction
+import sp.it.pl.gui.pane.SlowColAction
+import sp.it.pl.gui.pane.register
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetSource.ANY
@@ -230,16 +231,16 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             ),
             FastColAction(
                     "Add to new playlist",
-                    "Add items to new playlist widget.",
+                    "Add songs to new playlist widget.",
                     IconMD.PLAYLIST_PLUS,
                     { f -> AudioFileFormat.isSupported(f, Use.APP) },
                     { fs -> APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { it.playlist.addFiles(fs) } }
             ),
             SlowAction(
                     "Open playlist",
-                    "Add items to new playlist widget.",
+                    "Add songs to new playlist widget.",
                     IconMD.PLAYLIST_PLAY,
-                    { it.isPlaylistFile() },
+                    { f -> f.isPlaylistFile() },
                     { f -> PlaylistManager.use { it.setNplay(readPlaylist(f)) } }
             ),
             SlowColAction(
@@ -251,8 +252,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             ),
             SlowColAction<File>(
                     "Add to library",
-                    "Add items to library if not yet contained and edit added items in tag editor. If "+
-                            "item already was in the database it will not be added or edited.",
+                    "Add new songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",
                     IconMD.DATABASE_PLUS,
                     { }
             ).preventClosing { addToLibraryConsumer(it) },
@@ -260,15 +260,15 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Add to existing playlist",
                     "Add items to existing playlist widget if possible or to a new one if not.",
                     IconMD.PLAYLIST_PLUS,
-                    { AudioFileFormat.isSupported(it, Use.APP) },
+                    { f -> AudioFileFormat.isSupported(f, Use.APP) },
                     { f -> APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addFiles(f) } }
             ),
             FastAction(
                     "Apply skin",
                     "Apply skin on the application.",
                     IconMD.BRUSH,
-                    { Util.isValidSkinFile(it) },
-                    { it -> APP.ui.setSkin(it) }
+                    { f -> Util.isValidSkinFile(f) },
+                    { f -> APP.ui.setSkin(f) }
             ),
             FastAction(
                     "View image",
@@ -320,10 +320,10 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
         { files ->
 
             val conf = object: ConfigurableBase<Boolean>() {
-                @IsConfig(name = "Make writable if read-only", group ="1") val makeWritable by cv(true)
-                @IsConfig(name = "Edit in ${Widgets.TAGGER}", group ="1") val editInTagger by cv(false)
-                @IsConfig(name = "Edit only added files", group ="1") val editOnlyAdded by cv(true).readOnlyUnless(editInTagger)
-                @IsConfig(name = "Enqueue in playlist", group ="2") val enqueue by cv(false)
+                @IsConfig(name = "Make files writable if read-only", group ="1") val makeWritable by cv(true)
+                @IsConfig(name = "Edit in ${Widgets.TAGGER}", group ="2") val editInTagger by cv(false)
+                @IsConfig(name = "Edit only added files", group ="3") val editOnlyAdded by cv(false).readOnlyUnless(editInTagger)
+                @IsConfig(name = "Enqueue in playlist", group ="4") val enqueue by cv(false)
             }
             val task = MetadataReader.buildAddItemsToLibTask()
             val info = ConvertTaskInfo(
@@ -337,6 +337,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
             }
 
             hBox(50, CENTER) {
+                val taggerLayout = lay
                 lay += vBox(50, CENTER) {
                     lay += ConfigPane(conf)
                     lay += vBox(10, CENTER_LEFT) {
@@ -359,7 +360,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                                                 val tagger = APP.widgetManager.factories.getFactory(Widgets.TAGGER)?.create()
                                                 val items = if (conf.editOnlyAdded.value) result.converted else result.all
                                                 if (tagger!=null) {
-                                                    lay += tagger.load()
+                                                    taggerLayout += tagger.load()
                                                     (tagger.controller as SongReader).read(items)
                                                 }
                                             }

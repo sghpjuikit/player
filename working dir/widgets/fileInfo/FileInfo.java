@@ -24,8 +24,8 @@ import sp.it.pl.audio.tagging.MetadataWriter;
 import sp.it.pl.gui.objects.image.ThumbnailWithAdd;
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
 import sp.it.pl.gui.objects.rating.Rating;
-import sp.it.pl.gui.pane.ActionPane.SlowAction;
 import sp.it.pl.gui.pane.ImageFlowPane;
+import sp.it.pl.gui.pane.SlowAction;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
@@ -177,26 +177,26 @@ public class FileInfo extends FXMLController implements SongReader {
 	                      + "will be preserved by renaming."
 	                      + "\n\nDestination: " + data.getLocation().getPath(),
 	                        FontAwesomeIcon.PASTE,
-	                        f -> setAsCover(f, true)
+	                        consumer(f -> setAsCover(f, true))
 	                ),
 	                new SlowAction<>("Copy to location",
 	                        "Copies image to destination. Any such existing file is overwritten."
 	                      + "\n\nDestination: " + data.getLocation().getPath(),
 	                        FontAwesomeIcon.COPY,
-	                        f -> setAsCover(f, false)
+	                        consumer(f -> setAsCover(f, false))
 	                ),
 	                new SlowAction<>("Write to tag (single)",
 	                        "Writes image as cover to song tag. Other songs of the song's album remain "
 	                      + "untouched.",
 	                        FontAwesomeIcon.TAG,
-	                        f -> tagAsCover(f,false)
+	                        consumer(f -> tagAsCover(f,false))
 	                ),
 	                new SlowAction<>("Write to tag (album)",
 	                        "Writes image as cover to all songs in this song's album. Only songs in the "
 	                      + "library are considered. Songs with no album are ignored. At minimum the "
 	                      + "displayed song will be updated (even if not in library or has no album).",
 	                        FontAwesomeIcon.TAGS,
-	                        f -> tagAsCover(f,true)
+	                        consumer(f -> tagAsCover(f,true))
 	                )
 	            );
 	        }

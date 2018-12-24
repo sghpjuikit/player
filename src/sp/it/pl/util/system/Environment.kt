@@ -158,7 +158,11 @@ fun File.edit() {
                 try {
                     Desktop.getDesktop().edit(this)
                 } catch (e: IOException) {
-                    logger.error(e) { "Opening file=$this in editor failed" }
+                    val noApp = "No application is associated with the specified file for this operation" in e.message.orEmpty()
+                    if (noApp) logger.warn(e) { "Opening file=$this in native editor failed" }
+                    else logger.error(e) { "Opening file=$this in native editor failed" }
+
+                    if (noApp) open()
                 } catch (e: IllegalArgumentException) {
                     // file does not exists, nothing to do
                 }

@@ -14,11 +14,11 @@ import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 
 /** Persistable [Configurable]. */
-open class Configuration: Configurable<Any?> {
+open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${it.name}" } ): Configurable<Any?> {
 
     private val methodLookup = MethodHandles.lookup()
-    private val mapper: (String) -> String = { s -> s.replace(' ', '_').toLowerCase() }
-    private val configToRawKeyMapper = compose({ c: Config<*> -> "${c.group}.${c.name}" }, mapper)
+    private val namePostMapper: (String) -> String = { s -> s.replace(' ', '_').toLowerCase() }
+    private val configToRawKeyMapper = nameMapper compose namePostMapper
     private val properties = ConcurrentHashMap<String, String>()
     private val configs: MapSet<String, Config<*>> = MapSet(ConcurrentHashMap(), configToRawKeyMapper)
 
@@ -36,6 +36,8 @@ open class Configuration: Configurable<Any?> {
     fun rawGetAll(): Map<String, String> = properties
 
     fun rawGet(key: String): String = properties[key]!!
+
+    fun rawGet(config: Config<*>): String = properties[configToRawKeyMapper(config)]!!
 
     fun rawContains(config: String): Boolean = properties.containsKey(config)
 
@@ -147,7 +149,7 @@ open class Configuration: Configurable<Any?> {
      */
     fun rawSet() {
         properties.forEach { key, value ->
-            val c = configs[mapper(key)]
+            val c = configs[namePostMapper(key)]
             if (c!=null && c.isEditable.isByApp) c.valueS = value
         }
     }

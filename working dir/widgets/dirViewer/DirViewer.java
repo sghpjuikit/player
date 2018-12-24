@@ -16,13 +16,13 @@ import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.image.Thumbnail.FitFrom;
 import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.util.Sort;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.fieldvalue.CachingFile;
 import sp.it.pl.util.access.fieldvalue.FileField;
-import sp.it.pl.util.async.AsyncKt;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.conf.Config.VarList.Elements;
 import sp.it.pl.util.conf.EditMode;
@@ -78,6 +78,7 @@ import static sp.it.pl.util.system.EnvironmentKt.open;
         year = "2015",
         group = OTHER
 )
+@LegacyController
 public class DirViewer extends SimpleController {
 
     private static final double CELL_TEXT_HEIGHT = 20;
@@ -130,7 +131,7 @@ public class DirViewer extends SimpleController {
 	    grid.primaryFilterField = FileField.NAME_FULL;
         grid.setCellFactory(grid -> new Cell());
         setAnchor(this, grid, 0d);
-        placeholder.showFor(this);
+        placeholder.show(this, files.list.isEmpty());
 
         inputs.create("Root directory", File.class, null, dir -> {
             if (dir != null && dir.isDirectory() && dir.exists())

@@ -16,16 +16,12 @@ abstract class SearchAutoCancelable: Search() {
     @JvmField protected var searchTime: Long = -1
     @JvmField protected val searchAutoCanceller = fxTimer(3.seconds, 1) { cancel() }
 
-    public override fun isMatch(text: String, query: String): Boolean {
-        val t = if (isIgnoreCase) text.toLowerCase() else text
-        val q = if (isIgnoreCase) query.toLowerCase() else query
-        return matcher.value.predicate(t, q)
-    }
+    public override fun isMatch(text: String, query: String): Boolean =  matcher.value.predicate(text, query)
 
     enum class Match constructor(val predicate: (String, String) -> Boolean) {
-        CONTAINS({ text, s -> text.contains(s) }),
-        STARTS_WITH({ text, s -> text.startsWith(s) }),
-        ENDS_WITH({ text, s -> text.endsWith(s) });
+        CONTAINS({ text, s -> text.contains(s, isIgnoreCase) }),
+        STARTS_WITH({ text, s -> text.startsWith(s, isIgnoreCase) }),
+        ENDS_WITH({ text, s -> text.endsWith(s, isIgnoreCase) });
     }
 
     companion object: MultiConfigurableBase("${Settings.UI}.Search") {

@@ -52,9 +52,8 @@ object GoogleImageQBuilder: ImageSearchUriBuilder {
 @Parse(from = ParseFrom.SINGLETON, to = ParseTo.CONSTANT, constant = "Wikipedia")
 object WikipediaQBuilder: WebSearchUriBuilder {
     override val name = "Wikipedia"
-    override fun uri(q: String) = URI.create("https://en.wikipedia.org/wiki/$q")!!
+    override fun uri(q: String) = URI.create("https://en.wikipedia.org/wiki/Special:Search/$q")!!
 }
-
 
 object WebBarInterpreter {
 

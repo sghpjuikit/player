@@ -28,11 +28,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.PLAYLIST
 import sp.it.pl.util.access.Vo
-import sp.it.pl.util.access.initSync
-import sp.it.pl.util.access.v
-import sp.it.pl.util.async.executor.ExecuteN
 import sp.it.pl.util.async.runNew
-import sp.it.pl.util.async.runOn
 import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.IsConfig
@@ -51,7 +47,7 @@ import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.system.saveFile
 import sp.it.pl.util.type.Util
 import sp.it.pl.util.units.Dur
-import sp.it.pl.util.validation.Constraint
+import sp.it.pl.util.validation.Constraint.FileActor.*
 import java.util.UUID
 import java.util.function.Consumer
 import java.util.function.UnaryOperator
@@ -89,7 +85,6 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
     private val table = PlaylistTable(playlist)
     private var outSelected: Output<PlaylistItem?> = outputs.create(widget.id, "Selected", PlaylistItem::class.java, null)
     private var outPlaying: Output<PlaylistItem?> = outputs.create(widget.id, "Playing", PlaylistItem::class.java, null)
-    private val once = ExecuteN(1)
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     val tableOrient by cv(INHERIT) { Vo(APP.ui.tableOrient) }
@@ -104,23 +99,9 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
     @IsConfig(name = "Scroll to playing", info = "Scroll table to playing item when it changes.")
     val scrollToPlaying by cv(true)
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
-    val playVisible by cv(false) {
-        v(it).initSync { v ->
-            table.filterPane.button.icon(if (v) IconFA.FILTER else IconMD.FILTER_OUTLINE)
-            table.filterPane.button.onClick(Runnable { filterToggle() })
-            table.filterPane.button.tooltip(
-                    if (v) "Disable filter for playback. Causes the playback "+"to ignore the filter."
-                    else "Enable filter for playback. Causes the playback "+"to play only displayed items."
-            )
-            table.filterPane.button.isDisable = false // needed
-            playlist.setTransformation(
-                    if (v) UnaryOperator<List<PlaylistItem>> { table.items.materialize() }
-                    else UnaryOperator { it.asSequence().sortedWith(table.itemsComparator.value).toList() }
-            )
-        }
-    }
+    val playVisible by cv(false)
     @IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.")
-    var lastSavePlaylistLocation by cn(APP.DIR_USERDATA).only(Constraint.FileActor.DIRECTORY)
+    var lastSavePlaylistLocation by cn(APP.DIR_USERDATA).only(DIRECTORY)
 
     init {
         playlist.playingI sync { outPlaying.value = playlist.playing } on onClose
@@ -130,9 +111,22 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
             outSelected.value?.let { ms.ifHasK(it.uri, Consumer { outSelected.value = it.toPlaylist() }) }
         } on onClose
 
+        playVisible sync {
+            table.filterPane.button.icon(if (it) IconFA.FILTER else IconMD.FILTER_OUTLINE)
+            table.filterPane.button.onClickDo { playVisible.setCycledValue() }
+            table.filterPane.button.tooltip(
+                    if (it) "Disable filter for playback. Causes the playback "+"to ignore the filter."
+                    else "Enable filter for playback. Causes the playback "+"to play only displayed items."
+            )
+            table.filterPane.button.isDisable = false // needed
+            playlist.setTransformation(
+                    if (it) unOp { table.items.materialize() }
+                    else unOp { it.asSequence().sortedWith(table.itemsComparator.value).toList() }
+            )
+        } on onClose
+
         table.search.setColumn(Field.NAME)
         table.selectionModel.selectionMode = MULTIPLE
-
         table.items_info.textFactory = { all, list -> DEFAULT_TEXT_FACTORY(all, list)+" - "+Dur(list.sumByDouble { it.timeMs }) }
         table.nodeOrientationProperty() syncFrom tableOrient on onClose
         table.zeropadIndex syncFrom tableZeropad on onClose
@@ -140,6 +134,7 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
         table.headerVisible syncFrom tableShowHeader on onClose
         table.footerVisible syncFrom tableShowFooter on onClose
         table.scrollToPlaying syncFrom scrollToPlaying on onClose
+        table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo
 
         layFullArea += table.root
 
@@ -188,7 +183,6 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
         onClose += table::dispose
 
         onScroll = EventHandler { it.consume() }
-
     }
 
     override fun getFields(): Collection<Config<Any>> {
@@ -196,16 +190,7 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
         return super.getFields()
     }
 
-    override fun refresh() {
-        runOn(once) {
-            table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo
-        }
-        playVisible.applyValue()
-    }
-
     override fun getPlaylist() = playlist
-
-    private fun filterToggle(): Unit = playVisible.setCycledNapplyValue()
 
     private fun computeInitialPlaylist(id: UUID) = null
             ?: PlaylistManager.playlists[id]
@@ -213,30 +198,34 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
                 PlaylistManager.playlists.put(this)
             }
 
-    private fun getUnusedPlaylist(id: UUID): Playlist {
-        val danglingPlaylists = ArrayList(PlaylistManager.playlists)
-        APP.widgetManager.widgets.findAll(OPEN).asSequence()
-                .filter { it.info.hasFeature(PlaylistFeature::class.java) }
-                .mapNotNull { (it.controller as PlaylistFeature?)?.playlist }
-                .forEach { danglingPlaylists.removeIf { playlist -> playlist.id==it.id } }
+    companion object {
 
-        val danglingPlaylist: Playlist? = null
-                ?: danglingPlaylists.find { it.id==PlaylistManager.active }
-                ?: danglingPlaylists.firstOrNull()
+        fun unOp(block: (List<PlaylistItem>) -> List<PlaylistItem>) = UnaryOperator<List<PlaylistItem>> { block(it) }
 
-        if (danglingPlaylist!=null) {
-            PlaylistManager.playlists.remove(danglingPlaylist)
+        infix fun <T> MutableList<T>.addToStart(item: T) = add(0, item)
 
-            if (danglingPlaylist.id==PlaylistManager.active)
-                PlaylistManager.active = id
-            Util.setField(Playlist::class.java, danglingPlaylist, Playlist::id.name, id) // TODO: fix
+        private fun getUnusedPlaylist(id: UUID): Playlist {
+            val danglingPlaylists = ArrayList(PlaylistManager.playlists)
+            APP.widgetManager.widgets.findAll(OPEN).asSequence()
+                    .filter { it.info.hasFeature(PlaylistFeature::class.java) }
+                    .mapNotNull { (it.controller as PlaylistFeature?)?.playlist }
+                    .forEach { danglingPlaylists.removeIf { playlist -> playlist.id==it.id } }
+
+            val danglingPlaylist: Playlist? = null
+                    ?: danglingPlaylists.find { it.id==PlaylistManager.active }
+                    ?: danglingPlaylists.firstOrNull()
+
+            if (danglingPlaylist!=null) {
+                PlaylistManager.playlists.remove(danglingPlaylist)
+
+                if (danglingPlaylist.id==PlaylistManager.active)
+                    PlaylistManager.active = id
+                Util.setField(Playlist::class.java, danglingPlaylist, Playlist::id.name, id) // TODO: fix
+            }
+
+            return danglingPlaylist ?: Playlist(id)
         }
 
-        return danglingPlaylist ?: Playlist(id)
-    }
-
-    companion object {
-        infix fun <T> MutableList<T>.addToStart(item: T) = add(0, item)
     }
 
 }

@@ -1,8 +1,10 @@
 package playerControls
 
+import de.jensd.fx.glyphs.GlyphIcons
 import javafx.fxml.FXML
 import javafx.scene.control.Label
 import javafx.scene.control.Slider
+import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.HBox
@@ -82,15 +84,15 @@ class PlayerControls(widget: Widget<*>): SimpleController(widget), PlaybackFeatu
     @FXML lateinit var channelsL: Label
     @FXML lateinit var playButtons: HBox
 
-    lateinit var balance: Balancer
+    var balance: Balancer
     val seeker = Seeker()
-    val f1 = Icon(IconFA.ANGLE_DOUBLE_LEFT, 24.0).onClickDo { Player.seekBackward(seekType.get()) }
-    val f2 = Icon(IconFA.FAST_BACKWARD, 24.0).onClickDo { PlaylistManager.playPreviousItem() }
-    val f3 = Icon(IconFA.PLAY, 48.0).gap(36.0).onClickDo { Player.pause_resume() }
-    val f4 = Icon(IconFA.FAST_FORWARD, 24.0).onClickDo { PlaylistManager.playNextItem() }
-    val f5 = Icon(IconFA.ANGLE_DOUBLE_RIGHT, 24.0).onClickDo { Player.seekForward(seekType.get()) }
-    val muteB = Icon(IconFA.VOLUME_UP).onClickDo { Player.toggleMute() }
-    val loopB = Icon(IconFA.RANDOM, 24.0).onClickDo { Player.toggleLoopMode(it) }
+    val f1 = IconFA.ANGLE_DOUBLE_LEFT.icon(24.0) { Player.seekBackward(seekType.get()) }
+    val f2 = IconFA.FAST_BACKWARD.icon(24.0) { PlaylistManager.playPreviousItem() }
+    val f3 = IconFA.PLAY.icon(48.0, { gap(36.0) }) { Player.pause_resume() }
+    val f4 = IconFA.FAST_FORWARD.icon(24.0) { PlaylistManager.playNextItem() }
+    val f5 = IconFA.ANGLE_DOUBLE_RIGHT.icon(24.0) { Player.seekForward(seekType.get()) }
+    val muteB = IconFA.VOLUME_UP.icon(12.0) { Player.toggleMute() }
+    val loopB = IconFA.RANDOM.icon(24.0){ Player.toggleLoopMode(it) }
     var lastUpdateTime = Double.MIN_VALUE // reduces time update events
 
     @IsConfig(name = "Seek type", info = "Seek by time (absolute) or fraction of total duration (relative).")
@@ -106,7 +108,7 @@ class PlayerControls(widget: Widget<*>): SimpleController(widget), PlaybackFeatu
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     var playDropped = false
 
-    override fun init() {
+    init {
         ConventionFxmlLoader(this).loadNoEx<Any>()
 
         val ps = Player.state.playback
@@ -230,6 +232,11 @@ class PlayerControls(widget: Widget<*>): SimpleController(widget), PlaybackFeatu
         }
     }
 
-    private fun Duration.print() = formatDuration(this)
+    companion object {
 
+        fun Duration.print() = formatDuration(this)!!
+
+        fun GlyphIcons.icon(size: Double, init: Icon.() -> Unit = {}, block: (MouseEvent) -> Unit) = Icon(this, size).onClickDo(block).apply(init)!!
+
+    }
 }

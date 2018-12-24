@@ -1,3 +1,5 @@
+@file:Suppress("FINAL_UPPER_BOUND")
+
 package sp.it.pl.util.conf
 
 import javafx.beans.value.ObservableValue

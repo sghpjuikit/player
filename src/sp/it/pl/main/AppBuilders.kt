@@ -100,7 +100,7 @@ fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
     }
 }
 
-fun computeDataInfo(data: Any?): Fut<String> = futureWrap(data).then {
+fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)).then {
     val dName = APP.instanceName.get(it)
     val dKind = APP.className.get(it?.javaClass ?: Void::class.java)
     val dInfo = APP.instanceInfo.get(it)
@@ -126,7 +126,7 @@ fun Font.rowHeight(): Double {
     return h.toDouble()
 }
 
-fun nodeAnimation(n: Node) = anim(300.millis, { n.opacity = it*it }).apply { playAgainIfFinished = false }
+fun nodeAnimation(n: Node) = anim(300.millis) { n.opacity = it*it }.apply { playAgainIfFinished = false }
 
 open class AnimationBuilder {
     protected open val key = "ANIMATION_OPEN_CLOSE"

@@ -1,7 +1,7 @@
 package logger
 
+import javafx.event.EventHandler
 import javafx.scene.control.TextArea
-import kotlinx.coroutines.NonCancellable.children
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.TextDisplayFeature
@@ -9,8 +9,9 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
-import sp.it.pl.util.graphics.Util.setAnchors
-import sp.it.pl.util.graphics.setMinPrefMaxSize
+import sp.it.pl.util.graphics.layFullArea
+import sp.it.pl.util.reactive.on
+import sp.it.pl.util.reactive.syncFrom
 
 @Widget.Info(
         author = "Martin Polakovic",
@@ -22,20 +23,19 @@ import sp.it.pl.util.graphics.setMinPrefMaxSize
 )
 class Logger(widget: Widget<*>): SimpleController(widget), TextDisplayFeature {
 
-    private val area = TextArea()
-
     @IsConfig(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
     private val wrapText by cv(false)
+    private val area = TextArea()
 
     init {
-        area.isEditable = false
-        area.isWrapText = false
-        area.wrapTextProperty().bind(wrapText)
-        area.appendText("# This is redirected output (System.out) stream of this application.\n")
-        area.setMinPrefMaxSize(USE_COMPUTED_SIZE)
-        this.setMinPrefMaxSize(USE_COMPUTED_SIZE)
-        children.add(area)
-        setAnchors(area, 0.0)
+        onScroll = EventHandler { it.consume() }
+
+        layFullArea += area.apply {
+            isEditable = false
+            isWrapText = false
+            wrapTextProperty() syncFrom wrapText on onClose
+        }
+
 
         onClose += APP.systemout.addListener { area.appendText(it) }
         // [Stackoverflow source](https://stackoverflow.com/a/24140252/6723250)
@@ -43,6 +43,12 @@ class Logger(widget: Widget<*>): SimpleController(widget), TextDisplayFeature {
         //                val con = PrintStream(stream)
         //                System.setOut(con)
         //                System.setErr(con)
+
+        refresh()
+    }
+
+    override fun refresh() {
+        area.text = "# This is redirected output (System.out) stream of this application.\n"
     }
 
     override fun showText(text: String) = println(text)

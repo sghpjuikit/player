@@ -45,7 +45,7 @@ operator fun EventReducer<Void>.invoke() = push(null)
 /** @return [Unit] effectively ignoring this value */
 fun Any.toUnit() = Unit
 
-fun <A, B, C> compose(f1: (A) -> B, f2: (B) -> C): (A) -> C = { f2(f1(it)) }
+infix fun <A, B, C> ((A) -> B).compose(then: (B) -> C): (A) -> C = { then(this(it)) }
 
 /** @return kotlin consumer that invokes java consumer */
 fun <T> consumer(consumer: Consumer<T>?): ((T) -> Unit)? = consumer?.let { { consumer(it) } }
@@ -208,7 +208,7 @@ infix fun <R, E> Try<R, E>.onE(handle: (E) -> Unit) = ifError(handle)!!
 inline fun <T, R: Any> T.net(block: (T) -> R): R = let(block)
 
 /** @return this as specified type if this is of the type or null otherwise */
-inline fun <reified T> Any?.asIf(): T? = if (this is T) this else null
+inline fun <reified T: Any> Any?.asIf(): T? = if (this is T) this else null
 
 /** Invokes the block if this is the specified type. */
 inline fun <reified T> Any?.ifIs(block: (T) -> Unit) = apply { if (this is T) block(this) }

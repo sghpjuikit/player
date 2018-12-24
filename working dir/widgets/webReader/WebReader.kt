@@ -72,6 +72,8 @@ class WebReader(widget: Widget<*>): SimpleController(widget) {
         engine.documentProperty() sync { if (noBgr.get()) engine.setTransparentBgrColor() } on onClose
         inputs.create<String>("Html") { loadHtml(it) }
         inputs.create<String>("Url") { loadPage(it) }
+
+        refresh()
     }
 
     @FXML

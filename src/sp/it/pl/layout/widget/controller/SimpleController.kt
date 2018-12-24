@@ -49,6 +49,9 @@ open class SimpleController(@JvmField val widget: Widget<*>): AnchorPane(), Cont
         inputs.getInputs().forEach { it.unbindAll() }
     }
 
+    @Deprecated("to be removed")
+    final override fun init() {}
+
     override fun getOwnedOutputs() = outputs
 
     override fun getOwnedInputs() = inputs
@@ -57,3 +60,6 @@ open class SimpleController(@JvmField val widget: Widget<*>): AnchorPane(), Cont
     override fun getFieldsMap(): Map<String, Config<Any>> = configs as Map<String, Config<Any>>
 
 }
+
+/** Denotes [Controller] that requires manual config initialization. By convention that applies for controller written in Java. */
+annotation class LegacyController

@@ -193,12 +193,20 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 
 	@SuppressWarnings("unchecked")
 	private PredicateData<ObjectField<F,Object>> getPrimaryFilterPredicate() {
-		return Optional.ofNullable(grid.primaryFilterField).map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField).map(f -> (PredicateData<ObjectField<F,Object>>) f).orElse(null);
+		return Optional.ofNullable(grid.primaryFilterField)
+			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
+			.map(f -> (PredicateData<ObjectField<F,Object>>) f)
+			.orElse(null);
 	}
 
 	@SuppressWarnings("unchecked")
 	private List<PredicateData<ObjectField<F,Object>>> getFilterPredicates(Class<F> filterType) {
-		return stream(APP.classFields.get(filterType)).filter(ObjectField::isTypeFilterable).map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField).map(f -> (PredicateData<ObjectField<F,Object>>) f).sorted(by(e -> e.name)).collect(toList());
+		return stream(APP.classFields.get(filterType))
+			.filter(ObjectField::isTypeFilterable)
+			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
+			.map(f -> (PredicateData<ObjectField<F,Object>>) f)
+			.sorted(by(e -> e.name))
+			.collect(toList());
 	}
 
 	public void selectIfNoneOr(Runnable ifEmpty, Runnable otherwise) {

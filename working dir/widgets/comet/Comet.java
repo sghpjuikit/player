@@ -89,6 +89,7 @@ import sp.it.pl.gui.itemnode.ConfigField;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
@@ -226,6 +227,7 @@ import static sp.it.pl.util.reactive.Util.maintain;
 	year = "2015",
 	group = Widget.Group.OTHER
 )
+@LegacyController
 public class Comet extends SimpleController {
 	private static Logger LOGGER = LoggerFactory.getLogger(Comet.class);
 

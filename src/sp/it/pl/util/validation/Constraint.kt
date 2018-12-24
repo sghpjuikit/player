@@ -211,7 +211,7 @@ class Constraints {
         private val MAPPER = ClassMap<(Annotation) -> Constraint<*>>()
         @JvmField val IMPLICIT_CONSTRAINTS: ClassListMap<Constraint<*>> = ClassListMap({ o -> getGenericInterface(o.javaClass, 0, 0) })
 
-        private val INIT = object: Any() {
+        private val INIT = object {
             init {
                 register<Constraint.FileType> { it.value }
                 register<Constraint.Min> { Constraint.NumberMinMax(it.value, Double.MAX_VALUE) }

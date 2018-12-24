@@ -25,6 +25,7 @@ import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
@@ -80,6 +81,7 @@ import static sp.it.pl.util.reactive.Util.sync1If;
 		year = "2015",
 		group = Widget.Group.DEVELOPMENT
 )
+@LegacyController
 public class AlbumView extends SimpleController {
 
 	static final double CELL_TEXT_HEIGHT = 40;
@@ -127,11 +129,7 @@ public class AlbumView extends SimpleController {
 			view.implGetSkin().filter.clear();
 			return Unit.INSTANCE;
 		});
-	}
 
-	@SuppressWarnings({"ConstantConditions", "unchecked"})
-	@Override
-	public void init() {
 		in_items = inputs.create("To display", (Class) List.class, listRO(), this::setItems);
 		out_sel = outputs.create(widget.id,"Selected Album", MetadataGroup.class, null);
 		out_sel_met = outputs.create(widget.id,"Selected", List.class, listRO());

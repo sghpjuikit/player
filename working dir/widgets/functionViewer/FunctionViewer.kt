@@ -56,19 +56,16 @@ typealias VNum = V<Double>
 )
 class FunctionViewer(widget: Widget<*>): SimpleController(widget) {
     private val function = v(StrExF.fromString("x").orThrow).initAttach { plotAnimated(it) }
+    private val functionConfigField = ConfigField.create(Config.forProperty(StrExF::class.java, "Function", function))
     private val xMin: VNum = v(-1.0).initAttach { plot() }
     private val xMax: VNum = v(1.0).initAttach { plot() }
     private val yMin: VNum = v(-1.0).initAttach { plot() }
     private val yMax: VNum = v(1.0).initAttach { plot() }
     private val plot = Plot()
     private val plotAnimation = Anim.anim(700.millis) { plot.animation.value = 1.0-it*it*it*it }
-    private var focusInput = {}
     private var updateCoord: (P) -> Unit = {}
 
     init {
-        val cFun = ConfigField.create(Config.forProperty(StrExF::class.java, "Function", function))
-
-        focusInput = cFun::focus
         cursor = Cursor.CROSSHAIR
         onEventDown(MOUSE_MOVED) {
             val size = P(width, height)
@@ -118,7 +115,7 @@ class FunctionViewer(widget: Widget<*>): SimpleController(widget) {
                 }
         )
 
-        this.setMinPrefMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
+        setMinPrefMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
         layFullArea += plot
         lay(null, 10, 10, null) += label {
             isMouseTransparent = true
@@ -127,7 +124,7 @@ class FunctionViewer(widget: Widget<*>): SimpleController(widget) {
         lay(0, null, null, 0) += vBox(5) {
             isFillWidth = false
 
-            lay += cFun.toHBox()
+            lay += functionConfigField.toHBox()
             lay += xMin.toConfigField("xMin").toHBox()
             lay += xMax.toConfigField("xMax").toHBox()
             lay += yMin.toConfigField("yMin").toHBox()
@@ -137,7 +134,7 @@ class FunctionViewer(widget: Widget<*>): SimpleController(widget) {
 
     override fun refresh() = plotAnimated()
 
-    override fun focus() = focusInput()
+    override fun focus() = functionConfigField.focus()
 
     fun plot(f: Fun = function.value) = plot.plot(f)
 

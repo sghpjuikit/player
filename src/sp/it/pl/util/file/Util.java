@@ -348,12 +348,12 @@ public interface Util {
 	 *
 	 * @return List of lines or empty list (if empty or on error). Never null.
 	 */
-	static List<String> readFileLines(String filepath) {
+	static List<String> readFileLines(String filePath) {
 		try {
-			return Files.readAllLines(Paths.get(filepath));
+			return Files.readAllLines(Paths.get(filePath));
 		} catch (IOException e) {
-			if (!(e.getCause() instanceof NoSuchFileException))
-				logger(Util.class).error("Problems reading file {}. File was not read.", filepath, e);
+			boolean noSuchFile = e instanceof NoSuchFileException || e.getCause() instanceof NoSuchFileException;
+			if (!noSuchFile) logger(Util.class).error("Problem reading file {}. File was not read.", filePath, e);
 			return new ArrayList<>();
 		}
 	}
@@ -362,8 +362,8 @@ public interface Util {
 		try {
 			return Files.lines(f.toPath());
 		} catch (IOException e) {
-			if (!(e.getCause() instanceof NoSuchFileException))
-				logger(Util.class).error("Problem reading file {}. File was not read.", f);
+			boolean noSuchFile = e instanceof NoSuchFileException || e.getCause() instanceof NoSuchFileException;
+			if (!noSuchFile) logger(Util.class).error("Problem reading file {}. File was not read.", f, e);
 			return Stream.empty();
 		}
 	}

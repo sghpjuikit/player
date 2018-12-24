@@ -21,6 +21,7 @@ import javafx.scene.paint.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.animation.Loop;
@@ -50,6 +51,7 @@ import static sp.it.pl.util.functional.Util.stream;
 	year = "2016",
 	group = Widget.Group.VISUALISATION
 )
+@LegacyController
 public class Voronoi extends SimpleController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Voronoi.class);
 	private final RenderNode canvas = new RenderNode();

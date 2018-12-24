@@ -10,6 +10,7 @@ import sp.it.pl.util.async.future.Fut.Result.ResultInterrupted
 import sp.it.pl.util.async.future.Fut.Result.ResultOk
 import sp.it.pl.util.async.sleep
 import sp.it.pl.util.functional.Try
+import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.kt
 import sp.it.pl.util.functional.toUnit
@@ -101,7 +102,7 @@ class Fut<T>(private var f: CompletableFuture<T>) {
 
     @Deprecated("for removal")
     fun getDoneOrNull(): T? = if (f.isDone) {
-            getDone().let { if (it is ResultOk) it.value else null }
+            getDone().let { it.asIf<ResultOk<T>>()?.value }
         } else {
             null
         }

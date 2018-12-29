@@ -22,7 +22,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
@@ -479,12 +478,8 @@ public interface Util {
 
 /* ---------- EVENT ------------------------------------------------------------------------------------------------- */
 
-	EventHandler<MouseEvent> consumeOnSecondaryButton = e -> {
-		if (e.getButton()==MouseButton.SECONDARY) e.consume();
-	};
-
 	/**
-	 * Increases or increases the scrolling speed (deltaX/Y, textDeltaX/Y of the {@link ScrollEvent#ANY})
+	 * Increases or decreases the scrolling speed (deltaX/Y, textDeltaX/Y of the {@link ScrollEvent#ANY})
 	 * by a multiplication factor.
 	 */
 	static Subscription multiplyMouseScrollingSpeed(Node node, double factor) {

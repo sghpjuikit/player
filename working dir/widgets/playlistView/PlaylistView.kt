@@ -2,7 +2,6 @@ package playlistView
 
 import javafx.event.EventHandler
 import javafx.geometry.NodeOrientation.INHERIT
-import javafx.scene.control.Menu
 import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.stage.FileChooser
 import sp.it.pl.audio.Player
@@ -38,8 +37,10 @@ import sp.it.pl.util.conf.only
 import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.graphics.Util.menuItem
+import sp.it.pl.util.graphics.item
+import sp.it.pl.util.graphics.items
 import sp.it.pl.util.graphics.layFullArea
+import sp.it.pl.util.graphics.menu
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
@@ -47,7 +48,7 @@ import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.system.saveFile
 import sp.it.pl.util.type.Util
 import sp.it.pl.util.units.Dur
-import sp.it.pl.util.validation.Constraint.FileActor.*
+import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import java.util.UUID
 import java.util.function.Consumer
 import java.util.function.UnaryOperator
@@ -138,44 +139,45 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
 
         layFullArea += table.root
 
-        table.menuAdd.items.addAll(
-                menuItem("Add files") { PlaylistManager.chooseFilesToAdd() },
-                menuItem("Add directory") { PlaylistManager.chooseFolderToAdd() },
-                menuItem("Add URL") { PlaylistManager.chooseUrlToAdd() },
-                menuItem("Play files") { PlaylistManager.chooseFilesToPlay() },
-                menuItem("Play directory") { PlaylistManager.chooseFolderToPlay() },
-                menuItem("Play URL") { PlaylistManager.chooseUrlToPlay() },
-                menuItem("Duplicate selected (+)") { playlist.duplicateItemsByOne(table.selectedItems) },
-                menuItem("Duplicate selected (*)") { playlist.duplicateItemsAsGroup(table.selectedItems) }
-        )
-        table.menuRemove.items.addAll(
-                menuItem("Remove selected") { playlist -= table.selectedItems },
-                menuItem("Remove not selected") { playlist.retainAll(table.selectedItems) },
-                menuItem("Remove unsupported") { playlist.removeUnplayable() },
-                menuItem("Remove duplicates") { playlist.removeDuplicates() },
-                menuItem("Remove all") { playlist.clear() }
-        )
-        table.menuOrder.items.addAll(
-                menuItem("Order reverse") { playlist.reverse() },
-                menuItem("Order randomly") { playlist.randomize() },
-                menuItem("Edit selected") { APP.widgetManager.widgets.use<SongReader>(NO_LAYOUT) { it.read(table.selectedItems) } },
-                menuItem("Save playlist") {
-                    saveFile(
-                            "Save playlist as...",
-                            lastSavePlaylistLocation ?: PlayerConfiguration.lastSavePlaylistLocation,
-                            "Playlist",
-                            widget.windowOrActive.orNull()?.stage ?: APP.windowManager.createStageOwner(),
-                            FileChooser.ExtensionFilter("m3u8", "m3u8")
-                    ).ifOk { file ->
-                        lastSavePlaylistLocation = file.parentDirOrRoot
-                        PlayerConfiguration.lastSavePlaylistLocation = file.parentDirOrRoot
-                        runNew { writePlaylist(table.selectedOrAllItemsCopy, file.name, file.parentDirOrRoot) }
-                    }
-                }
-        )
-        table.menuOrder.items addToStart Menu("Order by").apply {
-            items += Field.FIELDS.map { f -> menuItem(f.toStringEnum()) { table.sortBy(f) } }
+        table.menuAdd.apply {
+            item("Add files") { PlaylistManager.chooseFilesToAdd() }
+            item("Add directory") { PlaylistManager.chooseFolderToAdd() }
+            item("Add URL") { PlaylistManager.chooseUrlToAdd() }
+            item("Play files") { PlaylistManager.chooseFilesToPlay() }
+            item("Play directory") { PlaylistManager.chooseFolderToPlay() }
+            item("Play URL") { PlaylistManager.chooseUrlToPlay() }
+            item("Duplicate selected (+)") { playlist.duplicateItemsByOne(table.selectedItems) }
+            item("Duplicate selected (*)") { playlist.duplicateItemsAsGroup(table.selectedItems) }
         }
+        table.menuRemove.apply {
+            item("Remove selected") { playlist -= table.selectedItems }
+            item("Remove not selected") { playlist.retainAll(table.selectedItems) }
+            item("Remove unsupported") { playlist.removeUnplayable() }
+            item("Remove duplicates") { playlist.removeDuplicates() }
+            item("Remove all") { playlist.clear() }
+        }
+        table.menuOrder.apply {
+            menu("Order by") {
+                items(Field.FIELDS.asSequence(), { it.toStringEnum() }) { table.sortBy(it) }
+            }
+            item("Order reverse") { playlist.reverse() }
+            item("Order randomly") { playlist.randomize() }
+            item("Edit selected") { APP.widgetManager.widgets.use<SongReader>(NO_LAYOUT) { it.read(table.selectedItems) } }
+            item("Save playlist") {
+                saveFile(
+                        "Save playlist as...",
+                        lastSavePlaylistLocation ?: PlayerConfiguration.lastSavePlaylistLocation,
+                        "Playlist",
+                        widget.windowOrActive.orNull()?.stage ?: APP.windowManager.createStageOwner(),
+                        FileChooser.ExtensionFilter("m3u8", "m3u8")
+                ).ifOk { file ->
+                    lastSavePlaylistLocation = file.parentDirOrRoot
+                    PlayerConfiguration.lastSavePlaylistLocation = file.parentDirOrRoot
+                    runNew { writePlaylist(table.selectedOrAllItemsCopy, file.name, file.parentDirOrRoot) }
+                }
+            }
+        }
+
         onClose += table.selectionModel.selectedItemProperty() attach {
             if (!table.movingItems)
                 outSelected.value = it

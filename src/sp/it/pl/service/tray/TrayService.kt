@@ -23,10 +23,10 @@ import sp.it.pl.util.file.childOf
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.setTo
-import sp.it.pl.util.graphics.Util.menuItem
 import sp.it.pl.util.graphics.image.ImageSize
 import sp.it.pl.util.graphics.image.createImageBlack
 import sp.it.pl.util.graphics.image.loadBufferedImage
+import sp.it.pl.util.graphics.menuItem
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.syncFalse
 import java.awt.Image

@@ -339,6 +339,6 @@ private fun File.openWindowsExplorerAndSelect() {
 /** @return true if the file is an executable file */
 private fun File.isExecutable(): Boolean =
         when (Os.current) {
-            Os.WINDOWS -> path.endsWith(".exe", true)
+            Os.WINDOWS -> path.endsWith(".exe", true) || path.endsWith(".bat", true)
             else -> false
         }

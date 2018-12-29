@@ -8,6 +8,7 @@ import sp.it.pl.util.file.Properties
 import sp.it.pl.util.file.Properties.Property
 import sp.it.pl.util.functional.compose
 import sp.it.pl.util.functional.seqOf
+import sp.it.pl.util.type.isSubclassOf
 import java.io.File
 import java.lang.invoke.MethodHandles
 import java.time.LocalDateTime
@@ -70,7 +71,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
         configs += config
 
         // generate boolean toggle actions
-        config.takeIf { it.type==Boolean::class.javaObjectType && it.isEditable.isByUser }
+        config.takeIf { it.type.isSubclassOf<Boolean>() && it.isEditable.isByUser }
                 ?.let {
                     val name = "${it.guiName} - toggle"
                     val description = "Toggles value ${it.name} between true/false"

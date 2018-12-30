@@ -150,10 +150,12 @@ class ContextMenuBuilder<T>(val contextMenu: ImprovedContextMenu<*>, val selecte
     internal val menuItems = ArrayList<MenuItem>()
 
     fun menuItem(text: String, handler: (ActionEvent) -> Unit) =
-            apply { menuItems.add(Util.menuItem(text, handler)) }
+            menuItems.add(Util.menuItem(text, handler))
 
-    inline fun menu(text: String, graphics: Node? = null, items: Menu.() -> Unit) =
-            apply { Menu(text, graphics).apply { items() } }
-
+    fun menu(text: String, graphic: Node? = null, items: Menu.() -> Unit) =
+            Menu(text, graphic).also {
+                items(it)
+                menuItems.add(it)
+            }
 
 }

@@ -75,6 +75,7 @@ class CoreMenus: Core {
                     )
                 }
         }
+        // TODO File menu doesn't show
         add<File> {
             if (selected.isPlayable) {
                 menuItem("Play") { PlaylistManager.use { it.playItem(PlaylistItem(selected.toURI())) } }
@@ -98,8 +99,8 @@ class CoreMenus: Core {
         }
         addMany<File> {
             if (selected.all { it.isPlayable }) {
-                menuItem("Play files") { PlaylistManager.use { it.setNplay(selected.map { SimpleItem(it) }) } }
-                menuItem("Enqueue files") { PlaylistManager.use { it.addFiles(selected) } }
+                menuItem("Play") { PlaylistManager.use { it.setNplay(selected.map { SimpleItem(it) }) } }
+                menuItem("Enqueue") { PlaylistManager.use { it.addFiles(selected) } }
             }
             menuItem("Copy") { copyToSysClipboard(DataFormat.FILES, selected) }
             menuItem("Explore in browser") { browseMultipleFiles(selected.asSequence()) }
@@ -145,8 +146,7 @@ class CoreMenus: Core {
             menu("Search album cover") {
                 items(APP.instances.getInstances<SearchUriBuilder>(),
                         { "in ${it.name}" },
-                        { APP.db.itemToMeta(selected.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
-                )
+                        { APP.db.itemToMeta(selected.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } })
             }
         }
         add<Thumbnail.ContextMenuData> {

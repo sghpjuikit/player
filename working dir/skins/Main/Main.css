@@ -3492,7 +3492,7 @@
  * Used in layouts (should mirror the style of widget area), but also popups.
  */
 .item-picker {
- -fx-padding: 1px
+    -fx-padding: 1px
 }
 
 .item-picker-element {
@@ -3503,8 +3503,11 @@
 
 .item-picker-element:hover {
     -fx-background-color: -fx-pane-color;
-    -fx-background-insets: 3;
+    -fx-background-insets: 2;
     -fx-effect: dropshadow(three-pass-box, -fx-pane-color, 2, 0.0, 0, 1);
+}
+.item-picker-element:empty:hover {
+    -fx-background-insets: 0;
 }
 
 /********************************* AUTOCOMPLETE POPUP ******************************************************************

@@ -126,7 +126,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	 */
 	@Override
 	public void focus() {
-		config.focus();
+		if (config!=null) config.focus();
 	}
 
 	private boolean empty = true;
@@ -148,12 +148,17 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	private void generatePredicate() {
 		if (inconsistentState) return;
 		empty = false;
-		Function<? super Object, ? extends Boolean> p = config.getVal();
-		F o = typeCB.getValue()==null ? null : typeCB.getValue().value;
-		if (p!=null && o!=null) {
-			Predicate<V> pr = predicate((ObjectField) o, p);
-			if (negB.selected.getValue()) pr = pr.negate();
-			changeValue(pr);
+
+		if (config==null) {
+			changeValue((Predicate<V>) IS);
+		} else {
+			Function<? super Object, ? extends Boolean> p = config.getVal();
+			F o = typeCB.getValue()==null ? null : typeCB.getValue().value;
+			if (p!=null && o!=null) {
+				Predicate<V> pr = predicate((ObjectField) o, p);
+				if (negB.selected.getValue()) pr = pr.negate();
+				changeValue(pr);
+			}
 		}
 	}
 

@@ -3,7 +3,7 @@ package imageViewer;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.gui.infonode.ItemInfo;
+import sp.it.pl.gui.nodeinfo.ItemInfo;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import java.io.File;
@@ -55,10 +55,13 @@ import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.executor.EventReducer.toFirstDelayed;
 import static sp.it.pl.util.async.executor.EventReducer.toLast;
+import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.file.Util.getCommonRoot;
 import static sp.it.pl.util.file.Util.getFilesImage;
 import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.listRO;
+import static sp.it.pl.util.functional.UtilKt.consumer;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
@@ -109,7 +112,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     private final SimpleObjectProperty<File> folder = new SimpleObjectProperty<>(null);
     private final List<File> images = new ArrayList<>();
     private final List<Thumbnail> thumbnails = new ArrayList<>();
-    private FxTimer slideshow = new FxTimer(Duration.ZERO,INDEFINITE,this::nextImage);
+    private FxTimer slideshow = fxTimer(Duration.ZERO,INDEFINITE, runnable(this::nextImage));
     private Metadata data = Metadata.EMPTY;
 
     // config
@@ -264,7 +267,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
                 } else
                 if (DragUtil.hasImage(e)) {
                     DragUtil.getImages(e)
-                         .use(FX, this::showImages)
+                         .useBy(FX, this::showImages)
                          .showProgress(widget.getWindowOrActive().map(Window::taskAdd));
                 }
             }
@@ -325,7 +328,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     @IsInput("Location of")
     private void dataChanged(Item i) {
         if (i==null) dataChanged(Metadata.EMPTY);
-        else APP.actions.itemToMeta(i, this::dataChanged);
+        else APP.db.itemToMeta(i, consumer(this::dataChanged));
     }
 
     private void dataChanged(Metadata m) {

@@ -31,7 +31,6 @@ import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.animation.Anim;
-import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.graphics.image.ImageSize;
@@ -48,7 +47,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
-import static sp.it.pl.util.async.AsyncKt.NEW;
+import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.UtilKt.toFileOrNull;
 import static sp.it.pl.util.functional.Util.ISNTØ;
@@ -246,9 +245,8 @@ public class Thumbnail {
 			setImgA(c);
 		} else {
 			if (Platform.isFxApplicationThread()) {
-				Fut.fut()
-					.supply(NEW, () -> ImageStandardLoader.INSTANCE.invoke(img, size))
-					.use(FX, this::setImgA);
+				runNew(() -> ImageStandardLoader.INSTANCE.invoke(img, size))
+					.useBy(FX, this::setImgA);
 			} else {
 				setImgA(ImageStandardLoader.INSTANCE.invoke(img, size));
 			}

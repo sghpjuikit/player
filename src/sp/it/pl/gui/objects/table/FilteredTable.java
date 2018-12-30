@@ -30,7 +30,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import kotlin.jvm.functions.Function1;
-import sp.it.pl.gui.infonode.InfoTable;
+import sp.it.pl.gui.nodeinfo.TableInfo;
 import sp.it.pl.gui.itemnode.FieldedPredicateChainItemNode;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
@@ -269,13 +269,13 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public final MenuBar menus = new MenuBar(menuAdd, menuRemove, menuSelected, menuOrder);
 	/**
 	 * Labeled in the bottom displaying information on table items and selection.
-	 * Feel free to provide custom implementation of {@link InfoTable#textFactory}
+	 * Feel free to provide custom implementation of {@link TableInfo#textFactory}
 	 * to display different information. You may want to reuse
-	 * {@link InfoTable#DEFAULT_TEXT_FACTORY}.
+	 * {@link TableInfo#DEFAULT_TEXT_FACTORY}.
 	 */
-	public final InfoTable<T> items_info = new InfoTable<>(new Label()); // can not bind here as table items list not ready
+	public final TableInfo<T> items_info = new TableInfo<>(new Label()); // can not bind here as table items list not ready
 	private final Label searchQueryLabel = new Label();
-	private final HBox bottomLeftPane = layHorizontally(5, CENTER_LEFT, menus, items_info.node);
+	private final HBox bottomLeftPane = layHorizontally(5, CENTER_LEFT, menus, items_info.getNode());
 	private final HBox bottomRightPane = layHorizontally(5, CENTER_RIGHT, searchQueryLabel);
 	/**
 	 * Pane for controls in the bottom of the table.

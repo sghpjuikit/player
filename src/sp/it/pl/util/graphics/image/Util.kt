@@ -13,7 +13,6 @@ import sp.it.pl.util.file.Util.getSuffix
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.runTry
-import sp.it.pl.util.functional.supplyFirst
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.File
@@ -108,53 +107,52 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream, width: 
         val reader = readers.next()!!
         reader.input = input
         val ii = reader.minIndex
-        var i: ImageBf? = supplyFirst(
-                {
-                    if (!loadFullSize) {
-                        runTry {
-                            val thumbHas = imgImplHasThumbnail(reader, ii, file)
-                            val thumbW = if (!thumbHas) 0 else reader.getThumbnailWidth(ii, 0)
-                            val thumbH = if (!thumbHas) 0 else reader.getThumbnailHeight(ii, 0)
-                            val thumbUse = thumbHas && w<=thumbW && h<=thumbH
-                            if (thumbUse) {
-                                reader.readThumbnail(ii, 0)
-                            }
-                        } orNull {
-                            logger.warn(it) { "Failed to read thumbnail for image=$file" }
-                        }
-                    }
-                    null
-                },
-                {
-                    val iW = reader.getWidth(ii)
-                    val iH = reader.getHeight(ii)
-                    if (w>iW || h > iH) {
-                        w = iW
-                        h = iH
-                    }
-                    val iRatio = iW.toDouble()/iH
-                    val rRatio = w.toDouble()/h
-                    val rW = if (iRatio<rRatio) w else (h*iRatio).toInt()
-                    val rH = if (iRatio<rRatio) (w/iRatio).toInt() else h
-
-                    val irp = reader.defaultReadParam.apply {
-                        var px = 1
-                        if (!highQuality) {
-                            val sw = reader.getWidth(ii)/rW
-                            val sh = reader.getHeight(ii)/rH
-                            px = maxOf(1, maxOf(sw, sh)/3) // quality == 2/3 == ok, great performance
-                        }
-                        // max quality is px==1, but quality/performance ratio would suck
-                        setSourceSubsampling(px, px, 0, 0)
-                    }
-
+        var i: ImageBf? = null
+            ?: run {
+                if (!loadFullSize) {
                     runTry {
-                        reader.read(ii, irp)
+                        val thumbHas = imgImplHasThumbnail(reader, ii, file)
+                        val thumbW = if (!thumbHas) 0 else reader.getThumbnailWidth(ii, 0)
+                        val thumbH = if (!thumbHas) 0 else reader.getThumbnailHeight(ii, 0)
+                        val thumbUse = thumbHas && w<=thumbW && h<=thumbH
+                        if (thumbUse) {
+                            reader.readThumbnail(ii, 0)
+                        }
                     } orNull {
-                        logger.warn(it) { "Failed to load image=$file" }
+                        logger.warn(it) { "Failed to read thumbnail for image=$file" }
                     }
                 }
-        )
+                null
+            }
+            ?: run {
+                val iW = reader.getWidth(ii)
+                val iH = reader.getHeight(ii)
+                if (w>iW || h > iH) {
+                    w = iW
+                    h = iH
+                }
+                val iRatio = iW.toDouble()/iH
+                val rRatio = w.toDouble()/h
+                val rW = if (iRatio<rRatio) w else (h*iRatio).toInt()
+                val rH = if (iRatio<rRatio) (w/iRatio).toInt() else h
+
+                val irp = reader.defaultReadParam.apply {
+                    var px = 1
+                    if (!highQuality) {
+                        val sw = reader.getWidth(ii)/rW
+                        val sh = reader.getHeight(ii)/rH
+                        px = maxOf(1, maxOf(sw, sh)/3) // quality == 2/3 == ok, great performance
+                    }
+                    // max quality is px==1, but quality/performance ratio would suck
+                    setSourceSubsampling(px, px, 0, 0)
+                }
+
+                runTry {
+                    reader.read(ii, irp)
+                } orNull {
+                    logger.warn(it) { "Failed to load image=$file" }
+                }
+            }
         reader.dispose()
 
         if (scale)

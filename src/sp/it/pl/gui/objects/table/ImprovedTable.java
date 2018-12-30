@@ -22,6 +22,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.util.Callback;
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
 import sp.it.pl.util.Util;
@@ -284,19 +285,26 @@ public class ImprovedTable<T> extends TableView<T> {
 
 /* --------------------- SCROLL ------------------------------------------------------------------------------------- */
 
-	/**
-	 * Scrolls to the item, so it is visible in the vertical center of the table.
-	 *
-	 * @param i index of the item, does nothing if index out of bounds
-	 */
+	/** Scrolls to the row, so it is visible in the vertical center of the table. Does nothing if index out of bounds. */
 	public void scrollToCenter(int i) {
 		int items = getItems().size();
 		if (i<0 || i>=items) return;
 
-		double rows = getHeight()/getFixedCellSize();
-		i -= rows/2;
-		i = min(items - (int) rows + 1, max(0, i));
-		scrollTo(i);
+
+		boolean fixedCellHeightNotSet = getFixedCellSize()==Region.USE_COMPUTED_SIZE;   // TODO: remove
+		if (fixedCellHeightNotSet) {
+			scrollTo(i);
+		} else {
+			double rows = getHeight()/getFixedCellSize();
+			i -= rows/2;
+			i = min(items - (int) rows + 1, max(0, i));
+			scrollTo(i);
+		}
+	}
+
+	/** Scrolls to the item, so it is visible in the vertical center of the table. Does nothing if item not in table. */
+	public void scrollToCenter(T item) {
+		scrollToCenter(getItems().indexOf(item));
 	}
 
 /* --------------------- SORT --------------------------------------------------------------------------------------- */

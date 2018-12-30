@@ -108,7 +108,7 @@ class CoreMenus: Core {
         add<MetadataGroup> {
             menuItem("Play items") { PlaylistManager.use { it.setNplay(selected.grouped.stream().sorted(APP.db.libraryComparator.get())) } }
             menuItem("Enqueue items") { PlaylistManager.use { it.addItems(selected.grouped) } }
-            menuItem("Update items from file") { APP.actions.refreshItemsFromFileJob(selected.grouped) }
+            menuItem("Update items from file") { APP.db.refreshItemsFromFile(selected.grouped) }
             menuItem("Remove items from library") { APP.db.removeItems(selected.grouped) }
             menu("Show in") {
                 widgetItems<SongReader> { it.read(selected.grouped) }
@@ -116,9 +116,9 @@ class CoreMenus: Core {
             menu("Edit tags in") {
                 widgetItems<SongWriter> { it.read(selected.grouped) }
             }
-            menuItem("Explore items's directory") { browseMultipleFiles(selected.grouped.asSequence().mapNotNull { it.getFile() }) }
-            menu("Explore items' directory in") {
-                widgetItems<FileExplorerFeature> { it.exploreFiles(selected.grouped.mapNotNull { it.getFile() }) }
+            menuItem("Explore items's location") { browseMultipleFiles(selected.grouped.asSequence().mapNotNull { it.getFile() }) }
+            menu("Explore items' location in") {
+                widgetItems<FileExplorerFeature> { it.exploreCommonFileOf(selected.grouped.mapNotNull { it.getFile() }) }
             }
             if (selected.field==Metadata.Field.ALBUM)
                 menu("Search cover in") {
@@ -147,7 +147,7 @@ class CoreMenus: Core {
                 items(
                         APP.instances.getInstances<SearchUriBuilder>(),
                         { "in ${it.name}" },
-                        { APP.actions.itemToMeta(selected.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
+                        { APP.db.itemToMeta(selected.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
                 )
             }
         }

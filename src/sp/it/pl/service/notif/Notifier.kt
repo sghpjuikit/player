@@ -2,14 +2,13 @@ package sp.it.pl.service.notif
 
 import javafx.scene.Node
 import javafx.scene.layout.Pane
-import javafx.scene.layout.StackPane
 import javafx.scene.media.MediaPlayer.Status
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.gui.infonode.ItemInfo
+import sp.it.pl.gui.nodeinfo.ItemInfo
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.objects.popover.ScreenUse
@@ -17,8 +16,6 @@ import sp.it.pl.layout.widget.WidgetSource.NEW
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.hasFeature
 import sp.it.pl.main.APP
-import sp.it.pl.util.conf.c
-import sp.it.pl.util.conf.cv
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.util.access.VarAction
 import sp.it.pl.util.access.VarEnum
@@ -26,6 +23,10 @@ import sp.it.pl.util.access.initSync
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
@@ -40,11 +41,11 @@ class Notifier: ServiceBase("Notifications", true) {
     @IsConfig(name = "Autohide", info = "Whether notification hides on mouse click anywhere within the application", editable = EditMode.NONE)
     val notificationAutohide by c(false)
     @IsConfig(name = "Autohide delay", info = "Time it takes for the notification to hide on its own")
-    var notificationDuration by c(millis(2500))
+    var notificationDuration by c(2500.millis)
     @IsConfig(name = "Animate", info = "Use animations on the notification")
     var notificationAnimated by c(true)
     @IsConfig(name = "Animation duration")
-    var notificationFadeTime = millis(250)
+    var notificationFadeTime = 250.millis
     @IsConfig(name = "Position", info = "Position within the virtual bounding box, which is relative to screen or window")
     var notificationPos by c(ScreenPos.SCREEN_BOTTOM_RIGHT)
     @IsConfig(name = "Position relative to", info = "Determines screen for positioning. Main screen, application window screen or all screens as one")
@@ -141,11 +142,12 @@ class Notifier: ServiceBase("Notifications", true) {
     /** Show notification displaying given text.  */
     fun showTextNotification(text: String, title: String) {
         if (running) {
-            val message = Text(text).apply {
-                wrappingWithNatural.value = true
-            }
-            val root = StackPane(message).apply {
+            val root = stackPane {
                 setMinSize(150.0, 70.0)
+
+                lay += Text(text).apply {
+                    wrappingWithNatural.value = true
+                }
             }
 
             showNotification(root, title)

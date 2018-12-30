@@ -1,14 +1,12 @@
 package playerControlsTiny
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon
+import de.jensd.fx.glyphs.GlyphIcons
 import javafx.animation.Animation.INDEFINITE
 import javafx.fxml.FXML
-import javafx.geometry.Pos
+import javafx.geometry.Pos.CENTER
 import javafx.scene.control.Label
-import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
-import javafx.scene.layout.AnchorPane
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
@@ -25,23 +23,27 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.seeker.Seeker
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.FXMLController
+import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.HorizontalDock
 import sp.it.pl.layout.widget.feature.PlaybackFeature
 import sp.it.pl.main.APP
-import sp.it.pl.main.initClose
-import sp.it.pl.main.onDispose
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMD
 import sp.it.pl.util.Util.clip
 import sp.it.pl.util.Util.formatDuration
 import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.graphics.Util.layStack
 import sp.it.pl.util.graphics.drag.DragUtil
 import sp.it.pl.util.graphics.drag.DragUtil.getAudioItems
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
+import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
+import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.scrollPane
+import sp.it.pl.util.graphics.stackPane
+import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
-import sp.it.pl.util.reactive.syncTo
+import sp.it.pl.util.reactive.syncFrom
 import java.lang.Double.max
 
 @Widget.Info(
@@ -63,21 +65,20 @@ import java.lang.Double.max
         year = "2015",
         group = Widget.Group.PLAYBACK
 )
-class PlayerControlsTiny: FXMLController(), PlaybackFeature, HorizontalDock {
+class PlayerControlsTiny(widget: Widget<*>): SimpleController(widget), PlaybackFeature, HorizontalDock {
 
-    @FXML lateinit var root: AnchorPane
     @FXML lateinit var layout: HBox
     @FXML lateinit var controlBox: HBox
     @FXML lateinit var currTime: Label
-    var scrollLabel = Label("")
-    var seeker = Seeker()
-    var prevB = Icon(FontAwesomeIcon.FAST_BACKWARD, 14.0).onClickDo { PlaylistManager.playPreviousItem() }
-    var playB = Icon(null, 14.0+3).onClickDo { Player.pause_resume() }
-    var nextB = Icon(FontAwesomeIcon.FAST_FORWARD, 14.0).onClickDo { PlaylistManager.playNextItem() }
-    var loopB = Icon(null, 14.0).onClickDo { Player.toggleLoopMode(it) }
-    var muteB = Icon(null, 14.0).onClickDo { Player.toggleMute() }
+    val scrollLabel = Label("")
+    val seeker = Seeker()
+    val prevB = icon(IconFA.FAST_BACKWARD, 14.0) { PlaylistManager.playPreviousItem() }
+    val playB = icon(null, 14.0+3) { Player.pause_resume() }
+    val nextB = icon(IconFA.FAST_FORWARD, 14.0) { PlaylistManager.playNextItem() }
+    val loopB = icon(null, 14.0) { Player.toggleLoopMode(it) }
+    val muteB = icon(null, 14.0) { Player.toggleMute() }
+    val scroller: Anim
     var lastUpdateTime = Double.MIN_VALUE // reduces time update events
-    lateinit var scroller: Anim
 
     @IsConfig(name = "Chapters show", info = "Display chapter marks on seeker.")
     val showChapters = seeker.chapterDisplayMode
@@ -90,11 +91,14 @@ class PlayerControlsTiny: FXMLController(), PlaybackFeature, HorizontalDock {
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     var playDropped = false
 
-    override fun init() {
+    init {
+        ConventionFxmlLoader(this).loadNoEx<Any>()
+
         val ps = Player.state.playback
 
-        initClose { seeker.bindTime(ps.duration, ps.currentTime) }
-        initClose { APP.ui.snapDistance syncTo seeker.chapterSnapDistance }
+        seeker.bindTime(ps.duration, ps.currentTime) on onClose
+        seeker.chapterSnapDistance syncFrom APP.ui.snapDistance on onClose
+
         layout.children.add(2, seeker)
         HBox.setHgrow(seeker, ALWAYS)
 
@@ -102,13 +106,18 @@ class PlayerControlsTiny: FXMLController(), PlaybackFeature, HorizontalDock {
         layout.children += muteB
 
         val scrollWidth = 200.0
-        val scrollerPane = ScrollPane(layStack(scrollLabel, Pos.CENTER)).apply {
+        val scrollerPane = scrollPane {
             prefWidth = scrollWidth
             isPannable = false
             isFitToHeight = true
             vbarPolicy = NEVER
             hbarPolicy = NEVER
+
+            lay += stackPane {
+                lay(CENTER) += scrollLabel
+            }
         }
+
         (currTime.parent as Pane).children.add((currTime.parent as Pane).children.indexOf(currTime)+1, scrollerPane)
         scroller = anim(seconds(5.0), { scrollerPane.hvalue = it }).apply {
             intpl { x -> clip(0.0, x*1.5-0.25, 1.0) } // linear, but waits a bit around 0 and 1
@@ -116,21 +125,21 @@ class PlayerControlsTiny: FXMLController(), PlaybackFeature, HorizontalDock {
             cycleCount = INDEFINITE
             play()
         }
-        initClose { scrollLabel.widthProperty() sync { scroller.rate = 50/max(50.0, it.toDouble()-scrollWidth) } }  // maintain constant speed
-        onDispose { scroller.stop() }
+        scrollLabel.widthProperty() sync { scroller.rate = 50/max(50.0, it.toDouble()-scrollWidth) } on onClose  // maintain constant speed
+        onClose += scroller::stop
 
-        initClose { ps.volume sync { muteChanged(ps) } }
-        initClose { ps.mute sync { muteChanged(ps) } }
-        initClose { ps.status sync { statusChanged(it) } }
-        initClose { ps.currentTime sync { timeChanged(ps) } }
-        initClose { ps.loopMode sync { loopModeChanged(it) } }
-        initClose { Player.onSeekDone.addS { lastUpdateTime = Double.MIN_VALUE } }
-        initClose { Player.playingItem.onUpdateAndNow { playingItemChanged(it) } }
+        ps.volume sync { muteChanged(ps) } on onClose
+        ps.mute sync { muteChanged(ps) } on onClose
+        ps.status sync { statusChanged(it) } on onClose
+        ps.currentTime sync { timeChanged(ps) } on onClose
+        ps.loopMode sync { loopModeChanged(it) } on onClose
+        Player.onSeekDone.addS { lastUpdateTime = Double.MIN_VALUE } on onClose
+        Player.playingItem.onUpdateAndNow { playingItemChanged(it) } on onClose
 
         currTime.setOnMouseClicked { cycleElapsed() }
         installDrag(
-                root,
-                MaterialDesignIcon.PLAYLIST_PLUS,
+                this,
+                IconMD.PLAYLIST_PLUS,
                 "Add to active playlist",
                 { e -> DragUtil.hasAudio(e) },
                 { e ->
@@ -139,8 +148,6 @@ class PlayerControlsTiny: FXMLController(), PlaybackFeature, HorizontalDock {
                 }
         )
     }
-
-    override fun refresh() {}
 
     private fun cycleElapsed() {
         elapsedTime = !elapsedTime
@@ -156,13 +163,13 @@ class PlayerControlsTiny: FXMLController(), PlaybackFeature, HorizontalDock {
     private fun statusChanged(status: Status?) {
         if (status==null || status==UNKNOWN) {
             seeker.isDisable = true
-            playB.icon(FontAwesomeIcon.PLAY)
+            playB.icon(IconFA.PLAY)
         } else if (status==PLAYING) {
             seeker.isDisable = false
-            playB.icon(FontAwesomeIcon.PAUSE)
+            playB.icon(IconFA.PAUSE)
         } else {
             seeker.isDisable = false
-            playB.icon(FontAwesomeIcon.PLAY)
+            playB.icon(IconFA.PLAY)
         }
     }
 
@@ -175,18 +182,18 @@ class PlayerControlsTiny: FXMLController(), PlaybackFeature, HorizontalDock {
             LoopMode.RANDOM -> "Loop mode: random"
         }
         loopB.icon(when (looping) {
-            LoopMode.OFF -> MaterialDesignIcon.REPEAT_OFF
-            LoopMode.PLAYLIST -> MaterialDesignIcon.REPEAT
-            LoopMode.SONG -> MaterialDesignIcon.REPEAT_ONCE
-            LoopMode.RANDOM -> FontAwesomeIcon.RANDOM
+            LoopMode.OFF -> IconMD.REPEAT_OFF
+            LoopMode.PLAYLIST -> IconMD.REPEAT
+            LoopMode.SONG -> IconMD.REPEAT_ONCE
+            LoopMode.RANDOM -> IconFA.RANDOM
         })
     }
 
     private fun muteChanged(pb: PlaybackState) {
         muteB.icon(when {
-            pb.mute.value -> FontAwesomeIcon.VOLUME_OFF
-            pb.volume.value>0.5 -> FontAwesomeIcon.VOLUME_UP
-            else -> FontAwesomeIcon.VOLUME_DOWN
+            pb.mute.value -> IconFA.VOLUME_OFF
+            pb.volume.value>0.5 -> IconFA.VOLUME_UP
+            else -> IconFA.VOLUME_DOWN
         })
     }
 
@@ -198,5 +205,12 @@ class PlayerControlsTiny: FXMLController(), PlaybackFeature, HorizontalDock {
         }
     }
 
-    private fun Duration.print() = formatDuration(this)
+    companion object {
+
+        private fun Duration.print() = formatDuration(this)
+
+        fun icon(icon: GlyphIcons?, size: Double, block: (MouseEvent) -> Unit) = Icon(icon, size).onClickDo(block)!!
+
+    }
+
 }

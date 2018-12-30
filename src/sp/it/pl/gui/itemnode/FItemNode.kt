@@ -4,14 +4,15 @@ import javafx.scene.control.ComboBox
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox
-import sp.it.pl.util.access.v
+import sp.it.pl.util.access.vn
 import sp.it.pl.util.collections.list.PrefList
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Config.AccessorConfig
 import sp.it.pl.util.functional.Functors
 import sp.it.pl.util.functional.Functors.PƑ
 import sp.it.pl.util.functional.Functors.Ƒ1
-import sp.it.pl.util.functional.clearSet
+import sp.it.pl.util.functional.setTo
+import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.reactive.sync
 import java.util.ArrayList
 import java.util.function.Consumer
@@ -24,8 +25,8 @@ import java.util.function.Supplier
  * @param <O> type of function output
  */
 class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): ValueNode<Ƒ1<in I, out O>?>(null) {
-    private val root = HBox(5.0)
-    private val paramB = HBox(5.0)
+    private val root = hBox(5)
+    private val paramB = hBox(5)
     private val configs = ArrayList<ConfigField<*>>()
     private val fCB: ComboBox<PƑ<in I, out O>>
     private var inconsistentState = false
@@ -34,7 +35,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): Value
         val functions = functionPool.get()
         inconsistentState = true
         fCB = ImprovedComboBox { it.name }
-        fCB.items clearSet functions.asSequence().sortedBy { it.name }
+        fCB.items setTo functions.asSequence().sortedBy { it.name }
         fCB.value = functions.preferredOrFirst
         fCB.valueProperty() sync { function ->
             configs.clear()
@@ -80,13 +81,15 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): Value
         generateValue()
     }
 
-}
+    companion object {
 
-// TODO: move out
-private fun <T> Functors.Parameter<T>.toConfig(onChange: (T) -> Unit): Config<T> {
-    val a = v(defaultValue) { onChange(it) }
-    return AccessorConfig(type, name, description, Consumer { a.setNapplyValue(it) }, Supplier { a.value })
-}
+        private fun <T> Config<T>.toConfigField() = ConfigField.create(this)
 
-// TODO: move out
-private fun <T> Config<T>.toConfigField() = ConfigField.create(this)
+        private fun <T> Functors.Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
+            val a = vn(defaultValue)
+            a.applier = Consumer { onChange(it) }
+            return AccessorConfig(type, name, description, Consumer { a.setNapplyValue(it) }, Supplier { a.value })
+        }
+
+    }
+}

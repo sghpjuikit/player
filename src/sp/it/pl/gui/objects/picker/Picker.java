@@ -157,8 +157,8 @@ public class Picker<E> {
 		// animate & show
 		int s = getCells().size();
 		animPar(getCells(), (i, n) -> animSeq(
-			new Anim(n::setOpacity).dur(i*(750/s)).intpl(x -> 0.0),
-			new Anim(n::setOpacity).dur(500).intpl(x -> sqrt(x))
+			new Anim(n::setOpacity).dur(millis(i*(750/s))).intpl(x -> 0.0),
+			new Anim(n::setOpacity).dur(millis(500)).intpl(x -> sqrt(x))
 		)).play();
 	}
 

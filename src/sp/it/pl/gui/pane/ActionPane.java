@@ -1,13 +1,10 @@
 package sp.it.pl.gui.pane;
 
-import de.jensd.fx.glyphs.GlyphIcons;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import javafx.animation.Interpolator;
 import javafx.beans.property.DoubleProperty;
 import javafx.collections.ListChangeListener.Change;
@@ -29,6 +26,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.CheckIcon;
@@ -37,15 +35,11 @@ import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.access.V;
-import sp.it.pl.util.action.Action;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.collections.map.ClassListMap;
-import sp.it.pl.util.conf.Config;
-import sp.it.pl.util.conf.ConfigValueSource;
 import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.MainConfiguration;
 import sp.it.pl.util.conf.MultiConfigurable;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.functional.Try;
@@ -68,24 +62,22 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
-import static sp.it.pl.gui.pane.ActionPane.GroupApply.FOR_ALL;
-import static sp.it.pl.gui.pane.ActionPane.GroupApply.FOR_EACH;
-import static sp.it.pl.gui.pane.ActionPane.GroupApply.NONE;
+import static sp.it.pl.gui.pane.GroupApply.FOR_ALL;
+import static sp.it.pl.gui.pane.GroupApply.FOR_EACH;
+import static sp.it.pl.gui.pane.GroupApply.NONE;
+import static sp.it.pl.gui.pane.ActionPaneHelperKt.collectionUnwrap;
+import static sp.it.pl.gui.pane.ActionPaneHelperKt.collectionWrap;
+import static sp.it.pl.gui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
+import static sp.it.pl.gui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
-import static sp.it.pl.main.AppBuildersKt.rowHeight;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.async.AsyncKt.sleeping;
 import static sp.it.pl.util.async.future.Fut.fut;
-import static sp.it.pl.util.async.future.Fut.futAfter;
-import static sp.it.pl.util.conf.ConfigurationUtilKt.computeConfigGroup;
 import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
-import static sp.it.pl.util.functional.Util.IS;
-import static sp.it.pl.util.functional.Util.ISNT;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
@@ -97,7 +89,6 @@ import static sp.it.pl.util.graphics.Util.layScrollVTextCenter;
 import static sp.it.pl.util.graphics.Util.layStack;
 import static sp.it.pl.util.graphics.Util.layVertically;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
-import static sp.it.pl.util.reactive.Util.maintain;
 
 /** Action chooser pane. Displays icons representing certain actions. */
 public class ActionPane extends OverlayPane<Object> implements MultiConfigurable {
@@ -195,27 +186,6 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		return configurableDiscriminant;
 	}
 
-	@NotNull
-	@Override
-	public String getConfigurableGroup() {
-		return computeConfigGroup(this);
-	}
-
-	@Override
-	public ConfigValueSource getConfigurableValueStore() {
-		return new ConfigValueSource() {
-			@Override
-			public void register(Config<?> config) {
-				MainConfiguration.INSTANCE.collect(config);
-			}
-
-			@Override
-			public void initialize(Config<?> config) {
-				MainConfiguration.INSTANCE.rawSet(config);
-			}
-		};
-	}
-
 	/* ---------- PRE-CONFIGURED ACTIONS --------------------------------------------------------------------------------- */
 
 	public final ClassListMap<ActionData<?,?>> actions = new ClassListMap<>(null);
@@ -301,7 +271,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 
 	@SafeVarargs
 	@SuppressWarnings("unused")
-	public final <T> void show(Class<T> type, Fut<T> value, boolean exclusive, SlowAction<T,?>... actions) {
+	public final <T> void show(Class<T> type, Fut<T> value, boolean exclusive, SlowAction<T>... actions) {
 		data = value;
 		actionsIcons = list(actions);
 		use_registered_actions = !exclusive;
@@ -319,10 +289,10 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	@SuppressWarnings("unchecked")
 	private void doneHide(ActionData<?,?> action) {
 		if (action.isComplex) {
-			ComplexActionData complexAction = action.complexData.apply(this);
+			ComplexActionData complexAction = action.complexData.invoke(this);
 			showIcons = false;
-			insteadIcons = (Node) complexAction.gui.apply((Supplier) () -> action.prepInput(getData()));
-			show(complexAction.input.apply(action.prepInput(getData())));
+			insteadIcons = (Node) complexAction.gui.invoke((Supplier) () -> action.prepInput(getData()));
+			show(complexAction.input.invoke(action.prepInput(getData())));
 		}
 
 		if (!action.preventClosing)
@@ -382,8 +352,8 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		} else {
 			setDataInfo(null, false);
 			// obtain data & invoke again
-			data = ((Fut)data)
-					.use(FX, this::setData)
+			data = ((Fut) data)
+					.useBy(FX, this::setData)
 					.showProgress(dataProgress);
 		}
 	}
@@ -403,7 +373,6 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 			Class itemType = getElementType(items);
 			if (APP.classFields.get(itemType) != null) {	// TODO: add support for any item by using generic ToString objectField and column
 				FilteredTable<Object> t = new FilteredTable<>(itemType, null);
-				maintain(APP.ui.getFont(), f -> rowHeight(f), t.fixedCellSizeProperty());
 				t.getSelectionModel().setSelectionMode(MULTIPLE);
 				t.setColumnFactory(f -> {
 					TableColumn<?,Object> c = new TableColumn<>(f.toString());
@@ -428,6 +397,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	}
 
 	// TODO: remove
+	@SuppressWarnings("deprecation")
 	private String computeDataInfo(Object data, boolean computed) {
 		Class<?> type = data==null ? Void.class : data.getClass();
 		Object d = computed ? data instanceof Fut ? ((Fut)data).getDoneOrNull() : data : null;
@@ -451,17 +421,17 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		if (use_registered_actions) actionsData.addAll(actions.getElementsOfSuper(dataType));
 		actionsData.removeIf(a -> {
 			if (a.groupApply==FOR_ALL) {
-				return a.condition.test(collectionWrap(d));
+				return (boolean) a.condition.invoke(collectionWrap(d));
 			}
 			if (a.groupApply==FOR_EACH) {
-				List ds = list(d instanceof Collection ? (Collection)d : listRO(d));
-				return ds.stream().noneMatch(a.condition);
+				Stream<Object> ds = d instanceof Collection ? ((Collection)d).stream() : stream(d);
+				return ds.noneMatch(it -> (boolean) a.condition.invoke(it));
 			}
 			if (a.groupApply==NONE) {
 				Object o = collectionUnwrap(d);
-				return o instanceof Collection || !a.condition.test(o);
+				return o instanceof Collection || !((boolean) a.condition.invoke(o));
 			}
-			throw new RuntimeException("Illegal switch case");
+			throw new SwitchException(a.groupApply);
 		});
 
 		if (!showIcons) {
@@ -505,7 +475,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		double delayRel = 200; // use for consistent frequency
 		double delay = delayAbs;
 		Interpolator intpl = new ElasticInterpolator();
-		animPar(icons, (i, icon) -> new Anim(at -> setScaleXY(icon,at*at)).dur(500).intpl(intpl).delay(350+i*delay))
+		animPar(icons, (i, icon) -> new Anim(at -> setScaleXY(icon, at*at)).dur(millis(500)).intpl(intpl).delay(millis(350+i*delay)))
 			.play();
 	}
 
@@ -514,15 +484,15 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 			action.accept(data);
 			doneHide(action);
 		} else {
-			futAfter(fut(data))
-				.then(FX, () -> actionProgress.setProgress(-1))
+			fut(data)
+				.useBy(FX, it -> actionProgress.setProgress(-1))
 				// run action and obtain output
-				.use(action)
+				.useBy(action)
 				// 1) the actions may invoke some action on FX thread, so we give it some by waiting a bit
 				// 2) very short actions 'pretend' to run for a while
-				.then(sleeping(millis(150)))
-				.then(FX, () -> actionProgress.setProgress(1))
-				.then(FX, () -> doneHide(action));
+				.thenWait(millis(150))
+				.useBy(FX, it -> actionProgress.setProgress(1))
+				.useBy(FX, it -> doneHide(action));
 		}
 	}
 
@@ -536,201 +506,11 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		iconPaneComplex.getChildren().setAll(insteadIcons);
 	}
 
-	private static Class<?> getUnwrappedType(Object d) {
-		return d==null
-				? Void.class
-				: d instanceof Collection
-					? getElementType((Collection<?>) d)
-					: d.getClass();
-	}
-
-	private static Collection<?> collectionWrap(Object o) {
-		return o instanceof Collection ? (Collection)o : listRO(o);
-	}
-
-	private static Object collectionUnwrap(Object o) {
-		if (o instanceof Collection) {
-			Collection<?> c = (Collection)o;
-			if (c.isEmpty()) return null;
-			if (c.size()==1) return c.stream().findAny().orElse(null);
-		}
-		return o;
-	}
-
-	private static Object futureUnwrap(Object o) {
-		return o instanceof Fut && ((Fut)o).isDone() ? ((Fut)o).getDoneOrNull() : o;
-	}
-
-	private static Object futureUnwrapOrThrow(Object o) {
-		if (o instanceof Fut && !((Fut)o).isDone()) throw new IllegalStateException("Future not done yet");
-		return o instanceof Fut ? ((Fut)o).getDoneOrNull() : o;
-	}
-
 	public <I> ConvertingConsumer<? super I> converting(Ƒ1<? super I,Try<?,?>> converter) {
-		return d -> converter.apply(d).ifOk(result -> runFX(() -> ActionPane.this.show(result)));
-	}
-
-	public interface ConvertingConsumer<T> extends Consumer<T> {}
-	public static class ComplexActionData<R,T> {
-		public final Ƒ1<? super R, ? extends T> input;
-		public final Ƒ1<? super Supplier<T>, ? extends Node> gui;
-
-		@SuppressWarnings("unchecked")
-		public ComplexActionData(Ƒ1<? super R, Fut<? extends T>> input, Ƒ1<? super Supplier<T>, ? extends  Node> gui) {
-			this.input = (Ƒ1) input;    // TODO: fix
-			this.gui = gui;
-		}
-	}
-	/** Action. */
-	public static abstract class ActionData<C,T> implements Consumer<Object> {
-		public final String name;
-		public final String description;
-		public final GlyphIcons icon;
-		public final Predicate<? super T> condition;
-		public final GroupApply groupApply;
-		public final boolean isLong;
-		private final Consumer<? super T> action;
-
-		private boolean isComplex = false;
-		private boolean preventClosing = false;
-		private Function<? super ActionPane, ? extends ComplexActionData<?,?>> complexData = null;
-
-		private ActionData(String name, String description, GlyphIcons icon, GroupApply group, Predicate<? super T> constriction, boolean isLong, Consumer<? super T> action) {
-			this.name = name;
-			this.description = description;
-			this.icon = icon;
-			this.condition = constriction;
-			this.groupApply = group;
-			this.isLong = isLong;
-			this.action = action;
-			if (action instanceof ConvertingConsumer) preventClosing = true;
-		}
-
-		public ActionData<C,T> preventClosing(Function<? super ActionPane, ? extends ComplexActionData<T,?>> action) {
-			isComplex = true;
-			complexData = action;
-			preventClosing = true;
-			return this;
-		}
-
-		@SuppressWarnings("unchecked")
-		@Override
-		public void accept(Object data) {
-			boolean isCollection = data instanceof Collection;
-			if (groupApply==FOR_ALL) {
-				action.accept((T) collectionWrap(data));
-			} else
-			if (groupApply==FOR_EACH) {
-				if (isCollection) {
-					((Collection<T>) data).forEach(action::accept);
-				} else {
-					action.accept((T)data);
-				}
-			} else
-			if (groupApply==NONE) {
-				if (isCollection) throw new RuntimeException("Action can not use collection");
-				action.accept((T)data);
-			} else {
-				throw new SwitchException(groupApply);
-			}
-		}
-
-		@SuppressWarnings("unchecked")
-		public T prepInput(Object data) {
-			boolean isCollection = data instanceof Collection;
-			if (groupApply==FOR_ALL) {
-				return (T) collectionWrap(data);
-			} else
-			if (groupApply==FOR_EACH) {
-				throw new AssertionError("not a good idea...");
-			} else
-			if (groupApply==NONE) {
-				if (isCollection) throw new RuntimeException("Action can not use collection");
-				return (T) data;
-			} else {
-				throw new SwitchException(groupApply);
-			}
-		}
-	}
-
-	/** Action that executes synchronously - simply consumes the input. */
-	private static class FastActionBase<C,T> extends ActionData<C,T> {
-
-		private FastActionBase(String name, String description, GlyphIcons icon, GroupApply groupApply, Predicate<? super T> constriction, Consumer<? super T> act) {
-			super(name, description, icon, groupApply, constriction, false, act);
-		}
-
-	}
-	/** FastAction that consumes simple input - its type is the same as type of the action. */
-	public static class FastAction<T> extends FastActionBase<T,T> {
-
-		private FastAction(String name, String description, GlyphIcons icon, GroupApply groupApply, Predicate<? super T> constriction, Consumer<? super T> act) {
-			super(name, description, icon, groupApply, constriction, act);
-		}
-
-		public FastAction(String name, String description, GlyphIcons icon, Consumer<? super T> act) {
-			this(name, description, icon, NONE, IS, act);
-		}
-
-		public FastAction(String name, String description, GlyphIcons icon, Predicate<? super T> constriction, Consumer<? super T> act) {
-			this(name, description, icon, NONE, constriction, act);
-		}
-
-		public FastAction(GlyphIcons icon, Action action) {
-			this(action.getName(),
-				  action.getInfo() + (action.hasKeysAssigned() ? "\n\nShortcut keys: " + action.getKeys() : ""),
-				  icon, NONE, IS, ignored -> action.run());
-		}
-
-	}
-	/** FastAction that consumes collection input - its input type is collection of its type. */
-	public static class FastColAction<T> extends FastActionBase<T,Collection<T>> {
-
-		public FastColAction(String name, String description, GlyphIcons icon, Consumer<? super Collection<T>> act) {
-			super(name, description, icon, FOR_ALL, ISNT, act);
-		}
-
-		public FastColAction(String name, String description, GlyphIcons icon, Predicate<? super T> constriction,  Consumer<? super Collection<T>> act) {
-			super(name, description, icon, FOR_ALL, c -> c.stream().noneMatch(constriction), act);
-		}
-
-	}
-
-	/** Action that executes asynchronously - receives a future, processes the data and returns it. */
-	private static class SlowActionBase<C,T,R> extends ActionData<C,T> {
-
-		public SlowActionBase(String name, String description, GlyphIcons icon, GroupApply groupApply, Predicate<? super T> constriction, Consumer<? super T> act) {
-			super(name, description, icon, groupApply, constriction, true, act);
-		}
-
-	}
-	/** SlowAction that processes simple input - its type is the same as type of the action. */
-	public static class SlowAction<T,R> extends SlowActionBase<T,T,R> {
-
-		public SlowAction(String name, String description, GlyphIcons icon, Consumer<? super T> act) {
-			super(name, description, icon, NONE, IS, act);
-		}
-
-		public SlowAction(String name, String description, GlyphIcons icon, GroupApply groupApply, Consumer<? super T> act) {
-			super(name, description, icon, groupApply, IS, act);
-		}
-
-	}
-	/** SlowAction that processes collection input - its input type is collection of its type. */
-	public static class SlowColAction<T> extends SlowActionBase<T,Collection<T>,Void> {
-
-		public SlowColAction(String name, String description, GlyphIcons icon, Consumer<? super Collection<T>> act) {
-			super(name, description, icon, FOR_ALL, ISNT, act);
-		}
-
-		public SlowColAction(String name, String description, GlyphIcons icon, Predicate<? super T> constriction, Consumer<? super Collection<T>> act) {
-			super(name, description, icon, FOR_ALL, c -> c.stream().noneMatch(constriction), act);
-		}
-
-	}
-
-	public enum GroupApply {
-		FOR_EACH, FOR_ALL, NONE
+		return d -> {
+			converter.apply(d).ifOk(result -> runFX(() -> ActionPane.this.show(result)));
+			return Unit.INSTANCE;
+		};
 	}
 
 }

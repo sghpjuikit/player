@@ -1,10 +1,12 @@
 package sp.it.pl.util.functional
 
 import javafx.collections.ObservableList
+import javafx.util.Callback
 import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.type.union
 import java.util.Comparator
 import java.util.Optional
+import java.util.concurrent.Executor
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 import java.util.function.DoubleConsumer
@@ -16,15 +18,21 @@ import java.util.stream.Stream
 import kotlin.reflect.KClass
 import kotlin.streams.toList
 
+val Executor.kt: (Runnable) -> Unit get() = this::execute
+
+val Runnable.kt: () -> Unit get() = this::run
+
 operator fun <T> Consumer<T>.invoke(t: T) = accept(t)
 
 operator fun DoubleConsumer.invoke(t: Double) = accept(t)
 
 operator fun LongConsumer.invoke(t: Long) = accept(t)
 
-operator fun <T,U> BiConsumer<T,U>.invoke(t: T, u: U) = accept(t, u)
+operator fun <T, U> BiConsumer<T, U>.invoke(t: T, u: U) = accept(t, u)
 
-operator fun <T,U> Function<T,U>.invoke(t: T) = apply(t)
+operator fun <T, U> Function<T, U>.invoke(t: T) = apply(t)
+
+operator fun <T, U> Callback<T, U>.invoke(t: T): U = call(t)
 
 operator fun <T> Predicate<T>.invoke(t: T) = test(t)
 
@@ -34,10 +42,16 @@ operator fun Runnable.invoke() = run()
 
 operator fun EventReducer<Void>.invoke() = push(null)
 
-fun <A,B,C> compose(f1: (A) -> B, f2: (B) -> C): (A) -> C = { f2(f1(it)) }
+/** @return [Unit] effectively ignoring this value */
+fun Any.toUnit() = Unit
+
+infix fun <A, B, C> ((A) -> B).compose(then: (B) -> C): (A) -> C = { then(this(it)) }
 
 /** @return kotlin consumer that invokes java consumer */
-fun <T> consumer(consumer: Consumer<T>): (T) -> Unit = { consumer(it) }
+fun <T> consumer(consumer: Consumer<T>?): ((T) -> Unit)? = consumer?.let { { consumer(it) } }
+
+/** @return kotlin runnable that invokes java runnable */
+fun <T> runnable(runnable: Runnable?): (() -> Unit)? = runnable?.let { { runnable() } }
 
 /** @return return value if it has been initialized or null otherwise */
 fun <T> Lazy<T>.orNull() = if (isInitialized()) value else null
@@ -46,10 +60,10 @@ fun <T> Lazy<T>.orNull() = if (isInitialized()) value else null
 fun <T> Optional<T>.orNull(): T? = orElse(null)
 
 /** @return return value or null if error (if the value is nullable, this destroys the information of null's origin) */
-fun <R,E> Try<R,E>.orNull(): R? = getOr(null)
+fun <R, E> Try<R, E>.orNull(): R? = getOr(null)
 
 /** @return return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
-infix fun <R,E> Try<R,E>.orNull(onError: (E) -> Unit): R? = ifError(onError).getOr(null)
+infix fun <R, E> Try<R, E>.orNull(onError: (E) -> Unit): R? = ifError(onError).getOr(null)
 
 /**
  * Run the specified block if the condition is true
@@ -61,9 +75,9 @@ fun <R> runIf(condition: Boolean, block: () -> R): R? = if (condition) block() e
  * Run the specified block safely (no exception will be thrown).
  * @return the result or any caught exception.
  */
-fun <R> runTry(block: () -> R): Try<R,Throwable> = Try.tryS(Supplier { block() }, Throwable::class.java)
+fun <R> runTry(block: () -> R): Try<R, Throwable> = Try.tryS(Supplier { block() }, Throwable::class.java)
 
-infix fun <R,E> Try<R,E>.onE(handle: (E) -> Unit) = ifError(handle)!!
+infix fun <R, E> Try<R, E>.onE(handle: (E) -> Unit) = ifError(handle)!!
 
 /**
  * Type-safe [let] with non null -> non null transformation and safe null propagation.
@@ -126,7 +140,8 @@ infix fun <R,E> Try<R,E>.onE(handle: (E) -> Unit) = ifError(handle)!!
  * * None -> Some(R)      yes (but not deterministic, only if mapping does not return null)
  *
  * Unlike Optional model, the lack of determinism here is consistent (and recoverable), and again a consequence of
- * nullability being a broader concept than 'emptiness'. I.e., the monadic semantics can still be defined on top of it:
+ * nullability being a broader concept than 'emptiness'. I.e., the monadic model's 'emptiness' semantics can still be
+ * defined on top of it:
  * * None -> None         == ?: null or ?.let { it }
  * * None -> Some(R)      == ?: R!! or ?.let { when it==null -> R!! else -> it }
  * * Some(T) -> Some(R)   == .let { R!! }
@@ -192,14 +207,23 @@ infix fun <R,E> Try<R,E>.onE(handle: (E) -> Unit) = ifError(handle)!!
  */
 inline fun <T, R: Any> T.net(block: (T) -> R): R = let(block)
 
+/** @return this as specified type if this is of the type or null otherwise */
+inline fun <reified T: Any> Any?.asIf(): T? = if (this is T) this else null
+
+/** Invokes the block if this is the specified type. */
+inline fun <reified T> Any?.ifIs(block: (T) -> Unit) = apply { if (this is T) block(this) }
+
 /** Invokes the block if this is null and returns this value. */
 inline fun <T> T?.ifNull(block: () -> Unit) = apply { if (this==null) block() }
 
+/** Invokes the block if this is null and returns this value. */
+inline fun <T> T?.ifNotNull(block: (T) -> Unit) = apply { if (this!=null) block(this) }
+
 /** Invokes the block if this is true and returns this value. */
-inline fun Boolean.ifTrue(block: (Boolean) -> Unit) = apply { if (this) block(this) }
+inline fun Boolean.ifTrue(block: () -> Unit) = apply { if (this) block() }
 
 /** Invokes the block if this is false and returns this value. */
-inline fun Boolean.ifFalse(block: (Boolean) -> Unit) = apply { if (!this) block(this) }
+inline fun Boolean.ifFalse(block: () -> Unit) = apply { if (!this) block() }
 
 /** @return return value from the first supplier that supplied non null or null if no such supplier */
 fun <T> supplyFirst(vararg suppliers: () -> T?): T? = seqOf(*suppliers).map { it() }.find { it!=null }
@@ -211,8 +235,6 @@ fun <T> seqOf(vararg elements: T) = sequenceOf(*elements)
 fun <E> E.seqRec(children: (E) -> Iterable<E>): Sequence<E> = sequence {
     yield(this@seqRec)
     children(this@seqRec).forEach { it.seqRec(children).forEach { yield(it) } }
-    // eager version
-    // sequenceOf(this) + children(this).asSequence().flatMap { it.seqRec(children) }
 }
 
 /** @return an array containing all elements */
@@ -222,7 +244,7 @@ inline fun <reified E> Sequence<E>.asArray() = toList().toTypedArray()
 inline fun <reified E> Stream<E>.asArray() = toList().toTypedArray()
 
 /** @return stream that yields elements of this stream sorted by value selected by specified [selector] function. */
-inline fun <T, R : Comparable<R>> Stream<T>.sortedBy(crossinline selector: (T) -> R?) = sorted(compareBy(selector))!!
+inline fun <T, R: Comparable<R>> Stream<T>.sortedBy(crossinline selector: (T) -> R?) = sorted(compareBy(selector))!!
 
 /** @return null-safe comparator wrapper putting nulls at the end */
 fun <T> Comparator<T>.nullsLast(): Comparator<T?> = Comparator.nullsLast(this) as Comparator<T?>
@@ -235,13 +257,15 @@ fun <E: Any> Collection<E?>.getElementType(): Class<*> {
     return asSequence().filterNotNull()
             .map { it::class as KClass<*> }.distinct()
             .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }
-            ?.java ?: Void::class.java
+            ?.java
+            ?: Void::class.java
 }
 
 /** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */
-inline infix fun <reified T: Any?> MutableCollection<T>.clearSet(elements: Collection<T>) {
+@Suppress("DEPRECATION")
+infix fun <T> MutableCollection<T>.setTo(elements: Collection<T>) {
     if (this is ObservableList<T>)
-        setAll(ArrayList(elements))
+        this.setAll(if (elements is MutableCollection<T>) elements else ArrayList(elements))
     else {
         this.clear()
         this += elements
@@ -249,4 +273,10 @@ inline infix fun <reified T: Any?> MutableCollection<T>.clearSet(elements: Colle
 }
 
 /** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */
-inline infix fun <reified T: Any?> MutableCollection<T>.clearSet(elements: Sequence<T>) = this clearSet elements.toList()
+infix fun <T> MutableCollection<T>.setTo(elements: Sequence<T>) = this setTo elements.toList()
+
+/** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */
+infix fun <T> MutableCollection<T>.setTo(elements: Array<T>) = this setTo elements.toList()
+
+/** Removes all elements and adds specified element to this collection. Atomic for [ObservableList]. */
+infix fun <T> MutableCollection<T>.setToOne(element: T) = this setTo listOf(element)

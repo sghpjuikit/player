@@ -21,7 +21,7 @@ import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataGroup;
 import sp.it.pl.audio.tagging.MetadataReader;
-import sp.it.pl.gui.infonode.InfoTask;
+import sp.it.pl.gui.nodeinfo.TaskInfo;
 import sp.it.pl.gui.objects.contextmenu.TableContextMenuR;
 import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
@@ -38,7 +38,6 @@ import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
 import sp.it.pl.util.async.executor.ExecuteN;
-import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
@@ -55,19 +54,20 @@ import static javafx.scene.input.KeyCode.DELETE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
+import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.audio.tagging.Metadata.Field.RATING;
 import static sp.it.pl.audio.tagging.Metadata.Field.TITLE;
-import static sp.it.pl.gui.infonode.InfoTable.DEFAULT_TEXT_FACTORY;
+import static sp.it.pl.gui.nodeinfo.TableInfo.DEFAULT_TEXT_FACTORY;
 import static sp.it.pl.layout.widget.Widget.Group.LIBRARY;
-import static sp.it.pl.main.AppBuildersKt.rowHeight;
-import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
+import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.animation.Anim.Interpolators.reverse;
 import static sp.it.pl.util.async.AsyncKt.FX;
-import static sp.it.pl.util.async.AsyncKt.sleeping;
+import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.file.Util.getCommonRoot;
 import static sp.it.pl.util.functional.Util.map;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.menuItem;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
@@ -104,9 +104,9 @@ public class Library extends FXMLController implements SongReader {
 
     private @FXML AnchorPane root;
     private final FilteredTable<Metadata> table = new FilteredTable<>(Metadata.class, Metadata.EMPTY.getMainField());
-    private final InfoTask<Task<?>> taskInfo = new InfoTask<>(null, new Label(), appProgressIndicator());
+    private final TaskInfo<Task<?>> taskInfo = new TaskInfo<>(null, new Label(), appProgressIndicator());
     private final Anim hideInfo = new Anim(at -> setScaleXY(taskInfo.getProgress(),at*at))
-                                      .dur(500).intpl(reverse(new ElasticInterpolator()));
+                                      .dur(millis(500)).intpl(reverse(new ElasticInterpolator()));
 
     private final ExecuteN runOnce = new ExecuteN(1);
     private Output<Metadata> out_sel;
@@ -139,7 +139,6 @@ public class Library extends FXMLController implements SongReader {
         // table properties
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.search.setColumn(TITLE);
-        d(maintain(APP.ui.getFont(), f -> rowHeight(f), table.fixedCellSizeProperty()));
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));
@@ -151,10 +150,10 @@ public class Library extends FXMLController implements SongReader {
         taskInfo.setVisible(false);
 
         // extend table items information
-        table.items_info.textFactory = (all, list) -> {
+        table.items_info.setTextFactory((all, list) -> {
             double lengthMs = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
-            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new Dur(lengthMs);
-        };
+            return DEFAULT_TEXT_FACTORY.invoke(all, list) + " - " + new Dur(lengthMs);
+        });
         // add more menu items
         table.menuAdd.getItems().addAll(
             menuItem("Add files", e -> addFiles()),
@@ -296,12 +295,11 @@ public class Library extends FXMLController implements SongReader {
 
     private void removeInvalid() {
         Task<Void> t = MetadataReader.buildRemoveMissingFromLibTask();
-        Fut.fut(t)
-            .use(FX, taskInfo::showNbind)
-            .use(Task::run)
-            .then(sleeping(seconds(5)))
-            .then(FX, () -> hideInfo.playOpenDo(taskInfo::hideNunbind))
-            .printExceptions();
+        fut(t)
+            .useBy(FX, taskInfo::showNbind)
+            .useBy(Task::run)
+            .thenWait(seconds(5))
+            .useBy(FX, it -> hideInfo.playOpenDo(runnable(taskInfo::hideNunbind)));
     }
 
 }

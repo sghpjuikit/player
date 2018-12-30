@@ -10,7 +10,6 @@ import javafx.beans.property.DoubleProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.event.EventHandler
 import javafx.util.Duration
-import javafx.util.Duration.millis
 import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.math.divMillis
@@ -24,6 +23,7 @@ import java.util.stream.Stream
 private typealias S = JvmStatic
 private typealias O = JvmOverloads
 private typealias IF = (Double) -> Double
+private typealias Block = () -> Unit
 
 /**
  * Features:
@@ -34,7 +34,7 @@ private typealias IF = (Double) -> Double
  * * Fluent API: For example [dur] or [intpl].
  *
  * This makes lots of practical effects very easy. The phase that runs forward (rate==1) is called 'opening' phase,
- * while the backward phase is called 'closing'. See [.playClose] and [.playOpen].
+ * while the backward phase is called 'closing'. See [playClose] and [playOpen].
  *
  * For example animation used to show and hide button would fade it from 0 to 1 during the opening phase. If the
  * closing is invoked (before the opening finishes) the button will start fading out from its current opacity, not
@@ -75,44 +75,38 @@ open class Anim: Transition {
     }
 
     /**
-     *  Applies the [applier] at current [position] and returns this (fluent style).
-     *  Useful prior to animation start to avoid glitches at 0.0 or other key points.
-     */
-    fun applyNow() = apply { applier(position.value) }
-
-    /**
      *  Applies the [applier] at specified position (no interpolation is applied) and returns this (fluent style).
      *  Useful prior to animation start to avoid glitches at 0.0 or other key points.
      */
     fun applyAt(position: Double) = apply { applier(position) }
 
-    /** Sets animation duration and returns this (fluent style). */
-    fun dur(d: Duration) = apply { cycleDuration = d }
+    /**
+     *  Applies the [applier] at current [position] and returns this (fluent style).
+     *  Useful prior to animation start to avoid glitches at 0.0 or other key points.
+     */
+    fun applyNow() = applyAt(position.value)
 
-    /** Sets animation duration in ms and returns this (fluent style). */
-    fun dur(durMs: Double) = apply { cycleDuration = millis(durMs) }
+    /** Sets animation duration and returns this (fluent style). */
+    fun dur(duration: Duration) = apply { cycleDuration = duration }
 
     /** Sets animation delay and returns this (fluent style). */
-    fun delay(d: Duration) = apply { delay = d }
-
-    /** Sets animation delay in ms and returns this (fluent style). */
-    fun delay(delayMs: Double) = apply { delay = millis(delayMs) }
+    fun delay(delay: Duration) = apply { this.delay = delay }
 
     /** Sets animation interpolator and returns this (fluent style). */
-    fun intpl(i: Interpolator) = apply { interpolator = i }
+    fun intpl(interpolator: Interpolator) = apply { this.interpolator = interpolator }
 
     /** Sets animation interpolator and returns this (fluent style). */
-    fun intpl(i: (Double) -> Double) = apply {
-        interpolator = object: Interpolator() {
-            override fun curve(t: Double): Double {
-                return i(t)
+    fun intpl(interpolator: IF) = intpl(
+            object: Interpolator() {
+                override fun curve(t: Double): Double {
+                    return interpolator(t)
+                }
             }
-        }
-    }
+    )
 
     /** Sets [onFinished] returns this (fluent style). */
-    fun then(r: Runnable?) = apply {
-        onFinished = r?.let { EventHandler { r() } }
+    fun then(block: Block?) = apply {
+        onFinished = block?.let { EventHandler { block() } }
     }
 
     override fun interpolate(at: Double) {
@@ -160,8 +154,8 @@ open class Anim: Transition {
         super.playFrom(cycleDuration-cycleDuration*position)
     }
 
-    fun playCloseDo(action: Runnable?) {
-        onFinished = action?.let {
+    fun playCloseDo(block: Block?) {
+        onFinished = block?.let {
             EventHandler {
                 onFinished = null
                 it()
@@ -170,8 +164,8 @@ open class Anim: Transition {
         playClose()
     }
 
-    fun playOpenDo(action: Runnable?) {
-        onFinished = action?.let {
+    fun playOpenDo(block: Block?) {
+        onFinished = block?.let {
             EventHandler {
                 onFinished = null
                 it()
@@ -180,34 +174,34 @@ open class Anim: Transition {
         playOpen()
     }
 
-    fun playOpenDoClose(middle: Runnable?) {
-        playOpenDo(Runnable {
-            middle?.run()
+    fun playOpenDoClose(blockMiddle: Block?) {
+        playOpenDo {
+            blockMiddle?.invoke()
             onFinished = null
             playClose()
-        })
+        }
     }
 
-    fun playCloseDoOpen(middle: Runnable?) {
-        playCloseDo(Runnable {
-            middle?.run()
+    fun playCloseDoOpen(blockMiddle: Block?) {
+        playCloseDo {
+            blockMiddle?.invoke()
             onFinished = null
             playOpen()
-        })
+        }
     }
 
-    fun playOpenDoCloseDo(middle: Runnable?, end: Runnable) {
-        playOpenDo(Runnable {
-            middle?.run()
-            playCloseDo(end)
-        })
+    fun playOpenDoCloseDo(blockMiddle: Block?, blockEnd: Block) {
+        playOpenDo {
+            blockMiddle?.invoke()
+            playCloseDo(blockEnd)
+        }
     }
 
-    fun playCloseDoOpenDo(middle: Runnable?, end: Runnable) {
-        playCloseDo(Runnable {
-            middle?.run()
-            playOpenDo(end)
-        })
+    fun playCloseDoOpenDo(blockMiddle: Block?, blockEnd: Block) {
+        playCloseDo {
+            blockMiddle?.invoke()
+            playOpenDo(blockEnd)
+        }
     }
 
     /**
@@ -251,7 +245,7 @@ open class Anim: Transition {
                 return { at ->
                     ranges.find { at>=it.start && at<=it.end }
                             ?.let { it.interpolator((at-it.start)/(it.end-it.start)) }
-                            ?: throw RuntimeException("Combined interpolator out of value at: "+at)
+                            ?: throw RuntimeException("Combined interpolator out of value at: $at")
                 }
             }
 
@@ -333,5 +327,6 @@ open class Anim: Transition {
         }
 
         @S fun mapConcave(x: Double): Double = 1-abs(2*(x*x-0.5))
+
     }
 }

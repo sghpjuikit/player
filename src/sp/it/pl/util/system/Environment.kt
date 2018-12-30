@@ -16,8 +16,8 @@ import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.util.async.future.Fut
-import sp.it.pl.util.async.future.Fut.fut
-import sp.it.pl.util.async.runNotFX
+import sp.it.pl.util.async.runNew
+import sp.it.pl.util.async.runOn
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.ImageFileFormat
@@ -38,21 +38,14 @@ import java.io.IOException
 import java.net.URI
 import java.util.ArrayList
 import java.util.function.Consumer
-import java.util.function.Supplier
 
 private val logger = KotlinLogging.logger { }
 
 /** Puts the specified string to system clipboard. Does nothing if null. */
-fun copyToSysClipboard(s: String?) {
-    copyToSysClipboard(DataFormat.PLAIN_TEXT, s)
-}
+fun copyToSysClipboard(s: String?) = copyToSysClipboard(DataFormat.PLAIN_TEXT, s)
 
 /** Puts the specified object to system clipboard. Does nothing if null. */
-fun copyToSysClipboard(df: DataFormat, o: Any?) {
-    if (o!=null) {
-        Clipboard.getSystemClipboard().setContent(mapOf(df to o))
-    }
-}
+fun copyToSysClipboard(df: DataFormat, o: Any?) = o?.let { Clipboard.getSystemClipboard().setContent(mapOf(df to it)) }
 
 /**
  * Launches this file as an executable program as a separate process. Does not wait for the program or block.
@@ -62,8 +55,7 @@ fun copyToSysClipboard(df: DataFormat, o: Any?) {
  * @param arguments arguments to run the program with
  * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
  */
-fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = fut()
-        .supply(Player.IO_THREAD, Supplier {
+fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = runOn(Player.IO_THREAD) {
             val command = ArrayList<String>()
             if (Os.WINDOWS.isCurrent)
                 command += APP.DIR_APP.childOf("elevate.exe").absolutePath   // use elevate.exe to run command
@@ -81,7 +73,7 @@ fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = fut
                 logger.warn(e) { "Failed to launch program" }
                 Try.error<Void, Exception>(e)
             }
-        })
+        }
 
 /**
  * Runs a command in new background thread as a process and executes an action (on it) right after it launches.
@@ -91,7 +83,7 @@ fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = fut
  */
 @JvmOverloads
 fun runCommand(command: String, then: Consumer<Process>? = null) {
-    runNotFX {
+    runNew {
         try {
             val p = Runtime.getRuntime().exec(command)
             then?.accept(p)
@@ -120,7 +112,7 @@ fun File.browse() = toURI().browse()
  */
 fun URI.browse() {
     logger.info { "Browsing uri=$this" }
-    runNotFX {
+    runNew {
         val f = toFileOrNull()
         if (f==null) {
             try {
@@ -158,7 +150,7 @@ fun URI.browse() {
  */
 fun File.edit() {
     logger.info { "Editing file=$this" }
-    runNotFX {
+    runNew {
         if (isDirectory) {
             open()
         } else {
@@ -166,7 +158,11 @@ fun File.edit() {
                 try {
                     Desktop.getDesktop().edit(this)
                 } catch (e: IOException) {
-                    logger.error(e) { "Opening file=$this in editor failed" }
+                    val noApp = "No application is associated with the specified file for this operation" in e.message.orEmpty()
+                    if (noApp) logger.warn(e) { "Opening file=$this in native editor failed" }
+                    else logger.error(e) { "Opening file=$this in native editor failed" }
+
+                    if (noApp) open()
                 } catch (e: IllegalArgumentException) {
                     // file does not exists, nothing to do
                 }
@@ -187,29 +183,29 @@ fun File.edit() {
  */
 fun File.open() {
     logger.info { "Opening file=$this" }
-    runNotFX {
+    runNew<Unit> {
         when {
             // If the file is executable, Desktop#open() will execute it, however the spawned process' working directory
             // will be set to the working directory of this application, which is not illegal, but definitely dangerous
             // Hence, we executable files on our own
             isExecutable() -> runAsProgram()
-            else ->
-                when {
-                    isDirectory && APP.DIR_SKINS==parentDir || isValidSkinFile(this) -> APP.ui.setSkin(this)
-                    isDirectory && APP.DIR_WIDGETS==parentDir || isValidWidgetFile(this) -> APP.widgetManager.widgets.find(nameWithoutExtensionOrRoot, NO_LAYOUT, false)
-                    else ->
-                        if (Desktop.Action.OPEN.isSupportedOrWarn()) {
-                            try {
-                                Desktop.getDesktop().open(this)
-                            } catch (e: IOException) {
-                                val noApp = "No application is associated with the specified file for this operation" in e.message.orEmpty()
-                                if (noApp) logger.warn(e) { "Opening file=$this in native app failed" }
-                                else logger.error(e) { "Opening file=$this in native app failed" }
-                            } catch (e: IllegalArgumentException) {
-                                // file does not exists, nothing to do
-                            }
+            else -> when {
+                isDirectory && APP.DIR_SKINS==parentDir || isValidSkinFile(this) -> APP.ui.setSkin(this)
+                isDirectory && APP.DIR_WIDGETS==parentDir || isValidWidgetFile(this) -> APP.widgetManager.widgets.find(nameWithoutExtensionOrRoot, NO_LAYOUT, false)
+                else -> {
+                    if (Desktop.Action.OPEN.isSupportedOrWarn()) {
+                        try {
+                            Desktop.getDesktop().open(this)
+                        } catch (e: IOException) {
+                            val noApp = "No application is associated with the specified file for this operation" in e.message.orEmpty()
+                            if (noApp) logger.warn(e) { "Opening file=$this in native app failed" }
+                            else logger.error(e) { "Opening file=$this in native app failed" }
+                        } catch (e: IllegalArgumentException) {
+                            // file does not exists, nothing to do
                         }
+                    }
                 }
+            }
         }
     }
 }

@@ -44,9 +44,6 @@ public class MetadataReader {
 			// TODO: implement properly
 			try {
 				Media m = new Media(item.getUri().toString());
-				//            m.getMetadata().forEach((String s, Object o) -> {
-				//                System.out.println(s + " " + o);
-				//            });
 
 				// make a playlistItem and covert to metadata //why? // not 100%sure...
 				// because PlaylistItem has advanced update() method? // probably

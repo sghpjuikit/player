@@ -1,8 +1,8 @@
 package sp.it.pl.gui.itemnode.textfield
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 import javafx.scene.layout.StackPane
 import sp.it.pl.gui.objects.icon.Icon
+import sp.it.pl.main.IconFA
 
 /** Button for calling dialogs, from within [javafx.scene.control.TextField]. */
 class ArrowDialogButton: StackPane() {
@@ -16,6 +16,6 @@ class ArrowDialogButton: StackPane() {
         // }
         // setPrefSize(22.0, 22.0)
 
-        children += Icon(FontAwesomeIcon.CARET_DOWN, 7.0).scale(2.0).tooltip("Open dialog")
+        children += Icon(IconFA.CARET_DOWN, 7.0).scale(2.0).tooltip("Open dialog")
     }
 }

@@ -12,17 +12,17 @@ import javafx.stage.Stage
 import mu.KLogging
 import sp.it.pl.audio.Player
 import sp.it.pl.main.APP
-import sp.it.pl.util.conf.c
-import sp.it.pl.util.conf.cv
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.util.async.runAwt
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.functional.Try
-import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.functional.orNull
+import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.Util.menuItem
 import sp.it.pl.util.graphics.image.ImageSize
 import sp.it.pl.util.graphics.image.createImageBlack
@@ -208,7 +208,7 @@ class TrayService: ServiceBase("Tray", true) {
     /** Adjust or provide tray right mouse click context menu items. Null sets default context menu. */
     fun setContextMenuItems(menuItems: MutableList<MenuItem>?) {
         contextMenuItems = menuItems ?: ArrayList(contextMenuItemsDefault)
-        contextMenu?.items?.clearSet(contextMenuItems)
+        contextMenu?.let { it.items setTo contextMenuItems }
     }
 
     companion object: KLogging()

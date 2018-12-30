@@ -37,6 +37,7 @@ import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.container.switchcontainer.SwitchContainer;
 import sp.it.pl.layout.container.switchcontainer.SwitchPane;
+import sp.it.pl.main.AppProgress;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.action.Action;
 import sp.it.pl.util.action.ActionManager;
@@ -83,6 +84,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.paint.Color.BLACK;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.Resize.NONE;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
@@ -355,11 +357,12 @@ public class Window extends WindowBase {
 			+ "\tPress ALT : Show hidden header temporarily.\n"
 			+ "\tPress ALT : Activate layout mode.\n"
 			+ "\tContent right drag : drag tabs.").size(is);
+		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, is).scale(0.4).onClick(e -> AppProgress.INSTANCE.showTasks((Node) e.getTarget()));
 
 		leftHeaderBox.getChildren().addAll(
 			layB, propB, runB, new Label(" "),
 			ltB, lockB, lmB, rtB, new Label(" "),
-			guideB, helpB
+			guideB, helpB, progB
 		);
 		leftHeaderBox.setTranslateY(-4);
 		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
@@ -390,6 +393,11 @@ public class Window extends WindowBase {
 		rightHeaderBox.setTranslateY(-4);
 		initClip(rightHeaderBox, new Insets(4, 0, 4, 0));
 
+
+
+		ProgressIndicator x = appProgressIndicator();
+		x.progressProperty().bind(AppProgress.INSTANCE.getProgress());
+		leftHeaderBox.getChildren().add(x);
 	}
 
 /* ---------- CONTENT ----------------------------------------------------------------------------------------------- */
@@ -519,11 +527,11 @@ public class Window extends WindowBase {
 				animPar(
 					animPar(
 						forEachIStream(leftHeaderBox.getChildren(), (i, icon) ->
-							new Anim(at -> setScaleXY(icon, at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
+							new Anim(at -> setScaleXY(icon, at*at)).dur(millis(500)).intpl(new ElasticInterpolator()).delay(millis(i*45)))
 					),
 					animPar(
 						forEachIRStream(rightHeaderBox.getChildren(), (i, icon) ->
-							new Anim(at -> setScaleXY(icon, at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
+							new Anim(at -> setScaleXY(icon, at*at)).dur(millis(500)).intpl(new ElasticInterpolator()).delay(millis(i*45)))
 					)
 				).play();
 			}

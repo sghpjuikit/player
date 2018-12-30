@@ -41,6 +41,8 @@ class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller 
 
     override fun refresh() {}
 
+    override fun focus() {}
+
     override fun getOwnerWidget() = this
 
     override fun getOwnedOutputs() = o

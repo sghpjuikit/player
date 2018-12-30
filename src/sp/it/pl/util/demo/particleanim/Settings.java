@@ -5,7 +5,7 @@ import javafx.scene.paint.Color;
 /**
  * Application settings
  */
-public class Settings {
+class Settings {
 
 	public static double SCENE_WIDTH = 1600;
 	public static double SCENE_HEIGHT = 900;
@@ -30,4 +30,5 @@ public class Settings {
 
 	// gravity. use negative if you want the particles to always go up, eg new Vector2D( 0,-0.04);
 	public static Vector2D FORCE_GRAVITY = new Vector2D(0, 0);
+
 }

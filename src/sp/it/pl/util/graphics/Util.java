@@ -35,8 +35,8 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
+import sp.it.pl.main.JavaLegacy;
 import sp.it.pl.util.access.V;
-import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import static java.time.Duration.ofMillis;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -324,7 +324,7 @@ public interface Util {
 		return s;
 	}
 
-	static <E extends Event> void add1timeEventHandler(Stage eTarget, EventType<E> eType, Consumer<E> eHandler) {
+	static <E extends Event> void addEventHandler1Time(Stage eTarget, EventType<E> eType, Consumer<E> eHandler) {
 		eTarget.addEventHandler(eType, new EventHandler<>() {
 			@Override
 			public void handle(E event) {
@@ -383,8 +383,9 @@ public interface Util {
 			@Override
 			protected void updateItem(Void item, boolean empty) {
 				super.updateItem(item, empty);
+
 				if (empty) setText(null);
-				else setText(String.valueOf(getIndex() + 1) + ".");
+				else setText(getIndex() + 1 + ".");
 			}
 		});
 		return c;
@@ -407,18 +408,18 @@ public interface Util {
 
 				super.updateItem(item, empty);
 
-				if (item==null) {
-					super.setText(null);
-					super.setGraphic(null);
+				if (empty || item==null) {
+					setText(null);
+					setGraphic(null);
 				} else if ("".equals(item)) {
-					super.setText(empty_value);
-					super.setGraphic(null);
+					setText(empty_value);
+					setGraphic(null);
 				} else if (item instanceof Node) {
-					super.setText(null);
-					super.setGraphic((Node) item);
+					setText(null);
+					setGraphic((Node) item);
 				} else {
-					super.setText(item.toString());
-					super.setGraphic(null);
+					setText(item.toString());
+					setGraphic(null);
 				}
 			}
 		};
@@ -531,23 +532,16 @@ public interface Util {
 
 /* ---------- FONT -------------------------------------------------------------------------------------------------- */
 
-	// internal com.sun.javafx.scene.control.skin.Utils class seems to be able to do this
-	@Dependency("requires access to javafx.graphics/com.sun.javafx.tk")
 	static double computeFontWidth(javafx.scene.text.Font font, String text) {
-		// TODO: jigsaw
-		// return com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader().computeStringWidth(text, font); // !work since java 9 b114
-		com.sun.javafx.tk.FontMetrics fm = com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader().getFontMetrics(font);
-		return text==null || text.isEmpty() ? 0 : text.chars().mapToDouble(c -> fm.getCharWidth((char) c)).sum();
+		return JavaLegacy.computeFontWidth(font , text);
 	}
 
-	@Dependency("requires access to javafx.graphics/com.sun.javafx.tk")
-	static double computeFontHeight(javafx.scene.text.Font font) {
-		// TODO: jigsaw
-		// requires -XaddExports:javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED
-		return com.sun.javafx.tk.Toolkit.getToolkit().getFontLoader().getFontMetrics(font).getLineHeight();
+	static double computeFontHeight(javafx.scene.text.Font font, String text) {
+		return JavaLegacy.computeFontHeight(font, text);
 	}
 
 /* ---------- WINDOW ------------------------------------------------------------------------------------------------ */
+
 	// TODO: fix scaling screwing up initial window position
 	static Stage createFMNTStage(Screen screen) {
 		return createFMNTStage(screen, true);

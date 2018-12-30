@@ -10,8 +10,8 @@ import kotlin.reflect.KClass
  * While implementing an interface tells compiler what an object can do, annotating the interface as a Feature then
  * tells this information to the user.
  *
- * This is not and can not be expressed by the type system (be part of the interface's signature), because each
- * interface/interface carries its own information and inheritance would not allow this.
+ * Feature is not and can not be expressed by the type system (be part of the interface's signature), because each
+ * feature carries its own information and multi-inheritance would not allow this.
  */
 @Retention(RUNTIME)
 @Target(CLASS)

@@ -28,21 +28,24 @@ plugins {
 }
 
 /** working directory of the application */
-val dirProject = file("working dir")
-val dirJdk = dirProject.resolve("java")
+val dirWorking = file("working dir")
+val dirJdk = dirWorking/"java"
 val kotlinVersion: String by extra {
     buildscript.configurations["classpath"]
             .resolvedConfiguration.firstLevelModuleDependencies
             .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
-val javaSupportedVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10)
-
-if (JavaVersion.current() !in javaSupportedVersions) {
-    println("""org.gradle.java.home=${properties["org.gradle.java.home"]}
-        |Java version ${JavaVersion.current()} can't be used.
-        | Set one of ${javaSupportedVersions.joinToString()} as system default or create a "gradle.properties"
-        | file with "org.gradle.java.home" pointing to a supported Java version""".trimMargin())
-    throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
+val javaSupportedVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10).also {
+    val javaVersion = JavaVersion.current()
+    if (javaVersion !in it) {
+        println(""+
+                "org.gradle.java.home=${properties["org.gradle.java.home"]}"+
+                "Java version $javaVersion can't be used."+
+                "Set one of ${it.joinToString()} as system default or create a 'gradle.properties'"+
+                "file with 'org.gradle.java.home' pointing to a supported Java version"
+        )
+        throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
+    }
 }
 
 sourceSets {
@@ -52,13 +55,9 @@ sourceSets {
     }
 }
 
-kotlin {
-    copyClassesToJavaOutput = true
-}
-
 allprojects {
     apply(plugin = "kotlin")
-    buildDir = file(properties["player.buildDir"] ?: rootDir.resolve("build")).resolve(name)
+    buildDir = file(properties["player.buildDir"] ?: rootDir/"build")/name
 
     tasks.withType<JavaCompile> {
         options.encoding = UTF_8.name()
@@ -67,19 +66,22 @@ allprojects {
         options.isDeprecation = true
         options.compilerArgs = listOf(
                 "-Xlint:unchecked",
-                "--add-exports", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
-                "--add-exports", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED",
-                "--add-exports", "javafx.web/com.sun.webkit=ALL-UNNAMED",
-                "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
+                "--add-exports", "javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED",
+                "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED",
+                "--add-exports", "javafx.web/com.sun.webkit=ALL-UNNAMED"
         )
     }
 
     tasks.withType<KotlinCompile> {
+        kotlinOptions.includeRuntime = true
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.jdkHome = dirJdk.path
         kotlinOptions.verbose = true
         kotlinOptions.suppressWarnings = false
-        kotlinOptions.freeCompilerArgs += listOf("-progressive", "-Xjvm-default=enable")
+        kotlinOptions.freeCompilerArgs += listOf(
+                "-progressive",
+                "-Xjvm-default=enable"
+        )
     }
 
     repositories {
@@ -151,73 +153,79 @@ tasks {
     val copyLibs by creating(Sync::class) {
         group = "build"
         description = "Copies all libraries into the working dir"
-        into("working dir/lib")
-        from(configurations.compile)
-        exclude("*sources.jar", "*javadoc.jar")
+        from(configurations.compileClasspath)
+        into(dirWorking/"lib")
     }
 
     val linkJdk by creating {
         group = "build setup"
         description = "Links $dirJdk to JDK"
-        this.onlyIf { !dirJdk.exists() }
+        onlyIf { !dirJdk.exists() }
         doFirst {
             println("Making JDK locally accessible...")
-            val jdkPath = System.getProperty("java.home").takeIf { it.isNotBlank() }
-                    ?.let { Paths.get(it) }
-                    ?: throw FileNotFoundException("Unable to find JDK")
+            val jdkPath = "java.home".sysProp.takeIf { it.isNotBlank() }?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
             try {
                 Files.createSymbolicLink(dirJdk.toPath(), jdkPath)
             } catch (e: Exception) {
                 println("Couldn't create a symbolic link from $dirJdk to $jdkPath: $e")
-                if (System.getProperty("os.name").startsWith("Windows")) {
+                if ("os.name".sysProp.startsWith("Windows")) {
                     println("Trying junction...")
-                    val process = Runtime.getRuntime().exec("cmd.exe /c mklink /j \"$dirJdk\" \"$jdkPath\"")
+                    val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$dirJdk" "$jdkPath"""")
                     val exitValue = process.waitFor()
-                    if (exitValue==0 && dirJdk.exists())
-                        println("Junction successful!")
-                    else
-                        throw IOException("Unable to make JDK locally accessible!\nmklink exit code: $exitValue", e)
+                    if (exitValue==0 && dirJdk.exists()) println("Junction successful!")
+                    else failIO(e) { "Unable to make JDK locally accessible!\nmklink exit code: $exitValue" }
                 } else {
-                    throw IOException("Unable to make JDK locally accessible!", e)
+                    failIO(e) { "Unable to make JDK locally accessible!" }
                 }
             }
         }
     }
 
     val kotlinc by creating(Download::class) {
-        val kotlinc = dirProject.resolve("kotlinc")
+        val dirKotlinc = dirWorking/"kotlinc"
+        val fileKotlinVersion = dirKotlinc/"build.txt"
+        val nameKotlinc = "kotlin-compiler-$kotlinVersion.zip"
+        val fileKotlinc = dirKotlinc/"bin"/"kotlinc"
+        val zipKotlinc = dirKotlinc/nameKotlinc
         group = "build setup"
-        description = "Downloads the kotlin compiler into $kotlinc"
-        onlyIf { kotlinc.resolve("build.txt").takeIf { it.exists() }?.readText()?.startsWith(kotlinVersion)!=true }
+        description = "Downloads the kotlin compiler into $dirKotlinc"
+        onlyIf { !fileKotlinVersion.exists() || !fileKotlinVersion.readText().startsWith(kotlinVersion) }
+        src("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/$nameKotlinc")
+        dest(dirKotlinc)
         doFirst {
-            if (kotlinc.exists()) {
+            if (dirKotlinc.exists()) {
                 println("Deleting obsolete version of Kotlin compiler...")
-                if (!kotlinc.deleteRecursively())
-                    throw IOException("Failed to remove Kotlin compiler, location=$kotlinc")
+                dirKotlinc.deleteRecursively().orFailIO { "Failed to remove Kotlin compiler, location=$dirKotlinc" }
+            }
+            if (!dirKotlinc.exists()) {
+                dirKotlinc.mkdir().orFailIO { "Failed to create directory=$dirKotlinc" }
             }
         }
-        src("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/kotlin-compiler-$kotlinVersion.zip")
-        dest(buildDir)
         doLast {
             copy {
-                from(zipTree(buildDir.resolve("kotlin-compiler-$kotlinVersion.zip")))
-                into(dirProject)
+                from(zipTree(zipKotlinc))
+                into(dirWorking)
             }
-            file("$dirProject/kotlinc/bin/kotlinc").setExecutable(true)
+            fileKotlinc.setExecutable(true).orFailIO { "Failed to file=$fileKotlinc executable" }
+            zipKotlinc.delete().orFailIO { "Failed to delete file=$zipKotlinc" } // clean up downloaded file
+            zipKotlinc.createNewFile()  // allows running this task in offline mode
         }
     }
 
     "jar"(Jar::class) {
         group = main
-        destinationDir = dirProject
+        destinationDir = dirWorking
         archiveName = "PlayerFX.jar"
     }
 
     "clean"(Delete::class) {
         group = main
         description = "Cleans up temporary files"
-        delete(dirProject.resolve("user/tmp"), buildDir,
-                dirProject.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList())
+        delete(
+                dirWorking/"user"/"tmp",
+                buildDir,
+                dirWorking.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList()
+        )
     }
 
     "build" {
@@ -228,7 +236,7 @@ tasks {
     "run"(JavaExec::class) {
         dependsOn(copyLibs, kotlinc, "jar")
         group = main
-        workingDir = dirProject
+        workingDir = dirWorking
     }
 
     getByName("compileKotlin").dependsOn(linkJdk)
@@ -251,10 +259,15 @@ application {
             "--add-opens", "java.desktop/java.awt.font=ALL-UNNAMED",
             "--add-opens", "javafx.controls/javafx.scene.control=ALL-UNNAMED",
             "--add-opens", "javafx.controls/javafx.scene.control.skin=ALL-UNNAMED",
-            "--add-opens", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
-            "--add-opens", "javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED",
-            "--add-opens", "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED",
             "--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
             "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED"
     )
 }
+
+operator fun File.div(childName: String) = this.resolve(childName)
+
+val String.sysProp: String get() = System.getProperty(this)
+
+fun failIO(cause: Throwable? = null, message: () -> String): Nothing  = throw IOException(message(), cause)
+
+fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, message) }

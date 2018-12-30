@@ -6,7 +6,7 @@ import javafx.scene.layout.Region;
 /**
  * Sprite base class
  */
-public abstract class Sprite extends Region {
+abstract class Sprite extends Region {
 
 	Vector2D location;
 	Vector2D velocity;

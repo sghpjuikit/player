@@ -1,11 +1,7 @@
 package sp.it.pl.gui.pane
 
-import javafx.scene.control.ScrollPane
-import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
-import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.layout.Pane
 import sp.it.pl.util.async.runLater
-import sp.it.pl.util.graphics.setAnchors
 import java.lang.Integer.max
 import java.lang.Math.ceil
 import java.lang.Math.floor
@@ -50,24 +46,6 @@ class CellPane: Pane {
         val rows = ceil(elements.toDouble()/columns).toInt()
 
         runLater { prefHeight = rows*(cellH+gapY) }
-    }
-
-    /**
-     * Wrap the content in a scroll pane
-     *
-     * @return scroll pane wrapper of the content
-     */
-    fun scrollable(): ScrollPane {
-        val s = ScrollPane().apply {
-            content = this
-            isFitToWidth = true
-            isFitToHeight = false
-            hbarPolicy = NEVER
-            vbarPolicy = AS_NEEDED
-        }
-        children += s
-        s.setAnchors(0.0)
-        return s
     }
 
 }

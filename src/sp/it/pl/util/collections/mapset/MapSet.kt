@@ -23,7 +23,7 @@ import kotlin.collections.MutableMap.MutableEntry
  * collection, but leveraging arbitrary element identity.
  * Use like this: `new MapSet<K,E>(e -> e.identity(), elements)`
  */
-open class MapSet<K: Any, E: Any>: MutableSet<E> {
+class MapSet<K: Any, E: Any>: MutableSet<E> {
 
     /**
      * Function transforming element to its key. Used for all collection
@@ -61,8 +61,7 @@ open class MapSet<K: Any, E: Any>: MutableSet<E> {
         addAll(*c)
     }
 
-    @Deprecated("unsafe")
-    fun backingMap() = m
+    fun backingMap(): Map<K, E> = m
 
     override val size get() =  m.size
 

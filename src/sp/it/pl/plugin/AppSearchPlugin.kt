@@ -1,24 +1,21 @@
 package sp.it.pl.plugin
 
-import de.jensd.fx.glyphs.materialicons.MaterialIcon
 import mu.KLogging
+import sp.it.pl.gui.objects.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
 import sp.it.pl.main.APP
+import sp.it.pl.main.IconMA
+import sp.it.pl.main.showAppProgress
+import sp.it.pl.util.async.runNew
+import sp.it.pl.util.collections.materialize
+import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cList
 import sp.it.pl.util.conf.cr
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.only
-import sp.it.pl.util.async.oneCachedThreadExecutor
-import sp.it.pl.util.async.runOn
-import sp.it.pl.util.async.threadFactory
-import sp.it.pl.util.collections.materialize
-import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
-import sp.it.pl.util.math.seconds
 import sp.it.pl.util.system.runAsProgram
-import sp.it.pl.util.type.atomic
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 
@@ -33,27 +30,29 @@ class AppSearchPlugin: PluginBase("App Search", false) {
     @IsConfig(name = "Re-scan apps")
     private val searchDo by cr { findApps() }
 
-    private val thread by lazy { oneCachedThreadExecutor(seconds(2), threadFactory("appFinder", true)) }
-    private var searchSource by atomic(listOf<File>())
-    private val searchProvider = { searchSource.asSequence().map { it.toRunApplicationEntry() } }
+    private var searchSourceApps = listOf<File>()
+    private val searchSource = { searchSourceApps.asSequence().map { it.toRunApplicationEntry() } }
 
     override fun onStart() {
-        APP.search.sources += searchProvider
+        APP.search.sources += searchSource
         findApps()
     }
 
     override fun onStop() {
-        APP.search.sources -= searchProvider
+        APP.search.sources -= searchSource
     }
 
     private fun findApps() {
-        runOn(thread) {
-            // TODO: show progress
-            searchSource = searchDirs.materialize().asSequence()
+        val dirs = searchDirs.materialize()
+        runNew {
+            dirs.asSequence()
                     .distinct()
                     .flatMap { findApps(it) }
                     .toList()
+        }.ui {
+            searchSourceApps = it
         }
+        .showAppProgress("$name: Searching for applications")
     }
 
     private fun findApps(dir: File): Sequence<File> {
@@ -67,8 +66,8 @@ class AppSearchPlugin: PluginBase("App Search", false) {
             { "Run app: $nameWithoutExtensionOrRoot" },
             { "Runs application: $absolutePath" },
             { "Run app: $absolutePath" },
-            { runAsProgram() },
-            { Icon(MaterialIcon.APPS) }
+            { Icon(IconMA.APPS) },
+            { runAsProgram() }
     )
 
     companion object: KLogging()

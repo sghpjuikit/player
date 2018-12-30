@@ -4,31 +4,22 @@
 package sp.it.pl.util.math
 
 import javafx.util.Duration
-import java.nio.file.attribute.FileTime
-import java.util.Date
 
 /** Golden ratio - `1.6180339887`. */
 const val GOLDEN_RATIO = 1.6180339887
 
-fun millis(value: Int) = Duration.millis(value.toDouble())!!
-
-fun millis(value: Double) = Duration.millis(value)!!
-
-fun seconds(value: Int) = Duration.seconds(value.toDouble())!!
-
-fun seconds(value: Double) = Duration.seconds(value)!!
-
-fun minutes(value: Int) = Duration.minutes(value.toDouble())!!
-
-fun minutes(value: Double) = Duration.minutes(value)!!
-
-fun FileTime.toDate() = Date(toMillis())
+val Number.millis: Duration get() = Duration.millis(toDouble())!!
+val Number.seconds: Duration get() = Duration.seconds(toDouble())!!
+val Number.minutes: Duration get() = Duration.minutes(toDouble())!!
+val Number.hours: Duration get() = Duration.hours(toDouble())!!
 
 operator fun Duration.minus(d: Duration) = subtract(d)!!
-operator fun Duration.minus(d: Double) = millis(toMillis()-d)
-operator fun Duration.plus(d: Duration) = millis(toMillis()+d.toMillis())
-operator fun Duration.plus(d: Double) = millis(toMillis()+d)
-operator fun Duration.div(d: Double) = millis(toMillis()/d)
-operator fun Duration.times(d: Double) = millis(toMillis()*d)
+operator fun Duration.plus(d: Duration) = add(d)!!
+operator fun Duration.div(d: Number) = Duration(toMillis()/d.toDouble())
+operator fun Duration.times(d: Number) = Duration(toMillis()*d.toDouble())
+
 infix fun Duration.divMillis(d: Duration) = toMillis()/d.toMillis()
 infix fun Duration.timesMillis(d: Duration) = toMillis()*d.toMillis()
+
+infix fun Double.max(number: Double) = this.coerceAtLeast(number)
+infix fun Double.min(number: Double) = this.coerceAtMost(number)

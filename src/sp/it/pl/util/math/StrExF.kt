@@ -30,7 +30,7 @@ class StrExF(s: String): Ƒ1<Double, Double> {
 
     companion object {
         @Dependency("toString")
-        @JvmStatic fun fromString(s: String): Try<StrExF, Exception> {
+        fun fromString(s: String): Try<StrExF, Exception> {
             return try {
                 Try.ok(StrExF(s))
             } catch (e: Exception) {

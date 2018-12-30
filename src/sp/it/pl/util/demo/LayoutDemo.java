@@ -39,7 +39,7 @@ import javafx.stage.StageStyle;
  * @author jewelsea (github)
  * @see <a href="http://gist.github.com/jewelsea/1441960">gist.github.com/jewelsea/1441960</a>
  */
-public class LayoutDemo extends Application {
+class LayoutDemo extends Application {
 	private final ObservableList<Shape> shapes = FXCollections.observableArrayList();
 	private final ObservableList<ShapePair> intersections = FXCollections.observableArrayList();
 	private final ObjectProperty<BoundsType> selectedBoundsType = new SimpleObjectProperty<>(BoundsType.LAYOUT_BOUNDS);

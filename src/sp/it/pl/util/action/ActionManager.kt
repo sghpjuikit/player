@@ -3,9 +3,8 @@ package sp.it.pl.util.action
 import javafx.application.Platform
 import javafx.scene.input.KeyCode.ALT_GRAPH
 import javafx.stage.Stage
-import sp.it.pl.util.conf.c
-import sp.it.pl.util.conf.cv
-import sp.it.pl.util.conf.readOnlyUnless
+import javafx.stage.Window
+import org.reactfx.Subscription
 import sp.it.pl.util.access.initSync
 import sp.it.pl.util.access.v
 import sp.it.pl.util.action.ActionRegistrar.hotkeys
@@ -13,11 +12,13 @@ import sp.it.pl.util.collections.mapset.MapSet
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.hotkey.Hotkeys
 import sp.it.pl.util.reactive.Subscribed
-import sp.it.pl.util.reactive.onItemAdded
-import sp.it.pl.util.reactive.onItemRemoved
-import sp.it.pl.util.reactive.sync1IfNonNull
+import sp.it.pl.util.reactive.onItemSync
+import sp.it.pl.util.reactive.syncIntoWhile
 import sp.it.pl.util.system.Os
 import java.util.concurrent.ConcurrentHashMap
 
@@ -81,22 +82,10 @@ object ActionManager {
                 }
             }
         }
-    }.readOnlyUnless { isGlobalShortcutsSupported }
+    }.readOnlyUnless(isGlobalShortcutsSupported)
 
 
     /* ---------- HELPER METHODS ---------------------------------------------------------------------------------------- */
-
-    // TODO: Subscriptions are leaking here
-    private val localActionRegisterer1 = Subscribed {
-        Stage.getWindows().onItemAdded { it.sceneProperty().sync1IfNonNull {
-                scene -> ActionRegistrar.getActions().forEach { if (!it.isGlobal) it.registerInScene(scene) }
-        } }
-    }
-    private val localActionRegisterer2 = Subscribed {
-        Stage.getWindows().onItemRemoved { it.scene?.let {
-                scene -> ActionRegistrar.getActions().forEach { if (!it.isGlobal) it.unregisterInScene(scene) }
-        } }
-    }
 
     /**
      * Activates listening process for hotkeys. Not running this method will cause hotkeys to not
@@ -125,19 +114,27 @@ object ActionManager {
         isActionListening = false
     }
 
+    private val localActionRegisterer = Subscribed {
+        Stage.getWindows().onItemSync {
+            v(it).syncIntoWhile(Window::sceneProperty) { scene ->
+                if (scene!=null) {
+                    ActionRegistrar.getActions().forEach { it.registerInScene(scene) }
+                    Subscription { ActionRegistrar.getActions().forEach { it.unregisterInScene(scene) } }
+                } else {
+                    Subscription.EMPTY
+                }
+            }
+        }
+    }
+
     /** Activates listening process for local hotkeys.  */
     private fun startLocalListening() {
-        localActionRegisterer1.subscribe(true)
-        localActionRegisterer2.subscribe(true)
+        localActionRegisterer.subscribe(true)
     }
 
     /** Deactivates listening process for local hotkeys. */
     private fun stopLocalListening() {
-        localActionRegisterer1.subscribe(false)
-        localActionRegisterer2.subscribe(false)
-        Stage.getWindows().forEach { window ->
-            window.scene?.let { scene -> ActionRegistrar.getActions().forEach { it.unregisterInScene(scene) } }
-        }
+        localActionRegisterer.subscribe(false)
     }
 
     /**

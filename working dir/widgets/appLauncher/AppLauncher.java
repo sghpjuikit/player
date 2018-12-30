@@ -14,35 +14,44 @@ import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.util.Sort;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.fieldvalue.FileField;
 import sp.it.pl.util.async.executor.FxTimer;
-import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.conf.Config.VarList.Elements;
 import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.file.FileSort;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.Resolution;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.graphics.drag.Placeholder;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
+import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
+import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.KEY_PRESS;
+import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
+import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_HOVER;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Sort.ASCENDING;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
-import static sp.it.pl.util.async.AsyncKt.run;
+import static sp.it.pl.util.async.AsyncKt.runFX;
+import static sp.it.pl.util.async.AsyncKt.runOn;
+import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.file.FileSort.DIR_FIRST;
 import static sp.it.pl.util.file.FileType.FILE;
 import static sp.it.pl.util.functional.Util.by;
+import static sp.it.pl.util.functional.Util.list;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
@@ -59,6 +68,7 @@ import static sp.it.pl.util.system.EnvironmentKt.open;
     year = "2016",
     group = OTHER
 )
+@LegacyController
 public class AppLauncher extends SimpleController {
 
     private static final double CELL_TEXT_HEIGHT = 40;
@@ -89,8 +99,10 @@ public class AppLauncher extends SimpleController {
     final V<FileSort> sort_file = new V<>(DIR_FIRST, v -> applySort());
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
     final VarEnum<FileField<?>> sortBy = new VarEnum<>(FileField.NAME, () -> FileField.FIELDS, v -> applySort());
+    @Dependency("name: used by reflection")
     @IsConfig(name = "Close on launch", info = "Close this widget when it launches a program.")
     final V<Boolean> closeOnLaunch = new V<>(false);
+    @Dependency("name: used by reflection")
     @IsConfig(name = "Close on right click", info = "Close this widget when right click is detected.")
     final V<Boolean> closeOnRightClick = new V<>(false);
 
@@ -103,13 +115,14 @@ public class AppLauncher extends SimpleController {
         files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
         grid.search.field = FileField.PATH;
         grid.primaryFilterField = FileField.NAME_FULL;
+        grid.selectOn.addAll(list(KEY_PRESS, MOUSE_CLICK, MOUSE_HOVER));
         grid.setCellFactory(grid -> new Cell());
         setAnchor(this,grid,0d);
         placeholder.showFor(this);
 
         // delay cell loading when content is being resized (increases resize performance)
         double delay = 200; // ms
-        FxTimer resizeTimer = new FxTimer(delay, 1, () -> isResizing = false);
+        FxTimer resizeTimer = fxTimer(millis(delay), 1, runnable(() -> isResizing = false));
         grid.widthProperty().addListener((o,ov,nv) -> isResizing = true);
         grid.heightProperty().addListener((o,ov,nv) -> isResizing = true);
         grid.widthProperty().addListener((o,ov,nv) -> resizeTimer.start(millis(300)));
@@ -144,22 +157,20 @@ public class AppLauncher extends SimpleController {
         Item item = new TopItem();
 //        item.lastScrollPosition = grid.implGetSkin().getFlow().getPosition(); // can cause null here
 	    visitId.incrementAndGet();
-        Fut.fut(item)
-                .map(executorIO, Item::children)
-                .use(executorIO, cells -> cells.sort(buildSortComparator()))
-                .use(FX, cells -> {
+        runOn(executorIO, () -> item.children().stream().sorted(buildSortComparator()).collect(toList()))
+                .useBy(FX, cells -> {
                     grid.getItemsRaw().setAll(cells);
                     if (item.lastScrollPosition>=0)
                         grid.implGetSkin().setPosition(item.lastScrollPosition);
 
-	                grid.implGetSkin().requestFocus();    // fixes focus problem
+                    grid.requestFocus();    // fixes focus problem
                 });
     }
 
     private void doubleClickItem(Item i) {
         if (closeOnLaunch.get()) {
             widget.areaTemp.close();
-            run(250, () -> open(i.val));
+            runFX(millis(250), () -> open(i.val));
         } else {
             open(i.val);
         }

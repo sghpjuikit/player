@@ -29,8 +29,6 @@ public class Scrobbling {
 				currentMetadata.getTitle(),
 				session
 		);
-
-//        System.out.println("ok: " + (result.isSuccessful() && !result.isIgnored()));
 	}
 
 	protected void scrobble(Metadata track) {

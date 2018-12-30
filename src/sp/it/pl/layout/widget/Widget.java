@@ -29,6 +29,8 @@ import sp.it.pl.layout.area.ContainerNode;
 import sp.it.pl.layout.area.IOLayer;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.controller.Controller;
+import sp.it.pl.layout.widget.controller.FXMLController;
+import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.controller.io.Output;
@@ -41,6 +43,8 @@ import sp.it.pl.util.conf.Configuration;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.dev.Dependency;
+import sp.it.pl.util.file.Properties;
+import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.reactive.Disposer;
 import sp.it.pl.util.type.Util;
 import static java.lang.annotation.ElementType.TYPE;
@@ -184,12 +188,15 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	 *
 	 * @return graphical content of this widget
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public Node load() {
 		if (root==null) {
 			controller = instantiateController();
 			if (controller==null) {
-				root = Widget.EMPTY().load();
+				Widget w = Widget.EMPTY();
+				root = w.load();
+				controller = (C) w.controller;
 			} else {
 				try {
 					root = controller.loadFirstTime();
@@ -197,19 +204,19 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 					// in WidgetArea
 					// lockedUnder.init();
 
-					// this call must execute after this widget is attached to the scenegraph
-					// so initialization can access it
-					// however that does not happen here. The root Container and Node should be passed
-					// as parameters to this method
-					controller.init();
-
-					restoreDefaultConfigs();
-					restoreConfigs();
-					controller.refresh();
+					Class<?> cc = controller.getClass();
+					boolean isLegacy = FXMLController.class.isAssignableFrom(cc) || cc.isAnnotationPresent(LegacyController.class);
+					if (isLegacy) {
+						controller.init();
+						restoreConfigs();
+						controller.refresh();
+					}
 
 					updateIO();
 				} catch (Throwable e) {
-					root = Widget.EMPTY().load();
+					Widget w = Widget.EMPTY();
+					root = w.load();
+					controller = (C) w.controller;
 					LOGGER.error("Widget {} graphics creation failed. Using empty widget instead.", getName(), e);
 				}
 			}
@@ -226,6 +233,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 
 	@SuppressWarnings("unchecked")
 	private C instantiateController() {
+		restoreDefaultConfigs();
 
 		// instantiate controller
 		Class<C> cc = (Class) factory.getControllerType(); // TODO: make factory type safe and avoid cast
@@ -267,8 +275,8 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 			}
 		);
 
+		// generate inputs
 		if (c!=null) {
-			// generate inputs
 			for (Method m : cc.getDeclaredMethods()) {
 				IsInput a = m.getAnnotation(IsInput.class);
 				if (a!=null) {
@@ -301,6 +309,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 				}
 			}
 		}
+
 		return c;
 	}
 
@@ -394,7 +403,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 
 	public void focus() {
 		if (isLoaded()) {
-			root.requestFocus();
+			controller.focus();
 		}
 	}
 
@@ -496,6 +505,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		return this;
 	}
 
+	private static Ƒ1<Config<?>,String> configToRawKeyMapper = it -> it.getName();
 
 	private void storeConfigs() {
 		// We store only Controller configs as configs of this widget should be defined in this
@@ -509,8 +519,8 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		if (controller==null) return;
 
 		@SuppressWarnings("unchecked")
-		Map<String,String> serialized_configs = (Map) properties.computeIfAbsent("configs", key -> new HashMap<>()); // preserves existing configs
-		controller.getFields().forEach(c -> serialized_configs.put(c.getName(), c.getValueS()));
+		Map<String,String> serialized_configs = (Map) properties.computeIfAbsent("configs", key -> new HashMap<>());
+		controller.getFields().forEach(c -> serialized_configs.put(configToRawKeyMapper.apply(c), c.getValueS()));
 	}
 
 	private void restoreConfigs() {
@@ -523,20 +533,20 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	}
 
 	public void storeDefaultConfigs() {
+		if (!isLoaded()) throw new AssertionError("Must be loaded to export default configs");
+
 		File configFile = new File(getUserLocation(), "default.properties");
-		Configuration configuration = new Configuration();
+		Configuration configuration = new Configuration(configToRawKeyMapper);
 		configuration.collect(filter(getFields(), f -> !deepEquals(f.getValue(), f.getDefaultValue())));
 		configuration.save("Custom default widget settings", configFile);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void restoreDefaultConfigs() {
 		File configFile = new File(getUserLocation(), "default.properties");
 		if (configFile.exists()) {
-			Configuration configuration = new Configuration();
-			configuration.rawAdd(configFile);
-			configuration.collect(filter(getFields(), f -> configuration.rawContains(f)));
-			configuration.rawSet();
-			configuration.getFields().forEach(f -> setField(f.getName(), f.getValueS()));
+			Map<String,String> deserialized_configs = (Map) properties.computeIfAbsent("configs", key -> new HashMap<>());
+			Properties.load(configFile).forEach(deserialized_configs::putIfAbsent);
 		}
 	}
 

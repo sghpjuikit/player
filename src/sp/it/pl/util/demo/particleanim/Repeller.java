@@ -10,7 +10,7 @@ import javafx.scene.text.TextBoundsType;
 /**
  * A node which calculates a repelling force for particles
  */
-public class Repeller extends Sprite {
+class Repeller extends Sprite {
 
 	public Repeller(Vector2D location, Vector2D velocity, Vector2D acceleration, double width, double height) {
 		super(location, velocity, acceleration, width, height);

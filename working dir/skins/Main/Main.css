@@ -3491,7 +3491,9 @@
  * inherits: ScrollPane, .block
  * Used in layouts (should mirror the style of widget area), but also popups.
  */
-.item-picker {}
+.item-picker {
+ -fx-padding: 1px
+}
 
 .item-picker-element {
     -fx-background-color: -fx-pane-color;

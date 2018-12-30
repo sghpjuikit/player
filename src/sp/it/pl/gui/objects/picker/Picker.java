@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.geometry.Insets;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -100,6 +101,7 @@ public class Picker<E> {
 			// info content
 			Node content = cell.getChildren().get(0);
 			Text ta = new Text(info);
+			ta.setTextOrigin(VPos.CENTER);
 			ta.setMouseTransparent(true);
 			ta.setTextAlignment(JUSTIFY);
 			ScrollPane sp = layScrollVText(ta);
@@ -176,8 +178,9 @@ public class Picker<E> {
 
 		@Override
 		protected void layoutChildren() {
-			double width = root.getWidth();
-			double height = root.getHeight();
+			Insets padding = root.getPadding();
+			double width = root.getWidth() - padding.getLeft() - padding.getRight();
+			double height = root.getHeight() - padding.getTop() - padding.getBottom();
 
 			int gap = 1;
 			int elements = getChildren().size();
@@ -199,10 +202,14 @@ public class Picker<E> {
 			final double cell_width = (W - sumgapx)/columns;
 
 			forEachWithI(getCells(), (i, n) -> {
-				double x = i%columns*(cell_width + gap);
-				double y = i/columns*(cell_height + gap);
-				n.relocate(x, y);
-				n.resize(cell_width, cell_height);
+				double x = padding.getLeft() + i%columns*(cell_width + gap);
+				double y = padding.getTop() + i/columns*(cell_height + gap);
+				n.resizeRelocate(
+					snapPositionX(x),
+					snapPositionY(y),
+					snapPositionX(x+cell_width)-snapPositionX(x),
+					snapPositionX(y+cell_height)-snapPositionY(y)
+				);
 			});
 		}
 

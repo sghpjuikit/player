@@ -59,10 +59,9 @@ class CoreMenus: Core {
             }
             if (APP.developerMode)
                 menu("Public methods") {
-                    items(
-                            getAllMethods(selected::class.java).asSequence()
-                                    .filter { Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) }
-                                    .filter { it.parameterCount==0 && it.returnType==Void.TYPE },
+                    items(getAllMethods(selected::class.java).asSequence()
+                            .filter { Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) }
+                            .filter { it.parameterCount==0 && it.returnType==Void.TYPE },
                             { it.name },
                             {
                                 try {
@@ -144,8 +143,7 @@ class CoreMenus: Core {
             menuItem("Explore items's directory") { browseMultipleFiles(selected.items.asSequence().mapNotNull { it.getFile() }) }
             menuItem("Add items to library") { APP.db.addItems(selected.items.map { it.toMeta() }) }
             menu("Search album cover") {
-                items(
-                        APP.instances.getInstances<SearchUriBuilder>(),
+                items(APP.instances.getInstances<SearchUriBuilder>(),
                         { "in ${it.name}" },
                         { APP.db.itemToMeta(selected.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
                 )
@@ -155,8 +153,8 @@ class CoreMenus: Core {
             if (selected.image!=null)
                 menu("Image") {
                     item("Save image as ...") {
-                        saveFile("Save image as...", APP.DIR_APP, selected.iFile?.name
-                                ?: "new_image", contextMenu.ownerWindow, ImageFileFormat.filter())
+                        saveFile("Save image as...", APP.DIR_APP, selected.iFile?.name ?: "new_image",
+                                contextMenu.ownerWindow, ImageFileFormat.filter())
                                 .ifOk { writeImage(selected.image, it) }
                     }
                     item("Copy to clipboard") { copyToSysClipboard(DataFormat.IMAGE, selected.image) }
@@ -195,10 +193,12 @@ class CoreMenus: Core {
 
 
     /** DSL for creating menu. */
-    private fun <T: MenuItem> menuItems(vararg elements: T?) = seqOf(*elements).filterNotNull().filterNot { it is Menu && it.items.isEmpty() }
+    private fun <T: MenuItem> menuItems(vararg elements: T?) =
+            seqOf(*elements).filterNotNull().filterNot { it is Menu && it.items.isEmpty() }
 
     /** DSL for creating menu. */
-    private inline fun menu(text: String, graphics: Node? = null, then: (Menu).() -> Unit) = Menu(text, graphics).apply { then() }
+    private inline fun menu(text: String, graphics: Node? = null, then: (Menu).() -> Unit) =
+            Menu(text, graphics).apply { then() }
 
     /** DSL for creating menu. */
     private inline fun Menu.menu(text: String, graphics: Node? = null, then: (Menu).() -> Unit) {
@@ -227,8 +227,10 @@ class CoreMenus: Core {
         return menuOfItemsFor(contextMenu, menuName, value)
     }
 
-    private fun menuOfItemsFor(contextMenu: ImprovedContextMenu<*>, menuName: String, value: Any?) = menu(menuName, contextMenuItemBuilders[contextMenu, value])
+    private fun menuOfItemsFor(contextMenu: ImprovedContextMenu<*>, menuName: String, value: Any?) =
+            menu(menuName, contextMenuItemBuilders[contextMenu, value])
 
-    private fun menu(text: String, items: Sequence<MenuItem> = seqOf()) = Menu(text, null, *items.asArray())
+    private fun menu(text: String, items: Sequence<MenuItem> = seqOf()) =
+            Menu(text, null, *items.asArray())
 
 }

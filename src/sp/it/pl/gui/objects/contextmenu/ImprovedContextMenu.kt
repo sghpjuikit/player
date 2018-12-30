@@ -22,10 +22,10 @@ private val logger = KotlinLogging.logger { }
 val contextMenuItemBuilders = ContextMenuItemSuppliers()
 
 /**
- * Context menu wrapping a value - usually an object set before showing, for menu items' action. It can then generate
- * the items based on the value from supported actions, using [contextMenuItemBuilders].
+ * Context menu wrapping a value - usually an object set before showing, for menu items' action.
+ * It can then generate the items based on the value from supported actions, using [contextMenuItemBuilders].
  *
- * Usually [ValueContextMenu] is better choice.
+ * [ValueContextMenu] is usually superior, as it also handles Collections.
  */
 open class ImprovedContextMenu<E: Any?>: ContextMenu(), AccessibleValue<E> {
 
@@ -81,8 +81,10 @@ open class ImprovedContextMenu<E: Any?>: ContextMenu(), AccessibleValue<E> {
 }
 
 /**
- * Generic [ImprovedContextMenu], which supports collection unwrapping in [setValue] (empty collection will be handled
- * as null and collection with one element handled as that one element). This is convenient for multi-select controls.
+ * Generic [ImprovedContextMenu], which supports collection unwrapping in [setValue]
+ * - empty collection will be handled as null
+ * - collection with one element will be unwrapped
+ * This is convenient for multi-select controls.
  */
 class ValueContextMenu: ImprovedContextMenu<Any?>() {
 
@@ -107,16 +109,16 @@ class ContextMenuItemSuppliers {
 
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> add(type: Class<T>, items: ContextMenuBuilder<T>.() -> Unit) {
-        mSingle.accumulate(type, { menu, item ->
+        mSingle.accumulate(type) { menu, item ->
             ContextMenuBuilder(menu, item as T).also { items(it) }.menuItems.asSequence()
-        })
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> addMany(type: Class<T>, items: ContextMenuBuilder<Collection<T>>.() -> Unit) {
-        mMany.accumulate(type, { menu, item ->
+        mMany.accumulate(type) { menu, item ->
             ContextMenuBuilder(menu, item as Collection<T>).also { items(it) }.menuItems.asSequence()
-        })
+        }
     }
 
     inline fun <reified T: Any> add(noinline items: ContextMenuBuilder<T>.() -> Unit) {

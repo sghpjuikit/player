@@ -93,7 +93,11 @@ private fun File.readTimeModified(): LocalDateTime? = lastModified().localDateTi
 private fun File.readTimeCreated(): FileTime? =
         when (this.mimeType().name) {
             "application/x-kra" -> readKritaTimeCreated() ?: readTimeMinOfCreatedAndModified()
-            else -> readXmpTimeCreated() ?: readTimeMinOfCreatedAndModified()
+            else -> when {
+                // poor but fast way of avoiding xmp reading for directories
+                name.contains(".") -> readXmpTimeCreated() ?: readTimeMinOfCreatedAndModified()
+                else -> readTimeMinOfCreatedAndModified()
+            }
         }
 
 private fun File.readTimeMinOfCreatedAndModified(): FileTime? = readBasicFileAttributes()

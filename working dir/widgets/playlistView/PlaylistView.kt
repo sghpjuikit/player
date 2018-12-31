@@ -152,7 +152,7 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
         table.menuRemove.apply {
             item("Remove selected") { playlist -= table.selectedItems }
             item("Remove not selected") { playlist.retainAll(table.selectedItems) }
-            item("Remove unsupported") { playlist.removeUnplayable() }
+            item("Remove unplayable") { playlist.removeUnplayable() }
             item("Remove duplicates") { playlist.removeDuplicates() }
             item("Remove all") { playlist.clear() }
         }

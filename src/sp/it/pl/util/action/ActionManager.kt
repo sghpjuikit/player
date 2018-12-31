@@ -41,9 +41,6 @@ object ActionManager {
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.")
     var Shortcut_ALTERNATE by c(ALT_GRAPH)
 
-    @IsConfig(name = "Collapse layout", info = "Collapses focused container within layout.", editable = EditMode.NONE)
-    val Shortcut_COLAPSE by c("Shift+C")
-
     /**
      * Whether global shortcuts are supported by the active platform.
      * If not, global shortcuts will run as local and [startGlobalListening] 

@@ -13,6 +13,7 @@ import sp.it.pl.gui.objects.grid.GridView;
 import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.window.stage.Window;
+import sp.it.pl.layout.widget.ExperimentalController;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
@@ -68,6 +69,7 @@ import static sp.it.pl.util.system.EnvironmentKt.open;
     year = "2016",
     group = OTHER
 )
+@ExperimentalController
 @LegacyController
 public class AppLauncher extends SimpleController {
 

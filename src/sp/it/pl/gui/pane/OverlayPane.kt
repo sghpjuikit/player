@@ -279,8 +279,9 @@ abstract class OverlayPane<in T>: StackPane() {
                 op.opacity = 1.0
                 op.blurBack.height = 15.0*x*x
                 op.blurBack.width = 15.0*x*x
-                op.blurFront.height = 20*(1-x*x)
-                op.blurFront.width = 20*(1-x*x)
+                // improves performance a lot with little demerit
+                // op.blurFront.height = 20*(1-x*x)
+                // op.blurFront.width = 20*(1-x*x)
                 op.scaleX = 1+0.2*(1-x)
                 op.scaleY = 1+0.2*(1-x)
             } else {
@@ -288,8 +289,9 @@ abstract class OverlayPane<in T>: StackPane() {
                 op.opacity = x
                 op.blurBack.height = 15.0*x*x
                 op.blurBack.width = 15.0*x*x
-                op.blurFront.height = 20*(1-x*x)
-                op.blurFront.width = 20*(1-x*x)
+                // improves performance a lot with little demerit
+                // op.blurFront.height = 20*(1-x*x)
+                // op.blurFront.width = 20*(1-x*x)
                 op.scaleX = 1+2*(1-x)
                 op.scaleY = 1+2*(1-x)
             }

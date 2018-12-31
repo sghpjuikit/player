@@ -357,7 +357,7 @@ public class Window extends WindowBase {
 			+ "\tPress ALT : Show hidden header temporarily.\n"
 			+ "\tPress ALT : Activate layout mode.\n"
 			+ "\tContent right drag : drag tabs.").size(is);
-		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, is).scale(0.4).onClick(e -> AppProgress.INSTANCE.showTasks((Node) e.getTarget()));
+		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, is).scale(0.4).onClick(e -> AppProgress.INSTANCE.showTasks((Node) e.getTarget())).tooltip("Progress & Tasks");
 
 		leftHeaderBox.getChildren().addAll(
 			layB, propB, runB, new Label(" "),

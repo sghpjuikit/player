@@ -182,7 +182,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Shows items in a table.",
                     IconMA.COLLECTIONS,
                     { items -> APP.widgetManager.widgets
-                                .find(Widgets.LIBRARY, NEW, false)
+                                .find(Widgets.SONG_TABLE, NEW, false)
                                 .ifPresent { it.controller.ownedInputs.getInput<Collection<Item>>("To display").setValue(items) }
                     }
             ),
@@ -191,7 +191,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Group items in a table.",
                     IconMA.COLLECTIONS,
                     { items -> APP.widgetManager.widgets
-                            .find(Widgets.LIBRARY_VIEW, NEW, false)
+                            .find(Widgets.SONG_GROUP_TABLE, NEW, false)
                                 .ifPresent { it.controller.ownedInputs.getInput<Collection<Item>>("To display").setValue(items) }
                     }
             )
@@ -321,7 +321,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
 
             val conf = object: ConfigurableBase<Boolean>() {
                 @IsConfig(name = "Make files writable if read-only", group ="1") val makeWritable by cv(true)
-                @IsConfig(name = "Edit in ${Widgets.TAGGER}", group ="2") val editInTagger by cv(false)
+                @IsConfig(name = "Edit in ${Widgets.SONG_TAGGER}", group ="2") val editInTagger by cv(false)
                 @IsConfig(name = "Edit only added files", group ="3") val editOnlyAdded by cv(false).readOnlyUnless(editInTagger)
                 @IsConfig(name = "Enqueue in playlist", group ="4") val enqueue by cv(false)
             }
@@ -357,7 +357,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                                         .then { task(it.map { SimpleItem(it) }) }
                                         .ui { result ->
                                             if (conf.editInTagger.value) {
-                                                val tagger = APP.widgetManager.factories.getFactory(Widgets.TAGGER)?.create()
+                                                val tagger = APP.widgetManager.factories.getFactory(Widgets.SONG_TAGGER)?.create()
                                                 val items = if (conf.editOnlyAdded.value) result.converted else result.all
                                                 if (tagger!=null) {
                                                     taggerLayout += tagger.load()

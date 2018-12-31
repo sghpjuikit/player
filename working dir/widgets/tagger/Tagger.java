@@ -140,7 +140,7 @@ import static sp.it.pl.util.graphics.UtilKt.createIcon;
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 @Widget.Info(
-    name = Widgets.TAGGER,
+    name = Widgets.SONG_TAGGER,
     author = "Martin Polakovic",
     howto = "Available actions:\n"
           + "    Drag cover away : Removes cover\n"
@@ -480,7 +480,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             runFX(() -> {
                 writing = false;
                 populate(items);
-                APP.services.use(Notifier.class, s -> s.showTextNotification("Tagging complete", Widgets.TAGGER));
+                APP.services.use(Notifier.class, s -> s.showTextNotification("Tagging complete", Widgets.SONG_TAGGER));
             });
         });
 

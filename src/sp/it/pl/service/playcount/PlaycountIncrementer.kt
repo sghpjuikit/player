@@ -87,7 +87,7 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
                 if (showNotification.value)
                     APP.services.use<Notifier> { it.showTextNotification("Song playcount incrementing scheduled", "Playcount") }
                 if (showBubble.value)
-                    APP.services.use<TrayService> { it.showNotification(Widgets.TAGGER, "Playcount incremented scheduled", INFO) }
+                    APP.services.use<TrayService> { it.showNotification(Widgets.SONG_TAGGER, "Playcount incremented scheduled", INFO) }
             } else {
                 val pc = 1+m.getPlaycountOr0()
                 MetadataWriter.use(m, { it.setPlaycount(pc) }) { ok ->
@@ -95,7 +95,7 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
                         if (showNotification.value)
                             APP.services.use<Notifier> { it.showTextNotification("Song playcount incremented to: $pc", "Playcount") }
                         if (showBubble.value)
-                            APP.services.use<TrayService> { it.showNotification(Widgets.TAGGER, "Playcount incremented to: $pc", INFO) }
+                            APP.services.use<TrayService> { it.showNotification(Widgets.SONG_TAGGER, "Playcount incremented to: $pc", INFO) }
                     }
                 }
             }

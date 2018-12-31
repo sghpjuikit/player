@@ -77,7 +77,7 @@ import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
 
 @Info(
     author = "Martin Polakovic",
-    name = Widgets.LIBRARY,
+    name = Widgets.SONG_TABLE,
     description = "Provides access to database.",
     howto = "Available actions:\n" +
             "    Item left click : Selects item\n" +

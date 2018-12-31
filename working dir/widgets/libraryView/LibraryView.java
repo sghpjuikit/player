@@ -76,7 +76,7 @@ import static sp.it.pl.util.reactive.Util.maintain;
 
 @Info(
     author = "Martin Polakovic",
-    name = Widgets.LIBRARY_VIEW,
+    name = Widgets.SONG_GROUP_TABLE,
     description = "Provides database filtering.",
     howto = "Available actions:\n" +
             "    Item left click : Selects item\n" +

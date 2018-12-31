@@ -77,6 +77,8 @@ private typealias Settings = ConfiguringFeature
 
 private val logger = KotlinLogging.logger { }
 
+private fun Any?.orNone(): Any = this ?: "<none>"
+
 @Suppress("UNCHECKED_CAST", "RemoveExplicitTypeArguments")
 fun <T> tree(o: T): TreeItem<T> = when (o) {
     is TreeItem<*> -> o
@@ -88,8 +90,8 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
     is Container<*> -> LayoutItem(o)
     is File -> FileTreeItem(o)
     is Node -> NodeTreeItem(o)
-    is Image -> tree("Image", tree("Url", o.url), "Width${o.width}", "Height${o.height}")
-    is Thumbnail.ContextMenuData -> tree("Thumbnail", tree("Data", o.representant), tree("Image", o.image), tree("Image file", o.iFile))
+    is Image -> tree("Image", tree("Url", o.url.orNone()), "Width${o.width}", "Height${o.height}")
+    is Thumbnail.ContextMenuData -> tree("Thumbnail", tree("Data", o.representant.orNone()), tree("Image", o.image.orNone()), tree("Image file", o.iFile.orNone()))
     is Scene -> tree("Scene", o.root)
     is javafx.stage.Window -> STreeItem(o, { seqOf(o.scene)+seqOf(o.asWindowOrNull()?.layout).filterNotNull() })
     is Window -> tree(o.stage)

@@ -55,6 +55,7 @@ import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.sync
 import java.awt.MouseInfo
 import java.awt.Point
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -389,17 +390,17 @@ fun ImageView.applyViewPort(i: Image?, fit: Thumbnail.FitFrom) {
         when (fit) {
             Thumbnail.FitFrom.INSIDE -> viewport = null
             Thumbnail.FitFrom.OUTSIDE -> {
-                val ratioIMG = i.width/i.width
+                val ratioIMG = i.width/i.height
                 val ratioTHUMB = layoutBounds.width/layoutBounds.height
                 when {
                     ratioTHUMB<ratioIMG -> {
                         val uiImgWidth = i.height*ratioTHUMB
-                        val x = (i.width-uiImgWidth)/2
+                        val x = abs(i.width-uiImgWidth)/2.0
                         viewport = Rectangle2D(x, 0.0, uiImgWidth, i.height)
                     }
                     ratioTHUMB>ratioIMG -> {
                         val uiImgHeight = i.width/ratioTHUMB
-                        val y = (i.height-uiImgHeight)/2
+                        val y = abs(i.height-uiImgHeight)/2
                         viewport = Rectangle2D(0.0, y, i.width, uiImgHeight)
                     }
                     ratioTHUMB==ratioIMG -> viewport = null

@@ -190,13 +190,13 @@ class UiManager(val skinDir: File): Configurable<Any> {
     @IsAction(name = "Fullscreen", desc = "Switch fullscreen mode.", keys = "F12")
     fun toggleFullscreen() = APP.windowManager.active.orNull()?.toggleFullscreen()
 
-    @IsAction(name = "Layout align", desc = "Aligns layout of the active window", keys = "SHIFT+UP")
+    @IsAction(name = "Layout align", desc = "Aligns layout of the active window", keys = "ALT+UP")
     fun tabAlign() = APP.windowManager.active.orNull()?.switchPane?.alignTabs()
 
-    @IsAction(name = "Layout move left", desc = "Moves layout of the active window to the left.", keys = "SHIFT+LEFT")
+    @IsAction(name = "Layout move left", desc = "Moves layout of the active window to the left.", keys = "ALT+LEFT")
     fun tabPrevious() = APP.windowManager.active.orNull()?.switchPane?.alignLeftTab()
 
-    @IsAction(name = "Layout move right", desc = "Moves layout of the active window to the right.", keys = "SHIFT+RIGHT")
+    @IsAction(name = "Layout move right", desc = "Moves layout of the active window to the right.", keys = "ALT+RIGHT")
     fun tabNext() = APP.windowManager.active.orNull()?.switchPane?.alignRightTab()
 
     @IsAction(name = Actions.LAYOUT_MODE, desc = "Shows/hides layout overlay.", keys = "F8")
@@ -214,7 +214,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
 
     fun setZoomMode(v: Boolean) = APP.windowManager.active.orNull()?.switchPane?.zoom(v)
 
-    @IsAction(name = "Layout zoom overlay in/out", desc = "Shows/hides layout overlay & zooms in/out.", keys = "SHIFT+DOWN")
+    @IsAction(name = "Layout zoom overlay in/out", desc = "Shows/hides layout overlay & zooms in/out.", keys = "ALT+DOWN")
     fun toggleLayoutNzoom() {
         toggleLayoutMode()
         toggleZoomMode()

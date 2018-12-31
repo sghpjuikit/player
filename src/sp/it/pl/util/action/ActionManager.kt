@@ -2,6 +2,8 @@ package sp.it.pl.util.action
 
 import javafx.application.Platform
 import javafx.scene.input.KeyCode.ALT_GRAPH
+import javafx.scene.input.KeyCode.SHIFT
+import javafx.scene.input.KeyCode.WINDOWS
 import javafx.stage.Stage
 import javafx.stage.Window
 import org.reactfx.Subscription
@@ -9,7 +11,7 @@ import sp.it.pl.util.access.initSync
 import sp.it.pl.util.access.v
 import sp.it.pl.util.action.ActionRegistrar.hotkeys
 import sp.it.pl.util.collections.mapset.MapSet
-import sp.it.pl.util.conf.EditMode
+import sp.it.pl.util.conf.EditMode.NONE
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.conf.c
@@ -20,6 +22,7 @@ import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.onItemSync
 import sp.it.pl.util.reactive.syncIntoWhile
 import sp.it.pl.util.system.Os
+import sp.it.pl.util.text.getNamePretty
 import java.util.concurrent.ConcurrentHashMap
 
 @IsConfigurable(Action.CONFIG_GROUP)
@@ -38,8 +41,11 @@ object ActionManager {
     //        }
     //    });
 
-    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.")
-    var Shortcut_ALTERNATE by c(ALT_GRAPH)
+    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", editable = NONE)
+    val keyManageLayout by c(ALT_GRAPH)
+
+    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", editable = NONE)
+    val keyManageWindow by c(WINDOWS.getNamePretty() + " + " + SHIFT.getNamePretty())
 
     /**
      * Whether global shortcuts are supported by the active platform.
@@ -48,10 +54,10 @@ object ActionManager {
      *
      * @return true iff global shortcuts are supported at running platform 
      */
-    @IsConfig(name = "Global shortcuts supported", editable = EditMode.NONE, info = "Whether global shortcuts are supported on this system")
+    @IsConfig(name = "Global shortcuts supported", editable = NONE, info = "Whether global shortcuts are supported on this system")
     val isGlobalShortcutsSupported by c(true)
 
-    @IsConfig(name = "Media shortcuts supported", editable = EditMode.NONE, info = "Whether media shortcuts are supported on this system")
+    @IsConfig(name = "Media shortcuts supported", editable = NONE, info = "Whether media shortcuts are supported on this system")
     private val isMediaShortcutsSupported by c(true)
 
     /** @return whether the action listening is running */

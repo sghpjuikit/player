@@ -211,12 +211,12 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 		// set key-induced actions
 		setOnKeyPressed(e -> {
-			if (e.isControlDown()) {
+			if (e.isControlDown() && !e.isShiftDown() && !e.isAltDown() && !e.isMetaDown()) {
 				if (e.getCode()==KeyCode.UP) {
-//                    table.getFocusModel().focus(-1);
+                    // table.getFocusModel().focus(-1);
 					moveSelectedItems(-1);
 				} else if (e.getCode()==KeyCode.DOWN) {
-//                    table.getFocusModel().focus(-1);
+                    // table.getFocusModel().focus(-1);
 					moveSelectedItems(1);
 				}
 			}

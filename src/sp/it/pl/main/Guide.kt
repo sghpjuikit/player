@@ -400,7 +400,7 @@ class Guide(guideEvents: EventSource<Any>? = null) {
         val h15_layoutMode = hint("Layout mode",
                 {
                     "For layout mode, there is also fast-shortcut reacting on key press and release."+
-                    "\n\nPress "+ActionManager.Shortcut_ALTERNATE.name.pretty()+" to temporarily enter layout mode. (If the shortcut "+
+                    "\n\nPress "+ActionManager.keyManageLayout.name.pretty()+" to temporarily enter layout mode. (If the shortcut "+
                     "is empty (disabled) go to next hint manually)."
                 }
         )

@@ -13,7 +13,9 @@ import mu.KotlinLogging
 import sp.it.pl.util.access.AccessibleValue
 import sp.it.pl.util.collections.map.ClassListMap
 import sp.it.pl.util.dev.fail
+import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.getElementType
+import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.Util
 
 private typealias ItemsSupply = (ImprovedContextMenu<*>, Any?) -> Sequence<MenuItem>
@@ -110,14 +112,14 @@ class ContextMenuItemSuppliers {
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> add(type: Class<T>, items: ContextMenuBuilder<T>.() -> Unit) {
         mSingle.accumulate(type) { menu, item ->
-            ContextMenuBuilder(menu, item as T).also { items(it) }.menuItems.asSequence()
+            ContextMenuBuilder(menu, item as T).also { items(it) }.asSequence()
         }
     }
 
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> addMany(type: Class<T>, items: ContextMenuBuilder<Collection<T>>.() -> Unit) {
         mMany.accumulate(type) { menu, item ->
-            ContextMenuBuilder(menu, item as Collection<T>).also { items(it) }.menuItems.asSequence()
+            ContextMenuBuilder(menu, item as Collection<T>).also { items(it) }.asSequence()
         }
     }
 
@@ -130,13 +132,12 @@ class ContextMenuItemSuppliers {
     }
 
     operator fun get(contextMenu: ImprovedContextMenu<*>, value: Any?): Sequence<MenuItem> {
+        logger.trace { "Generating contextmenu for $value" }
         val items1 = mSingle.getElementsOfSuperV(value?.javaClass ?: Void::class.java).asSequence()
-                .map { it(contextMenu, value) }
-                .flatMap { it }
+                .flatMap { it(contextMenu, value) }
         val itemsN = if (value is Collection<*>) {
             mMany.getElementsOfSuperV(value.getElementType()).asSequence()
-                    .map { it(contextMenu, contextMenu.value) }
-                    .flatMap { it }
+                    .flatMap { it(contextMenu, contextMenu.value) }
         } else {
             sequenceOf()
         }
@@ -145,17 +146,18 @@ class ContextMenuItemSuppliers {
 
 }
 
-class ContextMenuBuilder<T>(val contextMenu: ImprovedContextMenu<*>, val selected: T) {
-
-    internal val menuItems = ArrayList<MenuItem>()
+class ContextMenuBuilder<T>(val contextMenu: ImprovedContextMenu<*>, val selected: T): ArrayList<MenuItem>() {
 
     fun menuItem(text: String, handler: (ActionEvent) -> Unit) =
-            menuItems.add(Util.menuItem(text, handler))
+            Util.menuItem(text, handler).also { add(it) }
 
     fun menu(text: String, graphic: Node? = null, items: Menu.() -> Unit) =
             Menu(text, graphic).also {
                 items(it)
-                menuItems.add(it)
+                add(it)
             }
+
+    fun menu(text: String, items: Sequence<MenuItem> = seqOf()) =
+            Menu(text, null, *items.asArray()).also { add(it) }
 
 }

@@ -2,14 +2,13 @@ package sp.it.pl.core
 
 import javafx.scene.Node
 import javafx.scene.control.Menu
-import javafx.scene.control.MenuItem
 import javafx.scene.input.DataFormat
 import sp.it.pl.audio.SimpleItem
-import sp.it.pl.audio.playlist.PlaylistItem
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistItemGroup
+import sp.it.pl.gui.objects.contextmenu.ContextMenuBuilder
 import sp.it.pl.gui.objects.contextmenu.ContextMenuItemSuppliers
 import sp.it.pl.gui.objects.contextmenu.ImprovedContextMenu
 import sp.it.pl.gui.objects.contextmenu.contextMenuItemBuilders
@@ -24,8 +23,6 @@ import sp.it.pl.main.browseMultipleFiles
 import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util.writeImage
 import sp.it.pl.util.file.isPlayable
-import sp.it.pl.util.functional.asArray
-import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.Util.menuItem
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.copyToSysClipboard
@@ -54,9 +51,7 @@ class CoreMenus: Core {
     private fun ContextMenuItemSuppliers.init() = apply {
         add<Any> {
             menuItem("Show detail") { APP.actionPane.show(selected) }
-            menu("Examine in") {
-                widgetItems<Opener> { it.open(selected) }
-            }
+            widgetMenu<Opener>("Examine in") { it.open(selected) }
             if (APP.developerMode)
                 menu("Public methods") {
                     items(getAllMethods(selected::class.java).asSequence()
@@ -75,10 +70,9 @@ class CoreMenus: Core {
                     )
                 }
         }
-        // TODO File menu doesn't show
         add<File> {
             if (selected.isPlayable) {
-                menuItem("Play") { PlaylistManager.use { it.playItem(PlaylistItem(selected.toURI())) } }
+                menuItem("Play") { PlaylistManager.use { it.playUri(selected.toURI()) } }
                 menuItem("Enqueue") { PlaylistManager.use { it.addFile(selected) } }
             }
             menuItem("Browse location") { selected.browse() }
@@ -110,34 +104,22 @@ class CoreMenus: Core {
             menuItem("Enqueue items") { PlaylistManager.use { it.addItems(selected.grouped) } }
             menuItem("Update items from file") { APP.db.refreshItemsFromFile(selected.grouped) }
             menuItem("Remove items from library") { APP.db.removeItems(selected.grouped) }
-            menu("Show in") {
-                widgetItems<SongReader> { it.read(selected.grouped) }
-            }
-            menu("Edit tags in") {
-                widgetItems<SongWriter> { it.read(selected.grouped) }
-            }
+            widgetMenu<SongReader>("Show in") { it.read(selected.grouped) }
+            widgetMenu<SongWriter>("Edit tags in") { it.read(selected.grouped) }
             menuItem("Explore items's location") { browseMultipleFiles(selected.grouped.asSequence().mapNotNull { it.getFile() }) }
-            menu("Explore items' location in") {
-                widgetItems<FileExplorerFeature> { it.exploreCommonFileOf(selected.grouped.mapNotNull { it.getFile() }) }
-            }
+            widgetMenu<FileExplorerFeature>("Explore items' location in") { it.exploreCommonFileOf(selected.grouped.mapNotNull { it.getFile() }) }
             if (selected.field==Metadata.Field.ALBUM)
                 menu("Search cover in") {
-                    items(
-                            APP.instances.getInstances<SearchUriBuilder>(),
+                    items(APP.instances.getInstances<SearchUriBuilder>(),
                             { "in ${it.name}" },
-                            { it(selected.getValueS("<none>")).browse() }
-                    )
+                            { it(selected.getValueS("<none>")).browse() })
                 }
         }
         add<PlaylistItemGroup> {
             menuItem("Play items") { PlaylistManager.use { it.playItem(selected.items[0]) } }
             menuItem("Remove items") { PlaylistManager.use { it.removeAll(selected.items) } }
-            menu("Show in") {
-                widgetItems<SongReader> { it.read(selected.items) }
-            }
-            menu("Edit tags in") {
-                widgetItems<SongWriter> { it.read(selected.items) }
-            }
+            widgetMenu<SongReader>("Show in") { it.read(selected.items) }
+            widgetMenu<SongWriter>("Edit tags in") { it.read(selected.items) }
             menuItem("Crop items") { PlaylistManager.use { it.retainAll(selected.items) } }
             menuItem("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(selected.items) } }
             menuItem("Duplicate items individually") { PlaylistManager.use { it.duplicateItemsByOne(selected.items) } }
@@ -172,65 +154,38 @@ class CoreMenus: Core {
                         }
                     }
                 }
-            if (!selected.fsDisabled)
-                menu("Image file") {
-                    item("Browse location") { selected.fsImageFile.browse() }
-                    item("Open (in associated program)") { selected.fsImageFile.open() }
-                    item("Edit (in associated editor)") { selected.fsImageFile.edit() }
-                    item("Delete from disc") { selected.fsImageFile.recycle() }
-                    item("Fullscreen") {
-                        val f = selected.fsImageFile
-                        if (ImageFileFormat.isSupported(f)) {
-                            APP.actions.openImageFullscreen(f)
-                        }
-                    }
-                }
             if (selected.representant!=null)
-                menuOfItemsFor(contextMenu, selected.representant)
+                addMenuOfItemsFor(contextMenu, selected.representant)
         }
 
     }
 
-
-    /** DSL for creating menu. */
-    private fun <T: MenuItem> menuItems(vararg elements: T?) =
-            seqOf(*elements).filterNotNull().filterNot { it is Menu && it.items.isEmpty() }
-
-    /** DSL for creating menu. */
-    private inline fun menu(text: String, graphics: Node? = null, then: (Menu).() -> Unit) =
-            Menu(text, graphics).apply { then() }
-
-    /** DSL for creating menu. */
     private inline fun Menu.menu(text: String, graphics: Node? = null, then: (Menu).() -> Unit) {
         items += Menu(text, graphics).apply { then() }
     }
 
-    /** DSL for creating menu. */
-    private fun Menu.item(text: String, action: () -> Unit) {
+    private inline fun Menu.item(text: String, crossinline action: () -> Unit) {
         items += menuItem(text) { action() }
     }
 
-    /** DSL for creating menu. */
     private fun <A> Menu.items(from: Sequence<A>, toStr: (A) -> String, action: (A) -> Unit) {
         items += from.map { menuItem(toStr(it)) { e -> action(it) } }.sortedBy { it.text }
     }
 
-    /** DSL for creating menu. */
-    private inline fun <reified W> Menu.widgetItems(crossinline action: (W) -> Unit) = items(
-            APP.widgetManager.factories.getFactoriesWith<W>(),
-            { it.nameGui() },
-            { it.use(WidgetSource.NO_LAYOUT) { action(it) } }
-    )
+    private inline fun <reified W> Menu.widgetItems(crossinline action: (W) -> Unit) =
+            items(APP.widgetManager.factories.getFactoriesWith<W>(),
+                    { it.nameGui() },
+                    { it.use(WidgetSource.NO_LAYOUT) { action(it) } })
 
-    private fun menuOfItemsFor(contextMenu: ImprovedContextMenu<*>, value: Any?): Menu {
+    private inline fun <reified W> ContextMenuBuilder<*>.widgetMenu(text: String, crossinline action: (W) -> Unit) =
+            menu(text).widgetItems(action)
+
+    private fun ContextMenuBuilder<*>.addMenuOfItemsFor(contextMenu: ImprovedContextMenu<*>, value: Any?) {
         val menuName = APP.className.get(value?.javaClass ?: Void::class.java)
-        return menuOfItemsFor(contextMenu, menuName, value)
+        addMenuOfItemsFor(contextMenu, menuName, value)
     }
 
-    private fun menuOfItemsFor(contextMenu: ImprovedContextMenu<*>, menuName: String, value: Any?) =
+    private fun ContextMenuBuilder<*>.addMenuOfItemsFor(contextMenu: ImprovedContextMenu<*>, menuName: String, value: Any?) =
             menu(menuName, contextMenuItemBuilders[contextMenu, value])
-
-    private fun menu(text: String, items: Sequence<MenuItem> = seqOf()) =
-            Menu(text, null, *items.asArray())
 
 }

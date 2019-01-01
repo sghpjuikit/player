@@ -18,6 +18,9 @@
 3) Check "Use auto-import"  
    Disable "Create separate module per source set"
 4) Run `git checkout .idea` in the Terminal to regain the codeStyles
+5) If you ever want to compile the project with IDEA itself, you have to open
+  `File > Settings > Java Compiler > Additional command line parameters` and insert  
+  `-Xlint:unchecked --add-exports javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED --add-exports javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED --add-exports javafx.web/com.sun.webkit=ALL-UNNAMED`
 
 ## Running
 

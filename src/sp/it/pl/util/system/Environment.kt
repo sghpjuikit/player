@@ -49,8 +49,8 @@ fun copyToSysClipboard(df: DataFormat, o: Any?) = o?.let { Clipboard.getSystemCl
 
 /**
  * Launches this file as an executable program as a separate process. Does not wait for the program or block.
- * * working directory of the program will be set to the parent directory of its file
- * * the program may start as a child process if otherwise not possible
+ * - working directory of the program will be set to the parent directory of its file
+ * - the program may start as a child process if otherwise not possible
  *
  * @param arguments arguments to run the program with
  * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
@@ -95,8 +95,8 @@ fun runCommand(command: String, then: Consumer<Process>? = null) {
 
 /**
  * Browse the file in OS' file browser:
- * * if denotes a directory it will be opened
- * * if denotes a file, it's location will be opened and the file selected
+ * - directory -> opn in file browser
+ * - file -> open directory and select file
  *
  * On some platforms the operation may be unsupported. In that case this method is a no-op.
  */
@@ -104,9 +104,9 @@ fun File.browse() = toURI().browse()
 
 /**
  * Browse uri:
- * * if denotes an uri, opens it in its predefined internet browser
- * * if denotes a directory it will be opened
- * * if denotes a file, it's location will be opened and the file selected
+ * - url -> opens it in its standard browser
+ * - directory -> opn in file browser
+ * - file -> open directory and select file
  *
  * On some platforms the operation may be unsupported. In that case this method is a no-op.
  */
@@ -127,7 +127,8 @@ fun URI.browse() {
                 if (Desktop.Action.BROWSE_FILE_DIR.isSupportedOrWarn())
                     Desktop.getDesktop().browseFileDirectory(f)
                 else
-                    f.openWindowsExplorerAndSelect()
+                    if (Os.WINDOWS.isCurrent)
+                        f.openWindowsExplorerAndSelect()
             } else {
                 // Would be nice if this did what it is supposed to, but it doesn't (tries to open the file)
                 // Desktop.getDesktop().browse(this)
@@ -143,8 +144,8 @@ fun URI.browse() {
 
 /**
  * Edit the file, in order:
- * * if is a directory, [open] is called
- * * if is a file, it will be edited in default associated editor program
+ * - directory -> [open] is called
+ * - file -> open in associated editor
  *
  * On some platforms the operation may be unsupported. In that case this method is a no-op.
  */
@@ -173,11 +174,11 @@ fun File.edit() {
 
 /**
  * Opens the file, in order:
- * * if is executable, it will be executed using [runAsProgram]
- * * if is application skin, it will be applied
- * * if is application component, it will be opened
- * * if is directory, it will be opened in default system's browser
- * * if it is file, it will be opened in the default associated program.
+ * - if is executable, it will be executed using [runAsProgram]
+ * - if is application skin, it will be applied
+ * - if is application component, it will be opened
+ * - if is directory, it will be opened in default system's browser
+ * - if it is file, it will be opened in the default associated program.
  *
  * On some platforms the operation may be unsupported. In that case this method is a no-op.
  */
@@ -212,8 +213,6 @@ fun File.open() {
 
 /**
  * Deletes the file by moving it to the recycle bin of the underlying OS.
- * * if denotes a directory, it will be deleted including its content
- * * file will not be deleted permanently, only recycled
  *
  *  @return success if file was deleted or did not exist or error if error occurs during deletion
  */
@@ -340,5 +339,5 @@ private fun File.openWindowsExplorerAndSelect() {
 private fun File.isExecutable(): Boolean =
         when (Os.current) {
             Os.WINDOWS -> path.endsWith(".exe", true) || path.endsWith(".bat", true)
-            else -> false
+            else -> path.endsWith(".sh")
         }

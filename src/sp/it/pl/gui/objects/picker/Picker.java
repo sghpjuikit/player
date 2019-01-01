@@ -6,7 +6,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -30,8 +32,8 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.animation.Anim.animSeq;
 import static sp.it.pl.util.functional.Util.byNC;
+import static sp.it.pl.util.functional.Util.filter;
 import static sp.it.pl.util.functional.Util.forEachWithI;
-import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.graphics.Util.layScrollVText;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 
@@ -100,6 +102,7 @@ public class Picker<E> {
 			// info content
 			Node content = cell.getChildren().get(0);
 			Text ta = new Text(info);
+			ta.setTextOrigin(VPos.CENTER);
 			ta.setMouseTransparent(true);
 			ta.setTextAlignment(JUSTIFY);
 			ScrollPane sp = layScrollVText(ta);
@@ -154,9 +157,16 @@ public class Picker<E> {
 				tiles.getChildren().add(cell);
 			});
 
+		Pane p = new Pane();
+		p.getStyleClass().setAll(CELL_STYLE_CLASS);
+		p.pseudoClassStateChanged(PseudoClass.getPseudoClass("empty"), true);
+		p.getProperties().put("empty_cell", null);
+		p.setManaged(false);
+		tiles.getChildren().add(p);
+
 		// animate & show
-		int s = getCells().size();
-		animPar(getCells(), (i, n) -> animSeq(
+		int s = tiles.getChildren().size();
+		animPar(tiles.getChildren(), (i, n) -> animSeq(
 			new Anim(n::setOpacity).dur(millis(i*(750/s))).intpl(x -> 0.0),
 			new Anim(n::setOpacity).dur(millis(500)).intpl(x -> sqrt(x))
 		)).play();
@@ -168,19 +178,20 @@ public class Picker<E> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<Region> getCells() {
-		return (List) list(tiles.getChildren());
+	private List<Region> getCells() {
+		return (List) filter(tiles.getChildren(), it -> !it.getProperties().containsKey("empty_cell"));
 	}
 
 	private class CellPane extends Pane {
 
 		@Override
 		protected void layoutChildren() {
-			double width = root.getWidth();
-			double height = root.getHeight();
+			Insets padding = root.getPadding();
+			double width = root.getWidth() - padding.getLeft() - padding.getRight();
+			double height = root.getHeight() - padding.getTop() - padding.getBottom();
 
 			int gap = 1;
-			int elements = getChildren().size();
+			int elements = getCells().size();
 			double min_cell_w = max(1, getCells().get(0).getMinWidth());
 			double min_cell_h = max(1, getCells().get(0).getMinHeight());
 			// if (elements==0) return;
@@ -198,12 +209,33 @@ public class Picker<E> {
 			double sumgapx = (columns - 1)*gap;  // n elements have n-1 gaps
 			final double cell_width = (W - sumgapx)/columns;
 
+			int emptyCells = columns*rows-getCells().size();
 			forEachWithI(getCells(), (i, n) -> {
-				double x = i%columns*(cell_width + gap);
-				double y = i/columns*(cell_height + gap);
-				n.relocate(x, y);
-				n.resize(cell_width, cell_height);
+				double x = padding.getLeft() + i%columns*(cell_width + gap);
+				double y = padding.getTop() + i/columns*(cell_height + gap);
+				n.resizeRelocate(
+					snapPositionX(x),
+					snapPositionY(y),
+					snapPositionX(x+cell_width)-snapPositionX(x),
+					snapPositionY(y+cell_height)-snapPositionY(y)
+				);
 			});
+
+			Node emptyCell = getChildren().stream().filter(it -> it.getProperties().containsKey("empty_cell")).findFirst().get();
+			if (emptyCells!=0) {
+				int emptyCellI = getCells().size();
+				double x = padding.getLeft() + emptyCellI%columns*(cell_width + gap);
+				double y = padding.getTop() + emptyCellI/columns*(cell_height + gap);
+
+				emptyCell.resizeRelocate(
+					snapPositionX(x),
+					snapPositionY(y),
+					snapPositionX(root.getWidth()-padding.getRight())-snapPositionX(x),
+					snapPositionY(y+cell_height)-snapPositionY(y)
+				);
+			} else {
+				emptyCell.resize(0.0, 0.0);
+			}
 		}
 
 	}

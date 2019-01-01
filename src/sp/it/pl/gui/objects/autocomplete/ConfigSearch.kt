@@ -31,6 +31,7 @@ import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.syncFrom
+import sp.it.pl.util.type.isSubclassOf
 import java.util.ArrayList
 
 class ConfigSearch: AutoCompletion<Entry> {
@@ -201,7 +202,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                             textAlignment = TextAlignment.RIGHT
                         }
                     }
-                    config.type==Boolean::class.java || config.isTypeEnumerable -> ConfigField.create(config).getNode()
+                    config.type.isSubclassOf<Boolean>() || config.isTypeEnumerable -> ConfigField.create(config).getNode()
                     else -> null
                 }
             }

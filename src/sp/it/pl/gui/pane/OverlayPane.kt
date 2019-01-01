@@ -271,43 +271,45 @@ abstract class OverlayPane<in T>: StackPane() {
         }
     }
 
-    fun ScreenGetter.animDo(op: OverlayPane<*>, x: Double) = op.apply {
+    fun ScreenGetter.animDo(op: OverlayPane<*>, x: Double) {
         if (opacityNode!=null) { // bug fix, not 100% sure why it is necessary
             if (this!=Display.WINDOW && (op.displayBgr.get()==ScreenBgrGetter.SCREEN_BGR || op.displayBgr.get()==ScreenBgrGetter.NONE)) {
-                stg!!.opacity = x
-                opacityNode!!.opacity = 1-x*0.5
-                opacity = 1.0
-                blurBack.height = 15.0*x*x
-                blurBack.width = 15.0*x*x
-                blurFront.height = 20*(1-x*x)
-                blurFront.width = 20*(1-x*x)
-                scaleX = 1+0.2*(1-x)
-                scaleY = 1+0.2*(1-x)
+                op.stg!!.opacity = x
+                op.opacityNode!!.opacity = 1-x*0.5
+                op.opacity = 1.0
+                op.blurBack.height = 15.0*x*x
+                op.blurBack.width = 15.0*x*x
+                // improves performance a lot with little demerit
+                // op.blurFront.height = 20*(1-x*x)
+                // op.blurFront.width = 20*(1-x*x)
+                op.scaleX = 1+0.2*(1-x)
+                op.scaleY = 1+0.2*(1-x)
             } else {
-                opacityNode!!.opacity = 1-x*0.5
-                opacity = x
-                blurBack.height = 15.0*x*x
-                blurBack.width = 15.0*x*x
-                blurFront.height = 20*(1-x*x)
-                blurFront.width = 20*(1-x*x)
-                scaleX = 1+2*(1-x)
-                scaleY = 1+2*(1-x)
+                op.opacityNode!!.opacity = 1-x*0.5
+                op.opacity = x
+                op.blurBack.height = 15.0*x*x
+                op.blurBack.width = 15.0*x*x
+                // improves performance a lot with little demerit
+                // op.blurFront.height = 20*(1-x*x)
+                // op.blurFront.width = 20*(1-x*x)
+                op.scaleX = 1+2*(1-x)
+                op.scaleY = 1+2*(1-x)
             }
         }
     }
 
-    fun ScreenGetter.animEnd(op: OverlayPane<*>) = op.apply {
-        opacityNode!!.effect = null
-        blurFrontNode!!.effect = null
-        blurBackNode!!.effect = null
-        opacityNode = null
-        blurFrontNode = null
-        blurBackNode = null
-        onHidden()
+    fun ScreenGetter.animEnd(op: OverlayPane<*>) {
+        op.opacityNode!!.effect = null
+        op.blurFrontNode!!.effect = null
+        op.blurBackNode!!.effect = null
+        op.opacityNode = null
+        op.blurFrontNode = null
+        op.blurBackNode = null
+        op.onHidden()
         if (this==Display.WINDOW) {
-            setVisible(false)
+            op.setVisible(false)
         } else {
-            stg!!.close()
+            op.stg!!.close()
         }
     }
 

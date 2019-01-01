@@ -35,7 +35,6 @@ import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
-import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static sp.it.pl.audio.playlist.PlaylistItem.Field.LENGTH;
 import static sp.it.pl.audio.playlist.PlaylistItem.Field.NAME;
 import static sp.it.pl.audio.playlist.PlaylistItem.Field.TITLE;
@@ -48,7 +47,6 @@ import static sp.it.pl.util.functional.Util.SAME;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.graphics.Util.computeFontWidth;
-import static sp.it.pl.util.graphics.Util.consumeOnSecondaryButton;
 import static sp.it.pl.util.graphics.Util.selectRows;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 import static sp.it.pl.util.reactive.Util.maintain;
@@ -173,9 +171,6 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 			return true; // false/true, does not matter
 		});
 
-		// prevent selection change on right click
-		addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
-
 		// empty table left click -> add items
 		addEventHandler(MOUSE_CLICKED, e -> {
 			if (headerVisible.get() && e.getY()<getTableHeaderHeight()) return;
@@ -216,12 +211,12 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 		// set key-induced actions
 		setOnKeyPressed(e -> {
-			if (e.isControlDown()) {
+			if (e.isControlDown() && !e.isShiftDown() && !e.isAltDown() && !e.isMetaDown()) {
 				if (e.getCode()==KeyCode.UP) {
-//                    table.getFocusModel().focus(-1);
+                    // table.getFocusModel().focus(-1);
 					moveSelectedItems(-1);
 				} else if (e.getCode()==KeyCode.DOWN) {
-//                    table.getFocusModel().focus(-1);
+                    // table.getFocusModel().focus(-1);
 					moveSelectedItems(1);
 				}
 			}

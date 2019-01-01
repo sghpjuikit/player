@@ -77,7 +77,7 @@ import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
 
 @Info(
     author = "Martin Polakovic",
-    name = Widgets.LIBRARY,
+    name = Widgets.SONG_TABLE,
     description = "Provides access to database.",
     howto = "Available actions:\n" +
             "    Item left click : Selects item\n" +
@@ -160,10 +160,10 @@ public class Library extends FXMLController implements SongReader {
             menuItem("Add directory", e -> addDirectory())
         );
         table.menuRemove.getItems().addAll(
-            menuItem("Remove selected from library", e -> APP.db.removeItems(table.getSelectedItems())),
-            menuItem("Remove all shown from library", e -> APP.db.removeItems(table.getItems())),
-            menuItem("Remove all from library", e -> APP.db.removeItems(table.getItems())),
-            menuItem("Remove invalid items", e -> removeInvalid())
+            menuItem("Remove selected songs from library", e -> APP.db.removeItems(table.getSelectedItems())),
+            menuItem("Remove all shown songs from library", e -> APP.db.removeItems(table.getItems())),
+            menuItem("Remove all songs from library", e -> APP.db.removeItems(table.getItems())),
+            menuItem("Remove missing songs from library", e -> removeInvalid())
         );
 
         // set up table columns

@@ -69,10 +69,14 @@ import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
 import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.scene.input.KeyCode.DOWN;
 import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyCode.LEFT;
+import static javafx.scene.input.KeyCode.RIGHT;
 import static javafx.scene.input.KeyCode.TAB;
-import static javafx.scene.input.KeyCombination.keyCombination;
+import static javafx.scene.input.KeyCode.UP;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
+import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
@@ -281,13 +285,6 @@ public class Window extends WindowBase {
 			else if (e.getDeltaY()<0) Player.volumeDec();
 		});
 
-		List<Maximized> maximizedValues = list(Maximized.LEFT, Maximized.NONE, Maximized.RIGHT);
-		List<Screen> screens = Screen.getScreens();
-		KeyCombination cycleSMLeft = keyCombination("Alt+Left");
-		KeyCombination cycleSMRight = keyCombination("Alt+Right");
-		KeyCombination maximize = keyCombination("Alt+Up");
-		KeyCombination minimize = keyCombination("Alt+Down");
-
 		// report focus changes
 		getStage().getScene().focusOwnerProperty().addListener((o,ov,nv) -> APP.ui.getFocusChangedHandler().invoke(nv));
 		root.addEventFilter(MOUSE_PRESSED, e -> {
@@ -303,31 +300,38 @@ public class Window extends WindowBase {
 			}
 		});
 
-		// layout mode on key press/release
+		List<Maximized> maximizedValues = list(Maximized.LEFT, Maximized.NONE, Maximized.RIGHT);
+		ActionManager.INSTANCE.getKeyManageWindow();
 		root.addEventFilter(KeyEvent.ANY, e -> {
-			if (e.getCode().equals(ActionManager.INSTANCE.getShortcut_ALTERNATE())) {
-				APP.ui.setLayoutMode(e.getEventType().equals(KEY_PRESSED));
+			// layout mode
+			if (e.getCode().equals(ActionManager.INSTANCE.getKeyManageLayout())) {
+				if (e.getEventType().equals(KEY_RELEASED)) APP.ui.setLayoutMode(false);
+				if (e.getEventType().equals(KEY_PRESSED)) APP.ui.setLayoutMode(true);
 				if (e.getEventType().equals(KEY_PRESSED) && getSwitchPane()!=null)
 					runLater(() -> {
 						getSwitchPane().widget_io.layout();
 						getSwitchPane().widget_io.drawGraph();
 					});
 			}
+			// toggle maximized
 			if (e.getEventType().equals(KEY_PRESSED)) {
-				if (cycleSMLeft.match(e)) {
-					if (maximized.get()==Maximized.LEFT) screen = previous(screens, screen);
-					setMaximized(previous(maximizedValues, maximized.get()));
-				}
-				if (cycleSMRight.match(e)) {
-					if (maximized.get()==Maximized.RIGHT) screen = next(screens, screen);
-					setMaximized(next(maximizedValues, maximized.get()));
-				}
-				if (maximize.match(e)) {
-					setMaximized(Maximized.ALL);
-				}
-				if (minimize.match(e)) {
-					if (maximized.get()==Maximized.ALL) setMaximized(Maximized.NONE);
-					else minimize();
+				if (e.isAltDown() && e.isShiftDown()) {
+
+					if (e.getCode()==LEFT) {
+						if (maximized.get()==Maximized.LEFT) screen = previous(Screen.getScreens(), screen);
+						setMaximized(previous(maximizedValues, maximized.get()));
+					}
+					if (e.getCode()==RIGHT) {
+						if (maximized.get()==Maximized.RIGHT) screen = next(Screen.getScreens(), screen);
+						setMaximized(next(maximizedValues, maximized.get()));
+					}
+					if (e.getCode()==UP) {
+						setMaximized(Maximized.ALL);
+					}
+					if (e.getCode()==DOWN) {
+						if (maximized.get()==Maximized.ALL) setMaximized(Maximized.NONE);
+						else minimize();
+					}
 				}
 			}
 		});
@@ -357,7 +361,7 @@ public class Window extends WindowBase {
 			+ "\tPress ALT : Show hidden header temporarily.\n"
 			+ "\tPress ALT : Activate layout mode.\n"
 			+ "\tContent right drag : drag tabs.").size(is);
-		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, is).scale(0.4).onClick(e -> AppProgress.INSTANCE.showTasks((Node) e.getTarget()));
+		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, is).scale(0.4).onClick(e -> AppProgress.INSTANCE.showTasks((Node) e.getTarget())).tooltip("Progress & Tasks");
 
 		leftHeaderBox.getChildren().addAll(
 			layB, propB, runB, new Label(" "),

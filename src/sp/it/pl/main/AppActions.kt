@@ -284,7 +284,7 @@ class AppActions {
     @IsAction(name = "Show overlay", desc = "Display screen overlay.")
     fun showOverlay() {
         val overlays = ArrayList<OverlayPane<Unit>>()
-        fun <T> List<T>.forEachDelayed(block: (T) -> Unit) = forEachIndexed { i, it -> runFX(300.millis*i) { block(it) } }
+        fun <T> List<T>.forEachDelayed(block: (T) -> Unit) = forEachIndexed { i, it -> runFX(200.millis*i) { block(it) } }
         var canHide = false
         val showAll = {
             overlays.forEachDelayed { it.show(Unit) }
@@ -293,7 +293,7 @@ class AppActions {
             canHide = true
             overlays.forEachDelayed { it.hide() }
         }
-        overlays += Screen.getScreens().map {
+        overlays += Screen.getScreens().asSequence().sortedBy { it.bounds.minX }.map {
             object: OverlayPane<Unit>() {
 
                 init {

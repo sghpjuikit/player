@@ -2,6 +2,7 @@ package sp.it.pl.util.graphics
 
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.css.PseudoClass
+import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.geometry.Bounds
 import javafx.geometry.Insets
@@ -13,6 +14,8 @@ import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.control.Button
 import javafx.scene.control.Label
+import javafx.scene.control.Menu
+import javafx.scene.control.MenuItem
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.Tooltip
 import javafx.scene.control.TreeItem
@@ -52,6 +55,7 @@ import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.sync
 import java.awt.MouseInfo
 import java.awt.Point
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -150,7 +154,7 @@ fun Node?.removeFromParent(parent: Node?) {
 /** Removes this from its parent's children if possible. */
 fun Node?.removeFromParent() = this?.removeFromParent(parent)
 
-/* ---------- LAYOUT ------------------------------------------------------------------------------------------------ */
+/* ---------- CONSTRUCTORS ------------------------------------------------------------------------------------------ */
 
 inline fun stackPane(block: StackPane.() -> Unit = {}) = StackPane().apply { block() }
 inline fun stackPane(vararg children: Node, block: StackPane.() -> Unit = {}) = StackPane(*children).apply { block() }
@@ -161,6 +165,10 @@ inline fun scrollPane(block: ScrollPane.() -> Unit = {}) = ScrollPane().apply { 
 inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply { block() }
 inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply { block() }
 inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply { block() }
+inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply { block() }
+inline fun menuItem(text: String, crossinline action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
+
+/* ---------- LAYOUT ------------------------------------------------------------------------------------------------ */
 
 interface Lay {
     operator fun plusAssign(child: Node)
@@ -382,17 +390,17 @@ fun ImageView.applyViewPort(i: Image?, fit: Thumbnail.FitFrom) {
         when (fit) {
             Thumbnail.FitFrom.INSIDE -> viewport = null
             Thumbnail.FitFrom.OUTSIDE -> {
-                val ratioIMG = i.width/i.width
+                val ratioIMG = i.width/i.height
                 val ratioTHUMB = layoutBounds.width/layoutBounds.height
                 when {
                     ratioTHUMB<ratioIMG -> {
                         val uiImgWidth = i.height*ratioTHUMB
-                        val x = (i.width-uiImgWidth)/2
+                        val x = abs(i.width-uiImgWidth)/2.0
                         viewport = Rectangle2D(x, 0.0, uiImgWidth, i.height)
                     }
                     ratioTHUMB>ratioIMG -> {
                         val uiImgHeight = i.width/ratioTHUMB
-                        val y = (i.height-uiImgHeight)/2
+                        val y = abs(i.height-uiImgHeight)/2
                         viewport = Rectangle2D(0.0, y, i.width, uiImgHeight)
                     }
                     ratioTHUMB==ratioIMG -> viewport = null
@@ -405,10 +413,33 @@ fun ImageView.applyViewPort(i: Image?, fit: Thumbnail.FitFrom) {
 /* ---------- TOOLTIP ----------------------------------------------------------------------------------------------- */
 
 /** Equivalent to [Tooltip.install] */
+@Suppress("DEPRECATION")
 infix fun Node.install(tooltip: Tooltip) = Tooltip.install(this, tooltip)
 
 /** Equivalent to [Tooltip.uninstall] */
+@Suppress("DEPRECATION")
 infix fun Node.uninstall(tooltip: Tooltip) = Tooltip.uninstall(this, tooltip)
+
+/* ---------- MENU -------------------------------------------------------------------------------------------------- */
+
+/** Create and add to items menu with specified text and graphics */
+inline fun Menu.menu(text: String, graphics: Node? = null, then: (Menu).() -> Unit) {
+    items += Menu(text, graphics).apply { then() }
+}
+
+/** Equivalent to [menuItem]. Use [menuItem] if this method causes ambiguity with [Menu.item] within [Menu] scope. */
+fun item(text: String, action: (ActionEvent) -> Unit) = menuItem(text, action)
+
+/** Create and add to items new menu item with specified text and action */
+fun Menu.item(text: String, action: (ActionEvent) -> Unit) = apply {
+    items += menuItem(text, action)
+}
+
+/** Create and add to items new menu items with text and action derived from specified source */
+@Suppress("RedundantLambdaArrow")
+fun <A> Menu.items(source: Sequence<A>, text: (A) -> String, action: (A) -> Unit) {
+    items += source.map { menuItem(text(it)) { _ -> action(it) } }.sortedBy { it.text }
+}
 
 /* ---------- POINT ------------------------------------------------------------------------------------------------- */
 

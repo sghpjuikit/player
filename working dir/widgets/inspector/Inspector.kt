@@ -150,8 +150,8 @@ class Inspector(widget: Widget<*>): SimpleController(widget), FileExplorerFeatur
         fileRoot.findAnyChild(file, File::isAnyChildOf)?.expandToRootAndSelect(tree)
     }
 
-    override fun open(data: Any) {
-        val item = tree(data)
+    override fun open(data: Any?) {
+        val item = tree(data ?: "<none>")
         tree.root.children += item
         tree.expandToRootAndSelect(item)
     }

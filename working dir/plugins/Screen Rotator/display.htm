@@ -90,8 +90,8 @@
 <body>
     <h1>Display</h1>
     <p>
-        Version 1.2 (April 2014)<br />
-        © 2005-2014, Noël DANJOU<br />
+        Version 1.4 (February 2018)<br />
+        © 2005-2018, Noël DANJOU<br />
         All rights reserved.
     </p>
     <table class="TOC">
@@ -199,15 +199,15 @@
         <ul>
             <li>
                 <p>
-                    To turn the default monitor off, use:
+                    To turn all the monitors off, use:
                 </p>
-                <pre>display /power:off</pre>
+                <pre>display /power off</pre>
             </li>
             <li>
                 <p>
-                    To rotate the default display orientation by 90° counter-clockwise, use:
+                    To rotate the display orientation of monitor #2 by 90° counter-clockwise, use:
                 </p>
-                <pre>display /rotate:90</pre>
+                <pre>display /device 2 /rotate 90</pre>
             </li>
         </ul>
     </div>
@@ -248,14 +248,38 @@
                     2
                 </td>
                 <td>
-                    Failure, new mode could not be set.
+                    General failure.
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: center">
+                    3
+                </td>
+                <td>
+                    Unable to adjust brightness.
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: center">
+                    4
+                </td>
+                <td>
+                    Unable to adjust contrast.
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: center">
+                    5
+                </td>
+                <td>
+                    Unable to set display orientation or position.
                 </td>
             </tr>
         </table>
     </div>
     <hr />
     <a id="HowTo" />
-    <h2>How To Create a Shortcut To Toggle Screen Orientation?</h2>
+    <h2>How To Create a Shortcut To Toggle Display Orientation?</h2>
     <div class="h2content">
         <ul>
             <li>right-click the Desktop</li>
@@ -263,12 +287,12 @@
             <li>click <strong>Browse</strong></li>
             <li>select <strong>display.exe</strong></li>
             <li>click <strong>OK</strong></li>
-            <li>put a blank after the path and append the two parameters: <strong>/rotate:90 /toggle</strong><br />
-                <p>e.g. <strong>"C:\Users\<i>UserName</i>\Desktop\display.exe" /rotate:90 /toggle</strong></p>
+            <li>put a blank after the path and append the two parameters: <strong>/rotate 90 /toggle</strong><br />
+                <p>e.g. <strong>"C:\MyTools\display.exe" /rotate 90 /toggle</strong></p>
                 <p>Note: quotes are required if the path contains blanks.</p>
             </li>
             <li>click <strong>Next</strong></li>
-            <li>give the shortcut a name e.g. <strong>Toggle Screen Orientation</strong></li>
+            <li>give the shortcut a name e.g. <strong>Toggle Display Orientation</strong></li>
             <li>click <strong>Finish</strong></li>
             <li>Pin the new shortcut to the taskbar</li>
         </ul>
@@ -277,12 +301,29 @@
     <a id="History" />
     <h2>History</h2>
     <div class="h2content">
+        <h3>February 12, 2018 - Version 1.4 (build 31.1)</h3>
+        <div class="h3content">
+            <ul>
+                <li>adds <strong>/position</strong> parameter that controls the positional coordinates of the selected display device in reference to the desktop area.</li>
+            </ul>
+        </div>
+        <h3>October 16, 2017 - Version 1.3 (build 27.1)</h3>
+        <div class="h3content">
+            <ul>
+                <li>adds more properties (using /properties parameter)</li>
+                <li>the <strong>/properties</strong> parameter may be combined with either <strong>/listdevices</strong> or the optional <strong>/device</strong> parameters.</li>
+                <li>adds support for Output Protection Manager (OPM) for Connector Type detection.</li>
+                <li>adds new <strong>/save</strong> parameter.</li>
+            </ul>
+        </div>
         <h3>April 10, 2014 - Version 1.2 (build 15.3)</h3>
         <div class="h3content">
             <ul>
-                <li>signed executable with renew digital certificate.</li>
-                <li>updated readme.htm to include instructions about how to
-                 create a shortcut to toggle the screen orientation.</li>
+                <li>executable signed with renewed digital certificate.</li>
+                <li>
+                    updates readme.htm to include instructions about how to
+                    create a shortcut to toggle the display orientation.
+                </li>
             </ul>
         </div>
         <h3>August 9, 2013 - Version 1.2 (build 14.5)</h3>

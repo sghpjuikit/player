@@ -16,7 +16,7 @@ import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.getElementType
 import sp.it.pl.util.functional.seqOf
-import sp.it.pl.util.graphics.Util
+import sp.it.pl.util.graphics.menuItem
 
 private typealias ItemsSupply = (ImprovedContextMenu<*>, Any?) -> Sequence<MenuItem>
 
@@ -148,16 +148,15 @@ class ContextMenuItemSuppliers {
 
 class ContextMenuBuilder<T>(val contextMenu: ImprovedContextMenu<*>, val selected: T): ArrayList<MenuItem>() {
 
-    fun menuItem(text: String, handler: (ActionEvent) -> Unit) =
-            Util.menuItem(text, handler).also { add(it) }
+    fun <T: MenuItem> T.add() = also { add(it) }
+
+    fun item(text: String, handler: (ActionEvent) -> Unit): MenuItem =
+            menuItem(text, handler).add()
 
     fun menu(text: String, graphic: Node? = null, items: Menu.() -> Unit) =
-            Menu(text, graphic).also {
-                items(it)
-                add(it)
-            }
+            sp.it.pl.util.graphics.menu(text, graphic, items).add()
 
     fun menu(text: String, items: Sequence<MenuItem> = seqOf()) =
-            Menu(text, null, *items.asArray()).also { add(it) }
+            Menu(text, null, *items.asArray()).add()
 
 }

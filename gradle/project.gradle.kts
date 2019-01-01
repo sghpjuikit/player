@@ -21,10 +21,16 @@ import kotlin.text.Charsets.UTF_8
 
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
+    id("com.gradle.build-scan") version "2.1"
     kotlin("jvm") version "1.3.0"
     application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
+}
+
+buildScan {
+    termsOfServiceUrl = "https://gradle.com/terms-of-service"
+    setTermsOfServiceAgree("yes")
 }
 
 /** working directory of the application */
@@ -93,57 +99,63 @@ allprojects {
 
 dependencies {
 
-    // Kotlin
-    implementation(kotlin("stdlib-jdk8"))
-    implementation(kotlin("reflect"))
+    "Kotlin" requires {
+        implementation(kotlin("stdlib-jdk8"))
+        implementation(kotlin("reflect"))
+        implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core")
+        implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.0.1")
+    }
 
-    implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core")
-    implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.0.1")
+    "Audio" requires {
+        implementation("uk.co.caprica", "vlcj", "3.10.1")
+        implementation("de.u-mass", "lastfm-java", "0.1.2")
+        implementation("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
+    }
 
-    // Audio
-    implementation("uk.co.caprica", "vlcj", "3.10.1")
-    implementation("de.u-mass", "lastfm-java", "0.1.2")
-    implementation("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
+    "JavaFX" requires {
+        implementation("de.jensd", "fontawesomefx", "8.9")
+        implementation("org.reactfx", "reactfx", "2.0-M5")
+        implementation("eu.hansolo", "tilesfx", "1.6.4") { exclude("junit", "junit") }
+        implementation("eu.hansolo", "Medusa", "8.0")
+    }
 
-    // JavaFX
-    implementation("de.jensd", "fontawesomefx", "8.9")
-    implementation("org.reactfx", "reactfx", "2.0-M5")
-    implementation("eu.hansolo", "tilesfx", "1.6.4") { exclude("junit", "junit") }
-    implementation("eu.hansolo", "Medusa", "8.0")
+    "Logging" requires {
+        implementation("org.slf4j", "slf4j-api")
+        implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
+        implementation("ch.qos.logback", "logback-classic", "1.2.3")
+        implementation("io.github.microutils", "kotlin-logging", "1.6.20")
+    }
 
-    // Logging
-    implementation("org.slf4j", "slf4j-api")
-    implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
-    implementation("ch.qos.logback", "logback-classic", "1.2.3")
-    implementation("io.github.microutils", "kotlin-logging", "1.6.20")
+    "Native" requires {
+        implementation("net.java.dev.jna", "jna-platform", "5.0.0")
+        implementation("com.1stleg", "jnativehook", "2.0.2") // don't update this to 2.1.0, it causes a critical error on linux
+    }
 
-    // Native
-    implementation("net.java.dev.jna", "jna-platform", "5.0.0")
-    implementation("com.1stleg", "jnativehook", "2.0.2") // don't update this to 2.1.0, it causes a critical error on linux
+    "Misc" requires {
+        implementation("net.objecthunter", "exp4j", "0.4.8")
+        implementation("org.atteo", "evo-inflector", "1.2.2")
+        implementation("com.thoughtworks.xstream", "xstream", "1.4.11.1")
+    }
 
-    // Misc
-    implementation("net.objecthunter", "exp4j", "0.4.8")
-    implementation("org.atteo", "evo-inflector", "1.2.2")
-    implementation("com.thoughtworks.xstream", "xstream", "1.4.11.1")
-
-    // Image
-    implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
-    val imageioVersion = "3.4.1"
-    implementation("com.twelvemonkeys.imageio", "imageio-bmp", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-jpeg", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-iff", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-icns", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-pcx", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-pict", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-clippath", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-hdr", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-pdf", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-pnm", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-psd", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-tga", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-sgi", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-thumbsdb", imageioVersion)
-    implementation("com.twelvemonkeys.imageio", "imageio-tiff", imageioVersion)
+    "Image" requires {
+        implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
+        val imageioVersion = "3.4.1"
+        implementation("com.twelvemonkeys.imageio", "imageio-bmp", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-jpeg", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-iff", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-icns", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-pcx", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-pict", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-clippath", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-hdr", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-pdf", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-pnm", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-psd", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-tga", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-sgi", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-thumbsdb", imageioVersion)
+        implementation("com.twelvemonkeys.imageio", "imageio-tiff", imageioVersion)
+    }
 
 }
 
@@ -264,9 +276,12 @@ application {
     )
 }
 
+
 operator fun File.div(childName: String) = this.resolve(childName)
 
 val String.sysProp: String get() = System.getProperty(this)
+
+infix fun String.requires(block: () -> Unit) = block()
 
 fun failIO(cause: Throwable? = null, message: () -> String): Nothing  = throw IOException(message(), cause)
 

@@ -324,9 +324,10 @@ class App: Application(), Configurable<Any> {
                 val fs = FileSize(f)
                 map["Size"] = ""+fs+(if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else "")
                 map["Format"] = f.name.substringAfterLast('.', "<none>")
-                map[FileField.TIME_CREATED.name()] = FileField.TIME_CREATED.getOfS(f, "n/a")
-                map[FileField.TIME_MODIFIED.name()] = FileField.TIME_MODIFIED.getOfS(f, "n/a")
             }
+
+            map[FileField.TIME_CREATED.name()] = FileField.TIME_CREATED.getOfS(f, "n/a")
+            map[FileField.TIME_MODIFIED.name()] = FileField.TIME_MODIFIED.getOfS(f, "n/a")
 
             val iff = ImageFileFormat.of(f.toURI())
             if (iff.isSupported) {

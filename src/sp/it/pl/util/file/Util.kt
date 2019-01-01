@@ -197,7 +197,7 @@ private fun File.asFileTree(): Sequence<File> =
             Os.WINDOWS -> {
                 if (isDirectory) {
                     val dir = this
-                    val cmdFiles = """cmd /U /c chcp 65001 dir /s /b /a-d "${dir.absolutePath}" 2>nul"""
+                    val cmdFiles = """cmd /U /c dir /s /b /a-d "${dir.absolutePath}" 2>nul"""
                     try {
                         val files = Runtime.getRuntime().exec(cmdFiles)
                                 .inputStream.bufferedReader(Charsets.UTF_16LE)

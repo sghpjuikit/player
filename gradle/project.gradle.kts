@@ -34,8 +34,8 @@ buildScan {
 }
 
 /** working directory of the application */
-val dirWorking = file("working dir")
-val dirJdk = dirWorking/"java"
+val dirApp = file("app")
+val dirJdk = dirApp/"java"
 val kotlinVersion: String by extra {
     buildscript.configurations["classpath"]
             .resolvedConfiguration.firstLevelModuleDependencies
@@ -164,9 +164,9 @@ tasks {
 
     val copyLibs by creating(Sync::class) {
         group = "build"
-        description = "Copies all libraries into the working dir"
+        description = "Copies all libraries into the app dir"
         from(configurations.compileClasspath)
-        into(dirWorking/"lib")
+        into(dirApp/"lib")
     }
 
     val linkJdk by creating {
@@ -194,7 +194,7 @@ tasks {
     }
 
     val kotlinc by creating(Download::class) {
-        val dirKotlinc = dirWorking/"kotlinc"
+        val dirKotlinc = dirApp/"kotlinc"
         val fileKotlinVersion = dirKotlinc/"build.txt"
         val nameKotlinc = "kotlin-compiler-$kotlinVersion.zip"
         val fileKotlinc = dirKotlinc/"bin"/"kotlinc"
@@ -216,7 +216,7 @@ tasks {
         doLast {
             copy {
                 from(zipTree(zipKotlinc))
-                into(dirWorking)
+                into(dirApp)
             }
             fileKotlinc.setExecutable(true).orFailIO { "Failed to file=$fileKotlinc executable" }
             zipKotlinc.delete().orFailIO { "Failed to delete file=$zipKotlinc" } // clean up downloaded file
@@ -226,7 +226,7 @@ tasks {
 
     "jar"(Jar::class) {
         group = main
-        destinationDir = dirWorking
+        destinationDir = dirApp
         archiveName = "PlayerFX.jar"
     }
 
@@ -234,9 +234,9 @@ tasks {
         group = main
         description = "Cleans up temporary files"
         delete(
-                dirWorking/"user"/"tmp",
+                dirApp/"user"/"tmp",
                 buildDir,
-                dirWorking.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList()
+                dirApp.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList()
         )
     }
 
@@ -248,7 +248,7 @@ tasks {
     "run"(JavaExec::class) {
         dependsOn(copyLibs, kotlinc, "jar")
         group = main
-        workingDir = dirWorking
+        workingDir = dirApp
     }
 
     getByName("compileKotlin").dependsOn(linkJdk)

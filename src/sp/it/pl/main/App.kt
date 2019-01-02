@@ -109,10 +109,13 @@ fun main(args: Array<String>) {
     // Relocate temp & home under working directory
     // It is our principle to leave no trace of ever running on the system
     // User can also better see what the application is doing
-    val tmp = File("").absoluteFile.childOf("user", "tmp")
-    isValidatedDirectory(tmp)
-    System.setProperty("java.io.tmpdir", tmp.absolutePath)
-    System.setProperty("user.home", tmp.absolutePath)
+    val tmp = File("user", "tmp").absoluteFile
+    if(isValidatedDirectory(tmp)) {
+        System.setProperty("java.io.tmpdir", tmp.absolutePath)
+        System.setProperty("user.home", tmp.absolutePath)
+    } else {
+        System.err.println("Can't write to $tmp!")
+    }
 
     // Disable url caching, which may cause jar files being held in memory
     URLConnection.setDefaultUseCaches("file", false)

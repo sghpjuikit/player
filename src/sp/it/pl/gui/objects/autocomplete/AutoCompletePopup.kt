@@ -33,7 +33,6 @@ import javafx.collections.FXCollections.observableArrayList
 import javafx.scene.Node
 import javafx.scene.control.PopupControl
 import javafx.util.StringConverter
-import sp.it.pl.main.JavaLegacy.COMBO_BOX_STYLE_CLASS
 import sp.it.pl.util.access.v
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.reactive.Handler1
@@ -53,7 +52,7 @@ open class AutoCompletePopup<T>: PopupControl() {
         isAutoFix = true
         isAutoHide = true
         isHideOnEscape = true
-        styleClass += COMBO_BOX_STYLE_CLASS
+        styleClass += "combo-box-popup" // com.sun.javafx.scene.control.Properties.COMBO_BOX_STYLE_CLASS
         styleClass += STYLE_CLASS
     }
 

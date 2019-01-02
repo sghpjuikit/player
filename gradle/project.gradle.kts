@@ -72,9 +72,7 @@ allprojects {
         options.isDeprecation = true
         options.compilerArgs = listOf(
                 "-Xlint:unchecked",
-                "--add-exports", "javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED",
-                "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED",
-                "--add-exports", "javafx.web/com.sun.webkit=ALL-UNNAMED"
+                "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED"
         )
     }
 
@@ -139,22 +137,23 @@ dependencies {
 
     "Image" requires {
         implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
-        val imageioVersion = "3.4.1"
-        implementation("com.twelvemonkeys.imageio", "imageio-bmp", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-jpeg", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-iff", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-icns", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-pcx", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-pict", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-clippath", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-hdr", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-pdf", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-pnm", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-psd", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-tga", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-sgi", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-thumbsdb", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-tiff", imageioVersion)
+        fun implementationImageIO(name: String) =
+                implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.4.1")
+        implementationImageIO("bmp")
+        implementationImageIO("jpeg")
+        implementationImageIO("iff")
+        implementationImageIO("icns")
+        implementationImageIO("pcx")
+        implementationImageIO("pict")
+        implementationImageIO("clippath")
+        implementationImageIO("hdr")
+        implementationImageIO("pdf")
+        implementationImageIO("pnm")
+        implementationImageIO("psd")
+        implementationImageIO("tga")
+        implementationImageIO("sgi")
+        implementationImageIO("thumbsdb")
+        implementationImageIO("tiff")
     }
 
 }
@@ -175,7 +174,8 @@ tasks {
         onlyIf { !dirJdk.exists() }
         doFirst {
             println("Making JDK locally accessible...")
-            val jdkPath = "java.home".sysProp.takeIf { it.isNotBlank() }?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
+            val jdkPath = "java.home".sysProp.takeIf { it.isNotBlank() }?.let { Paths.get(it) }
+                    ?: failIO { "Unable to find JDK" }
             try {
                 Files.createSymbolicLink(dirJdk.toPath(), jdkPath)
             } catch (e: Exception) {
@@ -263,16 +263,7 @@ application {
             "-ms"+(properties["player.memoryMin"] ?: "100m"),
             "-mx"+(properties["player.memoryMax"] ?: "3g"),
             *properties["player.jvmArgs"]?.toString()?.split(' ')?.toTypedArray().orEmpty(),
-            "--add-opens", "java.base/java.util=ALL-UNNAMED",
-            "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
-            "--add-opens", "java.base/java.text=ALL-UNNAMED",
-            "--add-opens", "java.base/java.util.stream=ALL-UNNAMED",
-            "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-            "--add-opens", "java.desktop/java.awt.font=ALL-UNNAMED",
-            "--add-opens", "javafx.controls/javafx.scene.control=ALL-UNNAMED",
-            "--add-opens", "javafx.controls/javafx.scene.control.skin=ALL-UNNAMED",
-            "--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
-            "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED"
+            "--add-opens", "javafx.controls/javafx.scene.control.skin=ALL-UNNAMED"
     )
 }
 
@@ -283,6 +274,6 @@ val String.sysProp: String get() = System.getProperty(this)
 
 infix fun String.requires(block: () -> Unit) = block()
 
-fun failIO(cause: Throwable? = null, message: () -> String): Nothing  = throw IOException(message(), cause)
+fun failIO(cause: Throwable? = null, message: () -> String): Nothing = throw IOException(message(), cause)
 
 fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, message) }

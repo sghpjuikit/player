@@ -1140,7 +1140,7 @@
     -fx-graphic: url("HTMLEditor-Underline.png");
 }
 .html-editor-strike {
-    -fx-graphic: url("HTMLEditor- Strikethrough.png");
+    -fx-graphic: url("HTMLEditor-Strikethrough.png");
 }
 .html-editor-hr {
     -fx-graphic: url("HTMLEditor-Break.png");

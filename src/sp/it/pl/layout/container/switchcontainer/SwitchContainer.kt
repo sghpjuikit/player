@@ -8,12 +8,12 @@ package sp.it.pl.layout.container.switchcontainer
 import javafx.scene.Node
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
-import sp.it.pl.util.conf.MultiConfigurableBase
 import sp.it.pl.main.Settings
+import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.MultiConfigurableBase
 import sp.it.pl.util.conf.between
 import sp.it.pl.util.conf.cv
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.reactive.attachFrom
+import sp.it.pl.util.reactive.syncFrom
 import java.util.HashMap
 
 class SwitchContainer: Container<SwitchPane>() {
@@ -38,14 +38,14 @@ class SwitchContainer: Container<SwitchPane>() {
     override fun load(): Node {
         if (ui==null) {
             ui = SwitchPane(this).also {
-                it.align attachFrom align
-                it.snap attachFrom snap
-                it.switchDistAbs attachFrom minSwitchDistAbs
-                it.switchDistRel attachFrom minSwitchDistRel
-                it.snapThresholdAbs attachFrom snapThresholdAbs
-                it.snapThresholdRel attachFrom snapThresholdRel
-                it.dragInertia attachFrom dragInertia
-                it.zoomScaleFactor attachFrom zoom
+                it.align syncFrom align
+                it.snap syncFrom snap
+                it.switchDistAbs syncFrom minSwitchDistAbs
+                it.switchDistRel syncFrom minSwitchDistRel
+                it.snapThresholdAbs syncFrom snapThresholdAbs
+                it.snapThresholdRel syncFrom snapThresholdRel
+                it.dragInertia syncFrom dragInertia
+                it.zoomScaleFactor syncFrom zoom
             }
         }
         children.forEach { i, c -> ui.addTab(i, c) }
@@ -87,6 +87,7 @@ class SwitchContainer: Container<SwitchPane>() {
 
         @IsConfig(name = "Zoom", info = "Zoom factor")
         private val zoom by cv(0.7).between(0.2, 1.0)
+
     }
 
 }

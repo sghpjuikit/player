@@ -52,9 +52,11 @@ import static sp.it.pl.util.file.FileSort.DIR_FIRST;
 import static sp.it.pl.util.file.FileType.FILE;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.util.reactive.Util.attach1IfNonNull;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.open;
 
@@ -152,6 +154,11 @@ public class AppLauncher extends SimpleController {
         initialized = true;
         applyCellSize();
         visit();
+    }
+
+    @Override
+    public void focus() {
+        attach1IfNonNull(grid.skinProperty(), consumer(skin -> grid.implGetSkin().requestFocus()));
     }
 
     private void visit() {

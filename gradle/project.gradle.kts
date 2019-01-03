@@ -72,6 +72,7 @@ allprojects {
         options.isDeprecation = true
         options.compilerArgs = listOf(
                 "-Xlint:unchecked",
+                "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
                 "--add-exports", "javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED",
                 "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED",
                 "--add-exports", "javafx.web/com.sun.webkit=ALL-UNNAMED"

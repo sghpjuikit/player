@@ -56,7 +56,6 @@ import sp.it.pl.util.dev.throwIfFxThread
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.functional.asIf
-import sp.it.pl.util.functional.ifNotNull
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.Util.createFMNTStage
@@ -171,23 +170,17 @@ class AppActions {
         if (c!=null) {
             val op = object: OverlayPane<Void>() {
                 override fun show(data: Void?) {
-                    val root = this
                     val componentRoot = c.load() as Pane
                     // getChildren().add(componentRoot);   // alternatively for borderless/fullscreen experience // TODO investigate & use | remove
                     content = anchorPane {
                         lay(20) += componentRoot
                     }
-                    runFX(500.millis) {
-                        componentRoot.children.asSequence()
-                                .filterIsInstance<GridView<*, *>>()
-                                .firstOrNull()
-                                .ifNotNull { it.implGetSkin().requestFocus() }
-                    }
                     if (c is Widget<*>) {
+                        val parent = this
                         c.controller.getFieldOrThrow("closeOnLaunch").value = true
                         c.controller.getFieldOrThrow("closeOnRightClick").value = true
                         c.areaTemp = object: ContainerNode {
-                            override fun getRoot() = root
+                            override val root = parent
                             override fun show() {}
                             override fun hide() {}
                             override fun close() = root.hide()
@@ -208,6 +201,7 @@ class AppActions {
                 prefWidth(900.0)
                 prefHeight(700.0)
             }
+            c.focus()
         }
     }
 

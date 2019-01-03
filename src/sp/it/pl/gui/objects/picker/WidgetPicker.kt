@@ -6,15 +6,12 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.isUsableByUser
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.net
-import java.util.function.Function
-import java.util.function.Supplier
-import kotlin.streams.asStream
 
 /** Widget factory picker. */
 class WidgetPicker: Picker<ComponentFactory<*>>() {
     init {
-        itemSupply = Supplier { APP.widgetManager.factories.getComponentFactories().asStream().filter { it.isUsableByUser() } }
-        textConverter = Function { it.nameGui() }
-        infoConverter = Function { it.asIf<WidgetFactory<*>>()?.net { it.description() } ?: "" }
+        itemSupply = { APP.widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() } }
+        textConverter = { it.nameGui() }
+        infoConverter = { it.asIf<WidgetFactory<*>>()?.net { it.description() } ?: "" }
     }
 }

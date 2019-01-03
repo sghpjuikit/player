@@ -5,7 +5,6 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.NodeOrientation
 import javafx.scene.Node
 import javafx.scene.Parent
-import javafx.scene.Scene
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Tooltip
 import javafx.scene.input.MouseEvent
@@ -14,7 +13,6 @@ import javafx.stage.Popup
 import javafx.stage.Stage
 import javafx.stage.Window
 import mu.KLogging
-import sp.it.pl.gui.UiManager.OpenStrategy.INSIDE
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.layout.widget.WidgetSource.ANY
 import sp.it.pl.main.APP
@@ -34,6 +32,7 @@ import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.isParentOf
 import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.functional.Util.set
+import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.isAnyParentOf
@@ -46,7 +45,6 @@ import sp.it.pl.util.reactive.sync1IfNonNull
 import java.io.File
 import java.net.MalformedURLException
 import java.util.HashSet
-import java.util.stream.Stream
 
 private typealias C = IsConfig
 
@@ -57,14 +55,15 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val layoutMode: BooleanProperty = SimpleBooleanProperty(false)
     val focusChangedHandler: (Node?) -> Unit = { n ->
         val window = n?.scene
-        (if (n==null) Stream.empty() else APP.widgetManager.widgets.findAll(ANY))
-                .filter { w -> w.areaTemp!=null && w.areaTemp.root.isAnyParentOf(n!!) }
-                .findAny().ifPresent { fw ->
+        if (n!=null)
+            APP.widgetManager.widgets.findAll(ANY)
+                .filter { it.areaTemp?.root?.isAnyParentOf(n) ?: false }
+                .findAny()
+                .ifPresent { fw ->
                     APP.widgetManager.widgets.findAll(ANY)
-                            .filter { w -> w!==fw }
-                            .filter { w -> w.window.map<Stage> { it.stage }.map<Scene> { it.scene }.map { s -> s===window }.orElse(false) }
-                            .forEach { w -> w.focused.set(false) }
-                    fw.focused.set(true)
+                            .filter { w -> w!==fw && w.window.orNull()?.stage?.scene?.net { it===window } ?: false }
+                            .forEach { w -> w.focused.value = false }
+                    fw.focused.value = true
                 }
     }
 
@@ -96,7 +95,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     @C(name = "Lock layout", info = "Locked layout will not enter layout mode.")
     val lockedLayout by cv(false) { SimpleBooleanProperty(it).apply { attach { APP.actionStream.push("Layout lock") } } }
     @C(name = "Layout open strategy", info = "How will certain layout element open and close.")
-    val openStrategy by cv(INSIDE)
+    val openStrategy by cv(OpenStrategy.INSIDE)
     @C(name = "Table orientation", group = Settings.Ui.TABLE, info = "Orientation of the table.")
     val tableOrient by cv(NodeOrientation.INHERIT)
     @C(name = "Zeropad numbers", group = Settings.Ui.TABLE, info = "Adds 0s for number length consistency.")
@@ -140,9 +139,10 @@ class UiManager(val skinDir: File): Configurable<Any> {
     }
 
     fun focusClickedWidget(e: MouseEvent) {
-        val n = if (e.target is Node) e.target as Node else null
-        (if (n==null) Stream.empty() else APP.widgetManager.widgets.findAll(ANY))
-                .filter { w -> !w.focused.get() && w.isLoaded && w.load().isAnyParentOf(n!!) }
+        val n = e.target as? Node
+        if (n!=null)
+            APP.widgetManager.widgets.findAll(ANY)
+                .filter { !it.focused.value && it.isLoaded && it.load().isAnyParentOf(n) }
                 .findAny().ifPresent { it.focus() }
     }
 

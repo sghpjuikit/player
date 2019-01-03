@@ -1,6 +1,5 @@
 package sp.it.pl.gui.itemnode.textfield
 
-import javafx.event.EventHandler
 import javafx.geometry.Pos.CENTER
 import javafx.scene.effect.Blend
 import javafx.scene.effect.Bloom
@@ -29,13 +28,10 @@ import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
 import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
-import sp.it.pl.util.functional.Util.stream
+import sp.it.pl.util.functional.net
 import sp.it.pl.util.graphics.Util.layHorizontally
 import sp.it.pl.util.type.ClassName
 import java.lang.reflect.InvocationTargetException
-import java.util.function.Consumer
-import java.util.function.Function
-import java.util.function.Supplier
 import kotlin.reflect.KClass
 
 class EffectItemNode: TextFieldItemNode<Effect> {
@@ -49,12 +45,12 @@ class EffectItemNode: TextFieldItemNode<Effect> {
         typeB = Icon().apply {
             styleclass("effect-config-field-type-button")
             tooltip(typeTooltip)
-            onClick(EventHandler { openChooser(it) })
+            onClickDo { openChooser(it) }
         }
         propB = Icon().apply {
             styleclass("effect-config-field-conf-button")
             tooltip(propTooltip)
-            onClick(EventHandler { openProperties(it) })
+            onClickDo { openProperties(it) }
         }
         limitedToType = if (effectType==Effect::class.java) null else effectType
         isEditable = false
@@ -71,26 +67,28 @@ class EffectItemNode: TextFieldItemNode<Effect> {
     }
 
     private fun openChooser(me: MouseEvent) {
-        val p = PopOver<Region>().apply {
-            title.set("Effect")
+        PopOver<Region>().apply {
+            title.value = "Effect"
             arrowSize.value = 0.0
             isAutoFix = true
             isAutoHide = true
             contentNode.value = Picker<EffectType>().apply {
+                root.setPrefSize(300.0, 500.0)
                 itemSupply = limitedToType
-                        ?.let { Supplier { stream(EffectType(limitedToType.kotlin), EffectType(null)) } }
-                        ?: Supplier { EFFECT_TYPES.stream() }
-                textConverter = Function { it.name() }
-                node.setPrefSize(300.0, 500.0)
-                onCancel = Runnable { hide() }
-                onSelect = Consumer {
+                        ?.net { { sequenceOf(EffectType(limitedToType.kotlin), EffectType(null)) } }
+                        ?: { EFFECT_TYPES.asSequence() }
+                textConverter = { it.name() }
+                onCancel = { hide() }
+                onSelect = {
                     value = it.instantiate()
                     openProperties(me)
                     hide()
                 }
-            }.node
+                buildContent()
+            }.root
+
+            showInCenterOf(propB)
         }
-        p.showInCenterOf(propB)
     }
 
     private fun openProperties(me: MouseEvent) {

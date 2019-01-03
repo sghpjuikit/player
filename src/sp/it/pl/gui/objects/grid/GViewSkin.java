@@ -661,7 +661,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		}
 	}
 
-	/** Copy-paste of See {@link javafx.scene.control.skin.VirtualFlow.ArrayLinkedList}. */
+	/** Copy-paste of See {@link ArrayLinkedList}. */
 	public static class ArrayLinkedList<T> extends AbstractList<T> {
 		/**
 		 * The array list backing this class. We default the size of the array

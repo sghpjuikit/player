@@ -280,12 +280,12 @@ public final class AreaControls {
                 sc.setOnMouseClicked(me -> {
                     if (me.getButton()==SECONDARY)
                         AppAnimator.INSTANCE.closeAndDo(sc, () -> {
-                            area.root.getChildren().remove(sc);
+                            area.getRoot().getChildren().remove(sc);
                             AppAnimator.INSTANCE.openAndDo(area.content_root, null);
                         });
                 });
                 AppAnimator.INSTANCE.openAndDo(sc, null);
-                area.root.getChildren().add(sc);
+                area.getRoot().getChildren().add(sc);
                 setAnchors(sc, 0d);
             });
         }
@@ -309,12 +309,12 @@ public final class AreaControls {
                 sa.addEventFilter(MOUSE_CLICKED, e -> {
                     if (e.getButton()==SECONDARY)
                         AppAnimator.INSTANCE.closeAndDo(sa, () -> {
-                            area.root.getChildren().remove(sa);
+                            area.getRoot().getChildren().remove(sa);
                             AppAnimator.INSTANCE.openAndDo(area.content_root, null);
                         });
                 });
                 AppAnimator.INSTANCE.openAndDo(sa, null);
-                area.root.getChildren().add(sa);
+                area.getRoot().getChildren().add(sa);
                 setAnchors(sa, 0d);
             });
         }

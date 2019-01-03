@@ -9,18 +9,18 @@ import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.input.ContextMenuEvent
 import javafx.scene.input.MouseEvent
-import mu.KotlinLogging
+import sp.it.pl.gui.pane.collectionUnwrap
 import sp.it.pl.util.access.AccessibleValue
 import sp.it.pl.util.collections.map.ClassListMap
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.getElementType
 import sp.it.pl.util.functional.seqOf
+import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.menuItem
 
 private typealias ItemsSupply = (ImprovedContextMenu<*>, Any?) -> Sequence<MenuItem>
 
-private val logger = KotlinLogging.logger { }
 val contextMenuItemBuilders = ContextMenuItemSuppliers()
 
 /**
@@ -44,10 +44,10 @@ open class ImprovedContextMenu<E: Any?>: ContextMenu(), AccessibleValue<E> {
         v = value
     }
 
-    /** Convenience for [setValue] & [setItemsForValue]. */
+    /** Invokes [setValue] and sets items to those provided by [contextMenuItemBuilders] for the value of this menu. */
     open fun setValueAndItems(value: E) {
         setValue(value)
-        setItemsForValue()
+        items setTo contextMenuItemBuilders[this, value]
     }
 
     override fun show(n: Node, screenX: Double, screenY: Double) = show(n.scene.window, screenX, screenY)
@@ -63,27 +63,10 @@ open class ImprovedContextMenu<E: Any?>: ContextMenu(), AccessibleValue<E> {
 
     fun show(n: Node, e: ContextMenuEvent) = show(n.scene.window, e.screenX, e.screenY)
 
-    /**
-     * Add menu items for specified value or current value if none is specified. Previous items are not removed.
-     *
-     * Usually [setItemsForValue] is better choice.
-     */
-    fun addItemsForValue(value: E? = v) {
-        items += contextMenuItemBuilders[this, value]
-    }
-
-    /**
-     * Clear and add menu items for specified value or current value if none is specified. Previous items are removed.
-     */
-    fun setItemsForValue(value: E? = v) {
-        items.clear()
-        addItemsForValue(value)
-    }
-
 }
 
 /**
- * Generic [ImprovedContextMenu], which supports collection unwrapping in [setValue]
+ * [ImprovedContextMenu], which supports collection unwrapping in [setValue]
  * - empty collection will be handled as null
  * - collection with one element will be unwrapped
  * This is convenient for multi-select controls.
@@ -91,16 +74,7 @@ open class ImprovedContextMenu<E: Any?>: ContextMenu(), AccessibleValue<E> {
 class ValueContextMenu: ImprovedContextMenu<Any?>() {
 
     override fun setValue(value: Any?) {
-        v = when (value) {
-            is Collection<*> -> {
-                when (value.size) {
-                    0 -> null
-                    1 -> value.firstOrNull()
-                    else -> value
-                }
-            }
-            else -> value
-        }
+        v = collectionUnwrap(value)
     }
 
 }
@@ -123,21 +97,14 @@ class ContextMenuItemSuppliers {
         }
     }
 
-    inline fun <reified T: Any> add(noinline items: ContextMenuBuilder<T>.() -> Unit) {
-        add(T::class.java, items)
-    }
+    inline fun <reified T: Any> add(noinline items: ContextMenuBuilder<T>.() -> Unit) = add(T::class.java, items)
 
-    inline fun <reified T: Any> addMany(noinline items: ContextMenuBuilder<Collection<T>>.() -> Unit) {
-        addMany(T::class.java, items)
-    }
+    inline fun <reified T: Any> addMany(noinline items: ContextMenuBuilder<Collection<T>>.() -> Unit) = addMany(T::class.java, items)
 
     operator fun get(contextMenu: ImprovedContextMenu<*>, value: Any?): Sequence<MenuItem> {
-        logger.trace { "Generating contextmenu for $value" }
-        val items1 = mSingle.getElementsOfSuperV(value?.javaClass ?: Void::class.java).asSequence()
-                .flatMap { it(contextMenu, value) }
+        val items1 = mSingle.getElementsOfSuperV(value?.javaClass ?: Void::class.java).asSequence().flatMap { it(contextMenu, value) }
         val itemsN = if (value is Collection<*>) {
-            mMany.getElementsOfSuperV(value.getElementType()).asSequence()
-                    .flatMap { it(contextMenu, contextMenu.value) }
+            mMany.getElementsOfSuperV(value.getElementType()).asSequence().flatMap { it(contextMenu, contextMenu.value) }
         } else {
             sequenceOf()
         }
@@ -146,6 +113,7 @@ class ContextMenuItemSuppliers {
 
 }
 
+/** Allows DSL for [ContextMenuItemSuppliers]. */
 class ContextMenuBuilder<T>(val contextMenu: ImprovedContextMenu<*>, val selected: T): ArrayList<MenuItem>() {
 
     fun <T: MenuItem> T.add() = also { add(it) }

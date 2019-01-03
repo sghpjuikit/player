@@ -132,7 +132,6 @@ public class GridView<T, F> extends Control {
 		itemsPredicate = itemsFiltered.predicateProperty();
 		itemsComparator = itemsSorted.comparatorProperty();
 
-		getStyleClass().add(DEFAULT_STYLE_CLASS);
 
 		// search
 		search.installOn(this);
@@ -145,6 +144,8 @@ public class GridView<T, F> extends Control {
 				search.updateSearchStyles();
 		});
 		setOnScroll(Event::consume);
+
+		getStyleClass().add(STYLE_CLASS);
 	}
 
 	@Override
@@ -413,7 +414,7 @@ public class GridView<T, F> extends Control {
 		return cellFactory.get();
 	}
 
-	private static final String DEFAULT_STYLE_CLASS = "grid-view";
+	public static final String STYLE_CLASS = "grid-view";
 
 	private interface StyleableProperties {
 		CssMetaData<GridView<?,?>,Number> HORIZONTAL_CELL_SPACING =

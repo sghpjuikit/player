@@ -48,6 +48,8 @@ public abstract class Component {
 	 */
 	abstract public Node load();
 
+	abstract public void focus();
+
 	abstract public void close();
 
 	/**

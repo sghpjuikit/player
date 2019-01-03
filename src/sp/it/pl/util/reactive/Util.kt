@@ -100,7 +100,7 @@ infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>): Subscription 
     return Subscription { this.removeListener(l) }
 }
 
-infix fun <O> WritableValue<O>.attachFrom(o: ObservableValue<out O>): Subscription = o syncTo this
+infix fun <O> WritableValue<O>.attachFrom(o: ObservableValue<out O>): Subscription = o attachTo this
 
 fun <O1, O2> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, u: (O1, O2) -> Unit): Subscription {
     val l1 = ChangeListener<O1> { _, _, nv -> u(nv, o2.value) }

@@ -542,7 +542,7 @@ class App: Application(), Configurable<Any> {
 
     private fun Search.initForApp() {
         sources += { configuration.fields.asSequence().map { Entry.of(it) } }
-        sources += { widgetManager.factories.getComponentFactories().map { Entry.of(it) } }
+        sources += { widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map { Entry.of(it) } }
         sources += { ui.skin.enumerateValues().asSequence().map { Entry.of({ "Open skin: $it" }, graphicsΛ = { Icon(IconMA.BRUSH) }) { ui.skin.setNapplyValue(it) } } }
     }
 

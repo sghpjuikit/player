@@ -9,7 +9,6 @@ import javafx.scene.media.MediaPlayer.Status.STOPPED
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.nodeinfo.ItemInfo
-import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.objects.popover.ScreenUse
 import sp.it.pl.layout.widget.WidgetSource.NEW
@@ -27,6 +26,7 @@ import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.stackPane
+import sp.it.pl.util.graphics.text
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
@@ -140,12 +140,12 @@ class Notifier: ServiceBase("Notifications", true) {
     }
 
     /** Show notification displaying given text.  */
-    fun showTextNotification(text: String, title: String) {
+    fun showTextNotification(txt: String, title: String) {
         if (running) {
             val root = stackPane {
                 setMinSize(150.0, 70.0)
 
-                lay += Text(text).apply {
+                lay += text(txt) {
                     wrappingWithNatural.value = true
                 }
             }

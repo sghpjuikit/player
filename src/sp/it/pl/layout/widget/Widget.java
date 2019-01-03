@@ -401,6 +401,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 			restoreConfigs();
 	}
 
+	@Override
 	public void focus() {
 		if (isLoaded()) {
 			controller.focus();

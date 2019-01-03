@@ -51,6 +51,7 @@ import javafx.stage.Screen
 import org.reactfx.Subscription
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.window.stage.Window
+import sp.it.pl.main.JavaLegacy
 import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.sync
 import java.awt.MouseInfo
@@ -59,21 +60,14 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-/* ---------- CONSTRUCTION ------------------------------------------------------------------------------------------ */
+/* ---------- COLOR ------------------------------------------------------------------------------------------------- */
 
 /** @return color with same r,g,b values but specified opacity */
 fun Color.alpha(opacity: Double): Color {
     return Color(red, green, blue, opacity)
 }
 
-/** @return simple background with specified solid fill color and no radius or insets */
-fun bgr(c: Color) = Background(BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY))
-
-/** @return simple border with specified color, solid style, no radius and default width */
-@JvmOverloads
-fun border(c: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(BorderStroke(c, BorderStrokeStyle.SOLID, radius, BorderWidths.DEFAULT))
-
-fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
+/* ---------- ICON -------------------------------------------------------------------------------------------------- */
 
 @JvmOverloads fun createIcon(icon: GlyphIcons, iconSize: Double? = null) = Text(icon.characterToString()).apply {
     val fontSize = iconSize?.let { it.EM } ?: 1.0
@@ -156,15 +150,28 @@ fun Node?.removeFromParent() = this?.removeFromParent(parent)
 
 /* ---------- CONSTRUCTORS ------------------------------------------------------------------------------------------ */
 
+/** @return simple background with specified solid fill color and no radius or insets */
+fun bgr(color: Color) = Background(BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY))
+
+/** @return simple border with specified color, solid style, no radius and default width */
+@JvmOverloads
+fun border(color: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(BorderStroke(color, BorderStrokeStyle.SOLID, radius, BorderWidths.DEFAULT))
+
+fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
+
+inline fun pane(block: Pane.() -> Unit = {}) = Pane().apply { block() }
+inline fun pane(vararg children: Node, block: Pane.() -> Unit = {}) = Pane(*children).apply { block() }
 inline fun stackPane(block: StackPane.() -> Unit = {}) = StackPane().apply { block() }
 inline fun stackPane(vararg children: Node, block: StackPane.() -> Unit = {}) = StackPane(*children).apply { block() }
 inline fun anchorPane(block: AnchorPane.() -> Unit = {}) = AnchorPane().apply { block() }
 inline fun hBox(spacing: Number = 0.0, alignment: Pos? = null, block: HBox.() -> Unit = {}) = HBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
 inline fun vBox(spacing: Number = 0.0, alignment: Pos? = null, block: VBox.() -> Unit = {}) = VBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
 inline fun scrollPane(block: ScrollPane.() -> Unit = {}) = ScrollPane().apply { block() }
+inline fun scrollText(block: () -> Text) = Util.layScrollVText(block())!!
 inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply { block() }
 inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply { block() }
 inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply { block() }
+inline fun text(text: String = "", block: sp.it.pl.gui.objects.Text.() -> Unit = {}) = sp.it.pl.gui.objects.Text(text).apply { block() }
 inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply { block() }
 inline fun menuItem(text: String, crossinline action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
 
@@ -688,12 +695,7 @@ fun getScreen(x: Double, y: Double) = Screen.getScreens().find { it.bounds.inter
 fun getScreenForMouse() = getMousePosition().toP().getScreen()
 
 /** @return index of the screen as reported by the underlying os */
-val Screen.ordinal: Int
-    get() =
-    // indexOf() assumption is supported by the ordinals matching screen order, see:
-    // com.sun.glass.ui.Screen.getScreens().forEach { s -> println(s.getAdapterOrdinal()+" - "+s.getWidth()+"x"+s.getHeight()) }
-    // Screen.getScreens().forEach { s -> println("1"+" - "+s.getBounds().getWidth()+"x"+s.getBounds().getHeight()) }
-        Screen.getScreens().indexOf(this)+1
+val Screen.ordinal: Int get() = JavaLegacy.screenOrdinal(this)
 
 /** @return screen containing the centre of this window */
 val javafx.stage.Window.screen: Screen get() = getScreen(centreX, centreY)

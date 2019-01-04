@@ -122,7 +122,7 @@ dependencies {
     }
 
     "Native" requires {
-        implementation("net.java.dev.jna", "jna-platform", "5.0.0")
+        implementation("net.java.dev.jna", "jna-platform")
         implementation("com.1stleg", "jnativehook", "2.0.2") // don't update this to 2.1.0, it causes a critical error on linux
     }
 

@@ -37,7 +37,6 @@ import java.io.File
 import java.io.IOException
 import java.net.URI
 import java.util.ArrayList
-import java.util.function.Consumer
 
 private val logger = KotlinLogging.logger { }
 
@@ -48,7 +47,7 @@ fun copyToSysClipboard(s: String?) = copyToSysClipboard(DataFormat.PLAIN_TEXT, s
 fun copyToSysClipboard(df: DataFormat, o: Any?) = o?.let { Clipboard.getSystemClipboard().setContent(mapOf(df to it)) }
 
 /**
- * Launches this file as an executable program as a separate process. Does not wait for the program or block.
+ * Launches this file as an executable program as a separate process. Does not wait for the program.
  * - working directory of the program will be set to the parent directory of its file
  * - the program may start as a child process if otherwise not possible
  *
@@ -56,24 +55,24 @@ fun copyToSysClipboard(df: DataFormat, o: Any?) = o?.let { Clipboard.getSystemCl
  * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
  */
 fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = runOn(Player.IO_THREAD) {
-            val command = ArrayList<String>()
-            if (Os.WINDOWS.isCurrent)
-                command += APP.DIR_APP.childOf("elevate.exe").absolutePath   // use elevate.exe to run command
+    val command = ArrayList<String>()
+    if (Os.WINDOWS.isCurrent)
+        command += APP.DIR_APP.childOf("elevate.exe").absolutePath   // use elevate.exe to run command
 
-            command += absoluteFile.path
-            command += arguments.asSequence().filter { it.isNotBlank() }.map { "-$it" }
+    command += absoluteFile.path
+    command += arguments.asSequence().filter { it.isNotBlank() }.map { "-$it" }
 
-            try {
-                ProcessBuilder(command)
-                        .directory(parentDirOrRoot)
-                        .start()
+    try {
+        ProcessBuilder(command)
+                .directory(parentDirOrRoot)
+                .start()
 
-                ok<Exception>()
-            } catch (e: IOException) {
-                logger.warn(e) { "Failed to launch program" }
-                Try.error<Void, Exception>(e)
-            }
-        }
+        ok<Exception>()
+    } catch (e: IOException) {
+        logger.warn(e) { "Failed to launch program" }
+        Try.error<Void, Exception>(e)
+    }
+}
 
 /**
  * Runs a command in new background thread as a process and executes an action (on it) right after it launches.
@@ -82,11 +81,11 @@ fun File.runAsProgram(vararg arguments: String): Fut<Try<Void, Exception>> = run
  * @param command see [Runtime.exec]
  */
 @JvmOverloads
-fun runCommand(command: String, then: Consumer<Process>? = null) {
+fun runCommand(command: String, then: ((Process) -> Unit)? = null) {
     runNew {
         try {
             val p = Runtime.getRuntime().exec(command)
-            then?.accept(p)
+            then?.invoke(p)
         } catch (e: IOException) {
             logger.error(e) { "Error running command '$command'" }
         }
@@ -94,49 +93,39 @@ fun runCommand(command: String, then: Consumer<Process>? = null) {
 }
 
 /**
- * Browse the file in OS' file browser:
- * - directory -> opn in file browser
- * - file -> open directory and select file
- *
- * On some platforms the operation may be unsupported. In that case this method is a no-op.
+ * Browse the file in the systems file browser by opening the parent directory and selecting it.
+ * If it is unsupported, it will try to [open] the parent directory instead.
  */
-fun File.browse() = toURI().browse()
+fun File.browse() {
+    if (Os.WINDOWS.isCurrent) {
+        openWindowsExplorerAndSelect()
+    } else {
+        // Would be nice if this was widely supported, but it isn't
+        if (Desktop.Action.BROWSE_FILE_DIR.isSupportedOrWarn()) {
+            Desktop.getDesktop().browseFileDirectory(this)
+        } else {
+            parentDirOrRoot.open()
+        }
+    }
+}
 
 /**
  * Browse uri:
- * - url -> opens it in its standard browser
- * - directory -> opn in file browser
- * - file -> open directory and select file
+ * - directory/file -> calls [File.browse]
+ * - url -> opens it in system browser
  *
  * On some platforms the operation may be unsupported. In that case this method is a no-op.
  */
 fun URI.browse() {
     logger.info { "Browsing uri=$this" }
     runNew {
-        val f = toFileOrNull()
-        if (f==null) {
+        val browse = toFileOrNull()?.browse()
+        if (browse==null) {
             try {
                 if (Desktop.Action.BROWSE.isSupportedOrWarn())
                     Desktop.getDesktop().browse(this)
             } catch (e: IOException) {
                 logger.error(e) { "Browsing uri=$this failed" }
-            }
-        } else {
-            if (f.isDirectory) {
-                // Would be nice if this was widely supported, but it isn't
-                if (Desktop.Action.BROWSE_FILE_DIR.isSupportedOrWarn())
-                    Desktop.getDesktop().browseFileDirectory(f)
-                else
-                    if (Os.WINDOWS.isCurrent)
-                        f.openWindowsExplorerAndSelect()
-            } else {
-                // Would be nice if this did what it is supposed to, but it doesn't (tries to open the file)
-                // Desktop.getDesktop().browse(this)
-                if (Os.WINDOWS.isCurrent) {
-                    f.openWindowsExplorerAndSelect()
-                } else {
-                    f.parentDirOrRoot.open()
-                }
             }
         }
     }
@@ -145,9 +134,9 @@ fun URI.browse() {
 /**
  * Edit the file, in order:
  * - directory -> [open] is called
- * - file -> open in associated editor
- *
- * On some platforms the operation may be unsupported. In that case this method is a no-op.
+ * - file -> open in system associated editor
+ *           if there is no association or the edit action is not supported, then calls [open] instead
+ * - does not exist -> no-op
  */
 fun File.edit() {
     logger.info { "Editing file=$this" }
@@ -160,14 +149,14 @@ fun File.edit() {
                     Desktop.getDesktop().edit(this)
                 } catch (e: IOException) {
                     val noApp = "No application is associated with the specified file for this operation" in e.message.orEmpty()
-                    if (noApp) logger.warn(e) { "Opening file=$this in native editor failed" }
-                    else logger.error(e) { "Opening file=$this in native editor failed" }
+                    if (noApp) logger.info(e) { "Couldn't find an editor association for file=$this" }
+                    else logger.error(e) { "Opening file=$this in system editor failed" }
 
                     if (noApp) open()
                 } catch (e: IllegalArgumentException) {
                     // file does not exists, nothing to do
                 }
-            }
+            } else open()
         }
     }
 }
@@ -199,7 +188,7 @@ fun File.open() {
                             Desktop.getDesktop().open(this)
                         } catch (e: IOException) {
                             val noApp = "No application is associated with the specified file for this operation" in e.message.orEmpty()
-                            if (noApp) logger.warn(e) { "Opening file=$this in native app failed" }
+                            if (noApp) logger.warn(e) { "Couldn't find an application association for file=$this" }
                             else logger.error(e) { "Opening file=$this in native app failed" }
                         } catch (e: IllegalArgumentException) {
                             // file does not exists, nothing to do
@@ -300,7 +289,9 @@ fun saveFile(title: String, initial: File? = null, initialName: String, w: Windo
     return if (f!=null) Try.ok(f) else Try.error()
 }
 
-/** @return file representing the currently used wallpaper or null if error not supported */
+/** @return file representing the current desktop wallpaper or null if not supported
+ *
+ * Currently only supported on Windows */
 fun Screen.getWallpaperFile(): File? =
         if (Os.WINDOWS.isCurrent) {
             val path = Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, "Control Panel\\Desktop", "Wallpaper")
@@ -315,7 +306,7 @@ fun Screen.getWallpaperFile(): File? =
                 File(path)
             }
         } else {
-            null    // TODO: implement
+            null
         }
 
 private fun Desktop.Action.isSupportedOrWarn() =
@@ -326,15 +317,15 @@ private fun Desktop.Action.isSupportedOrWarn() =
             false
         }
 
-private fun File.openWindowsExplorerAndSelect() {
-    try {
-        Runtime.getRuntime().exec(arrayOf("explorer.exe", "/select,", "\"$path\""))
-    } catch (e: IOException) {
-        logger.error(e) { "Failed to open explorer.exe and select file=$this" }
-    }
-}
+private fun File.openWindowsExplorerAndSelect() =
+        try {
+            Runtime.getRuntime().exec(arrayOf("explorer.exe", "/select,", "\"$path\""))
+            true
+        } catch (e: IOException) {
+            logger.error(e) { "Failed to open explorer.exe and select file=$this" }
+            false
+        }
 
-// TODO: implement
 /** @return true if the file is an executable file */
 private fun File.isExecutable(): Boolean =
         when (Os.current) {

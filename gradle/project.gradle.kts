@@ -22,7 +22,7 @@ import kotlin.text.Charsets.UTF_8
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
     id("com.gradle.build-scan") version "2.1"
-    kotlin("jvm") version "1.3.0"
+    kotlin("jvm") version "1.3.11"
     application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
@@ -77,7 +77,6 @@ allprojects {
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions.includeRuntime = true
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.jdkHome = dirJdk.path
         kotlinOptions.verbose = true
@@ -113,7 +112,10 @@ dependencies {
     "JavaFX" requires {
         implementation("de.jensd", "fontawesomefx", "8.9")
         implementation("org.reactfx", "reactfx", "2.0-M5")
-        implementation("eu.hansolo", "tilesfx", "1.6.4") { exclude("junit", "junit") }
+        implementation("eu.hansolo", "tilesfx", "1.6.5") {
+            // tilesfx depends on json-simple and that for some reason has a test dependency as compile dependency -_-
+            exclude("junit", "junit")
+        }
         implementation("eu.hansolo", "Medusa", "8.0")
     }
 
@@ -137,23 +139,23 @@ dependencies {
 
     "Image" requires {
         implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
-        fun implementationImageIO(name: String) =
+        fun imageIO(name: String) =
                 implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.4.1")
-        implementationImageIO("bmp")
-        implementationImageIO("jpeg")
-        implementationImageIO("iff")
-        implementationImageIO("icns")
-        implementationImageIO("pcx")
-        implementationImageIO("pict")
-        implementationImageIO("clippath")
-        implementationImageIO("hdr")
-        implementationImageIO("pdf")
-        implementationImageIO("pnm")
-        implementationImageIO("psd")
-        implementationImageIO("tga")
-        implementationImageIO("sgi")
-        implementationImageIO("thumbsdb")
-        implementationImageIO("tiff")
+        imageIO("bmp")
+        imageIO("jpeg")
+        imageIO("iff")
+        imageIO("icns")
+        imageIO("pcx")
+        imageIO("pict")
+        imageIO("clippath")
+        imageIO("hdr")
+        imageIO("pdf")
+        imageIO("pnm")
+        imageIO("psd")
+        imageIO("tga")
+        imageIO("sgi")
+        imageIO("thumbsdb")
+        imageIO("tiff")
     }
 
 }
@@ -174,13 +176,12 @@ tasks {
         onlyIf { !dirJdk.exists() }
         doFirst {
             println("Making JDK locally accessible...")
-            val jdkPath = "java.home".sysProp.takeIf { it.isNotBlank() }?.let { Paths.get(it) }
-                    ?: failIO { "Unable to find JDK" }
+            val jdkPath = "java.home".sysProp?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
             try {
                 Files.createSymbolicLink(dirJdk.toPath(), jdkPath)
             } catch (e: Exception) {
                 println("Couldn't create a symbolic link from $dirJdk to $jdkPath: $e")
-                if ("os.name".sysProp.startsWith("Windows")) {
+                if ("os.name".sysProp?.startsWith("Windows")==true) {
                     println("Trying junction...")
                     val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$dirJdk" "$jdkPath"""")
                     val exitValue = process.waitFor()
@@ -225,6 +226,7 @@ tasks {
     }
 
     "jar"(Jar::class) {
+        dependsOn(copyLibs, kotlinc)
         group = main
         destinationDir = dirWorking
         archiveName = "PlayerFX.jar"
@@ -246,7 +248,7 @@ tasks {
     }
 
     "run"(JavaExec::class) {
-        dependsOn(copyLibs, kotlinc, "jar")
+        dependsOn(copyLibs, kotlinc)
         group = main
         workingDir = dirWorking
     }
@@ -270,7 +272,8 @@ application {
 
 operator fun File.div(childName: String) = this.resolve(childName)
 
-val String.sysProp: String get() = System.getProperty(this)
+val String.sysProp: String?
+    get() = System.getProperty(this).takeIf { it.isNotBlank() }
 
 infix fun String.requires(block: () -> Unit) = block()
 

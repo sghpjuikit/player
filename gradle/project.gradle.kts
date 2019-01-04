@@ -21,16 +21,11 @@ import kotlin.text.Charsets.UTF_8
 
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
-    id("com.gradle.build-scan") version "2.1"
-    kotlin("jvm") version "1.3.11"
+    id("com.gradle.build-scan") version "1.16"
+    kotlin("jvm") version "1.3.0"
     application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
-}
-
-buildScan {
-    termsOfServiceUrl = "https://gradle.com/terms-of-service"
-    setTermsOfServiceAgree("yes")
 }
 
 /** working directory of the application */
@@ -100,11 +95,18 @@ dependencies {
         implementation(kotlin("stdlib-jdk8"))
         implementation(kotlin("reflect"))
         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core")
-        implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.0.1")
+        implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.1.0")
+    }
+
+    "Logging" requires {
+        implementation("org.slf4j", "slf4j-api")
+        implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
+        implementation("ch.qos.logback", "logback-classic", "1.2.3")
+        implementation("io.github.microutils", "kotlin-logging", "1.6.22")
     }
 
     "Audio" requires {
-        implementation("uk.co.caprica", "vlcj", "3.10.1")
+        implementation("uk.co.caprica", "vlcj", "3.11.0")
         implementation("de.u-mass", "lastfm-java", "0.1.2")
         implementation("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
     }
@@ -117,13 +119,6 @@ dependencies {
             exclude("junit", "junit")
         }
         implementation("eu.hansolo", "Medusa", "8.0")
-    }
-
-    "Logging" requires {
-        implementation("org.slf4j", "slf4j-api")
-        implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
-        implementation("ch.qos.logback", "logback-classic", "1.2.3")
-        implementation("io.github.microutils", "kotlin-logging", "1.6.20")
     }
 
     "Native" requires {
@@ -265,7 +260,16 @@ application {
             "-ms"+(properties["player.memoryMin"] ?: "100m"),
             "-mx"+(properties["player.memoryMax"] ?: "3g"),
             *properties["player.jvmArgs"]?.toString()?.split(' ')?.toTypedArray().orEmpty(),
-            "--add-opens", "javafx.controls/javafx.scene.control.skin=ALL-UNNAMED"
+            "--add-opens", "java.base/java.util=ALL-UNNAMED",
+            "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+            "--add-opens", "java.base/java.text=ALL-UNNAMED",
+            "--add-opens", "java.base/java.util.stream=ALL-UNNAMED",
+            "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+            "--add-opens", "java.desktop/java.awt.font=ALL-UNNAMED",
+            "--add-opens", "javafx.controls/javafx.scene.control=ALL-UNNAMED",
+            "--add-opens", "javafx.controls/javafx.scene.control.skin=ALL-UNNAMED",
+            "--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
+            "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED"
     )
 }
 

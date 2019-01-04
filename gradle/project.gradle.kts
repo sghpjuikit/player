@@ -26,6 +26,7 @@ plugins {
     application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
+    id("org.openjfx.javafxplugin") version "0.0.5"
 }
 
 buildScan {
@@ -41,7 +42,7 @@ val kotlinVersion: String by extra {
             .resolvedConfiguration.firstLevelModuleDependencies
             .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
-val javaSupportedVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10).also {
+val javaSupportedVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10, JavaVersion.VERSION_11).also {
     val javaVersion = JavaVersion.current()
     if (javaVersion !in it) {
         println(""+
@@ -52,6 +53,10 @@ val javaSupportedVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION
         )
         throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
     }
+}
+
+javafx {
+    modules = listOf("javafx.controls", "javafx.fxml", "javafx.media", "javafx.swing", "javafx.web")
 }
 
 sourceSets {

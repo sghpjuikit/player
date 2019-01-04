@@ -36,7 +36,7 @@ class CellPane: Pane {
         val gapX = cellG+(w+cellG-columns*(cellW+cellG))/columns
         val gapY = cellG
 
-        children.withIndex().forEach { (i, n) ->
+        children.forEachIndexed { i, n ->
             val x = i%columns*(cellW+gapX)
             val y = i/columns*(cellH+gapY)
             n.relocate(x, y)

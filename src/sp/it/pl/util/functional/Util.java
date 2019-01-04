@@ -34,7 +34,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.reactfx.util.TriFunction;
 import sp.it.pl.util.SwitchException;
-import sp.it.pl.util.collections.Tuple2;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.functional.Functors.Ƒ1E;
 import sp.it.pl.util.functional.Functors.Ƒ2;
@@ -51,7 +50,6 @@ import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static sp.it.pl.util.collections.Tuples.tuple;
 import static sp.it.pl.util.dev.Util.throwIf;
 import static sp.it.pl.util.dev.Util.throwIfNot;
 
@@ -1097,14 +1095,24 @@ public interface Util {
 
 	/****************************** () -> collection ******************************/
 
-	static <T> Stream<Tuple2<Integer,T>> toIndexedStream(Collection<T> c) {
+	static <T> Stream<Indexed<T>> toIndexedStream(Collection<T> c) {
 		int i = 0;
-		Stream.Builder<Tuple2<Integer,T>> b = Stream.builder();
+		Stream.Builder<Indexed<T>> b = Stream.builder();
 		for (T item : c) {
-			b.accept(tuple(i, item));
+			b.accept(new Indexed<>(i, item));
 			i++;
 		}
 		return b.build();
+	}
+
+	class Indexed<T> {
+		public final int i;
+		public final T value;
+
+		public Indexed(int i, T value) {
+			this.i = i;
+			this.value = value;
+		}
 	}
 
 	/** Creates an array filled with provided elements. The array's length will equal element count. */

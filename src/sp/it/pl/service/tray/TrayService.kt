@@ -19,7 +19,7 @@ import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
-import sp.it.pl.util.file.childOf
+import sp.it.pl.util.file.div
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.setTo
@@ -44,13 +44,13 @@ class TrayService: ServiceBase("Tray", true) {
     val tooltipShow by cv(true)
     @IsConfig(name = "Show playing in tooltip", info = "Shows playing song title in tray tooltip.")
     val showPlayingInTooltip by cv(true)
-    @IsConfig(name = "Is supported", info = "Shows playing song title in tray tooltip.", editable = EditMode.NONE)
+    @IsConfig(name = "Is supported", editable = EditMode.NONE)
     private val supported by c(SystemTray.isSupported())
     private var running = false
     private val onEnd = Disposer()
 
     private var tray: SystemTray? = null
-    private val trayIconImageDefault = APP.DIR_RESOURCES.childOf("icons", "icon24.png")
+    private val trayIconImageDefault = APP.DIR_RESOURCES/"icons"/"icon24.png"
     private var trayIconImage = trayIconImageDefault
     private var trayIcon: TrayIcon? = null
     private val onClickDefault: (MouseEvent) -> Unit = { APP.ui.toggleMinimize() }
@@ -113,8 +113,7 @@ class TrayService: ServiceBase("Tray", true) {
                                     cmOwner.requestFocus()
                                     cm.show(cmOwner, me.screenX, me.screenY-40)
                                 }
-                                else -> {
-                                }
+                                else -> {}
                             }
                         }
                     })

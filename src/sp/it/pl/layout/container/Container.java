@@ -315,6 +315,11 @@ public abstract class Container<G extends ContainerNode> extends Component imple
     @Override
     public abstract Node load();
 
+    @Override
+    public void focus() {
+        getAllWidgets().findFirst().ifPresent(Widget::focus);
+    }
+
     /**
      * Closes this container and its content. Can not be undone. Any direct or indirect children
      * component will be closed.

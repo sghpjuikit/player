@@ -77,6 +77,7 @@ import sp.it.pl.util.graphics.Resolution
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.drag.Placeholder
 import sp.it.pl.util.graphics.install
+import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.layFullArea
 import sp.it.pl.util.graphics.minPrefMaxHeight
@@ -84,6 +85,7 @@ import sp.it.pl.util.graphics.minPrefMaxWidth
 import sp.it.pl.util.graphics.propagateESCAPE
 import sp.it.pl.util.graphics.scrollPane
 import sp.it.pl.util.graphics.stackPane
+import sp.it.pl.util.graphics.text
 import sp.it.pl.util.graphics.typeText
 import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.math.max
@@ -262,8 +264,8 @@ class GameView(widget: Widget<*>): SimpleController(widget) {
     inner class GamePane: StackPane() {
         private lateinit var game: Game
         private val cover = Thumbnail()
-        private val titleL = Label()
-        private val infoT = Text()
+        private val titleL = label()
+        private val infoT = text()
         private val fileTree = TreeView<File>()
         private val animated = ArrayList<Node>()
 

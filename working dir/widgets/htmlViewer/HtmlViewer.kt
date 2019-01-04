@@ -1,6 +1,7 @@
 package htmlViewer
 
 import javafx.scene.web.HTMLEditor
+import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.util.access.initAttach
@@ -20,6 +21,7 @@ import sp.it.pl.util.reactive.sync
         year = "2016",
         group = Widget.Group.OTHER
 )
+@ExperimentalController
 class HtmlViewer(widget: Widget<*>): SimpleController(widget) {
 
     val editor = HTMLEditor()

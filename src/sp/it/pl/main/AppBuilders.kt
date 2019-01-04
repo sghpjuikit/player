@@ -18,6 +18,7 @@ import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.kt
 import sp.it.pl.util.graphics.setScaleXY
+import sp.it.pl.util.graphics.text
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.math.seconds
 import sp.it.pl.util.reactive.attachChanges
@@ -41,7 +42,7 @@ private typealias Progress = ProgressIndicator
  */
 @JvmOverloads
 fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> {
-    val t = Text(textContent).apply {
+    val t = text(textContent) {
         styleClass += "help-popover-text"
         wrappingWithNatural.value = true
     }
@@ -93,7 +94,7 @@ fun appTooltip(text: String = "") = Tooltip(text).apply {
 }
 
 fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
-    val text = Text()
+    val text = text()
     graphic = text
     setOnShowing {
         computeDataInfo(data()) ui { text.text = it }

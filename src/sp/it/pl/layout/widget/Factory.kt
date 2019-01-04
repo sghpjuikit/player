@@ -95,3 +95,10 @@ class DeserializingFactory: ComponentFactory<Component> {
     override fun toString() = "${javaClass.simpleName} $nameGui $launcher"
 
 }
+
+
+/** Marks [Controller]/[Widget] as unfit for production use. */
+annotation class ExperimentalController
+
+/** @see ExperimentalController */
+fun ComponentFactory<*>.isExperimental() = this is WidgetFactory<*> && controllerType.isAnnotationPresent(ExperimentalController::class.java)

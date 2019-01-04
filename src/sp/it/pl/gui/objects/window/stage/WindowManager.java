@@ -452,7 +452,7 @@ public class WindowManager implements Configurable<Object> {
     public Window createWindow(Component c) {
         Window w = createWindow();
         w.setContent(c);
-        if (c instanceof Widget<?>) ((Widget<?>) c).focus();
+        c.focus();
         return w;
     }
 
@@ -465,7 +465,7 @@ public class WindowManager implements Configurable<Object> {
         Window w = create();
         w.initLayout();
         w.setContent(c);
-        if (c instanceof Widget<?>) ((Widget<?>) c).focus();
+        c.focus();
         w.show();
         w.setXYToCenter(getScreenForMouse());
         return w;

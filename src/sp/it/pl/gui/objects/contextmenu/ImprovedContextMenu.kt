@@ -86,14 +86,14 @@ class ContextMenuItemSuppliers {
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> add(type: Class<T>, items: ContextMenuBuilder<T>.() -> Unit) {
         mSingle.accumulate(type) { menu, item ->
-            ContextMenuBuilder(menu, item as T).also { items(it) }.asSequence()
+            ContextMenuBuilder(menu, item as T).also { items(it) }.getItemSequence()
         }
     }
 
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> addMany(type: Class<T>, items: ContextMenuBuilder<Collection<T>>.() -> Unit) {
         mMany.accumulate(type) { menu, item ->
-            ContextMenuBuilder(menu, item as Collection<T>).also { items(it) }.asSequence()
+            ContextMenuBuilder(menu, item as Collection<T>).also { items(it) }.getItemSequence()
         }
     }
 
@@ -114,9 +114,13 @@ class ContextMenuItemSuppliers {
 }
 
 /** Allows DSL for [ContextMenuItemSuppliers]. */
-class ContextMenuBuilder<T>(val contextMenu: ImprovedContextMenu<*>, val selected: T): ArrayList<MenuItem>() {
+class ContextMenuBuilder<T>(val contextMenu: ImprovedContextMenu<*>, val selected: T) {
 
-    fun <T: MenuItem> T.add() = also { add(it) }
+    private val items = ArrayList<MenuItem>()
+
+    fun getItemSequence() = items.asSequence()
+
+    private fun <T: MenuItem> T.add() = also { items.add(it) }
 
     fun item(text: String, handler: (ActionEvent) -> Unit): MenuItem =
             menuItem(text, handler).add()

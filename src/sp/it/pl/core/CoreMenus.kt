@@ -51,7 +51,9 @@ class CoreMenus: Core {
     private fun ContextMenuItemSuppliers.init() = apply {
         add<Any> {
             item("Show detail") { APP.actionPane.show(selected) }
-            widgetMenu<Opener>("Examine in") { it.open(selected) }
+            menu("Examine in") {
+                widgetItems<Opener> { it.open(selected) }
+            }
             if (APP.developerMode)
                 menu("Public methods") {
                     items(getAllMethods(selected::class.java).asSequence()
@@ -92,10 +94,6 @@ class CoreMenus: Core {
             }
         }
         addMany<File> {
-            if (selected.all { it.isPlayable }) {
-                item("Play") { PlaylistManager.use { it.setNplay(selected.map { SimpleItem(it) }) } }
-                item("Enqueue") { PlaylistManager.use { it.addFiles(selected) } }
-            }
             item("Copy") { copyToSysClipboard(DataFormat.FILES, selected) }
             item("Explore in browser") { browseMultipleFiles(selected.asSequence()) }
         }
@@ -104,10 +102,16 @@ class CoreMenus: Core {
             item("Enqueue items") { PlaylistManager.use { it.addItems(selected.grouped) } }
             item("Update items from file") { APP.db.refreshItemsFromFile(selected.grouped) }
             item("Remove items from library") { APP.db.removeItems(selected.grouped) }
-            widgetMenu<SongReader>("Show in") { it.read(selected.grouped) }
-            widgetMenu<SongWriter>("Edit tags in") { it.read(selected.grouped) }
+            menu("Show in") {
+                widgetItems<SongReader> { it.read(selected.grouped) }
+            }
+            menu("Edit tags in") {
+                widgetItems<SongWriter> { it.read(selected.grouped) }
+            }
             item("Explore items's location") { browseMultipleFiles(selected.grouped.asSequence().mapNotNull { it.getFile() }) }
-            widgetMenu<FileExplorerFeature>("Explore items' location in") { it.exploreCommonFileOf(selected.grouped.mapNotNull { it.getFile() }) }
+            menu("Explore items' location in") {
+                widgetItems<FileExplorerFeature> { it.exploreCommonFileOf(selected.grouped.mapNotNull { it.getFile() }) }
+            }
             if (selected.field==Metadata.Field.ALBUM)
                 menu("Search cover in") {
                     items(APP.instances.getInstances<SearchUriBuilder>(),
@@ -118,8 +122,12 @@ class CoreMenus: Core {
         add<PlaylistItemGroup> {
             item("Play items") { PlaylistManager.use { it.playItem(selected.items[0]) } }
             item("Remove items") { PlaylistManager.use { it.removeAll(selected.items) } }
-            widgetMenu<SongReader>("Show in") { it.read(selected.items) }
-            widgetMenu<SongWriter>("Edit tags in") { it.read(selected.items) }
+            menu("Show in") {
+                widgetItems<SongReader> { it.read(selected.items) }
+            }
+            menu("Edit tags in") {
+                widgetItems<SongWriter> { it.read(selected.items) }
+            }
             item("Crop items") { PlaylistManager.use { it.retainAll(selected.items) } }
             item("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(selected.items) } }
             item("Duplicate items individually") { PlaylistManager.use { it.duplicateItemsByOne(selected.items) } }
@@ -166,9 +174,6 @@ class CoreMenus: Core {
                 items(APP.widgetManager.factories.getFactoriesWith<W>(),
                         { it.nameGui() },
                         { it.use(WidgetSource.NO_LAYOUT) { action(it) } })
-
-        private inline fun <reified W> ContextMenuBuilder<*>.widgetMenu(text: String, crossinline action: (W) -> Unit) =
-                menu(text).widgetItems(action)
 
         private fun ContextMenuBuilder<*>.addMenuOfItemsFor(contextMenu: ImprovedContextMenu<*>, value: Any?) {
             val menuName = APP.className.get(value?.javaClass ?: Void::class.java)

@@ -86,14 +86,14 @@ class ContextMenuItemSuppliers {
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> add(type: Class<T>, items: ContextMenuBuilder<T>.() -> Unit) {
         mSingle.accumulate(type) { menu, item ->
-            ContextMenuBuilder(menu, item as T).also { items(it) }.getItemSequence()
+            ContextMenuBuilder(menu, item as T).also { items(it) }.asSequence()
         }
     }
 
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> addMany(type: Class<T>, items: ContextMenuBuilder<Collection<T>>.() -> Unit) {
         mMany.accumulate(type) { menu, item ->
-            ContextMenuBuilder(menu, item as Collection<T>).also { items(it) }.getItemSequence()
+            ContextMenuBuilder(menu, item as Collection<T>).also { items(it) }.asSequence()
         }
     }
 
@@ -102,7 +102,8 @@ class ContextMenuItemSuppliers {
     inline fun <reified T: Any> addMany(noinline items: ContextMenuBuilder<Collection<T>>.() -> Unit) = addMany(T::class.java, items)
 
     operator fun get(contextMenu: ImprovedContextMenu<*>, value: Any?): Sequence<MenuItem> {
-        val items1 = mSingle.getElementsOfSuperV(value?.javaClass ?: Void::class.java).asSequence().flatMap { it(contextMenu, value) }
+        val items1 = mSingle.getElementsOfSuperV(value?.javaClass
+                ?: Void::class.java).asSequence().flatMap { it(contextMenu, value) }
         val itemsN = if (value is Collection<*>) {
             mMany.getElementsOfSuperV(value.getElementType()).asSequence().flatMap { it(contextMenu, contextMenu.value) }
         } else {
@@ -118,17 +119,20 @@ class ContextMenuBuilder<T>(val contextMenu: ImprovedContextMenu<*>, val selecte
 
     private val items = ArrayList<MenuItem>()
 
-    fun getItemSequence() = items.asSequence()
+    fun asSequence() = items.asSequence()
 
-    private fun <T: MenuItem> T.add() = also { items.add(it) }
-
-    fun item(text: String, handler: (ActionEvent) -> Unit): MenuItem =
-            menuItem(text, handler).add()
-
-    fun menu(text: String, graphic: Node? = null, items: Menu.() -> Unit) =
-            sp.it.pl.util.graphics.menu(text, graphic, items).add()
-
-    fun menu(text: String, items: Sequence<MenuItem> = seqOf()) =
-            Menu(text, null, *items.asArray()).add()
+    fun <T: MenuItem> item(item: T): T {
+        items.add(item)
+        return item
+    }
 
 }
+
+fun ContextMenuBuilder<*>.item(text: String, handler: (ActionEvent) -> Unit) =
+        item(menuItem(text, handler))
+
+fun ContextMenuBuilder<*>.menu(text: String, graphic: Node? = null, items: Menu.() -> Unit) =
+        item(sp.it.pl.util.graphics.menu(text, graphic, items))
+
+fun ContextMenuBuilder<*>.menu(text: String, items: Sequence<MenuItem> = seqOf()) =
+        item(Menu(text, null, *items.asArray()))

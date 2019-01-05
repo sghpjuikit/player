@@ -10,6 +10,7 @@ import sp.it.pl.gui.objects.contextmenu.ContextMenuBuilder
 import sp.it.pl.gui.objects.contextmenu.ContextMenuItemSuppliers
 import sp.it.pl.gui.objects.contextmenu.ImprovedContextMenu
 import sp.it.pl.gui.objects.contextmenu.contextMenuItemBuilders
+import sp.it.pl.gui.objects.contextmenu.menu
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.WidgetSource
 import sp.it.pl.layout.widget.feature.FileExplorerFeature

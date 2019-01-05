@@ -2,7 +2,6 @@ package sp.it.pl.core
 
 import javafx.scene.control.Menu
 import javafx.scene.input.DataFormat
-import sp.it.pl.audio.SimpleItem
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
@@ -68,8 +67,7 @@ class CoreMenus: Core {
                                 } catch (e: InvocationTargetException) {
                                     logger.error(e) { "Could not invoke method $it on object $selected" }
                                 }
-                            }
-                    )
+                            })
                 }
         }
         add<File> {
@@ -163,7 +161,7 @@ class CoreMenus: Core {
                     }
                 }
             if (selected.representant!=null)
-                addMenuOfItemsFor(contextMenu, selected.representant)
+                menuFor(contextMenu, selected.representant)
         }
 
     }
@@ -175,12 +173,12 @@ class CoreMenus: Core {
                         { it.nameGui() },
                         { it.use(WidgetSource.NO_LAYOUT) { action(it) } })
 
-        private fun ContextMenuBuilder<*>.addMenuOfItemsFor(contextMenu: ImprovedContextMenu<*>, value: Any?) {
+        private fun ContextMenuBuilder<*>.menuFor(contextMenu: ImprovedContextMenu<*>, value: Any?) {
             val menuName = APP.className.get(value?.javaClass ?: Void::class.java)
-            addMenuOfItemsFor(contextMenu, menuName, value)
+            menuFor(contextMenu, menuName, value)
         }
 
-        private fun ContextMenuBuilder<*>.addMenuOfItemsFor(contextMenu: ImprovedContextMenu<*>, menuName: String, value: Any?) =
+        private fun ContextMenuBuilder<*>.menuFor(contextMenu: ImprovedContextMenu<*>, menuName: String, value: Any?) =
                 menu(menuName, contextMenuItemBuilders[contextMenu, value])
 
     }

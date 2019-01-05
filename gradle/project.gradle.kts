@@ -135,8 +135,7 @@ dependencies {
 
     "Image" requires {
         implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
-        fun imageIO(name: String) =
-                implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.4.1")
+        fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.4.1")
         imageIO("bmp")
         imageIO("jpeg")
         imageIO("iff")

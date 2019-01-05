@@ -37,7 +37,7 @@ import sp.it.pl.util.async.future.Fut.Companion.fut
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.IsConfigurable
+import sp.it.pl.util.conf.MultiConfigurableBase
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cr
 import sp.it.pl.util.conf.cv
@@ -57,8 +57,7 @@ import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.text.keys
 import java.util.ArrayList
 
-@IsConfigurable("Guide")
-class Guide(guideEvents: EventSource<Any>? = null) {
+class Guide(guideEvents: EventSource<Any>? = null): MultiConfigurableBase("${Settings.PLUGINS}.Guide") {
 
     @IsConfig(name = "Hint", editable = EditMode.APP)
     private var at by c(-1)

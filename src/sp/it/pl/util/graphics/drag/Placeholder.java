@@ -57,6 +57,7 @@ public class Placeholder extends StackPane {
 //            parent.getChildren().forEach(c -> c.setOpacity(0.2));
 			setVisible(true);
 			p.getChildren().add(this);
+			if (s!=null) s.unsubscribe();
 			s = maintain(n.layoutBoundsProperty(), b -> {
 				double w = b.getWidth();
 				double h = b.getHeight();
@@ -76,6 +77,7 @@ public class Placeholder extends StackPane {
 	public void hide() {
 //        if (parent!=null) parent.getChildren().forEach(c -> c.setOpacity(1));
 		if (s!=null) s.unsubscribe();
+		s = null;
 		removeFromParent(this);
 		setVisible(false);
 	}

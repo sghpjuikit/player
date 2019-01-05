@@ -14,14 +14,15 @@ import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.layout.AnchorPane
 import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
-import javafx.util.Duration.millis
 import sp.it.pl.main.APP
-import sp.it.pl.util.conf.cv
 import sp.it.pl.service.ServiceBase
-import sp.it.pl.util.access.V
 import sp.it.pl.util.access.initAttach
+import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.setAnchors
+import sp.it.pl.util.math.millis
 import java.util.ArrayList
 
 class ClickEffect: ServiceBase("ClickEffect", false) {
@@ -32,17 +33,17 @@ class ClickEffect: ServiceBase("ClickEffect", false) {
     private val pool = ArrayList<Effect>()
 
     @IsConfig(name = "Show click effect", info = "Show effect on click.")
-    val showClickEffect by cv(true) { V(it).initAttach { applyC() } }
-    @IsConfig(name = "Click effect duration", info = "Duration of the click effect in milliseconds.")
-    val duration by cv(350.0) { V(it).initAttach { apply() } }
+    val showClickEffect by cv(true) { v(it).initAttach { applyC() } }
+    @IsConfig(name = "Click effect duration", info = "Duration of the click effect.")
+    val duration by cv(350.millis) { v(it).initAttach { apply() } }
     @IsConfig(name = "Click effect min", info = "Starting scale value of cursor click effect animation.")
-    val minScale by cv(0.2) { V(it).initAttach { apply() } }
+    val minScale by cv(0.2) { v(it).initAttach { apply() } }
     @IsConfig(name = "Click effect max", info = "Ending scale value of cursor click effect animation.")
-    val maxScale by cv(0.7) { V(it).initAttach { apply() } }
-    @IsConfig(name = "Click effect delay", info = "Delay of the click effect in milliseconds.")
-    val delay by cv(0.0) { V(it).initAttach { apply() } }
+    val maxScale by cv(0.7) { v(it).initAttach { apply() } }
+    @IsConfig(name = "Click effect delay", info = "Delay of the click effect.")
+    val delay by cv(0.millis) { v(it).initAttach { apply() } }
     @IsConfig(name = "Blend Mode", info = "Blending mode for the effect.")
-    val blendMode by cv(BlendMode.SRC_OVER) { V(it).initAttach { apply() } }
+    val blendMode by cv(BlendMode.SRC_OVER) { v(it).initAttach { apply() } }
 
     private fun applyC() {
         // TODO: improve by monitoring windows dynamically
@@ -75,7 +76,7 @@ class ClickEffect: ServiceBase("ClickEffect", false) {
     override fun start() {
         isRunning = true
 
-        val s = AnchorPane().apply {
+        val s = anchorPane {
             isMouseTransparent = true
             style = "-fx-background-color: null;"
             isPickOnBounds = false
@@ -143,14 +144,14 @@ class ClickEffect: ServiceBase("ClickEffect", false) {
         }
 
         fun apply() {
-            root.blendMode = blendMode.get()
-            anim.delay = millis(delay.value)
+            root.blendMode = blendMode.value
+            anim.delay = delay.value
 
-            fade.duration = millis(duration.value)
+            fade.duration = duration.value
             fade.fromValue = 0.6
             fade.toValue = 0.0
 
-            scale.duration = millis(duration.value)
+            scale.duration = duration.value
             scale.fromX = scaleB*minScale.value
             scale.fromY = scaleB*minScale.value
             scale.toX = scaleB*maxScale.value

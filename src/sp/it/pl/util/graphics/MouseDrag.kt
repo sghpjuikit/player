@@ -4,9 +4,8 @@ import javafx.scene.Node
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
-import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.math.P
-import java.util.function.Consumer
+import sp.it.pl.util.reactive.onEventDown
 
 /**
  * Helper for mouse dragging behavior, such as moving or resizing graphics.
@@ -27,18 +26,18 @@ class MouseDrag<T> {
      * @param onStart onDragStart action
      * @param onDrag onDragMove action
      */
-    constructor(node: Node, data: T, onStart: Consumer<in MouseDrag<T>>, onDrag: Consumer<in MouseDrag<T>>) {
+    constructor(node: Node, data: T, onStart: (MouseDrag<T>) -> Unit, onDrag: (MouseDrag<T>) -> Unit) {
         this.data = data
         this.start = P()
         this.diff = P()
-        node.addEventFilter(MOUSE_PRESSED) { e ->
+        node.onEventDown(MOUSE_PRESSED) { e ->
             isDragging = true
             start.x = e.screenX
             start.y = e.screenY
             onStart(this)
             e.consume()
         }
-        node.addEventFilter(MOUSE_DRAGGED) { e ->
+        node.onEventDown(MOUSE_DRAGGED) { e ->
             if (isDragging) {
                 diff.x = e.screenX-start.x
                 diff.y = e.screenY-start.y
@@ -46,10 +45,8 @@ class MouseDrag<T> {
             }
             e.consume()
         }
-        node.addEventFilter(MOUSE_RELEASED) { isDragging = false }
+        node.onEventDown(MOUSE_RELEASED) { isDragging = false }
     }
-
 }
 
-fun <T> Node.initMouseDrag(data: T, onStart: Consumer<in MouseDrag<T>>, onDrag: Consumer<in MouseDrag<T>>) =
-        MouseDrag(this, data, onStart, onDrag)
+fun <T> Node.initMouseDrag(data: T, onStart: (MouseDrag<T>) -> Unit, onDrag: (MouseDrag<T>) -> Unit) = MouseDrag(this, data, onStart, onDrag)

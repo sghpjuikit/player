@@ -8,23 +8,26 @@ import sp.it.pl.util.file.Properties
 import sp.it.pl.util.file.Properties.Property
 import sp.it.pl.util.functional.compose
 import sp.it.pl.util.functional.seqOf
+import sp.it.pl.util.type.isSubclassOf
 import java.io.File
 import java.lang.invoke.MethodHandles
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
-import java.util.function.Predicate
-import java.util.stream.Stream
 
-/** Provides methods to access configs. */
-open class Configuration {
+/** Persistable [Configurable]. */
+open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${it.name}" } ): Configurable<Any?> {
 
     private val methodLookup = MethodHandles.lookup()
-    private val mapper: (String) -> String = { s -> s.replace(' ', '_').toLowerCase() }
-    private val configToRawKeyMapper = compose({ c: Config<*> -> "${c.group}.${c.name}" }, mapper)
+    private val namePostMapper: (String) -> String = { s -> s.replace(' ', '_').toLowerCase() }
+    private val configToRawKeyMapper = nameMapper compose namePostMapper
     private val properties = ConcurrentHashMap<String, String>()
-    private val configs = MapSet(ConcurrentHashMap(), configToRawKeyMapper)
+    private val configs: MapSet<String, Config<*>> = MapSet(ConcurrentHashMap(), configToRawKeyMapper)
 
-    fun getFields(): Collection<Config<*>> = configs
+    @Suppress("UNCHECKED_CAST")
+    override fun getField(name: String): Config<Any?> = configs.find { it.name==name } as Config<Any?>
+
+    @Suppress("UNCHECKED_CAST")
+    override fun getFields(): Collection<Config<Any?>> = configs as Collection<Config<Any?>>
 
     /**
      * Returns raw key-value ([java.lang.String]) pairs representing the serialized configs.
@@ -34,6 +37,8 @@ open class Configuration {
     fun rawGetAll(): Map<String, String> = properties
 
     fun rawGet(key: String): String = properties[key]!!
+
+    fun rawGet(config: Config<*>): String = properties[configToRawKeyMapper(config)]!!
 
     fun rawContains(config: String): Boolean = properties.containsKey(config)
 
@@ -66,11 +71,11 @@ open class Configuration {
         configs += config
 
         // generate boolean toggle actions
-        config.takeIf { it.isEditableByUser() && it.type==Boolean::class.javaObjectType }
+        config.takeIf { it.type.isSubclassOf<Boolean>() && it.isEditable.isByUser }
                 ?.let {
                     val name = "${it.guiName} - toggle"
                     val description = "Toggles value ${it.name} between true/false"
-                    val r = Runnable { if (it.isEditableByUser()) it.setNextNapplyValue() }
+                    val r = { if (it.isEditableByUserRightNow()) it.setNextNapplyValue() }
                     val a = Action(name, r, description, it.group, "", false, false)
                     ActionRegistrar.getActions() += a
                     configs += a
@@ -99,10 +104,8 @@ open class Configuration {
 
     fun <T> drop(configs: Collection<Config<T>>) = configs.forEach { drop(it) }
 
-    fun getFields(condition: Predicate<Config<*>>): Stream<Config<*>> = getFields().stream().filter(condition)
-
     /** Changes all config fields to their default value and applies them  */
-    fun toDefault() = getFields().forEach { it.setNapplyDefaultValue() }
+    fun toDefault() = fields.forEach { it.setNapplyDefaultValue() }
 
     /**
      * Saves configuration to the file. The file is created if it does not exist,
@@ -147,7 +150,7 @@ open class Configuration {
      */
     fun rawSet() {
         properties.forEach { key, value ->
-            val c = configs[mapper(key)]
+            val c = configs[namePostMapper(key)]
             if (c!=null && c.isEditable.isByApp) c.valueS = value
         }
     }

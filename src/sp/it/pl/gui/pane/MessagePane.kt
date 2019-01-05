@@ -1,13 +1,14 @@
 package sp.it.pl.gui.pane
 
 import javafx.geometry.Insets
-import javafx.geometry.Pos
+import javafx.geometry.Pos.CENTER
 import javafx.geometry.VPos
 import javafx.scene.text.TextAlignment
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.util.graphics.Util.layScrollVTextCenter
-import sp.it.pl.util.graphics.Util.layStack
+import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.setMinPrefMaxSize
+import sp.it.pl.util.graphics.stackPane
 
 class MessagePane: OverlayPane<String>() {
 
@@ -20,14 +21,14 @@ class MessagePane: OverlayPane<String>() {
             setMinPrefMaxSize(-1.0)
         }
 
-        val textPane = layScrollVTextCenter(text).apply {
-            prefWidth = 400.0
-            maxWidth = 400.0
-        }
-
-        content = layStack(textPane, Pos.CENTER).apply {
+        content = stackPane {
             padding = Insets(50.0)
             maxHeight = 200.0
+
+            lay(CENTER) += layScrollVTextCenter(text).apply {
+                prefWidth = 400.0
+                maxWidth = 400.0
+            }
         }
     }
 

@@ -2,15 +2,17 @@ package sp.it.pl.layout.widget.feature
 
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Configurable
+import sp.it.pl.util.conf.ListConfigurable
 
 /** Editor for [Configurable]. */
 @Feature(name = "Configurator", description = "Provides settings and configurations", type = ConfiguringFeature::class)
-interface ConfiguringFeature<in T> {
+interface ConfiguringFeature {
 
     /** Display configs of the specified configurable object for user to edit. */
-    fun configure(configurable: Configurable<out T>?) = configure(configurable?.fields ?: listOf())
+    fun configure(configurable: Configurable<*>?)
 
     /** Display specified configs for user to edit. */
-    fun configure(configurable: Collection<Config<out T>>)
+    @Suppress("UNCHECKED_CAST")
+    fun configure(configurable: Collection<Config<*>>) = configure(ListConfigurable(configurable as Collection<Config<Any>>))
 
 }

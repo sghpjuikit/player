@@ -15,8 +15,10 @@ import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.container.switchcontainer.SwitchContainer;
+import sp.it.pl.layout.widget.ExperimentalController;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Group;
+import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.main.Widgets;
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
@@ -33,6 +35,8 @@ import static sp.it.pl.util.system.EnvironmentKt.browse;
     year = "2014",
     group = Group.APP
 )
+@ExperimentalController
+@LegacyController
 public final class Layouts extends SimpleController {
 
     Text infoT = new Text();

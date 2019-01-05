@@ -21,7 +21,7 @@ annotation class Idempotent
 /** Denotes unstable API of an experimental feature */
 @MustBeDocumented
 @Retention(AnnotationRetention.SOURCE)
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
 annotation class Experimental
 
 /** Denotes method or class that is thread-safe. */

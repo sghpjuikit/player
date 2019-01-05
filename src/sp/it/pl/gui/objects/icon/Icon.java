@@ -326,7 +326,7 @@ public class Icon extends StackPane {
 	}
 
 	/** Sets css style class. Returns this icon (fluent API). */
-	@SuppressWarnings("unchecked")
+	// TODO: remove method
 	public final Icon styleclass(String s) {
 		getStyleClass().add(s);
 		updateIcon();

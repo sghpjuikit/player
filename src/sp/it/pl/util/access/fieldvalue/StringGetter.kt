@@ -1,5 +1,6 @@
 package sp.it.pl.util.access.fieldvalue
 
+@FunctionalInterface
 interface StringGetter<in V> {
 
     /**

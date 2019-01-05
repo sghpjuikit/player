@@ -5,20 +5,24 @@ import org.reactfx.Subscription
 import sp.it.pl.audio.SimpleItem
 import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.main.APP
+import sp.it.pl.main.showAppProgress
 import sp.it.pl.service.notif.Notifier
+import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.collections.materialize
-import sp.it.pl.util.conf.EditMode
+import sp.it.pl.util.conf.EditMode.NONE
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cList
-import sp.it.pl.util.conf.cr
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.only
 import sp.it.pl.util.conf.readOnlyUnless
+import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.FileMonitor
+import sp.it.pl.util.file.FileMonitor.monitorDirectory
+import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.isChildOf
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.onItemAdded
@@ -26,16 +30,16 @@ import sp.it.pl.util.reactive.onItemRemoved
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.system.Os
 import sp.it.pl.util.text.plural
-import sp.it.pl.util.validation.Constraint
+import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
-import java.util.concurrent.atomic.AtomicLong
+import kotlin.streams.toList
 
-class LibraryWatcher: PluginBase("Library Watcher", false) {
+class LibraryWatcher: PluginBase("Song Library", false) {
 
     @IsConfig(name = "Location", info = "Locations to find audio.")
-    private val sourceDirs by cList<File>().only(Constraint.FileActor.DIRECTORY)
+    private val sourceDirs by cList<File>().only(DIRECTORY)
     private val sourceDirsChangeHandler = Subscribed {
         sourceDirs.forEach { handleLocationAdded(it) }
         Subscription.multi(
@@ -44,11 +48,14 @@ class LibraryWatcher: PluginBase("Library Watcher", false) {
         )
     }
 
-    @IsConfig(name = "Directory monitoring supported", info = "On some system, this feature may be unsupported", editable = EditMode.NONE)
+    @IsConfig(name = "Monitoring supported", info = "On some system, this file monitoring may be unsupported", editable = NONE)
     val fileMonitoringSupported by c(Os.WINDOWS.isCurrent)
 
-    @IsConfig(name = "Directory monitoring", info = "Monitors content, notifies of changes and updates library automatically")
-    val fileMonitoringEnabled by cv(true).readOnlyUnless { fileMonitoringSupported }
+    @IsConfig(name = "Monitor files", info = "Monitors files, notify of changes and update library automatically")
+    val fileMonitoringEnabled by cv(false).readOnlyUnless(fileMonitoringSupported)
+
+    @IsConfig(name = "Update on start", info = "Update library when this plugin starts")
+    val updateOnStart by cv(false)
 
     private val fileMonitors = HashMap<File, FileMonitor>()
     private val fileMonitoring = when {
@@ -64,12 +71,9 @@ class LibraryWatcher: PluginBase("Library Watcher", false) {
     private val toBeRemoved = HashSet<File>()
     private val update = EventReducer.toLast<Void>(2000.0) { it -> updateLibraryFromEvents() }
 
-    @IsConfig(name = "Open help", info = "Open technical usage help")
-    private val updateLibrary by cr { updateLibrary() }
-    private val updateLibraryId = AtomicLong(0)
-
     override fun onStart() {
         fileMonitoring.subscribe(true)
+        if (updateOnStart.value) updateLibrary()
     }
 
     override fun onStop() {
@@ -96,18 +100,18 @@ class LibraryWatcher: PluginBase("Library Watcher", false) {
         val isShadowed = fileMonitors.keys.any { monitoredDir -> dir isChildOf monitoredDir }
         val needsMonitoring = !isDuplicate && !isShadowed
         if (needsMonitoring) {
-            fileMonitors[dir] = FileMonitor.monitorDirectory(dir, true, { type, file ->
+            fileMonitors[dir] = monitorDirectory(dir, true) { type, file ->
                 when (type) {
                     ENTRY_CREATE -> runFX {
-                        toBeAdded.add(file)
+                        toBeAdded += file
                         update.push(null)
                     }
                     ENTRY_DELETE -> runFX {
-                        toBeRemoved.add(file)
+                        toBeRemoved += file
                         update.push(null)
                     }
                 }
-            })
+            }
         }
     }
 
@@ -129,11 +133,16 @@ class LibraryWatcher: PluginBase("Library Watcher", false) {
         runNew {
             MetadataReader.buildAddItemsToLibTask().apply(toAdd.map { SimpleItem(it) })
             APP.db.removeItems(toRem.map { SimpleItem(it) })
-        }
+        }.showAppProgress("Updating song library from detected changes")
     }
 
+    @IsAction(name = "Update", desc = "Remove non-existent songs and add new songs from location")
     private fun updateLibrary() {
-
+        runNew {
+            val items = Util.getFilesAudio(sourceDirs, AudioFileFormat.Use.APP, Integer.MAX_VALUE).map { SimpleItem(it) }.toList()
+            MetadataReader.buildAddItemsToLibTask().apply(items)
+            MetadataReader.buildRemoveMissingFromLibTask().run()
+        }.showAppProgress("Updating song library from disk")
     }
 
     companion object: KLogging() {

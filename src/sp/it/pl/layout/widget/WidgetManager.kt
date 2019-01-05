@@ -41,10 +41,11 @@ import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.file.toURLOrNull
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.asArray
-import sp.it.pl.util.functional.clearSet
+import sp.it.pl.util.functional.ifNull
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.runIf
+import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.math.seconds
 import sp.it.pl.util.system.Os
 import sp.it.pl.util.type.isSubclassOf
@@ -81,7 +82,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
     /** Separates entries of a java classpath argument, passed to JVM. */
     private var classpathSeparator = Os.current.classpathSeparator
     private var initialized = false
-    private val compilerThread by lazy { oneCachedThreadExecutor(seconds(30), threadFactory("widgetCompiler", true)) }
+    private val compilerThread by lazy { oneCachedThreadExecutor(30.seconds, threadFactory("widgetCompiler", true)) }
 
     fun init() {
         if (initialized) return
@@ -96,31 +97,33 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         factoriesC += emptyWidgetFactory
 
         // external factories
+        val isMetaInfWidget: File.() -> Boolean = { path.contains("META-INF") }
         val dirW = APP.DIR_WIDGETS
         if (!isValidatedDirectory(dirW)) {
             logger.error { "External widgets registration failed." }
         } else {
             dirW.listChildren()
-                    .filter { it.isDirectory }
+                    .filter { it.isDirectory && !it.isMetaInfWidget() }
                     .forEach { widgetDir ->
                         val name = widgetDir.nameWithoutExtension.capitalize()
                         monitors.computeIfAbsent(name) { WidgetDir(name, widgetDir) }.registerExternalFactory()
                     }
 
             FileMonitor.monitorDirectory(dirW, true) { type, f ->
-                if (dirW==f || f.name=="META-INF") {
-
-                } else if (dirW.isParentOf(f)) {
-                    val name = f.nameWithoutExtension.capitalize()
-                    if (type===ENTRY_CREATE) {
-                        if (f.isDirectory) {
-                            monitors.computeIfAbsent(name) { WidgetDir(name, f) }.registerExternalFactory()
+                when {
+                    dirW==f -> {}
+                    dirW.isMetaInfWidget() -> {}
+                    dirW.isParentOf(f) -> {
+                        val name = f.nameWithoutExtension.capitalize()
+                        if (type===ENTRY_CREATE) {
+                            if (f.isDirectory) {
+                                monitors.computeIfAbsent(name) { WidgetDir(name, f) }.registerExternalFactory()
+                            }
+                        } else if (type===ENTRY_DELETE) {
+                            monitors[name]?.dispose()
                         }
-                    } else if (type===ENTRY_DELETE) {
-                        monitors[name]?.dispose()
                     }
-                } else {
-                    monitors.find { it.widgetDir.isAnyParentOf(f) }?.handleResourceChange(type, f)
+                    else -> monitors.find { it.widgetDir.isAnyParentOf(f) }?.handleResourceChange(type, f)
                 }
             }
         }
@@ -421,7 +424,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         val autoRecompileSupported by c(Os.WINDOWS.isCurrent)
 
         @IsConfig(name = "Auto-compilation", info = "Automatic compilation and reloading of widgets when their source code changes")
-        val autoRecompile by cv(true).readOnlyUnless { autoRecompileSupported }
+        val autoRecompile by cv(true).readOnlyUnless(autoRecompileSupported)
 
         @IsConfig(name = "Recompile all widgets", info = "Re-compiles every widget. Useful when auto-compilation is disabled or unsupported.")
         val recompile by cr { monitors.forEach { it.scheduleCompilation() } }
@@ -440,8 +443,6 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             WidgetSource.NEW -> Stream.empty()
             WidgetSource.OPEN, WidgetSource.ANY -> Stream.concat(findAll(OPEN_STANDALONE), findAll(OPEN_LAYOUT))
         }
-
-        fun createNew(name: String) = factoriesW.find { it.name()==name }.orEmpty().create()   // TODO: no empty widget...
 
         /**
          * Returns widget fulfilling condition. Any widget can be returned (if it fulfills the condition), but:
@@ -497,6 +498,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         /** Equivalent to: `getWidget(w->w.hasFeature(feature), source).map(w->(F)w.getController())` */
         @Suppress("UNCHECKED_CAST")
+        @JvmOverloads
         fun <F> find(feature: Class<F>, source: WidgetSource, ignore: Boolean = false): Optional<F> =
                 find({ it.hasFeature(feature) }, source, ignore).map { it.getController() as F }
 
@@ -528,7 +530,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         fun selectNextWidget(root: Container<*>) {
             val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
             if (all.size<=1) return
-            val i = SequentialValue.incrIndex(all, all.indexOfFirst { it.focused.value })
+            val i = SequentialValue.incrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
             all.getOrNull(i)?.focus()
         }
 
@@ -536,7 +538,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         fun selectPreviousWidget(root: Container<*>) {
             val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
             if (all.size<=1) return
-            val iNew = SequentialValue.decrIndex(all, all.indexOfFirst { it.focused.value })
+            val iNew = SequentialValue.decrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
             all.getOrNull(iNew)?.focus()
         }
 
@@ -547,9 +549,9 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         /** @return all features implemented by at least one widget */
         fun getFeatures(): Sequence<Feature> = getFactories().flatMap { it.getFeatures().asSequence() }.distinct()
 
-        fun getFactory(name: String): ComponentFactory<*>? = factoriesW[name] ?: factoriesC[name]
+        fun getFactory(name: String): WidgetFactory<*>? = factoriesW[name]
 
-        fun getFactoryOrEmpty(name: String): ComponentFactory<*> = getFactory(name).orEmpty()   // TODO: remove
+        fun getComponentFactory(name: String): ComponentFactory<*>? = factoriesW[name] ?: factoriesC[name]
 
         /** @return all widget factories */
         fun getFactories(): Sequence<WidgetFactory<*>> = factoriesW.streamV().asSequence()
@@ -589,7 +591,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 return
             }
 
-            layoutsAvailable clearSet dir.seqChildren().filter { it hasExtension "l" }.map { it.nameWithoutExtension }
+            layoutsAvailable setTo dir.seqChildren().filter { it hasExtension "l" }.map { it.nameWithoutExtension }
         }
     }
 
@@ -628,8 +630,6 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                     .takeIf { it.all { it!=null } }
                     ?.let { URLClassLoader(it) }
         }
-
-        private inline fun <T: Any?> T.ifNull(block: () -> Unit) = apply { if (this==null) block() }
 
         private fun Collection<File>.lastModifiedMax() = asSequence().map { it.lastModified() }.max()
 

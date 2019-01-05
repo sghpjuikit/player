@@ -15,6 +15,7 @@ import org.reactfx.Subscription;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.unused.SimpleConfigurator;
+import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.conf.MapConfigurable;
@@ -23,6 +24,7 @@ import sp.it.pl.util.text.Password;
 import sp.it.pl.util.validation.Constraint.PasswordNonEmpty;
 import sp.it.pl.util.validation.Constraint.StringNonEmpty;
 import static sp.it.pl.util.dev.Util.logger;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 
 // TODO: make thread-safe, remove static, implement Service
 @IsConfigurable("Services.LastFM")
@@ -106,16 +108,17 @@ public class LastFM {
 		}
 	}
 
-	public static SimpleConfigurator getLastFMconfig() {
-		return new SimpleConfigurator<>(
-				new MapConfigurable<>(
-						new ValueConfig<>(String.class, "Username", acquireUserName()).constraints(new StringNonEmpty()),
-						new ValueConfig<>(Password.class, "Password", acquirePassword()).constraints(new PasswordNonEmpty())
+	@SuppressWarnings("unchecked")
+	public static SimpleConfigurator<Object> getLastFMconfig() {
+		return SimpleConfigurator.simpleConfigurator(
+				new MapConfigurable<Object>(
+					(Config) new ValueConfig<>(String.class, "Username", acquireUserName()).constraints(new StringNonEmpty()),
+					(Config) new ValueConfig<>(Password.class, "Password", acquirePassword()).constraints(new PasswordNonEmpty())
 				),
-				c -> saveLogin(
-						(String) c.getField("Username").getValue(),
-						(Password) c.getField("Password").getValue()
-				)
+				consumer(c -> saveLogin(
+					(String) c.getField("Username").getValue(),
+					(Password) c.getField("Password").getValue()
+				))
 		);
 
 	}
@@ -182,7 +185,6 @@ public class LastFM {
 		if ((timeSatisfied || percentSatisfied)
 				&& item.getLength().greaterThan(Duration.seconds(30))) {
 			scrobble(item);
-//                System.out.println("Conditions for scrobling satisfied. Track should scrobble now.");
 		}
 		updateNowPlaying();
 		reset();

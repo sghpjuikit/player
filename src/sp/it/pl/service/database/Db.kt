@@ -1,25 +1,32 @@
 package sp.it.pl.service.database
 
-import javafx.concurrent.Task
+import mu.KLogging
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.MetadatasDB
+import sp.it.pl.audio.Player
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.APP
+import sp.it.pl.main.showAppProgress
 import sp.it.pl.util.access.v
 import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.async.runFX
+import sp.it.pl.util.async.runNew
+import sp.it.pl.util.async.runOn
 import sp.it.pl.util.collections.mapset.MapSet
 import sp.it.pl.util.dev.ThreadSafe
-import java.io.File
+import sp.it.pl.util.file.div
+import sp.it.pl.util.functional.ifNotNull
+import sp.it.pl.util.functional.ifNull
+import sp.it.pl.util.functional.orNull
+import sp.it.pl.util.functional.runTry
 import java.net.URI
 import java.util.Comparator
 import java.util.UUID.fromString
 import java.util.concurrent.ConcurrentHashMap
 
-// TODO: implement proper API & subclass Service
 @Suppress("unused")
 class Db {
 
@@ -44,11 +51,11 @@ class Db {
     fun init() {
         if (running) return
         running = true
-        moods = File(APP.DIR_RESOURCES, "moods.txt").useLines { it.toSet() }    // TODO: fix file !exist
+        moods = runTry { (APP.DIR_RESOURCES/"moods.txt").useLines { it.toSet() } }
+                .ifError { logger.error(it) { "Unable to read moods from file" } }
+                .orNull() ?: setOf()
 
-        Fut<Any>()
-                .then { updateInMemoryDbFromPersisted() }
-                .showProgressOnActiveWindow()
+        runNew { updateInMemoryDbFromPersisted() }.showAppProgress("Loading song database")
     }
 
     fun stop() {
@@ -67,7 +74,6 @@ class Db {
 
     fun getAllItems(): MetadatasDB = CoreSerializer.readSingleStorage() ?: MetadatasDB()
 
-    @Suppress("DEPRECATION")
     fun addItems(items: Collection<Metadata>) {
         if (items.isEmpty()) return
 
@@ -80,7 +86,6 @@ class Db {
         }
     }
 
-    @Suppress("DEPRECATION")
     fun removeItems(items: Collection<Item>) {
         if (items.isEmpty()) return
 
@@ -104,7 +109,7 @@ class Db {
         itemsById.clear()
         itemsById += l
         updateItemValues()
-        runFX { items.i.setValue(l) }
+        runFX { items.i.value = l }
     }
 
     private fun updateItemValues() {
@@ -124,11 +129,37 @@ class Db {
     fun updateInMemoryDbFromPersisted() = setInMemoryDB(getAllItems().values.toList())
 
     @ThreadSafe
-    fun removeInvalidItems(): Fut<Task<Void>> {
-        val t = MetadataReader.buildRemoveMissingFromLibTask()
-        return Fut.fut(t)
-                .use { it.run() }
-                .printExceptions()
+    fun refreshItemsFromFile(items: List<Item>) {
+        runNew {
+            val metadatas = items.asSequence().map { MetadataReader.readMetadata(it) }.filter { !it.isEmpty() }.toList()
+            Player.refreshItemsWith(metadatas)
+        }.showAppProgress("Refreshing library from disk")
     }
 
+    @ThreadSafe
+    fun itemToMeta(item: Item, action: (Metadata) -> Unit) {
+        if (item.same(Player.playingItem.get())) {
+            action(Player.playingItem.get())
+            return
+        }
+
+        APP.db.itemsById[item.id]
+                .ifNotNull { action(it) }
+                .ifNull {
+                    runOn(Player.IO_THREAD) {
+                        MetadataReader.readMetadata(item)
+                    } ui {
+                        action(it)
+                    }
+                }
+    }
+
+    @ThreadSafe
+    fun removeInvalidItems(): Fut<Unit> {
+        return runNew {
+            MetadataReader.buildRemoveMissingFromLibTask().run()
+        }
+    }
+
+    companion object: KLogging()
 }

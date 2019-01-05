@@ -1,378 +1,489 @@
 package sp.it.pl.main
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon
-import de.jensd.fx.glyphs.materialicons.MaterialIcon
-import javafx.geometry.Pos
-import javafx.scene.control.Label
+import com.drew.imaging.ImageMetadataReader
+import com.drew.imaging.ImageProcessingException
+import com.sun.tools.attach.VirtualMachine
+import de.jensd.fx.glyphs.GlyphIcons
+import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.TOP_CENTER
+import javafx.scene.Node
+import javafx.scene.Scene
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.MouseButton
+import javafx.scene.layout.Pane
+import javafx.scene.layout.Region.USE_COMPUTED_SIZE
+import javafx.scene.paint.Color.BLACK
+import javafx.stage.FileChooser
 import javafx.stage.FileChooser.ExtensionFilter
+import javafx.stage.Screen
+import javafx.stage.WindowEvent.WINDOW_HIDING
+import javafx.util.Callback
+import mu.KLogging
 import sp.it.pl.audio.Item
-import sp.it.pl.audio.Player
-import sp.it.pl.audio.SimpleItem
-import sp.it.pl.audio.tagging.MetadataReader
-import sp.it.pl.gui.nodeinfo.ConvertTaskInfo
+import sp.it.pl.audio.tagging.readAudioFile
+import sp.it.pl.gui.objects.grid.GridCell
+import sp.it.pl.gui.objects.grid.GridView
+import sp.it.pl.gui.objects.grid.GridView.SelectionOn
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.pane.ActionPane
-import sp.it.pl.gui.pane.ActionPane.ComplexActionData
-import sp.it.pl.gui.pane.ActionPane.FastAction
-import sp.it.pl.gui.pane.ActionPane.FastColAction
-import sp.it.pl.gui.pane.ActionPane.SlowColAction
-import sp.it.pl.gui.pane.ConfigPane
-import sp.it.pl.layout.Component
+import sp.it.pl.gui.objects.icon.IconInfo
+import sp.it.pl.gui.objects.popover.PopOver
+import sp.it.pl.gui.objects.popover.ScreenPos
+import sp.it.pl.gui.pane.FastAction
+import sp.it.pl.gui.pane.OverlayPane
+import sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
+import sp.it.pl.layout.area.ContainerNode
+import sp.it.pl.layout.container.layout.Layout
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetSource.ANY
+import sp.it.pl.layout.widget.WidgetSource
 import sp.it.pl.layout.widget.WidgetSource.NEW
-import sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT
+import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
-import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
-import sp.it.pl.layout.widget.feature.Opener
-import sp.it.pl.layout.widget.feature.PlaylistFeature
-import sp.it.pl.layout.widget.feature.SongReader
-import sp.it.pl.util.access.V
-import sp.it.pl.util.action.Action
-import sp.it.pl.util.async.FX
-import sp.it.pl.util.async.future.Fut.fut
-import sp.it.pl.util.conf.Config
+import sp.it.pl.layout.widget.feature.TextDisplayFeature
+import sp.it.pl.unused.SimpleConfigurator.Companion.simpleConfigurator
+import sp.it.pl.util.Util.urlEncodeUtf8
+import sp.it.pl.util.access.fieldvalue.StringGetter
+import sp.it.pl.util.action.ActionRegistrar
+import sp.it.pl.util.action.IsAction
+import sp.it.pl.util.async.runFX
+import sp.it.pl.util.async.runLater
+import sp.it.pl.util.conf.IsConfigurable
+import sp.it.pl.util.conf.ValueConfig
+import sp.it.pl.util.dev.Blocks
+import sp.it.pl.util.dev.stackTraceAsString
+import sp.it.pl.util.dev.throwIfFxThread
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
-import sp.it.pl.util.file.FileType
-import sp.it.pl.util.file.FileType.DIRECTORY
-import sp.it.pl.util.file.ImageFileFormat
-import sp.it.pl.util.file.Util
-import sp.it.pl.util.file.Util.getCommonRoot
-import sp.it.pl.util.file.Util.getFilesAudio
-import sp.it.pl.util.file.hasExtension
-import sp.it.pl.util.file.parentDirOrRoot
-import sp.it.pl.util.functional.Try
-import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.graphics.Util.layHorizontally
-import sp.it.pl.util.graphics.Util.layVertically
+import sp.it.pl.util.functional.asIf
+import sp.it.pl.util.functional.orNull
+import sp.it.pl.util.functional.setTo
+import sp.it.pl.util.graphics.Util.createFMNTStage
+import sp.it.pl.util.graphics.anchorPane
+import sp.it.pl.util.graphics.bgr
+import sp.it.pl.util.graphics.button
+import sp.it.pl.util.graphics.getScreenForMouse
+import sp.it.pl.util.graphics.hBox
+import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.setMinPrefMaxSize
+import sp.it.pl.util.graphics.stackPane
+import sp.it.pl.util.graphics.vBox
+import sp.it.pl.util.math.millis
+import sp.it.pl.util.math.times
+import sp.it.pl.util.reactive.onEventDown
+import sp.it.pl.util.reactive.onEventUp
+import sp.it.pl.util.reactive.sync1If
 import sp.it.pl.util.system.browse
-import sp.it.pl.util.system.chooseFile
-import sp.it.pl.util.system.chooseFiles
-import sp.it.pl.util.system.edit
 import sp.it.pl.util.system.open
-import sp.it.pl.util.system.recycle
-import sp.it.pl.util.system.saveFile
+import sp.it.pl.util.system.runCommand
+import sp.it.pl.util.type.Util.getEnumConstants
+import sp.it.pl.util.validation.Constraint.StringNonEmpty
+import sp.it.pl.web.DuckDuckGoQBuilder
+import sp.it.pl.web.WebBarInterpreter
 import java.io.File
-import java.util.function.Consumer
-import kotlin.streams.toList
+import java.io.IOException
+import java.net.URI
+import java.net.URISyntaxException
 
-private typealias IconMA = MaterialIcon
-private typealias IconMD = MaterialDesignIcon
-private typealias IconFA = FontAwesomeIcon
+@IsConfigurable("Shortcuts")
+class AppActions {
 
-fun ActionPane.initAppActionPane(): ActionPane = also { ap ->
-    ap.register<App>(
-            FastAction(
-                    "Export widgets",
-                    "Creates launcher file in the destination directory for every widget.\n"+
-                            "Launcher file is a file that when opened by this application opens the widget. "+
-                            "If application was not running before, it will not load normally, but will only "+
-                            "open the widget.\n"+"Essentially, this exports the widgets as 'standalone' applications.",
-                    IconMD.EXPORT,
-                    { app ->
-                        chooseFile("Export to...", FileType.DIRECTORY, app.DIR_LAYOUTS, ap.scene.window)
-                                .ifOk { dir -> app.widgetManager.factories.getFactories().forEach { it.create().exportFxwlDefault(dir) } }
+    @IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
+    fun openAppGithubPage() {
+        APP.uriGithub.browse()
+    }
+
+    @IsAction(name = "Open app directory", desc = "Opens directory from which this application is running from.")
+    fun openAppLocation() {
+        APP.DIR_APP.open()
+    }
+
+    @IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
+    fun openCssGuide() {
+        URI.create("http://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html").browse()
+    }
+
+    @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
+    fun openIconViewer() {
+        val iconSize = 80.0
+        val grid = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize+30, 5.0, 5.0).apply {
+            search.field = object: StringGetter<GlyphIcons?> {
+                override fun getOfS(value: GlyphIcons?, substitute: String): String = value?.name() ?: substitute
+            }
+            selectOn setTo listOf(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS)
+            cellFactory = Callback {
+                object: GridCell<GlyphIcons, GlyphIcons>() {
+
+                    init {
+                        styleClass += "icon-grid-cell"
+                        isPickOnBounds = true
                     }
-            ),
-            FastAction(IconMD.KEYBOARD_VARIANT, Action.get("Show shortcuts")),
-            FastAction(IconMD.INFORMATION_OUTLINE, Action.get("Show system info")),
-            FastAction(IconFA.GITHUB, Action.get("Open on Github")),
-            FastAction(IconFA.CSS3, Action.get("Open css guide")),
-            FastAction(IconFA.IMAGE, Action.get("Open icon viewer")),
-            FastAction(IconMD.FOLDER, Action.get("Open app directory"))
-    )
-}
 
-fun ActionPane.initActionPane(): ActionPane = also { ap ->
-    ap.register<Void>(
-            FastAction(
-                    "Select file",
-                    "Open file chooser to select files",
-                    IconMD.FILE,
-                    ap.converting { chooseFiles("Select file...", null, ap.scene.window) }
-            ),
-            FastAction(
-                    "Select directory",
-                    "Open file chooser to select directory",
-                    IconMD.FOLDER,
-                    ap.converting { chooseFile("Select directory...", DIRECTORY, null, ap.scene.window) }
-            )
-    )
-    ap.register<Any>(
-            FastColAction(
-                    "Set as data",
-                    "Sets the selected data as input.",
-                    IconMD.DATABASE,
-                    ap.converting { Try.ok<Any, Void>(it) }
-            ),
-            FastColAction(
-                    "Open in Converter",
-                    "Open data in Converter.",
-                    IconMD.SWAP_HORIZONTAL,
-                    // TODO: make sure it opens Converter or support multiple Opener types
-                    { f -> APP.widgetManager.widgets.use<Opener>(ANY) { it.open(f) } }
-            )
-    )
-    ap.register<Component>(
-            FastAction(
-                    "Export",
-                    "Creates a launcher for this component. \n"+
-                    "Opening the launcher with this application will open this component with current settings "+
-                    "as if it were a standalone application.",
-                    IconMD.EXPORT,
-                    { w ->
-                        saveFile("Export to...", APP.DIR_LAYOUTS, w.exportName, APP.actionPane.scene.window, ExtensionFilter("Component", "*.fxwl"))
-                                .ifOk { w.exportFxwl(it) }
-                    }
-            )
-    )
-    ap.register<Widget<*>>(
-            FastAction(
-                    "Use as default",
-                    "Uses settings of this widget as default settings when creating widgets of this type. This " +
-                    "overrides the default settings of the widget set by the developer. For using multiple widget " +
-                    "configurations at once, use 'Export' instead.",
-                    IconMD.SETTINGS_BOX,
-                    { w -> w.storeDefaultConfigs() }
-            ),
-            FastAction(
-                    "Clear default",
-                    "Removes overridden default settings for this widget. New widgets will start with settings set " +
-                    "by the developer.",
-                    IconMD.SETTINGS_BOX,
-                    { w -> w.clearDefaultConfigs() }
-            )
-    )
-    ap.register<Item>(
-            FastColAction(
-                    "Add to new playlist",
-                    "Add items to new playlist widget.",
-                    IconMD.PLAYLIST_PLUS,
-                    { items -> APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { it.playlist.addItems(items) } }
-            ),
-            FastColAction(
-                    "Add to existing playlist",
-                    "Add items to existing playlist widget if possible or to a new one if not.",
-                    IconMD.PLAYLIST_PLUS,
-                    { items -> APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(items) } }
-            ),
-            FastColAction(
-                    "Update from file",
-                    "Updates library data for the specified items from their file metadata. The difference between the data "+
-                            "in the database and real metadata cab be a result of a bug or file edited externally. "+
-                            "After this, the library will be synchronized with the file data.",
-                    IconFA.REFRESH,
-                    { Player.refreshItems(it) }
-            ),
-            FastColAction(
-                    "Remove from library",
-                    "Removes all specified items from library. After this library will contain none of these items.",
-                    IconMD.DATABASE_MINUS,
-                    { APP.db.removeItems(it) }
-            ),
-            FastColAction(
-                    "Show",
-                    "Shows items in a table.",
-                    IconMA.COLLECTIONS,
-                    { items -> APP.widgetManager.widgets
-                                .find(Widgets.LIBRARY, NEW, false)
-                                .ifPresent { it.controller.ownedInputs.getInput<Collection<Item>>("To display").setValue(items) }
-                    }
-            ),
-            FastColAction(
-                    "Show as Group",
-                    "Group items in a table.",
-                    MaterialIcon.COLLECTIONS,
-                    { items -> APP.widgetManager.widgets
-                            .find(Widgets.LIBRARY_VIEW, NEW, false)
-                                .ifPresent { it.controller.ownedInputs.getInput<Collection<Item>>("To display").setValue(items) }
-                    }
-            )
-    )
-    ap.register<File>(
-            FastAction(
-                    "Recycle", "Moves file to recycle bin.",
-                    IconMA.DELETE,
-                    { it.recycle() }
-            ),
-            FastAction(
-                    "Read metadata", "Prints all image metadata to console.",
-                    IconMA.IMAGE_ASPECT_RATIO,
-                    { ImageFileFormat.isSupported(it) },
-                    { APP.actions.printAllImageFileMetadata(it) }
-            ),
-            FastAction(
-                    "Open (OS)", "Opens file in a native program associated with this file type.",
-                    IconMA.OPEN_IN_NEW,
-                    { it.open() }
-            ),
-            FastAction(
-                    "Edit (OS)", "Edit file in a native editor program associated with this file type.",
-                    IconFA.EDIT,
-                    { it.edit() }
-            ),
-            FastAction(
-                    "Browse (OS)", "Browse file in a native file system browser.",
-                    IconFA.FOLDER_OPEN_ALT,
-                    { it.browse() }
-            ),
-            FastColAction(
-                    "Add to new playlist",
-                    "Add items to new playlist widget.",
-                    IconMD.PLAYLIST_PLUS,
-                    { f -> AudioFileFormat.isSupported(f, Use.APP) },
-                    { fs -> APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { it.playlist.addFiles(fs) } }
-            ),
-            SlowColAction(
-                    "Find files",
-                    "Looks for files recursively in the the data.",
-                    IconMD.FILE_FIND,
-                    // TODO: make fully configurable, recursion depth lvl, filtering, ...
-                    ap.converting { fs -> Try.ok<List<File>, Void>(Util.getFilesR(fs, Integer.MAX_VALUE).toList()) }
-            ),
-            SlowColAction<File>(
-                    "Add to library",
-                    "Add items to library if not yet contained and edit added items in tag editor. If "+
-                            "item already was in the database it will not be added or edited.",
-                    IconMD.DATABASE_PLUS,
-                    { }
-            ).preventClosing { addToLibraryConsumer(it) },
-            FastColAction(
-                    "Add to existing playlist",
-                    "Add items to existing playlist widget if possible or to a new one if not.",
-                    IconMD.PLAYLIST_PLUS,
-                    { AudioFileFormat.isSupported(it, Use.APP) },
-                    { f -> APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addFiles(f) } }
-            ),
-            FastAction(
-                    "Apply skin",
-                    "Apply skin on the application.",
-                    IconMD.BRUSH,
-                    { Util.isValidSkinFile(it) },
-                    { it -> APP.ui.setSkin(it) }
-            ),
-            FastAction(
-                    "View image",
-                    "Opens image in an image viewer widget.",
-                    IconFA.IMAGE,
-                    { ImageFileFormat.isSupported(it) },
-                    { img_file -> APP.widgetManager.widgets.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(img_file) } }
-            ),
-            FastColAction(
-                    "View image",
-                    "Opens image in an image browser widget.",
-                    IconFA.IMAGE,
-                    { ImageFileFormat.isSupported(it) },
-                    { img_files -> APP.widgetManager.widgets.use<ImagesDisplayFeature>(NO_LAYOUT) { it.showImages(img_files) } }
-            ),
-            FastAction(
-                    "Open widget",
-                    "Opens exported widget.",
-                    IconMD.IMPORT,
-                    { it hasExtension "fxwl" },
-                    { APP.windowManager.launchComponent(it) }
-            )
-    )
-    ap.register<MultipleFiles>(
-            FastAction(
-                    "Browse each",
-                    "Browse each file individually. May have performance implications if too many.",
-                    IconMD.FOLDER_MULTIPLE,
-                    { it.browseEach() }
-            ),
-            FastAction(
-                    "Browse each location",
-                    "Browse each unique location. May have performance implications if too many.",
-                    IconMD.FOLDER_MULTIPLE_OUTLINE,
-                    { it.browseEachLocation() }
-            ),
-            FastAction(
-                    "Browse shared root",
-                    "Browse parent location of all files or do nothing if no such single location exists.",
-                    IconMD.FOLDER_OUTLINE,
-                    { it.browseCommonRoot() }
-            )
-    )
-}
+                    public override fun updateItem(icon: GlyphIcons, empty: Boolean) {
+                        super.updateItem(icon, empty)
 
-@Suppress("UNCHECKED_CAST")
-fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<File>, List<File>> = ComplexActionData(
-        { files -> fut(files).map { getFilesAudio(it, AudioFileFormat.Use.APP, Integer.MAX_VALUE).toList() } },
-        { files ->
-            val makeWritable = V(true)
-            val editInTagger = V(true)  // TODO: enable only if Tagger/SongReader is available and avoid casts
-            val editOnlyAdded = V(false)
-            val enqueue = V(false)
-            val task = MetadataReader.buildAddItemsToLibTask()
-            val info = ConvertTaskInfo(
-                    title = null,
-                    message = Label(),
-                    skipped = Label(),
-                    state = Label(),
-                    pi = appProgressIndicator()
-            )
-            val tagger by lazy { APP.widgetManager.widgets.createNew(Widgets.TAGGER) }
+                        if (empty || item==null) {
+                            graphic = null
+                        } else {
+                            val iconInfo = graphic as? IconInfo ?: IconInfo(null, iconSize).apply { isMouseTransparent = true }
+                            iconInfo.setGlyph(if (empty) null else icon)
+                            graphic = iconInfo
+                        }
+                    }
 
-            info.bind(task)
-            layHorizontally(50.0, Pos.CENTER,
-                    layVertically(50.0, Pos.CENTER,
-                            ConfigPane(
-                                    Config.forProperty(Boolean::class.java, "Make writable if read-only", makeWritable),
-                                    Config.forProperty(Boolean::class.java, "Edit in " + Widgets.TAGGER, editInTagger),
-                                    Config.forProperty(Boolean::class.java, "Edit only added files", editOnlyAdded),
-                                    Config.forProperty(Boolean::class.java, "Enqueue in playlist", enqueue)
-                            ),
-                            layVertically(10.0, Pos.CENTER_LEFT,
-                                    info.state,
-                                    layHorizontally(10.0, Pos.CENTER_LEFT,
-                                            info.message,
-                                            info.progress
-                                    ),
-                                    info.skipped
-                            ),
-                            Icon(FontAwesomeIcon.CHECK, 25.0).onClick { e ->
-                                (e.source as Icon).isDisable = true
-                                fut(files())
-                                        .use { if (makeWritable.get()) it.forEach { it.setWritable(true) } }
-                                        .map { it.map { SimpleItem(it) } }
-                                        .map(task)
-                                        .showProgress(actionPane.actionProgress)
-                                        .use(FX, Consumer { result ->
-                                            if (editInTagger.get()) {
-                                                val items = if (editOnlyAdded.get()) result.converted else result.all
-                                                (tagger.controller as SongReader).read(items)
-                                            }
-                                            if (enqueue.get() && !result.all.isEmpty()) {
-                                                APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
-                                            }
-                                        })
-                            }
-                                    .withText("Execute")
-                    ),
-                    tagger.load()
-            )
+                    override fun updateSelected(selected: Boolean) {
+                        super.updateSelected(selected)
+
+                        graphic.asIf<IconInfo>()?.select(selected)
+                    }
+
+                }
+            }
         }
-)
+        val root = stackPane(grid)
+        val groups = Icon.GLYPH_TYPES.map { glyphType ->
+            button(glyphType.simpleName) {
+                setOnMouseClicked {
+                    if (it.button==MouseButton.PRIMARY) {
+                        grid.itemsRaw setTo getEnumConstants<GlyphIcons>(glyphType)
+                        it.consume()
+                    }
+                }
+            }
+        }
+        val layout = vBox(20, TOP_CENTER) {
+            setPrefSize(600.0, 720.0)
 
-fun browseMultipleFiles(files: Sequence<File>) {
-    val fs = files.asSequence().toSet()
-    when {
-        fs.isEmpty() -> {}
-        fs.size==1 -> fs.firstOrNull()?.browse()
-        else -> APP.actionPane.show(MultipleFiles(fs))
+            lay += hBox(8, CENTER) {
+                lay += groups
+            }
+            lay += root
+        }
+
+        PopOver(layout).show(ScreenPos.APP_CENTER)
     }
-}
 
-class MultipleFiles(val files: Set<File>) {
+    @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
+    fun openLauncher() {
+        val f = File(APP.DIR_LAYOUTS, "AppMainLauncher.fxwl")
+        val c = APP.windowManager.instantiateComponent(f)
+        if (c!=null) {
+            val op = object: OverlayPane<Void>() {
+                override fun show(data: Void?) {
+                    val componentRoot = c.load() as Pane
+                    // getChildren().add(componentRoot);   // alternatively for borderless/fullscreen experience // TODO investigate & use | remove
+                    content = anchorPane {
+                        lay(20) += componentRoot
+                    }
+                    if (c is Widget<*>) {
+                        val parent = this
+                        c.controller.getFieldOrThrow("closeOnLaunch").value = true
+                        c.controller.getFieldOrThrow("closeOnRightClick").value = true
+                        c.areaTemp = object: ContainerNode {
+                            override val root = parent
+                            override fun show() {}
+                            override fun hide() {}
+                            override fun close() = root.hide()
+                        }
+                    }
+                    super.show()
+                }
 
-    fun browseEach() = files.forEach { it.browse() }
-
-    fun browseEachLocation() = files.map { if (it.isFile) it.parentDirOrRoot else it }.distinct().forEach { it.browse() }
-
-    fun browseCommonRoot() {
-        getCommonRoot(files)?.browse()
+                override fun hide() {
+                    super.hide()
+                    c.close()
+                }
+            }
+            op.display.value = SCREEN_OF_MOUSE
+            op.show(null)
+            op.makeResizableByUser()
+            c.load().apply {
+                prefWidth(900.0)
+                prefHeight(700.0)
+            }
+            c.focus()
+        }
     }
 
+    @IsAction(name = "Open settings", desc = "Opens application settings.")
+    fun openSettings() {
+        APP.widgetManager.widgets.use<ConfiguringFeature>(WidgetSource.NO_LAYOUT) { it.configure(APP.configuration) }
+    }
+
+    @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
+    fun openLayoutManager() {
+        APP.widgetManager.widgets.find(Widgets.LAYOUTS, WidgetSource.NO_LAYOUT, false)
+    }
+
+    @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
+    fun openActions() {
+        APP.actionAppPane.show(APP)
+    }
+
+    @IsAction(name = "Open", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
+    fun openOpen() {
+        APP.actionPane.show(Void::class.java, null, false,
+                FastAction<Any>(
+                        "Open widget",
+                        "Open file chooser to open an exported widget",
+                        IconMA.WIDGETS
+                ) {
+                    val fc = FileChooser()
+                    fc.initialDirectory = APP.DIR_LAYOUTS
+                    fc.extensionFilters += ExtensionFilter("component file", "*.fxwl")
+                    fc.title = "Open widget..."
+                    val f = fc.showOpenDialog(APP.actionAppPane.scene.window)
+                    if (f!=null) APP.windowManager.launchComponent(f)
+                },
+                FastAction<Any>(
+                        "Open skin",
+                        "Open file chooser to find a skin",
+                        IconMA.BRUSH
+                ) {
+                    val fc = FileChooser()
+                    fc.initialDirectory = APP.DIR_SKINS
+                    fc.extensionFilters += ExtensionFilter("skin file", "*.css")
+                    fc.title = "Open skin..."
+                    val f = fc.showOpenDialog(APP.actionAppPane.scene.window)
+                    if (f!=null) APP.ui.setSkin(f)
+                },
+                FastAction<Any>(
+                        "Open audio files",
+                        "Open file chooser to find a audio files",
+                        IconMD.MUSIC_NOTE
+                ) {
+                    val fc = FileChooser()
+                    fc.initialDirectory = APP.DIR_SKINS
+                    fc.extensionFilters += AudioFileFormat.supportedValues(Use.APP).map { it.toExtFilter() }
+                    fc.title = "Open audio..."
+                    val fs = fc.showOpenMultipleDialog(APP.actionAppPane.scene.window)
+                    // Action pane may auto-close when this action finishes, so we make sure to call
+                    // show() after that happens by delaying using runLater
+                    if (fs!=null) runLater { APP.actionAppPane.show(fs) }
+                }
+        )
+    }
+
+    @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "COMMA")
+    fun showShortcuts() {
+        APP.shortcutPane.show(ActionRegistrar.getActions())
+    }
+
+    @IsAction(name = "Show system info", desc = "Display system information.")
+    fun showSysInfo() {
+        APP.actionPane.hide()
+        APP.infoPane.show(null)
+    }
+
+    @IsAction(name = "Show overlay", desc = "Display screen overlay.")
+    fun showOverlay() {
+        val overlays = ArrayList<OverlayPane<Unit>>()
+        fun <T> List<T>.forEachDelayed(block: (T) -> Unit) = forEachIndexed { i, it -> runFX(200.millis*i) { block(it) } }
+        var canHide = false
+        val showAll = {
+            overlays.forEachDelayed { it.show(Unit) }
+        }
+        val hideAll = {
+            canHide = true
+            overlays.forEachDelayed { it.hide() }
+        }
+        overlays += Screen.getScreens().asSequence().sortedBy { it.bounds.minX }.map {
+            object: OverlayPane<Unit>() {
+
+                init {
+                    content = stackPane()
+                    display.value = object: ScreenGetter {
+                        override fun computeScreen() = it
+                    }
+                }
+
+                override fun show(data: Unit?) {
+                    super.show()
+                }
+
+                override fun hide() {
+                    if (canHide) super.hide()
+                    else hideAll()
+                }
+
+            }
+        }
+        showAll()
+    }
+
+    @IsAction(name = "Run garbage collector", desc = "Runs java's garbage collector using 'System.gc()'.")
+    fun runGarbageCollector() {
+        System.gc()
+    }
+
+    @IsAction(name = "Search (os)", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
+    fun showSearchPosScreen() {
+        showSearch(ScreenPos.SCREEN_CENTER)
+    }
+
+    @IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")
+    fun showSearchPosApp() {
+        showSearch(ScreenPos.APP_CENTER)
+    }
+
+    fun showSearch(pos: ScreenPos) {
+        val p = PopOver<Node>()
+        val search = APP.search.build { p.hide() }
+        p.contentNode.value = search
+        p.title.set("Search for an action or option")
+        p.isAutoHide = true
+        p.show(pos)
+    }
+
+    @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)
+    fun runCommand() {
+        doWithUserString("Run system command", "Command") {
+            runCommand(it)
+        }
+    }
+
+    @IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with the command as a parameter.")
+    fun runAppCommand() {
+        doWithUserString("Run app command", "Command") {
+            APP.parameterProcessor.process(listOf(it))
+        }
+    }
+
+    @IsAction(name = "Open web search", desc = "Opens website or search engine result for given phrase", keys = "CTRL + SHIFT + W", global = true)
+    fun openWebBar() {
+        // TODO: use URI validator
+        doWithUserString("Open on web...", "Website or phrase") {
+            val uriString = WebBarInterpreter.toUrlString(it, DuckDuckGoQBuilder)
+            try {
+                val uri = URI(uriString)
+                uri.browse()
+            } catch (e: URISyntaxException) {
+                logger.warn(e) { "$uriString is not a valid URI" }
+            }
+        }
+    }
+
+    @IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
+    fun openDictionary() {
+        doWithUserString("Look up in dictionary...", "Word") {
+            URI.create("http://www.thefreedictionary.com/${urlEncodeUtf8(it)}").browse()
+        }
+    }
+
+    fun doWithUserString(title: String, inputName: String, action: (String) -> Unit) {
+        val conf = ValueConfig(String::class.java, inputName, "").constraints(StringNonEmpty())
+        val form = simpleConfigurator(conf) { action(it.value) }
+        val popup = PopOver(form)
+        popup.title.value = title
+        popup.isAutoHide = true
+        popup.show(ScreenPos.APP_CENTER)
+        popup.contentNode.value.focusFirstConfigField()
+        popup.contentNode.value.hideOnOk.value = true
+    }
+
+    @JvmOverloads
+    fun openImageFullscreen(image: File, screen: Screen = getScreenForMouse()) {
+        val w = APP.widgetManager.widgets.find({ it.hasFeature(ImageDisplayFeature::class.java) }, NEW, true).orNull() ?: return
+        val root = anchorPane()
+        val window = createFMNTStage(screen, false).apply {
+            scene = Scene(root)
+            scene.fill = BLACK
+            onEventUp(WINDOW_HIDING) { w.close() }
+        }
+
+        root.onEventDown(KEY_PRESSED) { it.consume() }
+        root.onEventUp(KEY_PRESSED) {
+            it.consume()
+            if (it.code==ESCAPE || it.code==ENTER)
+                window.hide()
+        }
+
+        w.load().apply {
+            setMinPrefMaxSize(USE_COMPUTED_SIZE) // make sure no settings prevents full size
+        }
+        window.show()
+        Layout.openStandalone(root).apply {
+            child = w
+        }
+        w.focus()
+
+        root.background = bgr(BLACK)
+
+        // only display when layout is ready (== when window visible)
+        window.showingProperty().sync1If({ it }) {
+            // give layout some time to initialize (could display wrong size)
+            runFX(100.0.millis) {
+                (w.controller as ImageDisplayFeature).showImage(image)
+            }
+        }
+    }
+
+    /**
+     * The check whether file exists, is accessible or of correct type/format is left on the caller and behavior in
+     * such cases is undefined.
+     */
+    @Blocks
+    fun printAllImageFileMetadata(file: File) {
+        throwIfFxThread()
+
+        val title = "Metadata of "+file.path
+        val text = try {
+            val sb = StringBuilder()
+            ImageMetadataReader.readMetadata(file)
+                    .directories
+                    .forEach {
+                        sb.append("\nName: ").append(it.name)
+                        it.tags.forEach { tag -> sb.append("\n\t").append(tag.toString()) }
+                    }
+            title+sb.toString()
+        } catch (e: IOException) {
+            "$title\n$"+e.stackTraceAsString()
+        } catch (e: ImageProcessingException) {
+            "$title\n$"+e.stackTraceAsString()
+        }
+        runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
+    }
+
+    @Blocks
+    fun printAllAudioItemMetadata(item: Item) {
+        throwIfFxThread()
+
+        if (item.isFileBased()) {
+            printAllAudioFileMetadata(item.getFile())
+        } else {
+            val text = "Metadata of ${item.uri}\n<only supported for files>"
+            runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
+        }
+    }
+
+    /**
+     * The check whether file exists, is accessible or of correct type/format is left on the caller and behavior in
+     * such cases is undefined.
+     */
+    @Blocks
+    fun printAllAudioFileMetadata(file: File?) {
+        throwIfFxThread()
+
+        val title = "Metadata of "+file!!.path
+        val content = file.readAudioFile()
+                .map { af ->
+                    "\nHeader:"+"\n"+
+                            af.audioHeader.toString().split("\n").joinToString("\n\t")+
+                            "\nTag:"+
+                            if (af.tag==null) " <none>" else af.tag.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" }
+                }
+                .getOrSupply { e -> "\n"+e.stackTraceAsString() }
+        val text = title+content
+        runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
+    }
+
+    @IsAction(name = "Print running java processes")
+    fun printJavaProcesses() {
+        val text = VirtualMachine.list().joinToString("") {
+            "\nVM:\n\tid: ${it.id()}\n\tdisplayName: ${it.displayName()}\n\tprovider: ${it.provider()}"
+        }
+        runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
+    }
+
+    companion object: KLogging()
 }

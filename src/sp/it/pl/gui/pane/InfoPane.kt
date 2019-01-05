@@ -7,20 +7,22 @@ import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.VPos
 import javafx.scene.Cursor
-import javafx.scene.control.Label
-import javafx.scene.control.ScrollPane
-import javafx.scene.control.ScrollPane.ScrollBarPolicy
+import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
+import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
+import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
-import javafx.scene.layout.Priority.NEVER
 import sp.it.pl.main.APP
 import sp.it.pl.main.createInfoIcon
 import sp.it.pl.util.conf.MultiConfigurable
-import sp.it.pl.util.graphics.Util.layHeaderTop
-import sp.it.pl.util.graphics.Util.layHorizontally
-import sp.it.pl.util.graphics.Util.layStack
 import sp.it.pl.util.graphics.Util.layVertically
+import sp.it.pl.util.graphics.hBox
+import sp.it.pl.util.graphics.label
+import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.scrollPane
+import sp.it.pl.util.graphics.stackPane
+import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.system.copyToSysClipboard
 import sp.it.pl.util.toLocalDateTime
 import sp.it.pl.util.units.Dur
@@ -32,21 +34,22 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
     init {
         styleClass += STYLECLASS
 
-        val helpI = createInfoIcon("System information viewer\n\nDisplays available system properties. Click on the property to copy the value.")
-        val sp = ScrollPane().apply {
-            onScroll = EventHandler { it.consume() }
-            content = layStack(g, CENTER)
-            isFitToWidth = true
-            isFitToHeight = false
-            hbarPolicy = ScrollBarPolicy.NEVER
-            vbarPolicy = ScrollBarPolicy.AS_NEEDED
-        }
-        content = layHeaderTop(5.0, CENTER,
-                layHorizontally(5.0, CENTER_RIGHT, helpI),
-                layStack(sp, CENTER)
-        ).also {
-            it.maxWidth = 800.0
-            it.maxHeightProperty().bind(heightProperty().subtract(100))
+        content = vBox(5, CENTER) {
+            maxWidth = 800.0
+
+            lay += hBox(5, CENTER_RIGHT) {
+                lay += createInfoIcon("System information viewer\n\nDisplays available system properties. Click on the property to copy the value.")
+            }
+            lay(ALWAYS) += stackPane {
+                lay += scrollPane {
+                    onScroll = EventHandler { it.consume() }
+                    content = stackPane(g)
+                    isFitToWidth = true
+                    isFitToHeight = false
+                    hbarPolicy = NEVER
+                    vbarPolicy = AS_NEEDED
+                }
+            }
         }
     }
 
@@ -57,9 +60,9 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
         g.rowConstraints.clear()
         g.columnConstraints.clear()
 
-        g.columnConstraints += ColumnConstraints(550.0, 550.0, 550.0, NEVER, HPos.RIGHT, false)
+        g.columnConstraints += ColumnConstraints(550.0, 550.0, 550.0, Priority.NEVER, HPos.RIGHT, false)
         g.columnConstraints += ColumnConstraints(10.0)
-        g.columnConstraints += ColumnConstraints(-1.0, -1.0, -1.0, ALWAYS, HPos.LEFT, false)
+        g.columnConstraints += ColumnConstraints(-1.0, -1.0, -1.0, Priority.ALWAYS, HPos.LEFT, false)
 
         var i = -1
         computeProperties().asSequence()
@@ -68,9 +71,10 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
                 .forEach {
                     // group title row
                     i++
-                    val group = Label(it.key.toLowerCase().capitalize())
-                    group.styleClass += STYLECLASS_GROUP
-                    g.add(layVertically(0.0, Pos.CENTER, Label(), group), 2, i)
+                    val group = label(it.key.toLowerCase().capitalize()) {
+                        styleClass += STYLECLASS_GROUP
+                    }
+                    g.add(layVertically(0.0, Pos.CENTER, label(), group), 2, i)
                     GridPane.setValignment(group.parent, VPos.CENTER)
                     GridPane.setHalignment(group.parent, HPos.LEFT)
 
@@ -82,8 +86,8 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
                         val name = if (hasGroupAsPrefix) n.name.substring(it.key.length+1) else n.name
                         val value = n.value.fixASCII()
 
-                        val nameL = Label(name)
-                        val valL = Label(value).apply {
+                        val nameL = label(name)
+                        val valL = label(value) {
                             cursor = Cursor.HAND
                             setOnMouseClicked { copyToSysClipboard(value) }
                         }

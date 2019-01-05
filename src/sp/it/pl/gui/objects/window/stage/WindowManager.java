@@ -61,8 +61,11 @@ import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
+import static sp.it.pl.layout.widget.WidgetManagerKt.orEmpty;
 import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.unused.SimpleConfigurator.simpleConfigurator;
 import static sp.it.pl.util.async.AsyncKt.runLater;
+import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.dev.Util.noNull;
 import static sp.it.pl.util.file.UtilKt.listChildren;
@@ -71,10 +74,12 @@ import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.functional.Util.max;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.graphics.Util.add1timeEventHandler;
+import static sp.it.pl.util.functional.UtilKt.consumer;
+import static sp.it.pl.util.functional.UtilKt.runnable;
+import static sp.it.pl.util.graphics.Util.addEventHandler1Time;
 import static sp.it.pl.util.graphics.UtilKt.getScreenForMouse;
 import static sp.it.pl.util.reactive.Util.maintain;
-import static sp.it.pl.util.reactive.Util.onScreenChange;
+import static sp.it.pl.util.reactive.Util.onItemRemoved;
 
 /**
  * Manages windows.
@@ -272,10 +277,10 @@ public class WindowManager implements Configurable<Object> {
             miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 40);
             miniWindow.resizable.set(true);
             miniWindow.setAlwaysOnTop(true);
-            miniWindow.disposables.add(onScreenChange(screen -> {
-                // maintain proper widget content until window closes
-                if (screen.equals(miniWindow.getScreen()))
+            miniWindow.disposables.add(onItemRemoved(Screen.getScreens(), consumer(it -> {
+                if (it.equals(miniWindow.getScreen()))
                     runLater(() -> {
+                        Screen screen = Screen.getPrimary();
                         miniWindow.setScreen(screen);
                         miniWindow.setXYSize(
                             screen.getBounds().getMinX(),
@@ -284,7 +289,8 @@ public class WindowManager implements Configurable<Object> {
                             miniWindow.getHeight()
                         );
                     });
-            }));
+
+            })));
 
             // content controls
             Icon miniB = new Icon(null, 13, "Docked mode", this::toggleMiniFull);
@@ -305,7 +311,7 @@ public class WindowManager implements Configurable<Object> {
             miniWindow.disposables.add(maintain(
                 mini_widget,
                 name -> {
-                    Component newW = APP.widgetManager.factories.getFactoryOrEmpty(name).create();
+                    Component newW = orEmpty(APP.widgetManager.factories.getComponentFactory(name)).create();
                     Component oldW = (Widget) content.getProperties().get("widget");
 
                     if (oldW!=null) oldW.close();
@@ -328,7 +334,7 @@ public class WindowManager implements Configurable<Object> {
             Parent mw_root = miniWindow.getStage().getScene().getRoot();
             Anim a = new Anim(millis(200), x -> miniWindow.setY(-H.get()*x, false));
 
-            FxTimer hider = new FxTimer(0, 1, () -> {
+            FxTimer hider = fxTimer(ZERO, 1, runnable(() -> {
                 if (miniWindow==null) return;
                 if (miniWindow.getY()!=0) return;    // if not open
                 Duration d = a.getCurrentTime();
@@ -336,7 +342,7 @@ public class WindowManager implements Configurable<Object> {
                 a.stop();
                 a.setRate(1);
                 a.playFrom(millis(300).subtract(d));
-            });
+            }));
             mw_root.addEventFilter(MouseEvent.ANY, e -> {
                 if (!mini_hide_onInactive.get()) return;   // if disabled
                 if (mw_root.isHover()) return;       // if mouse still in (we only want MOUSE_EXIT)
@@ -344,7 +350,7 @@ public class WindowManager implements Configurable<Object> {
             });
             hider.runNow();
 
-            FxTimer shower = new FxTimer(0, 1, () -> {
+            FxTimer shower = fxTimer(ZERO, 1, runnable(() -> {
                 if (miniWindow==null) return;
                 if (miniWindow.getY()==0) return;    // if open
                 if (!mw_root.isHover()) return;      // if mouse left
@@ -353,7 +359,7 @@ public class WindowManager implements Configurable<Object> {
                 a.stop();
                 a.setRate(-1);
                 a.playFrom(d);
-            });
+            }));
             mw_root.addEventFilter(MOUSE_ENTERED, e -> {
                 if (!miniWindow.isShowing()) return;     // bug fix
                 shower.start(mini_hover_delay);         // open after delay
@@ -434,7 +440,7 @@ public class WindowManager implements Configurable<Object> {
             if(load_normally)
                 ws.add(createWindow(true));
         } else {
-            ws.forEach(w -> add1timeEventHandler(w.s, WINDOW_SHOWING, e -> w.update()));
+            ws.forEach(w -> addEventHandler1Time(w.s, WINDOW_SHOWING, e -> w.update()));
             ws.forEach(Window::show);
             Widget.deserializeWidgetIO();
         }
@@ -446,7 +452,7 @@ public class WindowManager implements Configurable<Object> {
     public Window createWindow(Component c) {
         Window w = createWindow();
         w.setContent(c);
-        if (c instanceof Widget<?>) ((Widget<?>) c).focus();
+        c.focus();
         return w;
     }
 
@@ -459,7 +465,7 @@ public class WindowManager implements Configurable<Object> {
         Window w = create();
         w.initLayout();
         w.setContent(c);
-        if (c instanceof Widget<?>) ((Widget<?>) c).focus();
+        c.focus();
         w.show();
         w.setXYToCenter(getScreenForMouse());
         return w;
@@ -506,7 +512,7 @@ public class WindowManager implements Configurable<Object> {
     public void showSettingsSimple(Configurable<?> c, Node n) {
         boolean isComponent = c instanceof Component;
         String name = c instanceof Widget ? ((Widget) c).getName() : "";
-        SimpleConfigurator<?> sc = new SimpleConfigurator<>(c);
+        SimpleConfigurator<?> sc = simpleConfigurator(c);
         PopOver<?> p = new PopOver<>(sc);
         p.title.set((name==null ? "" : name + " ") + " Settings");
         p.arrowSize.set(0); // auto-fix breaks the arrow position, turn off - sux
@@ -532,8 +538,8 @@ public class WindowManager implements Configurable<Object> {
         launchComponent(instantiateComponent(launcher));
     }
 
-    public void launchComponent(String componentName) {
-        ComponentFactory<?> wf = APP.widgetManager.factories.getFactory(componentName);
+    public void launchComponent(String name) {
+        ComponentFactory<?> wf = APP.widgetManager.factories.getComponentFactory(name);
         Component w = wf==null ? null : wf.create();
         launchComponent(w);
     }
@@ -560,7 +566,7 @@ public class WindowManager implements Configurable<Object> {
         // try to build widget using just launcher filename
         boolean isLauncherEmpty = Util.readFileLines(launcher).count()==0;
         String wn = isLauncherEmpty ? Util.getName(launcher) : "";
-        wf = APP.widgetManager.factories.getFactory(wn);
+        wf = APP.widgetManager.factories.getComponentFactory(wn);
         if (wf!=null)
             c = wf.create();
 

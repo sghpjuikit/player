@@ -4,7 +4,7 @@ import javafx.beans.property.SimpleObjectProperty
 import org.reactfx.Subscription
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.reactive.changes
+import sp.it.pl.util.reactive.attachChanges
 import sp.it.pl.util.reactive.sync
 import java.util.function.BiConsumer
 import java.util.function.Consumer
@@ -46,7 +46,7 @@ open class V<T>: SimpleObjectProperty<T>, ApplicableValue<T> {
 
     fun initSyncC(action: Consumer<in T>) = apply { sync { action(it) } }
 
-    fun onChange(action: BiConsumer<in T, in T>) = changes { ov, nv -> action(ov, nv) }
+    fun onChange(action: BiConsumer<in T, in T>) = attachChanges { ov, nv -> action(ov, nv) }
 
     fun maintain(action: Consumer<in T>): Subscription {
         action(value)
@@ -55,13 +55,9 @@ open class V<T>: SimpleObjectProperty<T>, ApplicableValue<T> {
 
 }
 
-fun <T> v(value: T): V<T> = V(value)
+fun <T: Any> v(value: T): V<T> = V(value)
 
-fun <T> v(value: T, onChange: (T) -> Unit): V<T> = V(value, Consumer { onChange(it) })
-
-fun <T> vn(value: T? = null): V<T?> = V(value)
-
-fun <T> vn(value: T?, onChange: (T?) -> Unit): V<T?> = V(value, Consumer { onChange(it) })
+fun <T: Any?> vn(value: T? = null): V<T?> = V(value)
 
 fun <T, W: V<T>> W.initAttach(action: (T) -> Unit) = apply { attach { action(it) } }
 

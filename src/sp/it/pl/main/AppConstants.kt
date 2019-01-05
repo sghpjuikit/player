@@ -1,14 +1,15 @@
 package sp.it.pl.main
 
 object Widgets {
+    const val CONVERTER = "Converter"
     const val INSPECTOR = "Inspector"
     const val LAYOUTS = "Layouts"
-    const val LIBRARY = "Library"
-    const val LIBRARY_VIEW = "Library View"
+    const val SONG_GROUP_TABLE = "Song Group Table"
+    const val SONG_TABLE = "Song Table"
+    const val SONG_TAGGER = "Song Tagger"
     const val LOGGER = "Logger"
-    const val TAGGER = "Tagger"
-    const val PLAYLIST = "Playlist"
     const val PLAYBACK = "Playback"
+    const val PLAYLIST = "Playlist"
 }
 
 object Actions {

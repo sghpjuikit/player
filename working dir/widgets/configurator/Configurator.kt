@@ -1,8 +1,5 @@
 package configurator
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.HOME
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.REFRESH
 import javafx.event.EventHandler
 import javafx.fxml.FXML
 import javafx.scene.control.Label
@@ -21,13 +18,15 @@ import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.main.APP
+import sp.it.pl.main.IconFA
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.functional.seqRec
-import sp.it.pl.util.graphics.expandAndSelect
+import sp.it.pl.util.functional.setTo
+import sp.it.pl.util.graphics.expandToRootAndSelect
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
 import sp.it.pl.util.graphics.propagateESCAPE
 import sp.it.pl.util.reactive.attach
@@ -47,15 +46,16 @@ import java.util.ArrayList
         year = "2016",
         group = Widget.Group.APP
 )
-class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeature<Any> {
+class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeature {
 
-    @FXML lateinit var groups: TreeView<Name>
-    @FXML lateinit var controls: Pane
-    @FXML lateinit var configsRootPane: AnchorPane
+    @FXML private lateinit var groups: TreeView<Name>
+    @FXML private lateinit var controls: Pane
+    @FXML private lateinit var configsRootPane: AnchorPane
     private val configsPane = ConfigPane<Any>()
     private val configs = ArrayList<Config<*>>()
     private val configSelectionName = "app.settings.selected_group"
     private var configSelectionAvoid = false
+    private val appConfigurable = APP.configuration
 
     @IsConfig(editable = EditMode.APP)
     var showsAppSettings by c(true)
@@ -66,22 +66,23 @@ class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeat
         ConventionFxmlLoader(this).loadNoEx<Any>()
 
         configsRootPane.children += configsPane
-        groups.isShowRoot = false
         groups.selectionModel.selectionMode = SINGLE
         groups.cellFactory = Callback { buildTreeCell(it) }
         groups.propagateESCAPE()
-        onClose += groups.selectionModel.selectedItemProperty() attach { nv ->
-            storeAppSettingsSelection(nv)
-            showConfigs(configs.filter { it.group==nv?.value?.pathUp })
+        onClose += groups.selectionModel.selectedItemProperty() attach {
+            storeAppSettingsSelection(it)
+            showConfigs(configs.filter { c -> c.group==it?.value?.pathUp })
         }
 
         controls.children += listOf(
-                Icon(HOME, 13.0, "App settings", Runnable { showsAppSettings = true; configure(APP.configuration.getFields()) }),
+                Icon(IconFA.HOME, 13.0, "App settings", Runnable { configure(appConfigurable) }),
                 Label("    "),
-                Icon(REFRESH, 13.0, "Refresh all", Runnable { refresh() }),
-                Icon(RECYCLE, 13.0, "Set all to default", Runnable { defaults() })
+                Icon(IconFA.REFRESH, 13.0, "Refresh all", Runnable { refresh() }),
+                Icon(IconFA.RECYCLE, 13.0, "Set all to default", Runnable { defaults() })
         )
         onScroll = EventHandler { it.consume() }
+
+        refresh()
     }
 
     /** Set and apply values. */
@@ -91,18 +92,21 @@ class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeat
     fun defaults() = configsPane.getConfigFields().forEach { it.setNapplyDefault() }
 
     override fun refresh() {
-        if (showsAppSettings) configure(APP.configuration.getFields())
+        if (showsAppSettings) configure(appConfigurable)
         else refreshConfigs()
     }
 
-    override fun configure(configurable: Collection<Config<out Any>>) {
-        configs.clear()
-        configs += configurable
+    override fun configure(configurable: Configurable<*>?) {
+        val configurableFields = configurable?.fields.orEmpty()
+
+        showsAppSettings = configurable==appConfigurable
+        configs setTo configurableFields
         configSelectionAvoid = true
-        groups.root = tree(Name.treeOfPaths("Groups", configurable.map { it.group }))
+        groups.isShowRoot = !showsAppSettings
+        groups.root = tree(Name.treeOfPaths("All", configurableFields.map { it.group }))
         groups.root.isExpanded = true
         configSelectionAvoid = false
-        restoreAppSettingsSelection()
+        groups.expandToRootAndSelect(restoreAppSettingsSelection() ?: groups.root)
     }
 
     private fun showConfigs(configs: Collection<Config<*>>) = configsPane.configure(configs)
@@ -112,14 +116,13 @@ class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeat
     private fun storeAppSettingsSelection(item: TreeItem<Name>?) {
         if (!showsAppSettings || configSelectionAvoid) return
         val selectedGroupPath = item?.value?.pathUp ?: ""
-        APP.configuration.rawAdd(configSelectionName, selectedGroupPath)
+        appConfigurable.rawAdd(configSelectionName, selectedGroupPath)
     }
 
-    private fun restoreAppSettingsSelection() {
-        if (!showsAppSettings) return
-        val path = APP.configuration.rawGetAll()[configSelectionName]
-        val item = groups.root.seqRec { it.children }.find { it.value.pathUp==path; } ?: groups.root
-        groups.expandAndSelect(item)    // invokes showConfigs()
+    private fun restoreAppSettingsSelection(): TreeItem<Name>? {
+        if (!showsAppSettings) return null
+        val selectedGroupPath = appConfigurable.rawGetAll()[configSelectionName]
+        return groups.root.seqRec { it.children }.find { it.value.pathUp==selectedGroupPath; }
     }
 
 }

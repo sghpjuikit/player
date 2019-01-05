@@ -8,9 +8,9 @@ import javafx.animation.KeyFrame
 import javafx.animation.Timeline
 import javafx.event.EventHandler
 import javafx.util.Duration
-import javafx.util.Duration.millis
-import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.functional.setToOne
+import sp.it.pl.util.math.millis
 
 /**
  * Lightweight timer constrained to JavaFX application thread.
@@ -35,17 +35,12 @@ class FxTimer {
     val isRunning: Boolean
         get() = timeline.currentRate!=0.0
 
-    /** @see fxTimer */
-    constructor(delay: Duration, cycles: Int, action: Runnable) {
+    private constructor(delay: Duration, cycles: Int, action: Runnable) {
         this.action = action
-        this.period = millis(delay.toMillis())
+        this.period = delay
         this.timeline = Timeline()
         this.timeline.cycleCount = cycles
     }
-
-    /** @see fxTimer */
-    constructor(delayMs: Double, cycles: Int, action: Runnable): this(millis(delayMs), cycles, action)
-
 
     /** @param run if true, [start] will be called, otherwise calls [stop]. */
     fun setRunning(run: Boolean) {
@@ -63,10 +58,10 @@ class FxTimer {
         if (period.toMillis()==0.0) {
             runNow()
         } else {
-            timeline.keyFrames.setAll(KeyFrame(period, EventHandler {
+            timeline.keyFrames setToOne KeyFrame(period, EventHandler {
                 if (seq==expected)
                     runNow()
-            }))
+            })
             timeline.play()
         }
     }
@@ -95,26 +90,19 @@ class FxTimer {
     }
 
     fun setTimeoutAndRestart(timeoutMs: Double) {
-        if (isRunning)
-            start(millis(timeoutMs))
-        else
-            period = millis(timeoutMs)
+        if (isRunning) start(timeoutMs.millis)
+        else period = timeoutMs.millis
     }
 
     companion object {
         /**
          * Creates a (stopped) timer that executes the given action a specified number of times with a delay period.
          *
-         * @param delayMs Time to wait before each execution. The first execution is already delayed.
+         * @param delay time to wait before each execution. The first execution is already delayed.
          * @param cycles denotes number of executions, use -1 for infinite executions
          * @param action action to execute
          */
-        fun fxTimer(delayMs: Double, cycles: Int, action: () -> Unit) = FxTimer(millis(delayMs), cycles, Runnable { action() })
-
-        /**
-         * Equivalent to `fxTimer(Duration.millis(delay), action, cycles);`
-         * @see fxTimer
-         */
+        @JvmStatic
         fun fxTimer(delay: Duration, cycles: Int, action: () -> Unit) = FxTimer(delay, cycles, Runnable { action() })
     }
 

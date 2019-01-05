@@ -6,7 +6,7 @@ interface NodeInfo<B> {
     /**
      * Starts monitoring the bindable element.
      *
-     * @implSpec this method should first call [.unbind] to remove any previous monitoring.
+     * @implSpec this method should first call [unbind] to remove any previous monitoring.
      */
     fun bind(bindable: B)
 

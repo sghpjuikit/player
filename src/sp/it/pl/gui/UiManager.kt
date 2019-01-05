@@ -5,7 +5,6 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.NodeOrientation
 import javafx.scene.Node
 import javafx.scene.Parent
-import javafx.scene.Scene
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Tooltip
 import javafx.scene.input.MouseEvent
@@ -14,26 +13,26 @@ import javafx.stage.Popup
 import javafx.stage.Stage
 import javafx.stage.Window
 import mu.KLogging
-import sp.it.pl.gui.UiManager.OpenStrategy.INSIDE
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.layout.widget.WidgetSource.ANY
-import sp.it.pl.main.Actions
 import sp.it.pl.main.APP
+import sp.it.pl.main.Actions
 import sp.it.pl.main.Settings
-import sp.it.pl.util.conf.between
-import sp.it.pl.util.conf.c
-import sp.it.pl.util.conf.cv
 import sp.it.pl.util.access.VarEnum
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
+import sp.it.pl.util.conf.between
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.file.FileMonitor
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.isParentOf
 import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.functional.Util.set
+import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.isAnyParentOf
@@ -46,7 +45,6 @@ import sp.it.pl.util.reactive.sync1IfNonNull
 import java.io.File
 import java.net.MalformedURLException
 import java.util.HashSet
-import java.util.stream.Stream
 
 private typealias C = IsConfig
 
@@ -57,14 +55,15 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val layoutMode: BooleanProperty = SimpleBooleanProperty(false)
     val focusChangedHandler: (Node?) -> Unit = { n ->
         val window = n?.scene
-        (if (n==null) Stream.empty() else APP.widgetManager.widgets.findAll(ANY))
-                .filter { w -> w.areaTemp!=null && w.areaTemp.root.isAnyParentOf(n!!) }
-                .findAny().ifPresent { fw ->
+        if (n!=null)
+            APP.widgetManager.widgets.findAll(ANY)
+                .filter { it.areaTemp?.root?.isAnyParentOf(n) ?: false }
+                .findAny()
+                .ifPresent { fw ->
                     APP.widgetManager.widgets.findAll(ANY)
-                            .filter { w -> w!==fw }
-                            .filter { w -> w.window.map<Stage> { it.stage }.map<Scene> { it.scene }.map { s -> s===window }.orElse(false) }
-                            .forEach { w -> w.focused.set(false) }
-                    fw.focused.set(true)
+                            .filter { w -> w!==fw && w.window.orNull()?.stage?.scene?.net { it===window } ?: false }
+                            .forEach { w -> w.focused.value = false }
+                    fw.focused.value = true
                 }
     }
 
@@ -88,7 +87,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     @C(name = "Layout mode blur intensity", info = "Layout mode blur effect intensity.")
     var blurLM by c(4.0).between(0.0, 20.0)
     @C(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
-    var durationLM by c(millis(250))
+    var durationLM by c(250.millis)
     @C(name = "Snap", info = "Allows snapping feature for windows and controls.")
     val snapping by cv(true)
     @C(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
@@ -96,7 +95,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     @C(name = "Lock layout", info = "Locked layout will not enter layout mode.")
     val lockedLayout by cv(false) { SimpleBooleanProperty(it).apply { attach { APP.actionStream.push("Layout lock") } } }
     @C(name = "Layout open strategy", info = "How will certain layout element open and close.")
-    val openStrategy by cv(INSIDE)
+    val openStrategy by cv(OpenStrategy.INSIDE)
     @C(name = "Table orientation", group = Settings.Ui.TABLE, info = "Orientation of the table.")
     val tableOrient by cv(NodeOrientation.INHERIT)
     @C(name = "Zeropad numbers", group = Settings.Ui.TABLE, info = "Adds 0s for number length consistency.")
@@ -108,7 +107,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     @C(name = "Show table controls", group = Settings.Ui.TABLE, info = "Show table controls at the bottom of the table. Displays menu bar and table items information")
     val tableShowFooter by cv(true)
     @C(name = "Thumbnail anim duration", group = "${Settings.UI}.Images", info = "Preferred hover scale animation duration for thumbnails.")
-    val thumbnailAnimDur by cv(millis(100))
+    val thumbnailAnimDur by cv(100.millis)
 
     /**
      * Sets layout mode for all active components.
@@ -140,9 +139,10 @@ class UiManager(val skinDir: File): Configurable<Any> {
     }
 
     fun focusClickedWidget(e: MouseEvent) {
-        val n = if (e.target is Node) e.target as Node else null
-        (if (n==null) Stream.empty() else APP.widgetManager.widgets.findAll(ANY))
-                .filter { w -> !w.focused.get() && w.isLoaded && w.load().isAnyParentOf(n!!) }
+        val n = e.target as? Node
+        if (n!=null)
+            APP.widgetManager.widgets.findAll(ANY)
+                .filter { !it.focused.value && it.isLoaded && it.load().isAnyParentOf(n) }
                 .findAny().ifPresent { it.focus() }
     }
 
@@ -190,13 +190,13 @@ class UiManager(val skinDir: File): Configurable<Any> {
     @IsAction(name = "Fullscreen", desc = "Switch fullscreen mode.", keys = "F12")
     fun toggleFullscreen() = APP.windowManager.active.orNull()?.toggleFullscreen()
 
-    @IsAction(name = "Layout align", desc = "Aligns layout of the active window", keys = "SHIFT+UP")
+    @IsAction(name = "Layout align", desc = "Aligns layout of the active window", keys = "ALT+UP")
     fun tabAlign() = APP.windowManager.active.orNull()?.switchPane?.alignTabs()
 
-    @IsAction(name = "Layout move left", desc = "Moves layout of the active window to the left.", keys = "SHIFT+LEFT")
+    @IsAction(name = "Layout move left", desc = "Moves layout of the active window to the left.", keys = "ALT+LEFT")
     fun tabPrevious() = APP.windowManager.active.orNull()?.switchPane?.alignLeftTab()
 
-    @IsAction(name = "Layout move right", desc = "Moves layout of the active window to the right.", keys = "SHIFT+RIGHT")
+    @IsAction(name = "Layout move right", desc = "Moves layout of the active window to the right.", keys = "ALT+RIGHT")
     fun tabNext() = APP.windowManager.active.orNull()?.switchPane?.alignRightTab()
 
     @IsAction(name = Actions.LAYOUT_MODE, desc = "Shows/hides layout overlay.", keys = "F8")
@@ -214,7 +214,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
 
     fun setZoomMode(v: Boolean) = APP.windowManager.active.orNull()?.switchPane?.zoom(v)
 
-    @IsAction(name = "Layout zoom overlay in/out", desc = "Shows/hides layout overlay & zooms in/out.", keys = "SHIFT+DOWN")
+    @IsAction(name = "Layout zoom overlay in/out", desc = "Shows/hides layout overlay & zooms in/out.", keys = "ALT+DOWN")
     fun toggleLayoutNzoom() {
         toggleLayoutMode()
         toggleZoomMode()

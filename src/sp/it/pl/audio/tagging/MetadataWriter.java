@@ -670,13 +670,7 @@ public class MetadataWriter extends Item {
 	private void setGeneralField(FieldKey field, String val) {
 		boolean empty = val==null || val.isEmpty();
 		try {
-//            System.out.println("BEFORE");
-//            tag.getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
-//            System.out.println(field + " " + val + " " + tag.getClass());
-			if (empty) tag.deleteField(field);
-			else tag.setField(field, val);
-//            System.out.println("AFTER");
-//            tag.getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
+			if (empty) tag.deleteField(field); else tag.setField(field, val);
 			fields_changed++;
 		} catch (KeyNotFoundException e) {
 			LOGGER.info(field + " field not found", e);
@@ -864,23 +858,28 @@ public class MetadataWriter extends Item {
 	}
 
 	public void reset(Item i) {
-		Optional.ofNullable(i.getFile())
-			.map(f -> readAudioFile(f).getOr(null))
-			.ifPresentOrElse(
-				f -> {
-					audioFile = f;
-					tag = audioFile.getTagOrCreateAndSetDefault(); // this can throw NullPointerException
-					hasCorruptedTag = false;
-				},
-				() -> {
-					audioFile = null;
-					tag = new ID3v24Tag(); // fake tag to write into
-					hasCorruptedTag = true;
-					LOGGER.warn("Couldn't initialize MetadataWriter, writing to tag will be ignored");
-				}
-			);
-		fields_changed = 0;
-		isWriting.set(false);
+		if (!i.isFileBased()) {
+			reset();
+		} else {
+			file = i.getFile();
+			Optional.ofNullable(file)
+				.map(f -> readAudioFile(f).getOr(null))
+				.ifPresentOrElse(
+					f -> {
+						audioFile = f;
+						tag = audioFile.getTagOrCreateAndSetDefault(); // this can throw NullPointerException
+						hasCorruptedTag = false;
+					},
+					() -> {
+						audioFile = null;
+						tag = new ID3v24Tag(); // fake tag to write into
+						hasCorruptedTag = true;
+						LOGGER.warn("Couldn't initialize MetadataWriter, writing to tag will be ignored");
+					}
+				);
+			fields_changed = 0;
+			isWriting.set(false);
+		}
 	}
 
 	/******************************************************************************/

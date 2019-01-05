@@ -16,13 +16,13 @@ import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.image.Thumbnail.FitFrom;
 import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.util.Sort;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.fieldvalue.CachingFile;
 import sp.it.pl.util.access.fieldvalue.FileField;
-import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.conf.Config.VarList.Elements;
 import sp.it.pl.util.conf.EditMode;
@@ -39,6 +39,7 @@ import sp.it.pl.util.validation.Constraint;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static java.util.Comparator.nullsLast;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -52,17 +53,19 @@ import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.newThreadPoolExecutor;
 import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.onlyIfMatches;
-import static sp.it.pl.util.async.AsyncKt.runAfter;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.AsyncKt.threadFactory;
+import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.file.FileSort.DIR_FIRST;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.Util.getCommonRoot;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.max;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchor;
+import static sp.it.pl.util.reactive.Util.attach1IfNonNull;
 import static sp.it.pl.util.reactive.Util.maintain;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.edit;
@@ -77,6 +80,7 @@ import static sp.it.pl.util.system.EnvironmentKt.open;
         year = "2015",
         group = OTHER
 )
+@LegacyController
 public class DirViewer extends SimpleController {
 
     private static final double CELL_TEXT_HEIGHT = 20;
@@ -129,7 +133,7 @@ public class DirViewer extends SimpleController {
 	    grid.primaryFilterField = FileField.NAME_FULL;
         grid.setCellFactory(grid -> new Cell());
         setAnchor(this, grid, 0d);
-        placeholder.showFor(this);
+        placeholder.show(this, files.list.isEmpty());
 
         inputs.create("Root directory", File.class, null, dir -> {
             if (dir != null && dir.isDirectory() && dir.exists())
@@ -208,18 +212,22 @@ public class DirViewer extends SimpleController {
 
         item = dir;
         lastVisited = dir.val;
-        Fut.fut(item)
-                .map(executorIO, Item::children)
-                .use(executorIO, cells -> cells.sort(buildSortComparator()))
-                .use(FX, cells -> {
+        fut(item)
+                .then(executorIO, it -> it.children().stream().sorted(buildSortComparator()).collect(toList()))
+                .useBy(FX, cells -> {
                     grid.getItemsRaw().setAll(cells);
                     if (item.lastScrollPosition>= 0)
                         grid.implGetSkin().setPosition(item.lastScrollPosition);
 
                     grid.requestFocus();    // fixes focus problem
-                    runAfter(millis(500), grid::requestFocus);
+                    runFX(millis(500), grid::requestFocus);
                 })
                 .showProgress(getOwnerWidget().getWindowOrActive().map(Window::taskAdd));
+    }
+
+    @Override
+    public void focus() {
+        attach1IfNonNull(grid.skinProperty(), consumer(skin -> grid.implGetSkin().requestFocus()));
     }
 
     /**

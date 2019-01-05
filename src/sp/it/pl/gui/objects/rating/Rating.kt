@@ -32,7 +32,7 @@ class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double
     @JvmField var onRatingEdited: (Double?) -> Unit = {}
 
     init {
-        styleClass.setAll("rating")
+        styleClass += "rating"
     }
 
     override fun createDefaultSkin() = RatingSkin(this)

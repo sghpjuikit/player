@@ -57,6 +57,7 @@ import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.min;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 
@@ -72,7 +73,7 @@ public class IOLayer extends StackPane {
     public static final PseudoClass XNODE_DRAGOVER = getPseudoClass("drag-over");
     public static final PseudoClass XNODE_SELECTED = getPseudoClass("selected");
     private static final Object XNODE_KEY = new Object();
-    private static final double IO_WIDTH = 200;
+    private static final double IO_WIDTH = 230;
 
     static public final ObservableSet<Input<?>> all_inputs = FXCollections.observableSet();
     static public final ObservableSet<Output<?>> all_outputs = FXCollections.observableSet();
@@ -416,7 +417,7 @@ public class IOLayer extends StackPane {
                 // i.setOnMouseEntered(e -> a.playOpen());
                 // t.setOnMouseExited(e -> a.playClose());
 
-                output.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(output))));
+                output.monitor(v -> a.playCloseDoOpen(runnable(() -> t.setText(oToStr(output)))));
                 output.monitor(v ->
                     inputnodes.values().stream().map(in -> in.input).filter(i -> i.getSources().contains(output)).forEach(input ->
                         connections.getOpt(new Key<>(input,output)).ifPresent(c -> c.send())
@@ -449,7 +450,7 @@ public class IOLayer extends StackPane {
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_LEFT);
             graphics.getProperties().put(XNODE_KEY, this);
-            graphics.setMouseTransparent(true);
+            graphics.setMouseTransparent(false);
             i.styleclass(INODE_STYLECLASS);
 
             // drag&drop
@@ -484,7 +485,7 @@ public class IOLayer extends StackPane {
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_RIGHT);
             graphics.getProperties().put(XNODE_KEY, this);
-            graphics.setMouseTransparent(true);
+            graphics.setMouseTransparent(false);
             i.styleclass(ONODE_STYLECLASS);
 
             // drag&drop
@@ -505,7 +506,7 @@ public class IOLayer extends StackPane {
             graphics.setMaxSize(80,120);
             graphics.setAlignment(Pos.CENTER_LEFT);
             graphics.getProperties().put(XNODE_KEY, this);
-            graphics.setMouseTransparent(true);
+            graphics.setMouseTransparent(false);
             i.styleclass(IONODE_STYLECLASS);
 
             // drag&drop

@@ -87,6 +87,8 @@ public interface Controller extends CachedConfigurable<Object>, Locatable {
 	 */
 	void refresh();
 
+	default void focus() {}
+
 	/**
 	 * Returns widget in relationship with this Controller object.
 	 *

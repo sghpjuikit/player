@@ -30,8 +30,6 @@
 package sp.it.pl.gui.objects.rating
 
 import de.jensd.fx.glyphs.GlyphIcons
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STAR
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STAR_ALT
 import javafx.event.EventHandler
 import javafx.scene.CacheHint
 import javafx.scene.Node
@@ -40,10 +38,12 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
-import javafx.scene.layout.HBox
 import javafx.scene.shape.Rectangle
+import sp.it.pl.main.IconFA
 import sp.it.pl.util.Util.clip
+import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.createIcon
+import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.pseudoclass
 import sp.it.pl.util.reactive.syncFrom
 import java.lang.Math.ceil
@@ -51,9 +51,9 @@ import java.lang.Math.ceil
 /** Skin for [Rating]. */
 class RatingSkin(r: Rating): SkinBase<Rating>(r) {
 
-    private val backgroundContainer = HBox()
+    private val backgroundContainer = hBox()
     private lateinit var backgroundIcons: Node
-    private val foregroundContainer = HBox()
+    private val foregroundContainer = hBox()
     private lateinit var foregroundIcons: Node
     private val foregroundMask = Rectangle()
     private var ratingOld = r.rating.get()
@@ -68,7 +68,7 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
             }
         }
         backgroundContainer.onMouseClicked = EventHandler<MouseEvent> {
-            if (skinnable.editable.get() && it.button == PRIMARY) {
+            if (skinnable.editable.get() && it.button==PRIMARY) {
                 val v = computeRating(it.sceneX, it.sceneY)
                 updateClip(v)
                 ratingOld = v
@@ -79,7 +79,7 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
         foregroundContainer.alignmentProperty() syncFrom r.alignment
         foregroundContainer.isMouseTransparent = true
         foregroundContainer.clip = foregroundMask
-        children.setAll(backgroundContainer, foregroundContainer)
+        children setTo listOf(backgroundContainer, foregroundContainer)
         recreateButtons()
 
         registerChangeListener(r.rating) { updateClip() }
@@ -100,12 +100,12 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
         fun createButton(icon: GlyphIcons) = createIcon(icon, skinnable.icons.get(), 8.0).apply {
             isCache = true
             cacheHint = CacheHint.SPEED
-            styleClass.setAll("rating-button")
+            styleClass += "rating-button"
             isMouseTransparent = true
         }
 
-        backgroundIcons = createButton(STAR_ALT)
-        foregroundIcons = createButton(STAR).apply {
+        backgroundIcons = createButton(IconFA.STAR_ALT)
+        foregroundIcons = createButton(IconFA.STAR).apply {
             styleClass += SELECTED
         }
         backgroundContainer.children += backgroundIcons
@@ -119,29 +119,29 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
         val w = backgroundIcons.layoutBounds.width
         val gap = 2.0
         val x = when {
-                -gap>b.x -> ratingOld ?: 0.0
-                b.x>w+gap -> ratingOld ?: 0.0
-                else -> clip(0.0, b.x/w, 1.0)
-            }
+            -gap>b.x -> ratingOld ?: 0.0
+            b.x>w+gap -> ratingOld ?: 0.0
+            else -> clip(0.0, b.x/w, 1.0)
+        }
 
         return if (skinnable.partialRating.get()) {
             x
         } else {
             val icons = skinnable.icons.get().toDouble()
-            return ceil(x * icons) / icons
+            ceil(x*icons)/icons
         }
     }
 
     private fun updateClip(v: Double? = skinnable.rating.get()) {
         val icons = foregroundIcons.boundsInParent
-        foregroundMask.width = icons.minX + (v ?: 0.0)*icons.width
+        foregroundMask.width = icons.minX+(v ?: 0.0)*icons.width
         foregroundMask.height = skinnable.height
 
-        val isEmpty = v == null
+        val isEmpty = v==null
         backgroundContainer.children.forEach { it.pseudoClassStateChanged(empty, isEmpty) }
-        val is0 = v == 0.0
+        val is0 = v==0.0
         backgroundContainer.children.forEach { it.pseudoClassStateChanged(min, is0) }
-        val is1 = v == 1.0
+        val is1 = v==1.0
         foregroundContainer.children.forEach { it.pseudoClassStateChanged(max, is1) }
     }
 

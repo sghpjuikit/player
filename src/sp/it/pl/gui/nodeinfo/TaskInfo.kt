@@ -6,6 +6,7 @@ import javafx.concurrent.Worker.State.SCHEDULED
 import javafx.scene.control.Labeled
 import javafx.scene.control.ProgressIndicator
 import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncTo
 
@@ -36,9 +37,9 @@ open class TaskInfo<T: Task<*>>: NodeInfo<T> {
     override fun bind(bindable: T) {
         unbind()
         val computeProgress = { it: Number -> if (bindable.state==SCHEDULED || bindable.state==READY) 1.0 else it.toDouble() }
-        if (title!=null) disposer += bindable.titleProperty() syncTo title.textProperty()
-        if (message!=null) disposer += bindable.messageProperty() syncTo message.textProperty()
-        if (progress!=null) disposer += bindable.progressProperty() sync { progress.progress = computeProgress(it) }
+        if (title!=null) bindable.titleProperty() syncTo title.textProperty() on disposer
+        if (message!=null) bindable.messageProperty() syncTo message.textProperty() on disposer
+        if (progress!=null) bindable.progressProperty() sync { progress.progress = computeProgress(it) } on disposer
     }
 
     override fun unbind() = disposer()

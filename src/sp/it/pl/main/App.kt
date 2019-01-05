@@ -4,7 +4,6 @@ package sp.it.pl.main
 
 import ch.qos.logback.classic.Level
 import com.sun.tools.attach.VirtualMachine
-import de.jensd.fx.glyphs.materialicons.MaterialIcon
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.scene.image.Image
@@ -27,12 +26,12 @@ import sp.it.pl.core.CoreMouse
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerXml
 import sp.it.pl.gui.UiManager
+import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.search.SearchAutoCancelable
 import sp.it.pl.gui.objects.tablecell.RatingCellFactory
 import sp.it.pl.gui.objects.tablecell.RatingRatingCellFactory
-import sp.it.pl.gui.objects.textfield.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.window.stage.WindowManager
 import sp.it.pl.gui.pane.ActionPane
 import sp.it.pl.gui.pane.InfoPane
@@ -49,6 +48,7 @@ import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.plugin.AppSearchPlugin
 import sp.it.pl.plugin.DirSearchPlugin
+import sp.it.pl.plugin.LibraryWatcher
 import sp.it.pl.plugin.Plugin
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.ScreenRotator
@@ -86,7 +86,6 @@ import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.mimetype.MimeTypes
-import sp.it.pl.util.functional.Functors.Ƒ0
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.image.getImageDim
@@ -131,14 +130,12 @@ private typealias C = IsConfig
 class App: Application(), Configurable<Any> {
 
     init {
-        APP = this.takeUnless { ::APP.isInitialized } ?: fail("Multiple application instances disallowed")
+        APP = this.takeUnless { ::APP.isInitialized } ?: fail { "Multiple application instances disallowed" }
     }
 
-    var isInitialized: Try<Void, Throwable> = Try.error(Exception("Initialization has not run yet"))
-        private set(value) {
-            field = value
-        }
     private var closedPrematurely = false
+    var isInitialized: Try<Void, Throwable> = Try.error(Exception("Initialization has not run yet"))
+        private set
 
     /** Name of this application. */
     @F val name = "PlayerFX"
@@ -185,6 +182,46 @@ class App: Application(), Configurable<Any> {
     @F val contextMenus = CoreMenus()
     @F val mouse = CoreMouse
 
+    @C(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")
+    val logLevelConsole by cv(Level.INFO) {
+        VarEnum.ofSequence(it) { logLevels }.initSync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
+    }.preserveOrder()
+
+    @C(name = "Level (file)", group = "Logging", info = "Logging level for logging to file")
+    val logLevelFile by cv(Level.WARN) {
+        VarEnum.ofSequence(it) { logLevels }.initSync { logging.changeLogBackLoggerAppenderLevel("FILE", it) }
+    }.preserveOrder()
+
+    @C(name = "Rating control", info = "The style of the graphics of the rating control.")
+    val ratingCell by cv(RatingRatingCellFactory as RatingCellFactory) { VarEnum.ofInstances(it, instances) }
+
+    @C(name = "Rating icon amount", info = "Number of icons in rating control.")
+    val maxRating by cv(5).between(0, 10)
+
+    @C(name = "Rating allow partial", info = "Allow partial values for rating.")
+    val partialRating by cv(true)
+
+    @C(name = "Text for no value", info = "Preferred text when no tag value for field. This value can be overridden.")
+    var textNoVal by c("<none>")
+
+    @C(name = "Text for multi value", info = "Preferred text when multiple tag values per field. This value can be overridden.")
+    var textManyVal by c("<multi>")
+
+    @C(name = "Animation FPS", info = "Update frequency in Hz for performance-heavy animations.")
+    var animationFps by c(60.0).between(10.0, 60.0)
+
+    @C(name = "Normal mode", info = "Whether application loads into previous/default state or no state at all.")
+    var normalLoad by c(true)
+
+    @C(name = "Developer mode", info = "Unlock developer features.")
+    var developerMode by c(false)
+
+    @C(group = "Settings", name = "Settings use default", info = "Set all settings to default values.")
+    val actionSettingsReset by cr { configuration.toDefault() }
+
+    @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
+    val actionSettingsSave by cr { configuration.save(name, FILE_SETTINGS) }
+
     // app stuff
     /** Application argument handler. */
     @F val parameterProcessor = AppParameterProcessor()
@@ -210,48 +247,6 @@ class App: Application(), Configurable<Any> {
     @F val infoPane = InfoPane("View.System").initApp()
     @F val guide = Guide(actionStream)
     @F val search = Search()
-
-    @C(name = "Rating control", info = "The style of the graphics of the rating control.")
-    val ratingCell by cv(RatingRatingCellFactory as RatingCellFactory) { VarEnum.ofInstances(it, instances) }
-
-    @C(name = "Rating icon amount", info = "Number of icons in rating control.")
-    val maxRating by cv(5).between(0, 10)
-
-    @C(name = "Rating allow partial", info = "Allow partial values for rating.")
-    val partialRating by cv(true)
-
-    @C(info = "Preferred text when no tag value for field. This value can be overridden.")
-    var textNoVal by c("<none>")
-
-    @C(info = "Preferred text when multiple tag values per field. This value can be overridden.")
-    var textManyVal by c("<multi>")
-
-    @C(info = "Update frequency in Hz for performance-heavy animations.")
-    var animationFps by c(60.0).between(10.0, 60.0)
-
-    private val logLevels = seqOf(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF)
-
-    @C(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")
-    val logLevelConsole by cv(Level.INFO) {
-        VarEnum.ofSequence(it) { logLevels }.initSync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
-    }.preserveOrder()
-
-    @C(name = "Level (file)", group = "Logging", info = "Logging level for logging to file")
-    val logLevelFile by cv(Level.WARN) {
-        VarEnum.ofSequence(it) { logLevels }.initSync { logging.changeLogBackLoggerAppenderLevel("FILE", it) }
-    }.preserveOrder()
-
-    @C(name = "Normal mode", info = "Whether application loads into previous/default state or no state at all.")
-    var normalLoad by c(true)
-
-    @C(name = "Developer mode", info = "Unlock developer features.")
-    var developerMode by c(false)
-
-    @C(group = "Settings", name = "Settings use default", info = "Set all settings to default values.")
-    val actionSettingsReset by cr { configuration.toDefault() }
-
-    @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
-    val actionSettingsSave by cr { configuration.save(name, FILE_SETTINGS) }
 
     /** Manages persistence and in-memory storage. */
     @F val db = Db()
@@ -330,9 +325,10 @@ class App: Application(), Configurable<Any> {
                 val fs = FileSize(f)
                 map["Size"] = ""+fs+(if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else "")
                 map["Format"] = f.name.substringAfterLast('.', "<none>")
-                map[FileField.TIME_CREATED.name()] = FileField.TIME_CREATED.getOfS(f, "n/a")
-                map[FileField.TIME_MODIFIED.name()] = FileField.TIME_MODIFIED.getOfS(f, "n/a")
             }
+
+            map[FileField.TIME_CREATED.name()] = FileField.TIME_CREATED.getOfS(f, "n/a")
+            map[FileField.TIME_MODIFIED.name()] = FileField.TIME_MODIFIED.getOfS(f, "n/a")
 
             val iff = ImageFileFormat.of(f.toURI())
             if (iff.isSupported) {
@@ -404,7 +400,6 @@ class App: Application(), Configurable<Any> {
                     ui,
                     actions,
                     windowManager,
-                    guide,
                     services.getAllServices().toList()
             )
 
@@ -420,7 +415,7 @@ class App: Application(), Configurable<Any> {
 
             Player.initialize()
 
-            normalLoad = normalLoad && fetchArguments().none { it.endsWith(".fxwl") || widgetManager.factories.getFactory(it)!=null }
+            normalLoad = normalLoad && fetchArguments().none { it.endsWith(".fxwl") || widgetManager.factories.getComponentFactory(it)!=null }
 
             windowManager.deserialize(normalLoad)
         }.ifError {
@@ -436,10 +431,6 @@ class App: Application(), Configurable<Any> {
             if (normalLoad) Player.loadLastState() // initialize non critical parts
             parameterProcessor.process(fetchArguments()) // process app parameters passed when app started
             runLater { onStarted() }
-
-            // reapply log level for newly initialized components // TODO: remove
-            logging.changeLogBackLoggerAppenderLevel("FILE", logLevelFile.get())
-            logging.changeLogBackLoggerAppenderLevel("STDOUT", logLevelConsole.get())
         }
     }
 
@@ -544,6 +535,7 @@ class App: Application(), Configurable<Any> {
 
     private fun PluginManager.initForApp() {
         installPlugins(
+                LibraryWatcher(),
                 AppSearchPlugin(),
                 DirSearchPlugin(),
                 ScreenRotator()
@@ -551,9 +543,9 @@ class App: Application(), Configurable<Any> {
     }
 
     private fun Search.initForApp() {
-        sources += { configuration.getFields().asSequence().map { ConfigSearch.Entry.of(it) } }
-        sources += { widgetManager.factories.getComponentFactories().map { ConfigSearch.Entry.of(it) } }
-        sources += { ui.skin.enumerateValues().asSequence().map { ConfigSearch.Entry.of(Ƒ0 { "Open skin: $it" }, { ui.skin.setNapplyValue(it) }, Ƒ0 { Icon(MaterialIcon.BRUSH) }) } }
+        sources += { configuration.fields.asSequence().map { Entry.of(it) } }
+        sources += { widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map { Entry.of(it) } }
+        sources += { ui.skin.enumerateValues().asSequence().map { Entry.of({ "Open skin: $it" }, graphicsΛ = { Icon(IconMA.BRUSH) }) { ui.skin.setNapplyValue(it) } } }
     }
 
     private fun AppInstanceComm.initForApp() {
@@ -562,12 +554,16 @@ class App: Application(), Configurable<Any> {
 
     private fun File.initForApp() = apply {
         if (!isAbsolute)
-            fail("File $this is not absolute")
+            fail { "File $this is not absolute" }
 
         if (!isValidatedDirectory(this))
-            fail("File $this is not accessible")
+            fail { "File $this is not accessible" }
     }
 
-    companion object: KLogging()
+    companion object: KLogging() {
+
+        private val logLevels = seqOf(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF)
+
+    }
 
 }

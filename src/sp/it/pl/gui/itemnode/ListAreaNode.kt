@@ -6,10 +6,11 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
-import javafx.scene.layout.VBox
 import sp.it.pl.util.functional.Functors
-import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.functional.getElementType
+import sp.it.pl.util.functional.setTo
+import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.reactive.attach
 import java.util.function.Consumer
 
@@ -44,7 +45,7 @@ import java.util.function.Consumer
  */
 open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
-    private val root = VBox()
+    private val root = vBox()
     @JvmField protected val textArea = TextArea()
     @JvmField val input = FXCollections.observableArrayList<Any?>()!!
     /** The transformation chain. */
@@ -78,7 +79,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
         transforms.onItemChange = Consumer { transformation ->
             val result = input.map(transformation)
             if (transforms.typeOut!=String::class.java)
-                output clearSet result
+                output setTo result
 
             textArea.text = result.asSequence().map { "$it" }.joinToString("\n")
         }
@@ -87,17 +88,16 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
             changeValue(newVal)
 
             if (transforms.typeOut==String::class.java)
-                output clearSet newVal
+                output setTo newVal
         }
-
-        root.children += listOf(textArea, transforms.getNode())
-        VBox.setVgrow(textArea, ALWAYS)
-
         textArea.addEventHandler<KeyEvent>(KEY_PRESSED) {
             if (it.code==KeyCode.V && it.isControlDown) {
                 it.consume()
             }
         }
+
+        root.lay += textArea
+        root.lay(ALWAYS) += transforms.getNode()
     }
 
     /**
@@ -107,7 +107,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
      * Updates text of the text area.
      */
     open fun setData(data: List<Any>) {
-        input clearSet data
+        input setTo data
         transforms.typeIn = data.getElementType()  // fires update
     }
 

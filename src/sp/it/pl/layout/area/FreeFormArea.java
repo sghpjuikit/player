@@ -16,16 +16,17 @@ import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.container.freeformcontainer.FreeFormContainer;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.util.collections.TupleM4;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DASHBOARD;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.area.Area.DRAGGED_PSEUDOCLASS;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.functional.Util.findFirstEmptyKey;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.reactive.Util.maintain;
@@ -41,8 +42,8 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
     private final AnchorPane rt = new AnchorPane();
     private final Map<Integer,PaneWindowControls> windows = new HashMap<>();
-    boolean resizing = false;
-
+    private boolean resizing = false;
+    private boolean any_window_resizing = false;
 
     public FreeFormArea(FreeFormContainer con) {
         super(con);
@@ -51,13 +52,13 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         Icon layB = new Icon(VIEW_DASHBOARD, 12, autolbTEXT, this::bestLayout);
         icons.getChildren().add(1,layB);
 
-        BooleanProperty any_window_clicked = new SimpleBooleanProperty(false);
-        rt.setOnMousePressed(e -> any_window_clicked.set(isHere(e)));
+        // add new widget on left click
+        BooleanProperty isEmptySpace = new SimpleBooleanProperty(false);
+        rt.setOnMousePressed(e -> isEmptySpace.set(isEmptySpace(e)));
         rt.setOnMouseClicked(e -> {
             if (!isAltCon && (APP.ui.isLayoutMode() || !container.lockedUnder.get())) {
-                any_window_clicked.set(any_window_clicked.get() && isHere(e));
-                // add new widget on left click
-                if (e.getButton()==PRIMARY && any_window_clicked.get() && !any_window_resizing) {
+                isEmptySpace.set(isEmptySpace.get() && isEmptySpace(e));
+                if (e.getButton()==PRIMARY && isEmptySpace.get() && !any_window_resizing) {
                     addEmptyWindowAt(e.getX(),e.getY());
                     e.consume();
                 }
@@ -106,10 +107,10 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         });
     }
 
-    private boolean isHere(MouseEvent e) {
+    private boolean isEmptySpace(MouseEvent e) {
         double x = e.getX();
         double y = e.getY();
-        return !windows.values().stream().anyMatch(w-> w.x.get()<x && w.y.get()<y && w.x.get()+w.w.get()>x && w.y.get()+w.h.get()>y);
+        return windows.values().stream().noneMatch(w-> w.x.get()<x && w.y.get()<y && w.x.get()+w.w.get()>x && w.y.get()+w.h.get()>y);
     }
 
     public void load() {
@@ -122,7 +123,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         Node n;
         Layouter l = null;
         Icon lb = cm==null ? null : new Icon(VIEW_DASHBOARD, 12, laybTEXT, () -> {
-                TupleM4<Double,Double,Double,Double> p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
+                TupleM4 p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
                 w.x.set(p.a*rt.getWidth());
                 w.y.set(p.b*rt.getHeight());
                 w.w.set(p.c*rt.getWidth());
@@ -139,11 +140,11 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             // add maximize button
             wa.controls.header_buttons.getChildren().add(1,lb);
             w.moveOnDragOf(wa.content_root);
-            n = wa.root;
+            n = wa.getRoot();
         } else {
             l = new Layouter(container, i);
-            l.onCpCancel = () -> container.removeChild(i);
-            n = l.root;
+            l.onCancel = runnable(() -> container.removeChild(i));
+            n = l.getRoot();
         }
 
         w.content.getChildren().setAll(n);
@@ -205,17 +206,15 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         maintain(container.lockedUnder, l -> !l, w.movable);
         w.resizing.addListener((o,ov,nv) -> {
             if (nv!=Resize.NONE) any_window_resizing = true;
-            else runFX(100, () -> any_window_resizing = false);
+            else runFX(millis(100.0), () -> any_window_resizing = false);
         });
 
         return w;
     }
 
-    boolean any_window_resizing = false;
-
     /** Optimal size/position strategy returning greatest empty square. */
-    TupleM4<Double,Double,Double,Double> bestRec(double x, double y, PaneWindowControls new_w) {
-        TupleM4<Double,Double,Double,Double> b = new TupleM4<>(0d, rt.getWidth(), 0d, rt.getHeight());
+    TupleM4 bestRec(double x, double y, PaneWindowControls new_w) {
+        TupleM4 b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
 
         for (PaneWindowControls w : windows.values()) {
             if (w==new_w) continue;   // ignore self
@@ -244,11 +243,10 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             }
         }
 
-        return new TupleM4<>(b.a/rt.getWidth(),b.c/rt.getHeight(),
-                            (b.b-b.a)/rt.getWidth(),(b.d-b.c)/rt.getHeight());
+        return new TupleM4(b.a/rt.getWidth(),b.c/rt.getHeight(), (b.b-b.a)/rt.getWidth(),(b.d-b.c)/rt.getHeight());
     }
     Bounds bestRecBounds(double x, double y, PaneWindowControls new_w) {
-        TupleM4<Double,Double,Double,Double> b = new TupleM4<>(0d, rt.getWidth(), 0d, rt.getHeight());
+        TupleM4 b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
 
         for (PaneWindowControls w : windows.values()) {
             if (w==new_w) continue;   // ignore self
@@ -282,15 +280,13 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
     /** Optimal size/position strategy returning centeraligned 3rd of window size
       dimensions. */
-    TupleM4<Double,Double,Double,Double> bestRecSimple(double x, double y) {
-        return new TupleM4<>(x/rt.getWidth()-1/6d,
-                             y/rt.getHeight()-1/6d,
-                             1/3d, 1/3d);
+    TupleM4 bestRecSimple(double x, double y) {
+        return new TupleM4(x/rt.getWidth()-1/6d, y/rt.getHeight()-1/6d, 1/3d, 1/3d);
     }
 
     /** Initializes position & size for i-th window, ignoring self w if passed as param. */
     private void storeBestRec(int i, double x, double y, PaneWindowControls w) {
-        TupleM4<Double,Double,Double,Double> bestPos = bestRec(x, y, w);
+        TupleM4 bestPos = bestRec(x, y, w);
         // add empty window at index
         // the method call eventually invokes load() method below, with
         // component/child == null (3rd case)
@@ -315,11 +311,25 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
     public void bestLayout() {
         windows.forEach((i,w) -> {
-            TupleM4<Double,Double,Double,Double> p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
+            TupleM4 p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
             w.x.set(p.a*rt.getWidth());
             w.y.set(p.b*rt.getHeight());
             w.w.set(p.c*rt.getWidth());
             w.h.set(p.d*rt.getHeight());
         });
+    }
+
+    private static class TupleM4 {
+        public double a;
+        public double b;
+        public double c;
+        public double d;
+
+        TupleM4(double a, double b, double c, double d) {
+            this.a = a;
+            this.b = b;
+            this.c = c;
+            this.d = d;
+        }
     }
 }

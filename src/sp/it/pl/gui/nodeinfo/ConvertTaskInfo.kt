@@ -4,6 +4,7 @@ import javafx.scene.control.Labeled
 import javafx.scene.control.ProgressIndicator
 import sp.it.pl.util.Util.enumToHuman
 import sp.it.pl.util.async.future.ConvertListTask
+import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
 
 class ConvertTaskInfo: TaskInfo<ConvertListTask<*, *>> {
@@ -22,8 +23,8 @@ class ConvertTaskInfo: TaskInfo<ConvertListTask<*, *>> {
 
     override fun bind(bindable: ConvertListTask<*, *>) {
         super.bind(bindable)
-        if (skipped!=null) disposer += bindable.skippedProperty() sync { skipped.text = "Skipped: $it" }
-        if (state!=null) disposer += bindable.stateProperty() sync { state.text = "State: ${enumToHuman(it)}" }
+        if (skipped!=null) bindable.skippedProperty() sync { skipped.text = "Skipped: $it" } on disposer
+        if (state!=null) bindable.stateProperty() sync { state.text = "State: ${enumToHuman(it)}" } on disposer
     }
 
 }

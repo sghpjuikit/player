@@ -1,6 +1,5 @@
 package sp.it.pl.core
 
-import javafx.scene.Node
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.input.DataFormat
@@ -24,7 +23,9 @@ import sp.it.pl.util.file.Util.writeImage
 import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.runIf
 import sp.it.pl.util.functional.seqOf
-import sp.it.pl.util.graphics.Util.menuItem
+import sp.it.pl.util.graphics.item
+import sp.it.pl.util.graphics.items
+import sp.it.pl.util.graphics.menu
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.copyToSysClipboard
 import sp.it.pl.util.system.edit
@@ -52,7 +53,7 @@ class CoreMenus: Core {
     private fun ContextMenuItemSuppliers.init() = apply {
         add<Any> { contextMenu, o ->
             menuItems(
-                    menuItem("Show detail") { APP.actionPane.show(o) },
+                    item("Show detail") { APP.actionPane.show(o) },
                     menu("Examine in") {
                         widgetItems<Opener> { it.open(o) }
                     },
@@ -79,11 +80,11 @@ class CoreMenus: Core {
         }
         add<File> { contextMenu, file ->
             menuItems(
-                    menuItem("Browse location") { file.browse() },
-                    menuItem("Open (in associated program)") { file.open() },
-                    menuItem("Edit (in associated editor)") { file.edit() },
-                    menuItem("Delete from disc") { file.recycle() },
-                    menuItem("Copy as ...") {
+                    item("Browse location") { file.browse() },
+                    item("Open (in associated program)") { file.open() },
+                    item("Edit (in associated editor)") { file.edit() },
+                    item("Delete from disc") { file.recycle() },
+                    item("Copy as ...") {
                         saveFile("Copy as...", APP.DIR_APP, file.name, contextMenu.ownerWindow, ImageFileFormat.filter())
                                 .ifOk { nf ->
                                     // TODO: use customization popup
@@ -98,25 +99,25 @@ class CoreMenus: Core {
         }
         addMany<File> { contextMenu, files ->
             menuItems(
-                    menuItem("Copy") { copyToSysClipboard(DataFormat.FILES, files) },
-                    menuItem("Explore in browser") { browseMultipleFiles(files.asSequence()) }
+                    item("Copy") { copyToSysClipboard(DataFormat.FILES, files) },
+                    item("Explore in browser") { browseMultipleFiles(files.asSequence()) }
             )
         }
         add<MetadataGroup> { contextMenu, mg ->
             menuItems(
-                    menuItem("Play items") { PlaylistManager.use { it.setNplay(mg.grouped.stream().sorted(APP.db.libraryComparator.get())) } },
-                    menuItem("Enqueue items") { PlaylistManager.use { it.addItems(mg.grouped) } },
-                    menuItem("Update items from file") { APP.actions.refreshItemsFromFileJob(mg.grouped) },
-                    menuItem("Remove items from library") { APP.db.removeItems(mg.grouped) },
+                    item("Play items") { PlaylistManager.use { it.setNplay(mg.grouped.stream().sorted(APP.db.libraryComparator.get())) } },
+                    item("Enqueue items") { PlaylistManager.use { it.addItems(mg.grouped) } },
+                    item("Update items from file") { APP.db.refreshItemsFromFile(mg.grouped) },
+                    item("Remove items from library") { APP.db.removeItems(mg.grouped) },
                     menu("Show in") {
                         widgetItems<SongReader> { it.read(mg.grouped) }
                     },
                     menu("Edit tags in") {
                         widgetItems<SongWriter> { it.read(mg.grouped) }
                     },
-                    menuItem("Explore items's directory") { browseMultipleFiles(mg.grouped.asSequence().mapNotNull { it.getFile() }) },
-                    menu("Explore items' directory in") {
-                        widgetItems<FileExplorerFeature> { it.exploreFiles(mg.grouped.mapNotNull { it.getFile() }) }
+                    item("Explore items's location") { browseMultipleFiles(mg.grouped.asSequence().mapNotNull { it.getFile() }) },
+                    menu("Explore items' location in") {
+                        widgetItems<FileExplorerFeature> { it.exploreCommonFileOf(mg.grouped.mapNotNull { it.getFile() }) }
                     },
                     runIf(mg.field==Metadata.Field.ALBUM) {
                         menu("Search cover in") {
@@ -131,24 +132,24 @@ class CoreMenus: Core {
         }
         add<PlaylistItemGroup> { contextMenu, pig ->
             menuItems(
-                    menuItem("Play items") { PlaylistManager.use { it.playItem(pig.items[0]) } },
-                    menuItem("Remove items") { PlaylistManager.use { it.removeAll(pig.items) } },
+                    item("Play items") { PlaylistManager.use { it.playItem(pig.items[0]) } },
+                    item("Remove items") { PlaylistManager.use { it.removeAll(pig.items) } },
                     menu("Show in") {
                         widgetItems<SongReader> { it.read(pig.items) }
                     },
                     menu("Edit tags in") {
                         widgetItems<SongWriter> { it.read(pig.items) }
                     },
-                    menuItem("Crop items") { PlaylistManager.use { it.retainAll(pig.items) } },
-                    menuItem("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(pig.items) } },
-                    menuItem("Duplicate items individually") { PlaylistManager.use { it.duplicateItemsByOne(pig.items) } },
-                    menuItem("Explore items's directory") { browseMultipleFiles(pig.items.asSequence().mapNotNull { it.getFile() }) },
-                    menuItem("Add items to library") { APP.db.addItems(pig.items.map { it.toMeta() }) },
+                    item("Crop items") { PlaylistManager.use { it.retainAll(pig.items) } },
+                    item("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(pig.items) } },
+                    item("Duplicate items individually") { PlaylistManager.use { it.duplicateItemsByOne(pig.items) } },
+                    item("Explore items's directory") { browseMultipleFiles(pig.items.asSequence().mapNotNull { it.getFile() }) },
+                    item("Add items to library") { APP.db.addItems(pig.items.map { it.toMeta() }) },
                     menu("Search album cover") {
                         items(
                                 APP.instances.getInstances<SearchUriBuilder>(),
                                 { "in ${it.name}" },
-                                { APP.actions.itemToMeta(pig.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
+                                { APP.db.itemToMeta(pig.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
                         )
                     }
             )
@@ -201,42 +202,27 @@ class CoreMenus: Core {
 
     }
 
+    companion object {
 
-    /** DSL for creating menu. */
-    private fun <T: MenuItem> menuItems(vararg elements: T?) = seqOf(*elements).filterNotNull().filterNot { it is Menu && it.items.isEmpty() }
+        /** DSL for creating menu. */
+        private fun <T: MenuItem> menuItems(vararg elements: T?) = seqOf(*elements).filterNotNull().filterNot { it is Menu && it.items.isEmpty() }
 
-    /** DSL for creating menu. */
-    private inline fun menu(text: String, graphics: Node? = null, then: (Menu).() -> Unit) = Menu(text, graphics).apply { then() }
+        /** DSL for creating menu. */
+        private inline fun <reified W> Menu.widgetItems(crossinline action: (W) -> Unit) = items(
+                APP.widgetManager.factories.getFactoriesWith<W>(),
+                { it.nameGui() },
+                { it.use(WidgetSource.NO_LAYOUT) { action(it) } }
+        )
 
-    /** DSL for creating menu. */
-    private inline fun Menu.menu(text: String, graphics: Node? = null, then: (Menu).() -> Unit) {
-        items += Menu(text, graphics).apply { then() }
+        private fun menuOfItemsFor(contextMenu: ImprovedContextMenu<*>, value: Any?): Menu {
+            val menuName = APP.className.get(value?.javaClass ?: Void::class.java)
+            return menuOfItemsFor(contextMenu, menuName, value)
+        }
+
+        private fun menuOfItemsFor(contextMenu: ImprovedContextMenu<*>, menuName: String, value: Any?) = menu(menuName, contextMenuItemBuilders[contextMenu, value])
+
+        private fun menu(text: String, items: Sequence<MenuItem> = seqOf()) = Menu(text, null, *items.asArray())
+
     }
-
-    /** DSL for creating menu. */
-    private fun Menu.item(text: String, action: () -> Unit) {
-        items += menuItem(text) { action() }
-    }
-
-    /** DSL for creating menu. */
-    private fun <A> Menu.items(from: Sequence<A>, toStr: (A) -> String, action: (A) -> Unit) {
-        items += from.map { menuItem(toStr(it)) { e -> action(it) } }.sortedBy { it.text }
-    }
-
-    /** DSL for creating menu. */
-    private inline fun <reified W> Menu.widgetItems(crossinline action: (W) -> Unit) = items(
-            APP.widgetManager.factories.getFactoriesWith<W>(),
-            { it.nameGui() },
-            { it.use(WidgetSource.NO_LAYOUT) { action(it) } }
-    )
-
-    private fun menuOfItemsFor(contextMenu: ImprovedContextMenu<*>, value: Any?): Menu {
-        val menuName = APP.className.get(value?.javaClass ?: Void::class.java)
-        return menuOfItemsFor(contextMenu, menuName, value)
-    }
-
-    private fun menuOfItemsFor(contextMenu: ImprovedContextMenu<*>, menuName: String, value: Any?) = menu(menuName, contextMenuItemBuilders[contextMenu, value])
-
-    private fun menu(text: String, items: Sequence<MenuItem> = seqOf()) = Menu(text, null, *items.asArray())
 
 }

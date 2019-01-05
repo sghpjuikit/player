@@ -12,21 +12,21 @@ import javafx.stage.Stage
 import mu.KLogging
 import sp.it.pl.audio.Player
 import sp.it.pl.main.APP
-import sp.it.pl.util.conf.c
-import sp.it.pl.util.conf.cv
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.util.async.runAwt
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.file.childOf
+import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.file.div
 import sp.it.pl.util.functional.Try
-import sp.it.pl.util.functional.clearSet
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.graphics.Util.menuItem
+import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.image.ImageSize
 import sp.it.pl.util.graphics.image.createImageBlack
 import sp.it.pl.util.graphics.image.loadBufferedImage
+import sp.it.pl.util.graphics.menuItem
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.syncFalse
 import java.awt.Image
@@ -44,13 +44,13 @@ class TrayService: ServiceBase("Tray", true) {
     val tooltipShow by cv(true)
     @IsConfig(name = "Show playing in tooltip", info = "Shows playing song title in tray tooltip.")
     val showPlayingInTooltip by cv(true)
-    @IsConfig(name = "Is supported", info = "Shows playing song title in tray tooltip.", editable = EditMode.NONE)
+    @IsConfig(name = "Is supported", editable = EditMode.NONE)
     private val supported by c(SystemTray.isSupported())
     private var running = false
     private val onEnd = Disposer()
 
     private var tray: SystemTray? = null
-    private val trayIconImageDefault = APP.DIR_RESOURCES.childOf("icons", "icon24.png")
+    private val trayIconImageDefault = APP.DIR_RESOURCES/"icons"/"icon24.png"
     private var trayIconImage = trayIconImageDefault
     private var trayIcon: TrayIcon? = null
     private val onClickDefault: (MouseEvent) -> Unit = { APP.ui.toggleMinimize() }
@@ -113,8 +113,7 @@ class TrayService: ServiceBase("Tray", true) {
                                     cmOwner.requestFocus()
                                     cm.show(cmOwner, me.screenX, me.screenY-40)
                                 }
-                                else -> {
-                                }
+                                else -> {}
                             }
                         }
                     })
@@ -208,7 +207,7 @@ class TrayService: ServiceBase("Tray", true) {
     /** Adjust or provide tray right mouse click context menu items. Null sets default context menu. */
     fun setContextMenuItems(menuItems: MutableList<MenuItem>?) {
         contextMenuItems = menuItems ?: ArrayList(contextMenuItemsDefault)
-        contextMenu?.items?.clearSet(contextMenuItems)
+        contextMenu?.let { it.items setTo contextMenuItems }
     }
 
     companion object: KLogging()

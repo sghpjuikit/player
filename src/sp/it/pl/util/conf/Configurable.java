@@ -50,9 +50,6 @@ import static sp.it.pl.util.type.Util.forEachJavaFXProperty;
  * cast.
  * <p/>
  * If all configs of this configurable contain the same type of value, use this generic parameter.
- *
- * @see MapConfigurable
- * @see ListConfigurable
  */
 public interface Configurable<T> {
 
@@ -65,21 +62,6 @@ public interface Configurable<T> {
 
 		@Override
 		public Config getField(String name) { return null; }
-
-		@Override
-		public Config getFieldOrThrow(String name) {
-			throw new IllegalArgumentException("Config field '" + name + "' not found.");
-		}
-
-		@Override
-		public void setField(String name, Object v) {
-			setFieldOrThrow(name, v);
-		}
-
-		@Override
-		public void setFieldOrThrow(String name, Object v) {
-			throw new IllegalArgumentException("Config field '" + name + "' not found.");
-		}
 	};
 
 	/**
@@ -116,69 +98,30 @@ public interface Configurable<T> {
 
 	/**
 	 * Get config of this configurable with provided name. Null if not found.
-	 * <p/>
-	 * Note: if all configs of this configurable contain the same type of value,
-	 * use generic configurable to get config field with proper generic type.
 	 *
 	 * @param name unique name of the field
 	 * @return config with given name or null if does not exist.
 	 */
+	@SuppressWarnings("unchecked")
 	default Config<T> getField(String name) {
 		try {
-			return getFieldOrThrow(name);
-		} catch (IllegalArgumentException e) {
+			Class<?> c = this.getClass();
+			Field f = Util.getField(c, name);
+			return (Config<T>) createConfig(c, f, this, false, true);
+		} catch (NoSuchFieldException|SecurityException e) {
 			return null;
 		}
 	}
 
 	/**
 	 * Get config of this configurable with provided name. Throws {@link IllegalArgumentException} if not found.
-	 * <p/>
-	 * Note: if all configs of this configurable contain the same type of value,
-	 * use generic configurable to get config field with proper generic type.
 	 *
 	 * @param name unique name of the field
 	 * @return config with given name or null if does not exist.
 	 */
-	@SuppressWarnings("unchecked")
 	default Config<T> getFieldOrThrow(String name) {
-		try {
-			Class<?> c = this.getClass();
-			Field f = Util.getField(c, name);
-			return (Config<T>) createConfig(c, f, this, false, true);
-		} catch (NoSuchFieldException|SecurityException e) {
-			throw new IllegalArgumentException("Config field '" + name + "' not found.");
-		}
-	}
-
-	/**
-	 * Safe set method.
-	 * Sets value of config with given name if it exists.
-	 * Non null equivalent to: return getField(name).setValue(value);
-	 * <p/>
-	 * Use when input is not guaranteed to be valid, e.g. contents of a file.
-	 *
-	 * @param name unique name of the field
-	 * @param v value
-	 */
-	default void setField(String name, T v) {
 		Config<T> c = getField(name);
-		if (c!=null) c.setValue(v);
-	}
-
-	/**
-	 * Unsafe set method.
-	 * Sets value of config with given name if it exists or throws an exceptioon.
-	 * Equivalent to: return getField(name).setValue(value);
-	 * <p/>
-	 * Use when input is guaranteed to be valid, e.g. using valid value in source code.
-	 *
-	 * @param name unique name of the field
-	 * @param v value
-	 */
-	default void setFieldOrThrow(String name, T v) {
-		Config<T> c = getField(name);
-		if (c!=null) c.setValue(v);
+		if (c!=null) return c;
 		else throw new IllegalArgumentException("Config field '" + name + "' not found.");
 	}
 
@@ -192,6 +135,7 @@ public interface Configurable<T> {
 	 * @param name unique name of the field
 	 * @param v text value to be parsed
 	 */
+	// TODO: remove
 	default void setField(String name, String v) {
 		Config<T> c = getField(name);
 		if (c!=null) c.setValueS(v);

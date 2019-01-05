@@ -1497,7 +1497,7 @@
     -fx-graphic: url("HTMLEditor-Underline.png");
 }
 .html-editor-strike {
-    -fx-graphic: url("HTMLEditor-Strikethrough.png");
+    -fx-graphic: url("HTMLEditor- Strikethrough.png");
 }
 .html-editor-hr {
     -fx-graphic: url("HTMLEditor-Break.png");
@@ -1586,7 +1586,7 @@
     -fx-padding: 0;
     -fx-text-fill: -fx-def-font-color;
 }
-/* Hide the down arrow for a menu placed in a menubar */
+/* Hide the down arrow for a menu placed in a menu bar */
 .menu-bar > .container > .menu-button > .arrow-button > .arrow {
     -fx-padding: 0.167em 0 0.250em 0; /* 2 0 3 0 */
     -fx-background-color: null;
@@ -3157,9 +3157,22 @@
 
 
 /******************************************************************************
- *                                                                                                                  *
- *  THE APPLICATION ELEMENTS                                                                     *
- *                                                                                                                  *
+ *
+ *  THE APPLICATION OVERRIDES OF JAVAFX
+ *
+ ******************************************************************************/
+
+.list-view,
+.table-view,
+.tree-view,
+.tree-table-view {
+    -fx-fixed-cell-size: 1.5em;
+}
+
+/******************************************************************************
+ *
+ *  THE APPLICATION ELEMENTS
+ *
  ******************************************************************************/
 
 
@@ -3478,7 +3491,9 @@
  * inherits: ScrollPane, .block
  * Used in layouts (should mirror the style of widget area), but also popups.
  */
-.item-picker {}
+.item-picker {
+    -fx-padding: 1px
+}
 
 .item-picker-element {
     -fx-background-color: -fx-pane-color;
@@ -3488,8 +3503,11 @@
 
 .item-picker-element:hover {
     -fx-background-color: -fx-pane-color;
-    -fx-background-insets: 3;
+    -fx-background-insets: 2;
     -fx-effect: dropshadow(three-pass-box, -fx-pane-color, 2, 0.0, 0, 1);
+}
+.item-picker-element:empty:hover {
+    -fx-background-insets: 0;
 }
 
 /********************************* AUTOCOMPLETE POPUP ******************************************************************
@@ -4036,7 +4054,9 @@ icon-info-icon {
  * Overlay pane displaying shortcuts and their keys
  * inherits: .overlay-pane
  */
-.shortcut-pane{}
+.shortcut-pane{
+    -fx-padding: 10em;
+}
 
 /*
  * Group title label for shortcut group
@@ -4050,7 +4070,9 @@ icon-info-icon {
  * Overlay displaying system properties
  * inherits: .overlay-pane
  */
-.info-pane{}
+.info-pane{
+    -fx-padding: 10em;
+}
 
 /*
  * Group title label for shortcut group
@@ -4060,12 +4082,16 @@ icon-info-icon {
     -fx-font-weight: bold;
 }
     
-
-
-/********************************************************
+/******************** INSPECTING ***********************************
+ * A 'selected' node.
  */
-.node:selected {
-    -fx-background-color: rgba(90,200,200,0.2); 
+.inspector-highlighted,
+.inspector-highlighted:hover,
+.inspector-highlighted:selected,
+.inspector-highlighted:odd,
+.inspector-highlighted:even,
+.inspector-highlighted:focused {
+    -fx-background-color: rgba(90,200,200,0.2);
 }
 
 /******************** PLACEHOLDER PANE *********************

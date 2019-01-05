@@ -61,7 +61,6 @@ import static sp.it.pl.audio.tagging.MetadataGroup.Field.W_RATING;
 import static sp.it.pl.audio.tagging.MetadataGroup.ungroup;
 import static sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static sp.it.pl.layout.widget.Widget.Group.LIBRARY;
-import static sp.it.pl.main.AppBuildersKt.rowHeight;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.future.Fut.fut;
@@ -77,7 +76,7 @@ import static sp.it.pl.util.reactive.Util.maintain;
 
 @Info(
     author = "Martin Polakovic",
-    name = Widgets.LIBRARY_VIEW,
+    name = Widgets.SONG_GROUP_TABLE,
     description = "Provides database filtering.",
     howto = "Available actions:\n" +
             "    Item left click : Selects item\n" +
@@ -141,7 +140,6 @@ public class LibraryView extends FXMLController {
         // table properties
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.search.setColumn(VALUE);
-        d(maintain(APP.ui.getFont(), f -> rowHeight(f), table.fixedCellSizeProperty()));
         d(maintain(orient,table.nodeOrientationProperty()));
         d(maintain(zeropad,table.zeropadIndex));
         d(maintain(orig_index,table.showOriginalIndex));
@@ -332,7 +330,7 @@ public class LibraryView extends FXMLController {
     private void setItems(List<Metadata> list) {
         if (list==null) return;
         fut(fieldFilter.getValue())
-            .use(f -> {
+            .useBy(f -> {
                 List<MetadataGroup> mgs = stream(MetadataGroup.groupOf(f,list), MetadataGroup.groupsOf(f,list)).collect(toList());
                 List<Metadata> fl = filterList(list,true);
                 runLater(() -> {

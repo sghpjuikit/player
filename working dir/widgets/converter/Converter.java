@@ -38,13 +38,14 @@ import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.gui.pane.ConfigPane;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Group;
+import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.Opener;
 import sp.it.pl.layout.widget.feature.SongWriter;
+import sp.it.pl.main.Widgets;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
-import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.collections.map.ClassListMap;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.file.Util;
@@ -67,6 +68,7 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.capitalizeStrong;
 import static sp.it.pl.util.Util.filenamizeString;
+import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.dev.Util.logger;
 import static sp.it.pl.util.file.Util.writeFile;
 import static sp.it.pl.util.functional.Util.equalBy;
@@ -92,7 +94,7 @@ import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 @SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal", "unused"})
 @Widget.Info(
     author = "Martin Polakovic",
-    name = "Converter",
+    name = Widgets.CONVERTER,
     description = "Transformation utility. Capable of transforming objects "
         + "and chaining the transforming functions. Capable of text manipulation, file renaming and "
         + "audio tagging.",
@@ -129,6 +131,7 @@ import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
     year = "2015",
     group = Group.APP
 )
+@LegacyController
 public class Converter extends SimpleController implements Opener, SongWriter {
 
     private final ObservableList<Object> source = observableArrayList();
@@ -206,8 +209,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(Metadata.Field.FIELDS, f -> f.name()), data -> {
             List<Item> songs = source.stream().filter(Item.class::isInstance).map(Item.class::cast).collect(toList());
             if (songs.isEmpty()) return;
-            Fut.fut()
-               .then(Player.IO_THREAD, () -> {
+            fut()
+               .useBy(Player.IO_THREAD, it -> {
                     for (int i=0; i<songs.size(); i++) {
                         int j = i;
                         MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field, values) -> w.setFieldS(Metadata.Field.valueOf(field), values.get(j))));
@@ -220,15 +223,11 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         acts.accumulate(new WriteFileAct());
         acts.accumulate(new ActCreateDirs());
 
-        // set empty content
-        applier.fillActs(Void.class);
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Override
-    public void init() {
         Output<String> output = outputs.create(widget.id, "Text", String.class, "");
         ta_in.outputText.addListener((o, ov, nv) -> output.setValue(nv));
+
+        // set empty content
+        applier.fillActs(Void.class);
     }
 
     public void setData(Object o) {
@@ -510,8 +509,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         public ActCreateDirs() {
             super("Create directories", Void.class, 1, list("Names (Paths)"), (Consumer<Map<String,List<? extends String>>>) null);
             actionImpartial = data ->
-                Fut.fut(data.get("Names (Paths)"))
-                   .use(names -> {
+                fut(data.get("Names (Paths)"))
+                   .useBy(names -> {
                        File dir = loc.get();
                        names.forEach((String name) -> {
                            try {

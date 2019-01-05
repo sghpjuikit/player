@@ -275,7 +275,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	 */
 	public final TableInfo<T> items_info = new TableInfo<>(new Label()); // can not bind here as table items list not ready
 	private final Label searchQueryLabel = new Label();
-	private final HBox bottomLeftPane = layHorizontally(5, CENTER_LEFT, menus, items_info.node);
+	private final HBox bottomLeftPane = layHorizontally(5, CENTER_LEFT, menus, items_info.getNode());
 	private final HBox bottomRightPane = layHorizontally(5, CENTER_RIGHT, searchQueryLabel);
 	/**
 	 * Pane for controls in the bottom of the table.

@@ -2,10 +2,10 @@ package sp.it.pl.plugin
 
 import mu.KLogging
 import sp.it.pl.main.APP
-import sp.it.pl.util.conf.cv
-import sp.it.pl.util.access.V
 import sp.it.pl.util.access.initSync
+import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.dev.Idempotent
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.functional.ifFalse
@@ -14,7 +14,7 @@ import sp.it.pl.util.functional.seqOf
 abstract class PluginBase(override val name: String, isEnabledByDefault: Boolean): Plugin {
 
     @IsConfig(name = "Enable", info = "Enable/disable this plugin")
-    private val enabled by cv(isEnabledByDefault) { V(it).apply { initSync { runWhenReady { enable(it) } } } }
+    private val enabled by cv(isEnabledByDefault) { v(it).initSync { runWhenReady { enable(it) } } }
     private var isRunning = false
 
     private fun enable(isToBeRunning: Boolean) {

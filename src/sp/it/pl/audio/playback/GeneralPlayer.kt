@@ -5,7 +5,6 @@ import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
-import javafx.util.Duration.millis
 import mu.KLogging
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
@@ -18,6 +17,7 @@ import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.file.AudioFileFormat
+import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.attach1If
 import java.lang.Math.pow
 
@@ -59,12 +59,14 @@ class GeneralPlayer {
             else -> "Unknown"
         }
 
-        val onUnableToPlay = { it: PlaylistItem -> runFX {
-            it.playbackError = true
-            // TODO: handle within playlist
-            // TODO: handle looping playlist forever
-            PlaylistManager.use { it.playNextItem() }
-        }}
+        val onUnableToPlay = { it: PlaylistItem ->
+            runFX {
+                it.playbackError = true
+                // TODO: handle within playlist
+                // TODO: handle looping playlist forever
+                PlaylistManager.use { it.playNextItem() }
+            }
+        }
         val player = p
         if (player==null) {
             logger.info("Player {} can not play item {}", player, item)
@@ -75,29 +77,31 @@ class GeneralPlayer {
                     onUnableToPlay(item)
                 } else {
                     runFX {
-                        player.createPlayback(item, state.playback,
-                            {
-                                realTime.realSeek = state.playback.realTime.get()
-                                realTime.currentSeek = ZERO
-                                player.play()
+                        player.createPlayback(
+                                item,
+                                state.playback,
+                                {
+                                    realTime.realSeek = state.playback.realTime.get()
+                                    realTime.currentSeek = ZERO
+                                    player.play()
 
-                                realTime.syncRealTimeOnPlay()
-                                // throw item change event
-                                Player.playingItem.itemChanged(item)
-                                Player.suspension_flag = false
-                                // fire other events (may rely on the above)
-                                Player.onPlaybackStart()
-                                if (Player.post_activating_1st || !Player.post_activating)
-                                // bug fix, not updated playlist items can get here, but should not!
-                                    if (item.timeMs>0)
-                                        Player.onPlaybackAt.forEach { t -> t.restart(item.time) }
-                                Player.post_activating = false
-                                Player.post_activating_1st = false
-                            },
-                            {
-                                logger.info("Player {} can not play item {}", p, item)
-                                onUnableToPlay(item)
-                            }
+                                    realTime.syncRealTimeOnPlay()
+                                    // throw item change event
+                                    Player.playingItem.itemChanged(item)
+                                    Player.suspension_flag = false
+                                    // fire other events (may rely on the above)
+                                    Player.onPlaybackStart()
+                                    if (Player.post_activating_1st || !Player.post_activating)
+                                    // bug fix, not updated playlist items can get here, but should not!
+                                        if (item.timeMs>0)
+                                            Player.onPlaybackAt.forEach { t -> t.restart(item.time) }
+                                    Player.post_activating = false
+                                    Player.post_activating_1st = false
+                                },
+                                {
+                                    logger.info("Player {} can not play item {}", p, item)
+                                    onUnableToPlay(item)
+                                }
                         )
                     }
                 }
@@ -159,13 +163,13 @@ class GeneralPlayer {
                     if (volumeAnim!=null) volumeAnim!!.pause()
                 }
                 seekDone = false
-                anim(millis(150.0)) { state.playback.volume.set(currentVolume*pow(1-it, 2.0)) }
-                        .then(Runnable {
+                anim(150.millis) { state.playback.volume.set(currentVolume*pow(1-it, 2.0)) }
+                        .then {
                             doSeek(duration)
-                            volumeAnim = anim(millis(150.0)) { state.playback.volume.set(lastValidVolume*pow(it, 2.0)) }
-                                    .then(Runnable { seekDone = true })
-                            volumeAnim!!.playOpen()
-                        })
+                            volumeAnim = anim(150.millis) { state.playback.volume.set(lastValidVolume*pow(it, 2.0)) }
+                                    .then { seekDone = true }
+                                    .apply { playOpen() }
+                        }
                         .playOpen()
             }
         }

@@ -459,32 +459,31 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 		stream(type.getDeclaredMethods())
 			.map(m -> new Pair<>(m, isStatic(m.getModifiers())))
 			.filter(m -> useStatic^m.getValue())
-			.flatMap(m -> stream(m.getKey().getAnnotationsByType(IsAction.class))
-				.map(a -> {
-					if (m.getKey().getParameters().length>0)
-						throw new RuntimeException("Action Method must have 0 parameters!");
+			.filter(m -> m.getKey().isAnnotationPresent(IsAction.class))
+			.map(m -> {
+				if (m.getKey().getParameters().length>0)
+					throw new RuntimeException("Action method=" + m.getKey() + " must have 0 parameters!");
 
-					String group = instance==null ? obtainConfigGroup(null, type) : computeConfigGroup(instance);
-					MethodHandle mh;
+				IsAction a = m.getKey().getAnnotation(IsAction.class);
+				String group = instance==null ? obtainConfigGroup(null, type) : computeConfigGroup(instance);
+				MethodHandle mh;
+				try {
+					m.getKey().setAccessible(true);
+					mh = method_lookup.unreflect(m.getKey());
+				} catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
+				}
+
+				Runnable r = () -> {
 					try {
-						m.getKey().setAccessible(true);
-						mh = method_lookup.unreflect(m.getKey());
-					} catch (IllegalAccessException e) {
-						throw new RuntimeException(e);
+						if (m.getValue()) mh.invokeExact();
+						else mh.invoke(instance);
+					} catch (Throwable e) {
+						throw new RuntimeException("Error during running action", e);
 					}
-
-					Runnable r = () -> {
-						try {
-							if (m.getValue()) mh.invokeExact();
-							else mh.invoke(instance);
-						} catch (Throwable e) {
-							throw new RuntimeException("Error during running action", e);
-						}
-					};
-					return new Action(a, group, r);
-				})
-
-			)
+				};
+				return new Action(a, group, r);
+			})
 			.forEach(APP.configuration::collect);
 	}
 

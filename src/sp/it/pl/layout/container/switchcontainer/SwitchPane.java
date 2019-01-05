@@ -36,11 +36,14 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_IN;
 import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_OUT;
-import static sp.it.pl.util.async.AsyncKt.run;
+import static sp.it.pl.util.async.AsyncKt.runFX;
+import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.reactive.Util.maintain;
 
@@ -140,7 +143,7 @@ public class SwitchPane implements ContainerNode {
             }
         });
 
-        uiDrag = new XTransition(Duration.millis(400),ui);
+        uiDrag = new XTransition(millis(400),ui);
         uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
 
         // bind widths for automatic dynamic resizing (works perfectly)
@@ -208,7 +211,7 @@ public class SwitchPane implements ContainerNode {
         } else if (c instanceof Widget) {
             layouters.remove(i);
             WidgetArea wa = new WidgetArea(container, i, (Widget)c);
-            n = wa.root;
+            n = wa.getRoot();
             as = wa;
         } else { // ==null
             Layouter l = layouters.computeIfAbsent(i, index -> new Layouter(container,index));
@@ -241,14 +244,14 @@ public class SwitchPane implements ContainerNode {
     private final XTransition uiDrag;
     private double uiTransX;
     private double uiStartX;
-    boolean uiDragActive = false;
+    private boolean uiDragActive = false;
 
     private double lastX = 0;
     private double nowX = 0;
-    FxTimer measurePulse = new FxTimer(100, INDEFINITE, () -> {
+    private FxTimer measurePulse = fxTimer(millis(100), INDEFINITE, runnable(() -> {
         lastX = nowX;
         nowX = ui.getTranslateX();
-    });
+    }));
 
     private void dragUiStart(MouseEvent e) {
         if (uiDragActive) return;
@@ -263,7 +266,7 @@ public class SwitchPane implements ContainerNode {
         if (!uiDragActive) return;
         // stop drag
 //        uiDragActive = false;
-        run(100, () -> uiDragActive=false);
+        runFX(millis(100), () -> uiDragActive=false);
         measurePulse.stop();
         // handle drag end
         if (align.get()) {

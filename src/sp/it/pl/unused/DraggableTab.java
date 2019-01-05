@@ -93,7 +93,7 @@ public class DraggableTab extends Tab {
 			}
 		});
 
-//        nameLabel.setOnDragDetected( e -> {System.out.println("drag started " + e.getSource());
+//        nameLabel.setOnDragDetected( e -> {
 //            Dragboard db = getTabPane().startDragAndDrop(TransferMode.MOVE);
 //            Component component = (Component)getUserData();
 //            DragUtil.setComponent(getTabArea().container,component, db);

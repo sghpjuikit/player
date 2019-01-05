@@ -25,6 +25,7 @@ import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
@@ -46,6 +47,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
@@ -61,7 +63,9 @@ import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchor;
+import static sp.it.pl.util.reactive.Util.attach1IfNonNull;
 import static sp.it.pl.util.reactive.Util.sync1If;
 
 /**
@@ -79,6 +83,7 @@ import static sp.it.pl.util.reactive.Util.sync1If;
 		year = "2015",
 		group = Widget.Group.DEVELOPMENT
 )
+@LegacyController
 public class AlbumView extends SimpleController {
 
 	static final double CELL_TEXT_HEIGHT = 40;
@@ -126,11 +131,7 @@ public class AlbumView extends SimpleController {
 			view.implGetSkin().filter.clear();
 			return Unit.INSTANCE;
 		});
-	}
 
-	@SuppressWarnings({"ConstantConditions", "unchecked"})
-	@Override
-	public void init() {
 		in_items = inputs.create("To display", (Class) List.class, listRO(), this::setItems);
 		out_sel = outputs.create(widget.id,"Selected Album", MetadataGroup.class, null);
 		out_sel_met = outputs.create(widget.id,"Selected", List.class, listRO());
@@ -139,6 +140,11 @@ public class AlbumView extends SimpleController {
 	@Override
 	public void refresh() {
 		applyCellSize();
+	}
+
+	@Override
+	public void focus() {
+		attach1IfNonNull(view.skinProperty(), consumer(skin -> view.implGetSkin().requestFocus()));
 	}
 
 	void applyCellSize() {
@@ -150,7 +156,7 @@ public class AlbumView extends SimpleController {
 	private void setItems(List<Metadata> list) {
 		if (list==null) return;
 		fut(ALBUM)
-			.use(f -> {
+			.useBy(f -> {
 				List<MetadataGroup> mgs = MetadataGroup.groupsOf(f,list).collect(toList());
 				List<Metadata> fl = filterList(list,true);
 				runLater(() -> {
@@ -447,7 +453,7 @@ public class AlbumView extends SimpleController {
                     boolean animate = animateThumbOn.get().needsAnimation(this, imgAlreadyLoaded, img);
                     thumb.loadImage(img, imgFile);
                     if (animate)
-                        new Anim(thumb.getView()::setOpacity).dur(400).intpl(x -> x * x * x * x).play();
+                        new Anim(thumb.getView()::setOpacity).dur(millis(400)).intpl(x -> x*x*x*x).play();
                 }
             });
 		}

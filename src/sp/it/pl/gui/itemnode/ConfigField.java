@@ -1,6 +1,5 @@
 package sp.it.pl.gui.itemnode;
 
-import com.sun.javafx.scene.traversal.Direction;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import java.io.File;
 import java.nio.charset.Charset;
@@ -11,6 +10,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import javafx.animation.FadeTransition;
+import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -50,7 +50,6 @@ import sp.it.pl.util.conf.Config.OverridablePropertyConfig;
 import sp.it.pl.util.conf.Config.PropertyConfig;
 import sp.it.pl.util.conf.Config.ReadOnlyPropertyConfig;
 import sp.it.pl.util.conf.Configurable;
-import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.text.Password;
@@ -58,6 +57,7 @@ import sp.it.pl.util.type.Util;
 import sp.it.pl.util.validation.Constraint;
 import sp.it.pl.util.validation.Constraint.HasNonNullElements;
 import sp.it.pl.util.validation.Constraint.NumberMinMax;
+import sp.it.pl.util.validation.Constraint.ReadOnlyIf;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static java.nio.charset.StandardCharsets.US_ASCII;
@@ -77,10 +77,11 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.util.Util.enumToHuman;
-import static sp.it.pl.util.async.AsyncKt.run;
-import static sp.it.pl.util.conf.ConfigurationUtilKt.isEditableByUser;
+import static sp.it.pl.util.async.AsyncKt.runFX;
+import static sp.it.pl.util.conf.ConfigurationUtilKt.isEditableByUserRightNow;
 import static sp.it.pl.util.functional.Try.ok;
 import static sp.it.pl.util.functional.Util.IS;
 import static sp.it.pl.util.functional.Util.by;
@@ -130,7 +131,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         put(Charset.class, charset -> new EnumerableField<>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
         put(KeyCode.class, KeyCodeField::new);
         put(Configurable.class, ConfigurableField::new);
-        put(ObservableList.class, config -> Configurable.class.isAssignableFrom(((ListConfig)config).a.itemType) ? new ListFieldPaginated(config) : new ListField<>(config));
+        put(ObservableList.class, config -> {
+            if (config instanceof ListConfig) {
+                return Configurable.class.isAssignableFrom(((ListConfig)config).a.itemType)
+                    ? new ListFieldPaginated(config)
+                    : new ListField<>(config);
+            } else {
+                return new GeneralField<>(config);
+            }
+        });
         EffectItemNode.EFFECT_TYPES.stream().map(et -> et.getType()).filter(t -> t!=null).forEach(t -> put(t, config -> new EffectField(config, t)));
     }};
 
@@ -148,7 +157,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         else if (isMinMax(c)) cf = new SliderField(c);
         else cf = CF_BUILDERS.computeIfAbsent(c.getType(), key -> GeneralField::new).apply(c);
 
-        cf.setEditable(isEditableByUser(c));
+	    disableIfReadOnly(cf, c);
 
         return cf;
     }
@@ -191,14 +200,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         // display default button when hovered for certain time
         root.addEventFilter(MOUSE_ENTERED, e -> {
-            if (config.isEditable().isByNone()) return;
-            // wait delay
-            run(270, () -> {
-                // no need to do anything if hover ended
+            if (!isEditableByUserRightNow(config)) return;
+            runFX(millis(270), () -> {
                 if (root.isHover()) {
-                    // lazily build the button when requested
-                    // we do not want hundreds of buttons we will never use anyway
-                    if (defB==null && isEditableByUser(c)) {
+                    if (defB==null && isEditableByUserRightNow(c)) {
                         defB = new Icon(RECYCLE, 11, null, this::setNapplyDefault);
                         defB.tooltip(defTooltip);
                         defB.styleclass("config-field-default-button");
@@ -206,8 +211,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                         root.getChildren().add(defB);
                         root.setPadding(Insets.EMPTY);
                     }
-                    // show it
-                    FadeTransition fa = new FadeTransition(Duration.millis(450), defB);
+                    FadeTransition fa = new FadeTransition(millis(450), defB);
                     fa.stop();
                     fa.setToValue(1);
                     fa.play();
@@ -219,7 +223,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             // return if nothing to hide
             if (defB == null) return;
             // hide it
-            FadeTransition fa = new FadeTransition(Duration.millis(450), defB);
+            FadeTransition fa = new FadeTransition(millis(450), defB);
             fa.stop();
             fa.setDelay(Duration.ZERO);
             fa.setToValue(0);
@@ -235,13 +239,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      */
     public boolean hasUnappliedValue() {
         return !Objects.equals(config.getValue(), getValid());
-    }
-
-    /**
-     * Sets editability by disabling the Nodes responsible for value change
-     */
-    void setEditable(boolean val) {
-        getControl().setDisable(!val);
     }
 
     /**
@@ -313,7 +310,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     /** Sets and applies default value of the config if it has different value set and if editable by user. */
     public void setNapplyDefault() {
-        if (isEditableByUser(config)) {
+        if (isEditableByUserRightNow(config)) {
             T t = config.getDefaultValue();
             if (!Objects.equals(config.getValue(), t)) {
                 config.setNapplyValue(t);
@@ -655,7 +652,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class KeyCodeField extends EnumerableField<KeyCode> {
 
-        @Dependency("requires access to com.sun.javafx.scene.traversal.Direction")
         private KeyCodeField(Config<KeyCode> c) {
             super(c);
 
@@ -670,14 +666,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 // be set twice, but should be all right since the value is the same anyway.
                 n.setValue(e.getCode());
 
-                // TODO: jigsaw
-                if (e.getEventType()==KEY_RELEASED) {
-                    // conveniently traverse focus by simulating TAB behavior
-                    // currently only hacks allow this
-                    // ((BehaviorSkinBase)n.getSkin()).getBehavior().traverseNext(); // !work since java9
-                    // n.traverse(Direction.NEXT); // !work since java 9 b135
-                    Util.invokeMethodP1(n, "traverse", Direction.class, Direction.NEXT);
-                }
                 e.consume();
             });
         }
@@ -980,7 +968,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 this.type = type;
                 p.getLabelWidth().set(USE_COMPUTED_SIZE);
                 p.setOnChange(() -> chain.onItemChange.accept(null));
-                p.configure((Configurable) lc.toConfigurable.apply(this.value));
+                p.configure(lc.toConfigurable.apply(this.value));
             }
 
             @Override
@@ -1094,4 +1082,20 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                     + "value to take effect.";
         }
     }
+
+/* ---------- HELPER --------------------------------------------------------------------------------------- */
+
+    static void disableIfReadOnly(ConfigField<?> control, Config<?> config) {
+    	if (!config.isEditable().isByUser()) {
+    		control.getControl().setDisable(true);
+	    } else {
+	        config.getConstraints().stream()
+	            .filter(Constraint.ReadOnlyIf.class::isInstance)
+	            .map(Constraint.ReadOnlyIf.class::cast)
+		        .map(ReadOnlyIf::getCondition)
+                .reduce(Bindings::and)
+                .ifPresent(control.getControl().disableProperty()::bind);
+	    }
+    }
 }
+

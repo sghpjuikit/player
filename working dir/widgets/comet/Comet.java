@@ -89,6 +89,7 @@ import sp.it.pl.gui.itemnode.ConfigField;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
@@ -226,6 +227,7 @@ import static sp.it.pl.util.reactive.Util.maintain;
 	year = "2015",
 	group = Widget.Group.OTHER
 )
+@LegacyController
 public class Comet extends SimpleController {
 	private static Logger LOGGER = LoggerFactory.getLogger(Comet.class);
 
@@ -576,12 +578,12 @@ public class Comet extends SimpleController {
 				listener = new IControllerListener() {
 					@Override
 					public void connected(IController c) {
-						System.out.println("connected device:");
-						System.out.println("DeviceID = " + c.getDeviceID());
-						System.out.println("DeviceTypeIdentifier = " + c.getDeviceTypeIdentifier());
-						System.out.println("Description = " + c.getDescription());
-						System.out.println("ProductID = " + c.getProductID());
-						System.out.println("VendorID = " + c.getVendorID());
+//						System.out.println("connected device:");
+//						System.out.println("DeviceID = " + c.getDeviceID());
+//						System.out.println("DeviceTypeIdentifier = " + c.getDeviceTypeIdentifier());
+//						System.out.println("Description = " + c.getDescription());
+//						System.out.println("ProductID = " + c.getProductID());
+//						System.out.println("VendorID = " + c.getVendorID());
 
 						gamepadIds.add(c.getDeviceID());
 						stream(players).sorted(by(p -> p.id.get()))
@@ -591,12 +593,12 @@ public class Comet extends SimpleController {
 
 					@Override
 					public void disConnected(IController c) {
-						System.out.println("disconnected device:");
-						System.out.println("DeviceID = " + c.getDeviceID());
-						System.out.println("DeviceTypeIdentifier = " + c.getDeviceTypeIdentifier());
-						System.out.println("Description = " + c.getDescription());
-						System.out.println("ProductID = " + c.getProductID());
-						System.out.println("VendorID = " + c.getVendorID());
+//						System.out.println("disconnected device:");
+//						System.out.println("DeviceID = " + c.getDeviceID());
+//						System.out.println("DeviceTypeIdentifier = " + c.getDeviceTypeIdentifier());
+//						System.out.println("Description = " + c.getDescription());
+//						System.out.println("ProductID = " + c.getProductID());
+//						System.out.println("VendorID = " + c.getVendorID());
 
 						gamepadIds.remove(c.getDeviceID());
 						stream(players).filter(p -> p.gamepadId.get()!=null && p.gamepadId.get()==c.getDeviceID())
@@ -611,7 +613,7 @@ public class Comet extends SimpleController {
 
 					@Override
 					public void moveStick(IController iController, StickID stickID) {
-						System.out.println("stick moved");
+//						System.out.println("stick moved");
 					}
 				};
 				Controllers.instance().addListener(listener);
@@ -962,7 +964,7 @@ public class Comet extends SimpleController {
 		void placeholder(String text, PO o, double x, double y) {
 			boolean isFollow = o!=null;
 			double fW = computeFontWidth(FONT_PLACEHOLDER, text);
-			double fH = computeFontHeight(FONT_PLACEHOLDER);
+			double fH = computeFontHeight(FONT_PLACEHOLDER, text);
 			game.runNext.addAnim01(seconds(2), p -> {
 				double s = sqrt(map01To010(p, 0.9));
 				double tx = game.field.modX(isFollow ? o.x-15 : x);
@@ -994,7 +996,7 @@ public class Comet extends SimpleController {
 
 		public void fillText(String text, double x, double y, double scale) {
 			double fW = computeFontWidth(FONT_PLACEHOLDER, text);
-			double fH = computeFontHeight(FONT_PLACEHOLDER);
+			double fH = computeFontHeight(FONT_PLACEHOLDER, text);
 			double tx = game.field.modX(x+15 - fW/2);
 			double ty = game.field.modY(y-15 - fH/2);
 			Affine sa = new Affine();
@@ -4655,7 +4657,6 @@ public class Comet extends SimpleController {
 				o.dead = true;
 				if (owner!=null) owner.score.setValueOf(score -> score + 20);
 				mass += o.mass;
-				System.out.println("consumed " + this.hashCode() + " " + mass);
 			}
 
 //            double dir = o.dir(this)+D90;

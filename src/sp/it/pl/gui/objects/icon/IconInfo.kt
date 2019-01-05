@@ -3,8 +3,9 @@ package sp.it.pl.gui.objects.icon
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Pos.CENTER
 import javafx.scene.control.Label
-import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
+import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.system.copyToSysClipboard
 
 /**
@@ -21,7 +22,8 @@ class IconInfo(icon: GlyphIcons?, iconSize: Double): VBox(5.0) {
         alignment = CENTER
         graphics = Icon(icon, iconSize).styleclass("icon-info-icon")
         graphics.setOnMouseClicked { copyToSysClipboard(glyph?.name() ?: "") }
-        children += listOf(StackPane(graphics), nameLabel)
+        lay += stackPane(graphics)
+        lay += nameLabel
     }
 
     fun setGlyph(icon: GlyphIcons?) {

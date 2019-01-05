@@ -17,6 +17,7 @@ import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.functional.TriConsumer;
 import static sp.it.pl.util.dev.Util.logger;
@@ -150,8 +151,7 @@ public interface Util {
 
 	/**
 	 * Returns all declared methods of the class including inherited ones.
-	 * Equivalent to union of declared fields of the class and all its
-	 * superclasses.
+	 * Equivalent to union of declared methods of the class and all its superclasses.
 	 */
 	@SuppressWarnings("CollectionAddAllCanBeReplacedWithConstructor")
 	static List<Method> getAllMethods(Class clazz) {
@@ -164,7 +164,10 @@ public interface Util {
 		Class superClazz = clazz.getSuperclass();
 		if (superClazz!=null) methods.addAll(getAllMethods(superClazz));
 
-		return methods;
+		MapSet<String,Method> ms = new MapSet<>(m -> m.getName());
+		ms.addAll(methods);
+
+		return list(ms);
 	}
 
 /* ---------- REFLECTION - ANNOTATION ------------------------------------------------------------------------------- */

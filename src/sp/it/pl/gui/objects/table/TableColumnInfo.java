@@ -40,7 +40,7 @@ public final class TableColumnInfo {
 		this();
 		// add columns as visible
 		toIndexedStream(all_columns)
-				.map(p -> new ColumnInfo(p._2, p._1, true, 50))
+				.map(p -> new ColumnInfo(p.value, p.i, true, 50))
 				.forEach(columns::add);
 	}
 
@@ -48,7 +48,7 @@ public final class TableColumnInfo {
 		this();
 		// add visible columns
 		toIndexedStream(table.getColumns())
-				.map(p -> new ColumnInfo(p._1, p._2))
+				.map(p -> new ColumnInfo(p.i, p.value))
 				.forEach(columns::add);
 		sortOrder.fromTable(table);
 	}
@@ -64,7 +64,7 @@ public final class TableColumnInfo {
 		columns.clear();
 		// add visible columns
 		toIndexedStream(table.getColumns())
-				.map(p -> new ColumnInfo(p._1, p._2))
+				.map(p -> new ColumnInfo(p.i, p.value))
 				.peek(old::remove)
 				.forEach(columns::add);
 		// add invisible columns

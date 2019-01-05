@@ -14,7 +14,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import sp.it.pl.util.async.executor.EventReducer;
-import sp.it.pl.util.collections.Tuple2;
 import sp.it.pl.util.system.Os;
 import static com.sun.nio.file.ExtendedWatchEventModifier.FILE_TREE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
@@ -23,7 +22,6 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.threadFactory;
-import static sp.it.pl.util.collections.Tuples.tuple;
 import static sp.it.pl.util.dev.Util.logger;
 
 // TODO: use interface, leverage recursive directory watch on Windows
@@ -53,7 +51,7 @@ public class FileMonitor {
 	private Predicate<File> filter;
 	private BiConsumer<Kind<Path>,File> action;
 
-	private final EventReducer<Tuple2<Kind<Path>,File>> modificationReducer = EventReducer.toLast(50, e -> emitEvent(e._1, e._2));
+	private final EventReducer<Event> modificationReducer = EventReducer.toLast(50, e -> emitEvent(e.kind, e.file));
 
 	private void emitEvent(Kind<Path> type, File file) {
 		// This works as it should.
@@ -131,7 +129,7 @@ public class FileMonitor {
 						if (fm.filter.test(modifiedFile)) {
 							if (type==ENTRY_MODIFY) {
 								runFX(() ->
-										fm.modificationReducer.push(tuple((Kind) type, modifiedFile))   // TODO: fix overwriting events
+										fm.modificationReducer.push(new Event((Kind) type, modifiedFile))   // TODO: fix overwriting events
 								);
 							} else {
 								fm.emitEvent((Kind) type, modifiedFile);
@@ -213,6 +211,16 @@ public class FileMonitor {
 			if (watchService!=null) watchService.close();
 		} catch (IOException e) {
 			logger(FileMonitor.class).error("Error when closing file monitoring {}", monitoredFileDir, e);
+		}
+	}
+
+	private static class Event {
+		public final Kind<Path> kind;
+		public final File file;
+
+		private Event(Kind<Path> kind, File file) {
+			this.kind = kind;
+			this.file = file;
 		}
 	}
 }

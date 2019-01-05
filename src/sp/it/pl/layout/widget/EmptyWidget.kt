@@ -19,6 +19,7 @@ import java.io.ObjectStreamException
         year = "2014",
         group = Widget.Group.OTHER
 )
+@ExperimentalController
 class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller {
 
     private val o = Outputs()

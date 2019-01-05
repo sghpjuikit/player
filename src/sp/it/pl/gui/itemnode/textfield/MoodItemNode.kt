@@ -8,7 +8,6 @@ import sp.it.pl.gui.objects.popover.NodePos
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.main.APP
 import sp.it.pl.util.access.v
-import java.util.function.Consumer
 
 /** Text field for audio mood tagging values with a picker and autocompletion. */
 class MoodItemNode: TextFieldItemNode<String>({ APP.converter.general.toS(it) }) {
@@ -19,9 +18,7 @@ class MoodItemNode: TextFieldItemNode<String>({ APP.converter.general.toS(it) })
     init {
         isEditable = true
         autoComplete(this) { text ->
-            APP.db.itemUniqueValuesByField[Metadata.Field.MOOD]
-                    ?.filter { it.contains(text, true) }
-                    .orEmpty()
+            APP.db.itemUniqueValuesByField[Metadata.Field.MOOD].orEmpty().filter { it.contains(text, true) }
         }
     }
 
@@ -34,15 +31,16 @@ class MoodItemNode: TextFieldItemNode<String>({ APP.converter.general.toS(it) })
             isAutoHide = true
             isAutoFix = true
             contentNode.value = MoodPicker().apply {
-                node.setPrefSize(800.0, 600.0)
-                onCancel = Runnable { hide() }
-                onSelect = Consumer {
+                root.setPrefSize(800.0, 600.0)
+                onCancel = { hide() }
+                onSelect = {
                     value = it
                     hide()
                 }
-            }.node
+                buildContent()
+            }.root
         }
-        p.show(this, pickerPosition.get())
+        p.show(this, pickerPosition.value)
     }
 
 }

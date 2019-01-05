@@ -63,7 +63,9 @@ import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchor;
+import static sp.it.pl.util.reactive.Util.attach1IfNonNull;
 import static sp.it.pl.util.reactive.Util.sync1If;
 
 /**
@@ -138,6 +140,11 @@ public class AlbumView extends SimpleController {
 	@Override
 	public void refresh() {
 		applyCellSize();
+	}
+
+	@Override
+	public void focus() {
+		attach1IfNonNull(view.skinProperty(), consumer(skin -> view.implGetSkin().requestFocus()));
 	}
 
 	void applyCellSize() {

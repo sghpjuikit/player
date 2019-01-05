@@ -48,14 +48,14 @@ class LibraryWatcher: PluginBase("Song Library", false) {
         )
     }
 
+    @IsConfig(name = "Update on start", info = "Update library when this plugin starts")
+    val updateOnStart by cv(false)
+
     @IsConfig(name = "Monitoring supported", info = "On some system, this file monitoring may be unsupported", editable = NONE)
     val fileMonitoringSupported by c(Os.WINDOWS.isCurrent)
 
-    @IsConfig(name = "Monitor files", info = "Monitors files, notify of changes and update library automatically")
+    @IsConfig(name = "Monitor files", info = "Monitors files recursively, notify of changes and update library automatically")
     val fileMonitoringEnabled by cv(false).readOnlyUnless(fileMonitoringSupported)
-
-    @IsConfig(name = "Update on start", info = "Update library when this plugin starts")
-    val updateOnStart by cv(false)
 
     private val fileMonitors = HashMap<File, FileMonitor>()
     private val fileMonitoring = when {

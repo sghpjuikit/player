@@ -230,7 +230,7 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyPrope
         val isFinal = property !is KMutableProperty
         throwIf(!isFinal) { "Property must be immutable" }
 
-        val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editabl).constraints(constraints)
+        val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
         obtainConfigValueStore(ref).initialize(c)
         validateValue(c.value)
 

@@ -17,6 +17,7 @@ import javafx.scene.control.Label
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.ScrollPane
+import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.Tooltip
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
@@ -159,21 +160,22 @@ fun border(color: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(Borde
 
 fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
 
-inline fun pane(block: Pane.() -> Unit = {}) = Pane().apply { block() }
-inline fun pane(vararg children: Node, block: Pane.() -> Unit = {}) = Pane(*children).apply { block() }
-inline fun stackPane(block: StackPane.() -> Unit = {}) = StackPane().apply { block() }
+inline fun pane(block: Pane.() -> Unit = {}) = Pane().apply(block)
+inline fun pane(vararg children: Node, block: Pane.() -> Unit = {}) = Pane(*children).apply(block)
+inline fun stackPane(block: StackPane.() -> Unit = {}) = StackPane().apply(block)
 inline fun stackPane(vararg children: Node, block: StackPane.() -> Unit = {}) = StackPane(*children).apply { block() }
-inline fun anchorPane(block: AnchorPane.() -> Unit = {}) = AnchorPane().apply { block() }
+inline fun anchorPane(block: AnchorPane.() -> Unit = {}) = AnchorPane().apply(block)
 inline fun hBox(spacing: Number = 0.0, alignment: Pos? = null, block: HBox.() -> Unit = {}) = HBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
 inline fun vBox(spacing: Number = 0.0, alignment: Pos? = null, block: VBox.() -> Unit = {}) = VBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
-inline fun scrollPane(block: ScrollPane.() -> Unit = {}) = ScrollPane().apply { block() }
+inline fun scrollPane(block: ScrollPane.() -> Unit = {}) = ScrollPane().apply(block)
 inline fun scrollText(block: () -> Text) = Util.layScrollVText(block())!!
-inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply { block() }
-inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply { block() }
-inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply { block() }
-inline fun text(text: String = "", block: sp.it.pl.gui.objects.Text.() -> Unit = {}) = sp.it.pl.gui.objects.Text(text).apply { block() }
-inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply { block() }
+inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply(block)
+inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply(block)
+inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply(block)
+inline fun text(text: String = "", block: sp.it.pl.gui.objects.Text.() -> Unit = {}) = sp.it.pl.gui.objects.Text(text).apply(block)
+inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)
 inline fun menuItem(text: String, crossinline action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
+inline fun menuSeparator(block: (SeparatorMenuItem).() -> Unit = {}) = SeparatorMenuItem().apply(block)
 
 /* ---------- LAYOUT ------------------------------------------------------------------------------------------------ */
 

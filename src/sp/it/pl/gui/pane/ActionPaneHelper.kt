@@ -58,7 +58,7 @@ fun futureUnwrapOrThrow(o: Any?): Any? = when (o) {
                 else -> null
             }
         }
-        else -> fail { "Future not done yet" }
+        else -> fail("Future not done yet")
     }
     else -> o
 }
@@ -124,7 +124,7 @@ abstract class ActionData<C, T>: Consumer<Any> {
                 }
             }
             NONE -> {
-                if (data is Collection<*>) fail { "Action with $groupApply can not use collection" }
+                if (data is Collection<*>) fail("Action with $groupApply can not use collection")
                 action(data as T)
             }
         }
@@ -133,9 +133,9 @@ abstract class ActionData<C, T>: Consumer<Any> {
     @Suppress("UNCHECKED_CAST")
     fun prepInput(data: Any?): T = when (groupApply) {
         FOR_ALL -> collectionWrap(data) as T
-        FOR_EACH -> fail { "Action with $groupApply should never get here" }
+        FOR_EACH -> fail("Action with $groupApply should never get here")
         NONE -> {
-            if (data is Collection<*>) fail { "Action with $groupApply can not use collection" }
+            if (data is Collection<*>) fail("Action with $groupApply can not use collection")
             data as T
         }
     }

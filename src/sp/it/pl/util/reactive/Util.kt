@@ -346,7 +346,7 @@ fun <T> ObservableList<T>.onItemSync(subscriber: (T) -> Subscription): Subscript
     val disposer = Disposer()
     forEach { ds[it.id()] = subscriber(it) }
     onItemRemoved { ds.remove(it.id())?.unsubscribe() } on disposer
-    onItemAdded { if (ds.containsKey(it.id())) fail { "Duplicate=$it" } else ds[it.id()] = subscriber(it) } on disposer
+    onItemAdded { if (ds.containsKey(it.id())) fail("Duplicate=$it") else ds[it.id()] = subscriber(it) } on disposer
     return Subscription {
         disposer()
         ds.forEach { it.value.unsubscribe() }

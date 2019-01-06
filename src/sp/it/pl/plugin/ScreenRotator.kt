@@ -116,7 +116,7 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
                     }
         } catch (e: Throwable) {
             logger.error(e) { "Failed to list monitors" }
-            fail { "Failed to list monitors" }
+            fail("Failed to list monitors")
         }
     }
 

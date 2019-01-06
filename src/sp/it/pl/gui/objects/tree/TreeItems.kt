@@ -342,7 +342,7 @@ class FileTreeItem: SimpleTreeItem<File> {
 
     @JvmOverloads constructor(value: File, isLeaf: Boolean = value.isFile): super(value) {
         this.isLeaf = isLeaf
-        valueProperty() attach { fail { "${FileTreeItem::class} value must never change" } }
+        valueProperty() attach { fail("${FileTreeItem::class} value must never change") }
     }
 
     override fun getChildren(): ObservableList<TreeItem<File>> = super.getChildren().apply {

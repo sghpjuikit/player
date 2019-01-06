@@ -197,7 +197,7 @@ class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
         val isFinal = property !is KMutableProperty
         throwIf(isFinal xor (info.editable===EditMode.NONE)) { "Property mutability does not correspond to specified editability=${info.editable}" }
 
-        val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable, {}).constraints(constraints)
+        val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
         obtainConfigValueStore(ref).initialize(c)
         validateValue(c.value)
 
@@ -230,7 +230,7 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyPrope
         val isFinal = property !is KMutableProperty
         throwIf(!isFinal) { "Property must be immutable" }
 
-        val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable, {}).constraints(constraints)
+        val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editabl).constraints(constraints)
         obtainConfigValueStore(ref).initialize(c)
         validateValue(c.value)
 
@@ -262,7 +262,7 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyP
         throwIf(!isFinal) { "Property must be immutable" }
         throwIf(info.editable!==EditMode.NONE) { "Property mutability requires usage of ${EditMode.NONE}" }
 
-        val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable, {}).constraints(constraints)
+        val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
         validateValue(c.value)
 
         return object: Config.ReadOnlyPropertyConfig<T>(type, property.name, info, constraints, v(c.value), group), ReadOnlyProperty<Any?, W> {

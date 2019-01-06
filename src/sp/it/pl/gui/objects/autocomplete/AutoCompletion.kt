@@ -50,7 +50,7 @@ open class AutoCompletion<T>: AutoCompletionBinding<T> {
     protected val disposer = Disposer()
 
     /** Creates an auto-completion binding between the specified textField and suggestions. */
-    internal constructor(textField: TextField, allSuggestions: Suggestions<T>, converter: StringConverter<T>): super(textField, allSuggestions, converter) {
+    internal constructor(textField: TextField, allSuggestions: (String) -> Collection<T>, converter: StringConverter<T>): super(textField, allSuggestions, converter) {
         this.completionTargetTyped = textField
         this.converter = converter
 
@@ -80,12 +80,12 @@ open class AutoCompletion<T>: AutoCompletionBinding<T> {
             override fun fromString(string: String) = string as T
         }
 
-        fun <T> autoComplete(textField: TextField, allSuggestions: Suggestions<T>, converter: StringConverter<T>): Subscription {
+        fun <T> autoComplete(textField: TextField, allSuggestions: (String) -> Collection<T>, converter: StringConverter<T>): Subscription {
             val a = AutoCompletion(textField, allSuggestions, converter)
             return Subscription { a.dispose() }
         }
 
-        fun <T> autoComplete(textField: TextField, allSuggestions: Suggestions<T>) = autoComplete(textField, allSuggestions, defaultStringConverter())
+        fun <T> autoComplete(textField: TextField, allSuggestions: (String) -> Collection<T>) = autoComplete(textField, allSuggestions, defaultStringConverter())
 
         fun <T> autoComplete(textField: TextField, allSuggestions: Collection<T>) = autoComplete(textField, { allSuggestions })
 

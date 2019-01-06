@@ -41,7 +41,6 @@ import sp.it.pl.layout.widget.WidgetSource.NEW
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.TextDisplayFeature
-import sp.it.pl.unused.SimpleConfigurator.Companion.simpleConfigurator
 import sp.it.pl.util.Util.urlEncodeUtf8
 import sp.it.pl.util.access.fieldvalue.StringGetter
 import sp.it.pl.util.action.ActionRegistrar
@@ -49,7 +48,6 @@ import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runLater
 import sp.it.pl.util.conf.IsConfigurable
-import sp.it.pl.util.conf.ValueConfig
 import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.stackTraceAsString
 import sp.it.pl.util.dev.throwIfFxThread
@@ -77,7 +75,6 @@ import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.open
 import sp.it.pl.util.system.runCommand
 import sp.it.pl.util.type.Util.getEnumConstants
-import sp.it.pl.util.validation.Constraint.StringNonEmpty
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.WebBarInterpreter
 import java.io.File
@@ -337,14 +334,14 @@ class AppActions {
 
     @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)
     fun runCommand() {
-        doWithUserString("Run system command", "Command") {
+        configureString("Run system command", "Command") {
             runCommand(it)
         }
     }
 
     @IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with the command as a parameter.")
     fun runAppCommand() {
-        doWithUserString("Run app command", "Command") {
+        configureString("Run app command", "Command") {
             APP.parameterProcessor.process(listOf(it))
         }
     }
@@ -352,7 +349,7 @@ class AppActions {
     @IsAction(name = "Open web search", desc = "Opens website or search engine result for given phrase", keys = "CTRL + SHIFT + W", global = true)
     fun openWebBar() {
         // TODO: use URI validator
-        doWithUserString("Open on web...", "Website or phrase") {
+        configureString("Open on web...", "Website or phrase") {
             val uriString = WebBarInterpreter.toUrlString(it, DuckDuckGoQBuilder)
             try {
                 val uri = URI(uriString)
@@ -365,20 +362,9 @@ class AppActions {
 
     @IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
     fun openDictionary() {
-        doWithUserString("Look up in dictionary...", "Word") {
+        configureString("Look up in dictionary...", "Word") {
             URI.create("http://www.thefreedictionary.com/${urlEncodeUtf8(it)}").browse()
         }
-    }
-
-    fun doWithUserString(title: String, inputName: String, action: (String) -> Unit) {
-        val conf = ValueConfig(String::class.java, inputName, "").constraints(StringNonEmpty())
-        val form = simpleConfigurator(conf) { action(it.value) }
-        val popup = PopOver(form)
-        popup.title.value = title
-        popup.isAutoHide = true
-        popup.show(ScreenPos.APP_CENTER)
-        popup.contentNode.value.focusFirstConfigField()
-        popup.contentNode.value.hideOnOk.value = true
     }
 
     @JvmOverloads

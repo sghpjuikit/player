@@ -18,10 +18,18 @@ import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.APP
+import sp.it.pl.main.Widgets
 import sp.it.pl.main.browseMultipleFiles
+import sp.it.pl.main.configure
+import sp.it.pl.util.conf.ConfigurableBase
+import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.conf.only
 import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util.writeImage
+import sp.it.pl.util.file.div
 import sp.it.pl.util.file.isPlayable
+import sp.it.pl.util.functional.ifFalse
 import sp.it.pl.util.graphics.item
 import sp.it.pl.util.graphics.items
 import sp.it.pl.util.system.browse
@@ -31,6 +39,7 @@ import sp.it.pl.util.system.open
 import sp.it.pl.util.system.recycle
 import sp.it.pl.util.system.saveFile
 import sp.it.pl.util.type.Util.getAllMethods
+import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import sp.it.pl.web.SearchUriBuilder
 import java.io.File
 import java.lang.reflect.InvocationTargetException
@@ -40,7 +49,7 @@ import java.lang.reflect.Modifier
 class CoreMenus: Core {
 
     /** Menu item builders registered per class. */
-    @JvmField val menuItemBuilders = contextMenuItemBuilders
+    val menuItemBuilders = contextMenuItemBuilders
 
     override fun init() {
         menuItemBuilders.init()
@@ -76,25 +85,27 @@ class CoreMenus: Core {
                 item("Play") { PlaylistManager.use { it.playUri(selected.toURI()) } }
                 item("Enqueue") { PlaylistManager.use { it.addFile(selected) } }
             }
-            item("Browse location") { selected.browse() }
             item("Open (in associated program)") { selected.open() }
             item("Edit (in associated editor)") { selected.edit() }
             item("Delete from disc") { selected.recycle() }
             item("Copy as ...") {
-                saveFile("Copy as...", APP.DIR_APP, selected.name, contextMenu.ownerWindow, ImageFileFormat.filter())
-                        .ifOk { nf ->
-                            // TODO: use customization popup
-                            val success = selected.copyRecursively(nf, false) { f, e ->
-                                logger.error(e) { "File copy failed" }
-                                OnErrorAction.SKIP
-                            }
-                            if (!success) APP.messagePane.show("File $selected copy failed")
-                        }
+                object: ConfigurableBase<Any?>() {
+                    @IsConfig(name = "File") val file by cv(APP.DIR_APP).only(DIRECTORY)
+                    @IsConfig(name = "Make files writable if read-only") val overwrite by cv(false)
+                    @IsConfig(name = "Edit in ${Widgets.SONG_TAGGER}") val onError by cv(OnErrorAction.SKIP)
+                }.configure("Copy as...") {
+                    selected.copyRecursively(it.file.value/selected.name, it.overwrite.value) { f, e ->
+                        logger.warn(e) { "File copy failed" }
+                        OnErrorAction.SKIP
+                    }.ifFalse {
+                        APP.messagePane.show("File $selected copy failed")
+                    }
+                }
             }
         }
         addMany<File> {
-            item("Copy") { copyToSysClipboard(DataFormat.FILES, selected) }
-            item("Explore in browser") { browseMultipleFiles(selected.asSequence()) }
+            item("Copy (to clipboard)") { copyToSysClipboard(DataFormat.FILES, selected) }
+            item("Browse location") { browseMultipleFiles(selected.asSequence()) }
         }
         add<MetadataGroup> {
             item("Play items") { PlaylistManager.use { it.setNplay(selected.grouped.stream().sorted(APP.db.libraryComparator.get())) } }

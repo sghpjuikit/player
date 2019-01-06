@@ -264,6 +264,11 @@ public class Icon extends StackPane {
 		return this;
 	}
 
+	public Icon blank() {
+		setVisible(false);
+		return this;
+	}
+
 	@SuppressWarnings("unchecked")
 	public final Icon tooltip(String text) {
 		boolean willBeEmpty = text==null || text.isEmpty();

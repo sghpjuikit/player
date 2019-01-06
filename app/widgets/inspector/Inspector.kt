@@ -117,9 +117,7 @@ class Inspector(widget: Widget<*>): SimpleController(widget), FileExplorerFeatur
                 tooltip("Inspect element")
                 onClickDo { !selectingNode }
             }
-            lay += Icon(IconMA.ADD).apply {
-                isVisible = false
-            }
+            lay += Icon().blank()
         }
 
         onDragOver = DragUtil.fileDragAcceptHandler

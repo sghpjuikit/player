@@ -7,9 +7,11 @@ import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
+import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.input.ContextMenuEvent
 import javafx.scene.input.MouseEvent
 import sp.it.pl.gui.pane.collectionUnwrap
+import sp.it.pl.gui.pane.collectionWrap
 import sp.it.pl.util.access.AccessibleValue
 import sp.it.pl.util.collections.map.ClassListMap
 import sp.it.pl.util.dev.fail
@@ -86,14 +88,14 @@ class ContextMenuItemSuppliers {
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> add(type: Class<T>, items: ContextMenuBuilder<T>.() -> Unit) {
         mSingle.accumulate(type) { menu, item ->
-            ContextMenuBuilder(menu, item as T).also { items(it) }.asSequence()
+            ContextMenuBuilder(menu, collectionUnwrap(item) as T).apply(items).asSequence()
         }
     }
 
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> addMany(type: Class<T>, items: ContextMenuBuilder<Collection<T>>.() -> Unit) {
         mMany.accumulate(type) { menu, item ->
-            ContextMenuBuilder(menu, item as Collection<T>).also { items(it) }.asSequence()
+            ContextMenuBuilder(menu, collectionWrap(item) as Collection<T>).apply(items).asSequence()
         }
     }
 
@@ -102,10 +104,15 @@ class ContextMenuItemSuppliers {
     inline fun <reified T: Any> addMany(noinline items: ContextMenuBuilder<Collection<T>>.() -> Unit) = addMany(T::class.java, items)
 
     operator fun get(contextMenu: ImprovedContextMenu<*>, value: Any?): Sequence<MenuItem> {
-        val items1 = mSingle.getElementsOfSuperV(value?.javaClass
-                ?: Void::class.java).asSequence().flatMap { it(contextMenu, value) }
-        val itemsN = if (value is Collection<*>) {
-            mMany.getElementsOfSuperV(value.getElementType()).asSequence().flatMap { it(contextMenu, contextMenu.value) }
+        val valueSingle = value?.let { collectionUnwrap(it) }
+        val valueMulti = value?.let { collectionWrap(value) }?.takeUnless { it.isEmpty() }
+        val items1 = mSingle.getElementsOfSuperV(valueSingle?.javaClass ?: Void::class.java).asSequence()
+                .map { it(contextMenu, contextMenu.value) }
+                .flatMap { sequenceOf(SeparatorMenuItem()).plus(it) }.drop(1)
+        val itemsN = if (valueMulti is Collection<*>) {
+            mMany.getElementsOfSuperV(valueMulti.getElementType()).asSequence()
+                    .map { it(contextMenu, contextMenu.value) }
+                    .flatMap { sequenceOf(SeparatorMenuItem()).plus(it) }.drop(1)
         } else {
             sequenceOf()
         }
@@ -126,10 +133,10 @@ class ContextMenuBuilder<T>(val contextMenu: ImprovedContextMenu<*>, val selecte
         return item
     }
 
+    fun item(text: String, handler: (ActionEvent) -> Unit) =
+            item(menuItem(text, handler))
 }
 
-fun ContextMenuBuilder<*>.item(text: String, handler: (ActionEvent) -> Unit) =
-        item(menuItem(text, handler))
 
 fun ContextMenuBuilder<*>.menu(text: String, graphic: Node? = null, items: Menu.() -> Unit) =
         item(sp.it.pl.util.graphics.menu(text, graphic, items))

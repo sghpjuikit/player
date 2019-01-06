@@ -18,7 +18,7 @@ import sp.it.pl.util.reactive.syncFrom
 /** Very simple custom [ProgressIndicator]. */
 class Spinner: ProgressIndicator {
 
-    @JvmOverloads constructor(progress: Double = 1.0): super(progress)
+    constructor(progress: Double = 1.0): super(progress)
 
     override fun createDefaultSkin() = SpinnerSkin(this)
 
@@ -95,4 +95,5 @@ class Spinner: ProgressIndicator {
             }
         }
     }
+
 }

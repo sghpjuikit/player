@@ -48,7 +48,6 @@ This document aims to help with skinning and anything that is related to it.
   java code or .fxml file.
 - some custom controls support dynamic skinning - by looking up and loading
   available external css.
-  See /controls directory.
 
 ### Tips
 
@@ -79,18 +78,19 @@ The styleclass is specified in .fxml file or java code, native JavaFX controls h
 respective default styleclasses (e.g. Label has `label`, TreeView has `tree-view` etc).
 Developers can make their own styleclasses.
 
-Elements can have more styleclasses that override each other.
+Elements can have multiple styleclasses that override each other, 
+the latest value for any property always takes preference.
 
 ### Pseudoclass
 
 A state of the element. For example hover, focus, etc. 
 Developer can define custom pseudoclasses for example .playlist-item:unplayable
 
-#### Syntax
+### Syntax
 
 ```css
 .button {
-    // normal state
+    // normal state for all buttons
 }
 
 .button:hover {

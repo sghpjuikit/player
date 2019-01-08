@@ -7,9 +7,8 @@ import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistItemGroup
-import sp.it.pl.gui.objects.contextmenu.ContextMenuBuilder
-import sp.it.pl.gui.objects.contextmenu.ContextMenuItemSuppliers
-import sp.it.pl.gui.objects.contextmenu.contextMenuItemBuilders
+import sp.it.pl.gui.objects.contextmenu.ContextMenuGenerator
+import sp.it.pl.gui.objects.contextmenu.contextMenuGenerator
 import sp.it.pl.gui.objects.contextmenu.item
 import sp.it.pl.gui.objects.contextmenu.menu
 import sp.it.pl.gui.objects.image.Thumbnail
@@ -48,7 +47,7 @@ import java.lang.reflect.Modifier
 class CoreMenus: Core {
 
     /** Menu item builders registered per class. */
-    val menuItemBuilders = contextMenuItemBuilders
+    val menuItemBuilders = contextMenuGenerator
 
     override fun init() {
         menuItemBuilders.init()
@@ -56,7 +55,7 @@ class CoreMenus: Core {
 
     override fun dispose() {}
 
-    private fun ContextMenuItemSuppliers.init() = apply {
+    private fun ContextMenuGenerator.init() = apply {
         add<Any> {
             item("Show available actions") { APP.actionPane.show(selected) }
             menu("Show in") {
@@ -184,13 +183,13 @@ class CoreMenus: Core {
                         { it.nameGui() },
                         { it.use(WidgetSource.NO_LAYOUT) { action(it) } })
 
-        private fun ContextMenuBuilder<*>.menuFor(contextMenu: ContextMenu, value: Any?) {
+        private fun ContextMenuGenerator.Builder<*>.menuFor(contextMenu: ContextMenu, value: Any?) {
             val menuName = APP.className.get(value?.javaClass ?: Void::class.java)
             menuFor(contextMenu, menuName, value)
         }
 
-        private fun ContextMenuBuilder<*>.menuFor(contextMenu: ContextMenu, menuName: String, value: Any?) =
-                menu(menuName, contextMenuItemBuilders[contextMenu, value])
+        private fun ContextMenuGenerator.Builder<*>.menuFor(contextMenu: ContextMenu, menuName: String, value: Any?) =
+                menu(menuName, contextMenuGenerator[contextMenu, value])
 
     }
 

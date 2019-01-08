@@ -421,33 +421,33 @@ fun ImageView.applyViewPort(i: Image?, fit: Thumbnail.FitFrom) {
 
 /* ---------- TOOLTIP ----------------------------------------------------------------------------------------------- */
 
-/** Equivalent to [Tooltip.install] */
+/** Equivalent to [Tooltip.install]. */
 @Suppress("DEPRECATION")
 infix fun Node.install(tooltip: Tooltip) = Tooltip.install(this, tooltip)
 
-/** Equivalent to [Tooltip.uninstall] */
+/** Equivalent to [Tooltip.uninstall]. */
 @Suppress("DEPRECATION")
 infix fun Node.uninstall(tooltip: Tooltip) = Tooltip.uninstall(this, tooltip)
 
 /* ---------- MENU -------------------------------------------------------------------------------------------------- */
 
-/** Create and add to items menu with specified text and graphics */
+/** Create and add to items menu with specified text and graphics. */
 inline fun Menu.menu(text: String, graphics: Node? = null, then: (Menu).() -> Unit) {
     items += Menu(text, graphics).apply { then() }
 }
 
-/** Create and add to items new menu item with specified text and action */
+/** Create and add to items new menu item with specified text and action. */
 fun Menu.item(text: String, action: (ActionEvent) -> Unit) = apply {
     items += menuItem(text, action)
 }
 
-/** Create and add to items new menu items with text and action derived from specified source */
+/** Create and add to items new menu items with text and action derived from specified source. */
 @Suppress("RedundantLambdaArrow")
 fun <A> Menu.items(source: Sequence<A>, text: (A) -> String, action: (A) -> Unit) {
     items += source.map { menuItem(text(it)) { _ -> action(it) } }.sortedBy { it.text }
 }
 
-/** Create and add to items new menu item with specified text and action */
+/** Create and add to items new menu separator. */
 fun Menu.separator() = apply {
     items += menuSeparator()
 }

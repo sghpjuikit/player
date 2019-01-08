@@ -2,7 +2,7 @@ package sp.it.pl.util.access.ref;
 
 import java.util.function.Supplier;
 import sp.it.pl.util.functional.Functors;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.Fail.noNull;
 
 /**
  * Lazy reference.

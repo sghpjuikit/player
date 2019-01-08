@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import sp.it.pl.util.HierarchicalBase;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.Fail.noNull;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.stream;
 

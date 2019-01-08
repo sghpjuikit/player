@@ -78,7 +78,7 @@ The project contains a shared code style in .idea/codeStyles for IDEA with defin
  - always check method parameters for all required conditions, always document these in @param tags
  - do not use java assertions
  - use runtime exceptions (e.g. AssertionError) or methods like Objects.requireNonNull(), 
-   util.dev.throwIf, util.dev.fail and never document them in @throw (to avoid anyone catching them)
+   util.dev.failIf, util.dev.fail and never document them in @throw (to avoid anyone catching them)
 
 ### Comments
  - always write javadoc for public elements, be as concise as possible, but describe and define full contract

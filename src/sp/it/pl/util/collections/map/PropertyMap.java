@@ -1,7 +1,7 @@
 package sp.it.pl.util.collections.map;
 
 import java.util.HashMap;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.Fail.noNull;
 
 /** HashMap for properties with additional utility methods. */
 public final class PropertyMap<K> extends HashMap<K,Object> {

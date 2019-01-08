@@ -15,7 +15,7 @@ import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.util.graphics.Util;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.Fail.noNull;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 

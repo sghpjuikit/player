@@ -14,8 +14,8 @@ import static java.util.stream.Collectors.toList;
 import static sp.it.pl.audio.tagging.ExtKt.readAudioFile;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noNull;
-import static sp.it.pl.util.dev.Util.throwIfFxThread;
+import static sp.it.pl.util.dev.Fail.noNull;
+import static sp.it.pl.util.dev.Fail.failIfFxThread;
 
 public class MetadataReader {
 
@@ -30,7 +30,7 @@ public class MetadataReader {
 	 * @return metadata for specified item or {@link Metadata#EMPTY} if any error. Never null.
 	 */
 	public static Metadata readMetadata(Item item) {
-		throwIfFxThread();
+		failIfFxThread();
 
 		if (item.isCorrupt(Use.APP)) {
 			return Metadata.EMPTY;

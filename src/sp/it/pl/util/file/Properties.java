@@ -27,7 +27,7 @@ import static java.util.stream.Collectors.toMap;
 import static sp.it.pl.util.Util.hasNoReadableText;
 import static sp.it.pl.util.Util.hasReadableText;
 import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.Fail.noNull;
 import static sp.it.pl.util.file.Util.isValidatedDirectory;
 import static sp.it.pl.util.functional.Util.byNC;
 

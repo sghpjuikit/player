@@ -112,8 +112,8 @@ import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.formatDuration;
 import static sp.it.pl.util.Util.pyth;
-import static sp.it.pl.util.dev.Util.throwIf;
-import static sp.it.pl.util.dev.Util.throwIfNot;
+import static sp.it.pl.util.dev.Fail.fail;
+import static sp.it.pl.util.dev.Fail.failIf;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.array;
 import static sp.it.pl.util.functional.Util.by;
@@ -439,7 +439,7 @@ interface Utils {
 		gc.strokeLine(cs[0].x, cs[0].y, cs[cs.length-1].x, cs[cs.length-1].y);
 	}
 	static void strokePolygon(GraphicsContext gc, double[] xs, double[] ys) {
-		throwIf(xs.length != ys.length);
+		failIf(xs.length != ys.length);
 		for (int j=0; j<xs.length-1; j++)
 			gc.strokeLine(xs[j], ys[j], xs[j+1], ys[j+1]);
 		gc.strokeLine(xs[0], ys[0], xs[xs.length-1], ys[ys.length-1]);
@@ -489,7 +489,7 @@ interface Utils {
 		drawHudCircle(gc, field, x, y, r, 0, D360, color);
 	}
 	static void drawHudPolygon(GraphicsContext gc, GameSize field, double[] xs, double[] ys, long pointCount) {
-		throwIfNot(xs.length==ys.length);
+		failIf(xs.length!=ys.length, () -> "Amount of x and y coordinates not equal");
 
 		for (int j=0; j<pointCount; j++) {
 			int k = j==pointCount-1 ? 0 : j+1;
@@ -550,11 +550,11 @@ interface Utils {
 	}
 	@SafeVarargs
 	static <T> T randOf(T... c) {
-		throwIf(c.length==0);
+		failIf(c.length==0);
 		return c[randInt(c.length)];
 	}
 	static <T> T randOf(Collection<T> c) {
-		throwIf(c.isEmpty());
+		failIf(c.isEmpty());
 		int size = c.size();
 		return c.stream().skip((long)(random()*(max(0,size)))).findAny().orElse(null);
 	}
@@ -941,7 +941,7 @@ interface Utils {
 		}
 
 		public TimeDouble(double from, double by, double to) {
-			throwIf((from<to && by<0) || (from>to && by>0));
+			failIf((from<to && by<0) || (from>to && by>0));
 			this.value = from;
 			this.from = from;
 			this.by = by;
@@ -989,7 +989,7 @@ interface Utils {
 		}
 
 		public TimeDouble setTo(double v) {
-			throwIf((by>0 && v<from && v>to) || (by<0 && v>from && v<to));
+			failIf((by>0 && v<from && v>to) || (by<0 && v>from && v<to));
 			value = v;
 			return this;
 		}

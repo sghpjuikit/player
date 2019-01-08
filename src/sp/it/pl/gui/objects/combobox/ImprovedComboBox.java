@@ -9,7 +9,7 @@ import javafx.scene.input.KeyCode;
 import sp.it.pl.gui.objects.search.Search;
 
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.Fail.noNull;
 
 /**
  * ComboBox with added functionalities.

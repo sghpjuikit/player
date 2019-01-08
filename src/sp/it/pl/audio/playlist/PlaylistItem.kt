@@ -11,7 +11,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.util.SwitchException
 import sp.it.pl.util.access.fieldvalue.ObjectFieldBase
 import sp.it.pl.util.async.runFX
-import sp.it.pl.util.dev.throwIfFxThread
+import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.Util
@@ -120,7 +120,7 @@ class PlaylistItem: Item {
         }
 
         if (isFileBased()) {
-            throwIfFxThread()
+            failIfFxThread()
             getFile()!!.readAudioFile().orNull()?.let { f ->
                 val t = f.tag ?: null
                 val h = f.audioHeader

@@ -15,7 +15,7 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cList
 import sp.it.pl.util.conf.cr
 import sp.it.pl.util.conf.only
-import sp.it.pl.util.dev.throwIfFxThread
+import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.file.Util.writeFile
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
@@ -55,7 +55,7 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
     }
 
     private fun readCache() {
-        throwIfFxThread()
+        failIfFxThread()
 
         val dirs = cacheFile.useLines { it.map { File(it) }.toList() }
         runFX {
@@ -79,7 +79,7 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
     }
 
     private fun writeCache(files: List<File>) {
-        throwIfFxThread()
+        failIfFxThread()
 
         val lines = files.asSequence().map { it.absolutePath }.joinToString("\n")
         writeFile(cacheFile, lines)

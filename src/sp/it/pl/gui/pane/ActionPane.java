@@ -77,7 +77,7 @@ import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.future.Fut.fut;
-import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
+import static sp.it.pl.util.dev.Fail.failIfNotFxThread;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
@@ -223,7 +223,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	private static final double CONTENT_SIZE_SCALE = 0.65;
 
 	protected void show() {
-		throwIfNotFxThread();
+		failIfNotFxThread();
 
 		setData(data);
 
@@ -250,7 +250,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	@Override
 	@SuppressWarnings("unchecked")
 	public final void show(Object data) {
-		throwIfNotFxThread();
+		failIfNotFxThread();
 
 		data = collectionUnwrap(data);
 		Class c = data==null ? Void.class : data.getClass();
@@ -320,7 +320,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	 * @return user selection of the data available
 	 */
 	public Object getData() {
-		throwIfNotFxThread();
+		failIfNotFxThread();
 
 		Object d = futureUnwrapOrThrow(data);
 		if (d instanceof Collection) {
@@ -336,7 +336,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 
 	@SuppressWarnings("unchecked")
 	private void setData(Object d) {
-		throwIfNotFxThread();
+		failIfNotFxThread();
 
 		// clear content
 		setActionInfo(null);

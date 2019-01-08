@@ -10,13 +10,14 @@ import org.jetbrains.annotations.NotNull;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.collections.map.ClassMap;
 import sp.it.pl.util.functional.Try;
+import sp.it.pl.util.functional.Util;
 import sp.it.pl.util.parsing.Parsers.Invokable;
 import sp.it.pl.util.parsing.Parsers.ParseDir;
 import sp.it.pl.util.parsing.StringParseStrategy.From;
 import sp.it.pl.util.parsing.StringParseStrategy.To;
 import static sp.it.pl.util.functional.Try.error;
 import static sp.it.pl.util.functional.Try.ok;
-import static sp.it.pl.util.functional.Util.noNull;
+import static sp.it.pl.util.functional.Util.findNonNull;
 import static sp.it.pl.util.parsing.Parsers.getMethodStatic;
 import static sp.it.pl.util.parsing.Parsers.getValueOfStatic;
 import static sp.it.pl.util.parsing.Parsers.noExWrap;
@@ -124,7 +125,7 @@ public class ConverterDefault extends Converter {
     public <T> String toS(T o) {
         if (o==null) return stringNull;
         String s = ((Function<T,Try<String,String>>) getParserToS(o.getClass())).apply(o).getOr(null);
-        return noNull(s, stringNull);
+        return findNonNull(s, stringNull);
     }
 
     @SuppressWarnings("unchecked")
@@ -139,7 +140,7 @@ public class ConverterDefault extends Converter {
 
     @SuppressWarnings("unchecked")
     private <T> Function<? super String,Try<T,String>> findOfSparser(Class<T> c) {
-        return (Function) noNull(
+        return (Function) findNonNull(
             () -> parsersFromS.getElementOfSuper(c),
             () -> buildOfSParser(c),
             () -> defaultFromS
@@ -148,7 +149,7 @@ public class ConverterDefault extends Converter {
 
     @SuppressWarnings("unchecked")
     private <T> Function<? super T,Try<String,String>> findToSparser(Class<T> c) {
-        return (Function) noNull(
+        return (Function) findNonNull(
             () -> parsersToS.getElementOfSuper(c),
             () -> buildToSParser(c),
             () -> defaultTos.andThen(Try::ok)

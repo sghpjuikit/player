@@ -26,8 +26,8 @@ import sp.it.pl.util.validation.Constraints;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static sp.it.pl.util.conf.ConfigurationUtilKt.obtainConfigGroup;
-import static sp.it.pl.util.dev.Util.throwIfFinal;
-import static sp.it.pl.util.dev.Util.throwIfNotFinal;
+import static sp.it.pl.util.dev.Fail.failIfFinal;
+import static sp.it.pl.util.dev.Fail.failIfNotFinal;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.type.Util.getAllFields;
@@ -96,7 +96,7 @@ public class ConfigurationUtil {
 			return newFromProperty(f, instance, name, annotation, group);
 		} else {
 			try {
-				if (annotation.editable()==EditMode.NONE) throwIfNotFinal(f); else throwIfFinal(f);
+				if (annotation.editable()==EditMode.NONE) failIfNotFinal(f); else failIfFinal(f);
 				f.setAccessible(true);
 				MethodHandle getter = methodLookup.unreflectGetter(f);
 				MethodHandle setter = methodLookup.unreflectSetter(f);
@@ -111,7 +111,7 @@ public class ConfigurationUtil {
 	@SuppressWarnings("unchecked")
 	private static <T> Config<T> newFromProperty(Field f, T instance, String name, IsConfig annotation, String group) {
 		try {
-			throwIfNotFinal(f);
+			failIfNotFinal(f);
 			f.setAccessible(true);
 			if (VarList.class.isAssignableFrom(f.getType())) {
 				Class<T> property_type = getGenericPropertyType(f.getGenericType());
@@ -146,7 +146,7 @@ public class ConfigurationUtil {
 	@SuppressWarnings("unchecked")
 	private static <T> Config<T> newFromConfig(Field f, Object instance) {
 		try {
-			throwIfNotFinal(f);
+			failIfNotFinal(f);
 			f.setAccessible(true);
 			Config<T> config = (Config<T>) f.get(instance);
 			((ConfigBase) config).constraints = constraintsOf(config.getType(), f.getAnnotations());

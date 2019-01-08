@@ -16,7 +16,7 @@ import sp.it.pl.layout.widget.controller.io.Inputs;
 import sp.it.pl.layout.widget.controller.io.Outputs;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.dev.Dependency;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.Fail.noNull;
 
 /**
  * Controller for widgets built around fxml files. See {@link javafx.fxml.FXMLLoader}.

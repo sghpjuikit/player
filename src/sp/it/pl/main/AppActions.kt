@@ -52,7 +52,7 @@ import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.conf.ValueConfig
 import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.stackTraceAsString
-import sp.it.pl.util.dev.throwIfFxThread
+import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.functional.asIf
@@ -424,7 +424,7 @@ class AppActions {
      */
     @Blocks
     fun printAllImageFileMetadata(file: File) {
-        throwIfFxThread()
+        failIfFxThread()
 
         val title = "Metadata of "+file.path
         val text = try {
@@ -446,7 +446,7 @@ class AppActions {
 
     @Blocks
     fun printAllAudioItemMetadata(item: Item) {
-        throwIfFxThread()
+        failIfFxThread()
 
         if (item.isFileBased()) {
             printAllAudioFileMetadata(item.getFile())
@@ -462,7 +462,7 @@ class AppActions {
      */
     @Blocks
     fun printAllAudioFileMetadata(file: File?) {
-        throwIfFxThread()
+        failIfFxThread()
 
         val title = "Metadata of "+file!!.path
         val content = file.readAudioFile()

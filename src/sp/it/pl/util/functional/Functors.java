@@ -22,7 +22,7 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.Config.AccessorConfig;
 import sp.it.pl.util.conf.Configurable;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.Fail.noNull;
 import static sp.it.pl.util.functional.Util.IDENTITY;
 import static sp.it.pl.util.functional.Util.IS;
 import static sp.it.pl.util.functional.Util.ISNT;

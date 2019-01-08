@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.Fail.noNull;
 
 /**
  * All image file types known and supported by application except for UNKNOWN that

@@ -5,7 +5,7 @@ import java.io.File;
 import java.util.Objects;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.Fail.noNull;
 
 /**
  * Denotes Cover represented by a {@link javafx.scene.image.Image} or {@link java.awt.image.BufferedImage}.

@@ -50,8 +50,8 @@ import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static sp.it.pl.util.dev.Util.throwIf;
-import static sp.it.pl.util.dev.Util.throwIfNot;
+import static sp.it.pl.util.dev.Fail.fail;
+import static sp.it.pl.util.dev.Fail.failIf;
 
 @SuppressWarnings("unused")
 public interface Util {
@@ -286,7 +286,7 @@ public interface Util {
 	 * @throws NullPointerException if argument is null
 	 */
 	static <E, C extends Comparable<? super C>> Comparator<E> by(Function<? super E,? extends C> extractor) {
-		noNull(extractor);
+		findNonNull(extractor);
 		return by(extractor, Comparable::compareTo);
 	}
 
@@ -324,8 +324,8 @@ public interface Util {
 	 * }</pre>
 	 */
 	static <E, C> Comparator<E> by(Function<? super E,? extends C> extractor, Comparator<? super C> comparator) {
-		noNull(extractor);
-		noNull(comparator);
+		findNonNull(extractor);
+		findNonNull(comparator);
 		return (Comparator<E> & Serializable) (a, b) -> comparator.compare(extractor.apply(a), extractor.apply(b));
 	}
 
@@ -346,8 +346,8 @@ public interface Util {
 	 * {@link Comparator#nullsFirst(java.util.Comparator)}).
 	 */
 	static <E, C extends Comparable<? super C>> Comparator<E> by(Function<? super E,? extends C> extractor, Function<Comparator<? super C>,Comparator<? super C>> comparatorModifier) {
-		noNull(extractor);
-		noNull(comparatorModifier);
+		findNonNull(extractor);
+		findNonNull(comparatorModifier);
 		return (Comparator<E> & Serializable) (a, b) -> comparatorModifier.apply(Comparator.naturalOrder()).compare(extractor.apply(a), extractor.apply(b));
 	}
 
@@ -373,7 +373,7 @@ public interface Util {
 
 	@SuppressWarnings("unchecked")
 	static <NN> Ƒ1<?,NN> mapNulls(NN non_null) {
-		noNull(non_null);
+		findNonNull(non_null);
 		return (Ƒ1) in -> in==null ? non_null : in;
 	}
 
@@ -420,38 +420,38 @@ public interface Util {
 		};
 	}
 
-	/** Faster alternative to {@link #noNull(java.lang.Object...) }. */
-	static <O> O noNull(O o1, O o2) {
+	/** Faster alternative to {@link #findNonNull(java.lang.Object...) }. */
+	static <O> O findNonNull(O o1, O o2) {
 		return o1!=null ? o1 : o2;
 	}
 
-	/** Faster alternative to {@link #noNull(java.lang.Object...) }. */
-	static <O> O noNull(O o1, O o2, O o3) {
+	/** Faster alternative to {@link #findNonNull(java.lang.Object...) }. */
+	static <O> O findNonNull(O o1, O o2, O o3) {
 		return o1!=null ? o1 : o2!=null ? o2 : o3;
 	}
 
-	/** Faster alternative to {@link #noNull(java.lang.Object...) }. */
-	static <O> O noNull(O o1, O o2, O o3, O o4) {
+	/** Faster alternative to {@link #findNonNull(java.lang.Object...) }. */
+	static <O> O findNonNull(O o1, O o2, O o3, O o4) {
 		return o1!=null ? o1 : o2!=null ? o2 : o3!=null ? o3 : o4;
 	}
 
 	/** Returns the first non null object or null if all null. */
 	@SafeVarargs
-	static <O> O noNull(O... objects) {
+	static <O> O findNonNull(O... objects) {
 		for (O o : objects)
 			if (o!=null) return o;
 		return null;
 	}
 
-	/** Faster alternative to {@link #noNull(java.util.function.Supplier...) }. */
-	static <I> I noNull(Supplier<I> supplier1, Supplier<I> supplier2) {
+	/** Faster alternative to {@link #findNonNull(java.util.function.Supplier...) }. */
+	static <I> I findNonNull(Supplier<I> supplier1, Supplier<I> supplier2) {
 		I i = supplier1.get();
 		if (i!=null) return i;
 		return supplier2.get();
 	}
 
-	/** Faster alternative to {@link #noNull(java.util.function.Supplier...) }. */
-	static <I> I noNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3) {
+	/** Faster alternative to {@link #findNonNull(java.util.function.Supplier...) }. */
+	static <I> I findNonNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3) {
 		I i = supplier1.get();
 		if (i!=null) return i;
 		i = supplier2.get();
@@ -459,8 +459,8 @@ public interface Util {
 		return supplier3.get();
 	}
 
-	/** Faster alternative to {@link #noNull(java.util.function.Supplier...) }. */
-	static <I> I noNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3, Supplier<I> supplier4) {
+	/** Faster alternative to {@link #findNonNull(java.util.function.Supplier...) }. */
+	static <I> I findNonNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3, Supplier<I> supplier4) {
 		I i = supplier1.get();
 		if (i!=null) return i;
 		i = supplier2.get();
@@ -472,7 +472,7 @@ public interface Util {
 
 	/** Returns the first supplied non null value or null if all null by iterating the suppliers. */
 	@SafeVarargs
-	static <I> I noNull(Supplier<I>... suppliers) {
+	static <I> I findNonNull(Supplier<I>... suppliers) {
 		for (Supplier<I> s : suppliers) {
 			I i = s.get();
 			if (i!=null) return i;
@@ -875,32 +875,32 @@ public interface Util {
 
 	/** Loops over both lists simultaneously. Must be of the same size. */
 	static <A, B> void forEachBoth(List<A> a, List<B> b, BiConsumer<A,B> action) {
-		throwIfNot(a.size()==b.size());
+		failIf(a.size()!=b.size());
 		for (int i = 0; i<a.size(); i++)
 			action.accept(a.get(i), b.get(i));
 	}
 
 	/** Loops over both arrays simultaneously. Must be of the same size. */
 	static <A, B> void forEachBoth(A[] a, B[] b, BiConsumer<A,B> action) {
-		throwIfNot(a.length==b.length);
+		failIf(a.length!=b.length);
 		for (int i = 0; i<a.length; i++)
 			action.accept(a[i], b[i]);
 	}
 
 	static void forEachBoth(int[] a, int[] b, IntBiConsumer action) {
-		throwIfNot(a.length==b.length);
+		failIf(a.length!=b.length);
 		for (int i = 0; i<a.length; i++)
 			action.accept(a[i], b[i]);
 	}
 
 	static void forEachBoth(long[] a, long[] b, LongBiConsumer action) {
-		throwIfNot(a.length==b.length);
+		failIf(a.length!=b.length);
 		for (int i = 0; i<a.length; i++)
 			action.accept(a[i], b[i]);
 	}
 
 	static void forEachBoth(double[] a, double[] b, DoubleBiConsumer action) {
-		throwIfNot(a.length==b.length);
+		failIf(a.length!=b.length);
 		for (int i = 0; i<a.length; i++)
 			action.accept(a[i], b[i]);
 	}
@@ -1064,30 +1064,30 @@ public interface Util {
 	}
 
 	static <R> Stream<R> forEachInLine(double fromX, double fromY, double toX, double toY, long count, BiFunction<Double,Double,R> mapper) {
-		throwIf(count<0);
+		failIf(count<0);
 		return forEachInLineBy(fromX, fromY, count<=1 ? 0 : (toX - fromX)/(count - 1), count<=1 ? 0 : (toY - fromY)/(count - 1), count, mapper);
 	}
 
 	static <R> Stream<R> forEachInLineBy(double x, double y, double byX, double byY, long count, BiFunction<Double,Double,R> mapper) {
-		throwIf(count<0);
+		failIf(count<0);
 		return IntStream.iterate(0, i -> i<=count, i -> i + 1)
 				.mapToObj(i -> mapper.apply(x + i*byX, y + i*byY));
 	}
 
 	static <R> Stream<R> forEachOnCircle(long count, TriFunction<Double,Double,Double,R> mapper) {
-		throwIf(count<0);
+		failIf(count<0);
 		return forEachOnCircle(0, 0, 1, count, mapper);
 	}
 
 	static <R> Stream<R> forEachOnCircleBy(double x, double y, double by, long count, TriFunction<Double,Double,Double,R> mapper) {
-		throwIf(count<0);
+		failIf(count<0);
 		double circumference = by*count;
 		double radius = circumference/(2*PI);
 		return forEachOnCircle(x, y, radius, count, mapper);
 	}
 
 	static <R> Stream<R> forEachOnCircle(double x, double y, double radius, long count, TriFunction<Double,Double,Double,R> mapper) {
-		throwIf(count<0);
+		failIf(count<0);
 		return DoubleStream.iterate(0, a -> a + 2*PI/count)
 				.limit(count)
 				.mapToObj(a -> mapper.apply(x + radius*cos(a), y + radius*sin(a), a));
@@ -1255,7 +1255,7 @@ public interface Util {
 	}
 
 	static <A, B, R> Stream<R> streamBi(A[] a, B[] b, Ƒ2<A,B,R> zipper) {
-		throwIfNot(a.length==b.length);
+		failIf(a.length!=b.length);
 		Stream.Builder<R> builder = Stream.builder();
 		for (int i = 0; i<a.length; i++)
 			builder.accept(zipper.apply(a[i], b[i]));

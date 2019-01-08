@@ -5,7 +5,7 @@ import sp.it.pl.audio.Item
 import sp.it.pl.audio.SimpleItem
 import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.fail
-import sp.it.pl.util.dev.throwIfFxThread
+import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.file.div
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.parentDir
@@ -23,7 +23,7 @@ private val logger = KotlinLogging.logger { }
 @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @Blocks
 fun readPlaylist(file: File): List<Item> {
-    throwIfFxThread()
+    failIfFxThread()
 
     val location = file.parentDir ?: fail { "File=$file is not a playlist file" }
     val encoding = when {
@@ -51,7 +51,7 @@ fun readPlaylist(file: File): List<Item> {
 
 @Blocks
 fun writePlaylist(playlist: List<Item>, name: String, dir: File) {
-    throwIfFxThread()
+    failIfFxThread()
 
     val file = dir/"$name.m3u8"
     file.bufferedWriter(Charsets.UTF_8).use { writer ->

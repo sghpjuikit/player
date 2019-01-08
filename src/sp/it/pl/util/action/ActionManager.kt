@@ -17,7 +17,7 @@ import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.readOnlyUnless
-import sp.it.pl.util.hotkey.Hotkeys
+import sp.it.pl.service.hotkey.Hotkeys
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.onItemSync
 import sp.it.pl.util.reactive.syncIntoWhile

@@ -66,9 +66,6 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 	private static final TableContextMenuR<PlaylistItemGroup> contextMenu = new TableContextMenuR<>();
 
 	public final V<Boolean> scrollToPlaying = new V<>(true);
-	private final TableColumn<PlaylistItem,String> columnName;
-	private final TableColumn<PlaylistItem,Dur> columnTime;
-
 	private double selectionLastScreenY;
 	private ArrayList<Integer> selectionTmp = new ArrayList<>();
 	private final Subscription d1;
@@ -86,7 +83,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 		// initialize column factories
 		setColumnFactory(f -> {
 			TableColumn<PlaylistItem,Object> c = new TableColumn<>(f.toString());
-			boolean hasPropertyGetter = f==(PlaylistItem.Field)NAME || f==(PlaylistItem.Field)LENGTH;
+			boolean hasPropertyGetter = f==(Object) NAME || f==(Object) LENGTH;
 			c.setCellValueFactory(hasPropertyGetter
 				? new PropertyValueFactory<>(f.name().toLowerCase())
 				: cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue()))
@@ -96,8 +93,6 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 			return c;
 		});
 		setColumnState(getDefaultColumnInfo());
-		columnName = getColumn(NAME).get();
-		columnTime = getColumn(LENGTH).get();
 
 		// initialize row factories
 		setRowFactory(t -> new ImprovedTableRow<>() {
@@ -131,15 +126,13 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 		// maintain playing item css by refreshing first column
 		d1 = Player.playingItem.onChange(o -> refreshFirstColumn());
 
-		// TODO: algorithm breaks down if TITLE and NAME are both visible, fix
 		// resizing
 		setColumnResizePolicySafe(resize -> {
 			if (resize==null) return true;
 
 			// handle column resize (except index)
 			if (resize.getColumn()!=null && resize.getColumn()!=columnIndex) {
-				if (getColumns().contains(columnName))
-					columnName.setPrefWidth(columnName.getWidth() - resize.getDelta());
+				getColumn(NAME).ifPresent(it -> it.setPrefWidth(it.getWidth() - resize.getDelta()));
 				resize.getColumn().setPrefWidth(resize.getColumn().getWidth() + resize.getDelta());
 
 				// do not return - after resizing the resized column, we go resize
@@ -153,7 +146,6 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 			double sw = getVScrollbarWidth();
 			double gap = 3;               // prevents horizontal slider from appearing
 
-
 			getColumn(ColumnField.INDEX).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth()));
 			getColumn(LENGTH).ifPresent(c -> {
 				double mt = getItems().stream().mapToDouble(PlaylistItem::getTimeMs).max().orElse(6000);
@@ -161,7 +153,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 				c.setPrefWidth(width);
 			});
 
-			TableColumn<PlaylistItem,?> mc = isColumnVisible(NAME) ? columnName : getColumn(TITLE).orElse(null);
+			TableColumn<?,?> mc = isColumnVisible(NAME) ? getColumn(NAME).get() : getColumn(TITLE).orElse(null);
 			if (mc!=null) {
 				double Σcw = resize.getTable().getColumns().stream()
 						.filter(c -> c!=mc)

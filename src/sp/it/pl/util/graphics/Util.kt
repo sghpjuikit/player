@@ -436,9 +436,6 @@ inline fun Menu.menu(text: String, graphics: Node? = null, then: (Menu).() -> Un
     items += Menu(text, graphics).apply { then() }
 }
 
-/** Equivalent to [menuItem]. Use [menuItem] if this method causes ambiguity with [Menu.item] within [Menu] scope. */
-fun item(text: String, action: (ActionEvent) -> Unit) = menuItem(text, action)
-
 /** Create and add to items new menu item with specified text and action */
 fun Menu.item(text: String, action: (ActionEvent) -> Unit) = apply {
     items += menuItem(text, action)
@@ -448,6 +445,11 @@ fun Menu.item(text: String, action: (ActionEvent) -> Unit) = apply {
 @Suppress("RedundantLambdaArrow")
 fun <A> Menu.items(source: Sequence<A>, text: (A) -> String, action: (A) -> Unit) {
     items += source.map { menuItem(text(it)) { _ -> action(it) } }.sortedBy { it.text }
+}
+
+/** Create and add to items new menu item with specified text and action */
+fun Menu.separator() = apply {
+    items += menuSeparator()
 }
 
 /* ---------- POINT ------------------------------------------------------------------------------------------------- */

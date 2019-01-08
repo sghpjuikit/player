@@ -1,5 +1,6 @@
 package sp.it.pl.core
 
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Menu
 import javafx.scene.input.DataFormat
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -8,8 +9,8 @@ import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistItemGroup
 import sp.it.pl.gui.objects.contextmenu.ContextMenuBuilder
 import sp.it.pl.gui.objects.contextmenu.ContextMenuItemSuppliers
-import sp.it.pl.gui.objects.contextmenu.ImprovedContextMenu
 import sp.it.pl.gui.objects.contextmenu.contextMenuItemBuilders
+import sp.it.pl.gui.objects.contextmenu.item
 import sp.it.pl.gui.objects.contextmenu.menu
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.WidgetSource
@@ -18,7 +19,6 @@ import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.APP
-import sp.it.pl.main.Widgets
 import sp.it.pl.main.browseMultipleFiles
 import sp.it.pl.main.configure
 import sp.it.pl.util.conf.ConfigurableBase
@@ -45,7 +45,6 @@ import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
 
-@Suppress("UNUSED_ANONYMOUS_PARAMETER")
 class CoreMenus: Core {
 
     /** Menu item builders registered per class. */
@@ -59,8 +58,8 @@ class CoreMenus: Core {
 
     private fun ContextMenuItemSuppliers.init() = apply {
         add<Any> {
-            item("Show detail") { APP.actionPane.show(selected) }
-            menu("Examine in") {
+            item("Show available actions") { APP.actionPane.show(selected) }
+            menu("Show in") {
                 widgetItems<Opener> { it.open(selected) }
             }
             if (APP.developerMode)
@@ -91,12 +90,12 @@ class CoreMenus: Core {
             item("Copy as ...") {
                 object: ConfigurableBase<Any?>() {
                     @IsConfig(name = "File") val file by cv(APP.DIR_APP).only(DIRECTORY)
-                    @IsConfig(name = "Make files writable if read-only") val overwrite by cv(false)
-                    @IsConfig(name = "Edit in ${Widgets.SONG_TAGGER}") val onError by cv(OnErrorAction.SKIP)
+                    @IsConfig(name = "Overwrite") val overwrite by cv(false)
+                    @IsConfig(name = "On error") val onError by cv(OnErrorAction.SKIP)
                 }.configure("Copy as...") {
-                    selected.copyRecursively(it.file.value/selected.name, it.overwrite.value) { f, e ->
+                    selected.copyRecursively(it.file.value/selected.name, it.overwrite.value) { _, e ->
                         logger.warn(e) { "File copy failed" }
-                        OnErrorAction.SKIP
+                        it.onError.value
                     }.ifFalse {
                         APP.messagePane.show("File $selected copy failed")
                     }
@@ -185,12 +184,12 @@ class CoreMenus: Core {
                         { it.nameGui() },
                         { it.use(WidgetSource.NO_LAYOUT) { action(it) } })
 
-        private fun ContextMenuBuilder<*>.menuFor(contextMenu: ImprovedContextMenu<*>, value: Any?) {
+        private fun ContextMenuBuilder<*>.menuFor(contextMenu: ContextMenu, value: Any?) {
             val menuName = APP.className.get(value?.javaClass ?: Void::class.java)
             menuFor(contextMenu, menuName, value)
         }
 
-        private fun ContextMenuBuilder<*>.menuFor(contextMenu: ImprovedContextMenu<*>, menuName: String, value: Any?) =
+        private fun ContextMenuBuilder<*>.menuFor(contextMenu: ContextMenu, menuName: String, value: Any?) =
                 menu(menuName, contextMenuItemBuilders[contextMenu, value])
 
     }

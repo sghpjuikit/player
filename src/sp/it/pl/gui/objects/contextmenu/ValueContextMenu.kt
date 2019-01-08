@@ -7,7 +7,6 @@ import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
-import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.input.ContextMenuEvent
 import javafx.scene.input.MouseEvent
 import sp.it.pl.gui.pane.collectionUnwrap
@@ -20,18 +19,15 @@ import sp.it.pl.util.functional.getElementType
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.menuItem
-
-private typealias ItemsSupply = (ImprovedContextMenu<*>, Any?) -> Sequence<MenuItem>
+import sp.it.pl.util.graphics.menuSeparator
 
 val contextMenuItemBuilders = ContextMenuItemSuppliers()
 
 /**
  * Context menu wrapping a value - usually an object set before showing, for menu items' action.
  * It can then generate the items based on the value from supported actions, using [contextMenuItemBuilders].
- *
- * [ValueContextMenu] is usually superior, as it also handles Collections.
  */
-open class ImprovedContextMenu<E: Any?>: ContextMenu(), AccessibleValue<E> {
+open class ValueContextMenu<E: Any?>: ContextMenu(), AccessibleValue<E> {
 
     protected var v: E? = null
 
@@ -67,23 +63,10 @@ open class ImprovedContextMenu<E: Any?>: ContextMenu(), AccessibleValue<E> {
 
 }
 
-/**
- * [ImprovedContextMenu], which supports collection unwrapping in [setValue]
- * - empty collection will be handled as null
- * - collection with one element will be unwrapped
- * This is convenient for multi-select controls.
- */
-class ValueContextMenu: ImprovedContextMenu<Any?>() {
-
-    override fun setValue(value: Any?) {
-        v = collectionUnwrap(value)
-    }
-
-}
-
+/** Context menu generator with per type generator registry */
 class ContextMenuItemSuppliers {
-    private val mSingle = ClassListMap<ItemsSupply> { fail() }
-    private val mMany = ClassListMap<ItemsSupply> { fail() }
+    private val mSingle = ClassListMap<(ContextMenu, Any?) -> Sequence<MenuItem>> { fail() }
+    private val mMany = ClassListMap<(ContextMenu, Any?) -> Sequence<MenuItem>> { fail() }
 
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> add(type: Class<T>, items: ContextMenuBuilder<T>.() -> Unit) {
@@ -103,26 +86,24 @@ class ContextMenuItemSuppliers {
 
     inline fun <reified T: Any> addMany(noinline items: ContextMenuBuilder<Collection<T>>.() -> Unit) = addMany(T::class.java, items)
 
-    operator fun get(contextMenu: ImprovedContextMenu<*>, value: Any?): Sequence<MenuItem> {
+    operator fun get(contextMenu: ContextMenu, value: Any?): Sequence<MenuItem> {
         val valueSingle = value?.let { collectionUnwrap(it) }
         val valueMulti = value?.let { collectionWrap(value) }?.takeUnless { it.isEmpty() }
         val items1 = mSingle.getElementsOfSuperV(valueSingle?.javaClass ?: Void::class.java).asSequence()
-                .map { it(contextMenu, contextMenu.value) }
-                .flatMap { sequenceOf(SeparatorMenuItem()).plus(it) }.drop(1)
+                .map { it(contextMenu, value) }
         val itemsN = if (valueMulti is Collection<*>) {
             mMany.getElementsOfSuperV(valueMulti.getElementType()).asSequence()
-                    .map { it(contextMenu, contextMenu.value) }
-                    .flatMap { sequenceOf(SeparatorMenuItem()).plus(it) }.drop(1)
+                    .map { it(contextMenu, value) }
         } else {
             sequenceOf()
         }
-        return items1+itemsN
+        return (items1+itemsN).flatMap { sequenceOf(menuSeparator())+it }.drop(1)
     }
 
 }
 
 /** Allows DSL for [ContextMenuItemSuppliers]. */
-class ContextMenuBuilder<T>(val contextMenu: ImprovedContextMenu<*>, val selected: T) {
+class ContextMenuBuilder<T>(val contextMenu: ContextMenu, val selected: T) {
 
     private val items = ArrayList<MenuItem>()
 
@@ -133,13 +114,15 @@ class ContextMenuBuilder<T>(val contextMenu: ImprovedContextMenu<*>, val selecte
         return item
     }
 
-    fun item(text: String, handler: (ActionEvent) -> Unit) =
-            item(menuItem(text, handler))
 }
 
+fun ContextMenuBuilder<*>.item(text: String, handler: (ActionEvent) -> Unit) =
+        item(menuItem(text, handler))
 
 fun ContextMenuBuilder<*>.menu(text: String, graphic: Node? = null, items: Menu.() -> Unit) =
         item(sp.it.pl.util.graphics.menu(text, graphic, items))
 
 fun ContextMenuBuilder<*>.menu(text: String, items: Sequence<MenuItem> = seqOf()) =
         item(Menu(text, null, *items.asArray()))
+
+fun ContextMenuBuilder<*>.separator() = item(menuSeparator())

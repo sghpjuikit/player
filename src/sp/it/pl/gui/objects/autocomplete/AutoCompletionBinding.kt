@@ -41,8 +41,6 @@ import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.minPrefMaxWidth
 import sp.it.pl.util.reactive.Handler1
 
-typealias Suggestions<T> = (String) -> Collection<T>
-
 /**
  * Base class for auto-completion bindings.
  *
@@ -76,7 +74,7 @@ abstract class AutoCompletionBinding<T> {
      * @param suggestionProvider The strategy to retrieve suggestions
      * @param converter The converter to be used to convert suggestions to strings
      */
-    protected constructor(completionTarget: Node, suggestionProvider: Suggestions<T>, converter: StringConverter<T>) {
+    protected constructor(completionTarget: Node, suggestionProvider: (String) -> Collection<T>, converter: StringConverter<T>) {
         this.completionTarget = completionTarget
         this.popup.converter = converter
         this.suggestionProviderEventReducer = toLast(250.0) { text ->

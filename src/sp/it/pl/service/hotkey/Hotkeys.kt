@@ -1,4 +1,4 @@
-package sp.it.pl.util.hotkey
+package sp.it.pl.service.hotkey
 
 import javafx.scene.input.KeyCode
 import mu.KLogging

@@ -13,7 +13,7 @@ import java.lang.Math.abs
 
 class Balancer: Control {
 
-    /** The step value to inctement/decrement balance value by. */
+    /** The step value to increment/decrement balance value by. */
     val step = SimpleDoubleProperty(this, "max", 0.2)
     /** The maximum balance value. */
     val max = SimpleDoubleProperty(this, "max", 1.0)
@@ -37,7 +37,7 @@ class Balancer: Control {
     constructor(balance: BalanceProperty): this(balance.get(), balance.min, balance.max)
 
     constructor(balance: Double, min: Double, max: Double) {
-        styleClass.setAll(STYLECLASS)
+        styleClass += STYLECLASS
         this.min.value = min
         this.max.value = max
         this.balance.value = balance

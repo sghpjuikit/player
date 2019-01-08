@@ -73,8 +73,6 @@ import java.nio.file.Path
 import java.util.ArrayList
 import kotlin.streams.asSequence
 
-private typealias Settings = ConfiguringFeature
-
 private val logger = KotlinLogging.logger { }
 
 private fun Any?.orNone(): Any = this ?: "<none>"
@@ -272,11 +270,11 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
 
 private fun doAction(o: Any?, otherwise: () -> Unit) {
     when (o) {
-        is Node -> APP.widgetManager.widgets.use<Settings>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
-        is javafx.stage.Window -> APP.widgetManager.widgets.use<Settings>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
+        is Node -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
+        is javafx.stage.Window -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
         is File -> o.open()
-        is Configurable<*> -> APP.widgetManager.widgets.use<Settings>(ANY) { it.configure(o) }
-        is Name -> APP.widgetManager.widgets.use<Settings>(ANY) { it.configure(APP.configuration.fields.filter { it.group==o.pathUp }) }
+        is Configurable<*> -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(o) }
+        is Name -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(APP.configuration.fields.filter { it.group==o.pathUp }) }
         is TreeItem<*> -> doAction(o.value, otherwise)
         is HierarchicalBase<*, *> -> doAction(o.`val`, otherwise)
         else -> otherwise()

@@ -238,8 +238,7 @@ tasks {
     }
 
     "run"(JavaExec::class) {
-        // the widgets need the jar in their classpath
-        dependsOn(jar)
+        dependsOn(jar)  // the widgets need the jar on the classpath
         group = main
         workingDir = dirWorking
     }

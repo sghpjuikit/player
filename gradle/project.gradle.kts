@@ -220,7 +220,7 @@ tasks {
         }
     }
 
-    "jar"(Jar::class) {
+    val jar by getting(Jar::class) {
         dependsOn(copyLibs, kotlinc)
         group = main
         destinationDir = dirWorking
@@ -237,15 +237,16 @@ tasks {
         )
     }
 
+    "run"(JavaExec::class) {
+        // the widgets need the jar in their classpath
+        dependsOn(jar)
+        group = main
+        workingDir = dirWorking
+    }
+
     "build" {
         dependsOn(":widgets:build")
         group = main
-    }
-
-    "run"(JavaExec::class) {
-        dependsOn(copyLibs, kotlinc)
-        group = main
-        workingDir = dirWorking
     }
 
     getByName("compileKotlin").dependsOn(linkJdk)

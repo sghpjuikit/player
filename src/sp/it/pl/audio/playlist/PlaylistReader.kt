@@ -25,11 +25,11 @@ private val logger = KotlinLogging.logger { }
 fun readPlaylist(file: File): List<Item> {
     throwIfFxThread()
 
-    val location = file.parentDir ?: fail("File=$file is not a playlist file")
+    val location = file.parentDir ?: fail { "File=$file is not a playlist file" }
     val encoding = when {
         file hasExtension "m3u" -> Charset.defaultCharset()
         file hasExtension "m3u8" -> Charsets.UTF_8
-        else -> fail("File=$file is not a supported playlist file")
+        else -> fail { "File=$file is not a supported playlist file" }
     }
 
     file.useLines(encoding) { lines ->

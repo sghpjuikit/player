@@ -111,7 +111,7 @@ fun main(args: Array<String>) {
     // User can also better see what the application is doing
     val tmp = File("user", "tmp").absoluteFile
     if (!isValidatedDirectory(tmp))
-        fail("App can't write to $tmp!")
+        fail { "App can't write to $tmp!" }
     System.setProperty("java.io.tmpdir", tmp.absolutePath)
     System.setProperty("user.home", tmp.absolutePath)
 
@@ -130,7 +130,7 @@ private typealias C = IsConfig
 class App: Application(), Configurable<Any> {
 
     init {
-        APP = this.takeUnless { ::APP.isInitialized } ?: fail("Multiple application instances disallowed")
+        APP = this.takeUnless { ::APP.isInitialized } ?: fail { "Multiple application instances disallowed" }
     }
 
     private var closedPrematurely = false
@@ -553,10 +553,10 @@ class App: Application(), Configurable<Any> {
 
     private fun File.initForApp() = apply {
         if (!isAbsolute)
-            fail("File $this is not absolute")
+            fail { "File $this is not absolute" }
 
         if (!isValidatedDirectory(this))
-            fail("File $this is not accessible")
+            fail { "File $this is not accessible" }
     }
 
     companion object: KLogging() {

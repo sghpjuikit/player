@@ -110,7 +110,7 @@ class Hotkeys {
     fun register(action: Action, keys: String) {
         val keyString = keys.substringAfterLast('+').trim().toLowerCase().replace('_', ' ')
         val key = KeyCode.values().find { k -> k.getName().equals(keyString, true) }
-                ?: fail("No KeyCode for ${action.keys}")
+                ?: fail { "No KeyCode for ${action.keys}" }
         register(
                 action,
                 key,

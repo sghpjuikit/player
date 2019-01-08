@@ -61,8 +61,8 @@ open class AutoCompletePopup<T>: PopupControl() {
     fun show(node: Node) {
         if (isShowing) return
 
-        val scene = node.scene ?: fail("Can not show popup. The node must be attached to a scene.")
-        val window = scene.window ?: fail("Can not show popup. The node must be attached to a window.")
+        val scene = node.scene ?: fail { "Can not show popup. The node must be attached to a scene." }
+        val window = scene.window ?: fail { "Can not show popup. The node must be attached to a window." }
         this.show(
                 window,
                 window.x+node.localToScene(0.0, 0.0).x+scene.x,

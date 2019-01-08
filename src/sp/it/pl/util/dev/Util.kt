@@ -13,12 +13,14 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 
-fun fail(message: String? = null): Nothing = throw AssertionError(message)
+fun fail(): Nothing = fail { null }
+
+inline fun fail(message: () -> String?): Nothing = throw AssertionError(message())
 
 fun throwIf(v: Boolean) = throwIf(v, { "" })
 
 inline fun throwIf(v: Boolean, message: () -> String) {
-    if (v) fail("Requirement condition not met: ${message()}")
+    if (v) fail { "Requirement condition not met: ${message()}" }
 }
 
 fun throwIfNot(v: Boolean) = throwIf(!v, { "" })
@@ -27,7 +29,7 @@ inline fun throwIfNot(v: Boolean, message: () -> String) = throwIf(!v, message)
 
 fun <T> noNull(o: T?) = o.noNull()
 
-inline fun <T> T?.noNull(message: () -> String = { "" }): T = this ?: fail("Null forbidden: ${message()}")
+inline fun <T> T?.noNull(message: () -> String = { "" }): T = this ?: fail { "Null forbidden: ${message()}" }
 
 fun throwIfFxThread() {
     throwIf(Platform.isFxApplicationThread()) { "Must not be invoked on FX application thread!" }

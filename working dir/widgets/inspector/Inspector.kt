@@ -164,7 +164,6 @@ class Inspector(widget: Widget<*>): SimpleController(widget), FileExplorerFeatur
             data is File -> exploreFile(data)
             data is Node -> exploreNode(data)
             (data is Collection<*> && data.getElementType()==File::class.java) -> {
-                println("no way")
                 exploreCommonFileOf(data as Collection<File>)
             }
             else -> {

@@ -18,7 +18,6 @@ import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.APP
-import sp.it.pl.main.browseMultipleFiles
 import sp.it.pl.main.configure
 import sp.it.pl.util.conf.ConfigurableBase
 import sp.it.pl.util.conf.IsConfig
@@ -103,7 +102,7 @@ class CoreMenus: Core {
         }
         addMany<File> {
             item("Copy (to clipboard)") { copyToSysClipboard(DataFormat.FILES, selected) }
-            item("Browse location") { browseMultipleFiles(selected.asSequence()) }
+            item("Browse location") { APP.actions.browseMultipleFiles(selected.asSequence()) }
         }
         add<MetadataGroup> {
             item("Play items") { PlaylistManager.use { it.setNplay(selected.grouped.stream().sorted(APP.db.libraryComparator.get())) } }
@@ -116,7 +115,7 @@ class CoreMenus: Core {
             menu("Edit tags in") {
                 widgetItems<SongWriter> { it.read(selected.grouped) }
             }
-            item("Explore items's location") { browseMultipleFiles(selected.grouped.asSequence().mapNotNull { it.getFile() }) }
+            item("Explore items's location") { APP.actions.browseMultipleFiles(selected.grouped.asSequence().mapNotNull { it.getFile() }) }
             menu("Explore items' location in") {
                 widgetItems<FileExplorerFeature> { it.exploreCommonFileOf(selected.grouped.mapNotNull { it.getFile() }) }
             }
@@ -139,7 +138,7 @@ class CoreMenus: Core {
             item("Crop items") { PlaylistManager.use { it.retainAll(selected.items) } }
             item("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(selected.items) } }
             item("Duplicate items individually") { PlaylistManager.use { it.duplicateItemsByOne(selected.items) } }
-            item("Explore items's directory") { browseMultipleFiles(selected.items.asSequence().mapNotNull { it.getFile() }) }
+            item("Explore items's directory") { APP.actions.browseMultipleFiles(selected.items.asSequence().mapNotNull { it.getFile() }) }
             item("Add items to library") { APP.db.addItems(selected.items.map { it.toMeta() }) }
             menu("Search album cover") {
                 items(APP.instances.getInstances<SearchUriBuilder>(),

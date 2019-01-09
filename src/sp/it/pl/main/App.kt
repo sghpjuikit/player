@@ -240,7 +240,6 @@ class App: Application(), Configurable<Any> {
     // ui
     @F val ui = UiManager(DIR_SKINS)
     @F val actionPane = ActionPane("View.Action Chooser", className, instanceName, instanceInfo).initApp()
-    @F val actionAppPane = ActionPane("View.Action App Chooser", className, instanceName, instanceInfo).initApp()
     @F val shortcutPane = ShortcutPane("View.Shortcut Viewer").initApp()
     @F val messagePane = MessagePane().initApp()
     @F val infoPane = InfoPane("View.System").initApp()
@@ -402,10 +401,7 @@ class App: Application(), Configurable<Any> {
                     services.getAllServices().toList()
             )
 
-            // ui
             actionPane.initActionPane()
-            actionAppPane.initAppActionPane()
-
             widgetManager.init()
             db.init()
 

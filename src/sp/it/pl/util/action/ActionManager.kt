@@ -28,9 +28,6 @@ import java.util.concurrent.ConcurrentHashMap
 @IsConfigurable(Action.CONFIG_GROUP)
 object ActionManager {
 
-    @IsConfig(name = "Media shortcuts enabled", info = "Allows using shortcuts for media keys on the keyboard.")
-    val globalMediaShortcuts by cv(true)
-
     //    @IsConfig(name = "Allow in-app shortcuts", info = "Allows using standard shortcuts.", group = "Shortcuts")
     //    public static final V<Boolean> local_shortcuts = new V<>(true, v -> {
     //        if (isLocalShortcutsSupported()) {
@@ -47,6 +44,12 @@ object ActionManager {
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", editable = NONE)
     val keyManageWindow by c(WINDOWS.getNamePretty() + " + " + SHIFT.getNamePretty())
 
+    @IsConfig(name = "Media shortcuts supported", editable = NONE, info = "Whether media shortcuts are supported on this system")
+    private val isMediaShortcutsSupported by c(true)
+
+    @IsConfig(name = "Media shortcuts enabled", info = "Allows using shortcuts for media keys on the keyboard.")
+    val globalMediaShortcutsEnabled by cv(true)
+
     /**
      * Whether global shortcuts are supported by the active platform.
      * If not, global shortcuts will run as local and [startGlobalListening] 
@@ -56,13 +59,6 @@ object ActionManager {
      */
     @IsConfig(name = "Global shortcuts supported", editable = NONE, info = "Whether global shortcuts are supported on this system")
     val isGlobalShortcutsSupported by c(true)
-
-    @IsConfig(name = "Media shortcuts supported", editable = NONE, info = "Whether media shortcuts are supported on this system")
-    private val isMediaShortcutsSupported by c(true)
-
-    /** @return whether the action listening is running */
-    var isActionListening = false
-        private set
 
     @IsConfig(name = "Global shortcuts enabled", info = "Allows using the shortcuts even if application is not focused.")
     val globalShortcutsEnabled by cv(isGlobalShortcutsSupported) {
@@ -86,6 +82,10 @@ object ActionManager {
             }
         }
     }.readOnlyUnless(isGlobalShortcutsSupported)
+
+    /** @return whether the action listening is running */
+    var isActionListening = false
+        private set
 
 
     /* ---------- HELPER METHODS ---------------------------------------------------------------------------------------- */

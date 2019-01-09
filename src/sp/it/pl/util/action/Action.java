@@ -218,8 +218,8 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	public void register() {
 		if (!hasKeysAssigned()) return;
 
-		boolean can_be_global = global && ActionManager.INSTANCE.getGlobalShortcutsEnabled().getValue();
-		if (can_be_global) registerGlobal();
+		boolean isGlobal = global && ActionManager.INSTANCE.getGlobalShortcutsEnabled().getValue();
+		if (isGlobal) registerGlobal();
 		else registerLocal();
 	}
 

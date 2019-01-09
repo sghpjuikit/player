@@ -65,8 +65,8 @@ object ActionManager {
         private set
 
     @IsConfig(name = "Global shortcuts enabled", info = "Allows using the shortcuts even if application is not focused.")
-    val globalShortcutsEnabled by cv(Os.WINDOWS.isCurrent) {
-        v(it).initSync {
+    val globalShortcutsEnabled by cv(isGlobalShortcutsSupported) {
+        v(it && isGlobalShortcutsSupported).initSync {
             if (isGlobalShortcutsSupported) {
                 if (it) {
                     startGlobalListening()
@@ -101,7 +101,7 @@ object ActionManager {
     fun startActionListening() {
         if (isActionListening) throw IllegalStateException("Action listening already running")
         startLocalListening()
-        if (isGlobalShortcutsSupported && globalShortcutsEnabled.get()) startGlobalListening()
+        if (globalShortcutsEnabled.get()) startGlobalListening()
         isActionListening = true
     }
 

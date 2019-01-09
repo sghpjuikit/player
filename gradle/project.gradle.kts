@@ -26,7 +26,7 @@ plugins {
     application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
-    id("org.openjfx.javafxplugin") version "0.0.5"
+    id("org.openjfx.javafxplugin") version "0.0.6"
 }
 
 buildScan {
@@ -85,7 +85,7 @@ allprojects {
 
     tasks.withType<KotlinCompile> {
         kotlinOptions.includeRuntime = true
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
         kotlinOptions.jdkHome = dirJdk.path
         kotlinOptions.verbose = true
         kotlinOptions.suppressWarnings = false
@@ -179,6 +179,8 @@ tasks {
         description = "Links $dirJdk to JDK"
         onlyIf { !dirJdk.exists() }
         doFirst {
+            // if the symbolic link is invalid, "exist" returns false, but it still blocks the creation of the new new link, so it has to first be deleted
+            dirJdk.delete()
             println("Making JDK locally accessible...")
             val jdkPath = "java.home".sysProp.takeIf { it.isNotBlank() }?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
             try {

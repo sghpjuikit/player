@@ -481,13 +481,13 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 
 	private void runAction(ActionData<?,?> action, Object data) {
 		if (!action.isLong) {
-			action.accept(data);
+			action.invoke(data);
 			doneHide(action);
 		} else {
 			fut(data)
 				.useBy(FX, it -> actionProgress.setProgress(-1))
 				// run action and obtain output
-				.useBy(action)
+				.useBy(action::invoke)
 				// 1) the actions may invoke some action on FX thread, so we give it some by waiting a bit
 				// 2) very short actions 'pretend' to run for a while
 				.thenWait(millis(150))

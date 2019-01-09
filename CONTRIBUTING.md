@@ -18,6 +18,9 @@
 3) Check "Use auto-import"  
    Disable "Create separate module per source set"
 4) Run `git checkout .idea` in the Terminal to regain the codeStyles
+5) If you ever want to compile the project with IDEA itself (usually not needed), 
+   you need to add the command line parameters specified in [project.gradle.kts](gradle/project.gradle.kts)
+   in the IDEA settings for the Kotlin Compiler, Java Compiler & JVM
 
 ## Running
 

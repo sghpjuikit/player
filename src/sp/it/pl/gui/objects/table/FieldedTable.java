@@ -122,7 +122,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void setColumnFactory(Ƒ1<? super ObjectField<? super T,Object>,TableColumn<T,Object>> columnFactory) {
+	public void setColumnFactory(Ƒ1<? super ObjectField<? super T,Object>,TableColumn<T,? extends Object>> columnFactory) {
 		colFact = f -> {
 			TableColumn<T,?> c = f==ColumnField.INDEX ? columnIndex : (TableColumn) ((Ƒ1) columnFactory).call(f);
 			c.setUserData(f);

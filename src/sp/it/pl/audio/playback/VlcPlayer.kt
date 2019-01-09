@@ -190,8 +190,6 @@ class VlcPlayer: GeneralPlayer.Play {
             override fun onGetDirectoryNames(directoryNames: MutableList<String>) {
                 super.onGetDirectoryNames(directoryNames)
                 directoryNames.addAll(locations)
-                // temporary fix until https://github.com/caprica/vlcj/pull/612 is merged
-                directoryNames.addAll(arrayOf("/usr/lib64", "/usr/local/lib64", "/usr/lib/x86_64-linux-gnu", "/usr/lib/i386-linux-gnu"))
             }
         }
 

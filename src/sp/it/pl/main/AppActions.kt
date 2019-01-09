@@ -15,8 +15,6 @@ import javafx.scene.input.MouseButton
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.paint.Color.BLACK
-import javafx.stage.FileChooser
-import javafx.stage.FileChooser.ExtensionFilter
 import javafx.stage.Screen
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.util.Callback
@@ -30,7 +28,6 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.icon.IconInfo
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
-import sp.it.pl.gui.pane.FastAction
 import sp.it.pl.gui.pane.OverlayPane
 import sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.pl.layout.area.ContainerNode
@@ -47,14 +44,11 @@ import sp.it.pl.util.access.fieldvalue.StringGetter
 import sp.it.pl.util.action.ActionRegistrar
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.runFX
-import sp.it.pl.util.async.runLater
 import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.conf.ValueConfig
 import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.stackTraceAsString
 import sp.it.pl.util.dev.throwIfFxThread
-import sp.it.pl.util.file.AudioFileFormat
-import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.setTo
@@ -217,51 +211,12 @@ class AppActions {
 
     @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
     fun openActions() {
-        APP.actionAppPane.show(APP)
+        APP.actionPane.show(APP)
     }
 
     @IsAction(name = "Open", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
     fun openOpen() {
-        APP.actionPane.show(Void::class.java, null, false,
-                FastAction<Any>(
-                        "Open widget",
-                        "Open file chooser to open an exported widget",
-                        IconMA.WIDGETS
-                ) {
-                    val fc = FileChooser()
-                    fc.initialDirectory = APP.DIR_LAYOUTS
-                    fc.extensionFilters += ExtensionFilter("component file", "*.fxwl")
-                    fc.title = "Open widget..."
-                    val f = fc.showOpenDialog(APP.actionAppPane.scene.window)
-                    if (f!=null) APP.windowManager.launchComponent(f)
-                },
-                FastAction<Any>(
-                        "Open skin",
-                        "Open file chooser to find a skin",
-                        IconMA.BRUSH
-                ) {
-                    val fc = FileChooser()
-                    fc.initialDirectory = APP.DIR_SKINS
-                    fc.extensionFilters += ExtensionFilter("skin file", "*.css")
-                    fc.title = "Open skin..."
-                    val f = fc.showOpenDialog(APP.actionAppPane.scene.window)
-                    if (f!=null) APP.ui.setSkin(f)
-                },
-                FastAction<Any>(
-                        "Open audio files",
-                        "Open file chooser to find a audio files",
-                        IconMD.MUSIC_NOTE
-                ) {
-                    val fc = FileChooser()
-                    fc.initialDirectory = APP.DIR_SKINS
-                    fc.extensionFilters += AudioFileFormat.supportedValues(Use.APP).map { it.toExtFilter() }
-                    fc.title = "Open audio..."
-                    val fs = fc.showOpenMultipleDialog(APP.actionAppPane.scene.window)
-                    // Action pane may auto-close when this action finishes, so we make sure to call
-                    // show() after that happens by delaying using runLater
-                    if (fs!=null) runLater { APP.actionAppPane.show(fs) }
-                }
-        )
+        APP.actionPane.show(AppOpen)
     }
 
     @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "COMMA")
@@ -483,6 +438,15 @@ class AppActions {
             "\nVM:\n\tid: ${it.id()}\n\tdisplayName: ${it.displayName()}\n\tprovider: ${it.provider()}"
         }
         runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
+    }
+
+    fun browseMultipleFiles(files: Sequence<File>) {
+        val fs = files.asSequence().toSet()
+        when {
+            fs.isEmpty() -> {}
+            fs.size==1 -> fs.firstOrNull()?.browse()
+            else -> APP.actionPane.show(MultipleFiles(fs))
+        }
     }
 
     companion object: KLogging()

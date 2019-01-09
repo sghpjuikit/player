@@ -8,58 +8,51 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.SkinBase
 import javafx.scene.layout.StackPane
 import javafx.scene.shape.Arc
-import javafx.scene.shape.StrokeType
 import javafx.util.Duration
-import javafx.util.Duration.ZERO
-import sp.it.pl.util.access.minus
+import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.stackPane
-import sp.it.pl.util.reactive.syncFrom
+import sp.it.pl.util.math.seconds
+import sp.it.pl.util.reactive.sync
 
 /** Very simple custom [ProgressIndicator]. */
 class Spinner: ProgressIndicator {
 
-    @JvmOverloads constructor(progress: Double = 1.0): super(progress)
+    constructor(progress: Double = 1.0): super(progress)
 
     override fun createDefaultSkin() = SpinnerSkin(this)
 
-    class SpinnerSkin: SkinBase<Spinner> {
+    class SpinnerSkin(spinner: Spinner): SkinBase<Spinner>(spinner) {
         private val inner: StackPane
         private val outer: StackPane
         private var rt: RotateTransition? = null
         private var playing = false
 
-        constructor(spinner: Spinner): super(spinner) {
-            val arcInner = Arc().apply {
-                length = 270.0
-                startAngle = 180.0
-                radiusX = 6.0
-                radiusY = 6.0
-                strokeType = StrokeType.INSIDE
-                strokeWidth = 2.5
-                styleClass += "spinner"
+        init {
+            inner = stackPane {
+                lay(Pos.BOTTOM_RIGHT) += Arc().apply {
+                    length = 270.0
+                    startAngle = 180.0
+                    this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble() }
+                    this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble() }
+                    styleClass += "spinner"
+                    styleClass += "spinner-in"
+                }
                 styleClass += "spinner-in"
-                StackPane.setAlignment(this, Pos.BOTTOM_RIGHT)
-            }
-            val arcOuter = Arc().apply {
-                length = 270.0
-                radiusX = 9.0
-                radiusY = 9.0
-                strokeType = StrokeType.INSIDE
-                strokeWidth = 2.5
-                styleClass += "spinner"
-                styleClass += "spinner-out"
-                StackPane.setAlignment(this, Pos.TOP_LEFT)
-            }
-            inner = stackPane(arcInner) {
-                setPrefSize(10.0, 10.0)
                 setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE)
             }
-            outer = stackPane(arcOuter) {
-                setPrefSize(15.0, 15.0)
+            outer = stackPane {
+                lay(Pos.TOP_LEFT) += Arc().apply {
+                    length = 270.0
+                    this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble() }
+                    this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble() }
+                    styleClass += "spinner"
+                    styleClass += "spinner-out"
+                }
+                styleClass += "spinner-out"
                 setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE)
             }
 
-            outer.rotateProperty() syncFrom 360-inner.rotateProperty()
+            inner.rotateProperty() sync { outer.rotate = 360.0-it.toDouble() }
             children += stackPane(inner, outer)
 
             registerChangeListener(spinner.indeterminateProperty()) { update() }
@@ -73,26 +66,24 @@ class Spinner: ProgressIndicator {
 
         override fun dispose() {
             rt?.stop()
-            outer.rotateProperty().unbind()
             super.dispose()
         }
 
         private fun update() {
             if (skinnable.progress!=1.0 && skinnable.parent!=null && skinnable.scene!=null && skinnable.isVisible) {
-                if (rt==null) {
-                    rt = RotateTransition(Duration.seconds(120.0), inner).apply {
-                        interpolator = Interpolator.LINEAR
-                        cycleCount = Transition.INDEFINITE
-                        delay = ZERO
-                        byAngle = (360*100).toDouble()
-                    }
+                rt = rt ?: RotateTransition(120.seconds, inner).apply {
+                    interpolator = Interpolator.LINEAR
+                    cycleCount = Transition.INDEFINITE
+                    delay = Duration.ZERO
+                    byAngle = 360*100.0
                 }
-                if (!playing) rt!!.play()
+                if (!playing) rt?.play()
                 playing = true
             } else {
-                if (playing && rt!=null) rt!!.pause()
+                if (playing) rt?.pause()
                 playing = false
             }
         }
     }
+
 }

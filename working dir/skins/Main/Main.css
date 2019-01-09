@@ -3531,12 +3531,7 @@
  * inherits: StackPane 
  */
 .popover-root {
-    /*
-    null: would let mouse events pass through the popover bgr, as if pickOnBounds
-          is set to false - only the content would receive the events
-    transparent: mouse events do not pass through == normal
-    */
-    -fx-background-color: transparent;
+    -fx-background-color: transparent;  /* null causes mouse events pass through transparent parts */
 }
 
 /*
@@ -3559,19 +3554,19 @@
  * inherits: BorderPane
  */
 .popover-root > .content {
-    -fx-padding: 8;
+    -fx-padding: 1em 1.5em 1.5em 1.5em; /* 12 18 18 18 */
 }
 
 /* Popover header - rectangular area at the top of the content. */
 .popover-root > .content > .popover-header {
-    -fx-padding: 3 8 8 8;
+    -fx-padding: 0em 0em 1em 0em;   /* 0 0 12 0 */
 }
 
 /* Popover header title. */
 .popover-root > .content > .popover-header > .title  {
     -fx-font-size: 1.083334em;  /* 13 */
     -fx-font-weight: bold;
-    /*  
+    /*
     give title some space, for small popups the control buttons on the right
     easily become invasive when they come close to the title, looks ugly
     */
@@ -3604,7 +3599,6 @@
  * inherits: .text
  */
 .help-popover-text {
-    -fx-font-weight: bold;
     -fx-text-alignment: justify;
 }
 
@@ -3890,25 +3884,24 @@ icon-info-icon {
 
 /********************************** SPINNER ****************************************************************************
  * Simple progress indicator control.
- * inherits: .arc ().shape)
+ * inherits: .arc, .shape
  */
 
 .spinner {
     -fx-fill: null;
     -fx-stroke: -fx-def-font-color;
-    -fx-stroke-width: 0.208333em; /* 2.5 */
+    -fx-stroke-line-cap: butt;
+    -fx-stroke-width: 0.15em;
     -fx-stroke-type: inside;
 }
-.spinner-progress {
-    -fx-fill: -fx-def-font-color;
-}
 .spinner-in {
-    -fx-radiusX: 0.5em; /* 6 */
-    -fx-radiusY: 0.5em; /* 6 */
+    -fx-pref-width: 0.6em;
+    -fx-pref-height: 0.6em;
 }
 .spinner-out {
-    -fx-radiusX: 0.75em; /* 9 */
-    -fx-radiusY: 0.75em; /* 9 */
+    -fx-stroke-width: 0.1em;
+    -fx-pref-width: 1em;
+    -fx-pref-height: 1em;
 }
 
 /********************************** MENU *******************************************************************************

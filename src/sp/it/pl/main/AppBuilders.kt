@@ -25,9 +25,6 @@ import sp.it.pl.util.reactive.attachChanges
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 
-private typealias In<T> = Consumer<in T>
-private typealias Progress = ProgressIndicator
-
 /**
  * Creates simple help popover designed as a tooltip for help buttons.
  *
@@ -71,7 +68,7 @@ fun createInfoIcon(text: String): Icon = Icon(IconFA.INFO)
         }
 
 @JvmOverloads
-fun appProgressIndicator(onStart: In<Progress> = In {}, onFinish: In<Progress> = In {}) = Spinner().apply {
+fun appProgressIndicator(onStart: Consumer<ProgressIndicator> = Consumer {}, onFinish: Consumer<ProgressIndicator> = Consumer {}) = Spinner().apply {
     val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(ElasticInterpolator()).applyNow()
     progressProperty() attachChanges { ov, nv ->
         if (ov.toDouble()==1.0) {

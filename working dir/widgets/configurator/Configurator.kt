@@ -2,7 +2,7 @@ package configurator
 
 import javafx.event.EventHandler
 import javafx.fxml.FXML
-import javafx.scene.control.Label
+import javafx.geometry.Pos.CENTER
 import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
@@ -28,8 +28,11 @@ import sp.it.pl.util.functional.seqRec
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.expandToRootAndSelect
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
+import sp.it.pl.util.graphics.hBox
+import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.propagateESCAPE
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.reactive.on
 import java.util.ArrayList
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -64,22 +67,20 @@ class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeat
         inputs.create<Configurable<out Any>>("To configure", { configure(it) })
 
         ConventionFxmlLoader(this).loadNoEx<Any>()
-
         configsRootPane.children += configsPane
+        lay(0, 0, null, null) += hBox(10, CENTER) {
+            lay += Icon(IconFA.RECYCLE, 13.0, "Set all to default").onClickDo { defaults() }
+            lay += Icon(IconFA.REFRESH, 13.0, "Refresh all").onClickDo { refresh() }
+            lay += Icon().blank()
+            lay += Icon(IconFA.HOME, 13.0, "App settings").onClickDo { configure(appConfigurable) }
+            lay += Icon().blank()
+        }
+
         groups.selectionModel.selectionMode = SINGLE
         groups.cellFactory = Callback { buildTreeCell(it) }
         groups.propagateESCAPE()
-        onClose += groups.selectionModel.selectedItemProperty() attach {
-            storeAppSettingsSelection(it)
-            showConfigs(configs.filter { c -> c.group==it?.value?.pathUp })
-        }
-
-        controls.children += listOf(
-                Icon(IconFA.HOME, 13.0, "App settings", Runnable { configure(appConfigurable) }),
-                Label("    "),
-                Icon(IconFA.REFRESH, 13.0, "Refresh all", Runnable { refresh() }),
-                Icon(IconFA.RECYCLE, 13.0, "Set all to default", Runnable { defaults() })
-        )
+        groups.selectionModel.selectedItemProperty() attach { storeAppSettingsSelection(it) } on onClose
+        groups.selectionModel.selectedItemProperty() attach { showConfigs(it?.value) } on onClose
         onScroll = EventHandler { it.consume() }
 
         refresh()
@@ -108,6 +109,8 @@ class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeat
         configSelectionAvoid = false
         groups.expandToRootAndSelect(restoreAppSettingsSelection() ?: groups.root)
     }
+
+    private fun showConfigs(group: Name?) = showConfigs(configs.filter { c -> c.group==group?.pathUp })
 
     private fun showConfigs(configs: Collection<Config<*>>) = configsPane.configure(configs)
 

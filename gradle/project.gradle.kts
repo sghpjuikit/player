@@ -124,7 +124,7 @@ dependencies {
 
     "Native" requires {
         implementation("net.java.dev.jna", "jna-platform")
-        implementation("com.1stleg", "jnativehook", "2.0.2") // don't update this to 2.1.0, it causes a critical error on linux
+        implementation("com.1stleg", "jnativehook", "2.1.0")
     }
 
     "Misc" requires {
@@ -231,8 +231,9 @@ tasks {
         group = main
         description = "Cleans up temporary files"
         delete(
-                dirWorking/"user"/"tmp",
                 buildDir,
+                dirWorking/"lib",
+                dirWorking/"user"/"tmp",
                 dirWorking.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList()
         )
     }

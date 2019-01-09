@@ -63,7 +63,9 @@ import static sp.it.pl.util.file.Util.getCommonRoot;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.max;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchor;
+import static sp.it.pl.util.reactive.Util.attach1IfNonNull;
 import static sp.it.pl.util.reactive.Util.maintain;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.edit;
@@ -221,6 +223,11 @@ public class DirViewer extends SimpleController {
                     runFX(millis(500), grid::requestFocus);
                 })
                 .showProgress(getOwnerWidget().getWindowOrActive().map(Window::taskAdd));
+    }
+
+    @Override
+    public void focus() {
+        attach1IfNonNull(grid.skinProperty(), consumer(skin -> grid.implGetSkin().requestFocus()));
     }
 
     /**

@@ -31,14 +31,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
 import sp.it.pl.main.JavaLegacy;
 import sp.it.pl.util.access.V;
-import sp.it.pl.util.functional.Functors.Ƒ1;
 import static java.time.Duration.ofMillis;
-import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
@@ -388,71 +385,6 @@ public interface Util {
 			}
 		});
 		return c;
-	}
-
-	/**
-	 * Creates default cell factory, which sets cell text to provided text when
-	 * cells text equals "". This is to differentiate between empty cell and nonempty
-	 * cell with 'empty' value.
-	 * For example: '<empty cell>'
-	 *
-	 * @param empty_value empty cell string value
-	 * @return cell factory
-	 */
-	static <T, O> Callback<TableColumn<T,O>,TableCell<T,O>> EMPTY_TEXT_DEFAULT_CELL_FACTORY(String empty_value) {
-		return param -> new TableCell<>() {
-			@Override
-			protected void updateItem(O item, boolean empty) {
-				if (item==getItem()) return;
-
-				super.updateItem(item, empty);
-
-				if (empty || item==null) {
-					setText(null);
-					setGraphic(null);
-				} else if ("".equals(item)) {
-					setText(empty_value);
-					setGraphic(null);
-				} else if (item instanceof Node) {
-					setText(null);
-					setGraphic((Node) item);
-				} else {
-					setText(item.toString());
-					setGraphic(null);
-				}
-			}
-		};
-	}
-
-	/**
-	 * Same as {@link #cellFactoryAligned(javafx.geometry.Pos, String)}, but
-	 * the alignment is inferred from the type of element in the cell (not table
-	 * or column, because we are aligning cell content) in the following way:
-	 * <br>
-	 * String content is aligned to CENTER_LEFT and the rest CENTER_RIGHT.
-	 * <p/>
-	 * The factory will need to be cast if it its generic types are declared.
-	 *
-	 * @param type for cell content.
-	 */
-	static <T, O> Ƒ1<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Class<O> type, String no_val_text) {
-		Pos a = type.equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
-		return cellFactoryAligned(a, no_val_text);
-	}
-
-	/**
-	 * Returns {@link TableColumn#DEFAULT_CELL_FACTORY} (the default factory used
-	 * when no factory is specified), aligning the cell content to specified value.
-	 * <p/>
-	 * The factory will need to be cast if it its generic types are declared.
-	 *
-	 * @param a cell alignment
-	 * @return cell factory
-	 */
-	@SuppressWarnings("unchecked")
-	static <T, O> Ƒ1<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Pos a, String no_val_text) {
-		Ƒ1<TableColumn<T,O>,TableCell<T,O>> f = Util.<T,O>EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text)::call;
-		return f.andApply(cell -> cell.setAlignment(a));
 	}
 
 	/**

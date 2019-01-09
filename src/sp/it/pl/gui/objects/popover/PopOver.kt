@@ -77,8 +77,6 @@ import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync
 import java.util.ArrayList
 
-private typealias F = JvmField
-
 /**
  * Enhanced popup window.
  *
@@ -142,7 +140,7 @@ open class PopOver<N: Node>(): PopupControl() {
 
 
     /** Content of this popover. */
-    @F val contentNode = SimpleObjectProperty<N>()
+    @JvmField val contentNode = SimpleObjectProperty<N>()
     /**
      * If true, this popover closes on mouse click. Default false.
      *
@@ -172,15 +170,15 @@ open class PopOver<N: Node>(): PopupControl() {
 
     private var hideOnClick: EventHandler<MouseEvent>? = null
     /** Focus this popover on shown event to receive input events. Use true for interactive content. Default true. */
-    @F val focusOnShow = v(true)
+    @JvmField val focusOnShow = v(true)
     /** Whether this the popover can be detached. */
-    @F val detachable = v(true)
+    @JvmField val detachable = v(true)
     /** Whether this popover is detached so it no longer displays an arrow pointing at the owner node. Default false */
-    @F val detached = v(false)
+    @JvmField val detached = v(false)
     /** Header visibility. Header contains title and icons. Default true. */
-    @F val headerVisible = v(true)
+    @JvmField val headerVisible = v(true)
     /** Title text. Default "". */
-    @F val title = v("")
+    @JvmField val title = v("")
 
     /**
      * Modifiable list of the Nodes displayed in the header.
@@ -190,26 +188,26 @@ open class PopOver<N: Node>(): PopupControl() {
     val headerIcons by lazy { observableArrayList<Node>()!! }
 
     /** Whether resizing by user is allowed. */
-    @F val userResizable = v(true)
-    @F var screenPreference = APP_WINDOW
+    @JvmField val userResizable = v(true)
+    @JvmField var screenPreference = APP_WINDOW
     /**
      * Controls the size of the arrow. 0 effectively disables arrow. Default 12.0.
      *
      * Disabling arrow has an effect of not positioning the popover so the arrow points to the
      * specific point. Rather the popover's upper left corner will.
      */
-    @F val arrowSize = SimpleDoubleProperty(9.0)    // TODO: make styleable
+    @JvmField val arrowSize = SimpleDoubleProperty(9.0)    // TODO: make styleable
     /** Controls the distance between the arrow and the corners of the pop over. Default 12.0. */
-    @F val arrowIndent = SimpleDoubleProperty(12.0)   // TODO: make styleable
+    @JvmField val arrowIndent = SimpleDoubleProperty(12.0)   // TODO: make styleable
     /** Returns the corner radius property for the pop over. Default 6.0. */
-    @F val cornerRadius = SimpleDoubleProperty(6.0)  // TODO: make styleable
+    @JvmField val cornerRadius = SimpleDoubleProperty(6.0)  // TODO: make styleable
     /** Preferred arrow location. Default [ArrowLocation.LEFT_TOP].*/
-    @F val arrowLocation = v(LEFT_TOP)
+    @JvmField val arrowLocation = v(LEFT_TOP)
 
     /** Whether show/hide is animated. */
-    @F var animated = v(true)
+    @JvmField var animated = v(true)
     /** Show/hide animation duration. */
-    @F var animationDuration = v(300.millis)
+    @JvmField var animationDuration = v(300.millis)
     /** Show/hide animation. */
     private val animation by lazy {
         anim {

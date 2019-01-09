@@ -18,14 +18,12 @@ import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.kt
 import sp.it.pl.util.graphics.setScaleXY
+import sp.it.pl.util.graphics.text
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.math.seconds
 import sp.it.pl.util.reactive.attachChanges
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
-
-private typealias In<T> = Consumer<in T>
-private typealias Progress = ProgressIndicator
 
 /**
  * Creates simple help popover designed as a tooltip for help buttons.
@@ -41,7 +39,7 @@ private typealias Progress = ProgressIndicator
  */
 @JvmOverloads
 fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> {
-    val t = Text(textContent).apply {
+    val t = text(textContent) {
         styleClass += "help-popover-text"
         wrappingWithNatural.value = true
     }
@@ -70,7 +68,7 @@ fun createInfoIcon(text: String): Icon = Icon(IconFA.INFO)
         }
 
 @JvmOverloads
-fun appProgressIndicator(onStart: In<Progress> = In {}, onFinish: In<Progress> = In {}) = Spinner().apply {
+fun appProgressIndicator(onStart: Consumer<ProgressIndicator> = Consumer {}, onFinish: Consumer<ProgressIndicator> = Consumer {}) = Spinner().apply {
     val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(ElasticInterpolator()).applyNow()
     progressProperty() attachChanges { ov, nv ->
         if (ov.toDouble()==1.0) {
@@ -93,7 +91,7 @@ fun appTooltip(text: String = "") = Tooltip(text).apply {
 }
 
 fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
-    val text = Text()
+    val text = text()
     graphic = text
     setOnShowing {
         computeDataInfo(data()) ui { text.text = it }

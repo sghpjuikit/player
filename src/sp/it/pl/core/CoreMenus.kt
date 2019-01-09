@@ -17,7 +17,6 @@ import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.APP
-import sp.it.pl.main.browseMultipleFiles
 import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util.writeImage
 import sp.it.pl.util.functional.asArray
@@ -100,7 +99,7 @@ class CoreMenus: Core {
         addMany<File> { contextMenu, files ->
             menuItems(
                     item("Copy") { copyToSysClipboard(DataFormat.FILES, files) },
-                    item("Explore in browser") { browseMultipleFiles(files.asSequence()) }
+                    item("Explore in browser") { APP.actions.browseMultipleFiles(files.asSequence()) }
             )
         }
         add<MetadataGroup> { contextMenu, mg ->
@@ -115,7 +114,7 @@ class CoreMenus: Core {
                     menu("Edit tags in") {
                         widgetItems<SongWriter> { it.read(mg.grouped) }
                     },
-                    item("Explore items's location") { browseMultipleFiles(mg.grouped.asSequence().mapNotNull { it.getFile() }) },
+                    item("Explore items's location") { APP.actions.browseMultipleFiles(mg.grouped.asSequence().mapNotNull { it.getFile() }) },
                     menu("Explore items' location in") {
                         widgetItems<FileExplorerFeature> { it.exploreCommonFileOf(mg.grouped.mapNotNull { it.getFile() }) }
                     },
@@ -143,7 +142,7 @@ class CoreMenus: Core {
                     item("Crop items") { PlaylistManager.use { it.retainAll(pig.items) } },
                     item("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(pig.items) } },
                     item("Duplicate items individually") { PlaylistManager.use { it.duplicateItemsByOne(pig.items) } },
-                    item("Explore items's directory") { browseMultipleFiles(pig.items.asSequence().mapNotNull { it.getFile() }) },
+                    item("Explore items's directory") { APP.actions.browseMultipleFiles(pig.items.asSequence().mapNotNull { it.getFile() }) },
                     item("Add items to library") { APP.db.addItems(pig.items.map { it.toMeta() }) },
                     menu("Search album cover") {
                         items(

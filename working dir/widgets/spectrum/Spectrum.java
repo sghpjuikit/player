@@ -7,6 +7,7 @@ import javafx.scene.effect.Effect;
 import javafx.scene.media.AudioSpectrumListener;
 import javafx.scene.paint.Color;
 import sp.it.pl.audio.Player;
+import sp.it.pl.layout.widget.ExperimentalController;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
@@ -31,6 +32,7 @@ import static javafx.util.Duration.seconds;
     year = "2016",
     group = Widget.Group.VISUALISATION
 )
+@ExperimentalController
 @LegacyController
 public class Spectrum extends SimpleController {
 

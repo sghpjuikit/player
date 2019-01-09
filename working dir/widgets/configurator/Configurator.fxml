@@ -10,9 +10,6 @@
 <?import javafx.scene.layout.VBox?>
 
 <fx:root prefHeight="600.0" prefWidth="1100.0" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
-    <padding>
-        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
-    </padding>
    <SplitPane dividerPositions="0.25" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <items>
          <TreeView fx:id="groups" prefWidth="200.0" SplitPane.resizableWithParent="false" />

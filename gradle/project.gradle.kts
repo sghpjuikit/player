@@ -21,17 +21,12 @@ import kotlin.text.Charsets.UTF_8
 
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
-    id("com.gradle.build-scan") version "2.1"
+    id("com.gradle.build-scan") version "1.16"
     kotlin("jvm") version "1.3.0"
     application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
     id("org.openjfx.javafxplugin") version "0.0.6"
-}
-
-buildScan {
-    termsOfServiceUrl = "https://gradle.com/terms-of-service"
-    setTermsOfServiceAgree("yes")
 }
 
 /** working directory of the application */
@@ -77,14 +72,12 @@ allprojects {
         options.isDeprecation = true
         options.compilerArgs = listOf(
                 "-Xlint:unchecked",
-                "--add-exports", "javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED",
-                "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED",
-                "--add-exports", "javafx.web/com.sun.webkit=ALL-UNNAMED"
+                "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
+                "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED"
         )
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions.includeRuntime = true
         kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
         kotlinOptions.jdkHome = dirJdk.path
         kotlinOptions.verbose = true
@@ -108,11 +101,18 @@ dependencies {
         implementation(kotlin("stdlib-jdk8"))
         implementation(kotlin("reflect"))
         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core")
-        implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.0.1")
+        implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.1.0")
+    }
+
+    "Logging" requires {
+        implementation("org.slf4j", "slf4j-api")
+        implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
+        implementation("ch.qos.logback", "logback-classic", "1.2.3")
+        implementation("io.github.microutils", "kotlin-logging", "1.6.22")
     }
 
     "Audio" requires {
-        implementation("uk.co.caprica", "vlcj", "3.10.1")
+        implementation("uk.co.caprica", "vlcj", "3.11.0")
         implementation("de.u-mass", "lastfm-java", "0.1.2")
         implementation("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
     }
@@ -120,19 +120,15 @@ dependencies {
     "JavaFX" requires {
         implementation("de.jensd", "fontawesomefx", "8.9")
         implementation("org.reactfx", "reactfx", "2.0-M5")
-        implementation("eu.hansolo", "tilesfx", "1.6.4") { exclude("junit", "junit") }
+        implementation("eu.hansolo", "tilesfx", "1.6.5") {
+            // tilesfx depends on json-simple and that for some reason has a test dependency as compile dependency -_-
+            exclude("junit", "junit")
+        }
         implementation("eu.hansolo", "Medusa", "8.0")
     }
 
-    "Logging" requires {
-        implementation("org.slf4j", "slf4j-api")
-        implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
-        implementation("ch.qos.logback", "logback-classic", "1.2.3")
-        implementation("io.github.microutils", "kotlin-logging", "1.6.20")
-    }
-
     "Native" requires {
-        implementation("net.java.dev.jna", "jna-platform", "5.0.0")
+        implementation("net.java.dev.jna", "jna-platform")
         implementation("com.1stleg", "jnativehook", "2.0.2") // don't update this to 2.1.0, it causes a critical error on linux
     }
 
@@ -144,22 +140,22 @@ dependencies {
 
     "Image" requires {
         implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
-        val imageioVersion = "3.4.1"
-        implementation("com.twelvemonkeys.imageio", "imageio-bmp", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-jpeg", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-iff", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-icns", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-pcx", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-pict", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-clippath", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-hdr", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-pdf", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-pnm", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-psd", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-tga", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-sgi", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-thumbsdb", imageioVersion)
-        implementation("com.twelvemonkeys.imageio", "imageio-tiff", imageioVersion)
+        fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.4.1")
+        imageIO("bmp")
+        imageIO("jpeg")
+        imageIO("iff")
+        imageIO("icns")
+        imageIO("pcx")
+        imageIO("pict")
+        imageIO("clippath")
+        imageIO("hdr")
+        imageIO("pdf")
+        imageIO("pnm")
+        imageIO("psd")
+        imageIO("tga")
+        imageIO("sgi")
+        imageIO("thumbsdb")
+        imageIO("tiff")
     }
 
 }
@@ -182,12 +178,12 @@ tasks {
             // if the symbolic link is invalid, "exist" returns false, but it still blocks the creation of the new new link, so it has to first be deleted
             dirJdk.delete()
             println("Making JDK locally accessible...")
-            val jdkPath = "java.home".sysProp.takeIf { it.isNotBlank() }?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
+            val jdkPath = "java.home".sysProp?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
             try {
                 Files.createSymbolicLink(dirJdk.toPath(), jdkPath)
             } catch (e: Exception) {
                 println("Couldn't create a symbolic link from $dirJdk to $jdkPath: $e")
-                if ("os.name".sysProp.startsWith("Windows")) {
+                if ("os.name".sysProp?.startsWith("Windows")==true) {
                     println("Trying junction...")
                     val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$dirJdk" "$jdkPath"""")
                     val exitValue = process.waitFor()
@@ -231,7 +227,8 @@ tasks {
         }
     }
 
-    "jar"(Jar::class) {
+    val jar by getting(Jar::class) {
+        dependsOn(copyLibs, kotlinc)
         group = main
         destinationDir = dirWorking
         archiveName = "PlayerFX.jar"
@@ -247,15 +244,15 @@ tasks {
         )
     }
 
+    "run"(JavaExec::class) {
+        dependsOn(jar)  // the widgets need the jar on the classpath
+        group = main
+        workingDir = dirWorking
+    }
+
     "build" {
         dependsOn(":widgets:build")
         group = main
-    }
-
-    "run"(JavaExec::class) {
-        dependsOn(copyLibs, kotlinc, "jar")
-        group = main
-        workingDir = dirWorking
     }
 
     getByName("compileKotlin").dependsOn(linkJdk)
@@ -286,10 +283,11 @@ application {
 
 operator fun File.div(childName: String) = this.resolve(childName)
 
-val String.sysProp: String get() = System.getProperty(this)
+val String.sysProp: String?
+    get() = System.getProperty(this).takeIf { it.isNotBlank() }
 
 infix fun String.requires(block: () -> Unit) = block()
 
-fun failIO(cause: Throwable? = null, message: () -> String): Nothing  = throw IOException(message(), cause)
+fun failIO(cause: Throwable? = null, message: () -> String): Nothing = throw IOException(message(), cause)
 
 fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, message) }

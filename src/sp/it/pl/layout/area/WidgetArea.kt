@@ -45,11 +45,11 @@ class WidgetArea: Area<Container<*>> {
     /**
      * Creates area for the container and its child widget at specified child position.
      *
-     * @param c widget's parent container
-     * @param i index of the widget within the container
+     * @param parent widget's parent container
+     * @param index index of the widget within the container
      * @param widget widget that will be managed and displayed
      */
-    constructor(c: Container<*>, i: Int, widget: Widget<*>): super(c, i) {
+    constructor(parent: Container<*>, index: Int, widget: Widget<*>): super(parent, index) {
         this.widget = widget
         this.widget.parentTemp = container
         this.widget.areaTemp = this
@@ -63,7 +63,7 @@ class WidgetArea: Area<Container<*>> {
                 root, IconFA.EXCHANGE, "Switch components",
                 { e -> DragUtil.hasComponent(e) },
                 { e -> DragUtil.getComponent(e).let { it==container || it==widget } },
-                { e -> DragUtil.getComponent(e).swapWith(container, index) }
+                { e -> DragUtil.getComponent(e).swapWith(container, this.index) }
         )
 
         loadWidget()
@@ -78,23 +78,23 @@ class WidgetArea: Area<Container<*>> {
         disposer()
 
         when {
-            widget.isLoaded || forceLoading || widget.loadType.get()==AUTOMATIC -> {
-                    // load widget
-                    animation.openAndDo(content_root, null)
-                    content.children.clear()
-                    content.layFullArea += widget.load()
+            widget.isLoaded || forceLoading || widget.loadType.value==AUTOMATIC -> {
+                // load widget
+                animation.openAndDo(content_root, null)
+                content.children.clear()
+                content.layFullArea += widget.load()
 
-                    // put controls to new widget
-                    widget.custom_name syncTo controls.title.textProperty() on disposer
-                    controls.propB.isDisable = widget.fields.isEmpty()
+                // put controls to new widget
+                widget.custom_name syncTo controls.title.textProperty() on disposer
+                controls.propB.isDisable = widget.fields.isEmpty()
 
-                    setActivityVisible(false)
+                setActivityVisible(false)
 
-                    // workaround code
-                    widget.lockedUnder.initLocked(container)
-                    widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
+                // workaround code
+                widget.lockedUnder.initLocked(container)
+                widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
             }
-            widget.loadType.get()==MANUAL -> {
+            widget.loadType.value==MANUAL -> {
                 AppAnimator.closeAndDo(content_root, Runnable {
                     content.children.clear()
                     animation.openAndDo(content_root, null)

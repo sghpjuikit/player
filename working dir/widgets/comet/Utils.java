@@ -75,7 +75,6 @@ import sp.it.pl.gui.pane.OverlayPane;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.access.ref.R;
 import sp.it.pl.util.animation.Anim;
-import sp.it.pl.util.collections.Tuple2;
 import sp.it.pl.util.collections.map.ClassMap;
 import sp.it.pl.util.collections.map.Map2D;
 import sp.it.pl.util.collections.mapset.MapSet;
@@ -113,7 +112,6 @@ import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.formatDuration;
 import static sp.it.pl.util.Util.pyth;
-import static sp.it.pl.util.collections.Tuples.tuple;
 import static sp.it.pl.util.dev.Util.throwIf;
 import static sp.it.pl.util.dev.Util.throwIfNot;
 import static sp.it.pl.util.functional.Util.ISNTØ;
@@ -2728,7 +2726,17 @@ interface Utils {
 		private final BiConsumer<Rocket,Double> distAction;
 		private final BiConsumer<Double,Double> centerAction;
 		private final Consumer<Stream<Lin>> edgesAction;
-		private final Map<Coordinate,Tuple2<Rocket,Boolean>> inputOutputMap = new HashMap<>(8*9); // maps input (rockets) to polygons
+		private final Map<Coordinate,RocketB> inputOutputMap = new HashMap<>(8*9); // maps input (rockets) to polygons
+
+		static class RocketB {
+			final Rocket rocket;
+			final boolean isMain;
+
+			RocketB(Rocket rocket, boolean flag) {
+				this.rocket = rocket;
+				this.isMain = flag;
+			}
+		}
 
 		public Voronoi(BiConsumer<Rocket, Double> areaAction, BiConsumer<Rocket, Double> distAction, BiConsumer<Double,Double> centerAction, Consumer<Stream<Lin>> edgesAction) {
 			this.areaAction = areaAction;
@@ -2757,18 +2765,20 @@ interface Utils {
 		@SuppressWarnings("unchecked")
 		protected void doCompute(Set<Rocket> rockets, double W, double H, Game game) {
 			inputOutputMap.clear();
+
+
 			List<Coordinate> cells = stream(rockets)
 				.flatMap(rocket -> {
 					Vec r = new Vec(rocket.x+rocket.cacheRandomVoronoiTranslation, rocket.y+rocket.cacheRandomVoronoiTranslation);
 					Coordinate cMain = new Coordinate(r.x, r.y);
-					inputOutputMap.put(cMain,tuple(rocket,true));
+					inputOutputMap.put(cMain, new RocketB(rocket,true));
 					return stream(
 						stream(cMain),
 						stream(
 							new Coordinate(r.x + W, r.y), new Coordinate(r.x, r.y + H), new Coordinate(r.x - W, r.y), new Coordinate(r.x, r.y - H),
 							new Coordinate(r.x + W, r.y + H), new Coordinate(r.x + W, r.y - H), new Coordinate(r.x - W, r.y + H), new Coordinate(r.x - W, r.y - H)
 						)
-						.peek(c -> inputOutputMap.put(c,tuple(rocket,false)))
+						.peek(c -> inputOutputMap.put(c, new RocketB(rocket,false)))
 					);
 				})
 				.collect(toList());
@@ -2782,19 +2792,17 @@ interface Utils {
 					edgesAction.accept(IntStream.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
 						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
-						.collect(groupingBy(polygon -> ((Tuple2<Rocket, Boolean>) polygon.getUserData())._1))
+						.collect(groupingBy(polygon -> ((RocketB) polygon.getUserData()).rocket))
 						.values().stream()
 						.flatMap(ss -> {
 							List<Lin> lines = stream(ss)
 								.peek(polygon -> {
-									Tuple2<Rocket,Boolean> data = (Tuple2<Rocket,Boolean>) polygon.getUserData();
-									Rocket rocket = data._1;
-									Boolean isMain = data._2;
-									if (isMain) {
+									RocketB data = (RocketB) polygon.getUserData();
+									if (data.isMain) {
 										Point c = polygon.getCentroid();
 										centerAction.accept(c.getX(), c.getY());
-										areaAction.accept(rocket, polygon.getArea());
-										distAction.accept(rocket, game.field.dist(c.getX(), c.getY(), rocket.x, rocket.y));
+										areaAction.accept(data.rocket, polygon.getArea());
+										distAction.accept(data.rocket, game.field.dist(c.getX(), c.getY(), data.rocket.x, data.rocket.y));
 									}
 								})
 								.filter(polygon -> game.settings.voronoiDraw|| game.humans.intelOn.is())

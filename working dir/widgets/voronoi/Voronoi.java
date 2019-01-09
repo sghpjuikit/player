@@ -20,6 +20,7 @@ import javafx.scene.effect.GaussianBlur;
 import javafx.scene.paint.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sp.it.pl.layout.widget.ExperimentalController;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
@@ -51,6 +52,7 @@ import static sp.it.pl.util.functional.Util.stream;
 	year = "2016",
 	group = Widget.Group.VISUALISATION
 )
+@ExperimentalController
 @LegacyController
 public class Voronoi extends SimpleController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Voronoi.class);

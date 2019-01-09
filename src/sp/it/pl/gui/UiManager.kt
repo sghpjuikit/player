@@ -5,7 +5,6 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.NodeOrientation
 import javafx.scene.Node
 import javafx.scene.Parent
-import javafx.scene.Scene
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Tooltip
 import javafx.scene.input.MouseEvent
@@ -14,7 +13,6 @@ import javafx.stage.Popup
 import javafx.stage.Stage
 import javafx.stage.Window
 import mu.KLogging
-import sp.it.pl.gui.UiManager.OpenStrategy.INSIDE
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.layout.widget.WidgetSource.ANY
 import sp.it.pl.main.APP
@@ -34,6 +32,7 @@ import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.isParentOf
 import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.functional.Util.set
+import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.isAnyParentOf
@@ -46,9 +45,6 @@ import sp.it.pl.util.reactive.sync1IfNonNull
 import java.io.File
 import java.net.MalformedURLException
 import java.util.HashSet
-import java.util.stream.Stream
-
-private typealias C = IsConfig
 
 @IsConfigurable(Settings.UI)
 class UiManager(val skinDir: File): Configurable<Any> {
@@ -57,18 +53,19 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val layoutMode: BooleanProperty = SimpleBooleanProperty(false)
     val focusChangedHandler: (Node?) -> Unit = { n ->
         val window = n?.scene
-        (if (n==null) Stream.empty() else APP.widgetManager.widgets.findAll(ANY))
-                .filter { w -> w.areaTemp!=null && w.areaTemp.root.isAnyParentOf(n!!) }
-                .findAny().ifPresent { fw ->
+        if (n!=null)
+            APP.widgetManager.widgets.findAll(ANY)
+                .filter { it.areaTemp?.root?.isAnyParentOf(n) ?: false }
+                .findAny()
+                .ifPresent { fw ->
                     APP.widgetManager.widgets.findAll(ANY)
-                            .filter { w -> w!==fw }
-                            .filter { w -> w.window.map<Stage> { it.stage }.map<Scene> { it.scene }.map { s -> s===window }.orElse(false) }
-                            .forEach { w -> w.focused.set(false) }
-                    fw.focused.set(true)
+                            .filter { w -> w!==fw && w.window.orNull()?.stage?.scene?.net { it===window } ?: false }
+                            .forEach { w -> w.focused.value = false }
+                    fw.focused.value = true
                 }
     }
 
-    @C(name = "Skin", info = "Application skin.")
+    @IsConfig(name = "Skin", info = "Application skin.")
     val skin by cv("Flow") { VarEnum.ofStream(it) { skins.stream().map { it.name } } }
 
     /**
@@ -76,38 +73,38 @@ class UiManager(val skinDir: File): Configurable<Any> {
      *
      * Note: font is applied only if the GUI is fully initialized, otherwise does nothing.
      */
-    @C(name = "Font", info = "Application font.")
+    @IsConfig(name = "Font", info = "Application font.")
     val font by cv(Font.getDefault())
 
-    @C(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")
+    @IsConfig(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")
     var blurLayoutMode by c(false)
-    @C(name = "Layout mode fade bgr", info = "Layout mode use fade effect.")
+    @IsConfig(name = "Layout mode fade bgr", info = "Layout mode use fade effect.")
     var opacityLayoutMode by c(true)
-    @C(name = "Layout mode fade intensity", info = "Layout mode fade effect intensity.")
+    @IsConfig(name = "Layout mode fade intensity", info = "Layout mode fade effect intensity.")
     var opacityLM by c(1.0).between(0.0, 1.0)
-    @C(name = "Layout mode blur intensity", info = "Layout mode blur effect intensity.")
+    @IsConfig(name = "Layout mode blur intensity", info = "Layout mode blur effect intensity.")
     var blurLM by c(4.0).between(0.0, 20.0)
-    @C(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
+    @IsConfig(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
     var durationLM by c(250.millis)
-    @C(name = "Snap", info = "Allows snapping feature for windows and controls.")
+    @IsConfig(name = "Snap", info = "Allows snapping feature for windows and controls.")
     val snapping by cv(true)
-    @C(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
+    @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
     val snapDistance by cv(12.0)
-    @C(name = "Lock layout", info = "Locked layout will not enter layout mode.")
+    @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
     val lockedLayout by cv(false) { SimpleBooleanProperty(it).apply { attach { APP.actionStream.push("Layout lock") } } }
-    @C(name = "Layout open strategy", info = "How will certain layout element open and close.")
-    val openStrategy by cv(INSIDE)
-    @C(name = "Table orientation", group = Settings.Ui.TABLE, info = "Orientation of the table.")
+    @IsConfig(name = "Layout open strategy", info = "How will certain layout element open and close.")
+    val openStrategy by cv(OpenStrategy.INSIDE)
+    @IsConfig(name = "Table orientation", group = Settings.Ui.TABLE, info = "Orientation of the table.")
     val tableOrient by cv(NodeOrientation.INHERIT)
-    @C(name = "Zeropad numbers", group = Settings.Ui.TABLE, info = "Adds 0s for number length consistency.")
+    @IsConfig(name = "Zeropad numbers", group = Settings.Ui.TABLE, info = "Adds 0s for number length consistency.")
     val tableZeropad by cv(false)
-    @C(name = "Search show original index", group = Settings.Ui.TABLE, info = "Show unfiltered table item index when filter applied.")
+    @IsConfig(name = "Search show original index", group = Settings.Ui.TABLE, info = "Show unfiltered table item index when filter applied.")
     val tableOrigIndex by cv(false)
-    @C(name = "Show table header", group = Settings.Ui.TABLE, info = "Show table header with columns.")
+    @IsConfig(name = "Show table header", group = Settings.Ui.TABLE, info = "Show table header with columns.")
     val tableShowHeader by cv(true)
-    @C(name = "Show table controls", group = Settings.Ui.TABLE, info = "Show table controls at the bottom of the table. Displays menu bar and table items information")
+    @IsConfig(name = "Show table controls", group = Settings.Ui.TABLE, info = "Show table controls at the bottom of the table. Displays menu bar and table items information")
     val tableShowFooter by cv(true)
-    @C(name = "Thumbnail anim duration", group = "${Settings.UI}.Images", info = "Preferred hover scale animation duration for thumbnails.")
+    @IsConfig(name = "Thumbnail anim duration", group = "${Settings.UI}.Images", info = "Preferred hover scale animation duration for thumbnails.")
     val thumbnailAnimDur by cv(100.millis)
 
     /**
@@ -140,9 +137,10 @@ class UiManager(val skinDir: File): Configurable<Any> {
     }
 
     fun focusClickedWidget(e: MouseEvent) {
-        val n = if (e.target is Node) e.target as Node else null
-        (if (n==null) Stream.empty() else APP.widgetManager.widgets.findAll(ANY))
-                .filter { w -> !w.focused.get() && w.isLoaded && w.load().isAnyParentOf(n!!) }
+        val n = e.target as? Node
+        if (n!=null)
+            APP.widgetManager.widgets.findAll(ANY)
+                .filter { !it.focused.value && it.isLoaded && it.load().isAnyParentOf(n) }
                 .findAny().ifPresent { it.focus() }
     }
 

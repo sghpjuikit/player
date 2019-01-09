@@ -6,6 +6,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.web.WebEngine
 import javafx.scene.web.WebView
 import mu.KLogging
+import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.controller.SimpleController
@@ -35,6 +36,7 @@ import sp.it.pl.web.WebBarInterpreter
         year = "2015",
         group = OTHER
 )
+@ExperimentalController
 class WebReader(widget: Widget<*>): SimpleController(widget) {
 
     @FXML private lateinit var addressBar: TextField

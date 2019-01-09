@@ -42,6 +42,7 @@ import sp.it.pl.util.graphics.applyViewPort
 import sp.it.pl.util.graphics.getScreenForMouse
 import sp.it.pl.util.graphics.image.imgImplLoadFX
 import sp.it.pl.util.graphics.minus
+import sp.it.pl.util.graphics.pane
 import sp.it.pl.util.graphics.screenToLocal
 import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.stackPane
@@ -228,7 +229,7 @@ abstract class OverlayPane<in T>: StackPane() {
         } else {
             val screen = computeScreen()
             op.displayBgr.get().getImgAndDo(screen) { image ->
-                val bgr = Pane().apply {
+                val bgr = pane {
                     styleClass += "bgr-image"   // replicate app window bgr for style & consistency
                 }
                 val contentImg = ImageView(image).apply {

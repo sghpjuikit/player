@@ -42,8 +42,7 @@ public abstract class Area<T extends Container<?>> implements ContainerNode {
       the area belongs to the specific child, or whole container. */
     public final Integer index;
     public final AnchorPane content_root = new AnchorPane();
-    /** The root of this area. */
-    public final AnchorPane root = new AnchorPane();
+    private final AnchorPane rootPane = new AnchorPane();
     public AreaControls controls;
     /** The root of activity content. ContainsKey custom content. */
     public final StackPane activityPane;
@@ -58,7 +57,7 @@ public abstract class Area<T extends Container<?>> implements ContainerNode {
         container = c;
         index = i;
 
-        setAnchor(root, content_root,0d);
+        setAnchor(rootPane, content_root,0d);
 
         // init properties
         c.properties.getOrPut(Double.class, "padding", 0d);
@@ -122,7 +121,7 @@ public abstract class Area<T extends Container<?>> implements ContainerNode {
         // detach into new window
         Window w = APP.windowManager.createWindow(c);
         // set size to that of a source (also add header & border space)
-        w.setSize(root.getWidth()+10, root.getHeight()+30);
+        w.setSize(rootPane.getWidth()+10, rootPane.getHeight()+30);
     }
 
 /******************************************************************************/
@@ -132,7 +131,7 @@ public abstract class Area<T extends Container<?>> implements ContainerNode {
 
     @Override
     public Pane getRoot() {
-        return root;
+        return rootPane;
     }
 
 /******************************* layout mode **********************************/

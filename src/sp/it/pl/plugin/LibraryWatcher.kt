@@ -52,16 +52,16 @@ class LibraryWatcher: PluginBase("Song Library", false) {
     val updateOnStart by cv(false)
 
     @IsConfig(name = "Monitoring supported", info = "On some system, this file monitoring may be unsupported", editable = NONE)
-    val fileMonitoringSupported by c(Os.WINDOWS.isCurrent)
+    val dirMonitoringSupported by c(Os.WINDOWS.isCurrent)
 
     @IsConfig(name = "Monitor files", info = "Monitors files recursively, notify of changes and update library automatically")
-    val fileMonitoringEnabled by cv(false).readOnlyUnless(fileMonitoringSupported)
+    val dirMonitoringEnabled by cv(false).readOnlyUnless(dirMonitoringSupported)
 
-    private val fileMonitors = HashMap<File, FileMonitor>()
-    private val fileMonitoring = when {
-        fileMonitoringSupported -> Subscribed {
+    private val dirMonitors = HashMap<File, FileMonitor>()
+    private val dirMonitoring = when {
+        dirMonitoringSupported -> Subscribed {
             Subscription.multi(
-                    fileMonitoringEnabled sync { sourceDirsChangeHandler.subscribe(it) },
+                    dirMonitoringEnabled sync { sourceDirsChangeHandler.subscribe(it) },
                     Subscription { sourceDirsChangeHandler.subscribe(false) }
             )
         }
@@ -72,35 +72,35 @@ class LibraryWatcher: PluginBase("Song Library", false) {
     private val update = EventReducer.toLast<Void>(2000.0) { it -> updateLibraryFromEvents() }
 
     override fun onStart() {
-        fileMonitoring.subscribe(true)
+        dirMonitoring.subscribe(true)
         if (updateOnStart.value) updateLibrary()
     }
 
     override fun onStop() {
-        fileMonitoring.subscribe(false)
-        fileMonitors.values.forEach { it.stop() }
-        fileMonitors.clear()
+        dirMonitoring.subscribe(false)
+        dirMonitors.values.forEach { it.stop() }
+        dirMonitors.clear()
         updateLibraryFromEvents()
     }
 
     private fun handleLocationRemoved(dir: File) {
-        if (!fileMonitoringSupported && !fileMonitoringEnabled.value) return
+        if (!dirMonitoringSupported && !dirMonitoringEnabled.value) return
 
         val wasDuplicate = dir in sourceDirs
         if (!wasDuplicate) {
-            fileMonitors.remove(dir)?.stop()
+            dirMonitors.remove(dir)?.stop()
             sourceDirs.forEach { handleLocationAdded(it) }  // starts monitoring previously shadowed directories
         }
     }
 
     private fun handleLocationAdded(dir: File) {
-        if (!fileMonitoringSupported && !fileMonitoringEnabled.value) return
+        if (!dirMonitoringSupported && !dirMonitoringEnabled.value) return
 
-        val isDuplicate = dir in fileMonitors.keys
-        val isShadowed = fileMonitors.keys.any { monitoredDir -> dir isChildOf monitoredDir }
+        val isDuplicate = dir in dirMonitors.keys
+        val isShadowed = dirMonitors.keys.any { monitoredDir -> dir isChildOf monitoredDir }
         val needsMonitoring = !isDuplicate && !isShadowed
         if (needsMonitoring) {
-            fileMonitors[dir] = monitorDirectory(dir, true) { type, file ->
+            dirMonitors[dir] = monitorDirectory(dir, true) { type, file ->
                 when (type) {
                     ENTRY_CREATE -> runFX {
                         toBeAdded += file

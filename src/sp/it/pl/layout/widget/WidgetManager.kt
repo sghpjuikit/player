@@ -156,13 +156,11 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         initialized = true
     }
 
-    private fun registerFactory(factory: ComponentFactory<*>): Boolean {
+    private fun registerFactory(factory: ComponentFactory<*>) {
         logger.info { "Registering $factory" }
 
         if (factory is WidgetFactory<*>) factoriesW put factory
-        val exists = factory in factoriesC
         factoriesC put factory
-        return exists
     }
 
     private fun unregisterFactory(factory: ComponentFactory<*>) {
@@ -185,25 +183,24 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         @Suppress("UNCHECKED_CAST")
         val widgetType = (controllerType as Class<Controller>).kotlin
         val widgetFactory = WidgetFactory(widgetType, dir)
-        val wasReplaced = registerFactory(widgetFactory)
-        if (wasReplaced) {
-            logger.info("Reloading all open widgets of {}", widgetFactory)
-            widgets.findAll(OPEN).asSequence()
-                    .filter { it.info.name()==widgetFactory.name() } // can not rely on type since we just reloaded the class!
-                    .toList()    // avoids possible concurrent modification
-                    .forEach { widgetOld ->
-                        val i = widgetOld.indexInParent()
-                        val widgetNew = widgetFactory.create()
-                        widgetNew.setStateFrom(widgetOld)
-                        if (i!=null) {
-                            val c = widgetOld.parent
-                            c.removeChild(i)
-                            c.addChild(i, widgetNew)
-                        } else {
-                            // TODO: implement
-                        }
+        registerFactory(widgetFactory)
+
+        logger.info("Reloading all open widgets of {}", widgetFactory)
+        widgets.findAll(OPEN).asSequence()
+                .filter { it.name==widgetFactory.name() } // can not rely on type since we just reloaded the class!
+                .toList()    // avoids possible concurrent modification
+                .forEach { widgetOld ->
+                    val i = widgetOld.indexInParent()
+                    val widgetNew = widgetFactory.create()
+                    widgetNew.setStateFrom(widgetOld)
+                    if (i!=null) {
+                        val c = widgetOld.parent
+                        c.removeChild(i)
+                        c.addChild(i, widgetNew)
+                    } else {
+                        // TODO: implement
                     }
-        }
+                }
     }
 
     private inner class WidgetDir constructor(val widgetName: String, val widgetDir: File) {

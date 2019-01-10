@@ -123,7 +123,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	protected abstract Item createItem(Item parent, File value, FileType type);
 
-	private File getImage(File dir, String name) {
+	protected File getImage(File dir, String name) {
 		if (disposed) return null;
 		if (dir==null) return null;
 
@@ -147,7 +147,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return null;
 	}
 
-	private File getImageT(File dir, String name) {
+	protected File getImageT(File dir, String name) {
 		if (disposed) return null;
 		if (dir==null) return null;
 

@@ -114,9 +114,9 @@ public class DirViewer extends SimpleController {
     final FileFilterValue filter = FileFilters.toEnumerableValue(v -> revisitCurrent());
     @IsConfig(name = "Sort", info = "Sorting effect.")
     final V<Sort> sort = new V<>(ASCENDING, v -> applySort());
-    @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
+    @IsConfig(name = "Sort first", info = "Group directories and files - files first, last or no separation.")
     final V<FileSort> sort_file = new V<>(DIR_FIRST, v -> applySort());
-    @IsConfig(name = "Sort by", info = "Sorting criteria.")
+    @IsConfig(name = "Sort seconds", info = "Sorting criteria.")
     final VarEnum<FileField<?>> sortBy = new VarEnum<>(FileField.NAME, () -> FileField.FIELDS, v -> applySort());
 
 	@Constraint.FileType(Constraint.FileActor.DIRECTORY)
@@ -390,7 +390,17 @@ public class DirViewer extends SimpleController {
 
         @Override
         protected File getCoverFile() {
-            return null;
+            boolean allChildrenShareParent = files.list.size()==1;
+            if (allChildrenShareParent) {
+                File dir = children.stream().findFirst().get().val.getParentFile();
+                if (dir!=null) {
+                    return getImageT(dir, "cover");
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
         }
     }
 

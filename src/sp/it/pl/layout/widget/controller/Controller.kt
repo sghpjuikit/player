@@ -7,6 +7,9 @@ import sp.it.pl.layout.widget.controller.io.Outputs
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.util.Locatable
 import sp.it.pl.util.conf.CachedConfigurable
+import sp.it.pl.util.graphics.label
+import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.stackPane
 
 /**
  * Defines behavior and content of [Widget].
@@ -91,4 +94,22 @@ interface Controller: CachedConfigurable<Any>, Locatable {
     @JvmDefault
     override val userLocation get() = ownerWidget.userLocation
 
+}
+
+/** Controller for [Widget] with no [sp.it.pl.layout.widget.WidgetFactory]. */
+class NoFactoryController(widget: Widget<*>): SimpleController(widget) {
+    init {
+        lay += stackPane {
+            lay += label("Widget ${widget.name} is not recognized")
+        }
+    }
+}
+
+/** Controller for [Widget] that fails to instantiate its controller. */
+class LoadErrorController(widget: Widget<*>): SimpleController(widget) {
+    init {
+        lay += stackPane {
+            lay += label("Widget ${widget.name} failed to load properly")
+        }
+    }
 }

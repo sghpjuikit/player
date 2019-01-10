@@ -29,6 +29,8 @@ import sp.it.pl.layout.area.ContainerNode;
 import sp.it.pl.layout.area.IOLayer;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.controller.Controller;
+import sp.it.pl.layout.widget.controller.LoadErrorController;
+import sp.it.pl.layout.widget.controller.NoFactoryController;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.io.Input;
@@ -51,6 +53,7 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.deepEquals;
 import static java.util.stream.Collectors.toMap;
+import static sp.it.pl.layout.widget.EmptyWidgetKt.getEmptyWidgetFactory;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
@@ -97,7 +100,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	 * still point to the old factory, holding true to the description of this field.
 	 */
 	@Dependency("name - accessed using reflection by name")
-	@XStreamOmitField public final WidgetFactory<?> factory;	// TODO: make type safe
+	@XStreamOmitField public final WidgetFactory<C> factory;
 	@XStreamOmitField protected Node root;
 	@XStreamOmitField protected C controller;
 
@@ -141,7 +144,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	@IsConfig(name = "Focused", info = "Whether widget is active/focused.", editable = EditMode.APP)
 	@XStreamOmitField public final V<Boolean> focused = new V<>(false); // TODO: make read-only
 
-	public Widget(String name, WidgetFactory factory) {
+	public Widget(String name, WidgetFactory<C> factory) {
 		this.name = name;
 		this.factory = factory;
 		custom_name.setValue(name);
@@ -192,11 +195,12 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	@Override
 	public Node load() {
 		if (root==null) {
-			controller = instantiateController();
+			controller = controller!=null ? controller : instantiateController();
+
 			if (controller==null) {
-				Widget w = Widget.EMPTY();
-				root = w.load();
-				controller = (C) w.controller;
+				LoadErrorController c = new LoadErrorController(this);
+				root = c.loadFirstTime();
+				controller = (C) c;
 			} else {
 				try {
 					root = controller.loadFirstTime();
@@ -214,10 +218,10 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 
 					updateIO();
 				} catch (Throwable e) {
-					Widget w = Widget.EMPTY();
-					root = w.load();
-					controller = (C) w.controller;
-					LOGGER.error("Widget {} graphics creation failed. Using empty widget instead.", getName(), e);
+					LoadErrorController c = new LoadErrorController(this);
+					root = c.loadFirstTime();
+					controller = (C) c;
+					LOGGER.error("Widget={} graphics creation failed.", name, e);
 				}
 			}
 		}
@@ -236,7 +240,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		restoreDefaultConfigs();
 
 		// instantiate controller
-		Class<C> cc = (Class) factory.getControllerType(); // TODO: make factory type safe and avoid cast
+		Class<C> cc = factory.getControllerType();
 		LOGGER.info("Instantiating widget controller " + cc);
 		C c = supplyFirst(
 			() -> {
@@ -482,12 +486,18 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	 * @implSpec Resolve object by initializing non-deserializable fields or providing an alternative instance (e.g. to
 	 * adhere to singleton pattern).
 	 */
+	@SuppressWarnings("unchecked")
 	protected Object readResolve() throws ObjectStreamException {
 		super.readResolve();
 
 		// try to assign factory (it must exist) or fallback to empty widget
-		if (factory==null) Util.setField(this, "factory", APP.widgetManager.factories.getFactory(name));
-		if (factory==null) return Widget.EMPTY();
+		if (factory==null) {
+			Util.setField(this, "factory", APP.widgetManager.factories.getFactory(name));
+		}
+		if (factory==null) {
+			Util.setField(this, "factory", getEmptyWidgetFactory());
+			controller = (C) new NoFactoryController(this);
+		}
 
 		if (configs==null) configs = new HashMap<>();
 		if (focused==null) {

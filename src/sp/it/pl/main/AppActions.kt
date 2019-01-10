@@ -204,7 +204,7 @@ class AppActions {
         APP.widgetManager.widgets.use<ConfiguringFeature>(WidgetSource.NO_LAYOUT) { it.configure(APP.configuration) }
     }
 
-    @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
+    @IsAction(name = "Open layout manager", desc = "Opens layout management.")
     fun openLayoutManager() {
         APP.widgetManager.widgets.find(Widgets.LAYOUTS, WidgetSource.NO_LAYOUT, false)
     }
@@ -214,7 +214,7 @@ class AppActions {
         APP.actionPane.show(APP)
     }
 
-    @IsAction(name = "Open", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
+    @IsAction(name = "Open...", desc = "Display all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
     fun openOpen() {
         APP.actionPane.show(AppOpen)
     }

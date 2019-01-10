@@ -448,13 +448,6 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		return getClass() + " " + name;
 	}
 
-	/**
-	 * @return empty widget. Use to inject fake widget instead null value.
-	 */
-	public static Widget EMPTY() {
-		return new EmptyWidget();
-	}
-
 /****************************** SERIALIZATION *********************************/
 
 	/** Invoked just before the serialization. */

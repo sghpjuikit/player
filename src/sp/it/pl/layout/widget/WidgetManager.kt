@@ -192,13 +192,15 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                     .filter { it.info.name()==widgetFactory.name() } // can not rely on type since we just reloaded the class!
                     .toList()    // avoids possible concurrent modification
                     .forEach { widgetOld ->
-                        val i = widgetOld.indexInParent()  // TODO: avoid null, MUST be wrapped within container!
+                        val i = widgetOld.indexInParent()
                         val widgetNew = widgetFactory.create()
                         widgetNew.setStateFrom(widgetOld)
                         if (i!=null) {
                             val c = widgetOld.parent
                             c.removeChild(i)
                             c.addChild(i, widgetNew)
+                        } else {
+                            // TODO: implement
                         }
                     }
         }

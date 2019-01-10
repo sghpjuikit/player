@@ -41,6 +41,8 @@ open class SimpleController(@JvmField val widget: Widget<*>): AnchorPane(), Cont
         }
     }
 
+    override fun loadFirstTime() = this
+
     override fun focus() = requestFocus()
 
     override fun close() {

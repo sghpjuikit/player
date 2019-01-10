@@ -3,7 +3,7 @@ package sp.it.pl.layout.widget
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.main.APP
-import sp.it.pl.util.file.childOf
+import sp.it.pl.util.file.div
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.type.ClassName
 import java.io.File
@@ -48,7 +48,7 @@ class WidgetFactory<C: Controller>: ComponentFactory<Widget<C>>, WidgetInfo {
         this.name = ClassName.of(controllerType.java)
         this.controllerType = controllerType.java
         this.location = location
-        this.locationUser = APP.DIR_USERDATA.childOf("widgets", location.nameOrRoot)
+        this.locationUser = APP.DIR_USERDATA/"widgets"/location.nameOrRoot
         this.nameGui = if (i.name.isEmpty()) name else i.name
         this.description = i.description
         this.version = i.version

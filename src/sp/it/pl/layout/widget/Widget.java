@@ -423,7 +423,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	private ChangeListener<Boolean> computeFocusChangeHandler() {
 		return (o, ov, nv) -> {
 			if (isLoaded()) {
-				Pane p = (Pane) findParent(root, n -> n.getStyleClass().containsAll(Area.bgr_STYLECLASS));
+				Pane p = (Pane) findParent(root, n -> n.getStyleClass().containsAll(Area.STYLECLASS_BGR));
 				if (p!=null) p.pseudoClassStateChanged(pseudoclass("active"), nv);
 			}
 		};

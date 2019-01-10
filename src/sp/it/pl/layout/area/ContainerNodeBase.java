@@ -39,8 +39,8 @@ import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.layout.area.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
-import static sp.it.pl.layout.area.Area.DRAGGED_PSEUDOCLASS;
+import static sp.it.pl.layout.area.Area.STYLECLASS_CONTAINER_AREA_CONTROLS;
+import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.functional.Util.mapB;
@@ -67,7 +67,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
 
         root.getChildren().add(ctrls);
         setAnchors(ctrls, 0d);
-        ctrls.getStyleClass().addAll(CONTAINER_AREA_CONTROLS_STYLECLASS);
+        ctrls.getStyleClass().addAll(STYLECLASS_CONTAINER_AREA_CONTROLS);
 
 	// build header buttons
 	Icon infoB = createInfoIcon("Container settings. See icon tooltips."
@@ -110,14 +110,14 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                 DragUtil.setComponent(container,db);
                 // signal dragging graphically with css
-                ctrls.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, true);
+                ctrls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
                 e.consume();
             }
         };
         dragB.setOnDragDetected(dh);
         ctrls.setOnDragDetected(dh);
         // return graphics to normal
-        root.setOnDragDone(e -> ctrls.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
+        root.setOnDragDone(e -> ctrls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
 
 	icons.setNodeOrientation(LEFT_TO_RIGHT);
 	icons.setAlignment(Pos.CENTER_RIGHT);

@@ -48,6 +48,7 @@ import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.plugin.AppSearchPlugin
 import sp.it.pl.plugin.DirSearchPlugin
+import sp.it.pl.plugin.LibraryWatcher
 import sp.it.pl.plugin.Plugin
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.ScreenRotator
@@ -530,6 +531,7 @@ class App: Application(), Configurable<Any> {
 
     private fun PluginManager.initForApp() {
         installPlugins(
+                LibraryWatcher(),
                 AppSearchPlugin(),
                 DirSearchPlugin(),
                 ScreenRotator()

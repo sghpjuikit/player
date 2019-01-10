@@ -17,11 +17,9 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.dev.Dependency
-import sp.it.pl.util.file.childOf
+import sp.it.pl.util.file.div
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
 import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.reactive.on
-import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.type.Util.getFieldValue
 import sp.it.pl.util.type.Util.invokeMethodP1
 import sp.it.pl.web.DuckDuckGoQBuilder
@@ -58,7 +56,7 @@ class WebReader(widget: Widget<*>): SimpleController(widget) {
         ConventionFxmlLoader(this).loadNoEx<Any>()
 
         engine = webView.engine
-        engine.userDataDirectory = userLocation.childOf("browser")
+        engine.userDataDirectory = userLocation/"browser"
         engine.locationProperty() attach {
             url = it
             addressBar.text = url
@@ -69,9 +67,10 @@ class WebReader(widget: Widget<*>): SimpleController(widget) {
                 val url = WebBarInterpreter.toUrlString(text, searchEngine.get())
                 loadPage(url)
             }
+
         }
 
-        engine.documentProperty() sync { if (noBgr.get()) engine.setTransparentBgrColor() } on onClose
+        // engine.documentProperty() sync { if (noBgr.get()) engine.setTransparentBgrColor() } on onClose
         inputs.create<String>("Html") { loadHtml(it) }
         inputs.create<String>("Url") { loadPage(it) }
 

@@ -1,4 +1,4 @@
-package sp.it.pl.plugin
+package sp.it.pl.plugin.library
 
 import mu.KLogging
 import org.reactfx.Subscription
@@ -6,6 +6,7 @@ import sp.it.pl.audio.SimpleItem
 import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.showAppProgress
+import sp.it.pl.plugin.PluginBase
 import sp.it.pl.service.notif.Notifier
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.executor.EventReducer

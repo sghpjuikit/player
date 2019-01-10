@@ -46,12 +46,12 @@ import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.layout.widget.WidgetSource.ANY
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.layout.widget.feature.PlaylistFeature
-import sp.it.pl.plugin.AppSearchPlugin
-import sp.it.pl.plugin.DirSearchPlugin
-import sp.it.pl.plugin.LibraryWatcher
+import sp.it.pl.plugin.appsearch.AppSearchPlugin
+import sp.it.pl.plugin.dirsearch.DirSearchPlugin
+import sp.it.pl.plugin.library.LibraryWatcher
 import sp.it.pl.plugin.Plugin
 import sp.it.pl.plugin.PluginManager
-import sp.it.pl.plugin.ScreenRotator
+import sp.it.pl.plugin.screenrotator.ScreenRotator
 import sp.it.pl.service.Service
 import sp.it.pl.service.ServiceManager
 import sp.it.pl.service.click.ClickEffect

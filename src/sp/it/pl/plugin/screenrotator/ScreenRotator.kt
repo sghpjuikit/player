@@ -1,8 +1,9 @@
-package sp.it.pl.plugin
+package sp.it.pl.plugin.screenrotator
 
 import javafx.stage.Screen
 import mu.KLogging
 import sp.it.pl.main.APP
+import sp.it.pl.plugin.PluginBase
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cr

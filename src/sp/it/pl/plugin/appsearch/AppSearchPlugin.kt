@@ -1,4 +1,4 @@
-package sp.it.pl.plugin
+package sp.it.pl.plugin.appsearch
 
 import mu.KLogging
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch
@@ -6,6 +6,7 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.showAppProgress
+import sp.it.pl.plugin.PluginBase
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.IsConfig

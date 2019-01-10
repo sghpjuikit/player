@@ -12,9 +12,12 @@ import java.util.HashMap
 
 open class SimpleController(@JvmField val widget: Widget<*>): AnchorPane(), Controller, MultiConfigurable {
 
+    override val ownerWidget = widget
     @JvmField val onClose = Disposer()
     @JvmField val outputs = Outputs()
     @JvmField val inputs = Inputs()
+    override val ownedOutputs = outputs
+    override val ownedInputs = inputs
     private val configs = HashMap<String, Config<*>>()
     override val configurableDiscriminant = null as String?
     override val configurableValueStore: ConfigValueSource by lazy {
@@ -38,10 +41,6 @@ open class SimpleController(@JvmField val widget: Widget<*>): AnchorPane(), Cont
         }
     }
 
-    override fun getOwnerWidget(): Widget<*> = widget
-
-    override fun refresh() {}
-
     override fun focus() = requestFocus()
 
     override fun close() {
@@ -51,10 +50,6 @@ open class SimpleController(@JvmField val widget: Widget<*>): AnchorPane(), Cont
 
     @Deprecated("to be removed")
     final override fun init() {}
-
-    override fun getOwnedOutputs() = outputs
-
-    override fun getOwnedInputs() = inputs
 
     @Suppress("UNCHECKED_CAST")
     override fun getFieldsMap(): Map<String, Config<Any>> = configs as Map<String, Config<Any>>

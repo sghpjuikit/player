@@ -37,7 +37,7 @@ val kotlinVersion: String by extra {
             .resolvedConfiguration.firstLevelModuleDependencies
             .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
-val javaSupportedVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10, JavaVersion.VERSION_11).also {
+val javaSupportedVersions = arrayOf(JavaVersion.VERSION_11).also {
     val javaVersion = JavaVersion.current()
     if (javaVersion !in it) {
         println(""+
@@ -175,8 +175,7 @@ tasks {
         description = "Links $dirJdk to JDK"
         onlyIf { !dirJdk.exists() }
         doFirst {
-            // if the symbolic link is invalid, "exist" returns false, but it still blocks the creation of the new new link, so it has to first be deleted
-            dirJdk.delete()
+            dirJdk.delete() // delete invalid symbolic link
             println("Making JDK locally accessible...")
             val jdkPath = "java.home".sysProp?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
             try {

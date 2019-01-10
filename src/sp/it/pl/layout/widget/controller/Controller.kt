@@ -9,6 +9,7 @@ import sp.it.pl.util.Locatable
 import sp.it.pl.util.conf.CachedConfigurable
 import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.layFullArea
 import sp.it.pl.util.graphics.stackPane
 
 /**
@@ -99,7 +100,7 @@ interface Controller: CachedConfigurable<Any>, Locatable {
 /** Controller for [Widget] with no [sp.it.pl.layout.widget.WidgetFactory]. */
 class NoFactoryController(widget: Widget<*>): SimpleController(widget) {
     init {
-        lay += stackPane {
+        layFullArea += stackPane {
             lay += label("Widget ${widget.name} is not recognized")
         }
     }
@@ -108,7 +109,7 @@ class NoFactoryController(widget: Widget<*>): SimpleController(widget) {
 /** Controller for [Widget] that fails to instantiate its controller. */
 class LoadErrorController(widget: Widget<*>): SimpleController(widget) {
     init {
-        lay += stackPane {
+        layFullArea += stackPane {
             lay += label("Widget ${widget.name} failed to load properly")
         }
     }

@@ -61,4 +61,4 @@ class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller 
 
 }
 
-val emptyWidgetFactory: WidgetFactory<*> = WidgetFactory(EmptyWidget::class, APP.DIR_WIDGETS.childOf("Empty"))
+val emptyWidgetFactory = WidgetFactory(EmptyWidget::class, APP.DIR_WIDGETS.childOf("Empty"))

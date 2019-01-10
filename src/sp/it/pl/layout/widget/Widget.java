@@ -29,10 +29,10 @@ import sp.it.pl.layout.area.ContainerNode;
 import sp.it.pl.layout.area.IOLayer;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.controller.Controller;
-import sp.it.pl.layout.widget.controller.LoadErrorController;
-import sp.it.pl.layout.widget.controller.NoFactoryController;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.LegacyController;
+import sp.it.pl.layout.widget.controller.LoadErrorController;
+import sp.it.pl.layout.widget.controller.NoFactoryController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.controller.io.Output;
@@ -52,7 +52,6 @@ import sp.it.pl.util.type.Util;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.deepEquals;
-import static java.util.stream.Collectors.toMap;
 import static sp.it.pl.layout.widget.EmptyWidgetKt.getEmptyWidgetFactory;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppUtil.APP;
@@ -351,6 +350,9 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 			IOLayer.all_outputs.removeAll(c.getOwnedOutputs().getOutputs());
 			c.close();
 		}
+
+		ios.removeIf(io -> io.widget==this);
+
 		onClose.invoke();
 	}
 
@@ -388,8 +390,6 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		if (w.controller!=null)
 			w.storeConfigs();
 
-		// this takes care of any custom state or controller persistence state or deserialized
-		// configs/inputs/outputs
 		properties.clear();
 		properties.putAll(w.properties);
 
@@ -403,6 +403,14 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		// if this widget is loaded we apply state, otherwise its done when it loads
 		if (controller!=null)
 			restoreConfigs();
+
+		properties.entrySet().stream()
+			.filter(e -> e.getKey().startsWith("io"))
+			.map(e -> new IO(this, e.getKey().substring(2), (String) e.getValue()))
+			.forEach(ios::add);
+
+		if (controller!=null)
+			updateIO();
 	}
 
 	@Override
@@ -578,11 +586,13 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	@SuppressWarnings({"unchecked", "UseBulkOperation", "deprecation"})
 	public static void deserializeWidgetIO() {
 		Set<Input<?>> is = new HashSet<>();
-		Map<Output.Id,Output<?>> os = APP.widgetManager.widgets.findAll(OPEN)
-				.filter(w -> w.controller!=null)
-				.peek(w -> w.controller.getOwnedInputs().getInputs().forEach(is::add))
-				.flatMap(w -> w.controller.getOwnedOutputs().getOutputs().stream())
-				.collect(toMap(i -> i.id, i -> i));
+		Map<Output.Id,Output<?>> os = new HashMap<>();
+		APP.widgetManager.widgets.findAll(OPEN)
+			.filter(w -> w.controller!=null)
+			.forEach(w -> {
+				w.controller.getOwnedInputs().getInputs().forEach(is::add);
+				w.controller.getOwnedOutputs().getOutputs().forEach(o -> os.put(o.id, o));
+			});
 		IOLayer.all_inoutputs.forEach(io -> os.put(io.o.id, io.o));
 
 		ios.forEach(io -> {

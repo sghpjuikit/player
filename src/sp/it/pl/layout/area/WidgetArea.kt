@@ -74,8 +74,6 @@ class WidgetArea: Area<Container<*>> {
 
     override fun getWidget() = widget
 
-    override fun getActiveWidgets() = listOf(widget)
-
     private fun loadWidget(forceLoading: Boolean = false) {
         disposer()
 

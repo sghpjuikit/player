@@ -79,6 +79,7 @@ import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1If
+import sp.it.pl.util.system.Os
 import sp.it.pl.util.type.Util
 import java.util.ArrayList
 
@@ -259,38 +260,40 @@ open class PopOver<N: Node>(): PopupControl() {
         // TODO: fix on Linux/Mac and move out (along with WindowBase.fixJavaFxNonDecoratedMinimization)
         fun fixJavaFxPopupAlwaysOnTop() = showingProperty().sync1If({ it }) {
 
-//            kotlin.run {
-//                val peer = Util.invokeMethodP0(this, "getPeer")
-//                Util.invokeMethodP1(peer, "setAlwaysOnTop", Boolean::class.javaPrimitiveType, false)
-//                Util.invokeMethodP0(peer, "needsUpdateWindow")
-//            }
+            when (Os.current) {
+                Os.WINDOWS -> {
+                    fun Window.hwnd(): WinDef.HWND {
+                        val peer = Util.invokeMethodP0(this, "getPeer")
+                        val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow")
+                        Util.invokeMethodP1(peerPlatformWindow, "setLevel", Int::class.javaPrimitiveType, 1)
+                        val hwndLong = Util.invokeMethodP0(peerPlatformWindow, "getRawHandle") as Long
+                        val hwnd = WinDef.HWND(Pointer(hwndLong))
+                        return hwnd
+                    }
+                    val hwnd = hwnd()
+                    val SWP_NOSIZE = 0x0001
+                    val SWP_NOMOVE = 0x0002
+                    val SWP_SHOWWINDOW = 0x0040
+                    User32.INSTANCE.SetWindowPos(hwnd, WinDef.HWND(Pointer.createConstant(-2)), 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_SHOWWINDOW)
+                }
+                else -> {
+                    // kotlin.run {
+                    //     val peer = Util.invokeMethodP0(this, "getPeer")
+                    //     Util.invokeMethodP1(peer, "setAlwaysOnTop", Boolean::class.javaPrimitiveType, false)
+                    //     Util.invokeMethodP0(peer, "needsUpdateWindow")
+                    // }
 
-//            kotlin.run {
-//                val peer = Util.invokeMethodP0(ownerWindow, "getPeer")
-//                val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow")
-//                Util.invokeMethodP1(peerPlatformWindow, "setLevel", Int::class.javaPrimitiveType, 1)
-//            }
+                    // kotlin.run {
+                    //     val peer = Util.invokeMethodP0(ownerWindow, "getPeer")
+                    //     val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow")
+                    //     Util.invokeMethodP1(peerPlatformWindow, "setLevel", Int::class.javaPrimitiveType, 1)
+                    // }
 
-//            kotlin.run {
-//                val peer = Util.invokeMethodP0(this, "getPeerListener")
-//                Util.invokeMethodP1(peer, "changedAlwaysOnTop", Boolean::class.javaPrimitiveType, false)
-//            }
-
-            fun Window.hwnd(): WinDef.HWND {
-                val peer = Util.invokeMethodP0(this, "getPeer")
-                val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow")
-                Util.invokeMethodP1(peerPlatformWindow, "setLevel", Int::class.javaPrimitiveType, 1)
-                val hwndLong = Util.invokeMethodP0(peerPlatformWindow, "getRawHandle") as Long
-                val hwnd = WinDef.HWND(Pointer(hwndLong))
-                return hwnd
-            }
-
-            kotlin.run {
-                val hwnd = hwnd()
-                val SWP_NOSIZE = 0x0001
-                val SWP_NOMOVE = 0x0002
-                val SWP_SHOWWINDOW = 0x0040
-                User32.INSTANCE.SetWindowPos(hwnd, WinDef.HWND(Pointer.createConstant(-2)), 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_SHOWWINDOW)
+                    // kotlin.run {
+                    //     val peer = Util.invokeMethodP0(this, "getPeerListener")
+                    //     Util.invokeMethodP1(peer, "changedAlwaysOnTop", Boolean::class.javaPrimitiveType, false)
+                    // }
+                }
             }
         }
         fixJavaFxPopupAlwaysOnTop()

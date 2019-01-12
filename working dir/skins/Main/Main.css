@@ -742,10 +742,10 @@
 
 /* Force all scrollbar to be of equal size */
 .scroll-bar:vertical {
-    -fx-pref-width: 1.66666666667em; /* 20 */
+    -fx-pref-width: 1.66666666667em; /* 20 */ /* adjusting this affects .scroll-bar > .thumb */
 }
 .scroll-bar:horizontal {
-    -fx-pref-height: 1.66666666667em; /* 20 */
+    -fx-pref-height: 1.66666666667em; /* 20 */ /* adjusting this affects .scroll-bar > .thumb */
 }
 
 .scroll-bar,
@@ -797,7 +797,7 @@
 .tree-table-view > .virtual-flow > .scroll-bar:horizontal > .thumb {
     -fx-padding: 0;
     -fx-background-color: -fx-def-font-color;
-    -fx-background-insets: 0.46em;
+    -fx-background-insets: 0.75em;
     -fx-background-radius: 1em; /* 3px */
 }
 

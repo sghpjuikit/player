@@ -185,21 +185,12 @@
     -fx-text-fill: derive(-fx-control-inner-background,-30%);
 }
 
-
-.text-area > .scroll-pane > .scroll-bar > .thumb {
-    -fx-background-color: -fx-def-font-color;
-    -fx-background-insets: 5.5;
-    -fx-background-radius: 3;
-}
-
-
 /* BUGFIX, doesnt get applied */
 .config-field-warn-button {
     -fx-fill: -fx-focus-color;
 }
 
-
-/** 
+/**
  * Pane border created with path.
  * The path is build out of multiple path objects and does not necessarily create 
  * a single visual shape

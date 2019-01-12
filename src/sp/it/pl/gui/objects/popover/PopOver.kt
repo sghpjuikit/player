@@ -29,6 +29,9 @@
 
 package sp.it.pl.gui.objects.popover
 
+import com.sun.jna.Pointer
+import com.sun.jna.platform.win32.User32
+import com.sun.jna.platform.win32.WinDef
 import javafx.beans.InvalidationListener
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -75,7 +78,13 @@ import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.reactive.sync1If
+import sp.it.pl.util.type.Util
 import java.util.ArrayList
+
+
+
+
 
 /**
  * Enhanced popup window.
@@ -246,6 +255,45 @@ open class PopOver<N: Node>(): PopupControl() {
         isAutoFix = false
         skin = createDefaultSkin()
         initCloseWithOwner()
+
+        // TODO: fix on Linux/Mac and move out (along with WindowBase.fixJavaFxNonDecoratedMinimization)
+        fun fixJavaFxPopupAlwaysOnTop() = showingProperty().sync1If({ it }) {
+
+//            kotlin.run {
+//                val peer = Util.invokeMethodP0(this, "getPeer")
+//                Util.invokeMethodP1(peer, "setAlwaysOnTop", Boolean::class.javaPrimitiveType, false)
+//                Util.invokeMethodP0(peer, "needsUpdateWindow")
+//            }
+
+//            kotlin.run {
+//                val peer = Util.invokeMethodP0(ownerWindow, "getPeer")
+//                val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow")
+//                Util.invokeMethodP1(peerPlatformWindow, "setLevel", Int::class.javaPrimitiveType, 1)
+//            }
+
+//            kotlin.run {
+//                val peer = Util.invokeMethodP0(this, "getPeerListener")
+//                Util.invokeMethodP1(peer, "changedAlwaysOnTop", Boolean::class.javaPrimitiveType, false)
+//            }
+
+            fun Window.hwnd(): WinDef.HWND {
+                val peer = Util.invokeMethodP0(this, "getPeer")
+                val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow")
+                Util.invokeMethodP1(peerPlatformWindow, "setLevel", Int::class.javaPrimitiveType, 1)
+                val hwndLong = Util.invokeMethodP0(peerPlatformWindow, "getRawHandle") as Long
+                val hwnd = WinDef.HWND(Pointer(hwndLong))
+                return hwnd
+            }
+
+            kotlin.run {
+                val hwnd = hwnd()
+                val SWP_NOSIZE = 0x0001
+                val SWP_NOMOVE = 0x0002
+                val SWP_SHOWWINDOW = 0x0040
+                User32.INSTANCE.SetWindowPos(hwnd, WinDef.HWND(Pointer.createConstant(-2)), 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_SHOWWINDOW)
+            }
+        }
+        fixJavaFxPopupAlwaysOnTop()
     }
 
     /**

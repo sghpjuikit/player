@@ -5,10 +5,10 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import sp.it.pl.util.access.ref.SingleR;
 
-public class TableContextMenuR<M> extends SingleR<ImprovedContextMenu<M>,M> {
+public class TableContextMenuR<M> extends SingleR<ValueContextMenu<M>,M> {
 
 	public TableContextMenuR() {
-		super(ImprovedContextMenu::new, ImprovedContextMenu::setValueAndItems);
+		super(ValueContextMenu::new, ValueContextMenu::setValueAndItems);
 	}
 
 	public void show(M mutator, TableView<?> table, MouseEvent e) {

@@ -55,10 +55,14 @@ open class V<T>: SimpleObjectProperty<T>, ApplicableValue<T> {
 
 }
 
+/** @return new [V] value disallowing null values, initialized to the specified value */
 fun <T: Any> v(value: T): V<T> = V(value)
 
+/** @return new [V] value allowing null values, initialized to the specified value or null if no specified */
 fun <T: Any?> vn(value: T? = null): V<T?> = V(value)
 
+/** Declarative convenience method. Invokes [attach] on this with the specified action and returns this. */
 fun <T, W: V<T>> W.initAttach(action: (T) -> Unit) = apply { attach { action(it) } }
 
+/** Declarative convenience method. Invokes [sync] on this with the specified action and returns this. */
 fun <T, W: V<T>> W.initSync(action: (T) -> Unit) = apply { sync(action) }

@@ -34,7 +34,6 @@ import sp.it.pl.gui.itemnode.StringSplitParser.SplitData;
 import sp.it.pl.gui.itemnode.ValueNode;
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox;
 import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.gui.pane.ConfigPane;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Group;
@@ -65,6 +64,7 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
+import static sp.it.pl.main.AppProgressKt.showAppProgress;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.capitalizeStrong;
 import static sp.it.pl.util.Util.filenamizeString;
@@ -209,16 +209,18 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(Metadata.Field.FIELDS, f -> f.name()), data -> {
             List<Item> songs = source.stream().filter(Item.class::isInstance).map(Item.class::cast).collect(toList());
             if (songs.isEmpty()) return;
-            fut()
-               .useBy(Player.IO_THREAD, it -> {
-                    for (int i=0; i<songs.size(); i++) {
-                        int j = i;
-                        MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field, values) -> w.setFieldS(Metadata.Field.valueOf(field), values.get(j))));
-                    }
+            showAppProgress(
+                fut()
+                   .useBy(Player.IO_THREAD, it -> {
+                        for (int i=0; i<songs.size(); i++) {
+                            int j = i;
+                            MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field, values) -> w.setFieldS(Metadata.Field.valueOf(field), values.get(j))));
+                        }
 
-                    Player.refreshItemsWith(stream(songs).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList()));
-               })
-               .showProgress(widget.getWindowOrActive().map(Window::taskAdd));
+                        Player.refreshItemsWith(stream(songs).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList()));
+                   }),
+                widget.custom_name.getValue() + "Editing song tags"
+            );
         }));
         acts.accumulate(new WriteFileAct());
         acts.accumulate(new ActCreateDirs());

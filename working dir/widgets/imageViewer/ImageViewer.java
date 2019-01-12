@@ -1,11 +1,5 @@
 package imageViewer;
 
-import sp.it.pl.audio.Item;
-import sp.it.pl.audio.Player;
-import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.gui.nodeinfo.ItemInfo;
-import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.image.Thumbnail;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,7 +18,12 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
-import sp.it.pl.gui.objects.window.stage.Window;
+import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Player;
+import sp.it.pl.audio.tagging.Metadata;
+import sp.it.pl.gui.nodeinfo.ItemInfo;
+import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
@@ -46,11 +45,14 @@ import static javafx.application.Platform.runLater;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.layout.AnchorPane.setBottomAnchor;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
+import static sp.it.pl.main.AppProgressKt.showAppProgress;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.executor.EventReducer.toFirstDelayed;
@@ -266,9 +268,10 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
                     if (!items.isEmpty()) dataChanged(items.get(0));
                 } else
                 if (DragUtil.hasImage(e)) {
-                    DragUtil.getImages(e)
-                         .useBy(FX, this::showImages)
-                         .showProgress(widget.getWindowOrActive().map(Window::taskAdd));
+                    showAppProgress(
+                        DragUtil.getImages(e).useBy(FX, this::showImages),
+                        widget.custom_name.getValue() + "Loading images"
+                    );
                 }
             }
         );

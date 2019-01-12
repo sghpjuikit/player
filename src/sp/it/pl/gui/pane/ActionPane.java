@@ -71,6 +71,7 @@ import static sp.it.pl.gui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
+import static sp.it.pl.main.AppProgressKt.showProgress;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -352,9 +353,10 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		} else {
 			setDataInfo(null, false);
 			// obtain data & invoke again
-			data = ((Fut) data)
-					.useBy(FX, this::setData)
-					.showProgress(dataProgress);
+			data = showProgress(
+				((Fut) data).useBy(FX, this::setData),
+				dataProgress
+			);
 		}
 	}
 

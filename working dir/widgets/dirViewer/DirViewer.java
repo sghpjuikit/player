@@ -23,6 +23,7 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.fieldvalue.CachingFile;
 import sp.it.pl.util.access.fieldvalue.FileField;
+import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.conf.Config.VarList.Elements;
 import sp.it.pl.util.conf.EditMode;
@@ -47,6 +48,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppBuildersKt.appTooltipForData;
+import static sp.it.pl.main.AppProgressKt.showAppProgress;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Sort.ASCENDING;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -212,7 +214,8 @@ public class DirViewer extends SimpleController {
 
         item = dir;
         lastVisited = dir.val;
-        fut(item)
+        showAppProgress(
+            fut(item)
                 .then(executorIO, it -> it.children().stream().sorted(buildSortComparator()).collect(toList()))
                 .useBy(FX, cells -> {
                     grid.getItemsRaw().setAll(cells);
@@ -221,8 +224,9 @@ public class DirViewer extends SimpleController {
 
                     grid.requestFocus();    // fixes focus problem
                     runFX(millis(500), grid::requestFocus);
-                })
-                .showProgress(getOwnerWidget().getWindowOrActive().map(Window::taskAdd));
+                }),
+            widget.custom_name.getValue() + ": Fetching view"
+        );
     }
 
     @Override

@@ -96,7 +96,7 @@ class AppActions {
 
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
     fun openIconViewer() {
-        val iconSize = 80.0
+        val iconSize = 120.0
         val grid = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize+30, 5.0, 5.0).apply {
             search.field = object: StringGetter<GlyphIcons?> {
                 override fun getOfS(value: GlyphIcons?, substitute: String): String = value?.name() ?: substitute

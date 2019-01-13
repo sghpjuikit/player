@@ -2,16 +2,12 @@
 package sp.it.pl.layout.container.layout;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import java.io.File;
 import java.util.Objects;
 import java.util.UUID;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import sp.it.pl.layout.container.uncontainer.UniContainer;
-import sp.it.pl.util.file.Util;
-import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.dev.Util.noNull;
-import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 
 public final class Layout extends UniContainer {
 
@@ -77,22 +73,6 @@ public final class Layout extends UniContainer {
     }
 
     /**
-     * Change name. This method immediately takes care of all file operations
-     * needed to maintain consistency -saves layout to the new file, old
-     * file will deleted, etc.
-     *
-     * @param new_name same as old one, empty or null will do nothing.
-     * @throws IllegalArgumentException if name parameter null or empty
-     */
-    public void setNameAndSave(String new_name) {
-        if (new_name == null || new_name.isEmpty())
-            throw new IllegalArgumentException("Name of the layout must not be null or empty string.");
-        name = new_name;
-        // save new
-        serialize();
-    }
-
-    /**
      * Loads or reloads layout. Its effectively equivalent to loading the root
  Container of this layout and assigning it to the parent node of this layout.
  Use to setParentRec layout or to update up to date.
@@ -109,46 +89,6 @@ public final class Layout extends UniContainer {
         return n;
     }
 
-    /**
-     * Serializes layout into file according to application specifications.
-     */
-    public void serialize() {
-        serialize(getFile());
-    }
-
-    public void serialize(File f) {
-        if (getChild() == null) return;
-        APP.serializerXml.toXML(this, f);
-    }
-
-    /**
-     * Deserializes layout from file according to application specifications.
-     */
-    public void deserialize() {
-        deserialize(getFile());
-    }
-
-    public Layout deserialize(File f) {
-        Layout l = APP.serializerXml.fromXML(Layout.class, f).getOrSupply(() -> new Layout(getNameWithoutExtensionOrRoot(f)));
-        l.properties.forEach(properties::put);
-        l.setName(name);    // TODO: dangerous
-        child = l.child;
-
-        return this;
-    }
-
-    private File getFile() {
-        return new File(APP.DIR_LAYOUTS,name + ".l");
-    }
-
-    /**
-     * Removes files associated with this layout. Layout lives on in the
-     * application.
-     */
-    public void removeFile() {
-       Util.deleteFile(getFile());
-    }
-
      /** @return true if and only if two layouts share the same name. */
     @Override
     public boolean equals(Object o) {
@@ -161,10 +101,6 @@ public final class Layout extends UniContainer {
         return 59 * 3 + Objects.hashCode(this.name);
     }
 
-    /**
-     * This implementation returns name of the layout.
-     * @return name
-     */
     @Override
     public String toString() {
         return name;

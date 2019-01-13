@@ -14,12 +14,16 @@ import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.control.Button
 import javafx.scene.control.Label
+import javafx.scene.control.ListCell
+import javafx.scene.control.ListView
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.SeparatorMenuItem
+import javafx.scene.control.TableView
 import javafx.scene.control.Tooltip
 import javafx.scene.control.TreeItem
+import javafx.scene.control.TreeTableView
 import javafx.scene.control.TreeView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
@@ -49,6 +53,7 @@ import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
 import javafx.stage.Screen
+import javafx.util.Callback
 import org.reactfx.Subscription
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.window.stage.Window
@@ -176,6 +181,18 @@ inline fun text(text: String = "", block: sp.it.pl.gui.objects.Text.() -> Unit =
 inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)
 inline fun menuItem(text: String, crossinline action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
 inline fun menuSeparator(block: (SeparatorMenuItem).() -> Unit = {}) = SeparatorMenuItem().apply(block)
+inline fun <T> listView(block: (ListView<T>).() -> Unit = {}) = ListView<T>().apply(block)
+inline fun <T> tableView(block: (TableView<T>).() -> Unit = {}) = TableView<T>().apply(block)
+inline fun <T> treeView(block: (TreeView<T>).() -> Unit = {}) = TreeView<T>().apply(block)
+inline fun <T> treeTableView(block: (TreeTableView<T>).() -> Unit = {}) = TreeTableView<T>().apply(block)
+inline fun <T> listViewCellFactory(crossinline cellFactory: ListCell<T>.(T, Boolean) -> Unit) = Callback<ListView<T>, ListCell<T>> {
+    object: ListCell<T>() {
+        override fun updateItem(item: T, empty: Boolean) {
+            super.updateItem(item, empty)
+            cellFactory(item, empty)
+        }
+    }
+}
 
 /* ---------- LAYOUT ------------------------------------------------------------------------------------------------ */
 

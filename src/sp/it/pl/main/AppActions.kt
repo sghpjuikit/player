@@ -5,14 +5,14 @@ import com.drew.imaging.ImageProcessingException
 import com.sun.tools.attach.VirtualMachine
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Pos.CENTER
-import javafx.geometry.Pos.TOP_CENTER
 import javafx.scene.Node
 import javafx.scene.Scene
+import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.MouseButton
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.paint.Color.BLACK
 import javafx.stage.Screen
@@ -48,22 +48,25 @@ import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.stackTraceAsString
 import sp.it.pl.util.dev.throwIfFxThread
 import sp.it.pl.util.functional.asIf
+import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.Util.createFMNTStage
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.bgr
-import sp.it.pl.util.graphics.button
 import sp.it.pl.util.graphics.getScreenForMouse
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.listView
+import sp.it.pl.util.graphics.listViewCellFactory
+import sp.it.pl.util.graphics.minPrefMaxWidth
 import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.stackPane
-import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.math.times
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.onEventUp
+import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1If
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.open
@@ -97,10 +100,8 @@ class AppActions {
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
     fun openIconViewer() {
         val iconSize = 120.0
-        val grid = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize+30, 5.0, 5.0).apply {
-            search.field = object: StringGetter<GlyphIcons?> {
-                override fun getOfS(value: GlyphIcons?, substitute: String): String = value?.name() ?: substitute
-            }
+        val iconsView = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize+30, 5.0, 5.0).apply {
+            search.field = StringGetter.of { value, _ -> value.name() }
             selectOn setTo listOf(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS)
             cellFactory = Callback {
                 object: GridCell<GlyphIcons, GlyphIcons>() {
@@ -131,27 +132,25 @@ class AppActions {
                 }
             }
         }
-        val root = stackPane(grid)
-        val groups = Icon.GLYPH_TYPES.map { glyphType ->
-            button(glyphType.simpleName) {
-                setOnMouseClicked {
-                    if (it.button==MouseButton.PRIMARY) {
-                        grid.itemsRaw setTo getEnumConstants<GlyphIcons>(glyphType)
-                        it.consume()
-                    }
-                }
+        val groupsView = listView<Class<GlyphIcons>> {
+            minPrefMaxWidth = 200.0
+            cellFactory = listViewCellFactory { group, empty ->
+                text = if (empty) null else group.simpleName
             }
+            selectionModel.selectionMode = SINGLE
+            selectionModel.selectedItemProperty() sync {
+                iconsView.itemsRaw setTo it?.net { getEnumConstants<GlyphIcons>(it).toList() }.orEmpty()
+            }
+            items setTo Icon.GLYPH_TYPES
         }
-        val layout = vBox(20, TOP_CENTER) {
-            setPrefSize(600.0, 720.0)
-
-            lay += hBox(8, CENTER) {
-                lay += groups
-            }
-            lay += root
+        val layout = hBox(20, CENTER) {
+            setPrefSize(900.0, 700.0)
+            lay += groupsView
+            lay(ALWAYS) += stackPane(iconsView)
         }
 
         PopOver(layout).show(ScreenPos.APP_CENTER)
+        if (!groupsView.items.isEmpty()) groupsView.selectionModel.select(0)
     }
 
     @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")

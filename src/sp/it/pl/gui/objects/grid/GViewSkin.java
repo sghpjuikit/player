@@ -815,7 +815,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 			double w = getWidth(), h = getHeight();
 			boolean scrollbarVisible = scrollbar.isVisible();
 			if (scrollbarVisible) {
-				double scrollbarW = scrollbar.getWidth();
+				double scrollbarW = scrollbar.prefWidth(-1);
 				scrollbar.resizeRelocate(w - scrollbarW, 0, scrollbarW, h);
 				content.resizeRelocate(0, 0, w - scrollbarW, h);
 			} else {

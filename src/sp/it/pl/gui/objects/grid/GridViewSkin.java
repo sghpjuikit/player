@@ -52,7 +52,7 @@ import static sp.it.pl.util.graphics.Util.layHeaderTop;
 import static sp.it.pl.util.reactive.Util.maintain;
 import static sp.it.pl.util.reactive.Util.onChange;
 
-public class GViewSkin<T, F> implements Skin<GridView> {
+public class GridViewSkin<T, F> implements Skin<GridView> {
 
 	private static final int NO_SELECT = Integer.MIN_VALUE;
 	private final GridView<T,F> grid;
@@ -100,7 +100,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 	int selectedCI = NO_SELECT;
 	private GridCell<T,F> selectedC = null;
 
-	public GViewSkin(GridView<T,F> control) {
+	public GridViewSkin(GridView<T,F> control) {
 		this.grid = control;
 		this.flow = new Flow<>(this);
 
@@ -321,7 +321,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 	 * @param <F> type of cell
 	 */
 	public static class Flow<T, F> extends Pane {
-		private final GViewSkin<T,F> skin;
+		private final GridViewSkin<T,F> skin;
 		@SuppressWarnings("unchecked")
 		private List<GridCell<T,F>> visibleCells = (List) getChildren();
 		private ArrayLinkedList<GridCell<T,F>> cachedCells = new ArrayLinkedList<>();
@@ -331,7 +331,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		private double viewStart = 0;
 		private boolean needsRebuildCells = false;
 
-		public Flow(GViewSkin<T,F> skin) {
+		public Flow(GridViewSkin<T,F> skin) {
 			this.skin = skin;
 
 			// scrollbar
@@ -824,7 +824,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 		}
 	}
 
-	/** Scrollbar with adjusted scrolling behavior to work with {@link sp.it.pl.gui.objects.grid.GViewSkin.Flow}. */
+	/** Scrollbar with adjusted scrolling behavior to work with {@link GridViewSkin.Flow}. */
 	public static class FlowScrollBar extends ScrollBar {
 		private final Flow flow;
 		private boolean adjusting;
@@ -879,7 +879,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 				g.setData(THIS.getData());
 				return g;
 			});
-			setPrefTypeSupplier(GViewSkin.this::getPrimaryFilterPredicate);
+			setPrefTypeSupplier(GridViewSkin.this::getPrimaryFilterPredicate);
 			setData(getFilterPredicates(filterType));
 			growTo1();
 			onItemChange = predicate -> filterList.setPredicate(item -> predicate.test(getSkinnable().filterByMapper.apply(item)));
@@ -889,7 +889,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 				// CTRL+F -> toggle filter
 				if (k==KeyCode.F && e.isShortcutDown()) {
 					filterVisible.set(!filterVisible.get());
-					if (!filterVisible.get()) GViewSkin.this.flow.requestFocus();
+					if (!filterVisible.get()) GridViewSkin.this.flow.requestFocus();
 					e.consume();
 					return;
 				}
@@ -900,7 +900,7 @@ public class GViewSkin<T, F> implements Skin<GridView> {
 					if (filterVisible.get()) {
 						if (isEmpty()) {
 							filterVisible.set(false);
-							GViewSkin.this.flow.requestFocus();
+							GridViewSkin.this.flow.requestFocus();
 						} else {
 							clear();
 						}

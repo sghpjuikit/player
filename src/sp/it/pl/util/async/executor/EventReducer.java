@@ -47,56 +47,28 @@ public abstract class EventReducer<E> {
 		return new HandlerFirst<>(inter_period, handler);
 	}
 
-	@NotNull public static <E> EventReducer<E> toFirst(double inter_period, Runnable handler) {
-		return new HandlerFirst<>(inter_period, e -> handler.run());
-	}
-
 	@NotNull public static <E> EventReducer<E> toFirstDelayed(double inter_period, Consumer<E> handler) {
 		return new HandlerFirstDelayed<>(inter_period, handler);
-	}
-
-	@NotNull public static <E> EventReducer<E> toFirstDelayed(double inter_period, Runnable handler) {
-		return new HandlerFirstDelayed<>(inter_period, e -> handler.run());
 	}
 
 	@NotNull public static <E> HandlerLast<E> toLast(double inter_period, Consumer<E> handler) {
 		return new HandlerLast<>(inter_period, null, handler);
 	}
 
-	@NotNull public static <E> HandlerLast<E> toLast(double inter_period, Runnable handler) {
-		return new HandlerLast<>(inter_period, null, e -> handler.run());
-	}
-
 	@NotNull public static <E> HandlerLast<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
 		return new HandlerLast<>(inter_period, reduction, handler);
-	}
-
-	@NotNull public static <E> HandlerLast<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Runnable handler) {
-		return new HandlerLast<>(inter_period, reduction, e -> handler.run());
 	}
 
 	@NotNull public static <E> EventReducer<E> toEvery(double inter_period, Consumer<E> handler) {
 		return new HandlerEvery<>(inter_period, (a, b) -> b, handler);
 	}
 
-	@NotNull public static <E> EventReducer<E> toEvery(double inter_period, Runnable handler) {
-		return new HandlerEvery<>(inter_period, (a, b) -> b, e -> handler.run());
-	}
-
 	@NotNull public static <E> EventReducer<E> toEvery(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
 		return new HandlerEvery<>(inter_period, reduction, handler);
 	}
 
-	@NotNull public static <E> EventReducer<E> toEvery(double inter_period, Ƒ2<E,E,E> reduction, Runnable handler) {
-		return new HandlerEvery<>(inter_period, reduction, e -> handler.run());
-	}
-
 	@NotNull public static <E> EventReducer<E> toFirstOfAtLeast(double inter_period, double atLeast, Consumer<E> handler) {
 		return new HandlerFirstOfAtLeast<>(inter_period, atLeast, handler);
-	}
-
-	@NotNull public static <E> EventReducer<E> toFirstOfAtLeast(double inter_period, double atLeast, Runnable handler) {
-		return new HandlerFirstOfAtLeast<>(inter_period, atLeast, e -> handler.run());
 	}
 
 	public static class HandlerLast<E> extends EventReducer<E> {

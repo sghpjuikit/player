@@ -198,8 +198,8 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             nextB.setTranslateX(-40*(p-1));
         }).applyNow();
 
-        EventReducer<Object> inactive = toLast(1000, () -> { if (!nextP.isHover() && !prevP.isHover()) navigAnim.playClose(); });
-        EventReducer<Object> active = toFirstDelayed(400, navigAnim::playOpen);
+        EventReducer<Object> inactive = toLast(1000, it -> { if (!nextP.isHover() && !prevP.isHover()) navigAnim.playClose(); });
+        EventReducer<Object> active = toFirstDelayed(400, it -> navigAnim.playOpen());
         root.addEventFilter(MOUSE_MOVED, e -> {
             if (thumb_root.getOpacity()==0) {
                 if (prevP.getOpacity()!=1)

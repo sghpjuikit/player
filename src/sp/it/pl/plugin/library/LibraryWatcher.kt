@@ -70,7 +70,7 @@ class LibraryWatcher: PluginBase("Song Library", false) {
     }
     private val toBeAdded = HashSet<File>()
     private val toBeRemoved = HashSet<File>()
-    private val update = EventReducer.toLast<Void>(2000.0) { it -> updateLibraryFromEvents() }
+    private val update = EventReducer.toLast<Void>(2000.0) { updateLibraryFromEvents() }
 
     override fun onStart() {
         dirMonitoring.subscribe(true)

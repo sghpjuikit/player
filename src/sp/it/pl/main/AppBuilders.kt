@@ -170,7 +170,7 @@ object AppAnimator: AnimationBuilder()
 class DelayAnimator: AnimationBuilder() {
     override val key = "ANIMATION_OPEN_CLOSE_DELAYED"
     private val animDelay = AtomicLong(0)
-    private val animDelayResetter = EventReducer.toLast<Void>(200.0, Runnable { animDelay.set(0) })
+    private val animDelayResetter = EventReducer.toLast<Void>(200.0) { animDelay.set(0) }
 
     override fun closeAndDo(n: Node, action: Runnable?) {
         super.closeAndDo(n, action)

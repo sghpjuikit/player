@@ -395,7 +395,9 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 				}
 			});
 			cell.hoverProperty().addListener((o, ov, nv) -> {
-				if (nv && grid.selectOn.contains(SelectionOn.MOUSE_HOVER)) getSkinnable().implGetSkin().select(cell);
+				if (nv && grid.selectOn.contains(SelectionOn.MOUSE_HOVER))
+					getSkinnable().implGetSkin().select(cell);
+
 			});
 			cell.pseudoClassStateChanged(Search.PC_SEARCH_MATCH, false);
 			cell.pseudoClassStateChanged(Search.PC_SEARCH_MATCH_NOT, false);
@@ -502,6 +504,16 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 			if (wasFocused) {
 				requestLayout();
+			}
+
+			// Select hovered cell (if enabled)
+			// Newly created cells that 'appear' right under mouse cursor will not receive hover event, honestly I'm
+			// not sure why, probably because layout is in progress
+			// Hence we find such cells and select them here
+			if (getSkinnable().selectOn.contains(SelectionOn.MOUSE_HOVER)) {
+				visibleCells.stream()
+					.filter(it -> it.isHover() && !it.isSelected()).findAny()
+					.ifPresent(skin::select);
 			}
 		}
 

@@ -3,6 +3,7 @@ package sp.it.pl.gui.objects.icon
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Pos.CENTER
 import javafx.scene.control.Label
+import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.stackPane
@@ -20,9 +21,10 @@ class IconInfo(icon: GlyphIcons?, iconSize: Double): VBox(5.0) {
 
     init {
         alignment = CENTER
-        graphics = Icon(icon, iconSize).styleclass("icon-info-icon")
-        graphics.setOnMouseClicked { copyToSysClipboard(glyph?.name() ?: "") }
-        lay += stackPane(graphics)
+        graphics = Icon(icon, iconSize)
+                .onClickDo { copyToSysClipboard(glyph?.name() ?: "") }
+                .styleclass("icon-info-icon")
+        lay(ALWAYS) += stackPane(graphics)
         lay += nameLabel
     }
 
@@ -36,4 +38,5 @@ class IconInfo(icon: GlyphIcons?, iconSize: Double): VBox(5.0) {
     fun select(value: Boolean) {
         graphics.select(value)
     }
+
 }

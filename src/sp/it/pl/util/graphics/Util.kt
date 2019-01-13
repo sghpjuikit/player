@@ -187,6 +187,7 @@ inline fun <T> treeView(block: (TreeView<T>).() -> Unit = {}) = TreeView<T>().ap
 inline fun <T> treeTableView(block: (TreeTableView<T>).() -> Unit = {}) = TreeTableView<T>().apply(block)
 inline fun <T> listViewCellFactory(crossinline cellFactory: ListCell<T>.(T, Boolean) -> Unit) = Callback<ListView<T>, ListCell<T>> {
     object: ListCell<T>() {
+        @Suppress("PROTECTED_CALL_FROM_PUBLIC_INLINE")
         override fun updateItem(item: T, empty: Boolean) {
             super.updateItem(item, empty)
             cellFactory(item, empty)

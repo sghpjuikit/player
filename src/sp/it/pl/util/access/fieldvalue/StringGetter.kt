@@ -14,4 +14,12 @@ interface StringGetter<in V> {
      */
     fun getOfS(value: V, substitute: String): String
 
+    companion object {
+
+        /** @return [StringGetter] implemented as the specified lambda */
+        fun <V> of(stringGetter: (V, String) -> String) = object: StringGetter<V> {
+            override fun getOfS(value: V, substitute: String) = stringGetter(value, substitute)
+        }
+
+    }
 }

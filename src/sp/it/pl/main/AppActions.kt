@@ -201,11 +201,6 @@ class AppActions {
         APP.widgetManager.widgets.use<ConfiguringFeature>(WidgetSource.NO_LAYOUT) { it.configure(APP.configuration) }
     }
 
-    @IsAction(name = "Open layout manager", desc = "Opens layout management.")
-    fun openLayoutManager() {
-        APP.widgetManager.widgets.find(Widgets.LAYOUTS, WidgetSource.NO_LAYOUT, false)
-    }
-
     @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
     fun openActions() {
         APP.actionPane.show(APP)

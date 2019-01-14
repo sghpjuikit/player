@@ -19,7 +19,6 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
     private val keyCombos = ConcurrentHashMap<Int, KeyCombo>()
     private var keyListener: NativeKeyListener? = null
     private var isRunning = false
-    fun isRunning(): Boolean = isRunning
 
     init {
         // Only log warnings from JNativeHook
@@ -28,6 +27,8 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
             useParentHandlers = false
         }
     }
+
+    fun isRunning(): Boolean = isRunning
 
     fun start() {
         if (!isRunning) {

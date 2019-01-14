@@ -28,27 +28,17 @@ import java.util.concurrent.ConcurrentHashMap
 @IsConfigurable(Action.CONFIG_GROUP)
 object ActionManager {
 
-    //    @IsConfig(name = "Allow in-app shortcuts", info = "Allows using standard shortcuts.", group = "Shortcuts")
-    //    public static final V<Boolean> local_shortcuts = new V<>(true, v -> {
-    //        if (isLocalShortcutsSupported()) {
-    //            if (v){
-    //            } else {
-    //
-    //            }
-    //        }
-    //    });
-
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", editable = NONE)
     val keyManageLayout by c(ALT_GRAPH)
 
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", editable = NONE)
     val keyManageWindow by c(WINDOWS.getNamePretty() + " + " + SHIFT.getNamePretty())
 
-    @IsConfig(name = "Media shortcuts supported", editable = NONE, info = "Whether media shortcuts are supported on this system")
-    private val isMediaShortcutsSupported by c(true)
+    // @IsConfig(name = "Media shortcuts supported", editable = NONE, info = "Whether media shortcuts are supported on this system")
+    // private val isMediaShortcutsSupported by c(true)
 
-    @IsConfig(name = "Media shortcuts enabled", info = "Allows using shortcuts for media keys on the keyboard.")
-    val globalMediaShortcutsEnabled by cv(true)
+    // @IsConfig(name = "Media shortcuts enabled", info = "Allows using shortcuts for media keys on the keyboard.")
+    // val globalMediaShortcutsEnabled by cv(true)
 
     /**
      * Whether global shortcuts are supported by the active platform.
@@ -61,7 +51,7 @@ object ActionManager {
     val isGlobalShortcutsSupported by c(true)
 
     @IsConfig(name = "Global shortcuts enabled", info = "Allows using the shortcuts even if application is not focused.")
-    val globalShortcutsEnabled by cv(isGlobalShortcutsSupported) {
+    val globalShortcutsEnabled by cv(Os.WINDOWS.isCurrent) {
         v(it && isGlobalShortcutsSupported).initSync {
             if (isGlobalShortcutsSupported) {
                 if (it) {

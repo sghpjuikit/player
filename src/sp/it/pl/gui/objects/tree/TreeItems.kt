@@ -281,7 +281,7 @@ private fun doAction(o: Any?, otherwise: () -> Unit) {
     }
 }
 
-private val globalContextMenu by lazy { ValueContextMenu() }
+private val globalContextMenu by lazy { ValueContextMenu<Any?>() }
 
 open class OTreeItem<T> constructor(v: T, private val childrenO: ObservableList<out T>): TreeItem<T>(v), DisposableTreeItem {
     private val once = ExecuteN(1)

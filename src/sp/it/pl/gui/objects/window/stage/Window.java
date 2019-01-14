@@ -51,7 +51,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLOSE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COLUMNS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GEARS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GRADUATION_CAP;
@@ -340,7 +339,6 @@ public class Window extends WindowBase {
 		double is = 15;
 		Icon propB = new Icon(GEARS, is, Action.get("Open settings"));
 		Icon runB = new Icon(GAVEL, is, Action.get("Open app actions"));
-		Icon layB = new Icon(COLUMNS, is, Action.get("Open layout manager"));
 		Icon lockB = new Icon(null, is, "Lock layout\n\nRestricts certain layout operations to "
 			+ "prevent accidents and configuration getting in the way. Widgets, containers and "
 			+ "layouts can also be locked individually.", () -> APP.ui.toggleLayoutLocked());
@@ -364,7 +362,7 @@ public class Window extends WindowBase {
 		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, is).scale(0.4).onClick(e -> AppProgress.INSTANCE.showTasks((Node) e.getTarget())).tooltip("Progress & Tasks");
 
 		leftHeaderBox.getChildren().addAll(
-			layB, propB, runB, new Label(" "),
+			propB, runB, new Label(" "),
 			ltB, lockB, lmB, rtB, new Label(" "),
 			guideB, helpB, progB
 		);

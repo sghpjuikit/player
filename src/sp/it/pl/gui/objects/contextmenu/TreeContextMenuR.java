@@ -7,13 +7,13 @@ import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
 import sp.it.pl.util.access.ref.SingleR;
 
-public class TreeContextMenuR<E> extends SingleR<ImprovedContextMenu<List<E>>,TreeView<E>> {
+public class TreeContextMenuR<E> extends SingleR<ValueContextMenu<List<E>>,TreeView<E>> {
 
-	public TreeContextMenuR(Supplier<ImprovedContextMenu<List<E>>> builder) {
+	public TreeContextMenuR(Supplier<ValueContextMenu<List<E>>> builder) {
 		super(builder);
 	}
 
-	public TreeContextMenuR(Supplier<ImprovedContextMenu<List<E>>> builder, BiConsumer<ImprovedContextMenu<List<E>>,TreeView<E>> mutator) {
+	public TreeContextMenuR(Supplier<ValueContextMenu<List<E>>> builder, BiConsumer<ValueContextMenu<List<E>>,TreeView<E>> mutator) {
 		super(builder, mutator);
 	}
 

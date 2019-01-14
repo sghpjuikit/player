@@ -146,7 +146,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
 
     /** Toggles lock to prevent user accidental layout change.  */
     @IsAction(name = "Toggle layout lock", desc = "Lock/unlock layout.", keys = "F4")
-    fun toggleLayoutLocked() = lockedLayout.set(!lockedLayout.get())
+    fun toggleLayoutLocked() = lockedLayout.set(!lockedLayout.value)
 
     /** Loads/refreshes active layout.  */
     @IsAction(name = "Reload layout", desc = "Reload layout.", keys = "F6")
@@ -155,14 +155,22 @@ class UiManager(val skinDir: File): Configurable<Any> {
     /** Toggles layout controlling mode.  */
     @IsAction(name = "Reload skin", desc = "Reloads skin.", keys = "F7")
     fun reloadSkin() {
-        logger.info("Reloading skin={}", skin.get())
-        applySkin(skin.get())
+        logger.info("Reloading skin={}", skin.value)
+        applySkin(skin.value)
+    }
+
+    @IsAction(name = "Show application", desc = "Equal to switching minimized mode.", global = true)
+    fun minimizeFocusTrue() {
+        val anyM = APP.windowManager.windows.any { it.isMinimized }
+        val anyF = APP.windowManager.windows.any { it.focused.value }
+        if (!anyM && anyF) {}
+        else APP.windowManager.windows.forEach { it.isMinimized = false; it.focus() }
     }
 
     @IsAction(name = "Show/Hide application", desc = "Equal to switching minimized mode.", keys = "CTRL+ALT+W", global = true)
     fun toggleMinimizeFocus() {
         val anyM = APP.windowManager.windows.any { it.isMinimized }
-        val anyF = APP.windowManager.windows.any { it.focused.get() }
+        val anyF = APP.windowManager.windows.any { it.focused.value }
         if (!anyM && anyF) APP.windowManager.windows.forEach { it.isMinimized = true }
         else APP.windowManager.windows.forEach { it.isMinimized = false; it.focus() }
     }

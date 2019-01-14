@@ -369,7 +369,24 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		updateItems(this);
 	}
 
-	/******************************************************************************/
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+	/** Plays given URI by searching for an existing PlaylistItem with that URI or adding it as a new Item */
+	public void playUri(URI uri) {
+		for (PlaylistItem item : this) {
+			if(item.same(uri)) {
+				playItem(item);
+				return;
+			}
+		}
+		addNplay(uri);
+	}
+
+	/** Adds a new PlaylistItem to the end of the Playlist and plays it */
+	public void addNplay(URI uri) {
+		addUri(uri);
+		playLastItem();
+	}
 
 	// this will stay private or there would be bugs due to using bad index
 	// use transformed
@@ -381,9 +398,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		}
 	}
 
-	/**
-	 * Plays given item. Does nothing if item not on playlist or null.
-	 */
+	/** Plays given item. Does nothing if item not on playlist or null. */
 	public void playItem(PlaylistItem item) {
 		playItem(item, p -> PlaylistManager.playingItemSelector.getNext(p, transform()));
 	}

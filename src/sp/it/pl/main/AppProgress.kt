@@ -4,6 +4,7 @@ import javafx.collections.FXCollections.observableArrayList
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.Node
+import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
@@ -129,6 +130,12 @@ class AppTask(val name: String) {
     enum class State { ACTIVE, DONE_OK, DONE_ERROR }
 }
 
+/**
+ * Registers this as a task in [AppProgress] using [AppProgress.start] with the specified name.
+ * The task starts as [AppTask.State.ACTIVE] and completes when [Fut.onDone] is invoked.
+ *
+ * If this future is already completed, this method is a noop.
+ */
 @ThreadSafe
 fun <T> Fut<T>.showAppProgress(name: String) = apply {
     var progress: ((Try<*,*>) -> Unit)? = null
@@ -139,6 +146,22 @@ fun <T> Fut<T>.showAppProgress(name: String) = apply {
     onDone {
         runFX {
             progress?.invoke(it)
+        }
+    }
+}
+
+/**
+ * Display progress of this future in the specified progress indicator.
+ * The progress is immediately set to 1 if done or -1 otherwise and to 1 once this future completes.
+ */
+fun <T> Fut<T>.showProgress(progressIndicator: ProgressIndicator) = apply {
+    runFX {
+        if (!isDone())
+            progressIndicator.progress = if (isDone()) 1.0 else -1.0
+    }
+    onDone {
+        runFX {
+            progressIndicator.progress = 1.0
         }
     }
 }

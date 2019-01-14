@@ -33,6 +33,7 @@ import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.async.future.Fut.Companion.fut
+import sp.it.pl.util.async.runLater
 import sp.it.pl.util.conf.ConfigurableBase
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
@@ -41,6 +42,7 @@ import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.FileType.DIRECTORY
+import sp.it.pl.util.file.FileType.FILE
 import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.getCommonRoot
@@ -62,7 +64,22 @@ import sp.it.pl.util.system.saveFile
 import java.io.File
 import kotlin.streams.toList
 
-fun ActionPane.initAppActionPane(): ActionPane = also { ap ->
+@Suppress("RemoveExplicitTypeArguments") fun ActionPane.initActionPane(): ActionPane = also { ap ->
+    ap.register<Any?>(
+            FastColAction(
+                    "Set as data",
+                    "Sets the selected data as input.",
+                    IconMD.DATABASE,
+                    ap.converting { Try.ok<Any, Void>(it) }
+            ),
+            FastColAction(
+                    "Open in Converter",
+                    "Open data in Converter.",
+                    IconMD.SWAP_HORIZONTAL,
+                    // TODO: make sure it opens Converter or support multiple Opener types
+                    { f -> APP.widgetManager.widgets.use<Opener>(ANY) { it.open(f) } }
+            )
+    )
     ap.register<App>(
             FastAction(
                     "Export widgets",
@@ -83,36 +100,46 @@ fun ActionPane.initAppActionPane(): ActionPane = also { ap ->
             FastAction(IconFA.IMAGE, Action.get("Open icon viewer")),
             FastAction(IconMD.FOLDER, Action.get("Open app directory"))
     )
-}
-
-fun ActionPane.initActionPane(): ActionPane = also { ap ->
-    ap.register<Void>(
+    ap.register<AppOpen>(
             FastAction(
                     "Select file",
                     "Open file chooser to select files",
                     IconMD.FILE,
-                    ap.converting { chooseFiles("Select file...", null, ap.scene.window) }
+                    ap.converting { chooseFiles("Select file...", null, ap.scene?.window) }
             ),
             FastAction(
                     "Select directory",
                     "Open file chooser to select directory",
                     IconMD.FOLDER,
-                    ap.converting { chooseFile("Select directory...", DIRECTORY, null, ap.scene.window) }
-            )
-    )
-    ap.register<Any>(
-            FastColAction(
-                    "Set as data",
-                    "Sets the selected data as input.",
-                    IconMD.DATABASE,
-                    ap.converting { Try.ok<Any, Void>(it) }
+                    ap.converting { chooseFile("Select directory...", DIRECTORY, null, ap.scene?.window) }
             ),
-            FastColAction(
-                    "Open in Converter",
-                    "Open data in Converter.",
-                    IconMD.SWAP_HORIZONTAL,
-                    // TODO: make sure it opens Converter or support multiple Opener types
-                    { f -> APP.widgetManager.widgets.use<Opener>(ANY) { it.open(f) } }
+            FastAction(
+                    "Open widget",
+                    "Open file chooser to open an exported widget",
+                    IconMA.WIDGETS,
+                    ap.converting {
+                        chooseFile("Open widget...", FILE, APP.DIR_LAYOUTS, ap.scene?.window, ExtensionFilter("Component", "*.fxwl"))
+                                .map { APP.windowManager.launchComponent(it) }
+                    }
+            ),
+            FastAction(
+                    "Open skin",
+                    "Open file chooser to find a skin",
+                    IconMA.BRUSH,
+                    ap.converting {
+                        chooseFile("Open skin...", FILE, APP.DIR_SKINS, ap.scene?.window, ExtensionFilter("Skin", "*.css"))
+                                .map { APP.ui.setSkin(it) }
+                    }
+            ),
+            FastAction(
+                    "Open audio files",
+                    "Open file chooser to find a audio files",
+                    IconMD.MUSIC_NOTE,
+                    {
+                        val filters = AudioFileFormat.supportedValues(Use.APP).map { it.toExtFilter() }.toTypedArray()
+                        chooseFiles("Open audio...", APP.DIR_HOME, ap.scene?.window, *filters)
+                                .map { runLater { APP.actionPane.show(it) } }   // may auto-close on finish, delay show()
+                    }
             )
     )
     ap.register<Component>(
@@ -376,15 +403,10 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
         }
 )
 
-fun browseMultipleFiles(files: Sequence<File>) {
-    val fs = files.asSequence().toSet()
-    when {
-        fs.isEmpty() -> {}
-        fs.size==1 -> fs.firstOrNull()?.browse()
-        else -> APP.actionPane.show(MultipleFiles(fs))
-    }
-}
+/** Denotes action pane data for 'Open...' actions. */
+object AppOpen
 
+/** Denotes action pane data representing multiple files for browse actions. */
 class MultipleFiles(val files: Set<File>) {
 
     fun browseEach() = files.forEach { it.browse() }

@@ -651,7 +651,7 @@ public class Thumbnail {
 
 /* --------------------- CONTEXT MENU ------------------------------------------------------------------------------- */
 
-	private static final SingleR<ValueContextMenu,Thumbnail> contextMenu = new SingleR<>(
+	private static final SingleR<ValueContextMenu<Object>,Thumbnail> contextMenu = new SingleR<>(
 			ValueContextMenu::new,
 			(menu, thumbnail) -> menu.setValueAndItems(thumbnail.new ContextMenuData())
 	);

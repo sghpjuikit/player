@@ -12,6 +12,7 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.shape.Shape
 import javafx.stage.Stage
+import javafx.stage.Window
 import javafx.util.Callback
 import org.reactfx.Subscription
 import sp.it.pl.gui.objects.icon.Icon
@@ -25,12 +26,15 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.FileExplorerFeature
 import sp.it.pl.layout.widget.feature.Opener
+import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.Widgets
 import sp.it.pl.util.file.isAnyChildOf
 import sp.it.pl.util.functional.asIf
+import sp.it.pl.util.functional.getElementType
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.graphics.drag.DragUtil
+import sp.it.pl.util.graphics.drag.DragUtil.installDrag
 import sp.it.pl.util.graphics.expandToRootAndSelect
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.isAnyChildOf
@@ -120,8 +124,13 @@ class Inspector(widget: Widget<*>): SimpleController(widget), FileExplorerFeatur
             lay += Icon().blank()
         }
 
-        onDragOver = DragUtil.fileDragAcceptHandler
-        onDragDropped = EventHandler { exploreCommonFileOf(DragUtil.getFiles(it)) }
+        installDrag(
+                this,
+                IconFA.LIST_ALT,
+                { "Inspect" },
+                { true },
+                { open(DragUtil.getAny(it)) }
+        )
         onScroll = EventHandler { it.consume() } // prevent scrolling event from propagating
 
         onClose += { tree.selectionModel.clearSelection() }
@@ -148,10 +157,21 @@ class Inspector(widget: Widget<*>): SimpleController(widget), FileExplorerFeatur
         fileRoot.findAnyChild(file, File::isAnyChildOf)?.expandToRootAndSelect(tree)
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun open(data: Any?) {
-        val item = tree(data ?: "<none>")
-        tree.root.children += item
-        tree.expandToRootAndSelect(item)
+        when {
+            data is Window -> exploreWindow(data)
+            data is File -> exploreFile(data)
+            data is Node -> exploreNode(data)
+            (data is Collection<*> && data.getElementType()==File::class.java) -> {
+                exploreCommonFileOf(data as Collection<File>)
+            }
+            else -> {
+                val item = tree(data ?: "<none>")
+                tree.root.children += item
+                tree.expandToRootAndSelect(item)
+            }
+        }
     }
 
     override fun focus() = tree.requestFocus()

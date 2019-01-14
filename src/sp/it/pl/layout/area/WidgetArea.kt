@@ -3,7 +3,6 @@ package sp.it.pl.layout.area
 import javafx.fxml.FXML
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.StackPane
-import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
@@ -14,9 +13,11 @@ import sp.it.pl.main.DelayAnimator
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
 import sp.it.pl.util.access.ref.SingleR
+import sp.it.pl.util.access.toggle
 import sp.it.pl.util.graphics.drag.DragUtil
 import sp.it.pl.util.graphics.drag.Placeholder
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
+import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.layFullArea
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.on
@@ -35,6 +36,7 @@ class WidgetArea: Area<Container<*>> {
 
     @FXML private lateinit var content: AnchorPane
     @FXML lateinit var content_padding: StackPane
+    @JvmField val controls: AreaControls
     private val widget: Widget<*>
     private val disposer = Disposer()
     private val passiveLoadPane = SingleR<Placeholder, Widget<*>>(
@@ -45,25 +47,25 @@ class WidgetArea: Area<Container<*>> {
     /**
      * Creates area for the container and its child widget at specified child position.
      *
-     * @param parent widget's parent container
+     * @param container widget's parent container
      * @param index index of the widget within the container
      * @param widget widget that will be managed and displayed
      */
-    constructor(parent: Container<*>, index: Int, widget: Widget<*>): super(parent, index) {
+    constructor(container: Container<*>, index: Int, widget: Widget<*>): super(container, index) {
         this.widget = widget
-        this.widget.parentTemp = container
+        this.widget.parentTemp = this.container
         this.widget.areaTemp = this
 
-        ConventionFxmlLoader(WidgetArea::class.java, content_root, this).loadNoEx<Any>()
+        ConventionFxmlLoader(WidgetArea::class.java, contentRoot, this).loadNoEx<Any>()
 
         controls = AreaControls(this)
-        content_padding.children += controls.root
+        content_padding.lay += controls.root
 
         DragUtil.installDrag(
                 root, IconFA.EXCHANGE, "Switch components",
                 { e -> DragUtil.hasComponent(e) },
-                { e -> DragUtil.getComponent(e).let { it==container || it==widget } },
-                { e -> DragUtil.getComponent(e).swapWith(container, this.index) }
+                { e -> DragUtil.getComponent(e).let { it==this.container || it==widget } },
+                { e -> DragUtil.getComponent(e).swapWith(this.container, this.index) }
         )
 
         loadWidget()
@@ -72,15 +74,13 @@ class WidgetArea: Area<Container<*>> {
 
     override fun getWidget() = widget
 
-    override fun getActiveWidgets() = listOf(widget)
-
     private fun loadWidget(forceLoading: Boolean = false) {
         disposer()
 
         when {
             widget.isLoaded || forceLoading || widget.loadType.value==AUTOMATIC -> {
                 // load widget
-                animation.openAndDo(content_root, null)
+                animation.openAndDo(contentRoot, null)
                 content.children.clear()
                 content.layFullArea += widget.load()
 
@@ -88,22 +88,18 @@ class WidgetArea: Area<Container<*>> {
                 widget.custom_name syncTo controls.title.textProperty() on disposer
                 controls.propB.isDisable = widget.fields.isEmpty()
 
-                setActivityVisible(false)
-
                 // workaround code
                 widget.lockedUnder.initLocked(container)
                 widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
             }
             widget.loadType.value==MANUAL -> {
-                AppAnimator.closeAndDo(content_root, Runnable {
+                AppAnimator.closeAndDo(contentRoot, Runnable {
                     content.children.clear()
-                    animation.openAndDo(content_root, null)
+                    animation.openAndDo(contentRoot, null)
 
                     // put controls to new widget
                     widget.custom_name syncTo controls.title.textProperty() on disposer
                     controls.propB.isDisable = widget.fields.isEmpty()
-
-                    setActivityVisible(false)
 
                     // workaround code
                     widget.lockedUnder.initLocked(container)
@@ -116,11 +112,20 @@ class WidgetArea: Area<Container<*>> {
         }
     }
 
-    override fun refresh() = widget.controller.refresh()
+    fun refresh() = widget.controller.refresh()
 
-    override fun add(c: Component) = container.addChild(index, c)
+    fun getContent() = content
 
-    override fun getContent() = content
+    fun isUnderLock(): Boolean = widget.lockedUnder.value
+
+    @FXML
+    fun toggleLocked() = widget.locked.toggle()
+
+    @FXML
+    override fun show() = controls.show()
+
+    @FXML
+    override fun hide() = controls.hide()
 
     //TODO: implement properly through pseudoclasses
     fun setStandaloneStyle() {

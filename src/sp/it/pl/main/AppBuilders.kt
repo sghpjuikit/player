@@ -9,12 +9,16 @@ import javafx.scene.text.Font
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
+import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.objects.spinner.Spinner
+import sp.it.pl.unused.SimpleConfigurator
 import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator
 import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.future.Fut
+import sp.it.pl.util.conf.Configurable
+import sp.it.pl.util.conf.ValueConfig
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.kt
 import sp.it.pl.util.graphics.setScaleXY
@@ -22,6 +26,7 @@ import sp.it.pl.util.graphics.text
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.math.seconds
 import sp.it.pl.util.reactive.attachChanges
+import sp.it.pl.util.validation.Constraint
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 
@@ -124,6 +129,22 @@ fun Font.rowHeight(): Double {
     return h.toDouble()
 }
 
+fun <T, C: Configurable<T>> C.configure(title: String, action: (C) -> Unit) {
+    val form = SimpleConfigurator.simpleConfigurator(this) { action(it) }
+    val popup = PopOver(form)
+    popup.title.value = title
+    popup.isAutoHide = true
+    popup.show(ScreenPos.APP_CENTER)
+    popup.contentNode.value.focusFirstConfigField()
+    popup.contentNode.value.hideOnOk.value = true
+}
+
+fun configureString(title: String, inputName: String, action: (String) -> Unit) {
+    ValueConfig(String::class.java, inputName, "")
+            .constraints(Constraint.StringNonEmpty())
+            .configure(title) { action(it.value) }
+}
+
 fun nodeAnimation(n: Node) = anim(300.millis) { n.opacity = it*it }.apply { playAgainIfFinished = false }
 
 open class AnimationBuilder {
@@ -149,7 +170,7 @@ object AppAnimator: AnimationBuilder()
 class DelayAnimator: AnimationBuilder() {
     override val key = "ANIMATION_OPEN_CLOSE_DELAYED"
     private val animDelay = AtomicLong(0)
-    private val animDelayResetter = EventReducer.toLast<Void>(200.0, Runnable { animDelay.set(0) })
+    private val animDelayResetter = EventReducer.toLast<Void>(200.0) { animDelay.set(0) }
 
     override fun closeAndDo(n: Node, action: Runnable?) {
         super.closeAndDo(n, action)

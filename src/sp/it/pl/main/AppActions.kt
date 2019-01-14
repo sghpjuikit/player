@@ -5,18 +5,16 @@ import com.drew.imaging.ImageProcessingException
 import com.sun.tools.attach.VirtualMachine
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Pos.CENTER
-import javafx.geometry.Pos.TOP_CENTER
 import javafx.scene.Node
 import javafx.scene.Scene
+import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.MouseButton
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.paint.Color.BLACK
-import javafx.stage.FileChooser
-import javafx.stage.FileChooser.ExtensionFilter
 import javafx.stage.Screen
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.util.Callback
@@ -30,7 +28,6 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.icon.IconInfo
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
-import sp.it.pl.gui.pane.FastAction
 import sp.it.pl.gui.pane.OverlayPane
 import sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.pl.layout.area.ContainerNode
@@ -41,43 +38,40 @@ import sp.it.pl.layout.widget.WidgetSource.NEW
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.TextDisplayFeature
-import sp.it.pl.unused.SimpleConfigurator.Companion.simpleConfigurator
 import sp.it.pl.util.Util.urlEncodeUtf8
 import sp.it.pl.util.access.fieldvalue.StringGetter
 import sp.it.pl.util.action.ActionRegistrar
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.runFX
-import sp.it.pl.util.async.runLater
 import sp.it.pl.util.conf.IsConfigurable
-import sp.it.pl.util.conf.ValueConfig
 import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.stackTraceAsString
 import sp.it.pl.util.dev.throwIfFxThread
-import sp.it.pl.util.file.AudioFileFormat
-import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.functional.asIf
+import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.Util.createFMNTStage
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.bgr
-import sp.it.pl.util.graphics.button
 import sp.it.pl.util.graphics.getScreenForMouse
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.listView
+import sp.it.pl.util.graphics.listViewCellFactory
+import sp.it.pl.util.graphics.minPrefMaxWidth
 import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.stackPane
-import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.math.times
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.onEventUp
+import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1If
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.open
 import sp.it.pl.util.system.runCommand
 import sp.it.pl.util.type.Util.getEnumConstants
-import sp.it.pl.util.validation.Constraint.StringNonEmpty
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.WebBarInterpreter
 import java.io.File
@@ -105,11 +99,9 @@ class AppActions {
 
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
     fun openIconViewer() {
-        val iconSize = 80.0
-        val grid = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize+30, 5.0, 5.0).apply {
-            search.field = object: StringGetter<GlyphIcons?> {
-                override fun getOfS(value: GlyphIcons?, substitute: String): String = value?.name() ?: substitute
-            }
+        val iconSize = 120.0
+        val iconsView = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize+30, 5.0, 5.0).apply {
+            search.field = StringGetter.of { value, _ -> value.name() }
             selectOn setTo listOf(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS)
             cellFactory = Callback {
                 object: GridCell<GlyphIcons, GlyphIcons>() {
@@ -140,27 +132,25 @@ class AppActions {
                 }
             }
         }
-        val root = stackPane(grid)
-        val groups = Icon.GLYPH_TYPES.map { glyphType ->
-            button(glyphType.simpleName) {
-                setOnMouseClicked {
-                    if (it.button==MouseButton.PRIMARY) {
-                        grid.itemsRaw setTo getEnumConstants<GlyphIcons>(glyphType)
-                        it.consume()
-                    }
-                }
+        val groupsView = listView<Class<GlyphIcons>> {
+            minPrefMaxWidth = 200.0
+            cellFactory = listViewCellFactory { group, empty ->
+                text = if (empty) null else group.simpleName
             }
+            selectionModel.selectionMode = SINGLE
+            selectionModel.selectedItemProperty() sync {
+                iconsView.itemsRaw setTo it?.net { getEnumConstants<GlyphIcons>(it).toList() }.orEmpty()
+            }
+            items setTo Icon.GLYPH_TYPES
         }
-        val layout = vBox(20, TOP_CENTER) {
-            setPrefSize(600.0, 720.0)
-
-            lay += hBox(8, CENTER) {
-                lay += groups
-            }
-            lay += root
+        val layout = hBox(20, CENTER) {
+            setPrefSize(900.0, 700.0)
+            lay += groupsView
+            lay(ALWAYS) += stackPane(iconsView)
         }
 
         PopOver(layout).show(ScreenPos.APP_CENTER)
+        if (!groupsView.items.isEmpty()) groupsView.selectionModel.select(0)
     }
 
     @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
@@ -210,58 +200,14 @@ class AppActions {
         APP.widgetManager.widgets.use<ConfiguringFeature>(WidgetSource.NO_LAYOUT) { it.configure(APP.configuration) }
     }
 
-    @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
-    fun openLayoutManager() {
-        APP.widgetManager.widgets.find(Widgets.LAYOUTS, WidgetSource.NO_LAYOUT, false)
-    }
-
     @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
     fun openActions() {
-        APP.actionAppPane.show(APP)
+        APP.actionPane.show(APP)
     }
 
-    @IsAction(name = "Open", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
+    @IsAction(name = "Open...", desc = "Display all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
     fun openOpen() {
-        APP.actionPane.show(Void::class.java, null, false,
-                FastAction<Any>(
-                        "Open widget",
-                        "Open file chooser to open an exported widget",
-                        IconMA.WIDGETS
-                ) {
-                    val fc = FileChooser()
-                    fc.initialDirectory = APP.DIR_LAYOUTS
-                    fc.extensionFilters += ExtensionFilter("component file", "*.fxwl")
-                    fc.title = "Open widget..."
-                    val f = fc.showOpenDialog(APP.actionAppPane.scene.window)
-                    if (f!=null) APP.windowManager.launchComponent(f)
-                },
-                FastAction<Any>(
-                        "Open skin",
-                        "Open file chooser to find a skin",
-                        IconMA.BRUSH
-                ) {
-                    val fc = FileChooser()
-                    fc.initialDirectory = APP.DIR_SKINS
-                    fc.extensionFilters += ExtensionFilter("skin file", "*.css")
-                    fc.title = "Open skin..."
-                    val f = fc.showOpenDialog(APP.actionAppPane.scene.window)
-                    if (f!=null) APP.ui.setSkin(f)
-                },
-                FastAction<Any>(
-                        "Open audio files",
-                        "Open file chooser to find a audio files",
-                        IconMD.MUSIC_NOTE
-                ) {
-                    val fc = FileChooser()
-                    fc.initialDirectory = APP.DIR_SKINS
-                    fc.extensionFilters += AudioFileFormat.supportedValues(Use.APP).map { it.toExtFilter() }
-                    fc.title = "Open audio..."
-                    val fs = fc.showOpenMultipleDialog(APP.actionAppPane.scene.window)
-                    // Action pane may auto-close when this action finishes, so we make sure to call
-                    // show() after that happens by delaying using runLater
-                    if (fs!=null) runLater { APP.actionAppPane.show(fs) }
-                }
-        )
+        APP.actionPane.show(AppOpen)
     }
 
     @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "COMMA")
@@ -337,14 +283,14 @@ class AppActions {
 
     @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)
     fun runCommand() {
-        doWithUserString("Run system command", "Command") {
+        configureString("Run system command", "Command") {
             runCommand(it)
         }
     }
 
     @IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with the command as a parameter.")
     fun runAppCommand() {
-        doWithUserString("Run app command", "Command") {
+        configureString("Run app command", "Command") {
             APP.parameterProcessor.process(listOf(it))
         }
     }
@@ -352,7 +298,7 @@ class AppActions {
     @IsAction(name = "Open web search", desc = "Opens website or search engine result for given phrase", keys = "CTRL + SHIFT + W", global = true)
     fun openWebBar() {
         // TODO: use URI validator
-        doWithUserString("Open on web...", "Website or phrase") {
+        configureString("Open on web...", "Website or phrase") {
             val uriString = WebBarInterpreter.toUrlString(it, DuckDuckGoQBuilder)
             try {
                 val uri = URI(uriString)
@@ -365,20 +311,9 @@ class AppActions {
 
     @IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
     fun openDictionary() {
-        doWithUserString("Look up in dictionary...", "Word") {
+        configureString("Look up in dictionary...", "Word") {
             URI.create("http://www.thefreedictionary.com/${urlEncodeUtf8(it)}").browse()
         }
-    }
-
-    fun doWithUserString(title: String, inputName: String, action: (String) -> Unit) {
-        val conf = ValueConfig(String::class.java, inputName, "").constraints(StringNonEmpty())
-        val form = simpleConfigurator(conf) { action(it.value) }
-        val popup = PopOver(form)
-        popup.title.value = title
-        popup.isAutoHide = true
-        popup.show(ScreenPos.APP_CENTER)
-        popup.contentNode.value.focusFirstConfigField()
-        popup.contentNode.value.hideOnOk.value = true
     }
 
     @JvmOverloads
@@ -483,6 +418,15 @@ class AppActions {
             "\nVM:\n\tid: ${it.id()}\n\tdisplayName: ${it.displayName()}\n\tprovider: ${it.provider()}"
         }
         runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
+    }
+
+    fun browseMultipleFiles(files: Sequence<File>) {
+        val fs = files.asSequence().toSet()
+        when {
+            fs.isEmpty() -> {}
+            fs.size==1 -> fs.firstOrNull()?.browse()
+            else -> APP.actionPane.show(MultipleFiles(fs))
+        }
     }
 
     companion object: KLogging()

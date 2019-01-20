@@ -8,7 +8,7 @@ import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
 import sp.it.pl.main.APP
 import sp.it.pl.util.async.runFX
-import sp.it.pl.util.file.childOf
+import sp.it.pl.util.file.div
 import sp.it.pl.util.functional.ifFalse
 import sp.it.pl.util.functional.onE
 import sp.it.pl.util.functional.runTry
@@ -23,6 +23,7 @@ import uk.co.caprica.vlcj.discovery.windows.DefaultWindowsNativeDiscoveryStrateg
 import uk.co.caprica.vlcj.player.MediaPlayer
 import uk.co.caprica.vlcj.player.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.MediaPlayerFactory
+import uk.co.caprica.vlcj.player.events.MediaPlayerEventType
 import uk.co.caprica.vlcj.player.media.simple.SimpleMedia
 import java.io.File
 import javax.print.attribute.standard.PrinterStateReason.PAUSED
@@ -74,7 +75,7 @@ class VlcPlayer: GeneralPlayer.Play {
 
     override fun createPlayback(item: Item, state: PlaybackState, onOK: () -> Unit, onFail: () -> Unit) {
         if (!initialized && !discovered) {
-            val location = APP.DIR_APP.childOf("vlc")
+            val location = APP.DIR_APP/"vlc"
             discovered = true
             initialized = discoverVlc(location).ifFalse { logger.error { "Failed to initialize vlcj player" } }
         }
@@ -92,66 +93,85 @@ class VlcPlayer: GeneralPlayer.Play {
         d += state.rate sync { p.rate = it.toFloat() }
 
         p.prepareMedia(SimpleMedia(item.uriAsVlcPath()))
-        p.addMediaPlayerEventListener(object: MediaPlayerEventAdapter() {
 
-            override fun lengthChanged(mediaPlayer: MediaPlayer?, newLength: Long) {
-                runFX {
-                    state.duration.value = newLength.millis
-                }
-            }
+        val eventMask = sequenceOf(
+                MediaPlayerEventType.LENGTH_CHANGED.value(),
+                MediaPlayerEventType.POSITION_CHANGED.value(),
+                MediaPlayerEventType.FINISHED.value(),
+                MediaPlayerEventType.STOPPED.value(),
+                MediaPlayerEventType.PAUSED.value(),
+                MediaPlayerEventType.PLAYING.value()
+        ).fold(0L) { events, event ->
+            events or event
+        }
+        p.enableEvents(eventMask)
 
-            override fun positionChanged(mediaPlayer: MediaPlayer, newPosition: Float) {
-                runFX {
-                    state.currentTime.value = state.duration.value*newPosition
-                }
-            }
+        val playbackListener = createPlaybackListener(state)
+        p.addMediaPlayerEventListener(playbackListener)
+        d += { p.removeMediaPlayerEventListener(playbackListener) }
 
-            override fun finished(mediaPlayer: MediaPlayer) {
-                runFX {
-                    Player.onPlaybackEnd()
-                }
-            }
-
-            override fun stopped(mediaPlayer: MediaPlayer) {
-                runFX {
-                    if (!Player.suspension_flag)
-                        Player.state.playback.status.set(Status.STOPPED)
-                }
-            }
-
-            override fun paused(mediaPlayer: MediaPlayer) {
-                runFX {
-                    if (!Player.suspension_flag)
-                        Player.state.playback.status.set(Status.PAUSED)
-
-                    if (Player.startTime!=null) {
-                        seek(Player.startTime)
-                        Player.startTime = null
-                    }
-                }
-            }
-
-            override fun playing(mediaPlayer: MediaPlayer) {
-                runFX {
-                    if (!Player.suspension_flag)
-                        Player.state.playback.status.set(PLAYING)
-
-                    if (Player.startTime!=null) {
-                        seek(Player.startTime)
-                        Player.startTime = null
-                    }
-                }
-            }
-
-        })
-
-        val s = state.status.get()
         if (Player.startTime!=null) {
-            if (s==PLAYING) play()
-            else if (s==PAUSED) pause()
+            when (state.status.value) {
+                PLAYING -> play()
+                PAUSED -> pause()
+                else -> {}
+            }
         }
 
         onOK()
+    }
+
+    private fun createPlaybackListener(state: PlaybackState) = object: MediaPlayerEventAdapter() {
+
+        override fun lengthChanged(mediaPlayer: MediaPlayer, newLength: Long) {
+            runFX {
+                state.duration.value = newLength.millis
+            }
+        }
+
+        override fun positionChanged(mediaPlayer: MediaPlayer, newPosition: Float) {
+            runFX {
+                state.currentTime.value = state.duration.value*newPosition
+            }
+        }
+
+        override fun finished(mediaPlayer: MediaPlayer) {
+            runFX {
+                Player.onPlaybackEnd()
+            }
+        }
+
+        override fun stopped(mediaPlayer: MediaPlayer) {
+            runFX {
+                if (!Player.suspension_flag)
+                    state.status.value = Status.STOPPED
+            }
+        }
+
+        override fun paused(mediaPlayer: MediaPlayer) {
+            runFX {
+                if (!Player.suspension_flag)
+                    state.status.value = Status.PAUSED
+
+                if (Player.startTime!=null) {
+                    seek(Player.startTime)
+                    Player.startTime = null
+                }
+            }
+        }
+
+        override fun playing(mediaPlayer: MediaPlayer) {
+            runFX {
+                if (!Player.suspension_flag)
+                    state.status.value = PLAYING
+
+                if (Player.startTime!=null) {
+                    seek(Player.startTime)
+                    Player.startTime = null
+                }
+            }
+        }
+
     }
 
     override fun disposePlayback() {

@@ -113,22 +113,22 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
      * Loops through Configuration fields and stores them all into file.
      */
     fun save(title: String, file: File) {
-        val comment = (" $title property file\n"
-                +" Last auto-modified: ${LocalDateTime.now()}\n"
-                +"\n"
-                +" Properties are in the format: {property path}.{property name}{separator}{property value}\n"
-                +" \t{property path}  must be lowercase with '.' as path separator, e.g.: this.is.a.path\n"
-                +" \t{property name}  must be lowercase and contain no spaces (use underscores '_' instead)\n"
-                +" \t{separator}      must be ' = ' string\n"
-                +" \t{property value} can be any string (even empty)\n"
-                +" Properties must be separated by (any) combination of '\\n', '\\r' characters\n"
-                +"\n"
-                +" Ignored lines:\n"
-                +" \tcomment lines (start with '#' or '!')\n"
-                +" \tempty lines\n"
-                +"\n"
-                +" Some properties may be read-only or have additional value constraints. Such properties will ignore "
-                +"custom or unfit values")
+        val comment = " $title property file\n"+
+                " Last auto-modified: ${LocalDateTime.now()}\n"+
+                "\n"+
+                " Properties are in the format: {property path}.{property name}{separator}{property value}\n"+
+                " \t{property path}  must be lowercase with '.' as path separator, e.g.: this.is.a.path\n"+
+                " \t{property name}  must be lowercase and contain no spaces (use underscores '_' instead)\n"+
+                " \t{separator}      must be ' = ' string\n"+
+                " \t{property value} can be any string (even empty)\n"+
+                " Properties must be separated by (any) combination of '\\n', '\\r' characters\n"+
+                "\n"+
+                " Ignored lines:\n"+
+                " \tcomment lines (start with '#' or '!')\n"+
+                " \tempty lines\n"+
+                "\n"+
+                " Some properties may be read-only or have additional value constraints. Such properties will ignore "+
+                "custom or unfit values"
 
         val propsRaw = properties.asSequence().associateBy({ it.key }, { Property("", it.value) })
         val propsCfg = configs.asSequence()

@@ -64,16 +64,20 @@ operator fun Subscription.plus(subscription: Disposer) = and(subscription)!!
 /** Sets a value consumer to be fired immediately and on every value change. */
 infix fun <O> ObservableValue<O>.sync(u: (O) -> Unit) = maintain(Consumer { u(it) })
 
+/** Sets the value of this observable to the specified property immediately and on every value change. */
 infix fun <O> ObservableValue<O>.syncTo(w: WritableValue<in O>): Subscription {
     w.value = value
     return this attachTo w
 }
 
+/** Sets the value the specified observable to the this property immediately and on every value change. */
 infix fun <O> WritableValue<O>.syncFrom(o: ObservableValue<out O>): Subscription = o syncTo this
 
+/** Sets the value the specified observable to the this property immediately and on every value change. */
 @Experimental
 fun <O> WritableValue<O>.syncFrom(o: ObservableValue<out O>, disposer: Disposer) = syncFrom(o) on disposer
 
+/** Sets the mapped value the specified observable to the this property immediately and on every value change. */
 fun <O,R> WritableValue<O>.syncFrom(o: ObservableValue<out R>, mapper: (R) -> O): Subscription {
     value = mapper(o.value)
     val l = ChangeListener<R> { _, _, nv -> value = mapper(nv) }
@@ -81,6 +85,7 @@ fun <O,R> WritableValue<O>.syncFrom(o: ObservableValue<out R>, mapper: (R) -> O)
     return Subscription { o.removeListener(l) }
 }
 
+/** Sets the mapped value the specified observable to the this property immediately and on every value change. */
 @Experimental
 fun <O,R> WritableValue<O>.syncFrom(o: ObservableValue<out R>, disposer: DisposeOn, mapper: (R) -> O) = syncFrom(o, mapper) on disposer
 
@@ -91,17 +96,20 @@ infix fun <O> ObservableValue<O>.attach(u: (O) -> Unit): Subscription {
     return Subscription { removeListener(l) }
 }
 
+/** Sets a value consumer to be fired on every value change. */
 @Experimental
 fun <O> ObservableValue<O>.attach(disposer: DisposeOn, u: (O) -> Unit) = attach(u) on disposer
 
+/** Sets the value the specified observable to the this property on every value change. */
 infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>): Subscription {
     val l = ChangeListener<O> { _, _, nv -> w.value = nv }
     this.addListener(l)
     return Subscription { this.removeListener(l) }
 }
-
+/** Sets the mapped value the specified observable to the this property on every value change. */
 infix fun <O> WritableValue<O>.attachFrom(o: ObservableValue<out O>): Subscription = o attachTo this
 
+/** Sets a value consumer to be fired on every value change of either observables. */
 fun <O1, O2> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, u: (O1, O2) -> Unit): Subscription {
     val l1 = ChangeListener<O1> { _, _, nv -> u(nv, o2.value) }
     val l2 = ChangeListener<O2> { _, _, nv -> u(o1.value, nv) }
@@ -113,11 +121,13 @@ fun <O1, O2> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, u: (O1, 
     }
 }
 
+/** Sets a value consumer to be fired immediately and on every value change of either observables. */
 fun <O1, O2> syncTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, u: (O1, O2) -> Unit): Subscription {
     u(o1.value, o2.value)
     return attachTo(o1, o2, u)
 }
 
+/** Sets a value consumer to be fired on every value change of either observables. */
 fun <O1, O2, O3> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, o3: ObservableValue<O3>, u: (O1, O2, O3) -> Unit): Subscription {
     val l1 = ChangeListener<O1> { _, _, nv -> u(nv, o2.value, o3.value) }
     val l2 = ChangeListener<O2> { _, _, nv -> u(o1.value, nv, o3.value) }
@@ -132,6 +142,7 @@ fun <O1, O2, O3> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, o3: 
     }
 }
 
+/** Sets a value consumer to be fired immediately and on every value change of either observables. */
 fun <O1, O2, O3> syncTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, o3: ObservableValue<O3>, u: (O1, O2, O3) -> Unit): Subscription {
     u(o1.value, o2.value, o3.value)
     return attachTo(o1, o2, o3, u)
@@ -190,6 +201,7 @@ fun <T> ObservableList<T>.sizes() = size(this)!!
 /** @returns observable size of this set */
 fun <T> ObservableSet<T>.sizes() = size(this)!!
 
+/** Sets action to be invoked immediately and on every change of this observable or the extracted observable. */
 fun <O, R> ObservableValue<O>.syncInto(extractor: (O) -> ObservableValue<R>, action: (R?) -> Unit): Subscription {
     val inner = Disposer()
     val outer = this sync {
@@ -200,6 +212,7 @@ fun <O, R> ObservableValue<O>.syncInto(extractor: (O) -> ObservableValue<R>, act
     return outer+inner
 }
 
+/** Sets action to be resubscribed immediately and on every change of this observable or the extracted observable. */
 fun <O, R> ObservableValue<O>.syncIntoWhile(extractor: (O) -> ObservableValue<R>, action: (R?) -> Subscription): Subscription {
     val superInner = Disposer()
     val inner = Disposer()

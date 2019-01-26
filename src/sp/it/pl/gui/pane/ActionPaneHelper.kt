@@ -11,7 +11,6 @@ import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.Util.IS
 import sp.it.pl.util.functional.Util.ISNT
 import sp.it.pl.util.functional.getElementType
-import java.util.function.Consumer
 import java.util.function.Supplier
 
 inline fun <reified T> ActionPane.register(vararg actions: ActionData<T, *>) = register(T::class.java, *actions)
@@ -80,7 +79,7 @@ class ComplexActionData<R, T> {
 }
 
 /** Action. */
-abstract class ActionData<C, T>: Consumer<Any> {
+abstract class ActionData<C, T> {
 
     @JvmField val name: String
     @JvmField val description: String
@@ -113,7 +112,7 @@ abstract class ActionData<C, T>: Consumer<Any> {
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun accept(data: Any) {
+    operator fun invoke(data: Any?) {
         when (groupApply) {
             FOR_ALL -> action(collectionWrap(data) as T)
             FOR_EACH -> {

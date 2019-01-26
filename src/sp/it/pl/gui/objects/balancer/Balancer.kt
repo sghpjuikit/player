@@ -7,8 +7,11 @@ import javafx.scene.control.Slider
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import sp.it.pl.audio.playback.BalanceProperty
+import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.reactive.on
+import sp.it.pl.util.reactive.syncFrom
+import sp.it.pl.util.reactive.syncTo
 import java.lang.Math.abs
 
 class Balancer: Control {
@@ -57,6 +60,7 @@ class Balancer: Control {
 
 class BalancerSkin(b: Balancer): SkinBase<Balancer>(b) {
     private val slider = Slider()
+    private val disposer = Disposer()
 
     init {
         children += slider.apply {
@@ -64,12 +68,15 @@ class BalancerSkin(b: Balancer): SkinBase<Balancer>(b) {
                 if (!slider.isValueChanging)
                     b.balance.value = it.toDouble()
             }
+            minProperty() syncFrom b.min on disposer
+            maxProperty() syncFrom b.max on disposer
+            valueProperty() syncFrom b.balance on disposer
+            syncTo(b.min, b.max) { min, max -> majorTickUnit = (max.toDouble()-min.toDouble())/2.0 } on disposer
+            majorTickUnit = (b.max.value-b.min.value)/2.0
+            minorTickCount = 1
+            isSnapToTicks = true
             prefWidth = 100.0
         }
-
-        b.max sync { slider.max = it.toDouble() }
-        b.min sync { slider.min = it.toDouble() }
-        b.balance sync { slider.value = it.toDouble() }
         b.addEventFilter(KEY_PRESSED) {
             when (it.code) {
                 KeyCode.RIGHT -> {
@@ -85,4 +92,8 @@ class BalancerSkin(b: Balancer): SkinBase<Balancer>(b) {
         }
     }
 
+    override fun dispose() {
+        super.dispose()
+        disposer()
+    }
 }

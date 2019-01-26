@@ -51,7 +51,7 @@ class Notifier: ServiceBase("Notifications", true) {
     @IsConfig(name = "Position relative to", info = "Determines screen for positioning. Main screen, application window screen or all screens as one")
     var notificationScr by c(ScreenUse.APP_WINDOW)
     @IsConfig(name = "On click left", info = "Left click action")
-    val onClickL by cv("Show all windows") { VarAction(it, Consumer {}) }
+    val onClickL by cv("Show application") { VarAction(it, Consumer {}) }
     @IsConfig(name = "On click right", info = "Right click action")
     val onClickR by cv("Notification hide") { VarAction(it, Consumer {}) }
     @IsConfig(name = "Playback change graphics")

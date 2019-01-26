@@ -37,6 +37,6 @@ fun Duration.formatToSmallestUnit(): String {
         ms<60000 -> "${toSeconds()} s"
         ms<3600000000 -> "${toMinutes()} m"
         ms<60000 -> "${toHours().toInt()} h"
-        else -> "${toHours().toInt()/24} ms"
+        else -> "${toHours().toInt()/24} d"
     }
 }

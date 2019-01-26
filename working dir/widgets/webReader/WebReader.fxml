@@ -3,16 +3,19 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.web.WebView?>
-<AnchorPane id="AnchorPane" maxWidth="-1.0" minHeight="-1.0" minWidth="-1.0" prefHeight="300.0" prefWidth="500.0"
-            xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+
+<fx:root type="javafx.scene.layout.AnchorPane" maxWidth="-1.0" minHeight="-1.0" minWidth="-1.0" prefHeight="300.0"
+         prefWidth="500.0"
+         xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
     <AnchorPane id="AnchorPane" maxWidth="-1.0" minHeight="0.0" minWidth="0.0" pickOnBounds="false" prefHeight="30.0"
                 prefWidth="-1.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <padding>
             <Insets bottom="3.0" left="3.0" right="3.0" top="3.0"/>
         </padding>
-        <TextField id="adressBar" fx:id="addressBar" prefWidth="-1.0" promptText="Address Bar"
+        <TextField id="addressBar" fx:id="addressBar" prefWidth="-1.0" promptText="Address Bar"
                    AnchorPane.bottomAnchor="3.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="3.0"
                    AnchorPane.topAnchor="3.0"/>
         <HBox alignment="CENTER_RIGHT" minHeight="13.0" prefHeight="13.0" prefWidth="34.0"
@@ -20,6 +23,5 @@
             <Button minWidth="20.0" mnemonicParsing="false" onMouseClicked="#refresh" prefWidth="20.0" text="R"/>
         </HBox>
     </AnchorPane>
-    <WebView fx:id="webView" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0"
-             AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0"/>
-</AnchorPane>
+    <WebView fx:id="webView" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0"/>
+</fx:root>

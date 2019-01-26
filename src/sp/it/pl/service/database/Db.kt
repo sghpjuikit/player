@@ -11,6 +11,7 @@ import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.APP
 import sp.it.pl.main.showAppProgress
 import sp.it.pl.util.access.v
+import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.async.runOn
@@ -151,6 +152,13 @@ class Db {
                         action(it)
                     }
                 }
+    }
+
+    @ThreadSafe
+    fun removeInvalidItems(): Fut<Unit> {
+        return runNew {
+            MetadataReader.buildRemoveMissingFromLibTask().run()
+        }
     }
 
     companion object: KLogging()

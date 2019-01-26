@@ -102,7 +102,8 @@ public class Icon extends StackPane {
 	private static final EventHandler<Event> EVENT_CONSUMER = Event::consume;
 
 	/** Collection of all glyphs types. */
-	public static Set<Class<? extends GlyphIcons>> GLYPH_TYPES = setRO(
+	@SuppressWarnings("unchecked")
+	public static Set<Class<GlyphIcons>> GLYPH_TYPES = (Set) setRO(
 		FontAwesomeIcon.class,
 		WeatherIcon.class,
 		MaterialDesignIcon.class,

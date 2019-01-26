@@ -3,7 +3,6 @@ package sp.it.pl.main
 object Widgets {
     const val CONVERTER = "Converter"
     const val INSPECTOR = "Inspector"
-    const val LAYOUTS = "Layouts"
     const val SONG_GROUP_TABLE = "Song Group Table"
     const val SONG_TABLE = "Song Table"
     const val SONG_TAGGER = "Song Tagger"

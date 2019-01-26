@@ -166,7 +166,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 		// empty table left click -> add items
 		addEventHandler(MOUSE_CLICKED, e -> {
 			if (headerVisible.get() && e.getY()<getTableHeaderHeight()) return;
-			if (e.getButton()==PRIMARY && e.getClickCount()==1 && getItems().isEmpty())
+			if (e.getButton()==PRIMARY && e.getClickCount()==1 && getItemsRaw().isEmpty())
 				getPlaylist().addOrEnqueueFiles(true);
 		});
 
@@ -241,14 +241,14 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 		installDrag(
 			this, PLAYLIST_PLUS, "Add to playlist",
 			DragUtil::hasAudio,
-			e -> e.getGestureSource()==this,// || !getItems().isEmpty(),
-			e -> dropDrag(e, 0)
+			e -> e.getGestureSource()==this,// || !getItemsRaw().isEmpty(),
+			e -> dropDrag(e, getItemsRaw().size())
 		);
 		installDrag(
 			this, PLAYLIST_PLUS, "Add to playlist",
 			e -> e.getDragboard().hasFiles() && e.getDragboard().getFiles().stream().anyMatch(it -> isPlaylistFile(it)),
-//			e -> !getItems().isEmpty(),
-			e -> dropDrag(e, 0)
+//			e -> !getItemsRaw().isEmpty(),
+			e -> dropDrag(e, getItemsRaw().size())
 		);
 
 		// scroll to playing item
@@ -265,8 +265,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 		getSelectionModel().selectedItemProperty().addListener(selItemListener);
 		getSelectionModel().getSelectedItems().addListener(selItemsListener);
 
-		// set up a nice placeholder
-		setPlaceholder(new Label("Click or drag & drop files"));
+		placeholderNode.setValue(new Label("Click or drag & drop audio"));
 	}
 
 	/** Clears resources. Do not use this table after calling this method. */
@@ -308,8 +307,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 		// get selected
 		// construct new list (oldS), must not be observable (like indices)
-		List<Integer> oldS = new ArrayList<>();
-		oldS.addAll(getSelectionModel().getSelectedIndices());
+		List<Integer> oldS = new ArrayList<>(getSelectionModel().getSelectedIndices());
 		// move in playlist
 		List<Integer> newS = getPlaylist().moveItemsBy(oldS, by);
 		// select back

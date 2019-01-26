@@ -22,7 +22,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DAS
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.layout.area.Area.DRAGGED_PSEUDOCLASS;
+import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.functional.Util.findFirstEmptyKey;
@@ -66,7 +66,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         });
 
         // drag
-        rt.setOnDragDone(e -> rt.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
+        rt.setOnDragDone(e -> rt.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
         DragUtil.installDrag(
             root, EXCHANGE, () -> "Move component here",
             DragUtil::hasComponent,
@@ -139,7 +139,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             WidgetArea wa = new WidgetArea(container,i,(Widget)cm);
             // add maximize button
             wa.controls.header_buttons.getChildren().add(1,lb);
-            w.moveOnDragOf(wa.content_root);
+            w.moveOnDragOf(wa.contentRoot);
             n = wa.getRoot();
         } else {
             l = new Layouter(container, i);

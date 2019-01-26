@@ -8,9 +8,14 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 import javafx.scene.image.Image;
+import sp.it.pl.audio.SimpleItem;
+import sp.it.pl.audio.tagging.MetadataReader;
 import sp.it.pl.gui.objects.image.Thumbnail;
+import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
 import sp.it.pl.util.HierarchicalBase;
 import sp.it.pl.util.access.fieldvalue.CachingFile;
+import sp.it.pl.util.file.AudioFileFormat;
+import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.functional.Try;
@@ -19,6 +24,7 @@ import sp.it.pl.util.graphics.image.Image2PassLoader;
 import sp.it.pl.util.graphics.image.ImageSize;
 import static sp.it.pl.util.dev.Fail.failIfFxThread;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
+import static sp.it.pl.util.file.FileType.FILE;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.list;
@@ -117,9 +123,10 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	protected abstract Item createItem(Item parent, File value, FileType type);
 
-	private File getImage(File dir, String name) {
+	protected File getImage(File dir, String name) {
 		if (disposed) return null;
 		if (dir==null) return null;
+
 		for (ImageFileFormat format : ImageFileFormat.values()) {
 			if (format.isSupported()) {
 				File f = new File(dir, name + "." + format.toString());
@@ -140,7 +147,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return null;
 	}
 
-	private File getImageT(File dir, String name) {
+	protected File getImageT(File dir, String name) {
 		if (disposed) return null;
 		if (dir==null) return null;
 
@@ -160,11 +167,19 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		boolean wasCoverFile_loaded = coverFile_loaded;
 		File file = getCoverFile();
 		if (file==null) {
-			if (!wasCoverFile_loaded && cover_file==null && (val.getPath().endsWith(".exe") || val.getPath().endsWith(".lnk"))) {
-				cover = IconExtractor.getFileIcon(val);
-				cover_loadedFull.set(true);
-				cover_loadedThumb.set(true);
-				return Try.ok(new LoadResult(null, cover));
+			if (!wasCoverFile_loaded && cover_file==null && valType==FILE) {
+				if (val.getPath().endsWith(".exe") || val.getPath().endsWith(".lnk")) {
+					cover = IconExtractor.getFileIcon(val);
+					cover_loadedFull.set(true);
+					cover_loadedThumb.set(true);
+					return Try.ok(new LoadResult(null, cover));
+				}
+				if (AudioFileFormat.isSupported(val, Use.APP)) {
+					cover = MetadataReader.readMetadata(new SimpleItem(val)).getCover(CoverSource.TAG).getImage(size);
+					cover_loadedFull.set(true);
+					cover_loadedThumb.set(true);
+					return Try.ok(new LoadResult(null, cover));
+				}
 			}
 		} else {
 			if (full) {
@@ -205,7 +220,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 				cover_file = val;
 			} else {
 				File i = getImage(val.getParentFile(), getNameWithoutExtensionOrRoot(val));
-				if (i==null && parent!=null) cover_file = parent.getCoverFile(); // needs optimize?
+				if (i==null && parent!=null) cover_file = parent.getCoverFile();
 				else cover_file = i;
 			}
 		}

@@ -13,6 +13,7 @@ import sp.it.pl.layout.Component;
 import sp.it.pl.layout.area.ContainerNode;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.container.layout.Layout;
+import sp.it.pl.layout.widget.EmptyWidget;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.Controller;
 import sp.it.pl.util.graphics.drag.DragUtil;
@@ -76,18 +77,18 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         c12.addChild(1, c21);
         c12.addChild(2, c22);
 
-        c11.addChild(1, Widget.EMPTY());
-        c11.addChild(2, Widget.EMPTY());
-        c21.addChild(1, Widget.EMPTY());
-        c21.addChild(2, Widget.EMPTY());
-        c22.addChild(1, Widget.EMPTY());
-        c22.addChild(2, Widget.EMPTY());
+        c11.addChild(1, new EmptyWidget());
+        c11.addChild(2, new EmptyWidget());
+        c21.addChild(1, new EmptyWidget());
+        c21.addChild(2, new EmptyWidget());
+        c22.addChild(1, new EmptyWidget());
+        c22.addChild(2, new EmptyWidget());
 
         return root;
     }
 
     public static Container testDragContainer() {
-        Widget w = Widget.EMPTY();
+        Widget w = new EmptyWidget();
         BiContainer root = new BiContainer(HORIZONTAL);
         root.addChild(1,w);
 

@@ -14,11 +14,16 @@ import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.control.Button
 import javafx.scene.control.Label
+import javafx.scene.control.ListCell
+import javafx.scene.control.ListView
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.ScrollPane
+import javafx.scene.control.SeparatorMenuItem
+import javafx.scene.control.TableView
 import javafx.scene.control.Tooltip
 import javafx.scene.control.TreeItem
+import javafx.scene.control.TreeTableView
 import javafx.scene.control.TreeView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
@@ -48,6 +53,7 @@ import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
 import javafx.stage.Screen
+import javafx.util.Callback
 import org.reactfx.Subscription
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.window.stage.Window
@@ -159,21 +165,35 @@ fun border(color: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(Borde
 
 fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
 
-inline fun pane(block: Pane.() -> Unit = {}) = Pane().apply { block() }
-inline fun pane(vararg children: Node, block: Pane.() -> Unit = {}) = Pane(*children).apply { block() }
-inline fun stackPane(block: StackPane.() -> Unit = {}) = StackPane().apply { block() }
+inline fun pane(block: Pane.() -> Unit = {}) = Pane().apply(block)
+inline fun pane(vararg children: Node, block: Pane.() -> Unit = {}) = Pane(*children).apply(block)
+inline fun stackPane(block: StackPane.() -> Unit = {}) = StackPane().apply(block)
 inline fun stackPane(vararg children: Node, block: StackPane.() -> Unit = {}) = StackPane(*children).apply { block() }
-inline fun anchorPane(block: AnchorPane.() -> Unit = {}) = AnchorPane().apply { block() }
+inline fun anchorPane(block: AnchorPane.() -> Unit = {}) = AnchorPane().apply(block)
 inline fun hBox(spacing: Number = 0.0, alignment: Pos? = null, block: HBox.() -> Unit = {}) = HBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
 inline fun vBox(spacing: Number = 0.0, alignment: Pos? = null, block: VBox.() -> Unit = {}) = VBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
-inline fun scrollPane(block: ScrollPane.() -> Unit = {}) = ScrollPane().apply { block() }
+inline fun scrollPane(block: ScrollPane.() -> Unit = {}) = ScrollPane().apply(block)
 inline fun scrollText(block: () -> Text) = Util.layScrollVText(block())!!
-inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply { block() }
-inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply { block() }
-inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply { block() }
-inline fun text(text: String = "", block: sp.it.pl.gui.objects.Text.() -> Unit = {}) = sp.it.pl.gui.objects.Text(text).apply { block() }
-inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply { block() }
+inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply(block)
+inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply(block)
+inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply(block)
+inline fun text(text: String = "", block: sp.it.pl.gui.objects.Text.() -> Unit = {}) = sp.it.pl.gui.objects.Text(text).apply(block)
+inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)
 inline fun menuItem(text: String, crossinline action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
+inline fun menuSeparator(block: (SeparatorMenuItem).() -> Unit = {}) = SeparatorMenuItem().apply(block)
+inline fun <T> listView(block: (ListView<T>).() -> Unit = {}) = ListView<T>().apply(block)
+inline fun <T> tableView(block: (TableView<T>).() -> Unit = {}) = TableView<T>().apply(block)
+inline fun <T> treeView(block: (TreeView<T>).() -> Unit = {}) = TreeView<T>().apply(block)
+inline fun <T> treeTableView(block: (TreeTableView<T>).() -> Unit = {}) = TreeTableView<T>().apply(block)
+inline fun <T> listViewCellFactory(crossinline cellFactory: ListCell<T>.(T, Boolean) -> Unit) = Callback<ListView<T>, ListCell<T>> {
+    object: ListCell<T>() {
+        @Suppress("PROTECTED_CALL_FROM_PUBLIC_INLINE")
+        override fun updateItem(item: T, empty: Boolean) {
+            super.updateItem(item, empty)
+            cellFactory(item, empty)
+        }
+    }
+}
 
 /* ---------- LAYOUT ------------------------------------------------------------------------------------------------ */
 
@@ -419,33 +439,35 @@ fun ImageView.applyViewPort(i: Image?, fit: Thumbnail.FitFrom) {
 
 /* ---------- TOOLTIP ----------------------------------------------------------------------------------------------- */
 
-/** Equivalent to [Tooltip.install] */
+/** Equivalent to [Tooltip.install]. */
 @Suppress("DEPRECATION")
 infix fun Node.install(tooltip: Tooltip) = Tooltip.install(this, tooltip)
 
-/** Equivalent to [Tooltip.uninstall] */
+/** Equivalent to [Tooltip.uninstall]. */
 @Suppress("DEPRECATION")
 infix fun Node.uninstall(tooltip: Tooltip) = Tooltip.uninstall(this, tooltip)
 
 /* ---------- MENU -------------------------------------------------------------------------------------------------- */
 
-/** Create and add to items menu with specified text and graphics */
+/** Create and add to items menu with specified text and graphics. */
 inline fun Menu.menu(text: String, graphics: Node? = null, then: (Menu).() -> Unit) {
     items += Menu(text, graphics).apply { then() }
 }
 
-/** Equivalent to [menuItem]. Use [menuItem] if this method causes ambiguity with [Menu.item] within [Menu] scope. */
-fun item(text: String, action: (ActionEvent) -> Unit) = menuItem(text, action)
-
-/** Create and add to items new menu item with specified text and action */
+/** Create and add to items new menu item with specified text and action. */
 fun Menu.item(text: String, action: (ActionEvent) -> Unit) = apply {
     items += menuItem(text, action)
 }
 
-/** Create and add to items new menu items with text and action derived from specified source */
+/** Create and add to items new menu items with text and action derived from specified source. */
 @Suppress("RedundantLambdaArrow")
 fun <A> Menu.items(source: Sequence<A>, text: (A) -> String, action: (A) -> Unit) {
     items += source.map { menuItem(text(it)) { _ -> action(it) } }.sortedBy { it.text }
+}
+
+/** Create and add to items new menu separator. */
+fun Menu.separator() = apply {
+    items += menuSeparator()
 }
 
 /* ---------- POINT ------------------------------------------------------------------------------------------------- */

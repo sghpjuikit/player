@@ -29,13 +29,15 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
+import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
-import sp.it.pl.gui.nodeinfo.TableInfo;
 import sp.it.pl.gui.itemnode.FieldedPredicateChainItemNode;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
+import sp.it.pl.gui.nodeinfo.TableInfo;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.search.SearchAutoCancelable;
+import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
 import sp.it.pl.util.functional.Functors;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
@@ -58,6 +60,8 @@ import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.menuItem;
+import static sp.it.pl.util.reactive.Util.attach;
+import static sp.it.pl.util.reactive.Util.attachSize;
 import static sp.it.pl.util.reactive.Util.syncSize;
 
 /**
@@ -159,6 +163,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		changesOf(getItems()).subscribe(c -> resizeIndexColumn());
 
 		footerVisible.set(true);
+
+		initPlaceholder();
 	}
 
 	/**
@@ -463,6 +469,27 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public void sort(Comparator<T> comparator) {
 		getSortOrder().clear();
 		allItems.sort(comparator);
+	}
+
+/* --------------------- PLACEHOLDER -------------------------------------------------------------------------------- */
+
+	public final V<Node> placeholderNode = new V<>(new Label("No content"));
+	private final Node noPlaceholderNode = new Label("");
+
+	private void initPlaceholder() {
+		attach(placeholderNode, p -> {
+			updatePlaceholder(getItemsRaw().size());
+			return Unit.INSTANCE;
+		});
+		attachSize(getItemsRaw(), size -> {
+			updatePlaceholder(size);
+			return Unit.INSTANCE;
+		});
+		updatePlaceholder(getItemsRaw().size());
+	}
+
+	private void updatePlaceholder(int itemsCount) {
+		setPlaceholder(itemsCount!=0 ? noPlaceholderNode : placeholderNode.getValue());
 	}
 
 /* --------------------- HELPER ------------------------------------------------------------------------------------- */

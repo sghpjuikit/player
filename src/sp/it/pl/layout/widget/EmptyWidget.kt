@@ -22,8 +22,9 @@ import java.io.ObjectStreamException
 @ExperimentalController
 class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller {
 
-    private val o = Outputs()
-    private val i = Inputs()
+    override val ownerWidget = this
+    override val ownedInputs = Inputs()
+    override val ownedOutputs = Outputs()
     override val location = super<Widget>.location
     override val userLocation = super<Widget>.userLocation
 
@@ -44,12 +45,6 @@ class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller 
 
     override fun focus() {}
 
-    override fun getOwnerWidget() = this
-
-    override fun getOwnedOutputs() = o
-
-    override fun getOwnedInputs() = i
-
     override fun getField(n: String) = null
 
     // can not use default impl. - it calls getFields on the controller since this=this.controller -> StackOverflow
@@ -66,4 +61,4 @@ class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller 
 
 }
 
-val emptyWidgetFactory: WidgetFactory<*> = WidgetFactory(EmptyWidget::class, APP.DIR_WIDGETS.childOf("Empty"))
+val emptyWidgetFactory = WidgetFactory(EmptyWidget::class, APP.DIR_WIDGETS.childOf("Empty"))

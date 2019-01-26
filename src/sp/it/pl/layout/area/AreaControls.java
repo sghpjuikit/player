@@ -56,7 +56,7 @@ import static javafx.scene.input.ScrollEvent.SCROLL;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static sp.it.pl.gui.UiManager.OpenStrategy.INSIDE;
 import static sp.it.pl.gui.UiManager.OpenStrategy.POPUP;
-import static sp.it.pl.layout.area.Area.DRAGGED_PSEUDOCLASS;
+import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
@@ -127,12 +127,12 @@ public final class AreaControls {
     WidgetArea area;
 
     public AreaControls(WidgetArea area) {
-    this.area = area;
+        this.area = area;
 
         // load fxml
         new ConventionFxmlLoader(AreaControls.class, root, this).loadNoEx();
 
-        root.getStyleClass().add(Area.WIDGET_AREA_CONTROLS_STYLECLASS);
+        root.getStyleClass().add(Area.STYLECLASS_WIDGET_AREA_CONTROLS);
 
         // avoid clashing of title and control buttons for small root size
         header_buttons.maxWidthProperty()
@@ -173,13 +173,13 @@ public final class AreaControls {
                     Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                     DragUtil.setComponent(area.getWidget(), db);
                     // signal dragging graphically with css
-                    root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, true);
+                    root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
                 }
                 e.consume();
             }
         });
         // return graphics to normal
-        root.setOnDragDone(e -> root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
+        root.setOnDragDone(e -> root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
 
 
         infoB = new Icon(INFO, is, infobTEXT, this::showInfo); // consistent with Icon.createInfoIcon()
@@ -268,20 +268,19 @@ public final class AreaControls {
     }
 
     void settings() {
-        if (area.getActiveWidgets().isEmpty()) return;
-        Widget<?> w = area.getActiveWidgets().get(0);
+        Widget<?> w = area.getWidget();
 
         if (APP.ui.getOpenStrategy().getValue()==POPUP) {
             APP.windowManager.showSettings(w,propB);
         } else if (APP.ui.getOpenStrategy().getValue()==INSIDE) {
-            AppAnimator.INSTANCE.closeAndDo(area.content_root, () -> {
+            AppAnimator.INSTANCE.closeAndDo(area.contentRoot, () -> {
                 SimpleConfigurator<?> sc = simpleConfigurator(w);
                 sc.getStyleClass().addAll("block", "area", "widget-area");// imitate area looks
                 sc.setOnMouseClicked(me -> {
                     if (me.getButton()==SECONDARY)
                         AppAnimator.INSTANCE.closeAndDo(sc, () -> {
                             area.getRoot().getChildren().remove(sc);
-                            AppAnimator.INSTANCE.openAndDo(area.content_root, null);
+                            AppAnimator.INSTANCE.openAndDo(area.contentRoot, null);
                         });
                 });
                 AppAnimator.INSTANCE.openAndDo(sc, null);
@@ -295,7 +294,7 @@ public final class AreaControls {
         if (APP.ui.getOpenStrategy().getValue()==POPUP) {
             helpP.getM(this).showInCenterOf(infoB);
         } else if (APP.ui.getOpenStrategy().getValue()==INSIDE) {
-            AppAnimator.INSTANCE.closeAndDo(area.content_root, () -> {
+            AppAnimator.INSTANCE.closeAndDo(area.contentRoot, () -> {
                 Text t = new Text(getInfo());
                      t.setMouseTransparent(true);
                 ScrollPane s = layScrollVText(t);
@@ -303,14 +302,14 @@ public final class AreaControls {
                            s.setMaxWidth(500);
                 StackPane sa = new StackPane(s);
                 sa.setPadding(new Insets(20));
-                sa.getStyleClass().addAll(Area.bgr_STYLECLASS);
+                sa.getStyleClass().addAll(Area.STYLECLASS_BGR);
                 sa.addEventFilter(MOUSE_PRESSED, Event::consume);
                 sa.addEventFilter(MOUSE_RELEASED, Event::consume);
                 sa.addEventFilter(MOUSE_CLICKED, e -> {
                     if (e.getButton()==SECONDARY)
                         AppAnimator.INSTANCE.closeAndDo(sa, () -> {
                             area.getRoot().getChildren().remove(sa);
-                            AppAnimator.INSTANCE.openAndDo(area.content_root, null);
+                            AppAnimator.INSTANCE.openAndDo(area.contentRoot, null);
                         });
                 });
                 AppAnimator.INSTANCE.openAndDo(sa, null);
@@ -321,15 +320,12 @@ public final class AreaControls {
     }
 
     void close() {
-        if (area.index==null)
-            AppAnimator.INSTANCE.closeAndDo(area.container.ui.getRoot(), () -> area.container.close());
-        else
-            AppAnimator.INSTANCE.closeAndDo(area.content_root, () -> area.container.removeChild(area.index));
+        AppAnimator.INSTANCE.closeAndDo(area.contentRoot, () -> area.container.removeChild(area.index));
     }
 
     private void toggleAbsSize() {
         if (area.container instanceof BiContainer) {
-            Splitter s = BiContainer.class.cast(area.container).ui;
+            Splitter s = ((BiContainer) area.container).ui;
             s.toggleAbsoluteSizeFor(area.index);
         }
     }

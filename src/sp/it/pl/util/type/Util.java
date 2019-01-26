@@ -11,6 +11,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import javafx.beans.property.Property;
@@ -35,25 +36,20 @@ public interface Util {
 	 * Additional provided arguments are name of the property and its non-erased generic type.
 	 * Javafx properties are obtained from public nameProperty() methods using reflection.
 	 */
+	@SuppressWarnings("UnnecessaryLocalVariable")
 	static void forEachJavaFXProperty(Object o, TriConsumer<ObservableValue,String,Class> action) {
-		for (Method method : getAllMethods(o.getClass())) {
+		// Standard JavaFX Properties
+		for (Method method : o.getClass().getMethods()) {
 			String methodName = method.getName();
-			// We are looking for javafx property bean methods
-			// We must filter out nonpublic and impl (can be public) ones. Why? Real life example:
-			// Serialization serializes all javafx property bean values of an graphical object -
-			// effect. Upon deserialization a 'private' flag indicating redrawing is restored
-			// which prevents the effect from updating values upon change. Such flags are usually
-			// the implNameProperty methods and can be public due to reasons...
-			//
-			// In other words anything non-public is not safe.
-			if (methodName.endsWith("Property") && Modifier.isPublic(method.getModifiers()) && !methodName.startsWith("impl")) {
-				Class<?> returnType = method.getReturnType();
+			boolean isPublished = !Modifier.isStatic(method.getModifiers()) && methodName.endsWith("Property") && !methodName.startsWith("impl");
+			if (isPublished) {
 				String propertyName = null;
-				if (ObservableValue.class.isAssignableFrom(returnType)) {
+				if (ObservableValue.class.isAssignableFrom(method.getReturnType())) {
 					try {
 						propertyName = methodName.substring(0, methodName.lastIndexOf("Property"));
 						method.setAccessible(true);
 						ObservableValue<?> property = (ObservableValue) method.invoke(o);
+
 						if (property instanceof Property && ((Property) property).isBound()) {
 							ReadOnlyObjectWrapper<Object> rop = new ReadOnlyObjectWrapper<>();
 							rop.bind(property);
@@ -63,8 +59,41 @@ public interface Util {
 						Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());
 						if (isNoneØ(property, propertyName, propertyType)) {
 							action.accept(property, propertyName, propertyType);
+						} else {
+							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", property, propertyName, propertyName);
 						}
+
 					} catch (IllegalAccessException|InvocationTargetException e) {
+						logger(Util.class).error("Could not obtain property '{}' from object", propertyName);
+					}
+				}
+			}
+		}
+		// Extended JavaFX Properties as exposed fields
+		for (Field field : o.getClass().getFields()) {
+			String fieldName = field.getName();
+			boolean isPublished = !Modifier.isStatic(field.getModifiers()) && !fieldName.startsWith("impl");
+			if (isPublished) {
+				String propertyName = fieldName;
+				if (ObservableValue.class.isAssignableFrom(field.getType())) {
+					try {
+						field.setAccessible(true);
+						ObservableValue<?> property = (ObservableValue) field.get(o);
+
+						if (property instanceof Property && ((Property) property).isBound()) {
+							ReadOnlyObjectWrapper<Object> rop = new ReadOnlyObjectWrapper<>();
+							rop.bind(property);
+							property = rop.getReadOnlyProperty();
+						}
+
+						Class<?> propertyType = getGenericPropertyType(field.getGenericType());
+						if (isNoneØ(property, propertyName, propertyType)) {
+							action.accept(property, propertyName, propertyType);
+						} else {
+							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", property, propertyName, propertyName);
+						}
+
+					} catch (IllegalAccessException e) {
 						logger(Util.class).error("Could not obtain property '{}' from object", propertyName);
 					}
 				}
@@ -131,9 +160,8 @@ public interface Util {
 	}
 
 	/**
-	 * Returns all declared fields of the class including inherited ones.
-	 * Equivalent to union of declared fields of the class and all its
-	 * superclasses.
+	 * Returns all declared fields of the class including private, static and inherited ones.
+	 * Equivalent to union of declared fields of the class and all its superclasses.
 	 */
 	@SuppressWarnings("CollectionAddAllCanBeReplacedWithConstructor")
 	static List<Field> getAllFields(Class clazz) {
@@ -146,21 +174,40 @@ public interface Util {
 		Class superClazz = clazz.getSuperclass();
 		if (superClazz!=null) fields.addAll(getAllFields(superClazz));
 
+		// get interface' fields recursively
+		for (Class<?> i: clazz.getInterfaces())
+			fields.addAll(getAllFields(i));
+
 		return fields;
 	}
 
 	/**
-	 * Returns all declared methods of the class including inherited ones.
+	 * Returns all declared methods of the class including private, static and inherited ones.
 	 * Equivalent to union of declared methods of the class and all its superclasses.
 	 */
-	@SuppressWarnings("CollectionAddAllCanBeReplacedWithConstructor")
 	static List<Method> getAllMethods(Class clazz) {
 		List<Method> methods = new ArrayList<>();
 
-		// get all fields of the class (but not inherited fields)
-		methods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+		if (clazz.isInterface()) {
+			for (Class<?> i: clazz.getInterfaces()) {
+				methods.addAll(getAllMethods(i));
+			}
+			for (Method m: clazz.getDeclaredMethods()) {
+				if (m.isDefault())
+					methods.add(m);
+			}
+			return methods;
+		}
 
-		// get super class' fields recursively
+		// get all methods of the class (but not inherited methods)
+		Collections.addAll(methods, clazz.getDeclaredMethods());
+
+		// get default methods
+		for (Class<?> i: clazz.getInterfaces()) {
+			methods.addAll(getAllMethods(i));
+		}
+
+		// get super class' methods
 		Class superClazz = clazz.getSuperclass();
 		if (superClazz!=null) methods.addAll(getAllMethods(superClazz));
 

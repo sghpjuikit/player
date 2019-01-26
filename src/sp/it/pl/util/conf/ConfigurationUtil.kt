@@ -11,7 +11,9 @@ import kotlin.reflect.jvm.jvmName
 
 object MainConfiguration: Configuration()
 
-fun <T> Config<T>.isEditableByUserRightNow() = isEditable.isByUser && constraints.asSequence().none { it is Constraint.ReadOnlyIf && !it.condition.value }
+fun <T> Config<T>.isReadOnlyRightNow() = constraints.asSequence().any { it is Constraint.ReadOnlyIf && it.condition.value }
+
+fun <T> Config<T>.isEditableByUserRightNow() = isEditable.isByUser && !isReadOnlyRightNow()
 
 fun computeConfigGroup(declaringRef: Any): String {
     val groupDiscriminant = (declaringRef as? MultiConfigurable)

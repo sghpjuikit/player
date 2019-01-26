@@ -36,7 +36,6 @@ import sp.it.pl.util.system.edit
 import sp.it.pl.util.system.open
 import sp.it.pl.util.system.recycle
 import sp.it.pl.util.system.saveFile
-import sp.it.pl.util.type.Util.getAllMethods
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import sp.it.pl.web.SearchUriBuilder
 import java.io.File
@@ -62,9 +61,10 @@ class CoreMenus: Core {
             }
             if (APP.developerMode)
                 menu("Public methods") {
-                    items(getAllMethods(selected::class.java).asSequence()
+                    items(selected::class.java.methods.asSequence()
                             .filter { Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) }
-                            .filter { it.parameterCount==0 && it.returnType==Void.TYPE },
+                            .sortedBy { it.name }
+                            .filter { it.parameterCount==0 && (it.returnType==Void::class.javaObjectType || it.returnType==Void::class.javaPrimitiveType || it.returnType==Unit::class.java) },
                             { it.name },
                             {
                                 try {

@@ -247,8 +247,8 @@ class Guide(guideEvents: EventSource<Any>? = null): MultiConfigurableBase("${Set
                         val bc = BiContainer(VERTICAL)
                         la.addChild(la.emptySpot, bc)
                         // load widgets
-                        bc.addChild(1, APP.widgetManager.factories.getFactory(PLAYLIST).orEmpty().create())
-                        bc.addChild(2, APP.widgetManager.factories.getFactory(PLAYBACK).orEmpty().create())
+                        bc.addChild(1, APP.widgetManager.factories.getFactoryByGuiName(PLAYLIST).orEmpty().create())
+                        bc.addChild(2, APP.widgetManager.factories.getFactoryByGuiName(PLAYBACK).orEmpty().create())
                         // go to layout
                         la.ui.alignTab(bc)
                         // go to next guide

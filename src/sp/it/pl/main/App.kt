@@ -46,11 +46,11 @@ import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.layout.widget.WidgetSource.ANY
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.layout.widget.feature.PlaylistFeature
+import sp.it.pl.plugin.Plugin
+import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.appsearch.AppSearchPlugin
 import sp.it.pl.plugin.dirsearch.DirSearchPlugin
 import sp.it.pl.plugin.library.LibraryWatcher
-import sp.it.pl.plugin.Plugin
-import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.screenrotator.ScreenRotator
 import sp.it.pl.service.Service
 import sp.it.pl.service.ServiceManager
@@ -411,7 +411,7 @@ class App: Application(), Configurable<Any> {
 
             Player.initialize()
 
-            normalLoad = normalLoad && fetchArguments().none { it.endsWith(".fxwl") || widgetManager.factories.getComponentFactory(it)!=null }
+            normalLoad = normalLoad && fetchArguments().none { it.endsWith(".fxwl") || widgetManager.factories.getComponentFactoryByGuiName(it)!=null }
 
             windowManager.deserialize(normalLoad)
         }.ifError {

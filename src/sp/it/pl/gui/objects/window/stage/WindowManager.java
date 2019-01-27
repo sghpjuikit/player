@@ -311,7 +311,7 @@ public class WindowManager implements Configurable<Object> {
             miniWindow.disposables.add(maintain(
                 mini_widget,
                 name -> {
-                    Component newW = orEmpty(APP.widgetManager.factories.getComponentFactory(name)).create();
+                    Component newW = orEmpty(APP.widgetManager.factories.getComponentFactoryByGuiName(name)).create();
                     Component oldW = (Widget) content.getProperties().get("widget");
 
                     if (oldW!=null) oldW.close();
@@ -539,7 +539,7 @@ public class WindowManager implements Configurable<Object> {
     }
 
     public void launchComponent(String name) {
-        ComponentFactory<?> wf = APP.widgetManager.factories.getComponentFactory(name);
+        ComponentFactory<?> wf = APP.widgetManager.factories.getComponentFactoryByGuiName(name);
         Component w = wf==null ? null : wf.create();
         launchComponent(w);
     }
@@ -566,7 +566,7 @@ public class WindowManager implements Configurable<Object> {
         // try to build widget using just launcher filename
         boolean isLauncherEmpty = Util.readFileLines(launcher).count()==0;
         String wn = isLauncherEmpty ? Util.getName(launcher) : "";
-        wf = APP.widgetManager.factories.getComponentFactory(wn);
+        wf = APP.widgetManager.factories.getComponentFactoryByGuiName(wn);
         if (wf!=null)
             c = wf.create();
 

@@ -384,7 +384,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                                         .then { task(it.map { SimpleItem(it) }) }
                                         .ui { result ->
                                             if (conf.editInTagger.value) {
-                                                val tagger = APP.widgetManager.factories.getFactory(Widgets.SONG_TAGGER)?.create()
+                                                val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER)?.create()
                                                 val items = if (conf.editOnlyAdded.value) result.converted else result.all
                                                 if (tagger!=null) {
                                                     taggerLayout += tagger.load()

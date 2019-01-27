@@ -548,9 +548,14 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         /** @return all features implemented by at least one widget */
         fun getFeatures(): Sequence<Feature> = getFactories().flatMap { it.getFeatures().asSequence() }.distinct()
 
+        /** @return widget factory with the specified [WidgetFactory.name] or null if none */
         fun getFactory(name: String): WidgetFactory<*>? = factoriesW[name]
 
-        fun getComponentFactory(name: String): ComponentFactory<*>? = factoriesW[name] ?: factoriesC[name]
+        /** @return widget factory with the specified [WidgetFactory.nameGui] or null if none */
+        fun getFactoryByGuiName(guiName: String): WidgetFactory<*>? = factoriesW.find { it.nameGui()==guiName }
+
+        /** @return component factory with the specified [ComponentFactory.nameGui] or null if none */
+        fun getComponentFactoryByGuiName(guiName: String): ComponentFactory<*>? = getFactoryByGuiName(guiName) ?: factoriesC[guiName]
 
         /** @return all widget factories */
         fun getFactories(): Sequence<WidgetFactory<*>> = factoriesW.streamV().asSequence()

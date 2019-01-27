@@ -32,6 +32,7 @@ import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.util.action.Action
+import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.future.Fut.Companion.fut
 import sp.it.pl.util.async.runLater
 import sp.it.pl.util.conf.ConfigurableBase
@@ -54,6 +55,7 @@ import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.vBox
+import sp.it.pl.util.math.millis
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.chooseFile
 import sp.it.pl.util.system.chooseFiles
@@ -364,7 +366,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
             }
 
             hBox(50, CENTER) {
-                val taggerLayout = lay
+                val contant = this
                 lay += vBox(50, CENTER) {
                     lay += ConfigPane(conf)
                     lay += vBox(10, CENTER_LEFT) {
@@ -387,8 +389,13 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                                                 val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER)?.create()
                                                 val items = if (conf.editOnlyAdded.value) result.converted else result.all
                                                 if (tagger!=null) {
-                                                    taggerLayout += tagger.load()
-                                                    (tagger.controller as SongReader).read(items)
+                                                    anim(500.millis) {
+                                                        contant.children.getOrNull(0)?.opacity = it*it
+                                                        contant.children.getOrNull(1)?.opacity = it*it
+                                                    }.playCloseDoOpen {
+                                                        contant.lay += tagger.load()
+                                                        (tagger.controller as SongReader).read(items)
+                                                    }
                                                 }
                                             }
                                             if (conf.enqueue.value && !result.all.isEmpty()) {

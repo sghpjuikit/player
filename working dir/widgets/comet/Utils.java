@@ -112,8 +112,7 @@ import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.formatDuration;
 import static sp.it.pl.util.Util.pyth;
-import static sp.it.pl.util.dev.Fail.fail;
-import static sp.it.pl.util.dev.Fail.failIf;
+import static sp.it.pl.util.dev.FailKt.failIf;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.array;
 import static sp.it.pl.util.functional.Util.by;
@@ -439,7 +438,8 @@ interface Utils {
 		gc.strokeLine(cs[0].x, cs[0].y, cs[cs.length-1].x, cs[cs.length-1].y);
 	}
 	static void strokePolygon(GraphicsContext gc, double[] xs, double[] ys) {
-		failIf(xs.length != ys.length);
+		failIf(xs.length!=ys.length, () -> "Number of x and y coordinates do not match");
+
 		for (int j=0; j<xs.length-1; j++)
 			gc.strokeLine(xs[j], ys[j], xs[j+1], ys[j+1]);
 		gc.strokeLine(xs[0], ys[0], xs[xs.length-1], ys[ys.length-1]);
@@ -489,7 +489,7 @@ interface Utils {
 		drawHudCircle(gc, field, x, y, r, 0, D360, color);
 	}
 	static void drawHudPolygon(GraphicsContext gc, GameSize field, double[] xs, double[] ys, long pointCount) {
-		failIf(xs.length!=ys.length, () -> "Amount of x and y coordinates not equal");
+		failIf(xs.length!=ys.length, () -> "Number of x and y coordinates do not match");
 
 		for (int j=0; j<pointCount; j++) {
 			int k = j==pointCount-1 ? 0 : j+1;

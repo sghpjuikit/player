@@ -9,7 +9,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.util.functional.Functors.Ƒ1;
-import static sp.it.pl.util.dev.Fail.noNull;
+import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.map;
 

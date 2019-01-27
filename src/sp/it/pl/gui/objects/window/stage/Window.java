@@ -96,7 +96,7 @@ import static sp.it.pl.util.access.SequentialValue.next;
 import static sp.it.pl.util.access.SequentialValue.previous;
 import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.dev.Fail.failIf;
+import static sp.it.pl.util.dev.FailKt.failIf;
 import static sp.it.pl.util.functional.Util.forEachIRStream;
 import static sp.it.pl.util.functional.Util.forEachIStream;
 import static sp.it.pl.util.functional.Util.list;
@@ -414,6 +414,7 @@ public class Window extends WindowBase {
 
 	public void setContent(Node n) {
 		failIf(layout!=null, () -> "Layout already initialized");
+
 		content.getChildren().clear();
 		content.getChildren().add(n);
 		setAnchors(n, 0d);
@@ -435,6 +436,7 @@ public class Window extends WindowBase {
 
 	public void initLayout(Layout l) {
 		failIf(layout!=null, () -> "Layout already initialized");
+
 		layout = l;
 		if (layout.getName()==null) layout.setName("Layout");
 		content.getChildren().clear();

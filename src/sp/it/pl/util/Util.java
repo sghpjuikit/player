@@ -23,7 +23,7 @@ import static java.lang.Math.random;
 import static java.lang.Math.sqrt;
 import static java.util.stream.Collectors.toCollection;
 import static sp.it.pl.util.Util.StringDirection.FROM_START;
-import static sp.it.pl.util.dev.Fail.fail;
+import static sp.it.pl.util.dev.FailKt.failIf;
 
 /**
  * Provides general purpose utility methods.
@@ -548,6 +548,7 @@ public interface Util {
 	 */
 	private static <T> T randPopOf(List<T> list) {
 		failIf(list.isEmpty());
+
 		int i = (int) Math.floor(random()*list.size());
 		T t = list.get(i);
 		list.remove(t);

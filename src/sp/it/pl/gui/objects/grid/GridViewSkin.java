@@ -46,7 +46,7 @@ import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.getAt;
 import static sp.it.pl.util.Util.isInRangeInc;
-import static sp.it.pl.util.dev.Fail.fail;
+import static sp.it.pl.util.dev.FailKt.failIf;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.repeat;
 import static sp.it.pl.util.functional.Util.stream;

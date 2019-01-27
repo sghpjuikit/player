@@ -22,7 +22,7 @@ import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.graphics.IconExtractor;
 import sp.it.pl.util.graphics.image.Image2PassLoader;
 import sp.it.pl.util.graphics.image.ImageSize;
-import static sp.it.pl.util.dev.Fail.failIfFxThread;
+import static sp.it.pl.util.dev.FailKt.failIfFxThread;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.FileType.FILE;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;

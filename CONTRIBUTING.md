@@ -1,8 +1,8 @@
 # Contributing
 
 - Language
-  - Java: JDK 9 or 10
   - Kotlin: Latest version
+  - Java: JDK 9 or 10
 - IDE: due to use of Kotlin, Intellij IDEA is strongly recommended, although not required
 
 ## Preparations
@@ -71,19 +71,22 @@ The project contains a shared code style in .idea/codeStyles for IDEA with defin
  - use static imports where possible (enum types, utility methods, etc.)
  - no empty lines, just alphabetical sort
  - separate imports and static imports
- - never use package (star) imports
+ - no package (star) imports
 
 ### Assertions
- - always try to avoid implicit conditions with proper design and typesafety
+ - always try to avoid implicit conditions with proper design and type-safety
  - always check method parameters for all required conditions, always document these in @param tags
  - do not use java assertions
- - use runtime exceptions (e.g. AssertionError) or methods like Objects.requireNonNull(), 
-   util.dev.failIf, util.dev.fail and never document them in @throw (to avoid anyone catching them)
+ - use runtime exceptions (e.g. `java.lang.AssertionError`)
+ - encouraged is the use of methods:
+   - `Objects.requireNonNull()`, 
+   - `util.dev.fail`
+   - `util.dev.failIf`
 
 ### Comments
  - always write javadoc for public elements, be as concise as possible, but describe and define full contract
- - use simple comments `//` to provide code intention
- - avoid using comments by using proper names and code structure and avoiding arbitrary/exceptional/edge cases 
+ - no `/* */` comments
+ - avoid using `//` comments by using proper names and code structure and avoiding arbitrary/exceptional/edge cases 
 
 ## Skins
 

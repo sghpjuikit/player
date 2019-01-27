@@ -7,7 +7,7 @@ import java.util.UUID;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import sp.it.pl.layout.container.uncontainer.UniContainer;
-import static sp.it.pl.util.dev.Fail.noNull;
+import static sp.it.pl.util.dev.FailKt.noNull;
 
 public final class Layout extends UniContainer {
 

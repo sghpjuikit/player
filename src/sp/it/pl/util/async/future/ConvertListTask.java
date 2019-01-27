@@ -8,8 +8,8 @@ import javafx.beans.property.LongProperty;
 import javafx.beans.property.ReadOnlyLongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import sp.it.pl.util.async.future.ConvertListTask.Result;
-import static sp.it.pl.util.dev.Fail.noNull;
-import static sp.it.pl.util.dev.Fail.failIfNotFxThread;
+import static sp.it.pl.util.dev.FailKt.noNull;
+import static sp.it.pl.util.dev.FailKt.failIfNotFxThread;
 
 public abstract class ConvertListTask<T, R> extends FTask<Collection<? extends T>,Result<T,R>> {
 
@@ -25,6 +25,7 @@ public abstract class ConvertListTask<T, R> extends FTask<Collection<? extends T
 
 	public final ReadOnlyLongProperty skippedProperty() {
 		failIfNotFxThread();
+
 		return skipped;
 	}
 

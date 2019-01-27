@@ -13,9 +13,9 @@ import sp.it.pl.util.file.AudioFileFormat.Use;
 import static java.util.stream.Collectors.toList;
 import static sp.it.pl.audio.tagging.ExtKt.readAudioFile;
 import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Fail.noNull;
-import static sp.it.pl.util.dev.Fail.failIfFxThread;
+import static sp.it.pl.util.dev.DebugKt.logger;
+import static sp.it.pl.util.dev.FailKt.noNull;
+import static sp.it.pl.util.dev.FailKt.failIfFxThread;
 
 public class MetadataReader {
 

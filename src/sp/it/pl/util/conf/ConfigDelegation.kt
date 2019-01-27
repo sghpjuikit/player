@@ -11,7 +11,7 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.access.vn
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.action.IsAction
-import sp.it.pl.util.dev.noNull
+import sp.it.pl.util.dev.fail
 import sp.it.pl.util.dev.failIf
 import sp.it.pl.util.type.Util.getGenericPropertyType
 import sp.it.pl.util.validation.Constraint
@@ -121,7 +121,7 @@ abstract class Conf<T: Any?> {
         constraints += obtainConfigConstraints(type, property.annotations)
     }
 
-    protected fun KProperty<*>.obtainConfigMetadata() = findAnnotation<IsConfig>().noNull { "${IsConfig::class} annotation required for $this" }
+    protected fun KProperty<*>.obtainConfigMetadata() = findAnnotation<IsConfig>() ?: fail { "${IsConfig::class} annotation required for $this" }
 
     protected fun validateValue(v: T) {
         constraints.forEach { it.validate(v).ifError { failIf(true) { "Value $v doesn't conform to: $it" } } }

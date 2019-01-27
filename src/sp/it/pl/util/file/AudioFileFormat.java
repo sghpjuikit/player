@@ -10,7 +10,7 @@ import sp.it.pl.audio.Item;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.util.SwitchException;
 import static java.util.stream.Collectors.toList;
-import static sp.it.pl.util.dev.Fail.noNull;
+import static sp.it.pl.util.dev.FailKt.noNull;
 
 /**
  * All audio file formats known and supported by application except for UNKNOWN that

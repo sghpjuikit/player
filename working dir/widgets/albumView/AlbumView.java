@@ -57,7 +57,7 @@ import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.AsyncKt.sleep;
 import static sp.it.pl.util.async.future.Fut.fut;
-import static sp.it.pl.util.dev.Fail.failIfNotFxThread;
+import static sp.it.pl.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.listRO;
@@ -425,6 +425,7 @@ public class AlbumView extends SimpleController {
 		 */
 		private void setCoverNow(Album item) {
 			failIfNotFxThread();
+
 	        if (item.cover_loadedFull) {
 		        setCoverPost(item, true, item.cover_file, item.cover);
 	        } else {
@@ -442,6 +443,7 @@ public class AlbumView extends SimpleController {
 
 		private void setCoverLater(Album item) {
 			failIfNotFxThread();
+
 			thumb.loadImage((File) null); // prevent displaying old content before cover loads
 			setCoverLater.push(item);
 		}

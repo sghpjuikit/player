@@ -25,10 +25,10 @@ import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.sleep;
-import static sp.it.pl.util.dev.Fail.noNull;
-import static sp.it.pl.util.dev.Fail.fail;
-import static sp.it.pl.util.dev.Fail.failIfFxThread;
-import static sp.it.pl.util.dev.Fail.failIfNotFxThread;
+import static sp.it.pl.util.dev.FailKt.failIf;
+import static sp.it.pl.util.dev.FailKt.failIfFxThread;
+import static sp.it.pl.util.dev.FailKt.failIfNotFxThread;
+import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static sp.it.pl.util.reactive.Util.doIfImageLoaded;
 import static sp.it.pl.util.reactive.Util.sync1IfImageLoaded;
@@ -286,6 +286,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	// Sometimes cells are invisible (or not properly laid out?), so delay size calculation and block
 	private ImageSize computeImageSize(Item item) {
 		failIfFxThread();
+
 		return Stream.generate(() -> {
 					ImageSize is = runFX(() -> thumb.calculateImageLoadSize()).getDone().or(() -> new ImageSize(-1,-1));
 					boolean isReady = is.width>0 || is.height>0;
@@ -301,6 +302,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 
 	private void setCoverLater(Item item) {
 		failIfNotFxThread();
+
 		thumb.loadImage((File) null); // prevent displaying old content before cover loads
 		setCoverLater.push(item);
 	}

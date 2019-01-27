@@ -4,8 +4,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javafx.concurrent.Task;
 import sp.it.pl.util.functional.Functors.Ƒ1;
-import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Fail.fail;
+import static sp.it.pl.util.dev.DebugKt.logger;
+import static sp.it.pl.util.dev.FailKt.failIf;
 
 /**
  * Task that is a function, both for the consumer and developer.
@@ -33,6 +33,7 @@ public abstract class FTask<I, O> extends Task<O> implements Ƒ1<I,O> {
 	 */
 	public void setInput(I input) {
 		failIf(!isInputAssignmentDoable.get());
+
 		isInputAssigned = true;
 		this.input = input;
 	}
@@ -86,6 +87,7 @@ public abstract class FTask<I, O> extends Task<O> implements Ƒ1<I,O> {
 	@Override
 	protected O call() throws Exception {
 		failIf(!isInputAssigned);
+
 		isInputAssignmentDoable.set(false);
 		return compute(input);
 	}

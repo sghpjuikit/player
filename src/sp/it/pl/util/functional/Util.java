@@ -50,8 +50,8 @@ import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static sp.it.pl.util.dev.Fail.fail;
-import static sp.it.pl.util.dev.Fail.failIf;
+import static sp.it.pl.util.dev.FailKt.failIf;
+import static sp.it.pl.util.dev.FailKt.noNull;
 
 @SuppressWarnings("unused")
 public interface Util {
@@ -286,7 +286,7 @@ public interface Util {
 	 * @throws NullPointerException if argument is null
 	 */
 	static <E, C extends Comparable<? super C>> Comparator<E> by(Function<? super E,? extends C> extractor) {
-		findNonNull(extractor);
+		noNull(extractor);
 		return by(extractor, Comparable::compareTo);
 	}
 
@@ -324,8 +324,8 @@ public interface Util {
 	 * }</pre>
 	 */
 	static <E, C> Comparator<E> by(Function<? super E,? extends C> extractor, Comparator<? super C> comparator) {
-		findNonNull(extractor);
-		findNonNull(comparator);
+		noNull(extractor);
+		noNull(comparator);
 		return (Comparator<E> & Serializable) (a, b) -> comparator.compare(extractor.apply(a), extractor.apply(b));
 	}
 
@@ -346,8 +346,8 @@ public interface Util {
 	 * {@link Comparator#nullsFirst(java.util.Comparator)}).
 	 */
 	static <E, C extends Comparable<? super C>> Comparator<E> by(Function<? super E,? extends C> extractor, Function<Comparator<? super C>,Comparator<? super C>> comparatorModifier) {
-		findNonNull(extractor);
-		findNonNull(comparatorModifier);
+		noNull(extractor);
+		noNull(comparatorModifier);
 		return (Comparator<E> & Serializable) (a, b) -> comparatorModifier.apply(Comparator.naturalOrder()).compare(extractor.apply(a), extractor.apply(b));
 	}
 
@@ -373,7 +373,7 @@ public interface Util {
 
 	@SuppressWarnings("unchecked")
 	static <NN> Ƒ1<?,NN> mapNulls(NN non_null) {
-		findNonNull(non_null);
+		noNull(non_null);
 		return (Ƒ1) in -> in==null ? non_null : in;
 	}
 
@@ -405,53 +405,34 @@ public interface Util {
 
 /* ---------- FUNCTION -> FUNCTION ---------------------------------------------------------------------------------- */
 
-	/** Returns function that never produces null, but returns its input instead. */
-	static <I> Ƒ1<I,I> nonNull(Function<I,I> f) {
-		return in -> {
-			I out = f.apply(in);
-			return out==null ? in : out;
-		};
-	}
-
-	static <I, O> Ƒ1<I,O> nonNull(Function<I,O> f, O or) {
-		return in -> {
-			O out = f.apply(in);
-			return out==null ? or : out;
-		};
-	}
-
-	/** Faster alternative to {@link #findNonNull(java.lang.Object...) }. */
-	static <O> O findNonNull(O o1, O o2) {
+	/** Faster alternative to {@link #firstNotNull(java.lang.Object...) }. */
+	static <O> O firstNotNull(O o1, O o2) {
 		return o1!=null ? o1 : o2;
 	}
 
-	/** Faster alternative to {@link #findNonNull(java.lang.Object...) }. */
-	static <O> O findNonNull(O o1, O o2, O o3) {
+	/** Faster alternative to {@link #firstNotNull(java.lang.Object...) }. */
+	static <O> O firstNotNull(O o1, O o2, O o3) {
 		return o1!=null ? o1 : o2!=null ? o2 : o3;
 	}
 
-	/** Faster alternative to {@link #findNonNull(java.lang.Object...) }. */
-	static <O> O findNonNull(O o1, O o2, O o3, O o4) {
-		return o1!=null ? o1 : o2!=null ? o2 : o3!=null ? o3 : o4;
-	}
 
 	/** Returns the first non null object or null if all null. */
 	@SafeVarargs
-	static <O> O findNonNull(O... objects) {
+	static <O> O firstNotNull(O... objects) {
 		for (O o : objects)
 			if (o!=null) return o;
 		return null;
 	}
 
-	/** Faster alternative to {@link #findNonNull(java.util.function.Supplier...) }. */
-	static <I> I findNonNull(Supplier<I> supplier1, Supplier<I> supplier2) {
+	/** Faster alternative to {@link #firstNotNull(java.util.function.Supplier...) }. */
+	static <I> I firstNotNull(Supplier<I> supplier1, Supplier<I> supplier2) {
 		I i = supplier1.get();
 		if (i!=null) return i;
 		return supplier2.get();
 	}
 
-	/** Faster alternative to {@link #findNonNull(java.util.function.Supplier...) }. */
-	static <I> I findNonNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3) {
+	/** Faster alternative to {@link #firstNotNull(java.util.function.Supplier...) }. */
+	static <I> I firstNotNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3) {
 		I i = supplier1.get();
 		if (i!=null) return i;
 		i = supplier2.get();
@@ -459,8 +440,8 @@ public interface Util {
 		return supplier3.get();
 	}
 
-	/** Faster alternative to {@link #findNonNull(java.util.function.Supplier...) }. */
-	static <I> I findNonNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3, Supplier<I> supplier4) {
+	/** Faster alternative to {@link #firstNotNull(java.util.function.Supplier...) }. */
+	static <I> I firstNotNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3, Supplier<I> supplier4) {
 		I i = supplier1.get();
 		if (i!=null) return i;
 		i = supplier2.get();
@@ -472,7 +453,7 @@ public interface Util {
 
 	/** Returns the first supplied non null value or null if all null by iterating the suppliers. */
 	@SafeVarargs
-	static <I> I findNonNull(Supplier<I>... suppliers) {
+	static <I> I firstNotNull(Supplier<I>... suppliers) {
 		for (Supplier<I> s : suppliers) {
 			I i = s.get();
 			if (i!=null) return i;

@@ -30,6 +30,7 @@ import sp.it.pl.gui.objects.image.cover.ImageCover
 import sp.it.pl.main.APP
 import sp.it.pl.util.SwitchException
 import sp.it.pl.util.access.fieldvalue.ObjectFieldBase
+import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.ImageFileFormat
@@ -602,8 +603,10 @@ class Metadata: Item, Serializable {
     fun getCustom5() = custom5
 
     /** @return cover using the respective source */
+    @Blocks
     fun getCover(source: CoverSource): Cover {
         failIfFxThread()
+
         return when (source) {
             Cover.CoverSource.TAG -> readCoverFromTag() ?: Cover.EMPTY
             Cover.CoverSource.DIRECTORY -> readCoverFromDir() ?: Cover.EMPTY

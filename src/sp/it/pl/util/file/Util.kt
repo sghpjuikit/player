@@ -130,6 +130,30 @@ fun File.toURLOrNull() =
             null
         }
 
+/**
+ *  Invokes the specified block that saves the file with safe temporary file saving semantics:
+ *  - 1 remove temporary file if exists
+ *  - 2 rename existing file to temporary file
+ *  - 3 invoke block to save the file
+ *  - if 3 succeeds remove the temporary file
+ *  - if 3 fails rename the temporary file to original file
+ */
+fun <OK,ERROR> File.writeSafely(block: (File) -> Try<OK,ERROR>): Try<OK,ERROR> {
+    val f = absoluteFile
+    val fTmp = f.resolveSibling("${name}tmp")
+
+    fTmp.delete()
+    f.renameTo(fTmp)
+    return block(f)
+            .ifOk {
+                fTmp.delete()
+            }
+            .ifError {
+                f.renameTo(f)
+                fTmp.renameTo(f)
+            }
+}
+
 enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>) {
     NONE({ it.stream().distinct() }),
     DIRS({

@@ -5,7 +5,9 @@ import sp.it.pl.main.APP
 import sp.it.pl.util.async.threadFactory
 import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.ThreadSafe
-import sp.it.pl.util.file.childOf
+import sp.it.pl.util.file.div
+import sp.it.pl.util.file.writeSafely
+import sp.it.pl.util.functional.Try
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.ObjectInputStream
@@ -43,7 +45,7 @@ object CoreSerializer: Core {
      */
     @Blocks
     inline fun <reified T: Serializable> readSingleStorage(): T? {
-        val f = APP.DIR_LIBRARY.childOf(T::class.simpleName ?: T::class.jvmName)
+        val f = APP.DIR_LIBRARY/(T::class.simpleName ?: T::class.jvmName)
 
         if (!f.exists()) return null
 
@@ -66,17 +68,20 @@ object CoreSerializer: Core {
      *
      */
     @Blocks
-    inline fun <reified T: Serializable> writeSingleStorage(o: T) {
-        val f = APP.DIR_LIBRARY.childOf(T::class.simpleName ?: T::class.jvmName)
-        try {
-            FileOutputStream(f).use {
-                ObjectOutputStream(it).use {
-                    it.writeObject(o)
+    inline fun <reified T: Serializable> writeSingleStorage(o: T): Try<Unit,Exception> {
+        val f = APP.DIR_LIBRARY/(T::class.simpleName ?: T::class.jvmName)
+        return f.writeSafely {
+            try {
+                FileOutputStream(it).use {
+                    ObjectOutputStream(it).use {
+                        it.writeObject(o)
+                    }
                 }
+                Try.ok<Unit,Exception>(Unit)
+            } catch (e: Exception) {
+                logger.error(e) { "Failed to serialize object=${o::class} to file=$f" }
+                Try.error<Unit,Exception>(e)
             }
-        } catch (e: Exception) {
-            logger.error(e) { "Failed to serialize object=${o::class} to file=$f" }
-            throw e
         }
     }
 

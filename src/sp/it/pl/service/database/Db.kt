@@ -81,7 +81,6 @@ class Db {
             val ms = MetadatasDB(itemsById.backingMap())
             items.forEach { ms[it.id] = it }
             writeSingleStorage(ms)
-
             updateInMemoryDbFromPersisted()
         }
     }

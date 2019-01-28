@@ -18,6 +18,7 @@ import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.core.CoreConverter
+import sp.it.pl.core.CoreFunctors
 import sp.it.pl.core.CoreImageIO
 import sp.it.pl.core.CoreInstances
 import sp.it.pl.core.CoreLogging
@@ -180,6 +181,7 @@ class App: Application(), Configurable<Any> {
     @F val classFields = ObjectFieldMap()
     @F val contextMenus = CoreMenus
     @F val mouse = CoreMouse
+    @F val functors = CoreFunctors
 
     @C(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")
     val logLevelConsole by cv(Level.INFO) {
@@ -355,10 +357,10 @@ class App: Application(), Configurable<Any> {
         serializer.init()
         serializerXml.init()
         imageIo.init()
-        //        converter.init()
         instances.init()
         contextMenus.init()
         mouse.init()
+        functors.init()
 
         // init app stuff
         parameterProcessor.initForApp()

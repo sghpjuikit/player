@@ -370,7 +370,6 @@ class App: Application(), Configurable<Any> {
 
         // start parts that can be started from non application fx thread
         ActionManager.startActionListening()
-        Action.loadCommandActions()
         appCommunicator.start()
     }
 

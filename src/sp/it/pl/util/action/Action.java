@@ -1,11 +1,9 @@
 package sp.it.pl.util.action;
 
-import java.io.File;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -22,17 +20,14 @@ import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.validation.Constraint;
 import static java.lang.reflect.Modifier.isStatic;
-import static java.util.stream.Collectors.toCollection;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.conf.ConfigurationUtilKt.computeConfigGroup;
 import static sp.it.pl.util.conf.ConfigurationUtilKt.obtainConfigGroup;
 import static sp.it.pl.util.dev.DebugKt.logger;
-import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.setRO;
 import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.system.EnvironmentKt.runCommand;
 
 /**
  * Behavior with a name and possible shortcut.
@@ -485,46 +480,6 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 				return new Action(a, group, r);
 			})
 			.forEach(APP.configuration::collect);
-	}
-
-	public static void loadCommandActions() {
-		// discover all command actions defined in file
-		File file = new File(APP.DIR_USERDATA, "command-actions.cfg");
-		// TODO: improve to side effect free code
-		long count = !file.exists() ? 0 : APP.serializerXml.fromXML(Commands.class, file)
-			.getOrSupply(Commands::new)
-			.stream()
-			.filter(a -> a.isEnabled)
-			.map(Command::toAction)
-			.peek(APP.configuration::collect)
-			.count();
-		// Generate default template for the user if necessary (shows how to define commands).
-		// Note we must not overwrite existing file, possibly containing already defined commands, hence the
-		// file.exists() check. The number of deserialized commands can be 0 if deserialization fails for some reason
-		boolean generateTemplate = count<1 && !file.exists();
-		if (generateTemplate)
-			APP.serializerXml.toXML(stream(new Command()).collect(toCollection(Commands::new)), file);
-	}
-
-	private static class Commands extends HashSet<Command> {}
-
-	private static class Command {
-		public String name = "";
-		public String keys = "";
-		public String command = "";
-		public boolean isGlobal = false;
-		public boolean isAppCommand = true;
-		public boolean isEnabled = true;
-
-		public Action toAction() {
-			return new Action(
-				name,
-				isAppCommand ? () -> APP.parameterProcessor.process(list(command)) : () -> runCommand(command),
-				isAppCommand ? "Runs app command '" + command + "'" : "Runs system command '" + command + "'",
-				isAppCommand ? "Shortcuts.command.app" : "Shortcuts.command.system",
-				keys, isGlobal, false
-			);
-		}
 	}
 
 }

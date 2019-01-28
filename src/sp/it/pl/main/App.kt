@@ -81,7 +81,6 @@ import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.ImageFileFormat
-import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.hasExtension
@@ -511,7 +510,7 @@ class App: Application(), Configurable<Any> {
                 { fs -> widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addFiles(fs) } }
         )
         addFileProcessor(
-                { Util.isValidSkinFile(it) },
+                { it.isValidSkinFile() },
                 { ui.setSkin(it[0]) }
         )
         addFileProcessor(

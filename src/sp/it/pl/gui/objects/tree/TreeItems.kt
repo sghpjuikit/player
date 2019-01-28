@@ -43,6 +43,8 @@ import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.isValidSkinFile
+import sp.it.pl.main.isValidWidgetFile
 import sp.it.pl.service.Service
 import sp.it.pl.util.HierarchicalBase
 import sp.it.pl.util.Util.enumToHuman
@@ -53,7 +55,6 @@ import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.file.FileType
-import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.nameOrRoot
@@ -211,9 +212,9 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
 
             val type = if (treeItem.isLeaf) FileType.FILE else FileType.of(p)
 
-            if (type==FileType.DIRECTORY && APP.DIR_SKINS==p.parentDir || Util.isValidSkinFile(p))
+            if (type==FileType.DIRECTORY && APP.DIR_SKINS==p.parentDir || p.isValidSkinFile())
                 createIcon(IconFA.PAINT_BRUSH, 8.0)
-            if (type==FileType.DIRECTORY && APP.DIR_WIDGETS==p.parentDir || Util.isValidWidgetFile(p))
+            if (type==FileType.DIRECTORY && APP.DIR_WIDGETS==p.parentDir || p.isValidWidgetFile())
                 createIcon(IconFA.GE, 8.0)
 
             if (type==FileType.FILE) createIcon(IconFA.FILE, 8.0)

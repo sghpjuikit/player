@@ -296,7 +296,7 @@ import kotlin.streams.toList
                     "Apply skin",
                     "Apply skin on the application.",
                     IconMD.BRUSH,
-                    { f -> Util.isValidSkinFile(f) },
+                    { f -> f.isValidSkinFile() },
                     { f -> APP.ui.setSkin(f) }
             ),
             FastAction(

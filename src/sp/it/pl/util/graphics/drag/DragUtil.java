@@ -36,7 +36,6 @@ import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.DragEvent.DRAG_DROPPED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.TransferMode.ANY;
-import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.dev.DebugKt.logger;
@@ -47,6 +46,11 @@ import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
 
 public final class DragUtil {
+
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+	private static final File DIR_TMP = new File(System.getProperty("java.io.tmpdir"));
 
 /* ---------- DRAG -------------------------------------------------------------------------------------------------- */
 
@@ -423,7 +427,7 @@ public final class DragUtil {
 			String url = d.getUrl();
 			return runNew(() -> {
 				try {
-					File f = Util.saveFileTo(url, APP.DIR_TEMP);
+					File f = Util.saveFileTo(url, DIR_TMP);
 					f.deleteOnExit();
 					return singletonList(f);
 				} catch (IOException ex) {
@@ -475,7 +479,7 @@ public final class DragUtil {
 				// e.g. anime-pictures.net
 				//
 				// https://code.google.com/p/jsslutils/wiki/SSLContextFactory
-				File f = Util.saveFileTo(url, APP.DIR_TEMP);
+				File f = Util.saveFileTo(url, DIR_TMP);
 				f.deleteOnExit();
 				return f;
 			} catch (IOException e) {

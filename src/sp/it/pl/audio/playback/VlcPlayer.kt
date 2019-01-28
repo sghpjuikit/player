@@ -202,21 +202,21 @@ class VlcPlayer: GeneralPlayer.Play {
         class WindowsDiscoverer(vararg val locations: String): DefaultWindowsNativeDiscoveryStrategy() {
             override fun onGetDirectoryNames(directoryNames: MutableList<String>) {
                 super.onGetDirectoryNames(directoryNames)
-                directoryNames.addAll(locations)
+                directoryNames += locations
             }
         }
 
         class LinuxDiscoverer(vararg val locations: String): DefaultLinuxNativeDiscoveryStrategy() {
             override fun onGetDirectoryNames(directoryNames: MutableList<String>) {
                 super.onGetDirectoryNames(directoryNames)
-                directoryNames.addAll(locations)
+                directoryNames += locations
             }
         }
 
         class MacDiscoverer(vararg val locations: String): DefaultMacNativeDiscoveryStrategy() {
             override fun onGetDirectoryNames(directoryNames: MutableList<String>) {
                 super.onGetDirectoryNames(directoryNames)
-                directoryNames.addAll(locations)
+                directoryNames += locations
             }
         }
 

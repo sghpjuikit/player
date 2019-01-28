@@ -27,11 +27,7 @@ fun failIfFxThread() = failIf(Platform.isFxApplicationThread()) { "Must not be i
 fun failIfNotFxThread() = failIf(!Platform.isFxApplicationThread()) { "Must be invoked on FX application thread!" }
 
 /** Throw runtime exception if this field is final. */
-fun Field.failIfFinal() = apply {
-    failIf(Modifier.isFinal(modifiers)) { "Final field forbidden. Field=$declaringClass.$name" }
-}
+fun failIfFinal(field: Field) = failIf(Modifier.isFinal(field.modifiers)) { "Final field forbidden. Field=${field.declaringClass}.${field.name}" }
 
 /** Throw runtime exception if this field is not final. */
-fun Field.failIfNotFinal() = apply {
-    failIf(!Modifier.isFinal(modifiers)) { "Non final field forbidden. Field=$declaringClass.$name" }
-}
+fun failIfNotFinal(field: Field) = failIf(!Modifier.isFinal(field.modifiers)) { "Non final field forbidden. Field=${field.declaringClass}.${field.name}" }

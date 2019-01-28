@@ -14,21 +14,18 @@ import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
-/** Global hotkey manager, implemented on top of https://github.com/kwhat/jnativehook library. */
-class Hotkeys {
-    private val executor: (Runnable) -> Unit
+/** Global hotkey manager, implemented on top of JNativeHook library. */
+class Hotkeys(private val executor: (Runnable) -> Unit) {
     private val keyCombos = ConcurrentHashMap<Int, KeyCombo>()
     private var keyListener: NativeKeyListener? = null
     private var isRunning = false
 
-    constructor(executor: (Runnable) -> Unit) {
-        this.executor = executor
-
-        // Disable library logging.
-         java.util.logging.Logger.getLogger(GlobalScreen::class.java.getPackage().name).apply {
-             level = java.util.logging.Level.OFF
-             useParentHandlers = false
-         }
+    init {
+        // Only log warnings from JNativeHook
+        java.util.logging.Logger.getLogger(GlobalScreen::class.java.getPackage().name).apply {
+            level = java.util.logging.Level.WARNING
+            useParentHandlers = false
+        }
     }
 
     fun isRunning(): Boolean = isRunning

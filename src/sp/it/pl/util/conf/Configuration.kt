@@ -151,12 +151,13 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
     fun rawSet() {
         properties.forEach { key, value ->
             val c = configs[namePostMapper(key)]
-            if (c!=null && c.isEditable.isByApp) c.valueS = value
+            if (c!=null && c.isEditable.isByApp && !c.isReadOnlyRightNow())
+                c.valueS = value
         }
     }
 
     fun rawSet(c: Config<*>) {
-        if (c.isEditable.isByApp) {
+        if (c.isEditable.isByApp && !c.isReadOnlyRightNow()) {
             val key = configToRawKeyMapper(c)
             if (properties.containsKey(key))
                 c.valueS = properties[key]

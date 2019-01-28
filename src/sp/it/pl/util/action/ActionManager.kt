@@ -7,6 +7,7 @@ import javafx.scene.input.KeyCode.WINDOWS
 import javafx.stage.Stage
 import javafx.stage.Window
 import org.reactfx.Subscription
+import sp.it.pl.service.hotkey.Hotkeys
 import sp.it.pl.util.access.initSync
 import sp.it.pl.util.access.v
 import sp.it.pl.util.action.ActionRegistrar.hotkeys
@@ -17,35 +18,26 @@ import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.readOnlyUnless
-import sp.it.pl.service.hotkey.Hotkeys
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.onItemSync
 import sp.it.pl.util.reactive.syncIntoWhile
-import sp.it.pl.util.system.Os
 import sp.it.pl.util.text.getNamePretty
 import java.util.concurrent.ConcurrentHashMap
 
 @IsConfigurable(Action.CONFIG_GROUP)
 object ActionManager {
 
-    @IsConfig(name = "Media shortcuts enabled", info = "Allows using shortcuts for media keys on the keyboard.")
-    val globalMediaShortcuts by cv(true)
-
-    //    @IsConfig(name = "Allow in-app shortcuts", info = "Allows using standard shortcuts.", group = "Shortcuts")
-    //    public static final V<Boolean> local_shortcuts = new V<>(true, v -> {
-    //        if (isLocalShortcutsSupported()) {
-    //            if (v){
-    //            } else {
-    //
-    //            }
-    //        }
-    //    });
-
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", editable = NONE)
     val keyManageLayout by c(ALT_GRAPH)
 
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", editable = NONE)
     val keyManageWindow by c(WINDOWS.getNamePretty() + " + " + SHIFT.getNamePretty())
+
+    // @IsConfig(name = "Media shortcuts supported", editable = NONE, info = "Whether media shortcuts are supported on this system")
+    // private val isMediaShortcutsSupported by c(true)
+
+    // @IsConfig(name = "Media shortcuts enabled", info = "Allows using shortcuts for media keys on the keyboard.")
+    // val globalMediaShortcutsEnabled by cv(true)
 
     /**
      * Whether global shortcuts are supported by the active platform.
@@ -57,16 +49,9 @@ object ActionManager {
     @IsConfig(name = "Global shortcuts supported", editable = NONE, info = "Whether global shortcuts are supported on this system")
     val isGlobalShortcutsSupported by c(true)
 
-    @IsConfig(name = "Media shortcuts supported", editable = NONE, info = "Whether media shortcuts are supported on this system")
-    private val isMediaShortcutsSupported by c(true)
-
-    /** @return whether the action listening is running */
-    var isActionListening = false
-        private set
-
     @IsConfig(name = "Global shortcuts enabled", info = "Allows using the shortcuts even if application is not focused.")
-    val globalShortcuts by cv(Os.WINDOWS.isCurrent) {
-        v(it).initSync {
+    val globalShortcutsEnabled by cv(true) {
+        v(it && isGlobalShortcutsSupported).initSync {
             if (isGlobalShortcutsSupported) {
                 if (it) {
                     startGlobalListening()
@@ -87,6 +72,10 @@ object ActionManager {
         }
     }.readOnlyUnless(isGlobalShortcutsSupported)
 
+    /** @return whether the action listening is running */
+    var isActionListening = false
+        private set
+
 
     /* ---------- HELPER METHODS ---------------------------------------------------------------------------------------- */
 
@@ -101,7 +90,7 @@ object ActionManager {
     fun startActionListening() {
         if (isActionListening) throw IllegalStateException("Action listening already running")
         startLocalListening()
-        if (isGlobalShortcutsSupported && globalShortcuts.get()) startGlobalListening()
+        if (globalShortcutsEnabled.get()) startGlobalListening()
         isActionListening = true
     }
 

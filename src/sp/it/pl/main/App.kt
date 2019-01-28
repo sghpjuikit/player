@@ -178,7 +178,7 @@ class App: Application(), Configurable<Any> {
     @F val instanceName = InstanceName()
     @F val instanceInfo = InstanceInfo()
     @F val classFields = ObjectFieldMap()
-    @F val contextMenus = CoreMenus()
+    @F val contextMenus = CoreMenus
     @F val mouse = CoreMouse
 
     @C(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")

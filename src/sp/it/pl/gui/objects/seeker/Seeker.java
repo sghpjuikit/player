@@ -75,7 +75,7 @@ import static sp.it.pl.util.animation.Anim.mapConcave;
 import static sp.it.pl.util.animation.Anim.mapTo01;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.functional.Util.minBy;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.layHeaderRight;

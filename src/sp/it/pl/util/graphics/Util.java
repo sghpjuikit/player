@@ -45,8 +45,8 @@ import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.DebugKt.logger;
+import static sp.it.pl.util.dev.FailKt.noNull;
 
 /**
  * Graphic utility methods.

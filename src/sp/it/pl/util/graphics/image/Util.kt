@@ -8,7 +8,7 @@ import javafx.embed.swing.SwingFXUtils
 import javafx.scene.image.Image
 import javafx.scene.image.WritableImage
 import mu.KotlinLogging
-import sp.it.pl.util.dev.throwIfFxThread
+import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.file.Util.getSuffix
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.orNull
@@ -93,7 +93,7 @@ fun loadImagePsd(file: File, inS: InputStream, width: Double, height: Double, hi
 fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean) = loadImagePsd(file, ImageIO.createImageInputStream(file), width, height, highQuality)
 
 private fun loadImagePsd(file: File, imageInputStream: ImageInputStream, width: Double, height: Double, highQuality: Boolean): ImageFx? {
-    throwIfFxThread()
+    failIfFxThread()
 
     imageInputStream.use { input ->
         val readers = ImageIO.getImageReaders(input)

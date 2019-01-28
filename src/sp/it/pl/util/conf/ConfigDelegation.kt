@@ -11,8 +11,8 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.access.vn
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.action.IsAction
-import sp.it.pl.util.dev.noNull
-import sp.it.pl.util.dev.throwIf
+import sp.it.pl.util.dev.fail
+import sp.it.pl.util.dev.failIf
 import sp.it.pl.util.type.Util.getGenericPropertyType
 import sp.it.pl.util.validation.Constraint
 import java.io.File
@@ -121,10 +121,10 @@ abstract class Conf<T: Any?> {
         constraints += obtainConfigConstraints(type, property.annotations)
     }
 
-    protected fun KProperty<*>.obtainConfigMetadata() = findAnnotation<IsConfig>().noNull { "${IsConfig::class} annotation required for $this" }
+    protected fun KProperty<*>.obtainConfigMetadata() = findAnnotation<IsConfig>() ?: fail { "${IsConfig::class} annotation required for $this" }
 
     protected fun validateValue(v: T) {
-        constraints.forEach { it.validate(v).ifError { throwIf(true) { "Value $v doesn't conform to: $it" } } }
+        constraints.forEach { it.validate(v).ifError { failIf(true) { "Value $v doesn't conform to: $it" } } }
     }
 
     protected fun KProperty<*>.makeAccessible() = apply {
@@ -150,7 +150,7 @@ class ConfR<T: () -> Unit>(private val action: T): Conf<T>() {
         val group = info.computeConfigGroup(ref)
 
         val isFinal = property !is KMutableProperty
-        throwIf(!isFinal) { "Property must be immutable" }
+        failIf(!isFinal) { "Property must be immutable" }
 
         fun String.orNull() = takeIf { it.isNotBlank() }
         val name = infoExt?.name?.orNull() ?:  info?.name?.orNull() ?: property.name
@@ -173,7 +173,7 @@ class ConfL<T: Any?>(val type: Class<T>): Conf<T>() {
         addAnnotationConstraints(type, property)
 
         val isFinal = property !is KMutableProperty
-        throwIf(!isFinal) { "Property must be immutable" }
+        failIf(!isFinal) { "Property must be immutable" }
 
         val list = Config.VarList<T>(type, Config.VarList.Elements.NOT_NULL)
         val c = Config.ListConfig(property.name, info, list, group, constraints)
@@ -195,7 +195,7 @@ class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
         addAnnotationConstraints(type, property)
 
         val isFinal = property !is KMutableProperty
-        throwIf(isFinal xor (info.editable===EditMode.NONE)) { "Property mutability does not correspond to specified editability=${info.editable}" }
+        failIf(isFinal xor (info.editable===EditMode.NONE)) { "Property mutability does not correspond to specified editability=${info.editable}" }
 
         val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
         obtainConfigValueStore(ref).initialize(c)
@@ -228,7 +228,7 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyPrope
         addAnnotationConstraints(type, property)
 
         val isFinal = property !is KMutableProperty
-        throwIf(!isFinal) { "Property must be immutable" }
+        failIf(!isFinal) { "Property must be immutable" }
 
         val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
         obtainConfigValueStore(ref).initialize(c)
@@ -259,8 +259,8 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyP
         addAnnotationConstraints(type, property)
 
         val isFinal = property !is KMutableProperty
-        throwIf(!isFinal) { "Property must be immutable" }
-        throwIf(info.editable!==EditMode.NONE) { "Property mutability requires usage of ${EditMode.NONE}" }
+        failIf(!isFinal) { "Property must be immutable" }
+        failIf(info.editable!==EditMode.NONE) { "Property mutability requires usage of ${EditMode.NONE}" }
 
         val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
         validateValue(c.value)

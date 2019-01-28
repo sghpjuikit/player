@@ -23,7 +23,7 @@ import sp.it.pl.util.conf.ValueConfig;
 import sp.it.pl.util.text.Password;
 import sp.it.pl.util.validation.Constraint.PasswordNonEmpty;
 import sp.it.pl.util.validation.Constraint.StringNonEmpty;
-import static sp.it.pl.util.dev.Util.logger;
+import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 
 // TODO: make thread-safe, remove static, implement Service

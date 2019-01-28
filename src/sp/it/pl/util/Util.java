@@ -23,7 +23,7 @@ import static java.lang.Math.random;
 import static java.lang.Math.sqrt;
 import static java.util.stream.Collectors.toCollection;
 import static sp.it.pl.util.Util.StringDirection.FROM_START;
-import static sp.it.pl.util.dev.Util.throwIf;
+import static sp.it.pl.util.dev.FailKt.failIf;
 
 /**
  * Provides general purpose utility methods.
@@ -547,7 +547,8 @@ public interface Util {
 	 * @apiNote this method has side effects
 	 */
 	private static <T> T randPopOf(List<T> list) {
-		throwIf(list.isEmpty());
+		failIf(list.isEmpty());
+
 		int i = (int) Math.floor(random()*list.size());
 		T t = list.get(i);
 		list.remove(t);
@@ -561,7 +562,7 @@ public interface Util {
 	 * @throws java.lang.RuntimeException if list does not have enough elements
 	 */
 	private static <T> ArrayList<T> randN(int amount, List<T> source) {
-		throwIf(amount>=source.size());
+		failIf(amount>=source.size());
 
 		ArrayList<T> all = new ArrayList<>(source); // we need a copy
 		ArrayList<T> l = new ArrayList<>();

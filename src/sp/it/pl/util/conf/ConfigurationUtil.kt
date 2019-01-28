@@ -1,6 +1,6 @@
 package sp.it.pl.util.conf
 
-import sp.it.pl.util.dev.throwIf
+import sp.it.pl.util.dev.failIf
 import sp.it.pl.util.type.Util.unPrimitivize
 import sp.it.pl.util.type.isSuperclassOf
 import sp.it.pl.util.validation.Constraint
@@ -16,7 +16,7 @@ fun <T> Config<T>.isEditableByUserRightNow() = isEditable.isByUser && constraint
 fun computeConfigGroup(declaringRef: Any): String {
     val groupDiscriminant = (declaringRef as? MultiConfigurable)
             ?.configurableDiscriminant
-            ?.apply { throwIf(isBlank()) { "Configurable discriminant is empty" } }
+            ?.apply { failIf(isBlank()) { "Configurable discriminant is empty" } }
             ?: ""
 
     return if (groupDiscriminant.isEmpty()) {
@@ -33,7 +33,7 @@ fun IsConfig?.computeConfigGroup(declaringRef: Any): String {
 
     val groupDiscriminant = (declaringRef as? MultiConfigurable)
             ?.configurableDiscriminant
-            ?.apply { throwIf(isBlank()) { "Configurable discriminant is empty" } }
+            ?.apply { failIf(isBlank()) { "Configurable discriminant is empty" } }
             ?: ""
 
     return if (groupDiscriminant.isEmpty()) {

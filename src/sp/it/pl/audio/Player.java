@@ -55,8 +55,8 @@ import static sp.it.pl.util.async.AsyncKt.threadFactory;
 import static sp.it.pl.util.async.executor.EventReducer.toLast;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.async.future.Fut.fut;
-import static sp.it.pl.util.dev.Util.noNull;
-import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
+import static sp.it.pl.util.dev.FailKt.noNull;
+import static sp.it.pl.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.pl.util.functional.Functors.Ƒ.f;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.UtilKt.runnable;
@@ -141,7 +141,7 @@ public class Player {
 		}
 
 		private void set(boolean change, Metadata new_metadata) {
-			throwIfNotFxThread();
+			failIfNotFxThread();
 
 			Metadata ov = val;
 			Metadata nv = new_metadata;

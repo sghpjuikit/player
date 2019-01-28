@@ -22,7 +22,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.threadFactory;
-import static sp.it.pl.util.dev.Util.logger;
+import static sp.it.pl.util.dev.DebugKt.logger;
 
 // TODO: use interface, leverage recursive directory watch on Windows
 // TODO: provide documentation

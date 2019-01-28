@@ -22,7 +22,7 @@ import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.graphics.IconExtractor;
 import sp.it.pl.util.graphics.image.Image2PassLoader;
 import sp.it.pl.util.graphics.image.ImageSize;
-import static sp.it.pl.util.dev.Util.throwIfFxThread;
+import static sp.it.pl.util.dev.FailKt.failIfFxThread;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.FileType.FILE;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
@@ -161,7 +161,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	public Try<LoadResult,Void> loadCover(boolean full, ImageSize size) {
-		throwIfFxThread();
+		failIfFxThread();
 		if (disposed) return Try.error();
 
 		boolean wasCoverFile_loaded = coverFile_loaded;

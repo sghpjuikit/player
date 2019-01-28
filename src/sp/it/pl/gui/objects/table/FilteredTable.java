@@ -53,7 +53,7 @@ import static sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSele
 import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.zeroPad;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.filter;
 import static sp.it.pl.util.functional.Util.stream;

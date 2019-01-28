@@ -24,13 +24,13 @@ annotation class Idempotent
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
 annotation class Experimental
 
-/** Denotes method or class that is thread-safe. */
+/** Denotes method or class that is thread-safe, i.e, can be called from any thread. */
 @MustBeDocumented
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.TYPE, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
 annotation class ThreadSafe
 
-/** Denotes whether invocation of the method is blocking. */
+/** Denotes whether invocation of the method is blocking. Usually useful for ui frameworks. */
 @MustBeDocumented
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)

@@ -28,7 +28,7 @@ import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.conf.ConfigurationUtilKt.computeConfigGroup;
 import static sp.it.pl.util.conf.ConfigurationUtilKt.obtainConfigGroup;
-import static sp.it.pl.util.dev.Util.logger;
+import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.setRO;
 import static sp.it.pl.util.functional.Util.stream;

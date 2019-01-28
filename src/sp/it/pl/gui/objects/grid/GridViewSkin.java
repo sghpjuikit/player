@@ -46,7 +46,7 @@ import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.getAt;
 import static sp.it.pl.util.Util.isInRangeInc;
-import static sp.it.pl.util.dev.Util.throwIf;
+import static sp.it.pl.util.dev.FailKt.failIf;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.repeat;
 import static sp.it.pl.util.functional.Util.stream;
@@ -474,9 +474,9 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 					visibleCells.forEach(cachedCells::addLast);
 					visibleCells.clear();
 				} else {
-					throwIf(indexStart>indexEnd);
-					throwIf(itemsAllCount<=indexStart);
-					throwIf(itemsAllCount<=indexEnd);
+					failIf(indexStart>indexEnd);
+					failIf(itemsAllCount<=indexStart);
+					failIf(itemsAllCount<=indexEnd);
 
 					// If the cell count decreased, put the removed cells to cache
 					for (int i = visibleCells.size() - 1; i >= itemsVisibleCount; i--) {
@@ -486,11 +486,11 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 						cell.updateSelected(false);
 						cachedCells.addLast(cell);
 					}
-					throwIf(visibleCells.size()>itemsVisibleCount);
+					failIf(visibleCells.size()>itemsVisibleCount);
 
 					// If the cell count increased, populate cells with new ones
 					repeat(itemsVisibleCount - visibleCells.size(), () -> visibleCells.add(cachedCells.isEmpty() ? createCell() : cachedCells.removeLast()));
-					throwIf(visibleCells.size()!=itemsVisibleCount);
+					failIf(visibleCells.size()!=itemsVisibleCount);
 				}
 			}
 

@@ -17,7 +17,7 @@ import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import static sp.it.pl.audio.playback.VolumeProperty.linToLog;
 import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.dev.Util.logger;
+import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.reactive.Util.maintain;
 
 public class JavaFxPlayer implements GeneralPlayer.Play {

@@ -25,10 +25,10 @@ import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.sleep;
-import static sp.it.pl.util.dev.Util.noNull;
-import static sp.it.pl.util.dev.Util.throwIf;
-import static sp.it.pl.util.dev.Util.throwIfFxThread;
-import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
+import static sp.it.pl.util.dev.FailKt.failIf;
+import static sp.it.pl.util.dev.FailKt.failIfFxThread;
+import static sp.it.pl.util.dev.FailKt.failIfNotFxThread;
+import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static sp.it.pl.util.reactive.Util.doIfImageLoaded;
 import static sp.it.pl.util.reactive.Util.sync1IfImageLoaded;
@@ -217,7 +217,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	 * Must be called on FX thread.
 	 */
 	private void setCoverNow(Item item) {
-		throwIfNotFxThread();
+		failIfNotFxThread();
 
 		if (isInvalidItem(item) || isInvalidVisibility()) return;
 
@@ -225,7 +225,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 			setCoverPost(item, item.cover_file, item.cover, null);
 		} else {
 			ImageSize size = thumb.calculateImageLoadSize();
-			throwIf(size.width<0 || size.height<0);
+			failIf(size.width<0 || size.height<0);
 
 			// load thumbnail
 			if (loader.executorThumbs!=null)
@@ -285,7 +285,8 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	// TODO: remove, this should not be necessary
 	// Sometimes cells are invisible (or not properly laid out?), so delay size calculation and block
 	private ImageSize computeImageSize(Item item) {
-		throwIfFxThread();
+		failIfFxThread();
+
 		return Stream.generate(() -> {
 					ImageSize is = runFX(() -> thumb.calculateImageLoadSize()).getDone().or(() -> new ImageSize(-1,-1));
 					boolean isReady = is.width>0 || is.height>0;
@@ -300,7 +301,8 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	}
 
 	private void setCoverLater(Item item) {
-		throwIfNotFxThread();
+		failIfNotFxThread();
+
 		thumb.loadImage((File) null); // prevent displaying old content before cover loads
 		setCoverLater.push(item);
 	}

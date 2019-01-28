@@ -45,8 +45,8 @@ import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.dev.Blocks
+import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.dev.stackTraceAsString
-import sp.it.pl.util.dev.throwIfFxThread
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
@@ -359,7 +359,7 @@ class AppActions {
      */
     @Blocks
     fun printAllImageFileMetadata(file: File) {
-        throwIfFxThread()
+        failIfFxThread()
 
         val title = "Metadata of "+file.path
         val text = try {
@@ -381,10 +381,10 @@ class AppActions {
 
     @Blocks
     fun printAllAudioItemMetadata(item: Item) {
-        throwIfFxThread()
+        failIfFxThread()
 
         if (item.isFileBased()) {
-            printAllAudioFileMetadata(item.getFile())
+            printAllAudioFileMetadata(item.getFile()!!)
         } else {
             val text = "Metadata of ${item.uri}\n<only supported for files>"
             runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
@@ -396,16 +396,16 @@ class AppActions {
      * such cases is undefined.
      */
     @Blocks
-    fun printAllAudioFileMetadata(file: File?) {
-        throwIfFxThread()
+    fun printAllAudioFileMetadata(file: File) {
+        failIfFxThread()
 
-        val title = "Metadata of "+file!!.path
+        val title = "Metadata of ${file.path}"
         val content = file.readAudioFile()
                 .map { af ->
-                    "\nHeader:"+"\n"+
-                            af.audioHeader.toString().split("\n").joinToString("\n\t")+
-                            "\nTag:"+
-                            if (af.tag==null) " <none>" else af.tag.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" }
+                    "\nHeader:\n"+
+                    af.audioHeader.toString().split("\n").joinToString("\n\t")+
+                    "\nTag:"+
+                    if (af.tag==null) " <none>" else af.tag.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" }
                 }
                 .getOrSupply { e -> "\n"+e.stackTraceAsString() }
         val text = title+content

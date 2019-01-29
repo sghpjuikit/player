@@ -1,6 +1,6 @@
 package sp.it.pl.util
 
-import sp.it.pl.util.file.childOf
+import sp.it.pl.util.file.div
 import java.io.File
 
 interface Locatable {
@@ -10,13 +10,9 @@ interface Locatable {
     val userLocation: File
 
     @JvmDefault
-    fun getResource(path: String): File {
-        return location.childOf(path)
-    }
+    fun getResource(path: String): File = location/path
 
     @JvmDefault
-    fun getUserResource(path: String): File {
-        return userLocation.childOf(path)
-    }
+    fun getUserResource(path: String): File = userLocation/path
 
 }

@@ -5,13 +5,11 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import javafx.util.Duration;
-import org.jaudiotagger.tag.images.Artwork;
 import sp.it.pl.util.text.StringSplitParser;
 import sp.it.pl.util.text.StringSplitParser.Split;
 import sp.it.pl.util.text.StringSplitParser.SplitData;
@@ -30,20 +28,6 @@ import static sp.it.pl.util.dev.FailKt.failIf;
  */
 @SuppressWarnings("unused")
 public interface Util {
-
-	/** @return true iff objects are equal or both null, same as {@code (a==b) || (a!=null && a.equals(b))} */
-	static boolean nullEqual(Object a, Object b) {
-		return (a==b) || (a!=null && a.equals(b));
-	}
-
-	/**
-	 * Artwork's equals() method does not return true properly. Use this method instead.
-	 *
-	 * @return true iff artwork are equal
-	 */
-	static boolean equals(Artwork a1, Artwork a2) {
-		return (a1==null && a2==null) || (a1!=null && a2!=null && Arrays.equals(a1.getBinaryData(), a2.getBinaryData()));
-	}
 
 	/**
 	 * Prints out the value of Duration - string representation of the duration
@@ -291,7 +275,7 @@ public interface Util {
 		Map<String,String> splits = splitter.applyM(t);
 		List<String> keys = joiner.parse_keys;
 		List<String> seps = joiner.key_separators;
-		StringBuilder o = new StringBuilder("");
+		StringBuilder o = new StringBuilder();
 		for (int i = 0; i<keys.size() - 1; i++) {
 			if (!splits.containsKey(keys.get(i))) return null;
 			o.append(splits.get(keys.get(i)));
@@ -544,9 +528,9 @@ public interface Util {
 	 *
 	 * @return random element from the list.
 	 * @throws java.lang.RuntimeException if list empty
-	 * @apiNote this method has side effects
+	 * @apiNote this method has side effects, i.e., mutates the list
 	 */
-	private static <T> T randPopOf(List<T> list) {
+	static <T> T randPopOf(List<T> list) {
 		failIf(list.isEmpty());
 
 		int i = (int) Math.floor(random()*list.size());
@@ -561,7 +545,7 @@ public interface Util {
 	 * @return specified number of random elements from the list
 	 * @throws java.lang.RuntimeException if list does not have enough elements
 	 */
-	private static <T> ArrayList<T> randN(int amount, List<T> source) {
+	static <T> ArrayList<T> randN(int amount, List<T> source) {
 		failIf(amount>=source.size());
 
 		ArrayList<T> all = new ArrayList<>(source); // we need a copy

@@ -8,7 +8,7 @@
 ## Preparations
 
 - Clone the repository
-- To enable audio playback, VLC must be installed on your system or in the working dir/vlc directory. Obtain latest [here](https://www.videolan.org/vlc/)
+- To enable audio playback, VLC must be installed on your system or in the `app/vlc` directory. Obtain latest [here](https://www.videolan.org/vlc/)
 - To use a jdk other than your system default, create a `gradle.properties` file at project root with the following content: `org.gradle.java.home=/path/to/jdk`
 
 #### Intellij IDEA
@@ -97,7 +97,7 @@ see [javafx css reference guide](http://docs.oracle.com/javafx/2/api/javafx/scen
 Skins can depend on each other.
 
 The application automatically discovers the skins when it starts and monitors them for changes. 
-The skins are located in separate folders in [working dir/skins](/working%20dir/skins), 
+The skins are located in separate folders in [app/skins](/working%20dir/skins), 
 which also contains further instructions on how to create your own skin.
 
 Customize the appearance of the application by creating a new skin depending on the default skin and modifying what you want. 

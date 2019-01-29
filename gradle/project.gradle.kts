@@ -1,22 +1,9 @@
+
 import de.undercouch.gradle.tasks.download.Download
-import de.undercouch.gradle.tasks.download.DownloadExtension
-import de.undercouch.gradle.tasks.download.DownloadTaskPlugin
-import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.JavaExec
-import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.extra
-import org.gradle.kotlin.dsl.kotlin
-import org.gradle.kotlin.dsl.support.zipTo
-import org.jetbrains.kotlin.backend.common.onlyIf
-import org.jetbrains.kotlin.config.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.io.FileNotFoundException
 import java.io.IOException
-import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.zip.ZipInputStream
 import kotlin.text.Charsets.UTF_8
 
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
@@ -28,9 +15,9 @@ plugins {
     id("de.undercouch.download") version "3.4.3"
 }
 
-/** working directory of the application */
-val dirWorking = file("working dir")
-val dirJdk = dirWorking/"java"
+/** Working directory of the application */
+val dirApp = file("app")
+val dirJdk = dirApp/"java"
 val kotlinVersion: String by extra {
     buildscript.configurations["classpath"]
             .resolvedConfiguration.firstLevelModuleDependencies
@@ -160,9 +147,9 @@ tasks {
 
     val copyLibs by creating(Sync::class) {
         group = "build"
-        description = "Copies all libraries into the working dir"
+        description = "Copies all libraries into the app dir"
         from(configurations.compileClasspath)
-        into(dirWorking/"lib")
+        into(dirApp/"lib")
     }
 
     val linkJdk by creating {
@@ -190,7 +177,7 @@ tasks {
     }
 
     val kotlinc by creating(Download::class) {
-        val dirKotlinc = dirWorking/"kotlinc"
+        val dirKotlinc = dirApp/"kotlinc"
         val fileKotlinVersion = dirKotlinc/"build.txt"
         val nameKotlinc = "kotlin-compiler-$kotlinVersion.zip"
         val fileKotlinc = dirKotlinc/"bin"/"kotlinc"
@@ -212,7 +199,7 @@ tasks {
         doLast {
             copy {
                 from(zipTree(zipKotlinc))
-                into(dirWorking)
+                into(dirApp)
             }
             fileKotlinc.setExecutable(true).orFailIO { "Failed to file=$fileKotlinc executable" }
             zipKotlinc.delete().orFailIO { "Failed to delete file=$zipKotlinc" } // clean up downloaded file
@@ -223,7 +210,7 @@ tasks {
     val jar by getting(Jar::class) {
         dependsOn(copyLibs, kotlinc)
         group = main
-        destinationDir = dirWorking
+        destinationDir = dirApp
         archiveName = "PlayerFX.jar"
     }
 
@@ -232,16 +219,16 @@ tasks {
         description = "Cleans up temporary files"
         delete(
                 buildDir,
-                dirWorking/"lib",
-                dirWorking/"user"/"tmp",
-                dirWorking.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList()
+                dirApp/"lib",
+                dirApp/"user"/"tmp",
+                dirApp.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList()
         )
     }
 
     "run"(JavaExec::class) {
         dependsOn(jar)  // the widgets need the jar on the classpath
         group = main
-        workingDir = dirWorking
+        workingDir = dirApp
     }
 
     "build" {

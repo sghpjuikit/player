@@ -24,7 +24,7 @@ import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
-import sp.it.pl.util.functional.seqRec
+import sp.it.pl.util.functional.recurse
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.expandToRootAndSelect
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
@@ -125,7 +125,7 @@ class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeat
     private fun restoreAppSettingsSelection(): TreeItem<Name>? {
         if (!showsAppSettings) return null
         val selectedGroupPath = appConfigurable.rawGetAll()[configSelectionName]
-        return groups.root.seqRec { it.children }.find { it.value.pathUp==selectedGroupPath; }
+        return groups.root.recurse { it.children }.find { it.value.pathUp==selectedGroupPath; }
     }
 
 }

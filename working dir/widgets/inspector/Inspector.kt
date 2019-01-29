@@ -33,6 +33,7 @@ import sp.it.pl.util.file.isAnyChildOf
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.getElementType
 import sp.it.pl.util.functional.net
+import sp.it.pl.util.functional.traverse
 import sp.it.pl.util.graphics.drag.DragUtil
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
 import sp.it.pl.util.graphics.expandToRootAndSelect
@@ -177,8 +178,6 @@ class Inspector(widget: Widget<*>): SimpleController(widget), FileExplorerFeatur
     override fun focus() = tree.requestFocus()
 
     companion object {
-
-        private fun <T: Any> T.traverse(next: (T) -> T?) = generateSequence(this, next)
 
         private fun Node.traverseToFirst(test: (Node) -> Boolean) = traverse { it.parent }.find(test)
 

@@ -231,10 +231,13 @@ fun <T> supplyFirst(vararg suppliers: () -> T?): T? = seqOf(*suppliers).map { it
 /** @return a sequence of the specified values */
 fun <T> seqOf(vararg elements: T) = sequenceOf(*elements)
 
-/** @return lazy recursive sequence in depth-first order */
-fun <E> E.seqRec(children: (E) -> Iterable<E>): Sequence<E> = sequence {
-    yield(this@seqRec)
-    children(this@seqRec).forEach { it.seqRec(children).forEach { yield(it) } }
+/** @return lazy sequence yielded iteratively starting with this as first element until null element is reached */
+fun <T: Any> T.traverse(next: (T) -> T?) = generateSequence(this, next)
+
+/** @return lazy sequence yielded recursively in depth-first order starting with this as first element */
+fun <T> T.recurse(children: (T) -> Iterable<T>): Sequence<T> = sequence {
+    yield(this@recurse)
+    children(this@recurse).forEach { it.recurse(children).forEach { yield(it) } }
 }
 
 /** @return an array containing all elements */

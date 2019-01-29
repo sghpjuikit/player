@@ -133,7 +133,7 @@ open class Anim: Transition {
     }
 
     /**
-     * Plays this animation backward from beginning if stopped else from its current position.
+     * Plays this animation backward from end if stopped else from its current position.
      *
      * Useful for animations that are used to both 'open' and 'close', i.e.,
      * are used to play with rate 1 and rate -1 to reverse-play their effect.

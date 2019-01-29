@@ -112,7 +112,7 @@ fun main(args: Array<String>) {
     // It is our principle to leave no trace of ever running on the system
     // User can also better see what the application is doing
     val tmp = File("").absoluteFile/"user"/"tmp"
-    if (isValidatedDirectory(tmp)) fail { "Invalid tmp directory" }
+    if (!isValidatedDirectory(tmp)) fail { "Invalid tmp directory" }
     System.setProperty("java.io.tmpdir", tmp.absolutePath)
     System.setProperty("user.home", tmp.absolutePath)
 

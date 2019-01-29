@@ -84,6 +84,7 @@ import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
+import sp.it.pl.util.file.div
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.mimetype.MimeTypes
 import sp.it.pl.util.functional.Try
@@ -110,8 +111,8 @@ fun main(args: Array<String>) {
     // Relocate temp & home under working directory
     // It is our principle to leave no trace of ever running on the system
     // User can also better see what the application is doing
-    val tmp = File("").absoluteFile.childOf("user", "tmp")
-    isValidatedDirectory(tmp)
+    val tmp = File("").absoluteFile/"user"/"tmp"
+    if (isValidatedDirectory(tmp)) fail { "Invalid tmp directory" }
     System.setProperty("java.io.tmpdir", tmp.absolutePath)
     System.setProperty("user.home", tmp.absolutePath)
 

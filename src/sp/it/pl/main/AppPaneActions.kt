@@ -3,6 +3,7 @@ package sp.it.pl.main
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.Label
+import javafx.scene.layout.Pane
 import javafx.stage.FileChooser.ExtensionFilter
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
@@ -10,6 +11,7 @@ import sp.it.pl.audio.SimpleItem
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.isPlaylistFile
 import sp.it.pl.audio.playlist.readPlaylist
+import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.gui.nodeinfo.ConvertTaskInfo
 import sp.it.pl.gui.objects.icon.Icon
@@ -31,6 +33,7 @@ import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
+import sp.it.pl.util.access.v
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.future.Fut.Companion.fut
@@ -38,6 +41,7 @@ import sp.it.pl.util.async.runLater
 import sp.it.pl.util.conf.ConfigurableBase
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
+import sp.it.pl.util.conf.readOnlyIf
 import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
@@ -51,11 +55,15 @@ import sp.it.pl.util.file.Util.getFilesAudio
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.functional.Try
+import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.math.millis
+import sp.it.pl.util.math.seconds
+import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.chooseFile
 import sp.it.pl.util.system.chooseFiles
@@ -200,6 +208,17 @@ import kotlin.streams.toList
                     IconFA.REFRESH,
                     { Player.refreshItems(it) }
             ),
+            FastColAction<Item>(
+                    "Add to library",
+                    "Add songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",
+                    IconMD.DATABASE_PLUS,
+                    { }
+            ).preventClosing {
+                op -> ComplexActionData(
+                    { items -> fut(items).then { it.mapNotNull { it.getFile() } } },
+                    addToLibraryConsumer(op).gui
+                )
+            },
             FastColAction(
                     "Remove from library",
                     "Removes all specified items from library. After this library will contain none of these items.",
@@ -212,7 +231,9 @@ import kotlin.streams.toList
                     IconMA.COLLECTIONS,
                     { items -> APP.widgetManager.widgets
                                 .find(Widgets.SONG_TABLE, NEW, false)
-                                .ifPresent { it.controller.ownedInputs.getInput<Collection<Item>>("To display").setValue(items) }
+                                .ifPresent {
+                                    it.controller.ownedInputs.getInput<List<Metadata>>("To display").setValue(items.map { it.toMeta() })
+                                }
                     }
             ),
             FastColAction(
@@ -221,7 +242,9 @@ import kotlin.streams.toList
                     IconMA.COLLECTIONS,
                     { items -> APP.widgetManager.widgets
                             .find(Widgets.SONG_GROUP_TABLE, NEW, false)
-                                .ifPresent { it.controller.ownedInputs.getInput<Collection<Item>>("To display").setValue(items) }
+                                .ifPresent {
+                                    it.controller.ownedInputs.getInput<List<Metadata>>("To display").setValue(items.map { it.toMeta() })
+                                }
                     }
             )
     )
@@ -281,7 +304,7 @@ import kotlin.streams.toList
             ),
             SlowColAction<File>(
                     "Add to library",
-                    "Add new songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",
+                    "Add songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",
                     IconMD.DATABASE_PLUS,
                     { }
             ).preventClosing { addToLibraryConsumer(it) },
@@ -348,8 +371,9 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
         { files -> fut(files).then { getFilesAudio(it, AudioFileFormat.Use.APP, Integer.MAX_VALUE).toList() } },
         { files ->
 
+            val executed = v(false)
             val conf = object: ConfigurableBase<Boolean>() {
-                @IsConfig(name = "Make files writable if read-only", group ="1") val makeWritable by cv(true)
+                @IsConfig(name = "Make files writable if read-only", group ="1") val makeWritable by cv(true).readOnlyIf(executed)
                 @IsConfig(name = "Edit in ${Widgets.SONG_TAGGER}", group ="2") val editInTagger by cv(false)
                 @IsConfig(name = "Edit only added files", group ="3") val editOnlyAdded by cv(false).readOnlyUnless(editInTagger)
                 @IsConfig(name = "Enqueue in playlist", group ="4") val enqueue by cv(false)
@@ -366,10 +390,12 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
             }
 
             hBox(50, CENTER) {
-                val contant = this
+                val content = this
                 lay += vBox(50, CENTER) {
                     lay += ConfigPane(conf)
                     lay += vBox(10, CENTER_LEFT) {
+                        opacity = 0.0
+
                         lay += info.state!!
                         lay += hBox(10, CENTER_LEFT) {
                             lay += info.message!!
@@ -377,35 +403,47 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                         }
                         lay += info.skipped!!
                     }
-                    lay += Icon(IconFA.CHECK, 25.0)
-                            .onClick { e ->
-                                (e.source as Icon).isDisable = true
-                                (e.source as Icon).parent.childrenUnmodifiable[0].isDisable = true
-                                fut(files())
-                                        .use { if (conf.makeWritable.value) it.forEach { it.setWritable(true) } }
-                                        .then { task(it.map { SimpleItem(it) }) }
-                                        .ui { result ->
-                                            if (conf.editInTagger.value) {
-                                                val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER)?.create()
-                                                val items = if (conf.editOnlyAdded.value) result.converted else result.all
-                                                if (tagger!=null) {
-                                                    anim(500.millis) {
-                                                        contant.children.getOrNull(0)?.opacity = it*it
-                                                        contant.children.getOrNull(1)?.opacity = it*it
-                                                    }.playCloseDoOpen {
-                                                        contant.lay += tagger.load()
-                                                        (tagger.controller as SongReader).read(items)
-                                                    }
+                    lay += Icon(IconFA.CHECK, 25.0).apply {
+                        disableProperty() syncFrom executed
+                        onClick { _ ->
+                            executed.value = true
+
+                            anim(500.millis) {
+                                content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(0)?.opacity = (1-it)*(1-it)
+                                content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(1)?.opacity = it*it
+                                content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(2)?.opacity = (1-it)*(1-it)
+                            }.play()
+
+                            fut(files())
+                                    .use { if (conf.makeWritable.value) it.forEach { it.setWritable(true) } }
+                                    .then { task(it.map { SimpleItem(it) }) }
+                                    .thenWait(3.seconds)
+                                    .ui { result ->
+                                        if (conf.editInTagger.value) {
+                                            val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER)?.create()
+                                            val items = if (conf.editOnlyAdded.value) result.converted else result.all
+                                            if (tagger!=null) {
+                                                anim(500.millis) {
+                                                    content.children[0].opacity = it*it
+                                                    content.children[1].opacity = it*it
+                                                }.apply {
+                                                    playAgainIfFinished = false
+                                                }.playCloseDoOpen {
+                                                    content.children[1].asIf<Pane>()!!.lay += tagger.load()
+                                                    (tagger.controller as SongReader).read(items)
                                                 }
                                             }
-                                            if (conf.enqueue.value && !result.all.isEmpty()) {
-                                                APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
-                                            }
                                         }
-                                        .showProgress(actionPane.actionProgress)
-                            }
-                            .withText("Execute")
+                                        if (conf.enqueue.value && !result.all.isEmpty()) {
+                                            APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
+                                        }
+                                    }
+                                    .showProgress(actionPane.actionProgress)
+                        }
+                    }.withText("Execute")
+
                 }
+                lay += stackPane()
             }
         }
 )

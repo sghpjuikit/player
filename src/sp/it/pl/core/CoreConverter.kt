@@ -7,7 +7,7 @@ import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.util.Duration
 import sp.it.pl.gui.SkinCss
-import sp.it.pl.gui.itemnode.StringSplitParser
+import sp.it.pl.util.text.StringSplitParser
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.util.functional.Functors
 import sp.it.pl.util.functional.Try

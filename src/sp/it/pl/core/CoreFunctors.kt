@@ -6,7 +6,7 @@ import sp.it.pl.audio.Item
 import sp.it.pl.audio.playlist.PlaylistItem
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
-import sp.it.pl.gui.itemnode.StringSplitParser
+import sp.it.pl.util.text.StringSplitParser
 import sp.it.pl.util.Util.StringDirection
 import sp.it.pl.util.Util.StringDirection.FROM_START
 import sp.it.pl.util.Util.addText

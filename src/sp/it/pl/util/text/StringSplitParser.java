@@ -1,4 +1,4 @@
-package sp.it.pl.gui.itemnode;
+package sp.it.pl.util.text;
 
 import java.util.ArrayList;
 import java.util.HashMap;

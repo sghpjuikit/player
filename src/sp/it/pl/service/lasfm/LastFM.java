@@ -50,7 +50,7 @@ public class LastFM {
 				if (isLoginSet()) {
 					session = Authenticator.getMobileSession(
 							acquireUserName(),
-							acquirePassword().value,
+							acquirePassword().getValue(),
 							apiKey, secret);
 					Result lastResult = Caller.getInstance().getLastResult();
 					if (lastResult.getStatus()!=Result.Status.FAILED) {
@@ -130,8 +130,8 @@ public class LastFM {
 	}
 
 	public static boolean savePassword(Password pass) {
-		preferences.put("lastfm_password", pass.value);
-		return preferences.get("lastfm_password", "").equals(pass.value);
+		preferences.put("lastfm_password", pass.getValue());
+		return preferences.get("lastfm_password", "").equals(pass.getValue());
 	}
 
 	public static String acquireUserName() {

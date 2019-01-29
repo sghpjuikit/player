@@ -364,7 +364,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         @Override
         public void refreshItem() {
-            graphics.setText(config.getValue().value);
+            graphics.setText(config.getValue().getValue());
         }
 
     }

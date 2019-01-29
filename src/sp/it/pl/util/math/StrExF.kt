@@ -29,6 +29,7 @@ class StrExF(s: String): Ƒ1<Double, Double> {
     override fun toString() = expression
 
     companion object {
+
         @Dependency("toString")
         fun fromString(s: String): Try<StrExF, Exception> {
             return try {
@@ -37,6 +38,7 @@ class StrExF(s: String): Ƒ1<Double, Double> {
                 Try.error(e)
             }
         }
+
     }
 
 }

@@ -21,6 +21,7 @@ import javafx.scene.control.MenuItem
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.TableView
+import javafx.scene.control.TextArea
 import javafx.scene.control.Tooltip
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeTableView
@@ -52,6 +53,7 @@ import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
+import javafx.scene.text.TextAlignment
 import javafx.stage.Screen
 import javafx.util.Callback
 import org.reactfx.Subscription
@@ -538,6 +540,23 @@ fun Node.screenToLocal(e: MouseEvent) = screenToLocal(e.screenX, e.screenY)!!
 fun Node.sceneToLocal(e: MouseEvent) = sceneToLocal(e.sceneX, e.sceneY)!!
 
 /* ---------- TEXT -------------------------------------------------------------------------------------------------- */
+
+/** Sets alignment of the text of this text area. */
+fun TextArea.setTextAlignment(alignment: TextAlignment) {
+    pseudoClassStateChanged(pseudoclass("align-left"), false)
+    pseudoClassStateChanged(pseudoclass("align-right"), false)
+    pseudoClassStateChanged(pseudoclass("align-center"), false)
+    pseudoClassStateChanged(pseudoclass("align-justify"), false)
+    pseudoClassStateChanged(
+            pseudoclass(when(alignment) {
+                TextAlignment.LEFT -> "align-left"
+                TextAlignment.RIGHT -> "align-right"
+                TextAlignment.CENTER -> "align-center"
+                TextAlignment.JUSTIFY -> "align-justify"
+            }),
+            true
+    )
+}
 
 object EM {
     fun toDouble() = 12.0

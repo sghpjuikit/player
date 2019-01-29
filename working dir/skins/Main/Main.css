@@ -2507,6 +2507,21 @@
     -fx-font-weight: bold;
 }
 
+/************************************ TEXT ************************************/
+
+.text-input:align-left *.text {
+    -fx-text-alignment: left;
+}
+.text-input:align-right *.text {
+    -fx-text-alignment: right;
+}
+.text-input:align-center *.text {
+    -fx-text-alignment: center;
+}
+.text-input:align-justify *.text {
+    -fx-text-alignment: justify;
+}
+
 /************************************ ICONS ***********************************/
 
 /** 

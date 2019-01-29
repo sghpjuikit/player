@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -44,6 +45,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataReader;
@@ -84,6 +86,7 @@ import static javafx.scene.input.KeyCode.CONTROL;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static org.atteo.evo.inflector.English.plural;
@@ -130,6 +133,7 @@ import static sp.it.pl.util.functional.Util.noDups;
 import static sp.it.pl.util.functional.Util.noEx;
 import static sp.it.pl.util.functional.Util.split;
 import static sp.it.pl.util.graphics.UtilKt.createIcon;
+import static sp.it.pl.util.graphics.UtilKt.setTextAlignment;
 
 /**
  * Tagger graphical component.
@@ -202,6 +206,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         progressI = appProgressIndicator();
         progressI.setVisible(false);
         header.setRight(progressI);
+
+        setTextAlignment(LyricsA, TextAlignment.CENTER);
 
         // add specialized mood text field
         grid.add(moodF, 1, 14, 2, 1);

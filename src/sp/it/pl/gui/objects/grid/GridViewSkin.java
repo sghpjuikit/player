@@ -34,7 +34,7 @@ import sp.it.pl.gui.objects.grid.GridView.Search;
 import sp.it.pl.gui.objects.grid.GridView.SelectionOn;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
 import sp.it.pl.util.functional.Functors;
-import sp.it.pl.util.reactive.Util;
+import sp.it.pl.util.reactive.UtilKt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.stream.Collectors.toList;
@@ -42,7 +42,7 @@ import static javafx.application.Platform.runLater;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.getAt;
 import static sp.it.pl.util.Util.isInRangeInc;
@@ -53,7 +53,7 @@ import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.layHeaderTop;
-import static sp.it.pl.util.reactive.Util.onChange;
+import static sp.it.pl.util.reactive.UtilKt.onChange;
 
 public class GridViewSkin<T, F> implements Skin<GridView> {
 
@@ -167,7 +167,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 	// TODO: remove
 	private static <O> void attach(ObservableValue<O> value, Consumer<? super O> action) {
-		Util.attach(value, consumer(action));
+		UtilKt.attach(value, consumer(action));
 	}
 
 	// TODO: improve API

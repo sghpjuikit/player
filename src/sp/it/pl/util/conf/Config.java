@@ -34,7 +34,7 @@ import sp.it.pl.util.validation.Constraint.HasNonNullElements;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.conf.Config.VarList.NULL_SUPPLIER;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.functional.Try.error;

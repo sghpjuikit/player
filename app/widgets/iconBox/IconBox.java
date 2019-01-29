@@ -20,7 +20,7 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.ListConfigurable;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 @Info(
     author = "Martin Polakovic",

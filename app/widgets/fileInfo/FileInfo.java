@@ -76,7 +76,7 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TRACK_INFO;
 import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
@@ -88,7 +88,7 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.hasAudio;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 @Widget.Info(
     author = "Martin Polakovic",

@@ -81,7 +81,7 @@ import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.layHeaderRight;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.UtilKt.typeText;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
  * Playback seeker. A slider-like control that controls playback, by seeking.

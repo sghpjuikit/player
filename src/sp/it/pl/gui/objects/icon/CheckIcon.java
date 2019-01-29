@@ -7,7 +7,7 @@ import javafx.css.PseudoClass;
 import org.reactfx.Subscription;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
  * Very simple alternative CheckBox control.

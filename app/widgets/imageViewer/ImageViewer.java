@@ -53,7 +53,7 @@ import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppProgressKt.showAppProgress;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.executor.EventReducer.toFirstDelayed;
 import static sp.it.pl.util.async.executor.EventReducer.toLast;

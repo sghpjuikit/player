@@ -15,7 +15,7 @@
   <manifest></manifest>
   <icon>app\resources\icons\icon512.ico</icon>
   <classPath>
-    <mainClass>main.App</mainClass>
+    <mainClass>sp.it.pl.main.AppKt</mainClass>
     <cp>lib/*</cp>
   </classPath>
   <jre>

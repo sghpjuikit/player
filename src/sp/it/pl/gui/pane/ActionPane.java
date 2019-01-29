@@ -72,7 +72,7 @@ import static sp.it.pl.gui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
 import static sp.it.pl.main.AppProgressKt.showProgress;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;

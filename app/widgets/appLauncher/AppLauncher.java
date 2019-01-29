@@ -41,7 +41,7 @@ import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.KEY_PRESS;
 import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
 import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_HOVER;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Sort.ASCENDING;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
@@ -56,7 +56,7 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
-import static sp.it.pl.util.reactive.Util.attach1IfNonNull;
+import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.open;
 

@@ -21,7 +21,7 @@ import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.validation.Constraint;
 import static java.lang.reflect.Modifier.isStatic;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.conf.ConfigurationUtilKt.computeConfigGroup;
 import static sp.it.pl.util.conf.ConfigurationUtilKt.obtainConfigGroup;

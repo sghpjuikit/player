@@ -54,7 +54,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.deepEquals;
 import static sp.it.pl.layout.widget.EmptyWidgetKt.getEmptyWidgetFactory;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.file.Util.deleteFile;
 import static sp.it.pl.util.file.Util.writeFile;

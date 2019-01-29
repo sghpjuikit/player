@@ -42,10 +42,10 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.area.Area.STYLECLASS_CONTAINER_AREA_CONTROLS;
 import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 public abstract class ContainerNodeBase<C extends Container<?>> implements ContainerNode {
 

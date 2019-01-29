@@ -12,7 +12,7 @@ import sp.it.pl.util.async.future.ConvertListTask;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import static java.util.stream.Collectors.toList;
 import static sp.it.pl.audio.tagging.ExtKt.readAudioFile;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.dev.FailKt.failIfFxThread;

@@ -32,7 +32,7 @@ import static sp.it.pl.gui.objects.window.Resize.SE;
 import static sp.it.pl.gui.objects.window.Resize.SW;
 import static sp.it.pl.gui.objects.window.Resize.W;
 import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 public class PaneWindowControls extends WindowPane {
 

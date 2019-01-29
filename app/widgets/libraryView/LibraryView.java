@@ -61,7 +61,7 @@ import static sp.it.pl.audio.tagging.MetadataGroup.Field.W_RATING;
 import static sp.it.pl.audio.tagging.MetadataGroup.ungroup;
 import static sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static sp.it.pl.layout.widget.Widget.Group.LIBRARY;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.functional.Util.filter;
@@ -72,7 +72,7 @@ import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.menuItem;
 import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 @Info(
     author = "Martin Polakovic",

@@ -30,7 +30,7 @@ import sp.it.pl.util.access.fieldvalue.ColumnField;
 import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Util.zeroPad;
 import static sp.it.pl.util.graphics.Util.computeFontWidth;
 import static sp.it.pl.util.graphics.Util.selectRows;

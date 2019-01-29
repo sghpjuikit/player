@@ -69,7 +69,7 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.MouseDragKt.initMouseDrag;
 import static sp.it.pl.util.graphics.UtilKt.initClip;
 import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 public class PopOverSkin implements Skin<PopOver> {
 

@@ -28,12 +28,12 @@ import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.access.SequentialValue.next;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 public final class Splitter extends ContainerNodeBase<BiContainer> {
 

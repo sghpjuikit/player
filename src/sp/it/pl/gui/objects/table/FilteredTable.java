@@ -50,7 +50,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static org.reactfx.EventStreams.changesOf;
 import static sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Util.zeroPad;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.dev.FailKt.noNull;
@@ -60,9 +60,9 @@ import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.menuItem;
-import static sp.it.pl.util.reactive.Util.attach;
-import static sp.it.pl.util.reactive.Util.attachSize;
-import static sp.it.pl.util.reactive.Util.syncSize;
+import static sp.it.pl.util.reactive.UtilKt.attach;
+import static sp.it.pl.util.reactive.UtilKt.attachSize;
+import static sp.it.pl.util.reactive.UtilKt.syncSize;
 
 /**
  * Table with a search filter header that supports filtering with provided gui.

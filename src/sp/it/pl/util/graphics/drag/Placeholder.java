@@ -11,7 +11,7 @@ import sp.it.pl.gui.objects.icon.Icon;
 import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.graphics.Util.layHeaderBottom;
 import static sp.it.pl.util.graphics.UtilKt.removeFromParent;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
  * Placeholder pane. Can invoke action and display its icon and name.<br/>

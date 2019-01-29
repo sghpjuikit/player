@@ -21,7 +21,7 @@ import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.image.ImageSize;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.sleep;
@@ -30,8 +30,8 @@ import static sp.it.pl.util.dev.FailKt.failIfFxThread;
 import static sp.it.pl.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
-import static sp.it.pl.util.reactive.Util.doIfImageLoaded;
-import static sp.it.pl.util.reactive.Util.sync1IfImageLoaded;
+import static sp.it.pl.util.reactive.UtilKt.doIfImageLoaded;
+import static sp.it.pl.util.reactive.UtilKt.sync1IfImageLoaded;
 
 /**
  * {@link sp.it.pl.gui.objects.grid.GridCell} implementation for file using {@link sp.it.pl.gui.objects.hierarchy.Item}

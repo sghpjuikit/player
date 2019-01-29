@@ -30,11 +30,11 @@ import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.ALL;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.NONE;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.reactive.Util.maintain;
-import static sp.it.pl.util.reactive.Util.sync1If;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.sync1If;
 
 /**
  * Customized Stage, window of the application.

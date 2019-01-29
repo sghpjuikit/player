@@ -130,7 +130,7 @@ import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.layStack;
 import static sp.it.pl.util.graphics.Util.layVertically;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.type.Util.getEnumConstants;
 
 @SuppressWarnings({"unused","UnnecessaryLocalVariable"})

@@ -37,7 +37,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_IN;
 import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_OUT;
@@ -45,7 +45,7 @@ import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
  * Pane with switchable content.

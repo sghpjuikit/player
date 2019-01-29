@@ -65,7 +65,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.setRO;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.layHeaderBottom;

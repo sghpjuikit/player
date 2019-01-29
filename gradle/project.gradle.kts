@@ -242,7 +242,7 @@ tasks {
 
 application {
     applicationName = "PlayerFX"
-    mainClassName = "sp.it.pl.main.AppUtil"
+    mainClassName = "sp.it.pl.main.AppKt"
     applicationDefaultJvmArgs = listOf(
             "-Dfile.encoding=UTF-8",
             "-ms"+(properties["player.memoryMin"] ?: "100m"),

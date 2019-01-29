@@ -61,7 +61,7 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TITLE;
 import static sp.it.pl.gui.nodeinfo.TableInfo.DEFAULT_TEXT_FACTORY;
 import static sp.it.pl.layout.widget.Widget.Group.LIBRARY;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.animation.Anim.Interpolators.reverse;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.future.Fut.fut;
@@ -71,7 +71,7 @@ import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.menuItem;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
 

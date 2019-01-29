@@ -40,7 +40,7 @@ import static sp.it.pl.audio.playlist.PlaylistItem.Field.NAME;
 import static sp.it.pl.audio.playlist.PlaylistItem.Field.TITLE;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.isPlaylistFile;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.readPlaylist;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.functional.Util.SAME;
@@ -49,7 +49,7 @@ import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.graphics.Util.computeFontWidth;
 import static sp.it.pl.util.graphics.Util.selectRows;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
  * Playlist table GUI component.

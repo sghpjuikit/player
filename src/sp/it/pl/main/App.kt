@@ -1,5 +1,3 @@
-@file:JvmName("AppUtil")
-
 package sp.it.pl.main
 
 import ch.qos.logback.classic.Level

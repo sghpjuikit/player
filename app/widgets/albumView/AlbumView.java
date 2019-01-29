@@ -51,7 +51,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
@@ -65,8 +65,8 @@ import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchor;
-import static sp.it.pl.util.reactive.Util.attach1IfNonNull;
-import static sp.it.pl.util.reactive.Util.sync1If;
+import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
+import static sp.it.pl.util.reactive.UtilKt.sync1If;
 
 /**
  * Logger widget controller.

@@ -65,7 +65,7 @@ import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.pl.main.AppProgressKt.showAppProgress;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Util.capitalizeStrong;
 import static sp.it.pl.util.Util.filenamizeString;
 import static sp.it.pl.util.async.future.Fut.fut;

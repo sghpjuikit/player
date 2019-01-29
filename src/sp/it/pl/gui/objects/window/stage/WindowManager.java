@@ -62,7 +62,7 @@ import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.widget.WidgetManagerKt.orEmpty;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.unused.SimpleConfigurator.simpleConfigurator;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
@@ -78,8 +78,8 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.addEventHandler1Time;
 import static sp.it.pl.util.graphics.UtilKt.getScreenForMouse;
-import static sp.it.pl.util.reactive.Util.maintain;
-import static sp.it.pl.util.reactive.Util.onItemRemoved;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.onItemRemoved;
 
 /**
  * Manages windows.

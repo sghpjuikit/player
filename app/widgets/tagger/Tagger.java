@@ -122,7 +122,7 @@ import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.TAG;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;

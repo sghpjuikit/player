@@ -37,7 +37,7 @@ import static javafx.geometry.Side.BOTTOM;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.functional.Util.SAME;
 import static sp.it.pl.util.functional.Util.by;

@@ -191,7 +191,7 @@ import static javafx.scene.paint.CycleMethod.NO_CYCLE;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.minutes;
 import static javafx.util.Duration.seconds;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.pyth;
 import static sp.it.pl.util.animation.Anim.map01To010;
@@ -214,7 +214,7 @@ import static sp.it.pl.util.graphics.Util.computeFontWidth;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.layStack;
 import static sp.it.pl.util.graphics.Util.setAnchor;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 @SuppressWarnings({"unused","UnnecessaryLocalVariable"})
 @Widget.Info(

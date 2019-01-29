@@ -1,5 +1,3 @@
-@file:JvmName("Util")
-
 package sp.it.pl.util.reactive
 
 import javafx.beans.InvalidationListener

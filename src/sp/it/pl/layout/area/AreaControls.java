@@ -60,12 +60,12 @@ import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.unused.SimpleConfigurator.simpleConfigurator;
 import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.graphics.Util.layScrollVText;
 import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
  * Controls for a widget area.

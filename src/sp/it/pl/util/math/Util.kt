@@ -1,6 +1,3 @@
-@file:JvmName("Util")
-@file:Suppress("unused")
-
 package sp.it.pl.util.math
 
 import javafx.util.Duration

@@ -23,13 +23,13 @@ import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.functional.Util.findFirstEmptyKey;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 

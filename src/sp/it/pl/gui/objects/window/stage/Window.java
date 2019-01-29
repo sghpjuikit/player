@@ -91,7 +91,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.Resize.NONE;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.access.SequentialValue.next;
 import static sp.it.pl.util.access.SequentialValue.previous;
 import static sp.it.pl.util.animation.Anim.animPar;
@@ -106,7 +106,7 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.graphics.UtilKt.initClip;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /** Window for application. */
 public class Window extends WindowBase {

@@ -41,7 +41,7 @@ import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.unused.SimpleConfigurator.simpleConfigurator;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.dev.FailKt.noNull;

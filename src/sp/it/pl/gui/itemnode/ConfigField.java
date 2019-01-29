@@ -90,7 +90,7 @@ import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.layHeaderTop;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
  * Editable and settable graphic control for configuring {@link sp.it.pl.util.conf.Config}.

@@ -45,7 +45,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.dev.DebugKt.logger;
@@ -53,7 +53,7 @@ import static sp.it.pl.util.file.UtilKt.toFileOrNull;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXYByTo;
-import static sp.it.pl.util.reactive.Util.sync1If;
+import static sp.it.pl.util.reactive.UtilKt.sync1If;
 import static sp.it.pl.util.type.Util.getFieldValue;
 
 /**

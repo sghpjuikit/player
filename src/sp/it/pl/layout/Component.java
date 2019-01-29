@@ -18,7 +18,7 @@ import sp.it.pl.util.collections.map.PropertyMap;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.type.Util;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 
 /**
  * Defines wrapper of loadable graphical component.

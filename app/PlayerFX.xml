@@ -3,7 +3,7 @@
   <dontWrapJar>true</dontWrapJar>
   <headerType>gui</headerType>
   <jar>PlayerFX.jar</jar>
-  <outfile>C:\Users\Tricium\Documents\standalone\Player.exe</outfile>
+  <outfile>Player.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir>.</chdir>
@@ -13,7 +13,7 @@
   <stayAlive>false</stayAlive>
   <restartOnCrash>false</restartOnCrash>
   <manifest></manifest>
-  <icon>C:\Users\Tricium\Documents\standalone\icon512.ico</icon>
+  <icon>app\resources\icons\icon512.ico</icon>
   <classPath>
     <mainClass>main.App</mainClass>
     <cp>lib/*</cp>

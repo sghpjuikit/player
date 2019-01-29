@@ -97,6 +97,7 @@ import sp.it.pl.util.type.ClassName
 import sp.it.pl.util.type.InstanceInfo
 import sp.it.pl.util.type.InstanceName
 import sp.it.pl.util.type.ObjectFieldMap
+import sp.it.pl.util.type.Util.getGenericPropertyType
 import sp.it.pl.util.units.FileSize
 import java.io.File
 import java.lang.management.ManagementFactory
@@ -310,7 +311,7 @@ class App: Application(), Configurable<Any> {
         instanceName.add(Component::class.java, { it.exportName })
         instanceName.add(Feature::class.java, { "Feature" })
         instanceName.add(Collection::class.java) {
-            val eType = sp.it.pl.util.type.Util.getGenericPropertyType(it.javaClass)
+            val eType = getGenericPropertyType(it.javaClass)
             val eName = if (eType==null || eType==Any::class.java) "Item" else className[eType]
             it.size.toString()+" "+plural(eName, it.size)
         }

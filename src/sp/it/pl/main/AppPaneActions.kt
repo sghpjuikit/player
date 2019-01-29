@@ -62,7 +62,6 @@ import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.math.millis
-import sp.it.pl.util.math.seconds
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.chooseFile
@@ -74,7 +73,8 @@ import sp.it.pl.util.system.saveFile
 import java.io.File
 import kotlin.streams.toList
 
-@Suppress("RemoveExplicitTypeArguments") fun ActionPane.initActionPane(): ActionPane = also { ap ->
+@Suppress("RemoveExplicitTypeArguments")
+fun ActionPane.initActionPane(): ActionPane = also { ap ->
     ap.register<Any?>(
             FastColAction(
                     "Set as data",
@@ -417,7 +417,6 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                             fut(files())
                                     .use { if (conf.makeWritable.value) it.forEach { it.setWritable(true) } }
                                     .then { task(it.map { SimpleItem(it) }) }
-                                    .thenWait(3.seconds)
                                     .ui { result ->
                                         if (conf.editInTagger.value) {
                                             val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER)?.create()

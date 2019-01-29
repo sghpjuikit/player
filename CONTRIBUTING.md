@@ -8,7 +8,7 @@
 ## Preparations
 
 - Clone the repository
-- To enable audio playback, VLC must be installed on your system or in the `app/vlc` directory. Obtain latest [here](https://www.videolan.org/vlc/)
+- To enable audio playback, 64-bit VLC must be installed on your system or in the `app/vlc` directory. Obtain latest [here](https://www.videolan.org/vlc/)
 - To use a jdk other than your system default, create a `gradle.properties` file at project root with the following content: `org.gradle.java.home=/path/to/jdk`
 
 #### Intellij IDEA

@@ -131,10 +131,11 @@ object CoreMenus: Core {
                     widgetItems<SongWriter> { it.read(selected.items) }
                 }
                 item("Crop items") { PlaylistManager.use { it.retainAll(selected.items) } }
-                item("Duplicate items as group") { PlaylistManager.use { it.duplicateItemsAsGroup(selected.items) } }
-                item("Duplicate items individually") { PlaylistManager.use { it.duplicateItemsByOne(selected.items) } }
+                menu("Duplicate items") {
+                    item("as group") { PlaylistManager.use { it.duplicateItemsAsGroup(selected.items) } }
+                    item("individually") { PlaylistManager.use { it.duplicateItemsByOne(selected.items) } }
+                }
                 item("Explore items's directory") { APP.actions.browseMultipleFiles(selected.items.asSequence().mapNotNull { it.getFile() }) }
-                item("Add items to library") { APP.db.addItems(selected.items.map { it.toMeta() }) }
                 menu("Search album cover") {
                     items(APP.instances.getInstances<SearchUriBuilder>(),
                             { "in ${it.name}" },

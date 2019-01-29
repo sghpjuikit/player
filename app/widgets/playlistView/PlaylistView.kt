@@ -116,8 +116,8 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
             table.filterPane.button.icon(if (it) IconFA.FILTER else IconMD.FILTER_OUTLINE)
             table.filterPane.button.onClickDo { playVisible.setCycledValue() }
             table.filterPane.button.tooltip(
-                    if (it) "Disable filter for playback. Causes the playback "+"to ignore the filter."
-                    else "Enable filter for playback. Causes the playback "+"to play only displayed items."
+                    if (it) "Disable filter for playback. Causes the playback to ignore the filter."
+                    else "Enable filter for playback. Causes the playback to play only displayed items."
             )
             table.filterPane.button.isDisable = false // needed
             playlist.setTransformation(

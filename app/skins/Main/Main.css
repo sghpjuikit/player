@@ -1087,18 +1087,6 @@
     -fx-border-insets: 1 0 0 0;
 }
 
-/*******************************************************************************
- * MenuBar
- */
-.menu-bar {
-    -fx-background-color: null;
-    -fx-background-radius: 0;
-    -fx-background-insets: 0;
-    -fx-border-width: 0;
-    -fx-padding: 0.5em;
-    -fx-spacing: 0.166667em; /* 2 */
-}
-
 /******************************************************************************** 
  * Menu
  */
@@ -1132,6 +1120,34 @@
     -fx-background-radius: 2;
     -fx-border-width: 0;
     -fx-padding: 0.5em;
+}
+
+/*******************************************************************************
+ * MenuBar
+ */
+.menu-bar {
+    -fx-background-color: null;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
+    -fx-padding: 0.5em;
+    -fx-spacing: 0.166667em; /* 2 */
+}
+
+.menu-bar > .container > .menu-button,
+.menu-bar > .container > .menu-button:hover,
+.menu-bar > .container > .menu-button:focused,
+.menu-bar > .container > .menu-button:showing {
+    -fx-background-color: null;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+}
+
+/* Hide the down arrow for a menu placed in a menu bar */
+.menu-bar > .container > .menu-button > .arrow-button > .arrow {
+    -fx-padding: 0.167em 0 0.250em 0; /* 2 0 3 0 */
+    -fx-background-color: null;
+    -fx-shape: null;
 }
 
 /*******************************************************************************

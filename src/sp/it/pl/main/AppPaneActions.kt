@@ -14,7 +14,6 @@ import sp.it.pl.audio.playlist.readPlaylist
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.gui.nodeinfo.ConvertTaskInfo
-import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.pane.ActionPane
 import sp.it.pl.gui.pane.ComplexActionData
 import sp.it.pl.gui.pane.ConfigPane
@@ -403,44 +402,42 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                         }
                         lay += info.skipped!!
                     }
-                    lay += Icon(IconFA.CHECK, 25.0).apply {
-                        disableProperty() syncFrom executed
-                        onClick { _ ->
-                            executed.value = true
+                    lay += formIcon(IconFA.CHECK, "Execute") {
+                        executed.value = true
 
-                            anim(500.millis) {
-                                content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(0)?.opacity = (1-it)*(1-it)
-                                content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(1)?.opacity = it*it
-                                content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(2)?.opacity = (1-it)*(1-it)
-                            }.play()
+                        anim(500.millis) {
+                            content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(0)?.opacity = (1-it)*(1-it)
+                            content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(1)?.opacity = it*it
+                            content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(2)?.opacity = (1-it)*(1-it)
+                        }.play()
 
-                            fut(files())
-                                    .use { if (conf.makeWritable.value) it.forEach { it.setWritable(true) } }
-                                    .then { task(it.map { SimpleItem(it) }) }
-                                    .ui { result ->
-                                        if (conf.editInTagger.value) {
-                                            val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER)?.create()
-                                            val items = if (conf.editOnlyAdded.value) result.converted else result.all
-                                            if (tagger!=null) {
-                                                anim(500.millis) {
-                                                    content.children[0].opacity = it*it
-                                                    content.children[1].opacity = it*it
-                                                }.apply {
-                                                    playAgainIfFinished = false
-                                                }.playCloseDoOpen {
-                                                    content.children[1].asIf<Pane>()!!.lay += tagger.load()
-                                                    (tagger.controller as SongReader).read(items)
-                                                }
+                        fut(files())
+                                .use { if (conf.makeWritable.value) it.forEach { it.setWritable(true) } }
+                                .then { task(it.map { SimpleItem(it) }) }
+                                .ui { result ->
+                                    if (conf.editInTagger.value) {
+                                        val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER)?.create()
+                                        val items = if (conf.editOnlyAdded.value) result.converted else result.all
+                                        if (tagger!=null) {
+                                            anim(500.millis) {
+                                                content.children[0].opacity = it*it
+                                                content.children[1].opacity = it*it
+                                            }.apply {
+                                                playAgainIfFinished = false
+                                            }.playCloseDoOpen {
+                                                content.children[1].asIf<Pane>()!!.lay += tagger.load()
+                                                (tagger.controller as SongReader).read(items)
                                             }
                                         }
-                                        if (conf.enqueue.value && !result.all.isEmpty()) {
-                                            APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
-                                        }
                                     }
-                                    .showProgress(actionPane.actionProgress)
-                        }
-                    }.withText("Execute")
-
+                                    if (conf.enqueue.value && !result.all.isEmpty()) {
+                                        APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
+                                    }
+                                }
+                                .showProgress(actionPane.actionProgress)
+                    }.apply {
+                        disableProperty() syncFrom executed
+                    }
                 }
                 lay += stackPane()
             }

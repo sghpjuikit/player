@@ -108,7 +108,7 @@ import static javafx.scene.text.Font.font;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.minutes;
 import static javafx.util.Duration.seconds;
-import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
+import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.formatDuration;
 import static sp.it.pl.util.Util.pyth;
@@ -685,7 +685,7 @@ interface Utils {
 	/** How to play help pane. */
 	class HowToPane extends OverlayPane<Game> {
 		private final GridPane g = new GridPane();
-		private final Icon helpI = createInfoIcon("How to play");
+		private final Icon helpI = infoIcon("How to play");
 
 		public HowToPane() {
 			getDisplay().set(Display.WINDOW);
@@ -744,7 +744,7 @@ interface Utils {
 	/** Mission details help pane. */
 	class MissionPane extends OverlayPane<Mission> {
 		private final Text text = new Text();
-		private final Icon helpI = createInfoIcon("Mission details");
+		private final Icon helpI = infoIcon("Mission details");
 
 		public MissionPane() {
 			getDisplay().set(Display.WINDOW);
@@ -781,7 +781,7 @@ interface Utils {
 		private final Label gameModeName = new Label();
 		private final StackPane gameResultPane = new StackPane();
 		private final GridPane achievementPane = new GridPane();
-		private final Icon helpI = createInfoIcon("How to play");
+		private final Icon helpI = infoIcon("How to play");
 
 		public EndGamePane() {
 			getDisplay().set(Display.WINDOW);

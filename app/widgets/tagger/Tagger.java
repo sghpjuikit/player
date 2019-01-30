@@ -121,7 +121,8 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TRACKS_TOTAL;
 import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.TAG;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
-import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
+import static sp.it.pl.main.AppBuildersKt.infoIcon;
+import static sp.it.pl.main.AppBuildersKt.formIcon;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
@@ -132,6 +133,7 @@ import static sp.it.pl.util.functional.Util.mapRef;
 import static sp.it.pl.util.functional.Util.noDups;
 import static sp.it.pl.util.functional.Util.noEx;
 import static sp.it.pl.util.functional.Util.split;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.UtilKt.createIcon;
 import static sp.it.pl.util.graphics.UtilKt.setTextAlignment;
 
@@ -194,7 +196,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
     @Override
     public void init() {
-        Node okB = new Icon(FontAwesomeIcon.CHECK,25).onClick(this::write).withText("Save", Side.RIGHT);
+        Node okB = formIcon(FontAwesomeIcon.CHECK, "Save", runnable(this::write));
         content.getChildren().add(okB);
 
         CoverV = new ThumbnailWithAdd(FontAwesomeIcon.PLUS,"Add to Tag");
@@ -872,7 +874,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
 
         // build content controls
-        Icon helpB = createInfoIcon(
+        Icon helpB = infoIcon(
               "List of all items in the tagger. Highlights untaggable items. Taggable items "
             + "can be unselected filtered.\n\n"
             + "Available actions:\n"

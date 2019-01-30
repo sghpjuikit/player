@@ -1,6 +1,8 @@
 package sp.it.pl.main
 
+import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Insets
+import javafx.geometry.Side
 import javafx.scene.Cursor
 import javafx.scene.Node
 import javafx.scene.control.ProgressIndicator
@@ -60,17 +62,21 @@ fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> 
     }
 }
 
-fun createInfoIcon(text: String): Icon = Icon(IconFA.INFO)
+/** @return standardized icon that opens a help tooltip with specified text */
+fun infoIcon(tooltipText: String): Icon = Icon(IconFA.INFO)
         .tooltip("Help")
         .onClick { e ->
             e.consume()
             APP.actionStream.push("Info popup")
-            helpPopOver(text).apply {
+            helpPopOver(tooltipText).apply {
                 contentNode.value.wrappingWidth = 400.0
                 getSkinn().setTitleAsOnlyHeaderContent(false)
                 showInCenterOf(e.source as Node)
             }
         }
+
+/** @return standardized icon associated with a form that invokes an action */
+fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25.0).onClick(action).withText(text, Side.RIGHT)
 
 @JvmOverloads
 fun appProgressIndicator(onStart: Consumer<ProgressIndicator> = Consumer {}, onFinish: Consumer<ProgressIndicator> = Consumer {}) = Spinner().apply {

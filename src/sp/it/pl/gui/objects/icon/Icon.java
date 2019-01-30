@@ -46,6 +46,7 @@ import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.access.V;
@@ -400,10 +401,12 @@ public class Icon extends StackPane {
 		return onClick(action::invoke);
 	}
 
+	@NotNull
 	public Pane withText(String text) {
 		return withText(text, Side.BOTTOM);
 	}
 
+	@NotNull
 	public Pane withText(String text, Side side) {
 		switch (side) {
 			case LEFT: return layHeaderLeft(10, Pos.CENTER, this, new Label(text));

@@ -129,7 +129,7 @@ class Guide(guideEvents: EventSource<Any>? = null): MultiConfigurableBase("${Set
         detached.value = true
         onHiding = EventHandler { runFX(20.millis) { hints.h03_guideClose.proceedIfActive() } }
         headerIcons += listOf(
-                createInfoIcon("Guide info popup."
+                infoIcon("Guide info popup."
                         +"\n\nThere are many others. If you see one for the first time, check it out."
                         +"\n\nThis popup will close on its own when you clock somewhere. ESCAPE works too."
                 ),

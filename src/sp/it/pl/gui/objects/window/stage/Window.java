@@ -90,7 +90,7 @@ import static javafx.scene.paint.Color.BLACK;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.Resize.NONE;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
-import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
+import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.access.SequentialValue.next;
 import static sp.it.pl.util.access.SequentialValue.previous;
@@ -348,7 +348,7 @@ public class Window extends WindowBase {
 		Icon rtB = new Icon(CARET_RIGHT, is, Action.get("Layout move right"));
 		maintain(APP.ui.getLayoutMode(), mapB(TH, TH_LARGE), lmB::icon);
 		Icon guideB = new Icon(GRADUATION_CAP, is, Action.get("Open guide"));
-		Icon helpB = createInfoIcon("Available actions:\n"
+		Icon helpB = infoIcon("Available actions:\n"
 			+ "\tHeader icons : Providing custom functionalities. See tooltips.\n"
 			+ "\tHeader buttons : Providing window control. See tooltips.\n"
 			+ "\tMouse drag : Move window. Windows snap to screen or to other windows.\n"

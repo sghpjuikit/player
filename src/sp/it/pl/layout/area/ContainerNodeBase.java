@@ -41,7 +41,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.area.Area.STYLECLASS_CONTAINER_AREA_CONTROLS;
 import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
-import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
+import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.graphics.Util.setAnchors;
@@ -70,7 +70,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
         ctrls.getStyleClass().addAll(STYLECLASS_CONTAINER_AREA_CONTROLS);
 
 	// build header buttons
-	Icon infoB = createInfoIcon("Container settings. See icon tooltips."
+	Icon infoB = infoIcon("Container settings. See icon tooltips."
                 + "\nActions:"
                 + "\n\tLeft click: visit children"
                 + "\n\tRight click: visit parent container"

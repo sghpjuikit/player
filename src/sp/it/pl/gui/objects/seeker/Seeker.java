@@ -69,7 +69,7 @@ import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.Chapter.validateChapterText;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
-import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
+import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.animation.Anim.mapConcave;
 import static sp.it.pl.util.animation.Anim.mapTo01;
@@ -588,7 +588,7 @@ public final class Seeker extends AnchorPane {
 					nextB.setDisable(true);
 				if (0==i)
 					prevB.setDisable(true);
-				helpB = createInfoIcon(
+				helpB = infoIcon(
 						"Single click : Close\n"
 						+ "Double L click : Play from this chapter\n"
 						+ "Double R click : Start edit\n"

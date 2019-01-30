@@ -14,7 +14,7 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.main.APP
-import sp.it.pl.main.createInfoIcon
+import sp.it.pl.main.infoIcon
 import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.util.graphics.Util.layVertically
 import sp.it.pl.util.graphics.hBox
@@ -38,7 +38,7 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
             maxWidth = 800.0
 
             lay += hBox(5, CENTER_RIGHT) {
-                lay += createInfoIcon("System information viewer\n\nDisplays available system properties. Click on the property to copy the value.")
+                lay += infoIcon("System information viewer\n\nDisplays available system properties. Click on the property to copy the value.")
             }
             lay(ALWAYS) += stackPane {
                 lay += scrollPane {

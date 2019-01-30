@@ -70,7 +70,7 @@ import static sp.it.pl.gui.pane.ActionPaneHelperKt.collectionWrap;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
-import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
+import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppProgressKt.showProgress;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.animation.Anim.animPar;
@@ -202,7 +202,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 
 /* ---------- CONTROLS ---------------------------------------------------------------------------------------------- */
 
-	private final Icon helpI = createInfoIcon(
+	private final Icon helpI = infoIcon(
 		"Action chooser"
 	  + "\n"
 	  + "\nChoose an action. It may use some input data. Data not immediately ready will "

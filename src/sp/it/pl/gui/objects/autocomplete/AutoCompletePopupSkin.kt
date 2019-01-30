@@ -54,7 +54,7 @@ open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
             items = control.suggestions
 
             syncTo(control.visibleRowCount, items.sizes(), fixedCellSizeProperty()) { rowCount, itemCount, cellSize ->
-                prefHeight = cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
+                prefHeight = snappedTopInset() + snappedBottomInset() + cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
             }
             cellFactory = Callback { buildListViewCellFactory(it) }
 

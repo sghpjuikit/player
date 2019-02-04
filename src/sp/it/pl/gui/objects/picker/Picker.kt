@@ -10,6 +10,7 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
+import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextAlignment.JUSTIFY
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.Anim.Companion.animPar
@@ -75,7 +76,7 @@ open class Picker<E> {
                     text(contentText) {
                         textOrigin = CENTER
                         isMouseTransparent = true
-                        textAlignment = JUSTIFY
+                        textAlignment = TextAlignment.CENTER
                     }
                 }
                 lay += contentInfo

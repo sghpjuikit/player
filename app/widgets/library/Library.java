@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import javafx.concurrent.Task;
+import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
@@ -100,6 +101,7 @@ import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
 )
 public class Library extends FXMLController implements SongReader {
 
+    private static final PseudoClass PC_PLAYING = PseudoClass.getPseudoClass("played");
     private static final TableContextMenuR<MetadataGroup> contextMenu = new TableContextMenuR<>();
 
     private @FXML AnchorPane root;
@@ -177,7 +179,7 @@ public class Library extends FXMLController implements SongReader {
             return c;
         });
         // maintain rating column cell style
-        d(APP.getRatingCell().maintain(cf -> table.getColumn(RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));
+        d(APP.getRatingCell().maintain(cf -> table.getColumn(RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));   // maintain playing item css
 
         // let resizing as it is
         table.setColumnResizePolicy(resize -> {
@@ -190,20 +192,19 @@ public class Library extends FXMLController implements SongReader {
         table.getDefaultColumnInfo();
 
         // row behavior
-        table.setRowFactory(tbl -> new ImprovedTableRow<Metadata>()
-                .onLeftDoubleClick((r,e) -> PlaylistManager.use(pl->pl.setNplayFrom(table.getItems(), r.getIndex())))
-                .onRightSingleClick((r,e) -> {
+        table.setRowFactory(tbl -> new ImprovedTableRow<Metadata>() {{
+                onLeftDoubleClick((r,e) -> PlaylistManager.use(pl->pl.setNplayFrom(table.getItems(), r.getIndex())));
+                onRightSingleClick((r,e) -> {
                     // prep selection for context menu
                     if (!r.isSelected())
                         tbl.getSelectionModel().clearAndSelect(r.getIndex());
 
                     contextMenu.show(MetadataGroup.groupOfUnrelated(table.getSelectedItemsCopy()), table, e);
-                })
-                // additional css style classes
-                .styleRuleAdd("played", m -> Player.playingItem.get().same(m)) // don't use method reference!
+                });
+                styleRuleAdd(PC_PLAYING, m -> Player.playingItem.get().same(m));
+            }}
         );
-        // maintain playing item css by refreshing column
-        d(Player.playingItem.onUpdate(o -> table.updateStyleRules()));
+        d(Player.playingItem.onUpdate(o -> table.updateStyleRules()));   // maintain playing item css
 
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));

@@ -111,12 +111,11 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	/**
 	 * Returns true if specified item is playing item on the playlist. There can
 	 * only be one item in the application for which this method returns true.
-	 * Note the distinction between same file of the items and two items being
-	 * the very same item.
+	 * Note the distinction between this method and {@link sp.it.pl.audio.Item#isPlayingSame}
 	 *
 	 * @return true if item is played.
 	 */
-	public boolean isItemPlaying(Item item) {
+	public boolean isPlaying(PlaylistItem item) {
 		return playing==item;
 	}
 
@@ -203,8 +202,8 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		List<PlaylistItem> to_dup = new ArrayList<>();
 		for (PlaylistItem item : items) {
 			int i = items.indexOf(item);
-			if (i>0) { // if contains
-				to_dup.add(item.copy());   // item must be cloned
+			if (i>0) {
+				to_dup.add(item.copy());
 				index = i + 1;
 			}
 		}

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
+import javafx.css.PseudoClass;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumnBase;
@@ -16,9 +17,8 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import org.reactfx.Subscription;
+import kotlin.Unit;
 import sp.it.pl.audio.Item;
-import sp.it.pl.audio.Player;
 import sp.it.pl.audio.playlist.Playlist;
 import sp.it.pl.audio.playlist.PlaylistItem;
 import sp.it.pl.audio.playlist.PlaylistManager;
@@ -28,6 +28,7 @@ import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.graphics.drag.DragUtil;
+import sp.it.pl.util.reactive.Disposer;
 import sp.it.pl.util.units.Dur;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.stream.Collectors.toList;
@@ -49,6 +50,7 @@ import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.graphics.Util.computeFontWidth;
 import static sp.it.pl.util.graphics.Util.selectRows;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.util.reactive.UtilKt.attach;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
@@ -61,14 +63,14 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
  */
 public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
-	private static final String STYLE_CORRUPT = "corrupt";
-	private static final String STYLE_PLAYED = "played";
+	private static final PseudoClass STYLE_CORRUPT = PseudoClass.getPseudoClass("corrupt");
+	private static final PseudoClass STYLE_PLAYED = PseudoClass.getPseudoClass("played");
 	private static final TableContextMenuR<PlaylistItemGroup> contextMenu = new TableContextMenuR<>();
 
 	public final V<Boolean> scrollToPlaying = new V<>(true);
 	private double selectionLastScreenY;
 	private ArrayList<Integer> selectionTmp = new ArrayList<>();
-	private final Subscription d1;
+	private final Disposer disposer = new Disposer();
 
 	public PlaylistTable(Playlist playlist) {
 		super(PlaylistItem.class, NAME, playlist);
@@ -119,12 +121,11 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 				setOnDragDropped(e -> dropDrag(e, isEmpty() ? getItems().size() : getIndex()));
 
 				// additional css style classes
-				styleRuleAdd(STYLE_PLAYED, p -> getPlaylist().isItemPlaying(p));
+				styleRuleAdd(STYLE_PLAYED, p -> getPlaylist().isPlaying(p));
 				styleRuleAdd(STYLE_CORRUPT, PlaylistItem::isCorruptCached);
 			}
 		});
-		// maintain playing item css by refreshing first column
-		d1 = Player.playingItem.onChange(o -> refreshFirstColumn());
+		disposer.plusAssign(maintain(getPlaylist().playingI, i -> updateStyleRules()));   // maintain playing item css
 
 		// resizing
 		setColumnResizePolicySafe(resize -> {
@@ -252,14 +253,15 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 		);
 
 		// scroll to playing item
-		maintain(scrollToPlaying, v -> {
+		disposer.plusAssign(maintain(scrollToPlaying, v -> {
 			if (v)
 				scrollToCenter(playlist.getPlaying());
-		});
-		playlist.playingI.addListener((o, ov, nv) -> {
+		}));
+		disposer.plusAssign(attach(playlist.playingI, i -> {
 			if (scrollToPlaying.getValue())
 				scrollToCenter(playlist.getPlaying());
-		});
+			return Unit.INSTANCE;
+		}));
 
 		// reflect selection for whole application
 		getSelectionModel().selectedItemProperty().addListener(selItemListener);
@@ -270,7 +272,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 	/** Clears resources. Do not use this table after calling this method. */
 	public void dispose() {
-		d1.unsubscribe();
+		disposer.invoke();
 		getSelectionModel().selectedItemProperty().removeListener(selItemListener);
 		getSelectionModel().getSelectedItems().removeListener(selItemsListener);
 	}

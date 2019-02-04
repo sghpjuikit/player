@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
@@ -97,6 +98,7 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
 )
 public class LibraryView extends FXMLController {
 
+    private static final PseudoClass PC_PLAYING = PseudoClass.getPseudoClass("played");
     private static final TableContextMenuR<MetadataGroup> contextMenu = new TableContextMenuR<>();
 
     private @FXML AnchorPane root;
@@ -180,21 +182,19 @@ public class LibraryView extends FXMLController {
         table.getDefaultColumnInfo();
 
         // rows
-        table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>()
-                // additional css style classes
-                .styleRuleAdd("played", MetadataGroup::isPlaying)
-                // add behavior
-                .onLeftDoubleClick((row,e) -> playSelected())
-                .onRightSingleClick((row,e) -> {
+        table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>() {{
+                styleRuleAdd(PC_PLAYING, MetadataGroup::isPlaying);
+                onLeftDoubleClick((row,e) -> playSelected());
+                onRightSingleClick((row,e) -> {
                     // prep selection for context menu
                     if (!row.isSelected())
                         tbl.getSelectionModel().clearAndSelect(row.getIndex());
 
                     contextMenu.show(MetadataGroup.groupOfUnrelated(filerListToSelectedNsort()), table, e);
-                })
+                });
+            }}
         );
-        // maintain playing item css by refreshing column
-        d(Player.playingItem.onUpdate(m -> table.updateStyleRules()));
+        d(Player.playingItem.onUpdate(m -> table.updateStyleRules()));   // maintain playing item css
 
 
         // column context menu - add change VALUE column menus

@@ -8,6 +8,7 @@ import javafx.css.PseudoClass;
 import javafx.scene.control.TableRow;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import org.reactfx.Subscription;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 
@@ -18,7 +19,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
  * For example: {@code new ImprovedRow().onLeftSingleClick((row,event) -> ...);}
  * <p/>
  * It is possible to apply various pseudoclasses using predicates on the item T
- * of the row. See {@link #styleRuleAdd(java.lang.String, java.util.function.Predicate)}.<br/>
+ * of the row. See {@link #styleRuleAdd(javafx.css.PseudoClass, java.util.function.Predicate)}.<br/>
  * Note that if the nature of the item's property predicating rows style is not
  * observable (POJO) or is external, all the styles must be applied on change
  * manually. This can be done simply by calling table.refresh();
@@ -83,34 +84,23 @@ public class ImprovedTableRow<T> extends TableRow<T> {
 	 * @param pseudoclass name of the pseudoclass as defined in css
 	 * @param condition pseudoclass will be used when condition tests true
 	 */
-	public ImprovedTableRow<T> styleRuleAdd(String pseudoclass, Predicate<T> condition) {
-		styleRules.add(new Rule<>(PseudoClass.getPseudoClass(pseudoclass), condition));
-		return this;
-	}
-
-	/**
-	 * Removes each styling rule whose pseudoclass name equals and predicate
-	 * is the same as the ones specified.
-	 *
-	 * @param pseudoclass pseudoclass name of the rule to remove
-	 * @param condition of the rule to remove
-	 */
-	public ImprovedTableRow<T> styleRuleRemove(String pseudoclass, Predicate<T> condition) {
-		styleRules.removeIf(rule -> rule.pseudoclass.getPseudoClassName().equals(pseudoclass) && rule.condition==condition);
-		return this;
+	public Subscription styleRuleAdd(PseudoClass pseudoclass, Predicate<T> condition) {
+		Rule<T> rule = new Rule<>(pseudoclass, condition);
+		styleRules.add(rule);
+		return () -> styleRules.remove(rule);
 	}
 
 	@Override
 	protected void updateItem(T item, boolean empty) {
 		super.updateItem(item, empty);
-		styleRulesUpdate();
+		updateStyleRules();
 	}
 
 	// TODO: there are cases where we need this (someone dutiful pls investigate)
 	@Override
 	protected void layoutChildren() {
 		super.layoutChildren();
-		styleRulesUpdate();
+		updateStyleRules();
 	}
 
 	/**
@@ -119,11 +109,10 @@ public class ImprovedTableRow<T> extends TableRow<T> {
 	 * In other words, every dynamic rule needs to observe some observable and
 	 * call this method to refresh the style.
 	 */
-	public void styleRulesUpdate() {
+	public void updateStyleRules() {
 		if (isEmpty()) return;
 		styleRules.forEach(rule -> {
 			boolean v = rule.condition.test(getItem());
-			// set pseudoclass
 			pseudoClassStateChanged(rule.pseudoclass, v);
 			// since the content is within cells themselves - the pseudoclass has to be passed down
 			// if we want the content (like text, not just the cell) to be styled correctly

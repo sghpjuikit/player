@@ -119,7 +119,7 @@ public class ImprovedTable<T> extends TableView<T> {
 	public void updateStyleRules() {
 		for (TableRow<T> row : getRows()) {
 			if (row instanceof ImprovedTableRow) {
-				((ImprovedTableRow) row).styleRulesUpdate();
+				((ImprovedTableRow) row).updateStyleRules();
 			}
 		}
 	}

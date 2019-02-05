@@ -474,6 +474,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 inconsistentState = true;
                 if (applyOnChange || user) config.setNapplyValue(v);
                 else config.setValue(v);
+                if (onChange!=null) onChange.run();
                 inconsistentState = false;
             });
         }
@@ -567,9 +568,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 if (!slider.isValueChanging())
                     apply(false);
             });
-            slider.setOnMouseReleased(e -> {
-                if (applyOnChange) apply(false);
-            });
+            slider.setOnMouseReleased(e -> apply(false));
             slider.setBlockIncrement((range.getMax()-range.getMin())/20);
             slider.setMinWidth(-1);
             slider.setPrefWidth(-1);
@@ -927,6 +926,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         private final ListConfig<T> lc;
         private final ListConfigField<T,ConfigurableField> chain;
+        private final Runnable changeHandler;
 
         @SuppressWarnings("unchecked")
         public ListField(Config<ObservableList<T>> c) {
@@ -938,11 +938,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
             // create chain
             chain = new ListConfigField<>(0, () -> new ConfigurableField(lc.a.itemType, lc.a.factory.get()));
+            changeHandler = () -> lc.a.list.setAll(chain.getValues().filter(p).collect(toList()));
+
             // initialize chain - add existing list values to chain
             lc.a.list.forEach(v -> chain.addChained(new ConfigurableField(lc.a.itemType, v)));
             chain.growTo1();
+
             // bind list to the chain values (after it was initialized above)
-            chain.onItemChange = ignored -> lc.a.list.setAll(chain.getValues().filter(p).collect(toList()));
+            chain.onItemChange = it -> changeHandler.run();
         }
 
         @Override
@@ -960,27 +963,27 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         class ConfigurableField extends ValueNode<T> {
             private final Class<T> type;
-            private final ConfigPane<T> p = new ConfigPane<>();
+            private final ConfigPane<T> pane = new ConfigPane<>();
 
             @SuppressWarnings("unchecked")  // TODO: fix this by using proper generic type for lc.toConfigurable
             public ConfigurableField(Class<T> type, T value) {
                 super(value);
                 this.type = type;
-                p.getLabelWidth().set(USE_COMPUTED_SIZE);
-                p.setOnChange(() -> chain.onItemChange.accept(null));
-                p.configure(lc.toConfigurable.apply(this.value));
+                pane.getLabelWidth().set(USE_COMPUTED_SIZE);
+                pane.setOnChange(changeHandler);
+                pane.configure(lc.toConfigurable.apply(this.value));
             }
 
             @Override
             public Node getNode() {
-                return p;
+                return pane;
             }
 
             @Override
             public T getVal() {
                 // TODO: why do we get 1st ConfigField? Makes no sense
-                Class<? extends T> oType = p.getConfigFields().get(0).config.getType();
-                T o = p.getConfigFields().get(0).getVal();
+                Class<? extends T> oType = pane.getConfigFields().get(0).config.getType();
+                T o = pane.getConfigFields().get(0).getVal();
                 if (type==oType) return o;
                 else return value;
             }

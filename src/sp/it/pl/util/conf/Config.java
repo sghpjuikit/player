@@ -39,6 +39,7 @@ import static sp.it.pl.util.conf.Config.VarList.NULL_SUPPLIER;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.functional.Try.error;
 import static sp.it.pl.util.functional.Try.ok;
+import static sp.it.pl.util.functional.Util.firstNotNull;
 import static sp.it.pl.util.functional.Util.forEachBoth;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.setRO;
@@ -271,23 +272,24 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 /********************************* CREATING ***********************************/
 
 	/**
-	 * Creates config for plain object - value. The difference from
-	 * {@link #forProperty(Class, String, Object)} is that
-	 * property is a value wrapper while value is considered immutable, thus
-	 * a wrapper needs to be created (and will be automatically).
-	 * <p/>
-	 * If the value is not a value (its class is supported by ({@link #forProperty(Class, String, Object)}),
-	 * runtime exception is thrown.
+	 * Creates config for value. Attempts in order:
+	 * <ul>
+	 *     <li> {@link #forProperty(Class, String, Object)}
+	 *     <li> create {@link sp.it.pl.util.conf.Config.ListConfig} if the value is {@link javafx.collections.ObservableList}
+	 *     <li> wraps the value in {@link sp.it.pl.util.access.V} and calls {@link #forProperty(Class, String, Object)}
+	 * </ul>
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "Convert2Diamond"})
 	public static <T> Config<T> forValue(Class type, String name, Object value) {
-		if (value instanceof Config ||
-				value instanceof VarList ||
-				value instanceof Vo ||
-				value instanceof WritableValue ||
-				value instanceof ObservableValue)
-			throw new RuntimeException("Value " + value + "is a property and can not be turned into Config as value.");
-		return forProperty(type, name, new V<>(value));
+		return firstNotNull(
+			() -> forPropertyImpl(type, name, value),
+			() -> {
+				if (value instanceof ObservableList)
+					return new ListConfig<T>(name, new VarList<T>(type, Elements.NULLABLE, (ObservableList) value));
+				else
+					return forProperty(type, name, new V<>(value));
+			}
+		);
 	}
 
 	/**
@@ -298,12 +300,26 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 	 * returned.
 	 *
 	 * @param name of of the config, will be used as gui name
-	 * @param property underlying property for the config. The property must be instance of any of: <ul> <li> {@link
-	 * Config} <li> {@link VarList} <li> {@link WritableValue} <li> {@link ObservableValue} </ul> so standard javafx
-	 * properties will all work. If not instance of any of the above, runtime exception will be thrown.
+	 * @param property underlying property for the config. The property must be instance of any of:
+	 * <ul>
+	 *     <li> {@link Config}
+	 *     <li> {@link VarList}
+	 *     <li> {@link WritableValue}
+	 *     <li> {@link ObservableValue}
+     * </ul>
+	 * so standard javafx properties will all work. If not instance of any of the above, runtime exception will be thrown.
 	 */
-	@SuppressWarnings("unchecked")
 	public static <T> Config<T> forProperty(Class<T> type, String name, Object property) {
+		return firstNotNull(
+			() -> forPropertyImpl(type, name, property),
+			() -> {
+				throw new RuntimeException("Must be WritableValue or ReadOnlyValue, but is " + property.getClass());
+			}
+		);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> Config<T> forPropertyImpl(Class<T> type, String name, Object property) {
 		if (property instanceof Config)
 			return (Config<T>) property;
 		if (property instanceof VarList)
@@ -314,7 +330,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			return new PropertyConfig<>(type, name, (WritableValue<T>) property);
 		if (property instanceof ObservableValue)
 			return new ReadOnlyPropertyConfig<>(type, name, (ObservableValue<T>) property);
-		throw new RuntimeException("Must be WritableValue or ReadOnlyValue, but is " + property.getClass());
+		return null;
 	}
 
 	/******************************* IMPLEMENTATIONS ******************************/
@@ -836,6 +852,25 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			this.nullElements = nullElements;
 		}
 
+		public VarList(Class<T> itemType, Elements nullElements, ObservableList<T> items) {
+			this(itemType, () -> null, f -> Config.forValue(itemType, APP.className.get(itemType), f), items);
+			this.nullElements = nullElements;
+		}
+
+		public VarList(Class<T> itemType, Supplier<? extends T> factory, Ƒ1<T,Configurable<?>> toConfigurable, ObservableList<T> items) {
+			super(items);
+			this.list = items;
+			this.itemType = itemType;
+			this.factory = factory;
+			this.toConfigurable = toConfigurable;
+			this.nullElements = Elements.NOT_NULL;
+		}
+
+		@SafeVarargs
+		public VarList(Class<T> itemType, Supplier<? extends T> factory, Ƒ1<T,Configurable<?>> toConfigurable, T... items) {
+			this(itemType, factory, toConfigurable, observableArrayList(items));
+		}
+
 		// Note: What a strange situation. We must overload varargs constructor for empty case or we run into
 		// runtime problems (NoSuchMethodError) even though compilation succeeds. Compiler/JVM bug?
 		// What's worse we can not
@@ -846,20 +881,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			this(itemType, factory, toConfigurable, (T[]) EMPTY_ARRAY);
 		}
 
-		@SafeVarargs
-		public VarList(Class<T> itemType, Supplier<? extends T> factory, Ƒ1<T,Configurable<?>> toConfigurable, T... items) {
-			// construct the list and inject it as value (by calling setValue)
-			super(observableArrayList(items));
-			// remember the reference
-			list = getValue();
-
-			this.itemType = itemType;
-			this.factory = factory;
-			this.toConfigurable = toConfigurable;
-			this.nullElements = Elements.NOT_NULL;
-		}
-
-		/** This method does nothing. */
 		@Deprecated
 		@Override
 		public void setValue(ObservableList<T> v) {

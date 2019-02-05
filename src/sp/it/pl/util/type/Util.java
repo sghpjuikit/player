@@ -14,13 +14,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import javafx.beans.Observable;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.functional.TriConsumer;
+import static kotlin.text.StringsKt.substringBeforeLast;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.functional.Util.isNoneØ;
 import static sp.it.pl.util.functional.Util.list;
@@ -36,31 +37,34 @@ public interface Util {
 	 * Additional provided arguments are name of the property and its non-erased generic type.
 	 * Javafx properties are obtained from public nameProperty() methods using reflection.
 	 */
-	@SuppressWarnings("UnnecessaryLocalVariable")
-	static void forEachJavaFXProperty(Object o, TriConsumer<ObservableValue,String,Class> action) {
+	@SuppressWarnings({"UnnecessaryLocalVariable", "unchecked"})
+	static void forEachJavaFXProperty(Object o, TriConsumer<Observable,String,Class> action) {
 		// Standard JavaFX Properties
 		for (Method method : o.getClass().getMethods()) {
 			String methodName = method.getName();
-			boolean isPublished = !Modifier.isStatic(method.getModifiers()) && methodName.endsWith("Property") && !methodName.startsWith("impl");
+			boolean isPublished = !Modifier.isStatic(method.getModifiers()) && !methodName.startsWith("impl");
 			if (isPublished) {
 				String propertyName = null;
-				if (ObservableValue.class.isAssignableFrom(method.getReturnType())) {
+				if (Observable.class.isAssignableFrom(method.getReturnType())) {
 					try {
-						propertyName = methodName.substring(0, methodName.lastIndexOf("Property"));
+						propertyName = methodName;
+						propertyName = substringBeforeLast(propertyName, "Property", propertyName);
+						propertyName = kotlin.text.StringsKt.substringAfter(propertyName, "get", propertyName);
+						propertyName = kotlin.text.StringsKt.decapitalize(propertyName);
 						method.setAccessible(true);
-						ObservableValue<?> property = (ObservableValue) method.invoke(o);
+						Observable observable = (Observable) method.invoke(o);
 
-						if (property instanceof Property && ((Property) property).isBound()) {
+						if (observable instanceof Property && ((Property) observable).isBound()) {
 							ReadOnlyObjectWrapper<Object> rop = new ReadOnlyObjectWrapper<>();
-							rop.bind(property);
-							property = rop.getReadOnlyProperty();
+							rop.bind((Property) observable);
+							observable = rop.getReadOnlyProperty();
 						}
 
 						Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());
-						if (isNoneØ(property, propertyName, propertyType)) {
-							action.accept(property, propertyName, propertyType);
+						if (isNoneØ(observable, propertyName, propertyType)) {
+							action.accept(observable, propertyName, propertyType);
 						} else {
-							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", property, propertyName, propertyName);
+							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", observable, propertyName, propertyName);
 						}
 
 					} catch (IllegalAccessException|InvocationTargetException e) {
@@ -75,22 +79,22 @@ public interface Util {
 			boolean isPublished = !Modifier.isStatic(field.getModifiers()) && !fieldName.startsWith("impl");
 			if (isPublished) {
 				String propertyName = fieldName;
-				if (ObservableValue.class.isAssignableFrom(field.getType())) {
+				if (Observable.class.isAssignableFrom(field.getType())) {
 					try {
 						field.setAccessible(true);
-						ObservableValue<?> property = (ObservableValue) field.get(o);
+						Observable observable = (Observable) field.get(o);
 
-						if (property instanceof Property && ((Property) property).isBound()) {
+						if (observable instanceof Property && ((Property) observable).isBound()) {
 							ReadOnlyObjectWrapper<Object> rop = new ReadOnlyObjectWrapper<>();
-							rop.bind(property);
-							property = rop.getReadOnlyProperty();
+							rop.bind((Property) observable);
+							observable = rop.getReadOnlyProperty();
 						}
 
 						Class<?> propertyType = getGenericPropertyType(field.getGenericType());
-						if (isNoneØ(property, propertyName, propertyType)) {
-							action.accept(property, propertyName, propertyType);
+						if (isNoneØ(observable, propertyName, propertyType)) {
+							action.accept(observable, propertyName, propertyType);
 						} else {
-							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", property, propertyName, propertyName);
+							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", observable, propertyName, propertyName);
 						}
 
 					} catch (IllegalAccessException e) {

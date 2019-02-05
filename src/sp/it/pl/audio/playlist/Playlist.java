@@ -202,13 +202,13 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		List<PlaylistItem> to_dup = new ArrayList<>();
 		for (PlaylistItem item : items) {
 			int i = items.indexOf(item);
-			if (i>0) {
+			if (i!=-1) {
 				to_dup.add(item.copy());
 				index = i + 1;
 			}
 		}
 		if (to_dup.isEmpty()) return;
-		items.addAll(index, to_dup);
+		addAll(index, to_dup);
 	}
 
 	/**
@@ -419,35 +419,25 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	public void playItem(PlaylistItem item, UnaryOperator<PlaylistItem> altSupplier) {
 		if (item!=null && transform().contains(item)) {
 			Player.IO_THREAD.execute(() -> {
-				boolean unplayable = item.isNotPlayable(); // potentially blocking
-				// we cant play item, we try to play next one and eventually get
-				// here again, we must defend against situation where no item
-				// is playable - we remember 1st unplayable and keep checking
-				// until we check it again (thus checking all items)
+				// we cant play item -> we try to play next one and eventually get here again => need defend against case where no item is playable
+				boolean unplayable = item.isNotPlayable();  // potentially blocking
 				if (unplayable) {
-					if (unplayable1st==item) {
-						// unplayable1st is not reliable indicator (since items can
-						// be selected randomly), so if we check same item twice
-						// check whole playlist
-						boolean isNonePlayable = stream().allMatch(PlaylistItem::isNotPlayable); // potentially blocking
-						if (isNonePlayable) return;    // stop the loop
-
-						runFX(() -> {
-							Player.stop();            // stop playback
-							unplayable1st = null;       // reset the loop
-						});
-					}
-
+					boolean isNonePlayable = unplayable1st==item && stream().allMatch(PlaylistItem::isNotPlayable); // potentially blocking
 					runFX(() -> {
-						// remember 1st unplayable
-						if (unplayable1st==null) unplayable1st = item;
-						// try to play next item, note we dont use the supplier as a fallback 2nd time
-						// we use linear 'next time' supplier instead, to make sure we check every
-						// item on a completely unplayable playlist and exactly once. Say provided
-						// one selects random item - we could get into potentially infinite loop or
-						// check items multiple times or even skip playable items to check completely!
-						// playItem(alt_supplier.apply(item),alt_supplier);
-						playItem(altSupplier.apply(item));
+						if (isNonePlayable) {
+							Player.stop();
+							unplayable1st = null;
+						} else {
+							updatePlayingItem(indexOf(item), item);
+							if (unplayable1st==null) unplayable1st = item;  // remember 1st unplayable
+							// try to play next item, note we dont use the supplier as a fallback 2nd time
+							// we use linear 'next time' supplier instead, to make sure we check every
+							// item on a completely unplayable playlist and exactly once. Say provided
+							// one selects random item - we could get into potentially infinite loop or
+							// check items multiple times or even skip playable items to check completely!
+							// playItem(alt_supplier.apply(item),alt_supplier);
+							playItem(altSupplier.apply(item));
+						}
 					});
 				} else {
 					runFX(() -> {

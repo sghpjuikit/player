@@ -55,11 +55,11 @@ import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
 import javafx.scene.text.TextAlignment
 import javafx.stage.Screen
+import javafx.stage.Window
 import javafx.util.Callback
 import org.reactfx.Subscription
-import sp.it.pl.gui.objects.image.Thumbnail
-import sp.it.pl.gui.objects.window.stage.Window
-import sp.it.pl.main.JavaLegacy
+import sp.it.pl.util.JavaLegacy
+import sp.it.pl.util.graphics.image.FitFrom
 import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.sync
 import java.awt.MouseInfo
@@ -414,11 +414,13 @@ fun Node.initClip(padding: Insets = Insets.EMPTY) {
     setClip(clip)
 }
 
-fun ImageView.applyViewPort(i: Image?, fit: Thumbnail.FitFrom) {
+/* ---------- IMAGE_VIEW -------------------------------------------------------------------------------------------- */
+
+fun ImageView.applyViewPort(i: Image?, fit: FitFrom) {
     if (i!=null) {
         when (fit) {
-            Thumbnail.FitFrom.INSIDE -> viewport = null
-            Thumbnail.FitFrom.OUTSIDE -> {
+            FitFrom.INSIDE -> viewport = null
+            FitFrom.OUTSIDE -> {
                 val ratioIMG = i.width/i.height
                 val ratioTHUMB = layoutBounds.width/layoutBounds.height
                 when {
@@ -492,6 +494,9 @@ val Bounds.rightBottom get() = P(maxX, maxY)
 /** @return size of the bounds represented as point */
 val Region.size get() = P(width, height)
 
+/** @return position using [javafx.stage.Window.x] and [javafx.stage.Window.y] */
+val Window.xy get() = P(x, y)
+
 /** @return window-relative position of the centre of this window */
 val Window.centre get() = P(centreX, centreY)
 
@@ -500,18 +505,6 @@ val Window.centreX get() = x+width/2
 
 /** @return window-relative y position of the centre of this window */
 val Window.centreY get() = y+height/2
-
-/** @return position using [javafx.stage.Window.x] and [javafx.stage.Window.y] */
-val javafx.stage.Window.xy get() = P(x, y)
-
-/** @return window-relative position of the centre of this window */
-val javafx.stage.Window.centre get() = P(centreX, centreY)
-
-/** @return window-relative x position of the centre of this window */
-val javafx.stage.Window.centreX get() = x+width/2
-
-/** @return window-relative y position of the centre of this window */
-val javafx.stage.Window.centreY get() = y+height/2
 
 /** @return size of the bounds represented as point */
 val Rectangle2D.size get() = P(width, height)
@@ -739,4 +732,4 @@ fun getScreenForMouse() = getMousePosition().toP().getScreen()
 val Screen.ordinal: Int get() = JavaLegacy.screenOrdinal(this)
 
 /** @return screen containing the centre of this window */
-val javafx.stage.Window.screen: Screen get() = getScreen(centreX, centreY)
+val Window.screen: Screen get() = getScreen(centreX, centreY)

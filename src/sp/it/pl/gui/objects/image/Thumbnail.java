@@ -33,6 +33,7 @@ import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.file.ImageFileFormat;
+import sp.it.pl.util.graphics.image.FitFrom;
 import sp.it.pl.util.graphics.image.ImageSize;
 import sp.it.pl.util.graphics.image.ImageStandardLoader;
 import static java.lang.Double.min;
@@ -673,7 +674,4 @@ public class Thumbnail {
 		public final Thumbnail thumbnail = Thumbnail.this;
 	}
 
-	public enum FitFrom {
-		INSIDE, OUTSIDE
-	}
 }

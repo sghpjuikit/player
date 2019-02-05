@@ -33,7 +33,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
-import sp.it.pl.main.JavaLegacy;
+import sp.it.pl.util.JavaLegacy;
 import sp.it.pl.util.access.V;
 import static java.time.Duration.ofMillis;
 import static javafx.geometry.Pos.CENTER_RIGHT;

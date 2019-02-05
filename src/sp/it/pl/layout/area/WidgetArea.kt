@@ -15,7 +15,7 @@ import sp.it.pl.main.IconOC
 import sp.it.pl.util.access.ref.SingleR
 import sp.it.pl.util.access.toggle
 import sp.it.pl.util.graphics.drag.DragUtil
-import sp.it.pl.util.graphics.drag.Placeholder
+import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.layFullArea

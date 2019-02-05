@@ -1,4 +1,4 @@
-package sp.it.pl.main;
+package sp.it.pl.util;
 
 import javafx.scene.text.TextBoundsType;
 import javafx.stage.Screen;
@@ -18,8 +18,7 @@ public class JavaLegacy {
 		return ordinal+1;
 	}
 
-	// com.sun.javafx.scene.control.Properties.COMBO_BOX_STYLE_CLASS
-	public static String COMBO_BOX_STYLE_CLASS = "combo-box-popup";
+	public static String COMBO_BOX_STYLE_CLASS = "combo-box-popup"; // com.sun.javafx.scene.control.Properties.COMBO_BOX_STYLE_CLASS
 
 	// requires --add-exports javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED
 	public static double computeFontWidth(javafx.scene.text.Font font, String text) {

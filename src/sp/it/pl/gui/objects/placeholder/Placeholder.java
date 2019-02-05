@@ -1,4 +1,4 @@
-package sp.it.pl.util.graphics.drag;
+package sp.it.pl.gui.objects.placeholder;
 
 import de.jensd.fx.glyphs.GlyphIcons;
 import javafx.geometry.Pos;

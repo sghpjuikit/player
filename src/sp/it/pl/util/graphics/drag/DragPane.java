@@ -7,6 +7,7 @@ import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
+import sp.it.pl.gui.objects.placeholder.Placeholder;
 import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLIPBOARD;

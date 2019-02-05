@@ -8,7 +8,6 @@ import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.TOP_CENTER
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.scene.Node
-import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.control.SelectionMode.SINGLE
@@ -25,15 +24,14 @@ import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment.JUSTIFY
 import javafx.util.Callback
 import mu.KLogging
-import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.grid.GridFileThumbCell
 import sp.it.pl.gui.objects.grid.GridView
 import sp.it.pl.gui.objects.grid.GridView.CellSize
 import sp.it.pl.gui.objects.hierarchy.Item
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.image.Thumbnail
-import sp.it.pl.gui.objects.image.Thumbnail.FitFrom.OUTSIDE
 import sp.it.pl.gui.objects.image.cover.FileCover
+import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.gui.objects.tree.buildTreeCell
 import sp.it.pl.gui.objects.tree.initTreeView
 import sp.it.pl.gui.objects.tree.tree
@@ -75,7 +73,7 @@ import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.Resolution
 import sp.it.pl.util.graphics.anchorPane
-import sp.it.pl.util.graphics.drag.Placeholder
+import sp.it.pl.util.graphics.image.FitFrom.OUTSIDE
 import sp.it.pl.util.graphics.install
 import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay

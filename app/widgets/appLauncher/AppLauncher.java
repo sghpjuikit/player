@@ -30,7 +30,7 @@ import sp.it.pl.util.file.FileSort;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.Resolution;
 import sp.it.pl.util.graphics.drag.DragUtil;
-import sp.it.pl.util.graphics.drag.Placeholder;
+import sp.it.pl.gui.objects.placeholder.Placeholder;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.ENTER;

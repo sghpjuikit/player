@@ -9,6 +9,7 @@ import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function1;
 import org.reactfx.Subscription;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.Player;
@@ -51,7 +52,7 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 	}
 
 	@Override
-	public void createPlayback(Item item, PlaybackState state, Function0<Unit> onOK, Function0<Unit> onFail) {
+	public void createPlayback(Item item, PlaybackState state, Function0<Unit> onOK, Function1<? super Boolean, Unit> onFail) {
 		Player.IO_THREAD.execute(() -> {
 			Media media;
 			try {
@@ -61,7 +62,7 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 				media = new Media(item.getUri().toString());
 			} catch (MediaException e) {
 				logger(JavaFxPlayer.class).error("Media creation error for {}", item.getUri());
-				onFail.invoke();
+				onFail.invoke(false);
 				return;
 			}
 			runFX(() -> {

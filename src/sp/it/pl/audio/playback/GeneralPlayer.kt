@@ -63,7 +63,6 @@ class GeneralPlayer {
             runFX {
                 it.playbackError = true
                 // TODO: handle within playlist
-                // TODO: handle looping playlist forever
                 PlaylistManager.use { it.playNextItem() }
             }
         }
@@ -98,9 +97,14 @@ class GeneralPlayer {
                                     Player.post_activating = false
                                     Player.post_activating_1st = false
                                 },
-                                {
+                                { unableToPlayAny ->
                                     logger.info("Player {} can not play item {}", p, item)
-                                    onUnableToPlay(item)
+                                    if (unableToPlayAny) {
+                                        stop()
+                                        // TODO: notify user
+                                    } else {
+                                        onUnableToPlay(item)
+                                    }
                                 }
                         )
                     }
@@ -204,7 +208,7 @@ class GeneralPlayer {
 
         fun stop()
 
-        fun createPlayback(item: Item, state: PlaybackState, onOK: () -> Unit, onFail: () -> Unit)
+        fun createPlayback(item: Item, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit)
 
         /** Stops playback if any and disposes of the player resources. */
         fun disposePlayback()

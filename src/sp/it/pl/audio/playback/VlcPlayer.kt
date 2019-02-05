@@ -73,14 +73,14 @@ class VlcPlayer: GeneralPlayer.Play {
         player?.stop()
     }
 
-    override fun createPlayback(item: Item, state: PlaybackState, onOK: () -> Unit, onFail: () -> Unit) {
+    override fun createPlayback(item: Item, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit) {
         if (!initialized && !discovered) {
             val location = APP.DIR_APP/"vlc"
             discovered = true
             initialized = discoverVlc(location).ifFalse { logger.error { "Failed to initialize vlcj player" } }
         }
         if (!initialized) {
-            onFail()
+            onFail(true)
             return
         }
 

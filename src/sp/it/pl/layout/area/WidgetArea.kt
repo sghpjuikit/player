@@ -3,6 +3,7 @@ package sp.it.pl.layout.area
 import javafx.fxml.FXML
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.StackPane
+import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
@@ -15,7 +16,6 @@ import sp.it.pl.main.IconOC
 import sp.it.pl.util.access.ref.SingleR
 import sp.it.pl.util.access.toggle
 import sp.it.pl.util.graphics.drag.DragUtil
-import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.layFullArea

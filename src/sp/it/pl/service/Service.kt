@@ -1,8 +1,8 @@
 package sp.it.pl.service
 
-import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.main.Settings
 import sp.it.pl.util.conf.Configurable
+import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.util.dev.Idempotent
 
 /**

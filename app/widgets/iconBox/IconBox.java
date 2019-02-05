@@ -6,7 +6,6 @@ import javafx.fxml.FXML;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Info;
@@ -18,7 +17,6 @@ import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.ListConfigurable;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 

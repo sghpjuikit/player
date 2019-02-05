@@ -2,7 +2,8 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.TilePane?>
 <AnchorPane id="AnchorPane" fx:id="root" prefHeight="300.0" prefWidth="300.0" styleClass="imgviewer-root"
             xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
     <ScrollPane fx:id="thumb_root" fitToWidth="true" hbarPolicy="NEVER">

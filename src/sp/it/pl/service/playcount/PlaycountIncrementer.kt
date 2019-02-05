@@ -9,8 +9,6 @@ import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.audio.tagging.MetadataWriter
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
-import sp.it.pl.util.conf.between
-import sp.it.pl.util.conf.cv
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.service.notif.Notifier
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.NEVER
@@ -25,6 +23,8 @@ import sp.it.pl.util.access.initAttach
 import sp.it.pl.util.access.v
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.between
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.functional.Util.max
 import sp.it.pl.util.functional.Util.min
 import sp.it.pl.util.math.Portion

@@ -1,9 +1,9 @@
 package sp.it.pl.main
 
 import javafx.scene.Node
+import sp.it.pl.gui.objects.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.textfield.DecoratedTextField
-import sp.it.pl.gui.objects.autocomplete.ConfigSearch
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.attach

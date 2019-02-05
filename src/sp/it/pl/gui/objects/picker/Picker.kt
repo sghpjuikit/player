@@ -11,7 +11,6 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.text.TextAlignment
-import javafx.scene.text.TextAlignment.JUSTIFY
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.Anim.Companion.animPar
 import sp.it.pl.util.animation.Anim.Companion.animSeq

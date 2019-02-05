@@ -11,6 +11,7 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.KeyEvent.KEY_TYPED
 import javafx.scene.paint.Color.rgb
+import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.IconFA
@@ -19,7 +20,6 @@ import sp.it.pl.util.access.vn
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cvn
 import sp.it.pl.util.conf.only
-import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.util.graphics.layFullArea
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventUp

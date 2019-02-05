@@ -177,13 +177,12 @@ open class Picker<E> {
                 )
             }
 
-            val needsEmptyCell = 0==columns*rows-cells.size
+            val needsEmptyCell = cells.size==0 || cells.size!=columns*rows
             val emptyCell = children.find { it.properties.containsKey(KEY_EMPTY_CELL) }!!
             if (needsEmptyCell) {
                 val i = cells.size
                 val x = padding.left+i%columns*(cellWidth+gap)
                 val y = padding.top+i/columns*(cellHeight+gap)
-
                 emptyCell.resizeRelocate(
                         x.snapX,
                         y.snapY,
@@ -191,7 +190,7 @@ open class Picker<E> {
                         (y+cellHeight).snapY-y.snapY
                 )
             } else {
-                emptyCell.resize(0.0, 0.0)
+                emptyCell.resizeRelocate(0.0, 0.0, 0.0, 0.0)
             }
         }
 

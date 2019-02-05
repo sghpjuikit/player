@@ -202,9 +202,9 @@ class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature
 
     companion object {
 
-        fun unOp(block: (List<PlaylistItem>) -> List<PlaylistItem>) = UnaryOperator<List<PlaylistItem>> { block(it) }
+        private fun unOp(block: (List<PlaylistItem>) -> List<PlaylistItem>) = UnaryOperator<List<PlaylistItem>> { block(it) }
 
-        infix fun <T> MutableList<T>.addToStart(item: T) = add(0, item)
+        private infix fun <T> MutableList<T>.addToStart(item: T) = add(0, item)
 
         private fun getUnusedPlaylist(id: UUID): Playlist {
             val danglingPlaylists = ArrayList(PlaylistManager.playlists)

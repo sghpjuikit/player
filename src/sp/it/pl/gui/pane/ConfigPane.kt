@@ -14,12 +14,14 @@ import sp.it.pl.util.action.Action
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.functional.setTo
+import sp.it.pl.util.functional.supplyIf
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.reactive.sync
 
 class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
     private var fields: List<ConfigField<*>> = listOf()
+    private var needsLabel: Boolean = true
     var onChange: Runnable? = null
     var labelWidth = v(250.0)
     val configOrder = compareBy<Config<*>> { 0 }
@@ -34,6 +36,7 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
     }
 
     override fun configure(configurable: Configurable<*>?) {
+        needsLabel = configurable !is Config<*>
         fields = configurable?.fields.orEmpty().asSequence()
                 .sortedWith(configOrder)
                 .map {
@@ -46,11 +49,13 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
         alignment = CENTER
         children setTo fields.map {
             hBox(20, CENTER_LEFT) {
-                lay += it.createLabel().apply {
-                    labelWidth sync ::setPrefWidth
-                    alignment = CENTER_RIGHT
-                    textAlignment = TextAlignment.RIGHT
-                    padding = Insets(0.0, 0.0, 0.0, 5.0)
+                lay += supplyIf(needsLabel) {
+                    it.createLabel().apply {
+                        labelWidth sync ::setPrefWidth
+                        alignment = CENTER_RIGHT
+                        textAlignment = TextAlignment.RIGHT
+                        padding = Insets(0.0, 0.0, 0.0, 5.0)
+                    }
                 }
 
                 lay(ALWAYS) += it.getNode()

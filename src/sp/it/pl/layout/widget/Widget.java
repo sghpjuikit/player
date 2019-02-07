@@ -60,12 +60,12 @@ import static sp.it.pl.util.file.Util.deleteFile;
 import static sp.it.pl.util.file.Util.writeFile;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.filter;
+import static sp.it.pl.util.functional.Util.firstNotNull;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.split;
 import static sp.it.pl.util.functional.Util.toS;
-import static sp.it.pl.util.functional.UtilKt.supplyFirst;
 import static sp.it.pl.util.graphics.UtilKt.findParent;
 import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 
@@ -241,7 +241,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		// instantiate controller
 		Class<C> cc = factory.getControllerType();
 		LOGGER.info("Instantiating widget controller " + cc);
-		C c = supplyFirst(
+		C c = firstNotNull(
 			() -> {
 				try {
 					Constructor<C> ccc = cc.getDeclaredConstructor(Widget.class);

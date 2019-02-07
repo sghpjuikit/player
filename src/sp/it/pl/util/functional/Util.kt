@@ -231,9 +231,6 @@ inline fun Boolean.ifTrue(block: () -> Unit) = apply { if (this) block() }
 /** Invokes the block if this is false and returns this value. */
 inline fun Boolean.ifFalse(block: () -> Unit) = apply { if (!this) block() }
 
-/** @return return value from the first supplier that supplied non null or null if no such supplier */
-fun <T> supplyFirst(vararg suppliers: () -> T?): T? = seqOf(*suppliers).map { it() }.find { it!=null }
-
 /** @return a sequence of the specified values */
 fun <T> seqOf(vararg elements: T) = sequenceOf(*elements)
 

@@ -27,12 +27,9 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
             .thenBy { if (it.type==Action::javaClass) 1.0 else -1.0 }
             .thenBy { it.guiName.toLowerCase() }
 
-    @SafeVarargs
-    constructor(vararg configs: Config<T>): this(configs.asList())
+    constructor(): super(5.0)
 
-    constructor(configs: Configurable<T>): this(configs.fields)
-
-    constructor(configs: Collection<Config<T>>): super(5.0) {
+    constructor(configs: Configurable<T>): this() {
         configure(configs)
     }
 

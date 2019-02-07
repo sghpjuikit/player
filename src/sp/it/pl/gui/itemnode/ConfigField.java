@@ -965,7 +965,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             private final Class<T> type;
             private final ConfigPane<T> pane = new ConfigPane<>();
 
-            @SuppressWarnings("unchecked")  // TODO: fix this by using proper generic type for lc.toConfigurable
             public ConfigurableField(Class<T> type, T value) {
                 super(value);
                 this.type = type;

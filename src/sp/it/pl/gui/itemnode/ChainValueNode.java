@@ -120,6 +120,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 	public void growTo(int n) {
 		failIf(n<0, () -> "Chain length must not be negative");
 		failIf(n>maxChainLength.get(), () -> "Chain length must not be larger than max length");
+
 		if (n>chain.size()) {
 			repeat(n - chain.size(), (Runnable) this::addChained);
 			generateValue();
@@ -127,6 +128,9 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 	}
 
 	public void shrinkTo(int n) {
+		failIf(n<0, () -> "Chain length must not be negative");
+		failIf(n>maxChainLength.get(), () -> "Chain length must not be larger than max length");
+
 		if (n<chain.size()) {
 			chain.setAll(chain.stream().limit(n).collect(toList()));
 			generateValue();

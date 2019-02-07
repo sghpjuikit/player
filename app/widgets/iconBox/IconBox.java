@@ -41,12 +41,14 @@ public class IconBox extends FXMLController implements HorizontalDock {
 
     @SuppressWarnings("unchecked")
     @IsConfig(name = "Icons", info = "List of icons to show")
-    private final VarList<Icon> icons = new VarList<>(Icon.class, () -> {
+    private final VarList<Icon> icons = new VarList<>(
+        Icon.class,
+        () -> {
             Icon i = new Icon(BUS);
             maintain(icon_size, v -> i.size(v.doubleValue()));
             return i;
-        }, i ->
-        new ListConfigurable<Object>(
+        },
+        i -> new ListConfigurable<>(
             (Config) Config.forProperty(Icon.class, "Icon", new FAccessor<>(i::icon, i::getGlyph)),
             (Config) Config.forProperty(String.class, "Action", new VarAction(i.getOnClickAction(), i::onClick))
         )

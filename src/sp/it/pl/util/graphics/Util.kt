@@ -200,9 +200,19 @@ inline fun <T> listViewCellFactory(crossinline cellFactory: ListCell<T>.(T, Bool
 /* ---------- LAYOUT ------------------------------------------------------------------------------------------------ */
 
 interface Lay {
+    /** Lays the specified child onto this */
     operator fun plusAssign(child: Node)
+    /** Lays the specified children onto this */
     operator fun plusAssign(children: Collection<Node>) = children.forEach { this+=it }
+    /** Lays the specified children onto this */
     operator fun plusAssign(children: Sequence<Node>) = children.forEach { this+=it }
+    /**
+     * Lays the child produced by the specified block onto this if block is not null. Allows conditional content using
+     * [sp.it.pl.util.functional.supplyIf] and [sp.it.pl.util.functional.supplyUnless].
+     */
+    operator fun plusAssign(child: (() -> Node)?) {
+        if (child!=null) plusAssign(child())
+    }
 }
 
 class PaneLay(private val pane: Pane): Lay {

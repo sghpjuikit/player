@@ -282,6 +282,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             monitors.removeKey(widgetName)
         }
 
+        @Suppress("ConstantConditionIf")
         fun registerExternalFactory() {
             val srcFile = findSrcFile()
             val srcFiles = findSrcFiles().toList()
@@ -306,45 +307,22 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             logger.info { "Widget=$widgetName factory update, source files available=$srcFileAvailable class files available=$classFileAvailable" }
 
             if (classFileAvailable) {
-                // If class file is available, we just create factory for it.
                 val controllerType = loadClass(widgetDir.nameWithoutExtension, classFile, findLibFiles())
                 createFactory(controllerType, widgetDir)
             } else if (srcFileAvailable) {
-                // If only source file is available, compile
-                if (initialized) {
-                    // If we are initialized, app is running and some widget has been added (its factory
-                    // does not exist yet), so we compile in the bgr. Dir monitoring will lead us back to this method
-                    runOn(compilerThread) { compile() }
-                } else {
-                    // Else, we are initializing now, and we must be able to provide all factories before widgets start
-                    // loading so we compile on this thread. This blocks and delays startup, but that is what we need.
-                    // We register factory manually.
-                    compile().ifOk { registerExternalFactory() }
-                }
+                if (!widgets.blockInitialization || initialized) runOn(compilerThread) { compile() }
+                else compile().ifOk { registerExternalFactory() }
             }
         }
 
         private fun compile(): Try<Void, String> {
             logger.info { "Widget=$widgetName compiling..." }
 
-            val srcFile = findSrcFile()
-            val isKotlinMain = srcFile!=null && srcFile hasExtension "kt"
-            val isJavaMain = srcFile!=null && srcFile hasExtension "java"
             val srcFiles = findSrcFiles().toList()
             val hasKotlin = srcFiles.any { it hasExtension "kt" }
             val hasJava = srcFiles.any { it hasExtension "java" }
             val result = when {
-                hasJava && hasKotlin -> {
-                    when {
-                        isKotlinMain -> {
-                            Try.ok<String>()
-                                    .and { compileKotlin(srcFiles.asSequence().filter { it hasExtension "kt" }) }
-                                    .and { compileJava(srcFiles.asSequence().filter { it hasExtension "java" }) }
-                        }
-                        isJavaMain -> Try.error("Mixed Kotlin-Java source code for Java-based widget is not supported")
-                        else -> Try.error("No main widget source file available.")
-                    }
-                }
+                hasJava && hasKotlin -> Try.error("Mixed Java-Kotlin code not supported")
                 hasKotlin -> compileKotlin(srcFiles.asSequence())
                 hasJava -> compileJava(srcFiles.asSequence())
                 else -> Try.error("No source files available")
@@ -426,6 +404,10 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         @IsConfig(name = "Recompile all widgets", info = "Re-compiles every widget. Useful when auto-compilation is disabled or unsupported.")
         val recompile by cr { monitors.forEach { it.scheduleCompilation() } }
+
+        @IsConfig(name = "Wait to compile", info = "If application needs to compile widgets when it starts, it will delay start " +
+                "until compilation completes.  Otherwise app will start immediately and any open widgets will load later as they get compiled.")
+        val blockInitialization = false
 
         /** Widgets that are not part of layout. */
         private val standaloneWidgets: MutableList<Widget> = ArrayList()

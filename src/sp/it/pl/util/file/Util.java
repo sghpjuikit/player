@@ -144,23 +144,6 @@ public interface Util {
 	}
 
 	/**
-	 * Constructs list of Images from provided file list. Filters out unsupported
-	 * types.
-	 *
-	 * @return Empty if null or empty parameter or no results.
-	 */
-	static List<Image> FilesToImages(List<File> files) {
-		List<Image> list = new ArrayList<>();
-		for (File f : files) {
-			if (ImageFileFormat.isSupported(f.toURI())) {
-				Image img = new Image(f.toURI().toString());
-				list.add(img);
-			}
-		}
-		return list;
-	}
-
-	/**
 	 * Checks if there is at least one supported audio file in the list.
 	 *
 	 * @return true if the list contains at least one supported audio file.

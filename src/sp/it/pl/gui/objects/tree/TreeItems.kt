@@ -275,7 +275,6 @@ private fun doAction(o: Any?, otherwise: () -> Unit) {
         is javafx.stage.Window -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
         is File -> o.open()
         is Configurable<*> -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(o) }
-        is Name -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(APP.configuration.fields.filter { it.group==o.pathUp }) }
         is TreeItem<*> -> doAction(o.value, otherwise)
         is HierarchicalBase<*, *> -> doAction(o.`val`, otherwise)
         else -> otherwise()

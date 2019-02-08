@@ -34,9 +34,9 @@ import sp.it.pl.util.validation.Constraint.HasNonNullElements;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
-import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.conf.Config.VarList.NULL_SUPPLIER;
 import static sp.it.pl.util.dev.DebugKt.logger;
+import static sp.it.pl.util.dev.FailKt.failIf;
 import static sp.it.pl.util.functional.Try.error;
 import static sp.it.pl.util.functional.Try.ok;
 import static sp.it.pl.util.functional.Util.firstNotNull;
@@ -735,6 +735,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 	}
 
+	// TODO: handle unmodifiable lists properly, including at deserialization
 	public static class ListConfig<T> extends ConfigBase<ObservableList<T>> {
 
 		public final VarList<T> a;
@@ -743,6 +744,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		@SuppressWarnings("unchecked")
 		public ListConfig(String name, IsConfig c, VarList<T> val, String category, Set<Constraint<? super T>> constraints) {
 			super((Class) ObservableList.class, name, c, val.getValue(), category);
+			failIf(val.list.getClass().getSimpleName().toLowerCase().contains("unmodifiable")!=(c.editable()==EditMode.NONE));
 			a = val;
 			if (val.nullElements==Elements.NOT_NULL) constraints(new HasNonNullElements());
 			toConfigurable = val.toConfigurable.andApply(configurable -> {
@@ -753,7 +755,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 		@SuppressWarnings("unchecked")
 		public ListConfig(String name, String gui_name, VarList<T> val, String category, String info, EditMode editable) {
-			super((Class) ObservableList.class, name, gui_name, val.getValue(), category, info, editable);
+			super((Class) ObservableList.class, name, gui_name, val.getValue(), category, info, val.list.getClass().getSimpleName().toLowerCase().contains("unmodifiable") ? EditMode.NONE :  editable);
 			a = val;
 			toConfigurable = val.toConfigurable;
 		}
@@ -821,7 +823,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 						List<Config> configs = list(a.toConfigurable.apply(t).getFields());
 						List<String> values = split(s, ";");
 						if (configs.size()==values.size())
-							// its important to apply the values too
 							forEachBoth(configs, values, (c, v) -> c.setNapplyValue(c.ofS(v).getOr(null))); // TODO: wtf
 
 						return (T) (a.itemType.isAssignableFrom(configs.get(0).getType()) ? configs.get(0).getValue() : t);
@@ -840,6 +841,11 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 		static final Object[] EMPTY_ARRAY = {};
 		static final Supplier NULL_SUPPLIER = () -> null;
+		private static <T> Ƒ1<T, Configurable<?>> computeDefaultToConfigurable(Class<T> itemType) {
+			return Configurable.class.isAssignableFrom(itemType)
+				? f -> (Configurable<?>) f
+				: f -> Config.forValue(itemType, "Item", f);
+		}
 
 		public final Class<T> itemType;
 		public final ObservableList<T> list;
@@ -848,16 +854,16 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		private Elements nullElements;
 
 		public VarList(Class<T> itemType, Elements nullElements) {
-			this(itemType, () -> null, f -> Config.forValue(itemType, APP.className.get(itemType), f));
+			this(itemType, () -> null, computeDefaultToConfigurable(itemType));
 			this.nullElements = nullElements;
 		}
 
 		public VarList(Class<T> itemType, Elements nullElements, ObservableList<T> items) {
-			this(itemType, () -> null, f -> Config.forValue(itemType, APP.className.get(itemType), f), items);
+			this(itemType, () -> null, computeDefaultToConfigurable(itemType), items);
 			this.nullElements = nullElements;
 		}
 
-		public VarList(Class<T> itemType, Supplier<? extends T> factory, Ƒ1<T,Configurable<?>> toConfigurable, ObservableList<T> items) {
+		public VarList(Class<T> itemType, Supplier<? extends T> factory, Ƒ1<? super T, ? extends Configurable<?>> toConfigurable, ObservableList<T> items) {
 			super(items);
 			this.list = items;
 			this.itemType = itemType;
@@ -867,7 +873,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		}
 
 		@SafeVarargs
-		public VarList(Class<T> itemType, Supplier<? extends T> factory, Ƒ1<T,Configurable<?>> toConfigurable, T... items) {
+		public VarList(Class<T> itemType, Supplier<? extends T> factory, Ƒ1<? super T, ? extends Configurable<?>> toConfigurable, T... items) {
 			this(itemType, factory, toConfigurable, observableArrayList(items));
 		}
 

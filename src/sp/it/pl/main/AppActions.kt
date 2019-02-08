@@ -165,7 +165,7 @@ class AppActions {
                     content = anchorPane {
                         lay(20) += componentRoot
                     }
-                    if (c is Widget<*>) {
+                    if (c is Widget) {
                         val parent = this
                         c.controller.getFieldOrThrow("closeOnLaunch").value = true
                         c.controller.getFieldOrThrow("closeOnRightClick").value = true

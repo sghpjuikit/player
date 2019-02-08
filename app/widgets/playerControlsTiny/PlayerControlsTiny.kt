@@ -65,7 +65,7 @@ import java.lang.Double.max
         year = "2015",
         group = Widget.Group.PLAYBACK
 )
-class PlayerControlsTiny(widget: Widget<*>): SimpleController(widget), PlaybackFeature, HorizontalDock {
+class PlayerControlsTiny(widget: Widget): SimpleController(widget), PlaybackFeature, HorizontalDock {
 
     @FXML lateinit var layout: HBox
     @FXML lateinit var controlBox: HBox

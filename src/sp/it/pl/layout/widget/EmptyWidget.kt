@@ -20,7 +20,7 @@ import java.io.ObjectStreamException
         group = Widget.Group.OTHER
 )
 @ExperimentalController
-class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller {
+class EmptyWidget: Widget("Empty", emptyWidgetFactory), Controller {
 
     override val ownerWidget = this
     override val ownedInputs = Inputs()

@@ -58,7 +58,7 @@ public class Voronoi extends SimpleController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Voronoi.class);
 	private final RenderNode canvas = new RenderNode();
 
-	public Voronoi(Widget<?> widget) {
+	public Voronoi(Widget widget) {
 		super(widget);
 
 		getChildren().add(canvas);

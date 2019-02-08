@@ -103,7 +103,7 @@ public class AlbumView extends SimpleController {
 	final ExecutorService executorImage = oneThreadExecutor(); // 2 threads perform better, but cause bugs
 
 	@SuppressWarnings("unchecked")
-	public AlbumView(Widget<?> widget) {
+	public AlbumView(Widget widget) {
 		super(widget);
 
 		view.search.field = VALUE;

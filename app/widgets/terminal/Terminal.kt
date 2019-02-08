@@ -37,7 +37,7 @@ import java.io.File
         year = "2015",
         group = Widget.Group.DEVELOPMENT
 )
-class Terminal(widget: Widget<*>): SimpleController(widget) {
+class Terminal(widget: Widget): SimpleController(widget) {
 
     private val tConfig = TerminalConfig()
     private val tBuilder = TerminalBuilder(tConfig)

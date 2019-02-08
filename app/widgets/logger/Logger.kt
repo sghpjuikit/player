@@ -21,7 +21,7 @@ import sp.it.pl.util.reactive.syncFrom
         year = "2015",
         group = Widget.Group.DEVELOPMENT
 )
-class Logger(widget: Widget<*>): SimpleController(widget), TextDisplayFeature {
+class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
 
     @IsConfig(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
     private val wrapText by cv(false)

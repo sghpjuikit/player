@@ -37,9 +37,9 @@ class WidgetArea: Area<Container<*>> {
     @FXML private lateinit var content: AnchorPane
     @FXML lateinit var content_padding: StackPane
     @JvmField val controls: AreaControls
-    private val widget: Widget<*>
+    private val widget: Widget
     private val disposer = Disposer()
-    private val passiveLoadPane = SingleR<Placeholder, Widget<*>>(
+    private val passiveLoadPane = SingleR<Placeholder, Widget>(
             { Placeholder(IconOC.UNFOLD, "") { loadWidget(true) } },
             { ph, w -> ph.desc.text = "Unfold ${w.custom_name.value} (Left Click)" }
     )
@@ -51,7 +51,7 @@ class WidgetArea: Area<Container<*>> {
      * @param index index of the widget within the container
      * @param widget widget that will be managed and displayed
      */
-    constructor(container: Container<*>, index: Int, widget: Widget<*>): super(container, index) {
+    constructor(container: Container<*>, index: Int, widget: Widget): super(container, index) {
         this.widget = widget
         this.widget.parentTemp = this.container
         this.widget.areaTemp = this

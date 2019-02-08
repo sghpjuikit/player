@@ -239,7 +239,7 @@ public class Comet extends SimpleController {
 	final Text message = new Text();
 	final Game game = new Game();
 
-	public Comet(Widget<?> widget) {
+	public Comet(Widget widget) {
 		super(widget);
 
 		// message

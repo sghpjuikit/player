@@ -10,7 +10,7 @@ import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.util.reactive.Disposer
 import java.util.HashMap
 
-open class SimpleController(@JvmField val widget: Widget<*>): AnchorPane(), Controller, MultiConfigurable {
+open class SimpleController(@JvmField val widget: Widget): AnchorPane(), Controller, MultiConfigurable {
 
     override val ownerWidget = widget
     @JvmField val onClose = Disposer()

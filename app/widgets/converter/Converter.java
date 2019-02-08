@@ -142,7 +142,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     private final Applier applier = new Applier();
     private final HBox layout = new HBox(5,outTFBox, applier.root);
 
-    public Converter(Widget<?> widget) {
+    public Converter(Widget widget) {
 	    super(widget);
 
         inputs.create("Input", Object.class, this::setData);
@@ -588,10 +588,13 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         ConfigPane<EditArea> ins;
 
         InsSimple(Act<?> a) {
-            ins = new ConfigPane<>(map(a.names.get(), name -> {
-                V<EditArea> input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in), tas);
-                return Config.forProperty(EditArea.class, name, input);
-            }));
+            ins = new ConfigPane<>();
+            ins.configure(
+                map(a.names.get(), name -> {
+                    V<EditArea> input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in), tas);
+                    return Config.forProperty(EditArea.class, name, input);
+                })
+            );
         }
 
         public Node node() {

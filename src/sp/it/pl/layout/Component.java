@@ -142,7 +142,7 @@ public abstract class Component {
 	}
 
 	public String getExportName() {
-		return this instanceof Widget ? ((Widget<?>) this).custom_name.getValue() : getName();
+		return this instanceof Widget ? ((Widget) this).custom_name.getValue() : getName();
 	}
 
 	public void swapWith(Container c, int i) {

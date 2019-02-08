@@ -164,21 +164,21 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     }
             )
     )
-    ap.register<Widget<*>>(
+    ap.register<Widget>(
             FastAction(
                     "Use as default",
                     "Uses settings of this widget as default settings when creating widgets of this type. This " +
                     "overrides the default settings of the widget set by the developer. For using multiple widget " +
                     "configurations at once, use 'Export' instead.",
                     IconMD.SETTINGS_BOX,
-                    { w -> w.storeDefaultConfigs() }
+                    { it.storeDefaultConfigs() }
             ),
             FastAction(
                     "Clear default",
                     "Removes overridden default settings for this widget. New widgets will start with settings set " +
                     "by the developer.",
                     IconMD.SETTINGS_BOX,
-                    { w -> w.clearDefaultConfigs() }
+                    { it.clearDefaultConfigs() }
             )
     )
     ap.register<Item>(

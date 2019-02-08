@@ -428,14 +428,14 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         val recompile by cr { monitors.forEach { it.scheduleCompilation() } }
 
         /** Widgets that are not part of layout. */
-        private val standaloneWidgets: MutableList<Widget<*>> = ArrayList()
+        private val standaloneWidgets: MutableList<Widget> = ArrayList()
 
-        private fun Widget<*>.initAsStandalone() {
+        private fun Widget.initAsStandalone() {
             standaloneWidgets += this
             onClose += { standaloneWidgets -= this }
         }
 
-        fun findAll(source: WidgetSource): Stream<Widget<*>> = when (source) {
+        fun findAll(source: WidgetSource): Stream<Widget> = when (source) {
             WidgetSource.OPEN_LAYOUT -> layouts.findAllActive().flatMap { it.allWidgets }
             WidgetSource.OPEN_STANDALONE, WidgetSource.NO_LAYOUT -> standaloneWidgets.stream()
             WidgetSource.NEW -> Stream.empty()
@@ -460,7 +460,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
          * @return optional of widget fulfilling condition or empty if not available
          */
         @JvmOverloads
-        fun find(filter: (WidgetInfo) -> Boolean, source: WidgetSource, silent: Boolean = false): Optional<Widget<*>> {
+        fun find(filter: (WidgetInfo) -> Boolean, source: WidgetSource, silent: Boolean = false): Optional<Widget> {
 
             // get preferred type
             val preferred = factories.getFactories()
@@ -476,7 +476,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                     .filter { if (preferred==null) true else it.info.nameGui()==preferred }
                     .toList()
 
-            val out: Widget<*>? = null
+            val out: Widget? = null
                     ?: widgets.find { it.preferred.value }
                     ?: widgets.firstOrNull()
                     ?: runIf(source.newWidgetsAllowed()) {
@@ -505,7 +505,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         /** Equivalent to: `find({ it.name()==name || it.nameGui()==name }, source, ignore)` */
         @JvmOverloads
-        fun find(name: String, source: WidgetSource, ignore: Boolean = false): Optional<Widget<*>> =
+        fun find(name: String, source: WidgetSource, ignore: Boolean = false): Optional<Widget> =
                 find({ it.name()==name || it.nameGui()==name }, source, ignore)
 
         /** Equivalent to: `find(feature, source).ifPresent(action)` */
@@ -517,10 +517,10 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 use(T::class.java, source, action)
 
         /** Equivalent to: `find(cond, source).ifPresent(action)` */
-        fun use(cond: (WidgetInfo) -> Boolean, source: WidgetSource, action: (Widget<*>) -> Unit) =
+        fun use(cond: (WidgetInfo) -> Boolean, source: WidgetSource, action: (Widget) -> Unit) =
                 find(cond, source).ifPresent(action)
 
-        fun use(name: String, source: WidgetSource, ignore: Boolean = false, action: (Widget<*>) -> Unit) =
+        fun use(name: String, source: WidgetSource, ignore: Boolean = false, action: (Widget) -> Unit) =
                 find(name, source, ignore).ifPresent(action)
 
         /** Select next widget or the first if no selected among the widgets in the specified window. */
@@ -635,7 +635,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                     ?.let { URLClassLoader(it) }
         }
 
-        private fun <R> Optional<Widget<*>>.filterIsControllerInstance(type: Class<R>): Optional<R> =
+        private fun <R> Optional<Widget>.filterIsControllerInstance(type: Class<R>): Optional<R> =
                 map { it.controller }.filter(type::isInstance).map { type.cast(it) }
 
         private fun Collection<File>.lastModifiedMax() = asSequence().map { it.lastModified() }.max()

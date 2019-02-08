@@ -57,7 +57,7 @@ interface Controller: CachedConfigurable<Any>, Locatable {
     fun focus() {}
 
     /** @return widget owning this controller */
-    val ownerWidget: Widget<*>
+    val ownerWidget: Widget
 
     /**
      * Executes immediately before widget is closed. Widget is not
@@ -98,7 +98,7 @@ interface Controller: CachedConfigurable<Any>, Locatable {
 }
 
 /** Controller for [Widget] with no [sp.it.pl.layout.widget.WidgetFactory]. */
-class NoFactoryController(widget: Widget<*>): SimpleController(widget) {
+class NoFactoryController(widget: Widget): SimpleController(widget) {
     init {
         layFullArea += stackPane {
             lay += label("Widget ${widget.name} is not recognized")
@@ -107,7 +107,7 @@ class NoFactoryController(widget: Widget<*>): SimpleController(widget) {
 }
 
 /** Controller for [Widget] that fails to instantiate its controller. */
-class LoadErrorController(widget: Widget<*>): SimpleController(widget) {
+class LoadErrorController(widget: Widget): SimpleController(widget) {
     init {
         layFullArea += stackPane {
             lay += label("Widget ${widget.name} failed to load properly")

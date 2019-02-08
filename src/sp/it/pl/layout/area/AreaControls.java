@@ -268,7 +268,7 @@ public final class AreaControls {
     }
 
     void settings() {
-        Widget<?> w = area.getWidget();
+        Widget w = area.getWidget();
 
         if (APP.ui.getOpenStrategy().getValue()==POPUP) {
             APP.windowManager.showSettings(w,propB);

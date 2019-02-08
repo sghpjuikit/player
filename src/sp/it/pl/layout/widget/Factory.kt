@@ -17,7 +17,7 @@ interface ComponentFactory<out T: Component>: ComponentInfo {
 
 /** Component factory that creates widgets. */
 @Widget.Info
-class WidgetFactory<C: Controller>: ComponentFactory<Widget<C>>, WidgetInfo {
+class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
 
     val controllerType: Class<C>
     val location: File
@@ -72,7 +72,7 @@ class WidgetFactory<C: Controller>: ComponentFactory<Widget<C>>, WidgetInfo {
     override fun group() = group
     override fun type() = controllerType
 
-    override fun create(): Widget<C> = Widget(name, this)
+    override fun create(): Widget = Widget(name, this)
 
     override fun toString() = "${javaClass.simpleName} $name $nameGui $controllerType"
 

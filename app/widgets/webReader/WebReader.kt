@@ -35,7 +35,7 @@ import sp.it.pl.web.WebBarInterpreter
         group = OTHER
 )
 @ExperimentalController
-class WebReader(widget: Widget<*>): SimpleController(widget) {
+class WebReader(widget: Widget): SimpleController(widget) {
 
     @FXML private lateinit var addressBar: TextField
     @FXML private lateinit var webView: WebView

@@ -30,7 +30,7 @@ abstract class Area<T: Container<*>>: ContainerNode {
     }
 
     /** @return the primary component */
-    abstract fun getWidget(): Widget<*>
+    abstract fun getWidget(): Widget
 
     /** Detaches the primary component into standalone content in new window. */
     open fun detach() {

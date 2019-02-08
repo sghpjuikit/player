@@ -49,7 +49,7 @@ import java.util.ArrayList
         year = "2016",
         group = Widget.Group.APP
 )
-class Configurator(widget: Widget<*>): SimpleController(widget), ConfiguringFeature {
+class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature {
 
     @FXML private lateinit var groups: TreeView<Name>
     @FXML private lateinit var controls: Pane

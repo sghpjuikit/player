@@ -68,7 +68,7 @@ import java.io.File
         year = "2015",
         group = Widget.Group.APP
 )
-class Inspector(widget: Widget<*>): SimpleController(widget), FileExplorerFeature, Opener {
+class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, Opener {
     private val tree = buildTreeView<Any>()
     private val outSelected: Output<Any?> = outputs.create(widget.id, "Selected", Any::class.java, null)
     private var highlighted: Node? = null

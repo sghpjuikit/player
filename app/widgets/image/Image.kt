@@ -29,7 +29,7 @@ import java.io.File
         year = "2015",
         group = OTHER
 )
-class Image(widget: Widget<*>): SimpleController(widget), ImageDisplayFeature {
+class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
 
     private val thumb = Thumbnail()
 

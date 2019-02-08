@@ -264,13 +264,13 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      * @return widgets
      */
     @SuppressWarnings("unchecked")
-    public Stream<Widget<Controller>> getAllWidgets() {
-        List<Widget<Controller>> out = new ArrayList<>();
+    public Stream<Widget> getAllWidgets() {
+        List<Widget> out = new ArrayList<>();
         for (Component w: getChildren().values()) {
             if (w instanceof Container)
                 out.addAll(((Container<?>)w).getAllWidgets().collect(toList()));
             else if (w instanceof Widget)
-                out.add((Widget<Controller>) w);
+                out.add((Widget) w);
         }
         return out.stream();
     }

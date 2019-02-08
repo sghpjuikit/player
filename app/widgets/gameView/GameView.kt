@@ -109,7 +109,7 @@ import java.util.HashMap
 import java.util.concurrent.TimeUnit.MINUTES
 import kotlin.streams.asSequence
 
-class GameView(widget: Widget<*>): SimpleController(widget) {
+class GameView(widget: Widget): SimpleController(widget) {
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     val cellSize by cv(CellSize.NORMAL) { v(it).initAttach { applyCellSize() } }

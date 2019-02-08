@@ -110,7 +110,7 @@ public class AppLauncher extends SimpleController {
     @IsConfig(name = "Close on right click", info = "Close this widget when right click is detected.")
     final V<Boolean> closeOnRightClick = new V<>(false);
 
-    public AppLauncher(Widget<?> widget) {
+    public AppLauncher(Widget widget) {
         super(widget);
 
         setPrefSize(500,500);

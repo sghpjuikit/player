@@ -80,7 +80,7 @@ import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
  * standalone object if implementation allows). The type of widget influences
  * the lifecycle.
  */
-public class Widget<C extends Controller> extends Component implements CachedCompositeConfigurable<Object>, Locatable {
+public class Widget extends Component implements CachedCompositeConfigurable<Object>, Locatable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
 	private static final Set<String> ignoredConfigs = set("Is preferred", "Is ignored", "Custom name"); // avoids data duplication
@@ -99,9 +99,9 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	 * still point to the old factory, holding true to the description of this field.
 	 */
 	@Dependency("name - accessed using reflection by name")
-	@XStreamOmitField public final WidgetFactory<C> factory;
+	@XStreamOmitField public final WidgetFactory<?> factory;
 	@XStreamOmitField protected Node root;
-	@XStreamOmitField protected C controller;
+	@XStreamOmitField protected Controller controller;
 
 	@XStreamOmitField private HashMap<String,Config<Object>> configs = new HashMap<>();
 
@@ -143,7 +143,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	@IsConfig(name = "Focused", info = "Whether widget is active/focused.", editable = EditMode.APP)
 	@XStreamOmitField public final V<Boolean> focused = new V<>(false); // TODO: make read-only
 
-	public Widget(String name, WidgetFactory<C> factory) {
+	public Widget(String name, WidgetFactory<?> factory) {
 		this.name = name;
 		this.factory = factory;
 		custom_name.setValue(name);
@@ -190,7 +190,6 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	 *
 	 * @return graphical content of this widget
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public Node load() {
 		if (root==null) {
@@ -199,7 +198,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 			if (controller==null) {
 				LoadErrorController c = new LoadErrorController(this);
 				root = c.loadFirstTime();
-				controller = (C) c;
+				controller = c;
 			} else {
 				try {
 					root = controller.loadFirstTime();
@@ -219,7 +218,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 				} catch (Throwable e) {
 					LoadErrorController c = new LoadErrorController(this);
 					root = c.loadFirstTime();
-					controller = (C) c;
+					controller = c;
 					LOGGER.error("Widget={} graphics creation failed.", name, e);
 				}
 			}
@@ -235,16 +234,16 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	}
 
 	@SuppressWarnings("unchecked")
-	private C instantiateController() {
+	private Controller instantiateController() {
 		restoreDefaultConfigs();
 
 		// instantiate controller
-		Class<C> cc = factory.getControllerType();
+		Class<Controller> cc = (Class) factory.getControllerType();
 		LOGGER.info("Instantiating widget controller " + cc);
-		C c = firstNotNull(
+		Controller c = firstNotNull(
 			() -> {
 				try {
-					Constructor<C> ccc = cc.getDeclaredConstructor(Widget.class);
+					Constructor<Controller> ccc = cc.getDeclaredConstructor(Widget.class);
 					LOGGER.debug("Instantiating widget controller using 1 arg constructor");
 					return ccc.newInstance(this);
 				} catch (NoSuchMethodException e) {
@@ -256,9 +255,9 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 			},
 			() -> {
 				try {
-					Constructor<C> ccc = cc.getDeclaredConstructor();
+					Constructor<Controller> ccc = cc.getDeclaredConstructor();
 					LOGGER.debug("Instantiating widget controller using 0 arg constructor");
-					C cn = ccc.newInstance();
+					Controller cn = ccc.newInstance();
 
 					// inject this widget into the controller
 					try {
@@ -328,7 +327,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	 *
 	 * @return controller of the widget or null if widget has not been loaded yet.
 	 */
-	public C getController() {
+	public Controller getController() {
 		return controller;
 	}
 
@@ -385,7 +384,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	 *
 	 * @param w widget to copy state from
 	 */
-	public void setStateFrom(Widget<? extends C> w) {
+	public void setStateFrom(Widget w) {
 		// if widget was loaded we store its latest state, otherwise it contains serialized pme
 		if (w.controller!=null)
 			w.storeConfigs();
@@ -430,11 +429,6 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	}
 
 /******************************************************************************/
-
-	/** @return whether this widget is empty - empty widget has no graphics. */
-	public boolean isNone() {
-		return this instanceof EmptyWidget;
-	}
 
 	/**
 	 * Returns singleton list containing the controller of this widget
@@ -497,7 +491,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		}
 		if (factory==null) {
 			Util.setField(this, "factory", getEmptyWidgetFactory());
-			controller = (C) new NoFactoryController(this);
+			controller = new NoFactoryController(this);
 		}
 
 		if (configs==null) configs = new HashMap<>();

@@ -69,7 +69,7 @@ import java.io.File
         year = "2014",
         group = Widget.Group.PLAYBACK
 )
-class PlayerControls(widget: Widget<*>): SimpleController(widget), PlaybackFeature {
+class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature {
 
     @FXML lateinit var controlPanel: BorderPane
     @FXML lateinit var soundPane: HBox

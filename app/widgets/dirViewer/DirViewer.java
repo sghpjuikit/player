@@ -125,7 +125,7 @@ public class DirViewer extends SimpleController {
     File lastVisited = null;
     Item item = null;   // item, children of which are displayed
 
-    public DirViewer(Widget<?> widget) {
+    public DirViewer(Widget widget) {
         super(widget);
 
         files.onListInvalid(list -> revisitTop());

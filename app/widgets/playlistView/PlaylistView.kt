@@ -80,7 +80,7 @@ import kotlin.streams.asSequence
         year = "2015",
         group = Group.PLAYLIST
 )
-class PlaylistView(widget: Widget<*>): SimpleController(widget), PlaylistFeature {
+class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
     private val playlist = computeInitialPlaylist(widget.id)
     private val table = PlaylistTable(playlist)

@@ -36,7 +36,7 @@ import static javafx.util.Duration.seconds;
 @LegacyController
 public class Spectrum extends SimpleController {
 
-	public Spectrum(Widget<?> widget) {
+	public Spectrum(Widget widget) {
     	super(widget);
 
 		SpectrumNode n = new SpectrumNode();

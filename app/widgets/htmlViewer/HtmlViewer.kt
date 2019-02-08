@@ -22,7 +22,7 @@ import sp.it.pl.util.reactive.sync
         group = Widget.Group.OTHER
 )
 @ExperimentalController
-class HtmlViewer(widget: Widget<*>): SimpleController(widget) {
+class HtmlViewer(widget: Widget): SimpleController(widget) {
 
     val editor = HTMLEditor()
     val text = v("").initAttach { editor.htmlText = it }

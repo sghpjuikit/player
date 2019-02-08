@@ -54,7 +54,7 @@ typealias VNum = V<Double>
         year = "2015",
         group = DEVELOPMENT
 )
-class FunctionViewer(widget: Widget<*>): SimpleController(widget) {
+class FunctionViewer(widget: Widget): SimpleController(widget) {
     private val function = v(StrExF.fromString("x").orThrow).initAttach { plotAnimated(it) }
     private val functionConfigField = ConfigField.create(Config.forProperty(StrExF::class.java, "Function", function))
     private val xMin: VNum = v(-1.0).initAttach { plot() }

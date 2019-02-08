@@ -81,7 +81,7 @@ private fun Any?.orNone(): Any = this ?: "<none>"
 @Suppress("UNCHECKED_CAST", "RemoveExplicitTypeArguments")
 fun <T> tree(o: T): TreeItem<T> = when (o) {
     is TreeItem<*> -> o
-    is Widget<*> -> WidgetItem(o)
+    is Widget -> WidgetItem(o)
     is WidgetFactory<*> -> SimpleTreeItem(o)
     is Widget.Group -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(OPEN).asSequence().filter { it.info.group()==o }.sortedBy { it.name } })
     is WidgetSource -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(o).asSequence().sortedBy { it.name } })
@@ -331,7 +331,7 @@ open class STreeItem<T> constructor(v: T, private val childrenLazy: () -> Sequen
 
 class NodeTreeItem(value: Node): OTreeItem<Node>(value, (value as? Parent)?.childrenUnmodifiable ?: emptyObservableList())
 
-class WidgetItem(v: Widget<*>): STreeItem<Any>(v, { seqOf(v.areaTemp?.root).filterNotNull() }, { false })
+class WidgetItem(v: Widget): STreeItem<Any>(v, { seqOf(v.areaTemp?.root).filterNotNull() }, { false })
 
 class LayoutItem(v: Component): STreeItem<Component>(v, { if (v is Container<*>) v.children.values.asSequence() else seqOf()})
 

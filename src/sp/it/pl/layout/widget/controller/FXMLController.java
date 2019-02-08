@@ -25,7 +25,7 @@ abstract public class FXMLController implements Controller {
 
 	@SuppressWarnings("ConstantConditionalExpression")
 	@Dependency("DO NOT RENAME - accessed using reflection")
-	public final Widget<?> widget = true ? null : null;
+	public final Widget widget = true ? null : null;
 	@Dependency("DO NOT RENAME - accessed using reflection")
 	public final boolean isInitialized = false;
 	private Node root = null;
@@ -36,7 +36,7 @@ abstract public class FXMLController implements Controller {
 	public final List<Subscription> onClose = new ArrayList<>();
 
 	@Override
-	public Widget<?> getOwnerWidget() {
+	public Widget getOwnerWidget() {
 		noNull(widget);
 		return widget;
 	}

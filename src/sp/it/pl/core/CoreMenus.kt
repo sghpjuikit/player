@@ -174,7 +174,7 @@ object CoreMenus: Core {
 
     override fun dispose() {}
 
-    private inline fun <reified W> Menu.widgetItems(crossinline action: (W) -> Unit) = items(
+    private inline fun <reified W> Menu.widgetItems(noinline action: (W) -> Unit) = items(
             source = APP.widgetManager.factories.getFactoriesWith<W>(),
             text = { it.nameGui() },
             action = { it.use(WidgetSource.NO_LAYOUT) { action(it) } }

@@ -78,10 +78,7 @@ public class MetadataReader {
 				List<Metadata> metadatas = new ArrayList<>();
 
 				for (Item item : items) {
-
-					if (isCancelled()) {
-						return metadatas;
-					}
+					if (isCancelled()) return metadatas;
 
 					Metadata m = readMetadata(item);
 					// on fail
@@ -120,10 +117,7 @@ public class MetadataReader {
 				List<Item> skipped = new ArrayList<>(0);
 
 				for (Item item : input) {
-					if (isCancelled()) {
-						logger(MetadataReader.class).info("Metadata reading was canceled.");
-						break;
-					}
+					if (isCancelled()) break;
 
 					Metadata m;
 					try {
@@ -152,12 +146,14 @@ public class MetadataReader {
 					updateSkipped(skipped.size());
 				}
 
-				APP.db.addItems(converted);
+				if (!isCancelled()) {
+					APP.db.addItems(converted);
 
-				// update progress
-				updateMessage(all.size(), processed.size());
-				updateProgress(processed.size(), all.size());
-				updateSkipped(skipped.size());
+					// update progress
+					updateMessage(all.size(), processed.size());
+					updateProgress(processed.size(), all.size());
+					updateSkipped(skipped.size());
+				}
 
 				return new Result<>(all, processed, converted, skipped);
 			}
@@ -199,11 +195,13 @@ public class MetadataReader {
 					updateProgress(completed, all);
 				}
 
-				APP.db.removeItems(removedItems);
+				if (!isCancelled()) {
+					APP.db.removeItems(removedItems);
 
-				// update state
-				updateMessage(all, completed, removed);
-				updateProgress(completed, all);
+					// update state
+					updateMessage(all, completed, removed);
+					updateProgress(completed, all);
+				}
 
 				return null;
 			}

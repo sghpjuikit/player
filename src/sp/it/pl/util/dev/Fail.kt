@@ -31,3 +31,9 @@ fun failIfFinal(field: Field) = failIf(Modifier.isFinal(field.modifiers)) { "Fin
 
 /** Throw runtime exception if this field is not final. */
 fun failIfNotFinal(field: Field) = failIf(!Modifier.isFinal(field.modifiers)) { "Non final field forbidden. Field=${field.declaringClass}.${field.name}" }
+
+/** Invokes [Thread.interrupted] and if the result is true, throws [InterruptedException]. */
+@Throws(InterruptedException::class)
+fun failIfInterrupted() {
+    if (Thread.interrupted()) throw InterruptedException()
+}

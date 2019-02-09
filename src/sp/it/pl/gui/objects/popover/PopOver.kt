@@ -221,8 +221,8 @@ open class PopOver<N: Node>(): PopupControl() {
     /** Show/hide animation. */
     private val animation by lazy {
         anim {
-            getSkinn().node.opacity = it*it
-            // getSkinn().node.setScaleXYByTo(it, -20.0, 0.0)  // TODO: causes slight position shift sometimes
+            skinn.node.opacity = it*it
+            // skinn.node.setScaleXYByTo(it, -20.0, 0.0)  // TODO: causes slight position shift sometimes
         }
     }
 
@@ -234,8 +234,9 @@ open class PopOver<N: Node>(): PopupControl() {
     @Suppress("UNCHECKED_CAST")
     fun <T: Node> changeContentType(): PopOver<T> = apply { contentNode.set(null) } as PopOver<T>
 
-    /** @return concrete skin implementation (unlike [PopOver.getSkin]) */
-    fun getSkinn(): PopOverSkin = skin as PopOverSkin
+    /** Concrete skin implementation (unlike [PopOver.getSkin]). */
+    val skinn: PopOverSkin
+        get() = skin as? PopOverSkin ?: fail { "Skin must extend ${PopOverSkin::class}" }
 
     init {
         fun initCloseWithOwner() {

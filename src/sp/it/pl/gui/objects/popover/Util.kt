@@ -88,7 +88,7 @@ enum class ScreenPos {
     fun <N: Node> computeXY(popup: PopOver<N>) = P(computeX(popup), computeY(popup))
 
     private fun <N: Node> computeX(popup: PopOver<N>): Double {
-        val w = popup.getSkinn().node.width
+        val w = popup.skinn.node.width
         val screen = if (isAppCentric()) null else getScreenForMouse().bounds
         //				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screenPreference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
         val app = APP.windowManager.main.orElse(null)
@@ -103,7 +103,7 @@ enum class ScreenPos {
     }
 
     private fun <N: Node> computeY(popup: PopOver<N>): Double {
-        val h = popup.getSkinn().node.height
+        val h = popup.skinn.node.height
         val screen = if (isAppCentric()) null else getScreenForMouse().bounds
         //				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screenPreference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
         val app = APP.windowManager.main.orElse(null)

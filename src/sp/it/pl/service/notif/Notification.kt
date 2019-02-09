@@ -38,7 +38,7 @@ class Notification: PopOver<Node>() {
         cornerRadius.value = 0.0
         isAutoFix = false
         isAutoHide = false
-        getSkinn().setTitleAsOnlyHeaderContent(true)
+        skinn.setTitleAsOnlyHeaderContent(true)
         styleClass += "notification"
 
         contentNode.value = root.apply {

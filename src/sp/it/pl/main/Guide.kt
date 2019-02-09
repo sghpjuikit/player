@@ -57,7 +57,7 @@ import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.text.keys
 import java.util.ArrayList
 
-class Guide(guideEvents: EventSource<Any>? = null): MultiConfigurableBase("${Settings.PLUGINS}.Guide") {
+class Guide(guideEvents: EventSource<Any> = EventSource()): MultiConfigurableBase("${Settings.PLUGINS}.Guide") {
 
     @IsConfig(name = "Hint", editable = EditMode.APP)
     private var at by c(-1)
@@ -71,7 +71,7 @@ class Guide(guideEvents: EventSource<Any>? = null): MultiConfigurableBase("${Set
     private var prevAt = -1
     private val guideTitleText = v("")
     private val guideText = v("")
-    private val guideEvents = (guideEvents ?: EventSource()).apply { subscribe { handleAction(it) } }
+    private val guideEvents = guideEvents.apply { subscribe { handleAction(it) } }
     private val popup = lazy { buildPopup() }
     private val popupContent: VBox by lazy { buildContent() }
     private val eventConsumer = Event::consume
@@ -124,7 +124,7 @@ class Guide(guideEvents: EventSource<Any>? = null): MultiConfigurableBase("${Set
         isAutoHide = false
         isHideOnClick = false
         isHideOnEscape = true
-        getSkinn().contentPadding = Insets(8.0)
+        skinn.contentPadding = Insets(8.0)
         arrowSize.value = 0.0
         detached.value = true
         onHiding = EventHandler { runFX(20.millis) { hints.h03_guideClose.proceedIfActive() } }

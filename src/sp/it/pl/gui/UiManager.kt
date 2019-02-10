@@ -29,7 +29,8 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.file.FileMonitor
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.childOf
-import sp.it.pl.util.file.isParentOf
+import sp.it.pl.util.file.div
+import sp.it.pl.util.file.isAnyParentOf
 import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.functional.Util.set
 import sp.it.pl.util.functional.net
@@ -289,7 +290,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
 
             val refreshAlways = true    // skins may import each other hence it is more convenient to refresh always
             val currentSkinDir = skinDir.childOf(skin.get())
-            val isActive = currentSkinDir.isParentOf(file)
+            val isActive = currentSkinDir isAnyParentOf file
             if (isActive || refreshAlways) reloadSkin()
         }
     }
@@ -327,7 +328,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     }
 
     private fun Parent.applySkinGui(skin: String) {
-        val skinFile = skinDir.childOf(skin, "$skin.css")
+        val skinFile = skinDir/skin/"$skin.css"
         val urlOld = properties[skinKey] as String?
         val urlNew = try {
             skinFile.toURI().toURL().toExternalForm()

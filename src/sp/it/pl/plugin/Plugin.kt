@@ -6,15 +6,15 @@ import sp.it.pl.util.Locatable
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.util.dev.Idempotent
-import sp.it.pl.util.file.childOf
+import sp.it.pl.util.file.div
 
 /** Plugin is like Service, but with no API to consume so developer never uses it directly. */
 interface Plugin: Configurable<Any>, MultiConfigurable, Locatable {
 
     val name: String
     override val configurableDiscriminant get() = "${Settings.PLUGINS}.$name"
-    override val location get() = APP.DIR_APP.childOf("plugins", name)
-    override val userLocation get() = APP.DIR_USERDATA.childOf("plugins", name)
+    override val location get() = APP.DIR_APP/"plugins"/name
+    override val userLocation get() = APP.DIR_USERDATA/"plugins"/name
 
     @Idempotent
     fun start()

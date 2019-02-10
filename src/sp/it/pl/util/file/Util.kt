@@ -46,29 +46,18 @@ fun File.find1stExistingParentDir(): Try<File, Void> = when {
 /** Equivalent to [File.childOf]. Allows for intuitive `File(...)/"..."/"..."` notation for resolving Files. */
 operator fun File.div(childName: String) = childOf(childName)
 
-fun File.childOf(childName: String) =
-        File(this, childName)
+/** @return child of this file, equivalent to `File(this, childName)`. */
+fun File.childOf(childName: String) = File(this, childName)
 
-fun File.childOf(childName: String, childName2: String) =
-        childOf(childName).childOf(childName2)
+fun File.childOf(vararg childNames: String) = childNames.fold(this, File::childOf)
 
-fun File.childOf(childName: String, childName2: String, childName3: String) =
-        childOf(childName, childName2).childOf(childName3)
+infix fun File.isChildOf(parent: File) = parent.isParentOf(this)
 
-fun File.childOf(vararg childNames: String) =
-        childNames.fold(this, File::childOf)
+infix fun File.isAnyChildOf(parent: File) = parent.isAnyParentOf(this)
 
-infix fun File.isChildOf(parent: File) =
-        parent.isParentOf(this)
+infix fun File.isParentOf(child: File) = child.parentDir==this
 
-infix fun File.isAnyChildOf(parent: File) =
-        parent.isAnyParentOf(this)
-
-infix fun File.isParentOf(child: File) =
-        child.parentDir==this
-
-infix fun File.isAnyParentOf(child: File) =
-        generateSequence(child) { it.parentDir }.any { isParentOf(it) }
+infix fun File.isAnyParentOf(child: File) = generateSequence(child) { it.parentDir }.any { isParentOf(it) }
 
 /**
  * Safe version of [File.listFiles]

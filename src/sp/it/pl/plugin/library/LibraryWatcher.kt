@@ -24,7 +24,7 @@ import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.FileMonitor
 import sp.it.pl.util.file.FileMonitor.monitorDirectory
 import sp.it.pl.util.file.Util
-import sp.it.pl.util.file.isChildOf
+import sp.it.pl.util.file.isAnyChildOf
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.onItemAdded
 import sp.it.pl.util.reactive.onItemRemoved
@@ -98,7 +98,7 @@ class LibraryWatcher: PluginBase("Song Library", false) {
         if (!dirMonitoringSupported && !dirMonitoringEnabled.value) return
 
         val isDuplicate = dir in dirMonitors.keys
-        val isShadowed = dirMonitors.keys.any { monitoredDir -> dir isChildOf monitoredDir }
+        val isShadowed = dirMonitors.keys.any { monitoredDir -> dir isAnyChildOf monitoredDir }
         val needsMonitoring = !isDuplicate && !isShadowed
         if (needsMonitoring) {
             dirMonitors[dir] = monitorDirectory(dir, true) { type, file ->

@@ -86,9 +86,9 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
     fun init() {
         if (initialized) return
 
-        if (!APP.DIR_APP.childOf("java", "bin").exists())
+        if (!(APP.DIR_APP/"java"/"bin").exists())
             logger.error { "Java development kit is missing. Please install JDK in ${APP.DIR_APP/"java"}" }
-        if (!APP.DIR_APP.childOf("kotlinc", "bin").exists())
+        if (!(APP.DIR_APP/"kotlinc"/"bin").exists())
             logger.error { "Kotlin compiler is missing. Please install kotlinc in ${APP.DIR_APP/"kotlinc"}" }
 
         // internal factories
@@ -112,7 +112,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 when {
                     dirW==f -> {}
                     dirW.isMetaInfWidget() -> {}
-                    dirW.isParentOf(f) -> {
+                    dirW isParentOf f -> {
                         val name = f.nameWithoutExtension.capitalize()
                         if (type===ENTRY_CREATE) {
                             if (f.isDirectory) {
@@ -122,7 +122,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                             monitors[name]?.dispose()
                         }
                     }
-                    else -> monitors.find { it.widgetDir.isAnyParentOf(f) }?.handleResourceChange(type, f)
+                    else -> monitors.find { it.widgetDir isAnyParentOf f }?.handleResourceChange(type, f)
                 }
             }
         }

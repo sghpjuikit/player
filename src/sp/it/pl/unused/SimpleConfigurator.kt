@@ -18,7 +18,6 @@ import sp.it.pl.main.IconOC
 import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.functional.Try
-import sp.it.pl.util.functional.sortedBy
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
 import sp.it.pl.util.reactive.onEventDown
 import java.util.ArrayList
@@ -36,7 +35,7 @@ class SimpleConfigurator<T>: AnchorPane {
     @FXML private lateinit var okPane: StackPane
     @FXML private lateinit var fieldsPane: ScrollPane
     @FXML private lateinit var warnLabel: Label
-    private val okB = Icon(IconOC.CHECK, 25.0)
+    private val okB = Icon(IconOC.CHECK, 25.0).onClickDo { ok() }
     private val anchorOk: Double
     private val anchorWarn = 20.0
     private val configFields = ArrayList<ConfigField<T>>()
@@ -46,25 +45,26 @@ class SimpleConfigurator<T>: AnchorPane {
     @JvmField val onOK: (Configurable<T>) -> Unit
     /** Denotes whether parent window or popup should close immediately after [onOK] executes. Default false. */
     @JvmField val hideOnOk = v(false)
-    /** Denotes whether there is action that user can execute. */
+    /** Denotes whether there is an action that user can execute. */
     @JvmField val hasAction = v(false)
 
-    @Suppress("UNCHECKED_CAST")
     private constructor(c: Configurable<T>, on_OK: ((Configurable<T>) -> Unit)?): super() {
         configurable = c
         onOK = on_OK ?: {}
-        hasAction.set(on_OK!=null)
+        hasAction.value = on_OK!=null
+
         ConventionFxmlLoader(this).loadNoEx<Any>()
-        okPane.children.add(okB)
+
+        okPane.children += okB
         anchorOk = AnchorPane.getBottomAnchor(fieldsPane)
-        showOkButton(hasAction.get())
+        showOkButton(hasAction.value)
         configFields.clear()
         fields.children.clear()
-        configurable.fields.stream()
+        configurable.fields.asSequence()
                 .sortedBy { it.guiName }
                 .forEach {
                     val cf = ConfigField.create(it)
-                    configFields.add(cf)
+                    configFields += cf
                     fields.add(cf.createLabel(), 0, configFields.size-1)
                     fields.add(cf.getNode(), 1, configFields.size-1)
                 }

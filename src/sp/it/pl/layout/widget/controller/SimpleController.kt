@@ -22,10 +22,9 @@ open class SimpleController(@JvmField val widget: Widget): AnchorPane(), Control
     override val configurableDiscriminant = null as String?
     override val configurableValueStore: ConfigValueSource by lazy {
         object: ConfigValueSource {
-            private val configToRawKeyMapper = Config<*>::getName
 
             override fun register(config: Config<*>) {
-                val key = configToRawKeyMapper(config)
+                val key = Widget.configToRawKeyMapper(config)
                 configs[key] = config
             }
 
@@ -33,7 +32,7 @@ open class SimpleController(@JvmField val widget: Widget): AnchorPane(), Control
             override fun initialize(config: Config<*>) {
                 if (config.isEditable.isByApp) {
                     val source: Map<String, String> = widget.properties["configs"] as Map<String, String>? ?: mapOf()
-                    val key = configToRawKeyMapper(config)
+                    val key = Widget.configToRawKeyMapper(config)
                     if (source.containsKey(key))
                         config.valueS = source[key]
                 }

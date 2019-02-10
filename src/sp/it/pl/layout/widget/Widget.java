@@ -511,7 +511,7 @@ public class Widget extends Component implements CachedCompositeConfigurable<Obj
 		return this;
 	}
 
-	private static Ƒ1<Config<?>,String> configToRawKeyMapper = it -> it.getName();
+	public static Ƒ1<Config<?>,String> configToRawKeyMapper = it -> it.getName().replace(' ', '_').toLowerCase();
 
 	private void storeConfigs() {
 		// We store only Controller configs as configs of this widget should be defined in this

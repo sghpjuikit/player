@@ -9,6 +9,7 @@ import sp.it.pl.util.async.future.Fut.Result.ResultInterrupted
 import sp.it.pl.util.async.future.Fut.Result.ResultOk
 import sp.it.pl.util.async.sleep
 import sp.it.pl.util.dev.Blocks
+import sp.it.pl.util.dev.Experimental
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.invoke
@@ -28,7 +29,11 @@ import java.util.function.Consumer
  */
 class Fut<T>(private var f: CompletableFuture<T>) {
 
-    // Document properly and make sure exceptions are handled properly in getDone
+    // TODO: Document properly and make sure exceptions are handled properly in getDone
+    //       This is related to cancelling javafx.concurrent.Task from Fut, which is problematic due to the fact that
+    //       the Task uses Thread interrupts for cancellation, but CompletableFuture does not
+    //       https://stackoverflow.com/questions/29013831/how-to-interrupt-underlying-execution-of-completablefuture
+    @Experimental
     fun cancel(): Unit = f.cancel(true).toUnit()
 
     /** @return future that waits for this to complete and then invokes the specified block and returns its result */

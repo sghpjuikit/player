@@ -74,6 +74,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
     private var highlighted: Node? = null
     val selectingNode = Subscribed { feature ->
         var selected: Node? = null
+        highlighted?.highlight(false)       // suppress highlighted node while selecting
         observeWindowRoots { root ->
             val d1 = root.onEventUp(MOUSE_MOVED) {
                 selected = selected?.highlight(false)
@@ -88,6 +89,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
             d1+d2
         } + {
             selected = selected?.highlight(false)
+            highlighted?.highlight(true)    // restore highlighted node after selecting
         }
     }
     val selectingWindow = Subscribed { feature ->

@@ -186,6 +186,10 @@ public class Icon extends StackPane {
 		addEventHandler(MouseEvent.MOUSE_EXITED, e -> select(false));
 		addEventHandler(MouseEvent.MOUSE_ENTERED, e -> select(e.getX()>0 && e.getX()<getPrefWidth() && e.getY()>0 && e.getY()<getPrefHeight()));
 		addEventHandler(MouseEvent.MOUSE_MOVED, e -> select(e.getX()>0 && e.getX()<getPrefWidth() && e.getY()>0 && e.getY()<getPrefHeight()));
+
+		focusedProperty().addListener((o,ov,nv) -> {
+			if (isAnimated.get()) ra.get(this, Ahover).playFromDir(nv);
+		});
 	}
 
 	public Icon(GlyphIcons ico, double size, String tooltip, Runnable onClick) {
@@ -227,6 +231,7 @@ public class Icon extends StackPane {
 	private boolean isSelected = false;
 	public final V<Boolean> isAnimated = new V<>(true);
 
+	// TODO: handle better along with focusing as well as subclasses and IconChooser grid
 	public void select(boolean value) {
 		if (value==isSelected) return;
 		isSelected = value;

@@ -533,7 +533,13 @@ public class Widget extends Component implements CachedCompositeConfigurable<Obj
 		@SuppressWarnings("unchecked")
 		Map<String,String> deserialized_configs = (Map) properties.get("configs");
 		if (deserialized_configs!=null) {
-			deserialized_configs.forEach(this::setField);
+			getFields().forEach(c -> {
+				String key = configToRawKeyMapper.apply(c);
+				if (deserialized_configs.containsKey(key)) {
+					c.setValueS(deserialized_configs.get(key));
+				}
+			});
+
 			properties.remove("configs"); // restoration can only ever happen once
 		}
 	}

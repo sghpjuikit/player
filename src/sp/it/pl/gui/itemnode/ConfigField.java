@@ -76,7 +76,6 @@ import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.util.Util.enumToHuman;
@@ -968,7 +967,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             public ConfigurableField(Class<T> type, T value) {
                 super(value);
                 this.type = type;
-                pane.getLabelWidth().set(USE_COMPUTED_SIZE);
                 pane.setOnChange(changeHandler);
                 pane.configure(lc.toConfigurable.apply(this.value));
             }

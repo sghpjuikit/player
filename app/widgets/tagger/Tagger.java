@@ -193,6 +193,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
 
     @Override
     public void init() {
+        fieldTextAlignment.onChange(v -> fields.forEach(it -> it.setVerticalAlignment(v)));
+
         Node okB = formIcon(FontAwesomeIcon.CHECK, "Save", runnable(this::write));
         content.getChildren().add(okB);
 
@@ -262,7 +264,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
             colorF.setText(nv==null || nv==EMPTY_COLOR ? "" : APP.converter.general.toS(nv))
         );
 
-
         // deselect text fields on click
         root.setOnMousePressed(e -> {
             root.requestFocus();
@@ -306,6 +307,8 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         populate(null);
     }
 
+    @Override
+    public void refresh() {}
 
     private void setR() {
         if (ratingPF.getText()==null || ratingPF.getText().isEmpty()) {
@@ -338,12 +341,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         } catch (NumberFormatException | NullPointerException ex) {
             ratingPF.setPromptText(ratingPF.getId());
         }
-    }
-
-    @Override
-    public void refresh() {
-        fieldTextAlignment.applyValue();
-        popupPos.applyValue();
     }
 
     /** This widget is empty if it has no data. */

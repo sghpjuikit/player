@@ -113,13 +113,15 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
         } on onClose
 
         playVisible sync {
-            table.filterPane.button.icon(if (it) IconFA.FILTER else IconMD.FILTER_OUTLINE)
-            table.filterPane.button.onClickDo { playVisible.setCycledValue() }
-            table.filterPane.button.tooltip(
-                    if (it) "Disable filter for playback. Causes the playback to ignore the filter."
-                    else "Enable filter for playback. Causes the playback to play only displayed items."
-            )
-            table.filterPane.button.isDisable = false // needed
+            table.filterPane.button?.apply {
+                icon(if (it) IconFA.FILTER else IconMD.FILTER_OUTLINE)
+                onClickDo { playVisible.setCycledValue() }
+                tooltip(
+                        if (it) "Disable filter for playback. Causes the playback to ignore the filter."
+                        else "Enable filter for playback. Causes the playback to play only displayed items."
+                )
+                isDisable = false // needed
+            }
             playlist.setTransformation(
                     if (it) unOp { table.items.materialize() }
                     else unOp { it.asSequence().sortedWith(table.itemsComparator.value).toList() }

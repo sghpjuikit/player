@@ -510,7 +510,6 @@ public class WindowManager implements Configurable<Object> {
     }
 
     public void showSettingsSimple(Configurable<?> c, Node n) {
-        boolean isComponent = c instanceof Component;
         String name = c instanceof Widget ? ((Widget) c).getName() : "";
         Form<?> form = form(c);
         PopOver<?> p = new PopOver<>(form);
@@ -518,7 +517,6 @@ public class WindowManager implements Configurable<Object> {
         p.arrowSize.set(0); // auto-fix breaks the arrow position, turn off - sux
         p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
         p.setAutoHide(true);
-        if (isComponent) p.addEventFilter(WINDOW_HIDING, we -> ((Component) c).close());
         p.showInCenterOf(n);
     }
 

@@ -31,7 +31,7 @@ class Inputs {
     @Suppress("UNCHECKED_CAST")
     fun <T> findInput(type: Class<T>, name: String): Input<T?>? {
         val i = m[name]
-        if (i!=null && type.isSubclassOf(i.type)) throw ClassCastException()
+        if (i!=null && !type.isSubclassOf(i.type)) throw ClassCastException()
         return i as Input<T?>?
     }
 

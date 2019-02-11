@@ -26,11 +26,11 @@ import javafx.util.Duration;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.PlayerConfiguration;
+import sp.it.pl.gui.objects.form.Form;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.gui.objects.popover.ScreenPos;
 import sp.it.pl.gui.objects.window.stage.WindowBase;
-import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.ValueConfig;
@@ -40,9 +40,9 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.util.Duration.millis;
+import static sp.it.pl.gui.objects.form.Form.form;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.unused.SimpleConfigurator.simpleConfigurator;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
@@ -741,7 +741,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		// build content
 		String title = add ? "Add url item." : "Play url item.";
 		Config<URI> conf = new ValueConfig<>(URI.class, "Url", URI.create("http://www.example.com"), title);
-		SimpleConfigurator<?> content = simpleConfigurator(conf,
+		Form<?> form = form(conf,
 			consumer((Consumer) new Consumer<Config<URI>>() {
 			@Override
 			public void accept(Config<URI> url) {
@@ -780,8 +780,9 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 			});
 			helpP.showInCenterOf(infoB);
 		});
+
 		// build popup
-		PopOver<?> p = new PopOver<>(title, content);
+		PopOver<?> p = new PopOver<>(title, form);
 		p.getHeaderIcons().add(infoB);
 		p.show(ScreenPos.APP_CENTER);
 		p.detached.set(true);

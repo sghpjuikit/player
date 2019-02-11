@@ -9,11 +9,11 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Tooltip
 import javafx.scene.text.Font
 import sp.it.pl.gui.objects.Text
+import sp.it.pl.gui.objects.form.Form.Companion.form
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.objects.spinner.Spinner
-import sp.it.pl.unused.SimpleConfigurator.Companion.simpleConfigurator
 import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator
@@ -137,7 +137,7 @@ fun Font.rowHeight(): Double {
 
 fun <T, C: Configurable<T>> C.configure(title: String, action: (C) -> Unit) {
     lateinit var hidePopup: () -> Unit
-    val form = simpleConfigurator(this) { action(it); hidePopup() }
+    val form = form(this) { action(it); hidePopup() }
     val popup = PopOver(form)
     hidePopup = { if (popup.isShowing) popup.hide() }
 

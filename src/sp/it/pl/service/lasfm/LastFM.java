@@ -14,7 +14,7 @@ import javafx.util.Duration;
 import org.reactfx.Subscription;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.unused.SimpleConfigurator;
+import sp.it.pl.gui.objects.form.Form;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
@@ -23,6 +23,7 @@ import sp.it.pl.util.conf.ValueConfig;
 import sp.it.pl.util.text.Password;
 import sp.it.pl.util.validation.Constraint.PasswordNonEmpty;
 import sp.it.pl.util.validation.Constraint.StringNonEmpty;
+import static sp.it.pl.gui.objects.form.Form.form;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 
@@ -109,8 +110,8 @@ public class LastFM {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static SimpleConfigurator<Object> getLastFMconfig() {
-		return SimpleConfigurator.simpleConfigurator(
+	public static Form<Object> getLastFMconfig() {
+		return form(
 				new MapConfigurable<Object>(
 					(Config) new ValueConfig<>(String.class, "Username", acquireUserName()).constraints(new StringNonEmpty()),
 					(Config) new ValueConfig<>(Password.class, "Password", acquirePassword()).constraints(new PasswordNonEmpty())

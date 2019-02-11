@@ -1,4 +1,4 @@
-package sp.it.pl.unused
+package sp.it.pl.gui.objects.form
 
 import javafx.fxml.FXML
 import javafx.scene.control.Label
@@ -26,7 +26,7 @@ import java.util.function.Consumer
  *
  * @param <T> type of the [sp.it.pl.util.conf.Configurable] for this component.
  */
-class SimpleConfigurator<T>: AnchorPane {
+class Form<T>: AnchorPane {
 
     @FXML private lateinit var buttonPane: BorderPane
     @FXML private lateinit var okPane: StackPane
@@ -119,6 +119,6 @@ class SimpleConfigurator<T>: AnchorPane {
         @Suppress("UNCHECKED_CAST")
         @JvmOverloads
         @JvmStatic
-        fun <T, C: Configurable<T>> simpleConfigurator(configurable: C, onOk: ((C) -> Unit)? = null) = SimpleConfigurator(configurable, onOk?.let { { c: Configurable<T> -> onOk(c as C) } })
+        fun <T, C: Configurable<T>> form(configurable: C, onOk: ((C) -> Unit)? = null) = Form(configurable, onOk?.let { { c: Configurable<T> -> onOk(c as C) } })
     }
 }

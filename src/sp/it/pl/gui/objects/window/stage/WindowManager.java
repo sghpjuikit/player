@@ -24,6 +24,7 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
 import org.slf4j.Logger;
+import sp.it.pl.gui.objects.form.Form;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.gui.objects.popover.ScreenPos;
@@ -33,7 +34,6 @@ import sp.it.pl.layout.widget.ComponentFactory;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.feature.HorizontalDock;
 import sp.it.pl.main.Settings;
-import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.action.IsAction;
@@ -61,9 +61,9 @@ import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
+import static sp.it.pl.gui.objects.form.Form.form;
 import static sp.it.pl.layout.widget.WidgetManagerKt.orEmpty;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.unused.SimpleConfigurator.simpleConfigurator;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.dev.DebugKt.logger;
@@ -493,7 +493,7 @@ public class WindowManager implements Configurable<Object> {
 
     public void showSettings(Configurable c, Node n) {
         showSettingsSimple(c, n);
-        // TODO: decide whether we use SimpleConfigurator or Configurator widget
+        // TODO: decide whether we use Form or Configurator widget
 //		String name = c instanceof Widget ? ((Widget)c).getName() : "";
 //		Configurator sc = new Configurator(true);
 //		sc.configure(c);
@@ -512,8 +512,8 @@ public class WindowManager implements Configurable<Object> {
     public void showSettingsSimple(Configurable<?> c, Node n) {
         boolean isComponent = c instanceof Component;
         String name = c instanceof Widget ? ((Widget) c).getName() : "";
-        SimpleConfigurator<?> sc = simpleConfigurator(c);
-        PopOver<?> p = new PopOver<>(sc);
+        Form<?> form = form(c);
+        PopOver<?> p = new PopOver<>(form);
         p.title.set((name==null ? "" : name + " ") + " Settings");
         p.arrowSize.set(0); // auto-fix breaks the arrow position, turn off - sux
         p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big

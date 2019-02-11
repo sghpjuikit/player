@@ -213,7 +213,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                 when {
                     config is Runnable -> config.run()
                     value is Runnable -> value.run()
-                    value is Boolean -> (config as Config<Boolean?>).setNapplyValue(!value)
+                    value is Boolean -> (config as Config<Boolean?>).value = !value
                 }
             }
         }

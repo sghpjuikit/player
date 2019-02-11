@@ -55,7 +55,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	public List<Item> children() {
 		if (children==null) buildChildren();
-		return list(children);
+		return children==null ? list() : list(children);
 	}
 
 	private void init() {

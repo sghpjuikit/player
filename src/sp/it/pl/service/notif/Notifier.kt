@@ -30,7 +30,6 @@ import sp.it.pl.util.graphics.text
 import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
-import java.util.function.Consumer
 
 /** Provides notification functionality. */
 class Notifier: ServiceBase("Notifications", true) {
@@ -51,9 +50,9 @@ class Notifier: ServiceBase("Notifications", true) {
     @IsConfig(name = "Position relative to", info = "Determines screen for positioning. Main screen, application window screen or all screens as one")
     var notificationScr by c(ScreenUse.APP_WINDOW)
     @IsConfig(name = "On click left", info = "Left click action")
-    val onClickL by cv("Show application") { VarAction(it, Consumer {}) }
+    val onClickL by cv("Show application") { VarAction(it) }
     @IsConfig(name = "On click right", info = "Right click action")
-    val onClickR by cv("Notification hide") { VarAction(it, Consumer {}) }
+    val onClickR by cv("Notification hide") { VarAction(it) }
     @IsConfig(name = "Playback change graphics")
     val graphics by cv("Normal") {
         VarEnum.ofSequence(it,

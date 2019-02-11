@@ -15,7 +15,7 @@ import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import org.slf4j.Logger;
-import sp.it.pl.util.access.ApplicableValue;
+import sp.it.pl.util.access.AccessibleValue;
 import sp.it.pl.util.access.FAccessibleValue;
 import sp.it.pl.util.access.TypedValue;
 import sp.it.pl.util.access.V;
@@ -68,7 +68,7 @@ import static sp.it.pl.util.type.Util.unPrimitivize;
  *
  * @param <T> type of value of this config
  */
-public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, ConverterString<T>, TypedValue<T>, EnumerableValue<T> {
+public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, ConverterString<T>, TypedValue<T>, EnumerableValue<T> {
 
 	private static final Logger LOGGER = logger(Config.class);
 
@@ -140,10 +140,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
 	public void setDefaultValue() {
 		setValue(getDefaultValue());
-	}
-
-	public void setNapplyDefaultValue() {
-		setNapplyValue(getDefaultValue());
 	}
 
 /******************************** converting **********************************/
@@ -425,7 +421,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		private final Object instance;
 		private final MethodHandle getter;
 		private final MethodHandle setter;
-		MethodHandle applier = null;
 
 		/**
 		 * @param instance owner of the field or null if static
@@ -450,20 +445,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 				else setter.invokeWithArguments(instance, val);
 			} catch (Throwable e) {
 				throw new RuntimeException("Error setting config field " + getName(), e);
-			}
-		}
-
-		@Override
-		public void applyValue(T val) {
-			if (applier!=null) {
-				try {
-					int i = applier.type().parameterCount();
-
-					if (i==1) applier.invokeWithArguments(val);
-					else applier.invoke();
-				} catch (Throwable e) {
-					throw new RuntimeException("Error applying config field " + getName(), e);
-				}
 			}
 		}
 
@@ -550,19 +531,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 			value.setValue(val);
 		}
 
-		@Override
-		public void applyValue() {
-			if (value instanceof ApplicableValue)
-				ApplicableValue.class.cast(value).applyValue();
-		}
-
-		@SuppressWarnings("unchecked")
-		@Override
-		public void applyValue(T val) {
-			if (value instanceof ApplicableValue)
-				ApplicableValue.class.cast(value).applyValue(val);
-		}
-
 		public WritableValue<T> getProperty() {
 			return value;
 		}
@@ -630,12 +598,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		@Override
 		public void setValue(T val) {}
 
-		@Override
-		public void applyValue() {}
-
-		@Override
-		public void applyValue(T val) {}
-
 		public ObservableValue<T> getProperty() {
 			return value;
 		}
@@ -677,10 +639,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		public void setDefaultValue() {
 			getProperty().override.setValue(defaultOverride_value);
 			setValue(getDefaultValue());
-		}
-
-		public void setNapplyDefaultValue() {
-			setDefaultValue();
 		}
 
 		///**
@@ -773,9 +731,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		public void setValue(ObservableList<T> val) {}
 
 		@Override
-		public void applyValue(ObservableList<T> val) {}
-
-		@Override
 		public ObservableList<T> next() {
 			return getValue();
 		}
@@ -823,7 +778,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 						List<Config> configs = list(a.toConfigurable.apply(t).getFields());
 						List<String> values = split(s, ";");
 						if (configs.size()==values.size())
-							forEachBoth(configs, values, (c, v) -> c.setNapplyValue(c.ofS(v).getOr(null))); // TODO: wtf
+							forEachBoth(configs, values, (c, v) -> c.setValue(c.ofS(v).getOr(null))); // TODO: wtf
 
 						return (T) (a.itemType.isAssignableFrom(configs.get(0).getType()) ? configs.get(0).getValue() : t);
 					})
@@ -1021,11 +976,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 		@Override
 		public void setValue(T val) {
 			setter.accept(val);
-		}
-
-		@Override
-		public void applyValue(T val) {
-			// do nothing
 		}
 
 	}

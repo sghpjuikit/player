@@ -119,6 +119,24 @@ public class FileInfo extends FXMLController implements SongReader {
                         gap2 = new Label(" "),
                         gap3 = new Label(" ");
     private final List<Label> labels = new ArrayList<>();
+
+    @IsConfig(name = "Column width", info = "Minimal width for field columns.")
+    public final V<Double> minColumnWidth = new V<>(150.0).initAttachC(v -> tiles.layout());
+    @IsConfig(name = "Cover source", info = "Source for cover image.")
+    public final V<CoverSource> cover_source = new V<>(ANY).initAttachC(this::setCover);
+    @IsConfig(name = "Text clipping method", info = "Style of clipping text when too long.")
+    public final V<OverrunStyle> overrun_style = new V<>(ELLIPSIS);
+    @IsConfig(name = "Show cover", info = "Show cover.")
+    public final V<Boolean> showCover = new V<>(true).initSyncC(layout::setImageVisible);
+    @IsConfig(name = "Show fields", info = "Show fields.")
+    public final V<Boolean> showFields = new V<>(true).initSyncC(layout::setContentVisible);
+    @IsConfig(name = "Show empty fields", info = "Show empty fields.")
+    public final V<Boolean> showEmptyFields = new V<>(true).initAttachC(v -> update());
+    @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")
+    public final V<Sort> groupFields = new V<>(Sort.SEMANTIC).initAttachC(v -> update());
+    @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
+    public boolean allowNoContent = false;
+
     private final List<LField> fields = mapIndexed(
         list(
             TITLE, TRACK_INFO, DISCS_INFO, LENGTH, ARTIST,
@@ -129,30 +147,12 @@ public class FileInfo extends FXMLController implements SongReader {
         (i,f) -> new LField(f,i)
     );
     private final LField rating = fields.get(12);
-
+    private final Map<String,Config<Boolean>> fieldConfigs = fields.stream()
+        .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig, "FileInfo","Show this field", EditMode.USER))
+        .collect(toMap(c -> c.getName(), c -> c));
     private Output<Metadata> data_out;
     private Metadata data = Metadata.EMPTY;
     private final HandlerLast<Item> dataReading = EventReducer.toLast(200, this::setValue);
-
-    @IsConfig(name = "Column width", info = "Minimal width for field columns.")
-    public final V<Double> minColumnWidth = new V<>(150.0, v -> tiles.layout());
-    @IsConfig(name = "Cover source", info = "Source for cover image.")
-    public final V<CoverSource> cover_source = new V<>(ANY, this::setCover);
-    @IsConfig(name = "Text clipping method", info = "Style of clipping text when too long.")
-    public final V<OverrunStyle> overrun_style = new V<>(ELLIPSIS, this::setOverrun);
-    @IsConfig(name = "Show cover", info = "Show cover.")
-    public final V<Boolean> showCover = new V<>(true, layout::setImageVisible);
-    @IsConfig(name = "Show fields", info = "Show fields.")
-    public final V<Boolean> showFields = new V<>(true, layout::setContentVisible);
-    @IsConfig(name = "Show empty fields", info = "Show empty fields.")
-    public final V<Boolean> showEmptyFields = new V<>(true, v -> update());
-    @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")
-    public final V<Sort> groupFields = new V<>(Sort.SEMANTIC, v -> update());
-    @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
-    public boolean allowNoContent = false;
-    private final Map<String,Config<Boolean>> fieldConfigs = fields.stream()
-            .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig, "FileInfo","Show this field", EditMode.USER))
-            .collect(toMap(c -> c.getName(), c -> c));
 
     @SuppressWarnings("ConstantConditions")
     @Override
@@ -232,13 +232,7 @@ public class FileInfo extends FXMLController implements SongReader {
     }
 
     @Override
-    public void refresh() {
-        minColumnWidth.applyValue();
-        cover_source.applyValue();
-        overrun_style.applyValue();
-        showCover.applyValue();
-        showFields.applyValue();
-    }
+    public void refresh() {}
 
     @Override
     public boolean isEmpty() {
@@ -327,19 +321,13 @@ public class FileInfo extends FXMLController implements SongReader {
             });
     }
 
-    private void setOverrun(OverrunStyle os) {
-        fields.forEach(l -> l.setTextOverrun(os));
-    }
-
     private void setAsCover(File file, boolean setAsCover) {
         if (file==null || !data.isFileBased()) return;
 
-        if (setAsCover)
-            copyFileSafe(file, data.getLocation(), "cover");
-        else
-            copyFiles(list(file), data.getLocation(), REPLACE_EXISTING);
+        if (setAsCover) copyFileSafe(file, data.getLocation(), "cover");
+        else copyFiles(list(file), data.getLocation(), REPLACE_EXISTING);
 
-        runFX(() -> cover_source.applyValue());
+        runFX(() -> setCover(cover_source.getValue()));
     }
 
     private void tagAsCover(File file, boolean includeAlbum) {
@@ -368,8 +356,9 @@ public class FileInfo extends FXMLController implements SongReader {
 
         public LField(Field<?> field, int i) {
             this.field = field;
-            this.visibleConfig = new V<>(true, v -> update());
+            this.visibleConfig = new V<>(true).initAttachC(v -> update());
             this.semantic_index = i;
+            this.textOverrunProperty().bind(overrun_style);
 
             if (field==DISCS_TOTAL) name = "disc";
             else if (field==TRACKS_TOTAL) name = "track";
@@ -385,11 +374,8 @@ public class FileInfo extends FXMLController implements SongReader {
         }
 
         void setHide() {
-            String content = getText().substring(getText().indexOf(": ")+2).trim();
-            boolean e = content.isEmpty() ||
-                     content.equalsIgnoreCase("?/?") ||
-                       content.equalsIgnoreCase("n/a") ||
-                         content.equalsIgnoreCase("unknown");
+            String content = (getText()==null || getText().isEmpty()) ? "" : getText().substring(getText().indexOf(": ")+2).trim();
+            boolean e = content.isEmpty() || content.equalsIgnoreCase("?/?") || content.equalsIgnoreCase("n/a") || content.equalsIgnoreCase("unknown");
                     e &= field!=RATING;
             setDisable(e);
             if (!visibleConfig.getValue() || (!showEmptyFields.getValue() && e))

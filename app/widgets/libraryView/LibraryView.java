@@ -33,11 +33,11 @@ import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.main.Widgets;
+import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.Vo;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
-import sp.it.pl.util.async.executor.ExecuteN;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
@@ -121,12 +121,8 @@ public class LibraryView extends FXMLController {
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table items information.")
     public final Vo<Boolean> show_footer = new Vo<>(APP.ui.getTableShowFooter());
     @IsConfig(name = "Field")
-    public final VarEnum<Metadata.Field<?>> fieldFilter = new VarEnum<>(CATEGORY,
-        filter(Metadata.Field.FIELDS, Field::isTypeStringRepresentable),
-        this::applyData
-    );
-
-    private final ExecuteN runOnce = new ExecuteN(1);
+    public final V<Field<?>> fieldFilter = new VarEnum<>(CATEGORY,filter(Metadata.Field.FIELDS, Field::isTypeStringRepresentable))
+        .initAttachC(this::applyData);
 
     @SuppressWarnings({"ConstantConditions", "unchecked"})
     @Override
@@ -179,7 +175,11 @@ public class LibraryView extends FXMLController {
         // maintain rating column cell style
         d(APP.getRatingCell().maintain(cf -> table.getColumn(AVG_RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));
 
-        table.getDefaultColumnInfo();
+        table.getDefaultColumnInfo();   // TODO remove (this triggers menu initialization)
+
+        // restore column state
+        String columnStateS = widget.properties.getS("columns");
+        table.setColumnState(columnStateS!=null ? TableColumnInfo.fromString(columnStateS) : table.getDefaultColumnInfo());
 
         // rows
         table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>() {{
@@ -205,7 +205,7 @@ public class LibraryView extends FXMLController {
                 list(Metadata.Field.FIELDS),
                 null,
                 Metadata.Field::name,
-                fieldFilter::setNapplyValue
+                fieldFilter::setValue
             )
         );
         // refresh when menu opens
@@ -279,10 +279,6 @@ public class LibraryView extends FXMLController {
 
     @Override
     public void refresh() {
-        runOnce.execute(() -> {
-            String c = widget.properties.getS("columns");
-            table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
-        });
         applyData(null);
     }
 

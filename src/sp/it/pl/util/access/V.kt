@@ -9,36 +9,14 @@ import sp.it.pl.util.reactive.sync
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 
-/**
- * Var/variable - simple object wrapper similar to [javafx.beans.property.Property], but
- * simpler (no binding) and with the ability to apply value change.
- *
- * Does not permit null values.
- */
-open class V<T>: SimpleObjectProperty<T>, ApplicableValue<T> {
-
-    var applier: Consumer<in T>
-
-    /**
-     * Sets applier. Applier is a code that applies the value in any way.
-     *
-     * @param applier or null to disable applying
-     */
-    @JvmOverloads
-    constructor(value: T, applier: Consumer<in T> = Consumer {}) {
-        this.value = value
-        this.applier = applier
-    }
+/** Var/variable. An object wrapper based on [javafx.beans.property.SimpleObjectProperty]. */
+open class V<T>(value: T): SimpleObjectProperty<T>(value), AccessibleValue<T> {
 
     @Suppress("RedundantOverride")  // helps Kotlin with null-safety inference
     override fun getValue(): T = super.getValue()
 
     @Suppress("RedundantOverride")  // helps Kotlin with null-safety inference
     override fun setValue(v: T) = super.setValue(v)
-
-    override fun applyValue(value: T) {
-        applier(value)
-    }
 
     fun onChange(action: Consumer<in T>) = attach { action(it) }
 

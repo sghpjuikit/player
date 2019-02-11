@@ -111,15 +111,14 @@ public class WindowManager implements Configurable<Object> {
     @IsConfig(name = "Headerless", info = "Hides header.")
     public final V<Boolean> window_headerless = new V<>(false);
 
-    @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in mini mode.")
-    public final V<Boolean> show_windows = new V<>(true, v -> {
+    public final V<Boolean> show_windows = new V<>(true).initAttachC(v -> {
         if (!APP.getNormalLoad()) return;
         if (v) windows.stream().filter(w->w!=miniWindow).forEach(Window::show);
         else windows.stream().filter(w->w!=miniWindow).forEach(Window::hide);
     });
 
     @IsConfig(name="Mini mode", info="Whether application has mini window docked to top screen edge active.")
-    public final V<Boolean> mini = new V<>(false, this::setMini);
+    public final V<Boolean> mini = new V<>(false).initAttachC(this::setMini);
 
     @IsConfig(name="Mini open hover delay", info="Time for mouse to hover to open mini window.")
     public Duration mini_hover_delay = millis(700);

@@ -74,8 +74,8 @@ public class SwitchPane implements ContainerNode {
     };
     public final IOLayer widget_io = new IOLayer(this);
 
-    public final V<Boolean> align = new V<>(true, v -> { if (v) alignTabs(); });
-    public final V<Boolean> snap = new V<>(true, v -> { if (v) snapTabs(); });
+    public final V<Boolean> align = new V<>(true).initAttachC(v -> { if (v) alignTabs(); });
+    public final V<Boolean> snap = new V<>(true).initAttachC(v -> { if (v) snapTabs(); });
     public final V<Double> switchDistAbs = new V<>(150.0);
     public final V<Double> switchDistRel = new V<>(0.15); // 0 - 1
     public final V<Double> dragInertia = new V<>(1.5);

@@ -307,11 +307,6 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	}
 
 	@Override
-	public void applyValue(Action val) {
-		register();
-	}
-
-	@Override
 	public Class<Action> getType() {
 		return Action.class;
 	}

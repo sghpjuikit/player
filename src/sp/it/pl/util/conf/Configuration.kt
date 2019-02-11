@@ -75,7 +75,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
                 ?.let {
                     val name = "${it.guiName} - toggle"
                     val description = "Toggles value ${it.name} between true/false"
-                    val r = { if (it.isEditableByUserRightNow()) it.setNextNapplyValue() }
+                    val r = { if (it.isEditableByUserRightNow()) it.setNextValue() }
                     val a = Action(name, r, description, it.group, "", false, false)
                     ActionRegistrar.getActions() += a
                     configs += a
@@ -105,7 +105,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
     fun <T> drop(configs: Collection<Config<T>>) = configs.forEach { drop(it) }
 
     /** Changes all config fields to their default value and applies them  */
-    fun toDefault() = fields.forEach { it.setNapplyDefaultValue() }
+    fun toDefault() = fields.forEach { it.setDefaultValue() }
 
     /**
      * Saves configuration to the file. The file is created if it does not exist,

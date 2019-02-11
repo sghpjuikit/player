@@ -66,6 +66,7 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.Util.setAnchors;
+import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
@@ -119,39 +120,31 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
 
     // config
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
-    public final V<Double> thumbSize = new V<>(70d, v -> thumbnails.forEach(t->t.getPane().setPrefSize(v,v)));
+    public final V<Double> thumbSize = new V<>(70d).initAttachC(v -> thumbnails.forEach(t-> setMinPrefMaxSize(t.getPane(), v, v)));
     @IsConfig(name = "Thumbnail gap", info = "Spacing between thumbnails")
-    public final V<Double> thumbGap = new V<>(2d, v -> {
-        thumb_pane.setHgap(v);
-        thumb_pane.setVgap(v);
-    });
+    public final V<Double> thumbGap = new V<>(2d);
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
-    public final V<Duration> slideshow_dur = new V<>(seconds(15), slideshow::setTimeoutAndRestart);
+    public final V<Duration> slideshow_dur = new V<>(seconds(15)).initSyncC(slideshow::setTimeoutAndRestart);
     @IsConfig(name = "Slideshow", info = "Turn slideshow on/off.")
-    public final V<Boolean> slideshow_on = new V<>(true, slideshow::setRunning);
+    public final V<Boolean> slideshow_on = new V<>(true).initSyncC(slideshow::setRunning);
     @IsConfig(name = "Show big image", info = "Show thumbnails.")
-    public final V<Boolean> showImage = new V<>(true, mainImage.getPane()::setVisible);
+    public final V<Boolean> showImage = new V<>(true).initAttachC(mainImage.getPane()::setVisible);
     @IsConfig(name = "Show thumbnails", info = "Show thumbnails.")
-    public final V<Boolean> showThumbnails = new V<>(true, this::applyShowThumbs);
+    public final V<Boolean> showThumbnails = new V<>(true);
     @IsConfig(name = "Hide thumbnails on mouse exit", info = "Hide thumbnails when mouse leaves the widget area.")
-    public final V<Boolean> hideThumbEager = new V<>(true, v ->
+    public final V<Boolean> hideThumbEager = new V<>(true).initAttachC(v ->
        root.setOnMouseExited(!v ? null : e -> {
            double x = e.getX(), y = e.getY();
            if (!root.contains(x,y)) // make sure mouse really is out
-               showThumbnails.setNapplyValue(false);
+               showThumbnails.setValue(false);
        })
     );
     @IsConfig(name = "Show thumbnails on mouse enter", info = "Show thumbnails when mouse enters the widget area.")
-    public final V<Boolean> showThumbEager = new V<>(false, v ->
-        root.setOnMouseEntered(!v ? null : e -> showThumbnails.setNapplyValue(true))
-    );
+    public final V<Boolean> showThumbEager = new V<>(false);
     @IsConfig(name = "Show thumbnails rectangular", info = "Always frame thumbnails into squares.")
-    public final V<Boolean> thums_rect = new V<>(false, v -> thumbnails.forEach(t -> {
-        t.setBorderToImage(!v);
-        t.setBackgroundVisible(v);
-    }));
+    public final V<Boolean> thums_rect = new V<>(false);
     @IsConfig(name = "Theater mode", info = "Turns off slideshow, shows image background to fill the screen, disables image border and displays information about the song.")
-    public final V<Boolean> theater_mode = new V<>(false, this::applyTheaterMode);
+    public final V<Boolean> theater_mode = new V<>(false);
 
     @IsConfig(name = "Forbid no content", info = "Ignores empty directories and does not change displayed images if there is nothing to show.")
     public boolean keepContentOnEmpty = true;
@@ -164,12 +157,15 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
 
     @Override
     public void init() {
-        inputs.getInput(Metadata.class, "Location of").bind(Player.playing.o);
+        inputs.getInput(Item.class, "Location of").bind(Player.playing.o);
 
         // main image
         mainImage.setBorderVisible(true);
         mainImage.setBorderToImage(true);
         setAnchor(root,mainImage.getPane(),0d);
+
+        thumb_pane.hgapProperty().bind(thumbGap);
+        thumb_pane.vgapProperty().bind(thumbGap);
 
         // image navigation
         Icon nextB = new Icon(ARROW_RIGHT, 18, "Next image", this::nextImage);
@@ -219,14 +215,14 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         root.heightProperty().addListener((o,ov,nv) -> setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
         root.setOnMouseClicked( e -> {
             if (e.getButton()==SECONDARY && showThumbnails.getValue()) {
-                showThumbnails.setCycledNapplyValue();
+                showThumbnails.setCycledValue();
                 e.consume();
             }
             if (e.getButton()==PRIMARY) {
                 if (e.getY()>0.8*root.getHeight() && e.getX()>0.7*root.getWidth()) {
-                    theater_mode.setCycledNapplyValue();
+                    theater_mode.setCycledValue();
                 } else {
-                    showThumbnails.setCycledNapplyValue();
+                    showThumbnails.setCycledValue();
                 }
                 e.consume();
             }
@@ -234,7 +230,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         // prevent scrollpane from preventing show thumbnails change
         thumb_root.setOnMouseClicked(e -> {
             //if (e.getButton()==PRIMARY) {
-                showThumbnails.setCycledNapplyValue();
+                showThumbnails.setCycledValue();
                 e.consume();
             //}
         });
@@ -278,6 +274,20 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
 
         // forbid app scrolling when thumbnails are visible
         thumb_root.setOnScroll(Event::consume);
+
+        showThumbnails.maintain(v -> {
+            thumbAnim.playFromDir(v);
+            if (v) navigAnim.playClose();
+        });
+        hideThumbEager.maintain(v -> root.setOnMouseEntered(!v ? null : e -> showThumbnails.setValue(true)));
+        thums_rect.maintain(v ->
+            thumbnails.forEach(t -> {
+                t.setBorderToImage(!v);
+                t.setBackgroundVisible(v);
+            })
+        );
+        theater_mode.maintain(this::applyTheaterMode);
+        readThumbnails();
     }
 
     @Override
@@ -287,17 +297,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     }
 
     @Override
-    public void refresh() {
-        thumbSize.applyValue();
-        thumbGap.applyValue();
-        slideshow_dur.applyValue();
-        slideshow_on.applyValue();
-        showThumbnails.applyValue();
-        hideThumbEager.applyValue();
-        thums_rect.applyValue();
-        theater_mode.applyValue();
-        readThumbnails();
-    }
+    public void refresh() {}
 
     @Override
     public boolean isEmpty() {
@@ -380,8 +380,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
 
     private Exec thumb_reader = new Exec();
 
-
-
+    // Make an action/config
     private void readThumbnails() {
         // clear old content before adding new
         // setImage(-1) // it is set during thumbnail reading, no need to clear it
@@ -511,7 +510,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
             });
         }
 
-        slideshow_on.applyValue(v ? false : slideshow_on.getValue());
+        slideshow_on.setValue(v ? false : slideshow_on.getValue());
         mainImage.setBackgroundVisible(v);
         mainImage.setBorderVisible(!v);
         if (itemPane!=null) itemPane.setVisible(v);

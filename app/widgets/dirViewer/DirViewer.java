@@ -73,29 +73,29 @@ import static sp.it.pl.util.system.EnvironmentKt.edit;
 import static sp.it.pl.util.system.EnvironmentKt.open;
 
 @Widget.Info(
-        author = "Martin Polakovic",
-        name = "Dir Viewer",
-        description = "Displays directory hierarchy and files as thumbnails in a "
+    author = "Martin Polakovic",
+    name = "Dir Viewer",
+    description = "Displays directory hierarchy and files as thumbnails in a "
                 + "vertically scrollable grid. Intended as simple library",
-        version = "0.5",
-        year = "2015",
-        group = OTHER
+    version = "0.5",
+    year = "2015",
+    group = OTHER
 )
 @LegacyController
 public class DirViewer extends SimpleController {
 
     private static final double CELL_TEXT_HEIGHT = 20;
 
-	@Constraint.FileType(Constraint.FileActor.DIRECTORY)
+    @Constraint.FileType(Constraint.FileActor.DIRECTORY)
     @IsConfig(name = "Location", info = "Root directories of the content.")
     final VarList<File> files = new VarList<>(File.class, Elements.NOT_NULL);
-	@IsConfig(name = "Location joiner", info = "Merges location files into a virtual view.")
-    final V<FileFlatter> fileFlatter = new V<>(FileFlatter.TOP_LVL, ff -> revisitCurrent());
+    @IsConfig(name = "Location joiner", info = "Merges location files into a virtual view.")
+    final V<FileFlatter> fileFlatter = new V<>(FileFlatter.TOP_LVL);
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-    final V<CellSize> cellSize = new V<>(NORMAL, v -> applyCellSize());
+    final V<CellSize> cellSize = new V<>(NORMAL);
     @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-    final V<Resolution> cellSizeRatio = new V<>(Resolution.R_1x1, v -> applyCellSize());
+    final V<Resolution> cellSizeRatio = new V<>(Resolution.R_1x1);
     @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
     final V<FitFrom> fitFrom = new V<>(FitFrom.OUTSIDE);
 
@@ -107,20 +107,20 @@ public class DirViewer extends SimpleController {
     private boolean initialized = false;
     private AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
-    	FOLDER_PLUS, "Click to explore directory",
-		() -> chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getOwnerWidget().getWindowOrActive().map(Window::getStage).orElse(null))
-				.ifOk(files.list::setAll)
+        FOLDER_PLUS, "Click to explore directory",
+        () -> chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getOwnerWidget().getWindowOrActive().map(Window::getStage).orElse(null))
+            .ifOk(files.list::setAll)
     );
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
-    final FileFilterValue filter = FileFilters.toEnumerableValue(v -> revisitCurrent());
+    final FileFilterValue filter = FileFilters.toEnumerableValue();
     @IsConfig(name = "Sort", info = "Sorting effect.")
-    final V<Sort> sort = new V<>(ASCENDING, v -> applySort());
+    final V<Sort> sort = new V<>(ASCENDING).initAttachC(v -> applySort());
     @IsConfig(name = "Sort first", info = "Group directories and files - files first, last or no separation.")
-    final V<FileSort> sort_file = new V<>(DIR_FIRST, v -> applySort());
+    final V<FileSort> sort_file = new V<>(DIR_FIRST).initAttachC(v -> applySort());
     @IsConfig(name = "Sort seconds", info = "Sorting criteria.")
-    final VarEnum<FileField<?>> sortBy = new VarEnum<>(FileField.NAME, () -> FileField.FIELDS, v -> applySort());
+    final V<FileField<?>> sortBy = new VarEnum<>(FileField.NAME, () -> FileField.FIELDS).initAttachC(v -> applySort());
 
-	@Constraint.FileType(Constraint.FileActor.DIRECTORY)
+    @Constraint.FileType(Constraint.FileActor.DIRECTORY)
     @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
     File lastVisited = null;
     Item item = null;   // item, children of which are displayed
@@ -131,7 +131,7 @@ public class DirViewer extends SimpleController {
         files.onListInvalid(list -> revisitTop());
         files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
         grid.search.field = FileField.PATH;
-	    grid.primaryFilterField = FileField.NAME_FULL;
+        grid.primaryFilterField = FileField.NAME_FULL;
         grid.setCellFactory(grid -> new Cell());
         setAnchor(this, grid, 0d);
         placeholder.show(this, files.list.isEmpty());
@@ -166,31 +166,33 @@ public class DirViewer extends SimpleController {
                     if (preserveAspectRatio) nh = nw/cellSizeRatio.get().ratio;
                     applyCellSize(nw, nh);
                 } else {
-                    if (isInc) cellSize.setPreviousNapplyValue();
-                    else cellSize.setNextNapplyValue();
+                    if (isInc) cellSize.setPreviousValue();
+                    else cellSize.setNextValue();
                 }
             }
         });
 
-		// drag & drop
-		DragUtil.installDrag(
-			this, FOLDER_PLUS, "Explore directory",
-			DragUtil::hasFiles,
-			e -> files.list.setAll(
-				DragUtil.getFiles((e)).stream().allMatch(File::isDirectory)
-					? DragUtil.getFiles((e))
-					: list(getCommonRoot(DragUtil.getFiles((e))))
-			)
-		);
+        // drag & drop
+        DragUtil.installDrag(
+            this, FOLDER_PLUS, "Explore directory",
+            DragUtil::hasFiles,
+            e -> files.list.setAll(
+                DragUtil.getFiles((e)).stream().allMatch(File::isDirectory)
+                    ? DragUtil.getFiles((e))
+                    : list(getCommonRoot(DragUtil.getFiles((e))))
+            )
+        );
+
+        fileFlatter.onChange(ff -> revisitCurrent());
+        cellSize.onChange(v -> applyCellSize());
+        cellSizeRatio.onChange(v -> applyCellSize());
+        filter.onChange(v -> revisitCurrent());
     }
 
     @Override
     public void refresh() {
         initialized = true;
         applyCellSizeNoRefresh();
-        // temporary bug fix, (we use progress indicator of the window this widget is loaded
-        // in, but when this refresh() method is called its just during loading and window is not yet
-        // available, so we delay wit runLater
         runLater(() -> revisitCurrent());
     }
 

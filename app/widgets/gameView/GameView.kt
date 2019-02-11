@@ -159,8 +159,8 @@ class GameView(widget: Widget): SimpleController(widget) {
                         if (preserveAspectRatio) nh = nw/cellSizeRatio.get().ratio
                         applyCellSize(nw, nh)
                     } else {
-                        if (isInc) cellSize.setPreviousNapplyValue()
-                        else cellSize.setNextNapplyValue()
+                        if (isInc) cellSize.setPreviousValue()
+                        else cellSize.setNextValue()
                     }
                 }
             }

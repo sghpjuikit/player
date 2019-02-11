@@ -109,8 +109,6 @@ public class Library extends FXMLController implements SongReader {
     private final TaskInfo<Task<?>> taskInfo = new TaskInfo<>(null, new Label(), appProgressIndicator());
     private final Anim hideInfo = new Anim(at -> setScaleXY(taskInfo.getProgress(),at*at))
                                       .dur(millis(500)).intpl(reverse(new ElasticInterpolator()));
-
-    private final ExecuteN runOnce = new ExecuteN(1);
     private Output<Metadata> out_sel;
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -156,6 +154,7 @@ public class Library extends FXMLController implements SongReader {
             double lengthMs = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
             return DEFAULT_TEXT_FACTORY.invoke(all, list) + " - " + new Dur(lengthMs);
         });
+
         // add more menu items
         table.menuAdd.getItems().addAll(
             menuItem("Add files", e -> addFiles()),
@@ -180,7 +179,6 @@ public class Library extends FXMLController implements SongReader {
         });
         // maintain rating column cell style
         d(APP.getRatingCell().maintain(cf -> table.getColumn(RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));   // maintain playing item css
-
         // let resizing as it is
         table.setColumnResizePolicy(resize -> {
             boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
@@ -189,7 +187,11 @@ public class Library extends FXMLController implements SongReader {
             return b;
         });
 
-        table.getDefaultColumnInfo();
+        table.getDefaultColumnInfo();   // TODO remove (this triggers menu initialization)
+
+        // restore column state
+        String columnStateS = widget.properties.getS("columns");
+        table.setColumnState(columnStateS!=null ? TableColumnInfo.fromString(columnStateS) : table.getDefaultColumnInfo());
 
         // row behavior
         table.setRowFactory(tbl -> new ImprovedTableRow<Metadata>() {{
@@ -241,27 +243,15 @@ public class Library extends FXMLController implements SongReader {
     }
 
     @Override
-    public void refresh() {
-        runOnce.execute(() -> {
-            String c = widget.properties.getS("columns");
-            table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
-        });
-
-        getFields().stream().filter(c -> !c.getName().equals("Library level") && !c.getName().equals("columnInfo")).forEach(Config::applyValue);
-        table.getSelectionModel().clearSelection();
-    }
+    public void refresh() {}
 
     @Override
     public Collection<Config<Object>> getFields() {
-        // serialize column state when requested
-        widget.properties.put("columns", table.getColumnState().toString());
+        widget.properties.put("columns", table.getColumnState().toString());    // store column state
         return super.getFields();
     }
 
-    /**
-     * Converts items to Metadata using {@link Item#toMeta()} (using no I/O)
-     * and displays them in the table.
-     */
+    /** Converts items to Metadata using {@link Item#toMeta()} (using no I/O) and displays them in the table. */
     @Override
     public void read(List<? extends Item> items) {
         if (items==null) return;

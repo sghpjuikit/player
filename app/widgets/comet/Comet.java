@@ -454,11 +454,11 @@ public class Comet extends SimpleController {
 	}
 
 	@IsConfig
-	final V<Color> devCanvasFadeColor = new V<>(Color.BLACK, c -> game.colors.canvasFade = color(c, game.colors.canvasFade.getOpacity()));
+	final V<Color> devCanvasFadeColor = new V<>(Color.BLACK).initAttachC(c -> game.colors.canvasFade = color(c, game.colors.canvasFade.getOpacity()));
 	@IsConfig @Constraint.MinMax(min=0, max=0.1)
-	final V<Double> devCanvasFadeOpacity = new V<>(0.05, c -> game.colors.canvasFade = color(game.colors.canvasFade, c));
+	final V<Double> devCanvasFadeOpacity = new V<>(0.05).initAttachC(c -> game.colors.canvasFade = color(game.colors.canvasFade, c));
 	@IsConfig
-	final V<Effect> devCanvasBgrEffect = new V<>(new Glow(0.3), e -> gc_bgr.getCanvas().setEffect(e));
+	final V<Effect> devCanvasBgrEffect = new V<Effect>(new Glow(0.3)).initAttachC(e -> gc_bgr.getCanvas().setEffect(e));
 	@IsConfig
 	final V<PlayerSpawn> spawning = new V<>(PlayerSpawn.CIRCLE);
 	final ObservableList<Integer> gamepadIds = FXCollections.observableArrayList();

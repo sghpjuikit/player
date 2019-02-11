@@ -180,21 +180,19 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     ProgressIndicator progressI;
     @FXML Label infoL, placeholder, fieldDesc;
 
-    ObservableList<Item> allItems = FXCollections.observableArrayList();
-    List<Metadata> metadatas = new ArrayList<>();   // currently in gui active
-    final List<TagField> fields = new ArrayList<>();
-    boolean writing = false;    // prevents external data change during writing
+    private final ObservableList<Item> allItems = FXCollections.observableArrayList();
+    private final List<Metadata> metadatas = new ArrayList<>();   // currently in gui active
+    private final List<TagField> fields = new ArrayList<>();
+    private boolean writing = false;    // prevents external data change during writing
     private final List<Validation> validators = new ArrayList<>();
 
     @IsConfig(name = "Field text alignment", info = "Alignment of the text in fields.")
-    public final V<Pos> fieldTextAlignment = new V<>(CENTER_LEFT, v -> fields.forEach(f -> f.setVerticalAlignment(v)));
+    public final V<Pos> fieldTextAlignment = new V<>(CENTER_LEFT);
     @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
     public final V<NodePos> popupPos = moodF.getPickerPosition();
 
     @Override
     public void init() {
-        fieldTextAlignment.onChange(v -> fields.forEach(it -> it.setVerticalAlignment(v)));
-
         Node okB = formIcon(FontAwesomeIcon.CHECK, "Save", runnable(this::write));
         content.getChildren().add(okB);
 
@@ -618,9 +616,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         }
     }
 
-/******************************************************************************/
-
-    @SuppressWarnings("unused")
     private final class TagField {
         private final TextInputControl c;
         private final Metadata.Field<?> f;
@@ -634,6 +629,7 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         public TagField(TextInputControl control, Metadata.Field<?> field, Predicate<String> valCond) {
             c = control;
             f = field;
+
 
             c.getStyleClass().setAll(TextFieldItemNode.textFieldStyleClass());
             c.setMinSize(0, 0);
@@ -654,6 +650,9 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                     }
                 });
             }
+
+            if (c instanceof TextField)
+                ((TextField)c).alignmentProperty().bind(fieldTextAlignment);
 
             emptyContent();
 
@@ -742,10 +741,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
                 }
                 e.consume();
             }
-        }
-        void setVerticalAlignment(Pos alignment) {
-            if (c instanceof TextField)
-                ((TextField)c).setAlignment(alignment);
         }
 
         //-------------

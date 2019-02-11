@@ -3,7 +3,7 @@ package sp.it.pl.util.access;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public interface FAccessibleValue<T> extends ApplicableValue<T> {
+public interface FAccessibleValue<T> extends AccessibleValue<T> {
 
 	@Override
 	default T getValue() {

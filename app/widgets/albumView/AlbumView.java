@@ -68,9 +68,6 @@ import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
 import static sp.it.pl.util.reactive.UtilKt.sync1If;
 
-/**
- * Logger widget controller.
- */
 @SuppressWarnings("WeakerAccess")
 @Widget.Info(
 		author = "Martin Polakovic",
@@ -89,9 +86,9 @@ public class AlbumView extends SimpleController {
 	static final double CELL_TEXT_HEIGHT = 40;
 
 	@IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-	final V<CellSize> cellSize = new V<>(NORMAL, v -> applyCellSize());
+	final V<CellSize> cellSize = new V<>(NORMAL);
 	@IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-	final V<Resolution> cellSizeRatio = new V<>(Resolution.R_1x1, v -> applyCellSize());
+	final V<Resolution> cellSizeRatio = new V<>(Resolution.R_1x1);
 	@IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
 	final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
 
@@ -135,12 +132,13 @@ public class AlbumView extends SimpleController {
 		in_items = inputs.create("To display", (Class) List.class, listRO(), this::setItems);
 		out_sel = outputs.create(widget.id,"Selected Album", MetadataGroup.class, null);
 		out_sel_met = outputs.create(widget.id,"Selected", List.class, listRO());
+
+		cellSize.onChange(v -> applyCellSize());
+		cellSizeRatio.onChange(v -> applyCellSize());
 	}
 
 	@Override
-	public void refresh() {
-		applyCellSize();
-	}
+	public void refresh() {}
 
 	@Override
 	public void focus() {
@@ -475,4 +473,5 @@ public class AlbumView extends SimpleController {
 				throw new SwitchException(this);
 		}
 	}
+
 }

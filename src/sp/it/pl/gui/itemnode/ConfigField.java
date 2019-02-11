@@ -312,7 +312,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         if (isEditableByUserRightNow(config)) {
             T t = config.getDefaultValue();
             if (!Objects.equals(config.getValue(), t)) {
-                config.setNapplyValue(t);
+                config.setValue(t);
                 refreshItem();
                 if (onChange!=null) onChange.run();
             }
@@ -331,8 +331,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             boolean needsapply = !Objects.equals(v, config.getValue());
             if (!needsapply) return;
             inconsistentState = true;
-            if (applyOnChange || user) config.setNapplyValue(v);
-            else config.setValue(v);
+            config.setValue(v);
             refreshItem();
             if (onChange!=null) onChange.run();
             inconsistentState = false;
@@ -471,8 +470,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 if (!applicable) return;
 
                 inconsistentState = true;
-                if (applyOnChange || user) config.setNapplyValue(v);
-                else config.setValue(v);
+                config.setValue(v);
                 if (onChange!=null) onChange.run();
                 inconsistentState = false;
             });
@@ -509,7 +507,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             graphics.styleclass("boolean-config-field");
             graphics.selected.setValue(config.getValue());
             if (isObservable) v.addListener((o,ov,nv) -> graphics.selected.setValue(nv));
-            graphics.selected.addListener((o,ov,nv) -> config.setNapplyValue(nv));
+            graphics.selected.addListener((o,ov,nv) -> config.setValue(nv));
         }
 
         @Override
@@ -893,8 +891,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
         @Override protected void apply(boolean user) {
             getValid().ifOk(v -> {
-                if (applyOnChange || user) config.setNapplyValue(v);
-                else config.setValue(v);
+                config.setValue(v);
                 refreshItem();
                 if (onChange != null) onChange.run();
             });

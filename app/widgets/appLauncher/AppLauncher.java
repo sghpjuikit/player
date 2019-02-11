@@ -80,9 +80,9 @@ public class AppLauncher extends SimpleController {
     @IsConfig(name = "Location", info = "Add program")
     final VarList<File> files = new VarList<>(File.class, Elements.NOT_NULL);
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-    final V<CellSize> cellSize = new V<>(NORMAL, v -> applyCellSize());
+    final V<CellSize> cellSize = new V<>(NORMAL).initAttachC(v -> applyCellSize());
     @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-    final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5, v -> applyCellSize());
+    final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5).initAttachC(v -> applyCellSize());
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width,cellSize.get().width*cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT,5,5);
     private final ExecutorService executorIO = oneThreadExecutor();
@@ -98,11 +98,11 @@ public class AppLauncher extends SimpleController {
     );
 
     @IsConfig(name = "Sort", info = "Sorting effect.")
-    final V<Sort> sort = new V<>(ASCENDING, v -> applySort());
+    final V<Sort> sort = new V<>(ASCENDING).initAttachC(v -> applySort());
     @IsConfig(name = "Sort file", info = "Group directories and files - files first, last or no separation.")
-    final V<FileSort> sort_file = new V<>(DIR_FIRST, v -> applySort());
+    final V<FileSort> sort_file = new V<>(DIR_FIRST).initAttachC(v -> applySort());
     @IsConfig(name = "Sort by", info = "Sorting criteria.")
-    final VarEnum<FileField<?>> sortBy = new VarEnum<>(FileField.NAME, () -> FileField.FIELDS, v -> applySort());
+    final V<FileField<?>> sortBy = new VarEnum<>(FileField.NAME, () -> FileField.FIELDS).initAttachC(v -> applySort());
     @Dependency("name: used by reflection")
     @IsConfig(name = "Close on launch", info = "Close this widget when it launches a program.")
     final V<Boolean> closeOnLaunch = new V<>(false);

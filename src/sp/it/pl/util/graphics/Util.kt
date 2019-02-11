@@ -589,6 +589,8 @@ fun Parent.setFontAsStyle(font: Font) {
  * @return linear text interpolator computing substrings of specified text from beginning
  */
 @JvmOverloads fun typeText(text: String, padLength: String? = null): (Double) -> String {
+    if (text.isEmpty()) return { "" }
+
     val length = text.length
     val sbOriginal = StringBuilder(text)
     fun mapper(c: Char) = if (c.isWhitespace()) c.toString() else (padLength ?: c.toString())

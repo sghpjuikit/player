@@ -5,6 +5,7 @@ import javafx.scene.Node
 import javafx.stage.Screen
 import javafx.stage.Window
 import sp.it.pl.main.APP
+import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.centreX
 import sp.it.pl.util.graphics.centreY
 import sp.it.pl.util.graphics.getScreenForMouse
@@ -88,32 +89,30 @@ enum class ScreenPos {
     fun <N: Node> computeXY(popup: PopOver<N>) = P(computeX(popup), computeY(popup))
 
     private fun <N: Node> computeX(popup: PopOver<N>): Double {
-        val w = popup.skinn.node.width
+        val width = popup.skinn.node.width
         val screen = if (isAppCentric()) null else getScreenForMouse().bounds
-        //				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screenPreference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
-        val app = APP.windowManager.main.orElse(null)
+        val window = APP.windowManager.focused.orNull()?.stage
         return when (this) {
-            APP_TOP_LEFT, APP_BOTTOM_LEFT -> app?.x ?: SCREEN_BOTTOM_LEFT.computeX(popup)
-            APP_TOP_RIGHT, APP_BOTTOM_RIGHT -> app?.let { it.x+it.width-w } ?: SCREEN_BOTTOM_RIGHT.computeX(popup)
-            APP_CENTER -> app?.let { it.centreX-w/2 } ?: SCREEN_CENTER.computeX(popup)
+            APP_TOP_LEFT, APP_BOTTOM_LEFT -> window?.x ?: SCREEN_BOTTOM_LEFT.computeX(popup)
+            APP_TOP_RIGHT, APP_BOTTOM_RIGHT -> window?.let { it.x+it.width-width } ?: SCREEN_BOTTOM_RIGHT.computeX(popup)
+            APP_CENTER -> window?.let { it.centreX-width/2 } ?: SCREEN_CENTER.computeX(popup)
             SCREEN_TOP_LEFT, SCREEN_BOTTOM_LEFT -> screen!!.minX+GAP
-            SCREEN_TOP_RIGHT, SCREEN_BOTTOM_RIGHT -> screen!!.maxX-w-GAP
-            SCREEN_CENTER -> screen!!.centreX-w/2
+            SCREEN_TOP_RIGHT, SCREEN_BOTTOM_RIGHT -> screen!!.maxX-width-GAP
+            SCREEN_CENTER -> screen!!.centreX-width/2
         }
     }
 
     private fun <N: Node> computeY(popup: PopOver<N>): Double {
-        val h = popup.skinn.node.height
+        val height = popup.skinn.node.height
         val screen = if (isAppCentric()) null else getScreenForMouse().bounds
-        //				 : APP.windowManager.getFocused().map(w -> w.getStage()).map(w -> popup.screenPreference.getScreenArea(w, this)).orElseGet(() -> getScreenForMouse().getBounds()); // alternative
-        val app = APP.windowManager.main.orElse(null)
+        val window = APP.windowManager.focused.orNull()
         return when (this) {
-            APP_BOTTOM_LEFT, APP_BOTTOM_RIGHT -> app?.let { it.y+it.height-h } ?: SCREEN_BOTTOM_RIGHT.computeY(popup)
-            APP_TOP_LEFT, APP_TOP_RIGHT -> app?.y ?: SCREEN_TOP_RIGHT.computeY(popup)
-            APP_CENTER -> app?.let { it.centreY-h/2 } ?: SCREEN_CENTER.computeY(popup)
-            SCREEN_BOTTOM_LEFT, SCREEN_BOTTOM_RIGHT -> screen!!.maxY-h-GAP
+            APP_BOTTOM_LEFT, APP_BOTTOM_RIGHT -> window?.let { it.y+it.height-height } ?: SCREEN_BOTTOM_RIGHT.computeY(popup)
+            APP_TOP_LEFT, APP_TOP_RIGHT -> window?.y ?: SCREEN_TOP_RIGHT.computeY(popup)
+            APP_CENTER -> window?.let { it.centreY-height/2 } ?: SCREEN_CENTER.computeY(popup)
+            SCREEN_BOTTOM_LEFT, SCREEN_BOTTOM_RIGHT -> screen!!.maxY-height-GAP
             SCREEN_TOP_LEFT, SCREEN_TOP_RIGHT -> screen!!.minY+GAP
-            SCREEN_CENTER -> screen!!.centreY-h/2
+            SCREEN_CENTER -> screen!!.centreY-height/2
         }
     }
 }

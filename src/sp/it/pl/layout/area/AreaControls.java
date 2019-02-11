@@ -5,12 +5,9 @@ import javafx.animation.FadeTransition;
 import javafx.animation.Transition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
@@ -19,7 +16,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import org.reactfx.EventSource;
 import sp.it.pl.gui.objects.Text;
@@ -29,7 +25,6 @@ import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.main.AppAnimator;
-import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.graphics.drag.DragUtil;
@@ -45,26 +40,16 @@ import static de.jensd.fx.glyphs.octicons.OctIcon.FOLD;
 import static de.jensd.fx.glyphs.octicons.OctIcon.UNFOLD;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
-import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
-import static javafx.scene.input.ScrollEvent.SCROLL;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
-import static sp.it.pl.gui.UiManager.OpenStrategy.INSIDE;
-import static sp.it.pl.gui.UiManager.OpenStrategy.POPUP;
 import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.unused.SimpleConfigurator.simpleConfigurator;
 import static sp.it.pl.util.functional.Util.mapB;
-import static sp.it.pl.util.graphics.Util.layScrollVText;
-import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
@@ -268,55 +253,11 @@ public final class AreaControls {
     }
 
     void settings() {
-        Widget w = area.getWidget();
-
-        if (APP.ui.getOpenStrategy().getValue()==POPUP) {
-            APP.windowManager.showSettings(w,propB);
-        } else if (APP.ui.getOpenStrategy().getValue()==INSIDE) {
-            AppAnimator.INSTANCE.closeAndDo(area.contentRoot, () -> {
-                SimpleConfigurator<?> sc = simpleConfigurator(w);
-                sc.getStyleClass().addAll("block", "area", "widget-area");// imitate area looks
-                sc.setOnMouseClicked(me -> {
-                    if (me.getButton()==SECONDARY)
-                        AppAnimator.INSTANCE.closeAndDo(sc, () -> {
-                            area.getRoot().getChildren().remove(sc);
-                            AppAnimator.INSTANCE.openAndDo(area.contentRoot, null);
-                        });
-                });
-                AppAnimator.INSTANCE.openAndDo(sc, null);
-                area.getRoot().getChildren().add(sc);
-                setAnchors(sc, 0d);
-            });
-        }
+        APP.windowManager.showSettings(area.getWidget(), propB);
     }
 
     void showInfo() {
-        if (APP.ui.getOpenStrategy().getValue()==POPUP) {
-            helpP.getM(this).showInCenterOf(infoB);
-        } else if (APP.ui.getOpenStrategy().getValue()==INSIDE) {
-            AppAnimator.INSTANCE.closeAndDo(area.contentRoot, () -> {
-                Text t = new Text(getInfo());
-                     t.setMouseTransparent(true);
-                ScrollPane s = layScrollVText(t);
-                           s .addEventFilter(SCROLL, Event::consume);
-                           s.setMaxWidth(500);
-                StackPane sa = new StackPane(s);
-                sa.setPadding(new Insets(20));
-                sa.getStyleClass().addAll(Area.STYLECLASS_BGR);
-                sa.addEventFilter(MOUSE_PRESSED, Event::consume);
-                sa.addEventFilter(MOUSE_RELEASED, Event::consume);
-                sa.addEventFilter(MOUSE_CLICKED, e -> {
-                    if (e.getButton()==SECONDARY)
-                        AppAnimator.INSTANCE.closeAndDo(sa, () -> {
-                            area.getRoot().getChildren().remove(sa);
-                            AppAnimator.INSTANCE.openAndDo(area.contentRoot, null);
-                        });
-                });
-                AppAnimator.INSTANCE.openAndDo(sa, null);
-                area.getRoot().getChildren().add(sa);
-                setAnchors(sa, 0d);
-            });
-        }
+        helpP.getM(this).showInCenterOf(infoB);
     }
 
     void close() {

@@ -93,8 +93,6 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val snapDistance by cv(12.0)
     @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
     val lockedLayout by cv(false) { SimpleBooleanProperty(it).apply { attach { APP.actionStream.push("Layout lock") } } }
-    @IsConfig(name = "Layout open strategy", info = "How will certain layout element open and close.")
-    val openStrategy by cv(OpenStrategy.INSIDE)
     @IsConfig(name = "Table orientation", group = Settings.Ui.TABLE, info = "Orientation of the table.")
     val tableOrient by cv(NodeOrientation.INHERIT)
     @IsConfig(name = "Zeropad numbers", group = Settings.Ui.TABLE, info = "Adds 0s for number length consistency.")

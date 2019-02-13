@@ -156,7 +156,10 @@ class AppActions {
     @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
     fun openLauncher() {
         val f = File(APP.DIR_LAYOUTS, "AppMainLauncher.fxwl")
-        val c = APP.windowManager.instantiateComponent(f)
+        val c = null
+                ?: APP.windowManager.instantiateComponent(f)
+                ?: APP.widgetManager.factories.getFactoryByGuiName(Widgets.APP_LAUNCHER)?.create()
+
         if (c!=null) {
             val op = object: OverlayPane<Void>() {
                 override fun show(data: Void?) {
@@ -181,6 +184,7 @@ class AppActions {
 
                 override fun hide() {
                     super.hide()
+                    c.exportFxwl(f)
                     c.close()
                 }
             }

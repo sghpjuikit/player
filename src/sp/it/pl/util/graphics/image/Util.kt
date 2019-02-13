@@ -138,7 +138,7 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream, width: 
 
                 val irp = reader.defaultReadParam.apply {
                     var px = 1
-                    if (!highQuality) {
+                    if (!highQuality && rW!=0 && rH!=0) {
                         val sw = reader.getWidth(ii)/rW
                         val sh = reader.getHeight(ii)/rH
                         px = maxOf(1, maxOf(sw, sh)/3) // quality == 2/3 == ok, great performance

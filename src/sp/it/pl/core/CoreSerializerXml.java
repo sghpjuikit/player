@@ -5,6 +5,7 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.mapper.Mapper;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
@@ -103,6 +104,9 @@ public final class CoreSerializerXml implements Core {
 	@SuppressWarnings("unchecked")
 	@Blocks
 	public <T> Try<T,SerializationException> fromXML(Class<T> type, File file) {
+		if (!file.exists())
+			return error(new SerializationException("Couldn't deserialize " + type + " from file " + file, new FileNotFoundException(file.getAbsolutePath())));
+
 		// pre-processing
 		String varDefinition = "#def ";
 		List<String> lines = readFileLines(file).collect(toList());

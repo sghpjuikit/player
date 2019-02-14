@@ -718,26 +718,18 @@
 .scroll-bar:horizontal > .decrement-button > .decrement-arrow {
     -fx-padding: 0.333em 0.167em 0.333em 0.167em; /* 4 2 4 2 */
     -fx-shape: "M5.997,5.072L5.995,6.501l-2.998-4l2.998-4l0.002,1.43l-1.976,2.57L5.997,5.072z";
-    -fx-effect: dropshadow(two-pass-box , -fx-shadow-highlight-color, 1, 0.0 , 0, 1.4);
-    /*-fx-background-insets: 2 0 -2 0, 0;*/
 }
 .scroll-bar:horizontal > .increment-button > .increment-arrow {
     -fx-padding: 0.333em 0.167em 0.333em 0.167em; /* 4 2 4 2 */
     -fx-shape: "M2.998-0.07L3-1.499l2.998,4L3,6.501l-0.002-1.43l1.976-2.57L2.998-0.07z";
-    -fx-effect: dropshadow(two-pass-box , -fx-shadow-highlight-color, 1, 0.0 , 0, 1.4);
-    /*-fx-background-insets: 2 0 -2 0, 0;*/
 }
 .scroll-bar:vertical > .decrement-button > .decrement-arrow {
     -fx-padding: 0.167em 0.333em 0.167em 0.333em; /* 2 4 2 4 */
     -fx-shape: "M1.929,4L0.5,3.998L4.5,1l4,2.998L7.07,4L4.5,2.024L1.929,4z";
-    -fx-effect: dropshadow(two-pass-box , -fx-shadow-highlight-color, 1, 0.0 , 0, 1.4);
-    /*-fx-background-insets: 2 0 -2 0, 0;*/
 }
 .scroll-bar:vertical > .increment-button > .increment-arrow {
     -fx-padding: 0.167em 0.333em 0.167em 0.333em; /* 2 4 2 4 */
     -fx-shape: "M7.071,1L8.5,1.002L4.5,4l-4-2.998L1.93,1L4.5,2.976L7.071,1z";
-    -fx-effect: dropshadow(two-pass-box , -fx-shadow-highlight-color, 1, 0.0 , 0, 1.4);
-    /*-fx-background-insets: 2 0 -2 0, 0;*/
 }
 
 /* Force all scrollbar to be of equal size */

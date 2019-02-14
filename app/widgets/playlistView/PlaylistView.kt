@@ -36,10 +36,9 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.only
 import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.functional.net
-import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.item
 import sp.it.pl.util.graphics.items
-import sp.it.pl.util.graphics.layFullArea
+import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.menu
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.on
@@ -138,8 +137,13 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
         table.footerVisible syncFrom tableShowFooter on onClose
         table.scrollToPlaying syncFrom scrollToPlaying on onClose
         table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo
+        onClose += table::dispose
+        onClose += table.selectionModel.selectedItemProperty() attach {
+            if (!table.movingItems)
+                outSelected.value = it
+        }
 
-        layFullArea += table.root
+        root.lay += table.root
 
         table.menuAdd.apply {
             item("Add files") { PlaylistManager.chooseFilesToAdd() }
@@ -170,7 +174,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
                         "Save playlist as...",
                         lastSavePlaylistLocation ?: PlayerConfiguration.lastSavePlaylistLocation,
                         "Playlist",
-                        widget.windowOrActive.orNull()?.stage ?: APP.windowManager.createStageOwner(),
+                        root.scene.window,
                         FileChooser.ExtensionFilter("m3u8", "m3u8")
                 ).ifOk { file ->
                     lastSavePlaylistLocation = file.parentDirOrRoot
@@ -180,13 +184,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
             }
         }
 
-        onClose += table.selectionModel.selectedItemProperty() attach {
-            if (!table.movingItems)
-                outSelected.value = it
-        }
-        onClose += table::dispose
-
-        onScroll = EventHandler { it.consume() }
+        root.onScroll = EventHandler { it.consume() }
     }
 
     override fun getFields(): Collection<Config<Any>> {

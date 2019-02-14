@@ -64,7 +64,6 @@ import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
 import static sp.it.pl.util.reactive.UtilKt.sync1If;
 
@@ -110,7 +109,7 @@ public class AlbumView extends SimpleController {
 			out_sel.setValue(item== null ? null : item.items);
 			out_sel_met.setValue(item== null ? Util.listRO() : item.items.getGrouped());
 		});
-		setAnchor(this, view, 0d);
+		root.getChildren().add(view);
 
 		view.setOnKeyPressed(e -> {
 			if (e.getCode() == KeyCode.ENTER)
@@ -136,9 +135,6 @@ public class AlbumView extends SimpleController {
 		cellSize.onChange(v -> applyCellSize());
 		cellSizeRatio.onChange(v -> applyCellSize());
 	}
-
-	@Override
-	public void refresh() {}
 
 	@Override
 	public void focus() {

@@ -126,16 +126,17 @@ class GameView(widget: Widget): SimpleController(widget) {
             newThreadPoolExecutor(8, 1, MINUTES, threadFactory("gameView-img-full", true))
     )
     val placeholder = Placeholder(IconMD.FOLDER_PLUS, "Click to add directory to library") {
-        chooseFile("Choose directory", FileType.DIRECTORY, APP.DIR_HOME, widget.windowOrActive.orNull()?.stage)
+        chooseFile("Choose directory", FileType.DIRECTORY, APP.DIR_HOME, root.scene.window)
                 .ifOk { files += it }
     }
 
     init {
         files.onChange { viewGames() } on onClose
-        files.onChange { placeholder.show(this, files.isEmpty()) } on onClose
-        onEventDown(SCROLL) { it.consume() }
+        files.onChange { placeholder.show(root, files.isEmpty()) } on onClose
 
-        layFullArea += grid.apply {
+        root.onEventDown(SCROLL) { it.consume() }
+
+        root.lay += grid.apply {
             cellFactory = Callback { Cell() }
             onEventDown(KEY_PRESSED) {
                 if (it.code==ENTER) {
@@ -166,11 +167,9 @@ class GameView(widget: Widget): SimpleController(widget) {
             }
         }
 
-        placeholder.show(this, files.isEmpty())
+        placeholder.show(root, files.isEmpty())
         viewGames()
     }
-
-    override fun refresh() = viewGames()
 
     private fun viewGames() {
         runOn(NEW) {
@@ -190,7 +189,7 @@ class GameView(widget: Widget): SimpleController(widget) {
     fun viewGame(game: File) {
         AppAnimator.closeAndDo(grid, Runnable {
             val gamePane = GamePane()
-            layFullArea += gamePane
+            root.lay += gamePane
             AppAnimator.openAndDo(gamePane, Runnable {
                 gamePane.open(game)
             })
@@ -348,7 +347,7 @@ class GameView(widget: Widget): SimpleController(widget) {
 
         fun close() {
             AppAnimator.closeAndDo(this, Runnable {
-                this@GameView.children -= this
+                root.children -= this
                 AppAnimator.openAndDo(grid, Runnable {})
             })
         }

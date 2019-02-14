@@ -1,7 +1,7 @@
 package inspector
 
 import javafx.event.EventHandler
-import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.TOP_RIGHT
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.Scene
@@ -40,7 +40,6 @@ import sp.it.pl.util.graphics.expandToRootAndSelect
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.isAnyChildOf
 import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.layFullArea
 import sp.it.pl.util.graphics.pickTopMostAt
 import sp.it.pl.util.graphics.propagateESCAPE
 import sp.it.pl.util.reactive.Subscribed
@@ -75,15 +74,15 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
     val selectingNode = Subscribed { feature ->
         var selected: Node? = null
         highlighted?.highlight(false)       // suppress highlighted node while selecting
-        observeWindowRoots { root ->
-            val d1 = root.onEventUp(MOUSE_MOVED) {
+        observeWindowRoots { wRoot ->
+            val d1 = wRoot.onEventUp(MOUSE_MOVED) {
                 selected = selected?.highlight(false)
-                selected = root.pickTopMostVisible(it)?.takeIf { !it.isAnyChildOf(this@Inspector) }?.highlight(true)
+                selected = wRoot.pickTopMostVisible(it)?.takeIf { !it.isAnyChildOf(root) }?.highlight(true)
             }
-            val d2 = root.onEventUp(MOUSE_CLICKED) {
+            val d2 = wRoot.onEventUp(MOUSE_CLICKED) {
                 feature.unsubscribe()
                 selected = selected?.highlight(false)
-                root.pickTopMostVisible(it)?.takeIf { !it.isAnyChildOf(this@Inspector) }?.let { exploreNode(it) }
+                wRoot.pickTopMostVisible(it)?.takeIf { !it.isAnyChildOf(root) }?.let { exploreNode(it) }
                 it.consume()
             }
             d1+d2
@@ -103,7 +102,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
     }
 
     init {
-        layFullArea += tree.apply {
+        root.lay += tree.apply {
             selectionModel.selectionMode = MULTIPLE
             cellFactory = Callback { buildTreeCell(it) }
             root = treeApp()
@@ -115,7 +114,9 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
             }
             propagateESCAPE()
         }
-        lay(0, 0, null, null) += hBox(10, CENTER) {
+        root.lay(TOP_RIGHT) += hBox(10, TOP_RIGHT) {
+            isPickOnBounds = false
+
             lay += Icon(IconMA.COLLECTIONS).apply {
                 tooltip("Inspect window")
                 onClickDo { !selectingWindow }
@@ -128,13 +129,13 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
         }
 
         installDrag(
-                this,
+                root,
                 IconFA.LIST_ALT,
                 { "Inspect" },
                 { true },
                 { open(DragUtil.getAny(it)) }
         )
-        onScroll = EventHandler { it.consume() } // prevent scrolling event from propagating
+        root.onScroll = EventHandler { it.consume() } // prevent scrolling event from propagating
 
         onClose += { tree.selectionModel.clearSelection() }
         onClose += { tree.root?.disposeIfDisposable() }

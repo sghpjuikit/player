@@ -53,7 +53,7 @@ class WebReader(widget: Widget): SimpleController(widget) {
     private val noBgr by cv(false)
 
     init {
-        ConventionFxmlLoader(this).loadNoEx<Any>()
+        ConventionFxmlLoader(root, this).loadNoEx<Any>()
 
         engine = webView.engine
         engine.userDataDirectory = userLocation/"browser"
@@ -67,7 +67,6 @@ class WebReader(widget: Widget): SimpleController(widget) {
                 val url = WebBarInterpreter.toUrlString(text, searchEngine.get())
                 loadPage(url)
             }
-
         }
 
         // engine.documentProperty() sync { if (noBgr.get()) engine.setTransparentBgrColor() } on onClose
@@ -78,7 +77,7 @@ class WebReader(widget: Widget): SimpleController(widget) {
     }
 
     @FXML
-    override fun refresh() {
+    fun refresh() {
         // TODO: improve this
         if (addressBar.text.isEmpty()) {
             // For now we do not reload the page, just set up the address
@@ -100,19 +99,21 @@ class WebReader(widget: Widget): SimpleController(widget) {
         }
     }
 
-    // https://bugs.openjdk.java.net/browse/JDK-8090547?jql=text%20~%20"WebView%20transparent"
-    // https://gist.github.com/riccardobl/18603f9de508b1ab6c9e
-    @Dependency("requires access to javafx.web/com.sun.webkit.WebPage")
-    private fun WebEngine.setTransparentBgrColor() {
-        // TODO: jigsaw
-        try {
-            // Use reflection to retrieve the WebEngine's private 'page' field.
-            val webPage = getFieldValue<Any>(this, "page") ?: return
-            invokeMethodP1<Any, Int>(webPage, "setBackgroundColor", Int::class.javaPrimitiveType, java.awt.Color(255, 255, 255, 1).rgb) // TODO: fix
-        } catch (e: Exception) {
-            logger.error(e) { "Could not change background color to transparent" }
-        }
-    }
+    companion object: KLogging() {
 
-    companion object: KLogging()
+        // https://bugs.openjdk.java.net/browse/JDK-8090547?jql=text%20~%20"WebView%20transparent"
+        // https://gist.github.com/riccardobl/18603f9de508b1ab6c9e
+        @Dependency("requires access to javafx.web/com.sun.webkit.WebPage")
+        private fun WebEngine.setTransparentBgrColor() {
+            // TODO: jigsaw
+            try {
+                // Use reflection to retrieve the WebEngine's private 'page' field.
+                val webPage = getFieldValue<Any>(this, "page") ?: return
+                invokeMethodP1<Any, Int>(webPage, "setBackgroundColor", Int::class.javaPrimitiveType, java.awt.Color(255, 255, 255, 1).rgb) // TODO: fix
+            } catch (e: Exception) {
+                logger.error(e) { "Could not change background color to transparent" }
+            }
+        }
+
+    }
 }

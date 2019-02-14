@@ -6,14 +6,12 @@ import java.util.Set;
 import java.util.function.Consumer;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
-import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Menu;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.input.Dragboard;
-import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.playlist.PlaylistManager;
@@ -28,8 +26,10 @@ import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
 import sp.it.pl.gui.objects.table.TableColumnInfo;
 import sp.it.pl.gui.objects.tablecell.NumberRatingCellFactory;
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
+import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Info;
-import sp.it.pl.layout.widget.controller.FXMLController;
+import sp.it.pl.layout.widget.controller.LegacyController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.main.Widgets;
@@ -72,7 +72,6 @@ import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.menuItem;
-import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 @Info(
@@ -96,12 +95,12 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
     year = "2015",
     group = LIBRARY
 )
-public class LibraryView extends FXMLController {
+@LegacyController
+public class LibraryView extends SimpleController {
 
     private static final PseudoClass PC_PLAYING = PseudoClass.getPseudoClass("played");
     private static final TableContextMenuR<MetadataGroup> contextMenu = new TableContextMenuR<>();
 
-    private @FXML AnchorPane root;
     private final FilteredTable<MetadataGroup> table = new FilteredTable<>(MetadataGroup.class, VALUE);
 
     // input/output
@@ -125,24 +124,24 @@ public class LibraryView extends FXMLController {
         .initAttachC(this::applyData);
 
     @SuppressWarnings({"ConstantConditions", "unchecked"})
-    @Override
-    public void init() {
+    public LibraryView(Widget widget) {
+        super(widget);
+        root.setPrefSize(600.0, 600.0);
+
         out_sel = outputs.create(widget.id,"Selected Group", MetadataGroup.class, null);
         out_sel_met = outputs.create(widget.id,"Selected", List.class, listRO());
         in_items = inputs.create("To display", (Class)List.class, listRO(), this::setItems);
 
-        // add table to scene graph
         root.getChildren().add(table.getRoot());
-        setAnchors(table.getRoot(),0d);
 
         // table properties
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.search.setColumn(VALUE);
-        d(maintain(orient,table.nodeOrientationProperty()));
-        d(maintain(zeropad,table.zeropadIndex));
-        d(maintain(orig_index,table.showOriginalIndex));
-        d(maintain(show_header,table.headerVisible));
-        d(maintain(show_footer,table.footerVisible));
+        onClose.plusAssign(maintain(orient,table.nodeOrientationProperty()));
+        onClose.plusAssign(maintain(zeropad,table.zeropadIndex));
+        onClose.plusAssign(maintain(orig_index,table.showOriginalIndex));
+        onClose.plusAssign(maintain(show_header,table.headerVisible));
+        onClose.plusAssign(maintain(show_footer,table.footerVisible));
 
         // set up table columns
         table.setKeyNameColMapper(name-> ColumnField.INDEX.name().equals(name) ? name : MetadataGroup.Field.valueOf(name).toString());
@@ -173,7 +172,7 @@ public class LibraryView extends FXMLController {
             }
         });
         // maintain rating column cell style
-        d(APP.getRatingCell().maintain(cf -> table.getColumn(AVG_RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));
+        onClose.plusAssign(APP.getRatingCell().maintain(cf -> table.getColumn(AVG_RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));
 
         table.getDefaultColumnInfo();   // TODO remove (this triggers menu initialization)
 
@@ -194,8 +193,7 @@ public class LibraryView extends FXMLController {
                 });
             }}
         );
-        d(Player.playingItem.onUpdate(m -> table.updateStyleRules()));   // maintain playing item css
-
+        onClose.plusAssign(Player.playingItem.onUpdate(m -> table.updateStyleRules()));   // maintain playing item css
 
         // column context menu - add change VALUE column menus
         Menu m = (Menu) table.columnVisibleMenu.getItems().stream().filter(i -> i.getText().equals("Value")).findFirst()
@@ -257,7 +255,7 @@ public class LibraryView extends FXMLController {
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
         // forward on selection
-        d(changesOf(table.getSelectedItems())
+        onClose.plusAssign(changesOf(table.getSelectedItems())
           .reduceSuccessions((a,b) -> b, ofMillis(100)).subscribe(c -> {
                 if (!sel_ignore)
                     out_sel_met.setValue(filterList(in_items.getValue(),true));
@@ -266,7 +264,7 @@ public class LibraryView extends FXMLController {
                     sel_ignore = false;
                 }
         }));
-        d(changesOf(table.getSelectionModel().selectedItemProperty())
+        onClose.plusAssign(changesOf(table.getSelectionModel().selectedItemProperty())
           .reduceSuccessions((a,b) -> b, ofMillis(100)).subscribe(s -> {
                 MetadataGroup nv = s.getNewValue();
                 if (!sel_ignore)
@@ -275,10 +273,7 @@ public class LibraryView extends FXMLController {
 
         // prevent volume change
         table.setOnScroll(Event::consume);
-    }
 
-    @Override
-    public void refresh() {
         applyData(null);
     }
 
@@ -288,13 +283,6 @@ public class LibraryView extends FXMLController {
         widget.properties.put("columns", table.getColumnState().toString());
         return super.getFields();
     }
-
-    @Override
-    public void onClose() {
-        super.onClose();
-    }
-
-    /******************************** PRIVATE API *********************************/
 
     // applies lvl & fieldFilter
     @SuppressWarnings({"unchecked", "unused"})

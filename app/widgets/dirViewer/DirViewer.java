@@ -14,7 +14,6 @@ import sp.it.pl.gui.objects.grid.GridView;
 import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.placeholder.Placeholder;
-import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
@@ -65,9 +64,9 @@ import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.max;
 import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.sync1IfNonNull;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.edit;
 import static sp.it.pl.util.system.EnvironmentKt.open;
@@ -108,7 +107,7 @@ public class DirViewer extends SimpleController {
     private AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
         FOLDER_PLUS, "Click to explore directory",
-        () -> chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, getOwnerWidget().getWindowOrActive().map(Window::getStage).orElse(null))
+        () -> chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, root.getScene().getWindow())
             .ifOk(files.list::setAll)
     );
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
@@ -128,13 +127,12 @@ public class DirViewer extends SimpleController {
     public DirViewer(Widget widget) {
         super(widget);
 
-        files.onListInvalid(list -> revisitTop());
-        files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
         grid.search.field = FileField.PATH;
         grid.primaryFilterField = FileField.NAME_FULL;
         grid.setCellFactory(grid -> new Cell());
-        setAnchor(this, grid, 0d);
-        placeholder.show(this, files.list.isEmpty());
+        root.getChildren().add(grid);
+
+        placeholder.show(root, files.list.isEmpty());
 
         inputs.create("Root directory", File.class, null, dir -> {
             if (dir != null && dir.isDirectory() && dir.exists())
@@ -174,7 +172,7 @@ public class DirViewer extends SimpleController {
 
         // drag & drop
         DragUtil.installDrag(
-            this, FOLDER_PLUS, "Explore directory",
+            root, FOLDER_PLUS, "Explore directory",
             DragUtil::hasFiles,
             e -> files.list.setAll(
                 DragUtil.getFiles((e)).stream().allMatch(File::isDirectory)
@@ -187,9 +185,12 @@ public class DirViewer extends SimpleController {
         cellSize.onChange(v -> applyCellSize());
         cellSizeRatio.onChange(v -> applyCellSize());
         filter.onChange(v -> revisitCurrent());
+        files.onListInvalid(list -> revisitTop());
+        files.onListInvalid(list -> placeholder.show(root, list.isEmpty()));
+
+        sync1IfNonNull(root.sceneProperty(), consumer(s -> refresh()));
     }
 
-    @Override
     public void refresh() {
         initialized = true;
         applyCellSizeNoRefresh();
@@ -197,6 +198,7 @@ public class DirViewer extends SimpleController {
     }
 
     void visitUp() {
+        if (!initialized) return;
         // We visit parent, a "back" operation.
         // Because the hierarchy we traverse is virtual (and may not have non-single parent), we may not go higher
         if (item != null && item.parent != null) {
@@ -239,6 +241,7 @@ public class DirViewer extends SimpleController {
      * Visits top/root item. Rebuilds entire hierarchy.
      */
     private void revisitTop() {
+        if (!initialized) return;
         disposeItems();
         visit(new TopItem());
     }
@@ -247,6 +250,7 @@ public class DirViewer extends SimpleController {
      * Visits last visited item. Rebuilds entire hierarchy.
      */
     private void revisitCurrent() {
+        if (!initialized) return;
         disposeItems();
         Item topItem = new TopItem();
         if (lastVisited == null) {

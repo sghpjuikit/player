@@ -22,7 +22,6 @@ import sp.it.pl.layout.container.freeformcontainer.FreeFormContainer;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.container.switchcontainer.SwitchContainer;
 import sp.it.pl.layout.container.uncontainer.UniContainer;
-import sp.it.pl.layout.widget.EmptyWidget;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.util.dev.Blocks;
 import sp.it.pl.util.functional.Try;
@@ -78,7 +77,6 @@ public final class CoreSerializerXml implements Core {
 		x.alias("SwitchContainer", SwitchContainer.class);
 		x.alias("Layout", Layout.class);
 		x.alias("Widget", Widget.class);
-		x.alias("EmptyWidget", EmptyWidget.class);
 		x.useAttributeFor(Component.class, "id");
 		x.useAttributeFor(Widget.class, "name");
 	}

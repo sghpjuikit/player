@@ -13,15 +13,14 @@ import sp.it.pl.layout.Component;
 import sp.it.pl.layout.area.ContainerNode;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.container.layout.Layout;
-import sp.it.pl.layout.widget.EmptyWidget;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.controller.Controller;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.type.ClassName;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static org.slf4j.LoggerFactory.getLogger;
+import static sp.it.pl.layout.widget.EmptyWidgetKt.getEmptyWidgetFactory;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
@@ -77,18 +76,18 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         c12.addChild(1, c21);
         c12.addChild(2, c22);
 
-        c11.addChild(1, new EmptyWidget());
-        c11.addChild(2, new EmptyWidget());
-        c21.addChild(1, new EmptyWidget());
-        c21.addChild(2, new EmptyWidget());
-        c22.addChild(1, new EmptyWidget());
-        c22.addChild(2, new EmptyWidget());
+        c11.addChild(1, getEmptyWidgetFactory().create());
+        c11.addChild(2, getEmptyWidgetFactory().create());
+        c21.addChild(1, getEmptyWidgetFactory().create());
+        c21.addChild(2, getEmptyWidgetFactory().create());
+        c22.addChild(1, getEmptyWidgetFactory().create());
+        c22.addChild(2, getEmptyWidgetFactory().create());
 
         return root;
     }
 
     public static Container testDragContainer() {
-        Widget w = new EmptyWidget();
+        Widget w = getEmptyWidgetFactory().create();
         BiContainer root = new BiContainer(HORIZONTAL);
         root.addChild(1,w);
 

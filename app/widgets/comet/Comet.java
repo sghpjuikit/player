@@ -211,9 +211,9 @@ import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.computeFontHeight;
 import static sp.it.pl.util.graphics.Util.computeFontWidth;
+import static sp.it.pl.util.graphics.Util.layAnchor;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.layStack;
-import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 @SuppressWarnings({"unused","UnnecessaryLocalVariable"})
@@ -274,7 +274,7 @@ public class Comet extends SimpleController {
 		);
 
 		// layout
-		setAnchor(this,
+		root.getChildren().add(layAnchor(
 			layHorizontally(20,CENTER_LEFT,
 				ConfigField.createForProperty(GameMode.class, "Mode", mode).getNode().getChildren().get(0),
 				new Icon(MaterialDesignIcon.NUMERIC_1_BOX_OUTLINE,15,"Start 1 player game",() -> game.start(1)),
@@ -292,7 +292,7 @@ public class Comet extends SimpleController {
 			0d,0d,null,0d,
 			layStack(canvas_bgr, canvas, playfield, playerStats, message),
 			20d,0d,0d,0d
-		);
+		));
 
 		// keys
 		playfield.addEventFilter(KEY_PRESSED, e -> {
@@ -328,7 +328,7 @@ public class Comet extends SimpleController {
 		playfield.setOnMouseClicked(e -> playfield.requestFocus());
 		playfield.focusedProperty().addListener((o,ov,nv) -> game.pause(!nv));
 
-		addEventHandler(Event.ANY, Event::consume);
+		root.addEventHandler(Event.ANY, Event::consume);
 
 		onClose.plusAssign(game::dispose);
 	}

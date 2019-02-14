@@ -10,13 +10,19 @@ import sp.it.pl.layout.widget.controller.io.IsInput
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMD
+import sp.it.pl.util.async.runLater
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cn
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.only
 import sp.it.pl.util.graphics.drag.DragUtil
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
-import sp.it.pl.util.graphics.layFullArea
+import sp.it.pl.util.graphics.image.FitFrom
+import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventDown
+import sp.it.pl.util.reactive.sync1IfNonNull
+import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.validation.Constraint.FileActor.FILE
 import java.io.File
 
@@ -35,37 +41,43 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
 
     @IsConfig(name = "Custom image", info = "Image file to display.")
     private var img by cn<File?>(null).only(FILE)
+    @IsConfig(name = "Fit from", info = "Image fitting.")
+    private val fitFrom by cv(FitFrom.INSIDE)
 
     init {
         thumb.isBackgroundVisible = false
         thumb.borderVisible = false
         thumb.isDragEnabled = true
+        thumb.fitFrom syncFrom fitFrom on onClose
 
-        layFullArea += thumb.pane
+        root.lay += thumb.pane
 
         installDrag(
-                this, IconMD.DETAILS, "Display",
+                root, IconMD.DETAILS, "Display",
                 { DragUtil.hasImage(it) },
                 { e -> img!=null && img==DragUtil.getImageNoUrl(e) },
                 { e -> DragUtil.getImage(e) ui { showImage(it) } }
         )
-        onEventDown(KEY_PRESSED) {
+        root.onEventDown(KEY_PRESSED) {
             if (it.code==KeyCode.ENTER) {
                 img?.let { APP.actions.openImageFullscreen(it) }
                 it.consume()
             }
         }
 
-        showImage(img)
+        root.sceneProperty().sync1IfNonNull { showImage(img) } on onClose
     }
-
-    override fun refresh() = showImage(img)
 
     @IsInput("To display")
     override fun showImage(imgFile: File?) {
         img = imgFile
-        thumb.loadImage(imgFile)
-        requestFocus()
+        if (root.scene==null) return
+
+        runLater {
+            thumb.loadImage(imgFile)    // runLater to prevent loading image with size of 0 (full size), TODO: fix
+        }
+
+        root.requestFocus()
     }
 
 }

@@ -145,6 +145,9 @@ public class GridView<T, F> extends Control {
 		});
 		setOnScroll(Event::consume);
 
+
+		setSkin(createDefaultSkin());
+
 		getStyleClass().add(STYLE_CLASS);
 	}
 

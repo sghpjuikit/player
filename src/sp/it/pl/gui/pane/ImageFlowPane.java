@@ -44,39 +44,39 @@ public class ImageFlowPane extends Pane {
 			getChildren().add(image.getPane());
 			image.ratioImgProperty().addListener((o, ov, nv) -> layoutChildren());
 		}
-		layoutChildren();
+		requestLayout();
 	}
 
 	public void setContent(Pane i) {
 		if (content!=null) getChildren().remove(content);
 		content = i;
 		if (i!=null) getChildren().add(i);
-		layoutChildren();
+		requestLayout();
 	}
 
 	/** Set image visibility. Default true. */
 	public void setImageVisible(boolean b) {
 		showImage = b;
-		layoutChildren();
+		requestLayout();
 	}
 
 	/** Set content visibility. Default true. */
 	public void setContentVisible(boolean val) {
 		showContent = val;
-		layoutChildren();
+		requestLayout();
 	}
 
 	/** Set gap between image and content. */
 	public void setGap(double g) {
 		gap = g;
-		layoutChildren();
+		requestLayout();
 	}
 
 	/** Set minimal size of the content. Default 0. */
 	public void setMinContentSize(double w, double h) {
 		minContentWidth = w;
 		minContentHeight = h;
-		layoutChildren();
+		requestLayout();
 	}
 
 	@Override

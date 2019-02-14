@@ -1,6 +1,6 @@
 package sp.it.pl.layout.widget.controller
 
-import javafx.scene.layout.AnchorPane
+import javafx.scene.layout.StackPane
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.io.Inputs
 import sp.it.pl.layout.widget.controller.io.Outputs
@@ -10,9 +10,15 @@ import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.util.reactive.Disposer
 import java.util.HashMap
 
-open class SimpleController(@JvmField val widget: Widget): AnchorPane(), Controller, MultiConfigurable {
+/**
+ * Base controller implementation that provides
+ * - [root]
+ * - support for automatic restoration of configurable properties, using delegated configurable properties, see
+ * [sp.it.pl.util.conf.cv] family of methods.
+ */
+open class SimpleController(widget: Widget): Controller(widget), MultiConfigurable {
 
-    override val ownerWidget = widget
+    @JvmField val root = StackPane()
     @JvmField val onClose = Disposer()
     @JvmField val outputs = Outputs()
     @JvmField val inputs = Inputs()
@@ -40,22 +46,19 @@ open class SimpleController(@JvmField val widget: Widget): AnchorPane(), Control
         }
     }
 
-    override fun loadFirstTime() = this
+    override fun loadFirstTime() = root
 
-    override fun focus() = requestFocus()
+    override fun focus() = root.requestFocus()
 
     override fun close() {
         onClose()
         inputs.getInputs().forEach { it.unbindAll() }
     }
 
-    @Deprecated("to be removed")
-    final override fun init() {}
-
     @Suppress("UNCHECKED_CAST")
     override fun getFieldsMap(): Map<String, Config<Any>> = configs as Map<String, Config<Any>>
 
 }
 
-/** Denotes [Controller] that requires manual config initialization. By convention that applies for controller written in Java. */
+/** Denotes [Controller] that requires manual config initialization. */
 annotation class LegacyController

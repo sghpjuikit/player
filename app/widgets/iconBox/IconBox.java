@@ -2,14 +2,13 @@ package iconBox;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.fxml.FXML;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Info;
-import sp.it.pl.layout.widget.controller.FXMLController;
+import sp.it.pl.layout.widget.controller.LegacyController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.feature.HorizontalDock;
 import sp.it.pl.util.access.FAccessor;
 import sp.it.pl.util.access.VarAction;
@@ -30,11 +29,8 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
     year = "2014",
     group = Widget.Group.OTHER
 )
-public class IconBox extends FXMLController implements HorizontalDock {
-
-    @FXML
-    private StackPane root;
-    private final FlowPane box = new FlowPane(5,5);
+@LegacyController
+public class IconBox extends SimpleController implements HorizontalDock {
 
     @IsConfig(name = "Icon size", info = "Size of each icon")
     private final DoubleProperty icon_size = new SimpleDoubleProperty(13);
@@ -54,13 +50,13 @@ public class IconBox extends FXMLController implements HorizontalDock {
         )
     );
 
-    @Override
-    public void init() {
+    public IconBox(Widget widget) {
+        super(widget);
+
+        FlowPane box = new FlowPane(5,5);
         root.getChildren().add(new VBox(30,box));
+
         icons.onListInvalid(box.getChildren()::setAll);
     }
-
-    @Override
-    public void refresh() {}
 
 }

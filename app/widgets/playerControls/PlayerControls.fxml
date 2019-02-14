@@ -9,55 +9,60 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<fx:root id="AnchorPane" type="javafx.scene.layout.AnchorPane" prefHeight="100.0" prefWidth="600.0" stylesheets="@skin.css" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
-    <AnchorPane id="AnchorPane" pickOnBounds="false" AnchorPane.bottomAnchor="60.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-        <BorderPane pickOnBounds="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-            <left>
-                <BorderPane fx:id="controlPanel" BorderPane.alignment="CENTER">
+
+<fx:root type="javafx.scene.layout.StackPane" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <AnchorPane prefHeight="100.0" prefWidth="600.0">
+            <AnchorPane id="AnchorPane" pickOnBounds="false" AnchorPane.bottomAnchor="60.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <BorderPane pickOnBounds="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <left>
+                        <BorderPane fx:id="controlPanel" BorderPane.alignment="CENTER">
+                            <center>
+                                <HBox fx:id="playButtons" alignment="CENTER" fillHeight="false" spacing="5.0" BorderPane.alignment="CENTER" />
+                            </center>
+                        </BorderPane>
+                    </left>
+                    <padding>
+                        <Insets left="10.0" top="30.0" />
+                    </padding>
                     <center>
-                        <HBox fx:id="playButtons" alignment="CENTER" fillHeight="false" spacing="5.0" BorderPane.alignment="CENTER" />
+                        <VBox alignment="CENTER_LEFT" layoutX="33.0" layoutY="126.0" BorderPane.alignment="CENTER">
+                            <Label fx:id="titleL" text="Title" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                            <Label fx:id="artistL" text="Artist" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                            <HBox alignment="CENTER_LEFT" spacing="7.0" GridPane.rowIndex="2">
+                                <Label fx:id="bitrateL" text="Bitrate" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                <Label fx:id="sampleRateL" text="Sample rate" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                <Label fx:id="channelsL" text="Channels" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                            </HBox>
+                       <padding>
+                          <Insets left="10.0" />
+                       </padding>
+                        </VBox>
                     </center>
                 </BorderPane>
-            </left>
-            <padding>
-                <Insets left="10.0" top="30.0" />
-            </padding>
-            <center>
-                <VBox alignment="CENTER_LEFT" layoutX="33.0" layoutY="126.0" BorderPane.alignment="CENTER">
-                    <Label fx:id="titleL" text="Title" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                    <Label fx:id="artistL" text="Artist" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                    <HBox alignment="CENTER_LEFT" spacing="7.0" GridPane.rowIndex="2">
-                        <Label fx:id="bitrateL" text="Bitrate" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                        <Label fx:id="sampleRateL" text="Sample rate" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-                        <Label fx:id="channelsL" text="Channels" GridPane.columnIndex="2" GridPane.rowIndex="0" />
-                    </HBox>
-               <padding>
-                  <Insets left="10.0" />
-               </padding>
-                </VBox>
-            </center>
-        </BorderPane>
-    </AnchorPane>
-   <StackPane prefHeight="30.0" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-      <children>
-         <HBox alignment="CENTER" fillHeight="false" spacing="5.0" StackPane.alignment="CENTER">
-            <children>
-                        <Label id="" fx:id="currTime" text="00:00" />
-               <Label text="/" />
-                        <Label id="" fx:id="totTime" text="00:00" />
-               <Label text="/" />
-                        <Label id="" fx:id="realTime" text="00:00" />
-            </children>
-         </HBox>
-         <VBox alignment="CENTER_RIGHT" fillWidth="false" StackPane.alignment="CENTER_RIGHT">
-            <children>
-               <HBox fx:id="soundPane" alignment="CENTER_RIGHT" fillHeight="false" spacing="5.0">
-                  <children>
-                            <Slider fx:id="volume" prefWidth="100.0" styleClass="volume" />
-                  </children>
-               </HBox>
-            </children>
-         </VBox>
-      </children>
-   </StackPane>
+            </AnchorPane>
+           <StackPane prefHeight="30.0" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+              <children>
+                 <HBox alignment="CENTER" fillHeight="false" spacing="5.0" StackPane.alignment="CENTER">
+                    <children>
+                                <Label id="" fx:id="currTime" text="00:00" />
+                       <Label text="/" />
+                                <Label id="" fx:id="totTime" text="00:00" />
+                       <Label text="/" />
+                                <Label id="" fx:id="realTime" text="00:00" />
+                    </children>
+                 </HBox>
+                 <VBox alignment="CENTER_RIGHT" fillWidth="false" StackPane.alignment="CENTER_RIGHT">
+                    <children>
+                       <HBox fx:id="soundPane" alignment="CENTER_RIGHT" fillHeight="false" spacing="5.0">
+                          <children>
+                                    <Slider fx:id="volume" prefWidth="100.0" styleClass="volume" />
+                          </children>
+                       </HBox>
+                    </children>
+                 </VBox>
+              </children>
+           </StackPane>
+        </AnchorPane>
+    </children>
 </fx:root>

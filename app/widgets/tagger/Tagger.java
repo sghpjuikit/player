@@ -60,7 +60,8 @@ import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.gui.objects.popover.ScreenPos;
 import sp.it.pl.gui.objects.textfield.DecoratedTextField;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.controller.FXMLController;
+import sp.it.pl.layout.widget.controller.LegacyController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.feature.SongReader;
 import sp.it.pl.layout.widget.feature.SongWriter;
@@ -73,6 +74,7 @@ import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.graphics.drag.DragUtil;
+import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
 import sp.it.pl.util.validation.InputConstraints;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -159,9 +161,9 @@ import static sp.it.pl.util.graphics.UtilKt.setTextAlignment;
     year = "2015",
     group = Widget.Group.TAGGER
 )
-public class Tagger extends FXMLController implements SongWriter, SongReader {
+@LegacyController
+public class Tagger extends SimpleController implements SongWriter, SongReader {
 
-    @FXML AnchorPane root;
     @FXML VBox content;
     @FXML BorderPane header;
     @FXML AnchorPane scrollContent;
@@ -191,8 +193,11 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
     @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
     public final V<NodePos> popupPos = moodF.getPickerPosition();
 
-    @Override
-    public void init() {
+    public Tagger(Widget widget) {
+        super(widget);
+
+        new ConventionFxmlLoader(root, this).loadNoEx();
+
         Node okB = formIcon(FontAwesomeIcon.CHECK, "Save", runnable(this::write));
         content.getChildren().add(okB);
 
@@ -305,9 +310,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         populate(null);
     }
 
-    @Override
-    public void refresh() {}
-
     private void setR() {
         if (ratingPF.getText()==null || ratingPF.getText().isEmpty()) {
             ratingF.setPromptText("");
@@ -341,8 +343,6 @@ public class Tagger extends FXMLController implements SongWriter, SongReader {
         }
     }
 
-    /** This widget is empty if it has no data. */
-    @Override
     public boolean isEmpty() {
         return allItems.isEmpty();
     }

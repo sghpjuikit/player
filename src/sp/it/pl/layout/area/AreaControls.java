@@ -33,7 +33,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LINK;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.REFRESH;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TIMES;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLINK;
 import static de.jensd.fx.glyphs.octicons.OctIcon.FOLD;
@@ -69,9 +68,6 @@ public final class AreaControls {
         + "Disallows layout mode when mouse enters top corner of the widget. \n"
         + "This can be applied separately on widgets, but also containers or "
         + "whole layout.";
-    private static final String refbTEXT = "Refresh widget\n\n"
-        + "Applies widget properties, layout or reloads widget content. Depends "
-        + "on widget.";
     private static final String propbTEXT = "Settings\n\n"
         + "Displays widget properties.";
     private static final String actbTEXT = "Actions\n\n"
@@ -130,7 +126,6 @@ public final class AreaControls {
         Icon closeB = new Icon(TIMES, is, closebTEXT, this::close);
         Icon actB = new Icon(GAVEL, is, actbTEXT, () -> APP.actionPane.show(Widget.class, area.getWidget()));
         propB = new Icon(COGS, is, propbTEXT, this::settings);
-        Icon refreshB = new Icon(REFRESH, is, refbTEXT, this::refreshWidget);
         lockB = new Icon(null, is, lockbTEXT, () -> {
             toggleLocked();
             APP.actionStream.push("Widget layout lock");
@@ -172,7 +167,7 @@ public final class AreaControls {
         // build header
         header_buttons.setNodeOrientation(LEFT_TO_RIGHT);
         header_buttons.setAlignment(Pos.CENTER_RIGHT);
-        header_buttons.getChildren().addAll(infoB, loadB, absB, lockB, refreshB, propB, actB, closeB);
+        header_buttons.getChildren().addAll(infoB, loadB, absB, lockB, propB, actB, closeB);
 
         // build animations
         contrAnim = new FadeTransition(APP.ui.getDurationLM(), root);
@@ -242,10 +237,6 @@ public final class AreaControls {
         // room for mouse movement
         deactivator.setScaleX(1.2);
         deactivator.setScaleY(1.2);
-    }
-
-    void refreshWidget() {
-        area.refresh();
     }
 
     void toggleLocked() {

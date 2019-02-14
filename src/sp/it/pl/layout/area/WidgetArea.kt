@@ -112,8 +112,6 @@ class WidgetArea: Area<Container<*>> {
         }
     }
 
-    fun refresh() = widget.controller.refresh()
-
     fun getContent() = content
 
     fun isUnderLock(): Boolean = widget.lockedUnder.value

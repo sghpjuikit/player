@@ -61,13 +61,13 @@ public class Voronoi extends SimpleController {
 	public Voronoi(Widget widget) {
 		super(widget);
 
-		getChildren().add(canvas);
-		canvas.heightProperty().bind(heightProperty());
-		canvas.widthProperty().bind(widthProperty());
+		root.getChildren().add(canvas);
+		canvas.heightProperty().bind(root.heightProperty());
+		canvas.widthProperty().bind(root.widthProperty());
 		canvas.loop.start();
-		setOnMouseClicked(e -> canvas.pause(false));
-		focusedProperty().addListener((o,ov,nv) -> canvas.pause(!nv));
-		addEventHandler(Event.ANY, Event::consume);
+		root.setOnMouseClicked(e -> canvas.pause(false));
+		root.focusedProperty().addListener((o,ov,nv) -> canvas.pause(!nv));
+		root.addEventHandler(Event.ANY, Event::consume);
 
 		onClose.plusAssign(canvas.loop::stop);
 	}

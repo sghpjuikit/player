@@ -35,6 +35,7 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.EM
+import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.drag.DragUtil.getAudioItems
 import sp.it.pl.util.graphics.drag.DragUtil.hasAudio
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
@@ -109,9 +110,16 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature 
     var playDropped = false
 
     init {
-        ConventionFxmlLoader(this).loadNoEx<Any>()
+        ConventionFxmlLoader(root, this).loadNoEx<Any>()
 
         val ps = Player.state.playback
+
+        seeker.bindTime(ps.duration, ps.currentTime) on onClose
+        seeker.chapterSnapDistance syncFrom APP.ui.snapDistance on onClose
+        seeker.prefHeight = 30.0
+        root.lay += anchorPane {
+            lay(null, 0.0, 0.0, 0.0) += seeker
+        }
 
         balance = Balancer(ps.balance)
         (soundPane.parent as Pane).children.add(0, balance)
@@ -124,11 +132,6 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature 
         volume.blockIncrement = VolumeProperty.STEP
         volume.value = ps.volume.get()
         volume.valueProperty() syncBi ps.volume on onClose
-
-        seeker.bindTime(ps.duration, ps.currentTime) on onClose
-        seeker.chapterSnapDistance syncFrom APP.ui.snapDistance on onClose
-        seeker.prefHeight = 30.0
-        lay(null, 0, 0, 0) += seeker
 
         playButtons.children setTo listOf(f1, f2, f3, f4, f5, loopB)
         soundPane.children.add(0, muteB)
@@ -144,7 +147,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature 
 
         currTime.onEventDown(MOUSE_CLICKED) { cycleElapsed() }
         installDrag(
-                this,
+                root,
                 IconMD.PLAYLIST_PLUS,
                 "Add to active playlist",
                 { e -> hasAudio(e) },

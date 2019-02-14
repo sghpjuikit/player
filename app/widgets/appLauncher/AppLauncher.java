@@ -7,17 +7,18 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
+import kotlin.Unit;
 import sp.it.pl.gui.objects.grid.GridFileThumbCell;
 import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader;
 import sp.it.pl.gui.objects.grid.GridView;
 import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.placeholder.Placeholder;
-import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.widget.ExperimentalController;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
+import sp.it.pl.main.Widgets;
 import sp.it.pl.util.Sort;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
@@ -54,16 +55,16 @@ import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
+import static sp.it.pl.util.reactive.UtilKt.sync1IfNonNull;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.open;
 
 // TODO: remove this widget, use DirViewer instead
 @Widget.Info(
     author = "Martin Polakovic",
-    name = "AppLauncher",
+    name = Widgets.APP_LAUNCHER,
     description = "Launches programs",
 //    howto = "",
 //    notes = "",
@@ -93,7 +94,7 @@ public class AppLauncher extends SimpleController {
 	private final AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
         FOLDER_PLUS, "Click to add launcher or drag & drop a file",
-        () -> chooseFile("Choose program or file", FILE, APP.DIR_HOME, getOwnerWidget().getWindowOrActive().map(Window::getStage).orElse(null))
+        () -> chooseFile("Choose program or file", FILE, APP.DIR_HOME, root.getScene().getWindow())
 				.ifOk(files.list::setAll)
     );
 
@@ -112,17 +113,16 @@ public class AppLauncher extends SimpleController {
 
     public AppLauncher(Widget widget) {
         super(widget);
-
-        setPrefSize(500,500);
+        root.setPrefSize(500,500);
 
         files.onListInvalid(list -> visit());
-        files.onListInvalid(list -> placeholder.show(this, list.isEmpty()));
+        files.onListInvalid(list -> placeholder.show(root, list.isEmpty()));
         grid.search.field = FileField.PATH;
         grid.primaryFilterField = FileField.NAME_FULL;
         grid.selectOn.addAll(list(KEY_PRESS, MOUSE_CLICK, MOUSE_HOVER));
         grid.setCellFactory(grid -> new Cell());
-        setAnchor(this,grid,0d);
-        placeholder.showFor(this);
+        root.getChildren().add(grid);
+        placeholder.showFor(root);
 
         // delay cell loading when content is being resized (increases resize performance)
         double delay = 200; // ms
@@ -143,17 +143,17 @@ public class AppLauncher extends SimpleController {
         });
 
         installDrag(
-            this, FontAwesomeIcon.PLUS_SQUARE_ALT, "Add launcher",
+            root, FontAwesomeIcon.PLUS_SQUARE_ALT, "Add launcher",
             DragUtil::hasFiles,
             e -> files.list.addAll(DragUtil.getFiles(e))
         );
-    }
 
-    @Override
-    public void refresh() {
-        initialized = true;
-        applyCellSize();
-        visit();
+        sync1IfNonNull(root.sceneProperty(), s -> {
+            initialized = true;
+            applyCellSize();
+            visit();
+            return Unit.INSTANCE;
+        });
     }
 
     @Override

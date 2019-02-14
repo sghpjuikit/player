@@ -29,7 +29,6 @@ import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.container.switchcontainer.SwitchPane;
-import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.Controller;
 import sp.it.pl.layout.widget.controller.io.InOutput;
 import sp.it.pl.layout.widget.controller.io.Input;
@@ -305,24 +304,22 @@ public class IOLayer extends StackPane {
         double translation_offset = translation.get();
         double iconhalfsize = 5;
         APP.widgetManager.widgets.findAll(OPEN_LAYOUT)
-            .map(Widget::getController).filter(ISNTØ)
-            .forEach(c -> {
+            .filter(w -> w!=null && w.getController()!=null)
+            .forEach(w -> {
+                Controller c = w.getController();
                 List<XNode> is = c.getOwnedInputs().getInputs().stream().map(inputnodes::get).filter(ISNTØ).collect(toList());
                 List<XNode> os = c.getOwnedOutputs().getOutputs().stream().map(outputnodes::get).filter(ISNTØ).collect(toList());
 
-                // Apparently during initiaization we are not ready yet
-                // I dont like this, but Im not going to hunt for this subtle bug, which may
-                // not be a bug at all
-                if (c.getOwnerWidget()==null || c.getOwnerWidget().areaTemp==null || c.getOwnerWidget().areaTemp.getRoot()==null) return;
+                if (w.areaTemp==null || w.areaTemp.getRoot()==null) return; // TODO: during initiaization we are not ready yet, try to remove
 
-                Node wr = c.getOwnerWidget().areaTemp.getRoot();
+                Node wr = w.areaTemp.getRoot();
                 Bounds b = wr.localToScene(wr.getBoundsInLocal());
                 double basex = b.getMinX()/scalex.doubleValue()-translation_offset;
                 double basey = b.getMinY()-header_offset;
-                double w = b.getWidth()/scalex.doubleValue();
-                double h = b.getHeight();
-                double ihx = h/(is.size()+1);
-                double ohx = h/(os.size()+1);
+                double ww = b.getWidth()/scalex.doubleValue();
+                double wh = b.getHeight();
+                double ihx = wh/(is.size()+1);
+                double ohx = wh/(os.size()+1);
 
                 forEachWithI(is, (i,o) -> {
                     o.cx = calcScaleX(basex + padding);
@@ -330,7 +327,7 @@ public class IOLayer extends StackPane {
                     o.graphics.relocate(o.cx - iconhalfsize,o.cy-o.graphics.getHeight()/2);
                 });
                 forEachWithI(os, (i,o) -> {
-                    o.cx = calcScaleX(basex + w - padding - 2*iconhalfsize); // not sure why iconhalfsize
+                    o.cx = calcScaleX(basex + ww - padding - 2*iconhalfsize); // not sure why iconhalfsize
                     o.cy = calcScaleY(basey +  ohx*(i+1));
                     o.graphics.relocate(o.cx + iconhalfsize -o.graphics.getWidth(),o.cy-o.graphics.getHeight()/2);
                 });

@@ -88,7 +88,6 @@ import static sp.it.pl.util.functional.Util.toS;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.layStack;
 import static sp.it.pl.util.graphics.Util.layVertically;
-import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 
 @SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal", "unused"})
@@ -147,16 +146,16 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
         inputs.create("Input", Object.class, this::setData);
 
-        setPrefSize(800, 500);
+        root.setPrefSize(800, 500);
 
         // layout
         HBox ll = new HBox(5, ta_in.getNode(),layout);
         HBox.setHgrow(ta_in.getNode(), ALWAYS);
-        setAnchor(this, ll,0d);
+        root.getChildren().add(ll);
 
         // drag&drop
         installDrag(
-            this, LIST_ALT, () -> "Set data as input",
+            root, LIST_ALT, () -> "Set data as input",
             e -> true, e -> false,
             e -> setData(DragUtil.getAny(e)),
             e -> ta_in.getNode().getLayoutBounds()

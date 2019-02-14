@@ -9,108 +9,68 @@ import sp.it.pl.util.Locatable
 import sp.it.pl.util.conf.CachedConfigurable
 import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.layFullArea
-import sp.it.pl.util.graphics.stackPane
 
 /**
- * Defines behavior and content of [Widget].
+ * Defines behavior and ui of [Widget].
  *
- * Controller is instantiated dynamically, i.e., (safely) by reflection, so its public API is not readily
- * visible (unless reflection is used). It can expose its API by implementing interfaces.
- * More in [sp.it.pl.layout.widget.feature.Feature].
+ * Controller is instantiated dynamically (using constructor) and normally the class is provided to the application
+ * by user, so it is impossible to refer to the exact class and use the API. Exposing API by implementing interfaces
+ * avoids this problem. See [sp.it.pl.layout.widget.feature.Feature].
  *
  * Nonetheless, encapsulation is still recommended, i.e., standard public/private rules apply.
  *
- * Controller is [sp.it.pl.util.conf.Configurable] and uses [ownerWidget] as value source for
+ * Controller is [sp.it.pl.util.conf.Configurable] and uses [widget] as value source for
  * configurable properties.
  *
  * Lifecycle:
  * - constructor is called
- * - optionally [refresh] invoked by user
  * - [close] invoked
+ *
+ * Configurable state:
+ * Controller may wish to make its state user customizable. This is provided through the inherited [Configurable] API.
+ *
+ * Persisted state:
+ * Controller may wish to make its state persistable. For fine-grained control, use [Widget.properties] directly, but
+ * it is strongly recommended to simply make all persistable state configurable, as all configurable state is persisted
+ * automatically. Note that it is not auto-restored. For that either use [SimpleController] or [LegacyController]
  */
-interface Controller: CachedConfigurable<Any>, Locatable {
+abstract class Controller(widget: Widget): CachedConfigurable<Any>, Locatable {
 
-    /** Loads the content first time. Only called once.  */
-    @JvmDefault
+    /** Widget owning this controller. */
+    @JvmField val widget = widget
+    abstract val ownedOutputs: Outputs
+    abstract val ownedInputs: Inputs
+    override val location get() = widget.location
+    override val userLocation get() = widget.userLocation
+
+    /** @return the ui root of this Controller */
     @Throws(Exception::class)
-    fun loadFirstTime(): Node = this as Node // TODO: remove dangerous implementation
+    abstract fun loadFirstTime(): Node
 
-    /** To be removed. */
-    @JvmDefault
-    fun init() {}
-
-    /**
-     * Refreshes the content. Invoked by user.
-     *
-     * Default implementation does nothing.
-     */
-    @JvmDefault
-    fun refresh() {}
+    /** Focuses the content. */
+    abstract fun focus()
 
     /**
-     * Focuses the content.
-     *
-     * Default implementation does nothing.
+     * Stops all behavior and disposes any resources so that this controller can be garbage collected.
+     * Executes when [widget] has [Widget.close] invoked.
      */
-    @JvmDefault
-    fun focus() {}
-
-    /** @return widget owning this controller */
-    val ownerWidget: Widget
-
-    /**
-     * Executes immediately before widget is closed. Widget is not
-     * expected to be used after this method is invoked. Use to free resources.
-     * Note that incorrect or no releasing of the resources (such as listeners)
-     * might prevent this controller from being garbage collected.
-     *
-     * Default implementation does nothing.
-     */
-    @JvmDefault
-    fun close() {}
-
-    /**
-     * Whether widget displays any content. Empty controller generally means there is no content
-     * in the widget whatsoever, but it depends on implementation.
-     *
-     * Default implementation returns false.
-     *
-     * @return widget content is empty
-     */
-    @JvmDefault
-    fun isEmpty(): Boolean = false
-
-    val ownedOutputs: Outputs
-
-    val ownedInputs: Inputs
+    abstract fun close()
 
     /** @return all implemented features */
-    @JvmDefault
-    fun getFeatures(): List<Feature> = ownerWidget.factory.getFeatures()
-
-    @JvmDefault
-    override val location get() = ownerWidget.location
-
-    @JvmDefault
-    override val userLocation get() = ownerWidget.userLocation
+    fun getFeatures(): List<Feature> = widget.factory.getFeatures()
 
 }
 
 /** Controller for [Widget] with no [sp.it.pl.layout.widget.WidgetFactory]. */
 class NoFactoryController(widget: Widget): SimpleController(widget) {
     init {
-        layFullArea += stackPane {
-            lay += label("Widget ${widget.name} is not recognized")
-        }
+        root.lay += label("Widget ${widget.name} is not recognized")
     }
 }
 
 /** Controller for [Widget] that fails to instantiate its controller. */
 class LoadErrorController(widget: Widget): SimpleController(widget) {
     init {
-        layFullArea += stackPane {
-            lay += label("Widget ${widget.name} failed to load properly")
-        }
+        root.lay += label("Widget ${widget.name} failed to load properly")
     }
 }

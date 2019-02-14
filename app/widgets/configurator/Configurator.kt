@@ -2,7 +2,8 @@ package configurator
 
 import javafx.event.EventHandler
 import javafx.fxml.FXML
-import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.TOP_LEFT
+import javafx.geometry.Pos.TOP_RIGHT
 import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
@@ -66,9 +67,13 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
     init {
         inputs.create<Configurable<out Any>>("To configure", { configure(it) })
 
-        ConventionFxmlLoader(this).loadNoEx<Any>()
+        ConventionFxmlLoader(root, this).loadNoEx<Any>()
+
         configsRootPane.children += configsPane
-        lay(0, 0, null, null) += hBox(10, CENTER) {
+
+        root.lay(TOP_LEFT) += hBox(10, TOP_RIGHT) {
+            isPickOnBounds = false
+
             lay += Icon(IconFA.RECYCLE, 13.0, "Set all to default").onClickDo { defaults() }
             lay += Icon(IconFA.REFRESH, 13.0, "Refresh all").onClickDo { refresh() }
             lay += Icon().blank()
@@ -81,7 +86,8 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
         groups.propagateESCAPE()
         groups.selectionModel.selectedItemProperty() attach { storeAppSettingsSelection(it) } on onClose
         groups.selectionModel.selectedItemProperty() attach { showConfigs(it?.value) } on onClose
-        onScroll = EventHandler { it.consume() }
+
+        root.onScroll = EventHandler { it.consume() }
 
         refresh()
     }
@@ -92,7 +98,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
     /** Set default app settings. */
     fun defaults() = configsPane.getConfigFields().forEach { it.setNapplyDefault() }
 
-    override fun refresh() {
+    fun refresh() {
         if (showsAppSettings) configure(appConfigurable)
         else refreshConfigs()
     }

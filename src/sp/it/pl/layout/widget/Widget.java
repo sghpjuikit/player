@@ -17,7 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +31,6 @@ import sp.it.pl.layout.area.ContainerNode;
 import sp.it.pl.layout.area.IOLayer;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.controller.Controller;
-import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.LoadErrorController;
 import sp.it.pl.layout.widget.controller.NoFactoryController;
@@ -207,12 +208,8 @@ public class Widget extends Component implements CachedCompositeConfigurable<Obj
 					// lockedUnder.init();
 
 					Class<?> cc = controller.getClass();
-					boolean isLegacy = FXMLController.class.isAssignableFrom(cc) || cc.isAnnotationPresent(LegacyController.class);
-					if (isLegacy) {
-						controller.init();
-						restoreConfigs();
-						controller.refresh();
-					}
+					boolean isLegacy = cc.isAnnotationPresent(LegacyController.class);
+					if (isLegacy) restoreConfigs();
 
 					updateIO();
 				} catch (Throwable e) {
@@ -246,28 +243,6 @@ public class Widget extends Component implements CachedCompositeConfigurable<Obj
 					Constructor<Controller> ccc = cc.getDeclaredConstructor(Widget.class);
 					LOGGER.debug("Instantiating widget controller using 1 arg constructor");
 					return ccc.newInstance(this);
-				} catch (NoSuchMethodException e) {
-					return null;
-				} catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
-					LOGGER.error("Instantiating widget controller failed {}", cc, e);
-					return null;
-				}
-			},
-			() -> {
-				try {
-					Constructor<Controller> ccc = cc.getDeclaredConstructor();
-					LOGGER.debug("Instantiating widget controller using 0 arg constructor");
-					Controller cn = ccc.newInstance();
-
-					// inject this widget into the controller
-					try {
-						Util.getField(cc, "widget"); // we use this as a check, throws Exception on fail
-						Util.setField(cn, "widget", this); // executes only if the field exists
-					} catch (NoSuchFieldException ex) {
-						LOGGER.warn("Controller instantiated with 0 arg constructor should have a 'widget' field, class=" + cc);
-					}
-
-					return cn;
 				} catch (NoSuchMethodException e) {
 					return null;
 				} catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
@@ -453,6 +428,7 @@ public class Widget extends Component implements CachedCompositeConfigurable<Obj
 /****************************** SERIALIZATION *********************************/
 
 	/** Invoked just before the serialization. */
+	@SuppressWarnings("StatementWithEmptyBody")
 	protected Object writeReplace() throws ObjectStreamException {
 		boolean isLoaded = controller!=null;
 
@@ -466,11 +442,11 @@ public class Widget extends Component implements CachedCompositeConfigurable<Obj
 		} else {}
 
 		// Prepare configs
-		// If widget is loaded, we serialize name:value pairs
 		if (isLoaded) {
-			storeConfigs();
+			storeConfigs(); // If widget is loaded, we serialize name:value pairs
+		} else {
 			// Otherwise we still have the deserialized name:value pairs and leave them as they are
-		} else {}
+		}
 
 		return this;
 	}
@@ -490,7 +466,7 @@ public class Widget extends Component implements CachedCompositeConfigurable<Obj
 			Util.setField(this, "factory", APP.widgetManager.factories.getFactory(name));
 		}
 		if (factory==null) {
-			Util.setField(this, "factory", getEmptyWidgetFactory());
+			Util.setField(this, "factory", getEmptyWidgetFactory());    // TODO: Use NoFactoryFactory or something
 			controller = new NoFactoryController(this);
 		}
 
@@ -547,9 +523,11 @@ public class Widget extends Component implements CachedCompositeConfigurable<Obj
 	public void storeDefaultConfigs() {
 		if (!isLoaded()) throw new AssertionError("Must be loaded to export default configs");
 
+		@SuppressWarnings("RedundantCast")
+		Predicate<Config<Object>> nonDefault = f -> ((Class) f.getType())==ObservableList.class || !deepEquals(f.getValue(), f.getDefaultValue());
 		File configFile = new File(getUserLocation(), "default.properties");
 		Configuration configuration = new Configuration(configToRawKeyMapper);
-		configuration.collect(filter(getFields(), f -> !deepEquals(f.getValue(), f.getDefaultValue())));
+		configuration.collect(filter(getFields(), nonDefault));
 		configuration.save("Custom default widget settings", configFile);
 	}
 

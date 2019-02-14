@@ -127,11 +127,6 @@ public abstract class Component {
 		return Optional.ofNullable(w);
 	}
 
-	/** Window containing this component or active window if not loaded or not in any window or null if no active window either. */
-	public Optional<Window> getWindowOrActive() {
-		return getWindow().or(() -> APP.windowManager.getActive());
-	}
-
 	/**
 	 * Creates a launcher for this component as given file. Launcher is a
 	 * file, opening which by this application opens this component with its

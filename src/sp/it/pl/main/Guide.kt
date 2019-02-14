@@ -24,7 +24,7 @@ import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.layout.container.Container.testControlContainer
 import sp.it.pl.layout.container.bicontainer.BiContainer
-import sp.it.pl.layout.widget.EmptyWidget
+import sp.it.pl.layout.widget.emptyWidgetFactory
 import sp.it.pl.layout.widget.orEmpty
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.Widgets.PLAYLIST
@@ -503,7 +503,7 @@ class Guide(guideEvents: EventSource<Any> = EventSource()): MultiConfigurableBas
                             wd.topContainer.ui.alignTab(i)
 
                             runFX(1000.millis) {
-                                val w = EmptyWidget()
+                                val w = emptyWidgetFactory.create()
                                 val root = BiContainer(HORIZONTAL)
                                 root.addChild(1, w)
                                 wd.topContainer.addChild(i, root)

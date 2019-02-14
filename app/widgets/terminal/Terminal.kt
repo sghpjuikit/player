@@ -20,7 +20,7 @@ import sp.it.pl.util.access.vn
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cvn
 import sp.it.pl.util.conf.only
-import sp.it.pl.util.graphics.layFullArea
+import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.syncSize
@@ -62,14 +62,15 @@ class Terminal(widget: Widget): SimpleController(widget) {
         tConfig.setCursorColor(rgb(255, 0, 0, 0.1))
         tConfig.isScrollbarVisible = false
         tabPane.tabClosingPolicy = TabClosingPolicy.ALL_TABS
-        onEventUp(KEY_PRESSED) { handleKey(it) }
-        onEventUp(KEY_RELEASED) { handleKey(it) }
-        onEventUp(KEY_TYPED) { handleKey(it) }
 
-        layFullArea += tabPane
+        root.onEventUp(KEY_PRESSED) { handleKey(it) }
+        root.onEventUp(KEY_RELEASED) { handleKey(it) }
+        root.onEventUp(KEY_TYPED) { handleKey(it) }
+
+        root.lay += tabPane
 
         tabPane.tabs syncSize { tabPane.isVisible = it!=0 } on onClose
-        tabPane.tabs syncSize { placeholder.show(this, it==0) } on onClose
+        tabPane.tabs syncSize { placeholder.show(root, it==0) } on onClose
 
         onClose += { closeAllTabs() }
     }

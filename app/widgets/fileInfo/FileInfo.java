@@ -9,12 +9,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.Player;
@@ -27,7 +25,8 @@ import sp.it.pl.gui.objects.rating.Rating;
 import sp.it.pl.gui.pane.ImageFlowPane;
 import sp.it.pl.gui.pane.SlowAction;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.controller.FXMLController;
+import sp.it.pl.layout.widget.controller.LegacyController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.SongReader;
@@ -85,7 +84,6 @@ import static sp.it.pl.util.file.Util.copyFiles;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.drag.DragUtil.hasAudio;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
@@ -108,9 +106,9 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
     year = "2015",
     group = OTHER
 )
-public class FileInfo extends FXMLController implements SongReader {
+@LegacyController
+public class FileInfo extends SimpleController implements SongReader {
 
-    private @FXML AnchorPane root;
     private final ThumbnailWithAdd cover = new ThumbnailWithAdd();
     private final TilePane tiles = new FieldsPane();
     private final ImageFlowPane layout = new ImageFlowPane(cover, tiles);
@@ -150,17 +148,16 @@ public class FileInfo extends FXMLController implements SongReader {
     private final Map<String,Config<Boolean>> fieldConfigs = fields.stream()
         .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig, "FileInfo","Show this field", EditMode.USER))
         .collect(toMap(c -> c.getName(), c -> c));
-    private Output<Metadata> data_out;
+    private Output<Metadata> data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
     private Metadata data = Metadata.EMPTY;
     private final HandlerLast<Item> dataReading = EventReducer.toLast(200, this::setValue);
 
-    @SuppressWarnings("ConstantConditions")
-    @Override
-    public void init() {
-        data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
+    public FileInfo(Widget widget) {
+        super(widget);
+        root.setPrefSize(200.0, 200.0);
 
         // keep updated content (unless the content is scheduled for change, then this could cause invalid content)
-        d(Player.onItemRefresh(refreshed -> {
+        onClose.plusAssign(Player.onItemRefresh(refreshed -> {
             if (!dataReading.hasEventsQueued())
                 refreshed.ifHasE(data, this::read);
         }));
@@ -202,10 +199,11 @@ public class FileInfo extends FXMLController implements SongReader {
 	        }
         };
 
-        setAnchor(root,layout,0d);
         layout.setMinContentSize(200,120);
         layout.setGap(5);
         tiles.setPadding(new Insets(5));
+
+        root.getChildren().add(layout);
 
         // align tiles from left top & tile content to center left
         tiles.setAlignment(TOP_LEFT);
@@ -216,8 +214,8 @@ public class FileInfo extends FXMLController implements SongReader {
         rating.setContentDisplay(ContentDisplay.RIGHT);
 
         // bind rating to app configs
-        d(maintain(APP.getMaxRating(),rater.icons));
-        d(maintain(APP.getPartialRating(), rater.partialRating));
+        onClose.plusAssign(maintain(APP.getMaxRating(),rater.icons));
+        onClose.plusAssign(maintain(APP.getPartialRating(), rater.partialRating));
         rater.editable.set(true);
         rater.onRatingEdited = consumer(r -> {
             if (r != null) MetadataWriter.useToRate(data, r);
@@ -231,10 +229,6 @@ public class FileInfo extends FXMLController implements SongReader {
         );
     }
 
-    @Override
-    public void refresh() {}
-
-    @Override
     public boolean isEmpty() {
         return data==null || data==Metadata.EMPTY;
     }
@@ -385,7 +379,7 @@ public class FileInfo extends FXMLController implements SongReader {
 
     private class FieldsPane extends TilePane {
 
-        public FieldsPane() {
+        FieldsPane() {
             super(VERTICAL,10,0);
         }
 
@@ -415,4 +409,5 @@ public class FileInfo extends FXMLController implements SongReader {
             super.layoutChildren();
         }
     }
+
 }

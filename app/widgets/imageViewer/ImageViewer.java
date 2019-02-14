@@ -11,6 +11,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
@@ -25,7 +26,9 @@ import sp.it.pl.gui.nodeinfo.ItemInfo;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.controller.FXMLController;
+import sp.it.pl.layout.widget.controller.LegacyController;
+import sp.it.pl.layout.widget.controller.SimpleController;
+import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature;
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature;
@@ -35,7 +38,9 @@ import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.async.executor.FxTimer;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
+import sp.it.pl.util.graphics.Util;
 import sp.it.pl.util.graphics.drag.DragUtil;
+import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_RIGHT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
@@ -48,7 +53,6 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
-import static javafx.scene.layout.AnchorPane.setBottomAnchor;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
@@ -60,16 +64,16 @@ import static sp.it.pl.util.async.executor.EventReducer.toLast;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.file.Util.getCommonRoot;
 import static sp.it.pl.util.file.Util.getFilesImage;
+import static sp.it.pl.util.file.UtilKt.childOf;
 import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.Util.setAnchor;
-import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings({"WeakerAccess", "unused", "FieldCanBeLocal"})
 @Widget.Info(
     author = "Martin Polakovic",
     name = "Image Viewer",
@@ -100,25 +104,23 @@ import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
     year = "2015",
     group = OTHER
 )
-public class ImageViewer extends FXMLController implements ImageDisplayFeature, ImagesDisplayFeature {
+@LegacyController
+public class ImageViewer extends SimpleController implements ImageDisplayFeature, ImagesDisplayFeature {
 
-    // gui
-    @FXML private AnchorPane root;
-    @FXML private ScrollPane thumb_root;
-    @FXML private TilePane thumb_pane;
+
+    @FXML ScrollPane thumb_root;
+    @FXML TilePane thumb_pane;
     private final Thumbnail mainImage = new Thumbnail();
     private ItemInfo itemPane;
     private Anim thumbAnim;
-    private Anim navigAnim;
+    private Anim navAnim;
 
-    // state
     private final SimpleObjectProperty<File> folder = new SimpleObjectProperty<>(null);
     private final List<File> images = new ArrayList<>();
     private final List<Thumbnail> thumbnails = new ArrayList<>();
     private FxTimer slideshow = fxTimer(Duration.ZERO,INDEFINITE, runnable(this::nextImage));
     private Metadata data = Metadata.EMPTY;
 
-    // config
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
     public final V<Double> thumbSize = new V<>(70d).initAttachC(v -> thumbnails.forEach(t-> setMinPrefMaxSize(t.getPane(), v, v)));
     @IsConfig(name = "Thumbnail gap", info = "Spacing between thumbnails")
@@ -132,13 +134,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     @IsConfig(name = "Show thumbnails", info = "Show thumbnails.")
     public final V<Boolean> showThumbnails = new V<>(true);
     @IsConfig(name = "Hide thumbnails on mouse exit", info = "Hide thumbnails when mouse leaves the widget area.")
-    public final V<Boolean> hideThumbEager = new V<>(true).initAttachC(v ->
-       root.setOnMouseExited(!v ? null : e -> {
-           double x = e.getX(), y = e.getY();
-           if (!root.contains(x,y)) // make sure mouse really is out
-               showThumbnails.setValue(false);
-       })
-    );
+    public final V<Boolean> hideThumbEager = new V<>(true);
     @IsConfig(name = "Show thumbnails on mouse enter", info = "Show thumbnails when mouse enters the widget area.")
     public final V<Boolean> showThumbEager = new V<>(false);
     @IsConfig(name = "Show thumbnails rectangular", info = "Always frame thumbnails into squares.")
@@ -155,17 +151,28 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
     @IsConfig(name = "Displayed image", editable = EditMode.APP)
     private int active_image = -1;
 
-    @Override
-    public void init() {
-        inputs.getInput(Item.class, "Location of").bind(Player.playing.o);
+    private Input<Item> inputLocationOf = inputs.create("Location of", Item.class, this::dataChanged);
+
+    public ImageViewer(Widget widget) {
+        super(widget);
+        root.setPrefSize(400.0, 400.0);
+
+        new ConventionFxmlLoader(root, this).loadNoEx();
+
+        root.getStylesheets().add(childOf(getLocation(), "skin.css").toURI().toASCIIString());
+
+        inputLocationOf.bind(Player.playing.o);
 
         // main image
         mainImage.setBorderVisible(true);
         mainImage.setBorderToImage(true);
-        setAnchor(root,mainImage.getPane(),0d);
+        root.getChildren().add(mainImage.getPane());
 
+        thumb_pane.getStyleClass().add("thumbnail-pane");
+        thumb_pane.setTileAlignment(Pos.TOP_LEFT);
         thumb_pane.hgapProperty().bind(thumbGap);
         thumb_pane.vgapProperty().bind(thumbGap);
+        root.getChildren().add(thumb_pane);
 
         // image navigation
         Icon nextB = new Icon(ARROW_RIGHT, 18, "Next image", this::nextImage);
@@ -175,6 +182,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
              nextP.getStyleClass().setAll("nav-pane");
              nextP.prefWidthProperty().bind(root.widthProperty().divide(10));
              nextP.setMinWidth(20);
+             nextP.setMaxWidth(50);
              nextP.visibleProperty().bind(nextP.opacityProperty().isNotEqualTo(0));
         Icon prevB = new Icon(ARROW_LEFT, 18, "Previous image", this::prevImage);
              prevB.setMouseTransparent(true);
@@ -183,25 +191,29 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
              prevP.getStyleClass().setAll("nav-pane");
              prevP.prefWidthProperty().bind(root.widthProperty().divide(10));
              prevP.setMinWidth(20);
+             prevP.setMaxWidth(50);
              prevP.visibleProperty().bind(prevP.opacityProperty().isNotEqualTo(0));
-        setAnchor(root, prevP, 0d,null,0d,0d);
-        setAnchor(root, nextP, 0d,0d,0d,null);
+        root.getChildren().add(prevP);
+        StackPane.setAlignment(prevP, Pos.CENTER_LEFT);
+        root.getChildren().add(nextP);
+        StackPane.setAlignment(nextP, Pos.CENTER_RIGHT);
 
-        navigAnim = new Anim(millis(300), p -> {
+        navAnim = new Anim(millis(300), p -> {
             prevP.setOpacity(p);
             nextP.setOpacity(p);
             prevB.setTranslateX(+40*(p-1));
             nextB.setTranslateX(-40*(p-1));
         }).applyNow();
-
-        EventReducer<Object> inactive = toLast(1000, it -> { if (!nextP.isHover() && !prevP.isHover()) navigAnim.playClose(); });
-        EventReducer<Object> active = toFirstDelayed(400, it -> navigAnim.playOpen());
+        FxTimer navHideDelayed = fxTimer(seconds(2.0), 1, runnable(() -> { if (!nextP.isHover() && !prevP.isHover()) navAnim.playClose(); }));
+        EventReducer<Object> navInactive = toLast(1000, it -> { if (!nextP.isHover() && !prevP.isHover()) navAnim.playClose(); });
+        EventReducer<Object> navActive = toFirstDelayed(400, it -> navAnim.playOpen());
+        maintain(showThumbnails, v -> navAnim.playClose());
+        root.addEventFilter(MOUSE_EXITED, e -> navInactive.push(e));
         root.addEventFilter(MOUSE_MOVED, e -> {
-            if (thumb_root.getOpacity()==0) {
-                if (prevP.getOpacity()!=1)
-                    active.push(e);
-                else
-                    inactive.push(e);
+            if (!showThumbnails.getValue()) {
+                navActive.push(e);
+                if (!nextP.isHover() && !prevP.isHover())
+                    navInactive.push(e);
             }
         });
 
@@ -210,9 +222,8 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         thumb_root.visibleProperty().bind(thumb_root.opacityProperty().isNotEqualTo(0));
         thumb_root.toFront();
 
-        // thumbnails & make sure it does not cover whole area
-        setAnchors(thumb_root, 0d);
-        root.heightProperty().addListener((o,ov,nv) -> setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
+        // thumbnails
+        root.getChildren().add(thumb_root);
         root.setOnMouseClicked( e -> {
             if (e.getButton()==SECONDARY && showThumbnails.getValue()) {
                 showThumbnails.setCycledValue();
@@ -246,7 +257,7 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         // refresh if source data changed
         ChangeListener<File> locationChange = (o,ov,nv) -> readThumbnails();
         folder.addListener(locationChange);
-        d(() -> folder.removeListener(locationChange));
+        onClose.plusAssign(() -> folder.removeListener(locationChange));
 
         // drag&drop
         installDrag(
@@ -277,9 +288,23 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
 
         showThumbnails.maintain(v -> {
             thumbAnim.playFromDir(v);
-            if (v) navigAnim.playClose();
+            if (v) navAnim.playClose();
         });
-        hideThumbEager.maintain(v -> root.setOnMouseEntered(!v ? null : e -> showThumbnails.setValue(true)));
+
+        // show/hide thumbnails eager
+        root.addEventHandler(MOUSE_EXITED, e -> {
+            if (hideThumbEager.getValue()) {
+                double x = e.getX(), y = e.getY();
+                if (!root.contains(x,y)) // make sure mouse really is out
+                    showThumbnails.setValue(false);
+            }
+        });
+        root.addEventHandler(MOUSE_ENTERED, e -> {
+            if (showThumbEager.getValue()) {
+                    showThumbnails.setValue(true);
+            }
+        });
+
         thums_rect.maintain(v ->
             thumbnails.forEach(t -> {
                 t.setBorderToImage(!v);
@@ -288,18 +313,11 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         );
         theater_mode.maintain(this::applyTheaterMode);
         readThumbnails();
+
+        onClose.plusAssign(thumb_reader::stop);
+        onClose.plusAssign(slideshow::stop);
     }
 
-    @Override
-    public void onClose() {
-        thumb_reader.stop();    // prevent continued thumbnail creation
-        slideshow.stop();       // stop slideshow
-    }
-
-    @Override
-    public void refresh() {}
-
-    @Override
     public boolean isEmpty() {
         return thumbnails.isEmpty();
     }
@@ -350,6 +368,8 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
         folder.set(new_folder);
         if (theater_mode.getValue()) itemPane.setValue(data);
     }
+
+    private void run() {navAnim.playClose();}
 
     class Exec {
         ExecutorService e = Executors.newFixedThreadPool(1, r -> {
@@ -488,26 +508,26 @@ public class ImageViewer extends FXMLController implements ImageDisplayFeature, 
 
     private void applyShowThumbs(boolean v) {
         thumbAnim.playFromDir(v);
-        if (v) navigAnim.playClose();
+        if (v) navAnim.playClose();
     }
 
     private void applyTheaterMode(boolean v) {
         root.pseudoClassStateChanged(getPseudoClass("theater"), v);
         if (v && itemPane==null) {
             itemPane = new ItemInfo(false);
-            root.getChildren().add(itemPane);
-            itemPane.toFront();
-            AnchorPane.setBottomAnchor(itemPane, 20d);
-            AnchorPane.setRightAnchor(itemPane, 20d);
-            itemPane.setValue(data);
-
-            itemPane.setOnMouseClicked(ee -> {
-                if (ee.getButton()==SECONDARY) {
+            itemPane.setOnMouseClicked(e -> {
+                if (e.getButton()==SECONDARY) {
                     if (itemPane.getStyleClass().isEmpty()) itemPane.getStyleClass().addAll("block-alternative");
                     else itemPane.getStyleClass().clear();
-                    ee.consume();
+                    e.consume();
                 }
             });
+
+            AnchorPane itemPaneRoot = Util.layAnchor(itemPane, null, 20.0, 20.0, null);
+            itemPaneRoot.setPickOnBounds(false);
+            root.getChildren().add(itemPaneRoot);
+
+            itemPane.setValue(data);
         }
 
         slideshow_on.setValue(v ? false : slideshow_on.getValue());

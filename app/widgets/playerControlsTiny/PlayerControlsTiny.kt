@@ -92,7 +92,7 @@ class PlayerControlsTiny(widget: Widget): SimpleController(widget), PlaybackFeat
     var playDropped = false
 
     init {
-        ConventionFxmlLoader(this).loadNoEx<Any>()
+        ConventionFxmlLoader(root, this).loadNoEx<Any>()
 
         val ps = Player.state.playback
 
@@ -113,7 +113,7 @@ class PlayerControlsTiny(widget: Widget): SimpleController(widget), PlaybackFeat
             vbarPolicy = NEVER
             hbarPolicy = NEVER
 
-            lay += stackPane {
+            root.lay += stackPane {
                 lay(CENTER) += scrollLabel
             }
         }
@@ -138,7 +138,7 @@ class PlayerControlsTiny(widget: Widget): SimpleController(widget), PlaybackFeat
 
         currTime.setOnMouseClicked { cycleElapsed() }
         installDrag(
-                this,
+                root,
                 IconMD.PLAYLIST_PLUS,
                 "Add to active playlist",
                 { e -> DragUtil.hasAudio(e) },

@@ -7,6 +7,7 @@ import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.paint.Color
 import javafx.scene.shape.Line
 import javafx.scene.shape.LineTo
@@ -29,10 +30,10 @@ import sp.it.pl.util.graphics.initClip
 import sp.it.pl.util.graphics.initMouseDrag
 import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.layFullArea
 import sp.it.pl.util.graphics.minPrefMaxHeight
 import sp.it.pl.util.graphics.minPrefMaxWidth
 import sp.it.pl.util.graphics.setMinPrefMaxSize
+import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.math.P
 import sp.it.pl.util.math.StrExF
@@ -66,22 +67,22 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
     private var updateCoord: (P) -> Unit = {}
 
     init {
-        cursor = Cursor.CROSSHAIR
-        onEventDown(MOUSE_MOVED) {
-            val size = P(width, height)
+        root.cursor = Cursor.CROSSHAIR
+        root.onEventDown(MOUSE_MOVED) {
+            val size = root.size
             val posUi = P(it.x, it.y)
             val posRel = (posUi/size).invertY()
             val range = P(xMax.value-xMin.value, yMax.value-yMin.value)
             val pos = P(xMin.value, yMin.value)+range*posRel
             updateCoord(pos)
         }
-        onEventDown(SCROLL) {
+        root.onEventDown(SCROLL) {
             val scale = 1.2
             val isInc = it.deltaY<0 || it.deltaX>0
             val rangeOld = P(xMax.value-xMin.value, yMax.value-yMin.value)
             val rangeNew = if (isInc) rangeOld*scale else rangeOld/scale
             val rangeDiff = rangeNew-rangeOld
-            val size = P(width, height)
+            val size = root.size
             val posUi = P(it.x, it.y)
             val posRelMin = (posUi/size).invertY()
             val posRelMax = P(1.0, 1.0)-posRelMin
@@ -95,13 +96,13 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
             it.consume()
         }
-        initMouseDrag(
+        root.initMouseDrag(
                 mutableListOf<Num>(),
                 {
                     it.data setTo listOf(xMin.value, xMax.value, yMin.value, yMax.value)
                 },
                 {
-                    val size = P(width, height)
+                    val size = root.size
                     val diffRel = (it.diff/size) //.invertY()
                     val range = P(it.data[1]-it.data[0], it.data[3]-it.data[2])
                     val diff = diffRel*range
@@ -115,24 +116,24 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
                 }
         )
 
-        setMinPrefMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
-        layFullArea += plot
-        lay(null, 10, 10, null) += label {
-            isMouseTransparent = true
-            updateCoord = { text = "[${it.x} ${it.y}]" }
-        }
-        lay(0, null, null, 0) += vBox(5) {
-            isFillWidth = false
+        root.setMinPrefMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
+        root.lay += plot
+        root.lay += anchorPane {
+            lay(null, 10, 10, null) += label {
+                isMouseTransparent = true
+                updateCoord = { text = "[${it.x} ${it.y}]" }
+            }
+            lay(0, null, null, 0) += vBox(5) {
+                isFillWidth = false
 
-            lay += functionConfigField.toHBox()
-            lay += xMin.toConfigField("xMin").toHBox()
-            lay += xMax.toConfigField("xMax").toHBox()
-            lay += yMin.toConfigField("yMin").toHBox()
-            lay += yMax.toConfigField("yMax").toHBox()
+                lay += functionConfigField.toHBox()
+                lay += xMin.toConfigField("xMin").toHBox()
+                lay += xMax.toConfigField("xMax").toHBox()
+                lay += yMin.toConfigField("yMin").toHBox()
+                lay += yMax.toConfigField("yMax").toHBox()
+            }
         }
     }
-
-    override fun refresh() = plotAnimated()
 
     override fun focus() = functionConfigField.focus()
 

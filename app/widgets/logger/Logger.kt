@@ -9,7 +9,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
-import sp.it.pl.util.graphics.layFullArea
+import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.syncFrom
 
@@ -28,14 +28,13 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
     private val area = TextArea()
 
     init {
-        onScroll = EventHandler { it.consume() }
-
-        layFullArea += area.apply {
+        root.lay += area.apply {
             isEditable = false
             isWrapText = false
             wrapTextProperty() syncFrom wrapText on onClose
         }
 
+        root.onScroll = EventHandler { it.consume() }
 
         onClose += APP.systemout.addListener { area.appendText(it) }
         // [Stackoverflow source](https://stackoverflow.com/a/24140252/6723250)
@@ -44,10 +43,6 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
         //                System.setOut(con)
         //                System.setErr(con)
 
-        refresh()
-    }
-
-    override fun refresh() {
         area.text = "# This is redirected output (System.out) stream of this application.\n"
     }
 

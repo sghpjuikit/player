@@ -6,12 +6,10 @@ import java.util.List;
 import javafx.concurrent.Task;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
-import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.input.Dragboard;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
@@ -28,8 +26,10 @@ import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
 import sp.it.pl.gui.objects.table.TableColumnInfo;
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
+import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Info;
-import sp.it.pl.layout.widget.controller.FXMLController;
+import sp.it.pl.layout.widget.controller.LegacyController;
+import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.SongReader;
@@ -38,7 +38,6 @@ import sp.it.pl.util.access.Vo;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
-import sp.it.pl.util.async.executor.ExecuteN;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
@@ -70,7 +69,6 @@ import static sp.it.pl.util.file.Util.getCommonRoot;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.menuItem;
-import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
@@ -99,12 +97,12 @@ import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
     year = "2015",
     group = LIBRARY
 )
-public class Library extends FXMLController implements SongReader {
+@LegacyController
+public class Library extends SimpleController implements SongReader {
 
     private static final PseudoClass PC_PLAYING = PseudoClass.getPseudoClass("played");
     private static final TableContextMenuR<MetadataGroup> contextMenu = new TableContextMenuR<>();
 
-    private @FXML AnchorPane root;
     private final FilteredTable<Metadata> table = new FilteredTable<>(Metadata.class, Metadata.EMPTY.getMainField());
     private final TaskInfo<Task<?>> taskInfo = new TaskInfo<>(null, new Label(), appProgressIndicator());
     private final Anim hideInfo = new Anim(at -> setScaleXY(taskInfo.getProgress(),at*at))
@@ -127,23 +125,23 @@ public class Library extends FXMLController implements SongReader {
     private File lastDir = null;
 
     @SuppressWarnings({"unchecked", "ConstantConditions"})
-    @Override
-    public void init() {
-        out_sel = outputs.create(widget.id, "Selected", Metadata.class, null);
-        d(Player.librarySelected.i.bind(out_sel));
+    public Library(Widget widget) {
+        super(widget);
+        root.setPrefSize(600.0, 850.0);
 
-        // add table to scene graph
+        out_sel = outputs.create(widget.id, "Selected", Metadata.class, null);
+        onClose.plusAssign(Player.librarySelected.i.bind(out_sel));
+
         root.getChildren().add(table.getRoot());
-        setAnchors(table.getRoot(),0d);
 
         // table properties
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.search.setColumn(TITLE);
-        d(maintain(orient,table.nodeOrientationProperty()));
-        d(maintain(zeropad,table.zeropadIndex));
-        d(maintain(orig_index,table.showOriginalIndex));
-        d(maintain(show_header,table.headerVisible));
-        d(maintain(show_footer,table.footerVisible));
+        onClose.plusAssign(maintain(orient,table.nodeOrientationProperty()));
+        onClose.plusAssign(maintain(zeropad,table.zeropadIndex));
+        onClose.plusAssign(maintain(orig_index,table.showOriginalIndex));
+        onClose.plusAssign(maintain(show_header,table.headerVisible));
+        onClose.plusAssign(maintain(show_footer,table.footerVisible));
 
         // add progress indicator to bottom controls
         ((Pane)table.footerPane.getRight()).getChildren().addAll(taskInfo.getMessage(), taskInfo.getProgress());
@@ -178,7 +176,7 @@ public class Library extends FXMLController implements SongReader {
             return c;
         });
         // maintain rating column cell style
-        d(APP.getRatingCell().maintain(cf -> table.getColumn(RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));   // maintain playing item css
+        onClose.plusAssign(APP.getRatingCell().maintain(cf -> table.getColumn(RATING).ifPresent(c -> c.setCellFactory((Callback)cf))));   // maintain playing item css
         // let resizing as it is
         table.setColumnResizePolicy(resize -> {
             boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
@@ -206,7 +204,7 @@ public class Library extends FXMLController implements SongReader {
                 styleRuleAdd(PC_PLAYING, m -> Player.playingItem.get().same(m));
             }}
         );
-        d(Player.playingItem.onUpdate(o -> table.updateStyleRules()));   // maintain playing item css
+        onClose.plusAssign(Player.playingItem.onUpdate(o -> table.updateStyleRules()));   // maintain playing item css
 
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
@@ -240,10 +238,9 @@ public class Library extends FXMLController implements SongReader {
 
         // update library comparator
         maintain(table.itemsComparator, APP.db.getLibraryComparator());
-    }
 
-    @Override
-    public void refresh() {}
+
+    }
 
     @Override
     public Collection<Config<Object>> getFields() {
@@ -264,7 +261,7 @@ public class Library extends FXMLController implements SongReader {
         table.setItemsRaw(items);
     }
 
-    @FXML private void addDirectory() {
+    private void addDirectory() {
         Window w = root.getScene().getWindow();
         FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
         chooseFile("Add folder to library", FileType.DIRECTORY, lastDir, w, ef)
@@ -274,7 +271,7 @@ public class Library extends FXMLController implements SongReader {
             });
     }
 
-    @FXML private void addFiles() {
+    private void addFiles() {
         Window w = root.getScene().getWindow();
         FileChooser.ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
         chooseFiles("Add files to library", lastFile, w, ef)

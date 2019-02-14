@@ -40,9 +40,9 @@ public class Spectrum extends SimpleController {
     	super(widget);
 
 		SpectrumNode n = new SpectrumNode();
-        n.heightProperty().bind(heightProperty());
-        n.widthProperty().bind(widthProperty());
-		getChildren().add(n);
+        n.heightProperty().bind(root.heightProperty());
+        n.widthProperty().bind(root.widthProperty());
+		root.getChildren().add(n);
 
         n.start();
         onClose.plusAssign(n::stop);

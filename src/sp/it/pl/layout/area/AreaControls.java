@@ -115,6 +115,8 @@ public final class AreaControls {
         new ConventionFxmlLoader(AreaControls.class, root, this).loadNoEx();
 
         root.getStyleClass().add(Area.STYLECLASS_WIDGET_AREA_CONTROLS);
+        header.setStyle("-fx-pref-height: 2em;");
+        header_buttons.setStyle("-fx-pref-height: 2em;");
 
         // avoid clashing of title and control buttons for small root size
         header_buttons.maxWidthProperty()
@@ -195,7 +197,7 @@ public final class AreaControls {
         // ignore when already showing, under lock or in strong mode
         showS.filter(e -> !isShowingWeak && !area.isUnderLock() && !isShowingStrong)
             // transform into IN/OUT boolean
-            .map(e -> p.getWidth() - activatorW < e.getX() && activatorH > e.getY())
+            .map(e -> p.getWidth() - activatorW*APP.ui.getFont().getValue().getSize()/12.0 < e.getX() && activatorH*APP.ui.getFont().getValue().getSize()/12.0 > e.getY())
             // ignore when no change
             .filter(in -> in != inside.get())
             // or store new state on change

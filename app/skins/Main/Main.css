@@ -1122,8 +1122,8 @@
     -fx-background-radius: 0;
     -fx-background-insets: 0;
     -fx-border-width: 0;
-    -fx-padding: 0.5em;
-    -fx-spacing: 0.166667em; /* 2 */
+    -fx-padding: 0em;
+    -fx-spacing: 0em;
 }
 
 .menu-bar > .container > .menu-button,

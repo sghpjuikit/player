@@ -22,7 +22,6 @@ import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.ValueConfig
 import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.functional.kt
 import sp.it.pl.util.graphics.setScaleXY
 import sp.it.pl.util.graphics.text
 import sp.it.pl.util.math.millis
@@ -158,16 +157,16 @@ fun nodeAnimation(n: Node) = anim(300.millis) { n.opacity = it*it }.apply { play
 open class AnimationBuilder {
     protected open val key = "ANIMATION_OPEN_CLOSE"
 
-    open fun closeAndDo(n: Node, action: Runnable?) {
+    open fun closeAndDo(n: Node, action: (() -> Unit)?) {
         val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
         if (!a.isRunning()) a.applyAt(1.0)
-        a.playCloseDo(action?.kt)
+        a.playCloseDo(action)
     }
 
-    open fun openAndDo(n: Node, action: Runnable?) {
+    open fun openAndDo(n: Node, action: (() -> Unit)?) {
         val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
         if (!a.isRunning()) a.applyAt(0.0)
-        a.playOpenDo(action?.kt)
+        a.playOpenDo(action)
     }
 
     protected open fun buildAnimation(n: Node) = nodeAnimation(n)
@@ -180,13 +179,13 @@ class DelayAnimator: AnimationBuilder() {
     private val animDelay = AtomicLong(0)
     private val animDelayResetter = EventReducer.toLast<Void>(200.0) { animDelay.set(0) }
 
-    override fun closeAndDo(n: Node, action: Runnable?) {
+    override fun closeAndDo(n: Node, action: (() -> Unit)?) {
         super.closeAndDo(n, action)
         animDelay.incrementAndGet()
         animDelayResetter.push(null)
     }
 
-    override fun openAndDo(n: Node, action: Runnable?) {
+    override fun openAndDo(n: Node, action: (() -> Unit)?) {
         super.openAndDo(n, action)
         animDelay.incrementAndGet()
         animDelayResetter.push(null)

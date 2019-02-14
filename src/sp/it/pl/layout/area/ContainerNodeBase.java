@@ -44,6 +44,7 @@ import static sp.it.pl.layout.area.Area.STYLECLASS_CONTAINER_AREA_CONTROLS;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.mapB;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
@@ -135,7 +136,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
         root.setOnMouseClicked(e -> {
             // close on right click
             if (isAlt && !isAltCon && e.getButton()==SECONDARY && container.getChildren().isEmpty()){
-	            AppAnimator.INSTANCE.closeAndDo(root, container::close);
+	            AppAnimator.INSTANCE.closeAndDo(root, runnable(container::close));
                 e.consume();
                 return;
             }

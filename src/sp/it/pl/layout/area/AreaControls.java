@@ -49,6 +49,7 @@ import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.mapB;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
@@ -252,7 +253,7 @@ public final class AreaControls {
     }
 
     void close() {
-        AppAnimator.INSTANCE.closeAndDo(area.contentRoot, () -> area.container.removeChild(area.index));
+        AppAnimator.INSTANCE.closeAndDo(area.contentRoot, runnable(() -> area.container.removeChild(area.index)));
     }
 
     private void toggleAbsSize() {

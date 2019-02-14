@@ -93,7 +93,7 @@ class WidgetArea: Area<Container<*>> {
                 widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
             }
             widget.loadType.value==MANUAL -> {
-                AppAnimator.closeAndDo(contentRoot, Runnable {
+                AppAnimator.closeAndDo(contentRoot) {
                     content.children.clear()
                     animation.openAndDo(contentRoot, null)
 
@@ -106,8 +106,7 @@ class WidgetArea: Area<Container<*>> {
                     widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
 
                     passiveLoadPane.getM(widget).showFor(content)
-                })
-
+                }
             }
         }
     }

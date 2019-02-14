@@ -187,13 +187,13 @@ class GameView(widget: Widget): SimpleController(widget) {
     }
 
     fun viewGame(game: File) {
-        AppAnimator.closeAndDo(grid, Runnable {
+        AppAnimator.closeAndDo(grid) {
             val gamePane = GamePane()
             root.lay += gamePane
-            AppAnimator.openAndDo(gamePane, Runnable {
+            AppAnimator.openAndDo(gamePane) {
                 gamePane.open(game)
-            })
-        })
+            }
+        }
     }
 
     private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
@@ -346,10 +346,10 @@ class GameView(widget: Widget): SimpleController(widget) {
         }
 
         fun close() {
-            AppAnimator.closeAndDo(this, Runnable {
+            AppAnimator.closeAndDo(this) {
                 root.children -= this
-                AppAnimator.openAndDo(grid, Runnable {})
-            })
+                AppAnimator.openAndDo(grid) {}
+            }
         }
 
         fun open(gFile: File) {

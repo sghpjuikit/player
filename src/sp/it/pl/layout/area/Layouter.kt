@@ -49,7 +49,7 @@ class Layouter: ContainerNode {
         this.container = container
         this.index = index
         this.cp = ContainerPicker({ showContainer(it) }, { showWidgetArea() }).apply {
-            onSelect = { AppAnimator.closeAndDo(root, Runnable { it.onSelect() }) }
+            onSelect = { AppAnimator.closeAndDo(root) { it.onSelect() } }
             onCancel = {
                 isCancelPlaying = true
                 if (!APP.ui.isLayoutMode)
@@ -146,19 +146,19 @@ class Layouter: ContainerNode {
     private fun showWidgetArea() {
         val wp = WidgetPicker()
         wp.onSelect = { factory ->
-            AppAnimator.closeAndDo(wp.root, Runnable {
+            AppAnimator.closeAndDo(wp.root) {
                 root.children -= wp.root
                 root.onMouseExited = null
                 container.addChild(index, factory.create())
                 if (APP.ui.isLayoutMode) container.show()
                 APP.actionStream.push("New widget")
-            })
+            }
         }
         wp.onCancel = {
-            AppAnimator.closeAndDo(wp.root, Runnable {
+            AppAnimator.closeAndDo(wp.root) {
                 root.children -= wp.root
                 showControls(true)
-            })
+            }
         }
         wp.consumeCancelEvent = true // we need right click to not close container
         wp.root.addEventHandler(MOUSE_CLICKED) { it.consume() } // also left click to not open container chooser

@@ -310,7 +310,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 val controllerType = loadClass(widgetDir.nameWithoutExtension, classFile, findLibFiles())
                 createFactory(controllerType, widgetDir)
             } else if (srcFileAvailable) {
-                if (!widgets.blockInitialization || initialized) runOn(compilerThread) { compile() }
+                if (!widgets.blockInitialization.value || initialized) runOn(compilerThread) { compile() }
                 else compile().ifOk { registerExternalFactory() }
             }
         }
@@ -407,7 +407,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         @IsConfig(name = "Wait to compile", info = "If application needs to compile widgets when it starts, it will delay start " +
                 "until compilation completes.  Otherwise app will start immediately and any open widgets will load later as they get compiled.")
-        val blockInitialization = false
+        val blockInitialization by cv(false)
 
         /** Widgets that are not part of layout. */
         private val standaloneWidgets: MutableList<Widget> = ArrayList()

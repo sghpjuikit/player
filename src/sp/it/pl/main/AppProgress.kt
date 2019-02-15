@@ -30,9 +30,9 @@ import sp.it.pl.util.graphics.minPrefMaxHeight
 import sp.it.pl.util.graphics.minPrefMaxWidth
 import sp.it.pl.util.graphics.scrollPane
 import sp.it.pl.util.graphics.vBox
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.onItemDo
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.units.millis
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 

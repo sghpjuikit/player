@@ -46,7 +46,8 @@ import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.system.saveFile
 import sp.it.pl.util.type.Util
-import sp.it.pl.util.units.Dur
+import sp.it.pl.util.units.millis
+import sp.it.pl.util.units.toHMSMs
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import java.util.UUID
 import java.util.function.Consumer
@@ -129,7 +130,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
         table.search.setColumn(Field.NAME)
         table.selectionModel.selectionMode = MULTIPLE
-        table.items_info.textFactory = { all, list -> DEFAULT_TEXT_FACTORY(all, list)+" - "+Dur(list.sumByDouble { it.timeMs }) }
+        table.items_info.textFactory = { all, list -> DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumByDouble { it.timeMs }.millis.toHMSMs() }
         table.nodeOrientationProperty() syncFrom tableOrient on onClose
         table.zeropadIndex syncFrom tableZeropad on onClose
         table.showOriginalIndex syncFrom tableOrigIndex on onClose

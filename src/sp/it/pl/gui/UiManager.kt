@@ -38,11 +38,11 @@ import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.isAnyParentOf
 import sp.it.pl.util.graphics.setFontAsStyle
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.onItemAdded
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1IfNonNull
+import sp.it.pl.util.units.millis
 import java.io.File
 import java.net.MalformedURLException
 import java.util.HashSet

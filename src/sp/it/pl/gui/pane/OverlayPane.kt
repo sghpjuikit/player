@@ -47,12 +47,12 @@ import sp.it.pl.util.graphics.screenToLocal
 import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.math.P
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Handler0
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.reactive.syncTo
 import sp.it.pl.util.system.getWallpaperFile
+import sp.it.pl.util.units.millis
 
 /**
  * Pane laying 'above' standard content.

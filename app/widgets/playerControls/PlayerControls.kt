@@ -10,7 +10,6 @@ import javafx.scene.layout.BorderPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.media.MediaPlayer.Status
-import javafx.util.Duration
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.Player.Seek
 import sp.it.pl.audio.playback.BalanceProperty
@@ -30,7 +29,6 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.PLAYBACK
-import sp.it.pl.util.Util.formatDuration
 import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.functional.setTo
@@ -46,6 +44,7 @@ import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncBi
 import sp.it.pl.util.reactive.syncFrom
+import sp.it.pl.util.units.toHMSMs
 import java.io.File
 
 @Widget.Info(
@@ -136,7 +135,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature 
         playButtons.children setTo listOf(f1, f2, f3, f4, f5, loopB)
         soundPane.children.add(0, muteB)
 
-        ps.duration sync { totTime.text = it.print() } on onClose
+        ps.duration sync { totTime.text = it.toHMSMs() } on onClose
         ps.currentTime sync { timeChanged(ps) } on onClose
         ps.status sync { statusChanged(it) } on onClose
         ps.loopMode sync { loopModeChanged(it) } on onClose
@@ -230,14 +229,12 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature 
         val millis = pb.currentTime.get().toMillis()
         if (lastUpdateTime+1000<=millis) {
             lastUpdateTime = millis
-            realTime.text = Player.player.realTime.get().print()
-            currTime.text = if (elapsedTime) pb.currentTime.value.print() else "- "+pb.remainingTime.print()
+            realTime.text = Player.player.realTime.get().toHMSMs()
+            currTime.text = if (elapsedTime) pb.currentTime.value.toHMSMs() else "- "+pb.remainingTime.toHMSMs()
         }
     }
 
     companion object {
-
-        fun Duration.print() = formatDuration(this)!!
 
         fun GlyphIcons.icon(size: Double, init: Icon.() -> Unit = {}, block: (MouseEvent) -> Unit) = Icon(this, size).onClickDo(block).apply(init)!!
 

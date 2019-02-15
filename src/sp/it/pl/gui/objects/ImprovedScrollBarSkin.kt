@@ -8,10 +8,10 @@ import org.reactfx.Subscription
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.graphics.onHoverOrDragEnd
 import sp.it.pl.util.graphics.onHoverOrDragStart
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.type.Util.getFieldValue
+import sp.it.pl.util.units.millis
 
 /** ScrollBar skin that adds animations & improved usability - thumb expands on mouse hover. */
 open class ImprovedScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar) {

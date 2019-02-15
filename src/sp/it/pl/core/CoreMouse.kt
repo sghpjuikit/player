@@ -4,8 +4,8 @@ import javafx.geometry.Point2D
 import org.reactfx.Subscription
 import sp.it.pl.util.async.executor.FxTimer
 import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.pl.util.math.div
-import sp.it.pl.util.math.seconds
+import sp.it.pl.util.units.div
+import sp.it.pl.util.units.seconds
 import java.util.HashSet
 
 /** Provides access to mouse position and mouse speed. By default lazy, i.e., consumes resources only if observed. */

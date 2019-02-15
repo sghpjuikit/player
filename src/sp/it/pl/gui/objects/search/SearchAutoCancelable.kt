@@ -7,8 +7,8 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.MultiConfigurableBase
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
-import sp.it.pl.util.math.millis
-import sp.it.pl.util.math.seconds
+import sp.it.pl.util.units.millis
+import sp.it.pl.util.units.seconds
 
 /** Search that auto-cancels after given period of time. */
 abstract class SearchAutoCancelable: Search() {

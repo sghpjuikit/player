@@ -24,11 +24,11 @@ import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.setScaleXY
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.graphics.text
-import sp.it.pl.util.math.div
 import sp.it.pl.util.math.max
-import sp.it.pl.util.math.millis
-import sp.it.pl.util.math.times
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.units.div
+import sp.it.pl.util.units.millis
+import sp.it.pl.util.units.times
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max

@@ -50,11 +50,11 @@ import sp.it.pl.util.graphics.drag.DragUtil.installDrag
 import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.vBox
-import sp.it.pl.util.math.millis
-import sp.it.pl.util.math.seconds
-import sp.it.pl.util.math.times
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.text.keys
+import sp.it.pl.util.units.millis
+import sp.it.pl.util.units.seconds
+import sp.it.pl.util.units.times
 import java.util.ArrayList
 
 class Guide(guideEvents: EventSource<Any> = EventSource()): MultiConfigurableBase("${Settings.PLUGINS}.Guide") {

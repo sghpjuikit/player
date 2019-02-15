@@ -1,6 +1,9 @@
 package htmlViewer
 
+import javafx.scene.layout.GridPane
+import javafx.scene.layout.Priority
 import javafx.scene.web.HTMLEditor
+import javafx.scene.web.WebView
 import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
@@ -8,11 +11,8 @@ import sp.it.pl.util.access.initSync
 import sp.it.pl.util.access.v
 import sp.it.pl.util.async.runPeriodic
 import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.math.seconds
 import sp.it.pl.util.reactive.on
-import javafx.scene.layout.Priority
-import javafx.scene.layout.GridPane
-import javafx.scene.web.WebView
+import sp.it.pl.util.units.seconds
 
 @Widget.Info(
         name = "HtmlEditor",

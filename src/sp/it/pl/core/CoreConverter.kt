@@ -17,7 +17,6 @@ import sp.it.pl.util.parsing.ConverterDefault
 import sp.it.pl.util.parsing.Parsers
 import sp.it.pl.util.text.StringSplitParser
 import sp.it.pl.util.units.Bitrate
-import sp.it.pl.util.units.Dur
 import sp.it.pl.util.units.FileSize
 import sp.it.pl.util.units.NofX
 import java.io.File
@@ -64,7 +63,6 @@ class CoreConverter: Core {
         addT<URI>(toS, tryF({ URI.create(it) }, iae))
         addT<Pattern>(toS, tryF({ Pattern.compile(it) }, PatternSyntaxException::class))
         addT<Bitrate>(toS, { Bitrate.fromString(it).orMessage() })
-        addT<Dur>(toS, { Dur.fromString(it).orMessage() })
         addT<Duration>(toS, tryF({ Duration.valueOf(it.replace(" ", "")) }, iae)) // fixes java's inconsistency
         addT<LocalDateTime>(toS, tryF({ LocalDateTime.parse(it) }, DateTimeException::class))
         addT<FileSize>(toS, { FileSize.fromString(it).orMessage() })

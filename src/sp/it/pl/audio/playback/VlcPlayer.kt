@@ -12,10 +12,10 @@ import sp.it.pl.util.file.div
 import sp.it.pl.util.functional.ifFalse
 import sp.it.pl.util.functional.onE
 import sp.it.pl.util.functional.runTry
-import sp.it.pl.util.math.millis
-import sp.it.pl.util.math.times
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.units.millis
+import sp.it.pl.util.units.times
 import uk.co.caprica.vlcj.discovery.NativeDiscovery
 import uk.co.caprica.vlcj.discovery.linux.DefaultLinuxNativeDiscoveryStrategy
 import uk.co.caprica.vlcj.discovery.mac.DefaultMacNativeDiscoveryStrategy

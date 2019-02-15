@@ -8,9 +8,9 @@ import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.graphics.onHoverOrDragEnd
 import sp.it.pl.util.graphics.onHoverOrDragStart
 import sp.it.pl.util.graphics.setScaleXY
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.type.Util.getFieldValue
+import sp.it.pl.util.units.millis
 
 /** SliderSkin skin that adds animations & improved usability - track expands on mouse hover. */
 open class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {

@@ -22,7 +22,7 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.setAnchors
-import sp.it.pl.util.math.millis
+import sp.it.pl.util.units.millis
 import java.util.ArrayList
 
 class ClickEffect: ServiceBase("ClickEffect", false) {

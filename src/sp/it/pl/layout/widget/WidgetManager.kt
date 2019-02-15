@@ -45,9 +45,9 @@ import sp.it.pl.util.functional.ifNull
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.runIf
 import sp.it.pl.util.functional.setTo
-import sp.it.pl.util.math.seconds
 import sp.it.pl.util.system.Os
 import sp.it.pl.util.type.isSubclassOf
+import sp.it.pl.util.units.seconds
 import java.io.File
 import java.lang.ProcessBuilder.Redirect
 import java.net.URLClassLoader

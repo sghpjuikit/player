@@ -9,7 +9,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import javafx.util.Duration;
 import sp.it.pl.util.text.StringSplitParser;
 import sp.it.pl.util.text.StringSplitParser.Split;
 import sp.it.pl.util.text.StringSplitParser.SplitData;
@@ -28,65 +27,6 @@ import static sp.it.pl.util.dev.FailKt.failIf;
  */
 @SuppressWarnings("unused")
 public interface Util {
-
-	/**
-	 * Prints out the value of Duration - string representation of the duration
-	 * in the format h:m:s - 00:00:00. If any of the h,m,s values is single digit,
-	 * decade digit '0' is still written to retain the correct format.
-	 * If hours = 0, they are left out.
-	 * Example:
-	 * 01:00:06
-	 * 04:45
-	 * 00:34
-	 *
-	 * @return formatted duration
-	 */
-	static String formatDuration(Duration duration) {
-		double sec_total = duration.toMillis()/1000;
-		int seconds = (int) sec_total%60;
-		int minutes = (int) ((sec_total - seconds)/60)%60;
-		int hours = (int) (sec_total - seconds - 60*minutes)/3600;
-
-		if (hours>99)
-			return String.format("%d:%02d:%02d", hours, minutes, seconds);
-		else if (hours>0)
-			return String.format("%02d:%02d:%02d", hours, minutes, seconds);
-		else if (minutes>0)
-			return String.format("%02d:%02d", minutes, seconds);
-		else
-			return String.format("00:%02d", seconds);
-	}
-
-	/**
-	 * Prints out the value of Duration - string representation of the duration
-	 * in the format h:m:s - 00:00:00. If any of the h,m,s values is single digit,
-	 * decade digit '0' is written to retain the correct format only IF
-	 * include_zeros = true.
-	 * If hours = 0, they are left out.
-	 * Example:
-	 * 1:00:06
-	 * 4:45
-	 * 34
-	 *
-	 * @return formatted duration
-	 */
-	static String formatDuration(Duration duration, boolean include_zeros) {
-		if (include_zeros) return formatDuration(duration);
-
-		double sec_total = duration.toMillis()/1000;
-		int seconds = (int) sec_total%60;
-		int minutes = (int) ((sec_total - seconds)/60)%60;
-		int hours = (int) (sec_total - seconds - 60*minutes)/3600;
-
-		if (hours>99)
-			return String.format("%3d:%2d:%2d", hours, minutes, seconds);
-		else if (hours>0)
-			return String.format("%2d:%2d:%2d", hours, minutes, seconds);
-		else if (minutes>0)
-			return String.format("%2d:%2d", minutes, seconds);
-		else
-			return String.format("%2d", seconds);
-	}
 
 	/**
 	 * Returns empty string if string meets is-empty criteria according to {@link #hasNoReadableText(String)}

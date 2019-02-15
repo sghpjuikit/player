@@ -3,6 +3,7 @@ package sp.it.pl.audio.playlist
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.scene.media.Media
+import javafx.util.Duration
 import org.jaudiotagger.tag.FieldKey
 import sp.it.pl.audio.Item
 import sp.it.pl.audio.tagging.Metadata
@@ -17,7 +18,7 @@ import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.identityHashCode
-import sp.it.pl.util.units.Dur
+import sp.it.pl.util.units.toHMSMs
 import java.net.URI
 import java.util.HashSet
 import java.util.function.Consumer
@@ -37,14 +38,14 @@ import kotlin.reflect.KClass
 class PlaylistItem: Item {
 
     private val uriP: SimpleObjectProperty<URI>
-    private val timeP: SimpleObjectProperty<Dur>
+    private val timeP: SimpleObjectProperty<Duration>
     private val nameP: SimpleStringProperty
 
     override val uri: URI get() = uriP.get()
     private var artist: String? = null
     private var title: String? = null
     val name: String get() = nameP.get()
-    val time: Dur get() = timeP.get()
+    val time: Duration get() = timeP.get()
 
     /**
      * Returns true if the item was marked updated. Once item is updated it will stay in that state. Updated item
@@ -73,7 +74,7 @@ class PlaylistItem: Item {
     constructor(_uri: URI) {
         uriP = SimpleObjectProperty(_uri)
         nameP = SimpleStringProperty(getInitialName())
-        timeP = SimpleObjectProperty(Dur(0.0))
+        timeP = SimpleObjectProperty(Duration(0.0))
         isUpdated = false
     }
 
@@ -81,7 +82,7 @@ class PlaylistItem: Item {
     constructor(new_uri: URI, _artist: String?, _title: String?, _length: Double) {
         uriP = SimpleObjectProperty(new_uri)
         nameP = SimpleStringProperty()
-        timeP = SimpleObjectProperty(Dur(_length))
+        timeP = SimpleObjectProperty(Duration(_length))
         setATN(_artist, _title)
         isUpdated = true
     }
@@ -131,14 +132,14 @@ class PlaylistItem: Item {
 
                 runFX {
                     setATN(artist, title)
-                    timeP.set(Dur(length))
+                    timeP.set(Duration(length))
                 }
             }
         } else {
             try {
                 val m = Media(uri.toString())
                 setATN("", "")
-                timeP.set(Dur(m.duration.toMillis()))
+                timeP.set(Duration(m.duration.toMillis()))
             } catch (e: IllegalArgumentException) {
                 isCorruptCached = true   // mark as corrupted on error
             } catch (e: NullPointerException) {
@@ -178,7 +179,7 @@ class PlaylistItem: Item {
 
     override fun hashCode() = identityHashCode()
 
-    override fun toString() = "$name\n$uri\n$time"
+    override fun toString() = "$name\n$uri\n${time.toHMSMs()}"
 
     /** @return deep copy of this item */
     fun copy() = PlaylistItem(uri, artist, title, timeMs).also {
@@ -195,9 +196,12 @@ class PlaylistItem: Item {
         override fun isTypeNumberNoNegative(): Boolean = true
 
         override fun toS(o: T?, substitute: String): String {
-            if (this===NAME || this===TITLE || this===ARTIST) return if (""==o) substitute else o.toString()
-            if (this===LENGTH || this===PATH || this===FORMAT) return o.toString()
-            throw SwitchException(this)
+            return when(this) {
+                NAME, TITLE, ARTIST -> if (""==o) substitute else o.toString()
+                PATH, FORMAT -> o.toString()
+                LENGTH -> (o as Duration).toHMSMs()
+                else -> throw SwitchException(this)
+            }
         }
 
         override fun cWidth(): Double = 60.0
@@ -211,7 +215,7 @@ class PlaylistItem: Item {
             @JvmField val NAME = Field(String::class, "Name", "'Song artist' - 'Song title'") { it.name }
             @JvmField val TITLE = Field(String::class, "Title", "Song title") { it.title }
             @JvmField val ARTIST = Field(String::class, "Artist", "Song artist") { it.artist }
-            @JvmField val LENGTH = Field(Dur::class, "Time", "Song length") { it.time }
+            @JvmField val LENGTH = Field(Duration::class, "Time", "Song length") { it.time }
             @JvmField val PATH = Field(String::class, "Path", "Song file path") { it.getPathAsString() }
             @JvmField val FORMAT = Field(AudioFileFormat::class, "Format", "Song file type") { it.getFormat() }
 

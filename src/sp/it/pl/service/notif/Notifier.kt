@@ -27,9 +27,9 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.graphics.text
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.units.millis
 
 /** Provides notification functionality. */
 class Notifier: ServiceBase("Notifications", true) {

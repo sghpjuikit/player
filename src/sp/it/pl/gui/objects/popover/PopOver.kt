@@ -74,17 +74,14 @@ import sp.it.pl.util.graphics.getScreen
 import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.toP
 import sp.it.pl.util.math.P
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1If
 import sp.it.pl.util.system.Os
 import sp.it.pl.util.type.Util
+import sp.it.pl.util.units.millis
 import java.util.ArrayList
-
-
-
 
 
 /**

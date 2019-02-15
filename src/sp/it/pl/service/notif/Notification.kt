@@ -10,7 +10,7 @@ import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.setToOne
 import sp.it.pl.util.graphics.stackPane
-import sp.it.pl.util.math.seconds
+import sp.it.pl.util.units.seconds
 
 /** Notification popover. */
 class Notification: PopOver<Node>() {

@@ -82,6 +82,7 @@ import static sp.it.pl.util.graphics.Util.layHeaderRight;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.UtilKt.typeText;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.units.UtilKt.toHMSMs;
 
 /**
  * Playback seeker. A slider-like control that controls playback, by seeking.
@@ -608,7 +609,7 @@ public final class Seeker extends AnchorPane {
 					if (isEdited.getValue()) cancelEdit();
 					hover.playCloseDo(runnable(just_created ? () -> Seeker.this.getChildren().remove(this) : null));
 				});
-				p.title.setValue(c.getTime().toString());
+				p.title.setValue(toHMSMs(c.getTime()));
 				p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
 				content.setOnMouseClicked(e -> {
 					// if info popup is shown, close it and act as if content is mouse transparent to prevent any action

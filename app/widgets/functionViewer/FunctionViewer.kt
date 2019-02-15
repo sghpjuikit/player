@@ -37,9 +37,9 @@ import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.math.P
 import sp.it.pl.util.math.StrExF
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.units.millis
 import java.lang.Math.max
 import kotlin.math.roundToInt
 

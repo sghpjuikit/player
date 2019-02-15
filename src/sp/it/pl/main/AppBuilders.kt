@@ -24,9 +24,9 @@ import sp.it.pl.util.conf.ValueConfig
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.graphics.setScaleXY
 import sp.it.pl.util.graphics.text
-import sp.it.pl.util.math.millis
-import sp.it.pl.util.math.seconds
 import sp.it.pl.util.reactive.attachChanges
+import sp.it.pl.util.units.millis
+import sp.it.pl.util.units.seconds
 import sp.it.pl.util.validation.Constraint
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer

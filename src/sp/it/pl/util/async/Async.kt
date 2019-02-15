@@ -11,7 +11,7 @@ import sp.it.pl.util.async.future.Fut.Companion.fut
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.kt
-import sp.it.pl.util.math.millis
+import sp.it.pl.util.units.millis
 import java.awt.EventQueue
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService

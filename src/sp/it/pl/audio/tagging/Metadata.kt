@@ -43,7 +43,6 @@ import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.localDateTimeFromMillis
 import sp.it.pl.util.text.toStrings
 import sp.it.pl.util.units.Bitrate
-import sp.it.pl.util.units.Dur
 import sp.it.pl.util.units.FileSize
 import sp.it.pl.util.units.FileSize.Companion.sizeInB
 import sp.it.pl.util.units.NofX
@@ -489,7 +488,7 @@ class Metadata: Item, Serializable {
     fun getSampleRate() = sampleRate
 
     /** @return the length or zero if unknown */
-    fun getLength(): Dur = Dur(lengthInMs)
+    fun getLength() = Duration(lengthInMs)
 
     /** @return length in milliseconds or 0 if unknown */
     fun getLengthInMs() = lengthInMs

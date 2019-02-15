@@ -7,7 +7,7 @@ import sp.it.pl.audio.playlist.PlaylistItem
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.util.math.millis
+import sp.it.pl.util.units.millis
 import java.io.Serializable
 import java.net.URI
 import java.util.HashMap

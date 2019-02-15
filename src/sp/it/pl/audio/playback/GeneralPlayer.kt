@@ -17,8 +17,8 @@ import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.file.AudioFileFormat
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.attach1If
+import sp.it.pl.util.units.millis
 import java.lang.Math.pow
 
 /** Audio player which abstracts away from the implementation. */

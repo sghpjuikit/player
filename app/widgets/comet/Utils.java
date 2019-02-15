@@ -110,7 +110,6 @@ import static javafx.util.Duration.minutes;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.util.Util.clip;
-import static sp.it.pl.util.Util.formatDuration;
 import static sp.it.pl.util.Util.pyth;
 import static sp.it.pl.util.dev.FailKt.failIf;
 import static sp.it.pl.util.functional.Util.ISNTØ;
@@ -132,6 +131,7 @@ import static sp.it.pl.util.graphics.Util.layVertically;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.type.Util.getEnumConstants;
+import static sp.it.pl.util.units.UtilKt.toHMSMs;
 
 @SuppressWarnings({"unused","UnnecessaryLocalVariable"})
 interface Utils {
@@ -2055,7 +2055,7 @@ interface Utils {
 
 		@Override
 		public Node buildResultGraphics() {
-			Label l = new Label(formatDuration(time(game.loop.id)));
+			Label l = new Label(toHMSMs(time(game.loop.id)));
 			l.setFont(font(FONT_UI.getFamily(), 20));
 			return l;
 		}
@@ -2181,7 +2181,7 @@ interface Utils {
 
 				@Override
 				void draw() {
-					game.fillText(formatDuration(millis(remainingTimeMs.get())), x,y, pulse.get());
+					game.fillText(toHMSMs(millis(remainingTimeMs.get())), x,y, pulse.get());
 				}
 			};
 		}
@@ -2422,7 +2422,7 @@ interface Utils {
 
 		@Override
 		public Node buildResultGraphics() {
-			Label l = new Label(formatDuration(time(game.loop.id)));
+			Label l = new Label(toHMSMs(time(game.loop.id)));
 			l.setFont(font(FONT_UI.getFamily(), 15));
 			return new StackPane(l);
 		}

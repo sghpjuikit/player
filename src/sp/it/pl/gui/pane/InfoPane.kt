@@ -25,7 +25,8 @@ import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.system.copyToSysClipboard
 import sp.it.pl.util.toLocalDateTime
-import sp.it.pl.util.units.Dur
+import sp.it.pl.util.units.javafx
+import sp.it.pl.util.units.toHMSMs
 
 class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>(), MultiConfigurable {
 
@@ -113,7 +114,7 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
                 "command" named pInfo.command().orElse(""),
                 "commandline" named pInfo.commandLine().orElse(""),
                 "start time" named pInfo.startInstant().map { it.toLocalDateTime().toString() }.orElse(""),
-                "running time" named pInfo.totalCpuDuration().map { Dur(it.toMillis().toDouble()).toString() }.orElse(""),
+                "running time" named pInfo.totalCpuDuration().map { it.javafx.toHMSMs() }.orElse(""),
                 "user" named pInfo.user().orElse("")
         )
         ps.group("java") += "vm.arguments" named APP.fetchVMArguments().joinToString(" ")

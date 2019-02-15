@@ -14,6 +14,7 @@ import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.util.Callback;
+import javafx.util.Duration;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.playlist.PlaylistManager;
@@ -45,7 +46,6 @@ import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.drag.DragUtil;
-import sp.it.pl.util.units.Dur;
 import sp.it.pl.util.validation.Constraint;
 import sp.it.pl.util.validation.Constraint.FileActor;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
@@ -73,6 +73,7 @@ import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
+import static sp.it.pl.util.units.UtilKt.toHMSMs;
 
 @Info(
     author = "Martin Polakovic",
@@ -150,7 +151,7 @@ public class Library extends SimpleController implements SongReader {
         // extend table items information
         table.items_info.setTextFactory((all, list) -> {
             double lengthMs = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
-            return DEFAULT_TEXT_FACTORY.invoke(all, list) + " - " + new Dur(lengthMs);
+            return DEFAULT_TEXT_FACTORY.invoke(all, list) + " - " + toHMSMs(new Duration(lengthMs));
         });
 
         // add more menu items

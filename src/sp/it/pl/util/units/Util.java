@@ -2,33 +2,14 @@ package sp.it.pl.util.units;
 
 import java.util.List;
 import javafx.util.Duration;
-import sp.it.pl.util.Util;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.functional.Try;
 import static sp.it.pl.util.functional.Util.split;
 
-// TODO: remove class, its counter productive
+public class Util {
 
-/**
- * Duration with overridden toString method, where it is formatted into
- * minutes:seconds format.* Example: 00:00.
- */
-public class Dur extends Duration {
-	private static final long serialVersionUID = 11L;
-
-	public Dur(double millis) {
-		super(millis);
-	}
-
-	/** @return formatted string representation of the duration. */
-	@Dependency("fromString")
-	@Override
-	public String toString() {
-		return Util.formatDuration(this);
-	}
-
-	@Dependency("toString")
-	public static Try<Dur,Throwable> fromString(String s) {
+	@Dependency("sp.it.pl.util.units.UtilKt.toHMSMs")
+	public static Try<Duration,Throwable> durationOfHMSMs(String s) {
 		try {
 			// try parsing in hh:mm:ss format
 			if (s.contains(":")) {
@@ -43,7 +24,7 @@ public class Dur extends Duration {
 					int t = unit*amount;
 					sumT += t;
 				}
-				return Try.ok(new Dur(sumT));
+				return Try.ok(new Duration(sumT));
 			}
 
 			// parse normally
@@ -60,17 +41,17 @@ public class Dur extends Duration {
 			double value = Double.parseDouble(index==-1 ? s : s.substring(0, index));
 
 			if (index==-1)
-				return Try.ok(new Dur(value));
+				return Try.ok(new Duration(value));
 			else {
 				String suffix = s.substring(index);
 				if ("ms".equals(suffix)) {
-					return Try.ok(new Dur(value));
+					return Try.ok(new Duration(value));
 				} else if ("s".equals(suffix)) {
-					return Try.ok(new Dur(1000*value));
+					return Try.ok(new Duration(1000*value));
 				} else if ("m".equals(suffix)) {
-					return Try.ok(new Dur(60000*value));
+					return Try.ok(new Duration(60000*value));
 				} else if ("h".equals(suffix)) {
-					return Try.ok(new Dur(3600000*value));
+					return Try.ok(new Duration(3600000*value));
 				} else {
 					throw new IllegalArgumentException("Must have suffix from [ms|s|m|h]");
 				}
@@ -79,5 +60,4 @@ public class Dur extends Duration {
 			return Try.error(e);
 		}
 	}
-
 }

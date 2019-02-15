@@ -17,6 +17,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import kotlin.Unit;
 import sp.it.pl.audio.Item;
 import sp.it.pl.audio.playlist.Playlist;
@@ -29,7 +30,6 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.reactive.Disposer;
-import sp.it.pl.util.units.Dur;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
@@ -52,6 +52,7 @@ import static sp.it.pl.util.graphics.Util.selectRows;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.attach;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.units.UtilKt.toHMSMs;
 
 /**
  * Playlist table GUI component.
@@ -149,8 +150,9 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 			getColumn(ColumnField.INDEX).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth()));
 			getColumn(LENGTH).ifPresent(c -> {
-				double mt = getItems().stream().mapToDouble(PlaylistItem::getTimeMs).max().orElse(6000);
-				double width = computeFontWidth(APP.ui.getFont().getValue(), new Dur(mt).toString()) + 5;
+				double maxLength = getItems().stream().mapToDouble(PlaylistItem::getTimeMs).max().orElse(6000);
+				String maxLengthText = toHMSMs(new Duration(maxLength));
+				double width = computeFontWidth(APP.ui.getFont().getValue(), maxLengthText) + 5;
 				c.setPrefWidth(width);
 			});
 

@@ -12,9 +12,9 @@ import javafx.event.EventHandler
 import javafx.util.Duration
 import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.math.divMillis
-import sp.it.pl.util.math.minus
-import sp.it.pl.util.math.times
+import sp.it.pl.util.units.divMillis
+import sp.it.pl.util.units.minus
+import sp.it.pl.util.units.times
 import java.lang.Math.abs
 import java.lang.Math.sqrt
 import java.util.function.DoubleConsumer

@@ -13,7 +13,6 @@ import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.media.MediaPlayer.Status
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.UNKNOWN
-import javafx.util.Duration
 import javafx.util.Duration.seconds
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.playback.PlaybackState
@@ -30,7 +29,6 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.util.Util.clip
-import sp.it.pl.util.Util.formatDuration
 import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.conf.IsConfig
@@ -44,6 +42,7 @@ import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncFrom
+import sp.it.pl.util.units.toHMSMs
 import java.lang.Double.max
 
 @Widget.Info(
@@ -201,13 +200,11 @@ class PlayerControlsTiny(widget: Widget): SimpleController(widget), PlaybackFeat
         val millis = pb.currentTime.get().toMillis()
         if (lastUpdateTime+1000<=millis) {
             lastUpdateTime = millis
-            currTime.text = if (elapsedTime) pb.currentTime.value.print() else "- "+pb.remainingTime.print()
+            currTime.text = if (elapsedTime) pb.currentTime.value.toHMSMs() else "- "+pb.remainingTime.toHMSMs()
         }
     }
 
     companion object {
-
-        private fun Duration.print() = formatDuration(this)
 
         fun icon(icon: GlyphIcons?, size: Double, block: (MouseEvent) -> Unit) = Icon(icon, size).onClickDo(block)!!
 

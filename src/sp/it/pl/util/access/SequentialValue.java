@@ -11,27 +11,13 @@ import static sp.it.pl.util.type.Util.getEnumConstants;
  *
  * @param <V> type of value.
  */
-public interface SequentialValue<V> extends CyclicValue<V> {
+public interface SequentialValue<V> {
 
-	/**
-	 * @return next sequence value.
-	 */
+	/** @return next sequence value. */
 	V next();
 
-	/**
-	 * @return previous sequence value.
-	 */
+	/** @return previous sequence value. */
 	V previous();
-
-	/**
-	 * Defers to {@link #next()}.
-	 * <p/>
-	 * {@inheritDoc}
-	 */
-	@Override
-	default V cycle() {
-		return next();
-	}
 
 	static int next(int v) { return v + 1; }
 

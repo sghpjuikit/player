@@ -41,9 +41,6 @@ fun Duration.toHMSMs(include_zeros: Boolean = true): String {
     }
 }
 
-/** Golden ratio - `1.6180339887`. */
-const val GOLDEN_RATIO = 1.6180339887
-
 /** Returns duration with this number of milliseconds. */
 val Number.millis: Duration get() = Duration.millis(toDouble())!!
 /** Returns duration with this number of seconds. */

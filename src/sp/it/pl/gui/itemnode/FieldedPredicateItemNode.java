@@ -88,9 +88,9 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		negB.tooltip(negTooltip);
 	}
 
-	// TODO: this should be advertised that supplier can return null
-	public void setPrefTypeSupplier(Supplier<PredicateData<F>> supplier) {
-		prefTypeSupplier = supplier;
+	/** Set initially selected value. Supplier can be null and return null, in which case 1st value is selected. */
+	public void setPrefTypeSupplier(Supplier<PredicateData<F>> initialValueSupplier) {
+		prefTypeSupplier = initialValueSupplier;
 	}
 
 	/**

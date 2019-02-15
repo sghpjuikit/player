@@ -102,7 +102,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	public Duration getLength() {
 		double sum = stream()
 				.map(PlaylistItem::getTime)
-				.filter(d -> !d.isIndefinite() && !d.isUnknown())   // TODO: this should not be needed
+				.filter(d -> !d.isIndefinite() && !d.isUnknown())
 				.mapToDouble(Duration::toMillis)
 				.sum();
 		return millis(sum);

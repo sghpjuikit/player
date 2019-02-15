@@ -68,8 +68,6 @@ class PlaylistItem: Item {
     var isCorruptCached = false
         internal set
 
-    @JvmField @Volatile var playbackError = false    // TODO: remove
-
     /** New not updated item */
     constructor(_uri: URI) {
         uriP = SimpleObjectProperty(_uri)

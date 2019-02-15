@@ -59,13 +59,7 @@ class GeneralPlayer {
             else -> "Unknown"
         }
 
-        val onUnableToPlay = { it: PlaylistItem ->
-            runFX {
-                it.playbackError = true
-                // TODO: handle within playlist
-                PlaylistManager.use { it.playNextItem() }
-            }
-        }
+        val onUnableToPlay = { _: PlaylistItem -> runFX { PlaylistManager.use { it.playNextItem() } } }
         val player = p
         if (player==null) {
             logger.info("Player {} can not play item {}", player, item)

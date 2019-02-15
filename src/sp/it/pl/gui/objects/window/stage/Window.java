@@ -370,7 +370,7 @@ public class Window extends WindowBase {
 		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
 
 
-		Icon miniB = new Icon(null, is, Action.get("Mini mode"));
+		Icon miniB = new Icon(null, is, "Toggle docking mode", () -> APP.windowManager.mini.setCycledValue());
 		maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP, ANGLE_UP), miniB::icon);
 		Icon onTopB = new Icon(null, is, "Always on top\n\nForbid hiding this window behind other "
 			+ "application windows", this::toggleAlwaysOnTop);

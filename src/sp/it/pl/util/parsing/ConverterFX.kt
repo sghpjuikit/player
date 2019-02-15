@@ -31,7 +31,7 @@ class ConverterFX: Converter() {
                             if (nameValue.size==2) {
                                 val name = nameValue[0]
                                 val value = nameValue[1]
-                                c.setField(name, value) // TODO: what if this fails?
+                                c.setField(name, value)
                             } else {
                                 // ignore instead of error
                             }

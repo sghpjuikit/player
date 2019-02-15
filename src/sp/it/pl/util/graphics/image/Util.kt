@@ -57,7 +57,7 @@ private fun imgImplHasThumbnail(reader: ImageReader, index: Int, f: File): Boole
     } catch (e: Exception) {
         // TODO: remove, should not longer happen
         // The TwelveMonkeys library seems to have a few bugs, throwing all kinds of exceptions,
-        // including NullPointerException and ConcurrentModificationError
+        // including NullPointerException
         logger.warn(e) { "Can't find image thumbnails $f" }
         false
     }

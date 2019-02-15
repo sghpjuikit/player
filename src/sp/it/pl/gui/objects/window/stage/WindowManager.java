@@ -247,12 +247,6 @@ public class WindowManager implements Configurable<Object> {
         getActive().ifPresent(Window::close);
     }
 
-    // TODO: create dynamically from config annotation
-    @IsAction(name = "Mini mode", global = true, keys = "F9", desc = "Dock auxiliary window with playback control to the screen edge")
-    private void toggleMini() {
-        setMini(!mini.get());
-    }
-
     private void toggleMiniFull() {
         if (!APP.getNormalLoad()) return;
         if (mini.get()) mainWindow.show();

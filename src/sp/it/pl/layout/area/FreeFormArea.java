@@ -143,7 +143,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             n = wa.getRoot();
         } else {
             l = new Layouter(container, i);
-            l.onCancel = runnable(() -> container.removeChild(i));
+            l.setOnCancel(runnable(() -> container.removeChild(i)));
             n = l.getRoot();
         }
 

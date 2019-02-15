@@ -275,7 +275,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public final MenuBar menus = new MenuBar(menuAdd, menuRemove, menuSelected, menuOrder);
 	/**
 	 * Labeled in the bottom displaying information on table items and selection.
-	 * Feel free to provide custom implementation of {@link TableInfo#textFactory}
+	 * Feel free to provide custom implementation of {@link TableInfo#setTextFactory(kotlin.jvm.functions.Function2)}
 	 * to display different information. You may want to reuse
 	 * {@link TableInfo#DEFAULT_TEXT_FACTORY}.
 	 */

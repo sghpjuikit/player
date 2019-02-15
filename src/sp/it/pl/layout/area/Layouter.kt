@@ -37,13 +37,13 @@ class Layouter: ContainerNode {
     private val index: Int
 
     override val root = AnchorPane()
-    @JvmField var onCancel: () -> Unit = {}
     private var isCancelPlaying = false
     private val cp: ContainerPicker
     private val a1: FadeTransition
     private val a2: ScaleTransition
     private val clickShowHider: EventHandler<MouseEvent>
     private val exitHider: EventHandler<MouseEvent>
+    var onCancel: () -> Unit = {}
 
     constructor(container: Container<*>, index: Int) {
         this.container = container

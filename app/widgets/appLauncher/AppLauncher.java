@@ -61,7 +61,6 @@ import static sp.it.pl.util.reactive.UtilKt.sync1IfNonNull;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.open;
 
-// TODO: remove this widget, use DirViewer instead
 @Widget.Info(
     author = "Martin Polakovic",
     name = Widgets.APP_LAUNCHER,

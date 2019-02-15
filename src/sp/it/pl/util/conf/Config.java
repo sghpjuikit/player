@@ -740,11 +740,6 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 			return getValue();
 		}
 
-		@Override
-		public ObservableList<T> cycle() {
-			return getValue();
-		}
-
 		//************************* string converting
 
 		@Override

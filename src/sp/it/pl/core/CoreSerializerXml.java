@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import javafx.beans.Observable;
 import sp.it.pl.audio.playlist.Playlist;
-import sp.it.pl.audio.playlist.PlaylistItem;
+import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
@@ -68,7 +68,7 @@ public final class CoreSerializerXml implements Core {
 		x.registerConverter(new ObservableListConverter(xm));
 		x.registerConverter(new VConverter(xm));
 		x.alias("Playlist", Playlist.class);
-		x.alias("item", PlaylistItem.class);
+		x.alias("item", PlaylistSong.class);
 		x.alias("Component", Component.class);
 		x.alias("Container", Container.class);
 		x.alias("UniContainer", UniContainer.class);

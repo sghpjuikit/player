@@ -19,7 +19,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
-import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Song;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.gui.nodeinfo.ItemInfo;
@@ -151,7 +151,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
     @IsConfig(name = "Displayed image", editable = EditMode.APP)
     private int active_image = -1;
 
-    private Input<Item> inputLocationOf = inputs.create("Location of", Item.class, this::dataChanged);
+    private Input<Song> inputLocationOf = inputs.create("Location of", Song.class, this::dataChanged);
 
     public ImageViewer(Widget widget) {
         super(widget);
@@ -271,8 +271,8 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
                 }
                 if (DragUtil.hasAudio(e)) {
                     // get first item
-                    List<Item> items = DragUtil.getAudioItems(e);
-                    if (!items.isEmpty()) dataChanged(items.get(0));
+                    List<Song> songs = DragUtil.getAudioItems(e);
+                    if (!songs.isEmpty()) dataChanged(songs.get(0));
                 } else
                 if (DragUtil.hasImage(e)) {
                     showAppProgress(
@@ -347,9 +347,9 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
 /****************************** HELPER METHODS ********************************/
 
     @IsInput("Location of")
-    private void dataChanged(Item i) {
+    private void dataChanged(Song i) {
         if (i==null) dataChanged(Metadata.EMPTY);
-        else APP.db.itemToMeta(i, consumer(this::dataChanged));
+        else APP.db.songToMeta(i, consumer(this::dataChanged));
     }
 
     private void dataChanged(Metadata m) {

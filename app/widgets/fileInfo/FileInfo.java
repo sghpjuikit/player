@@ -14,7 +14,7 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.layout.TilePane;
-import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Song;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.Metadata.Field;
@@ -150,14 +150,14 @@ public class FileInfo extends SimpleController implements SongReader {
         .collect(toMap(c -> c.getName(), c -> c));
     private Output<Metadata> data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
     private Metadata data = Metadata.EMPTY;
-    private final HandlerLast<Item> dataReading = EventReducer.toLast(200, this::setValue);
+    private final HandlerLast<Song> dataReading = EventReducer.toLast(200, this::setValue);
 
     public FileInfo(Widget widget) {
         super(widget);
         root.setPrefSize(200.0, 200.0);
 
         // keep updated content (unless the content is scheduled for change, then this could cause invalid content)
-        onClose.plusAssign(Player.onItemRefresh(refreshed -> {
+        onClose.plusAssign(Player.onSongRefresh(refreshed -> {
             if (!dataReading.hasEventsQueued())
                 refreshed.ifHasE(data, this::read);
         }));
@@ -250,19 +250,19 @@ public class FileInfo extends SimpleController implements SongReader {
 
     @Override
     @IsInput("To display")
-    public void read(Item item) {
-        dataReading.push(item);
+    public void read(Song song) {
+        dataReading.push(song);
     }
 
     @Override
-    public void read(List<? extends Item> items) {
+    public void read(List<? extends Song> items) {
         read(items.isEmpty() ? null : items.get(0));
     }
 
-    private void setValue(Item i) {
+    private void setValue(Song i) {
         if (i==null) setValue(Metadata.EMPTY);
         else if (i instanceof Metadata) setValue((Metadata)i);
-        else APP.db.itemToMeta(i, consumer(this::setValue));
+        else APP.db.songToMeta(i, consumer(this::setValue));
     }
 
     private void setValue(Metadata m) {
@@ -337,7 +337,7 @@ public class FileInfo extends SimpleController implements SongReader {
         items.add(data); // make sure the original is included (Set avoids duplicates)
 
         MetadataWriter.useNoRefresh(items, w -> w.setCover(file));
-        Player.refreshItems(items);
+        Player.refreshSongs(items);
     }
 
     private enum Sort { SEMANTIC, ALPHANUMERIC }

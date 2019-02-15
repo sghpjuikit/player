@@ -18,9 +18,9 @@ import org.jaudiotagger.tag.mp4.Mp4FieldKey
 import org.jaudiotagger.tag.mp4.Mp4Tag
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag
 import org.jaudiotagger.tag.wav.WavTag
-import sp.it.pl.audio.Item
-import sp.it.pl.audio.playlist.PlaylistItem
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Chapter.Companion.chapter
 import sp.it.pl.audio.tagging.Metadata.Field
 import sp.it.pl.gui.objects.image.cover.Cover
@@ -71,7 +71,7 @@ private typealias F = JvmField
  *
  * To access any field in a generic way, see [Field].
  */
-class Metadata: Item, Serializable {
+class Metadata: Song, Serializable {
 
     // file fields
 
@@ -184,13 +184,13 @@ class Metadata: Item, Serializable {
     /** Tags joined into a string or null if none */
     private var tags: String? = null
 
-    /** Time this item was first played as string or null if none */
+    /** Time this song was first played as string or null if none */
     private var playedFirst: String? = null
 
-    /** Time this item was last played as string or null if none */
+    /** Time this song was last played as string or null if none */
     private var playedLast: String? = null
 
-    /** Time this item was added to library as string or null if none */
+    /** Time this song was added to library as string or null if none */
     private var libraryAdded: String? = null
 
     /* Creates empty metadata */
@@ -198,13 +198,13 @@ class Metadata: Item, Serializable {
         id = EMPTY_URI.toString()
     }
 
-    /** Creates metadata from an item, attempts to use as much data available, no i/o. */
-    constructor(item: Item) {
-        id = item.uri.toString()
-        if (item is PlaylistItem) {
-            artist = item.getArtist().takeIf { it.isNotBlank() }
-            lengthInMs = item.time.toMillis()
-            title = item.getTitle().takeIf { it.isNotBlank() }
+    /** Creates metadata from an song, attempts to use as much data available, no i/o. */
+    constructor(song: Song) {
+        id = song.uri.toString()
+        if (song is PlaylistSong) {
+            artist = song.getArtist().takeIf { it.isNotBlank() }
+            lengthInMs = song.time.toMillis()
+            title = song.getTitle().takeIf { it.isNotBlank() }
         }
     }
 
@@ -624,7 +624,7 @@ class Metadata: Item, Serializable {
 
     private fun readArtworkFromTag(): Artwork? = getFile()?.let { it.readAudioFile().orNull() }?.tag?.firstArtwork
 
-    /** @return the cover image file on a file system or null if this item is not file based */
+    /** @return the cover image file on a file system or null if this song is not file based */
     private fun readCoverFromDir(): Cover? {
         return getFile()?.let { file ->
             val fs = file.parentDirOrRoot.listChildren().toList()
@@ -637,7 +637,7 @@ class Metadata: Item, Serializable {
     }
 
     /**
-     * Returns chapters associated with this item. A [Chapter] represents
+     * Returns chapters associated with this song. A [Chapter] represents
      * a time specific song comment. The result is ordered by natural order.
      *
      * Chapters are concatenated into string located in the Custom2 tag field.
@@ -663,27 +663,27 @@ class Metadata: Item, Serializable {
     /** Tags joined into a string or null if none */
     fun getTags(): String? = tags
 
-    /** @return time this item was first played or null if none */
+    /** @return time this song was first played or null if none */
     fun getTimePlayedFirst(): LocalDateTime? = playedFirst?.toLongOrNull()?.localDateTimeFromMillis()
 
-    /** @return time this item was last played or null if none */
+    /** @return time this song was last played or null if none */
     fun getTimePlayedLast(): LocalDateTime? = playedLast?.toLongOrNull()?.localDateTimeFromMillis()
 
-    /** @return time this item was added to library or null if none */
+    /** @return time this song was added to library or null if none */
     fun getTimeLibraryAdded(): LocalDateTime? = libraryAdded?.toLongOrNull()?.localDateTimeFromMillis()
 
-    /** @return all available text about this item */
+    /** @return all available text about this song */
     fun getFulltext() = FIELDS_FULLTEXT.asSequence().map { it.getOf(this) }.filterNotNull().toStrings()
 
-    /** @return index of the first same item as this in the active playlist or -1 if not on playlist */
+    /** @return index of the first same song as this in the active playlist or -1 if not on playlist */
     fun getPlaylistIndex(): Int? = PlaylistManager.use({ it.indexOfSame(this)+1 }, null)
 
-    /** @return index info of the first same item as this in the active playlist or null if not on playlist, e.g.: "15/30" */
+    /** @return index info of the first same song as this in the active playlist or null if not on playlist, e.g.: "15/30" */
     fun getPlaylistIndexInfo(): NofX = PlaylistManager.use({ NofX(it.indexOfSame(this)+1, it.size) }, NofX(-1, -1))
 
     override fun toMeta() = this
 
-    override fun toPlaylist() = PlaylistItem(uri, artist, title, lengthInMs)
+    override fun toPlaylist() = PlaylistSong(uri, artist, title, lengthInMs)
 
     fun getMainField(): Field<*> = Field.TITLE
 
@@ -732,7 +732,7 @@ class Metadata: Item, Serializable {
         const val SEPARATOR_GROUP: Char = 29.toChar()
         /** Delimiter between records or rows. In this case, between values in a tag. */
         const val SEPARATOR_RECORD: Char = 30.toChar()
-        /** Delimiter between fields of a record, or members of a row. In this case, between items in a tag value. */
+        /** Delimiter between fields of a record, or members of a row. In this case, between songs in a tag value. */
         const val SEPARATOR_UNIT: Char = 31.toChar()
         /** Delimiter between chapters */
         const val SEPARATOR_CHAPTER: Char = '|'
@@ -747,7 +747,7 @@ class Metadata: Item, Serializable {
 
         /**
          * EMPTY metadata. Substitute for null. Always use instead of null. Also
-         * corrupted items should transform into EMPTY metadata.
+         * corrupted songs should transform into EMPTY metadata.
          *
          * All fields are at their default values.
          *

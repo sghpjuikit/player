@@ -4,7 +4,7 @@ import javafx.scene.media.MediaPlayer.Status
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.util.Duration
 import mu.KLogging
-import sp.it.pl.audio.Item
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.Player
 import sp.it.pl.main.APP
 import sp.it.pl.util.async.runFX
@@ -73,7 +73,7 @@ class VlcPlayer: GeneralPlayer.Play {
         player?.stop()
     }
 
-    override fun createPlayback(item: Item, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit) {
+    override fun createPlayback(song: Song, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit) {
         if (!initialized && !discovered) {
             val location = APP.DIR_APP/"vlc"
             discovered = true
@@ -92,7 +92,7 @@ class VlcPlayer: GeneralPlayer.Play {
         d += state.balance sync { }         // TODO: implement
         d += state.rate sync { p.rate = it.toFloat() }
 
-        p.prepareMedia(SimpleMedia(item.uriAsVlcPath()))
+        p.prepareMedia(SimpleMedia(song.uriAsVlcPath()))
 
         val eventMask = sequenceOf(
                 MediaPlayerEventType.LENGTH_CHANGED.value(),
@@ -189,7 +189,7 @@ class VlcPlayer: GeneralPlayer.Play {
             return NativeDiscovery(WindowsDiscoverer(loc), LinuxDiscoverer(loc), MacDiscoverer(loc)).discover()
         }
 
-        private fun Item.uriAsVlcPath() = uri.toASCIIString().let {
+        private fun Song.uriAsVlcPath() = uri.toASCIIString().let {
             // vlcj bug
             // https://github.com/sghpjuikit/player/issues/40
             // https://github.com/caprica/vlcj/issues/173

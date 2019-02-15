@@ -5,9 +5,9 @@ import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.Label
 import javafx.scene.layout.Pane
 import javafx.stage.FileChooser.ExtensionFilter
-import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
-import sp.it.pl.audio.SimpleItem
+import sp.it.pl.audio.SimpleSong
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.isPlaylistFile
 import sp.it.pl.audio.playlist.readPlaylist
@@ -181,7 +181,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     { it.clearDefaultConfigs() }
             )
     )
-    ap.register<Item>(
+    ap.register<Song>(
             SlowAction(
                     "Print raw metadata", "Prints all audio metadata to console.",
                     IconMA.IMAGE_ASPECT_RATIO,
@@ -189,60 +189,60 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             ),
             FastColAction(
                     "Add to new playlist",
-                    "Add items to new playlist widget.",
+                    "Add songs to new playlist widget.",
                     IconMD.PLAYLIST_PLUS,
-                    { items -> APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { it.playlist.addItems(items) } }
+                    { songs -> APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { it.playlist.addItems(songs) } }
             ),
             FastColAction(
                     "Add to existing playlist",
-                    "Add items to existing playlist widget if possible or to a new one if not.",
+                    "Add songs to existing playlist widget if possible or to a new one if not.",
                     IconMD.PLAYLIST_PLUS,
-                    { items -> APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(items) } }
+                    { songs -> APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(songs) } }
             ),
             FastColAction(
                     "Update from file",
-                    "Updates library data for the specified items from their file metadata. The difference between the data "+
-                            "in the database and real metadata cab be a result of a bug or file edited externally. "+
-                            "After this, the library will be synchronized with the file data.",
+                    "Updates library data for the specified songs from their file metadata. The difference between the data "+
+                    "in the database and real metadata cab be a result of a bug or file edited externally. "+
+                    "After this, the library will be synchronized with the file data.",
                     IconFA.REFRESH,
-                    { Player.refreshItems(it) }
+                    { Player.refreshSongs(it) }
             ),
-            FastColAction<Item>(
+            FastColAction<Song>(
                     "Add to library",
                     "Add songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",
                     IconMD.DATABASE_PLUS,
                     { }
             ).preventClosing {
                 op -> ComplexActionData(
-                    { items -> fut(items).then { it.mapNotNull { it.getFile() } } },
+                    { songs -> fut(songs).then { it.mapNotNull { it.getFile() } } },
                     addToLibraryConsumer(op).gui
                 )
             },
             FastColAction(
                     "Remove from library",
-                    "Removes all specified items from library. After this library will contain none of these items.",
+                    "Removes all specified songs from library. After this library will contain none of these songs.",
                     IconMD.DATABASE_MINUS,
-                    { APP.db.removeItems(it) }
+                    { APP.db.removeSongs(it) }
             ),
             FastColAction(
                     "Show",
-                    "Shows items in a table.",
+                    "Shows songs in a table.",
                     IconMA.COLLECTIONS,
-                    { items -> APP.widgetManager.widgets
+                    { songs -> APP.widgetManager.widgets
                                 .find(Widgets.SONG_TABLE, NEW, false)
                                 .ifPresent {
-                                    it.controller.ownedInputs.getInput<List<Metadata>>("To display").setValue(items.map { it.toMeta() })
+                                    it.controller.ownedInputs.getInput<List<Metadata>>("To display").setValue(songs.map { it.toMeta() })
                                 }
                     }
             ),
             FastColAction(
                     "Show as Group",
-                    "Group items in a table.",
+                    "Group songs in a table.",
                     IconMA.COLLECTIONS,
-                    { items -> APP.widgetManager.widgets
+                    { songs -> APP.widgetManager.widgets
                             .find(Widgets.SONG_GROUP_TABLE, NEW, false)
                                 .ifPresent {
-                                    it.controller.ownedInputs.getInput<List<Metadata>>("To display").setValue(items.map { it.toMeta() })
+                                    it.controller.ownedInputs.getInput<List<Metadata>>("To display").setValue(songs.map { it.toMeta() })
                                 }
                     }
             )
@@ -309,7 +309,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             ).preventClosing { addToLibraryConsumer(it) },
             FastColAction(
                     "Add to existing playlist",
-                    "Add items to existing playlist widget if possible or to a new one if not.",
+                    "Add songs to existing playlist widget if possible or to a new one if not.",
                     IconMD.PLAYLIST_PLUS,
                     { f -> AudioFileFormat.isSupported(f, Use.APP) },
                     { f -> APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addFiles(f) } }
@@ -377,7 +377,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                 @IsConfig(name = "Edit only added files", group ="3") val editOnlyAdded by cv(false).readOnlyUnless(editInTagger)
                 @IsConfig(name = "Enqueue in playlist", group ="4") val enqueue by cv(false)
             }
-            val task = MetadataReader.buildAddItemsToLibTask()
+            val task = MetadataReader.addSongsToLibTask()
             val info = ConvertTaskInfo(
                     title = null,
                     message = Label(),
@@ -413,11 +413,11 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
 
                         fut(files())
                                 .use { if (conf.makeWritable.value) it.forEach { it.setWritable(true) } }
-                                .then { task(it.map { SimpleItem(it) }) }
+                                .then { task(it.map { SimpleSong(it) }) }
                                 .ui { result ->
                                     if (conf.editInTagger.value) {
                                         val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER)?.create()
-                                        val items = if (conf.editOnlyAdded.value) result.converted else result.all
+                                        val songs = if (conf.editOnlyAdded.value) result.converted else result.all
                                         if (tagger!=null) {
                                             anim(500.millis) {
                                                 content.children[0].opacity = it*it
@@ -426,7 +426,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                                                 playAgainIfFinished = false
                                             }.playCloseDoOpen {
                                                 content.children[1].asIf<Pane>()!!.lay += tagger.load()
-                                                (tagger.controller as SongReader).read(items)
+                                                (tagger.controller as SongReader).read(songs)
                                             }
                                         }
                                     }

@@ -3,8 +3,8 @@ package sp.it.pl.audio
 import javafx.scene.media.MediaPlayer.Status
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playlist.Playlist
-import sp.it.pl.audio.playlist.PlaylistItem
 import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.util.units.millis
@@ -15,7 +15,7 @@ import java.util.UUID
 
 class MetadatasDB: HashMap<String, Metadata>, Serializable {
     constructor(): super()
-    constructor(items: Map<String, Metadata>): super(items)
+    constructor(songs: Map<String, Metadata>): super(songs)
 }
 
 class PlayerStateDB: Serializable {
@@ -45,7 +45,7 @@ class PlaybackStateDB(s: PlaybackState): Serializable {
     var mute: Boolean = s.mute.value
     var rate: Double = s.rate.value
 
-    fun toPlaybackState() = PlaybackState(UUID.fromString(id)).also {
+    fun toDomain() = PlaybackState(UUID.fromString(id)).also {
         it.volume.value = volume
         it.balance.value = balance
         it.loopMode.value = LoopMode.valueOf(loopMode)
@@ -70,8 +70,8 @@ class PlaylistDB: Serializable {
         this.items = p.map { PlaylistItemDB(it) }
     }
 
-    fun toPlaylist() = Playlist(UUID.fromString(id)).also {
-        it += items.map { it.toPlaylistItem() }
+    fun toDomain() = Playlist(UUID.fromString(id)).also {
+        it += items.map { it.toDomain() }
         it.updatePlayingItem(playing)
     }
 
@@ -83,13 +83,13 @@ class PlaylistItemDB: Serializable {
     var length: Double
     var uri: String
 
-    constructor(i: PlaylistItem) {
+    constructor(i: PlaylistSong) {
         this.artist = i.getArtist()
         this.title = i.getTitle()
         this.length = i.timeMs
         this.uri = i.uri.toString()
     }
 
-    fun toPlaylistItem() = PlaylistItem(URI.create(uri), artist, title, length)
+    fun toDomain() = PlaylistSong(URI.create(uri), artist, title, length)
 
 }

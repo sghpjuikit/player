@@ -23,7 +23,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
-import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Song;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.PlayerConfiguration;
 import sp.it.pl.gui.objects.form.Form;
@@ -54,12 +54,12 @@ import static sp.it.pl.util.system.EnvironmentKt.browse;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
 
-public class Playlist extends SimpleListProperty<PlaylistItem> {
+public class Playlist extends SimpleListProperty<PlaylistSong> {
 
 	public final UUID id;
 	private final ReadOnlyIntegerWrapper playingIWrapper = new ReadOnlyIntegerWrapper(-1);
 	public final ReadOnlyIntegerProperty playingI = playingIWrapper.getReadOnlyProperty();
-	private PlaylistItem playing = null;
+	private PlaylistSong playing = null;
 
 	public Playlist() {
 		this(UUID.randomUUID());
@@ -75,33 +75,33 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		updatePlayingItem(exists ? i : -1, exists ? get(i) : null);
 	}
 
-	private void updatePlayingItem(int i, PlaylistItem item) {
-		playing = item;
+	private void updatePlayingItem(int i, PlaylistSong song) {
+		playing = song;
 		playingIWrapper.set(i);
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-	private UnaryOperator<List<PlaylistItem>> transformer = x -> x;
+	private UnaryOperator<List<PlaylistSong>> transformer = x -> x;
 
-	private List<PlaylistItem> transform() {
+	private List<PlaylistSong> transform() {
 		return transformer.apply(this);
 	}
 
-	public void setTransformation(ObservableList<PlaylistItem> transformed) {
+	public void setTransformation(ObservableList<PlaylistSong> transformed) {
 		transformer = original -> transformed;
 	}
 
-	public void setTransformation(UnaryOperator<List<PlaylistItem>> transformer) {
+	public void setTransformation(UnaryOperator<List<PlaylistSong>> transformer) {
 		this.transformer = transformer;
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-	/** Returns total playlist duration - a sum of all playlist item lengths. */
+	/** Returns total playlist duration - a sum of all playlist song lengths. */
 	public Duration getLength() {
 		double sum = stream()
-				.map(PlaylistItem::getTime)
+				.map(PlaylistSong::getTime)
 				.filter(d -> !d.isIndefinite() && !d.isUnknown())
 				.mapToDouble(Duration::toMillis)
 				.sum();
@@ -109,54 +109,54 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	}
 
 	/**
-	 * Returns true if specified item is playing item on the playlist. There can
-	 * only be one item in the application for which this method returns true.
-	 * Note the distinction between this method and {@link sp.it.pl.audio.Item#isPlayingSame}
+	 * Returns true if specified song is playing song on the playlist. There can
+	 * only be one song in the application for which this method returns true.
+	 * Note the distinction between this method and {@link sp.it.pl.audio.Song#isPlayingSame}
 	 *
-	 * @return true if item is played.
+	 * @return true if song is played.
 	 */
-	public boolean isPlaying(PlaylistItem item) {
-		return playing==item;
+	public boolean isPlaying(PlaylistSong song) {
+		return playing==song;
 	}
 
 	/**
-	 * Returns index of the first same item in playlist.
+	 * Returns index of the first same song in playlist.
 	 *
-	 * @return item index. -1 if not in playlist.
+	 * @return song index. -1 if not in playlist.
 	 * @throws java.lang.RuntimeException if any param null
-	 * @see Item#same(sp.it.pl.audio.Item)
+	 * @see Song#same(sp.it.pl.audio.Song)
 	 */
-	public int indexOfSame(Item item) {
-		List<PlaylistItem> transformed = transform();
+	public int indexOfSame(Song song) {
+		List<PlaylistSong> transformed = transform();
 		for (int i = 0; i<transformed.size(); i++)
-			if (transformed.get(i).same(item)) return i;
+			if (transformed.get(i).same(song)) return i;
 		return -1;
 	}
 
-	/** @return index of playing item or -1 if no item is playing */
+	/** @return index of playing song or -1 if no song is playing */
 	public int indexOfPlaying() {
 		return playing==null ? -1 : indexOf(playing);
 	}
 
-	public PlaylistItem getPlaying() {
+	public PlaylistSong getPlaying() {
 		return playing;
 	}
 
-	/** @return true when playlist contains items same as the parameter */
-	public boolean containsSame(Item item) {
-		return stream().anyMatch(item::same);
+	/** @return true when playlist contains songs same as the parameter */
+	public boolean containsSame(Song song) {
+		return stream().anyMatch(song::same);
 	}
 
-	/** Returns true iff any item on this playlist is being played played. */
+	/** Returns true iff any song on this playlist is being played played. */
 	public boolean containsPlaying() {
 		return indexOfPlaying()>=0;
 	}
 
-	/** Removes all unplayable items from this playlist. */
+	/** Removes all unplayable songs from this playlist. */
 	public void removeUnplayable() {
-		List<PlaylistItem> staying = new ArrayList<>();
+		List<PlaylistSong> staying = new ArrayList<>();
 		for (int i = 0; i<size(); i++) {
-			PlaylistItem p = get(i);
+			PlaylistSong p = get(i);
 			if (!p.isCorrupt(Use.PLAYBACK))
 				staying.add(p);
 		}
@@ -165,14 +165,14 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	}
 
 	/**
-	 * Removes all items such as no two items on the playlist are the same as
-	 * in {@link Item#same(sp.it.pl.audio.Item)}.
+	 * Removes all songs such as no two songs on the playlist are the same as
+	 * in {@link Song#same(sp.it.pl.audio.Song)}.
 	 */
 	public void removeDuplicates() {
-		MapSet<URI,Item> unique = new MapSet<>(Item::getUri);
-		List<PlaylistItem> staying = new ArrayList<>();
+		MapSet<URI,Song> unique = new MapSet<>(Song::getUri);
+		List<PlaylistSong> staying = new ArrayList<>();
 		for (int i = 0; i<size(); i++) {
-			PlaylistItem p = get(i);
+			PlaylistSong p = get(i);
 			if (!unique.contains(p)) {
 				unique.add(p);
 				staying.add(p);
@@ -183,27 +183,27 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	}
 
 	/**
-	 * Duplicates the item if it is in playlist. If it is not, does nothing.
+	 * Duplicates the song if it is in playlist. If it is not, does nothing.
 	 * Duplicate will appear on the next index following the original.
 	 */
-	public void duplicateItem(PlaylistItem item) {
-		int i = indexOf(item);
-		if (i!=-1) add(i + 1, item.copy());
+	public void duplicateItem(PlaylistSong song) {
+		int i = indexOf(song);
+		if (i!=-1) add(i + 1, song.copy());
 	}
 
 	/**
-	 * Duplicates the items if they are in playlist. If they arent, does nothing.
-	 * Duplicates will appear on the next index following the last items's index.
+	 * Duplicates the songs if they are in playlist. If they arent, does nothing.
+	 * Duplicates will appear on the next index following the last songs's index.
 	 *
-	 * @param items items to duplicate
+	 * @param songs songs to duplicate
 	 */
-	public void duplicateItemsAsGroup(List<PlaylistItem> items) {
+	public void duplicateItemsAsGroup(List<PlaylistSong> songs) {
 		int index = 0;
-		List<PlaylistItem> to_dup = new ArrayList<>();
-		for (PlaylistItem item : items) {
-			int i = items.indexOf(item);
+		List<PlaylistSong> to_dup = new ArrayList<>();
+		for (PlaylistSong song : songs) {
+			int i = songs.indexOf(song);
 			if (i!=-1) {
-				to_dup.add(item.copy());
+				to_dup.add(song.copy());
 				index = i + 1;
 			}
 		}
@@ -212,39 +212,39 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	}
 
 	/**
-	 * Duplicates the items if they are in playlist. If they arent, does nothing.
+	 * Duplicates the songs if they are in playlist. If they arent, does nothing.
 	 * Each duplicate will appear at index right after its original - sort of
 	 * couples will appear.
 	 *
-	 * @param items items to duplicate
+	 * @param songs songs to duplicate
 	 */
-	public void duplicateItemsByOne(List<PlaylistItem> items) {
-		items.forEach(this::duplicateItem);
+	public void duplicateItemsByOne(List<PlaylistSong> songs) {
+		songs.forEach(this::duplicateItem);
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-	/** Reverses order of the items. Operation can not be undone. */
+	/** Reverses order of the songs. Operation can not be undone. */
 	public void reverse() {
 		FXCollections.reverse(this);
 	}
 
-	/** Randomizes order of the items. Operation can not be undone. */
+	/** Randomizes order of the songs. Operation can not be undone. */
 	public void randomize() {
 		FXCollections.shuffle(this);
 	}
 
 	/**
-	 * Moves/shifts all specified items by specified distance.
-	 * Selected items retain their relative positions. Items stop moving when
+	 * Moves/shifts all specified songs by specified distance.
+	 * Selected songs retain their relative positions. Items stop moving when
 	 * any of them hits end/start of the playlist. Items wont rotate the list.
 	 *
 	 * @apiNote If this method requires real time response (for example reacting on mouse drag in table), it is important
-	 * to 'cache' the behavior and allow values >1 && <-1 so the moved items dont lag behind.
+	 * to 'cache' the behavior and allow values >1 && <-1 so the moved songs dont lag behind.
 	 *
-	 * @param indexes of items to move. Must be List<Integer>.
-	 * @param by distance to move items by. Negative moves back. Zero does nothing.
-	 * @return updated indexes of moved items.
+	 * @param indexes of songs to move. Must be List<Integer>.
+	 * @param by distance to move songs by. Negative moves back. Zero does nothing.
+	 * @return updated indexes of moved songs.
 	 */
 	public List<Integer> moveItemsBy(List<Integer> indexes, int by) {
 		List<List<Integer>> blocks = slice(indexes);
@@ -322,31 +322,31 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 	/**
-	 * Updates item.
-	 * Updates all instances of the Item that are in the playlist. When application
-	 * internally updates PlaylistItem it must make sure all its duplicates are
+	 * Updates song.
+	 * Updates all instances of the Song that are in the playlist. When application
+	 * internally updates PlaylistSong it must make sure all its duplicates are
 	 * updated too. Thats what this method does.
 	 *
-	 * @param item item to update
+	 * @param song song to update
 	 */
-	public void updateItem(Item item) {
-		stream().filter(item::same).forEach(PlaylistItem::update);
+	public void updateItem(Song song) {
+		stream().filter(song::same).forEach(PlaylistSong::update);
 		// THIS NEEDS TO FIRE DURATION UPDATE
 	}
 
 	/**
-	 * Updates all not updated items.
+	 * Updates all not updated songs.
 	 * <p/>
-	 * If some item is not on playlist it will also be updated but it will have
+	 * If some song is not on playlist it will also be updated but it will have
 	 * no effect on this playlist (but will on others, if they contain it).
 	 *
-	 * @param items items to update.
+	 * @param songs songs to update.
 	 */
-	public void updateItems(Collection<PlaylistItem> items) {
-		if (items.isEmpty()) return;
-		List<PlaylistItem> l = new ArrayList<>(items);
+	public void updateItems(Collection<PlaylistSong> songs) {
+		if (songs.isEmpty()) return;
+		List<PlaylistSong> l = new ArrayList<>(songs);
 		Player.IO_THREAD.execute(() -> {
-			for (PlaylistItem i : l) {
+			for (PlaylistSong i : l) {
 				if (Thread.interrupted()) return;
 				if (!i.isUpdated()) i.update();
 			}
@@ -356,9 +356,9 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 
 	/**
 	 * Use to completely refresh playlist.
-	 * Updates all items on playlist. This method guarantees that all items
+	 * Updates all songs on playlist. This method guarantees that all songs
 	 * will be up to date.
-	 * After this method is invoked, every item will be updated at least once
+	 * After this method is invoked, every song will be updated at least once
 	 * and reflect metadata written in the physical file.
 	 * <p>
 	 * Utilizes bgr thread. Its safe to call this method without any performance
@@ -370,18 +370,18 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-	/** Plays given URI by searching for an existing PlaylistItem with that URI or adding it as a new Item */
+	/** Plays given URI by searching for an existing PlaylistSong with that URI or adding it as a new Song */
 	public void playUri(URI uri) {
-		for (PlaylistItem item : this) {
-			if(item.same(uri)) {
-				playItem(item);
+		for (PlaylistSong song : this) {
+			if(song.same(uri)) {
+				playItem(song);
 				return;
 			}
 		}
 		addNplay(uri);
 	}
 
-	/** Adds a new PlaylistItem to the end of the Playlist and plays it */
+	/** Adds a new PlaylistSong to the end of the Playlist and plays it */
 	public void addNplay(URI uri) {
 		addUri(uri);
 		playLastItem();
@@ -397,46 +397,46 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		}
 	}
 
-	/** Plays given item. Does nothing if item not on playlist or null. */
-	public void playItem(PlaylistItem item) {
-		playItem(item, p -> PlaylistManager.playingItemSelector.getNext(p, transform()));
+	/** Plays given song. Does nothing if song not on playlist or null. */
+	public void playItem(PlaylistSong song) {
+		playItem(song, p -> PlaylistManager.playingItemSelector.getNext(p, transform()));
 	}
 
-	volatile private PlaylistItem unplayable1st = null;
+	volatile private PlaylistSong unplayable1st = null;
 
 	/***
-	 * Plays specified item or if not possible, uses the specified function to calculate the next item to play.
+	 * Plays specified song or if not possible, uses the specified function to calculate the next song to play.
 	 * <p/>
 	 * This method is asynchronous.
 	 *
-	 * @param item item to play
-	 * @param altSupplier supplier of next item to play if the item can not be
-	 * played. It may for example return next item, or random item, depending
-	 * on the selection strategy. If the next item to play again can not be
-	 * played the process repeats until item to play is found or no item is
+	 * @param song song to play
+	 * @param altSupplier supplier of next song to play if the song can not be
+	 * played. It may for example return next song, or random song, depending
+	 * on the selection strategy. If the next song to play again can not be
+	 * played the process repeats until song to play is found or no song is
 	 * playable.
 	 */
-	public void playItem(PlaylistItem item, UnaryOperator<PlaylistItem> altSupplier) {
-		if (item!=null && transform().contains(item)) {
+	public void playItem(PlaylistSong song, UnaryOperator<PlaylistSong> altSupplier) {
+		if (song!=null && transform().contains(song)) {
 			Player.IO_THREAD.execute(() -> {
-				// we cant play item -> we try to play next one and eventually get here again => need defend against case where no item is playable
-				boolean unplayable = item.isNotPlayable();  // potentially blocking
+				// we cant play song -> we try to play next one and eventually get here again => need defend against case where no song is playable
+				boolean unplayable = song.isNotPlayable();  // potentially blocking
 				if (unplayable) {
-					boolean isNonePlayable = unplayable1st==item && stream().allMatch(PlaylistItem::isNotPlayable); // potentially blocking
+					boolean isNonePlayable = unplayable1st==song && stream().allMatch(PlaylistSong::isNotPlayable); // potentially blocking
 					runFX(() -> {
 						if (isNonePlayable) {
 							Player.stop();
 							unplayable1st = null;
 						} else {
-							updatePlayingItem(indexOf(item), item);
-							if (unplayable1st==null) unplayable1st = item;  // remember 1st unplayable
-							// try to play next item, note we dont use the supplier as a fallback 2nd time
+							updatePlayingItem(indexOf(song), song);
+							if (unplayable1st==null) unplayable1st = song;  // remember 1st unplayable
+							// try to play next song, note we dont use the supplier as a fallback 2nd time
 							// we use linear 'next time' supplier instead, to make sure we check every
-							// item on a completely unplayable playlist and exactly once. Say provided
-							// one selects random item - we could get into potentially infinite loop or
-							// check items multiple times or even skip playable items to check completely!
-							// playItem(alt_supplier.apply(item),alt_supplier);
-							playItem(altSupplier.apply(item));
+							// song on a completely unplayable playlist and exactly once. Say provided
+							// one selects random song - we could get into potentially infinite loop or
+							// check songs multiple times or even skip playable songs to check completely!
+							// playItem(alt_supplier.apply(song),alt_supplier);
+							playItem(altSupplier.apply(song));
 						}
 					});
 				} else {
@@ -444,100 +444,100 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 						unplayable1st = null;
 						PlaylistManager.active = this.id;
 						PlaylistManager.playlists.stream().filter(p -> p!=this).forEach(p -> p.updatePlayingItem(-1));
-						updatePlayingItem(indexOf(item), item);
-						Player.play(item);
+						updatePlayingItem(indexOf(song), song);
+						Player.play(song);
 					});
 				}
 			});
 		}
 	}
 
-	/** Plays first item on playlist. */
+	/** Plays first song on playlist. */
 	public void playFirstItem() {
 		playItem(0);
 	}
 
-	/** Plays last item on playlist. */
+	/** Plays last song on playlist. */
 	public void playLastItem() {
 		playItem(transform().size() - 1);
 	}
 
-	/** Plays next item on playlist according to its selector logic. */
+	/** Plays next song on playlist according to its selector logic. */
 	public void playNextItem() {
 		playItem(PlaylistManager.playingItemSelector.getNext(getPlaying(), transform()), p -> PlaylistManager.playingItemSelector.getNext(p, transform()));
 	}
 
-	/** Plays previous item on playlist according to its selector logic. */
+	/** Plays previous song on playlist according to its selector logic. */
 	public void playPreviousItem() {
 		playItem(PlaylistManager.playingItemSelector.getPrevious(getPlaying(), transform()), p -> PlaylistManager.playingItemSelector.getPrevious(p, transform()));
 	}
 
 	/**
 	 * Plays new playlist.
-	 * Clears active playlist completely and adds all items from new playlist.
+	 * Clears active playlist completely and adds all songs from new playlist.
 	 * Starts playing first file.
 	 *
-	 * @param items items to be onthe  playlist.
+	 * @param songs songs to be onthe  playlist.
 	 * @throws NullPointerException if param null.
 	 */
-	public void setNplay(Collection<? extends Item> items) {
-		setNplay(items.stream());
+	public void setNplay(Collection<? extends Song> songs) {
+		setNplay(songs.stream());
 	}
 
 	/**
 	 * Plays new playlist.
-	 * Clears active playlist completely and adds all items from new playlist.
-	 * Starts playing item with the given index. If index is out of range for new
+	 * Clears active playlist completely and adds all songs from new playlist.
+	 * Starts playing song with the given index. If index is out of range for new
 	 * playlist, handles according to behavior in playItem(index int) method.
 	 *
-	 * @param items items.
-	 * @param from index of item to play from
+	 * @param songs songs.
+	 * @param from index of song to play from
 	 * @throws NullPointerException if param null.
 	 */
-	public void setNplayFrom(Collection<? extends Item> items, int from) {
-		setNplayFrom(items.stream(), from);
+	public void setNplayFrom(Collection<? extends Song> songs, int from) {
+		setNplayFrom(songs.stream(), from);
 	}
 
 	/**
 	 * Plays new playlist.
-	 * Clears active playlist completely and adds all items from new playlist.
+	 * Clears active playlist completely and adds all songs from new playlist.
 	 * Starts playing first file.
 	 *
-	 * @param items items.
+	 * @param songs songs.
 	 * @throws NullPointerException if param null.
 	 */
-	public void setNplay(Stream<? extends Item> items) {
-		noNull(items);
+	public void setNplay(Stream<? extends Song> songs) {
+		noNull(songs);
 		clear();
-		addItems(items.collect(toList()));
+		addItems(songs.collect(toList()));
 		playFirstItem();
 	}
 
 	/**
 	 * Plays new playlist.
-	 * Clears active playlist completely and adds all items from new playlist.
-	 * Starts playing item with the given index. If index is out of range for new
+	 * Clears active playlist completely and adds all songs from new playlist.
+	 * Starts playing song with the given index. If index is out of range for new
 	 * playlist, handles according to behavior in playItem(index int) method.
 	 *
-	 * @param items items to add.
-	 * @param from index of item to play from
+	 * @param songs songs to add.
+	 * @param from index of song to play from
 	 * @throws NullPointerException if param null.
 	 */
-	public void setNplayFrom(Stream<? extends Item> items, int from) {
-		noNull(items);
+	public void setNplayFrom(Stream<? extends Song> songs, int from) {
+		noNull(songs);
 		clear();
-		addItems(items.collect(toList()));
+		addItems(songs.collect(toList()));
 		playItem(get(from));
 	}
 
-	public PlaylistItem getNextPlaying() {
+	public PlaylistSong getNextPlaying() {
 		return PlaylistManager.playingItemSelector.getNext(getPlaying(), transform());
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 	/**
-	 * Adds new item to end of this playlist, based on the url (String). Use this method
+	 * Adds new song to end of this playlist, based on the url (String). Use this method
 	 * for  URL based Items.
 	 *
 	 * @throws NullPointerException when param null.
@@ -547,7 +547,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	}
 
 	/**
-	 * Adds new items to end of this playlist, based on the urls (String). Use
+	 * Adds new songs to end of this playlist, based on the urls (String). Use
 	 * this method for URL based Items.
 	 * Malformed url's will be ignored.
 	 *
@@ -568,7 +568,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	}
 
 	/**
-	 * Adds new item to specified index of playlist.
+	 * Adds new song to specified index of playlist.
 	 * Dont use for physical files..
 	 *
 	 * @throws NullPointerException when param null.
@@ -579,7 +579,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	}
 
 	/**
-	 * Adds specified item to end of this playlist.
+	 * Adds specified song to end of this playlist.
 	 *
 	 * @throws NullPointerException when param null.
 	 */
@@ -597,7 +597,7 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	}
 
 	/**
-	 * Adds specified item to end of this playlist.
+	 * Adds specified song to end of this playlist.
 	 *
 	 * @throws NullPointerException when param null.
 	 */
@@ -606,8 +606,8 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	}
 
 	/**
-	 * Adds items at the end of this playlist and updates them if necessary.
-	 * Adding produces immediate response for all items. Updating will take time
+	 * Adds songs at the end of this playlist and updates them if necessary.
+	 * Adding produces immediate response for all songs. Updating will take time
 	 * and take effect the moment it is applied one by one.
 	 *
 	 * @throws NullPointerException when param null.
@@ -617,12 +617,12 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	}
 
 	/**
-	 * Adds new items at the end of this playlist and updates them if necessary.
-	 * Adding produces immediate response for all items. Updating will take time
+	 * Adds new songs at the end of this playlist and updates them if necessary.
+	 * Adding produces immediate response for all songs. Updating will take time
 	 * and take effect the moment it is applied one by one.
 	 *
-	 * @param at Index at which items will be added. Out of bounds index will be converted: index < 0     --> 0(first)
-	 * index >= size --> size (last item)
+	 * @param at Index at which songs will be added. Out of bounds index will be converted: index < 0     --> 0(first)
+	 * index >= size --> size (last song)
 	 * @throws NullPointerException when param null.
 	 */
 	public void addUris(Collection<URI> uris, int at) {
@@ -630,41 +630,41 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 		if (_at<0) _at = 0;
 		if (_at>size()) _at = size();
 
-		List<PlaylistItem> l = new ArrayList<>();
-		uris.forEach(uri -> l.add(new PlaylistItem(uri)));
+		List<PlaylistSong> l = new ArrayList<>();
+		uris.forEach(uri -> l.add(new PlaylistSong(uri)));
 
 		addPlaylist(l, _at);
 	}
 
-	public void addItem(Item item) {
-		addItems(Collections.singletonList(item), size());
+	public void addItem(Song song) {
+		addItems(Collections.singletonList(song), size());
 	}
 
 	/**
-	 * Maps items to playlist items and ads items at the end.
-	 * Equivalent to {@code addItems(items, list().size());}
+	 * Maps songs to playlist songs and ads songs at the end.
+	 * Equivalent to {@code addItems(songs, list().size());}
 	 */
-	public void addItems(Collection<? extends Item> items) {
-		addItems(items, size());
+	public void addItems(Collection<? extends Song> songs) {
+		addItems(songs, size());
 	}
 
 	/**
-	 * Adds items at the position.
-	 * Equivalent to {@code addPlaylist(map(items, Item::toPlaylist), at);}
+	 * Adds songs at the position.
+	 * Equivalent to {@code addPlaylist(map(songs, Song::toPlaylist), at);}
 	 */
-	public void addItems(Collection<? extends Item> items, int at) {
-		addPlaylist(map(items, Item::toPlaylist), at);
+	public void addItems(Collection<? extends Song> songs, int at) {
+		addPlaylist(map(songs, Song::toPlaylist), at);
 	}
 
 	/**
-	 * Adds all items to the specified position of this playlist.
+	 * Adds all songs to the specified position of this playlist.
 	 *
-	 * @param ps playlist items
-	 * @param at Index at which items will be added. Out of bounds index will be converted: index < 0     --> 0(first)
-	 * index >= size --> size (last item)
+	 * @param ps playlist songs
+	 * @param at Index at which songs will be added. Out of bounds index will be converted: index < 0     --> 0(first)
+	 * index >= size --> size (last song)
 	 * @throws NullPointerException when param null.
 	 */
-	public void addPlaylist(Collection<PlaylistItem> ps, int at) {
+	public void addPlaylist(Collection<PlaylistSong> ps, int at) {
 		int _at = at;
 		if (_at<0) _at = 0;
 		if (_at>size()) _at = size();
@@ -680,9 +680,9 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 
 	// TODO: move methods to PlaylistManager
 	/**
-	 * Open chooser and add or play new items.
+	 * Open chooser and add or play new songs.
 	 *
-	 * @param add true to add items, false to clear playlist and play items
+	 * @param add true to add songs, false to clear playlist and play songs
 	 */
 	public void addOrEnqueueFiles(boolean add) {
 		chooseFiles(
@@ -706,9 +706,9 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	}
 
 	/**
-	 * Open chooser and add or play new items.
+	 * Open chooser and add or play new songs.
 	 *
-	 * @param add true to add items, false to clear playlist and play items
+	 * @param add true to add songs, false to clear playlist and play songs
 	 */
 	public void addOrEnqueueFolder(boolean add) {
 		chooseFile(
@@ -732,14 +732,14 @@ public class Playlist extends SimpleListProperty<PlaylistItem> {
 	}
 
 	/**
-	 * Open chooser and add or play new items.
+	 * Open chooser and add or play new songs.
 	 *
-	 * @param add true to add items, false to clear playlist and play items
+	 * @param add true to add songs, false to clear playlist and play songs
 	 */
 	@SuppressWarnings({"Convert2Lambda", "unchecked"})
 	public void addOrEnqueueUrl(boolean add) {
 		// build content
-		String title = add ? "Add url item." : "Play url item.";
+		String title = add ? "Add url song." : "Play url song.";
 		Config<URI> conf = new ValueConfig<>(URI.class, "Url", URI.create("http://www.example.com"), title);
 		Form<?> form = form(conf,
 			consumer((Consumer) new Consumer<Config<URI>>() {

@@ -9,9 +9,9 @@ import javafx.stage.Stage
 import mu.KLogging
 import org.atteo.evo.inflector.English.plural
 import org.reactfx.EventSource
-import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
-import sp.it.pl.audio.playlist.PlaylistItem
+import sp.it.pl.audio.Song
+import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
@@ -54,7 +54,7 @@ import sp.it.pl.plugin.screenrotator.ScreenRotator
 import sp.it.pl.service.Service
 import sp.it.pl.service.ServiceManager
 import sp.it.pl.service.click.ClickEffect
-import sp.it.pl.service.database.Db
+import sp.it.pl.service.database.SongDb
 import sp.it.pl.service.notif.Notifier
 import sp.it.pl.service.playcount.PlaycountIncrementer
 import sp.it.pl.service.tray.TrayService
@@ -249,7 +249,7 @@ class App: Application(), Configurable<Any> {
     @F val search = Search()
 
     /** Manages persistence and in-memory storage. */
-    @F val db = Db()
+    @F val db = SongDb()
     /** Manages windows. */
     @F val windowManager = WindowManager()
     /** Manages widgets. */
@@ -274,7 +274,7 @@ class App: Application(), Configurable<Any> {
         logger.info { "JVM Args: ${fetchVMArguments()}" }
 
         // add optional object fields
-        classFields.add(PlaylistItem::class.java, PlaylistItem.Field.FIELDS)
+        classFields.add(PlaylistSong::class.java, PlaylistSong.Field.FIELDS)
         classFields.add(Metadata::class.java, Metadata.Field.FIELDS)
         classFields.add(MetadataGroup::class.java, MetadataGroup.Field.FIELDS)
         classFields.add(Any::class.java, ColumnField.FIELDS)
@@ -285,8 +285,8 @@ class App: Application(), Configurable<Any> {
         className.add(String::class.java, "Text")
         className.add(File::class.java, "File")
         className.add(App::class.java, "Application")
-        className.add(Item::class.java, "Song")
-        className.add(PlaylistItem::class.java, "Playlist Song")
+        className.add(Song::class.java, "Song")
+        className.add(PlaylistSong::class.java, "Playlist Song")
         className.add(Metadata::class.java, "Library Song")
         className.add(MetadataGroup::class.java, "Song Group")
         className.add(Service::class.java, "Service")
@@ -300,8 +300,8 @@ class App: Application(), Configurable<Any> {
         instanceName.add(Void::class.java) { "<none>" }
         instanceName.add(File::class.java, { it.path })
         instanceName.add(App::class.java) { "This application" }
-        instanceName.add(Item::class.java, { it.getPathAsString() })
-        instanceName.add(PlaylistItem::class.java, { it.getTitle() })
+        instanceName.add(Song::class.java, { it.getPathAsString() })
+        instanceName.add(PlaylistSong::class.java, { it.getTitle() })
         instanceName.add(Metadata::class.java, { it.getTitleOrEmpty() })
         instanceName.add(MetadataGroup::class.java) { it.getValueS("<none>") }
         instanceName.add(Service::class.java, { it.name })
@@ -343,8 +343,8 @@ class App: Application(), Configurable<Any> {
                     .filter { it.isTypeStringRepresentable() && !it.isFieldEmpty(m) }
                     .forEach { map[it.name()] = it.getOfS(m, "<none>") }
         }
-        instanceInfo.add(PlaylistItem::class.java) { p, map ->
-            PlaylistItem.Field.FIELDS.asSequence()
+        instanceInfo.add(PlaylistSong::class.java) { p, map ->
+            PlaylistSong.Field.FIELDS.asSequence()
                     .filter { it.isTypeStringRepresentable() }
                     .forEach { map[it.name()] = it.getOfS(p, "<none>") }
         }

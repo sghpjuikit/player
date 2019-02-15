@@ -22,9 +22,9 @@ import javafx.stage.PopupWindow
 import javafx.stage.Stage
 import mu.KotlinLogging
 import org.reactfx.Subscription
-import sp.it.pl.audio.Item
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.MetadataGroup
-import sp.it.pl.audio.tagging.PlaylistItemGroup
+import sp.it.pl.audio.tagging.PlaylistSongGroup
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.popover.PopOver
@@ -96,9 +96,9 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
     is Window -> tree(o.stage)
     is PopOver<*> -> STreeItem(o, { seqOf(o.scene.root) })
     is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
-    is Item -> STreeItem(o.uri, { seqOf() }, { true })
+    is Song -> STreeItem(o.uri, { seqOf() }, { true })
     is MetadataGroup -> STreeItem<Any?>("Library songs", { o.grouped.asSequence() }, { o.grouped.isEmpty() })
-    is PlaylistItemGroup -> STreeItem<Any?>("Playlist songs", { o.items.asSequence() }, { o.items.isEmpty() })
+    is PlaylistSongGroup -> STreeItem<Any?>("Playlist songs", { o.songs.asSequence() }, { o.songs.isEmpty() })
     is List<*> -> STreeItem<Any?>("List of "+APP.className.get(o.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
     is Set<*> -> STreeItem<Any?>("Set of "+APP.className.get(o.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
     else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().asSequence() }, { true }) else SimpleTreeItem(o)

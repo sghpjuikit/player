@@ -1,9 +1,9 @@
 package sp.it.pl.service.database
 
 import mu.KLogging
-import sp.it.pl.audio.Item
 import sp.it.pl.audio.MetadatasDB
 import sp.it.pl.audio.Player
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.core.CoreSerializer
@@ -28,14 +28,14 @@ import java.util.UUID.fromString
 import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("unused")
-class Db {
+class SongDb {
 
     private var running = false
     private lateinit var moods: Set<String>
 
-    /** In memory item database. Use for library. Items are hashed by [Item.id]. */
-    @ThreadSafe val itemsById = MapSet(ConcurrentHashMap<String, Metadata>(2000, 1f, 3), { it.id })
-    /** Map of unique values per field gathered from [itemsById] */
+    /** In memory item database. Use for library. Songs are hashed by [Song.id]. */
+    @ThreadSafe val songsById = MapSet(ConcurrentHashMap<String, Metadata>(2000, 1f, 3), { it.id })
+    /** Map of unique values per field gathered from [songsById] */
     @ThreadSafe val itemUniqueValuesByField = ConcurrentHashMap<Metadata.Field<*>, Set<String>>()
 
     val items = InOutput<List<Metadata>>(fromString("396d2407-7040-401e-8f85-56bc71288818"), "All library songs", List::class.java)
@@ -62,23 +62,23 @@ class Db {
         running = true
     }
 
-    fun exists(item: Item) = exists(item.uri)
+    fun exists(song: Song) = exists(song.uri)
 
-    fun exists(uri: URI) = itemsById.containsKey(uri.toString())
+    fun exists(uri: URI) = songsById.containsKey(uri.toString())
 
-    /** @return item from library with the URI of the specified item or null if not found */
-    fun getItem(item: Item) = getItem(item.uri)
+    /** @return song from library with the URI of the specified song or null if not found */
+    fun getSong(song: Song) = getSong(song.uri)
 
     /** @return item from library with the specified URI or null if not found */
-    fun getItem(uri: URI): Metadata? = itemsById[uri.toString()]
+    fun getSong(uri: URI): Metadata? = songsById[uri.toString()]
 
-    fun getAllItems(): MetadatasDB = CoreSerializer.readSingleStorage() ?: MetadatasDB()
+    fun getAllSongs(): MetadatasDB = CoreSerializer.readSingleStorage() ?: MetadatasDB()
 
-    fun addItems(items: Collection<Metadata>) {
+    fun addSongs(items: Collection<Metadata>) {
         if (items.isEmpty()) return
 
         CoreSerializer.useAtomically {
-            val ms = MetadatasDB(itemsById.backingMap())
+            val ms = MetadatasDB(songsById.backingMap())
             items.forEach { ms[it.id] = it }
             writeSingleStorage(ms)
 
@@ -86,19 +86,19 @@ class Db {
         }
     }
 
-    fun removeItems(items: Collection<Item>) {
-        if (items.isEmpty()) return
+    fun removeSongs(songs: Collection<Song>) {
+        if (songs.isEmpty()) return
 
         CoreSerializer.useAtomically {
-            val ms = MetadatasDB(itemsById.backingMap())
-            items.forEach { ms.remove(it.id) }
+            val ms = MetadatasDB(songsById.backingMap())
+            songs.forEach { ms.remove(it.id) }
             writeSingleStorage(ms)
             updateInMemoryDbFromPersisted()
         }
 
     }
 
-    fun removeAllItems() {
+    fun removeAllSongs() {
         CoreSerializer.useAtomically {
             writeSingleStorage(MetadatasDB())
             updateInMemoryDbFromPersisted()
@@ -106,18 +106,18 @@ class Db {
     }
 
     private fun setInMemoryDB(l: List<Metadata>) {
-        itemsById.clear()
-        itemsById += l
-        updateItemValues()
+        songsById.clear()
+        songsById += l
+        updateSongValues()
         runFX { items.i.value = l }
     }
 
-    private fun updateItemValues() {
+    private fun updateSongValues() {
         itemUniqueValuesByField.clear()
         Metadata.Field.FIELDS.asSequence()
                 .filter { it.isAutoCompletable() }
                 .forEach { f ->
-                    itemUniqueValuesByField[f] = itemsById.asSequence()
+                    itemUniqueValuesByField[f] = songsById.asSequence()
                             .map { it.getFieldS(f, "") }
                             .filter { it.isNotBlank() }
                             .toSet()
@@ -126,28 +126,28 @@ class Db {
     }
 
     @ThreadSafe
-    fun updateInMemoryDbFromPersisted() = setInMemoryDB(getAllItems().values.toList())
+    fun updateInMemoryDbFromPersisted() = setInMemoryDB(getAllSongs().values.toList())
 
     @ThreadSafe
-    fun refreshItemsFromFile(items: List<Item>) {
+    fun refreshSongsFromFile(songs: List<Song>) {
         runNew {
-            val metadatas = items.asSequence().map { MetadataReader.readMetadata(it) }.filter { !it.isEmpty() }.toList()
-            Player.refreshItemsWith(metadatas)
+            val metadatas = songs.asSequence().map { MetadataReader.readMetadata(it) }.filter { !it.isEmpty() }.toList()
+            Player.refreshSongsWith(metadatas)
         }.showAppProgress("Refreshing library from disk")
     }
 
     @ThreadSafe
-    fun itemToMeta(item: Item, action: (Metadata) -> Unit) {
-        if (item.same(Player.playingItem.get())) {
-            action(Player.playingItem.get())
+    fun songToMeta(song: Song, action: (Metadata) -> Unit) {
+        if (song.same(Player.playingSong.get())) {
+            action(Player.playingSong.get())
             return
         }
 
-        APP.db.itemsById[item.id]
+        APP.db.songsById[song.id]
                 .ifNotNull { action(it) }
                 .ifNull {
                     runOn(Player.IO_THREAD) {
-                        MetadataReader.readMetadata(item)
+                        MetadataReader.readMetadata(song)
                     } ui {
                         action(it)
                     }
@@ -155,9 +155,9 @@ class Db {
     }
 
     @ThreadSafe
-    fun removeInvalidItems(): Fut<Unit> {
+    fun removeInvalidSongs(): Fut<Unit> {
         return runNew {
-            MetadataReader.buildRemoveMissingFromLibTask().run()
+            MetadataReader.removeMissingSongsFromLibTask().run()
         }
     }
 

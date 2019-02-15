@@ -79,9 +79,9 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
     name = Widgets.SONG_GROUP_TABLE,
     description = "Provides database filtering.",
     howto = "Available actions:\n" +
-            "    Item left click : Selects item\n" +
-            "    Item right click : Opens context menu\n" +
-            "    Item double click : Plays item\n" +
+            "    Song left click : Selects item\n" +
+            "    Song right click : Opens context menu\n" +
+            "    Song double click : Plays item\n" +
             "    Type : search & filter\n" +
             "    Press ENTER : Plays item\n" +
             "    Press ESC : Clear selection & filter\n" +
@@ -117,7 +117,7 @@ public class LibraryView extends SimpleController {
     public final Vo<Boolean> orig_index = new Vo<>(APP.ui.getTableOrigIndex());
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
     public final Vo<Boolean> show_header = new Vo<>(APP.ui.getTableShowHeader());
-    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table items information.")
+    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
     public final Vo<Boolean> show_footer = new Vo<>(APP.ui.getTableShowFooter());
     @IsConfig(name = "Field")
     public final V<Field<?>> fieldFilter = new VarEnum<>(CATEGORY,filter(Metadata.Field.FIELDS, Field::isTypeStringRepresentable))
@@ -193,7 +193,7 @@ public class LibraryView extends SimpleController {
                 });
             }}
         );
-        onClose.plusAssign(Player.playingItem.onUpdate(m -> table.updateStyleRules()));   // maintain playing item css
+        onClose.plusAssign(Player.playingSong.onUpdate(m -> table.updateStyleRules()));   // maintain playing item css
 
         // column context menu - add change VALUE column menus
         Menu m = (Menu) table.columnVisibleMenu.getItems().stream().filter(i -> i.getText().equals("Value")).findFirst()
@@ -210,9 +210,9 @@ public class LibraryView extends SimpleController {
         table.columnMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
         // add menu items
         table.menuRemove.getItems().addAll(
-            menuItem("Remove selected groups from library", e -> APP.db.removeItems(MetadataGroup.ungroup(table.getSelectedItems()))),
-            menuItem("Remove playing group from library", e -> APP.db.removeItems(ungroup(table.getItems().stream().filter(MetadataGroup::isPlaying)))),
-            menuItem("Remove all groups from library", e -> APP.db.removeItems(MetadataGroup.ungroup(table.getItems())))
+            menuItem("Remove selected groups from library", e -> APP.db.removeSongs(MetadataGroup.ungroup(table.getSelectedItems()))),
+            menuItem("Remove playing group from library", e -> APP.db.removeSongs(ungroup(table.getItems().stream().filter(MetadataGroup::isPlaying)))),
+            menuItem("Remove all groups from library", e -> APP.db.removeSongs(MetadataGroup.ungroup(table.getItems())))
         );
 
         // key actions
@@ -223,7 +223,7 @@ public class LibraryView extends SimpleController {
             }
             // delete selected
             if (e.getCode() == DELETE) {
-                APP.db.removeItems(table.getSelectedItems().stream().flatMap(mg -> mg.getGrouped().stream()).collect(toList()));
+                APP.db.removeSongs(table.getSelectedItems().stream().flatMap(mg -> mg.getGrouped().stream()).collect(toList()));
             }
         });
 
@@ -232,7 +232,7 @@ public class LibraryView extends SimpleController {
             if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty()
                     && table.isRowFull(table.getRowS(e.getSceneX(), e.getSceneY()))) {
                 Dragboard db = table.startDragAndDrop(COPY);
-                DragUtil.setItemList(filerListToSelectedNsort(),db,true);
+                DragUtil.setSongList(filerListToSelectedNsort(),db,true);
             }
             e.consume();
         });

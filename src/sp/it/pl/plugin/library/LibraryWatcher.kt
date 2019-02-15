@@ -2,7 +2,7 @@ package sp.it.pl.plugin.library
 
 import mu.KLogging
 import org.reactfx.Subscription
-import sp.it.pl.audio.SimpleItem
+import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.showAppProgress
@@ -132,17 +132,17 @@ class LibraryWatcher: PluginBase("Song Library", false) {
         }
 
         runNew {
-            MetadataReader.buildAddItemsToLibTask().apply(toAdd.map { SimpleItem(it) })
-            APP.db.removeItems(toRem.map { SimpleItem(it) })
+            MetadataReader.addSongsToLibTask().apply(toAdd.map { SimpleSong(it) })
+            APP.db.removeSongs(toRem.map { SimpleSong(it) })
         }.showAppProgress("Updating song library from detected changes")
     }
 
     @IsAction(name = "Update", desc = "Remove non-existent songs and add new songs from location")
     private fun updateLibrary() {
         runNew {
-            val items = Util.getFilesAudio(sourceDirs, AudioFileFormat.Use.APP, Integer.MAX_VALUE).map { SimpleItem(it) }.toList()
-            MetadataReader.buildAddItemsToLibTask().apply(items)
-            MetadataReader.buildRemoveMissingFromLibTask().run()
+            val songs = Util.getFilesAudio(sourceDirs, AudioFileFormat.Use.APP, Integer.MAX_VALUE).map { SimpleSong(it) }.toList()
+            MetadataReader.addSongsToLibTask().apply(songs)
+            MetadataReader.removeMissingSongsFromLibTask().run()
         }.showAppProgress("Updating song library from disk")
     }
 

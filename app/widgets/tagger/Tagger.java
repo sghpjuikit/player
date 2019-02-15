@@ -44,7 +44,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataReader;
 import sp.it.pl.audio.tagging.MetadataWriter;
@@ -182,7 +182,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
     ProgressIndicator progressI;
     @FXML Label infoL, placeholder, fieldDesc;
 
-    private final ObservableList<Item> allItems = FXCollections.observableArrayList();
+    private final ObservableList<Song> allSongs = FXCollections.observableArrayList();
     private final List<Metadata> metadatas = new ArrayList<>();   // currently in gui active
     private final List<TagField> fields = new ArrayList<>();
     private boolean writing = false;    // prevents external data change during writing
@@ -344,7 +344,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
     }
 
     public boolean isEmpty() {
-        return allItems.isEmpty();
+        return allSongs.isEmpty();
     }
 
 /******************************************************************************/
@@ -359,17 +359,17 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
      */
     @Override
     @IsInput("Edit")
-    public void read(List<? extends Item> items) {
+    public void read(List<? extends Song> items) {
         if (items==null) return;
 
         // remove duplicates
-        MapSet<URI,? extends Item> unique = new MapSet<>(Item::getUri, items);
+        MapSet<URI,? extends Song> unique = new MapSet<>(Song::getUri, items);
 
-        this.allItems.setAll(unique);
+        this.allSongs.setAll(unique);
         if (add_not_set.get()) add(unique, false); else set(unique);
     }
 
-    private void set(Collection<? extends Item> set) {
+    private void set(Collection<? extends Song> set) {
         metadatas.clear();
         if (set.isEmpty()) {
             showProgressReading();
@@ -378,14 +378,14 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         else add(set, true);
     }
 
-    private void add(Collection<? extends Item> added, boolean readAll) {
+    private void add(Collection<? extends Song> added, boolean readAll) {
         if (added.isEmpty()) return;
 
         // show progress, hide when populate ends - in populate()
         showProgressReading();
         // get added
         List<Metadata> ready = new ArrayList<>();
-        List<Item> needs_read = new ArrayList<>();
+        List<Song> needs_read = new ArrayList<>();
         added.stream()
             // filter out untaggable
             .filter(i -> !i.isCorrupt(Use.DB) && i.isFileBased())
@@ -395,7 +395,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
             });
 
         // read metadata for items
-        runNew(MetadataReader.buildReadMetadataTask(needs_read, (ok,result) -> {
+        runNew(MetadataReader.readMetadataTask(needs_read, (ok, result) -> {
             if (ok) {
                 // remove duplicates
                 MapSet<URI, Metadata> unique = new MapSet<>(Metadata::getUri);
@@ -410,7 +410,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         }));
     }
 
-    private void rem(Collection<? extends Item> rem) {
+    private void rem(Collection<? extends Song> rem) {
         if (rem.isEmpty()) return;
         // show progress, hide when populate ends - in populate()
         showProgressReading();
@@ -495,7 +495,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         }
 
         // totally empty
-        boolean totally_empty = allItems.isEmpty();
+        boolean totally_empty = allSongs.isEmpty();
         content.setVisible(!totally_empty);
         placeholder.setVisible(totally_empty);
         if (totally_empty) return;
@@ -820,33 +820,33 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
     private PopOver<?> showItemsPopup() {
         // build popup
-        ListView<Item> list = new ListView<>();
+        ListView<Song> list = new ListView<>();
                        // factory is set dynamically
                        list.setCellFactory(listView -> new ListCell<>() {
                             CheckIcon cb = new CheckIcon();
                             {
                                 // allow user to de/activate item
                                 cb.setOnMouseClicked(e -> {
-                                    Item item = getItem();
+                                    Song song = getItem();
                                     // avoid nulls & respect lock
-                                    if (item != null) {
-                                        if (cb.selected.getValue()) add(singletonList(item),false);
-                                        else rem(singletonList(item));
+                                    if (song!= null) {
+                                        if (cb.selected.getValue()) add(singletonList(song),false);
+                                        else rem(singletonList(song));
                                     }
                                 });
                             }
                             @Override
-                            public void updateItem(Item item, boolean empty) {
-                                super.updateItem(item, empty);
+                            public void updateItem(Song song, boolean empty) {
+                                super.updateItem(song, empty);
 
-                                if (empty || item==null) {
+                                if (empty || song==null) {
                                     setText(null);
                                     setGraphic(null);
                                 } else {
                                     int index = getIndex() + 1;
-                                    setText(index + "   " + item.getFilenameFull());
+                                    setText(index + "   " + song.getFilenameFull());
                                     // handle untaggable
-                                    boolean untaggable = item.isCorrupt(Use.DB) || !item.isFileBased();
+                                    boolean untaggable = song.isCorrupt(Use.DB) || !song.isFileBased();
                                     pseudoClassStateChanged(corrupt, untaggable);
                                     cb.selected.setValue(!untaggable);
                                     cb.setDisable(untaggable);
@@ -856,7 +856,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
                             }
                         });
                        // list will automatically update now
-                       list.setItems(allItems);
+                       list.setItems(allSongs);
                        // support same drag & drop as tagger
                        list.setOnDragOver(DragUtil.audioDragAcceptHandler);
                        list.setOnDragDropped(drag_dropped_handler);
@@ -880,7 +880,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
     private final EventHandler<DragEvent> drag_dropped_handler = e -> {
         if (DragUtil.hasAudio(e)) {
-            List<Item> dropped = DragUtil.getAudioItems(e);
+            List<Song> dropped = DragUtil.getAudioItems(e);
             //end drag transfer
             e.setDropCompleted(true);
             e.consume();

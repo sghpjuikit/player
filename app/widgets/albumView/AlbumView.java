@@ -382,7 +382,7 @@ public class AlbumView extends SimpleController {
 				if (e.getButton()==MouseButton.PRIMARY && view.selectedItem.get()!=null) {
 					Dragboard db = thumb.getPane().startDragAndDrop(TransferMode.COPY);
 					if (thumb.getImage()!=null) db.setDragView(thumb.getImage());
-					DragUtil.setItemList(filerListToSelectedNsort(),db,true);
+					DragUtil.setSongList(filerListToSelectedNsort(),db,true);
 				}
 				e.consume();
 			});

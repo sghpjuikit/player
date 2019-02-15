@@ -1,8 +1,8 @@
 package sp.it.pl.audio.playlist
 
 import mu.KotlinLogging
-import sp.it.pl.audio.Item
-import sp.it.pl.audio.SimpleItem
+import sp.it.pl.audio.Song
+import sp.it.pl.audio.SimpleSong
 import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.dev.failIfFxThread
@@ -22,7 +22,7 @@ private val logger = KotlinLogging.logger { }
 
 @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @Blocks
-fun readPlaylist(file: File): List<Item> {
+fun readPlaylist(file: File): List<Song> {
     failIfFxThread()
 
     val location = file.parentDir ?: fail { "File=$file is not a playlist file" }
@@ -37,11 +37,11 @@ fun readPlaylist(file: File): List<Item> {
             .filter { !it.startsWith("#") && !it.isEmpty() }
             .flatMap {
                 null
-                    ?: it.toURIOrNull()?.net { sequenceOf(SimpleItem(it)) }
+                    ?: it.toURIOrNull()?.net { sequenceOf(SimpleSong(it)) }
                     ?: File(it).absoluteTo(location)
                             ?.net {
                                 if (it.isPlaylistFile()) readPlaylist(it).asSequence()
-                                else sequenceOf(SimpleItem(it))
+                                else sequenceOf(SimpleSong(it))
                             }
                             ?: sequenceOf()
             }
@@ -50,7 +50,7 @@ fun readPlaylist(file: File): List<Item> {
 }
 
 @Blocks
-fun writePlaylist(playlist: List<Item>, name: String, dir: File) {
+fun writePlaylist(playlist: List<Song>, name: String, dir: File) {
     failIfFxThread()
 
     val file = dir/"$name.m3u8"

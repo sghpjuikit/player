@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 import javafx.scene.image.Image;
-import sp.it.pl.audio.SimpleItem;
+import sp.it.pl.audio.SimpleSong;
 import sp.it.pl.audio.tagging.MetadataReader;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
@@ -175,7 +175,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					return Try.ok(new LoadResult(null, cover));
 				}
 				if (AudioFileFormat.isSupported(val, Use.APP)) {
-					cover = MetadataReader.readMetadata(new SimpleItem(val)).getCover(CoverSource.TAG).getImage(size);
+					cover = MetadataReader.readMetadata(new SimpleSong(val)).getCover(CoverSource.TAG).getImage(size);
 					cover_loadedFull.set(true);
 					cover_loadedThumb.set(true);
 					return Try.ok(new LoadResult(null, cover));

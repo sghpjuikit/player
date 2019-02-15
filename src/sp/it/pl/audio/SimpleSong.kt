@@ -3,8 +3,8 @@ package sp.it.pl.audio
 import java.io.File
 import java.net.URI
 
-/** Simplest [Item] implementation. Wraps [java.net.URI]. */
-class SimpleItem(resource: URI): Item() {
+/** Simplest [Song] implementation. Wraps [java.net.URI]. */
+class SimpleSong(resource: URI): Song() {
 
     override val uri: URI = resource
 

@@ -19,11 +19,11 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import kotlin.Unit;
-import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Song;
 import sp.it.pl.audio.playlist.Playlist;
-import sp.it.pl.audio.playlist.PlaylistItem;
+import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.audio.playlist.PlaylistManager;
-import sp.it.pl.audio.tagging.PlaylistItemGroup;
+import sp.it.pl.audio.tagging.PlaylistSongGroup;
 import sp.it.pl.gui.objects.contextmenu.TableContextMenuR;
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
 import sp.it.pl.util.access.V;
@@ -36,9 +36,9 @@ import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
-import static sp.it.pl.audio.playlist.PlaylistItem.Field.LENGTH;
-import static sp.it.pl.audio.playlist.PlaylistItem.Field.NAME;
-import static sp.it.pl.audio.playlist.PlaylistItem.Field.TITLE;
+import static sp.it.pl.audio.playlist.PlaylistSong.Field.LENGTH;
+import static sp.it.pl.audio.playlist.PlaylistSong.Field.NAME;
+import static sp.it.pl.audio.playlist.PlaylistSong.Field.TITLE;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.isPlaylistFile;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.readPlaylist;
 import static sp.it.pl.main.AppKt.APP;
@@ -62,11 +62,11 @@ import static sp.it.pl.util.units.UtilKt.toHMSMs;
  * <p/>
  * Always call {@link #dispose()}
  */
-public class PlaylistTable extends FilteredTable<PlaylistItem> {
+public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 	private static final PseudoClass STYLE_CORRUPT = PseudoClass.getPseudoClass("corrupt");
 	private static final PseudoClass STYLE_PLAYED = PseudoClass.getPseudoClass("played");
-	private static final TableContextMenuR<PlaylistItemGroup> contextMenu = new TableContextMenuR<>();
+	private static final TableContextMenuR<PlaylistSongGroup> contextMenu = new TableContextMenuR<>();
 
 	public final V<Boolean> scrollToPlaying = new V<>(true);
 	private double selectionLastScreenY;
@@ -74,7 +74,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 	private final Disposer disposer = new Disposer();
 
 	public PlaylistTable(Playlist playlist) {
-		super(PlaylistItem.class, NAME, playlist);
+		super(PlaylistSong.class, NAME, playlist);
 
 		playlist.setTransformation(getItems());
 
@@ -85,7 +85,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 		// initialize column factories
 		setColumnFactory(f -> {
-			TableColumn<PlaylistItem,Object> c = new TableColumn<>(f.toString());
+			TableColumn<PlaylistSong,Object> c = new TableColumn<>(f.toString());
 			boolean hasPropertyGetter = f==(Object) NAME || f==(Object) LENGTH;
 			c.setCellValueFactory(hasPropertyGetter
 				? new PropertyValueFactory<>(f.name().toLowerCase())
@@ -115,15 +115,15 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 					if (!isSelected())
 						getSelectionModel().clearAndSelect(getIndex());
 
-					ImprovedTable<PlaylistItem> table = PlaylistTable.this;
-					contextMenu.show(new PlaylistItemGroup(table.getSelectedItemsCopy()), table, e);
+					ImprovedTable<PlaylistSong> table = PlaylistTable.this;
+					contextMenu.show(new PlaylistSongGroup(table.getSelectedItemsCopy()), table, e);
 				});
 				// handle drag transfer
 				setOnDragDropped(e -> dropDrag(e, isEmpty() ? getItems().size() : getIndex()));
 
 				// additional css style classes
 				styleRuleAdd(STYLE_PLAYED, p -> getPlaylist().isPlaying(p));
-				styleRuleAdd(STYLE_CORRUPT, PlaylistItem::isCorruptCached);
+				styleRuleAdd(STYLE_CORRUPT, PlaylistSong::isCorruptCached);
 			}
 		});
 		disposer.plusAssign(maintain(getPlaylist().playingI, i -> updateStyleRules()));   // maintain playing item css
@@ -150,7 +150,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 			getColumn(ColumnField.INDEX).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth()));
 			getColumn(LENGTH).ifPresent(c -> {
-				double maxLength = getItems().stream().mapToDouble(PlaylistItem::getTimeMs).max().orElse(6000);
+				double maxLength = getItems().stream().mapToDouble(PlaylistSong::getTimeMs).max().orElse(6000);
 				String maxLengthText = toHMSMs(new Duration(maxLength));
 				double width = computeFontWidth(APP.ui.getFont().getValue(), maxLengthText) + 5;
 				c.setPrefWidth(width);
@@ -185,7 +185,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 			// note this is only called the 1st time (or not at all), not repeatedly
 			if (itemsComparator.get()!=SAME || !getSortOrder().isEmpty()) {
 				movingItems = true;
-				List<PlaylistItem> l = list(getItems());
+				List<PlaylistSong> l = list(getItems());
 				List<Integer> sl = list(getSelectionModel().getSelectedIndices());
 				setItemsRaw(listRO());      // clear items
 				getSortOrder().clear();     // clear sort order
@@ -222,7 +222,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 			}
 			// delete selected
 			if (e.getCode()==KeyCode.DELETE) {
-				List<PlaylistItem> p = getSelectedItemsCopy();
+				List<PlaylistSong> p = getSelectedItemsCopy();
 				getSelectionModel().clearSelection();
 				getPlaylist().removeAll(p);
 			}
@@ -234,7 +234,7 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 				&& isRowFull(getRowS(e.getSceneX(), e.getSceneY()))) {
 
 				Dragboard db = startDragAndDrop(TransferMode.COPY);
-				DragUtil.setItemList(getSelectedItemsCopy(), db, true);
+				DragUtil.setSongList(getSelectedItemsCopy(), db, true);
 			}
 			e.consume();
 		});
@@ -286,11 +286,11 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 /* --------------------- SELECTION ---------------------------------------------------------------------------------- */
 
 	public boolean movingItems = false;
-	ChangeListener<PlaylistItem> selItemListener = (o, ov, nv) -> {
+	ChangeListener<PlaylistSong> selItemListener = (o, ov, nv) -> {
 		if (movingItems) return;
 		PlaylistManager.selectedItemES.push(nv);
 	};
-	ListChangeListener<PlaylistItem> selItemsListener = (ListChangeListener.Change<? extends PlaylistItem> c) -> {
+	ListChangeListener<PlaylistSong> selItemsListener = (ListChangeListener.Change<? extends PlaylistSong> c) -> {
 		if (movingItems) return;
 		while (c.next()) {
 			PlaylistManager.selectedItemsES.push(getSelectionModel().getSelectedItems());
@@ -324,8 +324,8 @@ public class PlaylistTable extends FilteredTable<PlaylistItem> {
 
 	private void dropDrag(DragEvent e, int index) {
 		if (DragUtil.hasAudio(e)) {
-			List<Item> items = DragUtil.getAudioItems(e);
-			getPlaylist().addItems(items, index);
+			List<Song> songs = DragUtil.getAudioItems(e);
+			getPlaylist().addItems(songs, index);
 
 			e.setDropCompleted(true);
 			e.consume();

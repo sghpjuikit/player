@@ -22,7 +22,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Song;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataReader;
@@ -205,8 +205,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             String name = data.get("Filename");
             Util.renameFile(file, name);
         }));
-        acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(Metadata.Field.FIELDS, f -> f.name()), data -> {
-            List<Item> songs = source.stream().filter(Item.class::isInstance).map(Item.class::cast).collect(toList());
+        acts.accumulate(new Act<>("Edit song tags", Song.class, 100, () -> map(Metadata.Field.FIELDS, f -> f.name()), data -> {
+            List<Song> songs = source.stream().filter(Song.class::isInstance).map(Song.class::cast).collect(toList());
             if (songs.isEmpty()) return;
             showAppProgress(
                 fut()
@@ -216,7 +216,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                             MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field, values) -> w.setFieldS(Metadata.Field.valueOf(field), values.get(j))));
                         }
 
-                        Player.refreshItemsWith(stream(songs).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList()));
+                        Player.refreshSongsWith(stream(songs).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList()));
                    }),
                 widget.custom_name.getValue() + "Editing song tags"
             );
@@ -247,8 +247,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 /******************************** features ************************************/
 
     @Override
-    public void read(List<? extends Item> items) {
-        setData(map(items,Item::toMeta));
+    public void read(List<? extends Song> items) {
+        setData(map(items, Song::toMeta));
     }
 
     @Override

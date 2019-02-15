@@ -5,7 +5,7 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.scene.media.Media
 import javafx.util.Duration
 import org.jaudiotagger.tag.FieldKey
-import sp.it.pl.audio.Item
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.main.APP
@@ -25,7 +25,7 @@ import java.util.function.Consumer
 import kotlin.reflect.KClass
 
 /**
- * Item in playlist.
+ * Song in playlist.
  *
  * Carries information:
  * * uri of the resource
@@ -35,7 +35,7 @@ import kotlin.reflect.KClass
  *
  * Cannot be changed, only updated. May be created updated, or ebe updated at a later time.
  */
-class PlaylistItem: Item {
+class PlaylistSong: Song {
 
     private val uriP: SimpleObjectProperty<URI>
     private val timeP: SimpleObjectProperty<Duration>
@@ -103,7 +103,7 @@ class PlaylistItem: Item {
      *  *  calling this method on playlist item created from metadata
      *
      * note: `this.toMeta().toPlaylist()` effectively
-     * prevents not updated items from ever updating. Never use toMeta where full
+     * prevents not updated songs from ever updating. Never use {@link AppActions#toMeta} where full
      * metadata object is required.
      */
     fun update() {
@@ -113,8 +113,8 @@ class PlaylistItem: Item {
         // if library contains the item, use it & avoid I/O
         // improves performance almost 100-fold when item in library
         val id = id
-        if (APP.db.itemsById.containsKey(id)) {
-            APP.db.itemsById.ifHasK(id, Consumer { update(it) })
+        if (APP.db.songsById.containsKey(id)) {
+            APP.db.songsById.ifHasK(id, Consumer { update(it) })
             return
         }
 
@@ -180,14 +180,14 @@ class PlaylistItem: Item {
     override fun toString() = "$name\n$uri\n${time.toHMSMs()}"
 
     /** @return deep copy of this item */
-    fun copy() = PlaylistItem(uri, artist, title, timeMs).also {
+    fun copy() = PlaylistSong(uri, artist, title, timeMs).also {
         it.isUpdated = isUpdated
         it.isCorruptCached = isCorruptCached
     }
 
-    class Field<T: Any>: ObjectFieldBase<PlaylistItem, T> {
+    class Field<T: Any>: ObjectFieldBase<PlaylistSong, T> {
 
-        internal constructor(type: KClass<T>, name: String, description: String, extractor: (PlaylistItem) -> T?): super(type, extractor, name, description) {
+        internal constructor(type: KClass<T>, name: String, description: String, extractor: (PlaylistSong) -> T?): super(type, extractor, name, description) {
             FIELDS_IMPL.add(this)
         }
 

@@ -123,7 +123,7 @@ class TrayService: ServiceBase("Tray", true) {
             }
         }
 
-        onEnd += Player.playingItem.onUpdate { m ->
+        onEnd += Player.playingSong.onUpdate { m ->
             if (showPlayingInTooltip.value)
                 setTooltipText(m.getTitle()?.let { "${APP.name} - $it" })
         }

@@ -7,8 +7,8 @@ import javafx.stage.FileChooser
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.PlayerConfiguration
 import sp.it.pl.audio.playlist.Playlist
-import sp.it.pl.audio.playlist.PlaylistItem
-import sp.it.pl.audio.playlist.PlaylistItem.Field
+import sp.it.pl.audio.playlist.PlaylistSong
+import sp.it.pl.audio.playlist.PlaylistSong.Field
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.writePlaylist
 import sp.it.pl.gui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
@@ -60,11 +60,11 @@ import kotlin.streams.asSequence
         description = "Provides list of items to play. Highlights playing and unplayable "+"items.",
         howto = ""
                 +"Available actions:\n"
-                +"    Item left click : Selects item\n"
-                +"    Item right click : Opens context menu\n"
-                +"    Item double click : Plays item\n"
-                +"    Item drag : Activates Drag&Drop\n"
-                +"    Item drag + CTRL : Moves item within playlist\n"
+                +"    Song left click : Selects item\n"
+                +"    Song right click : Opens context menu\n"
+                +"    Song double click : Plays item\n"
+                +"    Song drag : Activates Drag&Drop\n"
+                +"    Song drag + CTRL : Moves item within playlist\n"
                 +"    Type : search & filter\n"
                 +"    Press ENTER : Plays item\n"
                 +"    Press ESC : Clear selection & filter\n"
@@ -84,8 +84,8 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
     private val playlist = computeInitialPlaylist(widget.id)
     private val table = PlaylistTable(playlist)
-    private var outSelected: Output<PlaylistItem?> = outputs.create(widget.id, "Selected", PlaylistItem::class.java, null)
-    private var outPlaying: Output<PlaylistItem?> = outputs.create(widget.id, "Playing", PlaylistItem::class.java, null)
+    private var outSelected: Output<PlaylistSong?> = outputs.create(widget.id, "Selected", PlaylistSong::class.java, null)
+    private var outPlaying: Output<PlaylistSong?> = outputs.create(widget.id, "Playing", PlaylistSong::class.java, null)
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     val tableOrient by cv(INHERIT) { Vo(APP.ui.tableOrient) }
@@ -95,7 +95,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
     val tableOrigIndex by cv(true) { Vo(APP.ui.tableOrigIndex) }
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
     val tableShowHeader by cv(true) { Vo(APP.ui.tableShowHeader) }
-    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
+    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table content information.")
     val tableShowFooter by cv(true) { Vo(APP.ui.tableShowFooter) }
     @IsConfig(name = "Scroll to playing", info = "Scroll table to playing item when it changes.")
     val scrollToPlaying by cv(true)
@@ -107,7 +107,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
     init {
         playlist.playingI sync { outPlaying.value = playlist.playing } on onClose
         Player.playlistSelected.i.bind(outSelected) on onClose
-        Player.onItemRefresh { ms ->
+        Player.onSongRefresh { ms ->
             outPlaying.value?.let { ms.ifHasK(it.uri, Consumer { outPlaying.value = it.toPlaylist() }) }
             outSelected.value?.let { ms.ifHasK(it.uri, Consumer { outSelected.value = it.toPlaylist() }) }
         } on onClose
@@ -203,7 +203,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
     companion object {
 
-        private fun unOp(block: (List<PlaylistItem>) -> List<PlaylistItem>) = UnaryOperator<List<PlaylistItem>> { block(it) }
+        private fun unOp(block: (List<PlaylistSong>) -> List<PlaylistSong>) = UnaryOperator<List<PlaylistSong>> { block(it) }
 
         private infix fun <T> MutableList<T>.addToStart(item: T) = add(0, item)
 

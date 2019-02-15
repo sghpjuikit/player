@@ -63,7 +63,7 @@ class MetadataGroup {
     fun getMainField(): Field<*> = Field.VALUE
 
     /** @return true iff any of the songs belonging to this group is playing */
-    fun isPlaying(): Boolean = field.getOf(Player.playingItem.get())==value
+    fun isPlaying(): Boolean = field.getOf(Player.playingSong.get())==value
 
     override fun toString() = "$field: $value, items: $itemCount, albums: $albumCount, length: ${getLength()}, size: ${getFileSize()}, avgRating: $avgRating, wighted rating: $weighRating, year: $year"
 

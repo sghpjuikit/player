@@ -133,7 +133,7 @@ class PlayerControlsTiny(widget: Widget): SimpleController(widget), PlaybackFeat
         ps.currentTime sync { timeChanged(ps) } on onClose
         ps.loopMode sync { loopModeChanged(it) } on onClose
         Player.onSeekDone.addS { lastUpdateTime = Double.MIN_VALUE } on onClose
-        Player.playingItem.onUpdateAndNow { playingItemChanged(it) } on onClose
+        Player.playingSong.onUpdateAndNow { playingItemChanged(it) } on onClose
 
         currTime.setOnMouseClicked { cycleElapsed() }
         installDrag(

@@ -6,7 +6,7 @@ import javafx.scene.input.DataFormat
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
-import sp.it.pl.audio.tagging.PlaylistItemGroup
+import sp.it.pl.audio.tagging.PlaylistSongGroup
 import sp.it.pl.gui.objects.contextmenu.ContextMenuGenerator
 import sp.it.pl.gui.objects.contextmenu.contextMenuGenerator
 import sp.it.pl.gui.objects.contextmenu.item
@@ -100,18 +100,18 @@ object CoreMenus: Core {
                 item("Browse location") { APP.actions.browseMultipleFiles(selected.asSequence()) }
             }
             add<MetadataGroup> {
-                item("Play items") { PlaylistManager.use { it.setNplay(selected.grouped.stream().sorted(APP.db.libraryComparator.get())) } }
-                item("Enqueue items") { PlaylistManager.use { it.addItems(selected.grouped) } }
-                item("Update items from file") { APP.db.refreshItemsFromFile(selected.grouped) }
-                item("Remove items from library") { APP.db.removeItems(selected.grouped) }
+                item("Play songs") { PlaylistManager.use { it.setNplay(selected.grouped.stream().sorted(APP.db.libraryComparator.get())) } }
+                item("Enqueue songs") { PlaylistManager.use { it.addItems(selected.grouped) } }
+                item("Update songs from file") { APP.db.refreshSongsFromFile(selected.grouped) }
+                item("Remove songs from library") { APP.db.removeSongs(selected.grouped) }
                 menu("Show in") {
                     widgetItems<SongReader> { it.read(selected.grouped) }
                 }
                 menu("Edit tags in") {
                     widgetItems<SongWriter> { it.read(selected.grouped) }
                 }
-                item("Explore items's location") { APP.actions.browseMultipleFiles(selected.grouped.asSequence().mapNotNull { it.getFile() }) }
-                menu("Explore items' location in") {
+                item("Explore songs' location") { APP.actions.browseMultipleFiles(selected.grouped.asSequence().mapNotNull { it.getFile() }) }
+                menu("Explore songs' location in") {
                     widgetItems<FileExplorerFeature> { it.exploreCommonFileOf(selected.grouped.mapNotNull { it.getFile() }) }
                 }
                 if (selected.field==Metadata.Field.ALBUM)
@@ -121,25 +121,25 @@ object CoreMenus: Core {
                                 { it(selected.getValueS("<none>")).browse() })
                     }
             }
-            add<PlaylistItemGroup> {
-                item("Play items") { PlaylistManager.use { it.playItem(selected.items[0]) } }
-                item("Remove items") { PlaylistManager.use { it.removeAll(selected.items) } }
+            add<PlaylistSongGroup> {
+                item("Play songs") { PlaylistManager.use { it.playItem(selected.songs[0]) } }
+                item("Remove songs") { PlaylistManager.use { it.removeAll(selected.songs) } }
                 menu("Show in") {
-                    widgetItems<SongReader> { it.read(selected.items) }
+                    widgetItems<SongReader> { it.read(selected.songs) }
                 }
                 menu("Edit tags in") {
-                    widgetItems<SongWriter> { it.read(selected.items) }
+                    widgetItems<SongWriter> { it.read(selected.songs) }
                 }
-                item("Crop items") { PlaylistManager.use { it.retainAll(selected.items) } }
-                menu("Duplicate items") {
-                    item("as group") { PlaylistManager.use { it.duplicateItemsAsGroup(selected.items) } }
-                    item("individually") { PlaylistManager.use { it.duplicateItemsByOne(selected.items) } }
+                item("Crop") { PlaylistManager.use { it.retainAll(selected.songs) } }
+                menu("Duplicate") {
+                    item("as group") { PlaylistManager.use { it.duplicateItemsAsGroup(selected.songs) } }
+                    item("individually") { PlaylistManager.use { it.duplicateItemsByOne(selected.songs) } }
                 }
-                item("Explore items's directory") { APP.actions.browseMultipleFiles(selected.items.asSequence().mapNotNull { it.getFile() }) }
+                item("Explore directory") { APP.actions.browseMultipleFiles(selected.songs.asSequence().mapNotNull { it.getFile() }) }
                 menu("Search album cover") {
                     items(APP.instances.getInstances<SearchUriBuilder>(),
                             { "in ${it.name}" },
-                            { APP.db.itemToMeta(selected.items[0]) { i -> it(i.getAlbumOrEmpty()).browse() } })
+                            { APP.db.songToMeta(selected.songs[0]) { i -> it(i.getAlbumOrEmpty()).browse() } })
                 }
             }
             add<Thumbnail.ContextMenuData> {

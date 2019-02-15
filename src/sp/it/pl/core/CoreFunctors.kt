@@ -2,8 +2,8 @@ package sp.it.pl.core
 
 import javafx.util.Duration
 import org.atteo.evo.inflector.English
-import sp.it.pl.audio.Item
-import sp.it.pl.audio.playlist.PlaylistItem
+import sp.it.pl.audio.Song
+import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.util.Util.StringDirection
@@ -214,8 +214,8 @@ object CoreFunctors: Core {
             add("Before", LocalDateTime::class.java, B, { obj, other -> obj.isBefore(other) }, LocalDateTime::class.java, LocalDateTime.now())
             add("Is", LocalDateTime::class.java, B, { obj, other -> obj.isEqual(other) }, LocalDateTime::class.java, LocalDateTime.now())
 
-            add("File", Item::class.java, File::class.java) { it.getFile() }
-            add("URI", Item::class.java, URI::class.java) { it.uri }
+            add("File", Song::class.java, File::class.java) { it.getFile() }
+            add("URI", Song::class.java, URI::class.java) { it.uri }
 
             add("Is supported", AudioFileFormat::class.java, B) { it.isSupported(APP) }
             add("Is playable", AudioFileFormat::class.java, B) { it.isSupported(PLAYBACK) }
@@ -229,7 +229,7 @@ object CoreFunctors: Core {
             @Suppress("UNCHECKED_CAST")
             for (f in Metadata.Field.FIELDS) add(f.name(), Metadata::class.java, f.type as Class<Any?>, { f.getOf(it) })
             @Suppress("UNCHECKED_CAST")
-            for (f in PlaylistItem.Field.FIELDS) add(f.name(), PlaylistItem::class.java, f.type as Class<Any?>, { f.getOf(it) })
+            for (f in PlaylistSong.Field.FIELDS) add(f.name(), PlaylistSong::class.java, f.type as Class<Any?>, { f.getOf(it) })
             @Suppress("UNCHECKED_CAST")
             for (f in MetadataGroup.Field.FIELDS) add(f.name(), MetadataGroup::class.java, f.type as Class<Any?>, { f.getOf(it) })
         }

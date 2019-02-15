@@ -59,7 +59,7 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
 
     override fun start() {
         apply()
-        onStop += Player.playingItem.onChange { ov, _ -> incrementQueued(ov) }
+        onStop += Player.playingSong.onChange { ov, _ -> incrementQueued(ov) }
         running = true
     }
 
@@ -80,7 +80,7 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
      */
     @IsAction(name = "Increment playcount", desc = "Rises the number of times the song has been played by one and updates the song tag.")
     fun increment() {
-        val m = Player.playingItem.get()
+        val m = Player.playingSong.get()
         if (!m.isEmpty() && m.isFileBased()) {
             if (delay.value) {
                 queue += m

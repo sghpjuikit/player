@@ -101,7 +101,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val tableOrigIndex by cv(false)
     @IsConfig(name = "Show table header", group = Settings.Ui.TABLE, info = "Show table header with columns.")
     val tableShowHeader by cv(true)
-    @IsConfig(name = "Show table controls", group = Settings.Ui.TABLE, info = "Show table controls at the bottom of the table. Displays menu bar and table items information")
+    @IsConfig(name = "Show table controls", group = Settings.Ui.TABLE, info = "Show table controls at the bottom of the table. Displays menu bar and table content information")
     val tableShowFooter by cv(true)
     @IsConfig(name = "Thumbnail anim duration", group = "${Settings.UI}.Images", info = "Preferred hover scale animation duration for thumbnails.")
     val thumbnailAnimDur by cv(100.millis)

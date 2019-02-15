@@ -142,7 +142,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature 
         ps.mute sync { muteChanged(ps) } on onClose
         ps.volume sync { muteChanged(ps) } on onClose
         Player.onSeekDone.addS { lastUpdateTime = Double.MIN_VALUE } on onClose
-        Player.playingItem.onUpdateAndNow { playingItemChanged(it) } on onClose
+        Player.playingSong.onUpdateAndNow { playingItemChanged(it) } on onClose
 
         currTime.onEventDown(MOUSE_CLICKED) { cycleElapsed() }
         installDrag(

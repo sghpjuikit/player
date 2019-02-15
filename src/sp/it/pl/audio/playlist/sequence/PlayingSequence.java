@@ -2,7 +2,7 @@ package sp.it.pl.audio.playlist.sequence;
 
 import java.util.ArrayList;
 import java.util.List;
-import sp.it.pl.audio.playlist.PlaylistItem;
+import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.util.access.CyclicEnum;
 import sp.it.pl.util.access.SequentialValue;
 import static sp.it.pl.util.dev.FailKt.noNull;
@@ -12,14 +12,14 @@ import static sp.it.pl.util.dev.FailKt.noNull;
  * ability to filter items before the selection takes place.
  */
 public class PlayingSequence {
-    private ItemSelector<PlaylistItem> selector = LoopMode.PLAYLIST.selector();
-    private static final List<PlaylistItem> history = new ArrayList<>();
+    private ItemSelector<PlaylistSong> selector = LoopMode.PLAYLIST.selector();
+    private static final List<PlaylistSong> history = new ArrayList<>();
     private static int history_pos = -1;
 
     /**
      * Sets the logic that determines how the next item should be selected.
      */
-    public void setSelector(ItemSelector<PlaylistItem> selector) {
+    public void setSelector(ItemSelector<PlaylistSong> selector) {
         noNull(selector);
         this.selector = selector;
     }
@@ -31,7 +31,7 @@ public class PlayingSequence {
      *
      * @return next item
      */
-    public PlaylistItem getNext(PlaylistItem current, List<PlaylistItem> playlist) {
+    public PlaylistSong getNext(PlaylistSong current, List<PlaylistSong> playlist) {
         if (current==null || !playlist.contains(current))
             return playlist.isEmpty() ? null : playlist.get(0);
         else
@@ -45,7 +45,7 @@ public class PlayingSequence {
      *
      * @return previous item
      */
-    public PlaylistItem getPrevious(PlaylistItem current, List<PlaylistItem> playlist) {
+    public PlaylistSong getPrevious(PlaylistSong current, List<PlaylistSong> playlist) {
         if (current==null || !playlist.contains(current))
             return playlist.isEmpty() ? null : playlist.get(0);
         else
@@ -56,7 +56,7 @@ public class PlayingSequence {
     public enum LoopMode implements CyclicEnum<LoopMode> {
         PLAYLIST {
             @Override
-            public ItemSelector<PlaylistItem> selector() {
+            public ItemSelector<PlaylistSong> selector() {
                 return new ItemSelector<>(
                         (size, index, current_item, playlist) -> {
                             if (size==0) return null;
@@ -72,8 +72,8 @@ public class PlayingSequence {
         },
         SONG {
             @Override
-            public ItemSelector<PlaylistItem> selector() {
-                Selection<PlaylistItem> sel = (size, index, current_item, playlist) -> {
+            public ItemSelector<PlaylistSong> selector() {
+                Selection<PlaylistSong> sel = (size, index, current_item, playlist) -> {
                     if (current_item==null && size>0) return playlist.get(0);
                     return current_item;
                 };
@@ -82,7 +82,7 @@ public class PlayingSequence {
         },
         OFF {
             @Override
-            public ItemSelector<PlaylistItem> selector() {
+            public ItemSelector<PlaylistSong> selector() {
                 return new ItemSelector<>(
                         (size, index, current_item, playlist) -> {
                             if (size==0 || index==0) return null;
@@ -98,7 +98,7 @@ public class PlayingSequence {
         },
         RANDOM {
             @Override
-            public ItemSelector<PlaylistItem> selector() {
+            public ItemSelector<PlaylistSong> selector() {
                 return new ItemSelector<>(
                         (size, index, current_item, playlist) -> {
                             if (size==0) return null;
@@ -118,7 +118,7 @@ public class PlayingSequence {
                             }
                             // generate random index
                             int i = (int) Math.round(Math.random()*(size - 1));
-                            PlaylistItem p = playlist.get(i);
+                            PlaylistSong p = playlist.get(i);
                             history_pos++;
                             history.add(history_pos, p);
                             return p;
@@ -128,6 +128,6 @@ public class PlayingSequence {
         };
 
         /** @return {@link Selection}. */
-        public abstract ItemSelector<PlaylistItem> selector();
+        public abstract ItemSelector<PlaylistSong> selector();
     }
 }

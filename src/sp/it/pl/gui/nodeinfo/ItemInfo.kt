@@ -5,7 +5,7 @@ import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.HBox
-import sp.it.pl.audio.Item
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.objects.image.Thumbnail
@@ -48,9 +48,9 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), Son
         }
     }
 
-    override fun read(items: List<Item>) = read(items.firstOrNull() ?: Metadata.EMPTY)
+    override fun read(songs: List<Song>) = read(songs.firstOrNull() ?: Metadata.EMPTY)
 
-    override fun read(m: Item) = setValue(m.toMeta())
+    override fun read(m: Song) = setValue(m.toMeta())
 
     /** Displays metadata information. */
     fun setValue(m: Metadata) {

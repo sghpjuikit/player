@@ -15,7 +15,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.util.Callback;
 import javafx.util.Duration;
-import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Song;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.tagging.Metadata;
@@ -80,9 +80,9 @@ import static sp.it.pl.util.units.UtilKt.toHMSMs;
     name = Widgets.SONG_TABLE,
     description = "Provides access to database.",
     howto = "Available actions:\n" +
-            "    Item left click : Selects item\n" +
-            "    Item right click : Opens context menu\n" +
-            "    Item double click : Plays item\n" +
+            "    Song left click : Selects item\n" +
+            "    Song right click : Opens context menu\n" +
+            "    Song double click : Plays item\n" +
             "    Type : search & filter\n" +
             "    Press ENTER : Plays item\n" +
             "    Press ESC : Clear selection & filter\n" +
@@ -118,7 +118,7 @@ public class Library extends SimpleController implements SongReader {
     public final Vo<Boolean> orig_index = new Vo<>(APP.ui.getTableOrigIndex());
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
     public final Vo<Boolean> show_header = new Vo<>(APP.ui.getTableShowHeader());
-    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table items information.")
+    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
     public final Vo<Boolean> show_footer = new Vo<>(APP.ui.getTableShowFooter());
     @IsConfig(editable = EditMode.APP) @Constraint.FileType(FileActor.ANY)
     private File lastFile = null;
@@ -160,9 +160,9 @@ public class Library extends SimpleController implements SongReader {
             menuItem("Add directory", e -> addDirectory())
         );
         table.menuRemove.getItems().addAll(
-            menuItem("Remove selected songs from library", e -> APP.db.removeItems(table.getSelectedItems())),
-            menuItem("Remove all shown songs from library", e -> APP.db.removeItems(table.getItems())),
-            menuItem("Remove all songs from library", e -> APP.db.removeItems(table.getItems())),
+            menuItem("Remove selected songs from library", e -> APP.db.removeSongs(table.getSelectedItems())),
+            menuItem("Remove all shown songs from library", e -> APP.db.removeSongs(table.getItems())),
+            menuItem("Remove all songs from library", e -> APP.db.removeSongs(table.getItems())),
             menuItem("Remove missing songs from library", e -> removeInvalid())
         );
 
@@ -202,10 +202,10 @@ public class Library extends SimpleController implements SongReader {
 
                     contextMenu.show(MetadataGroup.groupOfUnrelated(table.getSelectedItemsCopy()), table, e);
                 });
-                styleRuleAdd(PC_PLAYING, m -> Player.playingItem.get().same(m));
+                styleRuleAdd(PC_PLAYING, m -> Player.playingSong.get().same(m));
             }}
         );
-        onClose.plusAssign(Player.playingItem.onUpdate(o -> table.updateStyleRules()));   // maintain playing item css
+        onClose.plusAssign(Player.playingSong.onUpdate(o -> table.updateStyleRules()));   // maintain playing item css
 
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
@@ -220,7 +220,7 @@ public class Library extends SimpleController implements SongReader {
             }
             // delete selected
             if (e.getCode() == DELETE) {
-                APP.db.removeItems(table.getSelectedItems());
+                APP.db.removeSongs(table.getSelectedItems());
             }
         });
 
@@ -229,7 +229,7 @@ public class Library extends SimpleController implements SongReader {
             if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty()
                     && table.isRowFull(table.getRowS(e.getSceneX(), e.getSceneY()))) {
                 Dragboard db = table.startDragAndDrop(COPY);
-                DragUtil.setItemList(table.getSelectedItemsCopy(),db,true);
+                DragUtil.setSongList(table.getSelectedItemsCopy(),db,true);
             }
             e.consume();
         });
@@ -249,11 +249,11 @@ public class Library extends SimpleController implements SongReader {
         return super.getFields();
     }
 
-    /** Converts items to Metadata using {@link Item#toMeta()} (using no I/O) and displays them in the table. */
+    /** Converts items to Metadata using {@link Song#toMeta()} (using no I/O) and displays them in the table. */
     @Override
-    public void read(List<? extends Item> items) {
+    public void read(List<? extends Song> items) {
         if (items==null) return;
-        table.setItemsRaw(map(items,Item::toMeta));
+        table.setItemsRaw(map(items, Song::toMeta));
     }
 
     @IsInput("To display")
@@ -283,7 +283,7 @@ public class Library extends SimpleController implements SongReader {
     }
 
     private void removeInvalid() {
-        Task<Void> t = MetadataReader.buildRemoveMissingFromLibTask();
+        Task<Void> t = MetadataReader.removeMissingSongsFromLibTask();
         fut(t)
             .useBy(FX, taskInfo::showNbind)
             .useBy(Task::run)

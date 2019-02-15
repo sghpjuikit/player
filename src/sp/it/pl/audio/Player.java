@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import sp.it.pl.audio.playback.GeneralPlayer;
 import sp.it.pl.audio.playback.PlayTimeHandler;
 import sp.it.pl.audio.playlist.Playlist;
-import sp.it.pl.audio.playlist.PlaylistItem;
+import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode;
@@ -68,25 +68,25 @@ public class Player {
 
 	public static final ExecutorService IO_THREAD = new ThreadPoolExecutor(0, 8, 10, MINUTES, new LinkedBlockingQueue<>(), threadFactory("io-thread", true));
 	public static final PlayerState state = PlayerState.deserialize();
-	public static final CurrentItem playingItem = new CurrentItem();
+	public static final CurrentItem playingSong = new CurrentItem();
 	public static final GeneralPlayer player = new GeneralPlayer(state);
 	public static final InOutput<Metadata> playing = new InOutput<>(UUID.fromString("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing", Metadata.class);
-	public static final InOutput<PlaylistItem> playlistSelected = new InOutput<>(UUID.fromString("ca002c1d-8689-49f6-b1a0-0d0f8ff2e2a8"), "Selected in playlist", PlaylistItem.class);
+	public static final InOutput<PlaylistSong> playlistSelected = new InOutput<>(UUID.fromString("ca002c1d-8689-49f6-b1a0-0d0f8ff2e2a8"), "Selected in playlist", PlaylistSong.class);
 	public static final InOutput<Metadata> librarySelected = new InOutput<>(UUID.fromString("ba002c1d-2185-49f6-b1a0-0d0f8ff2e2a8"), "Selected in Library", Metadata.class);
-	public static final InOutput<Item> anySelected = new InOutput<>(UUID.fromString("1a01ca96-2e60-426e-831d-93b24605595f"), "Selected anywhere", Item.class);
+	public static final InOutput<Song> anySelected = new InOutput<>(UUID.fromString("1a01ca96-2e60-426e-831d-93b24605595f"), "Selected anywhere", Song.class);
 
 	public static void initialize() {
 		anySelected.i.bind(playlistSelected.o);
 		anySelected.i.bind(librarySelected.o);
-		playingItem.onUpdate(playing.i::setValue);
+		playingSong.onUpdate(playing.i::setValue);
 
 		// use jaudiotagger for total time value (fixes incorrect values coming from player classes)
-		playingItem.onChange(m -> state.playback.duration.set(m.getLength()));
+		playingSong.onChange(m -> state.playback.duration.set(m.getLength()));
 		// maintain PLAYED_FIRST_TIME & PLAYED_LAST_TIME metadata
 		// note: for performance reasons we update AFTER song stops playing, not WHEN it starts
 		// as with playcount incrementing, it could disrupt playback, although now we are losing
 		// updates on application closing!
-		playingItem.onChange((o, n) ->
+		playingSong.onChange((o, n) ->
 			MetadataWriter.use(o, w -> {
 				w.setPlayedFirstNowIfEmpty();
 				w.setPlayedLastNow();
@@ -94,7 +94,7 @@ public class Player {
 		);
 
 		player.getRealTime().initialize();
-		onPlaybackAt.add(at(new Portion(1), f(() -> onPlaybackAt.forEach(h -> h.restart(Player.playingItem.get().getLength()))))); // TODO: fix possible StackOverflowError
+		onPlaybackAt.add(at(new Portion(1), f(() -> onPlaybackAt.forEach(h -> h.restart(Player.playingSong.get().getLength()))))); // TODO: fix possible StackOverflowError
 		onPlaybackEnd.add(f(() -> {
 			switch (state.playback.loopMode.get()) {
 				case OFF: stop();
@@ -131,9 +131,9 @@ public class Player {
 		private final List<BiConsumer<? super Metadata,? super Metadata>> updates = new ArrayList<>();
 
 		/**
-		 * Returns the playing item and all its information.
+		 * Returns the playing song and all its information.
 		 * <p/>
-		 * Note: It is always safe to call this method, even during playing item
+		 * Note: It is always safe to call this method, even during playing song
 		 * change events.
 		 */
 		public Metadata get() {
@@ -170,13 +170,13 @@ public class Player {
 		}
 
 		/**
-		 * Add behavior to playing item changed event.
+		 * Add behavior to playing song changed event.
 		 * <p/>
-		 * The event is fired every time playing item changes. This includes
-		 * replaying the same item.
+		 * The event is fired every time playing song changes. This includes
+		 * replaying the same song.
 		 * <p/>
 		 * Use in cases requiring constantly updated information about the playing
-		 * item.
+		 * song.
 		 * <p/>
 		 * Note: It is safe to call {@link #get()} method when this even fires.
 		 * It has already been updated.
@@ -228,45 +228,45 @@ public class Player {
 		}
 
 		/** Execute when song starts playing. */
-		public void itemChanged(Item item) {
-			if (item==null) {
+		public void songChanged(Song song) {
+			if (song==null) {
 				set(true, Metadata.EMPTY);
 				LOGGER.info("Current song changed to none.");
 				LOGGER.info("Current song metadata set to empty.");
 			}
-			// if same item, still fire change
-			else if (val.same(item)) {
+			// if same song, still fire change
+			else if (val.same(song)) {
 				set(true, val);
 				LOGGER.info("Current song changed to the same song.");
 				LOGGER.info("Current song metadata reused.");
 			}
 			// if pre-loaded, set
-			else if (valNext.same(item)) {
+			else if (valNext.same(song)) {
 				set(true, valNext);
 				LOGGER.info("Current song changed to song in order.");
 				LOGGER.info("Current song metadata copied from cache of next song metadata.");
 			// else load
 			} else {
 				LOGGER.info("Current song changed to song not in order.");
-				LOGGER.info("Current item metadata will be loaded...");
-				load(true, item);
+				LOGGER.info("Current song metadata will be loaded...");
+				load(true, song);
 			}
 
-			// wait 400ms, preload metadata for next item
+			// wait 400ms, preload metadata for next song
 			valNextLoader.start();
 		}
 
 		// load metadata, type indicates UPDATE vs CHANGE
-		private void load(boolean changeType, Item item) {
-			fut(item)
+		private void load(boolean changeType, Song song) {
+			fut(song)
 				.then(Player.IO_THREAD, MetadataReader::readMetadata)
-				.useBy(FX, m -> set(changeType, m.isEmpty() ? item.toMeta() : m));
+				.useBy(FX, m -> set(changeType, m.isEmpty() ? song.toMeta() : m));
 		}
 
 		private void preloadNext() {
 			LOGGER.info("Pre-loading metadata for next song to play.");
 
-			PlaylistItem next = PlaylistManager.use(Playlist::getNextPlaying, null);
+			PlaylistSong next = PlaylistManager.use(Playlist::getNextPlaying, null);
 			if (next!=null) {
 				fut(next)
 					.then(Player.IO_THREAD, MetadataReader::readMetadata)
@@ -281,7 +281,7 @@ public class Player {
 	 * event contains the song.
 	 * <p/>
 	 * Say, there is a widget with an input, displaying its value and sending it to its output, for
-	 * others to listen. And both are of {@link Item} type and updating the contents may be heavy
+	 * others to listen. And both are of {@link Song} type and updating the contents may be heavy
 	 * operation we want to avoid unless necessary.
 	 * Always update the output. It will update all inputs (of other widgets) bound to it. However,
 	 * there may be widgets whose inputs are not bound, but set manually. In order to not update the
@@ -295,48 +295,48 @@ public class Player {
 	 * It is possible to use an {@link EventReducer} which will
 	 * reduce multiple events into one, in such case always updating input is recommended.
 	 */
-	public static Subscription onItemRefresh(Consumer<MapSet<URI,Metadata>> handler) {
+	public static Subscription onSongRefresh(Consumer<MapSet<URI,Metadata>> handler) {
 		refreshHandlers.add(handler);
 		return () -> refreshHandlers.remove(handler);
 	}
 
-	/** Singleton variant of {@link #refreshItems(java.util.Collection)}. */
-	public static void refreshItem(Item i) {
+	/** Singleton variant of {@link #refreshSongs(java.util.Collection)}. */
+	public static void refreshSong(Song i) {
 		noNull(i);
-		refreshItems(list(i));
+		refreshSongs(list(i));
 	}
 
 	/**
-	 * Read metadata from tag of all items and invoke {@link #refreshItemsWith(java.util.List)}.
+	 * Read metadata from tag of all songs and invoke {@link #refreshSongsWith(java.util.List)}.
 	 * <p/>
 	 * Safe to call from any thread.
 	 * <p/>
-	 * Use when metadata of the items changed.
+	 * Use when metadata of the songs changed.
 	 */
-	public static void refreshItems(Collection<? extends Item> is) {
+	public static void refreshSongs(Collection<? extends Song> is) {
 		noNull(is);
 		if (is.isEmpty()) return;
 
-		runNew(MetadataReader.buildReadMetadataTask(is, (ok, m) -> {
-			if (ok) refreshItemsWith(m);
+		runNew(MetadataReader.readMetadataTask(is, (ok, m) -> {
+			if (ok) refreshSongsWith(m);
 		}));
 	}
 
-	/** Singleton variant of {@link #refreshItemsWith(java.util.List)}. */
+	/** Singleton variant of {@link #refreshSongsWith(java.util.List)}. */
 	public static void refreshItemWith(Metadata m) {
 		noNull(m);
-		refreshItemsWith(list(m));
+		refreshSongsWith(list(m));
 	}
 
-	/** Singleton variant of {@link #refreshItemsWith(java.util.List, boolean)}. */
+	/** Singleton variant of {@link #refreshSongsWith(java.util.List, boolean)}. */
 	public static void refreshItemWith(Metadata m, boolean allowDelay) {
 		noNull(m);
-		refreshItemsWith(list(m), allowDelay);
+		refreshSongsWith(list(m), allowDelay);
 	}
 
-	/** Simple version of {@link #refreshItemsWith(java.util.List, boolean) } with false argument. */
-	public static void refreshItemsWith(List<Metadata> ms) {
-		refreshItemsWith(ms, false);
+	/** Simple version of {@link #refreshSongsWith(java.util.List, boolean) } with false argument. */
+	public static void refreshSongsWith(List<Metadata> ms) {
+		refreshSongsWith(ms, false);
 	}
 
 	/**
@@ -353,10 +353,10 @@ public class Player {
 	 * next refresh request and if it comes, will wait again and so on until none will come, which is when all queued
 	 * refreshes execute all at once).
 	 */
-	public static void refreshItemsWith(List<Metadata> ms, boolean allowDelay) {
+	public static void refreshSongsWith(List<Metadata> ms, boolean allowDelay) {
 		noNull(ms);
 		if (allowDelay) runFX(() -> red.push(ms));
-		else refreshItemsWithNow(ms);
+		else refreshSongsWithNow(ms);
 	}
 
 	// processes delayed refreshes - queues them up and invokes refresh after some time
@@ -364,12 +364,12 @@ public class Player {
 	private static EventReducer<List<Metadata>> red = toLast(3000, (o, n) -> {
 		n.addAll(o);
 		return n;
-	}, Player::refreshItemsWithNow);
+	}, Player::refreshSongsWithNow);
 
 	private static final List<Consumer<MapSet<URI,Metadata>>> refreshHandlers = new ArrayList<>();
 
 	// runs refresh on bgr thread, thread safe
-	private static void refreshItemsWithNow(List<Metadata> ms) {
+	private static void refreshSongsWithNow(List<Metadata> ms) {
 		noNull(ms);
 		if (ms.isEmpty()) return;
 
@@ -379,15 +379,15 @@ public class Player {
 			MapSet<URI,Metadata> mm = new MapSet<>(Metadata::getUri, ms);
 
 			// update library
-			APP.db.addItems(ms);
+			APP.db.addSongs(ms);
 
 			runFX(() -> {
-				// update all playlist items referring to this updated metadata
-				PlaylistManager.playlists.stream().flatMap(Playlist::stream).forEach((PlaylistItem p) -> mm.ifHasK(p.getUri(), p::update));
+				// update all playlist songs referring to this updated metadata
+				PlaylistManager.playlists.stream().flatMap(Playlist::stream).forEach((PlaylistSong p) -> mm.ifHasK(p.getUri(), p::update));
 //                PlaylistManager.playlists.forEach(playlist -> playlist.forEach(p -> mm.ifHasK(p.getURI(), p::update)));
 
-				// refresh playing item data
-				mm.ifHasE(playingItem.get(), playingItem::update);
+				// refresh playing song data
+				mm.ifHasE(playingSong.get(), playingSong::update);
 
 				if (playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
 				if (playlistSelected.i.getValue()!=null)
@@ -442,7 +442,7 @@ public class Player {
 	 * Set of actions that execute when song starts playing. Seeking to song start doesn't activate this event.
 	 * <p/>
 	 * It is not safe to assume that application's information on currently played
-	 * item will be updated before this event. Therefore using cached information
+	 * song will be updated before this event. Therefore using cached information
 	 * can result in misbehavior due to outdated information.
 	 */
 	public static final Handler0 onPlaybackStart = new Handler0();
@@ -455,7 +455,7 @@ public class Player {
 	/**
 	 * Set of actions that will execute when song playback ends.
 	 * <p/>
-	 * It is safe to use in-app cache of currently played item inside
+	 * It is safe to use in-app cache of currently played song inside
 	 * the behavior parameter.
 	 */
 	public static final Handler0 onPlaybackEnd = new Handler0();
@@ -466,7 +466,7 @@ public class Player {
 	public static final List<PlayTimeHandler> onPlaybackAt = new ArrayList<>();
 
 	/**
-	 * Playing item spectrum distributor.
+	 * Playing song spectrum distributor.
 	 * Register listeners by adding it into collection. Adding listener multiple times has no
 	 * effect.
 	 */
@@ -487,11 +487,11 @@ public class Player {
 	}
 
 	/**
-	 * Starts player of item.
+	 * Starts player of song.
 	 * <p/>
 	 * It is safe to assume that application will have updated currently played
-	 * item after this method is invoked. The same is not guaranteed for cached
-	 * metadata of this item.
+	 * song after this method is invoked. The same is not guaranteed for cached
+	 * metadata of this song.
 	 * <p/>
 	 * Immediately after method is invoked, real time and current time are 0 and
 	 * all current song related information are updated and can be assumed to be
@@ -499,10 +499,10 @@ public class Player {
 	 * <p/>
 	 * Invocation of this method fires playbackStart event.
 	 *
-	 * @param item to play
+	 * @param song to play
 	 */
-	public static void play(PlaylistItem item) {
-		player.play(item);
+	public static void play(PlaylistSong song) {
+		player.play(song);
 	}
 
 	/** Resumes player, if file is being played. Otherwise does nothing. */
@@ -639,57 +639,57 @@ public class Player {
 	}
 
 	/**
-	 * Rates playing item specified by percentage rating.
+	 * Rates playing song specified by percentage rating.
 	 *
 	 * @param rating <0,1> representing percentage of the rating, 0 being minimum and 1 maximum possible rating for
-	 * current item.
+	 * current song.
 	 */
 	public static void rate(double rating) {
 		if (PlaylistManager.active==null) return;
-		MetadataWriter.useToRate(Player.playingItem.get(), rating);
+		MetadataWriter.useToRate(Player.playingSong.get(), rating);
 	}
 
-	/** Rate playing item 0/5. */
-	@IsAction(name = "Rate playing 0/5", desc = "Rate currently playing item 0/5.", keys = "ALT+BACK_QUOTE", global = true)
+	/** Rate playing song 0/5. */
+	@IsAction(name = "Rate playing 0/5", desc = "Rate currently playing song 0/5.", keys = "ALT+BACK_QUOTE", global = true)
 	public static void rate0() {
 		rate(0);
 	}
 
-	/** Rate playing item 1/5. */
-	@IsAction(name = "Rate playing 1/5", desc = "Rate currently playing item 1/5.", keys = "ALT+1", global = true)
+	/** Rate playing song 1/5. */
+	@IsAction(name = "Rate playing 1/5", desc = "Rate currently playing song 1/5.", keys = "ALT+1", global = true)
 	public static void rate1() {
 		rate(0.2);
 	}
 
-	/** Rate playing item 2/5. */
-	@IsAction(name = "Rate playing 2/5", desc = "Rate currently playing item 2/5.", keys = "ALT+2", global = true)
+	/** Rate playing song 2/5. */
+	@IsAction(name = "Rate playing 2/5", desc = "Rate currently playing song 2/5.", keys = "ALT+2", global = true)
 	public static void rate2() {
 		rate(0.4);
 	}
 
-	/** Rate playing item 3/5. */
-	@IsAction(name = "Rate playing 3/5", desc = "Rate currently playing item 3/5.", keys = "ALT+3", global = true)
+	/** Rate playing song 3/5. */
+	@IsAction(name = "Rate playing 3/5", desc = "Rate currently playing song 3/5.", keys = "ALT+3", global = true)
 	public static void rate3() {
 		rate(0.6);
 	}
 
-	/** Rate playing item 4/5. */
-	@IsAction(name = "Rate playing 4/5", desc = "Rate currently playing item 4/5.", keys = "ALT+4", global = true)
+	/** Rate playing song 4/5. */
+	@IsAction(name = "Rate playing 4/5", desc = "Rate currently playing song 4/5.", keys = "ALT+4", global = true)
 	public static void rate4() {
 		rate(0.8);
 	}
 
-	/** Rate playing item 5/5. */
-	@IsAction(name = "Rate playing 5/5", desc = "Rate currently playing item 5/5.", keys = "ALT+5", global = true)
+	/** Rate playing song 5/5. */
+	@IsAction(name = "Rate playing 5/5", desc = "Rate currently playing song 5/5.", keys = "ALT+5", global = true)
 	public static void rate5() {
 		rate(1);
 	}
 
-	/** Explore current item directory - opens file browser for its location. */
-	@IsAction(name = "Explore current item directory", desc = "Explore current item directory.", keys = "ALT+V", global = true)
+	/** Explore current song directory - opens file browser for its location. */
+	@IsAction(name = "Explore current song directory", desc = "Explore current song directory.", keys = "ALT+V", global = true)
 	public static void openPlayedLocation() {
 		if (PlaylistManager.active==null) return;
-		Item i = PlaylistManager.use(Playlist::getPlaying, null);
+		Song i = PlaylistManager.use(Playlist::getPlaying, null);
 		if (i!=null) browse(i.getUri());
 	}
 

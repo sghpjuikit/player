@@ -19,7 +19,7 @@ import javafx.stage.Screen
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.util.Callback
 import mu.KLogging
-import sp.it.pl.audio.Item
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.gui.objects.grid.GridCell
 import sp.it.pl.gui.objects.grid.GridView
@@ -62,8 +62,6 @@ import sp.it.pl.util.graphics.listViewCellFactory
 import sp.it.pl.util.graphics.minPrefMaxWidth
 import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.stackPane
-import sp.it.pl.util.math.millis
-import sp.it.pl.util.math.times
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync
@@ -72,6 +70,8 @@ import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.open
 import sp.it.pl.util.system.runCommand
 import sp.it.pl.util.type.Util.getEnumConstants
+import sp.it.pl.util.units.millis
+import sp.it.pl.util.units.times
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.WebBarInterpreter
 import java.io.File
@@ -384,13 +384,13 @@ class AppActions {
     }
 
     @Blocks
-    fun printAllAudioItemMetadata(item: Item) {
+    fun printAllAudioItemMetadata(song: Song) {
         failIfFxThread()
 
-        if (item.isFileBased()) {
-            printAllAudioFileMetadata(item.getFile()!!)
+        if (song.isFileBased()) {
+            printAllAudioFileMetadata(song.getFile()!!)
         } else {
-            val text = "Metadata of ${item.uri}\n<only supported for files>"
+            val text = "Metadata of ${song.uri}\n<only supported for files>"
             runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
         }
     }

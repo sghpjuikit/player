@@ -101,7 +101,7 @@ class Notifier: ServiceBase("Notifications", true) {
 
     override fun start() {
         n = Notification()
-        onStop += Player.playingItem.onChange { it -> songChange(it) }
+        onStop += Player.playingSong.onChange { it -> songChange(it) }
         onStop += Player.state.playback.status attach {
             if (it==PAUSED || it==PLAYING || it==STOPPED)
                 playbackChange(it)
@@ -162,7 +162,7 @@ class Notifier: ServiceBase("Notifications", true) {
     }
 
     @IsAction(name = "Notify now playing", desc = "Shows notification about currently playing song.", global = true, keys = "ALT + N")
-    fun showNowPlayingNotification() = songChange(Player.playingItem.get())
+    fun showNowPlayingNotification() = songChange(Player.playingSong.get())
 
     private fun songChange(m: Metadata) {
         if (showSongNotification && !m.isEmpty()) {
@@ -177,7 +177,7 @@ class Notifier: ServiceBase("Notifications", true) {
         if (showStatusNotification && s!=null) {
             val title = "Playback change : $s"
             val i = ItemInfo(false).apply {
-                read(Player.playingItem.get())
+                read(Player.playingSong.get())
             }
 
             showNotification(i, title)

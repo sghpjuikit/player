@@ -46,6 +46,7 @@ import sp.it.pl.util.units.Bitrate
 import sp.it.pl.util.units.FileSize
 import sp.it.pl.util.units.FileSize.Companion.sizeInB
 import sp.it.pl.util.units.NofX
+import sp.it.pl.util.units.toHMSMs
 import java.io.File
 import java.io.IOException
 import java.io.Serializable
@@ -832,12 +833,17 @@ class Metadata: Song, Serializable {
 
         override fun toS(o: T?, substitute: String): String {
             if (o==null || ""==o) return substitute
-            if (this===RATING_RAW)
-                return o.toString()
-            if (this===RATING) return String.format("%.2f", o as Double)
-            return if (this===DISC || this===DISCS_TOTAL || this===TRACK || this===TRACKS_TOTAL || this===PLAYCOUNT)
-                if (getOf(Metadata.EMPTY)==o) substitute
-                else o.toString() else o.toString()
+            return when(this) {
+                RATING_RAW -> o.toString()
+                RATING -> String.format("%.2f", o as Double)
+                LENGTH -> (o as Duration).toHMSMs()
+                else -> if (this===DISC || this===DISCS_TOTAL || this===TRACK || this===TRACKS_TOTAL || this===PLAYCOUNT) {
+                    if (getOf(Metadata.EMPTY)==o) substitute
+                    else o.toString()
+                } else {
+                    o.toString()
+                }
+            }
         }
 
         override fun cVisible(): Boolean = VISIBLE.contains(this)

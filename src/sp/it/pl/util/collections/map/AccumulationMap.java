@@ -59,11 +59,11 @@ public class AccumulationMap<E, K, C> extends HashMap<K,C> {
 		cacheAccumulator.accept(e, c);
 	}
 
-	// TODO: enable, but rename, as it adds ambiguity with #accumulate(K k, E... es)
-//	public void accumulate(E... es) {
-//		for (E e : es)
-//			accumulate(e);
-//	}
+	@SafeVarargs
+	public final void accumulateAll(E... es) {
+		for (E e : es)
+			accumulate(e);
+	}
 
 	public void accumulate(K k, E e) {
 		C c = computeIfAbsent(k, k1 -> cacheFactory.get());

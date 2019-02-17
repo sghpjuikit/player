@@ -20,6 +20,7 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.conf.MapConfigurable;
 import sp.it.pl.util.conf.ValueConfig;
+import sp.it.pl.util.dev.Experimental;
 import sp.it.pl.util.text.Password;
 import sp.it.pl.util.validation.Constraint.PasswordNonEmpty;
 import sp.it.pl.util.validation.Constraint.StringNonEmpty;
@@ -27,7 +28,7 @@ import static sp.it.pl.gui.objects.form.Form.form;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 
-// TODO: make thread-safe, remove static, implement Service
+@Experimental
 @IsConfigurable("Services.LastFM")
 public class LastFM {
 
@@ -96,7 +97,6 @@ public class LastFM {
 //        PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);
 	}
 
-	// TODO: implement
 	public static boolean isLoginSet() {
 		return !"".equals(acquireUserName());
 	}

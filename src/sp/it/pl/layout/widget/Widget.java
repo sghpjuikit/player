@@ -88,7 +88,6 @@ public class Widget extends Component implements CachedCompositeConfigurable<Obj
 
 	// Name of the widget. Permanent. Same as factory name. Used solely for deserialization (to find
 	// appropriate factory)
-	// TODO: put inside propertymap
 	private final String name;
 
 	/**

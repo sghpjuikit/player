@@ -10,12 +10,11 @@ import static sp.it.pl.util.dev.DebugKt.logger;
 
 public class Scrobbling {
 
-	static Session session;
+	private static Session session;
 
 	private final Preferences preferences;
 
 	public Scrobbling() {
-		// TODO: implement properly
 		String apiKey = acquireApiKey();
 		String secret = acquireSecret();
 

@@ -117,6 +117,8 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature 
         seeker.chapterSnapDistance syncFrom APP.ui.snapDistance on onClose
         seeker.prefHeight = 30.0
         root.lay += anchorPane {
+            isPickOnBounds = false
+
             lay(null, 0.0, 0.0, 0.0) += seeker
         }
 

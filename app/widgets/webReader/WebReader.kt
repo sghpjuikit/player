@@ -78,7 +78,6 @@ class WebReader(widget: Widget): SimpleController(widget) {
 
     @FXML
     fun refresh() {
-        // TODO: improve this
         if (addressBar.text.isEmpty()) {
             // For now we do not reload the page, just set up the address
             // loadPage(url);
@@ -105,7 +104,6 @@ class WebReader(widget: Widget): SimpleController(widget) {
         // https://gist.github.com/riccardobl/18603f9de508b1ab6c9e
         @Dependency("requires access to javafx.web/com.sun.webkit.WebPage")
         private fun WebEngine.setTransparentBgrColor() {
-            // TODO: jigsaw
             try {
                 // Use reflection to retrieve the WebEngine's private 'page' field.
                 val webPage = getFieldValue<Any>(this, "page") ?: return

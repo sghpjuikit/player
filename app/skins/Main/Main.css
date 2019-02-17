@@ -1073,11 +1073,7 @@
 * SplitPane                                                                    *
 *                                                                              *
 *******************************************************************************/
-/*
-.split-pane {
-    -fx-skin: "sp.it.pl.gui.objects.ImprovedSplitPaneSkin";
-}
-*/
+
 .split-pane:horizontal > .split-pane-divider {
    -fx-border-color: transparent;
    -fx-background-color: transparent;

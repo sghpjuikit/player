@@ -207,7 +207,12 @@ public class LibraryView extends SimpleController {
             )
         );
         // refresh when menu opens
-        table.columnMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
+        table.columnMenu.addEventHandler(WINDOW_SHOWN, e ->
+            m.getItems().forEach(mi ->
+                ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().name().equals(mi.getText()))
+            )
+        );
+
         // add menu items
         table.menuRemove.getItems().addAll(
             menuItem("Remove selected groups from library", e -> APP.db.removeSongs(MetadataGroup.ungroup(table.getSelectedItems()))),

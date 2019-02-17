@@ -357,7 +357,7 @@ public class FileInfo extends SimpleController implements SongReader {
             if (field==DISCS_TOTAL) name = "disc";
             else if (field==TRACKS_TOTAL) name = "track";
             else if (field==PATH) name = "location";
-            else name = field.toStringEnum().toLowerCase();
+            else name = field.name().toLowerCase();
         }
 
         void setVal(Metadata m) {

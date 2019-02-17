@@ -66,38 +66,6 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
 
     fun toS(v: V, o: T?, substitute: String): String = toS(o, substitute)
 
-    // TODO: move out
-    /**
-     * Variation of [.toString] method.
-     * Converts first letter of the string to upper case.
-     */
-    fun toStringCapital(): String {
-        val s = toString()
-        return if (s.isEmpty()) "" else s.substring(0, 1).toUpperCase()+s.substring(1)
-    }
-
-    // TODO: move out
-    /**
-     * Variation of [.toString] method.
-     * Converts first letter of the string to upper case and all others into lower case.
-     */
-    fun toStringCapitalCase(): String {
-        val s = toString()
-        return if (s.isEmpty()) "" else s.substring(0, 1).toUpperCase()+s.substring(1).toLowerCase()
-    }
-
-    // TODO: move out
-    /**
-     * Variation of [.toString] method.
-     * Converts first letter of the string to upper case and all others into lower case and replaces all '_' with ' '.
-     *
-     * Use to make [Enum] constants more human readable, for gui for example.
-     */
-    fun toStringEnum(): String {
-        val s = toString().replace("_".toRegex(), " ")
-        return if (s.isEmpty()) "" else s.substring(0, 1).toUpperCase()+s.substring(1).toLowerCase()
-    }
-
     fun isTypeFilterable(): Boolean = true
 
     fun searchSupported(): Boolean = isTypeStringRepresentable()

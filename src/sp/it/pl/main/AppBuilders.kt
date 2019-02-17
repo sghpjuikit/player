@@ -65,7 +65,6 @@ fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> 
 fun infoIcon(tooltipText: String): Icon = Icon(IconFA.INFO)
         .tooltip("Help")
         .onClick { e ->
-            e.consume()
             APP.actionStream.push("Info popup")
             helpPopOver(tooltipText).apply {
                 contentNode.value.wrappingWidth = 400.0

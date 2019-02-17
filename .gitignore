@@ -1,6 +1,6 @@
 ## Project
 
-private/
+.kotlintest
 app/lib
 app/jre
 app/java
@@ -10,6 +10,7 @@ app/vlc/
 app/widgets/**/*class
 app/widgets/META-INF/
 app/PlayerFX.jar
+private/
 *.log
 
 # Gradle

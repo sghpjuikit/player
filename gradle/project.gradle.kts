@@ -41,6 +41,10 @@ sourceSets {
         java.srcDir("src")
         resources.srcDir("src")
     }
+    getByName("test") {
+        java.srcDir("src-test")
+        resources.srcDir("src-test")
+    }
 }
 
 allprojects {
@@ -138,6 +142,10 @@ dependencies {
         imageIO("sgi")
         imageIO("thumbsdb")
         imageIO("tiff")
+    }
+
+    "Test" requires {
+        testImplementation("io.kotlintest", "kotlintest-runner-junit5", "3.2.1")
     }
 
 }
@@ -240,6 +248,11 @@ tasks {
 
 }
 
+test {
+    useJUnitPlatform { }
+    testLogging.showStandardStreams = true
+}
+
 application {
     applicationName = "PlayerFX"
     mainClassName = "sp.it.pl.main.AppKt"
@@ -272,3 +285,8 @@ infix fun String.requires(block: () -> Unit) = block()
 fun failIO(cause: Throwable? = null, message: () -> String): Nothing = throw IOException(message(), cause)
 
 fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, message) }
+
+@Suppress("UNUSED_VARIABLE")
+fun Project.test(configuration: Test.() -> Unit) {
+    val test by tasks.getting(Test::class, configuration)
+}

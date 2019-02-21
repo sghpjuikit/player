@@ -486,46 +486,54 @@ fun Menu.separator() = apply {
 
 /* ---------- POINT ------------------------------------------------------------------------------------------------- */
 
-/** @return size of the bounds represented as point */
+/** Size of the bounds represented as point */
 val Bounds.size get() = P(width, height)
 
-/** @return left top point */
+/** Left top point */
 val Bounds.leftTop get() = P(minX, minY)
 
-/** @return right top point */
+/** Right top point */
 val Bounds.rightTop get() = P(maxX, minY)
 
-/** @return left bottom point */
+/** Left bottom point */
 val Bounds.leftBottom get() = P(minX, maxY)
 
-/** @return right bottom point */
+/** Right bottom point */
 val Bounds.rightBottom get() = P(maxX, maxY)
 
-/** @return size of the bounds represented as point */
+/** Size of the bounds represented as point */
 val Region.size get() = P(width, height)
 
-/** @return position using [javafx.stage.Window.x] and [javafx.stage.Window.y] */
+/** Position using [javafx.stage.Window.x] and [javafx.stage.Window.y] */
 val Window.xy get() = P(x, y)
 
-/** @return window-relative position of the centre of this window */
+/** Size using [javafx.stage.Window.width] and [javafx.stage.Window.height] */
+var Window.size: P
+    get() = P(width, height)
+    set(value) {
+        width = value.x
+        height = value.y
+    }
+
+/** Window-relative position of the centre of this window */
 val Window.centre get() = P(centreX, centreY)
 
-/** @return window-relative x position of the centre of this window */
+/** Window-relative x position of the centre of this window */
 val Window.centreX get() = x+width/2
 
-/** @return window-relative y position of the centre of this window */
+/** Window-relative y position of the centre of this window */
 val Window.centreY get() = y+height/2
 
-/** @return size of the bounds represented as point */
+/** Size of the bounds represented as point */
 val Rectangle2D.size get() = P(width, height)
 
-/** @return rectangle-relative position of the centre of this rectangle */
+/** Rectangle-relative position of the centre of this rectangle */
 val Rectangle2D.centre get() = P(centreX, centreY)
 
-/** @return rectangle-relative x position of the centre of this rectangle */
+/** Rectangle-relative x position of the centre of this rectangle */
 val Rectangle2D.centreX get() = minX+width/2
 
-/** @return rectangle-relative y position of the centre of this rectangle */
+/** Rectangle-relative y position of the centre of this rectangle */
 val Rectangle2D.centreY get() = minY+height/2
 
 operator fun Point2D.minus(p: Point2D): Point2D = subtract(p)!!

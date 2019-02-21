@@ -1,11 +1,17 @@
 package sp.it.pl.layout.area
 
 import javafx.scene.layout.AnchorPane
+import javafx.scene.layout.Region
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.main.APP
+import sp.it.pl.util.async.runFX
+import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.graphics.layFullArea
 import sp.it.pl.util.graphics.pseudoclass
+import sp.it.pl.util.graphics.size
+import sp.it.pl.util.reactive.sync1If
+import sp.it.pl.util.units.millis
 
 abstract class Area<T: Container<*>>: ContainerNode {
 
@@ -35,9 +41,18 @@ abstract class Area<T: Container<*>>: ContainerNode {
     /** Detaches the primary component into standalone content in new window. */
     open fun detach() {
         val widget = getWidget()
+        val sizeArea = root.size
+        val sizeOld = widget.load().asIf<Region>()?.size ?: sizeArea
         widget.parent.addChild(widget.indexInParent(), null)
         val w = APP.windowManager.createWindow(widget)
-        w.setSize(root.width+10, root.height+30)    // TODO: improve header/border calculation
+        w.stage.showingProperty().sync1If({ it }) {
+            runFX(10.millis) {  // TODO: remove delay
+                val wSize = w.stage.size
+                val sizeNew = widget.load().asIf<Region>()?.size ?: sizeArea
+                val sizeDiff = sizeOld - sizeNew
+                w.stage.size = wSize+sizeDiff
+            }
+        }
     }
 
     companion object {

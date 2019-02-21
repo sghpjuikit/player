@@ -655,6 +655,10 @@ public class WindowBase {
 		H.set(s.getHeight());
 	}
 
+	public void setSize(P size) {
+		setSize(size.getX(), size.getY());
+	}
+
 	/**
 	 * Sets initial size and location by invoking the {@link #setSize} and
 	 * {@link #setXY(double, double)} method. The initial size values are primary screen

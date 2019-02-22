@@ -124,7 +124,6 @@ class WidgetArea: Area<Container<*>> {
     @FXML
     override fun hide() = controls.hide()
 
-    //TODO: implement properly through pseudoclasses
     fun setStandaloneStyle() {
         content.styleClass.clear()
         content_padding.styleClass.clear()

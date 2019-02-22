@@ -57,7 +57,7 @@ open class AutoCompletePopup<T>: PopupControl() {
         styleClass += STYLE_CLASS
     }
 
-    /** Shows this popup right below the specified node. */
+    /** Shows this popup right below the specified node. Node must be attached to scenegraph in a window.  */
     fun show(node: Node) {
         if (isShowing) return
 
@@ -65,8 +65,8 @@ open class AutoCompletePopup<T>: PopupControl() {
         val window = scene.window ?: fail { "Can not show popup. The node must be attached to a window." }
         this.show(
                 window,
-                window.x+node.localToScene(0.0, 0.0).x+scene.x,
-                window.y+node.localToScene(0.0, 0.0).y+scene.y+TITLE_HEIGHT
+                node.localToScreen(node.boundsInLocal).minX,
+                node.localToScreen(node.boundsInLocal).maxY
         )
     }
 
@@ -74,7 +74,6 @@ open class AutoCompletePopup<T>: PopupControl() {
 
     companion object {
         const val STYLE_CLASS = "auto-complete-popup"
-        private const val TITLE_HEIGHT = 28.0 // TODO HACK: Hard-coded title-bar height
     }
 
 }

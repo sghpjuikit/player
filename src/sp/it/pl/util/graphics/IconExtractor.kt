@@ -3,10 +3,12 @@ package sp.it.pl.util.graphics
 import javafx.scene.image.Image
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.WindowsShortcut
+import sp.it.pl.util.file.div
 import sp.it.pl.util.file.mimetype.MimeExt.Companion.exe
 import sp.it.pl.util.file.mimetype.MimeExt.Companion.lnk
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
 import sp.it.pl.util.functional.orNull
+import sp.it.pl.util.functional.runIf
 import sp.it.pl.util.graphics.image.toFX
 import sp.it.pl.util.system.Os
 import java.awt.image.BufferedImage
@@ -26,42 +28,38 @@ import javax.swing.filechooser.FileSystemView
  * http://stackoverflow.com/questions/26192832/java-javafx-set-swing-icon-for-javafx-label
  */
 object IconExtractor {
-
+    private val dirTmp = File(System.getProperty("java.io.tmpdir"))
     private val helperFileSystemView by lazy { FileSystemView.getFileSystemView() }
     private val mapOfFileExtToSmallIcon = ConcurrentHashMap<String, Image?>()
 
     @JvmStatic fun getFileIcon(file: File): Image? {
+
         val ext = Util.getSuffix(file.path).toLowerCase()
 
         // shortcuts have icons of files they refer to
         if (lnk==ext)
-            return WindowsShortcut.targetedFile(file).map { getFileIcon(it) }.orNull()
+            return WindowsShortcut.targetedFile(file).map(::getFileIcon).orNull()
 
         // Handle windows executable files (we need to handle each individually)
-        val key = if (exe==ext) file.nameWithoutExtensionOrRoot else ext
+        val isExe = exe==ext
+        val key = if (isExe) file.nameWithoutExtensionOrRoot else ext
 
         return mapOfFileExtToSmallIcon.computeIfAbsent(key) {
-            var swingIcon: Icon? = null
-            if (file.exists()) {
-                swingIcon = getSwingIconFromFileSystem(file)
-            } else {
-                var tempFile: File? = null
+            val iconFile = file.takeIf { it.exists() } ?: runIf(!isExe) {
                 try {
-                    tempFile = File.createTempFile("icon", ext)
-                    swingIcon = getSwingIconFromFileSystem(tempFile)
+                    val f = dirTmp/"file_type_icons.$it"
+                    if (!f.exists()) f.writeText("")
+                    f
                 } catch (ignored: IOException) {
-                    // Cannot create temporary file
-                } finally {
-                    tempFile?.delete()  // TODO: do not delete & reuse the tmp file
+                    null
                 }
             }
-            swingIcon?.toImage()
+            iconFile?.getSwingIconFromFileSystem()?.toImage()
         }
     }
 
-    // TODO: move to Environment?
-    private fun getSwingIconFromFileSystem(file: File): Icon? = when (Os.current) {
-        Os.WINDOWS -> helperFileSystemView.getSystemIcon(file)
+    private fun File.getSwingIconFromFileSystem(): Icon? = when (Os.current) {
+        Os.WINDOWS -> helperFileSystemView.getSystemIcon(this)
         // TODO: implement
         // Os.OSX -> {
         //     final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();

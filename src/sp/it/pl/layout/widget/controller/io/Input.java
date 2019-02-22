@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import org.reactfx.Subscription;
 import sp.it.pl.layout.area.IOLayer;
-import sp.it.pl.util.type.typetoken.TypeToken;
 
 public class Input<T> extends Put<T> {
 	final String name;
@@ -14,10 +13,6 @@ public class Input<T> extends Put<T> {
 
 	public Input(String name, Class<? super T> c, Consumer<? super T> action) {
 		this(name, c, null, action);
-	}
-
-	public Input(String name, TypeToken<? super T> c, T init_val, Consumer<? super T> action) {
-		this(name, c.getRawType(), init_val, action);
 	}
 
 	public Input(String name, Class<? super T> c, T init_val, Consumer<? super T> action) {

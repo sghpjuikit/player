@@ -25,7 +25,6 @@ import javafx.collections.ObservableList;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.functional.TriConsumer;
-import sp.it.pl.util.type.typetoken.TypeToken;
 import static kotlin.text.StringsKt.substringBeforeLast;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.functional.Util.isNoneØ;
@@ -372,13 +371,13 @@ public interface Util {
 		if (t instanceof ParameterizedType) {
 			Type rawType = ((ParameterizedType) t).getRawType();
 			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
-			if (!isProperty) return TypeToken.get(t).getRawType();
+			if (!isProperty) return getRawType(t);
 		}
 
 		if (t instanceof WildcardType) {
 			Type rawType = ((WildcardType) t).getUpperBounds()[0];
 			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
-			if (!isProperty) return TypeToken.get(t).getRawType();
+			if (!isProperty) return getRawType(t);
 		}
 
 		Class<?> gpt = getGenericPropertyTypeImpl(t);

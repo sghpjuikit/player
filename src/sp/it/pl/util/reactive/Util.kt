@@ -18,6 +18,7 @@ import javafx.scene.image.ImageView
 import javafx.stage.Window
 import org.reactfx.EventStreams
 import org.reactfx.Subscription
+import sp.it.pl.util.async.runLater
 import sp.it.pl.util.dev.Experimental
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.invoke
@@ -304,6 +305,30 @@ fun <T> ObservableValue<T>.attach1IfNonNull(action: (T) -> Unit) = sync1If({ it!
 /** [sync1If] testing the value is not null. */
 fun <T> ObservableValue<T>.sync1IfNonNull(action: (T) -> Unit) = sync1If({ it!=null }, action)
 
+
+/**
+ * Runs action once node is in scene graph and after proper layout, i.e., its scene being non null and after executing
+ * a layout pass. The action will never run in current scene pulse as [runLater] will be invoked at least once.
+ */
+fun Node.sync1IfInScene(action: () -> Unit): Subscription {
+    val disposer = Disposer()
+    fun Node.onAddedToScene(action: () -> Unit): Subscription = sceneProperty().sync1IfNonNull {
+        runLater {
+            if (scene==null) {
+                onAddedToScene(action) on disposer
+            } else {
+                action()
+            }
+        }
+    }
+    onAddedToScene(action) on disposer
+    return Subscription { disposer() }
+}
+
+fun sync1IfImageLoaded(image: Image, action: Runnable) = image.progressProperty().sync1If({ it.toDouble()==1.0 }) { action() }
+
+fun doIfImageLoaded(imageView: ImageView, action: Consumer<Image>) = imageView.imageProperty().syncInto(Image::progressProperty) { p -> if (p==1.0) action(imageView.image) }
+
 /** Call specified handler every time an item in this list changes */
 fun <T> ObservableList<T>.onChange(changeHandler: () -> Unit): Subscription {
     val l = ListChangeListener<T> {
@@ -391,9 +416,3 @@ fun <T: Event> Node.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit
     addEventFilter(eventType, handler)
     return Subscription { removeEventFilter(eventType, handler) }
 }
-
-// TODO: move out
-fun sync1IfImageLoaded(image: Image, action: Runnable) = image.progressProperty().sync1If({ it.toDouble()==1.0 }) { action() }
-
-// TODO: move out
-fun doIfImageLoaded(imageView: ImageView, action: Consumer<Image>) = imageView.imageProperty().syncInto(Image::progressProperty) { p -> if (p==1.0) action(imageView.image) }

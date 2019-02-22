@@ -107,7 +107,7 @@ class WebReader(widget: Widget): SimpleController(widget) {
             try {
                 // Use reflection to retrieve the WebEngine's private 'page' field.
                 val webPage = getFieldValue<Any>(this, "page") ?: return
-                invokeMethodP1<Any, Int>(webPage, "setBackgroundColor", Int::class.javaPrimitiveType, java.awt.Color(255, 255, 255, 1).rgb) // TODO: fix
+                invokeMethodP1<Any, Int>(webPage, "setBackgroundColor", Int::class.javaPrimitiveType, java.awt.Color(255, 255, 255, 1).rgb)
             } catch (e: Exception) {
                 logger.error(e) { "Could not change background color to transparent" }
             }

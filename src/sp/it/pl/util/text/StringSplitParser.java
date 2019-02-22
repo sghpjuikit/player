@@ -7,7 +7,9 @@ import java.util.Map;
 import java.util.function.Function;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.functional.Try;
+import static java.util.Collections.emptyMap;
 import static sp.it.pl.util.functional.Util.forEachBoth;
+import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.repeat;
 
 /**
@@ -52,7 +54,7 @@ public class StringSplitParser implements Function<String,List<String>> {
 	 * Parses text into parts.
 	 *
 	 * @param text text to parse
-	 * @return list of strings representing the splits
+	 * @return list of strings representing the splits or empty list if parsing fails
 	 */
 	@Override
 	public List<String> apply(String text) {
@@ -68,20 +70,30 @@ public class StringSplitParser implements Function<String,List<String>> {
 			text = text.substring(at + sep.length());
 		}
 		out.add(text);  //add last value (N values, N-1 separators)
-		return out;
+
+		if (out.size()==parse_keys.size()) {
+			return out;
+		} else {
+			return list();
+		}
+
 	}
 
 	/**
 	 * Same as {@link #apply(java.lang.String)}, but returns the keys too.
 	 *
 	 * @param text text to parse
-	 * @throws IllegalArgumentException if text parsing fails   // TODO: avoid this stupidity
+	 * @return map of key-split entries representing the splits or empty map if parsing fails
 	 */
 	public Map<String,String> applyM(String text) {
 		List<String> splits = apply(text);
-		Map<String,String> m = new HashMap<>();
-		forEachBoth(parse_keys, splits, m::put);
-		return m;
+		if (splits.size()==parse_keys.size()) {
+			Map<String,String> m = new HashMap<>();
+			forEachBoth(parse_keys, splits, m::put);
+			return m;
+		} else {
+			return emptyMap();
+		}
 	}
 
 	@Dependency("fromString")

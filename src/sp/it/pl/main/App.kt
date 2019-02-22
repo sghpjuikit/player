@@ -54,7 +54,6 @@ import sp.it.pl.plugin.screenrotator.ScreenRotator
 import sp.it.pl.plugin.waifu2k.Waifu2kPlugin
 import sp.it.pl.service.Service
 import sp.it.pl.service.ServiceManager
-import sp.it.pl.service.click.ClickEffect
 import sp.it.pl.service.database.SongDb
 import sp.it.pl.service.notif.Notifier
 import sp.it.pl.service.playcount.PlaycountIncrementer
@@ -386,7 +385,6 @@ class App: Application(), Configurable<Any> {
             services += TrayService()
             services += Notifier()
             services += PlaycountIncrementer()
-            services += ClickEffect()
 
             // install actions
             Action.gatherActions(Player::class.java, null)

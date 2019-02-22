@@ -57,7 +57,7 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
-import static sp.it.pl.util.reactive.UtilKt.sync1IfNonNull;
+import static sp.it.pl.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.open;
 
@@ -147,12 +147,11 @@ public class AppLauncher extends SimpleController {
             e -> files.list.addAll(DragUtil.getFiles(e))
         );
 
-        sync1IfNonNull(root.sceneProperty(), s -> {
+        sync1IfInScene(root, runnable(() -> {
             initialized = true;
             applyCellSize();
             visit();
-            return Unit.INSTANCE;
-        });
+        }));
     }
 
     @Override

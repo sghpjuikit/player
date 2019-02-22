@@ -64,8 +64,10 @@ import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.max;
 import static sp.it.pl.util.functional.UtilKt.consumer;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.pl.util.reactive.UtilKt.sync1IfNonNull;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.edit;
@@ -188,7 +190,7 @@ public class DirViewer extends SimpleController {
         files.onListInvalid(list -> revisitTop());
         files.onListInvalid(list -> placeholder.show(root, list.isEmpty()));
 
-        sync1IfNonNull(root.sceneProperty(), consumer(s -> refresh()));
+        sync1IfInScene(root, runnable(() -> refresh()));
     }
 
     public void refresh() {

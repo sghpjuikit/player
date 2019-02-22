@@ -11,8 +11,8 @@ import org.atteo.evo.inflector.English.plural
 import org.reactfx.EventSource
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.Song
-import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.core.CoreConverter
@@ -51,6 +51,7 @@ import sp.it.pl.plugin.appsearch.AppSearchPlugin
 import sp.it.pl.plugin.dirsearch.DirSearchPlugin
 import sp.it.pl.plugin.library.LibraryWatcher
 import sp.it.pl.plugin.screenrotator.ScreenRotator
+import sp.it.pl.plugin.waifu2k.Waifu2kPlugin
 import sp.it.pl.service.Service
 import sp.it.pl.service.ServiceManager
 import sp.it.pl.service.click.ClickEffect
@@ -534,7 +535,8 @@ class App: Application(), Configurable<Any> {
                 LibraryWatcher(),
                 AppSearchPlugin(),
                 DirSearchPlugin(),
-                ScreenRotator()
+                ScreenRotator(),
+                Waifu2kPlugin()
         )
     }
 

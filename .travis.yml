@@ -1,7 +1,7 @@
 dist: trusty
 sudo: false
 jdk:
-  - oraclejdk9
+  - oraclejdk11
 git:
   depth: 3
 

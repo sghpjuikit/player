@@ -13,6 +13,7 @@ plugins {
     application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
+    id("org.openjfx.javafxplugin") version "0.0.7"
 }
 
 /** Working directory of the application */
@@ -23,7 +24,7 @@ val kotlinVersion: String by extra {
             .resolvedConfiguration.firstLevelModuleDependencies
             .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
-val javaSupportedVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10).also {
+val javaSupportedVersions = arrayOf(JavaVersion.VERSION_11).also {
     val javaVersion = JavaVersion.current()
     if (javaVersion !in it) {
         println(""+
@@ -34,6 +35,10 @@ val javaSupportedVersions = arrayOf(JavaVersion.VERSION_1_9, JavaVersion.VERSION
         )
         throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
     }
+}
+
+javafx {
+    modules = listOf("javafx.controls", "javafx.graphics", "javafx.fxml", "javafx.media", "javafx.swing", "javafx.web")
 }
 
 sourceSets {
@@ -58,13 +63,13 @@ allprojects {
         options.isDeprecation = true
         options.compilerArgs = listOf(
                 "-Xlint:unchecked",
-                "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
-                "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED"
+                "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-SYSTEM",
+                "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-SYSTEM"
         )
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
         kotlinOptions.jdkHome = dirJdk.path
         kotlinOptions.verbose = true
         kotlinOptions.suppressWarnings = false
@@ -165,6 +170,7 @@ tasks {
         description = "Links $dirJdk to JDK"
         onlyIf { !dirJdk.exists() }
         doFirst {
+            dirJdk.delete() // delete invalid symbolic link
             println("Making JDK locally accessible...")
             val jdkPath = "java.home".sysProp?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
             try {
@@ -224,7 +230,7 @@ tasks {
 
     "clean"(Delete::class) {
         group = main
-        description = "Cleans up temporary files"
+        description = "Cleans up built dir, lib dir, user tmp dir and widget compilation output"
         delete(
                 buildDir,
                 dirApp/"lib",
@@ -261,6 +267,8 @@ application {
             "-ms"+(properties["player.memoryMin"] ?: "100m"),
             "-mx"+(properties["player.memoryMax"] ?: "3g"),
             *properties["player.jvmArgs"]?.toString()?.split(' ')?.toTypedArray().orEmpty(),
+            "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
+            "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED",
             "--add-opens", "java.base/java.util=ALL-UNNAMED",
             "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
             "--add-opens", "java.base/java.text=ALL-UNNAMED",
@@ -270,6 +278,8 @@ application {
             "--add-opens", "javafx.controls/javafx.scene.control=ALL-UNNAMED",
             "--add-opens", "javafx.controls/javafx.scene.control.skin=ALL-UNNAMED",
             "--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
+            "--add-opens", "javafx.graphics/javafx.stage=ALL-UNNAMED",
+            "--add-opens", "javafx.graphics/com.sun.javafx.tk.quantum=ALL-UNNAMED",
             "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED"
     )
 }

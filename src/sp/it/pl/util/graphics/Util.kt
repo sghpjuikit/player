@@ -181,7 +181,7 @@ inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).
 inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply(block)
 inline fun text(text: String = "", block: sp.it.pl.gui.objects.Text.() -> Unit = {}) = sp.it.pl.gui.objects.Text(text).apply(block)
 inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)
-inline fun menuItem(text: String, crossinline action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
+inline fun menuItem(text: String, noinline action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
 inline fun menuSeparator(block: (SeparatorMenuItem).() -> Unit = {}) = SeparatorMenuItem().apply(block)
 inline fun <T> listView(block: (ListView<T>).() -> Unit = {}) = ListView<T>().apply(block)
 inline fun <T> tableView(block: (TableView<T>).() -> Unit = {}) = TableView<T>().apply(block)

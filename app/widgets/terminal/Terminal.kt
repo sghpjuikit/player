@@ -1,8 +1,8 @@
 package terminal
 
-import com.terminalfx.TerminalBuilder
-import com.terminalfx.TerminalTab
-import com.terminalfx.config.TerminalConfig
+import com.kodedu.terminalfx.TerminalBuilder
+import com.kodedu.terminalfx.TerminalTab
+import com.kodedu.terminalfx.config.TerminalConfig
 import javafx.scene.control.TabPane
 import javafx.scene.control.TabPane.TabClosingPolicy
 import javafx.scene.input.KeyCode

@@ -26,6 +26,11 @@ public class ConventionFxmlLoader extends FXMLLoader {
 	}
 
 	/** Invokes {@link #setConvention(java.lang.Class, java.lang.Object, java.lang.Object)} */
+	public ConventionFxmlLoader(Object root, Object controller) {
+		setConvention(controller.getClass(), root, controller);
+	}
+
+	/** Invokes {@link #setConvention(java.lang.Class, java.lang.Object, java.lang.Object)} */
 	public ConventionFxmlLoader(Class c, Object root, Object controller) {
 		setConvention(c, root, controller);
 	}

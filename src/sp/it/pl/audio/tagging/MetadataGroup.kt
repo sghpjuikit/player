@@ -4,9 +4,9 @@ import javafx.util.Duration
 import sp.it.pl.audio.Player
 import sp.it.pl.util.SwitchException
 import sp.it.pl.util.access.fieldvalue.ObjectFieldBase
-import sp.it.pl.util.units.Dur
 import sp.it.pl.util.units.FileSize
 import sp.it.pl.util.units.RangeYear
+import sp.it.pl.util.units.toHMSMs
 import java.util.ArrayList
 import java.util.HashSet
 import java.util.stream.Stream
@@ -53,9 +53,9 @@ class MetadataGroup {
     }
 
     /** @return the length */
-    fun getLength(): Dur = Dur(lengthInMs)
+    fun getLength() = Duration(lengthInMs)
 
-    /** get total file size  */
+    /** get total file size */
     fun getFileSize(): FileSize = FileSize(fileSizeInB)
 
     fun getValueS(empty_val: String): String = Field.VALUE.toS(this, value, empty_val)
@@ -63,7 +63,7 @@ class MetadataGroup {
     fun getMainField(): Field<*> = Field.VALUE
 
     /** @return true iff any of the songs belonging to this group is playing */
-    fun isPlaying(): Boolean = field.getOf(Player.playingItem.get())==value
+    fun isPlaying(): Boolean = field.getOf(Player.playingSong.get())==value
 
     override fun toString() = "$field: $value, items: $itemCount, albums: $albumCount, length: ${getLength()}, size: ${getFileSize()}, avgRating: $avgRating, wighted rating: $weighRating, year: $year"
 
@@ -93,10 +93,10 @@ class MetadataGroup {
 
         @Suppress("UNCHECKED_CAST")
         override fun toS(v: MetadataGroup, o: T?, substitute: String): String {
-            return if (this===VALUE) {
-                if (v.isAll) "<any>" else (v.field as Metadata.Field<Any>).toS(o, "<none>")
-            } else {
-                toS(o, substitute)
+            return when(this) {
+                VALUE -> if (v.isAll) "<any>" else (v.field as Metadata.Field<Any>).toS(o, "<none>")
+                LENGTH -> (o as Duration).toHMSMs()
+                else -> toS(o, substitute)
             }
         }
 

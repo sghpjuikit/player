@@ -5,16 +5,13 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import javafx.util.Duration;
-import org.jaudiotagger.tag.images.Artwork;
-import sp.it.pl.gui.itemnode.StringSplitParser;
-import sp.it.pl.gui.itemnode.StringSplitParser.Split;
-import sp.it.pl.gui.itemnode.StringSplitParser.SplitData;
+import sp.it.pl.util.text.StringSplitParser;
+import sp.it.pl.util.text.StringSplitParser.Split;
+import sp.it.pl.util.text.StringSplitParser.SplitData;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -23,86 +20,13 @@ import static java.lang.Math.random;
 import static java.lang.Math.sqrt;
 import static java.util.stream.Collectors.toCollection;
 import static sp.it.pl.util.Util.StringDirection.FROM_START;
-import static sp.it.pl.util.dev.Util.throwIf;
+import static sp.it.pl.util.dev.FailKt.failIf;
 
 /**
  * Provides general purpose utility methods.
  */
 @SuppressWarnings("unused")
 public interface Util {
-
-	/** @return true iff objects are equal or both null, same as {@code (a==b) || (a!=null && a.equals(b))} */
-	static boolean nullEqual(Object a, Object b) {
-		return (a==b) || (a!=null && a.equals(b));
-	}
-
-	/**
-	 * Artwork's equals() method does not return true properly. Use this method instead.
-	 *
-	 * @return true iff artwork are equal
-	 */
-	static boolean equals(Artwork a1, Artwork a2) {
-		return (a1==null && a2==null) || (a1!=null && a2!=null && Arrays.equals(a1.getBinaryData(), a2.getBinaryData()));
-	}
-
-	/**
-	 * Prints out the value of Duration - string representation of the duration
-	 * in the format h:m:s - 00:00:00. If any of the h,m,s values is single digit,
-	 * decade digit '0' is still written to retain the correct format.
-	 * If hours = 0, they are left out.
-	 * Example:
-	 * 01:00:06
-	 * 04:45
-	 * 00:34
-	 *
-	 * @return formatted duration
-	 */
-	static String formatDuration(Duration duration) {
-		double sec_total = duration.toMillis()/1000;
-		int seconds = (int) sec_total%60;
-		int minutes = (int) ((sec_total - seconds)/60)%60;
-		int hours = (int) (sec_total - seconds - 60*minutes)/3600;
-
-		if (hours>99)
-			return String.format("%d:%02d:%02d", hours, minutes, seconds);
-		else if (hours>0)
-			return String.format("%02d:%02d:%02d", hours, minutes, seconds);
-		else if (minutes>0)
-			return String.format("%02d:%02d", minutes, seconds);
-		else
-			return String.format("00:%02d", seconds);
-	}
-
-	/**
-	 * Prints out the value of Duration - string representation of the duration
-	 * in the format h:m:s - 00:00:00. If any of the h,m,s values is single digit,
-	 * decade digit '0' is written to retain the correct format only IF
-	 * include_zeros = true.
-	 * If hours = 0, they are left out.
-	 * Example:
-	 * 1:00:06
-	 * 4:45
-	 * 34
-	 *
-	 * @return formatted duration
-	 */
-	static String formatDuration(Duration duration, boolean include_zeros) {
-		if (include_zeros) return formatDuration(duration);
-
-		double sec_total = duration.toMillis()/1000;
-		int seconds = (int) sec_total%60;
-		int minutes = (int) ((sec_total - seconds)/60)%60;
-		int hours = (int) (sec_total - seconds - 60*minutes)/3600;
-
-		if (hours>99)
-			return String.format("%3d:%2d:%2d", hours, minutes, seconds);
-		else if (hours>0)
-			return String.format("%2d:%2d:%2d", hours, minutes, seconds);
-		else if (minutes>0)
-			return String.format("%2d:%2d", minutes, seconds);
-		else
-			return String.format("%2d", seconds);
-	}
 
 	/**
 	 * Returns empty string if string meets is-empty criteria according to {@link #hasNoReadableText(String)}
@@ -291,7 +215,7 @@ public interface Util {
 		Map<String,String> splits = splitter.applyM(t);
 		List<String> keys = joiner.parse_keys;
 		List<String> seps = joiner.key_separators;
-		StringBuilder o = new StringBuilder("");
+		StringBuilder o = new StringBuilder();
 		for (int i = 0; i<keys.size() - 1; i++) {
 			if (!splits.containsKey(keys.get(i))) return null;
 			o.append(splits.get(keys.get(i)));
@@ -544,10 +468,11 @@ public interface Util {
 	 *
 	 * @return random element from the list.
 	 * @throws java.lang.RuntimeException if list empty
-	 * @apiNote this method has side effects
+	 * @apiNote this method has side effects, i.e., mutates the list
 	 */
-	private static <T> T randPopOf(List<T> list) {
-		throwIf(list.isEmpty());
+	static <T> T randPopOf(List<T> list) {
+		failIf(list.isEmpty());
+
 		int i = (int) Math.floor(random()*list.size());
 		T t = list.get(i);
 		list.remove(t);
@@ -560,8 +485,8 @@ public interface Util {
 	 * @return specified number of random elements from the list
 	 * @throws java.lang.RuntimeException if list does not have enough elements
 	 */
-	private static <T> ArrayList<T> randN(int amount, List<T> source) {
-		throwIf(amount>=source.size());
+	static <T> ArrayList<T> randN(int amount, List<T> source) {
+		failIf(amount>=source.size());
 
 		ArrayList<T> all = new ArrayList<>(source); // we need a copy
 		ArrayList<T> l = new ArrayList<>();

@@ -12,9 +12,9 @@ import javafx.event.EventHandler
 import javafx.util.Duration
 import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.math.divMillis
-import sp.it.pl.util.math.minus
-import sp.it.pl.util.math.times
+import sp.it.pl.util.units.divMillis
+import sp.it.pl.util.units.minus
+import sp.it.pl.util.units.times
 import java.lang.Math.abs
 import java.lang.Math.sqrt
 import java.util.function.DoubleConsumer
@@ -133,7 +133,7 @@ open class Anim: Transition {
     }
 
     /**
-     * Plays this animation backward from beginning if stopped else from its current position.
+     * Plays this animation backward from end if stopped else from its current position.
      *
      * Useful for animations that are used to both 'open' and 'close', i.e.,
      * are used to play with rate 1 and rate -1 to reverse-play their effect.

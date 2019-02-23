@@ -3,7 +3,7 @@ package sp.it.pl.layout.widget
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.main.APP
-import sp.it.pl.util.file.childOf
+import sp.it.pl.util.file.div
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.type.ClassName
 import java.io.File
@@ -17,7 +17,7 @@ interface ComponentFactory<out T: Component>: ComponentInfo {
 
 /** Component factory that creates widgets. */
 @Widget.Info
-class WidgetFactory<C: Controller>: ComponentFactory<Widget<C>>, WidgetInfo {
+class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
 
     val controllerType: Class<C>
     val location: File
@@ -48,7 +48,7 @@ class WidgetFactory<C: Controller>: ComponentFactory<Widget<C>>, WidgetInfo {
         this.name = ClassName.of(controllerType.java)
         this.controllerType = controllerType.java
         this.location = location
-        this.locationUser = APP.DIR_USERDATA.childOf("widgets", location.nameOrRoot)
+        this.locationUser = APP.DIR_USERDATA/"widgets"/location.nameOrRoot
         this.nameGui = if (i.name.isEmpty()) name else i.name
         this.description = i.description
         this.version = i.version
@@ -72,7 +72,7 @@ class WidgetFactory<C: Controller>: ComponentFactory<Widget<C>>, WidgetInfo {
     override fun group() = group
     override fun type() = controllerType
 
-    override fun create(): Widget<C> = Widget(name, this)
+    override fun create(): Widget = Widget(name, this)
 
     override fun toString() = "${javaClass.simpleName} $name $nameGui $controllerType"
 

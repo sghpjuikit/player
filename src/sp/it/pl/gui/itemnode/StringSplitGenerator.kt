@@ -2,6 +2,7 @@ package sp.it.pl.gui.itemnode
 
 import javafx.scene.control.TextField
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.text.StringSplitParser
 
 class StringSplitGenerator: ValueNode<StringSplitParser>(StringSplitParser.singular()) {
     private val node = TextField()

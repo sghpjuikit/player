@@ -19,9 +19,9 @@ public class PlaylistManager implements Configurable {
 	public static final PlayingSequence playingItemSelector = new PlayingSequence();
 
 	/** Last selected item on playlist or null if none. */
-	public static final ValueEventSource<PlaylistItem> selectedItemES = new ValueEventSource<>(null);
+	public static final ValueEventSource<PlaylistSong> selectedItemES = new ValueEventSource<>(null);
 	/** Selected items on playlist or empty list if none. */
-	public static final ValueEventSource<List<PlaylistItem>> selectedItemsES = new ValueEventSource<>(listRO());
+	public static final ValueEventSource<List<PlaylistSong>> selectedItemsES = new ValueEventSource<>(listRO());
 
 	public static void use(Consumer<Playlist> action) {
 		Playlist p = null;

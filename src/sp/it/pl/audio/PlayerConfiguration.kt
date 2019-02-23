@@ -8,7 +8,7 @@ import sp.it.pl.util.conf.between
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cvro
 import sp.it.pl.util.conf.only
-import sp.it.pl.util.math.seconds
+import sp.it.pl.util.units.seconds
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 
 class PlayerConfiguration {

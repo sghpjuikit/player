@@ -27,6 +27,4 @@ class ValueConfig<V>: ConfigBase<V> {
         value = v
     }
 
-    override fun applyValue(v: V?) {}
-
 }

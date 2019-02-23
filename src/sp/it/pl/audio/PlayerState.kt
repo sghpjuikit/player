@@ -25,8 +25,8 @@ class PlayerState {
     }
 
     private constructor(s: PlayerStateDB) {
-        playbacks += s.playbacks.map { it.toPlaybackState() }
-        playlists += s.playlists.map { it.toPlaylist() }
+        playbacks += s.playbacks.map { it.toDomain() }
+        playlists += s.playlists.map { it.toDomain() }
         playbackId = s.playbackId?.let { UUID.fromString(it) }
         playlistId = s.playlistId?.let { UUID.fromString(it) }
         playback = playbacks.find { it.id==playbackId } ?: PlaybackState.default()

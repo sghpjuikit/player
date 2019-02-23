@@ -22,7 +22,7 @@ import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
-import static sp.it.pl.util.dev.Util.throwIfNot;
+import static sp.it.pl.util.dev.FailKt.failIf;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.repeat;
 
@@ -118,8 +118,9 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 	 * If the chain is already at least as long as n, no elements are added.
 	 */
 	public void growTo(int n) {
-		throwIfNot(n>=0, () -> "Chain length must not be negative");
-		throwIfNot(n<=maxChainLength.get(), () -> "Chain length must not be larger than max length");
+		failIf(n<0, () -> "Chain length must not be negative");
+		failIf(n>maxChainLength.get(), () -> "Chain length must not be larger than max length");
+
 		if (n>chain.size()) {
 			repeat(n - chain.size(), (Runnable) this::addChained);
 			generateValue();
@@ -127,6 +128,9 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 	}
 
 	public void shrinkTo(int n) {
+		failIf(n<0, () -> "Chain length must not be negative");
+		failIf(n>maxChainLength.get(), () -> "Chain length must not be larger than max length");
+
 		if (n<chain.size()) {
 			chain.setAll(chain.stream().limit(n).collect(toList()));
 			generateValue();

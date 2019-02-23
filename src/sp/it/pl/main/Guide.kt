@@ -24,7 +24,7 @@ import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.layout.container.Container.testControlContainer
 import sp.it.pl.layout.container.bicontainer.BiContainer
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.emptyWidgetFactory
 import sp.it.pl.layout.widget.orEmpty
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.Widgets.PLAYLIST
@@ -50,14 +50,14 @@ import sp.it.pl.util.graphics.drag.DragUtil.installDrag
 import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.vBox
-import sp.it.pl.util.math.millis
-import sp.it.pl.util.math.seconds
-import sp.it.pl.util.math.times
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.text.keys
+import sp.it.pl.util.units.millis
+import sp.it.pl.util.units.seconds
+import sp.it.pl.util.units.times
 import java.util.ArrayList
 
-class Guide(guideEvents: EventSource<Any>? = null): MultiConfigurableBase("${Settings.PLUGINS}.Guide") {
+class Guide(guideEvents: EventSource<Any> = EventSource()): MultiConfigurableBase("${Settings.PLUGINS}.Guide") {
 
     @IsConfig(name = "Hint", editable = EditMode.APP)
     private var at by c(-1)
@@ -71,7 +71,7 @@ class Guide(guideEvents: EventSource<Any>? = null): MultiConfigurableBase("${Set
     private var prevAt = -1
     private val guideTitleText = v("")
     private val guideText = v("")
-    private val guideEvents = (guideEvents ?: EventSource()).apply { subscribe { handleAction(it) } }
+    private val guideEvents = guideEvents.apply { subscribe { handleAction(it) } }
     private val popup = lazy { buildPopup() }
     private val popupContent: VBox by lazy { buildContent() }
     private val eventConsumer = Event::consume
@@ -124,12 +124,12 @@ class Guide(guideEvents: EventSource<Any>? = null): MultiConfigurableBase("${Set
         isAutoHide = false
         isHideOnClick = false
         isHideOnEscape = true
-        getSkinn().contentPadding = Insets(8.0)
+        skinn.contentPadding = Insets(8.0)
         arrowSize.value = 0.0
         detached.value = true
         onHiding = EventHandler { runFX(20.millis) { hints.h03_guideClose.proceedIfActive() } }
         headerIcons += listOf(
-                createInfoIcon("Guide info popup."
+                infoIcon("Guide info popup."
                         +"\n\nThere are many others. If you see one for the first time, check it out."
                         +"\n\nThis popup will close on its own when you clock somewhere. ESCAPE works too."
                 ),
@@ -247,8 +247,8 @@ class Guide(guideEvents: EventSource<Any>? = null): MultiConfigurableBase("${Set
                         val bc = BiContainer(VERTICAL)
                         la.addChild(la.emptySpot, bc)
                         // load widgets
-                        bc.addChild(1, APP.widgetManager.factories.getFactory(PLAYLIST).orEmpty().create())
-                        bc.addChild(2, APP.widgetManager.factories.getFactory(PLAYBACK).orEmpty().create())
+                        bc.addChild(1, APP.widgetManager.factories.getFactoryByGuiName(PLAYLIST).orEmpty().create())
+                        bc.addChild(2, APP.widgetManager.factories.getFactoryByGuiName(PLAYBACK).orEmpty().create())
                         // go to layout
                         la.ui.alignTab(bc)
                         // go to next guide
@@ -503,7 +503,7 @@ class Guide(guideEvents: EventSource<Any>? = null): MultiConfigurableBase("${Set
                             wd.topContainer.ui.alignTab(i)
 
                             runFX(1000.millis) {
-                                val w = Widget.EMPTY()
+                                val w = emptyWidgetFactory.create()
                                 val root = BiContainer(HORIZONTAL)
                                 root.addChild(1, w)
                                 wd.topContainer.addChild(i, root)

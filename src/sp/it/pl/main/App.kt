@@ -1,5 +1,3 @@
-@file:JvmName("AppUtil")
-
 package sp.it.pl.main
 
 import ch.qos.logback.classic.Level
@@ -11,13 +9,14 @@ import javafx.stage.Stage
 import mu.KLogging
 import org.atteo.evo.inflector.English.plural
 import org.reactfx.EventSource
-import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
-import sp.it.pl.audio.playlist.PlaylistItem
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.core.CoreConverter
+import sp.it.pl.core.CoreFunctors
 import sp.it.pl.core.CoreImageIO
 import sp.it.pl.core.CoreInstances
 import sp.it.pl.core.CoreLogging
@@ -46,15 +45,16 @@ import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.layout.widget.WidgetSource.ANY
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.layout.widget.feature.PlaylistFeature
-import sp.it.pl.plugin.AppSearchPlugin
-import sp.it.pl.plugin.DirSearchPlugin
 import sp.it.pl.plugin.Plugin
 import sp.it.pl.plugin.PluginManager
-import sp.it.pl.plugin.ScreenRotator
+import sp.it.pl.plugin.appsearch.AppSearchPlugin
+import sp.it.pl.plugin.dirsearch.DirSearchPlugin
+import sp.it.pl.plugin.library.LibraryWatcher
+import sp.it.pl.plugin.screenrotator.ScreenRotator
+import sp.it.pl.plugin.waifu2k.Waifu2kPlugin
 import sp.it.pl.service.Service
 import sp.it.pl.service.ServiceManager
-import sp.it.pl.service.click.ClickEffect
-import sp.it.pl.service.database.Db
+import sp.it.pl.service.database.SongDb
 import sp.it.pl.service.notif.Notifier
 import sp.it.pl.service.playcount.PlaycountIncrementer
 import sp.it.pl.service.tray.TrayService
@@ -80,9 +80,9 @@ import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.ImageFileFormat
-import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
+import sp.it.pl.util.file.div
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.mimetype.MimeTypes
 import sp.it.pl.util.functional.Try
@@ -95,6 +95,7 @@ import sp.it.pl.util.type.ClassName
 import sp.it.pl.util.type.InstanceInfo
 import sp.it.pl.util.type.InstanceName
 import sp.it.pl.util.type.ObjectFieldMap
+import sp.it.pl.util.type.Util.getGenericPropertyType
 import sp.it.pl.util.units.FileSize
 import java.io.File
 import java.lang.management.ManagementFactory
@@ -109,8 +110,8 @@ fun main(args: Array<String>) {
     // Relocate temp & home under working directory
     // It is our principle to leave no trace of ever running on the system
     // User can also better see what the application is doing
-    val tmp = File("").absoluteFile.childOf("user", "tmp")
-    isValidatedDirectory(tmp)
+    val tmp = File("").absoluteFile/"user"/"tmp"
+    if (!isValidatedDirectory(tmp)) fail { "Invalid tmp directory" }
     System.setProperty("java.io.tmpdir", tmp.absolutePath)
     System.setProperty("user.home", tmp.absolutePath)
 
@@ -178,8 +179,9 @@ class App: Application(), Configurable<Any> {
     @F val instanceName = InstanceName()
     @F val instanceInfo = InstanceInfo()
     @F val classFields = ObjectFieldMap()
-    @F val contextMenus = CoreMenus()
+    @F val contextMenus = CoreMenus
     @F val mouse = CoreMouse
+    @F val functors = CoreFunctors
 
     @C(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")
     val logLevelConsole by cv(Level.INFO) {
@@ -247,7 +249,7 @@ class App: Application(), Configurable<Any> {
     @F val search = Search()
 
     /** Manages persistence and in-memory storage. */
-    @F val db = Db()
+    @F val db = SongDb()
     /** Manages windows. */
     @F val windowManager = WindowManager()
     /** Manages widgets. */
@@ -272,7 +274,7 @@ class App: Application(), Configurable<Any> {
         logger.info { "JVM Args: ${fetchVMArguments()}" }
 
         // add optional object fields
-        classFields.add(PlaylistItem::class.java, PlaylistItem.Field.FIELDS)
+        classFields.add(PlaylistSong::class.java, PlaylistSong.Field.FIELDS)
         classFields.add(Metadata::class.java, Metadata.Field.FIELDS)
         classFields.add(MetadataGroup::class.java, MetadataGroup.Field.FIELDS)
         classFields.add(Any::class.java, ColumnField.FIELDS)
@@ -283,8 +285,8 @@ class App: Application(), Configurable<Any> {
         className.add(String::class.java, "Text")
         className.add(File::class.java, "File")
         className.add(App::class.java, "Application")
-        className.add(Item::class.java, "Song")
-        className.add(PlaylistItem::class.java, "Playlist Song")
+        className.add(Song::class.java, "Song")
+        className.add(PlaylistSong::class.java, "Playlist Song")
         className.add(Metadata::class.java, "Library Song")
         className.add(MetadataGroup::class.java, "Song Group")
         className.add(Service::class.java, "Service")
@@ -298,8 +300,8 @@ class App: Application(), Configurable<Any> {
         instanceName.add(Void::class.java) { "<none>" }
         instanceName.add(File::class.java, { it.path })
         instanceName.add(App::class.java) { "This application" }
-        instanceName.add(Item::class.java, { it.getPathAsString() })
-        instanceName.add(PlaylistItem::class.java, { it.getTitle() })
+        instanceName.add(Song::class.java, { it.getPathAsString() })
+        instanceName.add(PlaylistSong::class.java, { it.getTitle() })
         instanceName.add(Metadata::class.java, { it.getTitleOrEmpty() })
         instanceName.add(MetadataGroup::class.java) { it.getValueS("<none>") }
         instanceName.add(Service::class.java, { it.name })
@@ -307,7 +309,7 @@ class App: Application(), Configurable<Any> {
         instanceName.add(Component::class.java, { it.exportName })
         instanceName.add(Feature::class.java, { "Feature" })
         instanceName.add(Collection::class.java) {
-            val eType = sp.it.pl.util.type.Util.getGenericPropertyType(it.javaClass)
+            val eType = getGenericPropertyType(it.javaClass)
             val eName = if (eType==null || eType==Any::class.java) "Item" else className[eType]
             it.size.toString()+" "+plural(eName, it.size)
         }
@@ -341,8 +343,8 @@ class App: Application(), Configurable<Any> {
                     .filter { it.isTypeStringRepresentable() && !it.isFieldEmpty(m) }
                     .forEach { map[it.name()] = it.getOfS(m, "<none>") }
         }
-        instanceInfo.add(PlaylistItem::class.java) { p, map ->
-            PlaylistItem.Field.FIELDS.asSequence()
+        instanceInfo.add(PlaylistSong::class.java) { p, map ->
+            PlaylistSong.Field.FIELDS.asSequence()
                     .filter { it.isTypeStringRepresentable() }
                     .forEach { map[it.name()] = it.getOfS(p, "<none>") }
         }
@@ -355,10 +357,10 @@ class App: Application(), Configurable<Any> {
         serializer.init()
         serializerXml.init()
         imageIo.init()
-        //        converter.init()
         instances.init()
         contextMenus.init()
         mouse.init()
+        functors.init()
 
         // init app stuff
         parameterProcessor.initForApp()
@@ -368,7 +370,6 @@ class App: Application(), Configurable<Any> {
 
         // start parts that can be started from non application fx thread
         ActionManager.startActionListening()
-        Action.loadCommandActions()
         appCommunicator.start()
     }
 
@@ -384,7 +385,6 @@ class App: Application(), Configurable<Any> {
             services += TrayService()
             services += Notifier()
             services += PlaycountIncrementer()
-            services += ClickEffect()
 
             // install actions
             Action.gatherActions(Player::class.java, null)
@@ -410,7 +410,7 @@ class App: Application(), Configurable<Any> {
 
             Player.initialize()
 
-            normalLoad = normalLoad && fetchArguments().none { it.endsWith(".fxwl") || widgetManager.factories.getComponentFactory(it)!=null }
+            normalLoad = normalLoad && fetchArguments().none { it.endsWith(".fxwl") || widgetManager.factories.getComponentFactoryByGuiName(it)!=null }
 
             windowManager.deserialize(normalLoad)
         }.ifError {
@@ -510,7 +510,7 @@ class App: Application(), Configurable<Any> {
                 { fs -> widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addFiles(fs) } }
         )
         addFileProcessor(
-                { Util.isValidSkinFile(it) },
+                { it.isValidSkinFile() },
                 { ui.setSkin(it[0]) }
         )
         addFileProcessor(
@@ -530,16 +530,18 @@ class App: Application(), Configurable<Any> {
 
     private fun PluginManager.initForApp() {
         installPlugins(
+                LibraryWatcher(),
                 AppSearchPlugin(),
                 DirSearchPlugin(),
-                ScreenRotator()
+                ScreenRotator(),
+                Waifu2kPlugin()
         )
     }
 
     private fun Search.initForApp() {
         sources += { configuration.fields.asSequence().map { Entry.of(it) } }
         sources += { widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map { Entry.of(it) } }
-        sources += { ui.skin.enumerateValues().asSequence().map { Entry.of({ "Open skin: $it" }, graphicsΛ = { Icon(IconMA.BRUSH) }) { ui.skin.setNapplyValue(it) } } }
+        sources += { ui.skin.enumerateValues().asSequence().map { Entry.of({ "Open skin: $it" }, graphicsΛ = { Icon(IconMA.BRUSH) }) { ui.skin.value = it } } }
     }
 
     private fun AppInstanceComm.initForApp() {

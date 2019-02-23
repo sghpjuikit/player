@@ -51,7 +51,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLOSE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COLUMNS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GEARS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GRADUATION_CAP;
@@ -91,13 +90,13 @@ import static javafx.scene.paint.Color.BLACK;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.Resize.NONE;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
-import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppBuildersKt.infoIcon;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.access.SequentialValue.next;
 import static sp.it.pl.util.access.SequentialValue.previous;
 import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.dev.Util.throwIfNot;
+import static sp.it.pl.util.dev.FailKt.failIf;
 import static sp.it.pl.util.functional.Util.forEachIRStream;
 import static sp.it.pl.util.functional.Util.forEachIStream;
 import static sp.it.pl.util.functional.Util.list;
@@ -107,7 +106,7 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.graphics.UtilKt.initClip;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /** Window for application. */
 public class Window extends WindowBase {
@@ -340,7 +339,6 @@ public class Window extends WindowBase {
 		double is = 15;
 		Icon propB = new Icon(GEARS, is, Action.get("Open settings"));
 		Icon runB = new Icon(GAVEL, is, Action.get("Open app actions"));
-		Icon layB = new Icon(COLUMNS, is, Action.get("Open layout manager"));
 		Icon lockB = new Icon(null, is, "Lock layout\n\nRestricts certain layout operations to "
 			+ "prevent accidents and configuration getting in the way. Widgets, containers and "
 			+ "layouts can also be locked individually.", () -> APP.ui.toggleLayoutLocked());
@@ -350,7 +348,7 @@ public class Window extends WindowBase {
 		Icon rtB = new Icon(CARET_RIGHT, is, Action.get("Layout move right"));
 		maintain(APP.ui.getLayoutMode(), mapB(TH, TH_LARGE), lmB::icon);
 		Icon guideB = new Icon(GRADUATION_CAP, is, Action.get("Open guide"));
-		Icon helpB = createInfoIcon("Available actions:\n"
+		Icon helpB = infoIcon("Available actions:\n"
 			+ "\tHeader icons : Providing custom functionalities. See tooltips.\n"
 			+ "\tHeader buttons : Providing window control. See tooltips.\n"
 			+ "\tMouse drag : Move window. Windows snap to screen or to other windows.\n"
@@ -364,7 +362,7 @@ public class Window extends WindowBase {
 		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, is).scale(0.4).onClick(e -> AppProgress.INSTANCE.showTasks((Node) e.getTarget())).tooltip("Progress & Tasks");
 
 		leftHeaderBox.getChildren().addAll(
-			layB, propB, runB, new Label(" "),
+			propB, runB, new Label(" "),
 			ltB, lockB, lmB, rtB, new Label(" "),
 			guideB, helpB, progB
 		);
@@ -372,7 +370,7 @@ public class Window extends WindowBase {
 		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
 
 
-		Icon miniB = new Icon(null, is, Action.get("Mini mode"));
+		Icon miniB = new Icon(null, is, "Toggle docking mode", () -> APP.windowManager.mini.setCycledValue());
 		maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP, ANGLE_UP), miniB::icon);
 		Icon onTopB = new Icon(null, is, "Always on top\n\nForbid hiding this window behind other "
 			+ "application windows", this::toggleAlwaysOnTop);
@@ -415,7 +413,8 @@ public class Window extends WindowBase {
 	}
 
 	public void setContent(Node n) {
-		throwIfNot(layout==null, () -> "Layout already initialized");
+		failIf(layout!=null, () -> "Layout already initialized");
+
 		content.getChildren().clear();
 		content.getChildren().add(n);
 		setAnchors(n, 0d);
@@ -436,7 +435,8 @@ public class Window extends WindowBase {
 	}
 
 	public void initLayout(Layout l) {
-		throwIfNot(layout==null, () -> "Layout already initialized");
+		failIf(layout!=null, () -> "Layout already initialized");
+
 		layout = l;
 		if (layout.getName()==null) layout.setName("Layout");
 		content.getChildren().clear();

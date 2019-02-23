@@ -6,19 +6,19 @@ import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
 import mu.KLogging
-import sp.it.pl.audio.Item
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.PlayerState
-import sp.it.pl.audio.playlist.PlaylistItem
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.file.AudioFileFormat
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.attach1If
+import sp.it.pl.util.units.millis
 import java.lang.Math.pow
 
 /** Audio player which abstracts away from the implementation. */
@@ -28,7 +28,7 @@ class GeneralPlayer {
     private var p: Play? = null
     private val _pInfo = ReadOnlyObjectWrapper<String>("<none>")
     val pInfo = _pInfo.readOnlyProperty!!
-    private var i: Item? = null
+    private var i: Song? = null
     val realTime: RealTimeProperty    // TODO: move to state
     private var seekDone = true
     private var lastValidVolume = -1.0
@@ -39,18 +39,18 @@ class GeneralPlayer {
         this.realTime = RealTimeProperty(state.playback.duration, state.playback.currentTime)
     }
 
-    @Synchronized fun play(item: PlaylistItem) {
+    @Synchronized fun play(song: PlaylistSong) {
         // Do not recreate player if same song plays again
         // 1) improves performance
         // 2) avoids firing some playback events
-        if (p!=null && item.same(i)) {
+        if (p!=null && song.same(i)) {
             seek(ZERO)
             return
         }
 
-        i = item
+        i = song
         p?.disposePlayback()
-        p = computePlayer(item)
+        p = computePlayer(song)
 
         _pInfo.value = when (p) {
             null -> "<none>"
@@ -59,26 +59,19 @@ class GeneralPlayer {
             else -> "Unknown"
         }
 
-        val onUnableToPlay = { it: PlaylistItem ->
-            runFX {
-                it.playbackError = true
-                // TODO: handle within playlist
-                // TODO: handle looping playlist forever
-                PlaylistManager.use { it.playNextItem() }
-            }
-        }
+        val onUnableToPlay = { _: PlaylistSong -> runFX { PlaylistManager.use { it.playNextItem() } } }
         val player = p
         if (player==null) {
-            logger.info("Player {} can not play item {}", player, item)
-            onUnableToPlay(item)
+            logger.info { "Player=$player can not play song=$song{}" }
+            onUnableToPlay(song)
         } else {
             runOn(Player.IO_THREAD) {
-                if (item.isCorrupt(AudioFileFormat.Use.PLAYBACK)) {
-                    onUnableToPlay(item)
+                if (song.isCorrupt(AudioFileFormat.Use.PLAYBACK)) {
+                    onUnableToPlay(song)
                 } else {
                     runFX {
                         player.createPlayback(
-                                item,
+                                song,
                                 state.playback,
                                 {
                                     realTime.realSeek = state.playback.realTime.get()
@@ -86,21 +79,26 @@ class GeneralPlayer {
                                     player.play()
 
                                     realTime.syncRealTimeOnPlay()
-                                    // throw item change event
-                                    Player.playingItem.itemChanged(item)
+                                    // throw song change event
+                                    Player.playingSong.songChanged(song)
                                     Player.suspension_flag = false
                                     // fire other events (may rely on the above)
                                     Player.onPlaybackStart()
                                     if (Player.post_activating_1st || !Player.post_activating)
-                                    // bug fix, not updated playlist items can get here, but should not!
-                                        if (item.timeMs>0)
-                                            Player.onPlaybackAt.forEach { t -> t.restart(item.time) }
+                                    // bug fix, not updated playlist songs can get here, but should not!
+                                        if (song.timeMs>0)
+                                            Player.onPlaybackAt.forEach { t -> t.restart(song.time) }
                                     Player.post_activating = false
                                     Player.post_activating_1st = false
                                 },
-                                {
-                                    logger.info("Player {} can not play item {}", p, item)
-                                    onUnableToPlay(item)
+                                { unableToPlayAny ->
+                                    logger.info { "Player=$p can not play song=$song" }
+                                    if (unableToPlayAny) {
+                                        stop()
+                                        // TODO: notify user
+                                    } else {
+                                        onUnableToPlay(song)
+                                    }
                                 }
                         )
                     }
@@ -110,7 +108,7 @@ class GeneralPlayer {
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun computePlayer(i: Item): Play = p ?: VlcPlayer()
+    private fun computePlayer(i: Song): Play = p ?: VlcPlayer()
 
     fun resume() {
         p?.let {
@@ -137,7 +135,7 @@ class GeneralPlayer {
         p?.let {
             it.stop()
             runFX {
-                Player.playingItem.itemChanged(Metadata.EMPTY)
+                Player.playingSong.songChanged(Metadata.EMPTY)
                 realTime.syncRealTimeOnStop()
                 Player.onPlaybackAt.forEach { it.stop() }
                 PlaylistManager.playlists.forEach { it.updatePlayingItem(-1) }
@@ -204,7 +202,7 @@ class GeneralPlayer {
 
         fun stop()
 
-        fun createPlayback(item: Item, state: PlaybackState, onOK: () -> Unit, onFail: () -> Unit)
+        fun createPlayback(song: Song, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit)
 
         /** Stops playback if any and disposes of the player resources. */
         fun disposePlayback()

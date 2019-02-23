@@ -9,16 +9,17 @@ import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function1;
 import org.reactfx.Subscription;
-import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Song;
 import sp.it.pl.audio.Player;
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import static sp.it.pl.audio.playback.VolumeProperty.linToLog;
 import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.dev.DebugKt.logger;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 public class JavaFxPlayer implements GeneralPlayer.Play {
 
@@ -51,17 +52,17 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 	}
 
 	@Override
-	public void createPlayback(Item item, PlaybackState state, Function0<Unit> onOK, Function0<Unit> onFail) {
+	public void createPlayback(Song song, PlaybackState state, Function0<Unit> onOK, Function1<? super Boolean, Unit> onFail) {
 		Player.IO_THREAD.execute(() -> {
 			Media media;
 			try {
 				// TODO: Media creation throws MediaException (FileNotFoundException) for files containing some special chars (unicode?)
 				// TODO: Use getUri.toAsciiString()?
 				// If that happens, it can block thread for like half second!, so i execute this not on fx
-				media = new Media(item.getUri().toString());
+				media = new Media(song.getUri().toString());
 			} catch (MediaException e) {
-				logger(JavaFxPlayer.class).error("Media creation error for {}", item.getUri());
-				onFail.invoke();
+				logger(JavaFxPlayer.class).error("Media creation error for {}", song.getUri());
+				onFail.invoke(false);
 				return;
 			}
 			runFX(() -> {

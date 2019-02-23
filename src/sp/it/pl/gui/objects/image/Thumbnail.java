@@ -33,6 +33,7 @@ import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.file.ImageFileFormat;
+import sp.it.pl.util.graphics.image.FitFrom;
 import sp.it.pl.util.graphics.image.ImageSize;
 import sp.it.pl.util.graphics.image.ImageStandardLoader;
 import static java.lang.Double.min;
@@ -45,15 +46,15 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
-import static sp.it.pl.util.dev.Util.logger;
+import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.file.UtilKt.toFileOrNull;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXYByTo;
-import static sp.it.pl.util.reactive.Util.sync1If;
+import static sp.it.pl.util.reactive.UtilKt.sync1If;
 import static sp.it.pl.util.type.Util.getFieldValue;
 
 /**
@@ -651,7 +652,7 @@ public class Thumbnail {
 
 /* --------------------- CONTEXT MENU ------------------------------------------------------------------------------- */
 
-	private static final SingleR<ValueContextMenu,Thumbnail> contextMenu = new SingleR<>(
+	private static final SingleR<ValueContextMenu<Object>,Thumbnail> contextMenu = new SingleR<>(
 			ValueContextMenu::new,
 			(menu, thumbnail) -> menu.setValueAndItems(thumbnail.new ContextMenuData())
 	);
@@ -673,7 +674,4 @@ public class Thumbnail {
 		public final Thumbnail thumbnail = Thumbnail.this;
 	}
 
-	public enum FitFrom {
-		INSIDE, OUTSIDE
-	}
 }

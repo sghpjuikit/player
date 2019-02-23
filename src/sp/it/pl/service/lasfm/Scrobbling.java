@@ -6,16 +6,15 @@ import de.umass.lastfm.scrobble.ScrobbleResult;
 import java.util.prefs.Preferences;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
-import static sp.it.pl.util.dev.Util.logger;
+import static sp.it.pl.util.dev.DebugKt.logger;
 
 public class Scrobbling {
 
-	static Session session;
+	private static Session session;
 
 	private final Preferences preferences;
 
 	public Scrobbling() {
-		// TODO: implement properly
 		String apiKey = acquireApiKey();
 		String secret = acquireSecret();
 
@@ -23,7 +22,7 @@ public class Scrobbling {
 	}
 
 	protected void updateNowPlaying() {
-		Metadata currentMetadata = Player.playingItem.get();
+		Metadata currentMetadata = Player.playingSong.get();
 		ScrobbleResult result = Track.updateNowPlaying(
 				currentMetadata.getArtist(),
 				currentMetadata.getTitle(),

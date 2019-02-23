@@ -6,7 +6,7 @@ import javafx.scene.image.Image;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.util.graphics.image.ImageSize;
 import sp.it.pl.util.graphics.image.ImageStandardLoader;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.FailKt.noNull;
 
 /**
  * Denotes Cover represented by a {@link java.io.File}.

@@ -19,7 +19,7 @@ import sp.it.pl.util.functional.Util;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.functional.Util.IS;
 import static sp.it.pl.util.functional.Util.ISNT;
 import static sp.it.pl.util.functional.Util.ISNTØ;
@@ -88,9 +88,9 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		negB.tooltip(negTooltip);
 	}
 
-	// TODO: this should be advertised that supplier can return null
-	public void setPrefTypeSupplier(Supplier<PredicateData<F>> supplier) {
-		prefTypeSupplier = supplier;
+	/** Set initially selected value. Supplier can be null and return null, in which case 1st value is selected. */
+	public void setPrefTypeSupplier(Supplier<PredicateData<F>> initialValueSupplier) {
+		prefTypeSupplier = initialValueSupplier;
 	}
 
 	/**

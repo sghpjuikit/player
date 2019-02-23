@@ -11,8 +11,8 @@ import javafx.scene.shape.Arc
 import javafx.util.Duration
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.stackPane
-import sp.it.pl.util.math.seconds
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.units.seconds
 
 /** Very simple custom [ProgressIndicator]. */
 class Spinner: ProgressIndicator {

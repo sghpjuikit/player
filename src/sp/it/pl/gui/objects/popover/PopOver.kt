@@ -29,6 +29,9 @@
 
 package sp.it.pl.gui.objects.popover
 
+import com.sun.jna.Pointer
+import com.sun.jna.platform.win32.User32
+import com.sun.jna.platform.win32.WinDef
 import javafx.beans.InvalidationListener
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -71,11 +74,15 @@ import sp.it.pl.util.graphics.getScreen
 import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.toP
 import sp.it.pl.util.math.P
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.reactive.sync1If
+import sp.it.pl.util.system.Os
+import sp.it.pl.util.type.Util
+import sp.it.pl.util.units.millis
 import java.util.ArrayList
+
 
 /**
  * Enhanced popup window.
@@ -211,8 +218,8 @@ open class PopOver<N: Node>(): PopupControl() {
     /** Show/hide animation. */
     private val animation by lazy {
         anim {
-            getSkinn().node.opacity = it*it
-            // getSkinn().node.setScaleXYByTo(it, -20.0, 0.0)  // TODO: causes slight position shift sometimes
+            skinn.node.opacity = it*it
+            // skinn.node.setScaleXYByTo(it, -20.0, 0.0)  // TODO: causes slight position shift sometimes
         }
     }
 
@@ -224,8 +231,9 @@ open class PopOver<N: Node>(): PopupControl() {
     @Suppress("UNCHECKED_CAST")
     fun <T: Node> changeContentType(): PopOver<T> = apply { contentNode.set(null) } as PopOver<T>
 
-    /** @return concrete skin implementation (unlike [PopOver.getSkin]) */
-    fun getSkinn(): PopOverSkin = skin as PopOverSkin
+    /** Concrete skin implementation (unlike [PopOver.getSkin]). */
+    val skinn: PopOverSkin
+        get() = skin as? PopOverSkin ?: fail { "Skin must extend ${PopOverSkin::class}" }
 
     init {
         fun initCloseWithOwner() {
@@ -246,6 +254,47 @@ open class PopOver<N: Node>(): PopupControl() {
         isAutoFix = false
         skin = createDefaultSkin()
         initCloseWithOwner()
+
+        // TODO: fix on Linux/Mac and move out (along with WindowBase.fixJavaFxNonDecoratedMinimization)
+        fun fixJavaFxPopupAlwaysOnTop() = showingProperty().sync1If({ it }) {
+
+            when (Os.current) {
+                Os.WINDOWS -> {
+                    fun Window.hwnd(): WinDef.HWND {
+                        val peer = Util.invokeMethodP0(this, "getPeer")
+                        val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow")
+                        Util.invokeMethodP1(peerPlatformWindow, "setLevel", Int::class.javaPrimitiveType, 1)
+                        val hwndLong = Util.invokeMethodP0(peerPlatformWindow, "getRawHandle") as Long
+                        val hwnd = WinDef.HWND(Pointer(hwndLong))
+                        return hwnd
+                    }
+                    val hwnd = hwnd()
+                    val SWP_NOSIZE = 0x0001
+                    val SWP_NOMOVE = 0x0002
+                    val SWP_SHOWWINDOW = 0x0040
+                    User32.INSTANCE.SetWindowPos(hwnd, WinDef.HWND(Pointer.createConstant(-2)), 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_SHOWWINDOW)
+                }
+                else -> {
+                    // kotlin.run {
+                    //     val peer = Util.invokeMethodP0(this, "getPeer")
+                    //     Util.invokeMethodP1(peer, "setAlwaysOnTop", Boolean::class.javaPrimitiveType, false)
+                    //     Util.invokeMethodP0(peer, "needsUpdateWindow")
+                    // }
+
+                    // kotlin.run {
+                    //     val peer = Util.invokeMethodP0(ownerWindow, "getPeer")
+                    //     val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow")
+                    //     Util.invokeMethodP1(peerPlatformWindow, "setLevel", Int::class.javaPrimitiveType, 1)
+                    // }
+
+                    // kotlin.run {
+                    //     val peer = Util.invokeMethodP0(this, "getPeerListener")
+                    //     Util.invokeMethodP1(peer, "changedAlwaysOnTop", Boolean::class.javaPrimitiveType, false)
+                    // }
+                }
+            }
+        }
+        fixJavaFxPopupAlwaysOnTop()
     }
 
     /**

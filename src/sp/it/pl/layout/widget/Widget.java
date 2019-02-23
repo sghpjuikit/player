@@ -17,7 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
@@ -29,8 +31,9 @@ import sp.it.pl.layout.area.ContainerNode;
 import sp.it.pl.layout.area.IOLayer;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.controller.Controller;
-import sp.it.pl.layout.widget.controller.FXMLController;
 import sp.it.pl.layout.widget.controller.LegacyController;
+import sp.it.pl.layout.widget.controller.LoadErrorController;
+import sp.it.pl.layout.widget.controller.NoFactoryController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.controller.io.Output;
@@ -50,20 +53,20 @@ import sp.it.pl.util.type.Util;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.deepEquals;
-import static java.util.stream.Collectors.toMap;
+import static sp.it.pl.layout.widget.EmptyWidgetKt.getEmptyWidgetFactory;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.file.Util.deleteFile;
 import static sp.it.pl.util.file.Util.writeFile;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.filter;
+import static sp.it.pl.util.functional.Util.firstNotNull;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.split;
 import static sp.it.pl.util.functional.Util.toS;
-import static sp.it.pl.util.functional.UtilKt.supplyFirst;
 import static sp.it.pl.util.graphics.UtilKt.findParent;
 import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 
@@ -78,14 +81,13 @@ import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
  * standalone object if implementation allows). The type of widget influences
  * the lifecycle.
  */
-public class Widget<C extends Controller> extends Component implements CachedCompositeConfigurable<Object>, Locatable {
+public class Widget extends Component implements CachedCompositeConfigurable<Object>, Locatable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
 	private static final Set<String> ignoredConfigs = set("Is preferred", "Is ignored", "Custom name"); // avoids data duplication
 
 	// Name of the widget. Permanent. Same as factory name. Used solely for deserialization (to find
 	// appropriate factory)
-	// TODO: put inside propertymap
 	private final String name;
 
 	/**
@@ -97,9 +99,9 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	 * still point to the old factory, holding true to the description of this field.
 	 */
 	@Dependency("name - accessed using reflection by name")
-	@XStreamOmitField public final WidgetFactory<?> factory;	// TODO: make type safe
+	@XStreamOmitField public final WidgetFactory<?> factory;
 	@XStreamOmitField protected Node root;
-	@XStreamOmitField protected C controller;
+	@XStreamOmitField protected Controller controller;
 
 	@XStreamOmitField private HashMap<String,Config<Object>> configs = new HashMap<>();
 
@@ -141,7 +143,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	@IsConfig(name = "Focused", info = "Whether widget is active/focused.", editable = EditMode.APP)
 	@XStreamOmitField public final V<Boolean> focused = new V<>(false); // TODO: make read-only
 
-	public Widget(String name, WidgetFactory factory) {
+	public Widget(String name, WidgetFactory<?> factory) {
 		this.name = name;
 		this.factory = factory;
 		custom_name.setValue(name);
@@ -188,15 +190,15 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	 *
 	 * @return graphical content of this widget
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public Node load() {
 		if (root==null) {
-			controller = instantiateController();
+			controller = controller!=null ? controller : instantiateController();
+
 			if (controller==null) {
-				Widget w = Widget.EMPTY();
-				root = w.load();
-				controller = (C) w.controller;
+				LoadErrorController c = new LoadErrorController(this);
+				root = c.loadFirstTime();
+				controller = c;
 			} else {
 				try {
 					root = controller.loadFirstTime();
@@ -205,19 +207,15 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 					// lockedUnder.init();
 
 					Class<?> cc = controller.getClass();
-					boolean isLegacy = FXMLController.class.isAssignableFrom(cc) || cc.isAnnotationPresent(LegacyController.class);
-					if (isLegacy) {
-						controller.init();
-						restoreConfigs();
-						controller.refresh();
-					}
+					boolean isLegacy = cc.isAnnotationPresent(LegacyController.class);
+					if (isLegacy) restoreConfigs();
 
 					updateIO();
 				} catch (Throwable e) {
-					Widget w = Widget.EMPTY();
-					root = w.load();
-					controller = (C) w.controller;
-					LOGGER.error("Widget {} graphics creation failed. Using empty widget instead.", getName(), e);
+					LoadErrorController c = new LoadErrorController(this);
+					root = c.loadFirstTime();
+					controller = c;
+					LOGGER.error("Widget={} graphics creation failed.", name, e);
 				}
 			}
 		}
@@ -232,40 +230,18 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	}
 
 	@SuppressWarnings("unchecked")
-	private C instantiateController() {
+	private Controller instantiateController() {
 		restoreDefaultConfigs();
 
 		// instantiate controller
-		Class<C> cc = (Class) factory.getControllerType(); // TODO: make factory type safe and avoid cast
+		Class<Controller> cc = (Class) factory.getControllerType();
 		LOGGER.info("Instantiating widget controller " + cc);
-		C c = supplyFirst(
+		Controller c = firstNotNull(
 			() -> {
 				try {
-					Constructor<C> ccc = cc.getDeclaredConstructor(Widget.class);
+					Constructor<Controller> ccc = cc.getDeclaredConstructor(Widget.class);
 					LOGGER.debug("Instantiating widget controller using 1 arg constructor");
 					return ccc.newInstance(this);
-				} catch (NoSuchMethodException e) {
-					return null;
-				} catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
-					LOGGER.error("Instantiating widget controller failed {}", cc, e);
-					return null;
-				}
-			},
-			() -> {
-				try {
-					Constructor<C> ccc = cc.getDeclaredConstructor();
-					LOGGER.debug("Instantiating widget controller using 0 arg constructor");
-					C cn = ccc.newInstance();
-
-					// inject this widget into the controller
-					try {
-						Util.getField(cc, "widget"); // we use this as a check, throws Exception on fail
-						Util.setField(cn, "widget", this); // executes only if the field exists
-					} catch (NoSuchFieldException ex) {
-						LOGGER.warn("Controller instantiated with 0 arg constructor should have a 'widget' field, class=" + cc);
-					}
-
-					return cn;
 				} catch (NoSuchMethodException e) {
 					return null;
 				} catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
@@ -325,7 +301,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	 *
 	 * @return controller of the widget or null if widget has not been loaded yet.
 	 */
-	public C getController() {
+	public Controller getController() {
 		return controller;
 	}
 
@@ -347,6 +323,9 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 			IOLayer.all_outputs.removeAll(c.getOwnedOutputs().getOutputs());
 			c.close();
 		}
+
+		ios.removeIf(io -> io.widget==this);
+
 		onClose.invoke();
 	}
 
@@ -379,13 +358,11 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	 *
 	 * @param w widget to copy state from
 	 */
-	public void setStateFrom(Widget<? extends C> w) {
+	public void setStateFrom(Widget w) {
 		// if widget was loaded we store its latest state, otherwise it contains serialized pme
 		if (w.controller!=null)
 			w.storeConfigs();
 
-		// this takes care of any custom state or controller persistence state or deserialized
-		// configs/inputs/outputs
 		properties.clear();
 		properties.putAll(w.properties);
 
@@ -399,6 +376,14 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		// if this widget is loaded we apply state, otherwise its done when it loads
 		if (controller!=null)
 			restoreConfigs();
+
+		properties.entrySet().stream()
+			.filter(e -> e.getKey().startsWith("io"))
+			.map(e -> new IO(this, e.getKey().substring(2), (String) e.getValue()))
+			.forEach(ios::add);
+
+		if (controller!=null)
+			updateIO();
 	}
 
 	@Override
@@ -411,18 +396,13 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	private ChangeListener<Boolean> computeFocusChangeHandler() {
 		return (o, ov, nv) -> {
 			if (isLoaded()) {
-				Pane p = (Pane) findParent(root, n -> n.getStyleClass().containsAll(Area.bgr_STYLECLASS));
+				Pane p = (Pane) findParent(root, n -> n.getStyleClass().containsAll(Area.STYLECLASS_BGR));
 				if (p!=null) p.pseudoClassStateChanged(pseudoclass("active"), nv);
 			}
 		};
 	}
 
 /******************************************************************************/
-
-	/** @return whether this widget is empty - empty widget has no graphics. */
-	public boolean isNone() {
-		return this instanceof EmptyWidget;
-	}
 
 	/**
 	 * Returns singleton list containing the controller of this widget
@@ -444,16 +424,10 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		return getClass() + " " + name;
 	}
 
-	/**
-	 * @return empty widget. Use to inject fake widget instead null value.
-	 */
-	public static Widget EMPTY() {
-		return new EmptyWidget();
-	}
-
 /****************************** SERIALIZATION *********************************/
 
 	/** Invoked just before the serialization. */
+	@SuppressWarnings("StatementWithEmptyBody")
 	protected Object writeReplace() throws ObjectStreamException {
 		boolean isLoaded = controller!=null;
 
@@ -467,11 +441,11 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		} else {}
 
 		// Prepare configs
-		// If widget is loaded, we serialize name:value pairs
 		if (isLoaded) {
-			storeConfigs();
+			storeConfigs(); // If widget is loaded, we serialize name:value pairs
+		} else {
 			// Otherwise we still have the deserialized name:value pairs and leave them as they are
-		} else {}
+		}
 
 		return this;
 	}
@@ -482,12 +456,18 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	 * @implSpec Resolve object by initializing non-deserializable fields or providing an alternative instance (e.g. to
 	 * adhere to singleton pattern).
 	 */
+	@SuppressWarnings("unchecked")
 	protected Object readResolve() throws ObjectStreamException {
 		super.readResolve();
 
 		// try to assign factory (it must exist) or fallback to empty widget
-		if (factory==null) Util.setField(this, "factory", APP.widgetManager.factories.getFactory(name));
-		if (factory==null) return Widget.EMPTY();
+		if (factory==null) {
+			Util.setField(this, "factory", APP.widgetManager.factories.getFactory(name));
+		}
+		if (factory==null) {
+			Util.setField(this, "factory", getEmptyWidgetFactory());    // TODO: Use NoFactoryFactory or something
+			controller = new NoFactoryController(this);
+		}
 
 		if (configs==null) configs = new HashMap<>();
 		if (focused==null) {
@@ -506,7 +486,7 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		return this;
 	}
 
-	private static Ƒ1<Config<?>,String> configToRawKeyMapper = it -> it.getName();
+	public static Ƒ1<Config<?>,String> configToRawKeyMapper = it -> it.getName().replace(' ', '_').toLowerCase();
 
 	private void storeConfigs() {
 		// We store only Controller configs as configs of this widget should be defined in this
@@ -528,7 +508,13 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 		@SuppressWarnings("unchecked")
 		Map<String,String> deserialized_configs = (Map) properties.get("configs");
 		if (deserialized_configs!=null) {
-			deserialized_configs.forEach(this::setField);
+			getFields().forEach(c -> {
+				String key = configToRawKeyMapper.apply(c);
+				if (deserialized_configs.containsKey(key)) {
+					c.setValueS(deserialized_configs.get(key));
+				}
+			});
+
 			properties.remove("configs"); // restoration can only ever happen once
 		}
 	}
@@ -536,9 +522,11 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	public void storeDefaultConfigs() {
 		if (!isLoaded()) throw new AssertionError("Must be loaded to export default configs");
 
+		@SuppressWarnings("RedundantCast")
+		Predicate<Config<Object>> nonDefault = f -> ((Class) f.getType())==ObservableList.class || !deepEquals(f.getValue(), f.getDefaultValue());
 		File configFile = new File(getUserLocation(), "default.properties");
 		Configuration configuration = new Configuration(configToRawKeyMapper);
-		configuration.collect(filter(getFields(), f -> !deepEquals(f.getValue(), f.getDefaultValue())));
+		configuration.collect(filter(getFields(), nonDefault));
 		configuration.save("Custom default widget settings", configFile);
 	}
 
@@ -575,11 +563,13 @@ public class Widget<C extends Controller> extends Component implements CachedCom
 	@SuppressWarnings({"unchecked", "UseBulkOperation", "deprecation"})
 	public static void deserializeWidgetIO() {
 		Set<Input<?>> is = new HashSet<>();
-		Map<Output.Id,Output<?>> os = APP.widgetManager.widgets.findAll(OPEN)
-				.filter(w -> w.controller!=null)
-				.peek(w -> w.controller.getOwnedInputs().getInputs().forEach(is::add))
-				.flatMap(w -> w.controller.getOwnedOutputs().getOutputs().stream())
-				.collect(toMap(i -> i.id, i -> i));
+		Map<Output.Id,Output<?>> os = new HashMap<>();
+		APP.widgetManager.widgets.findAll(OPEN)
+			.filter(w -> w.controller!=null)
+			.forEach(w -> {
+				w.controller.getOwnedInputs().getInputs().forEach(is::add);
+				w.controller.getOwnedOutputs().getOutputs().forEach(o -> os.put(o.id, o));
+			});
 		IOLayer.all_inoutputs.forEach(io -> os.put(io.o.id, io.o));
 
 		ios.forEach(io -> {

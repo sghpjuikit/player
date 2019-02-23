@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 import javafx.scene.image.Image;
-import sp.it.pl.audio.SimpleItem;
+import sp.it.pl.audio.SimpleSong;
 import sp.it.pl.audio.tagging.MetadataReader;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
@@ -22,7 +22,7 @@ import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.graphics.IconExtractor;
 import sp.it.pl.util.graphics.image.Image2PassLoader;
 import sp.it.pl.util.graphics.image.ImageSize;
-import static sp.it.pl.util.dev.Util.throwIfFxThread;
+import static sp.it.pl.util.dev.FailKt.failIfFxThread;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.FileType.FILE;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
@@ -55,7 +55,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	public List<Item> children() {
 		if (children==null) buildChildren();
-		return list(children);
+		return children==null ? list() : list(children);
 	}
 
 	private void init() {
@@ -123,7 +123,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	protected abstract Item createItem(Item parent, File value, FileType type);
 
-	private File getImage(File dir, String name) {
+	protected File getImage(File dir, String name) {
 		if (disposed) return null;
 		if (dir==null) return null;
 
@@ -147,7 +147,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return null;
 	}
 
-	private File getImageT(File dir, String name) {
+	protected File getImageT(File dir, String name) {
 		if (disposed) return null;
 		if (dir==null) return null;
 
@@ -161,7 +161,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	public Try<LoadResult,Void> loadCover(boolean full, ImageSize size) {
-		throwIfFxThread();
+		failIfFxThread();
 		if (disposed) return Try.error();
 
 		boolean wasCoverFile_loaded = coverFile_loaded;
@@ -175,7 +175,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					return Try.ok(new LoadResult(null, cover));
 				}
 				if (AudioFileFormat.isSupported(val, Use.APP)) {
-					cover = MetadataReader.readMetadata(new SimpleItem(val)).getCover(CoverSource.TAG).getImage(size);
+					cover = MetadataReader.readMetadata(new SimpleSong(val)).getCover(CoverSource.TAG).getImage(size);
 					cover_loadedFull.set(true);
 					cover_loadedThumb.set(true);
 					return Try.ok(new LoadResult(null, cover));

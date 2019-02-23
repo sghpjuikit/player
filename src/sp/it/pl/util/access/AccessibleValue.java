@@ -38,10 +38,10 @@ public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>
 	}
 
 	/**
-	 * Equivalent to calling {@link #setValue(Object)} with {@link #cycle()};
+	 * Equivalent to calling {@link #setValue(Object)} with {@link #next()};
 	 */
 	default void setCycledValue() {
-		setValue(cycle());
+		setValue(next());
 	}
 
 	/**

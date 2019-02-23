@@ -3,7 +3,7 @@ package sp.it.pl.util;
 import java.util.List;
 import java.util.stream.Stream;
 import sp.it.pl.util.functional.Util;
-import static sp.it.pl.util.functional.UtilKt.seqRec;
+import static sp.it.pl.util.functional.UtilKt.recurse;
 
 /**
  * Object in a tree hierarchy, having an optional parent and any number of children. All objects in the hierarchy
@@ -19,7 +19,7 @@ public interface Hierarchical<H extends Hierarchical<H>> {
 
 	@SuppressWarnings("unchecked")
 	default Stream<H> getHChildrenR() {
-		return Util.stream(seqRec((H) this, e -> e.getHChildren()).iterator());
+		return Util.stream(recurse((H) this, e -> e.getHChildren()).iterator());
 	}
 
 	default boolean isHLeaf() {

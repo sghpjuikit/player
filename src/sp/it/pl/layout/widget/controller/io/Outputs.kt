@@ -3,7 +3,6 @@ package sp.it.pl.layout.widget.controller.io
 import org.reactfx.Subscription
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.type.isSuperclassOf
-import sp.it.pl.util.type.typetoken.TypeToken
 import java.util.HashMap
 import java.util.UUID
 
@@ -11,12 +10,6 @@ class Outputs {
     private val m = HashMap<String, Output<*>>()
 
     inline fun <reified T> create(id: UUID, name: String, value: T?) = create<T>(id, name, T::class.java, value)
-
-    fun <T> create(id: UUID, name: String, type: TypeToken<in T?>, value: T?): Output<T?> {
-        val o = create(id, name, type.rawType, value)
-        o.typeT = type
-        return o
-    }
 
     fun <T> create(id: UUID, name: String, type: Class<in T>, value: T?): Output<T?> {
         val o = Output(id, name, type)

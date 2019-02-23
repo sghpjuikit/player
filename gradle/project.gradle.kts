@@ -1,27 +1,14 @@
+
 import de.undercouch.gradle.tasks.download.Download
-import de.undercouch.gradle.tasks.download.DownloadExtension
-import de.undercouch.gradle.tasks.download.DownloadTaskPlugin
-import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.JavaExec
-import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.extra
-import org.gradle.kotlin.dsl.kotlin
-import org.gradle.kotlin.dsl.support.zipTo
-import org.jetbrains.kotlin.backend.common.onlyIf
-import org.jetbrains.kotlin.config.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.io.FileNotFoundException
 import java.io.IOException
-import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.zip.ZipInputStream
 import kotlin.text.Charsets.UTF_8
 
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
-    id("com.gradle.build-scan") version "1.16"
+    id("com.gradle.build-scan") version "2.1"
     kotlin("jvm") version "1.3.0"
     application
     id("com.github.ben-manes.versions") version "0.20.0"
@@ -29,9 +16,9 @@ plugins {
     id("org.openjfx.javafxplugin") version "0.0.6"
 }
 
-/** working directory of the application */
-val dirWorking = file("working dir")
-val dirJdk = dirWorking/"java"
+/** Working directory of the application */
+val dirApp = file("app")
+val dirJdk = dirApp/"java"
 val kotlinVersion: String by extra {
     buildscript.configurations["classpath"]
             .resolvedConfiguration.firstLevelModuleDependencies
@@ -58,6 +45,10 @@ sourceSets {
     getByName("main") {
         java.srcDir("src")
         resources.srcDir("src")
+    }
+    getByName("test") {
+        java.srcDir("src-test")
+        resources.srcDir("src-test")
     }
 }
 
@@ -129,7 +120,7 @@ dependencies {
 
     "Native" requires {
         implementation("net.java.dev.jna", "jna-platform")
-        implementation("com.1stleg", "jnativehook", "2.0.2") // don't update this to 2.1.0, it causes a critical error on linux
+        implementation("com.1stleg", "jnativehook", "2.1.0")
     }
 
     "Misc" requires {
@@ -158,6 +149,10 @@ dependencies {
         imageIO("tiff")
     }
 
+    "Test" requires {
+        testImplementation("io.kotlintest", "kotlintest-runner-junit5", "3.2.1")
+    }
+
 }
 
 tasks {
@@ -165,9 +160,9 @@ tasks {
 
     val copyLibs by creating(Sync::class) {
         group = "build"
-        description = "Copies all libraries into the working dir"
+        description = "Copies all libraries into the app dir"
         from(configurations.compileClasspath)
-        into(dirWorking/"lib")
+        into(dirApp/"lib")
     }
 
     val linkJdk by creating {
@@ -196,7 +191,7 @@ tasks {
     }
 
     val kotlinc by creating(Download::class) {
-        val dirKotlinc = dirWorking/"kotlinc"
+        val dirKotlinc = dirApp/"kotlinc"
         val fileKotlinVersion = dirKotlinc/"build.txt"
         val nameKotlinc = "kotlin-compiler-$kotlinVersion.zip"
         val fileKotlinc = dirKotlinc/"bin"/"kotlinc"
@@ -218,7 +213,7 @@ tasks {
         doLast {
             copy {
                 from(zipTree(zipKotlinc))
-                into(dirWorking)
+                into(dirApp)
             }
             fileKotlinc.setExecutable(true).orFailIO { "Failed to file=$fileKotlinc executable" }
             zipKotlinc.delete().orFailIO { "Failed to delete file=$zipKotlinc" } // clean up downloaded file
@@ -229,7 +224,7 @@ tasks {
     val jar by getting(Jar::class) {
         dependsOn(copyLibs, kotlinc)
         group = main
-        destinationDir = dirWorking
+        destinationDir = dirApp
         archiveName = "PlayerFX.jar"
     }
 
@@ -237,16 +232,17 @@ tasks {
         group = main
         description = "Cleans up temporary files"
         delete(
-                dirWorking/"user"/"tmp",
                 buildDir,
-                dirWorking.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList()
+                dirApp/"lib",
+                dirApp/"user"/"tmp",
+                dirApp.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList()
         )
     }
 
     "run"(JavaExec::class) {
         dependsOn(jar)  // the widgets need the jar on the classpath
         group = main
-        workingDir = dirWorking
+        workingDir = dirApp
     }
 
     "build" {
@@ -258,9 +254,14 @@ tasks {
 
 }
 
+test {
+    useJUnitPlatform { }
+    testLogging.showStandardStreams = true
+}
+
 application {
     applicationName = "PlayerFX"
-    mainClassName = "sp.it.pl.main.AppUtil"
+    mainClassName = "sp.it.pl.main.AppKt"
     applicationDefaultJvmArgs = listOf(
             "-Dfile.encoding=UTF-8",
             "-ms"+(properties["player.memoryMin"] ?: "100m"),
@@ -290,3 +291,8 @@ infix fun String.requires(block: () -> Unit) = block()
 fun failIO(cause: Throwable? = null, message: () -> String): Nothing = throw IOException(message(), cause)
 
 fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, message) }
+
+@Suppress("UNUSED_VARIABLE")
+fun Project.test(configuration: Test.() -> Unit) {
+    val test by tasks.getting(Test::class, configuration)
+}

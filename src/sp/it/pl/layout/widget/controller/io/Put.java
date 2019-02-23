@@ -7,11 +7,9 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.WritableValue;
 import org.reactfx.Subscription;
-import sp.it.pl.util.type.typetoken.TypeToken;
 
 public class Put<T> implements XPut<T>, WritableValue<T> {
 
-	public TypeToken<? super T> typeT;  // TODO: fix
 	public final Class<? super T> type;
 	final ObjectProperty<T> val = new SimpleObjectProperty<>();
 	protected final Set<Consumer<? super T>> monitors = new HashSet<>();

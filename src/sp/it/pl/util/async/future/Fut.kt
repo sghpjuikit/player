@@ -1,6 +1,5 @@
 package sp.it.pl.util.async.future
 
-import javafx.scene.control.ProgressIndicator
 import javafx.util.Duration
 import mu.KLogging
 import sp.it.pl.util.async.FX
@@ -9,12 +8,13 @@ import sp.it.pl.util.async.future.Fut.Result.ResultFail
 import sp.it.pl.util.async.future.Fut.Result.ResultInterrupted
 import sp.it.pl.util.async.future.Fut.Result.ResultOk
 import sp.it.pl.util.async.sleep
+import sp.it.pl.util.dev.Blocks
+import sp.it.pl.util.dev.Experimental
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.kt
 import sp.it.pl.util.functional.toUnit
-import java.util.Optional
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
@@ -23,12 +23,17 @@ import java.util.function.Consumer
 /**
  * Future monad implementation.
  *
- * Represents time sensitive value, enriched with the way it is computed. Lazy.
+ * Represents time sensitive value, enriched with computation context. Lazy.
  *
- * Oriented for practicality * ease of use, not specification (monadic laws) or robustness (API completeness).
+ * Oriented for practicality and ease of use, not specification (monadic laws) or robustness (API completeness).
  */
 class Fut<T>(private var f: CompletableFuture<T>) {
 
+    // TODO: Document properly and make sure exceptions are handled properly in getDone
+    //       This is related to cancelling javafx.concurrent.Task from Fut, which is problematic due to the fact that
+    //       the Task uses Thread interrupts for cancellation, but CompletableFuture does not
+    //       https://stackoverflow.com/questions/29013831/how-to-interrupt-underlying-execution-of-completablefuture
+    @Experimental
     fun cancel(): Unit = f.cancel(true).toUnit()
 
     /** @return future that waits for this to complete and then invokes the specified block and returns its result */
@@ -52,37 +57,13 @@ class Fut<T>(private var f: CompletableFuture<T>) {
     @JvmOverloads
     fun useBy(executor: Executor = defaultExecutor, block: Consumer<in T>) = then(executor) { block(it); it }
 
-    /**
-     * Sets progress to 0 on [FX], then waits for computation of this future and then
-     * sets progress to 1, again on [FX].
-     *
-     * ```
-     * fut()
-     *   .then { computeX() }
-     *   .then { computeY() }
-     *   .showProgress()
-     *   .then { computeZ() }
-     * ```
-     *
-     * When chaining futures (like in the example above), the placement of this method determines
-     * after which computation the progress reaches 1.
-     *
-     * The progress is 0 in any computation preceding this method and 1 in any following it. So to set the progress to
-     * 1 at the end of computation, this method must be the last call of the chain.
-     */
-    fun showProgress(p: Optional<ProgressIndicator>): Fut<T> = p.map { showProgress(it) }.orElse(this)
-
-    fun showProgress(p: ProgressIndicator) = apply {
-        CompletableFuture
-                .runAsync({ p.progress = -1.0 }, FX.kt)
-                .thenComposeAsync { f }
-                .thenApplyAsync({ p.progress = 1.0; it }, FX.kt)
-    }
-
+    /** Sets [block] to be invoked when this future finishes with success. Returns this. */
     fun onOk(executor: Executor = defaultExecutor, block: (T) -> Unit) = onDone(executor) { it.ifOk(block) }
 
+    /** Sets [block] to be invoked when this future finishes with error. Returns this. */
     fun onError(executor: Executor = defaultExecutor, block: (Throwable) -> Unit) = onDone(executor) { it.ifError(block) }
 
+    /** Sets [block] to be invoked when this future finishes regardless of success. Returns this. */
     fun onDone(executor: Executor = defaultExecutor, block: (Try<T,Throwable>) -> Unit) = apply {
         f.handleAsync(
                 { t, e ->  block(if (e==null) Try.ok(t) else Try.error(e)) },
@@ -90,8 +71,11 @@ class Fut<T>(private var f: CompletableFuture<T>) {
         )
     }
 
+    /** @return whether this future completed regardless of success */
     fun isDone(): Boolean = f.isDone
 
+    /** Waits for this future to complete and return the result. */
+    @Blocks
     fun getDone(): Result<T> = try {
             ResultOk(f.get())
         } catch (e: InterruptedException) {

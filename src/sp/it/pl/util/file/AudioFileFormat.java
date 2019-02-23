@@ -6,11 +6,11 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.stream.Stream;
 import javafx.stage.FileChooser;
-import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.util.SwitchException;
 import static java.util.stream.Collectors.toList;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.FailKt.noNull;
 
 /**
  * All audio file formats known and supported by application except for UNKNOWN that
@@ -98,14 +98,14 @@ public enum AudioFileFormat {
 	}
 
 	/**
-	 * Checks whether the item is of supported audio format. Unsupported file
+	 * Checks whether the song is of supported audio format. Unsupported file
 	 * don't get any official support for any of the app's features and by default
 	 * are ignored.
 	 *
 	 * @return true if supported, false otherwise
 	 */
-	public static boolean isSupported(Item item, Use use) {
-		return of(item.getUri()).isSupported(use);
+	public static boolean isSupported(Song song, Use use) {
+		return of(song.getUri()).isSupported(use);
 	}
 
 	/**

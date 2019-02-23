@@ -1,27 +1,33 @@
 package sp.it.pl.main
 
+import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Insets
+import javafx.geometry.Side
 import javafx.scene.Cursor
 import javafx.scene.Node
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Tooltip
 import javafx.scene.text.Font
 import sp.it.pl.gui.objects.Text
+import sp.it.pl.gui.objects.form.Form.Companion.form
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
+import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.objects.spinner.Spinner
 import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator
 import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.future.Fut
+import sp.it.pl.util.conf.Configurable
+import sp.it.pl.util.conf.ValueConfig
 import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.functional.kt
 import sp.it.pl.util.graphics.setScaleXY
 import sp.it.pl.util.graphics.text
-import sp.it.pl.util.math.millis
-import sp.it.pl.util.math.seconds
 import sp.it.pl.util.reactive.attachChanges
+import sp.it.pl.util.units.millis
+import sp.it.pl.util.units.seconds
+import sp.it.pl.util.validation.Constraint
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 
@@ -44,7 +50,7 @@ fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> 
         wrappingWithNatural.value = true
     }
     return PopOver(t).apply {
-        getSkinn().contentPadding = Insets(15.0) // use css instead
+        skinn.contentPadding = Insets(15.0) // use css instead
         styleClass += "help-popover"
         title.value = textTitle
         isAutoHide = true
@@ -55,17 +61,20 @@ fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> 
     }
 }
 
-fun createInfoIcon(text: String): Icon = Icon(IconFA.INFO)
+/** @return standardized icon that opens a help tooltip with specified text */
+fun infoIcon(tooltipText: String): Icon = Icon(IconFA.INFO)
         .tooltip("Help")
         .onClick { e ->
-            e.consume()
             APP.actionStream.push("Info popup")
-            helpPopOver(text).apply {
+            helpPopOver(tooltipText).apply {
                 contentNode.value.wrappingWidth = 400.0
-                getSkinn().setTitleAsOnlyHeaderContent(false)
+                skinn.setTitleAsOnlyHeaderContent(false)
                 showInCenterOf(e.source as Node)
             }
         }
+
+/** @return standardized icon associated with a form that invokes an action */
+fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25.0).onClick(action).withText(text, Side.RIGHT)
 
 @JvmOverloads
 fun appProgressIndicator(onStart: Consumer<ProgressIndicator> = Consumer {}, onFinish: Consumer<ProgressIndicator> = Consumer {}) = Spinner().apply {
@@ -124,21 +133,39 @@ fun Font.rowHeight(): Double {
     return h.toDouble()
 }
 
+fun <T, C: Configurable<T>> C.configure(title: String, action: (C) -> Unit) {
+    lateinit var hidePopup: () -> Unit
+    val form = form(this) { action(it); hidePopup() }
+    val popup = PopOver(form)
+    hidePopup = { if (popup.isShowing) popup.hide() }
+
+    popup.title.value = title
+    popup.isAutoHide = true
+    popup.show(ScreenPos.APP_CENTER)
+    popup.contentNode.value.focusFirstConfigField()
+}
+
+fun configureString(title: String, inputName: String, action: (String) -> Unit) {
+    ValueConfig(String::class.java, inputName, "")
+            .constraints(Constraint.StringNonEmpty())
+            .configure(title) { action(it.value) }
+}
+
 fun nodeAnimation(n: Node) = anim(300.millis) { n.opacity = it*it }.apply { playAgainIfFinished = false }
 
 open class AnimationBuilder {
     protected open val key = "ANIMATION_OPEN_CLOSE"
 
-    open fun closeAndDo(n: Node, action: Runnable?) {
+    open fun closeAndDo(n: Node, action: (() -> Unit)?) {
         val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
         if (!a.isRunning()) a.applyAt(1.0)
-        a.playCloseDo(action?.kt)
+        a.playCloseDo(action)
     }
 
-    open fun openAndDo(n: Node, action: Runnable?) {
+    open fun openAndDo(n: Node, action: (() -> Unit)?) {
         val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
         if (!a.isRunning()) a.applyAt(0.0)
-        a.playOpenDo(action?.kt)
+        a.playOpenDo(action)
     }
 
     protected open fun buildAnimation(n: Node) = nodeAnimation(n)
@@ -149,15 +176,15 @@ object AppAnimator: AnimationBuilder()
 class DelayAnimator: AnimationBuilder() {
     override val key = "ANIMATION_OPEN_CLOSE_DELAYED"
     private val animDelay = AtomicLong(0)
-    private val animDelayResetter = EventReducer.toLast<Void>(200.0, Runnable { animDelay.set(0) })
+    private val animDelayResetter = EventReducer.toLast<Void>(200.0) { animDelay.set(0) }
 
-    override fun closeAndDo(n: Node, action: Runnable?) {
+    override fun closeAndDo(n: Node, action: (() -> Unit)?) {
         super.closeAndDo(n, action)
         animDelay.incrementAndGet()
         animDelayResetter.push(null)
     }
 
-    override fun openAndDo(n: Node, action: Runnable?) {
+    override fun openAndDo(n: Node, action: (() -> Unit)?) {
         super.openAndDo(n, action)
         animDelay.incrementAndGet()
         animDelayResetter.push(null)

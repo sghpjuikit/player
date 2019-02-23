@@ -18,8 +18,8 @@ import javafx.scene.Node;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
-import sp.it.pl.audio.Item;
-import sp.it.pl.audio.SimpleItem;
+import sp.it.pl.audio.Song;
+import sp.it.pl.audio.SimpleSong;
 import sp.it.pl.audio.tagging.MetadataGroup;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.widget.controller.io.Output;
@@ -36,10 +36,9 @@ import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.DragEvent.DRAG_DROPPED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.TransferMode.ANY;
-import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.async.future.Fut.fut;
-import static sp.it.pl.util.dev.Util.logger;
+import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.file.Util.getFilesAudio;
 import static sp.it.pl.util.functional.Util.IS;
 import static sp.it.pl.util.functional.Util.filterMap;
@@ -47,6 +46,11 @@ import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
 
 public final class DragUtil {
+
+
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+	private static final File DIR_TMP = new File(System.getProperty("java.io.tmpdir"));
 
 /* ---------- DRAG -------------------------------------------------------------------------------------------------- */
 
@@ -83,8 +87,8 @@ public final class DragUtil {
 
 /* ---------- DATA FORMATS ------------------------------------------------------------------------------------------ */
 
-	/** Data Format for {@link java.util.List} of {@link sp.it.pl.audio.Item}. */
-	public static final DataFormat DF_ITEMS = new DataFormat("application/items");
+	/** Data Format for {@link java.util.List} of {@link sp.it.pl.audio.Song}. */
+	public static final DataFormat DF_SONG_LIST = new DataFormat("application/items");
 	/** Data Format for {@link sp.it.pl.layout.Component}. */
 	public static final DataFormat DF_COMPONENT = new DataFormat("application/component");
 	/** Data Format for widget {@link sp.it.pl.layout.widget.controller.io.Output} linking. */
@@ -157,7 +161,7 @@ public final class DragUtil {
 		Dragboard d = e.getDragboard();
 		// as we return immediately with the result, the order matters
 		// first in-app objects, then general object (text, files, etc.)
-		if (hasItemList(e)) return getItemsList(e);
+		if (hasSongList(e)) return getSongList(e);
 		if (hasComponent(e)) return getComponent(e);
 		if (hasMetadataGroup(e)) return getMetadataGroup(e);
 		if (d.hasFiles()) return d.getFiles();
@@ -171,7 +175,7 @@ public final class DragUtil {
 		Dragboard d = e.getDragboard();
 		// as we return immediately with the result, the order matters
 		// first in-app objects, then general object (text, files, etc.)
-		if (hasItemList(e)) return getItemsList(e);
+		if (hasSongList(e)) return getSongList(e);
 		if (hasComponent(e)) return getComponent(e);
 		if (hasMetadataGroup(e)) return getMetadataGroup(e);
 		if (d.hasFiles()) return d.getFiles();
@@ -285,26 +289,26 @@ public final class DragUtil {
 
 /* ---------- SONGS ------------------------------------------------------------------------------------------------- */
 
-	public static void setItemList(List<? extends Item> items, Dragboard db, boolean includeFiles) {
+	public static void setSongList(List<? extends Song> items, Dragboard db, boolean includeFiles) {
 		data = items;
-		db.setContent(singletonMap(DF_ITEMS, ""));   // fake data
+		db.setContent(singletonMap(DF_SONG_LIST, ""));   // fake data
 
 		if (includeFiles) {
 			HashMap<DataFormat,Object> c = new HashMap<>();
-			c.put(DF_ITEMS, "");   // fake data
-			c.put(FILES, filterMap(items, Item::isFileBased, Item::getFile));
+			c.put(DF_SONG_LIST, "");   // fake data
+			c.put(FILES, filterMap(items, Song::isFileBased, Song::getFile));
 			db.setContent(c);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public static List<Item> getItemsList(DragEvent e) {
-		if (!hasItemList(e)) throw new RuntimeException("No item list in data available.");
-		return (List<Item>) data;
+	public static List<Song> getSongList(DragEvent e) {
+		if (!hasSongList(e)) throw new RuntimeException("No item list in data available.");
+		return (List<Song>) data;
 	}
 
-	public static boolean hasItemList(DragEvent e) {
-		return e.getDragboard().hasContent(DF_ITEMS);
+	public static boolean hasSongList(DragEvent e) {
+		return e.getDragboard().hasContent(DF_SONG_LIST);
 	}
 
 	/**
@@ -316,20 +320,20 @@ public final class DragUtil {
 	 * @param e source event
 	 * @return list of supported items derived from dragboard of the event.
 	 */
-	public static List<Item> getAudioItems(DragEvent e) {
+	public static List<Song> getAudioItems(DragEvent e) {
 		Dragboard d = e.getDragboard();
-		ArrayList<Item> o = new ArrayList<>();
+		ArrayList<Song> o = new ArrayList<>();
 
-		if (hasItemList(e)) {
-			o.addAll(getItemsList(e));
+		if (hasSongList(e)) {
+			o.addAll(getSongList(e));
 		} else if (d.hasFiles()) {
-			getFilesAudio(d.getFiles(), Use.APP, Integer.MAX_VALUE).map(SimpleItem::new).forEach(o::add);
+			getFilesAudio(d.getFiles(), Use.APP, Integer.MAX_VALUE).map(SimpleSong::new).forEach(o::add);
 		} else if (d.hasUrl()) {
 			String url = d.getUrl();
 			// watch out for non audio urls, we must filter those out, or
 			// we could cause subtle bugs
 			if (AudioFileFormat.isSupported(url, Use.APP))
-				Optional.of(new SimpleItem(URI.create(url)))  // is not this dangerous?
+				Optional.of(new SimpleSong(URI.create(url)))  // is not this dangerous?
 						.filter(i -> !i.isCorrupt(Use.APP)) // is not this pointless?
 						.ifPresent(o::add);
 		}
@@ -346,7 +350,7 @@ public final class DragUtil {
 		Dragboard d = e.getDragboard();
 		return (d.hasFiles() && Util.containsAudioFileOrDir(d.getFiles(), Use.APP)) ||
 				(d.hasUrl() && AudioFileFormat.isSupported(d.getUrl(), Use.APP)) ||
-				hasItemList(e);
+				hasSongList(e);
 	}
 
 	/**
@@ -423,7 +427,7 @@ public final class DragUtil {
 			String url = d.getUrl();
 			return runNew(() -> {
 				try {
-					File f = Util.saveFileTo(url, APP.DIR_TEMP);
+					File f = Util.saveFileTo(url, DIR_TMP);
 					f.deleteOnExit();
 					return singletonList(f);
 				} catch (IOException ex) {
@@ -442,26 +446,26 @@ public final class DragUtil {
 	 * <ul>
 	 * <ls>If there was an url, stream of single http based item.
 	 * <ls>If there were files, all audio files.
-	 * <ls>If there were {@link Item}s, all items.
+	 * <ls>If there were {@link Song}s, all items.
 	 * <ls>Empty stream otherwise
 	 * </ul>
 	 *
 	 * @return supplier, never null
 	 */
-	public static Fut<Stream<Item>> getSongs(DragEvent e) {
+	public static Fut<Stream<Song>> getSongs(DragEvent e) {
 		Dragboard d = e.getDragboard();
 
-		if (hasItemList(e)) {
-			return fut(getItemsList(e).stream());
+		if (hasSongList(e)) {
+			return fut(getSongList(e).stream());
 		}
 		if (d.hasFiles()) {
 			List<File> files = d.getFiles();
-			return runNew(() -> getFilesAudio(files, Use.APP, MAX_VALUE).map(SimpleItem::new));
+			return runNew(() -> getFilesAudio(files, Use.APP, MAX_VALUE).map(SimpleSong::new));
 		}
 		if (d.hasUrl()) {
 			String url = d.getUrl();
 			return AudioFileFormat.isSupported(url, Use.APP)
-					? fut(Stream.of(new SimpleItem(URI.create(url))))
+					? fut(Stream.of(new SimpleSong(URI.create(url))))
 					: fut(Stream.empty());
 		}
 		return fut(Stream.empty());
@@ -475,7 +479,7 @@ public final class DragUtil {
 				// e.g. anime-pictures.net
 				//
 				// https://code.google.com/p/jsslutils/wiki/SSLContextFactory
-				File f = Util.saveFileTo(url, APP.DIR_TEMP);
+				File f = Util.saveFileTo(url, DIR_TMP);
 				f.deleteOnExit();
 				return f;
 			} catch (IOException e) {

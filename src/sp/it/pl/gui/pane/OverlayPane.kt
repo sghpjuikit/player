@@ -19,7 +19,6 @@ import javafx.stage.Screen
 import javafx.stage.Stage
 import org.reactfx.Subscription
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.image.Thumbnail.FitFrom
 import sp.it.pl.gui.pane.OverlayPane.Companion.globalDisplay
 import sp.it.pl.gui.pane.OverlayPane.Companion.globalDisplayBgr
 import sp.it.pl.main.APP
@@ -40,6 +39,7 @@ import sp.it.pl.util.graphics.Util.screenCaptureAndDo
 import sp.it.pl.util.graphics.Util.setAnchors
 import sp.it.pl.util.graphics.applyViewPort
 import sp.it.pl.util.graphics.getScreenForMouse
+import sp.it.pl.util.graphics.image.FitFrom
 import sp.it.pl.util.graphics.image.imgImplLoadFX
 import sp.it.pl.util.graphics.minus
 import sp.it.pl.util.graphics.pane
@@ -47,12 +47,12 @@ import sp.it.pl.util.graphics.screenToLocal
 import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.math.P
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Handler0
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.reactive.syncTo
 import sp.it.pl.util.system.getWallpaperFile
+import sp.it.pl.util.units.millis
 
 /**
  * Pane laying 'above' standard content.

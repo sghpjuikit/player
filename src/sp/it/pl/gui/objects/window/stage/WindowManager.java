@@ -24,6 +24,7 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
 import org.slf4j.Logger;
+import sp.it.pl.gui.objects.form.Form;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.gui.objects.popover.ScreenPos;
@@ -33,7 +34,6 @@ import sp.it.pl.layout.widget.ComponentFactory;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.feature.HorizontalDock;
 import sp.it.pl.main.Settings;
-import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.action.IsAction;
@@ -61,13 +61,13 @@ import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
+import static sp.it.pl.gui.objects.form.Form.form;
 import static sp.it.pl.layout.widget.WidgetManagerKt.orEmpty;
-import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.unused.SimpleConfigurator.simpleConfigurator;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
-import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.DebugKt.logger;
+import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.mapB;
@@ -78,8 +78,8 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.addEventHandler1Time;
 import static sp.it.pl.util.graphics.UtilKt.getScreenForMouse;
-import static sp.it.pl.util.reactive.Util.maintain;
-import static sp.it.pl.util.reactive.Util.onItemRemoved;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.onItemRemoved;
 
 /**
  * Manages windows.
@@ -111,15 +111,14 @@ public class WindowManager implements Configurable<Object> {
     @IsConfig(name = "Headerless", info = "Hides header.")
     public final V<Boolean> window_headerless = new V<>(false);
 
-    @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in mini mode.")
-    public final V<Boolean> show_windows = new V<>(true, v -> {
+    public final V<Boolean> show_windows = new V<>(true).initAttachC(v -> {
         if (!APP.getNormalLoad()) return;
         if (v) windows.stream().filter(w->w!=miniWindow).forEach(Window::show);
         else windows.stream().filter(w->w!=miniWindow).forEach(Window::hide);
     });
 
     @IsConfig(name="Mini mode", info="Whether application has mini window docked to top screen edge active.")
-    public final V<Boolean> mini = new V<>(false, this::setMini);
+    public final V<Boolean> mini = new V<>(false).initAttachC(this::setMini);
 
     @IsConfig(name="Mini open hover delay", info="Time for mouse to hover to open mini window.")
     public Duration mini_hover_delay = millis(700);
@@ -248,12 +247,6 @@ public class WindowManager implements Configurable<Object> {
         getActive().ifPresent(Window::close);
     }
 
-    // TODO: create dynamically from config annotation
-    @IsAction(name = "Mini mode", global = true, keys = "F9", desc = "Dock auxiliary window with playback control to the screen edge")
-    private void toggleMini() {
-        setMini(!mini.get());
-    }
-
     private void toggleMiniFull() {
         if (!APP.getNormalLoad()) return;
         if (mini.get()) mainWindow.show();
@@ -311,7 +304,7 @@ public class WindowManager implements Configurable<Object> {
             miniWindow.disposables.add(maintain(
                 mini_widget,
                 name -> {
-                    Component newW = orEmpty(APP.widgetManager.factories.getComponentFactory(name)).create();
+                    Component newW = orEmpty(APP.widgetManager.factories.getComponentFactoryByGuiName(name)).create();
                     Component oldW = (Widget) content.getProperties().get("widget");
 
                     if (oldW!=null) oldW.close();
@@ -493,7 +486,7 @@ public class WindowManager implements Configurable<Object> {
 
     public void showSettings(Configurable c, Node n) {
         showSettingsSimple(c, n);
-        // TODO: decide whether we use SimpleConfigurator or Configurator widget
+        // TODO: decide whether we use Form or Configurator widget
 //		String name = c instanceof Widget ? ((Widget)c).getName() : "";
 //		Configurator sc = new Configurator(true);
 //		sc.configure(c);
@@ -510,15 +503,13 @@ public class WindowManager implements Configurable<Object> {
     }
 
     public void showSettingsSimple(Configurable<?> c, Node n) {
-        boolean isComponent = c instanceof Component;
         String name = c instanceof Widget ? ((Widget) c).getName() : "";
-        SimpleConfigurator<?> sc = simpleConfigurator(c);
-        PopOver<?> p = new PopOver<>(sc);
+        Form<?> form = form(c);
+        PopOver<?> p = new PopOver<>(form);
         p.title.set((name==null ? "" : name + " ") + " Settings");
         p.arrowSize.set(0); // auto-fix breaks the arrow position, turn off - sux
         p.setAutoFix(true); // we need auto-fix here, because the popup can get rather big
         p.setAutoHide(true);
-        if (isComponent) p.addEventFilter(WINDOW_HIDING, we -> ((Component) c).close());
         p.showInCenterOf(n);
     }
 
@@ -539,7 +530,7 @@ public class WindowManager implements Configurable<Object> {
     }
 
     public void launchComponent(String name) {
-        ComponentFactory<?> wf = APP.widgetManager.factories.getComponentFactory(name);
+        ComponentFactory<?> wf = APP.widgetManager.factories.getComponentFactoryByGuiName(name);
         Component w = wf==null ? null : wf.create();
         launchComponent(w);
     }
@@ -566,7 +557,7 @@ public class WindowManager implements Configurable<Object> {
         // try to build widget using just launcher filename
         boolean isLauncherEmpty = Util.readFileLines(launcher).count()==0;
         String wn = isLauncherEmpty ? Util.getName(launcher) : "";
-        wf = APP.widgetManager.factories.getComponentFactory(wn);
+        wf = APP.widgetManager.factories.getComponentFactoryByGuiName(wn);
         if (wf!=null)
             c = wf.create();
 

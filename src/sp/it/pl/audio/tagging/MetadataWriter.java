@@ -37,7 +37,7 @@ import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 import org.jaudiotagger.tag.wav.WavTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sp.it.pl.audio.Item;
+import sp.it.pl.audio.Song;
 import sp.it.pl.audio.Player;
 import sp.it.pl.service.notif.Notifier;
 import sp.it.pl.util.SwitchException;
@@ -59,7 +59,7 @@ import static sp.it.pl.audio.tagging.Metadata.TAG_ID_LIB_ADDED;
 import static sp.it.pl.audio.tagging.Metadata.TAG_ID_PLAYED_FIRST;
 import static sp.it.pl.audio.tagging.Metadata.TAG_ID_PLAYED_LAST;
 import static sp.it.pl.audio.tagging.Metadata.TAG_ID_TAGS;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.emptyOr;
 import static sp.it.pl.util.async.AsyncKt.runFX;
@@ -74,21 +74,21 @@ import static sp.it.pl.util.functional.Util.stream;
  * The writer must be instantiated for use. It is reusable for an item.
  */
 // TODO: limit rating bounds value, multiple values, id3 popularimeter mail settings
-public class MetadataWriter extends Item {
+public class MetadataWriter extends Song {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataWriter.class);
 
 	/**
-	 * Constructs metadata writer for given item.
+	 * Constructs metadata writer for given song.
 	 *
 	 * @return writer or null if error occurs.
-	 * @throws UnsupportedOperationException if item not file based
+	 * @throws UnsupportedOperationException if song not file based
 	 */
-	private static MetadataWriter create(Item item) {
-		if (!item.isFileBased()) throw new UnsupportedOperationException("Item must be file based");
+	private static MetadataWriter create(Song song) {
+		if (!song.isFileBased()) throw new UnsupportedOperationException("Song must be file based");
 
 		MetadataWriter w = new MetadataWriter();
-		w.reset(item);
+		w.reset(song);
 		return w.audioFile==null ? null : w;
 	}
 
@@ -857,7 +857,7 @@ public class MetadataWriter extends Item {
 		isWriting.set(false);
 	}
 
-	public void reset(Item i) {
+	public void reset(Song i) {
 		if (!i.isFileBased()) {
 			reset();
 		} else {
@@ -885,15 +885,15 @@ public class MetadataWriter extends Item {
 	/******************************************************************************/
 
 	// TODO: use Fut
-	public static <I extends Item> void use(I item, Consumer<MetadataWriter> setter) {
+	public static <I extends Song> void use(I item, Consumer<MetadataWriter> setter) {
 		use(singletonList(item), setter);
 	}
 
-	public static <I extends Item> void use(Collection<I> items, Consumer<MetadataWriter> setter) {
+	public static <I extends Song> void use(Collection<I> items, Consumer<MetadataWriter> setter) {
 		use(items, setter, null);
 	}
 
-	public static <I extends Item> void use(Collection<I> items, Consumer<MetadataWriter> setter, Consumer<List<Metadata>> action) {
+	public static <I extends Song> void use(Collection<I> items, Consumer<MetadataWriter> setter, Consumer<List<Metadata>> action) {
 		Player.IO_THREAD.execute(() -> {
 			MetadataWriter w = new MetadataWriter();
 			for (I i : items)
@@ -903,12 +903,12 @@ public class MetadataWriter extends Item {
 					w.write();
 				}
 			List<Metadata> ms = stream(items).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList());
-			Player.refreshItemsWith(ms);
+			Player.refreshSongsWith(ms);
 			if (action!=null) runFX(() -> action.accept(ms));
 		});
 	}
 
-	public static <I extends Item> void use(I item, Consumer<MetadataWriter> setter, Consumer<Boolean> action) {
+	public static <I extends Song> void use(I item, Consumer<MetadataWriter> setter, Consumer<Boolean> action) {
 		if (item.isFileBased()) {
 			Player.IO_THREAD.execute(() -> {
 				MetadataWriter w = new MetadataWriter();
@@ -923,7 +923,7 @@ public class MetadataWriter extends Item {
 		}
 	}
 
-	public static <I extends Item> void useNoRefresh(I item, Consumer<MetadataWriter> setter) {
+	public static <I extends Song> void useNoRefresh(I item, Consumer<MetadataWriter> setter) {
 		if (item.isFileBased()) {
 			MetadataWriter w = new MetadataWriter();
 			w.reset(item);
@@ -932,7 +932,7 @@ public class MetadataWriter extends Item {
 		}
 	}
 
-	public static <I extends Item> void useNoRefresh(Collection<I> items, Consumer<MetadataWriter> setter) {
+	public static <I extends Song> void useNoRefresh(Collection<I> items, Consumer<MetadataWriter> setter) {
 		MetadataWriter w = new MetadataWriter();
 		for (I i : items) {
 			if (i.isFileBased()) {

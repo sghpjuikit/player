@@ -22,9 +22,9 @@ import javafx.stage.PopupWindow
 import javafx.stage.Stage
 import mu.KotlinLogging
 import org.reactfx.Subscription
-import sp.it.pl.audio.Item
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.MetadataGroup
-import sp.it.pl.audio.tagging.PlaylistItemGroup
+import sp.it.pl.audio.tagging.PlaylistSongGroup
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.popover.PopOver
@@ -43,6 +43,8 @@ import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.isValidSkinFile
+import sp.it.pl.main.isValidWidgetFile
 import sp.it.pl.service.Service
 import sp.it.pl.util.HierarchicalBase
 import sp.it.pl.util.Util.enumToHuman
@@ -53,7 +55,6 @@ import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.file.FileType
-import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.nameOrRoot
@@ -80,7 +81,7 @@ private fun Any?.orNone(): Any = this ?: "<none>"
 @Suppress("UNCHECKED_CAST", "RemoveExplicitTypeArguments")
 fun <T> tree(o: T): TreeItem<T> = when (o) {
     is TreeItem<*> -> o
-    is Widget<*> -> WidgetItem(o)
+    is Widget -> WidgetItem(o)
     is WidgetFactory<*> -> SimpleTreeItem(o)
     is Widget.Group -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(OPEN).asSequence().filter { it.info.group()==o }.sortedBy { it.name } })
     is WidgetSource -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(o).asSequence().sortedBy { it.name } })
@@ -95,9 +96,9 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
     is Window -> tree(o.stage)
     is PopOver<*> -> STreeItem(o, { seqOf(o.scene.root) })
     is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
-    is Item -> STreeItem(o.uri, { seqOf() }, { true })
+    is Song -> STreeItem(o.uri, { seqOf() }, { true })
     is MetadataGroup -> STreeItem<Any?>("Library songs", { o.grouped.asSequence() }, { o.grouped.isEmpty() })
-    is PlaylistItemGroup -> STreeItem<Any?>("Playlist songs", { o.items.asSequence() }, { o.items.isEmpty() })
+    is PlaylistSongGroup -> STreeItem<Any?>("Playlist songs", { o.songs.asSequence() }, { o.songs.isEmpty() })
     is List<*> -> STreeItem<Any?>("List of "+APP.className.get(o.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
     is Set<*> -> STreeItem<Any?>("Set of "+APP.className.get(o.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
     else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().asSequence() }, { true }) else SimpleTreeItem(o)
@@ -211,9 +212,9 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
 
             val type = if (treeItem.isLeaf) FileType.FILE else FileType.of(p)
 
-            if (type==FileType.DIRECTORY && APP.DIR_SKINS==p.parentDir || Util.isValidSkinFile(p))
+            if (type==FileType.DIRECTORY && APP.DIR_SKINS==p.parentDir || p.isValidSkinFile())
                 createIcon(IconFA.PAINT_BRUSH, 8.0)
-            if (type==FileType.DIRECTORY && APP.DIR_WIDGETS==p.parentDir || Util.isValidWidgetFile(p))
+            if (type==FileType.DIRECTORY && APP.DIR_WIDGETS==p.parentDir || p.isValidWidgetFile())
                 createIcon(IconFA.GE, 8.0)
 
             if (type==FileType.FILE) createIcon(IconFA.FILE, 8.0)
@@ -274,14 +275,13 @@ private fun doAction(o: Any?, otherwise: () -> Unit) {
         is javafx.stage.Window -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
         is File -> o.open()
         is Configurable<*> -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(o) }
-        is Name -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(APP.configuration.fields.filter { it.group==o.pathUp }) }
         is TreeItem<*> -> doAction(o.value, otherwise)
         is HierarchicalBase<*, *> -> doAction(o.`val`, otherwise)
         else -> otherwise()
     }
 }
 
-private val globalContextMenu by lazy { ValueContextMenu() }
+private val globalContextMenu by lazy { ValueContextMenu<Any?>() }
 
 open class OTreeItem<T> constructor(v: T, private val childrenO: ObservableList<out T>): TreeItem<T>(v), DisposableTreeItem {
     private val once = ExecuteN(1)
@@ -330,7 +330,7 @@ open class STreeItem<T> constructor(v: T, private val childrenLazy: () -> Sequen
 
 class NodeTreeItem(value: Node): OTreeItem<Node>(value, (value as? Parent)?.childrenUnmodifiable ?: emptyObservableList())
 
-class WidgetItem(v: Widget<*>): STreeItem<Any>(v, { seqOf(v.areaTemp?.root).filterNotNull() }, { false })
+class WidgetItem(v: Widget): STreeItem<Any>(v, { seqOf(v.areaTemp?.root).filterNotNull() }, { false })
 
 class LayoutItem(v: Component): STreeItem<Component>(v, { if (v is Container<*>) v.children.values.asSequence() else seqOf()})
 

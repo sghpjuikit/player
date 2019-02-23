@@ -2,24 +2,31 @@ package sp.it.pl.util.type;
 
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import javafx.beans.Observable;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.functional.TriConsumer;
-import static sp.it.pl.util.dev.Util.logger;
+import static kotlin.text.StringsKt.substringBeforeLast;
+import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.functional.Util.isNoneØ;
 import static sp.it.pl.util.functional.Util.list;
 
@@ -34,36 +41,67 @@ public interface Util {
 	 * Additional provided arguments are name of the property and its non-erased generic type.
 	 * Javafx properties are obtained from public nameProperty() methods using reflection.
 	 */
-	static void forEachJavaFXProperty(Object o, TriConsumer<ObservableValue,String,Class> action) {
-		for (Method method : getAllMethods(o.getClass())) {
+	@SuppressWarnings({"UnnecessaryLocalVariable", "unchecked"})
+	static void forEachJavaFXProperty(Object o, TriConsumer<Observable,String,Class> action) {
+		// Standard JavaFX Properties
+		for (Method method : o.getClass().getMethods()) {
 			String methodName = method.getName();
-			// We are looking for javafx property bean methods
-			// We must filter out nonpublic and impl (can be public) ones. Why? Real life example:
-			// Serialization serializes all javafx property bean values of an graphical object -
-			// effect. Upon deserialization a 'private' flag indicating redrawing is restored
-			// which prevents the effect from updating values upon change. Such flags are usually
-			// the implNameProperty methods and can be public due to reasons...
-			//
-			// In other words anything non-public is not safe.
-			if (methodName.endsWith("Property") && Modifier.isPublic(method.getModifiers()) && !methodName.startsWith("impl")) {
-				Class<?> returnType = method.getReturnType();
+			boolean isPublished = !Modifier.isStatic(method.getModifiers()) && !methodName.startsWith("impl");
+			if (isPublished) {
 				String propertyName = null;
-				if (ObservableValue.class.isAssignableFrom(returnType)) {
+				if (Observable.class.isAssignableFrom(method.getReturnType())) {
 					try {
-						propertyName = methodName.substring(0, methodName.lastIndexOf("Property"));
+						propertyName = methodName;
+						propertyName = substringBeforeLast(propertyName, "Property", propertyName);
+						propertyName = kotlin.text.StringsKt.substringAfter(propertyName, "get", propertyName);
+						propertyName = kotlin.text.StringsKt.decapitalize(propertyName);
 						method.setAccessible(true);
-						ObservableValue<?> property = (ObservableValue) method.invoke(o);
-						if (property instanceof Property && ((Property) property).isBound()) {
+						Observable observable = (Observable) method.invoke(o);
+
+						if (observable instanceof Property && ((Property) observable).isBound()) {
 							ReadOnlyObjectWrapper<Object> rop = new ReadOnlyObjectWrapper<>();
-							rop.bind(property);
-							property = rop.getReadOnlyProperty();
+							rop.bind((Property) observable);
+							observable = rop.getReadOnlyProperty();
 						}
 
 						Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());
-						if (isNoneØ(property, propertyName, propertyType)) {
-							action.accept(property, propertyName, propertyType);
+						if (isNoneØ(observable, propertyName, propertyType)) {
+							action.accept(observable, propertyName, propertyType);
+						} else {
+							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", observable, propertyName, propertyName);
 						}
+
 					} catch (IllegalAccessException|InvocationTargetException e) {
+						logger(Util.class).error("Could not obtain property '{}' from object", propertyName);
+					}
+				}
+			}
+		}
+		// Extended JavaFX Properties as exposed fields
+		for (Field field : o.getClass().getFields()) {
+			String fieldName = field.getName();
+			boolean isPublished = !Modifier.isStatic(field.getModifiers()) && !fieldName.startsWith("impl");
+			if (isPublished) {
+				String propertyName = fieldName;
+				if (Observable.class.isAssignableFrom(field.getType())) {
+					try {
+						field.setAccessible(true);
+						Observable observable = (Observable) field.get(o);
+
+						if (observable instanceof Property && ((Property) observable).isBound()) {
+							ReadOnlyObjectWrapper<Object> rop = new ReadOnlyObjectWrapper<>();
+							rop.bind((Property) observable);
+							observable = rop.getReadOnlyProperty();
+						}
+
+						Class<?> propertyType = getGenericPropertyType(field.getGenericType());
+						if (isNoneØ(observable, propertyName, propertyType)) {
+							action.accept(observable, propertyName, propertyType);
+						} else {
+							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", observable, propertyName, propertyName);
+						}
+
+					} catch (IllegalAccessException e) {
 						logger(Util.class).error("Could not obtain property '{}' from object", propertyName);
 					}
 				}
@@ -130,9 +168,8 @@ public interface Util {
 	}
 
 	/**
-	 * Returns all declared fields of the class including inherited ones.
-	 * Equivalent to union of declared fields of the class and all its
-	 * superclasses.
+	 * Returns all declared fields of the class including private, static and inherited ones.
+	 * Equivalent to union of declared fields of the class and all its superclasses.
 	 */
 	@SuppressWarnings("CollectionAddAllCanBeReplacedWithConstructor")
 	static List<Field> getAllFields(Class clazz) {
@@ -145,26 +182,47 @@ public interface Util {
 		Class superClazz = clazz.getSuperclass();
 		if (superClazz!=null) fields.addAll(getAllFields(superClazz));
 
+		// get interface' fields recursively
+		for (Class<?> i: clazz.getInterfaces())
+			fields.addAll(getAllFields(i));
+
 		return fields;
 	}
 
 	/**
-	 * Returns all declared methods of the class including inherited ones.
-	 * Equivalent to union of declared fields of the class and all its
-	 * superclasses.
+	 * Returns all declared methods of the class including private, static and inherited ones.
+	 * Equivalent to union of declared methods of the class and all its superclasses.
 	 */
-	@SuppressWarnings("CollectionAddAllCanBeReplacedWithConstructor")
 	static List<Method> getAllMethods(Class clazz) {
 		List<Method> methods = new ArrayList<>();
 
-		// get all fields of the class (but not inherited fields)
-		methods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+		if (clazz.isInterface()) {
+			for (Class<?> i: clazz.getInterfaces()) {
+				methods.addAll(getAllMethods(i));
+			}
+			for (Method m: clazz.getDeclaredMethods()) {
+				if (m.isDefault())
+					methods.add(m);
+			}
+			return methods;
+		}
 
-		// get super class' fields recursively
+		// get all methods of the class (but not inherited methods)
+		Collections.addAll(methods, clazz.getDeclaredMethods());
+
+		// get default methods
+		for (Class<?> i: clazz.getInterfaces()) {
+			methods.addAll(getAllMethods(i));
+		}
+
+		// get super class' methods
 		Class superClazz = clazz.getSuperclass();
 		if (superClazz!=null) methods.addAll(getAllMethods(superClazz));
 
-		return methods;
+		MapSet<String,Method> ms = new MapSet<>(m -> m.getName());
+		ms.addAll(methods);
+
+		return list(ms);
 	}
 
 /* ---------- REFLECTION - ANNOTATION ------------------------------------------------------------------------------- */
@@ -285,79 +343,103 @@ public interface Util {
 	/**
 	 * Intended use case: discovering the generic type of a javafx property in the runtime
 	 * using reflection on parent object's {@link java.lang.reflect.Field} or {@link java.lang.reflect.Method} return
-	 * type (javafx property specification).
+	 * type.
 	 * <p/>
 	 * This works around java's type erasure and makes it possible to determine exact property type
 	 * even when property value is null or when the value is subtype of the property's generic type.
 	 * <p/>
-	 * Returns generic type of a {@link javafx.beans.property.Property} or formally the 1st generic
+	 * Returns generic type of a {@link javafx.beans.property.Property} - usually the 1st generic
 	 * parameter type of the first generic superclass or interface the provided type inherits from or
 	 * implements.
 	 * <p/>
-	 * The method inspects the class hierarchy and interfaces (if previous yields no result) and
-	 * looks for generic types. If any class or interface found is generic and its 1st generic
-	 * parameter type is available it is returned. Otherwise the inspection continues. In case of no
-	 * success, null is returned
+	 * If type is:
+	 * <ul>
+	 *     <li/> primitive class, its boxed type is returned
+	 *     <li/> class that does not inherit {@link javafx.beans.property.Property}, the class is returned as is
+	 *     <li/> otherwise type of the property is returned
+	 * </ul>
+	 * In other words: this method makes the property wrapper transparent.
 	 *
-	 * @return class of the 1st generic parameter of the specified type or of some of its supertype or null if none
-	 * found.
+	 * @return exact generic type of {@link javafx.beans.property.Property} represented by the specified type
 	 */
 	static Class getGenericPropertyType(Type t) {
-		// TODO: fix this returning null for EventHandlerProperty
+		if (t instanceof Class<?>) {
+			boolean isProperty = ObservableValue.class.isAssignableFrom((Class<?>) t);
+			if (!isProperty) return unPrimitivize((Class<?>) t);
+		}
 
-		// debug, reveals the class inspection order
-		// System.out.println("inspecting " + t.getTypeName());
+		if (t instanceof ParameterizedType) {
+			Type rawType = ((ParameterizedType) t).getRawType();
+			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
+			if (!isProperty) return getRawType(t);
+		}
 
-		// TODO: handle better
-		// Workaround for all number properties returning Number.class instead of their respective
-		// class, due to all implementing something along the lines Property<Number>. As per
-		// javadoc review, the affected are the four classes : Double, Float, Long, Integer.
-		String typename = t.getTypeName(); // classname
-		if (typename.contains("Double")) return Double.class;
-		if (typename.contains("Integer")) return Integer.class;
-		if (typename.contains("Float")) return Float.class;
-		if (typename.contains("Long")) return Double.class;
+		if (t instanceof WildcardType) {
+			Type rawType = ((WildcardType) t).getUpperBounds()[0];
+			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
+			if (!isProperty) return getRawType(t);
+		}
 
-		// TODO: handle better
-		// Some types may use their generic type indirectly, like: X<T> extends Property<Generic<T>>
-		// we should detect such cases and handle them in a generic way
+		Class<?> gpt = getGenericPropertyTypeImpl(t);
+
+		// Workaround for number properties returning Number.class, due to implementing Property<Number>.
+		if (gpt==Number.class) {
+			String typename = t.getTypeName();
+			if (typename.contains("Double")) return Double.class;
+			if (typename.contains("Integer")) return Integer.class;
+			if (typename.contains("Float")) return Float.class;
+			if (typename.contains("Long")) return Double.class;
+		}
+
+		return gpt;
+	}
+
+	private static Class<?> getGenericPropertyTypeImpl(Type t) {
+
+		// TODO: handle types defining generic property type indirectly, like: X<T> extends Property<Generic<T>>
+		String typename = t.getTypeName();
 		if (typename.contains(VarList.class.getSimpleName())) return ObservableList.class;
 
-		// This method is called recursively, but if ParameterizedType is passed in, we are halfway
-		// there. We just return generic type if it is available. If not we return null and the
-		// iteration will continue on upper level.
 		if (t instanceof ParameterizedType) {
 			Type[] genericTypes = ((ParameterizedType) t).getActualTypeArguments();
-			if (genericTypes.length>0) {
-				if (genericTypes[0] instanceof Class)
-					return (Class) genericTypes[0];
-				if (genericTypes[0] instanceof ParameterizedType)
-					return (Class) ((ParameterizedType) genericTypes[0]).getRawType();
-				return null;
-			} else
-				return null;
+			return genericTypes.length==0 ? null : getRawType(genericTypes[0]);
 		}
 
 		if (t instanceof Class) {
-			// recursively traverse class hierarchy until we find ParameterizedType
-			// and return result if not null.
+			// recursively traverse class hierarchy until we find ParameterizedType and return result if not null.
 			Type supertype = ((Class) t).getGenericSuperclass();
 			Class output = null;
 			if (supertype!=null && supertype!=Object.class)
-				output = getGenericPropertyType(supertype);
+				output = getGenericPropertyTypeImpl(supertype);
 			if (output!=null) return output;
 
 			// else try interfaces
 			Type[] superinterfaces = ((Class) t).getGenericInterfaces();
 			for (Type superinterface : superinterfaces) {
 				if (superinterface instanceof ParameterizedType) {
-					output = getGenericPropertyType(superinterface);
+					output = getGenericPropertyTypeImpl(superinterface);
 					if (output!=null) return output;
 				}
 			}
 		}
 
 		return null;
+	}
+
+	private static Class<?> getRawType(Type type) {
+		if (type instanceof Class<?>) {
+			return (Class<?>) type;
+		} else if (type instanceof ParameterizedType) {
+			Type rawType = ((ParameterizedType) type).getRawType();
+			return rawType instanceof Class<?> ? (Class<?>) rawType : null;
+		} else if (type instanceof GenericArrayType) {
+			Type componentType = ((GenericArrayType)type).getGenericComponentType();
+			return Array.newInstance(getRawType(componentType), 0).getClass();
+		} else if (type instanceof WildcardType) {
+			return getRawType(((WildcardType) type).getUpperBounds()[0]);
+		} else {
+			return null;
+		}
 	}
 
 	/**

@@ -37,7 +37,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_IN;
 import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_OUT;
@@ -45,7 +45,7 @@ import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
  * Pane with switchable content.
@@ -74,8 +74,8 @@ public class SwitchPane implements ContainerNode {
     };
     public final IOLayer widget_io = new IOLayer(this);
 
-    public final V<Boolean> align = new V<>(true, v -> { if (v) alignTabs(); });
-    public final V<Boolean> snap = new V<>(true, v -> { if (v) snapTabs(); });
+    public final V<Boolean> align = new V<>(true).initAttachC(v -> { if (v) alignTabs(); });
+    public final V<Boolean> snap = new V<>(true).initAttachC(v -> { if (v) snapTabs(); });
     public final V<Double> switchDistAbs = new V<>(150.0);
     public final V<Double> switchDistRel = new V<>(0.15); // 0 - 1
     public final V<Double> dragInertia = new V<>(1.5);

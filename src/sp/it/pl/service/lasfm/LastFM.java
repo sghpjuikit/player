@@ -14,19 +14,21 @@ import javafx.util.Duration;
 import org.reactfx.Subscription;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.unused.SimpleConfigurator;
+import sp.it.pl.gui.objects.form.Form;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.conf.MapConfigurable;
 import sp.it.pl.util.conf.ValueConfig;
+import sp.it.pl.util.dev.Experimental;
 import sp.it.pl.util.text.Password;
 import sp.it.pl.util.validation.Constraint.PasswordNonEmpty;
 import sp.it.pl.util.validation.Constraint.StringNonEmpty;
-import static sp.it.pl.util.dev.Util.logger;
+import static sp.it.pl.gui.objects.form.Form.form;
+import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 
-// TODO: make thread-safe, remove static, implement Service
+@Experimental
 @IsConfigurable("Services.LastFM")
 public class LastFM {
 
@@ -50,7 +52,7 @@ public class LastFM {
 				if (isLoginSet()) {
 					session = Authenticator.getMobileSession(
 							acquireUserName(),
-							acquirePassword().value,
+							acquirePassword().getValue(),
 							apiKey, secret);
 					Result lastResult = Caller.getInstance().getLastResult();
 					if (lastResult.getStatus()!=Result.Status.FAILED) {
@@ -89,13 +91,12 @@ public class LastFM {
 	public LastFM() { }
 
 	public static void start() {
-		playingItemMonitoring = Player.playingItem.onChange(itemChangeHandler);
+		playingItemMonitoring = Player.playingSong.onChange(itemChangeHandler);
 
 //        PLAYBACK.realTimeProperty().setOnTimeAt(timeEvent);
 //        PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);
 	}
 
-	// TODO: implement
 	public static boolean isLoginSet() {
 		return !"".equals(acquireUserName());
 	}
@@ -109,8 +110,8 @@ public class LastFM {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static SimpleConfigurator<Object> getLastFMconfig() {
-		return SimpleConfigurator.simpleConfigurator(
+	public static Form<Object> getLastFMconfig() {
+		return form(
 				new MapConfigurable<Object>(
 					(Config) new ValueConfig<>(String.class, "Username", acquireUserName()).constraints(new StringNonEmpty()),
 					(Config) new ValueConfig<>(Password.class, "Password", acquirePassword()).constraints(new PasswordNonEmpty())
@@ -130,8 +131,8 @@ public class LastFM {
 	}
 
 	public static boolean savePassword(Password pass) {
-		preferences.put("lastfm_password", pass.value);
-		return preferences.get("lastfm_password", "").equals(pass.value);
+		preferences.put("lastfm_password", pass.getValue());
+		return preferences.get("lastfm_password", "").equals(pass.getValue());
 	}
 
 	public static String acquireUserName() {
@@ -145,7 +146,7 @@ public class LastFM {
 	/************** Scrobble logic - event handlers etc ***********************/
 
 	public static void updateNowPlaying() {
-		Metadata currentMetadata = sp.it.pl.audio.Player.playingItem.get();
+		Metadata currentMetadata = sp.it.pl.audio.Player.playingSong.get();
 		ScrobbleResult result = Track.updateNowPlaying(
 				currentMetadata.getArtist(),
 				currentMetadata.getTitle(),

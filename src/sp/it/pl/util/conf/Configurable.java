@@ -152,7 +152,7 @@ public interface Configurable<T> {
 	@SuppressWarnings("unchecked")
 	static Configurable<?> configsFromFxPropertiesOf(Object o) {
 		List<Config<?>> cs = new ArrayList<>();
-		forEachJavaFXProperty(o, (p, name, type) -> cs.add(Config.forProperty(type, name, p)));
+		forEachJavaFXProperty(o, (p, name, type) -> cs.add(Config.forValue(type, name, p)));
 		return new ListConfigurable(cs);
 	}
 }

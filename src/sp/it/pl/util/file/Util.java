@@ -27,12 +27,9 @@ import javax.imageio.ImageIO;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.functional.Try;
 import static java.util.stream.Collectors.toList;
-import static sp.it.pl.main.AppUtil.APP;
 import static sp.it.pl.util.Util.filenamizeString;
-import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noNull;
-import static sp.it.pl.util.file.UtilKt.childOf;
-import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
+import static sp.it.pl.util.dev.DebugKt.logger;
+import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 
@@ -106,36 +103,6 @@ public interface Util {
 		return file!=null && file.isFile() && file.exists() && file.canRead();
 	}
 
-	/**
-	 * Checks validity of a file to be a skin. True return file means the file
-	 * can be used as a skin (the validity of the skin itself is not included).
-	 * For files returning false this application will not allow skin change.
-	 * Valid skin file checks out the following:
-	 * - not null
-	 * - isValidFile()
-	 * - is located in Skins folder set for this application
-	 * - is .css
-	 * - is located in its own folder with the same name
-	 * example: /Skins/MySkin/MySkin.css
-	 *
-	 * @return true if parameter is valid skin file. False otherwise or if null.
-	 */
-	static boolean isValidSkinFile(File f) {
-		String name = getNameWithoutExtensionOrRoot(f);
-		File test = childOf(APP.DIR_SKINS, name, name + ".css");
-		return (isValidFile(f) &&                   // is valid
-				f.getPath().endsWith(".css") &&     // is .css
-				f.equals(test));                    // is located in skins folder
-	}
-
-	static boolean isValidWidgetFile(File f) {
-		File p1 = f.getParentFile();
-		File p2 = p1==null ? null : p1.getParentFile();
-		return (isValidFile(f) &&                   // is valid file
-				f.getPath().endsWith(".fxml") &&    // is .fxml file
-				APP.DIR_WIDGETS.equals(p2));        // is located in skins folder in its rightful folder
-	}
-
 	static Stream<File> getFilesR(File dir, int depth) {
 		return getFilesR(dir, depth, f -> true);
 	}
@@ -174,23 +141,6 @@ public interface Util {
 
 	static Stream<File> getFilesImage(List<File> files, int depth) {
 		return files.stream().flatMap(f -> getFilesImage(f, depth));
-	}
-
-	/**
-	 * Constructs list of Images from provided file list. Filters out unsupported
-	 * types.
-	 *
-	 * @return Empty if null or empty parameter or no results.
-	 */
-	static List<Image> FilesToImages(List<File> files) {
-		List<Image> list = new ArrayList<>();
-		for (File f : files) {
-			if (ImageFileFormat.isSupported(f.toURI())) {
-				Image img = new Image(f.toURI().toString());
-				list.add(img);
-			}
-		}
-		return list;
 	}
 
 	/**
@@ -402,7 +352,6 @@ public interface Util {
 	 * @throws java.lang.RuntimeException if parameter null
 	 */
 	static void deleteDirContent(File dir) {
-		// TODO: improve performance using Walker ?
 		listChildren(dir).forEach(Util::deleteFile);
 	}
 

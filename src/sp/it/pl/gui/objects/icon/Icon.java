@@ -27,7 +27,6 @@ import javafx.css.Styleable;
 import javafx.css.StyleableProperty;
 import javafx.css.converter.EffectConverter;
 import javafx.css.converter.PaintConverter;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -46,6 +45,7 @@ import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.access.V;
@@ -65,7 +65,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.setRO;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.layHeaderBottom;
@@ -99,10 +99,10 @@ public class Icon extends StackPane {
 	private static final Double DEFAULT_ICON_SIZE = 12d;
 	private static final Double DEFAULT_ICON_GAP = 0d;
 	private static final String DEFAULT_FONT_SIZE = "1em";
-	private static final EventHandler<Event> EVENT_CONSUMER = Event::consume;
 
 	/** Collection of all glyphs types. */
-	public static Set<Class<? extends GlyphIcons>> GLYPH_TYPES = setRO(
+	@SuppressWarnings("unchecked")
+	public static Set<Class<GlyphIcons>> GLYPH_TYPES = (Set) setRO(
 		FontAwesomeIcon.class,
 		WeatherIcon.class,
 		MaterialDesignIcon.class,
@@ -184,6 +184,10 @@ public class Icon extends StackPane {
 		addEventHandler(MouseEvent.MOUSE_EXITED, e -> select(false));
 		addEventHandler(MouseEvent.MOUSE_ENTERED, e -> select(e.getX()>0 && e.getX()<getPrefWidth() && e.getY()>0 && e.getY()<getPrefHeight()));
 		addEventHandler(MouseEvent.MOUSE_MOVED, e -> select(e.getX()>0 && e.getX()<getPrefWidth() && e.getY()>0 && e.getY()<getPrefHeight()));
+
+		focusedProperty().addListener((o,ov,nv) -> {
+			if (isAnimated.get()) ra.get(this, Ahover).playFromDir(nv);
+		});
 	}
 
 	public Icon(GlyphIcons ico, double size, String tooltip, Runnable onClick) {
@@ -207,8 +211,6 @@ public class Icon extends StackPane {
 		node.relocate(gapH, gapV);
 	}
 
-	/******************************************************************************/
-
 	private Runnable click_runnable;
 
 	public Runnable getOnClickRunnable() {
@@ -219,12 +221,11 @@ public class Icon extends StackPane {
 		return click_runnable instanceof Action ? (Action) click_runnable : Action.EMPTY;
 	}
 
-	/******************************************************************************/
-
 	private final LazyR<Anim> ra = new LazyR<>(() -> Ahover.apply(this));
 	private boolean isSelected = false;
 	public final V<Boolean> isAnimated = new V<>(true);
 
+	// TODO: handle better along with focusing as well as subclasses and IconChooser grid
 	public void select(boolean value) {
 		if (value==isSelected) return;
 		isSelected = value;
@@ -233,9 +234,6 @@ public class Icon extends StackPane {
 		if (isAnimated.get()) ra.get(this, Ahover).playFromDir(value);
 	}
 
-	/********************************* FLUENT API *********************************/
-
-	@SuppressWarnings("unchecked")
 	public Icon icon(GlyphIcons i) {
 		isGlyphSetProgrammatically |= i!=null;
 		glyph = i;
@@ -243,21 +241,18 @@ public class Icon extends StackPane {
 		return this;
 	}
 
-	@SuppressWarnings("unchecked")
 	public Icon size(double s) {
 //		isGlyphSizeSetProgrammatically = true;
 		setGlyphSize(s);
 		return this;
 	}
 
-	@SuppressWarnings("unchecked")
 	public Icon gap(double g) {
 		isGlyphGapSetProgrammatically = true;
 		setGlyphGap(g);
 		return this;
 	}
 
-	@SuppressWarnings("unchecked")
 	public Icon scale(double s) {
 		glyphScale = s;
 		updateSize();
@@ -269,7 +264,6 @@ public class Icon extends StackPane {
 		return this;
 	}
 
-	@SuppressWarnings("unchecked")
 	public final Icon tooltip(String text) {
 		boolean willBeEmpty = text==null || text.isEmpty();
 		if (!willBeEmpty) {
@@ -293,7 +287,6 @@ public class Icon extends StackPane {
 		return (Tooltip) getProperties().get("javafx.scene.control.Tooltip");
 	}
 
-	@SuppressWarnings("unchecked")
 	public final Icon tooltip(Tooltip t) {
 		Tooltip old = getTooltip();
 		if (t!=null && (old!=t || old.getProperties().containsKey("was_setup"))) {
@@ -345,12 +338,12 @@ public class Icon extends StackPane {
 	}
 
 	/**
-	 * Installs on left mouse click behavior that consumes mouse event, using
-	 * {@code setOnMouseClicked(action);}.
+	 * Installs on left mouse click behavior that consumes mouse event, using {@code setOnMouseClicked(action);}.
+	 * <p/>
+	 * When action is invoked the mouse event will be automatically consumed as well.
 	 *
-	 * @return this icon (fluent API).
+	 * @return this
 	 */
-	@SuppressWarnings("unchecked")
 	public final Icon onClick(EventHandler<MouseEvent> action) {
 		setOnMouseClicked(action==null ? null : e -> {
 			if (e.getButton()==PRIMARY) {
@@ -359,25 +352,22 @@ public class Icon extends StackPane {
 			}
 		});
 
-		// TODO: remove
-		removeEventHandler(Event.ANY, EVENT_CONSUMER);
-		if (action!=null) addEventHandler(Event.ANY, EVENT_CONSUMER);
-
 		return this;
 	}
 
 	/**
-	 * Creates and sets onMouseClick handler. Can also set tooltip. Returns this icon (fluent API).
+	 * Installs on left mouse click behavior that consumes mouse event, using {@code setOnMouseClicked(action);}.
 	 * <p/>
-	 * The handler executes the action only on left button click
-	 * THe handler can be retrieved or removed using {@link #getOnMouseClicked()} and
-	 * {@link #setOnMouseClicked(javafx.event.EventHandler)}.
+	 * When action is invoked the mouse event will be automatically consumed as well.
+	 * <p/>
+	 * If action is {@link Action}, tooltip is set, with text set to {@link Action#getInfo()}.
 	 *
-	 * @param action Action to execute on left mouse click. If instance of {@link Action} tooltip is set, with text set
-	 * to {@link Action#getInfo()}. Null removes mouse click handler (but not the tooltip).
-	 * @return this.
+	 * @param action to execute on left mouse click or null to set no action
+	 * @return this
 	 */
 	public final Icon onClick(Runnable action) {
+		if (click_runnable!=null && getTooltip()!=null) Tooltip.uninstall(this, getTooltip());
+
 		if (action instanceof Action) {
 			Action a = (Action) action;
 			String title = a.getName();
@@ -395,14 +385,17 @@ public class Icon extends StackPane {
 		});
 	}
 
+	/** Kotlin version of {@link #onClick(javafx.event.EventHandler)}. */
 	public final Icon onClickDo(Function1<MouseEvent,Unit> action) {
-		return onClick(action::invoke);
+		return onClick(action==null ? null : action::invoke);
 	}
 
+	@NotNull
 	public Pane withText(String text) {
 		return withText(text, Side.BOTTOM);
 	}
 
+	@NotNull
 	public Pane withText(String text, Side side) {
 		switch (side) {
 			case LEFT: return layHeaderLeft(10, Pos.CENTER, this, new Label(text));
@@ -413,8 +406,6 @@ public class Icon extends StackPane {
 		}
 	}
 
-	/******************************************************************************/
-
 	GlyphIcons glyph = null;    // cache
 
 	public GlyphIcons getGlyph() {
@@ -424,43 +415,43 @@ public class Icon extends StackPane {
 		return glyph;
 	}
 
-	public final void setFill(Paint value) {
+	public void setFill(Paint value) {
 		node.setFill(value);
 	}
 
-	private final Paint getFill() {
+	private Paint getFill() {
 		return node.getFill();
 	}
 
-	private final ObjectProperty<Paint> fillProperty() {
+	private ObjectProperty<Paint> fillProperty() {
 		return node.fillProperty();
 	}
 
-	private final StringProperty glyphStyleProperty() {
+	private StringProperty glyphStyleProperty() {
 		if (glyphStyle==null) {
 			glyphStyle = new SimpleStringProperty("");
 		}
 		return glyphStyle;
 	}
 
-	private final String getGlyphStyle() {
+	private String getGlyphStyle() {
 		return glyphStyleProperty().getValue();
 	}
 
-	private final String getGlyphName() { return icon.getValue(); }
+	private String getGlyphName() { return icon.getValue(); }
 
-	private final void setGlyphName(String glyphName) { icon.setValue(glyphName); }
+	private void setGlyphName(String glyphName) { icon.setValue(glyphName); }
 
-	private final ObjectProperty<Number> glyphGapProperty() {
+	private ObjectProperty<Number> glyphGapProperty() {
 		return gap;
 	}
 
-	private final void setGlyphGap(Number gap) {
+	private void setGlyphGap(Number gap) {
 		gap = (gap==null) ? DEFAULT_ICON_GAP : gap;
 		glyphGapProperty().setValue(gap);
 	}
 
-	private final void setGlyphSize(Number size) {
+	private void setGlyphSize(Number size) {
 		Number sn = (size==null) ? DEFAULT_ICON_SIZE : size;
 //		setStyle("-glyph-size: " + sn.doubleValue()/12.0 + "em;");
 		setStyle("-glyph-size: " + sqrt(sn.doubleValue()/12.0) + "em;");
@@ -494,7 +485,7 @@ public class Icon extends StackPane {
 		/**
 		 * Css -fx-fill: <a href="../doc-files/cssref.html#typepaint">&lt;paint&gt;</a>
 		 *
-		 * @see javafx.scene.shape.Shape#fill
+		 * @see javafx.scene.shape.Shape#fillProperty()
 		 */
 		CssMetaData<Icon,Paint> FILL = new CssMetaData<>("-fx-fill", PaintConverter.getInstance(), Color.BLACK) {
 

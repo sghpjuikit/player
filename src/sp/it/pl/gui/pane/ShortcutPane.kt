@@ -13,7 +13,7 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.gui.objects.icon.CheckIcon
 import sp.it.pl.main.IconMD
-import sp.it.pl.main.createInfoIcon
+import sp.it.pl.main.infoIcon
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.MultiConfigurable
@@ -46,7 +46,7 @@ class ShortcutPane(override val configurableDiscriminant: String): OverlayPane<C
                 lay += CheckIcon(hideEmptyShortcuts)
                         .icons(IconMD.CHECKBOX_BLANK_CIRCLE_OUTLINE, IconMD.CLOSE_CIRCLE_OUTLINE)
                         .tooltip("$HE_TITLE\n\n$HE_INFO")
-                lay += createInfoIcon("Shortcut viewer\n\nDisplays available shortcuts. Optionally also those that have not been assigned yet.")
+                lay += infoIcon("Shortcut viewer\n\nDisplays available shortcuts. Optionally also those that have not been assigned yet.")
             }
             lay(ALWAYS) += stackPane {
                 lay += scrollPane {

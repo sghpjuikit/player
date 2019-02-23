@@ -1,15 +1,16 @@
 ## Project
 
+.kotlintest
+app/lib
+app/jre
+app/java
+app/kotlinc
+app/user
+app/vlc/
+app/widgets/**/*class
+app/widgets/META-INF/
+app/PlayerFX.jar
 private/
-working dir/lib
-working dir/jre
-working dir/java
-working dir/kotlinc
-working dir/user
-working dir/vlc/
-working dir/widgets/**/*class
-working dir/widgets/META-INF/
-working dir/PlayerFX.jar
 *.log
 
 # Gradle

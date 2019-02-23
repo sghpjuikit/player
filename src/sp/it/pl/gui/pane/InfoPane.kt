@@ -14,7 +14,7 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.main.APP
-import sp.it.pl.main.createInfoIcon
+import sp.it.pl.main.infoIcon
 import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.util.graphics.Util.layVertically
 import sp.it.pl.util.graphics.hBox
@@ -25,7 +25,8 @@ import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.system.copyToSysClipboard
 import sp.it.pl.util.toLocalDateTime
-import sp.it.pl.util.units.Dur
+import sp.it.pl.util.units.javafx
+import sp.it.pl.util.units.toHMSMs
 
 class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>(), MultiConfigurable {
 
@@ -38,7 +39,7 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
             maxWidth = 800.0
 
             lay += hBox(5, CENTER_RIGHT) {
-                lay += createInfoIcon("System information viewer\n\nDisplays available system properties. Click on the property to copy the value.")
+                lay += infoIcon("System information viewer\n\nDisplays available system properties. Click on the property to copy the value.")
             }
             lay(ALWAYS) += stackPane {
                 lay += scrollPane {
@@ -113,7 +114,7 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
                 "command" named pInfo.command().orElse(""),
                 "commandline" named pInfo.commandLine().orElse(""),
                 "start time" named pInfo.startInstant().map { it.toLocalDateTime().toString() }.orElse(""),
-                "running time" named pInfo.totalCpuDuration().map { Dur(it.toMillis().toDouble()).toString() }.orElse(""),
+                "running time" named pInfo.totalCpuDuration().map { it.javafx.toHMSMs() }.orElse(""),
                 "user" named pInfo.user().orElse("")
         )
         ps.group("java") += "vm.arguments" named APP.fetchVMArguments().joinToString(" ")

@@ -39,18 +39,22 @@ import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.util.Callback
 import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.graphics.listView
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sizes
 import sp.it.pl.util.reactive.syncTo
 
-open class AutoCompletePopupSkin<T> constructor(private val control: AutoCompletePopup<T>, activationClickCount: Int = 1): Skin<AutoCompletePopup<T>> {
+open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
+    private val control: AutoCompletePopup<T>
     private val list: ListView<T>
-    private val heightGap = 12.0 // TODO removes vertical scrollbar
 
-    init {
-        list = ListView(control.suggestions).apply {
+    constructor(skinnable: AutoCompletePopup<T>, activationClickCount: Int = 1) {
+        control = skinnable
+        list = listView {
+            items = control.suggestions
+
             syncTo(control.visibleRowCount, items.sizes(), fixedCellSizeProperty()) { rowCount, itemCount, cellSize ->
-                prefHeight = heightGap+cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
+                prefHeight = snappedTopInset() + snappedBottomInset() + cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
             }
             cellFactory = Callback { buildListViewCellFactory(it) }
 
@@ -72,7 +76,8 @@ open class AutoCompletePopupSkin<T> constructor(private val control: AutoComplet
                             it.consume()
                         }
                     }
-                    else -> {}
+                    else -> {
+                    }
                 }
             }
         }

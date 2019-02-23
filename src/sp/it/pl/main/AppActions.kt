@@ -5,21 +5,21 @@ import com.drew.imaging.ImageProcessingException
 import com.sun.tools.attach.VirtualMachine
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Pos.CENTER
-import javafx.geometry.Pos.TOP_CENTER
 import javafx.scene.Node
 import javafx.scene.Scene
+import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.MouseButton
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.paint.Color.BLACK
 import javafx.stage.Screen
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.util.Callback
 import mu.KLogging
-import sp.it.pl.audio.Item
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.gui.objects.grid.GridCell
 import sp.it.pl.gui.objects.grid.GridView
@@ -38,40 +38,40 @@ import sp.it.pl.layout.widget.WidgetSource.NEW
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.TextDisplayFeature
-import sp.it.pl.unused.SimpleConfigurator.Companion.simpleConfigurator
 import sp.it.pl.util.Util.urlEncodeUtf8
 import sp.it.pl.util.access.fieldvalue.StringGetter
 import sp.it.pl.util.action.ActionRegistrar
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.conf.IsConfigurable
-import sp.it.pl.util.conf.ValueConfig
 import sp.it.pl.util.dev.Blocks
+import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.dev.stackTraceAsString
-import sp.it.pl.util.dev.throwIfFxThread
 import sp.it.pl.util.functional.asIf
+import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.Util.createFMNTStage
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.bgr
-import sp.it.pl.util.graphics.button
 import sp.it.pl.util.graphics.getScreenForMouse
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.listView
+import sp.it.pl.util.graphics.listViewCellFactory
+import sp.it.pl.util.graphics.minPrefMaxWidth
 import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.stackPane
-import sp.it.pl.util.graphics.vBox
-import sp.it.pl.util.math.millis
-import sp.it.pl.util.math.times
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.onEventUp
+import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1If
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.open
 import sp.it.pl.util.system.runCommand
 import sp.it.pl.util.type.Util.getEnumConstants
-import sp.it.pl.util.validation.Constraint.StringNonEmpty
+import sp.it.pl.util.units.millis
+import sp.it.pl.util.units.times
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.WebBarInterpreter
 import java.io.File
@@ -99,11 +99,9 @@ class AppActions {
 
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
     fun openIconViewer() {
-        val iconSize = 80.0
-        val grid = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize+30, 5.0, 5.0).apply {
-            search.field = object: StringGetter<GlyphIcons?> {
-                override fun getOfS(value: GlyphIcons?, substitute: String): String = value?.name() ?: substitute
-            }
+        val iconSize = 120.0
+        val iconsView = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize+30, 5.0, 5.0).apply {
+            search.field = StringGetter.of { value, _ -> value.name() }
             selectOn setTo listOf(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS)
             cellFactory = Callback {
                 object: GridCell<GlyphIcons, GlyphIcons>() {
@@ -134,33 +132,34 @@ class AppActions {
                 }
             }
         }
-        val root = stackPane(grid)
-        val groups = Icon.GLYPH_TYPES.map { glyphType ->
-            button(glyphType.simpleName) {
-                setOnMouseClicked {
-                    if (it.button==MouseButton.PRIMARY) {
-                        grid.itemsRaw setTo getEnumConstants<GlyphIcons>(glyphType)
-                        it.consume()
-                    }
-                }
+        val groupsView = listView<Class<GlyphIcons>> {
+            minPrefMaxWidth = 200.0
+            cellFactory = listViewCellFactory { group, empty ->
+                text = if (empty) null else group.simpleName
             }
+            selectionModel.selectionMode = SINGLE
+            selectionModel.selectedItemProperty() sync {
+                iconsView.itemsRaw setTo it?.net { getEnumConstants<GlyphIcons>(it).toList() }.orEmpty()
+            }
+            items setTo Icon.GLYPH_TYPES
         }
-        val layout = vBox(20, TOP_CENTER) {
-            setPrefSize(600.0, 720.0)
-
-            lay += hBox(8, CENTER) {
-                lay += groups
-            }
-            lay += root
+        val layout = hBox(20, CENTER) {
+            setPrefSize(900.0, 700.0)
+            lay += groupsView
+            lay(ALWAYS) += stackPane(iconsView)
         }
 
         PopOver(layout).show(ScreenPos.APP_CENTER)
+        if (!groupsView.items.isEmpty()) groupsView.selectionModel.select(0)
     }
 
     @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
     fun openLauncher() {
         val f = File(APP.DIR_LAYOUTS, "AppMainLauncher.fxwl")
-        val c = APP.windowManager.instantiateComponent(f)
+        val c = null
+                ?: APP.windowManager.instantiateComponent(f)
+                ?: APP.widgetManager.factories.getFactoryByGuiName(Widgets.APP_LAUNCHER)?.create()
+
         if (c!=null) {
             val op = object: OverlayPane<Void>() {
                 override fun show(data: Void?) {
@@ -169,7 +168,7 @@ class AppActions {
                     content = anchorPane {
                         lay(20) += componentRoot
                     }
-                    if (c is Widget<*>) {
+                    if (c is Widget) {
                         val parent = this
                         c.controller.getFieldOrThrow("closeOnLaunch").value = true
                         c.controller.getFieldOrThrow("closeOnRightClick").value = true
@@ -185,6 +184,7 @@ class AppActions {
 
                 override fun hide() {
                     super.hide()
+                    c.exportFxwl(f)
                     c.close()
                 }
             }
@@ -204,17 +204,12 @@ class AppActions {
         APP.widgetManager.widgets.use<ConfiguringFeature>(WidgetSource.NO_LAYOUT) { it.configure(APP.configuration) }
     }
 
-    @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
-    fun openLayoutManager() {
-        APP.widgetManager.widgets.find(Widgets.LAYOUTS, WidgetSource.NO_LAYOUT, false)
-    }
-
     @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
     fun openActions() {
         APP.actionPane.show(APP)
     }
 
-    @IsAction(name = "Open", desc = "Opens all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
+    @IsAction(name = "Open...", desc = "Display all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
     fun openOpen() {
         APP.actionPane.show(AppOpen)
     }
@@ -292,14 +287,14 @@ class AppActions {
 
     @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)
     fun runCommand() {
-        doWithUserString("Run system command", "Command") {
+        configureString("Run system command", "Command") {
             runCommand(it)
         }
     }
 
     @IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with the command as a parameter.")
     fun runAppCommand() {
-        doWithUserString("Run app command", "Command") {
+        configureString("Run app command", "Command") {
             APP.parameterProcessor.process(listOf(it))
         }
     }
@@ -307,7 +302,7 @@ class AppActions {
     @IsAction(name = "Open web search", desc = "Opens website or search engine result for given phrase", keys = "CTRL + SHIFT + W", global = true)
     fun openWebBar() {
         // TODO: use URI validator
-        doWithUserString("Open on web...", "Website or phrase") {
+        configureString("Open on web...", "Website or phrase") {
             val uriString = WebBarInterpreter.toUrlString(it, DuckDuckGoQBuilder)
             try {
                 val uri = URI(uriString)
@@ -320,20 +315,9 @@ class AppActions {
 
     @IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
     fun openDictionary() {
-        doWithUserString("Look up in dictionary...", "Word") {
+        configureString("Look up in dictionary...", "Word") {
             URI.create("http://www.thefreedictionary.com/${urlEncodeUtf8(it)}").browse()
         }
-    }
-
-    fun doWithUserString(title: String, inputName: String, action: (String) -> Unit) {
-        val conf = ValueConfig(String::class.java, inputName, "").constraints(StringNonEmpty())
-        val form = simpleConfigurator(conf) { action(it.value) }
-        val popup = PopOver(form)
-        popup.title.value = title
-        popup.isAutoHide = true
-        popup.show(ScreenPos.APP_CENTER)
-        popup.contentNode.value.focusFirstConfigField()
-        popup.contentNode.value.hideOnOk.value = true
     }
 
     @JvmOverloads
@@ -379,7 +363,7 @@ class AppActions {
      */
     @Blocks
     fun printAllImageFileMetadata(file: File) {
-        throwIfFxThread()
+        failIfFxThread()
 
         val title = "Metadata of "+file.path
         val text = try {
@@ -400,13 +384,13 @@ class AppActions {
     }
 
     @Blocks
-    fun printAllAudioItemMetadata(item: Item) {
-        throwIfFxThread()
+    fun printAllAudioItemMetadata(song: Song) {
+        failIfFxThread()
 
-        if (item.isFileBased()) {
-            printAllAudioFileMetadata(item.getFile())
+        if (song.isFileBased()) {
+            printAllAudioFileMetadata(song.getFile()!!)
         } else {
-            val text = "Metadata of ${item.uri}\n<only supported for files>"
+            val text = "Metadata of ${song.uri}\n<only supported for files>"
             runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
         }
     }
@@ -416,16 +400,16 @@ class AppActions {
      * such cases is undefined.
      */
     @Blocks
-    fun printAllAudioFileMetadata(file: File?) {
-        throwIfFxThread()
+    fun printAllAudioFileMetadata(file: File) {
+        failIfFxThread()
 
-        val title = "Metadata of "+file!!.path
+        val title = "Metadata of ${file.path}"
         val content = file.readAudioFile()
                 .map { af ->
-                    "\nHeader:"+"\n"+
-                            af.audioHeader.toString().split("\n").joinToString("\n\t")+
-                            "\nTag:"+
-                            if (af.tag==null) " <none>" else af.tag.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" }
+                    "\nHeader:\n"+
+                    af.audioHeader.toString().split("\n").joinToString("\n\t")+
+                    "\nTag:"+
+                    if (af.tag==null) " <none>" else af.tag.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" }
                 }
                 .getOrSupply { e -> "\n"+e.stackTraceAsString() }
         val text = title+content

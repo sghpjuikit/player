@@ -18,7 +18,7 @@ import sp.it.pl.util.collections.map.PropertyMap;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.type.Util;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppKt.APP;
 
 /**
  * Defines wrapper of loadable graphical component.
@@ -127,11 +127,6 @@ public abstract class Component {
 		return Optional.ofNullable(w);
 	}
 
-	/** Window containing this component or active window if not loaded or not in any window or null if no active window either. */
-	public Optional<Window> getWindowOrActive() {
-		return getWindow().or(() -> APP.windowManager.getActive());
-	}
-
 	/**
 	 * Creates a launcher for this component as given file. Launcher is a
 	 * file, opening which by this application opens this component with its
@@ -142,7 +137,7 @@ public abstract class Component {
 	}
 
 	public String getExportName() {
-		return this instanceof Widget ? ((Widget<?>) this).custom_name.getValue() : getName();
+		return this instanceof Widget ? ((Widget) this).custom_name.getValue() : getName();
 	}
 
 	public void swapWith(Container c, int i) {

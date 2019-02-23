@@ -65,6 +65,12 @@ fun <R, E> Try<R, E>.orNull(): R? = getOr(null)
 /** @return return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
 infix fun <R, E> Try<R, E>.orNull(onError: (E) -> Unit): R? = ifError(onError).getOr(null)
 
+/** @return specified supplier if test is true or null otherwise */
+fun <T> supplyIf(test: Boolean, block: () -> T): (() -> T)? = if (test) block else null
+
+/** @return specified supplier if test is false or null otherwise */
+fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyIf(!testNegated, block)
+
 /**
  * Run the specified block if the condition is true
  * @return the result or null (if the value is nullable, this destroys the information of null's origin)
@@ -225,16 +231,16 @@ inline fun Boolean.ifTrue(block: () -> Unit) = apply { if (this) block() }
 /** Invokes the block if this is false and returns this value. */
 inline fun Boolean.ifFalse(block: () -> Unit) = apply { if (!this) block() }
 
-/** @return return value from the first supplier that supplied non null or null if no such supplier */
-fun <T> supplyFirst(vararg suppliers: () -> T?): T? = seqOf(*suppliers).map { it() }.find { it!=null }
-
 /** @return a sequence of the specified values */
 fun <T> seqOf(vararg elements: T) = sequenceOf(*elements)
 
-/** @return lazy recursive sequence in depth-first order */
-fun <E> E.seqRec(children: (E) -> Iterable<E>): Sequence<E> = sequence {
-    yield(this@seqRec)
-    children(this@seqRec).forEach { it.seqRec(children).forEach { yield(it) } }
+/** @return lazy sequence yielded iteratively starting with this as first element until null element is reached */
+fun <T: Any> T.traverse(next: (T) -> T?) = generateSequence(this, next)
+
+/** @return lazy sequence yielded recursively in depth-first order starting with this as first element */
+fun <T> T.recurse(children: (T) -> Iterable<T>): Sequence<T> = sequence {
+    yield(this@recurse)
+    children(this@recurse).forEach { it.recurse(children).forEach { yield(it) } }
 }
 
 /** @return an array containing all elements */

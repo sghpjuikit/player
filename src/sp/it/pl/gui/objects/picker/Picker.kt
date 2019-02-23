@@ -10,7 +10,7 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
-import javafx.scene.text.TextAlignment.JUSTIFY
+import javafx.scene.text.TextAlignment
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.Anim.Companion.animPar
 import sp.it.pl.util.animation.Anim.Companion.animSeq
@@ -24,11 +24,11 @@ import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.setScaleXY
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.graphics.text
-import sp.it.pl.util.math.div
 import sp.it.pl.util.math.max
-import sp.it.pl.util.math.millis
-import sp.it.pl.util.math.times
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.units.div
+import sp.it.pl.util.units.millis
+import sp.it.pl.util.units.times
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -75,7 +75,7 @@ open class Picker<E> {
                     text(contentText) {
                         textOrigin = CENTER
                         isMouseTransparent = true
-                        textAlignment = JUSTIFY
+                        textAlignment = TextAlignment.CENTER
                     }
                 }
                 lay += contentInfo
@@ -177,13 +177,12 @@ open class Picker<E> {
                 )
             }
 
-            val needsEmptyCell = 0==columns*rows-cells.size
+            val needsEmptyCell = cells.size==0 || cells.size!=columns*rows
             val emptyCell = children.find { it.properties.containsKey(KEY_EMPTY_CELL) }!!
             if (needsEmptyCell) {
                 val i = cells.size
                 val x = padding.left+i%columns*(cellWidth+gap)
                 val y = padding.top+i/columns*(cellHeight+gap)
-
                 emptyCell.resizeRelocate(
                         x.snapX,
                         y.snapY,
@@ -191,7 +190,7 @@ open class Picker<E> {
                         (y+cellHeight).snapY-y.snapY
                 )
             } else {
-                emptyCell.resize(0.0, 0.0)
+                emptyCell.resizeRelocate(0.0, 0.0, 0.0, 0.0)
             }
         }
 

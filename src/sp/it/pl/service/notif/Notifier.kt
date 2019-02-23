@@ -27,10 +27,9 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.graphics.text
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
-import java.util.function.Consumer
+import sp.it.pl.util.units.millis
 
 /** Provides notification functionality. */
 class Notifier: ServiceBase("Notifications", true) {
@@ -51,9 +50,9 @@ class Notifier: ServiceBase("Notifications", true) {
     @IsConfig(name = "Position relative to", info = "Determines screen for positioning. Main screen, application window screen or all screens as one")
     var notificationScr by c(ScreenUse.APP_WINDOW)
     @IsConfig(name = "On click left", info = "Left click action")
-    val onClickL by cv("Show all windows") { VarAction(it, Consumer {}) }
+    val onClickL by cv("Show application") { VarAction(it) }
     @IsConfig(name = "On click right", info = "Right click action")
-    val onClickR by cv("Notification hide") { VarAction(it, Consumer {}) }
+    val onClickR by cv("Notification hide") { VarAction(it) }
     @IsConfig(name = "Playback change graphics")
     val graphics by cv("Normal") {
         VarEnum.ofSequence(it,
@@ -102,7 +101,7 @@ class Notifier: ServiceBase("Notifications", true) {
 
     override fun start() {
         n = Notification()
-        onStop += Player.playingItem.onChange { it -> songChange(it) }
+        onStop += Player.playingSong.onChange { it -> songChange(it) }
         onStop += Player.state.playback.status attach {
             if (it==PAUSED || it==PLAYING || it==STOPPED)
                 playbackChange(it)
@@ -163,7 +162,7 @@ class Notifier: ServiceBase("Notifications", true) {
     }
 
     @IsAction(name = "Notify now playing", desc = "Shows notification about currently playing song.", global = true, keys = "ALT + N")
-    fun showNowPlayingNotification() = songChange(Player.playingItem.get())
+    fun showNowPlayingNotification() = songChange(Player.playingSong.get())
 
     private fun songChange(m: Metadata) {
         if (showSongNotification && !m.isEmpty()) {
@@ -178,7 +177,7 @@ class Notifier: ServiceBase("Notifications", true) {
         if (showStatusNotification && s!=null) {
             val title = "Playback change : $s"
             val i = ItemInfo(false).apply {
-                read(Player.playingItem.get())
+                read(Player.playingSong.get())
             }
 
             showNotification(i, title)

@@ -4,6 +4,7 @@ import javafx.scene.control.ComboBox
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox
+import sp.it.pl.util.access.initAttach
 import sp.it.pl.util.access.vn
 import sp.it.pl.util.collections.list.PrefList
 import sp.it.pl.util.conf.Config
@@ -86,9 +87,8 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): Value
         private fun <T> Config<T>.toConfigField() = ConfigField.create(this)
 
         private fun <T> Functors.Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
-            val a = vn(defaultValue)
-            a.applier = Consumer { onChange(it) }
-            return AccessorConfig(type, name, description, Consumer { a.setNapplyValue(it) }, Supplier { a.value })
+            val a = vn(defaultValue).initAttach { onChange(it) }
+            return AccessorConfig(type, name, description, Consumer { a.value = it }, Supplier { a.value })
         }
 
     }

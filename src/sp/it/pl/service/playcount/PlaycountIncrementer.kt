@@ -9,8 +9,6 @@ import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.audio.tagging.MetadataWriter
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
-import sp.it.pl.util.conf.between
-import sp.it.pl.util.conf.cv
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.service.notif.Notifier
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.NEVER
@@ -25,6 +23,8 @@ import sp.it.pl.util.access.initAttach
 import sp.it.pl.util.access.v
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.between
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.functional.Util.max
 import sp.it.pl.util.functional.Util.min
 import sp.it.pl.util.math.Portion
@@ -59,7 +59,7 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
 
     override fun start() {
         apply()
-        onStop += Player.playingItem.onChange { ov, _ -> incrementQueued(ov) }
+        onStop += Player.playingSong.onChange { ov, _ -> incrementQueued(ov) }
         running = true
     }
 
@@ -80,7 +80,7 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
      */
     @IsAction(name = "Increment playcount", desc = "Rises the number of times the song has been played by one and updates the song tag.")
     fun increment() {
-        val m = Player.playingItem.get()
+        val m = Player.playingSong.get()
         if (!m.isEmpty() && m.isFileBased()) {
             if (delay.value) {
                 queue += m

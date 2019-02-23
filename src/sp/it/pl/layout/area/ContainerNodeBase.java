@@ -39,13 +39,14 @@ import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.layout.area.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
-import static sp.it.pl.layout.area.Area.DRAGGED_PSEUDOCLASS;
-import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
+import static sp.it.pl.layout.area.Area.STYLECLASS_CONTAINER_AREA_CONTROLS;
+import static sp.it.pl.main.AppBuildersKt.infoIcon;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.mapB;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 public abstract class ContainerNodeBase<C extends Container<?>> implements ContainerNode {
 
@@ -67,10 +68,10 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
 
         root.getChildren().add(ctrls);
         setAnchors(ctrls, 0d);
-        ctrls.getStyleClass().addAll(CONTAINER_AREA_CONTROLS_STYLECLASS);
+        ctrls.getStyleClass().addAll(STYLECLASS_CONTAINER_AREA_CONTROLS);
 
 	// build header buttons
-	Icon infoB = createInfoIcon("Container settings. See icon tooltips."
+	Icon infoB = infoIcon("Container settings. See icon tooltips."
                 + "\nActions:"
                 + "\n\tLeft click: visit children"
                 + "\n\tRight click: visit parent container"
@@ -110,14 +111,14 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                 DragUtil.setComponent(container,db);
                 // signal dragging graphically with css
-                ctrls.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, true);
+                ctrls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
                 e.consume();
             }
         };
         dragB.setOnDragDetected(dh);
         ctrls.setOnDragDetected(dh);
         // return graphics to normal
-        root.setOnDragDone(e -> ctrls.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
+        root.setOnDragDone(e -> ctrls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
 
 	icons.setNodeOrientation(LEFT_TO_RIGHT);
 	icons.setAlignment(Pos.CENTER_RIGHT);
@@ -135,7 +136,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
         root.setOnMouseClicked(e -> {
             // close on right click
             if (isAlt && !isAltCon && e.getButton()==SECONDARY && container.getChildren().isEmpty()){
-	            AppAnimator.INSTANCE.closeAndDo(root, container::close);
+	            AppAnimator.INSTANCE.closeAndDo(root, runnable(container::close));
                 e.consume();
                 return;
             }

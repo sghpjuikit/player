@@ -11,7 +11,7 @@ import javafx.collections.FXCollections.singletonObservableList
 import javafx.util.Duration
 import sp.it.pl.util.collections.map.ClassListMap
 import sp.it.pl.util.collections.map.ClassMap
-import sp.it.pl.util.dev.throwIfNot
+import sp.it.pl.util.dev.failIfNot
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.Try.error
 import sp.it.pl.util.functional.Try.ok
@@ -122,7 +122,7 @@ interface Constraint<in T> {
     class NumberMinMax(val min: Double, val max: Double): Constraint<Number> {
 
         init {
-            throwIfNot(max>min) { "Max value must be greater than min value" }
+            failIfNot(max>min) { "Max value must be greater than min value" }
         }
 
         override fun isValid(value: Number?) = value == null || value.toDouble() in min..max
@@ -143,7 +143,7 @@ interface Constraint<in T> {
     class StringLength(val min: Int, val max: Int): Constraint<String> {
 
         init {
-            throwIfNot(max>min) { "Max value must be greater than min value" }
+            failIfNot(max>min) { "Max value must be greater than min value" }
         }
 
         override fun isValid(value: String?) = value==null || value.length in min..max

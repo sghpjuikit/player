@@ -14,11 +14,17 @@ import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.control.Button
 import javafx.scene.control.Label
+import javafx.scene.control.ListCell
+import javafx.scene.control.ListView
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.ScrollPane
+import javafx.scene.control.SeparatorMenuItem
+import javafx.scene.control.TableView
+import javafx.scene.control.TextArea
 import javafx.scene.control.Tooltip
 import javafx.scene.control.TreeItem
+import javafx.scene.control.TreeTableView
 import javafx.scene.control.TreeView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
@@ -47,11 +53,13 @@ import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
+import javafx.scene.text.TextAlignment
 import javafx.stage.Screen
+import javafx.stage.Window
+import javafx.util.Callback
 import org.reactfx.Subscription
-import sp.it.pl.gui.objects.image.Thumbnail
-import sp.it.pl.gui.objects.window.stage.Window
-import sp.it.pl.main.JavaLegacy
+import sp.it.pl.util.JavaLegacy
+import sp.it.pl.util.graphics.image.FitFrom
 import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.sync
 import java.awt.MouseInfo
@@ -159,28 +167,52 @@ fun border(color: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(Borde
 
 fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
 
-inline fun pane(block: Pane.() -> Unit = {}) = Pane().apply { block() }
-inline fun pane(vararg children: Node, block: Pane.() -> Unit = {}) = Pane(*children).apply { block() }
-inline fun stackPane(block: StackPane.() -> Unit = {}) = StackPane().apply { block() }
+inline fun pane(block: Pane.() -> Unit = {}) = Pane().apply(block)
+inline fun pane(vararg children: Node, block: Pane.() -> Unit = {}) = Pane(*children).apply(block)
+inline fun stackPane(block: StackPane.() -> Unit = {}) = StackPane().apply(block)
 inline fun stackPane(vararg children: Node, block: StackPane.() -> Unit = {}) = StackPane(*children).apply { block() }
-inline fun anchorPane(block: AnchorPane.() -> Unit = {}) = AnchorPane().apply { block() }
+inline fun anchorPane(block: AnchorPane.() -> Unit = {}) = AnchorPane().apply(block)
 inline fun hBox(spacing: Number = 0.0, alignment: Pos? = null, block: HBox.() -> Unit = {}) = HBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
 inline fun vBox(spacing: Number = 0.0, alignment: Pos? = null, block: VBox.() -> Unit = {}) = VBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
-inline fun scrollPane(block: ScrollPane.() -> Unit = {}) = ScrollPane().apply { block() }
+inline fun scrollPane(block: ScrollPane.() -> Unit = {}) = ScrollPane().apply(block)
 inline fun scrollText(block: () -> Text) = Util.layScrollVText(block())!!
-inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply { block() }
-inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply { block() }
-inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply { block() }
-inline fun text(text: String = "", block: sp.it.pl.gui.objects.Text.() -> Unit = {}) = sp.it.pl.gui.objects.Text(text).apply { block() }
-inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply { block() }
+inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply(block)
+inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply(block)
+inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply(block)
+inline fun text(text: String = "", block: sp.it.pl.gui.objects.Text.() -> Unit = {}) = sp.it.pl.gui.objects.Text(text).apply(block)
+inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)
 inline fun menuItem(text: String, crossinline action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
+inline fun menuSeparator(block: (SeparatorMenuItem).() -> Unit = {}) = SeparatorMenuItem().apply(block)
+inline fun <T> listView(block: (ListView<T>).() -> Unit = {}) = ListView<T>().apply(block)
+inline fun <T> tableView(block: (TableView<T>).() -> Unit = {}) = TableView<T>().apply(block)
+inline fun <T> treeView(block: (TreeView<T>).() -> Unit = {}) = TreeView<T>().apply(block)
+inline fun <T> treeTableView(block: (TreeTableView<T>).() -> Unit = {}) = TreeTableView<T>().apply(block)
+inline fun <T> listViewCellFactory(crossinline cellFactory: ListCell<T>.(T, Boolean) -> Unit) = Callback<ListView<T>, ListCell<T>> {
+    object: ListCell<T>() {
+        @Suppress("PROTECTED_CALL_FROM_PUBLIC_INLINE")
+        override fun updateItem(item: T, empty: Boolean) {
+            super.updateItem(item, empty)
+            cellFactory(item, empty)
+        }
+    }
+}
 
 /* ---------- LAYOUT ------------------------------------------------------------------------------------------------ */
 
 interface Lay {
+    /** Lays the specified child onto this */
     operator fun plusAssign(child: Node)
+    /** Lays the specified children onto this */
     operator fun plusAssign(children: Collection<Node>) = children.forEach { this+=it }
+    /** Lays the specified children onto this */
     operator fun plusAssign(children: Sequence<Node>) = children.forEach { this+=it }
+    /**
+     * Lays the child produced by the specified block onto this if block is not null. Allows conditional content using
+     * [sp.it.pl.util.functional.supplyIf] and [sp.it.pl.util.functional.supplyUnless].
+     */
+    operator fun plusAssign(child: (() -> Node)?) {
+        if (child!=null) plusAssign(child())
+    }
 }
 
 class PaneLay(private val pane: Pane): Lay {
@@ -392,11 +424,13 @@ fun Node.initClip(padding: Insets = Insets.EMPTY) {
     setClip(clip)
 }
 
-fun ImageView.applyViewPort(i: Image?, fit: Thumbnail.FitFrom) {
+/* ---------- IMAGE_VIEW -------------------------------------------------------------------------------------------- */
+
+fun ImageView.applyViewPort(i: Image?, fit: FitFrom) {
     if (i!=null) {
         when (fit) {
-            Thumbnail.FitFrom.INSIDE -> viewport = null
-            Thumbnail.FitFrom.OUTSIDE -> {
+            FitFrom.INSIDE -> viewport = null
+            FitFrom.OUTSIDE -> {
                 val ratioIMG = i.width/i.height
                 val ratioTHUMB = layoutBounds.width/layoutBounds.height
                 when {
@@ -419,86 +453,87 @@ fun ImageView.applyViewPort(i: Image?, fit: Thumbnail.FitFrom) {
 
 /* ---------- TOOLTIP ----------------------------------------------------------------------------------------------- */
 
-/** Equivalent to [Tooltip.install] */
+/** Equivalent to [Tooltip.install]. */
 @Suppress("DEPRECATION")
 infix fun Node.install(tooltip: Tooltip) = Tooltip.install(this, tooltip)
 
-/** Equivalent to [Tooltip.uninstall] */
+/** Equivalent to [Tooltip.uninstall]. */
 @Suppress("DEPRECATION")
 infix fun Node.uninstall(tooltip: Tooltip) = Tooltip.uninstall(this, tooltip)
 
 /* ---------- MENU -------------------------------------------------------------------------------------------------- */
 
-/** Create and add to items menu with specified text and graphics */
+/** Create and add to items menu with specified text and graphics. */
 inline fun Menu.menu(text: String, graphics: Node? = null, then: (Menu).() -> Unit) {
     items += Menu(text, graphics).apply { then() }
 }
 
-/** Equivalent to [menuItem]. Use [menuItem] if this method causes ambiguity with [Menu.item] within [Menu] scope. */
-fun item(text: String, action: (ActionEvent) -> Unit) = menuItem(text, action)
-
-/** Create and add to items new menu item with specified text and action */
+/** Create and add to items new menu item with specified text and action. */
 fun Menu.item(text: String, action: (ActionEvent) -> Unit) = apply {
     items += menuItem(text, action)
 }
 
-/** Create and add to items new menu items with text and action derived from specified source */
+/** Create and add to items new menu items with text and action derived from specified source. */
 @Suppress("RedundantLambdaArrow")
 fun <A> Menu.items(source: Sequence<A>, text: (A) -> String, action: (A) -> Unit) {
     items += source.map { menuItem(text(it)) { _ -> action(it) } }.sortedBy { it.text }
 }
 
+/** Create and add to items new menu separator. */
+fun Menu.separator() = apply {
+    items += menuSeparator()
+}
+
 /* ---------- POINT ------------------------------------------------------------------------------------------------- */
 
-/** @return size of the bounds represented as point */
+/** Size of the bounds represented as point */
 val Bounds.size get() = P(width, height)
 
-/** @return left top point */
+/** Left top point */
 val Bounds.leftTop get() = P(minX, minY)
 
-/** @return right top point */
+/** Right top point */
 val Bounds.rightTop get() = P(maxX, minY)
 
-/** @return left bottom point */
+/** Left bottom point */
 val Bounds.leftBottom get() = P(minX, maxY)
 
-/** @return right bottom point */
+/** Right bottom point */
 val Bounds.rightBottom get() = P(maxX, maxY)
 
-/** @return size of the bounds represented as point */
+/** Size of the bounds represented as point */
 val Region.size get() = P(width, height)
 
-/** @return window-relative position of the centre of this window */
+/** Position using [javafx.stage.Window.x] and [javafx.stage.Window.y] */
+val Window.xy get() = P(x, y)
+
+/** Size using [javafx.stage.Window.width] and [javafx.stage.Window.height] */
+var Window.size: P
+    get() = P(width, height)
+    set(value) {
+        width = value.x
+        height = value.y
+    }
+
+/** Window-relative position of the centre of this window */
 val Window.centre get() = P(centreX, centreY)
 
-/** @return window-relative x position of the centre of this window */
+/** Window-relative x position of the centre of this window */
 val Window.centreX get() = x+width/2
 
-/** @return window-relative y position of the centre of this window */
+/** Window-relative y position of the centre of this window */
 val Window.centreY get() = y+height/2
 
-/** @return position using [javafx.stage.Window.x] and [javafx.stage.Window.y] */
-val javafx.stage.Window.xy get() = P(x, y)
-
-/** @return window-relative position of the centre of this window */
-val javafx.stage.Window.centre get() = P(centreX, centreY)
-
-/** @return window-relative x position of the centre of this window */
-val javafx.stage.Window.centreX get() = x+width/2
-
-/** @return window-relative y position of the centre of this window */
-val javafx.stage.Window.centreY get() = y+height/2
-
-/** @return size of the bounds represented as point */
+/** Size of the bounds represented as point */
 val Rectangle2D.size get() = P(width, height)
 
-/** @return rectangle-relative position of the centre of this rectangle */
+/** Rectangle-relative position of the centre of this rectangle */
 val Rectangle2D.centre get() = P(centreX, centreY)
 
-/** @return rectangle-relative x position of the centre of this rectangle */
+/** Rectangle-relative x position of the centre of this rectangle */
 val Rectangle2D.centreX get() = minX+width/2
 
-/** @return rectangle-relative y position of the centre of this rectangle */
+/** Rectangle-relative y position of the centre of this rectangle */
 val Rectangle2D.centreY get() = minY+height/2
 
 operator fun Point2D.minus(p: Point2D): Point2D = subtract(p)!!
@@ -516,6 +551,23 @@ fun Node.screenToLocal(e: MouseEvent) = screenToLocal(e.screenX, e.screenY)!!
 fun Node.sceneToLocal(e: MouseEvent) = sceneToLocal(e.sceneX, e.sceneY)!!
 
 /* ---------- TEXT -------------------------------------------------------------------------------------------------- */
+
+/** Sets alignment of the text of this text area. */
+fun TextArea.setTextAlignment(alignment: TextAlignment) {
+    pseudoClassStateChanged(pseudoclass("align-left"), false)
+    pseudoClassStateChanged(pseudoclass("align-right"), false)
+    pseudoClassStateChanged(pseudoclass("align-center"), false)
+    pseudoClassStateChanged(pseudoclass("align-justify"), false)
+    pseudoClassStateChanged(
+            pseudoclass(when(alignment) {
+                TextAlignment.LEFT -> "align-left"
+                TextAlignment.RIGHT -> "align-right"
+                TextAlignment.CENTER -> "align-center"
+                TextAlignment.JUSTIFY -> "align-justify"
+            }),
+            true
+    )
+}
 
 object EM {
     fun toDouble() = 12.0
@@ -545,6 +597,8 @@ fun Parent.setFontAsStyle(font: Font) {
  * @return linear text interpolator computing substrings of specified text from beginning
  */
 @JvmOverloads fun typeText(text: String, padLength: String? = null): (Double) -> String {
+    if (text.isEmpty()) return { "" }
+
     val length = text.length
     val sbOriginal = StringBuilder(text)
     fun mapper(c: Char) = if (c.isWhitespace()) c.toString() else (padLength ?: c.toString())
@@ -676,7 +730,7 @@ fun Node.onHoverOrDragEnd(onEnd: () -> Unit): Subscription {
 
 /** @return the latest mouse position */
 fun getMousePosition(): Point2D {
-    val pi = MouseInfo.getPointerInfo()        // TODO: this can be null sometimes, investigate & fix
+    val pi = MouseInfo.getPointerInfo()        // can be null: JDK bug in multi-monitor
     val p = pi?.location ?: Point(0, 0)
     return Point2D(p.getX(), p.getY())
 }
@@ -698,4 +752,4 @@ fun getScreenForMouse() = getMousePosition().toP().getScreen()
 val Screen.ordinal: Int get() = JavaLegacy.screenOrdinal(this)
 
 /** @return screen containing the centre of this window */
-val javafx.stage.Window.screen: Screen get() = getScreen(centreX, centreY)
+val Window.screen: Screen get() = getScreen(centreX, centreY)

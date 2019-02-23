@@ -29,7 +29,8 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.file.FileMonitor
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.childOf
-import sp.it.pl.util.file.isParentOf
+import sp.it.pl.util.file.div
+import sp.it.pl.util.file.isAnyParentOf
 import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.functional.Util.set
 import sp.it.pl.util.functional.net
@@ -37,11 +38,11 @@ import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.isAnyParentOf
 import sp.it.pl.util.graphics.setFontAsStyle
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.onItemAdded
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1IfNonNull
+import sp.it.pl.util.units.millis
 import java.io.File
 import java.net.MalformedURLException
 import java.util.HashSet
@@ -92,8 +93,6 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val snapDistance by cv(12.0)
     @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
     val lockedLayout by cv(false) { SimpleBooleanProperty(it).apply { attach { APP.actionStream.push("Layout lock") } } }
-    @IsConfig(name = "Layout open strategy", info = "How will certain layout element open and close.")
-    val openStrategy by cv(OpenStrategy.INSIDE)
     @IsConfig(name = "Table orientation", group = Settings.Ui.TABLE, info = "Orientation of the table.")
     val tableOrient by cv(NodeOrientation.INHERIT)
     @IsConfig(name = "Zeropad numbers", group = Settings.Ui.TABLE, info = "Adds 0s for number length consistency.")
@@ -102,7 +101,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val tableOrigIndex by cv(false)
     @IsConfig(name = "Show table header", group = Settings.Ui.TABLE, info = "Show table header with columns.")
     val tableShowHeader by cv(true)
-    @IsConfig(name = "Show table controls", group = Settings.Ui.TABLE, info = "Show table controls at the bottom of the table. Displays menu bar and table items information")
+    @IsConfig(name = "Show table controls", group = Settings.Ui.TABLE, info = "Show table controls at the bottom of the table. Displays menu bar and table content information")
     val tableShowFooter by cv(true)
     @IsConfig(name = "Thumbnail anim duration", group = "${Settings.UI}.Images", info = "Preferred hover scale animation duration for thumbnails.")
     val thumbnailAnimDur by cv(100.millis)
@@ -146,7 +145,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
 
     /** Toggles lock to prevent user accidental layout change.  */
     @IsAction(name = "Toggle layout lock", desc = "Lock/unlock layout.", keys = "F4")
-    fun toggleLayoutLocked() = lockedLayout.set(!lockedLayout.get())
+    fun toggleLayoutLocked() = lockedLayout.set(!lockedLayout.value)
 
     /** Loads/refreshes active layout.  */
     @IsAction(name = "Reload layout", desc = "Reload layout.", keys = "F6")
@@ -155,14 +154,22 @@ class UiManager(val skinDir: File): Configurable<Any> {
     /** Toggles layout controlling mode.  */
     @IsAction(name = "Reload skin", desc = "Reloads skin.", keys = "F7")
     fun reloadSkin() {
-        logger.info("Reloading skin={}", skin.get())
-        applySkin(skin.get())
+        logger.info("Reloading skin={}", skin.value)
+        applySkin(skin.value)
+    }
+
+    @IsAction(name = "Show application", desc = "Equal to switching minimized mode.", global = true)
+    fun minimizeFocusTrue() {
+        val anyM = APP.windowManager.windows.any { it.isMinimized }
+        val anyF = APP.windowManager.windows.any { it.focused.value }
+        if (!anyM && anyF) {}
+        else APP.windowManager.windows.forEach { it.isMinimized = false; it.focus() }
     }
 
     @IsAction(name = "Show/Hide application", desc = "Equal to switching minimized mode.", keys = "CTRL+ALT+W", global = true)
     fun toggleMinimizeFocus() {
         val anyM = APP.windowManager.windows.any { it.isMinimized }
-        val anyF = APP.windowManager.windows.any { it.focused.get() }
+        val anyF = APP.windowManager.windows.any { it.focused.value }
         if (!anyM && anyF) APP.windowManager.windows.forEach { it.isMinimized = true }
         else APP.windowManager.windows.forEach { it.isMinimized = false; it.focus() }
     }
@@ -281,7 +288,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
 
             val refreshAlways = true    // skins may import each other hence it is more convenient to refresh always
             val currentSkinDir = skinDir.childOf(skin.get())
-            val isActive = currentSkinDir.isParentOf(file)
+            val isActive = currentSkinDir isAnyParentOf file
             if (isActive || refreshAlways) reloadSkin()
         }
     }
@@ -319,7 +326,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     }
 
     private fun Parent.applySkinGui(skin: String) {
-        val skinFile = skinDir.childOf(skin, "$skin.css")
+        val skinFile = skinDir/skin/"$skin.css"
         val urlOld = properties[skinKey] as String?
         val urlNew = try {
             skinFile.toURI().toURL().toExternalForm()

@@ -8,7 +8,7 @@ import javafx.embed.swing.SwingFXUtils
 import javafx.scene.image.Image
 import javafx.scene.image.WritableImage
 import mu.KotlinLogging
-import sp.it.pl.util.dev.throwIfFxThread
+import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.file.Util.getSuffix
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.orNull
@@ -57,7 +57,7 @@ private fun imgImplHasThumbnail(reader: ImageReader, index: Int, f: File): Boole
     } catch (e: Exception) {
         // TODO: remove, should not longer happen
         // The TwelveMonkeys library seems to have a few bugs, throwing all kinds of exceptions,
-        // including NullPointerException and ConcurrentModificationError
+        // including NullPointerException
         logger.warn(e) { "Can't find image thumbnails $f" }
         false
     }
@@ -93,7 +93,7 @@ fun loadImagePsd(file: File, inS: InputStream, width: Double, height: Double, hi
 fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean) = loadImagePsd(file, ImageIO.createImageInputStream(file), width, height, highQuality)
 
 private fun loadImagePsd(file: File, imageInputStream: ImageInputStream, width: Double, height: Double, highQuality: Boolean): ImageFx? {
-    throwIfFxThread()
+    failIfFxThread()
 
     imageInputStream.use { input ->
         val readers = ImageIO.getImageReaders(input)
@@ -138,7 +138,7 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream, width: 
 
                 val irp = reader.defaultReadParam.apply {
                     var px = 1
-                    if (!highQuality) {
+                    if (!highQuality && rW!=0 && rH!=0) {
                         val sw = reader.getWidth(ii)/rW
                         val sh = reader.getHeight(ii)/rH
                         px = maxOf(1, maxOf(sw, sh)/3) // quality == 2/3 == ok, great performance

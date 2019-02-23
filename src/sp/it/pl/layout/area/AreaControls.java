@@ -5,12 +5,9 @@ import javafx.animation.FadeTransition;
 import javafx.animation.Transition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
@@ -19,7 +16,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import org.reactfx.EventSource;
 import sp.it.pl.gui.objects.Text;
@@ -29,7 +25,6 @@ import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.main.AppAnimator;
-import sp.it.pl.unused.SimpleConfigurator;
 import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.graphics.drag.DragUtil;
@@ -38,34 +33,24 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LINK;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.REFRESH;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TIMES;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLINK;
 import static de.jensd.fx.glyphs.octicons.OctIcon.FOLD;
 import static de.jensd.fx.glyphs.octicons.OctIcon.UNFOLD;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
-import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
-import static javafx.scene.input.ScrollEvent.SCROLL;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
-import static sp.it.pl.gui.UiManager.OpenStrategy.INSIDE;
-import static sp.it.pl.gui.UiManager.OpenStrategy.POPUP;
-import static sp.it.pl.layout.area.Area.DRAGGED_PSEUDOCLASS;
+import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
-import static sp.it.pl.main.AppUtil.APP;
-import static sp.it.pl.unused.SimpleConfigurator.simpleConfigurator;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.mapB;
-import static sp.it.pl.util.graphics.Util.layScrollVText;
-import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.functional.UtilKt.runnable;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
  * Controls for a widget area.
@@ -84,9 +69,6 @@ public final class AreaControls {
         + "Disallows layout mode when mouse enters top corner of the widget. \n"
         + "This can be applied separately on widgets, but also containers or "
         + "whole layout.";
-    private static final String refbTEXT = "Refresh widget\n\n"
-        + "Applies widget properties, layout or reloads widget content. Depends "
-        + "on widget.";
     private static final String propbTEXT = "Settings\n\n"
         + "Displays widget properties.";
     private static final String actbTEXT = "Actions\n\n"
@@ -127,12 +109,14 @@ public final class AreaControls {
     WidgetArea area;
 
     public AreaControls(WidgetArea area) {
-    this.area = area;
+        this.area = area;
 
         // load fxml
         new ConventionFxmlLoader(AreaControls.class, root, this).loadNoEx();
 
-        root.getStyleClass().add(Area.WIDGET_AREA_CONTROLS_STYLECLASS);
+        root.getStyleClass().add(Area.STYLECLASS_WIDGET_AREA_CONTROLS);
+        header.setStyle("-fx-pref-height: 2em;");
+        header_buttons.setStyle("-fx-pref-height: 2em;");
 
         // avoid clashing of title and control buttons for small root size
         header_buttons.maxWidthProperty()
@@ -145,7 +129,6 @@ public final class AreaControls {
         Icon closeB = new Icon(TIMES, is, closebTEXT, this::close);
         Icon actB = new Icon(GAVEL, is, actbTEXT, () -> APP.actionPane.show(Widget.class, area.getWidget()));
         propB = new Icon(COGS, is, propbTEXT, this::settings);
-        Icon refreshB = new Icon(REFRESH, is, refbTEXT, this::refreshWidget);
         lockB = new Icon(null, is, lockbTEXT, () -> {
             toggleLocked();
             APP.actionStream.push("Widget layout lock");
@@ -173,21 +156,21 @@ public final class AreaControls {
                     Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                     DragUtil.setComponent(area.getWidget(), db);
                     // signal dragging graphically with css
-                    root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, true);
+                    root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
                 }
                 e.consume();
             }
         });
         // return graphics to normal
-        root.setOnDragDone(e -> root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
+        root.setOnDragDone(e -> root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
 
 
-        infoB = new Icon(INFO, is, infobTEXT, this::showInfo); // consistent with Icon.createInfoIcon()
+        infoB = new Icon(INFO, is, infobTEXT, this::showInfo); // consistent with Icon.infoIcon()
 
         // build header
         header_buttons.setNodeOrientation(LEFT_TO_RIGHT);
         header_buttons.setAlignment(Pos.CENTER_RIGHT);
-        header_buttons.getChildren().addAll(infoB, loadB, absB, lockB, refreshB, propB, actB, closeB);
+        header_buttons.getChildren().addAll(infoB, loadB, absB, lockB, propB, actB, closeB);
 
         // build animations
         contrAnim = new FadeTransition(APP.ui.getDurationLM(), root);
@@ -214,7 +197,7 @@ public final class AreaControls {
         // ignore when already showing, under lock or in strong mode
         showS.filter(e -> !isShowingWeak && !area.isUnderLock() && !isShowingStrong)
             // transform into IN/OUT boolean
-            .map(e -> p.getWidth() - activatorW < e.getX() && activatorH > e.getY())
+            .map(e -> p.getWidth() - activatorW*APP.ui.getFont().getValue().getSize()/12.0 < e.getX() && activatorH*APP.ui.getFont().getValue().getSize()/12.0 > e.getY())
             // ignore when no change
             .filter(in -> in != inside.get())
             // or store new state on change
@@ -259,77 +242,25 @@ public final class AreaControls {
         deactivator.setScaleY(1.2);
     }
 
-    void refreshWidget() {
-        area.refresh();
-    }
-
     void toggleLocked() {
         area.toggleLocked();
     }
 
     void settings() {
-        if (area.getActiveWidgets().isEmpty()) return;
-        Widget<?> w = area.getActiveWidgets().get(0);
-
-        if (APP.ui.getOpenStrategy().getValue()==POPUP) {
-            APP.windowManager.showSettings(w,propB);
-        } else if (APP.ui.getOpenStrategy().getValue()==INSIDE) {
-            AppAnimator.INSTANCE.closeAndDo(area.content_root, () -> {
-                SimpleConfigurator<?> sc = simpleConfigurator(w);
-                sc.getStyleClass().addAll("block", "area", "widget-area");// imitate area looks
-                sc.setOnMouseClicked(me -> {
-                    if (me.getButton()==SECONDARY)
-                        AppAnimator.INSTANCE.closeAndDo(sc, () -> {
-                            area.getRoot().getChildren().remove(sc);
-                            AppAnimator.INSTANCE.openAndDo(area.content_root, null);
-                        });
-                });
-                AppAnimator.INSTANCE.openAndDo(sc, null);
-                area.getRoot().getChildren().add(sc);
-                setAnchors(sc, 0d);
-            });
-        }
+        APP.windowManager.showSettings(area.getWidget(), propB);
     }
 
     void showInfo() {
-        if (APP.ui.getOpenStrategy().getValue()==POPUP) {
-            helpP.getM(this).showInCenterOf(infoB);
-        } else if (APP.ui.getOpenStrategy().getValue()==INSIDE) {
-            AppAnimator.INSTANCE.closeAndDo(area.content_root, () -> {
-                Text t = new Text(getInfo());
-                     t.setMouseTransparent(true);
-                ScrollPane s = layScrollVText(t);
-                           s .addEventFilter(SCROLL, Event::consume);
-                           s.setMaxWidth(500);
-                StackPane sa = new StackPane(s);
-                sa.setPadding(new Insets(20));
-                sa.getStyleClass().addAll(Area.bgr_STYLECLASS);
-                sa.addEventFilter(MOUSE_PRESSED, Event::consume);
-                sa.addEventFilter(MOUSE_RELEASED, Event::consume);
-                sa.addEventFilter(MOUSE_CLICKED, e -> {
-                    if (e.getButton()==SECONDARY)
-                        AppAnimator.INSTANCE.closeAndDo(sa, () -> {
-                            area.getRoot().getChildren().remove(sa);
-                            AppAnimator.INSTANCE.openAndDo(area.content_root, null);
-                        });
-                });
-                AppAnimator.INSTANCE.openAndDo(sa, null);
-                area.getRoot().getChildren().add(sa);
-                setAnchors(sa, 0d);
-            });
-        }
+        helpP.getM(this).showInCenterOf(infoB);
     }
 
     void close() {
-        if (area.index==null)
-            AppAnimator.INSTANCE.closeAndDo(area.container.ui.getRoot(), () -> area.container.close());
-        else
-            AppAnimator.INSTANCE.closeAndDo(area.content_root, () -> area.container.removeChild(area.index));
+        AppAnimator.INSTANCE.closeAndDo(area.contentRoot, runnable(() -> area.container.removeChild(area.index)));
     }
 
     private void toggleAbsSize() {
         if (area.container instanceof BiContainer) {
-            Splitter s = BiContainer.class.cast(area.container).ui;
+            Splitter s = ((BiContainer) area.container).ui;
             s.toggleAbsoluteSizeFor(area.index);
         }
     }

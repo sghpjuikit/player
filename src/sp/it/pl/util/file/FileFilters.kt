@@ -6,7 +6,6 @@ import sp.it.pl.util.file.mimetype.MimeTypes
 import sp.it.pl.util.file.mimetype.mimeType
 import sp.it.pl.util.functional.Functors
 import java.io.File
-import java.util.function.Consumer
 
 /**
  * Pool of file filters intended for simple enum-like file filter selection in UI.
@@ -40,10 +39,10 @@ object FileFilters {
     @JvmStatic fun getOrPrimary(name: String) = filters.find { it.name==name } ?: filterPrimary
 
     /** @return enumerable string value enumerating all available predicate names */
-    @JvmStatic @JvmOverloads fun toEnumerableValue(applier: Consumer<in String> = Consumer {}) = FileFilterValue(filters.map { it.name }, applier)
+    @JvmStatic fun toEnumerableValue() = FileFilterValue(filters.map { it.name })
 }
 
-class FileFilterValue(enumerated: Collection<String>, applier: Consumer<in String> = Consumer {}): VarEnum<String>("File - all", enumerated, applier) {
+class FileFilterValue(enumerated: Collection<String>): VarEnum<String>("File - all", enumerated) {
 
     private var filter = FileFilters.filterPrimary
 

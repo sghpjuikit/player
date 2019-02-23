@@ -1,14 +1,14 @@
 # Contributing
 
 - Language
-  - Java: JDK 9 or 10
   - Kotlin: Latest version
+  - Java: JDK 9 or 10
 - IDE: due to use of Kotlin, Intellij IDEA is strongly recommended, although not required
 
 ## Preparations
 
 - Clone the repository
-- To enable audio playback, VLC must be installed on your system or in the working dir/vlc directory. Obtain latest [here](https://www.videolan.org/vlc/)
+- To enable audio playback, 64-bit VLC must be installed on your system or in the `app/vlc` directory. Obtain latest [here](https://www.videolan.org/vlc/)
 - To use a jdk other than your system default, create a `gradle.properties` file at project root with the following content: `org.gradle.java.home=/path/to/jdk`
 
 #### Intellij IDEA
@@ -46,7 +46,7 @@ This should be set up automatically by Gradle and imported into your IDE.
 ## Code style
 
 The project contains a shared code style in .idea/codeStyles for IDEA with definitions for auto formatting
-  - Kotlin: Follow [official style giude](https://kotlinlang.org/docs/reference/coding-conventions.html)
+  - Kotlin: Follow [official style guide](https://kotlinlang.org/docs/reference/coding-conventions.html)
   - Java: It is encouraged to write any new code on Kotlin
       
 ### Logging
@@ -64,37 +64,42 @@ The project contains a shared code style in .idea/codeStyles for IDEA with defin
    - top level functions: `private val logger = KotlinLogging.logger {}`
 
 ##### Configuration
- - working dir/resources/log_configuration.xml
- - the logger appends WARN and ERROR to file and everything to console (this can be changed at runtime in the settings)
+ - configured in [app/resources/log_configuration.xml](app/resources/log_configuration.xml)
+ - the logger appends WARN and ERROR to file and everything to console (this can be changed in the settings at runtime)
 
 ### Imports
  - use static imports where possible (enum types, utility methods, etc.)
  - no empty lines, just alphabetical sort
  - separate imports and static imports
- - never use package (star) imports
+ - no package (star) imports
 
 ### Assertions
- - always try to avoid implicit conditions with proper design and typesafety
+ - always try to avoid implicit conditions with proper design and type-safety
  - always check method parameters for all required conditions, always document these in @param tags
  - do not use java assertions
- - use runtime exceptions (e.g. AssertionError) or methods like Objects.requireNonNull(), 
+ - use runtime exceptions (e.g. AssertionError) or methods like Objects.requireNonNull, 
    util.dev.throwIf, util.dev.fail and never document them in @throw (to avoid anyone catching them)
+ - use runtime exceptions (e.g. `java.lang.AssertionError`)
+ - encouraged is the use of methods:
+   - `Objects.requireNonNull()`, 
+   - `util.dev.fail`
+   - `util.dev.failIf`
 
 ### Comments
  - always write javadoc for public elements, be as concise as possible, but describe and define full contract
- - use simple comments `//` to provide code intention
- - avoid using comments by using proper names and code structure and avoiding arbitrary/exceptional/edge cases 
+ - no `/* */` comments
+ - avoid using `//` comments by using proper names and code structure and avoiding arbitrary/exceptional/edge cases 
 
 ## Skins
 
-A skin is a single css file that works similar to styling a html web site - 
+A skin is a css file that styles the elements of the application, similar to styling a html web site -
 see [javafx css reference guide](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html). 
 Skins can depend on each other.
 
 The application automatically discovers the skins when it starts and monitors them for changes. 
-The skins are located in separate folders in [working dir/skins](/working%20dir/skins), 
+The skins are located in separate folders in [app/skins](/working%20dir/skins), 
 which also contains further instructions on how to create your own skin.
 
 Customize the appearance of the application by creating a new skin depending on the default skin and modifying what you want. 
-This way your changes won't be overridden by an update of the original skin. <br>
+This way your changes won't be overridden by an update of the original skin.  
 If you feel like you added substantial value, feel free to submit a pull request so it can be incorporated into the application!

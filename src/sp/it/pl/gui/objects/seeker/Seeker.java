@@ -69,19 +69,20 @@ import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.Chapter.validateChapterText;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
-import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
+import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.animation.Anim.mapConcave;
 import static sp.it.pl.util.animation.Anim.mapTo01;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.functional.Util.minBy;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.layHeaderRight;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.UtilKt.typeText;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.units.UtilKt.toHMSMs;
 
 /**
  * Playback seeker. A slider-like control that controls playback, by seeking.
@@ -438,7 +439,7 @@ public final class Seeker extends AnchorPane {
 		}
 
 		void show() {
-			i.setDisable(!Player.playingItem.get().isFileBased());
+			i.setDisable(!Player.playingSong.get().isFileBased());
 			fade.playOpenDo(runnable(() -> visible = true));
 		}
 
@@ -565,7 +566,7 @@ public final class Seeker extends AnchorPane {
 				editB = new Icon(EDIT, 11, "Edit chapter", this::startEdit);
 				commitB = new Icon(CHECK, 11, "Confirm changes", this::commitEdit);
 				delB = new Icon(TRASH_ALT, 11, "Remove chapter", () -> {
-					Metadata m = Player.playingItem.get();
+					Metadata m = Player.playingSong.get();
 					MetadataWriter.use(m, w -> w.removeChapter(c, m));
 				});
 				cancelB = new Icon(REPLY, 11, "Cancel edit", this::cancelEdit);
@@ -588,7 +589,7 @@ public final class Seeker extends AnchorPane {
 					nextB.setDisable(true);
 				if (0==i)
 					prevB.setDisable(true);
-				helpB = createInfoIcon(
+				helpB = infoIcon(
 						"Single click : Close\n"
 						+ "Double L click : Play from this chapter\n"
 						+ "Double R click : Start edit\n"
@@ -608,7 +609,7 @@ public final class Seeker extends AnchorPane {
 					if (isEdited.getValue()) cancelEdit();
 					hover.playCloseDo(runnable(just_created ? () -> Seeker.this.getChildren().remove(this) : null));
 				});
-				p.title.setValue(c.getTime().toString());
+				p.title.setValue(toHMSMs(c.getTime()));
 				p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
 				content.setOnMouseClicked(e -> {
 					// if info popup is shown, close it and act as if content is mouse transparent to prevent any action
@@ -704,7 +705,7 @@ public final class Seeker extends AnchorPane {
 				message.setText(text);
 				// and physically
 				c.setText(text);
-				Metadata m = Player.playingItem.get();
+				Metadata m = Player.playingSong.get();
 				MetadataWriter.use(m, w -> w.addChapter(c, m));
 			}
 			// maintain proper content

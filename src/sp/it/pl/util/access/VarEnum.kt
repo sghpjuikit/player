@@ -2,7 +2,6 @@ package sp.it.pl.util.access
 
 import sp.it.pl.util.access.fieldvalue.EnumerableValue
 import sp.it.pl.util.type.InstanceMap
-import java.util.function.Consumer
 import java.util.stream.Stream
 import kotlin.streams.toList
 
@@ -19,16 +18,13 @@ open class VarEnum<T>: V<T>, EnumerableValue<T> {
         valueEnumerator = { enumeration.toList() }
     }
 
-    @JvmOverloads
-    constructor(value: T, enumerated: Collection<T>, applier: Consumer<in T> = Consumer {}): super(valOrFirst(value, { enumerated }), applier) {
+    constructor(value: T, enumerated: Collection<T>): super(valOrFirst(value, { enumerated })) {
         valueEnumerator = { enumerated }
     }
 
-    @JvmOverloads
-    constructor(value: T, enumerator: () -> Collection<T>, applier: Consumer<in T> = Consumer {}): super(valOrFirst(value, enumerator), applier) {
+    constructor(value: T, enumerator: () -> Collection<T>): super(valOrFirst(value, enumerator)) {
         valueEnumerator = enumerator
     }
-
 
     override fun enumerateValues() = valueEnumerator()
 

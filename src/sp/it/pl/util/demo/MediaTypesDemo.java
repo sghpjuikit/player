@@ -1,14 +1,33 @@
 package sp.it.pl.util.demo;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import javax.imageio.ImageIO;
-import javax.sound.sampled.*;
-import javax.sound.midi.*;
-import java.awt.*;
-import javax.swing.*;
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Control;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.Line;
+import javax.sound.sampled.Mixer;
+import javax.sound.sampled.Port;
+import javax.swing.JApplet;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
+import javax.swing.event.TreeSelectionEvent;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.tree.*;
-import javax.swing.event.*;
 import javax.swing.text.Position;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 /**
  * @see <a href=https://stackoverflow.com/questions/7585699/list-of-useful-environment-settings-in-java/7616206#7616206>https://stackoverflow.com/questions/7585699/list-of-useful-environment-settings-in-java/7616206#7616206</a>

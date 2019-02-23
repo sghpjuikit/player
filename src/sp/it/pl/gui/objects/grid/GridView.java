@@ -145,17 +145,20 @@ public class GridView<T, F> extends Control {
 		});
 		setOnScroll(Event::consume);
 
+
+		setSkin(createDefaultSkin());
+
 		getStyleClass().add(STYLE_CLASS);
 	}
 
 	@Override
-	protected GViewSkin<T,F> createDefaultSkin() {
-		return new GViewSkin<>(this);
+	protected GridViewSkin<T,F> createDefaultSkin() {
+		return new GridViewSkin<>(this);
 	}
 
 	@SuppressWarnings("unchecked")
-	public GViewSkin<T,F> implGetSkin() {
-		return (GViewSkin) getSkin();
+	public GridViewSkin<T,F> implGetSkin() {
+		return (GridViewSkin) getSkin();
 	}
 
 	public ObservableList<T> getItemsRaw() {

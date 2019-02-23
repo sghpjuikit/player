@@ -10,12 +10,14 @@ import java.util.function.Consumer
 class VarAction: VarEnum<String> {
 
     @JvmOverloads
-    constructor(a: Action, applier: Consumer<in Action> = Consumer {})
-            : super(a.name, { ActionRegistrar.getActions().map { it.name } }, Consumer { applier(ActionRegistrar[it]) })
+    constructor(a: Action, applier: Consumer<in Action> = Consumer {}): super(a.name, { ActionRegistrar.getActions().map { it.name } }) {
+        initAttach { applier(ActionRegistrar[it]) }
+    }
 
     @JvmOverloads
-    constructor(action_name: String, applier: Consumer<in Action> = Consumer {})
-            : super(action_name, { ActionRegistrar.getActions().map { it.name } }, Consumer { applier(ActionRegistrar[it]) })
+    constructor(action_name: String, applier: Consumer<in Action> = Consumer {}): super(action_name, { ActionRegistrar.getActions().map { it.name } }) {
+        initAttach { applier(ActionRegistrar[it]) }
+    }
 
     fun getValueAction(): Action = ActionRegistrar[value]
 

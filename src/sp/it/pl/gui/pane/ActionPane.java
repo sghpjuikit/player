@@ -62,22 +62,23 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
-import static sp.it.pl.gui.pane.GroupApply.FOR_ALL;
-import static sp.it.pl.gui.pane.GroupApply.FOR_EACH;
-import static sp.it.pl.gui.pane.GroupApply.NONE;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.collectionUnwrap;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.collectionWrap;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.getUnwrappedType;
+import static sp.it.pl.gui.pane.GroupApply.FOR_ALL;
+import static sp.it.pl.gui.pane.GroupApply.FOR_EACH;
+import static sp.it.pl.gui.pane.GroupApply.NONE;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
-import static sp.it.pl.main.AppBuildersKt.createInfoIcon;
-import static sp.it.pl.main.AppUtil.APP;
+import static sp.it.pl.main.AppBuildersKt.infoIcon;
+import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.main.AppProgressKt.showProgress;
 import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.future.Fut.fut;
-import static sp.it.pl.util.dev.Util.throwIfNotFxThread;
+import static sp.it.pl.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
@@ -201,7 +202,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 
 /* ---------- CONTROLS ---------------------------------------------------------------------------------------------- */
 
-	private final Icon helpI = createInfoIcon(
+	private final Icon helpI = infoIcon(
 		"Action chooser"
 	  + "\n"
 	  + "\nChoose an action. It may use some input data. Data not immediately ready will "
@@ -223,7 +224,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	private static final double CONTENT_SIZE_SCALE = 0.65;
 
 	protected void show() {
-		throwIfNotFxThread();
+		failIfNotFxThread();
 
 		setData(data);
 
@@ -250,7 +251,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	@Override
 	@SuppressWarnings("unchecked")
 	public final void show(Object data) {
-		throwIfNotFxThread();
+		failIfNotFxThread();
 
 		data = collectionUnwrap(data);
 		Class c = data==null ? Void.class : data.getClass();
@@ -320,7 +321,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	 * @return user selection of the data available
 	 */
 	public Object getData() {
-		throwIfNotFxThread();
+		failIfNotFxThread();
 
 		Object d = futureUnwrapOrThrow(data);
 		if (d instanceof Collection) {
@@ -336,7 +337,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 
 	@SuppressWarnings("unchecked")
 	private void setData(Object d) {
-		throwIfNotFxThread();
+		failIfNotFxThread();
 
 		// clear content
 		setActionInfo(null);
@@ -352,9 +353,10 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		} else {
 			setDataInfo(null, false);
 			// obtain data & invoke again
-			data = ((Fut) data)
-					.useBy(FX, this::setData)
-					.showProgress(dataProgress);
+			data = showProgress(
+				((Fut) data).useBy(FX, this::setData),
+				dataProgress
+			);
 		}
 	}
 

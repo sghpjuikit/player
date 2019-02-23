@@ -1,6 +1,5 @@
 package sp.it.pl.layout.widget
 
-import javafx.scene.Node
 import javafx.scene.layout.Region
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.controller.io.Inputs
@@ -8,7 +7,6 @@ import sp.it.pl.layout.widget.controller.io.Outputs
 import sp.it.pl.main.APP
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.file.childOf
-import java.io.ObjectStreamException
 
 /** Empty widget. Useful for certain layout operations and as a fill in for null. */
 @Widget.Info(
@@ -20,50 +18,19 @@ import java.io.ObjectStreamException
         group = Widget.Group.OTHER
 )
 @ExperimentalController
-class EmptyWidget: Widget<EmptyWidget>("Empty", emptyWidgetFactory), Controller {
+class EmptyWidget(widget: Widget): Controller(widget) {
 
-    private val o = Outputs()
-    private val i = Inputs()
-    override val location = super<Widget>.location
-    override val userLocation = super<Widget>.userLocation
+    private val root = Region()
+    override val ownedInputs = Inputs()
+    override val ownedOutputs = Outputs()
 
-    init {
-        controller = this
-    }
-
-    override fun close() = super<Widget>.close()
-
-    override fun load(): Node {
-        if (root==null) root = loadFirstTime()
-        return root
-    }
-
-    override fun loadFirstTime() = Region()
-
-    override fun refresh() {}
-
+    override fun loadFirstTime() = root
     override fun focus() {}
-
-    override fun getOwnerWidget() = this
-
-    override fun getOwnedOutputs() = o
-
-    override fun getOwnedInputs() = i
-
+    override fun close() {}
     override fun getField(n: String) = null
-
-    // can not use default impl. - it calls getFields on the controller since this=this.controller -> StackOverflow
     override fun getFields() = emptyList<Config<Any>>()
-
     override fun getFieldsMap() = emptyMap<String, Config<Any>>()
-
-    @Throws(ObjectStreamException::class)
-    override fun readResolve(): Any {
-        root = Region()
-        controller = this
-        return super.readResolve()
-    }
 
 }
 
-val emptyWidgetFactory: WidgetFactory<*> = WidgetFactory(EmptyWidget::class, APP.DIR_WIDGETS.childOf("Empty"))
+val emptyWidgetFactory = WidgetFactory(EmptyWidget::class, APP.DIR_WIDGETS.childOf("Empty"))

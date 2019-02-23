@@ -4,10 +4,12 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import org.reactfx.Subscription;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static sp.it.pl.util.reactive.Util.maintain;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
  * Very simple alternative CheckBox control.
@@ -34,9 +36,21 @@ public class CheckIcon extends Icon {
 	/** Creates icon with property as selection value. {@link #selected}==s will always be true. */
 	public CheckIcon(Property<Boolean> s) {
 		selected = s==null ? new SimpleBooleanProperty(true) : s;
+
 		styleclass(STYLECLASS);
 		maintain(selected, v -> pseudoClassStateChanged(selectedPC, v));
-		addEventHandler(MOUSE_CLICKED, e -> selected.setValue(!selected.getValue()));
+
+		setFocusTraversable(true);
+		addEventHandler(MOUSE_CLICKED, e -> {
+			selected.setValue(!selected.getValue());
+			e.consume();
+		});
+		addEventHandler(KeyEvent.KEY_PRESSED, e -> {
+			if (e.getCode()==KeyCode.ENTER || e.getCode()==KeyCode.SPACE) {
+				selected.setValue(!selected.getValue());
+				e.consume();
+			}
+		});
 	}
 
 	/** Sets normal and selected icons. Overrides icon css values. */

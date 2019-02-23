@@ -4,13 +4,14 @@ import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.control.ScrollBar
 import javafx.scene.control.skin.ScrollBarSkin
 import javafx.scene.layout.StackPane
+import org.reactfx.Subscription
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.graphics.onHoverOrDragEnd
 import sp.it.pl.util.graphics.onHoverOrDragStart
-import sp.it.pl.util.math.millis
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.type.Util.getFieldValue
+import sp.it.pl.util.units.millis
 
 /** ScrollBar skin that adds animations & improved usability - thumb expands on mouse hover. */
 open class ImprovedScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar) {
@@ -37,8 +38,8 @@ open class ImprovedScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar)
         val a = anim(350.millis) { node.opacity = 0.6+0.4*it*it }.applyNow()
         skinnable.parentProperty() sync {
             disposer()
-            disposer += it.onHoverOrDragStart { a.playOpen() }
-            disposer += it.onHoverOrDragEnd { a.playClose() }
+            disposer += it?.onHoverOrDragStart { a.playOpen() } ?: Subscription {}
+            disposer += it?.onHoverOrDragEnd { a.playClose() } ?: Subscription {}
         }
     }
 

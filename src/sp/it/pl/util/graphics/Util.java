@@ -1,6 +1,8 @@
 package sp.it.pl.util.graphics;
 
-import java.awt.*;
+import java.awt.EventQueue;
+import java.awt.Rectangle;
+import java.awt.Robot;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.function.Consumer;
@@ -33,7 +35,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.reactfx.EventSource;
 import org.reactfx.Subscription;
-import sp.it.pl.main.JavaLegacy;
+import sp.it.pl.util.JavaLegacy;
 import sp.it.pl.util.access.V;
 import static java.time.Duration.ofMillis;
 import static javafx.geometry.Pos.CENTER_RIGHT;
@@ -45,8 +47,8 @@ import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.dev.Util.logger;
-import static sp.it.pl.util.dev.Util.noNull;
+import static sp.it.pl.util.dev.DebugKt.logger;
+import static sp.it.pl.util.dev.FailKt.noNull;
 
 /**
  * Graphic utility methods.

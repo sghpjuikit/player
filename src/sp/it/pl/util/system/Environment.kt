@@ -14,13 +14,13 @@ import sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.main.APP
+import sp.it.pl.main.isValidSkinFile
+import sp.it.pl.main.isValidWidgetFile
 import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.ImageFileFormat
-import sp.it.pl.util.file.Util.isValidSkinFile
-import sp.it.pl.util.file.Util.isValidWidgetFile
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.find1stExistingParentDir
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
@@ -193,8 +193,8 @@ fun File.open() {
                 runAsProgram()
             }
             else -> when {
-                isDirectory && APP.DIR_SKINS==parentDir || isValidSkinFile(this) -> APP.ui.setSkin(this)
-                isDirectory && APP.DIR_WIDGETS==parentDir || isValidWidgetFile(this) -> APP.widgetManager.widgets.find(nameWithoutExtensionOrRoot, NO_LAYOUT, false)
+                isDirectory && APP.DIR_SKINS==parentDir || this.isValidSkinFile() -> APP.ui.setSkin(this)
+                isDirectory && APP.DIR_WIDGETS==parentDir || this.isValidWidgetFile() -> APP.widgetManager.widgets.find(nameWithoutExtensionOrRoot, NO_LAYOUT, false)
                 else -> {
                     if (Desktop.Action.OPEN.isSupportedOrWarn()) {
                         try {

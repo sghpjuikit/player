@@ -5,6 +5,7 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.mapper.Mapper;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import javafx.beans.Observable;
 import sp.it.pl.audio.playlist.Playlist;
-import sp.it.pl.audio.playlist.PlaylistItem;
+import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
@@ -21,7 +22,6 @@ import sp.it.pl.layout.container.freeformcontainer.FreeFormContainer;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.container.switchcontainer.SwitchContainer;
 import sp.it.pl.layout.container.uncontainer.UniContainer;
-import sp.it.pl.layout.widget.EmptyWidget;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.util.dev.Blocks;
 import sp.it.pl.util.functional.Try;
@@ -35,7 +35,7 @@ import sp.it.pl.util.serialize.xstream.StringPropertyConverter;
 import sp.it.pl.util.serialize.xstream.VConverter;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static sp.it.pl.util.dev.Util.logger;
+import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.file.Util.readFileLines;
 import static sp.it.pl.util.functional.Try.error;
 import static sp.it.pl.util.functional.Try.ok;
@@ -68,7 +68,7 @@ public final class CoreSerializerXml implements Core {
 		x.registerConverter(new ObservableListConverter(xm));
 		x.registerConverter(new VConverter(xm));
 		x.alias("Playlist", Playlist.class);
-		x.alias("item", PlaylistItem.class);
+		x.alias("item", PlaylistSong.class);
 		x.alias("Component", Component.class);
 		x.alias("Container", Container.class);
 		x.alias("UniContainer", UniContainer.class);
@@ -77,7 +77,6 @@ public final class CoreSerializerXml implements Core {
 		x.alias("SwitchContainer", SwitchContainer.class);
 		x.alias("Layout", Layout.class);
 		x.alias("Widget", Widget.class);
-		x.alias("EmptyWidget", EmptyWidget.class);
 		x.useAttributeFor(Component.class, "id");
 		x.useAttributeFor(Widget.class, "name");
 	}
@@ -103,6 +102,9 @@ public final class CoreSerializerXml implements Core {
 	@SuppressWarnings("unchecked")
 	@Blocks
 	public <T> Try<T,SerializationException> fromXML(Class<T> type, File file) {
+		if (!file.exists())
+			return error(new SerializationException("Couldn't deserialize " + type + " from file " + file, new FileNotFoundException(file.getAbsolutePath())));
+
 		// pre-processing
 		String varDefinition = "#def ";
 		List<String> lines = readFileLines(file).collect(toList());

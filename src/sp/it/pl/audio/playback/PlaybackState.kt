@@ -9,7 +9,7 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.media.MediaPlayer.Status
 import javafx.util.Duration
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode
-import sp.it.pl.util.math.minus
+import sp.it.pl.util.units.minus
 import java.util.Objects
 import java.util.UUID
 

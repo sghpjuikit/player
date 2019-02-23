@@ -30,6 +30,7 @@ import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.syncTo;
 
 public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
@@ -87,7 +88,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 double ww = container.properties.getD(i+"w");
                 if (container.properties.containsKey(i+"x")) w.x.set(wx*nv.doubleValue());
                 if (container.properties.containsKey(i+"w")) w.w.set((ww-wx)*nv.doubleValue());
-                maintain(APP.ui.getSnapping(), w.snappable);    // this is bad!
+                syncTo(APP.ui.getSnapping(), w.snappable);    // this is bad!
             });
             resizing = false;
         });
@@ -101,7 +102,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                 double wh = container.properties.getD(i+"h");
                 if (container.properties.containsKey(i+"y")) w.y.set(wy*nv.doubleValue());
                 if (container.properties.containsKey(i+"h")) w.h.set((wh-wy)*nv.doubleValue());
-                maintain(APP.ui.getSnapping(), w.snappable);    // this is bad!
+                syncTo(APP.ui.getSnapping(), w.snappable);    // this is bad!
             });
             resizing = false;
         });
@@ -200,7 +201,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             maintain(w.w, v -> { if (!resizing) container.properties.put(i+"w", (w.x.get()+v.doubleValue())/rt.getWidth());});
             maintain(w.h, v -> { if (!resizing) container.properties.put(i+"h", (w.y.get()+v.doubleValue())/rt.getHeight());});
             maintain(APP.ui.getSnapDistance(), d->d, w.snapDistance);
-            maintain(APP.ui.getSnapping(), w.snappable);
+            syncTo(APP.ui.getSnapping(), w.snappable);
         });
         maintain(container.lockedUnder, l -> !l, w.resizable);
         maintain(container.lockedUnder, l -> !l, w.movable);

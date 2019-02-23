@@ -86,7 +86,7 @@ import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.drag.DragUtil.hasAudio;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.syncTo;
 
 @Widget.Info(
     author = "Martin Polakovic",
@@ -214,8 +214,8 @@ public class FileInfo extends SimpleController implements SongReader {
         rating.setContentDisplay(ContentDisplay.RIGHT);
 
         // bind rating to app configs
-        onClose.plusAssign(maintain(APP.getMaxRating(),rater.icons));
-        onClose.plusAssign(maintain(APP.getPartialRating(), rater.partialRating));
+        onClose.plusAssign(syncTo(APP.getMaxRating(),rater.icons));
+        onClose.plusAssign(syncTo(APP.getPartialRating(), rater.partialRating));
         rater.editable.set(true);
         rater.onRatingEdited = consumer(r -> {
             if (r != null) MetadataWriter.useToRate(data, r);

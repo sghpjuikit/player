@@ -252,14 +252,6 @@ fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, w: WritableValue<in V>): Sub
     return Subscription { this.removeListener(l) }
 }
 
-// TODO: remove
-infix fun <O> ObservableValue<O>.maintain(w: WritableValue<in O>): Subscription {
-    w.value = value
-    val l = ChangeListener<O> { _, _, nv -> w.value = nv }
-    this.addListener(l)
-    return Subscription { this.removeListener(l) }
-}
-
 /** [sync1If], that does not run immediately (even if the value passes the condition). */
 fun <T> ObservableValue<T>.attach1If(condition: (T) -> Boolean, action: (T) -> Unit): Subscription {
     val l = object: ChangeListener<T> {

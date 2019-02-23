@@ -66,9 +66,8 @@ import static sp.it.pl.util.functional.Util.max;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.reactive.UtilKt.sync1IfInScene;
-import static sp.it.pl.util.reactive.UtilKt.sync1IfNonNull;
+import static sp.it.pl.util.reactive.UtilKt.syncTo;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.edit;
 import static sp.it.pl.util.system.EnvironmentKt.open;
@@ -356,7 +355,7 @@ public class DirViewer extends SimpleController {
         @Override
         protected void computeGraphics() {
             super.computeGraphics();
-            maintain(fitFrom, thumb.fitFrom);
+            syncTo(fitFrom, thumb.fitFrom);
             Tooltip.install(root, appTooltipForData(() -> thumb.getRepresentant()));
         }
 

@@ -20,6 +20,7 @@ import static sp.it.pl.audio.playback.VolumeProperty.linToLog;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.syncTo;
 
 public class JavaFxPlayer implements GeneralPlayer.Play {
 
@@ -76,9 +77,9 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 
 				// bind (not read only) values
 				d1 = maintain(state.volume, v -> linToLog(v.doubleValue()), player.volumeProperty());
-				d2 = maintain(state.mute, player.muteProperty());
-				d3 = maintain(state.balance, player.balanceProperty());
-				d4 = maintain(state.rate, player.rateProperty());
+				d2 = syncTo(state.mute, player.muteProperty());
+				d3 = syncTo(state.balance, player.balanceProperty());
+				d4 = syncTo(state.rate, player.rateProperty());
 				player.setOnEndOfMedia(Player.onPlaybackEnd);
 
 				// handle binding of state to player
@@ -88,7 +89,7 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 					public void changed(ObservableValue<? extends Status> o, Status ov, Status nv) {
 						if (nv==PLAYING || nv==PAUSED || nv==STOPPED) {
 							// bind (read only) values: new player -> global (manual initialization)
-							d5 = maintain(player.currentTimeProperty(), state.currentTime);
+							d5 = syncTo(player.currentTimeProperty(), state.currentTime);
 							d6 = maintain(player.statusProperty(), s -> {
 								if (!Player.suspension_flag)
 									state.status.setValue(s);

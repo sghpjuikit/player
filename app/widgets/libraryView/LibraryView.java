@@ -73,6 +73,7 @@ import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.menuItem;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.syncTo;
 
 @Info(
     author = "Martin Polakovic",
@@ -137,11 +138,11 @@ public class LibraryView extends SimpleController {
         // table properties
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.search.setColumn(VALUE);
-        onClose.plusAssign(maintain(orient,table.nodeOrientationProperty()));
-        onClose.plusAssign(maintain(zeropad,table.zeropadIndex));
-        onClose.plusAssign(maintain(orig_index,table.showOriginalIndex));
-        onClose.plusAssign(maintain(show_header,table.headerVisible));
-        onClose.plusAssign(maintain(show_footer,table.footerVisible));
+        onClose.plusAssign(syncTo(orient,table.nodeOrientationProperty()));
+        onClose.plusAssign(syncTo(zeropad,table.zeropadIndex));
+        onClose.plusAssign(syncTo(orig_index,table.showOriginalIndex));
+        onClose.plusAssign(syncTo(show_header,table.headerVisible));
+        onClose.plusAssign(syncTo(show_footer,table.footerVisible));
 
         // set up table columns
         table.setKeyNameColMapper(name-> ColumnField.INDEX.name().equals(name) ? name : MetadataGroup.Field.valueOf(name).toString());

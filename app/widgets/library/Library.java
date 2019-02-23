@@ -70,7 +70,7 @@ import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.menuItem;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.syncTo;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFiles;
 import static sp.it.pl.util.units.UtilKt.toHMSMs;
@@ -138,11 +138,11 @@ public class Library extends SimpleController implements SongReader {
         // table properties
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.search.setColumn(TITLE);
-        onClose.plusAssign(maintain(orient,table.nodeOrientationProperty()));
-        onClose.plusAssign(maintain(zeropad,table.zeropadIndex));
-        onClose.plusAssign(maintain(orig_index,table.showOriginalIndex));
-        onClose.plusAssign(maintain(show_header,table.headerVisible));
-        onClose.plusAssign(maintain(show_footer,table.footerVisible));
+        onClose.plusAssign(syncTo(orient,table.nodeOrientationProperty()));
+        onClose.plusAssign(syncTo(zeropad,table.zeropadIndex));
+        onClose.plusAssign(syncTo(orig_index,table.showOriginalIndex));
+        onClose.plusAssign(syncTo(show_header,table.headerVisible));
+        onClose.plusAssign(syncTo(show_footer,table.footerVisible));
 
         // add progress indicator to bottom controls
         ((Pane)table.footerPane.getRight()).getChildren().addAll(taskInfo.getMessage(), taskInfo.getProgress());
@@ -238,9 +238,7 @@ public class Library extends SimpleController implements SongReader {
         table.setOnScroll(Event::consume);
 
         // update library comparator
-        maintain(table.itemsComparator, APP.db.getLibraryComparator());
-
-
+        syncTo(table.itemsComparator, APP.db.getLibraryComparator());
     }
 
     @Override

@@ -34,6 +34,7 @@ import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.syncTo;
 
 public final class Splitter extends ContainerNodeBase<BiContainer> {
 
@@ -75,7 +76,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         prop.getOrPut(Integer.class, "col", 0);
 
         // maintain proper orientation
-        maintain(container.orientation, splitPane.orientationProperty());
+        syncTo(container.orientation, splitPane.orientationProperty());
         // put properties
         setAbsoluteSize(prop.getI("abs_size"));
         applyPos();

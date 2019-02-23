@@ -70,6 +70,7 @@ import static sp.it.pl.util.graphics.MouseDragKt.initMouseDrag;
 import static sp.it.pl.util.graphics.UtilKt.initClip;
 import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.syncTo;
 
 public class PopOverSkin implements Skin<PopOver> {
 
@@ -163,7 +164,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		// footer
 		Icon resizeB = resizeButton();
 		resizeB.setPadding(new Insets(15));
-		maintain(p.userResizable, resizeB.visibleProperty());
+		syncTo(p.userResizable, resizeB.visibleProperty());
 		initMouseDrag(
 			resizeB,
 			new P(),

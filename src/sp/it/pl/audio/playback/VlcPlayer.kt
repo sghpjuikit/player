@@ -4,10 +4,11 @@ import javafx.scene.media.MediaPlayer.Status
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.util.Duration
 import mu.KLogging
-import sp.it.pl.audio.Song
 import sp.it.pl.audio.Player
+import sp.it.pl.audio.Song
 import sp.it.pl.main.APP
 import sp.it.pl.util.async.runFX
+import sp.it.pl.util.async.runNew
 import sp.it.pl.util.file.div
 import sp.it.pl.util.functional.ifFalse
 import sp.it.pl.util.functional.onE
@@ -26,6 +27,7 @@ import uk.co.caprica.vlcj.player.MediaPlayerFactory
 import uk.co.caprica.vlcj.player.events.MediaPlayerEventType
 import uk.co.caprica.vlcj.player.media.simple.SimpleMedia
 import java.io.File
+import java.lang.Thread.sleep
 import javax.print.attribute.standard.PrinterStateReason.PAUSED
 import kotlin.math.roundToInt
 
@@ -176,7 +178,23 @@ class VlcPlayer: GeneralPlayer.Play {
 
     override fun disposePlayback() {
         d()
-        runTry { player?.release() } onE { logger.error(it) { "Failed to dispose of the player" } }
+        player?.stop()
+        player?.let { p ->
+            runTry {
+                p.release()
+            } onE {
+                logger.warn(it) { "Failed to dispose of the player. Will retry after 1 second." }
+                // https://stackoverflow.com/questions/43312679/jvm-crashes-when-releasing-a-vlcj-mediaplayer
+                runNew {
+                    sleep(1000)
+                    runTry {
+                        p.release()
+                    } onE {
+                        logger.error(it) { "Failed to dispose of the player" }
+                    }
+                }
+            }
+        }
         player = null
     }
 

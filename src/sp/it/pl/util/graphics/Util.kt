@@ -28,6 +28,7 @@ import javafx.scene.control.TreeTableView
 import javafx.scene.control.TreeView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import javafx.scene.image.WritableImage
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseDragEvent
@@ -48,6 +49,7 @@ import javafx.scene.layout.Region
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
+import javafx.scene.robot.Robot
 import javafx.scene.shape.Rectangle
 import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
@@ -62,8 +64,6 @@ import sp.it.pl.util.JavaLegacy
 import sp.it.pl.util.graphics.image.FitFrom
 import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.sync
-import java.awt.MouseInfo
-import java.awt.Point
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -544,7 +544,6 @@ operator fun Point2D.div(p: Double): Point2D = Point2D(x/p, y/p)
 operator fun P.minus(p: Point2D): P = P(x-p.x, y-p.y)
 operator fun P.plus(p: Point2D): P = P(x+p.x, y+p.y)
 
-fun Point.toP() = P(x.toDouble(), y.toDouble())
 fun Point2D.toP() = P(x, y)
 
 fun Node.screenToLocal(e: MouseEvent) = screenToLocal(e.screenX, e.screenY)!!
@@ -728,25 +727,17 @@ fun Node.onHoverOrDragEnd(onEnd: () -> Unit): Subscription {
 
 /* ---------- SCREEN ------------------------------------------------------------------------------------------------ */
 
-/** @return the latest mouse position */
-fun getMousePosition(): Point2D {
-    val pi = MouseInfo.getPointerInfo()        // can be null: JDK bug in multi-monitor
-    val p = pi?.location ?: Point(0, 0)
-    return Point2D(p.getX(), p.getY())
-}
-
 /** @return screen containing this point */
 fun P.getScreen() = getScreen(x, y)
 
-/** @return screen containing this point */
-fun Point.getScreen() = getScreen(x.toDouble(), y.toDouble())
+/** @return screen containing the given coordinates */
+fun getScreen(x: Double, y: Double) = Screen.getScreens().find { it.bounds.intersects(x, y, 1.0, 1.0) } ?: Screen.getPrimary()!!
 
 /** @return screen containing the given coordinates */
-fun getScreen(x: Double, y: Double) = Screen.getScreens().find { it.bounds.intersects(x, y, 1.0, 1.0) }
-        ?: Screen.getPrimary()!!
+fun getScreenForMouse() = Robot().mousePosition.toP().getScreen()
 
-/** @return screen containing the given coordinates */
-fun getScreenForMouse() = getMousePosition().toP().getScreen()
+/** @return image representing actual content of this screen */
+fun Screen.makeScreenShot(image: WritableImage? = null) = Robot().getScreenCapture(image, bounds)!!
 
 /** @return index of the screen as reported by the underlying os */
 val Screen.ordinal: Int get() = JavaLegacy.screenOrdinal(this)

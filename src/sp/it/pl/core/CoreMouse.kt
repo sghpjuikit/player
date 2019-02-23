@@ -1,6 +1,7 @@
 package sp.it.pl.core
 
 import javafx.geometry.Point2D
+import javafx.scene.robot.Robot
 import org.reactfx.Subscription
 import sp.it.pl.util.async.executor.FxTimer
 import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
@@ -18,7 +19,7 @@ object CoreMouse: Core {
     private val velocitySubscribers = HashSet<(Double) -> Unit>()
 
     /** @return mouse position in screen coordinates */
-    fun getMousePosition(): Point2D = sp.it.pl.util.graphics.getMousePosition()
+    fun getMousePosition(): Point2D = Robot().mousePosition
 
     /** Observe mouse position in screen coordinates. */
     fun observeMousePosition(action: (Point2D) -> Unit): Subscription {

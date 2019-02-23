@@ -35,12 +35,12 @@ import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.Util.createFMNTStage
 import sp.it.pl.util.graphics.Util.layStack
-import sp.it.pl.util.graphics.Util.screenCaptureAndDo
 import sp.it.pl.util.graphics.Util.setAnchors
 import sp.it.pl.util.graphics.applyViewPort
 import sp.it.pl.util.graphics.getScreenForMouse
 import sp.it.pl.util.graphics.image.FitFrom
 import sp.it.pl.util.graphics.image.imgImplLoadFX
+import sp.it.pl.util.graphics.makeScreenShot
 import sp.it.pl.util.graphics.minus
 import sp.it.pl.util.graphics.pane
 import sp.it.pl.util.graphics.screenToLocal
@@ -337,7 +337,7 @@ enum class ScreenBgrGetter {
     fun getImgAndDo(screen: Screen, action: (Image?) -> Unit) {
         when (this) {
             NONE -> action(null)
-            SCREEN_SHOT -> screenCaptureAndDo(screen) { action(it) }
+            SCREEN_SHOT -> action(screen.makeScreenShot())
             SCREEN_BGR -> {
                 runNew {
                     val img = screen.getWallpaperFile()?.let { imgImplLoadFX(it, -1, -1, true) }

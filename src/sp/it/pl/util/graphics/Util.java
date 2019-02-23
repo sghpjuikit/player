@@ -1,19 +1,13 @@
 package sp.it.pl.util.graphics;
 
-import java.awt.EventQueue;
-import java.awt.Rectangle;
-import java.awt.Robot;
-import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.value.ChangeListener;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
 import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.MenuItem;
@@ -22,7 +16,6 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView.TableViewSelectionModel;
-import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -45,14 +38,9 @@ import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
-import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
-import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.dev.FailKt.noNull;
 
-/**
- * Graphic utility methods.
- */
 @SuppressWarnings("unused")
 public interface Util {
 
@@ -503,7 +491,7 @@ public interface Util {
 		Stage s = new Stage(UNDECORATED) {
 			@Override
 			public void hide() {
-				//  Due to JavaFX bugs it is impossible to hide the owner after this is hidden, so we reimplement hide()
+				//  Due to JavaFX bugs it is impossible to hide the owner after this is hidden, so we override hide()
 				//  so the owner is hidden first. It automatically trues to hide this, after which we call super.hide()
 				if (owner.isShowing()) {
 					owner.hide();
@@ -537,50 +525,4 @@ public interface Util {
 		return s;
 	}
 
-/* ---------- SCREEN ------------------------------------------------------------------------------------------------ */
-
-	/** Captures screenshot of the entire screen and runs custom action on fx thread. */
-	static void screenCaptureAndDo(Screen screen, Consumer<Image> action) {
-		Rectangle2D r = screen.getBounds();
-		screenCaptureAndDo((int) r.getMinX(), (int) r.getMinY(), (int) r.getWidth(), (int) r.getHeight(), action);
-	}
-
-	/**
-	 * Captures screenshot of the screen of given size and position and runs custom
-	 * action on fx thread.
-	 */
-	static void screenCaptureAndDo(int x, int y, int w, int h, Consumer<Image> action) {
-		screenCaptureRawAndDo(
-				x, y, w, h,
-				img -> {
-					Image i = img==null ? null : SwingFXUtils.toFXImage(img, new WritableImage(img.getWidth(), img.getHeight()));
-					runFX(() -> action.accept(i));
-				}
-		);
-	}
-
-	/** Captures screenshot of the entire screen and runs custom action on non fx thread. */
-	static void screenCaptureRawAndDo(Screen screen, Consumer<BufferedImage> action) {
-		Rectangle2D r = screen.getBounds();
-		screenCaptureRawAndDo((int) r.getMinX(), (int) r.getMinY(), (int) r.getWidth(), (int) r.getHeight(), action);
-	}
-
-	/**
-	 * Captures screenshot of the screen of given size and position and runs custom action on non fx thread.
-	 * <p/>
-	 * Based on: <a href="http://www.aljoscha-rittner.de/blog/archive/2011/03/09/javafxdev-screen-capture-tool-with-200-lines-and-500ms-startup-time/">javafx-dev-screen-capture-tool</a>
-	 */
-	static void screenCaptureRawAndDo(int x, int y, int w, int h, Consumer<BufferedImage> action) {
-		EventQueue.invokeLater(() -> {
-			Rectangle area = new Rectangle(x, y, w, h);
-			try {
-				Robot robot = new Robot();
-				BufferedImage img = robot.createScreenCapture(area);
-				action.accept(img);
-			} catch (Exception e) {
-				logger(Util.class).error("Failed to screenshot the screen {}", area, e);
-				action.accept(null);
-			}
-		});
-	}
 }

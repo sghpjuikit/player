@@ -730,7 +730,7 @@ fun Node.onHoverOrDragEnd(onEnd: () -> Unit): Subscription {
 
 /** @return the latest mouse position */
 fun getMousePosition(): Point2D {
-    val pi = MouseInfo.getPointerInfo()        // TODO: this can be null sometimes, investigate & fix
+    val pi = MouseInfo.getPointerInfo()        // can be null: JDK bug in multi-monitor
     val p = pi?.location ?: Point(0, 0)
     return Point2D(p.getX(), p.getY())
 }

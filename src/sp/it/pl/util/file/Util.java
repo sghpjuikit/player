@@ -352,7 +352,6 @@ public interface Util {
 	 * @throws java.lang.RuntimeException if parameter null
 	 */
 	static void deleteDirContent(File dir) {
-		// TODO: improve performance using Walker ?
 		listChildren(dir).forEach(Util::deleteFile);
 	}
 

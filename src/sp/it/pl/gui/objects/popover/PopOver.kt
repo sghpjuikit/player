@@ -261,8 +261,8 @@ open class PopOver<N: Node>(): PopupControl() {
             when (Os.current) {
                 Os.WINDOWS -> {
                     fun Window.hwnd(): WinDef.HWND {
-                        val peer = Util.invokeMethodP0(this, "getPeer")
-                        val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow")
+                        val peer = Util.invokeMethodP0(this, "getPeer") // requires --add-opens javafx.graphics/javafx.stage=ALL-UNNAMED
+                        val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow") // requires --add-opens javafx.graphics/com.sun.javafx.tk.quantum=ALL-UNNAMED
                         Util.invokeMethodP1(peerPlatformWindow, "setLevel", Int::class.javaPrimitiveType, 1)
                         val hwndLong = Util.invokeMethodP0(peerPlatformWindow, "getRawHandle") as Long
                         val hwnd = WinDef.HWND(Pointer(hwndLong))

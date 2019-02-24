@@ -224,8 +224,8 @@ tasks {
     val jar by getting(Jar::class) {
         dependsOn(copyLibs, kotlinc)
         group = main
-        destinationDir = dirApp
-        archiveName = "PlayerFX.jar"
+        destinationDirectory.set(dirApp)
+        archiveFileName.set("PlayerFX.jar")
     }
 
     "clean"(Delete::class) {

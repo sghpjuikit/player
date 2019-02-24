@@ -33,6 +33,16 @@ public class Output<T> extends Put<T> {
 		return () -> monitors.remove(c);
 	}
 
+	/** Calls {@link sp.it.pl.layout.widget.controller.io.Input#bind(Output)} on specified input with this output. */
+	public Subscription bind(Input<? super T> input) {
+		return input.bind(this);
+	}
+
+	/** Calls {@link sp.it.pl.layout.widget.controller.io.Input#unbind(Output)} on specified input with this output. */
+	public void unbind(Input<? super T> input) {
+		input.unbind(this);
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		return this==o || o instanceof Output && id.equals(((Output) o).id);

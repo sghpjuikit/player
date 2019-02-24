@@ -126,7 +126,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
         root.setPrefSize(600.0, 850.0)
         root.lay += table.root
 
-        Player.librarySelected.i.bind(outputSelected) on onClose
+        outputSelected.bind(Player.librarySelected.i) on onClose
 
         // table properties
         table.selectionModel.selectionMode = MULTIPLE

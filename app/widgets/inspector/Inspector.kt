@@ -42,6 +42,7 @@ import sp.it.pl.util.graphics.isAnyChildOf
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.pickTopMostAt
 import sp.it.pl.util.graphics.propagateESCAPE
+import sp.it.pl.util.graphics.styleclassToggle
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.onEventUp
@@ -194,10 +195,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
 
         private fun Node?.highlight(value: Boolean): Node? {
             fun Node.isHighlightable() = this !is Shape
-            fun Node.styleHighlighted(value: Boolean) {
-                if (value) styleClass += "inspector-highlighted"
-                else styleClass -= "inspector-highlighted"
-            }
+            fun Node.styleHighlighted(value: Boolean) = styleclassToggle("inspector-highlighted", value)
 
             return if (value) {
                 this?.traverseToFirst { it.isHighlightable() }?.also { it.styleHighlighted(value) }

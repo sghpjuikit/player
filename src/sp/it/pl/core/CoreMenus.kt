@@ -1,5 +1,6 @@
 package sp.it.pl.core
 
+import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Menu
 import javafx.scene.input.DataFormat
@@ -13,12 +14,15 @@ import sp.it.pl.gui.objects.contextmenu.item
 import sp.it.pl.gui.objects.contextmenu.menu
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.WidgetSource
+import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.FileExplorerFeature
 import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.APP
 import sp.it.pl.main.configure
+import sp.it.pl.util.conf.Configurable
+import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.pl.util.conf.ConfigurableBase
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
@@ -93,6 +97,21 @@ object CoreMenus: Core {
                             APP.messagePane.show("File $selected copy failed")
                         }
                     }
+                }
+            }
+            add<Node> {
+                menu("Inspect ui properties in") {
+                    widgetItems<ConfiguringFeature> { it.configure(configsFromFxPropertiesOf(selected)) }
+                }
+            }
+            add<javafx.stage.Window> {
+                menu("Inspect ui properties in") {
+                    widgetItems<ConfiguringFeature> { it.configure(configsFromFxPropertiesOf(selected)) }
+                }
+            }
+            add<Configurable<*>> {
+                menu("Inspect properties in") {
+                    widgetItems<ConfiguringFeature> { it.configure(selected) }
                 }
             }
             addMany<File> {

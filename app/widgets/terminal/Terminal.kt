@@ -14,12 +14,14 @@ import javafx.scene.paint.Color.rgb
 import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.util.access.initSync
 import sp.it.pl.util.access.vn
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cvn
 import sp.it.pl.util.conf.only
+import sp.it.pl.util.file.div
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventUp
@@ -57,11 +59,14 @@ class Terminal(widget: Widget): SimpleController(widget) {
     }.only(FILE)
 
     init {
+        com.kodedu.terminalfx.helper.ThreadHelper.daemonThread = true
         tConfig.setBackgroundColor(rgb(16, 16, 16))
         tConfig.setForegroundColor(rgb(240, 240, 240))
         tConfig.setCursorColor(rgb(255, 0, 0, 0.1))
         tConfig.isScrollbarVisible = false
+        tConfig.webViewUserDataDirectory = APP.DIR_TEMP/".terminalFx"/"webView"
         tabPane.tabClosingPolicy = TabClosingPolicy.ALL_TABS
+
 
         root.onEventUp(KEY_PRESSED) { handleKey(it) }
         root.onEventUp(KEY_RELEASED) { handleKey(it) }

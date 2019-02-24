@@ -15,6 +15,7 @@ import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.Anim.Companion.animPar
 import sp.it.pl.util.animation.Anim.Companion.animSeq
 import sp.it.pl.util.functional.setTo
+import sp.it.pl.util.functional.supplyIf
 import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.pane
@@ -70,16 +71,14 @@ open class Picker<E> {
             val content = label(contentText)
 
             lay += content
-
-            if (contentInfoText.isNotEmpty()) {
+            lay += supplyIf(contentInfoText.isNotEmpty()) {
                 val contentInfo = scrollTextCenter {
-                    text(contentText) {
+                    text(contentInfoText) {
                         isMouseTransparent = true
                         textOrigin = CENTER
                         textAlignment = TextAlignment.CENTER
                     }
                 }
-                lay += contentInfo
 
                 val anim = anim(300.millis) {
                     content.opacity = 1-it*it
@@ -89,6 +88,8 @@ open class Picker<E> {
 
                 anim.applyNow()
                 hoverProperty() attach { anim.playFromDir(it) }
+
+                contentInfo
             }
         }
     }

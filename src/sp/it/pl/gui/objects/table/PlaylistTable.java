@@ -126,7 +126,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 				styleRuleAdd(STYLE_CORRUPT, PlaylistSong::isCorruptCached);
 			}
 		});
-		disposer.plusAssign(maintain(getPlaylist().playingI, i -> updateStyleRules()));   // maintain playing item css
+		disposer.plusAssign(maintain(getPlaylist().playingI, i -> updateStyleRules()));
 
 		// resizing
 		setColumnResizePolicySafe(resize -> {

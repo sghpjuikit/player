@@ -30,6 +30,7 @@ import sp.it.pl.util.access.Vo
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.Config
+import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cn
 import sp.it.pl.util.conf.cv
@@ -101,7 +102,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
     val scrollToPlaying by cv(true)
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
     val playVisible by cv(false)
-    @IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.")
+    @IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.", editable = EditMode.APP)
     var lastSavePlaylistLocation by cn(APP.DIR_USERDATA).only(DIRECTORY)
 
     init {
@@ -137,6 +138,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
         table.headerVisible syncFrom tableShowHeader on onClose
         table.footerVisible syncFrom tableShowFooter on onClose
         table.scrollToPlaying syncFrom scrollToPlaying on onClose
+        table.defaultColumnInfo   // trigger menu initialization
         table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo
         onClose += table::dispose
         onClose += table.selectionModel.selectedItemProperty() attach {

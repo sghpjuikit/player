@@ -521,7 +521,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	@Override
 	public TableColumnInfo getDefaultColumnInfo() {
 		TableColumnInfo tci = super.getDefaultColumnInfo();
-		if (!search.isMenuCreated()) search.buildSearchMenu();
+		if (!search.isMenuCreated()) search.buildSearchMenu();  // TODO: remove
 		return tci;
 	}
 

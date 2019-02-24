@@ -303,7 +303,8 @@ public interface Util {
 		ScrollPane s = new ScrollPane(new StackPane(t));
 		s.setOnScroll(Event::consume);
 		s.setPannable(false);
-		s.setFitToWidth(false);
+		s.setFitToWidth(true);
+		s.setFitToHeight(true);
 		s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
 		s.setHbarPolicy(ScrollBarPolicy.NEVER);
 		t.wrappingWidthProperty().bind(s.widthProperty().subtract(15 + reserve));

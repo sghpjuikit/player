@@ -17,7 +17,7 @@ class MessagePane: OverlayPane<String>() {
     init {
         text = Text().apply {
             textOrigin = VPos.CENTER
-            textAlignment = TextAlignment.JUSTIFY
+            textAlignment = TextAlignment.CENTER
             setMinPrefMaxSize(-1.0)
         }
 

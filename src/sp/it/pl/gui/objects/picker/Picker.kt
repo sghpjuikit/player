@@ -20,6 +20,7 @@ import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.pane
 import sp.it.pl.util.graphics.pseudoclass
 import sp.it.pl.util.graphics.scrollText
+import sp.it.pl.util.graphics.scrollTextCenter
 import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.setScaleXY
 import sp.it.pl.util.graphics.stackPane
@@ -71,10 +72,10 @@ open class Picker<E> {
             lay += content
 
             if (contentInfoText.isNotEmpty()) {
-                val contentInfo = scrollText {
+                val contentInfo = scrollTextCenter {
                     text(contentText) {
-                        textOrigin = CENTER
                         isMouseTransparent = true
+                        textOrigin = CENTER
                         textAlignment = TextAlignment.CENTER
                     }
                 }

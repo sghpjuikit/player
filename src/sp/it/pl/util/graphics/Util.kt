@@ -193,6 +193,7 @@ inline fun hBox(spacing: Number = 0.0, alignment: Pos? = null, block: HBox.() ->
 inline fun vBox(spacing: Number = 0.0, alignment: Pos? = null, block: VBox.() -> Unit = {}) = VBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
 inline fun scrollPane(block: ScrollPane.() -> Unit = {}) = ScrollPane().apply(block)
 inline fun scrollText(block: () -> Text) = Util.layScrollVText(block())!!
+inline fun scrollTextCenter(block: () -> Text) = Util.layScrollVTextCenter(block())!!
 inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply(block)
 inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply(block)
 inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply(block)

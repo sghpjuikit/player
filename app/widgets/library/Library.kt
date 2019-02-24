@@ -41,6 +41,7 @@ import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.appProgressIndicator
+import sp.it.pl.main.showAppProgress
 import sp.it.pl.util.access.Vo
 import sp.it.pl.util.access.fieldvalue.ColumnField
 import sp.it.pl.util.animation.Anim.Companion.anim
@@ -254,12 +255,12 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
         }
     }
 
-    // TODO integrate with APPProgress
     private fun removeInvalid() {
         val task = MetadataReader.removeMissingSongsFromLibTask()
         taskInfo.showNbind(task)
         fut(task)
                 .use { it.run() }
+                .showAppProgress(task.title)
                 .thenWait(5.seconds)
                 .use(FX) { hideInfo.playOpenDo { taskInfo.hideNunbind() } }
     }

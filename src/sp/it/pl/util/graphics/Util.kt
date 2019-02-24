@@ -156,6 +156,23 @@ fun Node?.removeFromParent(parent: Node?) {
 /** Removes this from its parent's children if possible. */
 fun Node?.removeFromParent() = this?.removeFromParent(parent)
 
+/** Adds the specified styleclass to [Node.styleClass] of this node, if it has not yet been assigned. */
+fun Node.styleclassAdd(styleClass: String) {
+    if (styleClass !in this.styleClass)
+        this.styleClass += styleClass
+}
+
+/** Adds (true) or removes (false) the specified styleclass using [Node.styleclassAdd] and [Node.styleclassRemove]. */
+fun Node.styleclassToggle(styleClass: String, enabled: Boolean) {
+    if (enabled) styleclassAdd(styleClass)
+    else styleclassRemove(styleClass)
+}
+
+/** Removes all instances of the specified styleclass from [Node.styleClass] of this node. */
+fun Node.styleclassRemove(styleClass: String) {
+    this.styleClass.removeIf { it==styleClass }
+}
+
 /* ---------- CONSTRUCTORS ------------------------------------------------------------------------------------------ */
 
 /** @return simple background with specified solid fill color and no radius or insets */

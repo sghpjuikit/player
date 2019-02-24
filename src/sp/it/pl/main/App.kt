@@ -253,7 +253,7 @@ class App: Application(), Configurable<Any> {
     /** Manages windows. */
     @F val windowManager = WindowManager()
     /** Manages widgets. */
-    @F val widgetManager = WidgetManager(windowManager, { messagePane.show(it) })
+    @F val widgetManager = WidgetManager(windowManager, messagePane::show)
     /** Manages services. */
     @F val services = ServiceManager()
     /** Manages services. */

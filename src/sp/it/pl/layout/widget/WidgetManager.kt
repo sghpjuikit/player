@@ -204,7 +204,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
     private inner class WidgetDir constructor(val widgetName: String, val widgetDir: File) {
         val scheduleRefresh = EventReducer.toLast<Void>(500.0) { runFX { registerExternalFactory() } }
-        val scheduleCompilation = EventReducer.toLast<Void>(500.0) { runOn(compilerThread) { compile().ifError(userErrorLogger) } }
+        val scheduleCompilation = EventReducer.toLast<Void>(500.0) { runOn(compilerThread) { compile().ifError { runFX { userErrorLogger(it) } } } }
         val skinFile = File(widgetDir, "skin.css")
 
         /** @return primary source file (either Kotlin or Java) or null if none exists */

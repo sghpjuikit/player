@@ -259,7 +259,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
     }
 
     fun doOnDoubleClick(o: Any?) {
-        doAction(o) { treeItem?.expandedProperty()?.toggle() }
+        if (treeItem.isLeaf) doAction(o) { treeItem?.expandedProperty()?.toggle() }
+        else treeItem?.expandedProperty()?.toggle()
     }
 
     fun <T> showMenu(o: T?, t: TreeView<T>, n: Node, e: MouseEvent) {

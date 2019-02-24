@@ -2957,7 +2957,8 @@ icon-info-icon {
 .inspector-highlighted:selected,
 .inspector-highlighted:odd,
 .inspector-highlighted:even,
-.inspector-highlighted:focused {
+.inspector-highlighted:focused,
+.scroll-pane > .inspector-highlighted {
     -fx-background-color: rgba(90,200,200,0.2);
 }
 

@@ -19,8 +19,9 @@ import kotlin.reflect.KClass
 import kotlin.streams.toList
 
 val Executor.kt: (Runnable) -> Unit get() = this::execute
-
 val Runnable.kt: () -> Unit get() = this::run
+val <T> Consumer<T>.kt: (T) -> Unit get() = this::accept
+val <T> Supplier<T>.kt: () -> T get() = this::get
 
 operator fun <T> Consumer<T>.invoke(t: T) = accept(t)
 

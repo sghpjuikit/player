@@ -56,3 +56,6 @@ fun <T> atomic(initialValue: T) = object: ReadWriteProperty<Any?, T> {
     override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) = ref.set(value)
 
 }
+
+/** @return class representing the type specified as generic type argument of this method */
+inline fun <reified T:Any> classLiteral() = T::class

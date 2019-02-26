@@ -330,7 +330,7 @@ public abstract class Container<G extends ContainerNode> extends Component imple
      */
     @Override
     public void close() {
-        getAllWidgets().forEach(Widget::close);
+        getAllWidgets().collect(toList()).forEach(Widget::close);   // TODO: fix some widgets closing twice
 
         if (parent!=null) {
             // remove from layout graph

@@ -1,6 +1,7 @@
 package image
 
-import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyCode.SPACE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.Widget
@@ -58,9 +59,15 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
                 { e -> DragUtil.getImage(e) ui { showImage(it) } }
         )
         root.onEventDown(KEY_PRESSED) {
-            if (it.code==KeyCode.ENTER) {
-                img?.let { APP.actions.openImageFullscreen(it) }
-                it.consume()
+            when {
+                it.code==ENTER -> {
+                    img?.let { APP.actions.openImageFullscreen(it) }
+                    it.consume()
+                }
+                it.code==SPACE -> {
+                    fitFrom.setNextValue()
+                    it.consume()
+                }
             }
         }
 

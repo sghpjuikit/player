@@ -62,7 +62,6 @@ import sp.it.pl.util.graphics.listViewCellFactory
 import sp.it.pl.util.graphics.minPrefMaxWidth
 import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.stackPane
-import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1If
@@ -327,14 +326,14 @@ class AppActions {
         val window = createFMNTStage(screen, false).apply {
             scene = Scene(root)
             scene.fill = BLACK
-            onEventUp(WINDOW_HIDING) { w.close() }
+            onEventUp(WINDOW_HIDING) { w.rootParent.close() }
         }
 
-        root.onEventDown(KEY_PRESSED) { it.consume() }
         root.onEventUp(KEY_PRESSED) {
-            it.consume()
-            if (it.code==ESCAPE || it.code==ENTER)
+            if (it.code==ESCAPE || it.code==ENTER) {
                 window.hide()
+                it.consume()
+            }
         }
 
         w.load().apply {
@@ -344,16 +343,12 @@ class AppActions {
         Layout.openStandalone(root).apply {
             child = w
         }
-        w.focus()
 
         root.background = bgr(BLACK)
 
-        // only display when layout is ready (== when window visible)
         window.showingProperty().sync1If({ it }) {
-            // give layout some time to initialize (could display wrong size)
-            runFX(100.0.millis) {  // TODO: remove delay
-                (w.controller as ImageDisplayFeature).showImage(image)
-            }
+            (w.controller as ImageDisplayFeature).showImage(image)
+            w.focus()
         }
     }
 

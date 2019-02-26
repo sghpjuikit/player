@@ -23,6 +23,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -268,25 +269,7 @@ public interface Util {
 		setAnchor(pane, n3, top3, right3, bottom3, left3);
 	}
 
-	// TODO: make sure this works 100%
-	/** Gives the text shape wrapping to its width and scrollable functionalities. */
 	static ScrollPane layScrollVText(Text t) {
-		// This is how it should be done, but there is a bug.
-		// Unfortunately the pane resizes with the text so we cant bind
-		// t.wrappingWidthProperty().bind(sa.widthProperty());
-		// The only (to me) known solution is to make the text t not manageable, but that
-		// causes the height calculation of the pane sa fail and consequently breaks the
-		// scrolling behavior
-		// I do not know what to do anymore, believe me I have tried...
-//        Pane sa = new StackPane(t);
-//        ScrollPane s = new ScrollPane(sa);
-//                   s.setPannable(false);
-//                   s.setFitToWidth(true);
-//                   s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-//                   s.setHbarPolicy(ScrollBarPolicy.NEVER);
-//        t.wrappingWidthProperty().bind(sa.widthProperty());
-
-		// Scrollbar width hardcoded!
 		double reserve = 5;
 		ScrollPane s = new ScrollPane(t);
 		s.setOnScroll(Event::consume);
@@ -294,7 +277,7 @@ public interface Util {
 		s.setFitToWidth(false);
 		s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
 		s.setHbarPolicy(ScrollBarPolicy.NEVER);
-		t.wrappingWidthProperty().bind(s.widthProperty().subtract(15 + reserve));
+		t.wrappingWidthProperty().bind(s.widthProperty().subtract(15 + reserve));   // TODO: Scrollbar width hardcoded!
 		return s;
 	}
 
@@ -307,7 +290,7 @@ public interface Util {
 		s.setFitToHeight(true);
 		s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
 		s.setHbarPolicy(ScrollBarPolicy.NEVER);
-		t.wrappingWidthProperty().bind(s.widthProperty().subtract(15 + reserve));
+		t.wrappingWidthProperty().bind(s.widthProperty().subtract(15 + reserve));   // TODO: Scrollbar width hardcoded!
 		return s;
 	}
 
@@ -450,11 +433,11 @@ public interface Util {
 
 /* ---------- FONT -------------------------------------------------------------------------------------------------- */
 
-	static double computeFontWidth(javafx.scene.text.Font font, String text) {
+	static double computeFontWidth(Font font, String text) {
 		return JavaLegacy.computeFontWidth(font , text);
 	}
 
-	static double computeFontHeight(javafx.scene.text.Font font, String text) {
+	static double computeFontHeight(Font font, String text) {
 		return JavaLegacy.computeFontHeight(font, text);
 	}
 

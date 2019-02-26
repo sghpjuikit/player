@@ -2,13 +2,13 @@ package sp.it.pl.layout.widget.controller.io;
 
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Consumer;
 import org.reactfx.Subscription;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 
 public class Output<T> extends Put<T> {
 	public final Id id;
 
-	public Output(UUID id, String name, Class<? super T> c) {
+	public Output(UUID id, String name, Class<T> c) {
 		super(c, null);
 		this.id = new Id(id, name);
 	}
@@ -17,20 +17,12 @@ public class Output<T> extends Put<T> {
 		return id.name;
 	}
 
-	/**
-	 * Helper method for binding to {@link sp.it.pl.layout.widget.controller.io.Input}, allowing binding
-	 * input to supertype output due to filtering.
-	 */
-	<I> Subscription monitor(Input<I> input) {
-		if (!input.canBind(this)) throw new IllegalArgumentException("Input<" + input.getType() + "> can not bind to put<" + getType() + ">");
-		@SuppressWarnings("unchecked")
-		Consumer<? super T> c = v -> {
-			if (v!=null && input.getType().isInstance(v))
-				input.setValue((I)v);
-		};
-		monitors.add(c);
-		c.accept(getValue());
-		return () -> monitors.remove(c);
+	Subscription monitor(Input<T> input) {
+		if (!input.canBind(this)) throw new IllegalArgumentException("Input<" + input.type + "> can not bind to put<" + type + ">");
+		return sync(consumer(v -> {
+			if (v!=null && input.type.isInstance(v))
+				input.setValue(v);
+		}));
 	}
 
 	/** Calls {@link sp.it.pl.layout.widget.controller.io.Input#bind(Output)} on specified input with this output. */

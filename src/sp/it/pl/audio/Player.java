@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -24,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import sp.it.pl.audio.playback.GeneralPlayer;
 import sp.it.pl.audio.playback.PlayTimeHandler;
 import sp.it.pl.audio.playlist.Playlist;
-import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.audio.playlist.PlaylistManager;
+import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode;
 import sp.it.pl.audio.tagging.Metadata;
@@ -61,6 +60,7 @@ import static sp.it.pl.util.functional.Functors.Ƒ.f;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
+import static sp.it.pl.util.units.UtilKt.uuid;
 
 public class Player {
 
@@ -70,10 +70,10 @@ public class Player {
 	public static final PlayerState state = PlayerState.deserialize();
 	public static final CurrentItem playingSong = new CurrentItem();
 	public static final GeneralPlayer player = new GeneralPlayer(state);
-	public static final InOutput<Metadata> playing = new InOutput<>(UUID.fromString("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing", Metadata.class);
-	public static final InOutput<PlaylistSong> playlistSelected = new InOutput<>(UUID.fromString("ca002c1d-8689-49f6-b1a0-0d0f8ff2e2a8"), "Selected in playlist", PlaylistSong.class);
-	public static final InOutput<Metadata> librarySelected = new InOutput<>(UUID.fromString("ba002c1d-2185-49f6-b1a0-0d0f8ff2e2a8"), "Selected in Library", Metadata.class);
-	public static final InOutput<Song> anySelected = new InOutput<>(UUID.fromString("1a01ca96-2e60-426e-831d-93b24605595f"), "Selected anywhere", Song.class);
+	public static final InOutput<Metadata> playing = InOutput.invoke(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing", Metadata.class);
+	public static final InOutput<PlaylistSong> playlistSelected = InOutput.invoke(uuid("ca002c1d-8689-49f6-b1a0-0d0f8ff2e2a8"), "Selected in playlist", PlaylistSong.class);
+	public static final InOutput<Metadata> librarySelected = InOutput.invoke(uuid("ba002c1d-2185-49f6-b1a0-0d0f8ff2e2a8"), "Selected in Library", Metadata.class);
+	public static final InOutput<Song> anySelected = InOutput.invoke(uuid("1a01ca96-2e60-426e-831d-93b24605595f"), "Selected anywhere", Song.class);
 
 	public static void initialize() {
 		anySelected.i.bind(playlistSelected.o);

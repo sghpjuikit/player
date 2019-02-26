@@ -1,7 +1,5 @@
 package sp.it.pl.layout.widget.controller.io
 
-import org.reactfx.Subscription
-import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.type.isSuperclassOf
 import java.util.HashMap
 import java.util.UUID
@@ -11,8 +9,8 @@ class Outputs {
 
     inline fun <reified T> create(id: UUID, name: String, value: T?) = create<T>(id, name, T::class.java, value)
 
-    fun <T> create(id: UUID, name: String, type: Class<in T>, value: T?): Output<T?> {
-        val o = Output(id, name, type)
+    fun <T> create(id: UUID, name: String, type: Class<T>, value: T?): Output<T?> {
+        val o = Output<T?>(id, name, type as Class<T?>)
         o.value = value
         m[name] = o
         return o
@@ -38,11 +36,5 @@ class Outputs {
     fun getSize(): Int = m.size
 
     fun getOutputs(): Collection<Output<*>> = m.values
-
-    @Suppress("IfThenToElvis", "UNCHECKED_CAST")
-    fun <T> monitor(name: String, action: (T) -> Unit): Subscription {
-        val o = m[name] as Output<T>?
-        return if (o==null) Subscription.EMPTY else o.`val` sync action
-    }
 
 }

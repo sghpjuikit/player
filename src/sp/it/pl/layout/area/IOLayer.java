@@ -56,6 +56,7 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.min;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
@@ -414,12 +415,12 @@ public class IOLayer extends StackPane {
                 // i.setOnMouseEntered(e -> a.playOpen());
                 // t.setOnMouseExited(e -> a.playClose());
 
-                output.monitor(v -> a.playCloseDoOpen(runnable(() -> t.setText(oToStr(output)))));
-                output.monitor(v ->
+                output.sync(consumer(v -> a.playCloseDoOpen(runnable(() -> t.setText(oToStr(output))))));
+                output.sync(consumer(v ->
                     inputnodes.values().stream().map(in -> in.input).filter(i -> i.getSources().contains(output)).forEach(input ->
                         connections.getOpt(new Key<>(input,output)).ifPresent(c -> c.send())
                     )
-                );
+                ));
             }
         }
 
@@ -461,7 +462,7 @@ public class IOLayer extends StackPane {
                     } else {
                         Object o = DragUtil.getAny(e);
                         Class c = o.getClass();
-                        if (input.getType().isAssignableFrom(c)) {
+                        if (input.type.isAssignableFrom(c)) {
                             input.setValue((T)o);
                         }
                     }
@@ -639,11 +640,11 @@ public class IOLayer extends StackPane {
     }
 
     public static String oToStr(Output<?> o) {
-        return APP.className.get(o.getType()) + " : " + o.getName() + "\n" + APP.instanceName.get(o.getValue());
+        return APP.className.get(o.type) + " : " + o.getName() + "\n" + APP.instanceName.get(o.getValue());
     }
 
     public static String iToStr(Input<?> i) {
-        return APP.className.get(i.getType()) + " : " + i.getName() + "\n";
+        return APP.className.get(i.type) + " : " + i.name + "\n";
     }
 
 }

@@ -22,9 +22,9 @@ import sp.it.pl.util.functional.ifNotNull
 import sp.it.pl.util.functional.ifNull
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.runTry
+import sp.it.pl.util.units.uuid
 import java.net.URI
 import java.util.Comparator
-import java.util.UUID.fromString
 import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("unused")
@@ -33,15 +33,15 @@ class SongDb {
     private var running = false
     private lateinit var moods: Set<String>
 
-    /** In memory item database. Use for library. Songs are hashed by [Song.id]. */
+    /** All library songs. Use output for reading/observing. Using input does not change db and has little use. */
+    val songs = InOutput<List<Metadata>>(uuid("396d2407-7040-401e-8f85-56bc71288818"), "All library songs")
+    /** All library songs by [Song.id]. This is in memory db and should be used as read-only. */
     @ThreadSafe val songsById = MapSet(ConcurrentHashMap<String, Metadata>(2000, 1f, 3), { it.id })
     /** Map of unique values per field gathered from [songsById] */
     @ThreadSafe val itemUniqueValuesByField = ConcurrentHashMap<Metadata.Field<*>, Set<String>>()
 
-    val items = InOutput<List<Metadata>>(fromString("396d2407-7040-401e-8f85-56bc71288818"), "All library songs", List::class.java)
-
     /**
-     * Comparator defining the sorting for items in operations that wish to
+     * Comparator defining the sorting for songs in operations that wish to
      * provide consistent sorting across the application.
      *
      * The comparator should reflect library table sort order.
@@ -109,7 +109,7 @@ class SongDb {
         songsById.clear()
         songsById += l
         updateSongValues()
-        runFX { items.i.value = l }
+        runFX { songs.i.value = l }
     }
 
     private fun updateSongValues() {

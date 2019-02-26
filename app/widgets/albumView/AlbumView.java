@@ -130,7 +130,7 @@ public class AlbumView extends SimpleController {
 
 		in_items = inputs.create("To display", (Class) List.class, listRO(), this::setItems);
 		out_sel = outputs.create(widget.id,"Selected Album", MetadataGroup.class, null);
-		out_sel_met = outputs.create(widget.id,"Selected", List.class, listRO());
+		out_sel_met = outputs.create(widget.id,"Selected", (Class<List<Metadata>>) (Object) List.class, listRO());
 
 		cellSize.onChange(v -> applyCellSize());
 		cellSizeRatio.onChange(v -> applyCellSize());

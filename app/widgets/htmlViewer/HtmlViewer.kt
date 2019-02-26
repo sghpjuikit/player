@@ -33,7 +33,7 @@ class HtmlViewer(widget: Widget): SimpleController(widget) {
 
     init {
         editor.fixHardcodedSize()
-        input.monitor { text.value = it ?: "" } on onClose
+        input.sync { text.value = it ?: "" } on onClose
         runPeriodic(5.seconds) { output.value = editor.htmlText } on onClose
 
         root.lay += editor

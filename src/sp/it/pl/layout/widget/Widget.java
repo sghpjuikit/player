@@ -435,7 +435,7 @@ public class Widget extends Component implements CachedCompositeConfigurable<Obj
 		// If widget is loaded, we serialize inputs & outputs
 		if (isLoaded) {
 			getController().getOwnedInputs().getInputs().forEach(i ->
-					properties.put("io" + i.getName(), toS(i.getSources(), o -> o.id.toString(), ":"))
+					properties.put("io" + i.name, toS(i.getSources(), o -> o.id.toString(), ":"))
 			);
 			// Otherwise we still have the deserialized inputs/outputs leave them as they are
 		} else {}

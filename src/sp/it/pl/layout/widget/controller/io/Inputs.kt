@@ -24,9 +24,7 @@ class Inputs {
         return i
     }
 
-    @Suppress("UNCHECKED_CAST")
-    @Deprecated("unsafe")
-    fun <T> getInputRaw(name: String): Input<T?>? = m[name] as Input<T?>?
+    fun getInputRaw(name: String): Input<*>? = m[name]
 
     @Suppress("UNCHECKED_CAST")
     fun <T> findInput(type: Class<T>, name: String): Input<T?>? {

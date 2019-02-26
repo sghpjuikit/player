@@ -329,7 +329,7 @@ public class FileInfo extends SimpleController implements SongReader {
 
         Collection<Metadata> items = includeAlbum
             // get all known songs from album
-            ? APP.db.getItems().o.getValue().stream()
+            ? APP.db.getSongs().o.getValue().stream()
                 // we must not write when album is empty! that could have disastrous consequences!
                 .filter(m -> m.getAlbum()!=null && m.getAlbum().equals(data.getAlbum()))
                 .collect(toSet())

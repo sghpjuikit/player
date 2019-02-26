@@ -72,7 +72,6 @@ import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.menuItem;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
 
 @Info(
@@ -130,7 +129,7 @@ public class LibraryView extends SimpleController {
         root.setPrefSize(600.0, 600.0);
 
         out_sel = outputs.create(widget.id,"Selected Group", MetadataGroup.class, null);
-        out_sel_met = outputs.create(widget.id,"Selected", List.class, listRO());
+        out_sel_met = outputs.create(widget.id,"Selected", (Class<List<Metadata>>) (Object) List.class, listRO());
         in_items = inputs.create("To display", (Class)List.class, listRO(), this::setItems);
 
         root.getChildren().add(table.getRoot());

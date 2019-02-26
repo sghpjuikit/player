@@ -58,6 +58,7 @@ import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.reactive.syncFrom
@@ -228,10 +229,11 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Show",
                     "Shows songs in a table.",
                     IconMA.COLLECTIONS,
-                    { songs -> APP.widgetManager.widgets
+                    { songs ->
+                        APP.widgetManager.widgets
                                 .find(Widgets.SONG_TABLE, NEW, false)
                                 .ifPresent {
-                                    it.controller.ownedInputs.getInput<List<Metadata>>("To display").setValue(songs.map { it.toMeta() })
+                                    it.controller.ownedInputs.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
                                 }
                     }
             ),
@@ -239,10 +241,11 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Show as Group",
                     "Group songs in a table.",
                     IconMA.COLLECTIONS,
-                    { songs -> APP.widgetManager.widgets
-                            .find(Widgets.SONG_GROUP_TABLE, NEW, false)
+                    { songs ->
+                        APP.widgetManager.widgets
+                                .find(Widgets.SONG_GROUP_TABLE, NEW, false)
                                 .ifPresent {
-                                    it.controller.ownedInputs.getInput<List<Metadata>>("To display").setValue(songs.map { it.toMeta() })
+                                    it.controller.ownedInputs.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
                                 }
                     }
             )

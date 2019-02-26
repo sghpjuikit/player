@@ -351,7 +351,7 @@ class AppActions {
         // only display when layout is ready (== when window visible)
         window.showingProperty().sync1If({ it }) {
             // give layout some time to initialize (could display wrong size)
-            runFX(100.0.millis) {
+            runFX(100.0.millis) {  // TODO: remove delay
                 (w.controller as ImageDisplayFeature).showImage(image)
             }
         }

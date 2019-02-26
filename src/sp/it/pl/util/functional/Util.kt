@@ -66,17 +66,23 @@ fun <R, E> Try<R, E>.orNull(): R? = getOr(null)
 /** @return return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
 infix fun <R, E> Try<R, E>.orNull(onError: (E) -> Unit): R? = ifError(onError).getOr(null)
 
-/** @return specified supplier if test is true or null otherwise */
-fun <T> supplyIf(test: Boolean, block: () -> T): (() -> T)? = if (test) block else null
-
-/** @return specified supplier if test is false or null otherwise */
-fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyIf(!testNegated, block)
-
 /**
  * Run the specified block if the condition is true
  * @return the result or null (if the value is nullable, this destroys the information of null's origin)
  */
 fun <R> runIf(condition: Boolean, block: () -> R): R? = if (condition) block() else null
+
+/**
+ * Run the specified block if the condition is false
+ * @return null or the result (if the value is nullable, this destroys the information of null's origin)
+ */
+fun <R> runUnless(condition: Boolean, block: () -> R): R? = if (condition) block() else null
+
+/** @return specified supplier if test is true or null otherwise */
+fun <T> supplyIf(test: Boolean, block: () -> T): (() -> T)? = if (test) block else null
+
+/** @return specified supplier if test is false or null otherwise */
+fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyIf(!testNegated, block)
 
 /**
  * Run the specified block safely (no exception will be thrown).

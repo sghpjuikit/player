@@ -81,6 +81,11 @@ object CoreMenus: Core {
                     item("Play") { PlaylistManager.use { it.playUri(selected.toURI()) } }
                     item("Enqueue") { PlaylistManager.use { it.addFile(selected) } }
                 }
+                if (ImageFileFormat.isSupported(selected)) {
+                    item("Fullscreen") {
+                        APP.actions.openImageFullscreen(selected)
+                    }
+                }
                 item("Open (in associated program)") { selected.open() }
                 item("Edit (in associated editor)") { selected.edit() }
                 item("Delete from disc") { selected.recycle() }
@@ -163,7 +168,7 @@ object CoreMenus: Core {
             }
             add<Thumbnail.ContextMenuData> {
                 if (selected.image!=null)
-                    menu("Image") {
+                    menu("Cover") {
                         item("Save image as ...") {
                             saveFile("Save image as...", APP.DIR_APP, selected.iFile?.name ?: "new_image",
                                     contextMenu.ownerWindow, ImageFileFormat.filter())
@@ -171,19 +176,8 @@ object CoreMenus: Core {
                         }
                         item("Copy to clipboard") { copyToSysClipboard(DataFormat.IMAGE, selected.image) }
                     }
-                if (!selected.fsDisabled)
-                    menu("Image file") {
-                        item("Browse location") { selected.fsImageFile.browse() }
-                        item("Open (in associated program)") { selected.fsImageFile.open() }
-                        item("Edit (in associated editor)") { selected.fsImageFile.edit() }
-                        item("Delete from disc") { selected.fsImageFile.recycle() }
-                        item("Fullscreen") {
-                            val f = selected.fsImageFile
-                            if (ImageFileFormat.isSupported(f)) {
-                                APP.actions.openImageFullscreen(f)
-                            }
-                        }
-                    }
+                if (!selected.fsDisabled && selected.iFile!=selected.representant)
+                    menuFor(contextMenu, "Cover file", selected.fsImageFile)
                 if (selected.representant!=null)
                     menuFor(contextMenu, selected.representant)
             }

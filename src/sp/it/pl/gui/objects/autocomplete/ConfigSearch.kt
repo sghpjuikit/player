@@ -52,7 +52,7 @@ class ConfigSearch: AutoCompletion<Entry> {
     ) {
         this.textField = textField
         this.history = history
-        this.textField.prefWidth = 450.0 // affects the popup width
+        this.textField.prefWidth = 550.0 // affects the popup width
 
         this.textField.onEventUp(KEY_PRESSED) {
             if (it.isControlDown && (it.code==KeyCode.UP || it.code==KeyCode.DOWN)) {

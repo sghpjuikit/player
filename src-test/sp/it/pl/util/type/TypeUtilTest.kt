@@ -12,12 +12,14 @@ import javafx.scene.input.DragEvent
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Pane
 import sp.it.pl.util.conf.Config.VarList
+import sp.it.pl.util.type.Util.getGenericPropertyType
 import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaType
 
-class UtilTest: FreeSpec({
+class TypeUtilTest: FreeSpec({
 	"Method" - {
-		Util::getGenericPropertyType.name {
+
+		::getGenericPropertyType.name {
 
 			val o1 = Pane()
 			val o2 = object: Any() {
@@ -44,9 +46,10 @@ class UtilTest: FreeSpec({
 					rowProp<ObservableMap<Any?, Any?>>(o1::getProperties),
 					rowProp<ObservableList<Int?>>(o2::f1)
 			) { property, type ->
-				Util.getGenericPropertyType(property) shouldBe type
+				getGenericPropertyType(property) shouldBe type
 			}
 		}
+
 	}
 })
 

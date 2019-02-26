@@ -62,10 +62,10 @@ import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.util.animation.Anim.mapTo01;
 import static sp.it.pl.util.functional.Util.setRO;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.layHeaderBottom;
@@ -264,6 +264,11 @@ public class Icon extends StackPane {
 		return this;
 	}
 
+	/** @return installed tooltip or null if none */
+	public Tooltip getTooltip() {
+		return (Tooltip) getProperties().get("javafx.scene.control.Tooltip");
+	}
+
 	public final Icon tooltip(String text) {
 		boolean willBeEmpty = text==null || text.isEmpty();
 		if (!willBeEmpty) {
@@ -278,44 +283,50 @@ public class Icon extends StackPane {
 		return this;
 	}
 
-	/**
-	 * JavaFX API deficiency fix.
-	 *
-	 * @return installed tooltip or null.
-	 */
-	public Tooltip getTooltip() {
-		return (Tooltip) getProperties().get("javafx.scene.control.Tooltip");
-	}
-
 	public final Icon tooltip(Tooltip t) {
 		Tooltip old = getTooltip();
 		if (t!=null && (old!=t || old.getProperties().containsKey("was_setup"))) {
+			var text = t.getText();
+			t.setText("");
 			t.setWrapText(true);
 			t.setMaxWidth(330);
-			t.setTextAlignment(JUSTIFY);
+			t.getScene().getRoot().setOpacity(0.0);
+
 			// Can not set graphics normally, because:
 			// 1) icon may be null at this point
-			// 2) the icon could change / tooltip graphics would have to be maintained (just NO)
+			// 2) the icon could change / tooltip graphics would have to be maintained
 			// 3) lazy graphics == better
 			t.setOnShowing(e -> {
 				GlyphIcons g = getGlyph();
 				if (g!=null) {
-					t.setGraphic(createIcon(g, 24.0));
+					Node icon = createIcon(g, 24.0);
+					setScaleXY(icon, 0.0);
+					t.setGraphic(icon);
 					t.setGraphicTextGap(15);
 				}
-			});
-			t.setOnShown(e -> {
+
+				t.setText(text);
+				t.getScene().getRoot().applyCss();
+
 				Label s = getFieldValue(t.getSkin(), "tipLabel");
 				Text txt = s==null ? null : getFieldValue(s.getSkin(), "text");
 				Node ico = s==null ? null : getFieldValue(s.getSkin(), "graphic");
 				if (ico!=null && txt!=null) {
-					Function1<Double,String> ti = typeText(txt.getText());
-					new Anim(millis(400), p -> {
-						double p2 = Anim.mapTo01(p, 0.4, 1);
-						txt.setText(ti.invoke(p));
-						setScaleXY(ico, p2);
-					}).play();
+					var textInterpolator = typeText(text);
+					var anim = new Anim(millis(400), p -> {
+						txt.setText(textInterpolator.invoke(p));
+						setScaleXY(ico, mapTo01(p, 0.4, 1));
+					});
+					t.getProperties().put("text_animation", anim);
+					anim.applyAt(0.0);
+					anim.playOpen();
 				}
+
+				t.getScene().getRoot().setOpacity(1.0);
+			});
+			t.setOnHiding(e -> {
+				var anim = (Anim) t.getProperties().get("text_animation");
+				if (anim!=null) anim.applyAt(1.0);
 			});
 			t.getProperties().put("was_setup", true);
 			Tooltip.install(this, t);
@@ -572,10 +583,10 @@ public class Icon extends StackPane {
 		};
 
 		List<CssMetaData<? extends Styleable,?>> STYLEABLES = stream(
-					stream(FILL, GLYPH_NAME, GLYPH_SIZE, GLYPH_GAP),
-					stream(StackPane.getClassCssMetaData()).filter(a -> !"-fx-effect".equals(a.getProperty())) // we use our own effect
-				)
-				.collect(collectingAndThen(toList(), Collections::unmodifiableList));
+			stream(FILL, GLYPH_NAME, GLYPH_SIZE, GLYPH_GAP),
+			stream(StackPane.getClassCssMetaData()).filter(a -> !"-fx-effect".equals(a.getProperty())) // we use our own effect
+		)
+			.collect(collectingAndThen(toList(), Collections::unmodifiableList));
 	}
 
 	public static List<CssMetaData<? extends Styleable,?>> getClassCssMetaData() {

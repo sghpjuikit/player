@@ -553,7 +553,7 @@ public final class Seeker extends AnchorPane {
 				message.setWrapText(true);
 				message.setEditable(false);
 				message.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
-				Function1<Double,String> messageInterpolator = typeText(c.getText(), "\u2007");
+				Function1<Double,String> messageInterpolator = typeText(c.getText(), '\u2007');
 				messageAnimation = new Anim(millis(10*c.getText().length()), p -> message.setText(messageInterpolator.invoke(p))).delay(millis(200));
 				content = new StackPane(message);
 				content.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);

@@ -377,7 +377,7 @@ class GameView(widget: Widget): SimpleController(widget) {
                     fileTree.root = tree(it.location)
                     titleL.text = ""
 
-                    val typeTitle = typeText(it.title)
+                    val typeTitle = typeText(it.title, ' ')
                     anim(30.millis*it.title.length) { titleL.text = typeTitle(it) }.delay(150.millis).play()
                     animPar(animated) { i, node -> anim(300.millis) { node.opacity = it*it*it }.delay(200.millis*i) }.play()
                 }

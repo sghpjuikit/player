@@ -609,30 +609,40 @@ fun Parent.setFontAsStyle(font: Font) {
 }
 
 /**
+ * Create text interpolator for 'text type' animation.
+ *
+ * It is possible to preserve length of the string with the specified substitute character. It will substitute
+ * non-whitespace characters. Note the possible issues with interfering with layout during an animation
+ * relying on padded interpolation. It may be desirable to fix the graphical component size up front or
+ * use a padding character of favorable size, `' '` (space) is generally more narrow than avg character, while`'\u2007'`
+ * (wider unicode space) is wider.
+ *
  * @param text text to interpolate from 0 to full length
  * @param padLength 'empty' value with which to pad the result to preserve original length or null to not preserve it.
  * @return linear text interpolator computing substrings of specified text from beginning
  */
-@JvmOverloads fun typeText(text: String, padLength: String? = null): (Double) -> String {
+@JvmOverloads
+fun typeText(text: String, padLength: Char? = null): (Double) -> String {
     if (text.isEmpty()) return { "" }
 
     val length = text.length
     val sbOriginal = StringBuilder(text)
-    fun mapper(c: Char) = if (c.isWhitespace()) c.toString() else (padLength ?: c.toString())
-
-    var lengthsSum = 0
-    val lengths = IntArray(text.length) { i -> lengthsSum += mapper(text[i]).length; lengthsSum-mapper(text[i]).length }
-
-    val sbInterpolated = StringBuilder(lengthsSum)
-    generateSequence(0) { it+1 }.take(sbOriginal.length).forEach { sbInterpolated.append(mapper(sbOriginal[it])) }
-
-    return if (padLength!=null) { {
-        val i = Math.floor(length*it).toInt().coerceIn(0 until text.length)
-        sbOriginal.substring(0, i+1) + sbInterpolated.substring(lengths[i])
-    } } else { {
-        val i = Math.floor(length*it).toInt().coerceIn(0 until text.length)
-        sbOriginal.substring(0, i+1)
-    } }
+    if (padLength!=null) {
+        val sbInterpolated = StringBuilder(text).apply {
+            text.forEachIndexed { i, c ->
+                this[i] = if (c.isWhitespace()) c else padLength
+            }
+        }
+        return { it: Double ->
+            val i = Math.floor(length*it).toInt()
+            sbOriginal.substring(0, i) + sbInterpolated.substring(i)
+        }
+    } else {
+        return {
+            val i = Math.floor(length*it).toInt()
+            sbOriginal.substring(0, i)
+        }
+    }
 }
 
 /* ---------- TREE VIEW --------------------------------------------------------------------------------------------- */

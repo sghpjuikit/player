@@ -13,7 +13,7 @@ import sp.it.pl.gui.objects.contextmenu.contextMenuGenerator
 import sp.it.pl.gui.objects.contextmenu.item
 import sp.it.pl.gui.objects.contextmenu.menu
 import sp.it.pl.gui.objects.image.Thumbnail
-import sp.it.pl.layout.widget.WidgetSource
+import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.FileExplorerFeature
 import sp.it.pl.layout.widget.feature.Opener
@@ -190,7 +190,7 @@ object CoreMenus: Core {
     private inline fun <reified W> Menu.widgetItems(noinline action: (W) -> Unit) = items(
             source = APP.widgetManager.factories.getFactoriesWith<W>(),
             text = { it.nameGui() },
-            action = { it.use(WidgetSource.NO_LAYOUT) { action(it) } }
+            action = { it.use(NO_LAYOUT) { action(it) } }
     )
 
     private fun ContextMenuGenerator.Builder<*>.menuFor(contextMenu: ContextMenu, value: Any?) = menuFor(

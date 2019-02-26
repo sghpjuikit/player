@@ -683,4 +683,5 @@ public class Widget extends Component implements CachedCompositeConfigurable<Obj
 	public enum LoadType {
 		AUTOMATIC, MANUAL
 	}
+
 }

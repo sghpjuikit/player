@@ -41,8 +41,8 @@ import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.container.switchcontainer.SwitchContainer
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.WidgetManager
-import sp.it.pl.layout.widget.WidgetSource.ANY
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.plugin.Plugin

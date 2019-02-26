@@ -6,17 +6,14 @@ import com.sun.tools.attach.VirtualMachine
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
-import javafx.scene.Scene
 import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
-import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.paint.Color.BLACK
 import javafx.stage.Screen
-import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.util.Callback
 import mu.KLogging
 import sp.it.pl.audio.Song
@@ -31,10 +28,11 @@ import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.pane.OverlayPane
 import sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.pl.layout.area.ContainerNode
-import sp.it.pl.layout.container.layout.Layout
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetSource
-import sp.it.pl.layout.widget.WidgetSource.NEW
+import sp.it.pl.layout.widget.WidgetLoader.WINDOW_FULLSCREEN
+import sp.it.pl.layout.widget.WidgetUse.NEW
+import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
+import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.TextDisplayFeature
@@ -49,9 +47,7 @@ import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.dev.stackTraceAsString
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.net
-import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.setTo
-import sp.it.pl.util.graphics.Util.createFMNTStage
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.bgr
 import sp.it.pl.util.graphics.getScreenForMouse
@@ -60,7 +56,6 @@ import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.listView
 import sp.it.pl.util.graphics.listViewCellFactory
 import sp.it.pl.util.graphics.minPrefMaxWidth
-import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync
@@ -200,7 +195,7 @@ class AppActions {
 
     @IsAction(name = "Open settings", desc = "Opens application settings.")
     fun openSettings() {
-        APP.widgetManager.widgets.use<ConfiguringFeature>(WidgetSource.NO_LAYOUT) { it.configure(APP.configuration) }
+        APP.widgetManager.widgets.use<ConfiguringFeature>(NO_LAYOUT) { it.configure(APP.configuration) }
     }
 
     @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
@@ -321,34 +316,22 @@ class AppActions {
 
     @JvmOverloads
     fun openImageFullscreen(image: File, screen: Screen = getScreenForMouse()) {
-        val w = APP.widgetManager.widgets.find({ it.hasFeature(ImageDisplayFeature::class.java) }, NEW, true).orNull() ?: return
-        val root = anchorPane()
-        val window = createFMNTStage(screen, false).apply {
-            scene = Scene(root)
-            scene.fill = BLACK
-            onEventUp(WINDOW_HIDING) { w.rootParent.close() }
-        }
+        APP.widgetManager.widgets.use<ImageDisplayFeature>(NEW(WINDOW_FULLSCREEN(screen))) { f ->
+            val w = f.asIf<Controller>()!!.widget
+            val window = w.graphics.scene.window
+            val root = window.scene.root
 
-        root.onEventUp(KEY_PRESSED) {
-            if (it.code==ESCAPE || it.code==ENTER) {
-                window.hide()
-                it.consume()
+            window.scene.fill = BLACK
+            root.asIf<Pane>()?.background = bgr(BLACK)
+            root.onEventUp(KEY_PRESSED) {
+                if (it.code==ESCAPE || it.code==ENTER) {
+                    window.hide()
+                    it.consume()
+                }
             }
-        }
-
-        w.load().apply {
-            setMinPrefMaxSize(USE_COMPUTED_SIZE) // make sure no settings prevents full size
-        }
-        window.show()
-        Layout.openStandalone(root).apply {
-            child = w
-        }
-
-        root.background = bgr(BLACK)
-
-        window.showingProperty().sync1If({ it }) {
-            (w.controller as ImageDisplayFeature).showImage(image)
-            w.focus()
+            window.showingProperty().sync1If({ it }) {
+                f.showImage(image)
+            }
         }
     }
 
@@ -375,7 +358,7 @@ class AppActions {
         } catch (e: ImageProcessingException) {
             "$title\n$"+e.stackTraceAsString()
         }
-        runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
+        runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
     }
 
     @Blocks
@@ -386,7 +369,7 @@ class AppActions {
             printAllAudioFileMetadata(song.getFile()!!)
         } else {
             val text = "Metadata of ${song.uri}\n<only supported for files>"
-            runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
+            runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
         }
     }
 
@@ -408,7 +391,7 @@ class AppActions {
                 }
                 .getOrSupply { e -> "\n"+e.stackTraceAsString() }
         val text = title+content
-        runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
+        runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
     }
 
     @IsAction(name = "Print running java processes")
@@ -416,7 +399,7 @@ class AppActions {
         val text = VirtualMachine.list().joinToString("") {
             "\nVM:\n\tid: ${it.id()}\n\tdisplayName: ${it.displayName()}\n\tprovider: ${it.provider()}"
         }
-        runFX { APP.widgetManager.widgets.find(TextDisplayFeature::class.java, NEW).orNull()?.showText(text) }
+        runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
     }
 
     fun browseMultipleFiles(files: Sequence<File>) {

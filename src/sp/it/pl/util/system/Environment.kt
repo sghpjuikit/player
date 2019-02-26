@@ -10,7 +10,7 @@ import javafx.stage.Screen
 import javafx.stage.Window
 import mu.KotlinLogging
 import sp.it.pl.audio.playlist.PlaylistManager
-import sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT
+import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.main.APP
@@ -194,7 +194,7 @@ fun File.open() {
             }
             else -> when {
                 isDirectory && APP.DIR_SKINS==parentDir || this.isValidSkinFile() -> APP.ui.setSkin(this)
-                isDirectory && APP.DIR_WIDGETS==parentDir || this.isValidWidgetFile() -> APP.widgetManager.widgets.find(nameWithoutExtensionOrRoot, NO_LAYOUT, false)
+                isDirectory && APP.DIR_WIDGETS==parentDir || this.isValidWidgetFile() -> APP.widgetManager.widgets.find(nameWithoutExtensionOrRoot, NO_LAYOUT)
                 else -> {
                     if (Desktop.Action.OPEN.isSupportedOrWarn()) {
                         try {

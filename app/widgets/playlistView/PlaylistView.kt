@@ -7,17 +7,17 @@ import javafx.stage.FileChooser
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.PlayerConfiguration
 import sp.it.pl.audio.playlist.Playlist
+import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.PlaylistSong.Field
-import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.writePlaylist
 import sp.it.pl.gui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.gui.objects.table.PlaylistTable
 import sp.it.pl.gui.objects.table.TableColumnInfo
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group
-import sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT
-import sp.it.pl.layout.widget.WidgetSource.OPEN
+import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
+import sp.it.pl.layout.widget.WidgetUse.OPEN
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.PlaylistFeature
@@ -211,7 +211,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
         private fun getUnusedPlaylist(id: UUID): Playlist {
             val danglingPlaylists = ArrayList(PlaylistManager.playlists)
-            APP.widgetManager.widgets.findAll(OPEN).asSequence()
+            APP.widgetManager.widgets.findAll(OPEN.widgetFinder).asSequence()
                     .filter { it.info.hasFeature(PlaylistFeature::class.java) }
                     .mapNotNull { (it.controller as PlaylistFeature?)?.playlist }
                     .forEach { danglingPlaylists.removeIf { playlist -> playlist.id==it.id } }

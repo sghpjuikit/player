@@ -24,9 +24,9 @@ import sp.it.pl.gui.pane.SlowColAction
 import sp.it.pl.gui.pane.register
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetSource.ANY
-import sp.it.pl.layout.widget.WidgetSource.NEW
-import sp.it.pl.layout.widget.WidgetSource.NO_LAYOUT
+import sp.it.pl.layout.widget.WidgetUse.ANY
+import sp.it.pl.layout.widget.WidgetUse.NEW
+import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.layout.widget.feature.Opener
@@ -58,7 +58,6 @@ import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.reactive.syncFrom
@@ -230,11 +229,9 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Shows songs in a table.",
                     IconMA.COLLECTIONS,
                     { songs ->
-                        APP.widgetManager.widgets
-                                .find(Widgets.SONG_TABLE, NEW, false)
-                                .ifPresent {
-                                    it.controller.ownedInputs.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
-                                }
+                        APP.widgetManager.widgets.find(Widgets.SONG_TABLE, NEW).ifPresent {
+                            it.controller.ownedInputs.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
+                        }
                     }
             ),
             FastColAction(
@@ -242,11 +239,9 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Group songs in a table.",
                     IconMA.COLLECTIONS,
                     { songs ->
-                        APP.widgetManager.widgets
-                                .find(Widgets.SONG_GROUP_TABLE, NEW, false)
-                                .ifPresent {
-                                    it.controller.ownedInputs.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
-                                }
+                        APP.widgetManager.widgets.find(Widgets.SONG_GROUP_TABLE, NEW).ifPresent {
+                            it.controller.ownedInputs.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
+                        }
                     }
             )
     )

@@ -1,6 +1,12 @@
 package sp.it.pl.layout.widget
 
+import javafx.scene.Scene
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Region
+import javafx.stage.Screen
+import javafx.stage.WindowEvent
 import mu.KLogging
 import sp.it.pl.gui.objects.window.stage.WindowManager
 import sp.it.pl.layout.container.Container
@@ -43,8 +49,12 @@ import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.ifNull
 import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.functional.runIf
 import sp.it.pl.util.functional.setTo
+import sp.it.pl.util.graphics.Util
+import sp.it.pl.util.graphics.anchorPane
+import sp.it.pl.util.graphics.minPrefMaxWidth
+import sp.it.pl.util.reactive.onEventUp
+import sp.it.pl.util.reactive.sync1If
 import sp.it.pl.util.system.Os
 import sp.it.pl.util.type.isSubclassOf
 import sp.it.pl.util.units.seconds
@@ -412,16 +422,16 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         /** Widgets that are not part of layout. */
         private val standaloneWidgets: MutableList<Widget> = ArrayList()
 
-        private fun Widget.initAsStandalone() {
-            standaloneWidgets += this
-            onClose += { standaloneWidgets -= this }
+        fun initAsStandalone(widget: Widget) {
+            standaloneWidgets += widget
+            widget.onClose += { standaloneWidgets -= widget }
         }
 
         fun findAll(source: WidgetSource): Stream<Widget> = when (source) {
+            WidgetSource.NONE -> Stream.empty()
             WidgetSource.OPEN_LAYOUT -> layouts.findAllActive().flatMap { it.allWidgets }
-            WidgetSource.OPEN_STANDALONE, WidgetSource.NO_LAYOUT -> standaloneWidgets.stream()
-            WidgetSource.NEW -> Stream.empty()
-            WidgetSource.OPEN, WidgetSource.ANY -> Stream.concat(findAll(OPEN_STANDALONE), findAll(OPEN_LAYOUT))
+            WidgetSource.OPEN_STANDALONE -> standaloneWidgets.stream()
+            WidgetSource.OPEN -> Stream.concat(findAll(OPEN_STANDALONE), findAll(OPEN_LAYOUT))
         }
 
         /**
@@ -431,28 +441,21 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
          * * if created, preferred factory will be used first
          * * if all methods fail, null is returned
          *
-         * Created widgets are displayed in a popup
-         *
          * @param filter condition the widget must fulfill
          * @param source where and how the widget will be found/constructed
-         * @param silent whether the widget will partake in application layout or simply constructed for manual use.
-         * Use true if you want to use the widget as a custom graphics (note that its lifecycle is in developer's
-         * hands). This is an advanced feature. Default false.
-         *
          * @return optional of widget fulfilling condition or empty if not available
          */
-        @JvmOverloads
-        fun find(filter: (WidgetInfo) -> Boolean, source: WidgetSource, silent: Boolean = false): Optional<Widget> {
+        fun find(filter: (WidgetInfo) -> Boolean, source: WidgetUse): Optional<Widget> {
 
-            // get preferred type
-            val preferred = factories.getFactories()
+            val preferred by lazy {
+                factories.getFactories()
                     .filter(filter)
                     .filter { !it.isIgnored }
                     .filter { it.isPreferred }
                     .firstOrNull()?.nameGui()
+            }
 
-            // get viable widgets - widgets of the feature & of preferred type if any
-            val widgets = widgets.findAll(source)
+            val widgets = widgets.findAll(source.widgetFinder)
                     .filter { filter(it.info) }
                     .filter { !it.forbid_use.value }
                     .filter { if (preferred==null) true else it.info.nameGui()==preferred }
@@ -461,49 +464,43 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             val out: Widget? = null
                     ?: widgets.find { it.preferred.value }
                     ?: widgets.firstOrNull()
-                    ?: runIf(source.newWidgetsAllowed()) {
-                        factories.getFactories()
-                                .filter(filter)
-                                .filter { !it.isIgnored }
-                                .filter { if (preferred==null) true else it.nameGui()==preferred }
-                                .firstOrNull()
-                                ?.create()?.also {
-                                    it.initAsStandalone()
-                                    if (!silent) APP.windowManager.showFloating(it)
-                                }
+                    ?: run {
+                        if (source is WidgetUse.NewAnd) {
+                            factories.getFactories()
+                                    .filter(filter)
+                                    .filter { !it.isIgnored }
+                                    .filter { if (preferred==null) true else it.nameGui()==preferred }
+                                    .firstOrNull()
+                                    ?.create()?.also(source.layouter)
+                        } else {
+                            null
+                        }
                     }
 
             return Optional.ofNullable(out)
         }
 
+        /** Equivalent to: `find({ it.name()==name || it.nameGui()==name }, source, ignore)` */
+        fun find(name: String, source: WidgetUse): Optional<Widget> =
+                find({ it.name()==name || it.nameGui()==name }, source)
+
         /**
          * Roughly equivalent to: `find({ it.hasFeature(feature) }, source, ignore)`, but with type safety.
-         * Controller is returned only the widget is/has been loaded without any errors.
+         * Controller is returned only if the widget is/has been loaded without any errors.
          */
-        @Suppress("UNCHECKED_CAST")
-        @JvmOverloads
-        fun <F> find(feature: Class<F>, source: WidgetSource, ignore: Boolean = false): Optional<F> =
-                find({ it.hasFeature(feature) }, source, ignore).filterIsControllerInstance(feature)
-
-        /** Equivalent to: `find({ it.name()==name || it.nameGui()==name }, source, ignore)` */
-        @JvmOverloads
-        fun find(name: String, source: WidgetSource, ignore: Boolean = false): Optional<Widget> =
-                find({ it.name()==name || it.nameGui()==name }, source, ignore)
-
-        /** Equivalent to: `find(feature, source).ifPresent(action)` */
-        fun <F> use(feature: Class<F>, source: WidgetSource, action: (F) -> Unit) =
-                find(feature, source).ifPresent(action)
+        fun <F> use(feature: Class<F>, source: WidgetUse, action: (F) -> Unit) =
+                find({ it.hasFeature(feature) }, source).filterIsControllerInstance(feature).ifPresent(action)
 
         /** Equivalent to: `use(T::class.java, source, action)` */
-        inline fun <reified T> use(source: WidgetSource, noinline action: (T) -> Unit) =
+        inline fun <reified T> use(source: WidgetUse, noinline action: (T) -> Unit) =
                 use(T::class.java, source, action)
 
         /** Equivalent to: `find(cond, source).ifPresent(action)` */
-        fun use(cond: (WidgetInfo) -> Boolean, source: WidgetSource, action: (Widget) -> Unit) =
+        fun use(cond: (WidgetInfo) -> Boolean, source: WidgetUse, action: (Widget) -> Unit) =
                 find(cond, source).ifPresent(action)
 
-        fun use(name: String, source: WidgetSource, ignore: Boolean = false, action: (Widget) -> Unit) =
-                find(name, source, ignore).ifPresent(action)
+        fun use(name: String, source: WidgetUse, action: (Widget) -> Unit) =
+                find(name, source).ifPresent(action)
 
         /** Select next widget or the first if no selected among the widgets in the specified window. */
         fun selectNextWidget(root: Container<*>) {
@@ -584,8 +581,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         fun nameGui() = factory.nameGui()
 
         @Suppress("UNCHECKED_CAST")
-        fun use(source: WidgetSource, ignore: Boolean = false, action: (FEATURE) -> Unit) = widgets
-                .find(nameGui(), source, ignore)
+        fun use(source: WidgetUse, action: (FEATURE) -> Unit) = widgets
+                .find(nameGui(), source)
                 .filterIsControllerInstance(factory.controllerType)
                 .map { it as FEATURE }  // if controller is factory.controllerType then it is also FEATURE
                 .ifPresent(action)
@@ -648,32 +645,85 @@ fun ComponentFactory<*>?.orEmpty(): ComponentFactory<*> = this ?: emptyWidgetFac
 
 /** Source for widgets when looking for a widget. */
 enum class WidgetSource {
-
-    /** New widget will always be created. */
-    NEW,
-
-    /** All loaded widgets within any layout in any window. */
-    OPEN_LAYOUT,
-
-    /** All loaded standalone widgets - widgets not part of the layout, such as in popups. */
-    OPEN_STANDALONE,
-
-    /** [OPEN_LAYOUT] + [OPEN_STANDALONE]. Use when creating widget is not intended. */
+    /** None. No widget will be found. */
+    NONE,
+    /** All open widgets. [OPEN_LAYOUT] + [OPEN_STANDALONE]. */
     OPEN,
-
-    /** [NEW] + [OPEN_LAYOUT] + [OPEN_STANDALONE]. */
-    ANY,
-
-    /** [NEW] + [OPEN_STANDALONE]. [NEW] that tries to reuse [OPEN_STANDALONE] if available. */
-    NO_LAYOUT;
-
-    fun newWidgetsAllowed(): Boolean = this==NO_LAYOUT || this==ANY || this==NEW
-
+    /** All open widgets within any layout of any window. */
+    OPEN_LAYOUT,
+    /** All open standalone widgets - widgets not part of the layout, such as in popups. */
+    OPEN_STANDALONE
 }
 
-enum class WidgetTarget {
-    LAYOUT,
-    TAB,
-    POPUP,
-    WINDOW
+/** Strategy for opening a new widget in ui. */
+@Suppress("ClassName")
+sealed class WidgetLoader(private val loader: (Widget) -> Unit): (Widget) -> Unit {
+    /**
+     * Does not load widget and leaves it upon the consumer to load and manage it appropriately.
+     * Note that widget loaded as standalone should first invoke [WidgetManager.Widgets.initAsStandalone].
+     */
+    object CUSTOM: WidgetLoader({})
+    /** Loads the widget in a layout of a new window. */
+    object WINDOW: WidgetLoader({
+        APP.windowManager.showWindow(it)
+    })
+    /** Loads the widget as a standalone widget in a simplified layout of a new always on top fullscreen window. */
+    object WINDOW_FULLSCREEN {
+        operator fun invoke(screen: Screen): (Widget) -> Unit = { w ->
+            APP.widgetManager.widgets.initAsStandalone(w)
+
+            val root = anchorPane()
+            val window = Util.createFMNTStage(screen, false).apply {
+                scene = Scene(root)
+                onEventUp(WindowEvent.WINDOW_HIDING) { w.rootParent.close() }
+            }
+
+            root.onEventUp(KeyEvent.KEY_PRESSED) {
+                if (it.code==KeyCode.ESCAPE) {
+                    window.hide()
+                    it.consume()
+                }
+            }
+
+            w.load().apply {
+                minPrefMaxWidth = Region.USE_COMPUTED_SIZE
+            }
+            window.show()
+            Layout.openStandalone(root).apply {
+                child = w
+            }
+
+            window.showingProperty().sync1If({ it }) {
+                w.focus()
+            }
+        }
+    }
+    /** Loads the widget as a standalone widget in a simplified layout of a new popup. */
+    object POPUP: WidgetLoader({
+        APP.widgetManager.widgets.initAsStandalone(it)
+        APP.windowManager.showFloating(it)
+    })
+
+    override fun invoke(w: Widget) = loader(w)
+}
+
+/** Strategy for using a widget. This can be an existing widget or even one to be created on demand. */
+@Suppress("ClassName")
+sealed class WidgetUse(val widgetFinder: WidgetSource) {
+    /** Use open widget as per [WidgetSource.OPEN_LAYOUT] or do nothing if none available. */
+    object OPEN_LAYOUT: WidgetUse(WidgetSource.OPEN_LAYOUT)
+    /** Use open widget as per [WidgetSource.OPEN_STANDALONE] or do nothing if none available. */
+    object OPEN_STANDALONE: WidgetUse(WidgetSource.OPEN_STANDALONE)
+    /** Use open widget as per [WidgetSource.OPEN] or do nothing if none available. */
+    object OPEN: WidgetUse(WidgetSource.OPEN)
+    /** Use newly created widget. */
+    object NEW: NewAnd(WidgetSource.NONE, WidgetLoader.POPUP)
+    /** Use open widget as per [WidgetSource.OPEN] or use newly created widget. */
+    object ANY: NewAnd(WidgetSource.OPEN, WidgetLoader.POPUP)
+    /** Use open widget as per [WidgetSource.OPEN_STANDALONE] or use newly created widget. */
+    object NO_LAYOUT: NewAnd(WidgetSource.OPEN_STANDALONE, WidgetLoader.POPUP)
+
+    open class NewAnd(widgetFinder: WidgetSource, val layouter: (Widget) -> Unit): WidgetUse(widgetFinder) {
+        operator fun invoke(layouter: (Widget) -> Unit) = NewAnd(WidgetSource.OPEN, layouter)
+    }
 }

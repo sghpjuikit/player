@@ -14,7 +14,7 @@ import javafx.stage.Stage
 import javafx.stage.Window
 import mu.KLogging
 import sp.it.pl.gui.objects.popover.PopOver
-import sp.it.pl.layout.widget.WidgetSource.ANY
+import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions
 import sp.it.pl.main.Settings
@@ -55,11 +55,11 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val focusChangedHandler: (Node?) -> Unit = { n ->
         val window = n?.scene
         if (n!=null)
-            APP.widgetManager.widgets.findAll(ANY)
+            APP.widgetManager.widgets.findAll(OPEN)
                 .filter { it.areaTemp?.root?.isAnyParentOf(n) ?: false }
                 .findAny()
                 .ifPresent { fw ->
-                    APP.widgetManager.widgets.findAll(ANY)
+                    APP.widgetManager.widgets.findAll(OPEN)
                             .filter { w -> w!==fw && w.window.orNull()?.stage?.scene?.net { it===window } ?: false }
                             .forEach { w -> w.focused.value = false }
                     fw.focused.value = true
@@ -138,7 +138,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     fun focusClickedWidget(e: MouseEvent) {
         val n = e.target as? Node
         if (n!=null)
-            APP.widgetManager.widgets.findAll(ANY)
+            APP.widgetManager.widgets.findAll(OPEN)
                 .filter { !it.focused.value && it.isLoaded && it.load().isAnyParentOf(n) }
                 .findAny().ifPresent { it.focus() }
     }

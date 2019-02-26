@@ -33,12 +33,11 @@ import sp.it.pl.gui.objects.window.stage.asWindowOrNull
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.WidgetUse.ANY
+import sp.it.pl.layout.widget.WidgetUse.OPEN_LAYOUT
+import sp.it.pl.layout.widget.WidgetUse.OPEN_STANDALONE
 import sp.it.pl.layout.widget.WidgetFactory
 import sp.it.pl.layout.widget.WidgetSource
-import sp.it.pl.layout.widget.WidgetSource.ANY
-import sp.it.pl.layout.widget.WidgetSource.OPEN
-import sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT
-import sp.it.pl.layout.widget.WidgetSource.OPEN_STANDALONE
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
@@ -83,7 +82,7 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
     is TreeItem<*> -> o
     is Widget -> WidgetItem(o)
     is WidgetFactory<*> -> SimpleTreeItem(o)
-    is Widget.Group -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(OPEN).asSequence().filter { it.info.group()==o }.sortedBy { it.name } })
+    is Widget.Group -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(WidgetSource.OPEN).asSequence().filter { it.info.group()==o }.sortedBy { it.name } })
     is WidgetSource -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(o).asSequence().sortedBy { it.name } })
     is Feature -> STreeItem<Any>(o, { APP.widgetManager.factories.getFactories().filter { it.hasFeature(o) }.sortedBy { it.nameGui() } })
     is Container<*> -> LayoutItem(o)

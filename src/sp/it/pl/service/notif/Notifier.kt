@@ -11,7 +11,8 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.nodeinfo.ItemInfo
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.objects.popover.ScreenUse
-import sp.it.pl.layout.widget.WidgetSource.NEW
+import sp.it.pl.layout.widget.WidgetUse.NEW
+import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.hasFeature
 import sp.it.pl.main.APP
@@ -77,7 +78,7 @@ class Notifier: ServiceBase("Notifications", true) {
                     songNotificationGui = ii
                     (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
                 }
-                else -> APP.widgetManager.widgets.find(it, NEW, true).ifPresentOrElse(
+                else -> APP.widgetManager.widgets.find(it, NEW(CUSTOM)).ifPresentOrElse(
                         { wf ->
                             songNotificationGui = wf.load()
                             songNotificationInfo = wf.controller as SongReader

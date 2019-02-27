@@ -38,6 +38,7 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
+import javafx.scene.layout.HBox
 import javafx.scene.shape.Rectangle
 import sp.it.pl.main.IconFA
 import sp.it.pl.util.Util.clip
@@ -53,7 +54,12 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
 
     private val backgroundContainer = hBox()
     private lateinit var backgroundIcons: Node
-    private val foregroundContainer = hBox()
+    private val foregroundContainer = object: HBox() {
+        override fun requestLayout() {
+            if (::foregroundIcons.isInitialized) updateClip()
+            super.requestLayout()
+        }
+    }
     private lateinit var foregroundIcons: Node
     private val foregroundMask = Rectangle()
     private var ratingOld = r.rating.get()
@@ -63,28 +69,29 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
         backgroundContainer.onMouseMoved = EventHandler<MouseEvent> {
             if (skinnable.editable.get()) {
                 val v = computeRating(it.sceneX, it.sceneY)
-                updateClip(v)
+                updateClipAndStyle(v)
                 it.consume()
             }
         }
         backgroundContainer.onMouseClicked = EventHandler<MouseEvent> {
-            if (skinnable.editable.get() && it.button==PRIMARY) {
+            if (skinnable.editable.value && it.button==PRIMARY) {
                 val v = computeRating(it.sceneX, it.sceneY)
-                updateClip(v)
+                updateClipAndStyle(v)
                 ratingOld = v
                 skinnable.onRatingEdited(v)
                 it.consume()
             }
         }
+
         foregroundContainer.alignmentProperty() syncFrom r.alignment
         foregroundContainer.isMouseTransparent = true
         foregroundContainer.clip = foregroundMask
         children setTo listOf(backgroundContainer, foregroundContainer)
-        recreateButtons()
+        updateButtons()
 
-        registerChangeListener(r.rating) { updateClip() }
-        registerChangeListener(r.icons) { recreateButtons() }
-        registerChangeListener(r.partialRating) { updateClip() }
+        registerChangeListener(r.rating) { updateClipAndStyle() }
+        registerChangeListener(r.icons) { updateButtons() }
+        registerChangeListener(r.partialRating) { updateClipAndStyle() }
 
         r.addEventHandler(MOUSE_ENTERED) {
             it.consume()
@@ -92,12 +99,12 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
         }
         r.addEventHandler(MOUSE_EXITED) {
             it.consume()
-            if (r.editable.get()) updateClip(ratingOld)
+            if (r.editable.get()) updateClipAndStyle(ratingOld)
         }
     }
 
-    private fun recreateButtons() {
-        fun createButton(icon: GlyphIcons) = createIcon(icon, skinnable.icons.get(), 8.0).apply {
+    private fun updateButtons() {
+        fun createButton(icon: GlyphIcons) = createIcon(icon, skinnable.icons.value, 8.0).apply {
             isCache = true
             cacheHint = CacheHint.SPEED
             styleClass += "rating-button"
@@ -106,12 +113,12 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
 
         backgroundIcons = createButton(IconFA.STAR_ALT)
         foregroundIcons = createButton(IconFA.STAR).apply {
-            styleClass += SELECTED
+            styleClass += selected
         }
         backgroundContainer.children += backgroundIcons
         foregroundContainer.children += foregroundIcons
 
-        updateClip()
+        updateClipAndStyle()
     }
 
     private fun computeRating(sceneX: Double, sceneY: Double): Double {
@@ -124,19 +131,21 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
             else -> clip(0.0, b.x/w, 1.0)
         }
 
-        return if (skinnable.partialRating.get()) {
+        return if (skinnable.partialRating.value) {
             x
         } else {
-            val icons = skinnable.icons.get().toDouble()
+            val icons = skinnable.icons.value.toDouble()
             ceil(x*icons)/icons
         }
     }
 
-    private fun updateClip(v: Double? = skinnable.rating.get()) {
+    private fun updateClip(v: Double? = skinnable.rating.value) {
         val icons = foregroundIcons.boundsInParent
         foregroundMask.width = icons.minX+(v ?: 0.0)*icons.width
         foregroundMask.height = skinnable.height
+    }
 
+    private fun updateStyle(v: Double? = skinnable.rating.value) {
         val isEmpty = v==null
         backgroundContainer.children.forEach { it.pseudoClassStateChanged(empty, isEmpty) }
         val is0 = v==0.0
@@ -145,13 +154,13 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
         foregroundContainer.children.forEach { it.pseudoClassStateChanged(max, is1) }
     }
 
-    override fun layoutChildren(x: Double, y: Double, w: Double, h: Double) {
-        super.layoutChildren(x, y, w, h)
-        updateClip()
+    private fun updateClipAndStyle(v: Double? = skinnable.rating.value) {
+        updateClip(v)
+        updateStyle(v)
     }
 
     companion object {
-        val SELECTED = "strong"
+        const val selected = "strong"
         val empty = pseudoclass("empty")
         val min = pseudoclass("min")
         val max = pseudoclass("max")

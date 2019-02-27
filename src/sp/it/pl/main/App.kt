@@ -66,7 +66,6 @@ import sp.it.pl.util.action.Action
 import sp.it.pl.util.action.ActionManager
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.runLater
-import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
@@ -442,6 +441,8 @@ class App: Application(), Configurable<Any> {
 
     @Deprecated("Called automatically")
     override fun stop() {
+        logger.info { "Stopping application" }
+
         store()
         onStopping()
 
@@ -466,7 +467,6 @@ class App: Application(), Configurable<Any> {
         if (isInitialized.isOk) {
             if (normalLoad) Player.state.serialize()
             if (normalLoad) windowManager.serialize()
-            windowManager.windows.materialize().forEach { it.hide() }     // close app in bgr (assumes we don't restore window visibility state!)
             configuration.save(name, FILE_SETTINGS)
             services.getAllServices()
                     .filter { it.isRunning() }
@@ -477,6 +477,8 @@ class App: Application(), Configurable<Any> {
     /** Close this app normally. Causes invocation of [stop] as a result. */
     @IsAction(name = "Close app", desc = "Closes this application.")
     fun close() {
+        logger.info { "Closing application" }
+
         Platform.exit()
     }
 

@@ -592,13 +592,11 @@ public class Window extends WindowBase {
 	public void close() {
 		LOGGER.info("Closing{} window. {} windows remain open.", isMain.get() ? " main" : "", APP.windowManager.windows.size()-1);
 
-		if (isMain.get()) {
-			APP.close();
-		} else {
+		if (!isMain.get()) {
 			if (layout!=null) layout.close(); // close layout to release resources
 			disposables.forEach(Subscription::unsubscribe);
-			super.close();  // in the end close itself
 		}
+		super.close();  // in the end close itself
 	}
 
 	@Override

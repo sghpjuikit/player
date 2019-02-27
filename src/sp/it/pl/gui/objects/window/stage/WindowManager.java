@@ -143,10 +143,14 @@ public class WindowManager implements Configurable<Object> {
         }));
         onItemRemoved(Stage.getWindows(), consumer(w -> {
             if (w.getProperties().containsKey("window")) {
-                windows.remove((Window) w.getProperties().get("window"));
+                var window = (Window) w.getProperties().get("window");
+                if (window.isMain.get()) {
+                    APP.close();
+                } else {
+                    windows.remove(window);
+                }
             }
         }));
-
 
         Runnable computeMaxUsedScaling = () -> screenMaxScaling = Screen.getScreens().stream()
             .mapToDouble(s -> max(s.getOutputScaleX(), s.getOutputScaleY())).max()

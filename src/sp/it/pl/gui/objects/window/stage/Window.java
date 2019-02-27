@@ -382,8 +382,7 @@ public class Window extends WindowBase {
 		Icon maxB = new Icon(WINDOW_MAXIMIZE, is, "Maximize\n\nExpand window to span whole screen",
 			this::toggleMaximize);
 //        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
-		Icon closeB = new Icon(CLOSE, is, "Close\n\nCloses window. If the window is main, "
-			+ "application closes as well.", this::close);
+		Icon closeB = new Icon(CLOSE, is, "Close\n\nCloses window. If the window is main, application closes as well.", this::close);
 		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, is).scale(0.4)
 			.onClick(() -> APP.windowManager.setAsMain(this));
 		maintain(isMain, v -> mainB.setOpacity(v ? 1.0 : 0.4));
@@ -591,13 +590,13 @@ public class Window extends WindowBase {
 
 	@Override
 	public void close() {
-		LOGGER.info("Closing{} window. {} windows currently open.", isMain.get() ? " main" : "", WINDOWS.size());
+		LOGGER.info("Closing{} window. {} windows remain open.", isMain.get() ? " main" : "", APP.windowManager.windows.size()-1);
+
 		if (isMain.get()) {
 			APP.close();
 		} else {
 			if (layout!=null) layout.close(); // close layout to release resources
 			disposables.forEach(Subscription::unsubscribe);
-			WINDOWS.remove(this);   // remove from window list
 			super.close();  // in the end close itself
 		}
 	}

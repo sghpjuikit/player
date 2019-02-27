@@ -44,6 +44,7 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.IsConfigurable;
 import sp.it.pl.util.file.Util;
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
+import sp.it.pl.util.reactive.UtilKt;
 import sp.it.pl.util.validation.Constraint;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
@@ -51,6 +52,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -79,6 +81,7 @@ import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.addEventHandler1Time;
 import static sp.it.pl.util.graphics.UtilKt.getScreenForMouse;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.onItemAdded;
 import static sp.it.pl.util.reactive.UtilKt.onItemRemoved;
 
 /**
@@ -90,15 +93,12 @@ public class WindowManager implements Configurable<Object> {
     private static final Logger LOGGER = logger(WindowManager.class);
 
     public double screenMaxScaling;
-    /**
-     * Main application window, see {@link sp.it.pl.gui.objects.window.stage.Window#isMain}. May be null.
-     */ private Window mainWindow;
-    /**
-     * Observable list of all application windows.
-     */ public final ObservableList<Window> windows = Window.WINDOWS;
-    /**
-     * Dock window. Null if not active.
-     */ public Window miniWindow;
+    /** Main application window, see {@link sp.it.pl.gui.objects.window.stage.Window#isMain}. May be null. */
+    private Window mainWindow;
+    /** Observable list of all application windows. For list of all windows use {@link javafx.stage.Stage#getWindows()}. */
+    public final ObservableList<Window> windows = observableArrayList();
+    /** Dock window. Null if not active. */
+    public Window miniWindow;
     static volatile boolean canBeMainTemp = false; // TODO: remove hack
 
     @IsConfig(name = "Opacity", info = "Window opacity.")
@@ -134,7 +134,20 @@ public class WindowManager implements Configurable<Object> {
         () -> APP.widgetManager.factories.getFactoriesWith(HorizontalDock.class).map(w -> w.nameGui())
     );
 
+    @SuppressWarnings({"ConstantConditions", "RedundantCast"})
     public WindowManager() {
+        onItemAdded(Stage.getWindows(), consumer(w -> {
+            if (w.getProperties().containsKey("window") && w.getProperties().get("window")!=miniWindow) {
+                windows.add((Window) w.getProperties().get("window"));
+            }
+        }));
+        onItemRemoved(Stage.getWindows(), consumer(w -> {
+            if (w.getProperties().containsKey("window")) {
+                windows.remove((Window) w.getProperties().get("window"));
+            }
+        }));
+
+
         Runnable computeMaxUsedScaling = () -> screenMaxScaling = Screen.getScreens().stream()
             .mapToDouble(s -> max(s.getOutputScaleX(), s.getOutputScaleY())).max()
             .orElse(1);
@@ -203,7 +216,6 @@ public class WindowManager implements Configurable<Object> {
         // load fxml part
         new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();
         if (canBeMain && mainWindow==null) setAsMain(w); // TODO: improve main window detection/decision strategy
-        windows.add(w); // add to list of active windows
 
         w.initialize();
 
@@ -266,11 +278,10 @@ public class WindowManager implements Configurable<Object> {
         if (val) {
             if (miniWindow!=null && miniWindow.isShowing()) return;
             if (miniWindow == null)  miniWindow = create(createStageOwner(), UNDECORATED, false);
-            Window.WINDOWS.remove(miniWindow); // ignore mini window in window operations
             miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 40);
             miniWindow.resizable.set(true);
             miniWindow.setAlwaysOnTop(true);
-            miniWindow.disposables.add(onItemRemoved(Screen.getScreens(), consumer(it -> {
+            miniWindow.disposables.add(UtilKt.onItemRemoved(Screen.getScreens(), consumer(it -> {
                 if (it.equals(miniWindow.getScreen()))
                     runLater(() -> {
                         Screen screen = Screen.getPrimary();
@@ -384,15 +395,15 @@ public class WindowManager implements Configurable<Object> {
         }
 
         Set<File> filesOld = listChildren(dir).collect(toSet());
-        List<Window> windows = stream(Window.WINDOWS).filter(w -> w!=miniWindow).collect(toList());
-        LOGGER.info("Serializing " + windows.size() + " application windows");
+        List<Window> ws = windows.stream().filter(w -> w!=miniWindow).collect(toList());
+        LOGGER.info("Serializing " + ws.size() + " application windows");
 
         // serialize - for now each window to its own file with .ws extension
         String sessionUniqueName = System.currentTimeMillis()+"";
         boolean isError = false;
         Set<File> filesNew = new HashSet<>();
-        for (int i=0; i<windows.size(); i++) {
-            Window w = windows.get(i);
+        for (int i=0; i<ws.size(); i++) {
+            Window w = ws.get(i);
             File f = new File(dir, "window_" + sessionUniqueName + "_" + i + ".ws");
             filesNew.add(f);
             isError |= APP.serializerXml.toXML(new WindowState(w), f).isError();

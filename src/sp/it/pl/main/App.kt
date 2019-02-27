@@ -41,8 +41,8 @@ import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.container.switchcontainer.SwitchContainer
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.WidgetManager
+import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.plugin.Plugin
@@ -66,6 +66,7 @@ import sp.it.pl.util.action.Action
 import sp.it.pl.util.action.ActionManager
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.runLater
+import sp.it.pl.util.collections.materialize
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
@@ -465,6 +466,7 @@ class App: Application(), Configurable<Any> {
         if (isInitialized.isOk) {
             if (normalLoad) Player.state.serialize()
             if (normalLoad) windowManager.serialize()
+            windowManager.windows.materialize().forEach { it.hide() }     // close app in bgr (assumes we don't restore window visibility state!)
             configuration.save(name, FILE_SETTINGS)
             services.getAllServices()
                     .filter { it.isRunning() }
@@ -475,7 +477,6 @@ class App: Application(), Configurable<Any> {
     /** Close this app normally. Causes invocation of [stop] as a result. */
     @IsAction(name = "Close app", desc = "Closes this application.")
     fun close() {
-        windowManager.windows.forEach { it.hide() }     // close app in bgr (assumes we don't restore window visibility state!)
         Platform.exit()
     }
 

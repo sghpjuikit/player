@@ -551,7 +551,7 @@ public class WindowBase {
 			snapDown();
 
 		// snap to other window edges
-		for (Window w : Window.WINDOWS) {
+		for (javafx.stage.Window w : Stage.getWindows()) {
 			double WXS = w.getX() + w.getWidth();
 			double WXE = w.getX();
 			double WYS = w.getY() + w.getHeight();

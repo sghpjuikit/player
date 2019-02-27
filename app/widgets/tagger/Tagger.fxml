@@ -26,7 +26,7 @@
                       <Insets left="10.0" right="10.0" />
                   </padding>
               </BorderPane>
-              <ScrollPane id="ScrollPane" fitToWidth="true" hbarPolicy="NEVER" prefHeight="640.0" prefWidth="550.0" VBox.vgrow="ALWAYS">
+              <ScrollPane id="ScrollPane" fx:id="scrollRoot" fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
                  <content>
                      <AnchorPane id="AnchorPane" fx:id="scrollContent">
                          <padding>
@@ -43,31 +43,31 @@
                                     <Insets />
                                 </padding>
                                 <rowConstraints>
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-                                    <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
+                                    <RowConstraints fillHeight="false" vgrow="NEVER" />
                                 </rowConstraints>
                                <children>
                                    <Label text="Title" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="0">
@@ -195,12 +195,12 @@
                                            <Insets right="10.0" />
                                        </GridPane.margin>
                                    </Label>
-                                   <DecoratedTextField fx:id="titleF" alignment="CENTER_RIGHT" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="0" />
-                                   <DecoratedTextField id="AlbumField" fx:id="albumF" alignment="CENTER_RIGHT" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
-                                   <DecoratedTextField fx:id="artistF" alignment="CENTER_RIGHT" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="2" />
-                                   <DecoratedTextField fx:id="albumArtistF" alignment="CENTER_RIGHT" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="3" />
-                                   <DecoratedTextField fx:id="composerF" alignment="CENTER_RIGHT" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="4" />
-                                   <DecoratedTextField fx:id="publisherF" alignment="CENTER_RIGHT" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="5" />
+                                   <DecoratedTextField fx:id="titleF" alignment="CENTER_RIGHT"  maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="0" />
+                                   <DecoratedTextField fx:id="albumF" alignment="CENTER_RIGHT"  maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
+                                   <DecoratedTextField fx:id="artistF" alignment="CENTER_RIGHT"  maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="2" />
+                                   <DecoratedTextField fx:id="albumArtistF" alignment="CENTER_RIGHT"  maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="3" />
+                                   <DecoratedTextField fx:id="composerF" alignment="CENTER_RIGHT"  maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="4" />
+                                   <DecoratedTextField fx:id="publisherF" alignment="CENTER_RIGHT"  maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="5" />
                                    <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="6" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
                                        <columnConstraints>
                                            <ColumnConstraints hgrow="SOMETIMES" />
@@ -240,8 +240,8 @@
                                    <DecoratedTextField fx:id="commentF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="13" />
                                    <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="15">
                                       <children>
-                                          <DecoratedTextField fx:id="colorF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="30.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" />
-                                          <ColorPicker fx:id="colorFPicker" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="15" />
+                                          <DecoratedTextField fx:id="colorF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="30.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" />
+                                          <ColorPicker fx:id="colorFPicker" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="15" />
                                       </children>
                                    </AnchorPane>
                                    <DecoratedTextField fx:id="custom1F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" />

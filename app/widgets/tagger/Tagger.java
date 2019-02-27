@@ -27,6 +27,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
@@ -135,6 +136,7 @@ import static sp.it.pl.util.functional.Util.split;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.UtilKt.createIcon;
 import static sp.it.pl.util.graphics.UtilKt.setTextAlignment;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
  * Tagger graphical component.
@@ -167,6 +169,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
     @FXML VBox content;
     @FXML BorderPane header;
     @FXML AnchorPane scrollContent;
+    @FXML ScrollPane scrollRoot;
     @FXML GridPane grid;
     @FXML DecoratedTextField titleF, albumF, artistF, albumArtistF, composerF, publisherF, trackF, tracksTotalF,
                      discF, discsTotalF, genreF, categoryF, yearF, ratingF, ratingPF, playcountF, commentF,
@@ -198,6 +201,11 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
         new ConventionFxmlLoader(root, this).loadNoEx();
 
+        scrollRoot.setPrefSize(
+            600.0*APP.ui.getFont().getValue().getSize()/12.0,
+            640.0*APP.ui.getFont().getValue().getSize()/12.0
+        );
+
         Node okB = formIcon(FontAwesomeIcon.CHECK, "Save", runnable(this::write));
         content.getChildren().add(okB);
 
@@ -215,6 +223,13 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
         // add specialized mood text field
         grid.add(moodF, 1, 14, 2, 1);
+
+        // style
+        onClose.plusAssign(
+            maintain(APP.ui.getFont(), f -> {
+                grid.getRowConstraints().forEach(it -> it.setPrefHeight(24*f.getSize()/12.0));
+            })
+        );
 
         // validators
         Predicate<String> IsBetween0And1 = noEx(false,(String t) -> {

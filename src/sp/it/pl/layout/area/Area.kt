@@ -5,13 +5,11 @@ import javafx.scene.layout.Region
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetLoader
-import sp.it.pl.util.async.runFX
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.graphics.layFullArea
 import sp.it.pl.util.graphics.pseudoclass
 import sp.it.pl.util.graphics.size
 import sp.it.pl.util.reactive.sync1If
-import sp.it.pl.util.units.millis
 
 abstract class Area<T: Container<*>>: ContainerNode {
 
@@ -49,12 +47,10 @@ abstract class Area<T: Container<*>>: ContainerNode {
 
         val w = widget.graphics.scene.window
         w.showingProperty().sync1If({ it }) {
-            runFX(10.millis) {  // TODO: remove delay
-                val wSize = w.size
-                val sizeNew = widget.load().asIf<Region>()?.size ?: sizeArea
-                val sizeDiff = sizeOld - sizeNew
-                w.size = wSize+sizeDiff
-            }
+            val wSize = w.size
+            val sizeNew = widget.load().asIf<Region>()?.size ?: sizeArea
+            val sizeDiff = sizeOld - sizeNew
+            w.size = wSize+sizeDiff
         }
     }
 

@@ -22,6 +22,7 @@ import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.WidgetLoader;
 import sp.it.pl.main.AppAnimator;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.graphics.drag.DragUtil;
@@ -239,14 +240,14 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
 	    icons.getChildren().remove(absB);
     }
 
+    // TODO: fix & merge with Area.detach
     public void detach() {
         if (!container.hasParent()) return;
-        // get first active component
+
         Component c = container;
         c.getParent().addChild(c.indexInParent(),null);
-        // detach into new window
-        Window w = APP.windowManager.createWindow(c);
-        // set size to that of a source (also add header & border space)
+        Window w = WidgetLoader.WINDOW.INSTANCE.invoke(c);
+
         w.setSize(root.getWidth()+10, root.getHeight()+30);
     }
 

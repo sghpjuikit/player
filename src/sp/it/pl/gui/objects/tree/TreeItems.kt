@@ -33,11 +33,11 @@ import sp.it.pl.gui.objects.window.stage.asWindowOrNull
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.WidgetFactory
+import sp.it.pl.layout.widget.WidgetSource
 import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.WidgetUse.OPEN_LAYOUT
 import sp.it.pl.layout.widget.WidgetUse.OPEN_STANDALONE
-import sp.it.pl.layout.widget.WidgetFactory
-import sp.it.pl.layout.widget.WidgetSource
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
@@ -122,7 +122,7 @@ fun treeApp(): TreeItem<Any> {
             ),
             tree("UI",
                     tree("Windows", Stage.getWindows()),
-                    tree("Layouts", { APP.widgetManager.layouts.findAllActive().asSequence().sortedBy { it.name } })
+                    tree("Layouts", { APP.widgetManager.layouts.findAllActive().sortedBy { it.name } })
             ),
             tree("Location", APP.DIR_APP),
             tree("File system", File.listRoots().map { FileTreeItem(it) }),
@@ -192,7 +192,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
                 "Window (generic)"
             } else {
                 var n = "Window "+APP.windowManager.windows.indexOf(w)
-                if (w===APP.windowManager.main.orNull()) n += " (main)"
+                if (w===APP.windowManager.getMain().orNull()) n += " (main)"
                 if (w===APP.windowManager.miniWindow) n += " (mini-docked)"
                 n
             }

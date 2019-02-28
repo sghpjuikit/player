@@ -37,6 +37,7 @@ import sp.it.pl.util.graphics.Util.createFMNTStage
 import sp.it.pl.util.graphics.Util.layStack
 import sp.it.pl.util.graphics.Util.setAnchors
 import sp.it.pl.util.graphics.applyViewPort
+import sp.it.pl.util.graphics.getScreen
 import sp.it.pl.util.graphics.getScreenForMouse
 import sp.it.pl.util.graphics.image.FitFrom
 import sp.it.pl.util.graphics.image.imgImplLoadFX
@@ -187,14 +188,14 @@ abstract class OverlayPane<in T>: StackPane() {
         override fun computeScreen(): Screen = when (this) {
             WINDOW -> fail()
             SCREEN_PRIMARY -> Screen.getPrimary()
-            SCREEN_OF_WINDOW -> APP.windowManager.active.orNull()?.screen ?: SCREEN_OF_MOUSE.computeScreen()
+            SCREEN_OF_WINDOW -> APP.windowManager.getActive().orNull()?.centre?.getScreen() ?: SCREEN_OF_MOUSE.computeScreen()
             SCREEN_OF_MOUSE -> getScreenForMouse()
         }
     }
 
     fun ScreenGetter.animStart(op: OverlayPane<*>) {
         if (this==Display.WINDOW) {
-            APP.windowManager.active.ifPresentOrElse(
+            APP.windowManager.getActive().ifPresentOrElse(
                     { window ->
                         // display overlay pane
                         val root = window.root

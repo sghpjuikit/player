@@ -242,7 +242,7 @@ class Guide(guideEvents: EventSource<Any> = EventSource()): MultiConfigurableBas
                 {
                     layH(Icon(IconFA.MUSIC, ICON_SIZE, null) { _ ->
                         // find spot
-                        val la = APP.windowManager.activeOrNew.switchPane.container
+                        val la = APP.windowManager.getActiveOrNew().switchPane.container
                         // prepare container
                         val bc = BiContainer(VERTICAL)
                         la.addChild(la.emptySpot, bc)
@@ -411,7 +411,7 @@ class Guide(guideEvents: EventSource<Any> = EventSource()): MultiConfigurableBas
                 +"\n\nTry out container navigation:",
                 {
                     layH(Icon(IconMD.PALETTE_ADVANCED, ICON_SIZE, "") { _ ->
-                        val w = APP.windowManager.activeOrNew
+                        val w = APP.windowManager.getActiveOrNew()
                         val i = w.topContainer.emptySpot
                         w.topContainer.ui.alignTab(i)
                         fut()
@@ -498,7 +498,7 @@ class Guide(guideEvents: EventSource<Any> = EventSource()): MultiConfigurableBas
                 {
                     layH(
                         Icon(IconMD.PALETTE_ADVANCED, ICON_SIZE, "") { _ ->
-                            val wd = APP.windowManager.activeOrNew
+                            val wd = APP.windowManager.getActiveOrNew()
                             val i = wd.topContainer.emptySpot
                             wd.topContainer.ui.alignTab(i)
 

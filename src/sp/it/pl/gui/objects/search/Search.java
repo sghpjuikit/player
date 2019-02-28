@@ -100,7 +100,8 @@ public abstract class Search {
 			}
 			if (e.getCode()==keyNextOccurrence) {
 				if (e.isShiftDown()) selectionIndex = max(0,selectionIndex-1);
-				else selectionIndex++;	// min(matchesCount-1, selectionIndex+1)	// TODO: requires complete search iteration
+				else selectionIndex++;
+				// else min(matchesCount-1, selectionIndex+1)	// TODO: requires complete search iteration, cache matchesCount and enable
 
 				search(searchQuery.get());
 				e.consume(); // must cause all KEY_PRESSED handlers to be ignored

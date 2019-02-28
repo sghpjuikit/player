@@ -582,7 +582,7 @@ public class SwitchPane implements ContainerNode {
 	    private double from, to, by;
 
     	public XTransition(Duration length, Node node) {
-		    super(d -> {}); // TODO remove this by adding proper support for Anim subclassing
+		    super(d -> {});
 		    dur(length);
 		    this.node = node;
 	    }

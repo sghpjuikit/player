@@ -207,17 +207,7 @@ public class WindowBase {
 	}
 
 	// cached, needs to be updated when size or position changes
-	Screen screen = Screen.getPrimary();
-
-	/** Sets screen to this window. It influences screen dependent features. */
-	public void setScreen(Screen scr) {
-		screen = scr;
-	}
-
-	/** Gets screen of this window. It influences screen dependent features. */
-	public Screen getScreen() {
-		return screen;
-	}
+	protected Screen screen = Screen.getPrimary();
 
 	private void updateScreen() {
 		screen = sp.it.pl.util.graphics.UtilKt.getScreen(getCenter());
@@ -677,6 +667,7 @@ public class WindowBase {
 		focus();
 	}
 
+	/** Sets the window invisible and focuses it. */
 	public void hide() {
 		s.hide();
 	}
@@ -685,6 +676,7 @@ public class WindowBase {
 		return s.isShowing();
 	}
 
+	/** Closes this window as to never show it visible again. */
 	public void close() {
 		s.close();
 	}

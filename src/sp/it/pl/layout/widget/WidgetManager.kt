@@ -8,7 +8,9 @@ import javafx.scene.layout.Region
 import javafx.stage.Screen
 import javafx.stage.WindowEvent
 import mu.KLogging
+import sp.it.pl.gui.objects.window.stage.Window
 import sp.it.pl.gui.objects.window.stage.WindowManager
+import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.container.layout.Layout
 import sp.it.pl.layout.widget.WidgetSource.OPEN
@@ -49,7 +51,9 @@ import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.ifNull
 import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.setTo
+import sp.it.pl.util.functional.toUnit
 import sp.it.pl.util.graphics.Util
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.minPrefMaxWidth
@@ -429,7 +433,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         fun findAll(source: WidgetSource): Stream<Widget> = when (source) {
             WidgetSource.NONE -> Stream.empty()
-            WidgetSource.OPEN_LAYOUT -> layouts.findAllActive().flatMap { it.allWidgets }
+            WidgetSource.OPEN_LAYOUT -> layouts.findAllActive().asStream().flatMap { it.allWidgets }
             WidgetSource.OPEN_STANDALONE -> standaloneWidgets.stream()
             WidgetSource.OPEN -> Stream.concat(findAll(OPEN_STANDALONE), findAll(OPEN_LAYOUT))
         }
@@ -553,15 +557,15 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         private val layoutsAvailable = ArrayList<String>()
 
         /** @return layout of focused window or null if no window focused */
-        fun findActive(): Layout? = windowManager.focused.map { it.layout }.orElse(null)
+        fun findActive(): Layout? = windowManager.getFocused().orNull()?.layout
 
         /** @return all Layouts in the application */
-        fun findAllActive(): Stream<Layout> = windowManager.windows.asSequence().mapNotNull { it.layout }.asStream()
+        fun findAllActive(): Sequence<Layout> = windowManager.windows.asSequence().mapNotNull { it.layout }
 
         /** @return all names of all layouts available to the application, including serialized layouts in files. */
-        fun getAllNames(): Stream<String> {
+        fun getAllNames(): Sequence<String> {
             findPersisted()
-            return Stream.concat(findAllActive().map { it.name }, layoutsAvailable.stream()).distinct()
+            return (findAllActive().map { it.name } + layoutsAvailable.asSequence()).distinct()
         }
 
         /** @return layouts found in layout folder and sets them as available layouts */
@@ -657,16 +661,19 @@ enum class WidgetSource {
 
 /** Strategy for opening a new widget in ui. */
 @Suppress("ClassName")
-sealed class WidgetLoader(private val loader: (Widget) -> Unit): (Widget) -> Unit {
+sealed class WidgetLoader: (Widget) -> Unit {
     /**
      * Does not load widget and leaves it upon the consumer to load and manage it appropriately.
      * Note that widget loaded as standalone should first invoke [WidgetManager.Widgets.initAsStandalone].
      */
-    object CUSTOM: WidgetLoader({})
+    object CUSTOM: WidgetLoader() {
+        override fun invoke(w: Widget) {}
+    }
     /** Loads the widget in a layout of a new window. */
-    object WINDOW: WidgetLoader({
-        APP.windowManager.showWindow(it)
-    })
+    object WINDOW: WidgetLoader() {
+        override fun invoke(w: Widget) = invoke(w as Component).toUnit()
+        fun invoke(w: Component): Window = APP.windowManager.showWindow(w)
+    }
     /** Loads the widget as a standalone widget in a simplified layout of a new always on top fullscreen window. */
     object WINDOW_FULLSCREEN {
         operator fun invoke(screen: Screen): (Widget) -> Unit = { w ->
@@ -699,12 +706,13 @@ sealed class WidgetLoader(private val loader: (Widget) -> Unit): (Widget) -> Uni
         }
     }
     /** Loads the widget as a standalone widget in a simplified layout of a new popup. */
-    object POPUP: WidgetLoader({
-        APP.widgetManager.widgets.initAsStandalone(it)
-        APP.windowManager.showFloating(it)
-    })
+    object POPUP: WidgetLoader() {
+        override fun invoke(w: Widget) {
+            APP.widgetManager.widgets.initAsStandalone(w)
+            APP.windowManager.showFloating(w)
+        }
+    }
 
-    override fun invoke(w: Widget) = loader(w)
 }
 
 /** Strategy for using a widget. This can be an existing widget or even one to be created on demand. */

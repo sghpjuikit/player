@@ -459,7 +459,7 @@ open class PopOver<N: Node>(): PopupControl() {
         }
 
         arrowSize.value = 0.0
-        val ownerF: Window? = APP.windowManager.focused.orNull()?.takeIf { pos.isAppCentric() }?.stage
+        val ownerF: Window? = APP.windowManager.getFocused().orNull()?.takeIf { pos.isAppCentric() }?.stage
         val ownerS: Window? = ownerF ?: ownerWindow?.takeIf { it.isShowing }
         val owner: Window = ownerS ?: if (focusOnShow.value) APP.windowManager.createStageOwner() else UNFOCUSED_OWNER
         val wasOwnerCreated = ownerS==null && focusOnShow.value

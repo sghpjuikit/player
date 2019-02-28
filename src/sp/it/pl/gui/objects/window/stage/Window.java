@@ -1,10 +1,9 @@
 package sp.it.pl.gui.objects.window.stage;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import javafx.collections.ObservableList;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -44,8 +43,8 @@ import sp.it.pl.util.action.ActionManager;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
 import sp.it.pl.util.async.executor.EventReducer;
-import sp.it.pl.util.graphics.UtilKt;
 import sp.it.pl.util.graphics.drag.DragUtil;
+import sp.it.pl.util.reactive.Disposer;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_LEFT;
@@ -67,7 +66,6 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_M
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
-import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.input.KeyCode.DOWN;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.LEFT;
@@ -101,71 +99,49 @@ import static sp.it.pl.util.functional.Util.forEachIRStream;
 import static sp.it.pl.util.functional.Util.forEachIStream;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.mapB;
-import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchors;
+import static sp.it.pl.util.graphics.UtilKt.getScreen;
 import static sp.it.pl.util.graphics.UtilKt.initClip;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /** Window for application. */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class Window extends WindowBase {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Window.class);
-	static final ObservableList<Window> WINDOWS = observableArrayList();
-
-	/**
-	 * Pseudoclass active when this window is focused. Applied on root as '.window'.
-	 */
+	private static final Logger logger = LoggerFactory.getLogger(Window.class);
+	/** Styleclass for window. Applied on {@link #root}. */
+	public static final String scWindow = "window";
+	/** Pseudoclass active when this window is focused. Applied on {@link #scWindow}. */
 	public static final PseudoClass pcFocused = PseudoClass.getPseudoClass("focused");
-	/**
-	 * Pseudoclass active when this window is resized. Applied on root as '.window'.
-	 */
+	/** Pseudoclass active when this window is resized. Applied on {@link #scWindow}. */
 	public static final PseudoClass pcResized = PseudoClass.getPseudoClass("resized");
-	/**
-	 * Pseudoclass active when this window is moved. Applied on root as '.window'.
-	 */
+	/** Pseudoclass active when this window is moved. Applied on {@link #scWindow}. */
 	public static final PseudoClass pcMoved = PseudoClass.getPseudoClass("moved");
-	/**
-	 * Pseudoclass active when this window is fullscreen. Applied on root as '.window'.
-	 */
+	/** Pseudoclass active when this window is fullscreen. Applied on {@link #scWindow}. */
 	public static final PseudoClass pcFullscreen = PseudoClass.getPseudoClass("fullscreen");
 
-	/**
-	 * Scene root. Assigned '.window' styleclass.
-	 */
+	/** Scene root. Assigned {@link #scWindow} styleclass. */
 	@FXML public AnchorPane root = new AnchorPane();
-	/**
-	 * Single child of the root.
-	 */
+	/** Single child of the {@link #root}. */
 	@FXML public StackPane subroot;
 	@FXML public StackPane back, backImage;
 	@FXML public AnchorPane bordersVisual;
 	@FXML public AnchorPane front, content;
 	@FXML HBox rightHeaderBox;
-	private final double headerHeight = 30;
 
-	/**
-	 * Disposables ran when window closes. For example you may put here listeners.
-	 */
-	public final List<Subscription> disposables = new ArrayList<>();
-	/**
-	 * Denotes whether this window is main window. Main window has altered behavior:
-	 * <ul>
-	 * <li> Closing it causes application to close as well
-	 * </ul>
-	 */
-	public final V<Boolean> isMain = new V<>(false);
-	final Set<Subscription> isMainDisposables = set();
+	final ReadOnlyBooleanWrapper isMainImpl = new ReadOnlyBooleanWrapper(false);
+	/** Denotes whether this is main window. Closing main window closes the application. Only one window can be main. */
+	public final ReadOnlyBooleanProperty isMain = isMainImpl.getReadOnlyProperty();
+	/** Invoked just before this window closes, after layout closes. */
+	public final Disposer onClose = new Disposer();
 
 	Window(Stage owner, StageStyle style) {
 		super(owner, style);
 		s.getProperties().put("window", this);
 	}
 
-	/**
-	 * Initializes the controller class.
-	 */
 	void initialize() {
 		getStage().setScene(new Scene(root));
 		getStage().getScene().setFill(Color.rgb(0, 0, 0, 0.01));
@@ -179,14 +155,11 @@ public class Window extends WindowBase {
 		// normally we would bind bgr size, but we will bind it more dynamically later
 		// bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
 
-		// avoid some instances of not closing properly
+		// avoid some instances of not closing properly (like when OS requests closing the window)
 		s.setOnCloseRequest(e -> close());
 
-		// disable default exit fullscreen on ESC key
-		// it does not exit fullscreen properly for this class, because it calls
-		// stage.setFullscreen() directly
+		// override default exit fullscreen on ESC key, as we overrode stage.setFullscreen() behavior
 		s.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
-		// implement the functionality properly
 		s.addEventHandler(KEY_PRESSED, e -> {
 			if (e.getCode()==ESCAPE && isFullscreen()) {
 				setFullscreen(false);
@@ -370,7 +343,7 @@ public class Window extends WindowBase {
 		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
 
 
-		Icon miniB = new Icon(null, is, "Toggle docking mode", () -> APP.windowManager.mini.setCycledValue());
+		Icon miniB = new Icon(null, is, "Toggle docking mode", () -> APP.windowManager.getMini().setCycledValue());
 		maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP, ANGLE_UP), miniB::icon);
 		Icon onTopB = new Icon(null, is, "Always on top\n\nForbid hiding this window behind other "
 			+ "application windows", this::toggleAlwaysOnTop);
@@ -405,7 +378,6 @@ public class Window extends WindowBase {
 
 	private Layout layout;
 	private SwitchContainer topContainer;
-//    private SwitchPane switchPane;
 
 	public Layout getLayout() {
 		return layout;
@@ -590,13 +562,14 @@ public class Window extends WindowBase {
 
 	@Override
 	public void close() {
-		LOGGER.info("Closing{} window. {} windows remain open.", isMain.get() ? " main" : "", APP.windowManager.windows.size()-1);
+		logger.info("Closing{} window. {} windows remain open.", isMain.getValue() ? " main" : "", APP.windowManager.windows.size()-1);
 
-		if (!isMain.get()) {
+		if (!isMain.getValue()) {
 			if (layout!=null) layout.close(); // close layout to release resources
-			disposables.forEach(Subscription::unsubscribe);
+			onClose.invoke();
 		}
-		super.close();  // in the end close itself
+		getStage().hide();
+		super.close();
 	}
 
 	@Override
@@ -635,7 +608,7 @@ public class Window extends WindowBase {
 
 		double X = e.getScreenX();
 		double Y = e.getScreenY();
-		Screen screen = UtilKt.getScreen(X, Y);
+		screen = getScreen(X, Y);
 		double SWm = screen.getBounds().getMinX();
 		double SHm = screen.getBounds().getMinY();
 		double SW = screen.getBounds().getMaxX();
@@ -676,7 +649,6 @@ public class Window extends WindowBase {
 		boolean isDeMaximize = to==Maximized.NONE && (mouseSpeed==0 || mouseSpeed>70);
 		boolean isMaximize = to!=Maximized.NONE && (isMaximized()!=Maximized.NONE || mouseSpeed<70);
 		if (isDeMaximize || isMaximize) {
-			setScreen(screen);
 			setMaximized(to);
 		}
 	}

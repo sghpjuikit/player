@@ -405,9 +405,6 @@ class App: Application(), Configurable<Any> {
             widgetManager.init()
             db.init()
 
-            // TODO: remove
-            configuration.collect(windowManager)
-
             Player.initialize()
 
             normalLoad = normalLoad && fetchArguments().none { it.endsWith(".fxwl") || widgetManager.factories.getComponentFactoryByGuiName(it)!=null }

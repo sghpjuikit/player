@@ -77,6 +77,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
                     val description = "Toggles value ${it.name} between true/false"
                     val r = { if (it.isEditableByUserRightNow()) it.setNextValue() }
                     val a = Action(name, r, description, it.group, "", false, false)
+                    rawSet(a)
                     ActionRegistrar.getActions() += a
                     configs += a
                 }
@@ -133,7 +134,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
         val propsRaw = properties.asSequence().associateBy({ it.key }, { Property("", it.value) })
         val propsCfg = configs.asSequence()
                 .filter { it.type!=Void::class.java }
-                .associateBy(configs.keyMapper, { Property(it.info, it.valueS) })
+                .associateBy(configToRawKeyMapper, { Property(it.info, it.valueS) })
 
         Properties.saveP(file, comment, propsRaw+propsCfg)
     }

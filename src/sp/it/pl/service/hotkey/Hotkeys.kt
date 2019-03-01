@@ -8,6 +8,7 @@ import org.jnativehook.NativeInputEvent
 import org.jnativehook.keyboard.NativeKeyEvent
 import org.jnativehook.keyboard.NativeKeyListener
 import sp.it.pl.util.action.Action
+import sp.it.pl.util.action.ActionRegistrar
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.Util.list
 import java.util.concurrent.AbstractExecutorService
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit
 
 /** Global hotkey manager, implemented on top of JNativeHook library. */
 class Hotkeys(private val executor: (Runnable) -> Unit) {
-    private val keyCombos = ConcurrentHashMap<Int, KeyCombo>()
+    private val keyCombos = ConcurrentHashMap<String, KeyCombo>()
     private var keyListener: NativeKeyListener? = null
     private var isRunning = false
 
@@ -55,7 +56,7 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
             val keyListener = object: NativeKeyListener {
                 override fun nativeKeyPressed(e: NativeKeyEvent) {
                     keyCombos.forEach { actionId, keyCombo ->
-                        val action = Action.get(actionId)
+                        val action = ActionRegistrar[actionId]
 
                         // For some reason left BACK_SLASH key (left of the Z key) is not recognized, recognize manually
                         if (e.rawCode==226) {
@@ -106,8 +107,7 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
 
     fun register(action: Action, keys: String) {
         val keyString = keys.substringAfterLast('+').trim().toLowerCase().replace('_', ' ')
-        val key = KeyCode.values().find { k -> k.getName().equals(keyString, true) }
-                ?: fail { "No KeyCode for ${action.keys}" }
+        val key = KeyCode.values().find { it.getName().equals(keyString, true) } ?: fail { "No KeyCode for ${action.keys}" }
         register(
                 action,
                 key,
@@ -118,11 +118,11 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
     }
 
     fun register(action: Action, key: KeyCode, vararg modifiers: KeyCode) {
-        keyCombos[action.id] = KeyCombo(key, *modifiers)
+        keyCombos[action.name] = KeyCombo(key, *modifiers)
     }
 
     fun unregister(action: Action) {
-        keyCombos.remove(action.id)
+        keyCombos.remove(action.name)
     }
 
     private inner class KeyCombo {

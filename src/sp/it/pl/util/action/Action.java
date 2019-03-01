@@ -278,10 +278,6 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 		ActionRegistrar.INSTANCE.getHotkeys().unregister(this);
 	}
 
-	public int getID() {
-		return ActionRegistrar.INSTANCE.idOf(name);
-	}
-
 	private KeyCombination getKeysForLocalRegistering() {
 		// fix local shortcut problem - keyCodes not registering, needs raw characters instead
 		// TODO resolve or include all characters' conversions
@@ -422,12 +418,8 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 		return ActionRegistrar.INSTANCE.get(name);
 	}
 
-	public static Action get(int id) {
-		return ActionRegistrar.INSTANCE.get(id);
-	}
 
-
-		public static void installActions(Object... os) {
+	public static void installActions(Object... os) {
 		stream(os)
 			.flatMap(o -> {
 				if (o instanceof Stream) return (Stream<?>) o;

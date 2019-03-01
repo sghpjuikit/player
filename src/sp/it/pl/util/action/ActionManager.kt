@@ -18,6 +18,7 @@ import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.readOnlyUnless
+import sp.it.pl.util.dev.fail
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.onItemSync
 import sp.it.pl.util.reactive.syncIntoWhile
@@ -155,8 +156,9 @@ object ActionManager {
 object ActionRegistrar {
     val hotkeys by lazy { Hotkeys { Platform.runLater(it) } }
 
-    private val actions = MapSet<Int, Action>(ConcurrentHashMap()) { it.id }
-            .apply { this += Action.EMPTY }
+    private val actions = MapSet<String, Action>(ConcurrentHashMap()) { it.name }.apply {
+        this += Action.EMPTY
+    }
 
     /**
      * Returns the MutableCollection of all actions mapped by their name.
@@ -166,20 +168,9 @@ object ActionRegistrar {
     fun getActions(): MutableCollection<Action> = actions
 
     /**
-     * @return the action with the given [id]
-     * @throws RuntimeException if no action with that id exists (programmatic error)
-     */
-    operator fun get(id: Int): Action = actions[id]
-            ?: throw IllegalArgumentException("No such action: '$id'. Make sure the action is declared and annotation processing is enabled and functioning properly.")
-
-    /**
      * @return the action with the given [name]
      * @throws RuntimeException if no action with that name exists (programmatic error)
      */
-    operator fun get(name: String): Action = actions[idOf(name)]
-            ?: throw IllegalArgumentException("No such action: '$name'. Make sure the action is declared and annotation processing is enabled and functioning properly.")
+    operator fun get(name: String): Action = actions[name] ?: fail { "No action: '$name' found. " }
 
-    // Guarantees consistency
-    fun idOf(actionName: String) = actionName.hashCode()
-    
 }

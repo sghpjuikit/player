@@ -10,6 +10,7 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
+import javafx.scene.layout.Region
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.StageStyle
@@ -47,6 +48,7 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.div
 import sp.it.pl.util.file.seqChildren
+import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.Util.addEventHandler1Time
@@ -56,6 +58,9 @@ import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
 import sp.it.pl.util.graphics.getScreenForMouse
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.prefSize
+import sp.it.pl.util.graphics.size
+import sp.it.pl.util.math.P
 import sp.it.pl.util.math.max
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onChange
@@ -386,8 +391,25 @@ class WindowManager {
             initLayout()
             setContent(c)
             c.focus()
+
             show()
-            setXYToCenter(getScreenForMouse())
+
+            val screen = getScreenForMouse()
+            val scrSize = screen.bounds.size
+            val initialSize = scrSize/2.0
+            val newSize = if (c is Widget) {
+                val sizeOld = c.load().asIf<Region>()?.size ?: P(0.0, 0.0)
+                val sizePref = c.load().asIf<Region>()?.prefSize ?: P(0.0, 0.0)
+                val sizeDiff = sizePref - sizeOld
+                P(
+                        if (sizePref.x>0) stage.size.x+sizeDiff.x else initialSize.x,
+                        if (sizePref.y>0) stage.size.y+sizeDiff.y else initialSize.y
+                )
+            } else {
+                initialSize
+            }
+            setSize(newSize clipMax scrSize)
+            setXYToCenter(screen)
         }
     }
 

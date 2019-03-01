@@ -6,6 +6,7 @@ import sp.it.pl.util.file.Util.isValidFile
 import sp.it.pl.util.file.div
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
 import sp.it.pl.util.file.parentDir
+import sp.it.pl.util.graphics.EM
 import java.io.File
 
 /** @return whether user can use this factory, exactly: APP.developerMode || ![ComponentFactory.isExperimental] */
@@ -34,3 +35,6 @@ fun File.isValidSkinFile(): Boolean {
 fun File.isValidWidgetFile(): Boolean {
     return isValidFile(this) && path.endsWith(".fxml") && parentDir?.parentDir==APP.DIR_WIDGETS
 }
+
+/** @return value scaled by font size, i.e., value multiplied by the [Number.EM] of current application font. */
+fun Number.scaleEM() = toDouble()*APP.ui.font.value.size.EM

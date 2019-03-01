@@ -199,7 +199,7 @@ inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).
 inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply(block)
 inline fun text(text: String = "", block: sp.it.pl.gui.objects.Text.() -> Unit = {}) = sp.it.pl.gui.objects.Text(text).apply(block)
 inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)
-inline fun menuItem(text: String, noinline action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
+fun menuItem(text: String, action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
 inline fun menuSeparator(block: (SeparatorMenuItem).() -> Unit = {}) = SeparatorMenuItem().apply(block)
 inline fun <T> listView(block: (ListView<T>).() -> Unit = {}) = ListView<T>().apply(block)
 inline fun <T> tableView(block: (TableView<T>).() -> Unit = {}) = TableView<T>().apply(block)
@@ -504,6 +504,12 @@ fun Menu.separator() = apply {
 
 /* ---------- POINT ------------------------------------------------------------------------------------------------- */
 
+/** @return point `[this,y]` in [Double] */
+infix fun Number.x(y: Number) = P(this.toDouble(), y.toDouble())
+
+/** @return point `[this,this]` in [Double] */
+val Number.x2 get() = P(this.toDouble(), this.toDouble())
+
 /** Size of the bounds represented as point */
 val Bounds.size get() = P(width, height)
 
@@ -520,7 +526,23 @@ val Bounds.leftBottom get() = P(minX, maxY)
 val Bounds.rightBottom get() = P(maxX, maxY)
 
 /** Size of the bounds represented as point */
-val Region.size get() = P(width, height)
+val Region.size
+    get() = P(width, height)
+
+/** Min size represented as point */
+var Region.minSize: P
+    get() = P(minWidth, minHeight)
+    set(v) { setMinSize(v.x, v.y) }
+
+/** Pref size represented as point */
+var Region.prefSize: P
+    get() = P(prefWidth, prefHeight)
+    set(v) { setPrefSize(v.x, v.y) }
+
+/** Max size represented as point */
+var Region.maxSize: P
+    get() = P(maxWidth, maxHeight)
+    set(v) { setMaxSize(v.x, v.y) }
 
 /** Position using [javafx.stage.Window.x] and [javafx.stage.Window.y] */
 val Window.xy get() = P(x, y)

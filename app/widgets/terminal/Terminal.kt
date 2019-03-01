@@ -16,6 +16,7 @@ import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.scaleEM
 import sp.it.pl.util.access.initSync
 import sp.it.pl.util.access.vn
 import sp.it.pl.util.conf.IsConfig
@@ -23,6 +24,8 @@ import sp.it.pl.util.conf.cvn
 import sp.it.pl.util.conf.only
 import sp.it.pl.util.file.div
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.prefSize
+import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.syncSize
@@ -59,6 +62,9 @@ class Terminal(widget: Widget): SimpleController(widget) {
     }.only(FILE)
 
     init {
+        root.prefSize = 600.scaleEM() x 500.scaleEM()
+        root.lay += tabPane
+
         com.kodedu.terminalfx.helper.ThreadHelper.daemonThread = true
         tConfig.setBackgroundColor(rgb(16, 16, 16))
         tConfig.setForegroundColor(rgb(240, 240, 240))
@@ -67,12 +73,9 @@ class Terminal(widget: Widget): SimpleController(widget) {
         tConfig.webViewUserDataDirectory = APP.DIR_TEMP/".terminalFx"/"webView"
         tabPane.tabClosingPolicy = TabClosingPolicy.ALL_TABS
 
-
         root.onEventUp(KEY_PRESSED) { handleKey(it) }
         root.onEventUp(KEY_RELEASED) { handleKey(it) }
         root.onEventUp(KEY_TYPED) { handleKey(it) }
-
-        root.lay += tabPane
 
         tabPane.tabs syncSize { tabPane.isVisible = it!=0 } on onClose
         tabPane.tabs syncSize { placeholder.show(root, it==0) } on onClose

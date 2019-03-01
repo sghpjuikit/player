@@ -56,6 +56,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
+import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.showAppProgress;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -155,11 +156,10 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
 
     public ImageViewer(Widget widget) {
         super(widget);
-        root.setPrefSize(400.0, 400.0);
+        root.setPrefSize(scaleEM(400), scaleEM(400));
+        root.getStylesheets().add(childOf(getLocation(), "skin.css").toURI().toASCIIString());
 
         new ConventionFxmlLoader(root, this).loadNoEx();
-
-        root.getStylesheets().add(childOf(getLocation(), "skin.css").toURI().toASCIIString());
 
         inputLocationOf.bind(Player.playing.o);
 

@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
-import kotlin.Unit;
 import sp.it.pl.gui.objects.grid.GridFileThumbCell;
 import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader;
 import sp.it.pl.gui.objects.grid.GridView;
@@ -42,6 +41,7 @@ import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.KEY_PRESS;
 import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
 import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_HOVER;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
+import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Sort.ASCENDING;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -112,7 +112,7 @@ public class AppLauncher extends SimpleController {
 
     public AppLauncher(Widget widget) {
         super(widget);
-        root.setPrefSize(500,500);
+        root.setPrefSize(scaleEM(1000), scaleEM(700));
 
         files.onListInvalid(list -> visit());
         files.onListInvalid(list -> placeholder.show(root, list.isEmpty()));

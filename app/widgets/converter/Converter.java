@@ -64,6 +64,7 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
+import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.showAppProgress;
 import static sp.it.pl.util.Util.capitalizeStrong;
@@ -143,10 +144,9 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
     public Converter(Widget widget) {
 	    super(widget);
+        root.setPrefSize(scaleEM(800), scaleEM(500));
 
         inputs.create("Input", Object.class, this::setData);
-
-        root.setPrefSize(800, 500);
 
         // layout
         HBox ll = new HBox(5, ta_in.getNode(),layout);

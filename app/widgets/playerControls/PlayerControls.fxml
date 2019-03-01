@@ -12,7 +12,7 @@
 
 <fx:root type="javafx.scene.layout.StackPane" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <AnchorPane prefHeight="100.0" prefWidth="600.0">
+        <AnchorPane>
             <AnchorPane id="AnchorPane" pickOnBounds="false" AnchorPane.bottomAnchor="60.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                 <BorderPane pickOnBounds="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <left>

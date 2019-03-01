@@ -29,6 +29,7 @@ import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.Widgets
+import sp.it.pl.main.scaleEM
 import sp.it.pl.util.file.isAnyChildOf
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.getElementType
@@ -41,8 +42,10 @@ import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.isAnyChildOf
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.pickTopMostAt
+import sp.it.pl.util.graphics.prefSize
 import sp.it.pl.util.graphics.propagateESCAPE
 import sp.it.pl.util.graphics.styleclassToggle
+import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.onEventUp
@@ -103,6 +106,8 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
     }
 
     init {
+        root.prefSize = 600.scaleEM() x 600.scaleEM()
+
         root.lay += tree.apply {
             selectionModel.selectionMode = MULTIPLE
             cellFactory = Callback { buildTreeCell(it) }

@@ -28,6 +28,7 @@ import sp.it.pl.layout.widget.feature.PlaybackFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.scaleEM
 import sp.it.pl.util.Util.clip
 import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.animation.Anim.Companion.anim
@@ -37,8 +38,10 @@ import sp.it.pl.util.graphics.drag.DragUtil.getAudioItems
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.prefSize
 import sp.it.pl.util.graphics.scrollPane
 import sp.it.pl.util.graphics.stackPane
+import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncFrom
@@ -91,6 +94,8 @@ class PlayerControlsTiny(widget: Widget): SimpleController(widget), PlaybackFeat
     var playDropped = false
 
     init {
+        root.prefSize = 850.scaleEM() x 30.scaleEM()
+
         ConventionFxmlLoader(root, this).loadNoEx<Any>()
 
         val ps = Player.state.playback

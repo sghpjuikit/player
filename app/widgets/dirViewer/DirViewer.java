@@ -46,6 +46,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppBuildersKt.appTooltipForData;
+import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.showAppProgress;
 import static sp.it.pl.util.Sort.ASCENDING;
@@ -127,6 +128,7 @@ public class DirViewer extends SimpleController {
 
     public DirViewer(Widget widget) {
         super(widget);
+        root.setPrefSize(scaleEM(1000), scaleEM(700));
 
         grid.search.field = FileField.PATH;
         grid.primaryFilterField = FileField.NAME_FULL;

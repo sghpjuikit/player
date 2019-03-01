@@ -17,6 +17,7 @@ import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.ListConfigurable;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
+import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 @Info(
@@ -52,6 +53,7 @@ public class IconBox extends SimpleController implements HorizontalDock {
 
     public IconBox(Widget widget) {
         super(widget);
+        root.setPrefSize(scaleEM(400), scaleEM(50));
 
         FlowPane box = new FlowPane(5,5);
         root.getChildren().add(new VBox(30,box));

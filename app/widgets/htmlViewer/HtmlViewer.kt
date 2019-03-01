@@ -7,10 +7,13 @@ import javafx.scene.web.WebView
 import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.main.scaleEM
 import sp.it.pl.util.access.initSync
 import sp.it.pl.util.access.v
 import sp.it.pl.util.async.runPeriodic
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.prefSize
+import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.units.seconds
 
@@ -32,11 +35,13 @@ class HtmlViewer(widget: Widget): SimpleController(widget) {
     val output = outputs.create(widget.id, "Html", "")
 
     init {
-        editor.fixHardcodedSize()
+        root.prefSize = 600.scaleEM() x 500.scaleEM()
+        root.lay += editor.apply {
+            fixHardcodedSize()
+        }
+
         input.sync { text.value = it ?: "" } on onClose
         runPeriodic(5.seconds) { output.value = editor.htmlText } on onClose
-
-        root.lay += editor
     }
 
     companion object {

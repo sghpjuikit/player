@@ -75,6 +75,7 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TRACK_INFO;
 import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
+import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
@@ -154,7 +155,7 @@ public class FileInfo extends SimpleController implements SongReader {
 
     public FileInfo(Widget widget) {
         super(widget);
-        root.setPrefSize(200.0, 200.0);
+        root.setPrefSize(scaleEM(400.0), scaleEM(400.0));
 
         // keep updated content (unless the content is scheduled for change, then this could cause invalid content)
         onClose.plusAssign(Player.onSongRefresh(refreshed -> {

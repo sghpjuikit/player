@@ -18,6 +18,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.sin;
 import static javafx.util.Duration.seconds;
+import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 
 /**
  * Shows audio frequency bars. Animated at 60 fps.
@@ -38,6 +39,7 @@ public class Spectrum extends SimpleController {
 
 	public Spectrum(Widget widget) {
     	super(widget);
+		root.setPrefSize(scaleEM(400), scaleEM(400));
 
 		SpectrumNode n = new SpectrumNode();
         n.heightProperty().bind(root.heightProperty());

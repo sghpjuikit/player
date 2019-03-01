@@ -11,6 +11,7 @@ import sp.it.pl.layout.widget.controller.io.IsInput
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.scaleEM
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cn
 import sp.it.pl.util.conf.cv
@@ -19,6 +20,8 @@ import sp.it.pl.util.graphics.drag.DragUtil
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
 import sp.it.pl.util.graphics.image.FitFrom
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.prefSize
+import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sync1IfInScene
@@ -45,11 +48,12 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
     private val fitFrom by cv(FitFrom.INSIDE)
 
     init {
+        root.prefSize = 400.scaleEM() x 400.scaleEM()
+
         thumb.isBackgroundVisible = false
         thumb.borderVisible = false
         thumb.isDragEnabled = true
         thumb.fitFrom syncFrom fitFrom on onClose
-
         root.lay += thumb.pane
 
         installDrag(

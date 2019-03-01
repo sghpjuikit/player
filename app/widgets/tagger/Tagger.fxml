@@ -37,7 +37,6 @@
                                 <columnConstraints>
                                     <ColumnConstraints fillWidth="false" hgrow="NEVER" minWidth="-Infinity" />
                                     <ColumnConstraints hgrow="NEVER" percentWidth="30.0" />
-                                    <ColumnConstraints hgrow="NEVER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />
                                 </columnConstraints>
                                 <padding>
                                     <Insets />

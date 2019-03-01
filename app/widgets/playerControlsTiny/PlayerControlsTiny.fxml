@@ -7,7 +7,7 @@
 
 <fx:root type="javafx.scene.layout.StackPane" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <AnchorPane id="AnchorPane" prefHeight="20.0" prefWidth="500.0">
+        <AnchorPane id="AnchorPane">
             <padding>
                 <Insets left="5.0" right="5.0" />
             </padding>

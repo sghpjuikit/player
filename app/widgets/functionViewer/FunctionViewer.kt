@@ -2,7 +2,7 @@ package functionViewer
 
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
-import javafx.scene.Cursor
+import javafx.scene.Cursor.CROSSHAIR
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.AnchorPane
@@ -17,10 +17,11 @@ import sp.it.pl.gui.itemnode.ConfigField
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
 import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.main.scaleEM
 import sp.it.pl.util.access.V
 import sp.it.pl.util.access.initAttach
 import sp.it.pl.util.access.v
-import sp.it.pl.util.animation.Anim
+import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.setTo
@@ -32,9 +33,11 @@ import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.minPrefMaxHeight
 import sp.it.pl.util.graphics.minPrefMaxWidth
+import sp.it.pl.util.graphics.prefSize
 import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.vBox
+import sp.it.pl.util.graphics.x
 import sp.it.pl.util.math.P
 import sp.it.pl.util.math.StrExF
 import sp.it.pl.util.reactive.onEventDown
@@ -45,7 +48,6 @@ import kotlin.math.roundToInt
 
 typealias Fun = (Double) -> Double
 typealias Num = Double
-typealias VNum = V<Double>
 
 @Widget.Info(
         author = "Martin Polakovic",
@@ -58,16 +60,17 @@ typealias VNum = V<Double>
 class FunctionViewer(widget: Widget): SimpleController(widget) {
     private val function = v(StrExF.fromString("x").orThrow).initAttach { plotAnimated(it) }
     private val functionConfigField = ConfigField.create(Config.forProperty(StrExF::class.java, "Function", function))
-    private val xMin: VNum = v(-1.0).initAttach { plot() }
-    private val xMax: VNum = v(1.0).initAttach { plot() }
-    private val yMin: VNum = v(-1.0).initAttach { plot() }
-    private val yMax: VNum = v(1.0).initAttach { plot() }
+    private val xMin = v(-1.0).initAttach { plot() }
+    private val xMax = v(1.0).initAttach { plot() }
+    private val yMin = v(-1.0).initAttach { plot() }
+    private val yMax = v(1.0).initAttach { plot() }
     private val plot = Plot()
-    private val plotAnimation = Anim.anim(700.millis) { plot.animation.value = 1.0-it*it*it*it }
+    private val plotAnimation = anim(700.millis) { plot.animation.value = 1.0-it*it*it*it }
     private var updateCoord: (P) -> Unit = {}
 
     init {
-        root.cursor = Cursor.CROSSHAIR
+        root.prefSize = 500.scaleEM() x 500.scaleEM()
+        root.cursor = CROSSHAIR
         root.onEventDown(MOUSE_MOVED) {
             val size = root.size
             val posUi = P(it.x, it.y)
@@ -245,7 +248,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
             lay += getNode()
         }
 
-        fun VNum.toConfigField(name: String) = ConfigField.create(Config.forProperty(Num::class.java, name, this))!!
+        fun V<Double>.toConfigField(name: String) = ConfigField.create(Config.forProperty(Num::class.java, name, this))!!
 
         val Double.precise: Double get() = roundToInt().toDouble()
 

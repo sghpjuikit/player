@@ -89,6 +89,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import static org.atteo.evo.inflector.English.plural;
 import static sp.it.pl.audio.tagging.Metadata.Field.ADDED_TO_LIBRARY;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
@@ -123,6 +124,7 @@ import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.TAG;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.formIcon;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
+import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
@@ -198,13 +200,10 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
     public Tagger(Widget widget) {
         super(widget);
+        root.setMinSize(USE_PREF_SIZE, USE_PREF_SIZE);
+        root.setPrefSize(scaleEM(650), scaleEM(700));
 
         new ConventionFxmlLoader(root, this).loadNoEx();
-
-        scrollRoot.setPrefSize(
-            600.0*APP.ui.getFont().getValue().getSize()/12.0,
-            640.0*APP.ui.getFont().getValue().getSize()/12.0
-        );
 
         Node okB = formIcon(FontAwesomeIcon.CHECK, "Save", runnable(this::write));
         content.getChildren().add(okB);

@@ -29,6 +29,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.PLAYBACK
+import sp.it.pl.main.scaleEM
 import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.functional.setTo
@@ -39,6 +40,8 @@ import sp.it.pl.util.graphics.drag.DragUtil.hasAudio
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.prefSize
+import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sync
@@ -109,6 +112,8 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature 
     var playDropped = false
 
     init {
+        root.prefSize = 850.scaleEM() x 200.scaleEM()
+
         ConventionFxmlLoader(root, this).loadNoEx<Any>()
 
         val ps = Player.state.playback

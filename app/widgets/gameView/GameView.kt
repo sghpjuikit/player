@@ -42,6 +42,7 @@ import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.appTooltipForData
+import sp.it.pl.main.scaleEM
 import sp.it.pl.main.showAppProgress
 import sp.it.pl.util.access.fieldvalue.CachingFile
 import sp.it.pl.util.access.initAttach
@@ -79,12 +80,14 @@ import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.layFullArea
 import sp.it.pl.util.graphics.minPrefMaxHeight
 import sp.it.pl.util.graphics.minPrefMaxWidth
+import sp.it.pl.util.graphics.prefSize
 import sp.it.pl.util.graphics.propagateESCAPE
 import sp.it.pl.util.graphics.scrollPane
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.graphics.text
 import sp.it.pl.util.graphics.typeText
 import sp.it.pl.util.graphics.vBox
+import sp.it.pl.util.graphics.x
 import sp.it.pl.util.math.max
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onChange
@@ -130,6 +133,8 @@ class GameView(widget: Widget): SimpleController(widget) {
     }
 
     init {
+        root.setPrefSize(1000.scaleEM(), 700.scaleEM())
+
         files.onChange { viewGames() } on onClose
         files.onChange { placeholder.show(root, files.isEmpty()) } on onClose
 

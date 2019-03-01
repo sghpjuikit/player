@@ -11,6 +11,7 @@ import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
+import sp.it.pl.main.scaleEM
 import sp.it.pl.util.access.VarEnum
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
@@ -19,6 +20,8 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.dev.Dependency
 import sp.it.pl.util.file.div
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
+import sp.it.pl.util.graphics.prefSize
+import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.type.Util.getFieldValue
 import sp.it.pl.util.type.Util.invokeMethodP1
@@ -53,6 +56,8 @@ class WebReader(widget: Widget): SimpleController(widget) {
     private val noBgr by cv(false)
 
     init {
+        root.prefSize = 300.scaleEM() x 500.scaleEM()
+
         ConventionFxmlLoader(root, this).loadNoEx<Any>()
 
         engine = webView.engine

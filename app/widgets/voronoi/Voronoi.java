@@ -38,6 +38,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
+import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.pyth;
 import static sp.it.pl.util.functional.Util.by;
@@ -60,6 +61,7 @@ public class Voronoi extends SimpleController {
 
 	public Voronoi(Widget widget) {
 		super(widget);
+		root.setPrefSize(scaleEM(850), scaleEM(600));
 
 		root.getChildren().add(canvas);
 		canvas.heightProperty().bind(root.heightProperty());

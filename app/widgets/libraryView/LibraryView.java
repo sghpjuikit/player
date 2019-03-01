@@ -62,6 +62,7 @@ import static sp.it.pl.audio.tagging.MetadataGroup.Field.W_RATING;
 import static sp.it.pl.audio.tagging.MetadataGroup.ungroup;
 import static sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static sp.it.pl.layout.widget.Widget.Group.LIBRARY;
+import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.future.Fut.fut;
@@ -126,7 +127,7 @@ public class LibraryView extends SimpleController {
     @SuppressWarnings({"ConstantConditions", "unchecked"})
     public LibraryView(Widget widget) {
         super(widget);
-        root.setPrefSize(600.0, 600.0);
+        root.setPrefSize(scaleEM(600), scaleEM(600));
 
         out_sel = outputs.create(widget.id,"Selected Group", MetadataGroup.class, null);
         out_sel_met = outputs.create(widget.id,"Selected", (Class<List<Metadata>>) (Object) List.class, listRO());

@@ -51,6 +51,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
+import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
@@ -101,6 +102,7 @@ public class AlbumView extends SimpleController {
 	@SuppressWarnings("unchecked")
 	public AlbumView(Widget widget) {
 		super(widget);
+		root.setPrefSize(scaleEM(800), scaleEM(800));
 
 		view.search.field = VALUE;
 		view.primaryFilterField = VALUE;

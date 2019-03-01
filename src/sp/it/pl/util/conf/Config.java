@@ -276,12 +276,12 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 	 * </ul>
 	 */
 	@SuppressWarnings({"unchecked", "Convert2Diamond"})
-	public static <T> Config<T> forValue(Class type, String name, Object value) {
+	public static <T> Config<T> forValue(Class<?> type, String name, Object value) {
 		return firstNotNull(
-			() -> forPropertyImpl(type, name, value),
+			() -> forPropertyImpl((Class) type, name, value),
 			() -> {
 				if (value instanceof ObservableList)
-					return new ListConfig<T>(name, new VarList<T>(type, Elements.NULLABLE, (ObservableList) value));
+					return new ListConfig<T>(name, new VarList<T>((Class) type, Elements.NULLABLE, (ObservableList) value));
 				else
 					return forProperty(type, name, new V<>(value));
 			}

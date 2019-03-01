@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 object AppProgress {
     private val tasksActive = ConcurrentHashMap<String, AppTask>()
-    val tasks = observableArrayList<AppTask>()!!
+    private val tasks = observableArrayList<AppTask>()!!
     val progress = v(1.0)
     val loop = Loop(Runnable { tasksActive.values.forEach { it.updateTimeActive() } }).start()
 
@@ -110,8 +110,7 @@ object AppProgress {
     }
 }
 
-
-class AppTask(val name: String) {
+private class AppTask(val name: String) {
     val state = v(ACTIVE)
     val timeActive = v(0.millis)
     private val timeStart = System.currentTimeMillis()

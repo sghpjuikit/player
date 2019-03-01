@@ -276,8 +276,8 @@ public class Icon extends StackPane {
 			if (old==null) {
 				tooltip(appTooltip(text));
 			} else {
-				tooltip(old);
 				old.setText(text);
+				tooltip(old);
 			}
 		}
 		return this;

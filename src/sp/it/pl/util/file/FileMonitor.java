@@ -54,11 +54,6 @@ public class FileMonitor {
 	private final EventReducer<Event> modificationReducer = EventReducer.toLast(50, e -> emitEvent(e.kind, e.file));
 
 	private void emitEvent(Kind<Path> type, File file) {
-		// This works as it should.
-		// If anyone needs logging, they are free to do so in the event handler.
-		// log(FileMonitor.class).info("{} event {} on {}", name,type,file);
-
-		// always run on fx thread
 		runFX(() -> action.accept(type, file));
 	}
 
@@ -71,7 +66,7 @@ public class FileMonitor {
 	 * handler.accept(type)); }
 	 * <p/>
 	 *
-	 * @param handler handles the event taking the event type as parameter
+	 * @param handler handles the event taking the event type as parameter, runs on fx application thread
 	 * @return directory monitor
 	 */
 	public static FileMonitor monitorFile(File monitoredFile, Consumer<Kind<Path>> handler) {
@@ -84,7 +79,7 @@ public class FileMonitor {
 	 *
 	 * @param monitoredDir directory to be monitored
 	 * @param filter filter narrowing down events, for example any text file.
-	 * @param handler handles the event containing type and modified file parameters
+	 * @param handler handles the event containing type and modified file parameters, runs on fx application thread
 	 * @return directory monitor
 	 */
 	@SuppressWarnings({"unchecked", "ConstantConditions"})
@@ -147,6 +142,10 @@ public class FileMonitor {
 		return fm;
 	}
 
+	/**
+	 * @param handler handles the event containing type and modified file parameters, runs on fx application thread
+	 * @return directory monitor
+	 */
 	@SuppressWarnings({"unchecked", "ConstantConditions", "UnnecessaryLocalVariable"})
 	public static FileMonitor monitorDirectory(File toMonitor, boolean recursive, BiConsumer<Kind<Path>,File> handler) {
 		FileMonitor fm = new FileMonitor();

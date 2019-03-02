@@ -95,6 +95,7 @@ import static sp.it.pl.util.access.SequentialValue.previous;
 import static sp.it.pl.util.animation.Anim.animPar;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.dev.FailKt.failIf;
+import static sp.it.pl.util.functional.Util.filter;
 import static sp.it.pl.util.functional.Util.forEachIRStream;
 import static sp.it.pl.util.functional.Util.forEachIStream;
 import static sp.it.pl.util.functional.Util.list;
@@ -501,7 +502,7 @@ public class Window extends WindowBase {
 			if (hOn) {
 				animPar(
 					animPar(
-						forEachIStream(leftHeaderBox.getChildren(), (i, icon) ->
+						forEachIStream(filter(leftHeaderBox.getChildren(), it -> it instanceof Icon), (i, icon) ->
 							new Anim(at -> setScaleXY(icon, at*at)).dur(millis(500)).intpl(new ElasticInterpolator()).delay(millis(i*45)))
 					),
 					animPar(

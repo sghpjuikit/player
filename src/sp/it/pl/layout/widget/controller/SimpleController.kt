@@ -14,7 +14,7 @@ import java.util.HashMap
  * Base controller implementation that provides
  * - [root]
  * - support for automatic restoration of configurable properties, using delegated configurable properties, see
- * [sp.it.pl.util.conf.cv] family of methods.
+ * [sp.it.pl.util.conf.cv] family of methods. This is [MultiConfigurable] and uses [widget] as [configurableValueStore].
  */
 open class SimpleController(widget: Widget): Controller(widget), MultiConfigurable {
 

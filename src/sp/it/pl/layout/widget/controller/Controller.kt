@@ -1,38 +1,50 @@
 package sp.it.pl.layout.widget.controller
 
+import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.io.Inputs
 import sp.it.pl.layout.widget.controller.io.Outputs
 import sp.it.pl.layout.widget.feature.Feature
+import sp.it.pl.main.APP
+import sp.it.pl.main.appProgressIndicator
 import sp.it.pl.util.Locatable
+import sp.it.pl.util.access.v
+import sp.it.pl.util.animation.Anim.Companion.anim
+import sp.it.pl.util.animation.interpolator.ElasticInterpolator
 import sp.it.pl.util.conf.CachedConfigurable
+import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.setScaleXY
+import sp.it.pl.util.graphics.vBox
+import sp.it.pl.util.reactive.on
+import sp.it.pl.util.reactive.onChange
+import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.units.millis
 
 /**
  * Defines behavior and ui of [Widget].
  *
+ * Providing API:
  * Controller is instantiated dynamically (using constructor) and normally the class is provided to the application
  * by user, so it is impossible to refer to the exact class and use the API. Exposing API by implementing interfaces
  * avoids this problem. See [sp.it.pl.layout.widget.feature.Feature].
  *
  * Nonetheless, encapsulation is still recommended, i.e., standard public/private rules apply.
  *
- * Controller is [sp.it.pl.util.conf.Configurable] and uses [widget] as value source for
- * configurable properties.
- *
  * Lifecycle:
  * - constructor is called
  * - [close] invoked
  *
  * Configurable state:
- * Controller may wish to make its state user customizable. This is provided through the inherited [Configurable] API.
+ * Controller may wish to make its state user customizable. This is provided through the inherited
+ * [sp.it.pl.util.conf.Configurable] API.
  *
  * Persisted state:
  * Controller may wish to make its state persistable. For fine-grained control, use [Widget.properties] directly, but
  * it is strongly recommended to simply make all persistable state configurable, as all configurable state is persisted
- * automatically. Note that it is not auto-restored. For that either use [SimpleController] or [LegacyController]
+ * automatically. Note that it is not auto-restored. For that either use [SimpleController] or [LegacyController].
  */
 abstract class Controller(widget: Widget): CachedConfigurable<Any>, Locatable {
 
@@ -64,13 +76,36 @@ abstract class Controller(widget: Widget): CachedConfigurable<Any>, Locatable {
 /** Controller for [Widget] with no [sp.it.pl.layout.widget.WidgetFactory]. */
 class NoFactoryController(widget: Widget): SimpleController(widget) {
     init {
-        root.lay += label("Widget ${widget.name} is not recognized")
+        root.lay += vBox(5, CENTER) {
+            lay += label("Widget ${widget.name} is not recognized")
+            lay += compileInfoUi()
+        }
     }
 }
 
 /** Controller for [Widget] that fails to instantiate its controller. */
 class LoadErrorController(widget: Widget): SimpleController(widget) {
     init {
-        root.lay += label("Widget ${widget.name} failed to load properly")
+        root.lay += vBox(5, CENTER) {
+            lay += label("Widget ${widget.name} failed to load properly")
+            lay += compileInfoUi()
+        }
+    }
+}
+
+private fun SimpleController.compileInfoUi(): Node {
+    fun isCompiling() = widget.name in APP.widgetManager.factories.factoriesInCompilation
+    val isCompiling = v(isCompiling()).apply {
+        APP.widgetManager.factories.factoriesInCompilation.onChange { value = isCompiling() } on onClose
+    }
+
+    return hBox(10, CENTER) {
+        lay += label("Compiling...").apply {
+            val a = anim { setScaleXY(it*it) }.delay(500.millis).dur(500.millis).intpl(ElasticInterpolator()).applyNow()
+            isCompiling sync { if (it) a.playOpen() else a.playClose() } on onClose
+        }
+        lay += appProgressIndicator().apply {
+            isCompiling sync { progress = if (it) -1.0 else 1.0 } on onClose
+        }
     }
 }

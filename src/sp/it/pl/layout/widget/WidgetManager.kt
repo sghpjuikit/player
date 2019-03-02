@@ -1,9 +1,9 @@
 package sp.it.pl.layout.widget
 
+import javafx.collections.FXCollections.observableArrayList
 import javafx.scene.Scene
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
-import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.stage.Screen
 import javafx.stage.WindowEvent
@@ -19,6 +19,7 @@ import sp.it.pl.layout.widget.WidgetSource.OPEN_STANDALONE
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppProgress
 import sp.it.pl.util.access.SequentialValue
 import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.oneCachedThreadExecutor
@@ -35,6 +36,7 @@ import sp.it.pl.util.conf.cr
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.dev.Idempotent
+import sp.it.pl.util.dev.failIfNotFxThread
 import sp.it.pl.util.file.FileMonitor
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
@@ -57,6 +59,7 @@ import sp.it.pl.util.functional.toUnit
 import sp.it.pl.util.graphics.Util
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.minPrefMaxWidth
+import sp.it.pl.util.graphics.styleclassToggle
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync1If
 import sp.it.pl.util.system.Os
@@ -217,9 +220,9 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
     }
 
     private inner class WidgetDir constructor(val widgetName: String, val widgetDir: File) {
-        val scheduleRefresh = EventReducer.toLast<Void>(500.0) { runFX { registerExternalFactory() } }
-        val scheduleCompilation = EventReducer.toLast<Void>(500.0) { runOn(compilerThread) { compile().ifError { runFX { userErrorLogger(it) } } } }
         val skinFile = File(widgetDir, "skin.css")
+        val scheduleRefresh = EventReducer.toLast<Void>(500.0) { registerExternalFactory() }
+        val scheduleCompilation = EventReducer.toLast<Void>(500.0) { compileFx() }
 
         /** @return primary source file (either Kotlin or Java) or null if none exists */
         fun findSrcFile() = null
@@ -263,18 +266,16 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 when {
                     file==skinFile -> {
                         logger.info { "Widget=$widgetName skin file=${file.name}} changed $type" }
-                        runFX {
-                            widgets.findAll(OPEN)
-                                    .filter { it.name==widgetName }
-                                    .forEach {
-                                        val root = it.root
-                                        val skinUrl = skinFile.toURLOrNull()?.toExternalForm()
-                                        if (root!=null && skinUrl!=null && root is Pane) {
-                                            root.stylesheets -= skinUrl
-                                            root.stylesheets += skinUrl
-                                        }
+                        widgets.findAll(OPEN)
+                                .filter { it.name==widgetName }
+                                .forEach {
+                                    val root = it.root
+                                    val skinUrl = skinFile.toURLOrNull()?.toExternalForm()
+                                    if (skinUrl!=null) {
+                                        root?.styleclassToggle(skinUrl, false)
+                                        root?.styleclassToggle(skinUrl, true)
                                     }
-                        }
+                                }
                     }
                     file hasExtension "class" -> {
                         logger.info { "Widget=$widgetName class file=${file.name} changed $type" }
@@ -292,7 +293,9 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         @Idempotent
         fun dispose() {
+            factories.factoriesInCompilation -= widgetName
             factoriesW.removeKey(widgetName)
+            factoriesC.removeKey(widgetName)
             monitors.removeKey(widgetName)
         }
 
@@ -324,8 +327,25 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 val controllerType = loadClass(widgetDir.nameWithoutExtension, classFile, findLibFiles())
                 createFactory(controllerType, widgetDir)
             } else if (srcFileAvailable) {
-                if (!widgets.blockInitialization.value || initialized) runOn(compilerThread) { compile() }
+                if (!widgets.blockInitialization.value || initialized) compileFx()
                 else compile().ifOk { registerExternalFactory() }
+            }
+        }
+
+        private fun compileFx() {
+            failIfNotFxThread()
+
+            factories.factoriesInCompilation += widgetName
+            lateinit var reportDone: (Try<*,*>) -> Unit
+            runOn(compilerThread) {
+                runFX {
+                    reportDone = AppProgress.start("Compiling $widgetName")
+                }
+                compile()
+            } ui {
+                reportDone(it)
+                factories.factoriesInCompilation -= widgetName
+                it.ifError { runFX { userErrorLogger(it) } }
             }
         }
 
@@ -525,6 +545,9 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
     }
 
     inner class Factories {
+
+        /** Factories that are waiting to be compiled or are being compiled. */
+        val factoriesInCompilation = observableArrayList<String>()!!
 
         /** @return all features implemented by at least one widget */
         fun getFeatures(): Sequence<Feature> = getFactories().flatMap { it.getFeatures().asSequence() }.distinct()

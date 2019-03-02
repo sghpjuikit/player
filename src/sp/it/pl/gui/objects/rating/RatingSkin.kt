@@ -159,6 +159,11 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
         updateStyle(v)
     }
 
+    override fun layoutChildren(contentX: Double, contentY: Double, contentWidth: Double, contentHeight: Double) {
+        super.layoutChildren(contentX, contentY, contentWidth, contentHeight)
+        if (::foregroundIcons.isInitialized) updateClip()
+    }
+
     companion object {
         const val selected = "strong"
         val empty = pseudoclass("empty")

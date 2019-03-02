@@ -1,6 +1,7 @@
 package sp.it.pl.main
 
 import javafx.collections.FXCollections.observableArrayList
+import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.Node
@@ -71,7 +72,9 @@ object AppProgress {
                         minPrefMaxHeight = USE_COMPUTED_SIZE
                         prefWidth = 450.0
                         left = hBox(10, CENTER_LEFT) {
-                            lay += label(name)
+                            lay += label(name).apply {
+                                padding = Insets(0.0, 50.0, 0.0, 0.0)
+                            }
                         }
                         right = hBox(10, CENTER_RIGHT) {
                             lay += label {

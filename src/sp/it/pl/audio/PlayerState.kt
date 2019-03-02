@@ -41,7 +41,7 @@ class PlayerState {
 
         val activePlaylists = APP.widgetManager.widgets.findAll(WidgetSource.OPEN).asSequence()
                 .filter { it.info.hasFeature(PlaylistFeature::class.java) }
-                .mapNotNull { (it.controller as PlaylistFeature?)?.playlist?.id }
+                .mapNotNull { (it.controller as? PlaylistFeature)?.playlist?.id }
                 .toSet()
         playlists.clear()
         playlists += PlaylistManager.playlists

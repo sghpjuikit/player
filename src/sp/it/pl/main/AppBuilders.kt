@@ -21,7 +21,6 @@ import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.ValueConfig
-import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.graphics.setScaleXY
 import sp.it.pl.util.graphics.text
 import sp.it.pl.util.reactive.attachChanges
@@ -29,7 +28,6 @@ import sp.it.pl.util.units.millis
 import sp.it.pl.util.units.seconds
 import sp.it.pl.util.validation.Constraint
 import java.util.concurrent.atomic.AtomicLong
-import java.util.function.Consumer
 
 /**
  * Creates simple help popover designed as a tooltip for help buttons.
@@ -77,7 +75,7 @@ fun infoIcon(tooltipText: String): Icon = Icon(IconFA.INFO)
 fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25.0).onClick(action).withText(text, Side.RIGHT)
 
 @JvmOverloads
-fun appProgressIndicator(onStart: Consumer<ProgressIndicator> = Consumer {}, onFinish: Consumer<ProgressIndicator> = Consumer {}) = Spinner().apply {
+fun appProgressIndicator(onStart: (ProgressIndicator) -> Unit = {}, onFinish: (ProgressIndicator) -> Unit = {}) = Spinner().apply {
     val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(ElasticInterpolator()).applyNow()
     progressProperty() attachChanges { ov, nv ->
         if (ov.toDouble()==1.0) {

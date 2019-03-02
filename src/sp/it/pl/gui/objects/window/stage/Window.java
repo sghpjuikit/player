@@ -553,8 +553,8 @@ public class Window extends WindowBase {
 	 */
 	public ProgressIndicator taskAdd() {
 		return appProgressIndicator(
-			pi -> leftHeaderBox.getChildren().add(pi),      // add indicator to header on start
-			pi -> leftHeaderBox.getChildren().remove(pi)    // remove indicator from header on end
+			consumer(pi -> leftHeaderBox.getChildren().add(pi)),      // add indicator to header on start
+			consumer(pi -> leftHeaderBox.getChildren().remove(pi))    // remove indicator from header on end
 		);
 	}
 

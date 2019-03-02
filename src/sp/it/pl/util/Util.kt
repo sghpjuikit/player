@@ -33,10 +33,11 @@ val Throwable.stacktraceAsString: String
 fun Duration.formatToSmallestUnit(): String {
     val ms = toMillis()
     return when {
-        ms<1000 -> "$ms ms"
-        ms<60000 -> "${toSeconds()} s"
-        ms<3600000000 -> "${toMinutes()} m"
-        ms<60000 -> "${toHours().toInt()} h"
+        ms<1000 -> "%.0f ms".format(ms)
+        ms<10000 -> "%.1f s".format(toSeconds())
+        ms<60000 -> "%.0f s".format(toSeconds())
+        ms<3600000 -> "%.1f m".format(toMinutes())
+        ms<86400000 -> "%.1f h".format(toHours())
         else -> "${toHours().toInt()/24} d"
     }
 }

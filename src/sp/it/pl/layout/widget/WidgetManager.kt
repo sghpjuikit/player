@@ -21,7 +21,9 @@ import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.pl.util.access.SequentialValue
+import sp.it.pl.util.async.FX
 import sp.it.pl.util.async.executor.EventReducer
+import sp.it.pl.util.async.future.Fut.Result
 import sp.it.pl.util.async.oneCachedThreadExecutor
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runOn
@@ -336,16 +338,16 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             failIfNotFxThread()
 
             factories.factoriesInCompilation += widgetName
-            lateinit var reportDone: (Try<*,*>) -> Unit
+            lateinit var reportDone: (Result<*>) -> Unit
             runOn(compilerThread) {
                 runFX {
                     reportDone = AppProgress.start("Compiling $widgetName")
                 }
                 compile()
-            } ui {
+            }.onDone(FX) {
                 reportDone(it)
                 factories.factoriesInCompilation -= widgetName
-                it.ifError { runFX { userErrorLogger(it) } }
+                it.or { Try.error("Widget $widgetName Compilation failed due to unspecified error") }.ifError { userErrorLogger(it) }
             }
         }
 

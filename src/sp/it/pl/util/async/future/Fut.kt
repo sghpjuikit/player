@@ -9,12 +9,10 @@ import sp.it.pl.util.async.future.Fut.Result.ResultInterrupted
 import sp.it.pl.util.async.future.Fut.Result.ResultOk
 import sp.it.pl.util.async.sleep
 import sp.it.pl.util.dev.Blocks
-import sp.it.pl.util.dev.Experimental
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.kt
-import sp.it.pl.util.functional.toUnit
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
@@ -29,20 +27,9 @@ import java.util.function.Consumer
  */
 class Fut<T>(private var f: CompletableFuture<T>) {
 
-    // TODO: Document properly and make sure exceptions are handled properly in getDone
-    //       This is related to cancelling javafx.concurrent.Task from Fut, which is problematic due to the fact that
-    //       the Task uses Thread interrupts for cancellation, but CompletableFuture does not
-    //       https://stackoverflow.com/questions/29013831/how-to-interrupt-underlying-execution-of-completablefuture
-    @Experimental
-    fun cancel(): Unit = f.cancel(true).toUnit()
-
-    /** @return future that waits for this to complete and then invokes the specified block and returns its result */
+    /** @return future that waits for this to complete normally, invokes the specified block and returns its result */
     @JvmOverloads
     fun <R> then(executor: Executor = defaultExecutor, block: (T) -> R) = Fut<R>(f.thenApplyAsync(block.logging(), executor.kt))
-
-    /** @return future that waits for this to complete and then invokes the specified future and returns its result */
-    @JvmOverloads
-    fun <R> then(executor: Executor = defaultExecutor, block: Fut<R>): Fut<R> = Fut(f.thenComposeAsync( { block.f }, executor.kt))
 
     /** [use] which sleeps the specified duration on [NEW]. */
     fun thenWait(time: Duration) = use(NEW) { sleep(time) }
@@ -58,17 +45,14 @@ class Fut<T>(private var f: CompletableFuture<T>) {
     fun useBy(executor: Executor = defaultExecutor, block: Consumer<in T>) = then(executor) { block(it); it }
 
     /** Sets [block] to be invoked when this future finishes with success. Returns this. */
-    fun onOk(executor: Executor = defaultExecutor, block: (T) -> Unit) = onDone(executor) { it.ifOk(block) }
+    fun onOk(executor: Executor = defaultExecutor, block: (T) -> Unit) = onDone(executor) { it.toTry().ifOk(block) }
 
     /** Sets [block] to be invoked when this future finishes with error. Returns this. */
-    fun onError(executor: Executor = defaultExecutor, block: (Throwable) -> Unit) = onDone(executor) { it.ifError(block) }
+    fun onError(executor: Executor = defaultExecutor, block: (Throwable) -> Unit) = onDone(executor) { it.toTry().ifError(block) }
 
     /** Sets [block] to be invoked when this future finishes regardless of success. Returns this. */
-    fun onDone(executor: Executor = defaultExecutor, block: (Try<T,Throwable>) -> Unit) = apply {
-        f.handleAsync(
-                { t, e ->  block(if (e==null) Try.ok(t) else Try.error(e)) },
-                executor.kt
-        )
+    fun onDone(executor: Executor = defaultExecutor, block: (Result<T>) -> Unit) = apply {
+        f.handleAsync({ _, _ -> block(getDone()) }, executor.kt)
     }
 
     /** @return whether this future completed regardless of success */
@@ -77,19 +61,19 @@ class Fut<T>(private var f: CompletableFuture<T>) {
     /** Waits for this future to complete and return the result. */
     @Blocks
     fun getDone(): Result<T> = try {
-            ResultOk(f.get())
-        } catch (e: InterruptedException) {
-            ResultInterrupted(e)
-        } catch (e: ExecutionException) {
-            ResultFail(e)
-        }
+        ResultOk(f.get())
+    } catch (e: InterruptedException) {
+        ResultInterrupted(e)
+    } catch (e: ExecutionException) {
+        ResultFail(e)
+    }
 
     @Deprecated("for removal")
     fun getDoneOrNull(): T? = if (f.isDone) {
-            getDone().let { it.asIf<ResultOk<T>>()?.value }
-        } else {
-            null
-        }
+        getDone().let { it.asIf<ResultOk<T>>()?.value }
+    } else {
+        null
+    }
 
     companion object: KLogging() {
 
@@ -115,9 +99,23 @@ class Fut<T>(private var f: CompletableFuture<T>) {
     }
 
     sealed class Result<T> {
-        data class ResultOk<T>(val value: T): Result<T>()
-        data class ResultInterrupted<T>(val exception: InterruptedException): Result<T>()
-        data class ResultFail<T>(val error: ExecutionException): Result<T>()
+
+        data class ResultOk<T>(val value: T): Result<T>() {
+            override fun toTry() = Try.ok<T, Exception>(value)
+        }
+
+        data class ResultInterrupted<T>(val error: InterruptedException): Result<T>() {
+            override fun toTry() = Try.error<T, InterruptedException>(error)
+        }
+
+        data class ResultFail<T>(val error: ExecutionException): Result<T>() {
+
+            constructor(error: Throwable): this(if (error is ExecutionException) error else ExecutionException("", error))
+
+            override fun toTry() = Try.error<T, ExecutionException>(error)
+        }
+
+        abstract fun toTry(): Try<T, out Exception>
 
         fun or(block: () -> T): T = if (this is ResultOk) this.value else block.invoke()
     }

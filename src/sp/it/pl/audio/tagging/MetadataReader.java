@@ -168,7 +168,6 @@ public class MetadataReader {
 			private final StringBuffer sb = new StringBuffer(40);
 			private int all = 0;
 			private int completed = 0;
-			private int removed = 0;
 
 			{
 				updateTitle("Removing missing songs from library");
@@ -186,12 +185,11 @@ public class MetadataReader {
 					completed++;
 
 					if (m.isFileBased() && !noNull(m.getFile()).exists()) {
-						removed++;
 						removedItems.add(m);
 					}
 
 					// update state
-					updateMessage(all, completed, removed);
+					updateMessage(all, completed, 0);
 					updateProgress(completed, all);
 				}
 
@@ -199,7 +197,7 @@ public class MetadataReader {
 					APP.db.removeSongs(removedItems);
 
 					// update state
-					updateMessage(all, completed, removed);
+					updateMessage(all, completed, removedItems.size());
 					updateProgress(completed, all);
 				}
 
@@ -207,14 +205,14 @@ public class MetadataReader {
 			}
 
 			private void updateMessage(int all, int done, int removed) {
-				sb.setLength(0);
-				sb.append("Completed ");
-				sb.append(all);
-				sb.append(" / ");
+				sb.setLength(20);
+				sb.append("Checked: ");
 				sb.append(done);
-				sb.append(". ");
+				sb.append("/");
+				sb.append(all);
+				sb.append(" ");
+				sb.append(" Removed: ");
 				sb.append(removed);
-				sb.append(" removed.");
 				updateMessage(sb.toString());
 			}
 

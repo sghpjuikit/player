@@ -1,9 +1,7 @@
 package library
 
-import javafx.concurrent.Task
 import javafx.event.EventHandler
 import javafx.geometry.NodeOrientation
-import javafx.scene.control.Label
 import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
@@ -14,7 +12,6 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.TransferMode.COPY
-import javafx.scene.layout.Pane
 import javafx.util.Callback
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.Song
@@ -25,7 +22,6 @@ import sp.it.pl.audio.tagging.Metadata.Field.Companion.TITLE
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.gui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
-import sp.it.pl.gui.nodeinfo.TaskInfo
 import sp.it.pl.gui.objects.contextmenu.TableContextMenuR
 import sp.it.pl.gui.objects.table.FilteredTable
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV
@@ -39,17 +35,12 @@ import sp.it.pl.layout.widget.controller.io.IsInput
 import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppProgress
 import sp.it.pl.main.Widgets
-import sp.it.pl.main.appProgressIndicator
 import sp.it.pl.main.scaleEM
-import sp.it.pl.main.showAppProgress
 import sp.it.pl.util.access.Vo
 import sp.it.pl.util.access.fieldvalue.ColumnField
-import sp.it.pl.util.animation.Anim.Companion.anim
-import sp.it.pl.util.animation.Anim.Interpolators.Companion.reverse
-import sp.it.pl.util.animation.interpolator.ElasticInterpolator
-import sp.it.pl.util.async.FX
-import sp.it.pl.util.async.future.Fut.Companion.fut
+import sp.it.pl.util.async.runNew
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
@@ -67,7 +58,6 @@ import sp.it.pl.util.graphics.item
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.prefSize
 import sp.it.pl.util.graphics.pseudoclass
-import sp.it.pl.util.graphics.setScaleXY
 import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventDown
@@ -77,7 +67,6 @@ import sp.it.pl.util.reactive.syncTo
 import sp.it.pl.util.system.chooseFile
 import sp.it.pl.util.system.chooseFiles
 import sp.it.pl.util.units.millis
-import sp.it.pl.util.units.seconds
 import sp.it.pl.util.units.toHMSMs
 import sp.it.pl.util.validation.Constraint.FileActor
 
@@ -106,8 +95,6 @@ import sp.it.pl.util.validation.Constraint.FileActor
 class Library(widget: Widget): SimpleController(widget), SongReader {
 
     private val table = FilteredTable(Metadata::class.java, Metadata.EMPTY.getMainField())
-    private val taskInfo = TaskInfo<Task<*>>(null, Label(), appProgressIndicator())
-    private val hideInfo = anim(500.millis) { taskInfo.progress?.setScaleXY(it*it) }.intpl(reverse(ElasticInterpolator()))
     private val outputSelected: Output<Metadata?> = outputs.create(widget.id, "Selected", Metadata::class.java, null)
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -140,10 +127,6 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
         table.headerVisible syncFrom tableShowHeader on onClose
         table.footerVisible syncFrom tableShowFooter on onClose
         table.items_info.textFactory = { all, list -> DEFAULT_TEXT_FACTORY(all, list)+" - "+list.sumByDouble { it.getLengthInMs() }.millis.toHMSMs() }
-
-        // task progress
-        (table.footerPane.right as Pane).children.addAll(taskInfo.message, taskInfo.progress)
-        taskInfo.setVisible(false)
 
         // add more menu items
         table.menuAdd.apply {
@@ -260,12 +243,8 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
     private fun removeInvalid() {
         val task = MetadataReader.removeMissingSongsFromLibTask()
-        taskInfo.showNbind(task)
-        fut(task)
-                .use { it.run() }
-                .showAppProgress(task.title)
-                .thenWait(5.seconds)
-                .use(FX) { hideInfo.playOpenDo { taskInfo.hideNunbind() } }
+        runNew(task)
+        AppProgress.start(task)
     }
 
     companion object {

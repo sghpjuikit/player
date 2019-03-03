@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.util.functional.Functors.Ƒ0E;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 
@@ -17,22 +18,27 @@ import sp.it.pl.util.functional.Functors.Ƒ1;
 @SuppressWarnings("deprecation")
 public interface Try<R, E> {
 
+	@NotNull
 	static <E> Try<Void,E> ok() {
 		return new Ok<>(null);
 	}
 
+	@NotNull
 	static <R, E> Try<R,E> ok(R val) {
 		return new Ok<>(val);
 	}
 
+	@NotNull
 	static <R> Try<R,Void> error() {
 		return new Error<>(null);
 	}
 
+	@NotNull
 	static <R, E> Try<R,E> error(E val) {
 		return new Error<>(val);
 	}
 
+	@NotNull
 	static <R> Try<R,String> errorOf(Throwable e) {
 		String message = e.getMessage();
 		return error(message==null ? "Unknown error" : message);

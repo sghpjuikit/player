@@ -273,85 +273,10 @@ class App: Application(), Configurable<Any> {
 
         logger.info { "JVM Args: ${fetchVMArguments()}" }
 
-        // add optional object fields
-        classFields.add(PlaylistSong::class.java, PlaylistSong.Field.FIELDS)
-        classFields.add(Metadata::class.java, Metadata.Field.FIELDS)
-        classFields.add(MetadataGroup::class.java, MetadataGroup.Field.FIELDS)
-        classFields.add(Any::class.java, ColumnField.FIELDS)
-        classFields.add(File::class.java, FileField.FIELDS)
-
-        // add optional object class -> string converters
-        className.addNoLookup(Void::class.java, "Nothing")
-        className.add(String::class.java, "Text")
-        className.add(File::class.java, "File")
-        className.add(App::class.java, "Application")
-        className.add(Song::class.java, "Song")
-        className.add(PlaylistSong::class.java, "Playlist Song")
-        className.add(Metadata::class.java, "Library Song")
-        className.add(MetadataGroup::class.java, "Song Group")
-        className.add(Service::class.java, "Service")
-        className.add(Plugin::class.java, "Plugin")
-        className.add(Widget::class.java, "Widget")
-        className.add(Container::class.java, "Container")
-        className.add(Feature::class.java, "Feature")
-        className.add(List::class.java, "List")
-
-        // add optional object instance -> string converters
-        instanceName.add(Void::class.java) { "<none>" }
-        instanceName.add(File::class.java, { it.path })
-        instanceName.add(App::class.java) { "This application" }
-        instanceName.add(Song::class.java, { it.getPathAsString() })
-        instanceName.add(PlaylistSong::class.java, { it.getTitle() })
-        instanceName.add(Metadata::class.java, { it.getTitleOrEmpty() })
-        instanceName.add(MetadataGroup::class.java) { it.getValueS("<none>") }
-        instanceName.add(Service::class.java, { it.name })
-        instanceName.add(Plugin::class.java, { it.name })
-        instanceName.add(Component::class.java, { it.exportName })
-        instanceName.add(Feature::class.java, { "Feature" })
-        instanceName.add(Collection::class.java) {
-            val eType = getGenericPropertyType(it.javaClass)
-            val eName = if (eType==null || eType==Any::class.java) "Item" else className[eType]
-            it.size.toString()+" "+plural(eName, it.size)
-        }
-
-        // add optional object instance -> info string converters
-        instanceInfo.add(Void::class.java) { _, _ -> }
-        instanceInfo.add(String::class.java) { s, map -> map["Length"] = Integer.toString(s?.length ?: 0) }
-        instanceInfo.add(File::class.java) { f, map ->
-            val type = FileType.of(f)
-            map["File type"] = type.name
-
-            if (type==FileType.FILE) {
-                val fs = FileSize(f)
-                map["Size"] = ""+fs+(if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else "")
-                map["Format"] = f.name.substringAfterLast('.', "<none>")
-            }
-
-            map[FileField.TIME_CREATED.name()] = FileField.TIME_CREATED.getOfS(f, "n/a")
-            map[FileField.TIME_MODIFIED.name()] = FileField.TIME_MODIFIED.getOfS(f, "n/a")
-
-            val iff = ImageFileFormat.of(f.toURI())
-            if (iff.isSupported) {
-                val res = getImageDim(f).map { "${it.width} x ${it.height}" }.getOr("n/a")
-                map["Resolution"] = res
-            }
-        }
-        instanceInfo.add(App::class.java) { v, map -> map["Name"] = v.name }
-        instanceInfo.add(Component::class.java) { v, map -> map["Name"] = v.exportName }
-        instanceInfo.add(Metadata::class.java) { m, map ->
-            Metadata.Field.FIELDS.asSequence()
-                    .filter { it.isTypeStringRepresentable() && !it.isFieldEmpty(m) }
-                    .forEach { map[it.name()] = it.getOfS(m, "<none>") }
-        }
-        instanceInfo.add(PlaylistSong::class.java) { p, map ->
-            PlaylistSong.Field.FIELDS.asSequence()
-                    .filter { it.isTypeStringRepresentable() }
-                    .forEach { map[it.name()] = it.getOfS(p, "<none>") }
-        }
-        instanceInfo.add(Feature::class.java) { f, map ->
-            map["Name"] = f.name
-            map["Description"] = f.description
-        }
+        classFields.initApp()
+        className.initApp()
+        instanceName.initApp()
+        instanceInfo.initApp()
 
         // init cores
         serializer.init()
@@ -554,6 +479,91 @@ class App: Application(), Configurable<Any> {
 
         if (!isValidatedDirectory(this))
             fail { "File $this is not accessible" }
+    }
+
+    private fun ObjectFieldMap.initApp() {
+        add(PlaylistSong::class.java, PlaylistSong.Field.FIELDS)
+        add(Metadata::class.java, Metadata.Field.FIELDS)
+        add(MetadataGroup::class.java, MetadataGroup.Field.FIELDS)
+        add(Any::class.java, ColumnField.FIELDS)
+        add(File::class.java, FileField.FIELDS)
+    }
+
+    private fun ClassName.initApp() {
+        addNoLookup(Void::class.java, "Nothing")
+        add(String::class.java, "Text")
+        add(File::class.java, "File")
+        add(App::class.java, "Application")
+        add(Song::class.java, "Song")
+        add(PlaylistSong::class.java, "Playlist Song")
+        add(Metadata::class.java, "Library Song")
+        add(MetadataGroup::class.java, "Song Group")
+        add(Service::class.java, "Service")
+        add(Plugin::class.java, "Plugin")
+        add(Widget::class.java, "Widget")
+        add(Container::class.java, "Container")
+        add(Feature::class.java, "Feature")
+        add(List::class.java, "List")
+
+    }
+
+    private fun InstanceName.initApp() {
+        add(Void::class.java) { "<none>" }
+        add(File::class.java, { it.path })
+        add(App::class.java) { "This application" }
+        add(Song::class.java, { it.getPathAsString() })
+        add(PlaylistSong::class.java, { it.getTitle() })
+        add(Metadata::class.java, { it.getTitleOrEmpty() })
+        add(MetadataGroup::class.java) { it.getValueS("<none>") }
+        add(Service::class.java, { it.name })
+        add(Plugin::class.java, { it.name })
+        add(Component::class.java, { it.exportName })
+        add(Feature::class.java, { "Feature" })
+        add(Collection::class.java) {
+            val eType = getGenericPropertyType(it.javaClass)
+            val eName = if (eType==null || eType==Any::class.java) "Item" else className[eType]
+            it.size.toString()+" "+plural(eName, it.size)
+        }
+    }
+
+    private fun InstanceInfo.initApp() {
+        add(Void::class.java) { _, _ -> }
+        add(String::class.java) { s, map -> map["Length"] = Integer.toString(s?.length ?: 0) }
+        add(File::class.java) { f, map ->
+            val type = FileType.of(f)
+            map["File type"] = type.name
+
+            if (type==FileType.FILE) {
+                val fs = FileSize(f)
+                map["Size"] = ""+fs+(if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else "")
+                map["Format"] = f.name.substringAfterLast('.', "<none>")
+            }
+
+            map[FileField.TIME_CREATED.name()] = FileField.TIME_CREATED.getOfS(f, "n/a")
+            map[FileField.TIME_MODIFIED.name()] = FileField.TIME_MODIFIED.getOfS(f, "n/a")
+
+            val iff = ImageFileFormat.of(f.toURI())
+            if (iff.isSupported) {
+                val res = getImageDim(f).map { "${it.width} x ${it.height}" }.getOr("n/a")
+                map["Resolution"] = res
+            }
+        }
+        add(App::class.java) { v, map -> map["Name"] = v.name }
+        add(Component::class.java) { v, map -> map["Name"] = v.exportName }
+        add(Metadata::class.java) { m, map ->
+            Metadata.Field.FIELDS.asSequence()
+                    .filter { it.isTypeStringRepresentable() && !it.isFieldEmpty(m) }
+                    .forEach { map[it.name()] = it.getOfS(m, "<none>") }
+        }
+        add(PlaylistSong::class.java) { p, map ->
+            PlaylistSong.Field.FIELDS.asSequence()
+                    .filter { it.isTypeStringRepresentable() }
+                    .forEach { map[it.name()] = it.getOfS(p, "<none>") }
+        }
+        add(Feature::class.java) { f, map ->
+            map["Name"] = f.name
+            map["Description"] = f.description
+        }
     }
 
     companion object: KLogging() {

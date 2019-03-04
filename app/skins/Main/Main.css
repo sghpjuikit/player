@@ -343,32 +343,28 @@
 .slider {
     -fx-skin: "sp.it.pl.gui.objects.ImprovedSliderSkin";
 }
-.slider .thumb {
-    -fx-background-color: -fx-def-font-color;
-    -fx-padding: 2;
-    -fx-background-radius:1;
-}
+.slider .thumb,
 .slider .thumb:hover,
-.slider .thumb:pressed {
-    /*-fx-background-color: white;*/
-    -fx-padding: 2;
-    /*-fx-background-radius:0;*/
+.slider .thumb:pressed,
+.slider:focused .thumb,
+.slider:focused .thumb:hover,
+.slider:focused .thumb:pressed {
+    -fx-background-color: -fx-def-font-color;
+    -fx-padding: 0.166667em;
+    -fx-background-radius: 1;
 }
-.slider:focused .thumb {
-     /*-fx-background-radius: 1.0em;  *//* makes sure this remains circular*/
-}
+
 .slider .track {
     -fx-background-color: rgba(255,255,255,0.3);
     -fx-background-insets: 0;
     -fx-background-radius: 1;
-    -fx-padding: 1;      /*basically track width*/
+    -fx-padding: 1;      /* basically track width */
 }
 .slider:vertical .track {}
 .slider .axis {
     -fx-tick-mark-stroke: ladder(-fx-background, derive(-fx-background,30%) 40%, derive(-fx-background,-30%) 41%);
     -fx-tick-label-fill: -fx-def-font-color;
     -fx-background-insets: -6,5,4,3;
-    /*-fx-translate-y: -0; // THIS NEEDS TO BE SOLVED - it leaves space in the bottom so the control is not aligned properly*/
     -fx-opacity:0.9;
 }
 

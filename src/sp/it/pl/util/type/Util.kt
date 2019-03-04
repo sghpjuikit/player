@@ -1,5 +1,6 @@
 package sp.it.pl.util.type
 
+import sp.it.pl.util.dev.Experimental
 import java.lang.reflect.Field
 import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.Level
@@ -8,6 +9,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
+import kotlin.reflect.jvm.javaField
 
 fun Class<*>.isSuperclassOf(type: Class<*>) = isAssignableFrom(type)
 
@@ -59,3 +61,10 @@ fun <T> atomic(initialValue: T) = object: ReadWriteProperty<Any?, T> {
 
 /** @return class representing the type specified as generic type argument of this method */
 inline fun <reified T:Any> classLiteral() = T::class
+
+/** Set specified property of this object to null. Use for disposal of read-only properties and avoiding memory leaks. */
+@Experimental
+infix fun Any.nullify(property: KProperty<*>) {
+    property.javaField?.isAccessible = true
+    property.javaField?.set(this, null)
+}

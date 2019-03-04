@@ -33,51 +33,55 @@ import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.Skin
 import javafx.scene.control.cell.TextFieldListCell
-import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.MouseButton
+import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.util.Callback
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.graphics.listView
+import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sizes
 import sp.it.pl.util.reactive.syncTo
+import sp.it.pl.util.type.nullify
 
 open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
     private val control: AutoCompletePopup<T>
     private val list: ListView<T>
+    private val onDispose = Disposer()
 
     constructor(skinnable: AutoCompletePopup<T>, activationClickCount: Int = 1) {
         control = skinnable
         list = listView {
             items = control.suggestions
 
+            cellFactory = Callback { buildListViewCellFactory(it) }
             syncTo(control.visibleRowCount, items.sizes(), fixedCellSizeProperty()) { rowCount, itemCount, cellSize ->
                 prefHeight = snappedTopInset() + snappedBottomInset() + cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
-            }
-            cellFactory = Callback { buildListViewCellFactory(it) }
+            } on onDispose
 
             onEventDown(MOUSE_CLICKED) {
-                if (it.button==MouseButton.PRIMARY && it.clickCount==activationClickCount) {
+                if (it.button==PRIMARY && it.clickCount==activationClickCount) {
                     chooseSuggestion()
                     it.consume()
                 }
             }
             onEventDown(KEY_PRESSED) {
                 when (it.code) {
-                    KeyCode.ENTER -> {
+                    ENTER -> {
                         chooseSuggestion()
                         it.consume()
                     }
-                    KeyCode.ESCAPE -> {
+                    ESCAPE -> {
                         if (control.isHideOnEscape) {
                             control.hide()
                             it.consume()
                         }
                     }
-                    else -> {
-                    }
+                    else -> {}
                 }
             }
         }
@@ -87,7 +91,10 @@ open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
 
     override fun getSkinnable() = control
 
-    override fun dispose() {}
+    override fun dispose() {
+        onDispose()
+        nullify(::control)
+    }
 
     private fun chooseSuggestion(suggestion: T? = list.selectionModel.selectedItem) {
         if (suggestion!=null)

@@ -67,7 +67,7 @@ class BalancerSkin(b: Balancer): SkinBase<Balancer>(b) {
             valueProperty() attach {
                 if (!slider.isValueChanging)
                     b.balance.value = it.toDouble()
-            }
+            } on disposer
             minProperty() syncFrom b.min on disposer
             maxProperty() syncFrom b.max on disposer
             valueProperty() syncFrom b.balance on disposer
@@ -93,7 +93,7 @@ class BalancerSkin(b: Balancer): SkinBase<Balancer>(b) {
     }
 
     override fun dispose() {
-        super.dispose()
         disposer()
+        super.dispose()
     }
 }

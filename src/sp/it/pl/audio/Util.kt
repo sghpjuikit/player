@@ -19,22 +19,20 @@ class MetadatasDB: HashMap<String, Metadata>, Serializable {
 }
 
 class PlayerStateDB: Serializable {
-    var playbacks: List<PlaybackStateDB>
+    var playback: PlaybackStateDB
     var playlists: List<PlaylistDB>
     var playlistId: String? = null
-    var playbackId: String? = null
 
     constructor(s: PlayerState) {
-        this.playbacks = s.playbacks.map { PlaybackStateDB(it) }
+        this.playback = PlaybackStateDB(s.playback)
         this.playlists = s.playlists.map { PlaylistDB(it) }
-        this.playbackId = s.playback.id.toString()
         this.playlistId = PlaylistManager.active?.toString()
     }
 
+    fun toDomain() = PlayerState(this)
 }
 
 class PlaybackStateDB(s: PlaybackState): Serializable {
-    var id: String = s.id.toString()
     var volume: Double = s.volume.value
     var balance: Double = s.balance.value
     var loopMode: String = s.loopMode.value.toString()
@@ -45,7 +43,7 @@ class PlaybackStateDB(s: PlaybackState): Serializable {
     var mute: Boolean = s.mute.value
     var rate: Double = s.rate.value
 
-    fun toDomain() = PlaybackState(UUID.fromString(id)).also {
+    fun toDomain() = PlaybackState().also {
         it.volume.value = volume
         it.balance.value = balance
         it.loopMode.value = LoopMode.valueOf(loopMode)
@@ -56,7 +54,6 @@ class PlaybackStateDB(s: PlaybackState): Serializable {
         it.mute.value = mute
         it.rate.value = rate
     }
-
 }
 
 class PlaylistDB: Serializable {
@@ -74,7 +71,6 @@ class PlaylistDB: Serializable {
         it += items.map { it.toDomain() }
         it.updatePlayingItem(playing)
     }
-
 }
 
 class PlaylistItemDB: Serializable {
@@ -91,5 +87,4 @@ class PlaylistItemDB: Serializable {
     }
 
     fun toDomain() = PlaylistSong(URI.create(uri), artist, title, length)
-
 }

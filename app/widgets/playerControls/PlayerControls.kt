@@ -1,26 +1,25 @@
 package playerControls
 
 import de.jensd.fx.glyphs.GlyphIcons
-import javafx.fxml.FXML
+import javafx.geometry.Insets
+import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.control.Label
 import javafx.scene.control.Slider
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import javafx.scene.layout.BorderPane
-import javafx.scene.layout.HBox
-import javafx.scene.layout.Pane
 import javafx.scene.media.MediaPlayer.Status
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.Player.Seek
-import sp.it.pl.audio.playback.BalanceProperty
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playback.VolumeProperty
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.BITRATE
-import sp.it.pl.gui.objects.balancer.Balancer
 import sp.it.pl.gui.objects.icon.Icon
+import sp.it.pl.gui.objects.seeker.ChapterDisplayActivation.HOVER
+import sp.it.pl.gui.objects.seeker.ChapterDisplayMode.POPUP_SHARED
 import sp.it.pl.gui.objects.seeker.Seeker
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
@@ -30,17 +29,18 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.scaleEM
-import sp.it.pl.util.access.v
+import sp.it.pl.util.access.toggle
 import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.functional.setTo
+import sp.it.pl.util.conf.cv
 import sp.it.pl.util.graphics.EM
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.drag.DragUtil.getAudioItems
 import sp.it.pl.util.graphics.drag.DragUtil.hasAudio
 import sp.it.pl.util.graphics.drag.DragUtil.installDrag
-import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
+import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.prefSize
+import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventDown
@@ -74,84 +74,101 @@ import java.io.File
 )
 class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature {
 
-    @FXML lateinit var controlPanel: BorderPane
-    @FXML lateinit var soundPane: HBox
-    @FXML lateinit var volume: Slider
-    @FXML lateinit var currTime: Label
-    @FXML lateinit var totTime: Label
-    @FXML lateinit var realTime: Label
-    @FXML lateinit var titleL: Label
-    @FXML lateinit var artistL: Label
-    @FXML lateinit var bitrateL: Label
-    @FXML lateinit var sampleRateL: Label
-    @FXML lateinit var channelsL: Label
-    @FXML lateinit var playButtons: HBox
-
-    var balance: Balancer
+    val volume = Slider()
+    val currTime = Label("00:00")
+    val totalTime = Label("00:00")
+    val realTime = Label("00:00")
+    val bitrateL = Label()
+    val sampleRateL = Label()
+    val channelsL = Label()
+    val titleL = Label()
+    val artistL = Label()
     val seeker = Seeker()
-    val f1 = IconFA.ANGLE_DOUBLE_LEFT.icon(24.0) { Player.seekBackward(seekType.get()) }
+    val f1 = IconFA.ANGLE_DOUBLE_LEFT.icon(24.0) { Player.seekBackward(seekType.value) }
     val f2 = IconFA.FAST_BACKWARD.icon(24.0) { PlaylistManager.playPreviousItem() }
     val f3 = IconFA.PLAY.icon(48.0, { gap(36.0) }) { Player.pause_resume() }
     val f4 = IconFA.FAST_FORWARD.icon(24.0) { PlaylistManager.playNextItem() }
-    val f5 = IconFA.ANGLE_DOUBLE_RIGHT.icon(24.0) { Player.seekForward(seekType.get()) }
+    val f5 = IconFA.ANGLE_DOUBLE_RIGHT.icon(24.0) { Player.seekForward(seekType.value) }
     val muteB = IconFA.VOLUME_UP.icon(12.0) { Player.toggleMute() }
-    val loopB = IconFA.RANDOM.icon(24.0){ Player.toggleLoopMode(it) }
-    var lastUpdateTime = Double.MIN_VALUE // reduces time update events
+    val loopB = IconFA.RANDOM.icon(24.0) { Player.toggleLoopMode(it) }
+    val playbackButtons = listOf(f1, f2, f3, f4, f5, seeker)
+    private var lastCurrentTimeS: Double? = null
+    private var lastRemainingTimeS: Double? = null
+    private var lastRealTimeS: Double? = null
 
-    @IsConfig(name = "Seek type", info = "Seek by time (absolute) or fraction of total duration (relative).")
-    val seekType = v(Seek.RELATIVE)
+    @IsConfig(name = "Seek type", info = "Forward/backward buttons seek by time (absolute) or fraction of total duration (relative).")
+    val seekType by cv(Seek.RELATIVE)
     @IsConfig(name = "Chapters show", info = "Display chapter marks on seeker.")
-    val showChapters = seeker.chapterDisplayMode
+    val showChapters by cv(POPUP_SHARED) { dv -> seeker.chapterDisplayMode.apply { value = dv } }
     @IsConfig(name = "Chapter open on", info = "Opens chapter also when mouse hovers over them.")
-    val showChapOnHover = seeker.chapterDisplayActivation
+    val showChapOnHover by cv(HOVER) { dv -> seeker.chapterDisplayActivation.apply { value = dv } }
     @IsConfig(name = "Snap seeker to chapters", info = "Enable snapping to chapters during dragging.")
-    val snapToChap = seeker.chapterSnap
+    val snapToChap by cv(false) { dv -> seeker.chapterSnap.apply { value = dv } }
     @IsConfig(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
-    var elapsedTime = true
-    @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
-    var playDropped = false
+    val elapsedTime by cv(true)
 
     init {
         root.prefSize = 850.scaleEM() x 200.scaleEM()
-
-        ConventionFxmlLoader(root, this).loadNoEx<Any>()
 
         val ps = Player.state.playback
 
         seeker.bindTime(ps.duration, ps.currentTime) on onClose
         seeker.chapterSnapDistance syncFrom APP.ui.snapDistance on onClose
         seeker.prefHeight = 30.0
-        root.lay += anchorPane {
-            isPickOnBounds = false
 
-            lay(null, 0.0, 0.0, 0.0) += seeker
-        }
-
-        balance = Balancer(ps.balance)
-        (soundPane.parent as Pane).children.add(0, balance)
-        balance.step.set(BalanceProperty.STEP)
-        balance.prefHeight = 100.0
-        balance.balance syncBi ps.balance on onClose
-
+        volume.styleClass += "volume"
+        volume.prefWidth = 100.0
         volume.min = ps.volume.min
         volume.max = ps.volume.max
         volume.blockIncrement = VolumeProperty.STEP
         volume.value = ps.volume.get()
         volume.valueProperty() syncBi ps.volume on onClose
 
-        playButtons.children setTo listOf(f1, f2, f3, f4, f5, loopB)
-        soundPane.children.add(0, muteB)
+        root.lay += anchorPane {
+            lay(0.0, 0.0, 60.0, 0.0) += hBox(40.0) {
+                lay += hBox(5.0, CENTER) {
+                    padding = Insets(0.0, 0.0, 0.0, 20.0)
 
-        ps.duration sync { totTime.text = it.toHMSMs() } on onClose
+                    lay += listOf(f1, f2, f3, f4, f5, loopB)
+                }
+                lay += vBox(0.0, CENTER) {
+                    lay += titleL
+                    lay += artistL
+                }
+            }
+            lay(null, 0.0, 30.0, 0.0) += hBox(20.0, CENTER_RIGHT) {
+                prefHeight = 30.0
+
+                lay += hBox(5, CENTER) {
+                    lay += bitrateL
+                    lay += sampleRateL
+                    lay += channelsL
+                }
+                lay += hBox(5, CENTER) {
+                    lay += currTime
+                    lay += Label("/")
+                    lay += totalTime
+                    lay += Label("/")
+                    lay += realTime
+                }
+                lay += hBox(5, CENTER) {
+                    lay += muteB
+                    lay += volume
+                }
+            }
+            lay(null, 0.0, 0.0, 0.0) += seeker
+        }
+
+        ps.duration sync { totalTime.text = it.toHMSMs() } on onClose
         ps.currentTime sync { timeChanged(ps) } on onClose
         ps.status sync { statusChanged(it) } on onClose
         ps.loopMode sync { loopModeChanged(it) } on onClose
         ps.mute sync { muteChanged(ps) } on onClose
         ps.volume sync { muteChanged(ps) } on onClose
-        Player.onSeekDone.addS { lastUpdateTime = Double.MIN_VALUE } on onClose
         Player.playingSong.onUpdateAndNow { playingItemChanged(it) } on onClose
+        elapsedTime sync { timeChanged(ps, true) } on onClose
 
-        currTime.onEventDown(MOUSE_CLICKED) { cycleElapsed() }
+        currTime.onEventDown(MOUSE_CLICKED) { elapsedTime.toggle() }
         installDrag(
                 root,
                 IconMD.PLAYLIST_PLUS,
@@ -159,7 +176,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature 
                 { e -> hasAudio(e) },
                 { e ->
                     val items = getAudioItems(e)
-                    PlaylistManager.use { if (playDropped) it.setNplay(items) else it.addItems(items) }
+                    PlaylistManager.use { it.addItems(items) }
                 }
         )
     }
@@ -171,39 +188,31 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature 
         }
     }
 
-    private fun cycleElapsed() {
-        elapsedTime = !elapsedTime
-        timeChanged(Player.state.playback)
-    }
-
-    private fun playingItemChanged(nv: Metadata) {
-        lastUpdateTime = Double.MIN_VALUE
-
-        titleL.text = nv.getTitle()
-        artistL.text = nv.getArtist()
-        bitrateL.text = nv.getFieldS(BITRATE, "")
-        sampleRateL.text = nv.getSampleRate()
-        channelsL.text = nv.getChannels()
-        seeker.reloadChapters(nv)
+    private fun playingItemChanged(song: Metadata) {
+        titleL.text = song.getTitle()
+        artistL.text = song.getArtist()
+        bitrateL.text = song.getFieldS(BITRATE, "")
+        sampleRateL.text = song.getSampleRate()
+        channelsL.text = song.getChannels()
+        seeker.reloadChapters(song)
     }
 
     private fun statusChanged(newStatus: Status?) {
-        lastUpdateTime = Double.MIN_VALUE
-
-        if (newStatus==null || newStatus==Status.UNKNOWN) {
-            controlPanel.isDisable = true
-            seeker.isDisable = true
-            f3.icon(IconFA.PLAY)
-        } else {
-            controlPanel.isDisable = false
-            seeker.isDisable = false
-            f3.icon(when (newStatus) {
-                Status.PLAYING -> IconFA.PAUSE
-                else -> IconFA.PLAY
-            })
-            f3.glyphOffsetX.value = when (newStatus) {
-                Status.PLAYING -> -APP.ui.font.value.size.EM*0.2
-                else -> APP.ui.font.value.size.EM*3.0
+        when (newStatus) {
+            null, Status.UNKNOWN -> {
+                playbackButtons.forEach { it.isDisable = true }
+                f3.icon(IconFA.PLAY)
+            }
+            else -> {
+                playbackButtons.forEach { it.isDisable = false }
+                f3.icon(when (newStatus) {
+                    Status.PLAYING -> IconFA.PAUSE
+                    else -> IconFA.PLAY
+                })
+                f3.glyphOffsetX.value = when (newStatus) {
+                    Status.PLAYING -> -APP.ui.font.value.size.EM*0.2
+                    else -> APP.ui.font.value.size.EM*3.0
+                }
             }
         }
     }
@@ -224,26 +233,40 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature 
         })
     }
 
-    private fun muteChanged(pb: PlaybackState) {
+    private fun muteChanged(playback: PlaybackState) {
         muteB.icon(when {
-            pb.mute.value -> IconFA.VOLUME_OFF
-            pb.volume.value>0.5 -> IconFA.VOLUME_UP
+            playback.mute.value -> IconFA.VOLUME_OFF
+            playback.volume.value>0.5 -> IconFA.VOLUME_UP
             else -> IconFA.VOLUME_DOWN
         })
     }
 
-    private fun timeChanged(pb: PlaybackState) {
-        val millis = pb.currentTime.get().toMillis()
-        if (lastUpdateTime+1000<=millis) {
-            lastUpdateTime = millis
-            realTime.text = Player.player.realTime.get().toHMSMs()
-            currTime.text = if (elapsedTime) pb.currentTime.value.toHMSMs() else "- "+pb.remainingTime.toHMSMs()
+    private fun timeChanged(playback: PlaybackState, forceUpdate: Boolean = false) {
+        if (forceUpdate) {
+            lastCurrentTimeS = null
+            lastRemainingTimeS = null
         }
+
+        if (elapsedTime.value) {
+            val currentTimeS = playback.currentTime.value.toSeconds()
+            if (currentTimeS!=lastCurrentTimeS)
+                currTime.text = playback.currentTime.value.toHMSMs()
+            lastCurrentTimeS = currentTimeS
+        } else {
+            val remainingTimeS = playback.remainingTime.toSeconds()
+            if (remainingTimeS!=lastRemainingTimeS)
+                currTime.text =  "- "+playback.remainingTime.toHMSMs()
+            lastRemainingTimeS = remainingTimeS
+        }
+
+        val realTimeS = Player.player.realTime.get().toSeconds()
+        if (realTimeS!=lastRealTimeS)
+            realTime.text = Player.player.realTime.get().toHMSMs()
+        lastRealTimeS = realTimeS
     }
 
     companion object {
-
         fun GlyphIcons.icon(size: Double, init: Icon.() -> Unit = {}, block: (MouseEvent) -> Unit) = Icon(this, size).onClickDo(block).apply(init)!!
-
     }
+
 }

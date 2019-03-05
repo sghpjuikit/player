@@ -286,8 +286,6 @@ public class Icon extends StackPane {
 	public final Icon tooltip(Tooltip t) {
 		Tooltip old = getTooltip();
 		if (t!=null && (old!=t || old.getProperties().containsKey("was_setup"))) {
-			var text = t.getText();
-			t.setText("");
 			t.setWrapText(true);
 			t.setMaxWidth(330);
 			t.getScene().getRoot().setOpacity(0.0);
@@ -297,6 +295,8 @@ public class Icon extends StackPane {
 			// 2) the icon could change / tooltip graphics would have to be maintained
 			// 3) lazy graphics == better
 			t.setOnShowing(e -> {
+				var text = t.getText();
+
 				GlyphIcons g = getGlyph();
 				if (g!=null) {
 					Node icon = createIcon(g, 24.0);

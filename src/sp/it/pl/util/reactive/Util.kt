@@ -31,21 +31,24 @@ private typealias DisposeOn = (Subscription) -> Unit
 fun <T,O> ObservableValue<T>.map(mapper: (T) -> O) = object: ObservableValue<O> {
     private val listeners1 by lazy { HashSet<ChangeListener<in O>>(2) }
     private val listeners2 by lazy { HashSet<InvalidationListener>(2) }
+    private var mv: O = mapper(this@map.value)
 
     init {
-        this@map attachChanges { ov, nv ->
-            val omv = mapper(ov)
+        this@map attach { nv ->
+            val omv = mv
             val nmv = mapper(nv)
-            listeners1.forEach { it.changed(this, omv, nmv) }
-            listeners2.forEach { it.invalidated(this) }
+            mv = nmv
+            if (omv!=nmv) {
+                listeners1.forEach { it.changed(this, omv, nmv) }
+                listeners2.forEach { it.invalidated(this) }
+            }
         }
     }
-
     override fun addListener(listener: ChangeListener<in O>) { listeners1 += listener }
     override fun removeListener(listener: ChangeListener<in O>) { listeners1 -= listener }
     override fun addListener(listener: InvalidationListener) { listeners2 += listener }
     override fun removeListener(listener: InvalidationListener) { listeners2 += listener }
-    override fun getValue() = mapper(this@map.value)
+    override fun getValue() = mv
 }
 
 /** Convenience method for adding this subscription to a disposer. Equivalent to: this.apply(disposerRegister) */

@@ -6,6 +6,7 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.MultiConfigurableBase
 import sp.it.pl.util.conf.between
 import sp.it.pl.util.conf.c
+import sp.it.pl.util.conf.cvn
 import sp.it.pl.util.conf.cvro
 import sp.it.pl.util.conf.only
 import sp.it.pl.util.units.seconds
@@ -28,6 +29,9 @@ class PlayerConfiguration {
 
         @IsConfig(name = "Player", info = "Exact player implementation currently in use.", editable = EditMode.NONE)
         val playerInfo by cvro("<none>") { Player.player.pInfo }
+
+        @IsConfig(name = "Vlc player location", editable = EditMode.APP)
+        val playerVlcLocation by cvn<String>(null)
 
         @IsConfig(name = "Last browse location")
         var browse by c(APP.DIR_USERDATA).only(DIRECTORY)

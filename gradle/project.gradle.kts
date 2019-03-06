@@ -103,7 +103,7 @@ dependencies {
     }
 
     "Audio" requires {
-        implementation("uk.co.caprica", "vlcj", "3.11.0")
+        implementation("uk.co.caprica", "vlcj", "4.0.6")
         implementation("de.u-mass", "lastfm-java", "0.1.2")
         implementation("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
     }

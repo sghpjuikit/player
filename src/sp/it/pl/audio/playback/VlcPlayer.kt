@@ -5,118 +5,90 @@ import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.util.Duration
 import mu.KLogging
 import sp.it.pl.audio.Player
+import sp.it.pl.audio.PlayerConfiguration
 import sp.it.pl.audio.Song
 import sp.it.pl.main.APP
 import sp.it.pl.util.async.runFX
-import sp.it.pl.util.async.runNew
+import sp.it.pl.util.dev.fail
 import sp.it.pl.util.file.div
-import sp.it.pl.util.functional.ifFalse
-import sp.it.pl.util.functional.onE
-import sp.it.pl.util.functional.runTry
 import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.system.Os
 import sp.it.pl.util.units.millis
 import sp.it.pl.util.units.times
-import uk.co.caprica.vlcj.discovery.NativeDiscovery
-import uk.co.caprica.vlcj.discovery.linux.DefaultLinuxNativeDiscoveryStrategy
-import uk.co.caprica.vlcj.discovery.mac.DefaultMacNativeDiscoveryStrategy
-import uk.co.caprica.vlcj.discovery.windows.DefaultWindowsNativeDiscoveryStrategy
-import uk.co.caprica.vlcj.player.MediaPlayer
-import uk.co.caprica.vlcj.player.MediaPlayerEventAdapter
-import uk.co.caprica.vlcj.player.MediaPlayerFactory
-import uk.co.caprica.vlcj.player.events.MediaPlayerEventType
-import uk.co.caprica.vlcj.player.media.simple.SimpleMedia
+import uk.co.caprica.vlcj.factory.MediaPlayerFactory
+import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
+import uk.co.caprica.vlcj.factory.discovery.strategy.BaseNativeDiscoveryStrategy
+import uk.co.caprica.vlcj.factory.discovery.strategy.LinuxNativeDiscoveryStrategy
+import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy
+import uk.co.caprica.vlcj.factory.discovery.strategy.OsxNativeDiscoveryStrategy
+import uk.co.caprica.vlcj.factory.discovery.strategy.WindowsNativeDiscoveryStrategy
+import uk.co.caprica.vlcj.player.base.MediaPlayer
+import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import java.io.File
-import java.lang.Thread.sleep
 import javax.print.attribute.standard.PrinterStateReason.PAUSED
 import kotlin.math.roundToInt
 
 
 class VlcPlayer: GeneralPlayer.Play {
 
-    private var initialized = false
-    private var discovered = false
-    private val mediaPlayerFactory by lazy { MediaPlayerFactory() }
+    private var playerFactory: MediaPlayerFactory? = null
     private var player: MediaPlayer? = null
     private val d = Disposer()
 
     override fun play() {
-        player?.play()
+        player?.controls()?.play()
     }
 
     override fun pause() {
-        player?.pause()
+        player?.controls()?.pause()
     }
 
     override fun resume() {
-        player?.play()
+        player?.controls()?.play()
     }
 
     override fun seek(duration: Duration) {
-        player?.let {
-            val isSeekToZero = duration.toMillis()<=0
-            val isSeekImpossible = it.length==-1L
-            when {
-                // TODO: fix #38 better than delaying
-                isSeekToZero -> runFX(10.millis) {
-                    it.play()
-                    it.position = 0f
-                }
-                isSeekImpossible -> {
-                    it.play()
-                    it.position = 0f
-                }
-                else -> it.position = (duration.toMillis().toFloat()/it.length.toFloat()).coerceIn(0f..1f)
-            }
-        }
+        // player?.controls()?.setTime(duration.toMillis().toLong())   // doesn't work that well
+        player?.controls()?.setPosition((duration.toMillis().toFloat()/player!!.status().length().toFloat()).coerceIn(0f..1f))
     }
 
     override fun stop() {
-        player?.stop()
+        player?.controls()?.stop()
     }
 
     override fun createPlayback(song: Song, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit) {
-        if (!initialized && !discovered) {
-            val location = APP.DIR_APP/"vlc"
-            discovered = true
-            initialized = discoverVlc(location).ifFalse { logger.error { "Failed to initialize vlcj player" } }
-        }
-        if (!initialized) {
+        val pf = playerFactory ?: MediaPlayerFactory(discoverVlc(APP.DIR_APP/"vlc"), "--quiet", "--intf=dummy")
+        playerFactory = pf
+
+        if (PlayerConfiguration.playerVlcLocation.value==null) {
+            logger.info { "Playback creation failed: No vlc discovered" }
             onFail(true)
             return
         }
 
-        val p = mediaPlayerFactory.newHeadlessMediaPlayer()
+        val p = pf.mediaPlayers().newMediaPlayer()
         player = p
 
-        d += state.volume sync { p.volume = (100*it.toDouble()).roundToInt() }
-        d += state.mute sync { p.mute(it) }
-        d += state.balance sync { }         // TODO: implement
-        d += state.rate sync { p.rate = it.toFloat() }
+        state.volume sync { p.audio().setVolume((100*it.toDouble()).roundToInt()) } on d
+        state.mute sync { p.audio().isMute = it } on d
+        state.balance sync { } on d // TODO: implement
+        state.rate sync { p.controls().setRate(it.toFloat()) } on d
 
-        p.prepareMedia(SimpleMedia(song.uriAsVlcPath()))
-
-        val eventMask = sequenceOf(
-                MediaPlayerEventType.LENGTH_CHANGED.value(),
-                MediaPlayerEventType.POSITION_CHANGED.value(),
-                MediaPlayerEventType.FINISHED.value(),
-                MediaPlayerEventType.STOPPED.value(),
-                MediaPlayerEventType.PAUSED.value(),
-                MediaPlayerEventType.PLAYING.value()
-        ).fold(0L) { events, event ->
-            events or event
-        }
-        p.enableEvents(eventMask)
+        p.media().prepare(song.uriAsVlcPath())
 
         val playbackListener = createPlaybackListener(state)
-        p.addMediaPlayerEventListener(playbackListener)
-        d += { p.removeMediaPlayerEventListener(playbackListener) }
+        p.events().addMediaPlayerEventListener(playbackListener)
+        d += { p.events().removeMediaPlayerEventListener(playbackListener) }
 
         if (Player.startTime!=null) {
             when (state.status.value) {
                 PLAYING -> play()
-                PAUSED -> pause()
-                else -> {}
+                PAUSED -> {
+                }
+                else -> {
+                }
             }
         }
 
@@ -178,33 +150,57 @@ class VlcPlayer: GeneralPlayer.Play {
 
     override fun disposePlayback() {
         d()
-        player?.stop()
-        player?.let { p ->
-            runTry {
-                p.release()
-            } onE {
-                logger.warn(it) { "Failed to dispose of the player. Will retry after 1 second." }
-                // https://stackoverflow.com/questions/43312679/jvm-crashes-when-releasing-a-vlcj-mediaplayer
-                runNew {
-                    sleep(1000)
-                    runTry {
-                        p.release()
-                    } onE {
-                        logger.error(it) { "Failed to dispose of the player" }
-                    }
-                }
-            }
-        }
+        player?.controls()?.stop()
+        player?.release()
         player = null
     }
 
-    override fun dispose() {}
+    override fun dispose() {
+        playerFactory?.release()
+        playerFactory = null
+    }
 
     companion object: KLogging() {
 
-        private fun discoverVlc(location: File): Boolean {
-            val loc = location.absolutePath
-            return NativeDiscovery(WindowsDiscoverer(loc), LinuxDiscoverer(loc), MacDiscoverer(loc)).discover()
+        private fun discoverVlc(location: File) = NativeDiscovery(
+                WindowsNativeDiscoveryStrategy().customize(location),
+                LinuxNativeDiscoveryStrategy().customize(location),
+                OsxNativeDiscoveryStrategy().customize(location),
+                WindowsNativeDiscoveryStrategy().wrap(),
+                LinuxNativeDiscoveryStrategy().wrap(),
+                OsxNativeDiscoveryStrategy().wrap()
+        )
+
+        private fun NativeDiscoveryStrategy.wrap() = NativeDiscoveryStrategyWrapper(this)
+
+        private fun NativeDiscoveryStrategy.customize(location: File) = object: BaseNativeDiscoveryStrategy(
+                when (this@customize) {
+                    is WindowsNativeDiscoveryStrategy -> arrayOf("libvlc\\.dll", "libvlccore\\.dll")
+                    is LinuxNativeDiscoveryStrategy -> arrayOf("libvlc\\.so(?:\\.\\d)*", "libvlccore\\.so(?:\\.\\d)*")
+                    is OsxNativeDiscoveryStrategy -> arrayOf("libvlc\\.dylib", "libvlccore\\.dylib")
+                    else -> fail { "Invalid discovery strategy" }
+                },
+                when (this@customize) {
+                    is WindowsNativeDiscoveryStrategy -> arrayOf("%s\\plugins", "%s\\vlc\\plugins")
+                    is LinuxNativeDiscoveryStrategy -> arrayOf("%s/plugins", "%s/vlc/plugins")
+                    is OsxNativeDiscoveryStrategy -> arrayOf("%s/../plugins")
+                    else -> fail { "Invalid discovery strategy" }
+                }
+        ) {
+            override fun supported() = this@customize.supported()
+            override fun setPluginPath(pluginPath: String?) = this@customize.onSetPluginPath(pluginPath)
+            override fun discoveryDirectories() = mutableListOf(location.absolutePath)
+            override fun onFound(path: String?): Boolean {
+                PlayerConfiguration.playerVlcLocation.value = "Custom: "+location.absolutePath
+                return super.onFound(path)
+            }
+        }
+
+        class NativeDiscoveryStrategyWrapper(private val discoverer: NativeDiscoveryStrategy): NativeDiscoveryStrategy by discoverer {
+            override fun onFound(path: String?): Boolean {
+                PlayerConfiguration.playerVlcLocation.value = "Installed in system (${Os.current})"
+                return discoverer.onFound(path)
+            }
         }
 
         private fun Song.uriAsVlcPath() = uri.toASCIIString().let {
@@ -215,27 +211,6 @@ class VlcPlayer: GeneralPlayer.Play {
             if (it.startsWith("file:/") && it[6]!='/')
                 it.replaceFirst("file:/", "file:///")
             else it
-        }
-
-        class WindowsDiscoverer(vararg val locations: String): DefaultWindowsNativeDiscoveryStrategy() {
-            override fun onGetDirectoryNames(directoryNames: MutableList<String>) {
-                super.onGetDirectoryNames(directoryNames)
-                directoryNames += locations
-            }
-        }
-
-        class LinuxDiscoverer(vararg val locations: String): DefaultLinuxNativeDiscoveryStrategy() {
-            override fun onGetDirectoryNames(directoryNames: MutableList<String>) {
-                super.onGetDirectoryNames(directoryNames)
-                directoryNames += locations
-            }
-        }
-
-        class MacDiscoverer(vararg val locations: String): DefaultMacNativeDiscoveryStrategy() {
-            override fun onGetDirectoryNames(directoryNames: MutableList<String>) {
-                super.onGetDirectoryNames(directoryNames)
-                directoryNames += locations
-            }
         }
 
     }

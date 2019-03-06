@@ -139,5 +139,8 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 	}
 
 	@Override
-	public void dispose() {}
+	public void dispose() {
+		disposePlayback();
+	}
+
 }

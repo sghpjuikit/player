@@ -50,7 +50,7 @@ class GeneralPlayer {
 
         i = song
         p?.disposePlayback()
-        p = computePlayer(song)
+        p = p ?: computePlayer()
 
         _pInfo.value = when (p) {
             null -> "<none>"
@@ -107,8 +107,7 @@ class GeneralPlayer {
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun computePlayer(i: Song): Play = p ?: VlcPlayer()
+    private fun computePlayer(): Play = VlcPlayer()
 
     fun resume() {
         p?.let {
@@ -181,11 +180,13 @@ class GeneralPlayer {
         realTime.syncRealTimeOnPostSeek(duration)
     }
 
+    fun disposePlayback() {
+        p?.disposePlayback()
+        p = null
+    }
+
     fun dispose() {
-        p?.let {
-            it.disposePlayback()
-            it.dispose()
-        }
+        p?.dispose()
         p = null
     }
 

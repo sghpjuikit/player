@@ -405,7 +405,7 @@ public class Player {
 		LOGGER.info("Suspending playback");
 
 		suspension_flag = true;
-		player.dispose();
+		player.disposePlayback();
 	}
 
 	public static void activate() {
@@ -416,7 +416,7 @@ public class Player {
 		if (s==PAUSED || s==PLAYING)
 			startTime = state.playback.currentTime.get();
 		if (s==PAUSED) {
-			// THIS NEEDS TO GET FIXED
+			// TODO: fix delay
 			player.play(PlaylistManager.use(Playlist::getPlaying, null));
 			runFX(millis(1000), player::pause);
 		}

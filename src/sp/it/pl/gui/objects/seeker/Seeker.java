@@ -79,7 +79,6 @@ import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.functional.Util.minBy;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.layHeaderRight;
-import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.UtilKt.typeText;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.units.UtilKt.toHMSMs;
@@ -106,7 +105,8 @@ public final class Seeker extends AnchorPane {
 
 	public Seeker() {
 		seeker.getStyleClass().add(STYLECLASS);
-		setAnchor(this, seeker, null, 0d, null, 0d);
+		seeker.setManaged(false);
+		getChildren().add(seeker);
 
 		// mouse drag
 		seeker.addEventFilter(MOUSE_PRESSED, e -> {
@@ -189,9 +189,7 @@ public final class Seeker extends AnchorPane {
 			}
 		});
 
-		// animation 1
 		ma_init();
-		// animation 2
 		Anim sa = new Anim(millis(1000), p -> {
 			double p1 = mapTo01(p, 0, 0.5);
 			double p2 = mapTo01(p, 0.8, 1);
@@ -210,8 +208,6 @@ public final class Seeker extends AnchorPane {
 		onHoverChanged(sa::playFromDir);
 	}
 
-	// we override this to conveniently layout chapters
-	// note that some nodes are unmanaged to fix pane resizing issues, so we handle them too
 	@Override
 	protected void layoutChildren() {
 		super.layoutChildren();
@@ -225,7 +221,7 @@ public final class Seeker extends AnchorPane {
 			}
 		}
 
-		seeker.relocate(0, h/2 - seeker.getHeight()/2);
+		seeker.resizeRelocate(0, 0, w, h);
 		addB.root.relocate(addB.root.getLayoutX(), h/2 - addB.root.getHeight()/2);
 		r1.relocate(r1.getLayoutX(), 5);
 		r2.relocate(r2.getLayoutX(), h - r2.getLayoutBounds().getHeight() - 5);

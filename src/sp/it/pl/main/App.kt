@@ -262,6 +262,8 @@ class App: Application(), Configurable<Any> {
     override fun init() {
         logging.init()
 
+        logger.info { "JVM Args: ${fetchVMArguments()}" }
+
         // Forbid multiple application instances, instead notify the 1st instance of 2nd (this one)
         // trying to run and this instance's run parameters and close prematurely
         if (getInstances()>1) {
@@ -270,8 +272,6 @@ class App: Application(), Configurable<Any> {
             closedPrematurely = true
             return
         }
-
-        logger.info { "JVM Args: ${fetchVMArguments()}" }
 
         classFields.initApp()
         className.initApp()

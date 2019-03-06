@@ -7,7 +7,6 @@
 @import url("../Main/Main.css");
 
 .root {
-
     skin-main-color: rgb(150,200,220);
 
     -fx-font-family: "Arial";
@@ -84,8 +83,6 @@
 .indexed-cell:corrupt:selected {
     -fx-text-fill: red;
 }
-
-
 
 .combo-box-base,
 .combo-box-base:editable,
@@ -245,10 +242,6 @@
                          linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.2) 40%, -fx-def-font-color 100%);
 }
 
-
-
-
-
 .split-pane:horizontal > .split-pane-divider {
    -fx-border-color: transparent;
    -fx-background-color: -fx-pane-color;
@@ -275,7 +268,6 @@
    -fx-padding: 6;
 }
 
-
 .grid-cell:selected {
     -fx-background-insets: -2;
     -fx-background-color: rgba(0,0,0,0.4);
@@ -285,4 +277,8 @@
 .icon-grid-cell,
 .icon-grid-cell:selected {
     -fx-background-color: transparent;
+}
+
+.seeker-add-chapter-button {
+    -fx-border-width: 0
 }

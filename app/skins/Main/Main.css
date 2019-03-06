@@ -2033,13 +2033,13 @@
 
 
 /************************************ FONTS ***********************************/
+
 .text-style-normal {
     -fx-font-style: normal;
 }
 .text-style-italic {
     -fx-font-style: italic;
 }
-
 .text-weight-normal {
     -fx-font-weight: normal;
 }

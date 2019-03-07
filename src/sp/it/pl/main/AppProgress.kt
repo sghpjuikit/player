@@ -76,8 +76,8 @@ object AppProgress {
         fun Task<*>.toApp() = AppTask(title, messageProperty(), { cancel() })
 
         when (task.state!!) {
-            State.READY -> { task.onScheduled = EventHandler { start(task) } }
-            State.SCHEDULED, State.RUNNING -> {
+            State.READY, State.SCHEDULED -> { task.onRunning = EventHandler { start(task) } }
+            State.RUNNING -> {
                 val reportDone = start(task.toApp())
                 task.stateProperty().sync1If({ task.isDone }) {
                     when (task.state) {

@@ -66,6 +66,7 @@ import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.feature.SongReader;
 import sp.it.pl.layout.widget.feature.SongWriter;
+import sp.it.pl.main.AppProgress;
 import sp.it.pl.main.Widgets;
 import sp.it.pl.service.notif.Notifier;
 import sp.it.pl.util.access.V;
@@ -120,6 +121,7 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TITLE;
 import static sp.it.pl.audio.tagging.Metadata.Field.TRACK;
 import static sp.it.pl.audio.tagging.Metadata.Field.TRACKS_TOTAL;
 import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
+import static sp.it.pl.audio.tagging.MetadataReader.setOnDone;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.TAG;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.formIcon;
@@ -129,7 +131,6 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
-import static sp.it.pl.util.file.Util.EMPTY_COLOR;
 import static sp.it.pl.util.functional.Util.isContainedIn;
 import static sp.it.pl.util.functional.Util.mapRef;
 import static sp.it.pl.util.functional.Util.noDups;
@@ -167,6 +168,8 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
 )
 @LegacyController
 public class Tagger extends SimpleController implements SongWriter, SongReader {
+
+    private static Color EMPTY_COLOR = new Color(0, 0, 0, 0);
 
     @FXML VBox content;
     @FXML BorderPane header;
@@ -409,19 +412,23 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
             });
 
         // read metadata for items
-        runNew(MetadataReader.readMetadataTask(needs_read, (ok, result) -> {
+
+        var task = MetadataReader.readMetadataTask(needs_read);
+        AppProgress.INSTANCE.start(task);
+        setOnDone(task, (ok, result) -> {
             if (ok) {
                 // remove duplicates
                 MapSet<URI, Metadata> unique = new MapSet<>(Metadata::getUri);
-                                      unique.addAll(metadatas);
-                                      unique.addAll(ready);
-                                      unique.addAll(result);
+                unique.addAll(metadatas);
+                unique.addAll(ready);
+                unique.addAll(result);
 
                 metadatas.clear();
                 metadatas.addAll(unique);
                 populate(metadatas);
             }
-        }));
+        });
+        runNew(task);
     }
 
     private void rem(Collection<? extends Song> rem) {

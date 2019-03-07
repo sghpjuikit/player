@@ -19,7 +19,6 @@ import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.layout.widget.ComponentFactory
 import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
-import sp.it.pl.util.Util.containsNoCase
 import sp.it.pl.util.access.minus
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.conf.Config
@@ -44,7 +43,7 @@ class ConfigSearch: AutoCompletion<Entry> {
             { text ->
                 val phrases = text.split(" ").toList()
                 entries()
-                        .filter { phrases.all { phrase -> containsNoCase(it.searchText, phrase) } }
+                        .filter { phrases.all { phrase -> it.searchText.contains(phrase, true) } }
                         .sortedBy { it.name }
                         .toList()
             },

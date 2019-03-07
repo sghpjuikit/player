@@ -1,7 +1,6 @@
 package sp.it.pl.util.collections.map;
 
 import java.util.HashMap;
-import static sp.it.pl.util.dev.FailKt.noNull;
 
 /** HashMap for properties with additional utility methods. */
 public final class PropertyMap<K> extends HashMap<K,Object> {
@@ -35,11 +34,9 @@ public final class PropertyMap<K> extends HashMap<K,Object> {
 	public <T> T getOrPut(Class<T> type, K key, T val) {
 		if (type.isPrimitive())
 			throw new ClassFormatError("Type of property must not be primitive. (Value of course can)");
-		if (type!=val.getClass())
-			throw new ClassCastException("The value does not match the type of property");
 
 		Object v = get(key);
-		if (v==null || v.getClass()!=type) put(key, val);
+		if (!type.isInstance(v)) put(key, val);
 		return (T) get(key);
 	}
 
@@ -81,16 +78,6 @@ public final class PropertyMap<K> extends HashMap<K,Object> {
 	 */
 	public float getF(K key) {
 		return (float) get(key);
-	}
-
-	/**
-	 * Type and null safe alternative to {@link #get(java.lang.Object)}.
-	 * Throws nullpointer exception if null.
-	 */
-	public String getSorThrow(K key) {
-		Object o = get(key);
-		noNull(o);
-		return (String) o;
 	}
 
 	/**

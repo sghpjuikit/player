@@ -59,40 +59,56 @@ public class MetadataReader {
 	 * Creates task that reads metadata for specified songs.
 	 *
 	 * @param songs list of songs to read metadata for
-	 * @param onEnd procedure to execute upon finishing this task providing the result and success flag. Must not be
-	 * null.
 	 * @return the task reading the files returning all successfully read metadata
 	 * @throws NullPointerException if any parameter null
 	 */
-	public static Task<List<Metadata>> readMetadataTask(Collection<? extends Song> songs, BiConsumer<Boolean,List<Metadata>> onEnd) {
+	public static Task<List<Metadata>> readMetadataTask(Collection<? extends Song> songs) {
 		noNull(songs);
-		noNull(onEnd);
-		return new SuccessTask<List<Metadata>,SuccessTask>("Reading metadata", onEnd) {
+		return new Task<>() {
+			private final StringBuffer sb = new StringBuffer(40);
 			private final int all = songs.size();
 			private int completed = 0;
-			private int skipped = 0;
+			private int failed = 0;
+
+			{
+				updateTitle("Reading metadata");
+			}
 
 			@Override
 			protected List<Metadata> call() {
-				updateTitle("Reading metadata for songs.");
 				List<Metadata> metadatas = new ArrayList<>();
 
 				for (Song song : songs) {
 					if (isCancelled()) return metadatas;
 
-					Metadata m = readMetadata(song);
-					// on fail
-					if (m.isEmpty()) skipped++;
-						// on success
-					else metadatas.add(m);
-
-					// update state
 					completed++;
-					updateMessage("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
+
+					Metadata m = readMetadata(song);
+					if (m.isEmpty()) failed++; // on fail
+					else metadatas.add(m);	// on success
+
+					updateMessage(all, completed, failed);
+					updateProgress(completed, all);
+				}
+
+				if (!isCancelled()) {
+					updateMessage(all, completed, failed);
 					updateProgress(completed, all);
 				}
 
 				return metadatas;
+			}
+
+			private void updateMessage(int all, int done, int failed) {
+				sb.setLength(0);
+				sb.append("Read: ");
+				sb.append(done);
+				sb.append("/");
+				sb.append(all);
+				sb.append(" ");
+				sb.append(" Failed: ");
+				sb.append(failed);
+				updateMessage(sb.toString());
 			}
 		};
 	}
@@ -188,7 +204,6 @@ public class MetadataReader {
 						removedItems.add(m);
 					}
 
-					// update state
 					updateMessage(all, completed, 0);
 					updateProgress(completed, all);
 				}
@@ -196,7 +211,6 @@ public class MetadataReader {
 				if (!isCancelled()) {
 					APP.db.removeSongs(removedItems);
 
-					// update state
 					updateMessage(all, completed, removedItems.size());
 					updateProgress(completed, all);
 				}
@@ -205,7 +219,7 @@ public class MetadataReader {
 			}
 
 			private void updateMessage(int all, int done, int removed) {
-				sb.setLength(20);
+				sb.setLength(0);
 				sb.append("Checked: ");
 				sb.append(done);
 				sb.append("/");
@@ -215,7 +229,13 @@ public class MetadataReader {
 				sb.append(removed);
 				updateMessage(sb.toString());
 			}
-
 		};
+	}
+
+	@SuppressWarnings("DuplicateExpressions")
+	public static <T> void setOnDone(Task<T> task, BiConsumer<Boolean, T> onEnd) {
+		task.setOnSucceeded(e -> onEnd.accept(true, task.getValue()));
+		task.setOnFailed(e -> onEnd.accept(false, task.getValue()));
+		task.setOnCancelled(e -> onEnd.accept(false, task.getValue()));
 	}
 }

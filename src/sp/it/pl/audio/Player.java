@@ -31,6 +31,7 @@ import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataReader;
 import sp.it.pl.audio.tagging.MetadataWriter;
 import sp.it.pl.layout.widget.controller.io.InOutput;
+import sp.it.pl.main.AppProgress;
 import sp.it.pl.util.action.IsAction;
 import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.async.executor.FxTimer;
@@ -46,6 +47,7 @@ import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.playback.PlayTimeHandler.at;
+import static sp.it.pl.audio.tagging.MetadataReader.setOnDone;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
@@ -317,9 +319,12 @@ public class Player {
 		noNull(is);
 		if (is.isEmpty()) return;
 
-		runNew(MetadataReader.readMetadataTask(is, (ok, m) -> {
+		var task = MetadataReader.readMetadataTask(is);
+		AppProgress.INSTANCE.start(task);
+		setOnDone(task, (ok, m) -> {
 			if (ok) refreshSongsWith(m);
-		}));
+		});
+		runNew(task);
 	}
 
 	/** Singleton variant of {@link #refreshSongsWith(java.util.List)}. */

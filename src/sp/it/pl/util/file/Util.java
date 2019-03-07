@@ -22,7 +22,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
 import javax.imageio.ImageIO;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.functional.Try;
@@ -33,28 +32,7 @@ import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 
-/**
- * Provides file operations.
- * <p>
- * This class provides bunch of fancy methods that are arguably redundant, but
- * can make your life hell of a lot easier. They clean the code from low level
- * machinations.
- */
 public interface Util {
-
-	/**
-	 * Empty file. Use where null is not desired. There is only one instance of
-	 * empty file - this one. Do not use equals() for comparing, instead use == operator.
-	 * <p/>
-	 * Current implementation is file denoting application location directory.
-	 */
-	URI EMPTY_URI = URI.create("empty://empty");
-
-	/**
-	 * Empty color. Fully transparent black. Substitute for null in some
-	 * situations.
-	 */
-	Color EMPTY_COLOR = new Color(0, 0, 0, 0);
 
 	/**
 	 * Returns true if for provided File all conditions are met:

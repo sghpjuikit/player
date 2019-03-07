@@ -18,10 +18,12 @@ import org.jaudiotagger.tag.mp4.Mp4FieldKey
 import org.jaudiotagger.tag.mp4.Mp4Tag
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag
 import org.jaudiotagger.tag.wav.WavTag
+import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Chapter.Companion.chapter
+import sp.it.pl.audio.tagging.Metadata.Companion.EMPTY
 import sp.it.pl.audio.tagging.Metadata.Field
 import sp.it.pl.gui.objects.image.cover.Cover
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource
@@ -34,7 +36,6 @@ import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.ImageFileFormat
-import sp.it.pl.util.file.Util.EMPTY_URI
 import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
 import sp.it.pl.util.file.parentDirOrRoot
@@ -68,9 +69,9 @@ private typealias F = JvmField
  * The class is practically immutable and does not provide any setters, nor
  * allows updating of its state or any of its values.
  *
- * Metadata can be empty and should be used instead of null. See [.EMPTY]
+ * Metadata can be empty and [EMPTY] may be used instead of null.
  *
- * To access any field in a generic way, see [Field].
+ * To access any field in a generic way, see [Field] and [getField].
  */
 class Metadata: Song, Serializable {
 
@@ -78,7 +79,7 @@ class Metadata: Song, Serializable {
 
     override val uri: URI get() = URI.create(id.replace(" ", "%20"))
 
-    override var id = EMPTY_URI.toString()
+    override lateinit var id: String
 
     /** File size in bytes or -1 if unknown */
     private var fileSizeInB: Long = -1
@@ -193,11 +194,6 @@ class Metadata: Song, Serializable {
 
     /** Time this song was added to library as string or null if none */
     private var libraryAdded: String? = null
-
-    /* Creates empty metadata */
-    private constructor() {
-        id = EMPTY_URI.toString()
-    }
 
     /** Creates metadata from an song, attempts to use as much data available, no i/o. */
     constructor(song: Song) {
@@ -659,7 +655,7 @@ class Metadata: Song, Serializable {
     fun containsChapterAt(at: Duration): Boolean = getChapters().chapters.any { it.time==at }
 
     /** @return the color associated with this or null if none */
-    fun getColor(): Color? = color?.let { APP.converter.general.ofS<Color>(it).getOr(null) }
+    fun getColor(): Color? = color?.let { APP.converter.general.ofS<Color>(it).orNull() }
 
     /** Tags joined into a string or null if none */
     fun getTags(): String? = tags
@@ -758,7 +754,7 @@ class Metadata: Song, Serializable {
          * Note: The reference operator works, because there is always only one
          * instance of EMPTY metadata.
          */
-        @JvmField val EMPTY = Metadata()
+        @JvmField val EMPTY = Metadata(SimpleSong(URI.create("empty://empty")))
 
         @JvmStatic
         fun metadataID(u: URI): String = u.toString()

@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 import javafx.beans.Observable;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -569,39 +568,8 @@ public interface Util {
 	}
 
 	/**
-	 * Renames declared enum constant using the mapper function on the enum
-	 * constant string.
-	 * <p/>
-	 * This method effectively overrides both enum's toString() and valueOf()
-	 * methods. It allows using arbitrary string values for enum constants,
-	 * but in toString/valueOf compliant way.
-	 * <p/>
-	 * Use in enum constructor. For example:
-	 * <br/>
-	 * <pre>
-	 * {@code
-	 *  class MyEnum {
-	 *      A,
-	 *      B;
-	 *
-	 *      public MuEnum() {
-	 *          mapEnumConstantName(MyEnum.class, this, String::toLowerCase);
-	 *      }
-	 *  }
-	 * }
-	 * </pre>
-	 *
-	 * @param constant enum constant
-	 * @param mapper function to apply on the constant
-	 * @throws RuntimeException if reflection error occurs
-	 */
-	static <E extends Enum<E>> void mapEnumConstantName(E constant, Function<E,String> mapper) {
-		setField(constant.getClass().getSuperclass(), constant, "name", mapper.apply(constant));
-	}
-
-	/**
-	 * Returns whether class is an enum. Works for
-	 * enums with class method bodies (where Class.isEnum) does not work.
+	 * Returns whether class is an enum.
+	 * Works even for enums with class method bodies, where {@link Class#isEnum()} does not work.
 	 *
 	 * @return true if class is enum or false otherwise
 	 * @see #getEnumConstants(Class)
@@ -611,12 +579,12 @@ public interface Util {
 	}
 
 	/**
-	 * Returns enum constants of an enum class in declared order. Works for enums with class method bodies (where
-	 * Enum.getEnumConstants does not).
+	 * Returns enum constants of an enum class in declared order.
+	 * Works even for enums with class method bodies, where {@link Class#getEnumConstants()} does not work.
 	 *
 	 * @param type type of enum
 	 * @return non null array of enum constants
-	 * @throws IllegalArgumentException if class not an enum
+	 * @throws java.lang.RuntimeException if class not an enum
 	 */
 	@SuppressWarnings({"unchecked", "deprecation"})
 	static <T> T[] getEnumConstants(Class<?> type) {
@@ -625,11 +593,9 @@ public interface Util {
 
 			// handle enum with class method bodies (they are not recognized as enums)
 		else {
-			Class<?> ec = type.getEnclosingClass();
-			if (ec!=null && ec.isEnum())
-				return (T[]) ec.getEnumConstants();
-			else
-				throw new IllegalArgumentException("Class=" + type + " is not an Enum.");
+			Class<?> c = type.getEnclosingClass();
+			if (c!=null && c.isEnum()) return (T[]) c.getEnumConstants();
+			else throw new IllegalArgumentException("Class=" + type + " is not an Enum.");
 		}
 	}
 }

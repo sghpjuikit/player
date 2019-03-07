@@ -10,9 +10,6 @@ import sp.it.pl.util.Util.StringDirection
 import sp.it.pl.util.Util.StringDirection.FROM_START
 import sp.it.pl.util.Util.addText
 import sp.it.pl.util.Util.charAt
-import sp.it.pl.util.Util.containsNoCase
-import sp.it.pl.util.Util.endsWithNoCase
-import sp.it.pl.util.Util.equalsNoCase
 import sp.it.pl.util.Util.filenamizeString
 import sp.it.pl.util.Util.remove1st
 import sp.it.pl.util.Util.removeAll
@@ -25,7 +22,6 @@ import sp.it.pl.util.Util.replaceAllRegex
 import sp.it.pl.util.Util.retainChars
 import sp.it.pl.util.Util.split
 import sp.it.pl.util.Util.splitJoin
-import sp.it.pl.util.Util.startsWithNoCase
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use.APP
 import sp.it.pl.util.file.AudioFileFormat.Use.PLAYBACK
@@ -121,10 +117,10 @@ object CoreFunctors: Core {
             add("Trim", S, S, { it.trim() })
             add("Split", S, StringSplitParser.SplitData::class.java, { text, splitter -> split(text, splitter) }, StringSplitParser::class.java, StringSplitParser.singular())
             add("Split-join", S, S, { t, splitter, joiner -> splitJoin(t, splitter, joiner) }, StringSplitParser::class.java, StringSplitParser::class.java, StringSplitParser.singular(), StringSplitParser.singular())
-            add("Is", S, B, { text, phrase, ignore -> equalsNoCase(text, phrase, ignore) }, S, B, "", true)
-            add("Contains", S, B, { text, phrase, ignore -> containsNoCase(text, phrase, ignore) }, S, B, "", true, false, false, true)
-            add("Ends with", S, B, { text, phrase, ignore -> endsWithNoCase(text, phrase, ignore) }, S, B, "", true)
-            add("Starts with", S, B, { text, phrase, ignore -> startsWithNoCase(text, phrase, ignore) }, S, B, "", true)
+            add("Is", S, B, { text, phrase, ignore -> text.equals(phrase, ignore) }, S, B, "", true)
+            add("Contains", S, B, { text, phrase, ignore -> text.contains(phrase, ignore) }, S, B, "", true, false, false, true)
+            add("Ends with", S, B, { text, phrase, ignore -> text.endsWith(phrase, ignore) }, S, B, "", true)
+            add("Starts with", S, B, { text, phrase, ignore -> text.startsWith(phrase, ignore) }, S, B, "", true)
             add("Matches regex", S, B, { text, r -> r.matcher(text).matches() }, Pattern::class.java, Pattern.compile(""))
             add("After", S, B, { x, y -> x>y }, S, "")
             add("Before", S, B, { x, y -> x<y }, S, "")

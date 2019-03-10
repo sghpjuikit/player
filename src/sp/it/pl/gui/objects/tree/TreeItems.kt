@@ -68,6 +68,7 @@ import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.onItemSync
 import sp.it.pl.util.system.open
 import sp.it.pl.util.text.plural
+import sp.it.pl.util.type.Util.getFieldValue
 import java.io.File
 import java.nio.file.Path
 import java.util.ArrayList
@@ -375,6 +376,6 @@ fun <T> TreeItem<T>.disposeIfDisposable() {
     if (this is DisposableTreeItem) {
         dispose()
     } else {
-        sp.it.pl.util.type.Util.getFieldValue<ObservableList<TreeItem<T>>?>(this, "children")?.forEach { it.disposeIfDisposable() }
+        getFieldValue<ObservableList<TreeItem<T>>?>(this, "children")?.forEach { it.disposeIfDisposable() }
     }
 }

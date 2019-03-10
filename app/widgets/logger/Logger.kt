@@ -43,7 +43,6 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
         root.onScroll = EventHandler { it.consume() }
 
         APP.systemout.addListener { area.appendText(it) } on onClose
-
     }
 
     override fun showText(text: String) = println(text)

@@ -135,7 +135,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                     }
                 }
 
-                override fun buildListViewCellFactory(listView: ListView<Entry>) = EntryListCell()
+                override fun buildListCell(listView: ListView<Entry>) = EntryListCell()
             }
         }
     }

@@ -4,7 +4,8 @@ import javafx.beans.property.SimpleDoubleProperty
 import javafx.scene.control.Control
 import javafx.scene.control.SkinBase
 import javafx.scene.control.Slider
-import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCode.LEFT
+import javafx.scene.input.KeyCode.RIGHT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import sp.it.pl.audio.playback.BalanceProperty
 import sp.it.pl.util.reactive.Disposer
@@ -79,11 +80,11 @@ class BalancerSkin(b: Balancer): SkinBase<Balancer>(b) {
         }
         b.addEventFilter(KEY_PRESSED) {
             when (it.code) {
-                KeyCode.RIGHT -> {
+                RIGHT -> {
                     skinnable.incToRight()
                     it.consume()
                 }
-                KeyCode.LEFT -> {
+                LEFT -> {
                     skinnable.incToLeft()
                     it.consume()
                 }

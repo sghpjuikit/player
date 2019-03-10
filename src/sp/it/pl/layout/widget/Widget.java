@@ -68,7 +68,9 @@ import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.split;
 import static sp.it.pl.util.functional.Util.toS;
 import static sp.it.pl.util.graphics.UtilKt.findParent;
+import static sp.it.pl.util.graphics.UtilKt.onNodeDispose;
 import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
+import static sp.it.pl.util.graphics.UtilKt.removeFromParent;
 
 /**
  * Widget graphical component with a functionality.
@@ -81,7 +83,7 @@ import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
  * standalone object if implementation allows). The type of widget influences
  * the lifecycle.
  */
-public class Widget extends Component implements CachedCompositeConfigurable<Object>, Locatable {
+public final class Widget extends Component implements CachedCompositeConfigurable<Object>, Locatable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
 	private static final Set<String> ignoredConfigs = set("Is preferred", "Is ignored", "Custom name"); // avoids data duplication
@@ -310,18 +312,24 @@ public class Widget extends Component implements CachedCompositeConfigurable<Obj
 		LOGGER.info("Widget=" + name + " closing");
 
 		if (controller!=null) {
-			// We set controller null (before closing it). Makes sure that:
-			// 1) widget is unusable
-			// 2) calling this method again is no-op
-			// Avoids:
-			// 1) stackoverflow if controller.close() calls widget.close() for some reason
-			// 2) stackoverflow when widget==controller, so close() would execute recursively
 			Controller c = controller;
 			controller = null;
 
-			IOLayer.all_inputs.removeAll(c.getOwnedInputs().getInputs());
-			IOLayer.all_outputs.removeAll(c.getOwnedOutputs().getOutputs());
+			var is = c.getOwnedInputs().getInputs();
+			var os = c.getOwnedOutputs().getOutputs();
+			IOLayer.all_inputs.removeAll(is);
+			IOLayer.all_outputs.removeAll(os);
+
 			c.close();
+
+			is.forEach(i -> i.setValue(null));
+			os.forEach(o -> o.setValue(null));
+		}
+
+		if (root!=null) {
+			removeFromParent(root);
+			onNodeDispose(root);
+			root = null;
 		}
 
 		ios.removeIf(io -> io.widget==this);

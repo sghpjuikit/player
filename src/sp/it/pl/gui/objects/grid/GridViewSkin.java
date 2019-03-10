@@ -22,7 +22,6 @@ import javafx.scene.control.Skin;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -34,6 +33,7 @@ import sp.it.pl.gui.objects.grid.GridView.Search;
 import sp.it.pl.gui.objects.grid.GridView.SelectionOn;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
 import sp.it.pl.util.functional.Functors;
+import sp.it.pl.util.reactive.Disposer;
 import sp.it.pl.util.reactive.UtilKt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -42,6 +42,7 @@ import static javafx.application.Platform.runLater;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.ScrollEvent.SCROLL;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.getAt;
@@ -58,9 +59,9 @@ import static sp.it.pl.util.reactive.UtilKt.onChange;
 public class GridViewSkin<T, F> implements Skin<GridView> {
 
 	private static final int NO_SELECT = Integer.MIN_VALUE;
-	private final GridView<T,F> grid;
+	private VBox root;
+	private GridView<T,F> grid;
 	private final Flow<T,F> flow;
-	private final VBox root;
 	private final StackPane filterPane = new StackPane();
 	/** Filter pane in the top of the table. */
 	public final Filter filter;
@@ -102,6 +103,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 	};
 	int selectedCI = NO_SELECT;
 	private GridCell<T,F> selectedC = null;
+	private final Disposer onDispose = new Disposer();
 
 	public GridViewSkin(GridView<T,F> control) {
 		this.grid = control;
@@ -120,7 +122,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		attach(grid.focusedProperty(), v -> {
 			if (v) flow.requestFocus();
 		});
-		onChange(grid.getItemsShown(), runnable(() -> flow.changeItemsLazy()));
+		UtilKt.on(onChange(grid.getItemsShown(), runnable(() -> flow.changeItemsLazy())), onDispose);
 
 		root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, flow.root);
 		filter = new Filter(grid.type, grid.itemsFiltered);
@@ -151,7 +153,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK)) selectNone();
 			flow.requestFocus();
 		});
-		flow.addEventFilter(ScrollEvent.SCROLL, e -> {
+		flow.addEventFilter(SCROLL, e -> {
 			// Select hovered cell (if enabled)
 			// Newly created cells that 'appear' right under mouse cursor will not receive hover event
 			// Normally we would update the selection after the cells get updated, but that happens also on regular
@@ -166,8 +168,8 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 	}
 
 	// TODO: remove
-	private static <O> void attach(ObservableValue<O> value, Consumer<? super O> action) {
-		UtilKt.attach(value, consumer(action));
+	private <O> void attach(ObservableValue<O> value, Consumer<? super O> action) {
+		UtilKt.on(UtilKt.attach(value, consumer(action)), onDispose);
 	}
 
 	// TODO: improve API
@@ -198,7 +200,12 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 	}
 
 	@Override
-	public void dispose() {}
+	public void dispose() {
+		System.out.println("disposing");
+		flow.dispose();
+		root = null;
+		grid = null;
+	}
 
 	public Stream<GridCell<T,F>> getCells() {
 		return flow.getCells();
@@ -365,7 +372,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 			// scrolling
 			double scrollSpeedMultiplier = 3;
-			addEventFilter(ScrollEvent.SCROLL, e -> {
+			addEventFilter(SCROLL, e -> {
 				scrollBy(-e.getDeltaY()*scrollSpeedMultiplier);
 				e.consume();
 			});
@@ -528,6 +535,12 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			if (wasFocused) {
 				requestLayout();
 			}
+		}
+
+		void dispose() {
+			needsRebuildCells = false;
+			visibleCells.clear();
+			cachedCells.clear();
 		}
 
 		@SuppressWarnings("unused")

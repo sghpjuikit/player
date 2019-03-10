@@ -46,6 +46,9 @@ import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.createIcon
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.pseudoclass
+import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.syncFrom
 import java.lang.Math.ceil
 
@@ -62,12 +65,13 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
     }
     private lateinit var foregroundIcons: Node
     private val foregroundMask = Rectangle()
-    private var ratingOld = r.rating.get()
+    private var ratingOld = r.rating.value
+    private val onDispose = Disposer()
 
     init {
-        backgroundContainer.alignmentProperty() syncFrom r.alignment
+        backgroundContainer.alignmentProperty() syncFrom r.alignment on onDispose
         backgroundContainer.onMouseMoved = EventHandler<MouseEvent> {
-            if (skinnable.editable.get()) {
+            if (skinnable.editable.value) {
                 val v = computeRating(it.sceneX, it.sceneY)
                 updateClipAndStyle(v)
                 it.consume()
@@ -83,23 +87,23 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
             }
         }
 
-        foregroundContainer.alignmentProperty() syncFrom r.alignment
+        foregroundContainer.alignmentProperty() syncFrom r.alignment on onDispose
         foregroundContainer.isMouseTransparent = true
         foregroundContainer.clip = foregroundMask
         children setTo listOf(backgroundContainer, foregroundContainer)
         updateButtons()
 
-        registerChangeListener(r.rating) { updateClipAndStyle() }
-        registerChangeListener(r.icons) { updateButtons() }
-        registerChangeListener(r.partialRating) { updateClipAndStyle() }
+        r.rating attach { updateClipAndStyle() } on onDispose
+        r.icons attach { updateButtons() } on onDispose
+        r.partialRating attach { updateClipAndStyle() } on onDispose
 
         r.addEventHandler(MOUSE_ENTERED) {
             it.consume()
-            if (r.editable.get()) ratingOld = r.rating.get()
+            if (r.editable.value) ratingOld = r.rating.value
         }
         r.addEventHandler(MOUSE_EXITED) {
             it.consume()
-            if (r.editable.get()) updateClipAndStyle(ratingOld)
+            if (r.editable.value) updateClipAndStyle(ratingOld)
         }
     }
 
@@ -162,6 +166,11 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
     override fun layoutChildren(contentX: Double, contentY: Double, contentWidth: Double, contentHeight: Double) {
         super.layoutChildren(contentX, contentY, contentWidth, contentHeight)
         if (::foregroundIcons.isInitialized) updateClip()
+    }
+
+    override fun dispose() {
+        onDispose()
+        super.dispose()
     }
 
     companion object {

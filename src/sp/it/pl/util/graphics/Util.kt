@@ -13,6 +13,7 @@ import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.control.Button
+import javafx.scene.control.Control
 import javafx.scene.control.Label
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
@@ -61,8 +62,10 @@ import javafx.stage.Window
 import javafx.util.Callback
 import org.reactfx.Subscription
 import sp.it.pl.util.JavaLegacy
+import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.graphics.image.FitFrom
 import sp.it.pl.util.math.P
+import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.sync
 import kotlin.math.abs
 import kotlin.math.max
@@ -95,7 +98,7 @@ fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Double? = null): Text {
     }
 }
 
-/* ---------- TRAVERSAL --------------------------------------------------------------------------------------------- */
+/* ---------- NODE -------------------------------------------------------------------------------------------------- */
 
 /** @return true iff this is direct parent of the specified node */
 fun Node.isParentOf(child: Node) = child.parent==this
@@ -111,6 +114,15 @@ fun Node.isAnyChildOf(parent: Node) = parent.isAnyParentOf(this)
 
 /** @return this or direct or indirect parent of this that passes specified filter or null if no element passes */
 fun Node.findParent(filter: (Node) -> Boolean) = generateSequence(this, { it.parent }).find(filter)
+
+/** Removes this from its parent's children if possible (if parent is [Pane] or [Group]). */
+fun Node.removeFromParent() {
+    val p = parent
+    when (p) {
+        is Group -> p.children -= this
+        is Pane -> p.children -= this
+    }
+}
 
 /** @return topmost child node containing the specified scene coordinates optionally testing against the specified test or null if no match */
 fun Node.pickTopMostAt(sceneX: Double, sceneY: Double, test: (Node) -> Boolean = { true }): Node? {
@@ -147,15 +159,6 @@ fun Node.pickTopMostAt(sceneX: Double, sceneY: Double, test: (Node) -> Boolean =
     }
 }
 
-/** Removes this from the parent's children if possible. */
-fun Node?.removeFromParent(parent: Node?) {
-    if (parent==null || this==null) return
-    (parent as? Pane)?.children?.remove(this)
-}
-
-/** Removes this from its parent's children if possible. */
-fun Node?.removeFromParent() = this?.removeFromParent(parent)
-
 /** Adds the specified styleclass to [Node.styleClass] of this node, if it has not yet been assigned. */
 fun Node.styleclassAdd(styleClass: String) {
     if (styleClass !in this.styleClass)
@@ -171,6 +174,33 @@ fun Node.styleclassToggle(styleClass: String, enabled: Boolean) {
 /** Removes all instances of the specified styleclass from [Node.styleClass] of this node. */
 fun Node.styleclassRemove(styleClass: String) {
     this.styleClass.removeIf { it==styleClass }
+}
+
+/**
+ * Disposer called in [Node.onNodeDispose].
+ * 1st invocation of this property initializes the disposer and stores it in [Node.properties] with a unique key.
+ */
+val Node.onNodeDispose: Disposer
+    get() = properties.getOrPut("onDispose_7bccf7a3-bcae-42ca-a91d-9f95217b942c") { Disposer() } as Disposer
+
+/**
+ * Disposes of this node, with the intention of it and all it's children to never again be used in the scene graph.
+ *
+ * If a disposer is initialized, it will be invoked. Use [Node.onNodeDispose] property to access, initialize and add
+ * subscriptions to the underlying disposer.
+ *
+ * If this is [Control], [Control.skin] will be set to null (which will invoke [javafx.scene.control.Skin.dispose])
+ *
+ * If this is [Parent], this function will be invoked on each item in [Parent.getChildrenUnmodifiable]. Disposal
+ * is recursive, in a top-down depth-first traversal.
+ *
+ * This is an optional dispose API and as such is not used nor called automatically by the JavaFx. It is up to the
+ * developer to call it appropriately, but one may wish to call it immediately after a call to [Node.removeFromParent].
+ */
+fun Node.onNodeDispose() {
+    properties["onDispose_7bccf7a3-bcae-42ca-a91d-9f95217b942c"].asIf<Disposer>()?.invoke()
+    if (this is Control) skin = null
+    if (this is Parent) childrenUnmodifiable.forEach { it.onNodeDispose() }
 }
 
 /* ---------- CONSTRUCTORS ------------------------------------------------------------------------------------------ */

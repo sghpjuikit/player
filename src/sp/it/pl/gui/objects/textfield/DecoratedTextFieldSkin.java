@@ -46,7 +46,7 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 	private StackPane leftPane;
 	private Node right;
 	private StackPane rightPane;
-	private final DecoratedTextField control;
+	private DecoratedTextField control;
 
 	public DecoratedTextFieldSkin(DecoratedTextField control) {
 		super(control);
@@ -139,4 +139,9 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 //        return computePrefWidth(height, topInset, rightInset, bottomInset, leftInset);
 //}
 
+	@Override
+	public void dispose() {
+		control = null;
+		super.dispose();
+	}
 }

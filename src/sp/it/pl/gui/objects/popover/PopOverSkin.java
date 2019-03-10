@@ -82,8 +82,8 @@ public class PopOverSkin implements Skin<PopOver> {
 	private static final String TITLE_STYLECLASS = "title";
 	private static final String SHAPE_STYLECLASS = "bgr";
 
-	private final PopOver<? extends Node> p;
-	private final StackPane root;
+	private PopOver<? extends Node> p;
+	private StackPane root;
 	private final Path path;
 	private final BorderPane content;
 	private final Label title;
@@ -284,7 +284,10 @@ public class PopOverSkin implements Skin<PopOver> {
 	}
 
 	@Override
-	public void dispose() {}
+	public void dispose() {
+		p = null;
+		root = null;
+	}
 
 	private MoveTo moveTo;
 	private QuadCurveTo topCurveTo, rightCurveTo, bottomCurveTo, leftCurveTo;

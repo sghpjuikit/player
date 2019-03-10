@@ -50,6 +50,7 @@ open class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
     fun initFocusAnimation() {
         val scaling = anim(350.millis) { updateThumbScale(fxy = 1+1*it*it) }
         skinnable.focusedProperty() attach { if (it) scaling.playOpenDoClose(null) } on onDispose
+        onDispose += scaling::stop
     }
 
 

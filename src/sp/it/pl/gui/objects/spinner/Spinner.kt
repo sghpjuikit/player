@@ -4,14 +4,20 @@ import javafx.animation.Interpolator
 import javafx.animation.RotateTransition
 import javafx.animation.Transition
 import javafx.geometry.Pos
+import javafx.geometry.Pos.BOTTOM_RIGHT
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.SkinBase
 import javafx.scene.layout.StackPane
 import javafx.scene.shape.Arc
-import javafx.util.Duration
 import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.graphics.maxSize
 import sp.it.pl.util.graphics.stackPane
+import sp.it.pl.util.graphics.x
+import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.units.millis
 import sp.it.pl.util.units.seconds
 
 /** Very simple custom [ProgressIndicator]. */
@@ -26,46 +32,48 @@ class Spinner: ProgressIndicator {
         private val outer: StackPane
         private var rt: RotateTransition? = null
         private var playing = false
+        private val onDispose = Disposer()
 
         init {
             inner = stackPane {
-                lay(Pos.BOTTOM_RIGHT) += Arc().apply {
+                lay(BOTTOM_RIGHT) += Arc().apply {
                     length = 270.0
                     startAngle = 180.0
-                    this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble() }
-                    this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble() }
+                    this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble() } on onDispose
+                    this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble() } on onDispose
                     styleClass += "spinner"
                     styleClass += "spinner-in"
                 }
                 styleClass += "spinner-in"
-                setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE)
+                maxSize = USE_PREF_SIZE x USE_PREF_SIZE
             }
             outer = stackPane {
                 lay(Pos.TOP_LEFT) += Arc().apply {
                     length = 270.0
-                    this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble() }
-                    this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble() }
+                    this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble() } on onDispose
+                    this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble() } on onDispose
                     styleClass += "spinner"
                     styleClass += "spinner-out"
                 }
                 styleClass += "spinner-out"
-                setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE)
+                maxSize = USE_PREF_SIZE x USE_PREF_SIZE
             }
 
-            inner.rotateProperty() sync { outer.rotate = 360.0-it.toDouble() }
+            inner.rotateProperty() sync { outer.rotate = 360.0-it.toDouble() } on onDispose
             children += stackPane(inner, outer)
 
-            registerChangeListener(spinner.indeterminateProperty()) { update() }
-            registerChangeListener(spinner.progressProperty()) { update() }
-            registerChangeListener(spinner.visibleProperty()) { update() }
-            registerChangeListener(spinner.parentProperty()) { update() }
-            registerChangeListener(spinner.sceneProperty()) { update() }
+            spinner.indeterminateProperty() attach { update() } on onDispose
+            spinner.progressProperty() attach { update() } on onDispose
+            spinner.visibleProperty() attach { update() } on onDispose
+            spinner.parentProperty() attach { update() } on onDispose
+            spinner.sceneProperty() attach { update() } on onDispose
 
             update()
         }
 
         override fun dispose() {
             rt?.stop()
+            onDispose()
             super.dispose()
         }
 
@@ -74,7 +82,7 @@ class Spinner: ProgressIndicator {
                 rt = rt ?: RotateTransition(120.seconds, inner).apply {
                     interpolator = Interpolator.LINEAR
                     cycleCount = Transition.INDEFINITE
-                    delay = Duration.ZERO
+                    delay = 0.millis
                     byAngle = 360*100.0
                 }
                 if (!playing) rt?.play()

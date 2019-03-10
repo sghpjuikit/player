@@ -58,7 +58,7 @@ open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
         list = listView {
             items = control.suggestions
 
-            cellFactory = Callback { buildListViewCellFactory(it) }
+            cellFactory = Callback { buildListCell(it) }
             syncTo(control.visibleRowCount, items.sizes(), fixedCellSizeProperty()) { rowCount, itemCount, cellSize ->
                 prefHeight = snappedTopInset() + snappedBottomInset() + cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
             } on onDispose
@@ -93,6 +93,8 @@ open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
 
     override fun dispose() {
         onDispose()
+        list.items = null
+        nullify(::list)
         nullify(::control)
     }
 
@@ -101,5 +103,5 @@ open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
             skinnable.onSuggestion(suggestion)
     }
 
-    protected open fun buildListViewCellFactory(listView: ListView<T>): ListCell<T> = TextFieldListCell.forListView(control.converter)(listView)
+    protected open fun buildListCell(listView: ListView<T>): ListCell<T> = TextFieldListCell.forListView(control.converter)(listView)
 }

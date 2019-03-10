@@ -1,8 +1,9 @@
 package sp.it.pl.main
 
+import javafx.concurrent.Worker.State.READY
+import javafx.concurrent.Worker.State.SCHEDULED
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
-import javafx.scene.control.Label
 import javafx.scene.layout.Pane
 import javafx.stage.FileChooser.ExtensionFilter
 import sp.it.pl.audio.Player
@@ -13,7 +14,6 @@ import sp.it.pl.audio.playlist.isPlaylistFile
 import sp.it.pl.audio.playlist.readPlaylist
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataReader
-import sp.it.pl.gui.nodeinfo.ConvertTaskInfo
 import sp.it.pl.gui.pane.ActionPane
 import sp.it.pl.gui.pane.ComplexActionData
 import sp.it.pl.gui.pane.ConfigPane
@@ -32,6 +32,7 @@ import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
+import sp.it.pl.util.Util.enumToHuman
 import sp.it.pl.util.access.v
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.animation.Anim.Companion.anim
@@ -57,9 +58,11 @@ import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.graphics.hBox
+import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.graphics.vBox
+import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.chooseFile
@@ -376,14 +379,12 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                 @IsConfig(name = "Enqueue in playlist", group ="4") val enqueue by cv(false)
             }
             val task = MetadataReader.addSongsToLibTask()
-            val info = ConvertTaskInfo(
-                    title = null,
-                    message = Label(),
-                    skipped = Label(),
-                    state = Label(),
-                    pi = appProgressIndicator()
-            ).apply {
-                bind(task)
+            val info = object: Any() {
+                    private val computeProgress = { it: Number -> when(task.state) { SCHEDULED, READY -> 1.0 else -> it.toDouble() } }
+                    val message = label { textProperty() syncFrom task.messageProperty() }
+                    val skipped = label { task.skippedProperty() sync { text = "Skipped: $it" } }
+                    val state = label { task.stateProperty() sync { text = "State: ${enumToHuman(it)}" } }
+                    val progress = appProgressIndicator().apply { task.progressProperty() sync { progress = computeProgress(it) } }
             }
 
             hBox(50, CENTER) {
@@ -393,12 +394,12 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                     lay += vBox(10, CENTER_LEFT) {
                         opacity = 0.0
 
-                        lay += info.state!!
+                        lay += info.state
                         lay += hBox(10, CENTER_LEFT) {
-                            lay += info.message!!
-                            lay += info.progress!!
+                            lay += info.message
+                            lay += info.progress
                         }
-                        lay += info.skipped!!
+                        lay += info.skipped
                     }
                     lay += formIcon(IconFA.CHECK, "Execute") {
                         executed.value = true

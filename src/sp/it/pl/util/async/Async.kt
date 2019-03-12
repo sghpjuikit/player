@@ -168,16 +168,20 @@ fun onlyIfMatches(r: Runnable, counter: AtomicLong): Runnable {
 }
 
 /** @return single thread executor using specified thread factory */
-fun oneThreadExecutor() = Executors.newSingleThreadExecutor(threadFactory(true))!!
+fun oneTPExecutor() = Executors.newSingleThreadExecutor(threadFactory(true))!!
 
 /** @return single thread executor keeping the thread alive for specified time and using specified thread factory */
-fun oneCachedThreadExecutor(keepAliveTime: Duration, threadFactory: ThreadFactory) =
+fun oneCachedTPExecutor(keepAliveTime: Duration, threadFactory: ThreadFactory) =
         ThreadPoolExecutor(0, 1, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue<Runnable>(), threadFactory)
 
-/** Resolves: https://stackoverflow.com/questions/19528304/how-to-get-the-threadpoolexecutor-to-increase-threads-to-max-before-queueing/19528305#19528305 */
-fun newThreadPoolExecutor(maxPoolSize: Int, keepAliveTime: Long, unit: TimeUnit, threadFactory: ThreadFactory): ExecutorService {
-    // TODO: implement properly
-    return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime, unit, LinkedBlockingQueue<Runnable>(), threadFactory).apply {
+/**
+ * Resolves: https://stackoverflow.com/questions/19528304/how-to-get-the-threadpoolexecutor-to-increase-threads-to-max-before-queueing/19528305#19528305
+ * Due to the nature of the fix, core pool size is 0.
+ *
+ * @return single thread executor keeping the thread alive for specified time and using specified thread factory
+ */
+fun burstTPExecutor(maxPoolSize: Int, keepAliveTime: Duration, threadFactory: ThreadFactory): ExecutorService {
+    return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue<Runnable>(), threadFactory).apply {
         allowCoreThreadTimeOut(true)
     }
 }

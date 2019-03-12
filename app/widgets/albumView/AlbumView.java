@@ -53,7 +53,7 @@ import static sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
+import static sp.it.pl.util.async.AsyncKt.oneTPExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runLater;
 import static sp.it.pl.util.async.AsyncKt.sleep;
@@ -96,8 +96,8 @@ public class AlbumView extends SimpleController {
 	Output<List<Metadata>> out_sel_met;
 	Input<List<Metadata>> in_items;
 	final GridView<Album,MetadataGroup> view = new GridView<>(MetadataGroup.class, a -> a.items, cellSize.get().width, cellSize.get().width*cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT, 5, 5);
-	final ExecutorService executorThumbs = oneThreadExecutor();
-	final ExecutorService executorImage = oneThreadExecutor(); // 2 threads perform better, but cause bugs
+	final ExecutorService executorThumbs = oneTPExecutor();
+	final ExecutorService executorImage = oneTPExecutor(); // 2 threads perform better, but cause bugs
 
 	@SuppressWarnings("unchecked")
 	public AlbumView(Widget widget) {

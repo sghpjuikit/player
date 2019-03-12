@@ -45,7 +45,7 @@ import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Sort.ASCENDING;
 import static sp.it.pl.util.async.AsyncKt.FX;
-import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
+import static sp.it.pl.util.async.AsyncKt.oneTPExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runOn;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
@@ -85,8 +85,8 @@ public class AppLauncher extends SimpleController {
     final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5).initAttachC(v -> applyCellSize());
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width,cellSize.get().width*cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT,5,5);
-    private final ExecutorService executorIO = oneThreadExecutor();
-    private final ExecutorService executorThumbs = oneThreadExecutor();
+    private final ExecutorService executorIO = oneTPExecutor();
+    private final ExecutorService executorThumbs = oneTPExecutor();
     private final Loader imageLoader = new Loader(executorThumbs, null);
     boolean initialized = false;
     private volatile boolean isResizing = false;

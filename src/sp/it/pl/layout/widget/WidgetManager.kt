@@ -24,7 +24,7 @@ import sp.it.pl.util.access.SequentialValue
 import sp.it.pl.util.async.FX
 import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.future.Fut.Result
-import sp.it.pl.util.async.oneCachedThreadExecutor
+import sp.it.pl.util.async.oneCachedTPExecutor
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.async.threadFactory
@@ -100,7 +100,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
     /** Separates entries of a java classpath argument, passed to JVM. */
     private var classpathSeparator = Os.current.classpathSeparator
     private var initialized = false
-    private val compilerThread by lazy { oneCachedThreadExecutor(30.seconds, threadFactory("widgetCompiler", true)) }
+    private val compilerThread by lazy { oneCachedTPExecutor(30.seconds, threadFactory("widgetCompiler", true)) }
 
     fun init() {
         if (initialized) return

@@ -51,7 +51,7 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.Anim.Companion.animPar
 import sp.it.pl.util.async.NEW
-import sp.it.pl.util.async.newThreadPoolExecutor
+import sp.it.pl.util.async.burstTPExecutor
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.async.threadFactory
@@ -100,6 +100,7 @@ import sp.it.pl.util.system.edit
 import sp.it.pl.util.system.open
 import sp.it.pl.util.system.runAsProgram
 import sp.it.pl.util.units.millis
+import sp.it.pl.util.units.minutes
 import sp.it.pl.util.units.times
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import sp.it.pl.web.WebSearchUriBuilder
@@ -108,7 +109,6 @@ import java.io.File
 import java.lang.Math.rint
 import java.net.URI
 import java.util.HashMap
-import java.util.concurrent.TimeUnit.MINUTES
 import kotlin.streams.asSequence
 
 class GameView(widget: Widget): SimpleController(widget) {
@@ -124,8 +124,8 @@ class GameView(widget: Widget): SimpleController(widget) {
 
     val grid = GridView<Item, File>(File::class.java, { it.`val` }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio+CELL_TEXT_HEIGHT, 10.0, 10.0)
     val imageLoader = GridFileThumbCell.Loader(
-            newThreadPoolExecutor(8, 1, MINUTES, threadFactory("gameView-img-thumb", true)),
-            newThreadPoolExecutor(8, 1, MINUTES, threadFactory("gameView-img-full", true))
+            burstTPExecutor(8, 1.minutes, threadFactory("gameView-img-thumb", true)),
+            burstTPExecutor(8, 1.minutes, threadFactory("gameView-img-full", true))
     )
     val placeholder = Placeholder(IconMD.FOLDER_PLUS, "Click to add directory to library") {
         chooseFile("Choose directory", FileType.DIRECTORY, APP.DIR_HOME, root.scene.window)
@@ -133,7 +133,7 @@ class GameView(widget: Widget): SimpleController(widget) {
     }
 
     init {
-        root.setPrefSize(1000.scaleEM(), 700.scaleEM())
+        root.prefSize = 1000.scaleEM() x 700.scaleEM()
 
         files.onChange { viewGames() } on onClose
         files.onChange { placeholder.show(root, files.isEmpty()) } on onClose

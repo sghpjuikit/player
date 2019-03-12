@@ -22,7 +22,7 @@ import sp.it.pl.util.graphics.image.ImageSize;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.async.AsyncKt.oneThreadExecutor;
+import static sp.it.pl.util.async.AsyncKt.oneTPExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.sleep;
 import static sp.it.pl.util.dev.FailKt.failIf;
@@ -324,8 +324,8 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		public final ExecutorService executorThumbs;
 		public final ExecutorService executorImage;
 		public final AtomicBoolean twoPass = new AtomicBoolean(false);
-		public final ExecutorService loadSynchronizerThumb = oneThreadExecutor();
-		public final ExecutorService loadSynchronizerFull = oneThreadExecutor();
+		public final ExecutorService loadSynchronizerThumb = oneTPExecutor();
+		public final ExecutorService loadSynchronizerFull = oneTPExecutor();
 
 		public Loader(ExecutorService executorThumbs, ExecutorService executorImage) {
 			this.executorThumbs = executorThumbs;

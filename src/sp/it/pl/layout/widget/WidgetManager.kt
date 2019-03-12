@@ -22,9 +22,9 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.pl.util.access.SequentialValue
 import sp.it.pl.util.async.FX
+import sp.it.pl.util.async.burstTPExecutor
 import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.future.Fut.Result
-import sp.it.pl.util.async.oneCachedTPExecutor
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.async.threadFactory
@@ -78,6 +78,7 @@ import java.nio.file.WatchEvent.Kind
 import java.util.Optional
 import java.util.stream.Stream
 import javax.tools.ToolProvider
+import kotlin.math.ceil
 import kotlin.streams.asSequence
 import kotlin.streams.asStream
 import kotlin.streams.toList
@@ -100,7 +101,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
     /** Separates entries of a java classpath argument, passed to JVM. */
     private var classpathSeparator = Os.current.classpathSeparator
     private var initialized = false
-    private val compilerThread by lazy { oneCachedTPExecutor(30.seconds, threadFactory("widgetCompiler", true)) }
+    private val compilerThread by lazy { burstTPExecutor(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt(), 30.seconds, threadFactory("widgetCompiler", true)) }
 
     fun init() {
         if (initialized) return

@@ -618,7 +618,7 @@
 /********************************* TextArea ***********************************/
 
 .text-area {
-
+    -fx-skin: "sp.it.pl.gui.objects.ImprovedTextAreaSkin";
 }
 .text-area:focused {
 

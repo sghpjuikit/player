@@ -28,7 +28,7 @@ val javaSupportedVersions = arrayOf(JavaVersion.VERSION_11).also {
     val javaVersion = JavaVersion.current()
     if (javaVersion !in it) {
         println(""+
-                "org.gradle.java.home=${properties["org.gradle.java.home"]}"+
+                "org.gradle.java.home=${"org.gradle.java.home".prjProp}"+
                 "Java version $javaVersion can't be used."+
                 "Set one of ${it.joinToString()} as system default or create a 'gradle.properties'"+
                 "file with 'org.gradle.java.home' pointing to a supported Java version"
@@ -54,7 +54,7 @@ sourceSets {
 
 allprojects {
     apply(plugin = "kotlin")
-    buildDir = file(properties["player.buildDir"] ?: rootDir/"build")/name
+    buildDir = file("player.buildDir".prjProp ?: rootDir/"build")/name
 
     tasks.withType<JavaCompile> {
         options.encoding = UTF_8.name()
@@ -191,21 +191,33 @@ tasks {
     }
 
     val kotlinc by creating(Download::class) {
+        val os = org.gradle.internal.os.OperatingSystem.current()
+        val useExperimentalKotlinc = "player.kotlinc.experimental".prjProp?.toBoolean() ?: true
         val dirKotlinc = dirApp/"kotlinc"
         val fileKotlinVersion = dirKotlinc/"build.txt"
-        val nameKotlinc = "kotlin-compiler-$kotlinVersion.zip"
+        val nameKotlinc = when {
+            !useExperimentalKotlinc -> "kotlin-compiler-$kotlinVersion.zip"
+            os.isLinux -> "experimental-kotlin-compiler-$kotlinVersion-linux-x64.zip"
+            os.isMacOsX -> "experimental-kotlin-compiler-$kotlinVersion-macos-x64.zip"
+            os.isWindows -> "experimental-kotlin-compiler-$kotlinVersion-windows-x64.zip"
+            else -> failIO { "Unable to determine kotlinc version due to unfamiliar system=$os" }
+        }
         val fileKotlinc = dirKotlinc/"bin"/"kotlinc"
         val zipKotlinc = dirKotlinc/nameKotlinc
+        val eKotlinc = dirKotlinc/"experimental"
         group = "build setup"
         description = "Downloads the kotlin compiler into $dirKotlinc"
-        onlyIf { !fileKotlinVersion.exists() || !fileKotlinVersion.readText().startsWith(kotlinVersion) }
+        onlyIf { !fileKotlinVersion.exists() || !fileKotlinVersion.readText().startsWith(kotlinVersion) || eKotlinc.exists() != useExperimentalKotlinc }
         src("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/$nameKotlinc")
         dest(dirKotlinc)
         doFirst {
+            println("Obtaining Kotlin compiler experimental=$useExperimentalKotlinc from=$src")
+
             if (dirKotlinc.exists()) {
                 println("Deleting obsolete version of Kotlin compiler...")
                 dirKotlinc.deleteRecursively().orFailIO { "Failed to remove Kotlin compiler, location=$dirKotlinc" }
             }
+
             if (!dirKotlinc.exists()) {
                 dirKotlinc.mkdir().orFailIO { "Failed to create directory=$dirKotlinc" }
             }
@@ -215,9 +227,10 @@ tasks {
                 from(zipTree(zipKotlinc))
                 into(dirApp)
             }
-            fileKotlinc.setExecutable(true).orFailIO { "Failed to file=$fileKotlinc executable" }
+            fileKotlinc.setExecutable(true).orFailIO { "Failed to make file=$fileKotlinc executable" }
             zipKotlinc.delete().orFailIO { "Failed to delete file=$zipKotlinc" } // clean up downloaded file
             zipKotlinc.createNewFile()  // allows running this task in offline mode
+            if (useExperimentalKotlinc) eKotlinc.createNewFile()
         }
     }
 
@@ -264,9 +277,9 @@ application {
     mainClassName = "sp.it.pl.main.AppKt"
     applicationDefaultJvmArgs = listOf(
             "-Dfile.encoding=UTF-8",
-            "-ms"+(properties["player.memoryMin"] ?: "100m"),
-            "-mx"+(properties["player.memoryMax"] ?: "3g"),
-            *properties["player.jvmArgs"]?.toString()?.split(' ')?.toTypedArray().orEmpty(),
+            "-ms"+("player.memoryMin".prjProp ?: "100m"),
+            "-mx"+("player.memoryMax".prjProp ?: "3g"),
+            *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty(),
             "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
             "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED",
             "--add-opens", "java.base/java.util=ALL-UNNAMED",
@@ -287,8 +300,11 @@ application {
 
 operator fun File.div(childName: String) = this.resolve(childName)
 
+val String.prjProp: String?
+    get() = properties[this]?.toString()
+
 val String.sysProp: String?
-    get() = System.getProperty(this).takeIf { it.isNotBlank() }
+    get() = System.getProperty(this)?.takeIf { it.isNotBlank() }
 
 infix fun String.requires(block: () -> Unit) = block()
 

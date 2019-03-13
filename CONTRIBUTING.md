@@ -8,8 +8,12 @@
 ## Preparations
 
 - Clone the repository
-- To enable audio playback, 64-bit VLC must be installed on your system or in the `app/vlc` directory. Obtain latest [here](https://www.videolan.org/vlc/)
-- To use a jdk other than your system default, create a `gradle.properties` file at project root with the following content: `org.gradle.java.home=/path/to/jdk`
+
+Optional, but recommended:
+- Set up Vlc (required for playback)  
+  64-bit VLC must be installed on your system or in the `app/vlc` directory (portable version). Obtain latest [here](https://www.videolan.org/vlc/).
+- Set up JDK  
+  To avoid version mismatch, it is recommended to not use system default and use [OpenJDK11](https://jdk.java.net/11/). Extract to [app/java](app/java) or use arbitrary location: create a `gradle.properties` file at project root with property: `org.gradle.java.home=/path/to/jdk`. [app/java](app/java) link will be created pointing to the directory.
 
 #### Intellij IDEA
 
@@ -19,8 +23,20 @@
    Disable "Create separate module per source set"
 4) Run `git checkout .idea` in the Terminal to regain the codeStyles
 5) If you ever want to compile the project with IDEA itself (usually not needed), 
-   you need to add the command line parameters specified in [project.gradle.kts](gradle/project.gradle.kts)
+   you need to add the command line parameters specified in [gradle/project.gradle.kts](gradle/project.gradle.kts)
    in the IDEA settings for the Kotlin Compiler, Java Compiler & JVM
+   
+#### Properties
+
+- [gradle/wrapper/gradle-wrapper.properties](gradle/wrapper/gradle-wrapper.properties) shared project properties, specifies gradle version used
+- [gradle.properties](gradle.properties) local project properties, specifies optional language, build (gradle) and custom application run properties, which are:
+    - player.memoryMin=100m  // defines -Xms of the JVM of the application
+    - player.memoryMax=3g  // defines -Xmx of the JVM of the application
+    - player.buildDir=Z:/build  // build output directory
+    - player.kotlinc.experimental=true  // whether fast experimental (native) or standard kotlinc is used to compile widgets, default true
+    - player.jvmArgs= // custom JVM arguments
+- [settings.gradle.kts](settings.gradle.kts)    // shared project properties, defines gradle build configuration, like build files, etc.
+- [app/user/application.properties](app/user/application.properties) // local application properties, managed by application and editable through ui
 
 ## Running
 
@@ -37,11 +53,27 @@ Due to mouse polling (using a native library), blocking all threads (like on a b
 
 ## Widgets
 
-Widgets don't need to be compiled by the IDE, the application will compile them itself. 
-But for syntax highlighting and error reporting it is recommended to create a separate module for them, 
-depending on PlayerFX and all jars in the widgets directory. 
+Widgets are compiled and loaded by the application and their development is completely standalone. But for syntax highlighting and error reporting they are set up as a separate module.
 
-This should be set up automatically by Gradle and imported into your IDE.
+- Creating a widget is done by creating a widget directory   
+  To create widget `MyWidget`:
+   - Create `app/widgets/mywidget` widget directory (name must be [java package name](https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html)
+   - `app/widgets/mywidget/MyWidget.kt` kotlin (.kt) or java (.java) source file
+   - declare package `package mywidget` which is the name of the directory
+   - there, declare a top level class `MyWidget` (must be the same as the name of the directory, use [camel case](https://en.wikipedia.org/wiki/Camel_case))
+   - and extend `sp.it.pl.layout.widget.controller.SimpleController`
+   - [app/widgets/mywidget](app/widgets/mywidget) directory
+- To delete widget delete the widget directory
+
+Developing a widget carries several conveniences:
+- Widget source files are monitored and open widget instances automatically reload when any source file is modified.  
+  Simply hit `save` and watch the widget reload.
+- Widget dependencies are declared by being put into the widget's directory.  
+  For IDE to detect these and get auto-completion, simply `Refresh all Gradle projects`. This is done by customized build, which scans the widget directories for dependencies.
+
+Restrictions:
+- Widget directory name, widget package, main widget class must share the same name, which must be unique
+- Widget can have multiple source files, but mixing Kotlin and Java for same widget is not supported
 
 ## Code style
 
@@ -77,13 +109,10 @@ The project contains a shared code style in .idea/codeStyles for IDEA with defin
  - always try to avoid implicit conditions with proper design and type-safety
  - always check method parameters for all required conditions, always document these in @param tags
  - do not use java assertions
- - use runtime exceptions (e.g. AssertionError) or methods like Objects.requireNonNull, 
-   util.dev.throwIf, util.dev.fail and never document them in @throw (to avoid anyone catching them)
- - use runtime exceptions (e.g. `java.lang.AssertionError`)
- - encouraged is the use of methods:
-   - `Objects.requireNonNull()`, 
-   - `util.dev.fail`
-   - `util.dev.failIf`
+ - use runtime exceptions (e.g. `java.lang.AssertionError`), Encouraged is the use of methods:
+   - `Objects.requireNonNull()`
+   - `sp.it.pl.util.dev.fail`
+   - `sp.it.pl.util.dev.failIf`
 
 ### Comments
  - always write javadoc for public elements, be as concise as possible, but describe and define full contract

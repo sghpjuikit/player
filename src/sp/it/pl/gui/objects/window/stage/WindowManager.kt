@@ -33,8 +33,10 @@ import sp.it.pl.layout.widget.orEmpty
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Settings
+import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.util.access.VarEnum
 import sp.it.pl.util.access.initAttach
+import sp.it.pl.util.access.initSync
 import sp.it.pl.util.access.toggle
 import sp.it.pl.util.access.v
 import sp.it.pl.util.action.IsAction
@@ -96,13 +98,20 @@ class WindowManager {
     @IsConfig(name = "Headerless", info = "Hides window header.")
     val window_headerless by cv(false)
 
-    val show_windows = v(true).initAttach { v ->
-        if (APP.normalLoad)
-            windows.asSequence().filter { it!==miniWindow }.forEach { if (v) it.show() else it.hide() }
+    private var miniModeIsTogglingWindows = false
+    private var miniModeHiddenWindows = ArrayList<Window>()
+    private val miniModeToggleWindows = v(true).initAttach { v ->
+        if (APP.normalLoad) {
+            if (v) {
+                miniModeHiddenWindows.forEach { it.show() }
+            } else {
+                miniModeHiddenWindows setTo windows.asSequence().filter { it!==miniWindow }
+                miniModeIsTogglingWindows = true
+                miniModeHiddenWindows.forEach { it.hide() }
+                miniModeIsTogglingWindows = false
+            }
+        }
     }
-
-    @IsConfig(name = "Mini mode", info = "Whether application has mini window docked to top screen edge active.")
-    val mini by cv(false) { v(it).initAttach { setMini(it) } }
 
     @IsConfig(name = "Mini open hover delay", info = "Time for mouse to hover to open mini window.")
     val mini_hover_delay by cv(700.millis)
@@ -111,14 +120,17 @@ class WindowManager {
     val mini_hide_onInactive by cv(true)
 
     @IsConfig(name = "Mini hide when inactive for", info = "Time of no activity to hide mini window after.")
-    val mini_inactive_delay by cv(700.millis)
+    val mini_inactive_delay by cv(1500.millis)
 
     @IsConfig(name = "Mini widget", info = "Widget to use in mini window.")
-    val mini_widget by cv("Playback Mini") {
-        VarEnum.ofStream(it) {
-            APP.widgetManager.factories.getFactoriesWith(HorizontalDock::class.java).map { it.nameGui() }
+    val mini_widget by cv(PLAYBACK) {
+        VarEnum.ofSequence(it) {
+            APP.widgetManager.factories.getFactoriesWith<HorizontalDock>().map { it.nameGui() }
         }
     }
+
+    @IsConfig(name = "Mini mode", info = "Whether application has mini window docked to top screen edge active.")
+    val mini by cv(false) { v(it).initSync { setMiniModeImpl(it) } }
 
     /** @return main window or null if no main window (only possible when no window is open) */
     fun getMain(): Optional<Window> = Optional.ofNullable(mainWindow)
@@ -141,7 +153,7 @@ class WindowManager {
         Stage.getWindows().onItemRemoved { w ->
             if (w.properties.containsKey("window")) {
                 val window = w.properties["window"] as Window
-                if (window.isMain.value) {
+                if (window.isMain.value && !miniModeIsTogglingWindows) {
                     APP.close()
                 } else {
                     windows -= window
@@ -217,63 +229,51 @@ class WindowManager {
         getActive().orNull()?.close()
     }
 
-    private fun toggleMiniFull() {
+    private fun setMiniModeImpl(enable: Boolean) {
         if (!APP.normalLoad) return
+        if (!APP.isInitialized.isOk) {
+            APP.onStarted += { setMiniModeImpl(enable) }
+            return
+        }
 
-        if (mini.value) mainWindow?.show()
-        else mainWindow?.hide()
-
-        setMini(!mini.value)
-    }
-
-    private fun toggleShowWindows() {
-        if (!APP.normalLoad) return
-
-        show_windows.toggle()
-    }
-
-    private fun setMini(enable: Boolean) {
-        if (!APP.normalLoad) return
-
-        mini.value = enable
         if (enable) {
             if (miniWindow!=null && miniWindow!!.isShowing) return
+
             val mw = miniWindow ?: create(createStageOwner(), UNDECORATED, false).apply {
                 miniWindow = this
 
-                setSize(Screen.getPrimary().bounds.width, 40.0)
                 resizable.value = true
                 isAlwaysOnTop = true
-                onClose += Screen.getScreens().onChange {
+
+                fun updateSizeAndPos() {
                     val s = Screen.getPrimary()
                     setXYSize(s.bounds.minX, s.bounds.minY, s.bounds.width, height)
                 }
+                Screen.getScreens().onChange { updateSizeAndPos() } on onClose
+                setSize(Screen.getPrimary().bounds.width, 40.0)
+                updateSizeAndPos()
             }
-
-
             val content = borderPane {
                 right = hBox(8.0) {
                     alignment = CENTER_RIGHT
                     isFillHeight = false
                     padding = Insets(5.0, 5.0, 5.0, 25.0)
 
-                    lay += Icon(null, 13.0, "Show main window").onClickDo { toggleShowWindows() }.apply {
+                    lay += Icon(null, 13.0, "Show/hide other windows").onClickDo { miniModeToggleWindows.toggle() }.apply {
                         hoverProperty() sync { icon(if (it) IconFA.ANGLE_DOUBLE_DOWN else IconFA.ANGLE_DOWN) } on mw.onClose
                     }
-                    lay += Icon(null, 13.0, "Docked mode").onClickDo { toggleMiniFull() }.apply {
-                        hoverProperty() sync { icon(if (it) IconFA.ANGLE_DOUBLE_UP else IconFA.ANGLE_UP) } on mw.onClose
-                    }
+                    lay += Icon(IconFA.CLOSE, 13.0, "Close docked mode").onClickDo { miniModeToggleWindows.value = true; mini.value = false }
                 }
             }
             mw.setContent(content)
             mw.onClose += mini_widget sync {
                 val newW = APP.widgetManager.factories.getComponentFactoryByGuiName(it).orEmpty().create()
-                val oldW = content.properties["widget"] as? Widget
-
-                oldW?.close()
-
+                content.properties["widget"]?.asIf<Widget>()?.close()
                 content.properties["widget"] = newW
                 content.center = newW.load()
+            }
+            mw.onClose += {
+                content.properties["widget"]?.asIf<Widget>()?.close()
             }
 
             // show and apply state
@@ -299,8 +299,12 @@ class WindowManager {
                 }
             }
             mwRoot.onEventUp(MouseEvent.ANY) {
-                if (mini_hide_onInactive.value && !mwRoot.isHover)
-                    hider.start(mini_inactive_delay.value)
+                if (mwRoot.isHover) {
+                    hider.stop()
+                } else {
+                    if (mini_hide_onInactive.value)
+                        hider.start(mini_inactive_delay.value)
+                }
             }
             hider.runNow()
 

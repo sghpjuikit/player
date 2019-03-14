@@ -18,6 +18,7 @@ import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.HPos;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -50,7 +51,6 @@ import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataReader;
 import sp.it.pl.audio.tagging.MetadataWriter;
 import sp.it.pl.gui.itemnode.textfield.MoodItemNode;
-import sp.it.pl.gui.itemnode.textfield.TextFieldItemNode;
 import sp.it.pl.gui.objects.autocomplete.AutoCompletion;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
@@ -90,6 +90,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.layout.GridPane.REMAINING;
 import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import static org.atteo.evo.inflector.English.plural;
 import static sp.it.pl.audio.tagging.Metadata.Field.ADDED_TO_LIBRARY;
@@ -224,7 +225,11 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         setTextAlignment(LyricsA, TextAlignment.CENTER);
 
         // add specialized mood text field
+        moodF.setMinSize(0, 0);
+        moodF.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         grid.add(moodF, 1, 14, 2, 1);
+        GridPane.setHalignment(moodF, HPos.LEFT);
+        GridPane.setColumnSpan(moodF, REMAINING);
 
         // style
         onClose.plusAssign(
@@ -652,7 +657,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
             f = field;
 
 
-            c.getStyleClass().setAll(TextFieldItemNode.textFieldStyleClass());
+            c.getStyleClass().setAll(textFieldStyleClass);
             c.setMinSize(0, 0);
             c.setPrefSize(-1, -1);
 
@@ -835,8 +840,8 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         }
     }
 
-
-    private static PseudoClass corrupt = PseudoClass.getPseudoClass("corrupt");
+    private final static List<String> textFieldStyleClass = new ArrayList<>(new TextField().getStyleClass());
+    private final static PseudoClass corrupt = PseudoClass.getPseudoClass("corrupt");
     PopOver<?> helpP;
 
     private PopOver<?> showItemsPopup() {

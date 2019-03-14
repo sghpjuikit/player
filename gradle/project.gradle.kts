@@ -111,11 +111,6 @@ dependencies {
     "JavaFX" requires {
         implementation("de.jensd", "fontawesomefx", "8.9")
         implementation("org.reactfx", "reactfx", "2.0-M5")
-        implementation("eu.hansolo", "tilesfx", "1.6.5") {
-            // tilesfx depends on json-simple and that for some reason has a test dependency as compile dependency -_-
-            exclude("junit", "junit")
-        }
-        implementation("eu.hansolo", "Medusa", "8.0")
     }
 
     "Native" requires {

@@ -48,7 +48,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -59,6 +58,10 @@ import javafx.scene.text.FontWeight;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
 import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.scene.layout.Priority.ALWAYS;
+import static javafx.scene.layout.Priority.NEVER;
+import static javafx.scene.layout.Priority.SOMETIMES;
+import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.layVertically;
 
@@ -84,6 +87,7 @@ public class FontSelectorDialog extends PopOver<VBox> {
 				new Icon(FontAwesomeIcon.TIMES, 22, "Select font", this::hideStrong).withText("Cancel")
 			)
 		);
+		VBox.setVgrow(fontPanel, ALWAYS);
 		layout.setPadding(new Insets(15));
 		contentNode.set(layout);
 	}
@@ -219,8 +223,8 @@ public class FontSelectorDialog extends PopOver<VBox> {
 		public FontPanel() {
 			setHgap(HGAP);
 			setVgap(VGAP);
-			setPrefSize(500, 300);
 			setMinSize(500, 300);
+			setPrefSize(600, 400);
 
 			ColumnConstraints c0 = new ColumnConstraints();
 			c0.setPercentWidth(60);
@@ -231,15 +235,15 @@ public class FontSelectorDialog extends PopOver<VBox> {
 			getColumnConstraints().addAll(c0, c1, c2);
 
 			RowConstraints r0 = new RowConstraints();
-			r0.setVgrow(Priority.NEVER);
+			r0.setVgrow(NEVER);
 			RowConstraints r1 = new RowConstraints();
-			r1.setVgrow(Priority.NEVER);
+			r1.setVgrow(SOMETIMES);
 			RowConstraints r2 = new RowConstraints();
 			r2.setFillHeight(true);
-			r2.setVgrow(Priority.NEVER);
+			r2.setVgrow(NEVER);
 			RowConstraints r3 = new RowConstraints();
 			r3.setPrefHeight(250);
-			r3.setVgrow(Priority.NEVER);
+			r3.setVgrow(NEVER);
 			getRowConstraints().addAll(r0, r1, r2, r3);
 
 			// layout hello.dialog
@@ -254,7 +258,7 @@ public class FontSelectorDialog extends PopOver<VBox> {
 					if (empty) {
 						setText(null);
 					} else {
-						setFont(Font.font(family));
+						setFont(Font.font(family, scaleEM(12.0)));
 						setText(family);
 					}
 				}

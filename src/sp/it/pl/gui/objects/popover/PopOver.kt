@@ -75,6 +75,7 @@ import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.toP
 import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1If
@@ -216,7 +217,7 @@ open class PopOver<N: Node>(): PopupControl() {
     /** Show/hide animation duration. */
     @JvmField var animationDuration = v(300.millis)
     /** Show/hide animation. */
-    private val animation by lazy {
+    private val animation = lazy {
         anim {
             skinn.node.opacity = it*it
             // skinn.node.setScaleXYByTo(it, -20.0, 0.0)  // TODO: causes slight position shift sometimes
@@ -243,8 +244,8 @@ open class PopOver<N: Node>(): PopupControl() {
             ownerWindowProperty() sync {
                 d()
                 if (it!=null) {
-                    d += it.onEventUp(WindowEvent.WINDOW_HIDING) { if (isShowing) hideImmediately() }
-                    d += it.onEventUp(WindowEvent.WINDOW_CLOSE_REQUEST) { if (isShowing) hideImmediately() }
+                    it.onEventUp(WindowEvent.WINDOW_HIDING) { if (isShowing) hideImmediately() } on d
+                    it.onEventUp(WindowEvent.WINDOW_CLOSE_REQUEST) { if (isShowing) hideImmediately() } on d
                 }
             }
         }
@@ -350,6 +351,7 @@ open class PopOver<N: Node>(): PopupControl() {
      * has been observed to cause serious problems.
      */
     fun hideImmediately() {
+        animation.orNull()?.stop()
         disposersOnHide()
         active_popups.remove(this)
         uninstallMoveWith()
@@ -531,15 +533,19 @@ open class PopOver<N: Node>(): PopupControl() {
     }
 
     private fun fadeIn() {
-        animation.applyNow()
-        animation.dur(animationDuration.value)
-        animation.playOpenDo(null)
+        animation.value.apply {
+            applyNow()
+            dur(animationDuration.value)
+            playOpenDo(null)
+        }
     }
 
     private fun fadeOut() {
-        animation.applyNow()
-        animation.dur(animationDuration.value)
-        animation.playCloseDo { hideImmediately() }
+        animation.value.apply {
+            applyNow()
+            dur(animationDuration.value)
+            playCloseDo { hideImmediately() }
+        }
     }
 
     /* --------------------- MOVE WITH OWNER ---------------------------------------------------------------------------- */

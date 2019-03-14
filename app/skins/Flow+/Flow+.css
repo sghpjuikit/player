@@ -56,7 +56,9 @@
 .search-icon-sign,
 .search-icon-sign:hover,
 .resize-content-icon,
-.resize-content-icon:hover {
+.resize-content-icon:hover,
+.value-text-field-arrow,
+.value-text-field-arrow: hover {
     -fx-border-color:  none;
 }
 

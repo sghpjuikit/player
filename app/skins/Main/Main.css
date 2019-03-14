@@ -602,13 +602,10 @@
 }
 .choice-box:focused,
 .text-input:focused,
-.custom-text-field,
-.custom-text-field:focused {
-    -fx-background-color: rgba(235, 235, 235, 0.7),
-                          rgba(0, 0, 0, 0.6),
-                          rgba(255, 255, 255, 0.92);
-    
+.decorated-text-field,
+.decorated-text-field:focused {
     -fx-prompt-text-fill: -fx-prompt-font-color;
+    -fx-background-color: rgba(235, 235, 235, 0.7), rgba(0, 0, 0, 0.6), rgba(255, 255, 255, 0.92);
 }
 .text-input:hover:readonly,
 .text-input:focused:readonly {
@@ -2355,6 +2352,56 @@
 }
 .table-row-cell:searchmatchnot {
     -fx-opacity: 1;
+}
+
+/******************************** ENHANCED TEXT FIELDS *****************************************************************
+ */
+
+/**
+ * inherits: .text-field
+ */
+.decorated-text-field {}
+
+/**
+ * inherits: .decorated-text-field
+ */
+.value-text-field {}
+
+/**
+ * Button that opens value picker for .value-text-field
+ * inherits: .icon
+ */
+.value-text-field-arrow {
+    -glyph-name: "FontAwesomeIcon.CARET_DOWN";
+    -glyph-size: 1.2em;
+    -fx-scale-x: 1;
+    -fx-scale-y: 1.4;
+}
+
+/**
+ * inherits: .value-text-field
+ */
+.mood-text-field {
+    -fx-pref-column-count: 20
+}
+
+/**
+ * inherits: .value-text-field
+ */
+.file-text-field {
+    -fx-pref-column-count: 40
+}
+
+/**
+ * inherits: .value-text-field
+ */
+.effect-text-field {}
+
+/**
+ * inherits: .value-text-field
+ */
+.font-text-field {
+    -fx-pref-column-count: 30
 }
 
 /******************************** ITEM PICKER **************************************************************************

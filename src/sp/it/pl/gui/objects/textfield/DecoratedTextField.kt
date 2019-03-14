@@ -34,18 +34,22 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.Node
 import javafx.scene.control.TextField
 
-/** [TextField], which can be decorated with nodes inside on the left an right. */
+/** [TextField], which can be decorated with nodes inside on the left and right. */
 open class DecoratedTextField: TextField() {
 
     @JvmField val left: ObjectProperty<Node?> = SimpleObjectProperty(null)
     @JvmField val right: ObjectProperty<Node?> = SimpleObjectProperty(null)
 
     init {
-        styleClass += "custom-text-field"
-        minWidth = TextField.USE_PREF_SIZE
-        maxWidth = TextField.USE_PREF_SIZE
+        styleClass += STYLECLASS
+        minWidth = USE_PREF_SIZE
+        maxWidth = USE_PREF_SIZE
     }
 
     override fun createDefaultSkin() = DecoratedTextFieldSkin(this)
+
+    companion object {
+        const val STYLECLASS = "decorated-text-field"
+    }
 
 }

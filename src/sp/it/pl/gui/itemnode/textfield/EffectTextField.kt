@@ -34,14 +34,15 @@ import sp.it.pl.util.type.ClassName
 import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.KClass
 
-class EffectItemNode: TextFieldItemNode<Effect> {
+class EffectTextField: ValueTextField<Effect> {
 
     private val typeB: Icon
     private val propB: Icon
     private val limitedToType: Class<out Effect>?
 
     /** Creates effect editor which can edit an effect or create effect of any specified types or any type if no specified. */
-    @JvmOverloads constructor(effectType: Class<out Effect>? = null): super({ ClassName.of(it.javaClass) }) {
+    constructor(effectType: Class<out Effect>? = null): super({ ClassName.of(it.javaClass) }) {
+        styleClass += STYLECLASS
         typeB = Icon().apply {
             styleclass("effect-config-field-type-button")
             tooltip(typeTooltip)
@@ -97,7 +98,7 @@ class EffectItemNode: TextFieldItemNode<Effect> {
     }
 
     companion object: KLogging() {
-
+        const val STYLECLASS = "effect-text-field"
         private val typeTooltip = appTooltip("Choose type of effect")
         private val propTooltip = appTooltip("Configure effect")
         @JvmField val EFFECT_TYPES = listOf(

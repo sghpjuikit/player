@@ -34,9 +34,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 import sp.it.pl.gui.itemnode.ChainValueNode.ListConfigField;
-import sp.it.pl.gui.itemnode.textfield.EffectItemNode;
-import sp.it.pl.gui.itemnode.textfield.FileItemNode;
-import sp.it.pl.gui.itemnode.textfield.FontItemNode;
+import sp.it.pl.gui.itemnode.textfield.EffectTextField;
+import sp.it.pl.gui.itemnode.textfield.FileTextField;
+import sp.it.pl.gui.itemnode.textfield.FontTextField;
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
@@ -139,7 +139,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 return new GeneralField<>(config);
             }
         });
-        EffectItemNode.EFFECT_TYPES.stream().map(et -> et.getType()).filter(t -> t!=null).forEach(t -> put(t, config -> new EffectField(config, t)));
+        EffectTextField.EFFECT_TYPES.stream().map(et -> et.getType()).filter(t -> t!=null).forEach(t -> put(t, config -> new EffectField(config, t)));
     }};
 
     /**
@@ -811,7 +811,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
     }
     private static class FontField extends ConfigField<Font> {
-        FontItemNode txtF = new FontItemNode();
+        FontTextField txtF = new FontTextField();
 
         private FontField(Config<Font> c) {
             super(c);
@@ -830,7 +830,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
     }
     private static class FileField extends ConfigField<File> {
-        FileItemNode editor;
+        FileTextField editor;
         boolean isObservable;
 
         public FileField(Config<File> c) {
@@ -841,7 +841,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 .filter(Constraint.FileActor.class::isInstance).map(Constraint.FileActor.class::cast)
                 .findFirst().orElse(Constraint.FileActor.ANY);
 
-            editor = new FileItemNode(constraint);
+            editor = new FileTextField(constraint);
             editor.setValue(config.getValue());
             editor.setOnKeyPressed(e -> {
                 if (e.getCode()==ENTER) {
@@ -871,11 +871,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class EffectField extends ConfigField<Effect> {
 
-        private final EffectItemNode editor;
+        private final EffectTextField editor;
 
         public EffectField(Config<Effect> c, Class<? extends Effect> effectType) {
             super(c);
-            editor = new EffectItemNode(effectType);
+            editor = new EffectTextField(effectType);
             refreshItem();
             editor.setOnValueChange((ov, nv) -> apply(false));
         }

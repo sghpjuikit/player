@@ -4,7 +4,6 @@ import javafx.scene.control.TextField
 import sp.it.pl.gui.objects.textfield.DecoratedTextField
 import sp.it.pl.util.access.AccessibleValue
 import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.functional.setTo
 import java.util.function.BiConsumer
 
 /**
@@ -16,13 +15,13 @@ import java.util.function.BiConsumer
  *
  * @param <T> type of the value
  */
-abstract class TextFieldItemNode<T>: DecoratedTextField, AccessibleValue<T> {
+abstract class ValueTextField<T>: DecoratedTextField, AccessibleValue<T> {
 
     constructor(textValueConverter: (T) -> String): super() {
         this.textValueConverter = textValueConverter
 
+        styleClass += STYLECLASS
         isEditable = false
-        styleClass setTo textFieldStyleClass()
         text = nullText
         promptText = nullText
 
@@ -34,7 +33,7 @@ abstract class TextFieldItemNode<T>: DecoratedTextField, AccessibleValue<T> {
     /** Value. */
     protected var vl: T? = null
     /** Behavior executing when value changes. */
-    var onValueChange: BiConsumer<T?, T?> = BiConsumer { _,_ -> }
+    var onValueChange: BiConsumer<T?, T?> = BiConsumer { _, _ -> }
     /** Value to string converter. */
     private val textValueConverter: (T) -> String
     /** No value text. */
@@ -57,10 +56,7 @@ abstract class TextFieldItemNode<T>: DecoratedTextField, AccessibleValue<T> {
     protected abstract fun onDialogAction()
 
     companion object {
-
-        /** @return style class as [TextField] */
-        @JvmStatic fun textFieldStyleClass() = TextField().styleClass.toList()
-
+        const val STYLECLASS = "value-text-field"
     }
 
 }

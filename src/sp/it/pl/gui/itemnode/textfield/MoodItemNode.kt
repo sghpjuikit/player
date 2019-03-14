@@ -10,12 +10,13 @@ import sp.it.pl.main.APP
 import sp.it.pl.util.access.v
 
 /** Text field for audio mood tagging values with a picker and autocompletion. */
-class MoodItemNode: TextFieldItemNode<String>({ APP.converter.general.toS(it) }) {
+class MoodItemNode: ValueTextField<String>({ APP.converter.general.toS(it) }) {
 
     /** The position for the picker to show on. */
     val pickerPosition = v(NodePos.RIGHT_CENTER)
 
     init {
+        styleClass += STYLECLASS
         isEditable = true
         autoComplete(this) { text ->
             APP.db.itemUniqueValuesByField[Metadata.Field.MOOD].orEmpty().filter { it.contains(text, true) }
@@ -43,4 +44,7 @@ class MoodItemNode: TextFieldItemNode<String>({ APP.converter.general.toS(it) })
         p.show(this, pickerPosition.value)
     }
 
+    companion object {
+        const val STYLECLASS = "mood-text-field"
+    }
 }

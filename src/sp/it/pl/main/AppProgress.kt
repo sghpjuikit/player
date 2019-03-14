@@ -79,12 +79,12 @@ object AppProgress {
             State.READY, State.SCHEDULED -> { task.onRunning = EventHandler { start(task) } }
             State.RUNNING -> {
                 val reportDone = start(task.toApp())
-                task.stateProperty().sync1If({ task.isDone }) {
-                    when (task.state) {
+                task.stateProperty().sync1If({ it===State.SUCCEEDED || it===State.CANCELLED || it===State.FAILED }) {
+                    when (it) {
                         State.SUCCEEDED -> reportDone(ResultOk(null))
                         State.CANCELLED -> reportDone(ResultInterrupted<Any>(InterruptedException("")))
                         State.FAILED -> reportDone(ResultFail<Any>(task.exception))
-                        else -> throw SwitchException(task.state)
+                        else -> throw SwitchException(it)
                     }
                 }
             }

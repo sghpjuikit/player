@@ -115,9 +115,15 @@ fun Node.isAnyChildOf(parent: Node) = parent.isAnyParentOf(this)
 /** @return this or direct or indirect parent of this that passes specified filter or null if no element passes */
 fun Node.findParent(filter: (Node) -> Boolean) = generateSequence(this, { it.parent }).find(filter)
 
-/** Removes this from its parent's children if possible (if parent is [Pane] or [Group]). */
+/** Removes this from its parent's children if possible (if parent is [Pane] or [Group]). Any child's focus is moved to parent. */
 fun Node.removeFromParent() {
     val p = parent
+    val hasFocusedChild = scene?.focusOwner?.isAnyChildOf(this) ?: false
+
+    // Fixes possible usage of this node after removal from parent, because scene retains reference to focusOwner and
+    // removes it when focus changes. Focus listener would invoke when this node is no longer part of scene graph.
+    if (hasFocusedChild) p?.requestFocus()
+
     when (p) {
         is Group -> p.children -= this
         is Pane -> p.children -= this

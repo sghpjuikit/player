@@ -504,7 +504,6 @@ class App: Application(), Configurable<Any> {
         add(Container::class.java, "Container")
         add(Feature::class.java, "Feature")
         add(List::class.java, "List")
-
     }
 
     private fun InstanceName.initApp() {

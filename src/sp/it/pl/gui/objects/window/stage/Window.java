@@ -554,8 +554,8 @@ public class Window extends WindowBase {
 	 */
 	public ProgressIndicator taskAdd() {
 		return appProgressIndicator(
-			consumer(pi -> leftHeaderBox.getChildren().add(pi)),      // add indicator to header on start
-			consumer(pi -> leftHeaderBox.getChildren().remove(pi))    // remove indicator from header on end
+			consumer(pi -> leftHeaderBox.getChildren().add(pi)),
+			consumer(pi -> leftHeaderBox.getChildren().remove(pi))
 		);
 	}
 
@@ -566,7 +566,7 @@ public class Window extends WindowBase {
 		logger.info("Closing{} window. {} windows remain open.", isMain.getValue() ? " main" : "", APP.windowManager.windows.size()-1);
 
 		if (!isMain.getValue()) {
-			if (layout!=null) layout.close(); // close layout to release resources
+			if (layout!=null) layout.close();
 			onClose.invoke();
 		}
 		getStage().hide();

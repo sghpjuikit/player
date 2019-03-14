@@ -170,7 +170,7 @@ public class Icon extends StackPane {
 		if (i!=null) icon(i);
 		tooltip(tooltip);
 		onClick(onClick);
-		node.setCache(true);
+		node.setCache(false);
 		node.setSmooth(true);
 		node.setFontSmoothingType(FontSmoothingType.GRAY);
 		node.setMouseTransparent(true);
@@ -206,8 +206,8 @@ public class Icon extends StackPane {
 	protected void layoutChildren() {
 		super.layoutChildren();
 		double w = getWidth(), h = getHeight();
-		double gapH = (w - node.getLayoutBounds().getWidth())/2;
-		double gapV = (h - node.getLayoutBounds().getHeight())/2;
+		double gapH = (w - node.getLayoutBounds().getWidth())/2.0;
+		double gapV = (h - node.getLayoutBounds().getHeight())/2.0;
 		node.relocate(gapH, gapV);
 	}
 

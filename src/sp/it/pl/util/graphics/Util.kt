@@ -135,7 +135,7 @@ fun Node.pickTopMostAt(sceneX: Double, sceneY: Double, test: (Node) -> Boolean =
     // Groups need to be handled specially - they need to be transparent
     fun Node.isIn(sceneX: Double, sceneY: Double, test: (Node) -> Boolean) =
             if (parent is Group) test(this) && localToScene(layoutBounds).contains(sceneX, sceneY)
-            else test(this) && sceneToLocal(sceneX, sceneY, true) in this
+            else test(this) && sceneToLocal(sceneX, sceneY, true)?.let { it in this } ?: false
 
     return if (isIn(sceneX, sceneY, test)) {
         if (this is Parent) {

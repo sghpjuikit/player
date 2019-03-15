@@ -58,12 +58,15 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 			Media media;
 			try {
 				// TODO: Media creation throws MediaException (FileNotFoundException) for files containing some special chars (unicode?)
-				// TODO: Use getUri.toAsciiString()?
+				//       I think it is the same problem as the ne with vlcPlayer, needs file:///
+				//       https://stackoverflow.com/questions/10062270/how-to-target-a-file-a-path-to-it-in-java-javafx
 				// If that happens, it can block thread for like half second!, so i execute this not on fx
 				media = new Media(song.getUri().toString());
 			} catch (MediaException e) {
 				logger(JavaFxPlayer.class).error("Media creation error for {}", song.getUri());
-				onFail.invoke(false);
+				runFX(() ->
+					onFail.invoke(false)
+				);
 				return;
 			}
 			runFX(() -> {

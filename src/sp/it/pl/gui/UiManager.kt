@@ -40,6 +40,7 @@ import sp.it.pl.util.graphics.isAnyParentOf
 import sp.it.pl.util.graphics.setFontAsStyle
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.onItemAdded
+import sp.it.pl.util.reactive.onItemDo
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1IfNonNull
 import sp.it.pl.util.units.millis
@@ -306,11 +307,9 @@ class UiManager(val skinDir: File): Configurable<Any> {
             sceneProperty().sync1IfNonNull { it.rootProperty().sync1IfNonNull { it.initializeFontAndSkin() } }
         }
 
-        seqOf(Popup.getWindows(), Stage.getWindows(), ContextMenu.getWindows(), PopOver.active_popups)
-                .forEach { windows ->
-                    windows.forEach { it.initializeFontAndSkin() }
-                    windows.onItemAdded { it.initializeFontAndSkin() }
-                }
+        seqOf(Popup.getWindows(), Stage.getWindows(), ContextMenu.getWindows(), PopOver.active_popups).forEach {
+            it.onItemDo { it.initializeFontAndSkin() }
+        }
         Tooltip.getWindows().onItemAdded { (it as? Tooltip)?.font = font.value }
     }
 

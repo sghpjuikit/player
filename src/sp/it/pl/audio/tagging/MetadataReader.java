@@ -19,8 +19,6 @@ import static sp.it.pl.util.dev.FailKt.noNull;
 
 public class MetadataReader {
 
-	// TODO: return Try
-
 	/**
 	 * Reads metadata for specified song.
 	 * <p/>
@@ -41,12 +39,9 @@ public class MetadataReader {
 				.map(Metadata::new)
 				.getOr(Metadata.EMPTY);
 		} else {
-			// TODO: implement properly
+			// TODO: implement properly & watch out for new Media() throwing Exception, see JavaFxPlayer.java
 			try {
 				Media m = new Media(song.getUri().toString());
-
-				// make a playlistItem and covert to metadata //why? // not 100%sure...
-				// because PlaylistSong has advanced update() method? // probably
 				return new PlaylistSong(song.getUri(), "", "", m.getDuration().toMillis()).toMeta();
 			} catch (IllegalArgumentException|UnsupportedOperationException e) {
 				logger(MetadataReader.class).error("Error creating metadata for non file based song: {}", song);

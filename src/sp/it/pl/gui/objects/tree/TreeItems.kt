@@ -49,7 +49,7 @@ import sp.it.pl.util.HierarchicalBase
 import sp.it.pl.util.Util.enumToHuman
 import sp.it.pl.util.access.toggle
 import sp.it.pl.util.async.executor.ExecuteN
-import sp.it.pl.util.async.runOn
+import sp.it.pl.util.async.invoke
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.pl.util.dev.fail
@@ -291,7 +291,7 @@ open class OTreeItem<T> constructor(v: T, private val childrenO: ObservableList<
     override fun isLeaf() = childrenO.isEmpty()
     override fun getChildren(): ObservableList<TreeItem<T>> {
         return super.getChildren().also { children ->
-            runOn(once) {
+            once {
                 childrenDisposer += childrenO.onItemSync {
                     val item = tree(it)
                     children += item
@@ -302,6 +302,7 @@ open class OTreeItem<T> constructor(v: T, private val childrenO: ObservableList<
     }
     override fun dispose() = childrenDisposer()
 }
+
 open class SimpleTreeItem<T> constructor(value: T, childrenSeq: Sequence<T> = seqOf()): TreeItem<T>(value) {
     private val childrenAll = childrenSeq.toList()
     private val once = ExecuteN(1)
@@ -309,7 +310,7 @@ open class SimpleTreeItem<T> constructor(value: T, childrenSeq: Sequence<T> = se
     override fun isLeaf() = childrenAll.isEmpty()
     override fun getChildren(): ObservableList<TreeItem<T>> {
         return super.getChildren().also { children ->
-            runOn(once) {
+            once {
                 children setTo childrenAll.map { tree(it) }
             }
         }
@@ -322,7 +323,7 @@ open class STreeItem<T> constructor(v: T, private val childrenLazy: () -> Sequen
     override fun isLeaf() = isLeafLazy()
     override fun getChildren(): ObservableList<TreeItem<T>> {
         return super.getChildren().also { children ->
-            runOn(once) {
+            once {
                 children setTo childrenLazy().map { tree(it) }
             }
         }

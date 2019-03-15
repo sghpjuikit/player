@@ -201,7 +201,6 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 	@Override
 	public void dispose() {
-		System.out.println("disposing");
 		flow.dispose();
 		root = null;
 		grid = null;

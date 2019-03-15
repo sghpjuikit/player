@@ -975,7 +975,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
             @Override
             public T getVal() {
-                // TODO: why do we get 1st ConfigField? Makes no sense
+                // TODO: use Type instead of Class for Config.type or add list type support to Config
                 Class<? extends T> oType = pane.getConfigFields().get(0).config.getType();
                 T o = pane.getConfigFields().get(0).getVal();
                 if (type==oType) return o;

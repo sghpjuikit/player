@@ -1,27 +1,19 @@
 package sp.it.pl.util.async.executor
 
 import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicLong
 
 /**
- * Executor with an execution count limit.
+ * Executor with an execution count limit. Executes on current thread.
  *
- * Guarantees the number of executions (irrelevant of the [Runnable]), as
- * one may wish for this executor to execute at most n times.
+ * Guarantees maximum number of executions to be at most the specified times, after which [execute] does nothing.
  */
-class ExecuteN : Executor {
-
-    /** @param max maximum number of times this executor will [execute] */
-    constructor(max: Long) { this.max = max }
-
-    private val max: Long
-
-    private var executed: Long = 0
+class ExecuteN(max: Long): Executor {
+    private val max = max
+    private var executed = AtomicLong(0)
 
     override fun execute(r: Runnable) {
-        if (executed >= max)
-            return
-        r.run()
-        executed++
+        executed.incrementAndGet()
+        if (executed.get()<=max) r.run()
     }
-
 }

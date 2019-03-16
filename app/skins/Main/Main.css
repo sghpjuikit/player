@@ -2627,12 +2627,14 @@
  * inherits: .text-field
  * pseudoclasses: edited (it is basically focused)
  */
+.text-field-config,
 .text-field-config:edited,
 .text-field-config:hover:edited,
 .text-field-config:focused:edited,
 .combobox-field-config:edited > .list-cell,
 .combobox-field-config:hover:edited > .list-cell,
 .combobox-field-config:focused:edited > .list-cell {
+    -fx-pref-column-count: 40;
     -fx-text-fill: -fx-focus-color;
     -fx-prompt-text-fill: -fx-prompt-font-color;
 }
@@ -2654,7 +2656,6 @@
     -glyph-name: "MaterialDesignIcon.CHECKBOX_MULTIPLE_BLANK";
 }
 
-
 .config-shortcut-run-icon {
     -glyph-name: "FontAwesomeIcon.REFRESH";
 }
@@ -2671,17 +2672,18 @@
  */
 .config-field-warn-button {
     -glyph-name: "FontAwesomeIcon.EXCLAMATION_TRIANGLE";
+    -glyph-size: 0.66667em; /* 8 */
     -fx-fill: -fx-focus-color;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
 .config-field-warn-button:hover {
     -fx-fill: -fx-focus-color;
-    -fx-scale-x: 1;
-    -fx-scale-y: 1;
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
 
 .config-field-default-button {
-    -fx-font-size: 0.9em;
+    -glyph-name: "FontAwesomeIcon.RECYCLE";
+    -glyph-size: 0.66667em; /* 8 */
     -fx-background-color: transparent;
     -fx-graphic-text-gap: 0px;
     -fx-text-fill: -fx-def-font-color;
@@ -2697,13 +2699,13 @@
 /* Effect type chooser button for effect config field. */
 .effect-config-field-type-button {
     -glyph-name: "MaterialDesignIcon.AUTO_FIX";
-    -glyph-size: 0.91667em; /* 11 */
+    -glyph-size: 0.66667em; /* 8 */
 }
 
 /* Effect properties button for effect config field. */
 .effect-config-field-conf-button {
     -glyph-name: "FontAwesomeIcon.GEAR";
-    -glyph-size: 0.91667em; /* 11 */
+    -glyph-size: 0.66667em; /* 8 */
 }
 
 /************************************ SEARCH ***************************************************************************

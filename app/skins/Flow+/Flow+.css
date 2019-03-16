@@ -57,6 +57,10 @@
 .search-icon-sign:hover,
 .resize-content-icon,
 .resize-content-icon:hover,
+.config-field-default-button,
+.config-field-default-button: hover,
+.config-field-warn-button,
+.config-field-warn-button: hover,
 .value-text-field-arrow,
 .value-text-field-arrow: hover {
     -fx-border-color:  none;

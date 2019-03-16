@@ -58,7 +58,6 @@ import sp.it.pl.util.validation.Constraint;
 import sp.it.pl.util.validation.Constraint.HasNonNullElements;
 import sp.it.pl.util.validation.Constraint.NumberMinMax;
 import sp.it.pl.util.validation.Constraint.ReadOnlyIf;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_16;
@@ -203,7 +202,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             runFX(millis(270), () -> {
                 if (root.isHover()) {
                     if (defB==null && isEditableByUserRightNow(c)) {
-                        defB = new Icon(RECYCLE, 11, null, this::setNapplyDefault);
+                        defB = new Icon(null, 11, null, this::setNapplyDefault);
                         defB.tooltip(defTooltip);
                         defB.styleclass("config-field-default-button");
                         defB.setOpacity(0);
@@ -384,9 +383,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             okB.setMinSize(11, 11);
             okB.setMaxSize(11, 11);
             okI.styleclass(STYLECLASS_CONFIG_FIELD_OK_BUTTON);
-            okI.size(11);
             okI.tooltip(okTooltip);
-            warnB.size(11);
             warnB.styleclass(STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
             warnB.tooltip(warnTooltip);
 

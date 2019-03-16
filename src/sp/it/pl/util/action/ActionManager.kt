@@ -5,7 +5,6 @@ import javafx.scene.input.KeyCode.ALT_GRAPH
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyCode.WINDOWS
 import javafx.stage.Stage
-import javafx.stage.Window
 import org.reactfx.Subscription
 import sp.it.pl.service.hotkey.Hotkeys
 import sp.it.pl.util.access.initSync
@@ -20,8 +19,8 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.reactive.Subscribed
-import sp.it.pl.util.reactive.onItemSync
-import sp.it.pl.util.reactive.syncIntoWhile
+import sp.it.pl.util.reactive.onItemSyncWhile
+import sp.it.pl.util.reactive.syncNonNullWhile
 import sp.it.pl.util.text.getNamePretty
 import java.util.concurrent.ConcurrentHashMap
 
@@ -108,14 +107,10 @@ object ActionManager {
     }
 
     private val localActionRegisterer = Subscribed {
-        Stage.getWindows().onItemSync {
-            v(it).syncIntoWhile(Window::sceneProperty) { scene ->
-                if (scene!=null) {
-                    ActionRegistrar.getActions().forEach { it.registerInScene(scene) }
-                    Subscription { ActionRegistrar.getActions().forEach { it.unregisterInScene(scene) } }
-                } else {
-                    Subscription.EMPTY
-                }
+        Stage.getWindows().onItemSyncWhile {
+            it.sceneProperty().syncNonNullWhile { scene ->
+                ActionRegistrar.getActions().forEach { it.registerInScene(scene) }
+                Subscription { ActionRegistrar.getActions().forEach { it.unregisterInScene(scene) } }
             }
         }
     }

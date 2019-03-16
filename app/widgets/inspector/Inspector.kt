@@ -49,9 +49,9 @@ import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.onEventUp
-import sp.it.pl.util.reactive.onItemSync
+import sp.it.pl.util.reactive.onItemSyncWhile
 import sp.it.pl.util.reactive.plus
-import sp.it.pl.util.reactive.syncIntoWhile
+import sp.it.pl.util.reactive.syncNonNullIntoWhile
 import java.io.File
 
 @Widget.Info(
@@ -210,10 +210,9 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
             }
         }
 
-        private fun observeWindowRoots(subscriber: (Parent) -> Subscription) = Stage.getWindows().onItemSync {
-            it.sceneProperty().syncIntoWhile(Scene::rootProperty) {
-                it?.net(subscriber) ?: Subscription.EMPTY
-            }
+        private fun observeWindowRoots(subscriber: (Parent) -> Subscription) = Stage.getWindows().onItemSyncWhile {
+            it.sceneProperty().syncNonNullIntoWhile(Scene::rootProperty, subscriber)
         }
+
     }
 }

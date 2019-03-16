@@ -13,6 +13,7 @@ import javafx.event.Event
 import javafx.event.EventHandler
 import javafx.event.EventType
 import javafx.scene.Node
+import javafx.scene.control.TreeItem
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.stage.Window
@@ -22,7 +23,9 @@ import sp.it.pl.util.async.runLater
 import sp.it.pl.util.dev.Experimental
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.functional.net
 import sp.it.pl.util.identityHashCode
+import java.util.IdentityHashMap
 import java.util.function.Consumer
 
 private typealias DisposeOn = (Subscription) -> Unit
@@ -51,20 +54,23 @@ fun <T,O> ObservableValue<T>.map(mapper: (T) -> O) = object: ObservableValue<O> 
     override fun getValue() = mv
 }
 
-/** Convenience method for adding this subscription to a disposer. Equivalent to: this.apply(disposerRegister) */
-infix fun Subscription.on(disposerRegister: DisposeOn) = apply(disposerRegister)
+/** Sets a block to be fired immediately and on every value change. */
+infix fun <O> ObservableValue<O>.sync(block: (O) -> Unit) = maintain(Consumer { block(it) })
 
-/** Equivalent to [Subscription.and]. */
-operator fun Subscription.plus(subscription: Subscription) = and(subscription)!!
+/** Sets a disposable block to be fired immediately and on every value change. */
+infix fun <O> ObservableValue<O>.syncWhile(block: (O) -> Subscription): Subscription {
+    var inner: Subscription = Subscription.EMPTY
+    val outer = sync {
+        inner.unsubscribe()
+        inner = block(it)
+    }
+    return outer+inner
+}
 
-/** Equivalent to [Subscription.and]. */
-operator fun Subscription.plus(subscription: () -> Unit) = and(subscription)!!
-
-/** Equivalent to [Subscription.and]. */
-operator fun Subscription.plus(subscription: Disposer) = and(subscription)!!
-
-/** Sets a value consumer to be fired immediately and on every value change. */
-infix fun <O> ObservableValue<O>.sync(u: (O) -> Unit) = maintain(Consumer { u(it) })
+/** Sets a disposable block to be fired immediately and on every non null value change. */
+infix fun <O: Any> ObservableValue<O?>.syncNonNullWhile(block: (O) -> Subscription) = syncWhile {
+    it?.net(block).orEmpty()
+}
 
 /** Sets the value of this observable to the specified property immediately and on every value change. */
 infix fun <O> ObservableValue<O>.syncTo(w: WritableValue<in O>): Subscription {
@@ -79,30 +85,18 @@ infix fun <O> WritableValue<O>.syncFrom(o: ObservableValue<out O>): Subscription
 @Experimental
 fun <O> WritableValue<O>.syncFrom(o: ObservableValue<out O>, disposer: Disposer) = syncFrom(o) on disposer
 
-/** Sets the mapped value the specified observable to the this property immediately and on every value change. */
-fun <O,R> WritableValue<O>.syncFrom(o: ObservableValue<out R>, mapper: (R) -> O): Subscription {
-    value = mapper(o.value)
-    val l = ChangeListener<R> { _, _, nv -> value = mapper(nv) }
-    o.addListener(l)
-    return Subscription { o.removeListener(l) }
-}
-
-/** Sets the mapped value the specified observable to the this property immediately and on every value change. */
-@Experimental
-fun <O,R> WritableValue<O>.syncFrom(o: ObservableValue<out R>, disposer: DisposeOn, mapper: (R) -> O) = syncFrom(o, mapper) on disposer
-
-/** Sets a value consumer to be fired on every value change. */
-infix fun <O> ObservableValue<O>.attach(u: (O) -> Unit): Subscription {
-    val l = ChangeListener<O> { _, _, nv -> u(nv) }
+/** Sets a block to be fired on every value change. */
+infix fun <O> ObservableValue<O>.attach(block: (O) -> Unit): Subscription {
+    val l = ChangeListener<O> { _, _, nv -> block(nv) }
     addListener(l)
     return Subscription { removeListener(l) }
 }
 
-/** Sets a value consumer to be fired on every value change. */
+/** Sets a block to be fired on every value change. */
 @Experimental
-fun <O> ObservableValue<O>.attach(disposer: DisposeOn, u: (O) -> Unit) = attach(u) on disposer
+fun <O> ObservableValue<O>.attach(disposer: DisposeOn, block: (O) -> Unit) = attach(block) on disposer
 
-/** Sets the value the specified observable to the this property on every value change. */
+/** Sets the value of the specified observable to the this property on every value change. */
 infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>): Subscription {
     val l = ChangeListener<O> { _, _, nv -> w.value = nv }
     this.addListener(l)
@@ -111,10 +105,10 @@ infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>): Subscription 
 /** Sets the mapped value the specified observable to the this property on every value change. */
 infix fun <O> WritableValue<O>.attachFrom(o: ObservableValue<out O>): Subscription = o attachTo this
 
-/** Sets a value consumer to be fired on every value change of either observables. */
-fun <O1, O2> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, u: (O1, O2) -> Unit): Subscription {
-    val l1 = ChangeListener<O1> { _, _, nv -> u(nv, o2.value) }
-    val l2 = ChangeListener<O2> { _, _, nv -> u(o1.value, nv) }
+/** Sets a block to be fired on every value change of either observables. */
+fun <O1, O2> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, block: (O1, O2) -> Unit): Subscription {
+    val l1 = ChangeListener<O1> { _, _, nv -> block(nv, o2.value) }
+    val l2 = ChangeListener<O2> { _, _, nv -> block(o1.value, nv) }
     o1.addListener(l1)
     o2.addListener(l2)
     return Subscription {
@@ -123,17 +117,17 @@ fun <O1, O2> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, u: (O1, 
     }
 }
 
-/** Sets a value consumer to be fired immediately and on every value change of either observables. */
-fun <O1, O2> syncTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, u: (O1, O2) -> Unit): Subscription {
-    u(o1.value, o2.value)
-    return attachTo(o1, o2, u)
+/** Sets a block to be fired immediately and on every value change of either observables. */
+fun <O1, O2> syncTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, block: (O1, O2) -> Unit): Subscription {
+    block(o1.value, o2.value)
+    return attachTo(o1, o2, block)
 }
 
-/** Sets a value consumer to be fired on every value change of either observables. */
-fun <O1, O2, O3> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, o3: ObservableValue<O3>, u: (O1, O2, O3) -> Unit): Subscription {
-    val l1 = ChangeListener<O1> { _, _, nv -> u(nv, o2.value, o3.value) }
-    val l2 = ChangeListener<O2> { _, _, nv -> u(o1.value, nv, o3.value) }
-    val l3 = ChangeListener<O3> { _, _, nv -> u(o1.value, o2.value, nv) }
+/** Sets a block to be fired on every value change of either observables. */
+fun <O1, O2, O3> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, o3: ObservableValue<O3>, block: (O1, O2, O3) -> Unit): Subscription {
+    val l1 = ChangeListener<O1> { _, _, nv -> block(nv, o2.value, o3.value) }
+    val l2 = ChangeListener<O2> { _, _, nv -> block(o1.value, nv, o3.value) }
+    val l3 = ChangeListener<O3> { _, _, nv -> block(o1.value, o2.value, nv) }
     o1.addListener(l1)
     o2.addListener(l2)
     o3.addListener(l3)
@@ -144,32 +138,32 @@ fun <O1, O2, O3> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, o3: 
     }
 }
 
-/** Sets a value consumer to be fired immediately and on every value change of either observables. */
-fun <O1, O2, O3> syncTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, o3: ObservableValue<O3>, u: (O1, O2, O3) -> Unit): Subscription {
-    u(o1.value, o2.value, o3.value)
-    return attachTo(o1, o2, o3, u)
+/** Sets a block to be fired immediately and on every value change of either observables. */
+fun <O1, O2, O3> syncTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, o3: ObservableValue<O3>, block: (O1, O2, O3) -> Unit): Subscription {
+    block(o1.value, o2.value, o3.value)
+    return attachTo(o1, o2, o3, block)
 }
 
-/** Sets a value change consumer to be fired on every value change. */
-infix fun <O> ObservableValue<O>.attachChanges(u: (O, O) -> Unit): Subscription {
-    val l = ChangeListener<O> { _, ov, nv -> u(ov, nv) }
+/** Sets a block to be fired on every value change. */
+infix fun <O> ObservableValue<O>.attachChanges(block: (O, O) -> Unit): Subscription {
+    val l = ChangeListener<O> { _, ov, nv -> block(ov, nv) }
     addListener(l)
     return Subscription { removeListener(l) }
 }
 
-/** Sets a value consumer to be fired if the value is true immediately and on every value change. */
-infix fun ObservableValue<Boolean>.syncTrue(u: (Boolean) -> Unit): Subscription = maintain(Consumer { if (it) u(it) })
+/** Sets a block to be fired if the value is true immediately and on every value change. */
+infix fun ObservableValue<Boolean>.syncTrue(block: (Boolean) -> Unit): Subscription = maintain(Consumer { if (it) block(it) })
 
-/** Sets a value consumer to be fired if the value is false immediately and on every value change. */
-infix fun ObservableValue<Boolean>.syncFalse(u: (Boolean) -> Unit): Subscription = maintain(Consumer { if (!it) u(it) })
+/** Sets a block to be fired if the value is false immediately and on every value change. */
+infix fun ObservableValue<Boolean>.syncFalse(block: (Boolean) -> Unit): Subscription = maintain(Consumer { if (!it) block(it) })
 
-/** Sets a size consumer to be fired immediately and on every list size change. */
-infix fun <T> ObservableList<T>.syncSize(action: (Int) -> Unit): Subscription {
+/** Sets a block to be fired immediately and on every list size change. */
+infix fun <T> ObservableList<T>.syncSize(block: (Int) -> Unit): Subscription {
     var s = -1
     val l = ListChangeListener<T> {
         val os = s
         val ns = size
-        if (os!=ns) action(ns)
+        if (os!=ns) block(ns)
         s = ns
     }
     l.onChanged(null)
@@ -177,13 +171,13 @@ infix fun <T> ObservableList<T>.syncSize(action: (Int) -> Unit): Subscription {
     return Subscription { removeListener(l) }
 }
 
-/** Sets a size consumer to be fired on every list size change. */
-infix fun <T> ObservableList<T>.attachSize(action: (Int) -> Unit): Subscription {
+/** Sets a block to be fired on every list size change. */
+infix fun <T> ObservableList<T>.attachSize(block: (Int) -> Unit): Subscription {
     var s = size
     val l = ListChangeListener<T> {
         val os = s
         val ns = size
-        if (os!=ns) action(ns)
+        if (os!=ns) block(ns)
         s = ns
     }
     l.onChanged(null)
@@ -203,35 +197,38 @@ fun <T> ObservableList<T>.sizes() = size(this)!!
 /** @returns observable size of this set */
 fun <T> ObservableSet<T>.sizes() = size(this)!!
 
-/** Sets action to be invoked immediately and on every change of this observable or the extracted observable. */
-fun <O, R> ObservableValue<O>.syncInto(extractor: (O) -> ObservableValue<R>, action: (R?) -> Unit): Subscription {
+/** Sets block to be invoked immediately and on every change of the extracted observable of the value of this observable. */
+fun <O, R> ObservableValue<O>.syncInto(extractor: (O) -> ObservableValue<R>, block: (R?) -> Unit): Subscription {
     val inner = Disposer()
     val outer = this sync {
         inner()
-        if (it==null) action(null)
-        else extractor(it) sync { action(it) } on inner
+        if (it==null) block(null)
+        else extractor(it) sync { block(it) } on inner
     }
     return outer+inner
 }
 
-/** Sets action to be resubscribed immediately and on every change of this observable or the extracted observable. */
-fun <O, R> ObservableValue<O>.syncIntoWhile(extractor: (O) -> ObservableValue<R>, action: (R?) -> Subscription): Subscription {
+/** Sets block to be resubscribed immediately and on every change of the extracted observable of the value of this observable until value changes. */
+fun <O, R> ObservableValue<O>.syncIntoWhile(extractor: (O) -> ObservableValue<R>, block: (R?) -> Subscription): Subscription {
     val superInner = Disposer()
     val inner = Disposer()
     val outer = this sync {
         inner()
         if (it==null) {
             superInner()
-            superInner += action(null)
+            superInner += block(null)
         } else {
             inner += extractor(it) sync {
                 superInner()
-                superInner += action(it)
+                superInner += block(it)
             }
         }
     }
     return outer+inner+superInner
 }
+
+/** Sets block to be resubscribed immediately and on every non null change of the extracted observable of the value until value changes. */
+fun <O: Any?, R: Any> ObservableValue<O>.syncNonNullIntoWhile(extractor: (O) -> ObservableValue<R?>, block: (R) -> Subscription) = syncIntoWhile(extractor) { it?.net(block).orEmpty() }
 
 // TODO: remove
 fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, u: Consumer<in V>): Subscription {
@@ -256,11 +253,11 @@ fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, w: WritableValue<in V>): Sub
 }
 
 /** [sync1If], that does not run immediately (even if the value passes the condition). */
-fun <T> ObservableValue<T>.attach1If(condition: (T) -> Boolean, action: (T) -> Unit): Subscription {
+fun <T> ObservableValue<T>.attach1If(condition: (T) -> Boolean, block: (T) -> Unit): Subscription {
     val l = object: ChangeListener<T> {
         override fun changed(observable: ObservableValue<out T>, ov: T, nv: T) {
             if (condition(nv)) {
-                action(nv)
+                block(nv)
                 removeListener(this)
             }
         }
@@ -270,27 +267,27 @@ fun <T> ObservableValue<T>.attach1If(condition: (T) -> Boolean, action: (T) -> U
 }
 
 /**
- * Runs action (consuming the property's value) as soon as the condition is met. Useful to execute initialization,
+ * Runs block (consuming the property's value) as soon as the condition is met. Useful to execute initialization,
  * for example to wait for nonnull value.
  *
- * The action runs immediately if current value already meets the condition. Otherwise registers a one-time
- * listener, which will run the action when the value changes to such that the condition is met.
+ * The block runs immediately if current value already meets the condition. Otherwise registers a one-time
+ * listener, which will run the block when the value changes to such that the condition is met.
  *
  * It is guaranteed:
- *  *  action executes at most once
+ *  *  block executes at most once
  *
  * It is not guaranteed:
- *  *  action will execute, because the value may never meet the condition or it was unsubscribed before it happened
+ *  *  block will execute, because the value may never meet the condition or it was unsubscribed before it happened
  *
  * @param condition test the value must pass for the action to execute
- * @param action action receiving the value as argument and that runs exactly once when the condition is first met
+ * @param block action receiving the value as argument and that runs exactly once when the condition is first met
  */
-fun <T> ObservableValue<T>.sync1If(condition: (T) -> Boolean, action: (T) -> Unit): Subscription {
+fun <T> ObservableValue<T>.sync1If(condition: (T) -> Boolean, block: (T) -> Unit): Subscription {
     return if (condition(value)) {
-        action(value)
+        block(value)
         Subscription {}
     } else {
-        attach1If(condition, action)
+        attach1If(condition, block)
     }
 }
 
@@ -302,10 +299,10 @@ fun <T> ObservableValue<T>.sync1IfNonNull(action: (T) -> Unit) = sync1If({ it!=n
 
 
 /**
- * Runs action once node is in scene graph and after proper layout, i.e., its scene being non null and after executing
- * a layout pass. The action will never run in current scene pulse as [runLater] will be invoked at least once.
+ * Runs block once node is in scene graph and after proper layout, i.e., its scene being non null and after executing
+ * a layout pass. The block will never run in current scene pulse as [runLater] will be invoked at least once.
  */
-fun Node.sync1IfInScene(action: () -> Unit): Subscription {
+fun Node.sync1IfInScene(block: () -> Unit): Subscription {
     val disposer = Disposer()
     fun Node.onAddedToScene(action: () -> Unit): Subscription = sceneProperty().sync1IfNonNull {
         runLater {
@@ -316,7 +313,7 @@ fun Node.sync1IfInScene(action: () -> Unit): Subscription {
             }
         }
     }
-    onAddedToScene(action) on disposer
+    onAddedToScene(block) on disposer
     return Subscription { disposer() }
 }
 
@@ -325,22 +322,22 @@ fun sync1IfImageLoaded(image: Image, action: Runnable) = image.progressProperty(
 fun doIfImageLoaded(imageView: ImageView, action: Consumer<Image>) = imageView.imageProperty().syncInto(Image::progressProperty) { p -> if (p==1.0) action(imageView.image) }
 
 /** Call specified handler every time an item in this list changes */
-fun <T> ObservableList<T>.onChange(changeHandler: () -> Unit): Subscription {
+fun <T> ObservableList<T>.onChange(block: () -> Unit): Subscription {
     val l = ListChangeListener<T> {
         while (it.next()) {
-            changeHandler()
+            block()
         }
     }
     addListener(l)
     return Subscription { removeListener(l) }
 }
 
-/** Call specified handler every time an item is added to this list passing it as argument */
-fun <T> ObservableList<T>.onItemAdded(addedHandler: (T) -> Unit): Subscription {
+/** Call specified block every time an item is added to this list passing it as argument */
+fun <T> ObservableList<T>.onItemAdded(block: (T) -> Unit): Subscription {
     val l = ListChangeListener<T> {
         while (it.next()) {
             if (!it.wasPermutated() && !it.wasUpdated()) {
-                if (it.wasAdded()) it.addedSubList.forEach(addedHandler)
+                if (it.wasAdded()) it.addedSubList.forEach(block)
             }
         }
     }
@@ -348,12 +345,12 @@ fun <T> ObservableList<T>.onItemAdded(addedHandler: (T) -> Unit): Subscription {
     return Subscription { removeListener(l) }
 }
 
-/** Call specified handler every time an item is removed from this list passing it as argument */
-fun <T> ObservableList<T>.onItemRemoved(removedHandler: (T) -> Unit): Subscription {
+/** Call specified block every time an item is removed from this list passing it as argument */
+fun <T> ObservableList<T>.onItemRemoved(block: (T) -> Unit): Subscription {
     val l = ListChangeListener<T> {
         while (it.next()) {
             if (!it.wasPermutated() && !it.wasUpdated()) {
-                if (it.wasRemoved()) it.removed.forEach(removedHandler)
+                if (it.wasRemoved()) it.removed.forEach(block)
             }
         }
     }
@@ -361,26 +358,28 @@ fun <T> ObservableList<T>.onItemRemoved(removedHandler: (T) -> Unit): Subscripti
     return Subscription { removeListener(l) }
 }
 
-/** Call specified handler for every current and future item of this collection. */
-fun <T> ObservableList<T>.onItemDo(block: (T) -> Unit): Subscription {
+/** Call specified block for every current and future item of this collection. */
+fun <T> ObservableList<T>.onItemSync(block: (T) -> Unit): Subscription {
     forEach { block(it) }
     return onItemAdded { block(it) }
 }
 
 /**
- * Subscribe specified handler for every current and future item of this collection until it is removed or unsubscribed.
- * Collection must not contain duplicates (defined as [Any.identityHashCode]).
+ * Subscribe specified disposable block for every current and future item of this collection until it is removed or unsubscribed.
+ * Collection must not contain duplicates (as per [Any.identityHashCode]).
  */
-fun <T> ObservableList<T>.onItemSync(subscriber: (T) -> Subscription): Subscription {
+fun <T> ObservableList<T>.onItemSyncWhile(subscriber: (T) -> Subscription): Subscription {
     fun T.id() = identityHashCode()
-    val ds = HashMap<Int, Subscription>(size)
+
+    val ds = IdentityHashMap<T, Subscription>(size)
     val disposer = Disposer()
-    forEach { ds[it.id()] = subscriber(it) }
-    onItemRemoved { ds.remove(it.id())?.unsubscribe() } on disposer
-    onItemAdded { if (ds.containsKey(it.id())) fail { "Duplicate=$it" } else ds[it.id()] = subscriber(it) } on disposer
+    forEach { ds[it] = subscriber(it) }
+    onItemRemoved { ds.remove(it)?.unsubscribe() } on disposer
+    onItemAdded { if (ds.containsKey(it)) fail { "Duplicate=$it" } else ds[it] = subscriber(it) } on disposer
     return Subscription {
         disposer()
         ds.forEach { it.value.unsubscribe() }
+        ds.clear()
     }
 }
 
@@ -410,4 +409,11 @@ fun <T: Event> Node.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit
     val handler = EventHandler<T> { eventHandler(it) }
     addEventFilter(eventType, handler)
     return Subscription { removeEventFilter(eventType, handler) }
+}
+
+/** Equivalent to [TreeItem.addEventHandler]. */
+fun <R, T: Event> TreeItem<R>.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+    val handler = EventHandler<T> { eventHandler(it) }
+    addEventHandler(eventType, handler)
+    return Subscription { removeEventHandler(eventType, handler) }
 }

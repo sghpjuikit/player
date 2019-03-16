@@ -2,6 +2,9 @@ package sp.it.pl.gui.objects.tree
 
 import javafx.collections.FXCollections.emptyObservableList
 import javafx.collections.ObservableList
+import javafx.event.Event
+import javafx.event.EventTarget
+import javafx.event.EventType
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.Scene
@@ -63,18 +66,32 @@ import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.createIcon
+import sp.it.pl.util.graphics.isAnyParentOf
+import sp.it.pl.util.graphics.root
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.reactive.onItemSync
+import sp.it.pl.util.reactive.onEventDown
+import sp.it.pl.util.reactive.onItemSyncWhile
+import sp.it.pl.util.reactive.syncNonNullWhile
 import sp.it.pl.util.system.open
 import sp.it.pl.util.text.plural
 import sp.it.pl.util.type.Util.getFieldValue
+import sp.it.pl.util.type.nullify
 import java.io.File
 import java.nio.file.Path
 import java.util.ArrayList
+import java.util.Stack
 import kotlin.streams.asSequence
 
 private val logger = KotlinLogging.logger { }
+private val globalContextMenu by lazy { ValueContextMenu<Any?>() }
+
+private const val SELECTION_DISTURBED_KEY = "tree_selection_disturbed"
+private const val SELECTION_DISTURBED_STACK_KEY = "tree_selection_disturbed_child"
+private val SELECTION_DISTURBED_CLEAR = EventType<TreeSelectionClearEvent>("tree_selection_disturbed_clear")
+private val SELECTION_DISTURBED_RESTORE = EventType<TreeSelectionRestoreEvent>("tree_selection_disturbed_restore")
+private class TreeSelectionClearEvent(target: EventTarget, val removed: TreeItem<*>): Event(null, target, SELECTION_DISTURBED_CLEAR)
+private class TreeSelectionRestoreEvent(target: EventTarget): Event(null, target, SELECTION_DISTURBED_RESTORE)
 
 private fun Any?.orNone(): Any = this ?: "<none>"
 
@@ -141,7 +158,8 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
                 doAction(selectionModel.selectedItem?.value, {})
                 it.consume()
             }
-            else -> {}
+            else -> {
+            }
         }
     }
     setOnDragDetected { e ->
@@ -155,6 +173,51 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
         val mode = if (e.isShiftDown) TransferMode.MOVE else TransferMode.COPY
         startDragAndDrop(mode).setContent(mapOf(DataFormat.FILES to items))
         e.consume()
+    }
+
+    // preserve selection when observable tree item children source changes
+    @Suppress("UNCHECKED_CAST")
+    rootProperty() syncNonNullWhile { root ->
+        Subscription.multi(
+                root.onEventDown(SELECTION_DISTURBED_CLEAR) {
+                    val childStack = properties.computeIfAbsent(SELECTION_DISTURBED_STACK_KEY) { Stack<Unit>() } as Stack<Unit>
+                    childStack.push(Unit)
+
+                    if (childStack.size==1) {
+                        properties[SELECTION_DISTURBED_KEY] = when {
+                            selectionModel.isEmpty -> null
+                            else -> {
+                                val removed = it.removed as TreeItem<T>
+                                val removedI = getRow(removed)
+                                val remainingSelection = selectionModel.selectedIndices.filter { it!=removedI && !removed.isAnyParentOf(getTreeItem(it)) }
+                                when {
+                                    !remainingSelection.isEmpty() -> remainingSelection
+                                    else -> {
+                                        val i = null
+                                                ?: removed.previousSibling()?.let { getRow(it) }    // try preceding
+                                                ?: (removedI+1).takeIf { it<expandedItemCount }?.let { it-1 }    // try following
+
+                                        i?.let { listOf(it) }
+                                        if (i!=null) listOf(i) else null
+                                    }
+                                }
+                            }
+                        }
+                        selectionModel.clearSelection()
+                    }
+                },
+                root.onEventDown(SELECTION_DISTURBED_RESTORE) {
+                    val childStack = properties[SELECTION_DISTURBED_STACK_KEY] as Stack<Unit>
+                    childStack.pop()
+
+                    if (properties[SELECTION_DISTURBED_KEY]!=null && childStack.isEmpty()) {
+                        selectionModel.clearSelection()
+                        val s = properties[SELECTION_DISTURBED_KEY] as List<Int>
+                        selectionModel.selectIndices(s[0], *IntArray(s.size-1) { s[it+1] })
+                        properties -= SELECTION_DISTURBED_KEY
+                    }
+                }
+        )
     }
 
 }
@@ -282,8 +345,6 @@ private fun doAction(o: Any?, otherwise: () -> Unit) {
     }
 }
 
-private val globalContextMenu by lazy { ValueContextMenu<Any?>() }
-
 open class OTreeItem<T> constructor(v: T, private val childrenO: ObservableList<out T>): TreeItem<T>(v), DisposableTreeItem {
     private val once = ExecuteN(1)
     private val childrenDisposer = Disposer()
@@ -292,15 +353,23 @@ open class OTreeItem<T> constructor(v: T, private val childrenO: ObservableList<
     override fun getChildren(): ObservableList<TreeItem<T>> {
         return super.getChildren().also { children ->
             once {
-                childrenDisposer += childrenO.onItemSync {
+                childrenDisposer += childrenO.onItemSyncWhile {
                     val item = tree(it)
                     children += item
-                    Subscription { children -= item.also { it.disposeIfDisposable() } }
+                    Subscription {
+                        val r = root
+                        Event.fireEvent(r, TreeSelectionClearEvent(r, item))
+                        children -= item.also { it.disposeIfDisposable() }
+                        Event.fireEvent(r, TreeSelectionRestoreEvent(r))
+                    }
                 }
             }
         }
     }
-    override fun dispose() = childrenDisposer()
+    override fun dispose() {
+        childrenDisposer()
+        nullify(::childrenO)
+    }
 }
 
 open class SimpleTreeItem<T> constructor(value: T, childrenSeq: Sequence<T> = seqOf()): TreeItem<T>(value) {
@@ -372,7 +441,7 @@ interface DisposableTreeItem {
     fun dispose()
 }
 
-/** Traverses this tree until it finds [DisposableTreeItem] and then  [DisposableTreeItem.dispose] */
+/** Traverses this tree until it finds [DisposableTreeItem] and then calls [DisposableTreeItem.dispose]. */
 fun <T> TreeItem<T>.disposeIfDisposable() {
     if (this is DisposableTreeItem) {
         dispose()

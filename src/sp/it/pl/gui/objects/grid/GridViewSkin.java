@@ -34,6 +34,7 @@ import sp.it.pl.gui.objects.grid.GridView.SelectionOn;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
 import sp.it.pl.util.functional.Functors;
 import sp.it.pl.util.reactive.Disposer;
+import sp.it.pl.util.reactive.SubscriptionKt;
 import sp.it.pl.util.reactive.UtilKt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -122,7 +123,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		attach(grid.focusedProperty(), v -> {
 			if (v) flow.requestFocus();
 		});
-		UtilKt.on(onChange(grid.getItemsShown(), runnable(() -> flow.changeItemsLazy())), onDispose);
+		SubscriptionKt.on(onChange(grid.getItemsShown(), runnable(() -> flow.changeItemsLazy())), onDispose);
 
 		root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, flow.root);
 		filter = new Filter(grid.type, grid.itemsFiltered);
@@ -169,7 +170,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 	// TODO: remove
 	private <O> void attach(ObservableValue<O> value, Consumer<? super O> action) {
-		UtilKt.on(UtilKt.attach(value, consumer(action)), onDispose);
+		SubscriptionKt.on(UtilKt.attach(value, consumer(action)), onDispose);
 	}
 
 	// TODO: improve API

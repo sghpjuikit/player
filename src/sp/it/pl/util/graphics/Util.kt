@@ -63,6 +63,7 @@ import javafx.util.Callback
 import org.reactfx.Subscription
 import sp.it.pl.util.JavaLegacy
 import sp.it.pl.util.functional.asIf
+import sp.it.pl.util.functional.traverse
 import sp.it.pl.util.graphics.image.FitFrom
 import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.Disposer
@@ -101,10 +102,10 @@ fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Double? = null): Text {
 /* ---------- NODE -------------------------------------------------------------------------------------------------- */
 
 /** @return true iff this is direct parent of the specified node */
-fun Node.isParentOf(child: Node) = child.parent==this
+fun Node.isParentOf(child: Node) = child.parent===this
 
 /** @return true iff this is direct or indirect parent of the specified node */
-fun Node.isAnyParentOf(child: Node) = generateSequence(child, { it.parent }).any { isParentOf(it) }
+fun Node.isAnyParentOf(child: Node) = generateSequence(child) { it.parent }.drop(1).any { it===this }
 
 /** @return true iff this is direct child of the specified node */
 fun Node.isChildOf(parent: Node) = parent.isParentOf(this)
@@ -113,7 +114,7 @@ fun Node.isChildOf(parent: Node) = parent.isParentOf(this)
 fun Node.isAnyChildOf(parent: Node) = parent.isAnyParentOf(this)
 
 /** @return this or direct or indirect parent of this that passes specified filter or null if no element passes */
-fun Node.findParent(filter: (Node) -> Boolean) = generateSequence(this, { it.parent }).find(filter)
+fun Node.findParent(filter: (Node) -> Boolean) = generateSequence(this) { it.parent }.find(filter)
 
 /** Removes this from its parent's children if possible (if parent is [Pane] or [Group]). Any child's focus is moved to parent. */
 fun Node.removeFromParent() {
@@ -705,7 +706,21 @@ fun typeText(text: String, padLength: Char? = null): (Double) -> String {
 
 /* ---------- TREE VIEW --------------------------------------------------------------------------------------------- */
 
-fun <T> TreeItem<T>.expandToRoot() = generateSequence(this, { it.parent }).forEach { it.setExpanded(true) }
+/** @return true iff this is direct parent of the specified tree item */
+fun <T> TreeItem<T>.isParentOf(child: TreeItem<T>) = child.parent===this
+
+/** @return true iff this is direct or indirect parent of the specified tree item */
+fun <T> TreeItem<T>.isAnyParentOf(child: TreeItem<T>) = generateSequence(child) { it.parent }.drop(1).any { it===this }
+
+/** @return true iff this is direct child of the specified tree item */
+fun <T> TreeItem<T>.isChildOf(parent: TreeItem<T>) = parent.isParentOf(this)
+
+/** @return true iff this is direct or indirect child of the specified tree item */
+fun <T> TreeItem<T>.isAnyChildOf(parent: TreeItem<T>) = parent.isAnyParentOf(this)
+
+val <T> TreeItem<T>.root: TreeItem<T> get() = traverse { it.parent }.first()
+
+fun <T> TreeItem<T>.expandToRoot() = generateSequence(this) { it.parent }.forEach { it.setExpanded(true) }
 
 fun <T> TreeItem<T>.expandToRootAndSelect(tree: TreeView<in T>) = tree.expandToRootAndSelect(this)
 

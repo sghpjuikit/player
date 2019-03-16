@@ -45,7 +45,7 @@ import sp.it.pl.util.graphics.scrollPane
 import sp.it.pl.util.graphics.setScaleXY
 import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.reactive.onItemDo
+import sp.it.pl.util.reactive.onItemSync
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1If
 import sp.it.pl.util.reactive.syncFrom
@@ -162,7 +162,7 @@ object AppProgress {
                             }
                         }
                     }
-                    tasks.onItemDo {
+                    tasks.onItemSync {
                         children.add(0, it.toInfo())
                     }
                 }

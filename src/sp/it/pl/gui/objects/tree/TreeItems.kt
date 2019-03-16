@@ -2,12 +2,14 @@ package sp.it.pl.gui.objects.tree
 
 import javafx.collections.FXCollections.emptyObservableList
 import javafx.collections.ObservableList
+import javafx.collections.transformation.FilteredList
 import javafx.event.Event
 import javafx.event.EventTarget
 import javafx.event.EventType
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.Scene
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Tooltip
 import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
@@ -139,7 +141,7 @@ fun treeApp(): TreeItem<Any> {
                     tree("Services", { APP.services.getAllServices().sortedBy { it.name } })
             ),
             tree("UI",
-                    tree("Windows", Stage.getWindows()),
+                    tree("Windows", FilteredList(Stage.getWindows()) { it !is Tooltip && it !is ContextMenu }),
                     tree("Layouts", { APP.widgetManager.layouts.findAllActive().sortedBy { it.name } })
             ),
             tree("Location", APP.DIR_APP),

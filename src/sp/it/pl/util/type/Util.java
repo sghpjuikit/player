@@ -16,13 +16,30 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiConsumer;
 import javafx.beans.Observable;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.HPos;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.geometry.VPos;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.Config.VarList;
+import sp.it.pl.util.functional.Functors;
 import sp.it.pl.util.functional.TriConsumer;
 import static kotlin.text.StringsKt.substringBeforeLast;
 import static sp.it.pl.util.dev.DebugKt.logger;
@@ -105,6 +122,62 @@ public interface Util {
 				}
 			}
 		}
+
+		// add synthetic javafx layout properties for nodes in scene graph
+		var child = o instanceof Node ? (Node) o : null;
+		var parent = o instanceof Node ? ((Node) o).getParent() : null;
+		if (parent instanceof StackPane) {
+			action.accept(paneProperty(parent, child, Pos.class, "stackpane-alignment", StackPane::getAlignment, StackPane::setAlignment), "L: Alignment", Pos.class);
+			action.accept(paneProperty(parent, child, Insets.class, "stackpane-alignment", StackPane::getMargin, StackPane::setMargin), "L: Margin", Insets.class);
+		}
+		if (parent instanceof AnchorPane) {
+			action.accept(paneProperty(parent, child, Double.class, "pane-top-anchor", AnchorPane::getTopAnchor, AnchorPane::setTopAnchor), "L: Anchor (top)", Double.class);
+			action.accept(paneProperty(parent, child, Double.class, "pane-right-anchor", AnchorPane::getRightAnchor, AnchorPane::setRightAnchor), "L: Anchor (right)", Double.class);
+			action.accept(paneProperty(parent, child, Double.class, "pane-bottom-anchor", AnchorPane::getBottomAnchor, AnchorPane::setBottomAnchor), "L: Anchor (bottom)", Double.class);
+			action.accept(paneProperty(parent, child, Double.class, "pane-left-anchor", AnchorPane::getLeftAnchor, AnchorPane::setLeftAnchor), "L: Anchor (left)", Double.class);
+		}
+		if (parent instanceof VBox) {
+			action.accept(paneProperty(parent, child, Priority.class, "vbox-vgrow", VBox::getVgrow, VBox::setVgrow), "L: VGrow", Priority.class);
+			action.accept(paneProperty(parent, child, Insets.class, "vbox-margin", VBox::getMargin, VBox::setMargin), "L: Margin", Insets.class);
+		}
+		if (parent instanceof HBox) {
+			action.accept(paneProperty(parent, child, Priority.class, "hbox-vgrow", HBox::getHgrow, HBox::setHgrow), "L: HGrow", Priority.class);
+			action.accept(paneProperty(parent, child, Insets.class, "hbox-margin", HBox::getMargin, HBox::setMargin), "L: Margin", Insets.class);
+		}
+		if (parent instanceof BorderPane) {
+			action.accept(paneProperty(parent, child, Pos.class, "borderpane-alignment", BorderPane::getAlignment, BorderPane::setAlignment), "L: Alignment", Pos.class);
+			action.accept(paneProperty(parent, child, Insets.class, "borderpane-margin", BorderPane::getMargin, BorderPane::setMargin), "L: Margin", Insets.class);
+		}
+		if (parent instanceof GridPane) {
+			action.accept(paneProperty(parent, child, Integer.class, "gridpane-column", GridPane::getColumnIndex, GridPane::setColumnIndex), "L: Column index", Integer.class);
+			action.accept(paneProperty(parent, child, Integer.class, "gridpane-column-span", GridPane::getColumnSpan, GridPane::setColumnSpan), "L: Column span", Integer.class);
+			action.accept(paneProperty(parent, child, Integer.class, "gridpane-row", GridPane::getRowIndex, GridPane::setRowIndex), "L: Row index", Integer.class);
+			action.accept(paneProperty(parent, child, Integer.class, "gridpane-row-span", GridPane::getRowSpan, GridPane::setRowSpan), "L: Row span", Integer.class);
+			action.accept(paneProperty(parent, child, VPos.class, "gridpane-valignment", GridPane::getValignment, GridPane::setValignment), "L: Valignment", VPos.class);
+			action.accept(paneProperty(parent, child, HPos.class, "gridpane-halignment", GridPane::getHalignment, GridPane::setHalignment), "L: Halignment", HPos.class);
+			action.accept(paneProperty(parent, child, Priority.class, "gridpane-vgrow", GridPane::getVgrow, GridPane::setVgrow), "L: Vgrow", Priority.class);
+			action.accept(paneProperty(parent, child, Priority.class, "gridpane-hgrow", GridPane::getHgrow, GridPane::setHgrow), "L: Hgrow", Priority.class);
+			action.accept(paneProperty(parent, child, Insets.class, "gridpane-margin", HBox::getMargin, HBox::setMargin), "L: Margin", Insets.class);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> Observable paneProperty(Parent parent, Node child, Class<T> type, String key, Functors.Ƒ1<Node,T> getter, BiConsumer<Node, T> setter) {
+		return new SimpleObjectProperty<>(getter.apply(child)) {
+			{
+				child.getProperties().addListener((MapChangeListener.Change<?,?> v) -> {
+					if (v.getKey().equals(key)) {
+						super.setValue((T) v.getValueAdded());
+					}
+				});
+			}
+
+			@Override
+			public void setValue(T v) {
+				super.setValue(v);
+				setter.accept(child, v);
+			}
+		};
 	}
 
 /* ---------- REFLECTION - INSTANTIATION ---------------------------------------------------------------------------- */

@@ -33,7 +33,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.reactfx.util.TriFunction;
-import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.functional.Functors.Ƒ1E;
 import sp.it.pl.util.functional.Functors.Ƒ2;
@@ -81,6 +80,7 @@ public interface Util {
 	 * If any argument is null, false is returned.
 	 * Otherwise, equality is determined by using the equals method of the first argument.
 	 */
+	@SuppressWarnings("PointlessNullCheck")
 	static boolean equalNonNull(Object a, Object b) {
 		return a!=null && b!=null && a.equals(b);
 	}
@@ -91,6 +91,7 @@ public interface Util {
 	 * returned.
 	 * Otherwise, equality is determined by using the equals method of the first argument.
 	 */
+	@SuppressWarnings("EqualsReplaceableByObjectsCall")
 	static boolean equalNull(Object a, Object b) {
 		return a==b || (a!=null && a.equals(b));
 	}
@@ -130,97 +131,34 @@ public interface Util {
 		return false;
 	}
 
-	static <E> boolean isContainedIn(E o, E a) {
+	static <E> boolean equalsAny(E o, E a) {
 		return o.equals(a);
 	}
 
-	static <E> boolean isContainedIn(E o, E a, E b) {
+	static <E> boolean equalsAny(E o, E a, E b) {
 		return o.equals(a) || o.equals(b);
 	}
 
-	static <E> boolean isContainedIn(E o, E a, E b, E c) {
+	static <E> boolean equalsAny(E o, E a, E b, E c) {
 		return o.equals(a) || o.equals(b) || o.equals(c);
 	}
 
-	static <E> boolean isContainedIn(E o, E a, E b, E c, E d) {
+	static <E> boolean equalsAny(E o, E a, E b, E c, E d) {
 		return o.equals(a) || o.equals(b) || o.equals(c) || o.equals(d);
 	}
 
 	@SafeVarargs
-	static <E> boolean isContainedIn(E o, E... es) {
+	static <E> boolean equalsAny(E o, E... es) {
 		for (E e : es)
 			if (o.equals(e))
 				return true;
 		return false;
 	}
 
-	static <E> boolean isContainedIn(E o, Collection<E> es) {
+	static <E> boolean equalsAnyIn(E o, Collection<E> es) {
 		for (E e : es)
 			if (o.equals(e)) return true;
 		return false;
-	}
-
-	@SafeVarargs
-	static <E> boolean isAll(E o, Predicate<E>... ps) {
-		boolean b = true;
-		for (Predicate<E> p : ps)
-			b &= p.test(o);
-		return b;
-	}
-
-	@SafeVarargs
-	static <E> boolean isAny(E o, Predicate<E>... ps) {
-		boolean b = false;
-		for (Predicate<E> p : ps)
-			b |= p.test(o);
-		return b;
-	}
-
-	static boolean isØ(Object o) {
-		return o==null;
-	}
-
-	static boolean isAnyØ(Object o) {
-		return o==null;
-	}
-
-	static boolean isAnyØ(Object a, Object b) {
-		return a==null || b==null;
-	}
-
-	static boolean isAnyØ(Object a, Object b, Object c) {
-		return a==null || b==null || c==null;
-	}
-
-	static boolean isAnyØ(Object a, Object b, Object c, Object d) {
-		return a==null || b==null || c==null || d==null;
-	}
-
-	static boolean isAnyØ(Object... objects) {
-		if (objects==null) throw new IllegalArgumentException("Array must ot be null.");
-		for (Object o : objects) if (o==null) return true;
-		return false;
-	}
-
-	static boolean isNoneØ(Object o) {
-		return o!=null;
-	}
-
-	static boolean isNoneØ(Object a, Object b) {
-		return a!=null && b!=null;
-	}
-
-	static boolean isNoneØ(Object a, Object b, Object c) {
-		return a!=null && b!=null && c!=null;
-	}
-
-	static boolean isNoneØ(Object a, Object b, Object c, Object d) {
-		return a!=null && b!=null && c!=null && d!=null;
-	}
-
-	static boolean isNoneØ(Object... objects) {
-		for (Object o : objects) if (o!=null) return false;
-		return true;
 	}
 
 	/** Repeat action n times. */
@@ -361,46 +299,9 @@ public interface Util {
 		return new LinkedHashSet<>(c);
 	}
 
-	/******************************* object -> object *****************************/
-
-	static <IN, OUT> Ƒ1<IN,OUT> mapC(Predicate<? super IN> cond, OUT y, OUT n) {
-		return in -> cond.test(in) ? y : n;
-	}
-
+	// TODO: remove
 	static <OUT> Ƒ1<Boolean,OUT> mapB(OUT y, OUT n) {
 		return in -> in ? y : n;
-	}
-
-	@SuppressWarnings("unchecked")
-	static <NN> Ƒ1<?,NN> mapNulls(NN non_null) {
-		noNull(non_null);
-		return (Ƒ1) in -> in==null ? non_null : in;
-	}
-
-	static <I, O> O mapRef(I value, I i1, O o1) {
-		if (value==i1) return o1;
-		throw new SwitchException(value);
-	}
-
-	static <I, O> O mapRef(I value, I i1, I i2, O o1, O o2) {
-		if (value==i1) return o1;
-		if (value==i2) return o2;
-		throw new SwitchException(value);
-	}
-
-	static <I, O> O mapRef(I value, I i1, I i2, I i3, O o1, O o2, O o3) {
-		if (value==i1) return o1;
-		if (value==i2) return o2;
-		if (value==i3) return o3;
-		throw new SwitchException(value);
-	}
-
-	static <I, O> O mapRef(I value, I i1, I i2, I i3, I i4, O o1, O o2, O o3, O o4) {
-		if (value==i1) return o1;
-		if (value==i2) return o2;
-		if (value==i3) return o3;
-		if (value==i4) return o4;
-		throw new SwitchException(value);
 	}
 
 /* ---------- FUNCTION -> FUNCTION ---------------------------------------------------------------------------------- */
@@ -1367,12 +1268,12 @@ public interface Util {
 	 * @param from the first and smallest key to check
 	 * @return the smallest nonexistent integer key key
 	 */
-	@SuppressWarnings("ConstantConditions")
+	@SuppressWarnings({"ConstantConditions", "OptionalGetWithoutIsPresent"})
 	static int findFirstEmptyKey(Map<Integer,?> map, int from) {
 		return IntStream.iterate(from, i -> i + 1).filter(i -> !map.containsKey(i)).findFirst().getAsInt();
 	}
 
-	@SuppressWarnings("ConstantConditions")
+	@SuppressWarnings({"ConstantConditions", "OptionalGetWithoutIsPresent"})
 	static int findFirstInt(int from, IntPredicate condition) {
 		return IntStream.iterate(from, i -> i + 1).filter(condition).findFirst().getAsInt();
 	}

@@ -75,6 +75,7 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.file.ImageFileFormat;
+import sp.it.pl.util.functional.Util;
 import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
 import sp.it.pl.util.validation.InputConstraints;
@@ -132,8 +133,6 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
-import static sp.it.pl.util.functional.Util.isContainedIn;
-import static sp.it.pl.util.functional.Util.mapRef;
 import static sp.it.pl.util.functional.Util.noDups;
 import static sp.it.pl.util.functional.Util.noEx;
 import static sp.it.pl.util.functional.Util.split;
@@ -583,8 +582,12 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
                     fields.forEach(f -> f.histogramEnd(formats));
 
                     // handle cover separately
-                    CoverL.setText(mapRef(c, 0,1,2, APP.getTextNoVal(),s,APP.getTextManyVal())); // set image info
-                    CoverV.loadImage(c==1 ? co.getImage() : null);  // set image
+                    String coverInfoText = null;
+                    if (c==0) coverInfoText = APP.getTextNoVal();
+                    if (c==1) coverInfoText = s;
+                    if (c==2) coverInfoText = APP.getTextManyVal();
+                    CoverL.setText(coverInfoText);
+                    CoverV.loadImage(c==1 ? co.getImage() : null);
 
                     // enable/disable fields
                     ratingF.setDisable(true);
@@ -700,13 +703,13 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
             // disable committable if empty and backspace key pressed
             c.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-                if (isContainedIn(e.getCode(),BACK_SPACE,ESCAPE)) {
+                if (Util.equalsAny(e.getCode(),BACK_SPACE,ESCAPE)) {
                     onBackspacePressed(e); // requires event filter
                 }
             });
 
             // autocompletion
-            if (c instanceof TextField && !isContainedIn(f, TITLE, RATING_RAW, COMMENT, LYRICS, COLOR)) {
+            if (c instanceof TextField && !Util.equalsAny(f, TITLE, RATING_RAW, COMMENT, LYRICS, COLOR)) {
                Comparator<String> cmpRaw = String::compareTo;
                Comparator<String> cmp = f!=YEAR ? cmpRaw : cmpRaw.reversed();
                AutoCompletion.Companion.autoComplete(
@@ -745,7 +748,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
                 c.setUserData(true);
                 c.setText("");
                 c.setText("");
-                c.setText(isContainedIn(c.getPromptText(), APP.getTextNoVal(), APP.getTextManyVal())
+                c.setText(Util.equalsAny(c.getPromptText(), APP.getTextNoVal(), APP.getTextManyVal())
                                 ? "" : c.getPromptText());
                 c.setPromptText("");
                 c.selectAll();

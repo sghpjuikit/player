@@ -84,7 +84,7 @@ import static sp.it.pl.util.conf.ConfigurationUtilKt.isEditableByUserRightNow;
 import static sp.it.pl.util.functional.Try.ok;
 import static sp.it.pl.util.functional.Util.IS;
 import static sp.it.pl.util.functional.Util.by;
-import static sp.it.pl.util.functional.Util.isContainedIn;
+import static sp.it.pl.util.functional.Util.equalsAny;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.layHeaderTop;
@@ -576,7 +576,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             box.setSpacing(5);
 
             Class type = config.getType();
-            if (isContainedIn(type, Integer.class,Short.class,Long.class)) {
+            if (equalsAny(type, Integer.class,Short.class,Long.class)) {
                 box.getChildren().add(0,cur);
                 slider.setMajorTickUnit(1);
                 slider.setSnapToTicks(true);

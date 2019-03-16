@@ -8,7 +8,7 @@ import javafx.concurrent.Task;
 import javafx.scene.media.Media;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.playlist.PlaylistSong;
-import sp.it.pl.util.async.future.ConvertListTask;
+import sp.it.pl.util.async.future.FTask;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import static java.util.stream.Collectors.toList;
 import static sp.it.pl.audio.tagging.ExtKt.readAudioFile;
@@ -118,10 +118,18 @@ public class MetadataReader {
 	 *
 	 * @return the task
 	 */
-	public static ConvertListTask<Song,Metadata> addSongsToLibTask() {
-		return new ConvertListTask<>("Adding songs to library") {
+	public static FTask<Collection<? extends Song>, AddSongsToLibResult> addSongsToLibTask() {
+		return new FTask<>() {
+			private final StringBuffer sb = new StringBuffer(40);
+
+			{
+				updateTitle(noNull("Adding songs to library"));
+				updateMessage("Progress: -");
+				updateProgress(0, 1);
+			}
+
 			@Override
-			protected Result<Song,Metadata> compute(Collection<? extends Song> input) {
+			protected AddSongsToLibResult compute(Collection<? extends Song> input) {
 				List<Song> all = new ArrayList<>(input);
 				List<Song> processed = new ArrayList<>(all.size());
 				List<Metadata> converted = new ArrayList<>(all.size());
@@ -137,11 +145,9 @@ public class MetadataReader {
 							MetadataWriter.useNoRefresh(song, MetadataWriter::setLibraryAddedNowIfEmpty);
 							m = readMetadata(song);
 
-							if (m.isEmpty()) {
-								skipped.add(song);
-							} else {
-								converted.add(m);
-							}
+							if (m.isEmpty()) skipped.add(song);
+							else converted.add(m);
+
 						} else {
 							skipped.add(song);
 						}
@@ -151,24 +157,46 @@ public class MetadataReader {
 
 					processed.add(song);
 
-					// update progress
-					updateMessage(all.size(), processed.size());
+					updateMessage(all.size(), processed.size(), skipped.size());
 					updateProgress(processed.size(), all.size());
-					updateSkipped(skipped.size());
 				}
 
 				if (!isCancelled()) {
 					APP.db.addSongs(converted);
 
-					// update progress
-					updateMessage(all.size(), processed.size());
+					updateMessage(all.size(), processed.size(), skipped.size());
 					updateProgress(processed.size(), all.size());
-					updateSkipped(skipped.size());
 				}
 
-				return new Result<>(all, processed, converted, skipped);
+				return new AddSongsToLibResult(all, processed, converted, skipped);
+			}
+
+
+			private void updateMessage(int all, int done, int skipped) {
+				sb.setLength(0);
+				sb.append("Added: ");
+				sb.append(done);
+				sb.append(" / ");
+				sb.append(all);
+				sb.append(" Removed: ");
+				sb.append(skipped);
+				updateMessage(sb.toString());
 			}
 		};
+	}
+
+	public static class AddSongsToLibResult {
+		public final List<Song> all;
+		public final List<Song> processed;
+		public final List<Metadata> converted;
+		public final List<Song> skipped;
+
+		public AddSongsToLibResult(List<Song> all, List<Song> processed, List<Metadata> converted, List<Song> skipped) {
+			this.all = noNull(all);
+			this.processed = noNull(processed);
+			this.converted = noNull(converted);
+			this.skipped = noNull(skipped);
+		}
 	}
 
 	/**

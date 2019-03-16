@@ -382,7 +382,6 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
             val info = object: Any() {
                     private val computeProgress = { it: Number -> when(task.state) { SCHEDULED, READY -> 1.0 else -> it.toDouble() } }
                     val message = label { textProperty() syncFrom task.messageProperty() }
-                    val skipped = label { task.skippedProperty() sync { text = "Skipped: $it" } }
                     val state = label { task.stateProperty() sync { text = "State: ${enumToHuman(it)}" } }
                     val progress = appProgressIndicator().apply { task.progressProperty() sync { progress = computeProgress(it) } }
             }
@@ -399,7 +398,6 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                             lay += info.message
                             lay += info.progress
                         }
-                        lay += info.skipped
                     }
                     lay += formIcon(IconFA.CHECK, "Execute") {
                         executed.value = true

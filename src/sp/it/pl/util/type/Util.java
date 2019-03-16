@@ -26,7 +26,6 @@ import sp.it.pl.util.conf.Config.VarList;
 import sp.it.pl.util.functional.TriConsumer;
 import static kotlin.text.StringsKt.substringBeforeLast;
 import static sp.it.pl.util.dev.DebugKt.logger;
-import static sp.it.pl.util.functional.Util.isNoneØ;
 import static sp.it.pl.util.functional.Util.list;
 
 /**
@@ -40,7 +39,7 @@ public interface Util {
 	 * Additional provided arguments are name of the property and its non-erased generic type.
 	 * Javafx properties are obtained from public nameProperty() methods using reflection.
 	 */
-	@SuppressWarnings({"UnnecessaryLocalVariable", "unchecked"})
+	@SuppressWarnings({"UnnecessaryLocalVariable", "unchecked", "ConstantConditions"})
 	static void forEachJavaFXProperty(Object o, TriConsumer<Observable,String,Class> action) {
 		// Standard JavaFX Properties
 		for (Method method : o.getClass().getMethods()) {
@@ -64,7 +63,7 @@ public interface Util {
 						}
 
 						Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());
-						if (isNoneØ(observable, propertyName, propertyType)) {
+						if (observable!=null && propertyName!=null && propertyType!=null) {
 							action.accept(observable, propertyName, propertyType);
 						} else {
 							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", observable, propertyName, propertyName);
@@ -94,7 +93,7 @@ public interface Util {
 						}
 
 						Class<?> propertyType = getGenericPropertyType(field.getGenericType());
-						if (isNoneØ(observable, propertyName, propertyType)) {
+						if (observable!=null && propertyName!=null && propertyType!=null) {
 							action.accept(observable, propertyName, propertyType);
 						} else {
 							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", observable, propertyName, propertyName);

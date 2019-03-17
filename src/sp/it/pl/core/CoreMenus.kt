@@ -21,6 +21,7 @@ import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.APP
 import sp.it.pl.main.configure
+import sp.it.pl.util.async.runNew
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.pl.util.conf.ConfigurableBase
@@ -106,12 +107,24 @@ object CoreMenus: Core {
             }
             add<Node> {
                 menu("Inspect ui properties in") {
-                    widgetItems<ConfiguringFeature> { it.configure(configsFromFxPropertiesOf(selected)) }
+                    widgetItems<ConfiguringFeature> { w ->
+                        runNew {
+                            configsFromFxPropertiesOf(selected)
+                        } ui {
+                            w.configure(it)
+                        }
+                    }
                 }
             }
             add<javafx.stage.Window> {
                 menu("Inspect ui properties in") {
-                    widgetItems<ConfiguringFeature> { it.configure(configsFromFxPropertiesOf(selected)) }
+                    widgetItems<ConfiguringFeature> { w ->
+                        runNew {
+                            configsFromFxPropertiesOf(selected)
+                        } ui {
+                            w.configure(it)
+                        }
+                    }
                 }
             }
             add<Configurable<*>> {

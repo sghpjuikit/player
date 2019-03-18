@@ -56,10 +56,9 @@ public interface Try<R, E> {
 		}
 	}
 
-	static Try<Void,Throwable> tryCatchAll(Runnable f) {
+	static <T> Try<T,Throwable> tryCatchAll(Supplier<? extends T> f) {
 		try {
-			f.run();
-			return ok(null);
+			return ok(f.get());
 		} catch (Throwable e) {
 			return error(e);
 		}

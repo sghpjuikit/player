@@ -134,7 +134,7 @@ class App: Application(), Configurable<Any> {
     }
 
     private var closedPrematurely = false
-    var isInitialized: Try<Void, Throwable> = Try.error(Exception("Initialization has not run yet"))
+    var isInitialized: Try<Unit, Throwable> = Try.error(Exception("Initialization has not run yet"))
         private set
 
     /** Name of this application. */
@@ -306,7 +306,6 @@ class App: Application(), Configurable<Any> {
         }
 
         isInitialized = Try.tryCatchAll {
-
             services += TrayService()
             services += Notifier()
             services += PlaycountIncrementer()

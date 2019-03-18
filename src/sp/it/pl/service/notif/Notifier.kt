@@ -11,8 +11,8 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.nodeinfo.ItemInfo
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.objects.popover.ScreenUse
-import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
+import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.hasFeature
 import sp.it.pl.main.APP
@@ -163,7 +163,7 @@ class Notifier: ServiceBase("Notifications", true) {
     }
 
     @IsAction(name = "Notify now playing", desc = "Shows notification about currently playing song.", global = true, keys = "ALT + N")
-    fun showNowPlayingNotification() = songChange(Player.playingSong.get())
+    fun showNowPlayingNotification() = songChange(Player.playingSong.value)
 
     private fun songChange(m: Metadata) {
         if (showSongNotification && !m.isEmpty()) {
@@ -178,7 +178,7 @@ class Notifier: ServiceBase("Notifications", true) {
         if (showStatusNotification && s!=null) {
             val title = "Playback change : $s"
             val i = ItemInfo(false).apply {
-                read(Player.playingSong.get())
+                read(Player.playingSong.value)
             }
 
             showNotification(i, title)

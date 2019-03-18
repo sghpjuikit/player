@@ -146,7 +146,7 @@ public class LastFM {
 	/************** Scrobble logic - event handlers etc ***********************/
 
 	public static void updateNowPlaying() {
-		Metadata currentMetadata = sp.it.pl.audio.Player.playingSong.get();
+		Metadata currentMetadata = sp.it.pl.audio.Player.playingSong.getValue();
 		ScrobbleResult result = Track.updateNowPlaying(
 				currentMetadata.getArtist(),
 				currentMetadata.getTitle(),

@@ -172,7 +172,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
                         contextMenuInstance.show(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy), table, e)
                     }
-                    styleRuleAdd(pc_playing) { m -> Player.playingSong.get().same(m) }
+                    styleRuleAdd(pc_playing) { m -> Player.playingSong.value.same(m) }
                 }
             }
         }

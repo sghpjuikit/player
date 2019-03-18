@@ -253,7 +253,7 @@ fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, w: WritableValue<in V>): Sub
 }
 
 /** [sync1If], that does not run immediately (even if the value passes the condition). */
-fun <T> ObservableValue<T>.attach1If(condition: (T) -> Boolean, block: (T) -> Unit): Subscription {
+inline fun <T> ObservableValue<T>.attach1If(crossinline condition: (T) -> Boolean, crossinline block: (T) -> Unit): Subscription {
     val l = object: ChangeListener<T> {
         override fun changed(observable: ObservableValue<out T>, ov: T, nv: T) {
             if (condition(nv)) {
@@ -282,7 +282,7 @@ fun <T> ObservableValue<T>.attach1If(condition: (T) -> Boolean, block: (T) -> Un
  * @param condition test the value must pass for the action to execute
  * @param block action receiving the value as argument and that runs exactly once when the condition is first met
  */
-fun <T> ObservableValue<T>.sync1If(condition: (T) -> Boolean, block: (T) -> Unit): Subscription {
+inline fun <T> ObservableValue<T>.sync1If(crossinline condition: (T) -> Boolean, crossinline block: (T) -> Unit): Subscription {
     return if (condition(value)) {
         block(value)
         Subscription {}
@@ -292,7 +292,7 @@ fun <T> ObservableValue<T>.sync1If(condition: (T) -> Boolean, block: (T) -> Unit
 }
 
 /** [attach1If] testing the value is not null. */
-fun <T> ObservableValue<T>.attach1IfNonNull(action: (T) -> Unit) = sync1If({ it!=null }, action)
+inline fun <T> ObservableValue<T>.attach1IfNonNull(crossinline action: (T) -> Unit) = sync1If({ it!=null }, action)
 
 /** [sync1If] testing the value is not null. */
 fun <T> ObservableValue<T>.sync1IfNonNull(action: (T) -> Unit) = sync1If({ it!=null }, action)

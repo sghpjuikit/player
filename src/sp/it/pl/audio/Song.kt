@@ -91,7 +91,7 @@ abstract class Song {
     fun isNotPlayable(): Boolean = isCorrupt(PLAYBACK)
 
     /** @return true iff this song's underlying resource (e.g. file) is being played */
-    fun isPlayingSame(): Boolean = same(Player.playingSong.get())
+    fun isPlayingSame(): Boolean = same(Player.playingSong.value)
 
     /**
      * Checks whether the song can be played. Only non corrupted songs can be played.

@@ -95,7 +95,7 @@ public class Player {
 		);
 
 		player.getRealTime().initialize();
-		onPlaybackAt.add(at(new Portion(1), f(() -> onPlaybackAt.forEach(h -> h.restart(Player.playingSong.get().getLength()))))); // TODO: fix possible StackOverflowError
+		onPlaybackAt.add(at(new Portion(1), f(() -> onPlaybackAt.forEach(h -> h.restart(Player.playingSong.getValue().getLength()))))); // TODO: fix possible StackOverflowError
 		onPlaybackEnd.add(f(() -> {
 			switch (state.playback.loopMode.get()) {
 				case OFF: stop();
@@ -137,11 +137,11 @@ public class Player {
 		 * Note: It is always safe to call this method, even during playing song
 		 * change events.
 		 */
-		public Metadata get() {
+		public Metadata getValue() {
 			return val;
 		}
 
-		private void set(boolean change, Metadata new_metadata) {
+		private void setValue(boolean change, Metadata new_metadata) {
 			failIfNotFxThread();
 
 			Metadata ov = val;
@@ -179,7 +179,7 @@ public class Player {
 		 * Use in cases requiring constantly updated information about the playing
 		 * song.
 		 * <p/>
-		 * Note: It is safe to call {@link #get()} method when this even fires.
+		 * Note: It is safe to call {@link #getValue()} method when this even fires.
 		 * It has already been updated.
 		 */
 		public Subscription onChange(Consumer<? super Metadata> bc) {
@@ -203,7 +203,7 @@ public class Player {
 		 * to update played item status when the metadata of the item change as it
 		 * is not a change in played item - it is still the same item.
 		 * <p/>
-		 * Note: It is safe to call {@link #get()} method when this even fires.
+		 * Note: It is safe to call {@link #getValue()} method when this even fires.
 		 * It has already been updated.
 		 */
 		public Subscription onUpdate(Consumer<? super Metadata> bc) {
@@ -225,25 +225,25 @@ public class Player {
 		}
 
 		public void update(Metadata m) {
-			set(false, m);
+			setValue(false, m);
 		}
 
 		/** Execute when song starts playing. */
 		public void songChanged(Song song) {
 			if (song==null) {
-				set(true, Metadata.EMPTY);
+				setValue(true, Metadata.EMPTY);
 				LOGGER.info("Current song changed to none.");
 				LOGGER.info("Current song metadata set to empty.");
 			}
 			// if same song, still fire change
 			else if (val.same(song)) {
-				set(true, val);
+				setValue(true, val);
 				LOGGER.info("Current song changed to the same song.");
 				LOGGER.info("Current song metadata reused.");
 			}
 			// if pre-loaded, set
 			else if (valNext.same(song)) {
-				set(true, valNext);
+				setValue(true, valNext);
 				LOGGER.info("Current song changed to song in order.");
 				LOGGER.info("Current song metadata copied from cache of next song metadata.");
 			// else load
@@ -261,7 +261,7 @@ public class Player {
 		private void load(boolean changeType, Song song) {
 			fut(song)
 				.then(Player.IO_THREAD, MetadataReaderKt::readMetadata)
-				.useBy(FX, m -> set(changeType, m.isEmpty() ? song.toMeta() : m));
+				.useBy(FX, m -> setValue(changeType, m.isEmpty() ? song.toMeta() : m));
 		}
 
 		private void preloadNext() {
@@ -391,7 +391,7 @@ public class Player {
 //                PlaylistManager.playlists.forEach(playlist -> playlist.forEach(p -> mm.ifHasK(p.getURI(), p::update)));
 
 				// refresh playing song data
-				mm.ifHasE(playingSong.get(), playingSong::update);
+				mm.ifHasE(playingSong.getValue(), playingSong::update);
 
 				if (playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
 				if (playlistSelected.i.getValue()!=null)
@@ -650,7 +650,7 @@ public class Player {
 	 */
 	public static void rate(double rating) {
 		if (PlaylistManager.active==null) return;
-		MetadataWriter.useToRate(Player.playingSong.get(), rating);
+		MetadataWriter.useToRate(Player.playingSong.getValue(), rating);
 	}
 
 	/** Rate playing song 0/5. */

@@ -139,8 +139,8 @@ class SongDb {
 
     @ThreadSafe
     fun songToMeta(song: Song, action: (Metadata) -> Unit) {
-        if (song.same(Player.playingSong.get())) {
-            action(Player.playingSong.get())
+        if (song.same(Player.playingSong.value)) {
+            action(Player.playingSong.value)
             return
         }
 

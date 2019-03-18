@@ -37,8 +37,8 @@ import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 import org.jaudiotagger.tag.wav.WavTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sp.it.pl.audio.Song;
 import sp.it.pl.audio.Player;
+import sp.it.pl.audio.Song;
 import sp.it.pl.service.notif.Notifier;
 import sp.it.pl.util.SwitchException;
 import sp.it.pl.util.file.AudioFileFormat;
@@ -902,7 +902,7 @@ public class MetadataWriter extends Song {
 					setter.accept(w);
 					w.write();
 				}
-			List<Metadata> ms = stream(items).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList());
+			List<Metadata> ms = stream(items).map(MetadataReaderKt::readMetadata).filter(m -> !m.isEmpty()).collect(toList());
 			Player.refreshSongsWith(ms);
 			if (action!=null) runFX(() -> action.accept(ms));
 		});
@@ -916,7 +916,7 @@ public class MetadataWriter extends Song {
 				setter.accept(w);
 				boolean b = w.write();
 
-				Metadata m = MetadataReader.readMetadata(item);
+				Metadata m = MetadataReaderKt.readMetadata(item);
 				if (!m.isEmpty()) Player.refreshItemWith(m);
 				if (action!=null) runFX(() -> action.accept(b));
 			});

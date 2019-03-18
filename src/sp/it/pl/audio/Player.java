@@ -28,7 +28,7 @@ import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.audio.tagging.MetadataReader;
+import sp.it.pl.audio.tagging.MetadataReaderKt;
 import sp.it.pl.audio.tagging.MetadataWriter;
 import sp.it.pl.layout.widget.controller.io.InOutput;
 import sp.it.pl.main.AppProgress;
@@ -47,7 +47,6 @@ import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.playback.PlayTimeHandler.at;
-import static sp.it.pl.audio.tagging.MetadataReader.setOnDone;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
@@ -261,7 +260,7 @@ public class Player {
 		// load metadata, type indicates UPDATE vs CHANGE
 		private void load(boolean changeType, Song song) {
 			fut(song)
-				.then(Player.IO_THREAD, MetadataReader::readMetadata)
+				.then(Player.IO_THREAD, MetadataReaderKt::readMetadata)
 				.useBy(FX, m -> set(changeType, m.isEmpty() ? song.toMeta() : m));
 		}
 
@@ -271,7 +270,7 @@ public class Player {
 			PlaylistSong next = PlaylistManager.use(Playlist::getNextPlaying, null);
 			if (next!=null) {
 				fut(next)
-					.then(Player.IO_THREAD, MetadataReader::readMetadata)
+					.then(Player.IO_THREAD, MetadataReaderKt::readMetadata)
 					.useBy(FX, m -> valNext = m);
 			}
 		}
@@ -319,9 +318,9 @@ public class Player {
 		noNull(is);
 		if (is.isEmpty()) return;
 
-		var task = MetadataReader.readMetadataTask(is);
+		var task = MetadataReaderKt.readMetadataTask(is);
 		AppProgress.INSTANCE.start(task);
-		setOnDone(task, (ok, m) -> {
+		MetadataReaderKt.setOnDone(task, (ok, m) -> {
 			if (ok) refreshSongsWith(m);
 		});
 		runNew(task);

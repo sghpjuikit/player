@@ -5,8 +5,8 @@ import sp.it.pl.audio.Player
 import sp.it.pl.audio.playback.PlayTimeHandler
 import sp.it.pl.audio.playback.PlayTimeHandler.Companion.at
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.MetadataReader
 import sp.it.pl.audio.tagging.MetadataWriter
+import sp.it.pl.audio.tagging.readMetadata
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.service.ServiceBase
@@ -142,7 +142,7 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
             val p = queuedTimes+m.getPlaycountOr0()
             Player.IO_THREAD.execute {
                 MetadataWriter.useNoRefresh(m) { it.setPlaycount(p) }
-                Player.refreshItemWith(MetadataReader.readMetadata(m), true)
+                Player.refreshItemWith(m.readMetadata(), true)
             }
         }
     }

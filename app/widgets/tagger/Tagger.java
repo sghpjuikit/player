@@ -48,7 +48,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.audio.tagging.MetadataReader;
+import sp.it.pl.audio.tagging.MetadataReaderKt;
 import sp.it.pl.audio.tagging.MetadataWriter;
 import sp.it.pl.gui.itemnode.textfield.MoodItemNode;
 import sp.it.pl.gui.objects.autocomplete.AutoCompletion;
@@ -123,7 +123,6 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TITLE;
 import static sp.it.pl.audio.tagging.Metadata.Field.TRACK;
 import static sp.it.pl.audio.tagging.Metadata.Field.TRACKS_TOTAL;
 import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
-import static sp.it.pl.audio.tagging.MetadataReader.setOnDone;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.TAG;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.formIcon;
@@ -417,9 +416,9 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
         // read metadata for items
 
-        var task = MetadataReader.readMetadataTask(needs_read);
+        var task = MetadataReaderKt.readMetadataTask(needs_read);
         AppProgress.INSTANCE.start(task);
-        setOnDone(task, (ok, result) -> {
+        MetadataReaderKt.setOnDone(task, (ok, result) -> {
             if (ok) {
                 // remove duplicates
                 MapSet<URI, Metadata> unique = new MapSet<>(Metadata::getUri);

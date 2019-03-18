@@ -3,7 +3,8 @@ package sp.it.pl.plugin.library
 import mu.KLogging
 import org.reactfx.Subscription
 import sp.it.pl.audio.SimpleSong
-import sp.it.pl.audio.tagging.MetadataReader
+import sp.it.pl.audio.tagging.addSongsToLibTask
+import sp.it.pl.audio.tagging.removeMissingSongsFromLibTask
 import sp.it.pl.main.APP
 import sp.it.pl.main.showAppProgress
 import sp.it.pl.plugin.PluginBase
@@ -132,7 +133,7 @@ class LibraryWatcher: PluginBase("Song Library", false) {
         }
 
         runNew {
-            MetadataReader.addSongsToLibTask().apply(toAdd.map { SimpleSong(it) })
+            addSongsToLibTask().apply(toAdd.map { SimpleSong(it) })
             APP.db.removeSongs(toRem.map { SimpleSong(it) })
         }.showAppProgress("Updating song library from detected changes")
     }
@@ -141,8 +142,8 @@ class LibraryWatcher: PluginBase("Song Library", false) {
     private fun updateLibrary() {
         runNew {
             val songs = Util.getFilesAudio(sourceDirs, AudioFileFormat.Use.APP, Integer.MAX_VALUE).map { SimpleSong(it) }.toList()
-            MetadataReader.addSongsToLibTask().apply(songs)
-            MetadataReader.removeMissingSongsFromLibTask().run()
+            addSongsToLibTask().apply(songs)
+            removeMissingSongsFromLibTask().run()
         }.showAppProgress("Updating song library from disk")
     }
 

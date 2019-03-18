@@ -85,7 +85,7 @@ public abstract class FTask<I, O> extends Task<O> implements Ƒ1<I,O> {
 	}
 
 	@Override
-	protected O call() throws Exception {
+	protected O call() {
 		failIf(!isInputAssigned);
 
 		isInputAssignmentDoable.set(false);

@@ -5,7 +5,8 @@ import sp.it.pl.audio.MetadatasDB
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.MetadataReader
+import sp.it.pl.audio.tagging.readMetadata
+import sp.it.pl.audio.tagging.removeMissingSongsFromLibTask
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.APP
@@ -131,7 +132,7 @@ class SongDb {
     @ThreadSafe
     fun refreshSongsFromFile(songs: List<Song>) {
         runNew {
-            val metadatas = songs.asSequence().map { MetadataReader.readMetadata(it) }.filter { !it.isEmpty() }.toList()
+            val metadatas = songs.asSequence().map { it.readMetadata() }.filter { !it.isEmpty() }.toList()
             Player.refreshSongsWith(metadatas)
         }.showAppProgress("Refreshing library from disk")
     }
@@ -147,7 +148,7 @@ class SongDb {
                 .ifNotNull { action(it) }
                 .ifNull {
                     runOn(Player.IO_THREAD) {
-                        MetadataReader.readMetadata(song)
+                        song.readMetadata()
                     } ui {
                         action(it)
                     }
@@ -157,7 +158,7 @@ class SongDb {
     @ThreadSafe
     fun removeInvalidSongs(): Fut<Unit> {
         return runNew {
-            MetadataReader.removeMissingSongsFromLibTask().run()
+            removeMissingSongsFromLibTask().run()
         }
     }
 

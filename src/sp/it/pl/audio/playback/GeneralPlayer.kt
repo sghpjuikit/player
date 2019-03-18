@@ -17,7 +17,7 @@ import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.file.AudioFileFormat
-import sp.it.pl.util.reactive.attach1If
+import sp.it.pl.util.reactive.attach1IfNonNull
 import sp.it.pl.util.units.millis
 import java.lang.Math.pow
 
@@ -175,7 +175,7 @@ class GeneralPlayer {
     private fun doSeek(duration: Duration) {
         realTime.syncRealTimeOnPreSeek()
         state.playback.currentTime.value = duration // allow next doSeek() target correct value even if this has not finished
-        state.playback.currentTime.attach1If({ it!=null }) { Player.onSeekDone.run() }
+        state.playback.currentTime.attach1IfNonNull { Player.onSeekDone.run() }
         p?.seek(duration)
         realTime.syncRealTimeOnPostSeek(duration)
     }

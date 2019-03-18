@@ -27,7 +27,7 @@ abstract class Song {
     /**
      * @return absolute file this song represents or null if it is not based on file
      */
-    open fun getFile(): File? = if (isFileBased()) uri.toFileOrNull()!!.absoluteFile else  null
+    open fun getFile(): File? = if (isFileBased()) uri.toFileOrNull()!!.absoluteFile else null
 
     /** @return human-readable path of the resource this song represents */
     open fun getPathAsString(): String {

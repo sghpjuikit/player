@@ -33,11 +33,11 @@ import sp.it.pl.web.WebBarInterpreter
         name = "WebReader",
         author = "Martin Polakovic",
         description = "Very simple web browser widget.",
-        version = "0.8",
+        version = "0.8.0",
         year = "2015",
         group = OTHER
 )
-@ExperimentalController
+@ExperimentalController("Insufficient features and of questionable use")
 class WebReader(widget: Widget): SimpleController(widget) {
 
     @FXML private lateinit var addressBar: TextField

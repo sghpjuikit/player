@@ -101,7 +101,7 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
         + "    Thumbnail right click : Opens thumbnail context menu\n"
         + "    Drag&Drop audio : Displays images for the first dropped item\n"
         + "    Drag&Drop image : Show images\n",
-    version = "1.0",
+    version = "0.9.0",
     year = "2015",
     group = OTHER
 )

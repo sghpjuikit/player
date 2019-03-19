@@ -26,7 +26,7 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
     description = "Provides button with customizable action.",
     howto = "Available actions:\n" +
             "    Button click : execute action",
-    version = "0.7",
+    version = "0.7.0",
     year = "2014",
     group = Widget.Group.OTHER
 )

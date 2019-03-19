@@ -161,7 +161,7 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
     description = "Tag editor for audio files. Supports reading and writing to "
          + "tag. Taggable items can be unselected in selective list mode.",
     notes = "To do: improve tagging performance. Support for .ogg and .flac.",
-    version = "0.8",
+    version = "0.8.0",
     year = "2015",
     group = Widget.Group.TAGGER
 )

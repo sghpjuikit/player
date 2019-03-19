@@ -33,8 +33,8 @@ import java.io.File
         author = "Martin Polakovic",
         name = "Image",
         description = "Shows a static image",
-        howto = "Available actions:\n"+"    Drag & drop image : Set custom image",
-        version = "1.0",
+        howto = "Available actions:\n    Drag & drop image : Set custom image",
+        version = "1.0.0",
         year = "2015",
         group = OTHER
 )

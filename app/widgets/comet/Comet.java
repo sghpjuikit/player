@@ -221,9 +221,7 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
 	author = "Martin Polakovic",
 	name = "Comet",
 	description = "Port of the game Comet.",
-//    howto = "",
-//    notes = "",
-	version = "0.6",
+	version = "0.6.0",
 	year = "2015",
 	group = Widget.Group.OTHER
 )

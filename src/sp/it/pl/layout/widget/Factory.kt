@@ -98,7 +98,9 @@ class DeserializingFactory: ComponentFactory<Component> {
 
 
 /** Marks [Controller]/[Widget] as unfit for production use. */
-annotation class ExperimentalController
+annotation class ExperimentalController(
+        val reason: String
+)
 
 /** @see ExperimentalController */
 fun ComponentFactory<*>.isExperimental() = this is WidgetFactory<*> && controllerType.isAnnotationPresent(ExperimentalController::class.java)

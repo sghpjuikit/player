@@ -77,7 +77,7 @@ import java.io.File
                 +"    Mouse hover chapter (optional) : Open chapter\n",
         description = "Playback control widget.",
         notes = "",
-        version = "0.8",
+        version = "1.0.0",
         year = "2014",
         group = Widget.Group.PLAYBACK
 )

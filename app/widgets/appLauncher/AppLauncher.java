@@ -65,13 +65,11 @@ import static sp.it.pl.util.system.EnvironmentKt.open;
     author = "Martin Polakovic",
     name = Widgets.APP_LAUNCHER,
     description = "Launches programs",
-//    howto = "",
-//    notes = "",
-    version = "1",
+    version = "0.8.0",
     year = "2016",
     group = OTHER
 )
-@ExperimentalController
+@ExperimentalController(reason = "DirView widget could be improved to be fulfill this widget's purpose. Also needs better UX.")
 @LegacyController
 public class AppLauncher extends SimpleController {
 

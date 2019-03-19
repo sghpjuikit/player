@@ -17,7 +17,7 @@ import sp.it.pl.util.file.childOf
         year = "2014",
         group = Widget.Group.OTHER
 )
-@ExperimentalController
+@ExperimentalController("Has no use for user")
 class EmptyWidget(widget: Widget): Controller(widget) {
 
     private val root = Region()

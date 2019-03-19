@@ -22,11 +22,12 @@ import sp.it.pl.util.units.seconds
         author = "Martin Polakovic",
         howto = "",
         description = "Very simple html text editor.",
-        notes = "", version = "0.5",
+        notes = "",
+        version = "0.5.0",
         year = "2016",
         group = Widget.Group.OTHER
 )
-@ExperimentalController
+@ExperimentalController("Needs better skin and transparent background setting")
 class HtmlViewer(widget: Widget): SimpleController(widget) {
 
     val editor = HTMLEditor()

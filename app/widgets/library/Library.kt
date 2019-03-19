@@ -88,7 +88,7 @@ import sp.it.pl.util.validation.Constraint.FileActor
                 "    Click column : Sort - ascending | descending | none\n"+
                 "    Click column + SHIFT : Sorts by multiple columns\n"+
                 "    Menu bar : Opens additional actions\n",
-        version = "1",
+        version = "1.0.0",
         year = "2015",
         group = LIBRARY
 )

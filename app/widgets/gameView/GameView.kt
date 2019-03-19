@@ -111,6 +111,16 @@ import java.net.URI
 import java.util.HashMap
 import kotlin.streams.asSequence
 
+@Widget.Info(
+        name = "GameView",
+        author = "Martin Polakovic",
+        howto = "",
+        description = "Game library.",
+        notes = "",
+        version = "0.9.0",
+        year = "2016",
+        group = Widget.Group.OTHER
+)
 class GameView(widget: Widget): SimpleController(widget) {
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")

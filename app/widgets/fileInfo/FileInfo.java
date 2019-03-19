@@ -103,7 +103,7 @@ import static sp.it.pl.util.reactive.UtilKt.syncTo;
         + "    Rater left click : Rates displayed song\n"
         + "    Drag&Drop songs : Displays information for the first song\n"
         + "    Drag&Drop image on cover: Sets images as cover\n",
-    version = "1.0",
+    version = "1.0.0",
     year = "2015",
     group = OTHER
 )

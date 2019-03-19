@@ -52,11 +52,11 @@ import kotlin.streams.asSequence
         name = "Voronoi",
         description = "Playground to experiment and visualize voronoi diagrams",
         howto = "To configure the visualization edit the source code.",
-        version = "0.8",
+        version = "1.0.0",
         year = "2016",
         group = Widget.Group.VISUALISATION
 )
-@ExperimentalController
+@ExperimentalController("Only interesting as a demo.")
 class Voronoi(widget: Widget): SimpleController(widget) {
 
     private val canvas = RenderNode()

@@ -76,9 +76,9 @@ import static sp.it.pl.util.system.EnvironmentKt.open;
 @Widget.Info(
     author = "Martin Polakovic",
     name = "Dir Viewer",
-    description = "Displays directory hierarchy and files as thumbnails in a "
-                + "vertically scrollable grid. Intended as simple library",
-    version = "0.5",
+    description = "Displays directory hierarchy and files as thumbnails in a vertically scrollable grid. " +
+        "Intended as simple library",
+    version = "0.7.0",
     year = "2015",
     group = OTHER
 )

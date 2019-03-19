@@ -72,11 +72,8 @@ import static sp.it.pl.util.reactive.UtilKt.sync1If;
 @Widget.Info(
 		author = "Martin Polakovic",
 		name = "AlbumView",
-		description = "Displays console output by listening to System.out, which contains all of the "
-				+ "application logging.",
-//		howto = "",
-//		notes = "",
-		version = "1",
+		description = "Displays console output by listening to System.out, which contains all of the application logging.",
+		version = "0.9.0",
 		year = "2015",
 		group = Widget.Group.DEVELOPMENT
 )

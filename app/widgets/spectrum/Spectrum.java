@@ -29,11 +29,11 @@ import static sp.it.pl.main.AppExtensionsKt.scaleEM;
     description = "Displays real time audio spectrum of playback",
     howto = "",
     notes = "",
-    version = "0.7",
+    version = "0.7.0",
     year = "2016",
     group = Widget.Group.VISUALISATION
 )
-@ExperimentalController
+@ExperimentalController(reason = "Works only when JavaFxPlayer is used")
 @LegacyController
 public class Spectrum extends SimpleController {
 

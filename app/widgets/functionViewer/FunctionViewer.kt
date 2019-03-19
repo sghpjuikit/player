@@ -53,7 +53,7 @@ typealias Num = Double
         author = "Martin Polakovic",
         name = "Function Viewer",
         description = "Plots functions",
-        version = "1.0",
+        version = "1.0.0",
         year = "2015",
         group = DEVELOPMENT
 )

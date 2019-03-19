@@ -22,10 +22,10 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import sp.it.pl.audio.Song;
 import sp.it.pl.audio.Player;
+import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.audio.tagging.MetadataReader;
+import sp.it.pl.audio.tagging.MetadataReaderKt;
 import sp.it.pl.audio.tagging.MetadataWriter;
 import sp.it.pl.gui.itemnode.ChainValueNode.ListConfigField;
 import sp.it.pl.gui.itemnode.ConfigField;
@@ -127,7 +127,7 @@ import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
         + "\tDrag&drop files : Sets files as input\n"
         + "\tDrag&drop songs : Sets songs as input\n"
         + "\tDrag&drop text : Sets text as input\n",
-    version = "1",
+    version = "0.7.0",
     year = "2015",
     group = Group.APP
 )
@@ -216,7 +216,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                             MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field, values) -> w.setFieldS(Metadata.Field.valueOf(field), values.get(j))));
                         }
 
-                        Player.refreshSongsWith(stream(songs).map(MetadataReader::readMetadata).filter(m -> !m.isEmpty()).collect(toList()));
+                        Player.refreshSongsWith(stream(songs).map(MetadataReaderKt::readMetadata).filter(m -> !m.isEmpty()).collect(toList()));
                    }),
                 widget.custom_name.getValue() + "Editing song tags"
             );

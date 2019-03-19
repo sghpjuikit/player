@@ -80,7 +80,7 @@ import kotlin.streams.asSequence
                 +"    Click column + SHIFT : Sorts by multiple columns\n"
                 +"    Menu bar : Opens additional actions\n",
         notes = "Plans: multiple playlists through tabs",
-        version = "1",
+        version = "0.9.0",
         year = "2015",
         group = Group.PLAYLIST
 )

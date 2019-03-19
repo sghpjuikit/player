@@ -67,7 +67,7 @@ import java.io.File
                 +"    Double click widget file: Open widget\n"
                 +"    Drag & drop file: Explore file\n"
                 +"    Drag & drop files: Explore files' first common parent directory\n",
-        version = "1.0",
+        version = "1.0.0",
         year = "2015",
         group = Widget.Group.APP
 )

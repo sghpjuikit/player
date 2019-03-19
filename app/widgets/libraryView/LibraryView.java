@@ -92,7 +92,7 @@ import static sp.it.pl.util.reactive.UtilKt.syncTo;
             "    Column right click: show column menu\n" +
             "    Click column : Sort - ascending | descending | none\n" +
             "    Click column + SHIFT : Sorts by multiple columns\n",
-    version = "1",
+    version = "0.9.0",
     year = "2015",
     group = LIBRARY
 )

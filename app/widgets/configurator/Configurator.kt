@@ -49,7 +49,7 @@ import java.util.ArrayList
                 +"    Change setting value: Automatically takes change\n"
                 +"    Default : Set default value for this setting\n",
         notes = "To do: generate active widget settings",
-        version = "1",
+        version = "0.9.0",
         year = "2016",
         group = Widget.Group.APP
 )

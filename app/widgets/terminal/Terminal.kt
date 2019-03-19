@@ -38,7 +38,7 @@ import java.io.File
         author = "Martin Polakovic",
         name = "Terminal",
         description = "Terminal for working with shell.",
-        version = "0.5",
+        version = "1.0.0",
         year = "2015",
         group = Widget.Group.DEVELOPMENT
 )

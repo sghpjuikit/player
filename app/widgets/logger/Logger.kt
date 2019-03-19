@@ -20,7 +20,7 @@ import sp.it.pl.util.reactive.syncFrom
         author = "Martin Polakovic",
         name = Widgets.LOGGER,
         description = "Displays console output by listening to System.out, which contains application logging.",
-        version = "1",
+        version = "1.0.0",
         year = "2015",
         group = Widget.Group.DEVELOPMENT
 )

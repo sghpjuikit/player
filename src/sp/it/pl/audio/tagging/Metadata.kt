@@ -802,9 +802,9 @@ class Metadata: Song, Serializable {
 
         private constructor(type: KClass<T>, extractor: (Metadata) -> T?, name: String, description: String): super(type, extractor, name, description)
 
-        fun isAutoCompletable(): Boolean = isTypeStringRepresentable() && !NOT_AUTO_COMPLETABLE.contains(this)
+        fun isAutoCompletable(): Boolean = this in AUTO_COMPLETABLE
 
-        override fun isTypeStringRepresentable(): Boolean = !NOT_STRING_REPRESENTABLE.contains(this)
+        override fun isTypeStringRepresentable(): Boolean = this !in NOT_STRING_REPRESENTABLE
 
         override fun isTypeFilterable(): Boolean = this!=COVER
 
@@ -906,11 +906,8 @@ class Metadata: Song, Serializable {
                         FIELDS_BY_NAME[name] = this
                     }
 
-            private val NOT_AUTO_COMPLETABLE = setOf<Field<*>>(
-                    TITLE, RATING_RAW,
-                    COMMENT, LYRICS, COLOR, PLAYCOUNT, PATH, FILENAME, FILESIZE, ENCODING,
-                    LENGTH, TRACK, TRACKS_TOTAL, TRACK_INFO, DISC, DISCS_TOTAL, DISCS_INFO,
-                    COVER, RATING, CHAPTERS
+            private val AUTO_COMPLETABLE = setOf<Field<*>>(
+                    ENCODER, ALBUM, ALBUM_ARTIST, COMPOSER, PUBLISHER, GENRE, CATEGORY, MOOD
             )
             private val VISIBLE = setOf<Field<*>>(
                     TITLE, ALBUM, ARTIST, LENGTH, TRACK_INFO, DISCS_INFO, RATING, PLAYCOUNT

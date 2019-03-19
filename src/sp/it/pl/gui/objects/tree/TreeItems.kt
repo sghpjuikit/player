@@ -120,6 +120,8 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
     is PlaylistSongGroup -> STreeItem<Any?>("Playlist songs", { o.songs.asSequence() }, { o.songs.isEmpty() })
     is List<*> -> STreeItem<Any?>("List of "+APP.className.get(o.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
     is Set<*> -> STreeItem<Any?>("Set of "+APP.className.get(o.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
+    is Map<*,*> -> STreeItem<Any?>("Map of "+APP.className.get(o.values.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
+    is Map.Entry<*,*> -> STreeItem<Any?>(o.key.toString(), { sequenceOf(o.value) })
     else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().asSequence() }, { true }) else SimpleTreeItem(o)
 }.let { it as TreeItem<T> }
 

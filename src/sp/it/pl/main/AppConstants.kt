@@ -21,6 +21,7 @@ object Settings {
     object Ui {
         const val TABLE = "$UI.Table"
         const val WINDOW = "$UI.Window"
+        const val DOCK = "$UI.Dock"
     }
     const val SERVICES = "Services"
     const val PLUGINS = "Plugins"

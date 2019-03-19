@@ -47,6 +47,7 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.conf.between
 import sp.it.pl.util.conf.cv
+import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.div
 import sp.it.pl.util.file.seqChildren
@@ -85,7 +86,7 @@ class WindowManager {
     /** Observable list of all application windows. For list of all windows use [javafx.stage.Stage.getWindows]. */
     @JvmField val windows = observableArrayList<Window>()!!
     /** Dock window or null if none. */
-    @JvmField var miniWindow: Window? = null
+    @JvmField var dockWindow: Window? = null
     /** Main application window, see [sp.it.pl.gui.objects.window.stage.Window.isMain]. */
     private var mainWindow: Window? = null
 
@@ -98,39 +99,39 @@ class WindowManager {
     @IsConfig(name = "Headerless", info = "Hides window header.")
     val window_headerless by cv(false)
 
-    private var miniModeIsTogglingWindows = false
-    private var miniModeHiddenWindows = ArrayList<Window>()
-    private val miniModeToggleWindows = v(true).initAttach { v ->
+    private var dockIsTogglingWindows = false
+    private var dockHiddenWindows = ArrayList<Window>()
+    private val dockToggleWindows = v(true).initAttach { v ->
         if (APP.normalLoad) {
             if (v) {
-                miniModeHiddenWindows.forEach { it.show() }
+                dockHiddenWindows.forEach { it.show() }
             } else {
-                miniModeHiddenWindows setTo windows.asSequence().filter { it!==miniWindow }
-                miniModeIsTogglingWindows = true
-                miniModeHiddenWindows.forEach { it.hide() }
-                miniModeIsTogglingWindows = false
+                dockHiddenWindows setTo windows.asSequence().filter { it!==dockWindow }
+                dockIsTogglingWindows = true
+                dockHiddenWindows.forEach { it.hide() }
+                dockIsTogglingWindows = false
             }
         }
     }
 
-    @IsConfig(name = "Mini open hover delay", info = "Time for mouse to hover to open mini window.")
-    val mini_hover_delay by cv(700.millis)
+    @IsConfig(name = "Show delay", group = Settings.Ui.DOCK, info = "Mouse hover time it takes for the dock to show.")
+    val dockHoverDelay by cv(700.millis)
 
-    @IsConfig(name = "Mini hide when inactive", info = "Hide mini window when no mouse activity is detected.")
-    val mini_hide_onInactive by cv(true)
+    @IsConfig(name = "Hide when inactive", group = Settings.Ui.DOCK, info = "Hide dock when no mouse activity is detected.")
+    val dockHideInactive by cv(true)
 
-    @IsConfig(name = "Mini hide when inactive for", info = "Time of no activity to hide mini window after.")
-    val mini_inactive_delay by cv(1500.millis)
+    @IsConfig(name = "Hide when inactive for", group = Settings.Ui.DOCK, info = "Mouse away time it takes for the dock to hide.")
+    val dockHideInactiveDelay by cv(1500.millis).readOnlyUnless(dockHideInactive)
 
-    @IsConfig(name = "Mini widget", info = "Widget to use in mini window.")
-    val mini_widget by cv(PLAYBACK) {
+    @IsConfig(name = "Dock content", group = Settings.Ui.DOCK, info = "Widget to use in dock.")
+    val dockWidget by cv(PLAYBACK) {
         VarEnum.ofSequence(it) {
             APP.widgetManager.factories.getFactoriesWith<HorizontalDock>().map { it.nameGui() }
         }
     }
 
-    @IsConfig(name = "Mini mode", info = "Whether application has mini window docked to top screen edge active.")
-    val mini by cv(false) { v(it).initSync { setMiniModeImpl(it) } }
+    @IsConfig(name = "Dock", group = Settings.Ui.DOCK, info = "Whether application has docked window in the top of the screen.")
+    val dockShow by cv(false) { v(it).initSync { showDockImpl(it) } }
 
     /** @return main window or null if no main window (only possible when no window is open) */
     fun getMain(): Optional<Window> = Optional.ofNullable(mainWindow)
@@ -146,14 +147,14 @@ class WindowManager {
 
     init {
         Stage.getWindows().onItemAdded { w ->
-            if (w.properties.containsKey("window") && w.properties["window"]!==miniWindow) {
+            if (w.properties.containsKey("window") && w.properties["window"]!==dockWindow) {
                 windows += w.properties["window"] as Window
             }
         }
         Stage.getWindows().onItemRemoved { w ->
             if (w.properties.containsKey("window")) {
                 val window = w.properties["window"] as Window
-                if (window.isMain.value && !miniModeIsTogglingWindows) {
+                if (window.isMain.value && !dockIsTogglingWindows) {
                     APP.close()
                 } else {
                     windows -= window
@@ -229,18 +230,18 @@ class WindowManager {
         getActive().orNull()?.close()
     }
 
-    private fun setMiniModeImpl(enable: Boolean) {
+    private fun showDockImpl(enable: Boolean) {
         if (!APP.normalLoad) return
         if (!APP.isInitialized.isOk) {
-            APP.onStarted += { setMiniModeImpl(enable) }
+            APP.onStarted += { showDockImpl(enable) }
             return
         }
 
         if (enable) {
-            if (miniWindow!=null && miniWindow!!.isShowing) return
+            if (dockWindow!=null && dockWindow!!.isShowing) return
 
-            val mw = miniWindow ?: create(createStageOwner(), UNDECORATED, false).apply {
-                miniWindow = this
+            val mw = dockWindow ?: create(createStageOwner(), UNDECORATED, false).apply {
+                dockWindow = this
 
                 resizable.value = true
                 isAlwaysOnTop = true
@@ -259,14 +260,14 @@ class WindowManager {
                     isFillHeight = false
                     padding = Insets(5.0, 5.0, 5.0, 25.0)
 
-                    lay += Icon(null, 13.0, "Show/hide other windows").onClickDo { miniModeToggleWindows.toggle() }.apply {
+                    lay += Icon(null, 13.0, "Show/hide other windows").onClickDo { dockToggleWindows.toggle() }.apply {
                         hoverProperty() sync { icon(if (it) IconFA.ANGLE_DOUBLE_DOWN else IconFA.ANGLE_DOWN) } on mw.onClose
                     }
-                    lay += Icon(IconFA.CLOSE, 13.0, "Close docked mode").onClickDo { miniModeToggleWindows.value = true; mini.value = false }
+                    lay += Icon(IconFA.CLOSE, 13.0, "Close dock").onClickDo { dockToggleWindows.value = true; dockShow.value = false }
                 }
             }
             mw.setContent(content)
-            mw.onClose += mini_widget sync {
+            mw.onClose += dockWidget sync {
                 val newW = APP.widgetManager.factories.getComponentFactoryByGuiName(it).orEmpty().create()
                 content.properties["widget"]?.asIf<Widget>()?.close()
                 content.properties["widget"] = newW
@@ -302,8 +303,8 @@ class WindowManager {
                 if (mwRoot.isHover) {
                     hider.stop()
                 } else {
-                    if (mini_hide_onInactive.value)
-                        hider.start(mini_inactive_delay.value)
+                    if (dockHideInactive.value)
+                        hider.start(dockHideInactiveDelay.value)
                 }
             }
             hider.runNow()
@@ -318,7 +319,7 @@ class WindowManager {
                 }
             }
             mwRoot.onEventUp(MOUSE_ENTERED) {
-                if (mw.isShowing) shower.start(mini_hover_delay.value)
+                if (mw.isShowing) shower.start(dockHoverDelay.value)
             }
             mwRoot.onEventDown(MOUSE_CLICKED) {
                 if (it.button==PRIMARY) {
@@ -329,8 +330,8 @@ class WindowManager {
                 }
             }
         } else {
-            miniWindow?.close()
-            miniWindow = null
+            dockWindow?.close()
+            dockWindow = null
         }
     }
 
@@ -343,7 +344,7 @@ class WindowManager {
         }
 
         val filesOld = dir.seqChildren().toSet()
-        val ws = windows.filter { it!==miniWindow }
+        val ws = windows.filter { it!==dockWindow }
         logger.info { "Serializing ${ws.size} application windows" }
 
         // serialize - for now each window to its own file with .ws extension

@@ -43,12 +43,12 @@ javafx {
 
 sourceSets {
     getByName("main") {
-        java.srcDir("src")
-        resources.srcDir("src")
+        java.setSrcDirs(listOf("src"))
+        resources.setSrcDirs(listOf("src"))
     }
     getByName("test") {
-        java.srcDir("src-test")
-        resources.srcDir("src-test")
+        java.setSrcDirs(listOf("src-test"))
+        resources.setSrcDirs(listOf("src-test"))
     }
 }
 
@@ -69,14 +69,15 @@ allprojects {
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
-        kotlinOptions.jdkHome = dirJdk.path
-        kotlinOptions.verbose = true
         kotlinOptions.suppressWarnings = false
+        kotlinOptions.verbose = true
         kotlinOptions.freeCompilerArgs += listOf(
                 "-progressive",
                 "-Xjvm-default=enable"
         )
+        kotlinOptions.javaParameters = true
+        kotlinOptions.jdkHome = dirJdk.path
+        kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
 
     repositories {

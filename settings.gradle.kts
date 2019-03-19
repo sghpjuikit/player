@@ -1,7 +1,12 @@
 
-rootProject.buildFileName = "gradle/project.gradle.kts"
-
 include(":widgets")
-val widgets = project(":widgets")
-widgets.projectDir = file("app/widgets")
-widgets.buildFileName = "../../gradle/widgets.gradle.kts"
+
+rootProject.apply {
+    projectDir = file(".")
+    buildFileName = "gradle/project.gradle.kts"
+}
+
+project(":widgets").apply {
+    projectDir = file("app/widgets")
+    buildFileName = "../../gradle/widgets.gradle.kts"
+}

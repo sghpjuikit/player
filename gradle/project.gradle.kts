@@ -24,14 +24,14 @@ val kotlinVersion: String by extra {
             .resolvedConfiguration.firstLevelModuleDependencies
             .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
-val javaSupportedVersions = arrayOf(JavaVersion.VERSION_11).also {
+val javaSupportedVersions = arrayOf(JavaVersion.VERSION_11, JavaVersion.VERSION_12).also {
     val javaVersion = JavaVersion.current()
     if (javaVersion !in it) {
         println(""+
-                "org.gradle.java.home=${"org.gradle.java.home".prjProp}"+
-                "Java version $javaVersion can't be used."+
+                "Java version $javaVersion can't be used.\n"+
                 "Set one of ${it.joinToString()} as system default or create a 'gradle.properties'"+
-                "file with 'org.gradle.java.home' pointing to a supported Java version"
+                "file with 'org.gradle.java.home' pointing to a supported Java version.\n" +
+                "Currently org.gradle.java.home=${"org.gradle.java.home".prjProp}"
         )
         throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
     }

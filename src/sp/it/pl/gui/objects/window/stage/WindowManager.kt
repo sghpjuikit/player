@@ -89,6 +89,7 @@ class WindowManager {
     @JvmField var dockWindow: Window? = null
     /** Main application window, see [sp.it.pl.gui.objects.window.stage.Window.isMain]. */
     private var mainWindow: Window? = null
+    private val windowIcons by lazy { APP.getIcons() }
 
     @IsConfig(name = "Opacity", info = "Window opacity.")
     val windowOpacity by cv(1.0).between(0.0, 1.0)
@@ -197,7 +198,7 @@ class WindowManager {
         window_borderless syncTo w.isBorderless on w.onClose
         window_headerless syncTo w.isHeaderVisible on w.onClose
         w.stage.title = APP.name
-        w.stage.icons setTo APP.getIcons()
+        w.stage.icons setTo windowIcons
 
         return w
     }

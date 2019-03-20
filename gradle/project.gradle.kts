@@ -73,6 +73,10 @@ allprojects {
         kotlinOptions.verbose = true
         kotlinOptions.freeCompilerArgs += listOf(
                 "-progressive",
+//                "-Xuse-javac",
+//                "-Xcompile-java",
+                "-Xno-call-assertions",
+                "-Xno-param-assertions",
                 "-Xjvm-default=enable"
         )
         kotlinOptions.javaParameters = true

@@ -106,9 +106,10 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		});
 
 		if (!disposed) {
-			children = new HashSet<>(dirs.size() + files.size());
-			children.addAll(dirs);
-			children.addAll(files);
+			var cs = new HashSet<Item>(dirs.size() + files.size());
+			cs.addAll(dirs);
+			cs.addAll(files);
+			children = cs;
 			all_children = all;
 		}
 	}

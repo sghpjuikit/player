@@ -80,16 +80,16 @@ operator fun Float.div(other: ObservableNumberValue) = Bindings.divide(this, oth
 operator fun Long.div(other: ObservableNumberValue) = Bindings.divide(this, other) as DoubleBinding
 operator fun Int.div(other: ObservableNumberValue) = Bindings.divide(this, other) as DoubleBinding
 
-@Experimental
+@Experimental("untested")
 operator fun ObservableValue<Boolean>.not() = v(!this@not.value).apply {
     this@not sync { value = !it }
 }
-@Experimental
+@Experimental("untested")
 operator fun ObservableValue<Boolean>.plus(other: ObservableValue<Boolean>) = v(this@plus.value || other.value).apply {
     this@plus sync { value = it || other.value }
     other sync { value = this@plus.value || it }
 }
-@Experimental
+@Experimental("untested")
 operator fun ObservableValue<Boolean>.times(other: ObservableValue<Boolean>) = v(this@times.value && other.value).apply {
     this@times sync { value = it && other.value }
     other sync { value = this@times.value && it }

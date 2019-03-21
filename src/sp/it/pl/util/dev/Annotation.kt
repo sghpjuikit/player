@@ -5,9 +5,7 @@ package sp.it.pl.util.dev
 @Repeatable
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.FIELD, AnnotationTarget.CLASS, AnnotationTarget.FILE)
-annotation class Dependency(
-        val value: String = ""
-)
+annotation class Dependency(val value: String)
 
 /**
  * Denotes whether an operation (with a side effect) is idempotent - invoking it subsequently has the same effect as
@@ -22,7 +20,7 @@ annotation class Idempotent
 @MustBeDocumented
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
-annotation class Experimental
+annotation class Experimental(val reason: String)
 
 /** Denotes method or class that is thread-safe, i.e, can be called from any thread. */
 @MustBeDocumented

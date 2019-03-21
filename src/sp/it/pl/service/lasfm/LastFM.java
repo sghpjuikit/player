@@ -28,7 +28,7 @@ import static sp.it.pl.gui.objects.form.Form.form;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 
-@Experimental
+@Experimental(reason = "Work in progress")
 @IsConfigurable("Services.LastFM")
 public class LastFM {
 

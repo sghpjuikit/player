@@ -30,7 +30,7 @@ import java.util.function.Consumer
 
 private typealias DisposeOn = (Subscription) -> Unit
 
-@Experimental
+@Experimental("Questionable API, can not be unsubscribed.")
 fun <T,O> ObservableValue<T>.map(mapper: (T) -> O) = object: ObservableValue<O> {
     private val listeners1 by lazy { HashSet<ChangeListener<in O>>(2) }
     private val listeners2 by lazy { HashSet<InvalidationListener>(2) }
@@ -82,7 +82,7 @@ infix fun <O> ObservableValue<O>.syncTo(w: WritableValue<in O>): Subscription {
 infix fun <O> WritableValue<O>.syncFrom(o: ObservableValue<out O>): Subscription = o syncTo this
 
 /** Sets the value the specified observable to the this property immediately and on every value change. */
-@Experimental
+@Experimental("Questionable API")
 fun <O> WritableValue<O>.syncFrom(o: ObservableValue<out O>, disposer: Disposer) = syncFrom(o) on disposer
 
 /** Sets a block to be fired on every value change. */
@@ -93,7 +93,7 @@ infix fun <O> ObservableValue<O>.attach(block: (O) -> Unit): Subscription {
 }
 
 /** Sets a block to be fired on every value change. */
-@Experimental
+@Experimental("Questionable API")
 fun <O> ObservableValue<O>.attach(disposer: DisposeOn, block: (O) -> Unit) = attach(block) on disposer
 
 /** Sets the value of the specified observable to the this property on every value change. */

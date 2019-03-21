@@ -63,7 +63,7 @@ fun <T> atomic(initialValue: T) = object: ReadWriteProperty<Any?, T> {
 inline fun <reified T:Any> classLiteral() = T::class
 
 /** Set specified property of this object to null. Use for disposal of read-only properties and avoiding memory leaks. */
-@Experimental
+@Experimental("Uses reflection and its usefulness must be thoroughly evaluated")
 infix fun Any.nullify(property: KProperty<*>) {
     property.javaField?.isAccessible = true
     property.javaField?.set(this, null)

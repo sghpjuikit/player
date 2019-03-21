@@ -10,7 +10,7 @@ import sp.it.pl.util.type.Util;
 public class JavaLegacy {
 
 	// requires --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
-	@Experimental
+	@Experimental(reason = "May not work properly")
 	public static int screenOrdinal(Screen screen) {
 		int ordinal = com.sun.glass.ui.Screen.getScreens().stream()
 			.filter(it -> it.getWidth()==(int) screen.getBounds().getWidth() && it.getHeight()==(int)screen.getBounds().getHeight())
@@ -39,6 +39,7 @@ public class JavaLegacy {
 	 *
 	 * Renders the image object unusable, make sure it is no longer used by the application.
 	 */
+	@Experimental(reason = "Questionable API with usage conditioned by memory leaks and using reflection")
 	public static void destroyImage(Image image) {
 		var i = sp.it.pl.util.type.Util.invokeMethodP0(image, "getPlatformImage");
 		if (i!=null) sp.it.pl.util.type.Util.setField(i, "pixelBuffer", null);

@@ -200,6 +200,12 @@ public class DirViewer extends SimpleController {
         runLater(() -> revisitCurrent());
     }
 
+    @Override
+    public void close() {
+        if (item!=null) item.getHRoot().dispose();
+        super.close();
+    }
+
     void visitUp() {
         if (!initialized) return;
         // We visit parent, a "back" operation.

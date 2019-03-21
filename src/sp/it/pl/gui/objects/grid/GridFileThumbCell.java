@@ -1,12 +1,11 @@
 package sp.it.pl.gui.objects.grid;
 
 import java.io.File;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
@@ -15,10 +14,12 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.image.Thumbnail;
+import sp.it.pl.util.JavaLegacy;
 import sp.it.pl.util.animation.Anim;
-import sp.it.pl.util.async.executor.EventReducer;
+import sp.it.pl.util.dev.ThreadSafe;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.image.ImageSize;
+import sp.it.pl.util.reactive.Disposer;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppKt.APP;
@@ -26,30 +27,35 @@ import static sp.it.pl.util.async.AsyncKt.oneTPExecutor;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.sleep;
 import static sp.it.pl.util.dev.FailKt.failIf;
-import static sp.it.pl.util.dev.FailKt.failIfFxThread;
 import static sp.it.pl.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static sp.it.pl.util.reactive.UtilKt.doIfImageLoaded;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.reactive.UtilKt.sync1IfImageLoaded;
 
 /**
- * {@link sp.it.pl.gui.objects.grid.GridCell} implementation for file using {@link sp.it.pl.gui.objects.hierarchy.Item}
+ * GridCell implementation for file using {@link sp.it.pl.gui.objects.hierarchy.Item}
  * that shows a thumbnail image. Supports asynchronous loading of thumbnails and loading animation.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class GridFileThumbCell extends GridCell<Item,File> {
 	protected Pane root;
 	protected Label name;
 	protected Thumbnail thumb;
 	protected final Loader loader;
-	protected final EventReducer<Item> setCoverLater;	// TODO: is this necessary?
 	protected Anim imgLoadAnimation;
 	private Item imgLoadAnimationItem;
+	private Disposer onDispose = new Disposer();
+	protected volatile boolean disposed = false;
+	private volatile Item itemVolatile = null;
+	private volatile Parent parentVolatile = null;
+	private volatile Integer indexVolatile = null;
 
 	public GridFileThumbCell(Loader imgLoader) {
-		noNull(imgLoader);
-		loader = imgLoader;
-		setCoverLater = EventReducer.toLast(10, this::setCoverNow);
+		loader = noNull(imgLoader);
+
+		onDispose.plusAssign(maintain(parentProperty(), p -> parentVolatile = p==null ? null : p.getParent()));
 	}
 
 	protected String computeName(Item item) {
@@ -68,9 +74,31 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	protected void onAction(Item i, boolean edit) {}
 
 	@Override
+	public void dispose() {
+		failIfNotFxThread();
+
+		disposed = true;
+		if (imgLoadAnimation!=null) imgLoadAnimation.stop();
+		imgLoadAnimation = null;
+		imgLoadAnimationItem = null;
+		onDispose.invoke();
+		if (thumb!=null) {
+			var img = thumb.getView().getImage();
+			thumb.getView().setImage(null);
+			if (img!=null) JavaLegacy.destroyImage(img);
+		}
+		thumb = null;
+		itemVolatile = null;
+		parentVolatile = null;
+		indexVolatile = null;
+	}
+
+	@Override
 	protected void updateItem(Item item, boolean empty) {
+		if (disposed) return;
 		if (item==getItem()) return;
 		super.updateItem(item, empty);
+		itemVolatile = item;
 
 		if (imgLoadAnimation!=null) {
 			imgLoadAnimation.stop();
@@ -117,6 +145,12 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		if (thumb!=null && thumb.image.get()!=null) thumb.animationPlayPause(selected);
 	}
 
+	@Override
+	public void updateIndex(int i) {
+		indexVolatile = i;
+		super.updateIndex(i);
+	}
+
 	protected void computeGraphics() {
 		name = new Label();
 		name.setAlignment(Pos.CENTER);
@@ -130,14 +164,16 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		thumb.setBorderVisible(false);
 		thumb.getPane().setSnapToPixel(true);
 		thumb.getView().setSmooth(true);
-		doIfImageLoaded(thumb.getView(), img -> {
-			imgLoadAnimation.stop();
-			imgLoadAnimationItem = getItem();
-			if (img==null) {
-				imgLoadAnimation.applyAt(0);
-			} else
-				imgLoadAnimation.playOpenFrom(imgLoadAnimationItem.loadProgress);
-		});
+		onDispose.plusAssign(
+			doIfImageLoaded(thumb.getView(), img -> {
+				imgLoadAnimation.stop();
+				imgLoadAnimationItem = getItem();
+				if (img==null) {
+					imgLoadAnimation.applyAt(0);
+				} else
+					imgLoadAnimation.playOpenFrom(imgLoadAnimationItem.loadProgress);
+			})
+		);
 
 		imgLoadAnimation = new Anim(x -> {
 				if (imgLoadAnimationItem!=null) {
@@ -181,7 +217,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		root.setPrefSize(-1, -1);
 		root.setMaxSize(-1, -1);
 		Anim a = new Anim(x -> root.setTranslateY(-5*x*x)).dur(millis(200));
-		thumb.getView().hoverProperty().addListener((o, ov, nv) -> a.playFromDir(nv));
+		onDispose.plusAssign(maintain(thumb.getView().hoverProperty(), (nv) -> a.playFromDir(nv)));
 		root.setOnMouseClicked(e -> {
 			if (e.getButton()==PRIMARY && e.getClickCount()==2) {
 				onAction(getItem(), e.isShiftDown());
@@ -191,20 +227,30 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	}
 
 	/**
-	 * @return true if the item of this cell is not the same object as the item specified
+	 * @implSpec called on fx application thread, must return positive width and height
+	 * @return size of an image to be loaded for the thumbnail
 	 */
-	protected boolean isInvalidItem(Item item) {
-		return getItem()!=item;
+	protected ImageSize computeThumbSize(Item item) {
+		// return thumb.calculateImageLoadSize(); // has potential to cause problems and is less performable than below:
+		return new ImageSize(gridView.get().getCellWidth(), gridView.get().getCellHeight()-computeCellTextHeight());
 	}
 
 	/**
+	 * @implSpec must be thread safe
+	 * @return true if the item of this cell is not the same object as the item specified
+	 */
+	@ThreadSafe
+	protected boolean isInvalidItem(Item item) {
+		return itemVolatile!=item;
+	}
+
+	/**
+	 * @implSpec must be thread safe
 	 * @return true if this cell is detached from the grid (i.e. not its child)
 	 */
+	@ThreadSafe
 	protected boolean isInvalidVisibility() {
-		// TODO: improve code, move to skin?
-		// this.parent = row
-		// this.parent.parent = grid
-		return getParent()==null || getParent().getParent()==null;
+	    return parentVolatile==null || indexVolatile==-1;
 	}
 
 	/**
@@ -224,8 +270,8 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		if (item.cover_loadedThumb.get()) {
 			setCoverPost(item, item.cover_file, item.cover, null);
 		} else {
-			ImageSize size = thumb.calculateImageLoadSize();
-			failIf(size.width<0 || size.height<0);
+			ImageSize size = computeThumbSize(item);
+			failIf(size.width<=0 || size.height<=0);
 
 			// load thumbnail
 			if (loader.executorThumbs!=null)
@@ -233,20 +279,14 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 					RunnableLocked then = new RunnableLocked();
 					loader.loadSynchronizerThumb.execute(then);
 
-					if (isInvalidItem(item) || isInvalidVisibility()) {
-						then.runNothing();
-						return;
-					}
+						if (isInvalidItem(item) || isInvalidVisibility()) {
+							then.runNothing();
+							return;
+						}
 
-					ImageSize IS = computeImageSize(item);
-					boolean isInvisible = IS.width==-1 && IS.height==-1;
-					if (isInvisible) {
-						then.runNothing();
-						return;
-					}
-
-					item.loadCover(false, IS)
-						.ifOk(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))
+					item.loadCover(false, size)
+						.ifOk(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))        // load immediately
+//						.ifOk(result -> setCoverPost(item, result.file, result.cover, then))                        // load after all previous
 						.ifError(e -> then.runNothing());
 				}
 			));
@@ -260,55 +300,30 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 						if (isInvalidItem(item) || isInvalidVisibility())  {
 							then.runNothing();
 							return;
-						};
-
-						ImageSize IS = computeImageSize(item);
-						boolean isInvisible = IS.width==-1 && IS.height==-1;
-						if (isInvisible)  {
-							then.runNothing();
-							return;
-						}
-
-						if (isInvalidItem(item) || isInvalidVisibility())  {
-							then.runNothing();
-							return;
 						}
 
 						item.loadCover(true, size)
-							.ifOk(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))
-							.ifError(e -> then.runNothing());
+							.ifOk(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))    // load after all previous
+//							.ifOk(result -> setCoverPost(item, result.file, result.cover, then))                    // load immediately
+							.ifError(e -> then.runNothing())
+							.ifError(e -> System.out.println("fml" + itemVolatile.val));
 					}
 				));
 		}
 	}
 
-	// TODO: remove, this should not be necessary
-	// Sometimes cells are invisible (or not properly laid out?), so delay size calculation and block
-	private ImageSize computeImageSize(Item item) {
-		failIfFxThread();
-
-		return Stream.generate(() -> {
-					ImageSize is = runFX(() -> thumb.calculateImageLoadSize()).getDone().or(() -> new ImageSize(-1,-1));
-					boolean isReady = is.width>0 || is.height>0;
-					if (!isReady && getIndex()<0 || getIndex()>=gridView.get().getItemsShown().size()) return new ImageSize(-1,-1);
-					if (!isReady) new RuntimeException("Image request size=" + is.width + "x" + is.height + " not valid").printStackTrace();
-					if (!isReady) sleep(20);
-					return isReady ? is : null;
-				})
-				.filter(Objects::nonNull)
-				.limit(200)
-				.findFirst().orElseThrow(() -> new RuntimeException("Could not determine requested image size " + item.cover_file));
-	}
-
 	private void setCoverLater(Item item) {
 		failIfNotFxThread();
+		if (disposed) return;
 
 		thumb.loadImage((File) null); // prevent displaying old content before cover loads
-		setCoverLater.push(item);
+		setCoverNow(item);
 	}
 
 	private void setCoverPost(Item item, File imgFile, Image img, RunnableLocked then) {
 		runFX(() -> {
+			if (disposed) return;
+
 			if (isInvalidItem(item) || isInvalidVisibility() || img==null) {
 				if (then!=null) then.finish();
 				return;
@@ -358,7 +373,6 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 			Runnable r = action.get();
 			if (r!=null) r.run();
 			while(waitPost.get()) sleep(2);
-//			if (r!=null) sleep(5);
 		}
 	}
 

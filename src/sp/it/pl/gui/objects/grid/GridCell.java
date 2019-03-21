@@ -36,4 +36,7 @@ public class GridCell<T, F> extends IndexedCell<T> {
 		return new GridCellSkin<>(this);
 	}
 
+	/** Dispose of this cell with the intention of never being used again. Called automatically in when grid skin disposes. */
+	protected void dispose() {}
+
 }

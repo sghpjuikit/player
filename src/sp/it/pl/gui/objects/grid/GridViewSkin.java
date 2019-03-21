@@ -539,6 +539,8 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 		void dispose() {
 			needsRebuildCells = false;
+			visibleCells.forEach(c -> c.dispose());
+			cachedCells.forEach(c -> c.dispose());
 			visibleCells.clear();
 			cachedCells.clear();
 		}

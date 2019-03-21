@@ -111,7 +111,8 @@ public class Thumbnail {
 		@SuppressWarnings("UnnecessaryLocalVariable")
 		@Override
 		protected void layoutChildren() {
-			// lay out image
+			if (getChildren().isEmpty()) return;
+
 			double W = getWidth();
 			double H = getHeight();
 			double imgW = min(W, maxImgW.get());
@@ -211,8 +212,8 @@ public class Thumbnail {
 		fitFrom.addListener((o, ov, nv) -> root.requestLayout());
 
 		// initialize values
-//        imageView.setCache(false);
-		imageView.setSmooth(true);
+        imageView.setCache(false);
+		imageView.setSmooth(false);
 		imageView.setPreserveRatio(true);
 		setBorderToImage(false);
 		setBorderVisible(false);

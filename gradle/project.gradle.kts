@@ -293,6 +293,7 @@ application {
             "--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
             "--add-opens", "javafx.graphics/javafx.stage=ALL-UNNAMED",
             "--add-opens", "javafx.graphics/com.sun.javafx.tk.quantum=ALL-UNNAMED",
+            "--add-opens", "javafx.graphics/com.sun.prism=ALL-UNNAMED",
             "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED"
     )
 }

@@ -1,8 +1,10 @@
 package sp.it.pl.util;
 
+import javafx.scene.image.Image;
 import javafx.scene.text.TextBoundsType;
 import javafx.stage.Screen;
 import sp.it.pl.util.dev.Experimental;
+import sp.it.pl.util.type.Util;
 
 /** Umbrella for unsupported or inaccessible modules. */
 public class JavaLegacy {
@@ -28,6 +30,19 @@ public class JavaLegacy {
 	// requires --add-exports javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED
 	public static double computeFontHeight(javafx.scene.text.Font font, String text) {
 		return com.sun.javafx.scene.control.skin.Utils.computeTextHeight(font, text, -1.0, TextBoundsType.LOGICAL);
+	}
+
+	// requires --add-opens javafx.graphics/com.sun.prism
+	/**
+	 * Dispose of the specified image with the intention of never being used again.
+	 * Use {@code ImageView.setImage(null)} and only use this method if there is a memory leak.
+	 *
+	 * Renders the image object unusable, make sure it is no longer used by the application.
+	 */
+	public static void destroyImage(Image image) {
+		var i = sp.it.pl.util.type.Util.invokeMethodP0(image, "getPlatformImage");
+		if (i!=null) sp.it.pl.util.type.Util.setField(i, "pixelBuffer", null);
+		if (i!=null) Util.setField(i, "pixelaccessor", null);
 	}
 
 }

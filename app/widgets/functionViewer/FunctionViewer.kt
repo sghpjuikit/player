@@ -46,8 +46,8 @@ import sp.it.pl.util.units.millis
 import java.lang.Math.max
 import kotlin.math.roundToInt
 
-typealias Fun = (Double) -> Double
-typealias Num = Double
+private typealias Fun = (Double) -> Double
+private typealias Num = Double
 
 @Widget.Info(
         author = "Martin Polakovic",

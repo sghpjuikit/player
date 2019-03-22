@@ -27,8 +27,7 @@ import java.time.format.SignStyle
 import java.time.temporal.ChronoField
 import java.util.zip.ZipFile
 import kotlin.reflect.KClass
-
-private typealias F = JvmField
+import kotlin.jvm.JvmField as F
 
 private val logger = KotlinLogging.logger { }
 

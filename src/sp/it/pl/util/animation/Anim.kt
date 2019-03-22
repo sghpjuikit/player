@@ -19,9 +19,10 @@ import java.lang.Math.abs
 import java.lang.Math.sqrt
 import java.util.function.DoubleConsumer
 import java.util.stream.Stream
+import kotlin.jvm.JvmField as F
+import kotlin.jvm.JvmOverloads as O
+import kotlin.jvm.JvmStatic as S
 
-private typealias S = JvmStatic
-private typealias O = JvmOverloads
 private typealias IF = (Double) -> Double
 private typealias Block = () -> Unit
 
@@ -45,9 +46,9 @@ private typealias Block = () -> Unit
 open class Anim: Transition {
 
     /** The side effect of the animation called in each loop. */
-    @JvmField val applier: DoubleConsumer
+    @kotlin.jvm.JvmField val applier: DoubleConsumer
     /** Position of the animation after the interpolation transformation. May be outside of 0-1 range. */
-    @JvmField val position: DoubleProperty = SimpleDoubleProperty(0.0)
+    @kotlin.jvm.JvmField val position: DoubleProperty = SimpleDoubleProperty(0.0)
     /**
      * Whether animation should start from beginning/end if it is at the end/beginning. Default true.
      *
@@ -57,7 +58,7 @@ open class Anim: Transition {
      * animation from current position back to 0, but if the position already is 0, false will cause nothing to
      * happen, while true will play the animation again from 1 to 0.
      */
-    @JvmField var playAgainIfFinished = true
+    @kotlin.jvm.JvmField var playAgainIfFinished = true
 
     /** Creates animation with specified frame rate and side effect called at every frame. */
     constructor(targetFPS: Double, sideEffect: DoubleConsumer): super(targetFPS) {

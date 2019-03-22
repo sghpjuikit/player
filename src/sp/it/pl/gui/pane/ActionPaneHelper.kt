@@ -62,8 +62,8 @@ fun futureUnwrapOrThrow(o: Any?): Any? = when (o) {
     else -> o
 }
 
-typealias Test<T> = (T) -> Boolean
-typealias Act<T> = (T) -> Unit
+private typealias Test<T> = (T) -> Boolean
+private typealias Act<T> = (T) -> Unit
 
 interface ConvertingConsumer<T>: Act<T>
 

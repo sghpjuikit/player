@@ -67,7 +67,6 @@ import sp.it.pl.util.action.ActionManager
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.runLater
 import sp.it.pl.util.conf.Configurable
-import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.conf.MainConfiguration
 import sp.it.pl.util.conf.between
@@ -103,6 +102,8 @@ import java.net.URI
 import java.net.URLConnection
 import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
+import sp.it.pl.util.conf.IsConfig as C
+import kotlin.jvm.JvmField as F
 
 lateinit var APP: App
 
@@ -120,9 +121,6 @@ fun main(args: Array<String>) {
 
     Application.launch(App::class.java, *args)
 }
-
-private typealias F = JvmField
-private typealias C = IsConfig
 
 /** Application. Represents the program. */
 @Suppress("unused")

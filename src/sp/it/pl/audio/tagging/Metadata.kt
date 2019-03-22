@@ -60,8 +60,7 @@ import java.util.Objects
 import kotlin.collections.set
 import kotlin.reflect.KClass
 import kotlin.streams.toList
-
-private typealias F = JvmField
+import kotlin.jvm.JvmField as F
 
 /**
  * Information about audio file, usually from audio file tag and header.
@@ -754,7 +753,7 @@ class Metadata: Song, Serializable {
          * Note: The reference operator works, because there is always only one
          * instance of EMPTY metadata.
          */
-        @JvmField val EMPTY = Metadata(SimpleSong(URI.create("empty://empty")))
+        @F val EMPTY = Metadata(SimpleSong(URI.create("empty://empty")))
 
         @JvmStatic
         fun metadataID(u: URI): String = u.toString()

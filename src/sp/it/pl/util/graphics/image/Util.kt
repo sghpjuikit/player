@@ -5,8 +5,6 @@ package sp.it.pl.util.graphics.image
 import com.twelvemonkeys.image.ResampleOp
 import javafx.application.Platform
 import javafx.embed.swing.SwingFXUtils
-import javafx.scene.image.Image
-import javafx.scene.image.WritableImage
 import mu.KotlinLogging
 import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.file.Util.getSuffix
@@ -14,17 +12,15 @@ import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.runTry
 import java.awt.Dimension
-import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import javax.imageio.ImageIO
 import javax.imageio.ImageReader
 import javax.imageio.stream.ImageInputStream
-
-private typealias ImageFx = Image
-private typealias ImageBf = BufferedImage
-private typealias ImageWr = WritableImage
+import javafx.scene.image.Image as ImageFx
+import javafx.scene.image.WritableImage as ImageWr
+import java.awt.image.BufferedImage as ImageBf
 
 private val logger = KotlinLogging.logger {}
 
@@ -172,7 +168,7 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream, width: 
 fun imgImplLoadFX(file: File, W: Int, H: Int, loadFullSize: Boolean): ImageFx {
     val isFxThread = Platform.isFxApplicationThread()
     return if (loadFullSize) {
-        Image(file.toURI().toString(), isFxThread)
+        ImageFx(file.toURI().toString(), isFxThread)
     } else {
         // find out real image file resolution
         val dt = getImageDim(file)
@@ -223,7 +219,7 @@ fun getImageDim(f: File): Try<Dimension, Void> {
 }
 
 /** @return new black image of specified size */
-fun createImageBlack(size: ImageSize) = BufferedImage(size.width.toInt(), size.height.toInt(), BufferedImage.TYPE_INT_RGB)
+fun createImageBlack(size: ImageSize) = java.awt.image.BufferedImage(size.width.toInt(), size.height.toInt(), java.awt.image.BufferedImage.TYPE_INT_RGB)
 
 /** @return new transparent image of specified size */
-fun createImageTransparent(size: ImageSize) = BufferedImage(size.width.toInt(), size.height.toInt(), BufferedImage.TYPE_INT_ARGB)
+fun createImageTransparent(size: ImageSize) = java.awt.image.BufferedImage(size.width.toInt(), size.height.toInt(), java.awt.image.BufferedImage.TYPE_INT_ARGB)

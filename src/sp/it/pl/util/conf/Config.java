@@ -16,7 +16,6 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import org.slf4j.Logger;
 import sp.it.pl.util.access.AccessibleValue;
-import sp.it.pl.util.access.FAccessibleValue;
 import sp.it.pl.util.access.TypedValue;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.Vo;
@@ -912,7 +911,7 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 	 * Use when wrapping the value is not desired, rather it is defined by a means
 	 * of accessing it.
 	 */
-	public static class AccessorConfig<T> extends ConfigBase<T> implements FAccessibleValue<T> {
+	public static class AccessorConfig<T> extends ConfigBase<T> implements AccessibleValue<T> {
 
 		private final Consumer<T> setter;
 		private final Supplier<T> getter;
@@ -951,16 +950,6 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 			super(type, name, name, objectAccessed, category, description, EditMode.USER);
 			this.getter = () -> objectAccessed;
 			this.setter = o -> {};
-		}
-
-		@Override
-		public Consumer<T> getSetter() {
-			return setter;
-		}
-
-		@Override
-		public Supplier<T> getGetter() {
-			return getter;
 		}
 
 		@Override

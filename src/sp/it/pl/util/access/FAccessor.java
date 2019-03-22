@@ -3,7 +3,7 @@ package sp.it.pl.util.access;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class FAccessor<T> implements FAccessibleValue<T> {
+public class FAccessor<T> implements AccessibleValue<T> {
 
 	private final Consumer<T> setter;
 	private final Supplier<T> getter;
@@ -17,22 +17,10 @@ public class FAccessor<T> implements FAccessibleValue<T> {
 		this.setter = setter;
 	}
 
-	@Override
-	public final Consumer<T> getSetter() {
-		return setter;
-	}
-
-	@Override
-	public final Supplier<T> getGetter() {
-		return getter;
-	}
-
-	@Override
 	public final T getValue() {
 		return getter.get();
 	}
 
-	@Override
 	public final void setValue(T value) {
 		setter.accept(value);
 	}

@@ -5,15 +5,11 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.NodeOrientation
 import javafx.scene.Node
 import javafx.scene.Parent
-import javafx.scene.control.ContextMenu
+import javafx.scene.Scene
 import javafx.scene.control.Tooltip
 import javafx.scene.input.MouseEvent
 import javafx.scene.text.Font
-import javafx.stage.Popup
-import javafx.stage.Stage
-import javafx.stage.Window
 import mu.KLogging
-import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions
@@ -35,18 +31,19 @@ import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.functional.Util.set
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.isAnyParentOf
 import sp.it.pl.util.graphics.setFontAsStyle
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.onItemAdded
-import sp.it.pl.util.reactive.onItemSync
+import sp.it.pl.util.reactive.onItemSyncWhile
+import sp.it.pl.util.reactive.plus
 import sp.it.pl.util.reactive.sync
-import sp.it.pl.util.reactive.sync1IfNonNull
+import sp.it.pl.util.reactive.syncNonNullIntoWhile
 import sp.it.pl.util.units.millis
 import java.io.File
 import java.net.MalformedURLException
 import java.util.HashSet
+import javafx.stage.Window as WindowFX
 
 @IsConfigurable(Settings.UI)
 class UiManager(val skinDir: File): Configurable<Any> {
@@ -295,29 +292,18 @@ class UiManager(val skinDir: File): Configurable<Any> {
     }
 
     private fun observeWindowsAndApplySkin() {
-        fun Parent.initializeFontAndSkin() {
-            if (properties.containsKey(skinInitMarker)) return
-            properties[skinInitMarker] = skinInitMarker
-
-            skin sync { applySkinGui(it) }
-            font sync { applyFontGui(it) }
-        }
-
-        fun Window.initializeFontAndSkin() {
-            sceneProperty().sync1IfNonNull { it.rootProperty().sync1IfNonNull { it.initializeFontAndSkin() } }
-        }
-
-        seqOf(Popup.getWindows(), Stage.getWindows(), ContextMenu.getWindows(), PopOver.active_popups).forEach {
-            it.onItemSync { it.initializeFontAndSkin() }
+        WindowFX.getWindows().onItemSyncWhile {
+            it.sceneProperty().syncNonNullIntoWhile(Scene::rootProperty) { root ->
+                val s1 = font sync { root.applyFontGui(it) }
+                val s2 = skin sync { root.applySkinGui(it) }
+                s1 + s2
+            }
         }
         Tooltip.getWindows().onItemAdded { (it as? Tooltip)?.font = font.value }
     }
 
     fun applySkin(skin: String) {
-        seqOf(Popup.getWindows(), Stage.getWindows(), ContextMenu.getWindows(), PopOver.active_popups)
-                .flatMap { it.asSequence() }
-                .mapNotNull { it?.scene?.root }
-                .forEach { it.applySkinGui(skin) }
+        WindowFX.getWindows().forEach { it.scene?.root?.applySkinGui(skin) }
     }
 
     private fun Parent.applyFontGui(font: Font) {
@@ -344,6 +330,5 @@ class UiManager(val skinDir: File): Configurable<Any> {
 
     companion object: KLogging() {
         private const val skinKey = "skin_old_url"
-        private const val skinInitMarker = "HAS_BEEN_INITIALIZED"
     }
 }

@@ -5,7 +5,7 @@ import com.drew.imaging.ImageProcessingException
 import com.drew.metadata.Schema
 import com.drew.metadata.xmp.XmpDirectory
 import mu.KotlinLogging
-import sp.it.pl.util.SwitchException
+import sp.it.pl.util.dev.failCase
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.mimetype.MimeType
 import sp.it.pl.util.file.mimetype.mimeType
@@ -67,7 +67,7 @@ class FileField<T: Any>: ObjectFieldBase<File, T> {
             TYPE.name() -> TYPE
             MIME.name() -> MIME
             MIME_GROUP.name() -> MIME_GROUP
-            else -> throw SwitchException(s)
+            else -> failCase(s)
         }
     }
 

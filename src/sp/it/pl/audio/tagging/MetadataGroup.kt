@@ -2,8 +2,8 @@ package sp.it.pl.audio.tagging
 
 import javafx.util.Duration
 import sp.it.pl.audio.Player
-import sp.it.pl.util.SwitchException
 import sp.it.pl.util.access.fieldvalue.ObjectFieldBase
+import sp.it.pl.util.dev.failCase
 import sp.it.pl.util.units.FileSize
 import sp.it.pl.util.units.RangeYear
 import sp.it.pl.util.units.toHMSMs
@@ -81,14 +81,15 @@ class MetadataGroup {
         fun getType(field: Metadata.Field<*>): Class<out T> = if (this===VALUE) field.type as Class<out T> else type
 
         override fun toS(o: T?, substitute: String): String {
-            if (this===VALUE) return if (o==null || ""==o) "<none>" else o.toString()
-            if (this===ITEMS || this===ALBUMS || this===LENGTH || this===SIZE || this===AVG_RATING || this===W_RATING)
-                return o!!.toString()
-            if (this===YEAR) {
-                val y = o as RangeYear?
-                return if (y==null || !y.hasSpecific()) substitute else y.toString()
+            return when(this) {
+                VALUE -> if (o==null || ""==o) "<none>" else o.toString()
+                ITEMS, ALBUMS, LENGTH, SIZE, AVG_RATING, W_RATING -> o!!.toString()
+                YEAR -> {
+                    val y = o as RangeYear?
+                    if (y==null || !y.hasSpecific()) substitute else y.toString()
+                }
+                else -> failCase(this)
             }
-            throw SwitchException(this)
         }
 
         @Suppress("UNCHECKED_CAST")

@@ -20,7 +20,6 @@ import sp.it.pl.main.AppTask.State.ACTIVE
 import sp.it.pl.main.AppTask.State.DONE_CANCEL
 import sp.it.pl.main.AppTask.State.DONE_ERROR
 import sp.it.pl.main.AppTask.State.DONE_OK
-import sp.it.pl.util.SwitchException
 import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.Loop
@@ -32,6 +31,7 @@ import sp.it.pl.util.async.future.Fut.Result.ResultInterrupted
 import sp.it.pl.util.async.future.Fut.Result.ResultOk
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.dev.ThreadSafe
+import sp.it.pl.util.dev.failCase
 import sp.it.pl.util.formatToSmallestUnit
 import sp.it.pl.util.functional.supplyIf
 import sp.it.pl.util.graphics.anchorPane
@@ -84,7 +84,7 @@ object AppProgress {
                         State.SUCCEEDED -> reportDone(ResultOk(null))
                         State.CANCELLED -> reportDone(ResultInterrupted<Any>(InterruptedException("")))
                         State.FAILED -> reportDone(ResultFail<Any>(task.exception))
-                        else -> throw SwitchException(it)
+                        else -> failCase(it)
                     }
                 }
             }

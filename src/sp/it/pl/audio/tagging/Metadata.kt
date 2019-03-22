@@ -30,9 +30,9 @@ import sp.it.pl.gui.objects.image.cover.Cover.CoverSource
 import sp.it.pl.gui.objects.image.cover.FileCover
 import sp.it.pl.gui.objects.image.cover.ImageCover
 import sp.it.pl.main.APP
-import sp.it.pl.util.SwitchException
 import sp.it.pl.util.access.fieldvalue.ObjectFieldBase
 import sp.it.pl.util.dev.Blocks
+import sp.it.pl.util.dev.failCase
 import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.ImageFileFormat
@@ -921,12 +921,12 @@ class Metadata: Song, Serializable {
                     in 1..62 -> FileSize(Math.pow(2.0, it.toDouble()).toLong())
                     63 -> FileSize(Long.MAX_VALUE)
                     64 -> FileSize(0)
-                    else -> throw SwitchException(it)
+                    else -> failCase(it)
                 }
             }
             private val GROUPS_RATING = (0..20).map { it*5/100.0 }.toDoubleArray()
 
-            @JvmStatic fun valueOf(s: String): Field<*> = FIELDS_BY_NAME[s] ?: throw SwitchException(s)
+            @JvmStatic fun valueOf(s: String): Field<*> = FIELDS_BY_NAME[s] ?: failCase(s)
         }
 
     }

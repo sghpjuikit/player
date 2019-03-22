@@ -37,3 +37,11 @@ fun failIfNotFinal(field: Field) = failIf(!Modifier.isFinal(field.modifiers)) { 
 fun failIfInterrupted() {
     if (Thread.interrupted()) throw InterruptedException()
 }
+
+/**
+ * Throw runtime exception for if or when case branch, that represents programming error and must never execute.
+ * This is a convenient assertion with developer friendly message.
+ *
+ * @param value illegal value that caused entering of the illegal case branch
+ */
+fun failCase(value: Any?): Nothing = fail { "Illegal if/when case with value: $value" }

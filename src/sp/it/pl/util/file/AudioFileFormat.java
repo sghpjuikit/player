@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 import javafx.stage.FileChooser;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.util.SwitchException;
+import sp.it.pl.util.dev.SwitchException;
 import static java.util.stream.Collectors.toList;
 import static sp.it.pl.util.dev.FailKt.noNull;
 

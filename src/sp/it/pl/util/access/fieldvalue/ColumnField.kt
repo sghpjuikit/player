@@ -1,6 +1,6 @@
 package sp.it.pl.util.access.fieldvalue
 
-import sp.it.pl.util.SwitchException
+import sp.it.pl.util.dev.failCase
 import kotlin.reflect.KClass
 
 class ColumnField: ObjectFieldBase<Any, Int> {
@@ -19,7 +19,7 @@ class ColumnField: ObjectFieldBase<Any, Int> {
 
         fun valueOf(s: String) = when(s) {
             INDEX.name() -> INDEX
-            else -> throw SwitchException(s)
+            else -> failCase(s)
         }
 
     }

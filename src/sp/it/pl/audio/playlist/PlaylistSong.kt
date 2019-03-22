@@ -9,9 +9,9 @@ import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.main.APP
-import sp.it.pl.util.SwitchException
 import sp.it.pl.util.access.fieldvalue.ObjectFieldBase
 import sp.it.pl.util.async.runFX
+import sp.it.pl.util.dev.failCase
 import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
@@ -198,7 +198,7 @@ class PlaylistSong: Song {
                 NAME, TITLE, ARTIST -> if (""==o) substitute else o.toString()
                 PATH, FORMAT -> o.toString()
                 LENGTH -> (o as Duration).toHMSMs()
-                else -> throw SwitchException(this)
+                else -> failCase(this)
             }
         }
 
@@ -224,8 +224,9 @@ class PlaylistSong: Song {
                 LENGTH.name() -> LENGTH
                 PATH.name() -> PATH
                 FORMAT.name() -> FORMAT
-                else -> throw SwitchException(s)
+                else -> failCase(s)
             }
+
         }
 
     }

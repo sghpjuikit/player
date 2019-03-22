@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Song;
 import sp.it.pl.service.notif.Notifier;
-import sp.it.pl.util.SwitchException;
+import sp.it.pl.util.dev.SwitchException;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.units.NofX;
 import static java.lang.Math.max;

@@ -11,7 +11,6 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.shape.Shape
-import javafx.stage.Stage
 import javafx.stage.Window
 import javafx.util.Callback
 import org.reactfx.Subscription
@@ -53,6 +52,7 @@ import sp.it.pl.util.reactive.onItemSyncWhile
 import sp.it.pl.util.reactive.plus
 import sp.it.pl.util.reactive.syncNonNullIntoWhile
 import java.io.File
+import javafx.stage.Window as WindowFX
 
 @Widget.Info(
         author = "Martin Polakovic",
@@ -150,7 +150,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
         onClose += selectingWindow
     }
 
-    fun exploreWindow(window: javafx.stage.Window) {
+    fun exploreWindow(window: WindowFX) {
         val windowRoot = tree.root.children[1].children[0]
         windowRoot.children.find { it.value===window }?.expandToRootAndSelect(tree)
     }
@@ -210,7 +210,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
             }
         }
 
-        private fun observeWindowRoots(subscriber: (Parent) -> Subscription) = Stage.getWindows().onItemSyncWhile {
+        private fun observeWindowRoots(subscriber: (Parent) -> Subscription) = WindowFX.getWindows().onItemSyncWhile {
             it.sceneProperty().syncNonNullIntoWhile(Scene::rootProperty, subscriber)
         }
 

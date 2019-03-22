@@ -46,6 +46,7 @@ import sp.it.pl.web.SearchUriBuilder
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
+import javafx.stage.Window as WindowFX
 
 object CoreMenus: Core {
 
@@ -116,7 +117,7 @@ object CoreMenus: Core {
                     }
                 }
             }
-            add<javafx.stage.Window> {
+            add<WindowFX> {
                 menu("Inspect ui properties in") {
                     widgetItems<ConfiguringFeature> { w ->
                         runNew {

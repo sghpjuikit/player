@@ -78,6 +78,7 @@ import sp.it.pl.util.units.minus
 import java.io.File
 import java.util.HashSet
 import java.util.Optional
+import javafx.stage.Window as WindowFX
 
 @IsConfigurable(value = Settings.Ui.WINDOW)
 class WindowManager {
@@ -147,12 +148,12 @@ class WindowManager {
     fun getActiveOrNew(): Window = getActive().orElseGet(::createWindow)
 
     init {
-        Stage.getWindows().onItemAdded { w ->
+        WindowFX.getWindows().onItemAdded { w ->
             if (w.properties.containsKey("window") && w.properties["window"]!==dockWindow) {
                 windows += w.properties["window"] as Window
             }
         }
-        Stage.getWindows().onItemRemoved { w ->
+        WindowFX.getWindows().onItemRemoved { w ->
             if (w.properties.containsKey("window")) {
                 val window = w.properties["window"] as Window
                 if (window.isMain.value && !dockIsTogglingWindows) {

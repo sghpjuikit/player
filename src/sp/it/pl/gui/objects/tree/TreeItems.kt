@@ -84,6 +84,7 @@ import java.nio.file.Path
 import java.util.ArrayList
 import java.util.Stack
 import kotlin.streams.asSequence
+import javafx.stage.Window as WindowFX
 
 private val logger = KotlinLogging.logger { }
 private val globalContextMenu by lazy { ValueContextMenu<Any?>() }
@@ -111,7 +112,7 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
     is Image -> tree("Image", tree("Url", o.url.orNone()), "Width${o.width}", "Height${o.height}")
     is Thumbnail.ContextMenuData -> tree("Thumbnail", tree("Data", o.representant.orNone()), tree("Image", o.image.orNone()), tree("Image file", o.iFile.orNone()))
     is Scene -> tree("Scene", o.root)
-    is javafx.stage.Window -> STreeItem(o, { seqOf(o.scene)+seqOf(o.asWindowOrNull()?.layout).filterNotNull() })
+    is WindowFX -> STreeItem(o, { seqOf(o.scene)+seqOf(o.asWindowOrNull()?.layout).filterNotNull() })
     is Window -> tree(o.stage)
     is PopOver<*> -> STreeItem(o, { seqOf(o.scene.root) })
     is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
@@ -254,7 +255,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
         o is Tooltip -> "Tooltip"
         o is PopOver<*> -> "Popup " + PopOver.active_popups.indexOf(o)
         o is PopupWindow -> "Popup (generic)"
-        o is javafx.stage.Window -> {
+        o is WindowFX -> {
             val w = o.asWindowOrNull()
             if (w==null) {
                 "Window (generic)"
@@ -340,7 +341,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
 private fun doAction(o: Any?, otherwise: () -> Unit) {
     when (o) {
         is Node -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
-        is javafx.stage.Window -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
+        is WindowFX -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
         is File -> o.open()
         is Configurable<*> -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(o) }
         is TreeItem<*> -> doAction(o.value, otherwise)

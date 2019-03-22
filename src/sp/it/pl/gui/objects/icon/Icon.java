@@ -20,7 +20,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.css.CssMetaData;
-import javafx.css.PseudoClass;
 import javafx.css.SimpleStyleableObjectProperty;
 import javafx.css.StyleConverter;
 import javafx.css.Styleable;
@@ -73,6 +72,7 @@ import static sp.it.pl.util.graphics.Util.layHeaderLeft;
 import static sp.it.pl.util.graphics.Util.layHeaderRight;
 import static sp.it.pl.util.graphics.Util.layHeaderTop;
 import static sp.it.pl.util.graphics.UtilKt.createIcon;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.graphics.UtilKt.typeText;
@@ -229,8 +229,8 @@ public class Icon extends StackPane {
 	public void select(boolean value) {
 		if (value==isSelected) return;
 		isSelected = value;
-		pseudoClassStateChanged(PseudoClass.getPseudoClass("hover"), value);
-		node.pseudoClassStateChanged(PseudoClass.getPseudoClass("hover"), value);
+		pseudoClassStateChanged(pseudoclass("hover"), value);
+		node.pseudoClassStateChanged(pseudoclass("hover"), value);
 		if (isAnimated.get()) ra.get(this, Ahover).playFromDir(value);
 	}
 

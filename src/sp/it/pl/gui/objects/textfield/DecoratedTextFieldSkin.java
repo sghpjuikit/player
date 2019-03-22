@@ -35,12 +35,13 @@ import javafx.scene.Node;
 import javafx.scene.control.skin.TextFieldSkin;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.HitInfo;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 
 public class DecoratedTextFieldSkin extends TextFieldSkin {
 
-	private static final PseudoClass HAS_NO_SIDE_NODE = PseudoClass.getPseudoClass("no-side-nodes");
-	private static final PseudoClass HAS_LEFT_NODE = PseudoClass.getPseudoClass("left-node-visible");
-	private static final PseudoClass HAS_RIGHT_NODE = PseudoClass.getPseudoClass("right-node-visible");
+	private static final PseudoClass HAS_NO_SIDE_NODE = pseudoclass("no-side-nodes");
+	private static final PseudoClass HAS_LEFT_NODE = pseudoclass("left-node-visible");
+	private static final PseudoClass HAS_RIGHT_NODE = pseudoclass("right-node-visible");
 
 	private Node left;
 	private StackPane leftPane;

@@ -104,6 +104,7 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.setAnchors;
 import static sp.it.pl.util.graphics.UtilKt.getScreen;
 import static sp.it.pl.util.graphics.UtilKt.initClip;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
@@ -115,13 +116,13 @@ public class Window extends WindowBase {
 	/** Styleclass for window. Applied on {@link #root}. */
 	public static final String scWindow = "window";
 	/** Pseudoclass active when this window is focused. Applied on {@link #scWindow}. */
-	public static final PseudoClass pcFocused = PseudoClass.getPseudoClass("focused");
+	public static final PseudoClass pcFocused = pseudoclass("focused");
 	/** Pseudoclass active when this window is resized. Applied on {@link #scWindow}. */
-	public static final PseudoClass pcResized = PseudoClass.getPseudoClass("resized");
+	public static final PseudoClass pcResized = pseudoclass("resized");
 	/** Pseudoclass active when this window is moved. Applied on {@link #scWindow}. */
-	public static final PseudoClass pcMoved = PseudoClass.getPseudoClass("moved");
+	public static final PseudoClass pcMoved = pseudoclass("moved");
 	/** Pseudoclass active when this window is fullscreen. Applied on {@link #scWindow}. */
-	public static final PseudoClass pcFullscreen = PseudoClass.getPseudoClass("fullscreen");
+	public static final PseudoClass pcFullscreen = pseudoclass("fullscreen");
 
 	/** Scene root. Assigned {@link #scWindow} styleclass. */
 	@FXML public AnchorPane root = new AnchorPane();

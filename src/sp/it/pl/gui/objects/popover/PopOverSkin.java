@@ -68,14 +68,15 @@ import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.MouseDragKt.initMouseDrag;
 import static sp.it.pl.util.graphics.UtilKt.initClip;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
 
 public class PopOverSkin implements Skin<PopOver> {
 
-	private static final PseudoClass DETACHED = PseudoClass.getPseudoClass("detached");
-	private static final PseudoClass FOCUSED = PseudoClass.getPseudoClass("focused");
+	private static final PseudoClass DETACHED = pseudoclass("detached");
+	private static final PseudoClass FOCUSED = pseudoclass("focused");
 	private static final String ROOT_STYLECLASS = "popover-root";
 	private static final String CONTENT_STYLECLASS = "content";
 	private static final String HEADER_STYLECLASS = "popover-header";

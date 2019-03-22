@@ -32,16 +32,17 @@ import static sp.it.pl.gui.objects.window.Resize.SE;
 import static sp.it.pl.gui.objects.window.Resize.SW;
 import static sp.it.pl.gui.objects.window.Resize.W;
 import static sp.it.pl.util.graphics.Util.setAnchors;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 public class PaneWindowControls extends WindowPane {
 
 	/** Psududoclass active when this window is resized. Applied on root as '.window'. */
-	public static final PseudoClass pcResized = PseudoClass.getPseudoClass("resized");
+	public static final PseudoClass pcResized = pseudoclass("resized");
 	/** Psududoclass active when this window is moved. Applied on root as '.window'. */
-	public static final PseudoClass pcMoved = PseudoClass.getPseudoClass("moved");
+	public static final PseudoClass pcMoved = pseudoclass("moved");
 	/** Psududoclass active when this window is focused. Applied on root as '.window'. */
-	public static final PseudoClass pcFocused = PseudoClass.getPseudoClass("focused");
+	public static final PseudoClass pcFocused = pseudoclass("focused");
 
 	@FXML
 	public AnchorPane borders;

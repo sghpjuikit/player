@@ -19,8 +19,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
-import sp.it.pl.audio.Song;
 import sp.it.pl.audio.Player;
+import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.gui.nodeinfo.ItemInfo;
 import sp.it.pl.gui.objects.icon.Icon;
@@ -47,7 +47,6 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static java.util.stream.Collectors.toList;
 import static javafx.animation.Animation.INDEFINITE;
 import static javafx.application.Platform.runLater;
-import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
@@ -70,6 +69,7 @@ import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
@@ -512,7 +512,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
     }
 
     private void applyTheaterMode(boolean v) {
-        root.pseudoClassStateChanged(getPseudoClass("theater"), v);
+        root.pseudoClassStateChanged(pseudoclass("theater"), v);
         if (v && itemPane==null) {
             itemPane = new ItemInfo(false);
             itemPane.setOnMouseClicked(e -> {

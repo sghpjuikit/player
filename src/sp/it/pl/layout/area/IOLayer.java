@@ -43,7 +43,6 @@ import static java.lang.Math.pow;
 import static java.lang.Math.random;
 import static java.lang.Math.signum;
 import static java.util.stream.Collectors.toList;
-import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.DragEvent.DRAG_ENTERED;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -59,6 +58,7 @@ import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.min;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
 
@@ -71,8 +71,8 @@ public class IOLayer extends StackPane {
     public static final String IONODE_STYLECLASS = "ionode";
     public static final String IOLINE_STYLECLASS = "ioline";
     public static final String IOLINE_RUNNER_STYLECLASS = "ioline-runner";
-    public static final PseudoClass XNODE_DRAGOVER = getPseudoClass("drag-over");
-    public static final PseudoClass XNODE_SELECTED = getPseudoClass("selected");
+    public static final PseudoClass XNODE_DRAGOVER = pseudoclass("drag-over");
+    public static final PseudoClass XNODE_SELECTED = pseudoclass("selected");
     private static final Object XNODE_KEY = new Object();
 
     static public final ObservableSet<Input<?>> all_inputs = FXCollections.observableSet();

@@ -137,6 +137,7 @@ import static sp.it.pl.util.functional.Util.noEx;
 import static sp.it.pl.util.functional.Util.split;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.UtilKt.createIcon;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.graphics.UtilKt.setTextAlignment;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
@@ -843,7 +844,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
     }
 
     private final static List<String> textFieldStyleClass = new ArrayList<>(new TextField().getStyleClass());
-    private final static PseudoClass corrupt = PseudoClass.getPseudoClass("corrupt");
+    private final static PseudoClass corrupt = pseudoclass("corrupt");
     PopOver<?> helpP;
 
     private PopOver<?> showItemsPopup() {

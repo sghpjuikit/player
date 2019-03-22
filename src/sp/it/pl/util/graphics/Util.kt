@@ -236,6 +236,7 @@ fun bgr(color: Color) = Background(BackgroundFill(color, CornerRadii.EMPTY, Inse
 @JvmOverloads
 fun border(color: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(BorderStroke(color, BorderStrokeStyle.SOLID, radius, BorderWidths.DEFAULT))
 
+/** @return [PseudoClass.getPseudoClass] */
 fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
 
 inline fun pane(block: Pane.() -> Unit = {}) = Pane().apply(block)

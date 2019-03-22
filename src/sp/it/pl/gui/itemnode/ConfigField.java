@@ -65,7 +65,6 @@ import static java.nio.charset.StandardCharsets.UTF_16BE;
 import static java.nio.charset.StandardCharsets.UTF_16LE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
-import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.DELETE;
@@ -88,6 +87,7 @@ import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.layHeaderTop;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
@@ -99,7 +99,7 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
  */
 abstract public class ConfigField<T> extends ConfigNode<T> {
 
-    private static final PseudoClass editedPC = getPseudoClass("edited");
+    private static final PseudoClass editedPC = pseudoclass("edited");
     private static final Tooltip okTooltip = appTooltip("Apply value");
     private static final Tooltip warnTooltip = appTooltip("Erroneous value");
     private static final Tooltip defTooltip = appTooltip("Default value");

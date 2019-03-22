@@ -73,6 +73,7 @@ import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.graphics.Util.menuItem;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
 
 @Info(
@@ -99,7 +100,7 @@ import static sp.it.pl.util.reactive.UtilKt.syncTo;
 @LegacyController
 public class LibraryView extends SimpleController {
 
-    private static final PseudoClass PC_PLAYING = PseudoClass.getPseudoClass("played");
+    private static final PseudoClass PC_PLAYING = pseudoclass("played");
     private static final TableContextMenuR<MetadataGroup> contextMenu = new TableContextMenuR<>();
 
     private final FilteredTable<MetadataGroup> table = new FilteredTable<>(MetadataGroup.class, VALUE);

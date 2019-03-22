@@ -7,15 +7,15 @@ import javafx.css.PseudoClass;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import org.reactfx.Subscription;
-import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
  * Very simple alternative CheckBox control.
  */
 public class CheckIcon extends Icon {
-	private static final PseudoClass selectedPC = getPseudoClass("selected");
+	private static final PseudoClass selectedPC = pseudoclass("selected");
 	private static final String STYLECLASS = "check-icon";
 	private static final String STYLECLASS_DISABLING = "check-icon-disabling";
 

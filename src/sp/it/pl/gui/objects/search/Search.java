@@ -8,7 +8,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
 import static java.lang.Math.max;
-import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.DELETE;
 import static javafx.scene.input.KeyCode.ENTER;
@@ -19,6 +18,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.util.Util.removeLastChar;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 
 /**
  * <p/>
@@ -30,8 +30,8 @@ import static sp.it.pl.util.Util.removeLastChar;
  * }</pre>
  */
 public abstract class Search {
-	public static final PseudoClass PC_SEARCH_MATCH = getPseudoClass("searchmatch");
-	public static final PseudoClass PC_SEARCH_MATCH_NOT = getPseudoClass("searchmatchnot");
+	public static final PseudoClass PC_SEARCH_MATCH = pseudoclass("searchmatch");
+	public static final PseudoClass PC_SEARCH_MATCH_NOT = pseudoclass("searchmatchnot");
 
 	protected long searchTime = -1;
 	protected Duration searchTimeMax = millis(500);

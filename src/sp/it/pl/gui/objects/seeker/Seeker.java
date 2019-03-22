@@ -54,7 +54,6 @@ import static java.lang.Math.abs;
 import static java.lang.Math.signum;
 import static java.time.Duration.ofMillis;
 import static javafx.beans.binding.Bindings.notEqual;
-import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -79,6 +78,7 @@ import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.functional.Util.minBy;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.layHeaderRight;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.graphics.UtilKt.typeText;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.units.UtilKt.toHMSMs;
@@ -95,7 +95,7 @@ public final class Seeker extends AnchorPane {
 	private static final String STYLECLASS = "seeker";
 	private static final String STYLECLASS_CHAP = "seeker-marker";
 	private static final String STYLECLASS_CHAP_ADD_BUTTON = "seeker-add-chapter-button";
-	private static final PseudoClass STYLE_CHAP_NEW = getPseudoClass("newly-created");
+	private static final PseudoClass STYLE_CHAP_NEW = pseudoclass("newly-created");
 
 	private final Slider seeker = new Slider(0, 1, 0);
 	private final AddChapButton addB = new AddChapButton();

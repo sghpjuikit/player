@@ -23,7 +23,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ELLIPSIS_H;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ELLIPSIS_V;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MAGIC;
-import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -33,12 +32,13 @@ import static sp.it.pl.util.access.SequentialValue.next;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.Util.setAnchors;
+import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
 
 public final class Splitter extends ContainerNodeBase<BiContainer> {
 
-    private static final PseudoClass COLLAPSED_PC = getPseudoClass("collapsed");
+    private static final PseudoClass COLLAPSED_PC = pseudoclass("collapsed");
 
     private final AnchorPane root_child1 = new AnchorPane();
     private final AnchorPane root_child2 = new AnchorPane();

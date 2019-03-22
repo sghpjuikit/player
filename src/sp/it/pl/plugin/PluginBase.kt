@@ -9,7 +9,6 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.dev.Idempotent
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.functional.ifFalse
-import sp.it.pl.util.functional.seqOf
 
 abstract class PluginBase(override val name: String, isEnabledByDefault: Boolean): Plugin {
 
@@ -18,7 +17,7 @@ abstract class PluginBase(override val name: String, isEnabledByDefault: Boolean
     private var isRunning = false
 
     private fun enable(isToBeRunning: Boolean) {
-        val preInitOk = isToBeRunning && seqOf(location, userLocation)
+        val preInitOk = isToBeRunning && sequenceOf(location, userLocation)
                 .all { isValidatedDirectory(it) }
                 .ifFalse { APP.messagePane.show("Directory $location or $userLocation can not be used.") }
         val v = isToBeRunning && preInitOk

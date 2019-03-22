@@ -65,7 +65,6 @@ import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.file.parentDir
 import sp.it.pl.util.functional.getElementType
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.createIcon
 import sp.it.pl.util.graphics.isAnyParentOf
@@ -97,6 +96,7 @@ private class TreeSelectionClearEvent(target: EventTarget, val removed: TreeItem
 private class TreeSelectionRestoreEvent(target: EventTarget): Event(null, target, SELECTION_DISTURBED_RESTORE)
 
 private fun Any?.orNone(): Any = this ?: "<none>"
+private fun <T> seqOf(vararg elements: T) = elements.asSequence()
 
 @Suppress("UNCHECKED_CAST", "RemoveExplicitTypeArguments")
 fun <T> tree(o: T): TreeItem<T> = when (o) {

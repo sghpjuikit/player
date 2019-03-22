@@ -238,9 +238,6 @@ inline fun Boolean.ifTrue(block: () -> Unit) = apply { if (this) block() }
 /** Invokes the block if this is false and returns this value. */
 inline fun Boolean.ifFalse(block: () -> Unit) = apply { if (!this) block() }
 
-/** @return a sequence of the specified values */
-fun <T> seqOf(vararg elements: T) = sequenceOf(*elements)
-
 /** @return lazy sequence yielded iteratively starting with this as first element until null element is reached */
 fun <T: Any> T.traverse(next: (T) -> T?) = generateSequence(this, next)
 

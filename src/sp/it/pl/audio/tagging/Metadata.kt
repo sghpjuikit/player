@@ -40,7 +40,6 @@ import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
 import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.localDateTimeFromMillis
 import sp.it.pl.util.text.toStrings
 import sp.it.pl.util.units.Bitrate
@@ -605,7 +604,7 @@ class Metadata: Song, Serializable {
         return when (source) {
             Cover.CoverSource.TAG -> readCoverFromTag() ?: Cover.EMPTY
             Cover.CoverSource.DIRECTORY -> readCoverFromDir() ?: Cover.EMPTY
-            Cover.CoverSource.ANY -> seqOf(CoverSource.TAG, CoverSource.DIRECTORY)
+            Cover.CoverSource.ANY -> sequenceOf(CoverSource.TAG, CoverSource.DIRECTORY)
                     .mapNotNull { getCover(it) }
                     .firstOrNull { !it.isEmpty }
                     ?: Cover.EMPTY
@@ -624,7 +623,7 @@ class Metadata: Song, Serializable {
     private fun readCoverFromDir(): Cover? {
         return getFile()?.let { file ->
             val fs = file.parentDirOrRoot.listChildren().toList()
-            return seqOf(getFilename().takeIf { it.isNotBlank() }, title, album, "cover", "folder")
+            return sequenceOf(getFilename().takeIf { it.isNotBlank() }, title, album, "cover", "folder")
                     .filterNotNull()
                     .flatMap { filename -> fs.asSequence().filter { it.nameWithoutExtensionOrRoot.equals(filename, true) } }
                     .find { ImageFileFormat.isSupported(it) }

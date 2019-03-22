@@ -13,7 +13,6 @@ import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.getElementType
 import sp.it.pl.util.functional.net
-import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.menuItem
 import sp.it.pl.util.graphics.menuSeparator
 
@@ -79,7 +78,7 @@ fun ContextMenuGenerator.Builder<*>.item(text: String, handler: (ActionEvent) ->
 fun ContextMenuGenerator.Builder<*>.menu(text: String, graphics: Node? = null, items: Menu.() -> Unit) =
         item(Menu(text, graphics).apply(items))
 
-fun ContextMenuGenerator.Builder<*>.menu(text: String, items: Sequence<MenuItem> = seqOf()) =
+fun ContextMenuGenerator.Builder<*>.menu(text: String, items: Sequence<MenuItem> = sequenceOf()) =
         item(Menu(text, null, *items.asArray()))
 
 fun ContextMenuGenerator.Builder<*>.separator() = item(menuSeparator())

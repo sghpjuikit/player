@@ -85,7 +85,6 @@ import sp.it.pl.util.file.div
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.mimetype.MimeTypes
 import sp.it.pl.util.functional.Try
-import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.graphics.image.getImageDim
 import sp.it.pl.util.reactive.Handler0
 import sp.it.pl.util.stacktraceAsString
@@ -421,7 +420,7 @@ class App: Application(), Configurable<Any> {
     fun getIcon(): Image = Image(File("icon512.png").toURI().toString())
 
     /** @return images of the icon of the application in all possible sizes */
-    fun getIcons(): List<Image> = seqOf(16, 24, 32, 48, 128, 256, 512)
+    fun getIcons(): List<Image> = sequenceOf(16, 24, 32, 48, 128, 256, 512)
             .map { File("resources/icons/icon$it.png").toURI().toString() }
             .map { Image(it) }
             .toList()
@@ -564,7 +563,7 @@ class App: Application(), Configurable<Any> {
 
     companion object: KLogging() {
 
-        private val logLevels = seqOf(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF)
+        private val logLevels = sequenceOf(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF)
 
     }
 

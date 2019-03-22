@@ -290,7 +290,7 @@ class GameView(widget: Widget): SimpleController(widget) {
             cover.pane.isMouseTransparent = true
             cover.borderVisible = false
             cover.fitFrom.value = OUTSIDE
-            animated += seqOf(cover.pane, titleL, infoT, fileTree)
+            animated += sequenceOf(cover.pane, titleL, infoT, fileTree)
 
             lay += scrollPane {
                 isFitToHeight = false

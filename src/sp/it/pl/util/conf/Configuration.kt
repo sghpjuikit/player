@@ -7,7 +7,6 @@ import sp.it.pl.util.conf.ConfigurationUtil.configsOf
 import sp.it.pl.util.file.Properties
 import sp.it.pl.util.file.Properties.Property
 import sp.it.pl.util.functional.compose
-import sp.it.pl.util.functional.seqOf
 import sp.it.pl.util.type.isSubclassOf
 import java.io.File
 import java.lang.invoke.MethodHandles
@@ -62,9 +61,10 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
 
     fun <C> collect(vararg cs: Configurable<C>): Unit = cs.forEach { collect(it) }
 
-    fun collectStatic(vararg notAnnotatedClasses: Class<*>): Unit = seqOf(*notAnnotatedClasses)
-            .distinct()
-            .forEach { collect(configsOf(it, null, true, false)) }
+    fun collectStatic(vararg notAnnotatedClasses: Class<*>): Unit = notAnnotatedClasses.asSequence().distinct()
+            .forEach {
+                collect(configsOf(it, null, true, false))
+            }
 
 
     fun <C> collect(config: Config<C>) {
@@ -101,7 +101,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
     }
 
     @SafeVarargs
-    fun <T> drop(vararg configs: Config<T>) = seqOf(*configs).forEach { drop(it) }
+    fun <T> drop(vararg configs: Config<T>) = configs.forEach { drop(it) }
 
     fun <T> drop(configs: Collection<Config<T>>) = configs.forEach { drop(it) }
 

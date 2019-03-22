@@ -2,6 +2,7 @@ package sp.it.pl.layout.widget.controller
 
 import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
+import javafx.scene.layout.Pane
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.io.Inputs
 import sp.it.pl.layout.widget.controller.io.Outputs
@@ -57,7 +58,7 @@ abstract class Controller(widget: Widget): CachedConfigurable<Any>, Locatable {
 
     /** @return the ui root of this Controller */
     @Throws(Exception::class)
-    abstract fun loadFirstTime(): Node
+    abstract fun loadFirstTime(): Pane
 
     /** Focuses the content. */
     abstract fun focus()

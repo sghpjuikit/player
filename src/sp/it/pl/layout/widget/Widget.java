@@ -102,7 +102,7 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 	 */
 	@Dependency("name - accessed using reflection by name")
 	@XStreamOmitField public final WidgetFactory<?> factory;
-	@XStreamOmitField protected Node root;
+	@XStreamOmitField protected Pane root;
 	@XStreamOmitField protected Controller controller;
 
 	@XStreamOmitField private HashMap<String,Config<Object>> configs = new HashMap<>();
@@ -157,7 +157,7 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 		return name;
 	}
 
-	public Node getGraphics() {
+	public Pane getGraphics() {
 		return root;
 	}
 

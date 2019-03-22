@@ -61,7 +61,7 @@ import sp.it.pl.util.functional.toUnit
 import sp.it.pl.util.graphics.Util
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.minPrefMaxWidth
-import sp.it.pl.util.graphics.styleclassToggle
+import sp.it.pl.util.graphics.stylesheetToggle
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync1If
 import sp.it.pl.util.system.Os
@@ -275,8 +275,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                                     val root = it.root
                                     val skinUrl = skinFile.toURLOrNull()?.toExternalForm()
                                     if (skinUrl!=null) {
-                                        root?.styleclassToggle(skinUrl, false)
-                                        root?.styleclassToggle(skinUrl, true)
+                                        root?.stylesheetToggle(skinUrl, false)
+                                        root?.stylesheetToggle(skinUrl, true)
                                     }
                                 }
                     }

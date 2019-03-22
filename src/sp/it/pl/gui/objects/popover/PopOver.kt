@@ -345,10 +345,7 @@ open class PopOver<N: Node>(): PopupControl() {
      * Use when the hiding animation is not desired (regardless the set value)
      * or could cause problems such as delaying application exit.
      *
-     * @implSpec This is the default hide implementation overriding the one in the super class. It should not cause any
-     * delays and keep changes to hiding mechanism to minimum as otherwise it could cause problems. For example casting
-     * javafx.stage.Window to PopOver (when it in fact is an instance of this class) and calling modified hide() method
-     * has been observed to cause serious problems.
+     * This contains the actual hide implementation, defined, but not contained in [hide], which first animates.
      */
     fun hideImmediately() {
         animation.orNull()?.stop()

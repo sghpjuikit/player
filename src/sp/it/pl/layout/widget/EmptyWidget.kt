@@ -1,6 +1,6 @@
 package sp.it.pl.layout.widget
 
-import javafx.scene.layout.Region
+import javafx.scene.layout.Pane
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.controller.io.Inputs
 import sp.it.pl.layout.widget.controller.io.Outputs
@@ -20,7 +20,7 @@ import sp.it.pl.util.file.childOf
 @ExperimentalController("Has no use for user")
 class EmptyWidget(widget: Widget): Controller(widget) {
 
-    private val root = Region()
+    private val root = Pane()
     override val ownedInputs = Inputs()
     override val ownedOutputs = Outputs()
 

@@ -35,6 +35,7 @@ import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.future.Fut.Companion.fut
 import sp.it.pl.util.async.runFX
+import sp.it.pl.util.collections.setToOne
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.MultiConfigurableBase
@@ -42,7 +43,6 @@ import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cr
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.functional.setToOne
 import sp.it.pl.util.functional.toUnit
 import sp.it.pl.util.graphics.Util.layHorizontally
 import sp.it.pl.util.graphics.drag.DragUtil

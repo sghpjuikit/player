@@ -7,11 +7,11 @@ import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import sp.it.pl.gui.pane.collectionUnwrap
 import sp.it.pl.gui.pane.collectionWrap
+import sp.it.pl.util.collections.getElementType
 import sp.it.pl.util.collections.map.ClassListMap
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.asIf
-import sp.it.pl.util.functional.getElementType
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.graphics.menuItem
 import sp.it.pl.util.graphics.menuSeparator

@@ -8,8 +8,8 @@ import javafx.animation.KeyFrame
 import javafx.animation.Timeline
 import javafx.event.EventHandler
 import javafx.util.Duration
+import sp.it.pl.util.collections.setToOne
 import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.functional.setToOne
 import sp.it.pl.util.units.millis
 
 /**

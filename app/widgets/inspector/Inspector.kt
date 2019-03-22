@@ -29,9 +29,9 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.scaleEM
+import sp.it.pl.util.collections.getElementType
 import sp.it.pl.util.file.isAnyChildOf
 import sp.it.pl.util.functional.asIf
-import sp.it.pl.util.functional.getElementType
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.traverse
 import sp.it.pl.util.graphics.drag.DragUtil

@@ -55,6 +55,8 @@ import sp.it.pl.util.Util.enumToHuman
 import sp.it.pl.util.access.toggle
 import sp.it.pl.util.async.executor.ExecuteN
 import sp.it.pl.util.async.invoke
+import sp.it.pl.util.collections.getElementType
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.pl.util.dev.fail
@@ -63,9 +65,7 @@ import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.file.parentDir
-import sp.it.pl.util.functional.getElementType
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.createIcon
 import sp.it.pl.util.graphics.isAnyParentOf
 import sp.it.pl.util.graphics.root

@@ -56,6 +56,7 @@ import sp.it.pl.util.async.runNew
 import sp.it.pl.util.async.runOn
 import sp.it.pl.util.async.threadFactory
 import sp.it.pl.util.collections.materialize
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cList
 import sp.it.pl.util.conf.cv
@@ -69,8 +70,6 @@ import sp.it.pl.util.file.div
 import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.functional.net
-import sp.it.pl.util.functional.seqOf
-import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.Resolution
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.image.FitFrom.OUTSIDE

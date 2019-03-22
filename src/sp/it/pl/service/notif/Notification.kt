@@ -7,8 +7,8 @@ import javafx.util.Duration
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.pl.util.collections.setToOne
 import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.functional.setToOne
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.units.seconds
 

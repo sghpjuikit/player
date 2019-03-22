@@ -42,7 +42,7 @@ import javafx.scene.layout.HBox
 import javafx.scene.shape.Rectangle
 import sp.it.pl.main.IconFA
 import sp.it.pl.util.Util.clip
-import sp.it.pl.util.functional.setTo
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.graphics.createIcon
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.pseudoclass

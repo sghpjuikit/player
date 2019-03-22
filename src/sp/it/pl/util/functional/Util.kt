@@ -1,9 +1,7 @@
 package sp.it.pl.util.functional
 
-import javafx.collections.ObservableList
 import javafx.util.Callback
 import sp.it.pl.util.async.executor.EventReducer
-import sp.it.pl.util.type.union
 import java.util.Comparator
 import java.util.Optional
 import java.util.concurrent.Executor
@@ -15,7 +13,6 @@ import java.util.function.LongConsumer
 import java.util.function.Predicate
 import java.util.function.Supplier
 import java.util.stream.Stream
-import kotlin.reflect.KClass
 import kotlin.streams.toList
 
 val Executor.kt: (Runnable) -> Unit get() = this::execute
@@ -261,32 +258,3 @@ fun <T> Comparator<T>.nullsLast(): Comparator<T?> = Comparator.nullsLast(this) a
 
 /** @return null-safe comparator wrapper putting nulls at the the start */
 fun <T> Comparator<T>.nullsFirst(): Comparator<T?> = Comparator.nullsFirst(this) as Comparator<T?>
-
-/** @return the most specific common supertype of all elements */
-fun <E: Any> Collection<E?>.getElementType(): Class<*> {
-    return asSequence().filterNotNull()
-            .map { it::class as KClass<*> }.distinct()
-            .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }
-            ?.java
-            ?: Void::class.java
-}
-
-/** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */
-@Suppress("DEPRECATION")
-infix fun <T> MutableCollection<T>.setTo(elements: Collection<T>) {
-    if (this is ObservableList<T>)
-        this.setAll(if (elements is MutableCollection<T>) elements else ArrayList(elements))
-    else {
-        this.clear()
-        this += elements
-    }
-}
-
-/** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */
-infix fun <T> MutableCollection<T>.setTo(elements: Sequence<T>) = this setTo elements.toList()
-
-/** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */
-infix fun <T> MutableCollection<T>.setTo(elements: Array<T>) = this setTo elements.toList()
-
-/** Removes all elements and adds specified element to this collection. Atomic for [ObservableList]. */
-infix fun <T> MutableCollection<T>.setToOne(element: T) = this setTo listOf(element)

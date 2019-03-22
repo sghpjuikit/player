@@ -27,12 +27,12 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runNew
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.MultiConfigurableBase
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.Util.createFMNTStage
 import sp.it.pl.util.graphics.Util.layStack
 import sp.it.pl.util.graphics.Util.setAnchors

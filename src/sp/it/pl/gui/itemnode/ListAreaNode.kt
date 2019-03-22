@@ -6,9 +6,9 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
+import sp.it.pl.util.collections.getElementType
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.functional.Functors
-import sp.it.pl.util.functional.getElementType
-import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.reactive.attach

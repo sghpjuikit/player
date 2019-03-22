@@ -15,6 +15,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.util.async.runAwt
 import sp.it.pl.util.async.runFX
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
@@ -22,7 +23,6 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.file.div
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.image.ImageSize
 import sp.it.pl.util.graphics.image.createImageBlack
 import sp.it.pl.util.graphics.image.loadBufferedImage

@@ -36,8 +36,8 @@ import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.executor.EventReducer.toLast
 import sp.it.pl.util.async.runLater
 import sp.it.pl.util.async.runNew
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.functional.ifIs
-import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.minPrefMaxWidth
 import sp.it.pl.util.reactive.Handler1
 

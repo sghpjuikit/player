@@ -7,12 +7,12 @@ import sp.it.pl.gui.objects.combobox.ImprovedComboBox
 import sp.it.pl.util.access.initAttach
 import sp.it.pl.util.access.vn
 import sp.it.pl.util.collections.list.PrefList
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Config.AccessorConfig
 import sp.it.pl.util.functional.Functors
 import sp.it.pl.util.functional.Functors.PƑ
 import sp.it.pl.util.functional.Functors.Ƒ1
-import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.reactive.sync
 import java.util.ArrayList

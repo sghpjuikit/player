@@ -7,10 +7,10 @@ import sp.it.pl.gui.pane.GroupApply.FOR_EACH
 import sp.it.pl.gui.pane.GroupApply.NONE
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.async.future.Fut
+import sp.it.pl.util.collections.getElementType
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.Util.IS
 import sp.it.pl.util.functional.Util.ISNT
-import sp.it.pl.util.functional.getElementType
 import java.util.function.Supplier
 
 inline fun <reified T> ActionPane.register(vararg actions: ActionData<T, *>) = register(T::class.java, *actions)

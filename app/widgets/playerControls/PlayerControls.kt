@@ -36,10 +36,10 @@ import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.scaleEM
 import sp.it.pl.util.access.toggle
+import sp.it.pl.util.collections.setToOne
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.functional.asIf
-import sp.it.pl.util.functional.setToOne
 import sp.it.pl.util.graphics.EM
 import sp.it.pl.util.graphics.drag.DragUtil.getAudioItems
 import sp.it.pl.util.graphics.drag.DragUtil.hasAudio

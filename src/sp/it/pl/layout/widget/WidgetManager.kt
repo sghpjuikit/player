@@ -30,6 +30,7 @@ import sp.it.pl.util.async.runOn
 import sp.it.pl.util.async.threadFactory
 import sp.it.pl.util.collections.mapset.MapSet
 import sp.it.pl.util.collections.materialize
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
@@ -56,7 +57,6 @@ import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.ifNull
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.functional.toUnit
 import sp.it.pl.util.graphics.Util
 import sp.it.pl.util.graphics.anchorPane

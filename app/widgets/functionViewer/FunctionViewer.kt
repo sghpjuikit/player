@@ -22,9 +22,9 @@ import sp.it.pl.util.access.V
 import sp.it.pl.util.access.initAttach
 import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.functional.net
-import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.initClip

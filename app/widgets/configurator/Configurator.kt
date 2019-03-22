@@ -21,13 +21,13 @@ import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.scaleEM
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.functional.recurse
-import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.expandToRootAndSelect
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
 import sp.it.pl.util.graphics.hBox

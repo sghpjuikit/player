@@ -14,13 +14,12 @@ import javafx.scene.text.TextAlignment
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.Anim.Companion.animPar
 import sp.it.pl.util.animation.Anim.Companion.animSeq
-import sp.it.pl.util.functional.setTo
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.functional.supplyIf
 import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.pane
 import sp.it.pl.util.graphics.pseudoclass
-import sp.it.pl.util.graphics.scrollText
 import sp.it.pl.util.graphics.scrollTextCenter
 import sp.it.pl.util.graphics.setMinPrefMaxSize
 import sp.it.pl.util.graphics.setScaleXY

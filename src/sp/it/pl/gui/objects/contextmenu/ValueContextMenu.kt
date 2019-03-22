@@ -5,7 +5,7 @@ import javafx.scene.control.ContextMenu
 import javafx.scene.input.ContextMenuEvent
 import javafx.scene.input.MouseEvent
 import sp.it.pl.util.access.AccessibleValue
-import sp.it.pl.util.functional.setTo
+import sp.it.pl.util.collections.setTo
 
 
 /**

@@ -41,13 +41,13 @@ import sp.it.pl.util.access.fieldvalue.StringGetter
 import sp.it.pl.util.action.ActionRegistrar
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.runFX
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.IsConfigurable
 import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.dev.stackTraceAsString
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.net
-import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.bgr
 import sp.it.pl.util.graphics.getScreenForMouse

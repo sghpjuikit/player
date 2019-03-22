@@ -42,6 +42,7 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.IsConfigurable
@@ -53,7 +54,6 @@ import sp.it.pl.util.file.div
 import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.graphics.Util.addEventHandler1Time
 import sp.it.pl.util.graphics.anchorPane
 import sp.it.pl.util.graphics.borderPane

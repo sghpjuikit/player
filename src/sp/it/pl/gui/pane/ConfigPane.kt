@@ -11,9 +11,9 @@ import javafx.scene.text.TextAlignment
 import sp.it.pl.gui.itemnode.ConfigField
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.util.action.Action
+import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Configurable
-import sp.it.pl.util.functional.setTo
 import sp.it.pl.util.functional.supplyIf
 import sp.it.pl.util.graphics.Util.computeFontWidth
 import sp.it.pl.util.graphics.hBox

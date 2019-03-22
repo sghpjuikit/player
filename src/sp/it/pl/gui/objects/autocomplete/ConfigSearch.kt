@@ -21,8 +21,8 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
 import sp.it.pl.util.access.minus
 import sp.it.pl.util.action.Action
+import sp.it.pl.util.collections.setToOne
 import sp.it.pl.util.conf.Config
-import sp.it.pl.util.functional.setToOne
 import sp.it.pl.util.graphics.install
 import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay

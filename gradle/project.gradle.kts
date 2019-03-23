@@ -278,6 +278,8 @@ application {
             "-Dfile.encoding=UTF-8",
             "-ms"+("player.memoryMin".prjProp ?: "100m"),
             "-mx"+("player.memoryMax".prjProp ?: "3g"),
+            "-XX:MinHeapFreeRatio=5",
+            "-XX:MaxHeapFreeRatio=10",
             *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty(),
             "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
             "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED",

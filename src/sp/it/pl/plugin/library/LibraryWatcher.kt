@@ -23,7 +23,7 @@ import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.FileMonitor
 import sp.it.pl.util.file.FileMonitor.monitorDirectory
-import sp.it.pl.util.file.Util
+import sp.it.pl.util.file.Util.getFilesAudio
 import sp.it.pl.util.file.isAnyChildOf
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.Subscription
@@ -140,8 +140,9 @@ class LibraryWatcher: PluginBase("Song Library", false) {
 
     @IsAction(name = "Update", desc = "Remove non-existent songs and add new songs from location")
     private fun updateLibrary() {
+        val dirs = sourceDirs.materialize()
         runNew {
-            val songs = Util.getFilesAudio(sourceDirs, AudioFileFormat.Use.APP, Integer.MAX_VALUE).map { SimpleSong(it) }.toList()
+            val songs = getFilesAudio(dirs, AudioFileFormat.Use.APP, Integer.MAX_VALUE).map { SimpleSong(it) }.toList()
             addSongsToLibTask().apply(songs)
             removeMissingSongsFromLibTask().run()
         }.showAppProgress("Updating song library from disk")

@@ -326,8 +326,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		Object d = futureUnwrapOrThrow(data);
 		if (d instanceof Collection) {
 			if (table!=null) {
-				if (table.getSelectionModel().isEmpty()) return table.getItems();
-				else return table.getSelectedItemsCopy();
+				return table.getSelectedOrAllItemsCopy();
 			} else {
 				return d;
 			}

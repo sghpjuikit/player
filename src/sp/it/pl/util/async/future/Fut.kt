@@ -98,26 +98,24 @@ class Fut<T>(private var f: CompletableFuture<T>) {
 
     }
 
-    sealed class Result<T> {
+    sealed class Result<out T> {
 
-        data class ResultOk<T>(val value: T): Result<T>() {
-            override fun toTry() = Try.ok<T, Exception>(value)
-        }
+        data class ResultOk<T>(val value: T): Result<T>()
 
-        data class ResultInterrupted<T>(val error: InterruptedException): Result<T>() {
-            override fun toTry() = Try.error<T, InterruptedException>(error)
-        }
+        data class ResultInterrupted(val error: InterruptedException): Result<Nothing>()
 
-        data class ResultFail<T>(val error: ExecutionException): Result<T>() {
-
+        data class ResultFail(val error: ExecutionException): Result<Nothing>() {
             constructor(error: Throwable): this(if (error is ExecutionException) error else ExecutionException("", error))
-
-            override fun toTry() = Try.error<T, ExecutionException>(error)
         }
 
-        abstract fun toTry(): Try<T, out Exception>
+        fun toTry(): Try<out T, out Exception> = when (this) {
+            is ResultOk<T> -> Try.ok<T, Exception>(value)
+            is ResultInterrupted -> Try.error<Nothing, InterruptedException>(error)
+            is ResultFail -> Try.error<Nothing, ExecutionException>(error)
+        }
 
-        fun or(block: () -> T): T = if (this is ResultOk) this.value else block.invoke()
+        fun or(block: () -> @UnsafeVariance T): T = if (this is ResultOk<T>) this.value else block.invoke()
+
     }
 
 }

@@ -82,8 +82,8 @@ object AppProgress {
                 task.stateProperty().sync1If({ it===State.SUCCEEDED || it===State.CANCELLED || it===State.FAILED }) {
                     when (it) {
                         State.SUCCEEDED -> reportDone(ResultOk(null))
-                        State.CANCELLED -> reportDone(ResultInterrupted<Any>(InterruptedException("")))
-                        State.FAILED -> reportDone(ResultFail<Any>(task.exception))
+                        State.CANCELLED -> reportDone(ResultInterrupted(InterruptedException("")))
+                        State.FAILED -> reportDone(ResultFail(task.exception))
                         else -> failCase(it)
                     }
                 }
@@ -198,8 +198,8 @@ private class AppTask(val name: String, val message: ReadOnlyProperty<String>?, 
         updateTimeActive()
         state.value = when (result) {
             is ResultOk<*> -> DONE_OK
-            is ResultInterrupted<*> -> DONE_CANCEL
-            is ResultFail<*> -> DONE_ERROR
+            is ResultInterrupted -> DONE_CANCEL
+            is ResultFail -> DONE_ERROR
         }
     }
 

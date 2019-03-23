@@ -57,6 +57,7 @@ import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
@@ -386,6 +387,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                     val progress = appProgressIndicator().apply { task.progressProperty() sync { progress = computeProgress(it) } }
             }
 
+            fun <T> Result<T>.xxxc() {}
             hBox(50, CENTER) {
                 val content = this
                 lay += vBox(50, CENTER) {
@@ -410,25 +412,27 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
 
                         fut(files())
                                 .use { if (conf.makeWritable.value) it.forEach { it.setWritable(true) } }
-                                .then { task(it.map { SimpleSong(it) }) }
+                                .then { task(it.map { SimpleSong(it) }).toTry().orNull() }
                                 .ui { result ->
-                                    if (conf.editInTagger.value) {
-                                        val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER)?.create()
-                                        val songs = if (conf.editOnlyAdded.value) result.converted else result.all
-                                        if (tagger!=null) {
-                                            anim(500.millis) {
-                                                content.children[0].opacity = it*it
-                                                content.children[1].opacity = it*it
-                                            }.apply {
-                                                playAgainIfFinished = false
-                                            }.playCloseDoOpen {
-                                                content.children[1].asIf<Pane>()!!.lay += tagger.load()
-                                                (tagger.controller as SongReader).read(songs)
+                                    if (result!=null) {
+                                        if (conf.editInTagger.value) {
+                                            val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER)?.create()
+                                            val songs = if (conf.editOnlyAdded.value) result.converted else result.all
+                                            if (tagger!=null) {
+                                                anim(500.millis) {
+                                                    content.children[0].opacity = it*it
+                                                    content.children[1].opacity = it*it
+                                                }.apply {
+                                                    playAgainIfFinished = false
+                                                }.playCloseDoOpen {
+                                                    content.children[1].asIf<Pane>()!!.lay += tagger.load()
+                                                    (tagger.controller as SongReader).read(songs)
+                                                }
                                             }
                                         }
-                                    }
-                                    if (conf.enqueue.value && !result.all.isEmpty()) {
-                                        APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
+                                        if (conf.enqueue.value && !result.all.isEmpty()) {
+                                            APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
+                                        }
                                     }
                                 }
                                 .showProgress(actionPane.actionProgress)

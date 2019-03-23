@@ -3,6 +3,10 @@ package sp.it.pl.util.async.future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javafx.concurrent.Task;
+import sp.it.pl.util.async.future.Fut.Result;
+import sp.it.pl.util.async.future.Fut.Result.ResultFail;
+import sp.it.pl.util.async.future.Fut.Result.ResultInterrupted;
+import sp.it.pl.util.async.future.Fut.Result.ResultOk;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.dev.FailKt.failIf;
@@ -20,7 +24,7 @@ import static sp.it.pl.util.dev.FailKt.failIf;
  * @param <I> type of input
  * @param <O> type of output
  */
-public abstract class FTask<I, O> extends Task<O> implements Ƒ1<I,O> {
+public abstract class FTask<I, O> extends Task<O> implements Ƒ1<I,Result<O>> {
 	private I input;
 	private boolean isInputAssigned = false;
 	private final AtomicBoolean isInputAssignmentDoable = new AtomicBoolean(true);
@@ -54,14 +58,17 @@ public abstract class FTask<I, O> extends Task<O> implements Ƒ1<I,O> {
 	 * @throws java.util.concurrent.CancellationException if cancelled
 	 */
 	@Override
-	public O apply(I input) {
+	public Result<O> apply(I input) {
 		setInput(input);
 		run();
 		try {
-			return get();
-		} catch (InterruptedException|ExecutionException e) {
-			logger(FTask.class).error("Task execution failed", e);
-			return null;    // TODO hint throwing runtime exception better ?
+			return new ResultOk<>(get());
+		} catch (InterruptedException e) {
+			logger(FTask.class).warn("Task execution failed", e);
+			return new ResultInterrupted(e);
+		} catch (ExecutionException e) {
+			logger(FTask.class).warn("Task execution failed", e);
+			return new ResultFail(e);
 		}
 	}
 

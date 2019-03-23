@@ -6,7 +6,6 @@ import mu.KotlinLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.main.APP
-import sp.it.pl.util.async.future.FTask
 import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.functional.net
@@ -53,7 +52,7 @@ fun Song.readMetadata(): Metadata {
  * @return the task reading metadata returning all successfully read metadata
  * @throws NullPointerException if any parameter null
  */
-fun readMetadataTask(songs: Collection<Song>): Task<List<Metadata>> = object: Task<List<Metadata>>() {
+fun readMetadataTask(songs: Collection<Song>) = object: Task<List<Metadata>>() {
     private val sb = StringBuilder(40)
 
     init {
@@ -109,7 +108,7 @@ fun readMetadataTask(songs: Collection<Song>): Task<List<Metadata>> = object: Ta
  *
  * @return the task
  */
-fun addSongsToLibTask(): FTask<Collection<Song>, AddSongsToLibResult> = object: FTask<Collection<Song>, AddSongsToLibResult>() {
+fun addSongsToLibTask(songs: Collection<Song>) = object: Task<AddSongsToLibResult>() {
     private val sb = StringBuilder(40)
 
     init {
@@ -118,13 +117,13 @@ fun addSongsToLibTask(): FTask<Collection<Song>, AddSongsToLibResult> = object: 
         updateProgress(0, 1)
     }
 
-    override fun compute(input: Collection<Song>): AddSongsToLibResult {
-        val all = ArrayList(input)
+    override fun call(): AddSongsToLibResult {
+        val all = ArrayList(songs)
         val processed = ArrayList<Song>(all.size)
         val converted = ArrayList<Metadata>(all.size)
         val skipped = ArrayList<Song>(0)
 
-        for (song in input) {
+        for (song in songs) {
             if (isCancelled) break
 
             try {
@@ -181,7 +180,7 @@ class AddSongsToLibResult(
 
 // TODO: return proper Result object
 /** @return a task that removes from library all songs, which refer to non-existent files */
-fun removeMissingSongsFromLibTask(): Task<Unit> = object: Task<Unit>() {
+fun removeMissingSongsFromLibTask() = object: Task<Unit>() {
     private val sb = StringBuilder(40)
 
     init {

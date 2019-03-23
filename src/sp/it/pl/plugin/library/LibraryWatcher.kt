@@ -10,6 +10,7 @@ import sp.it.pl.plugin.PluginBase
 import sp.it.pl.service.notif.Notifier
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.async.executor.EventReducer
+import sp.it.pl.util.async.future.runGet
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.collections.materialize
@@ -133,7 +134,7 @@ class LibraryWatcher: PluginBase("Song Library", false) {
         }
 
         runNew {
-            addSongsToLibTask().apply(toAdd.map { SimpleSong(it) })
+            addSongsToLibTask(toAdd.map { SimpleSong(it) }).runGet()
             APP.db.removeSongs(toRem.map { SimpleSong(it) })
         }.showAppProgress("Updating song library from detected changes")
     }
@@ -143,7 +144,7 @@ class LibraryWatcher: PluginBase("Song Library", false) {
         val dirs = sourceDirs.materialize()
         runNew {
             val songs = getFilesAudio(dirs, AudioFileFormat.Use.APP, Integer.MAX_VALUE).map { SimpleSong(it) }.toList()
-            addSongsToLibTask().apply(songs)
+            addSongsToLibTask(songs).runGet()
             removeMissingSongsFromLibTask().run()
         }.showAppProgress("Updating song library from disk")
     }

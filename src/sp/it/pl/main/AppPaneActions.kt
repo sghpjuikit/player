@@ -37,7 +37,9 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.future.Fut.Companion.fut
+import sp.it.pl.util.async.future.runGet
 import sp.it.pl.util.async.runLater
+import sp.it.pl.util.async.runNew
 import sp.it.pl.util.conf.ConfigurableBase
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
@@ -379,7 +381,8 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                 @IsConfig(name = "Edit only added files", group ="3") val editOnlyAdded by cv(false).readOnlyUnless(editInTagger)
                 @IsConfig(name = "Enqueue in playlist", group ="4") val enqueue by cv(false)
             }
-            val task = addSongsToLibTask()
+            val fs = files()
+            val task = addSongsToLibTask(fs.map { SimpleSong(it) })
             val info = object: Any() {
                     private val computeProgress = { it: Number -> when(task.state) { SCHEDULED, READY -> 1.0 else -> it.toDouble() } }
                     val message = label { textProperty() syncFrom task.messageProperty() }
@@ -387,7 +390,6 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                     val progress = appProgressIndicator().apply { task.progressProperty() sync { progress = computeProgress(it) } }
             }
 
-            fun <T> Result<T>.xxxc() {}
             hBox(50, CENTER) {
                 val content = this
                 lay += vBox(50, CENTER) {
@@ -410,32 +412,31 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                             content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(2)?.opacity = (1-it)*(1-it)
                         }.play()
 
-                        fut(files())
-                                .use { if (conf.makeWritable.value) it.forEach { it.setWritable(true) } }
-                                .then { task(it.map { SimpleSong(it) }).toTry().orNull() }
-                                .ui { result ->
-                                    if (result!=null) {
-                                        if (conf.editInTagger.value) {
-                                            val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER)?.create()
-                                            val songs = if (conf.editOnlyAdded.value) result.converted else result.all
-                                            if (tagger!=null) {
-                                                anim(500.millis) {
-                                                    content.children[0].opacity = it*it
-                                                    content.children[1].opacity = it*it
-                                                }.apply {
-                                                    playAgainIfFinished = false
-                                                }.playCloseDoOpen {
-                                                    content.children[1].asIf<Pane>()!!.lay += tagger.load()
-                                                    (tagger.controller as SongReader).read(songs)
-                                                }
-                                            }
-                                        }
-                                        if (conf.enqueue.value && !result.all.isEmpty()) {
-                                            APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
+                        runNew {
+                            if (conf.makeWritable.value) fs.forEach { it.setWritable(true) }
+                            task.runGet().toTry().orNull()
+                        }.ui { result ->
+                            if (result!=null) {
+                                if (conf.editInTagger.value) {
+                                    val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER)?.create()
+                                    val songs = if (conf.editOnlyAdded.value) result.converted else result.all
+                                    if (tagger!=null) {
+                                        anim(500.millis) {
+                                            content.children[0].opacity = it*it
+                                            content.children[1].opacity = it*it
+                                        }.apply {
+                                            playAgainIfFinished = false
+                                        }.playCloseDoOpen {
+                                            content.children[1].asIf<Pane>()!!.lay += tagger.load()
+                                            (tagger.controller as SongReader).read(songs)
                                         }
                                     }
                                 }
-                                .showProgress(actionPane.actionProgress)
+                                if (conf.enqueue.value && !result.all.isEmpty()) {
+                                    APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
+                                }
+                            }
+                        }.showProgress(actionPane.actionProgress)
                     }.apply {
                         disableProperty() syncFrom executed
                     }

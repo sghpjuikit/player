@@ -2,9 +2,9 @@ package sp.it.pl.core
 
 import javafx.geometry.Point2D
 import javafx.scene.robot.Robot
-import org.reactfx.Subscription
 import sp.it.pl.util.async.executor.FxTimer
 import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.units.div
 import sp.it.pl.util.units.seconds
 import java.util.HashSet

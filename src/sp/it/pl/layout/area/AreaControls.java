@@ -17,7 +17,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.TilePane;
-import org.reactfx.EventSource;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
@@ -131,7 +130,7 @@ public final class AreaControls {
         propB = new Icon(COGS, is, propbTEXT, this::settings);
         lockB = new Icon(null, is, lockbTEXT, () -> {
             toggleLocked();
-            APP.actionStream.push("Widget layout lock");
+            APP.actionStream.invoke("Widget layout lock");
         });
 //		maintain(area.container.locked, mapB(LOCK,UNLOCK),lockB::icon);
         absB = new Icon(LINK, is, absbTEXT, e -> {
@@ -187,25 +186,22 @@ public final class AreaControls {
         // - the weak behavior must not work in strong mode
         // weak show - activator behavior
         BooleanProperty inside = new SimpleBooleanProperty(false);
-        // monitor mouse movement (as filter)
-        EventSource<MouseEvent> showS = new EventSource<>();
-            Pane p = area.content_padding;
-        p.addEventFilter(MOUSE_MOVED, showS::push);
-        p.addEventFilter(MOUSE_ENTERED, showS::push);
+        Pane p = area.content_padding;
+        var showS = (Consumer<MouseEvent>) e -> {
+            // ignore when already showing, under lock or in strong mode
+            if (!isShowingWeak && !area.isUnderLock() && !isShowingStrong) {
+                // transform into IN/OUT boolean
+                var in = p.getWidth() - activatorW*APP.ui.getFont().getValue().getSize()/12.0 < e.getX() && activatorH*APP.ui.getFont().getValue().getSize()/12.0 > e.getY();
+                // ignore when no change
+                if (in != inside.getValue()) {
+                    inside.setValue(in);
+                    if (in) showWeak();
+                }
+            }
+        };
+        p.addEventFilter(MOUSE_MOVED, showS::accept);
+        p.addEventFilter(MOUSE_ENTERED, showS::accept);
         p.addEventFilter(MOUSE_EXITED, e -> inside.set(false));
-            // and check activator.mouse_enter events
-        // ignore when already showing, under lock or in strong mode
-        showS.filter(e -> !isShowingWeak && !area.isUnderLock() && !isShowingStrong)
-            // transform into IN/OUT boolean
-            .map(e -> p.getWidth() - activatorW*APP.ui.getFont().getValue().getSize()/12.0 < e.getX() && activatorH*APP.ui.getFont().getValue().getSize()/12.0 > e.getY())
-            // ignore when no change
-            .filter(in -> in != inside.get())
-            // or store new state on change
-            .hook(inside::set)
-            // ignore when not inside
-            .filter(in -> in)
-            // activate weak layout mode
-            .subscribe(activating -> showWeak());
 
         // weak hide - deactivator behavior
         Consumer<MouseEvent> hideWeakTry = e -> {
@@ -317,7 +313,7 @@ public final class AreaControls {
         //set state
         isShowingStrong = true;
         showWeak();
-        APP.actionStream.push("Widget control");
+        APP.actionStream.invoke("Widget control");
     }
 
     public void hide() {

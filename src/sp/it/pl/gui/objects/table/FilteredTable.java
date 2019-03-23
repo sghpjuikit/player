@@ -48,7 +48,6 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static org.reactfx.EventStreams.changesOf;
 import static sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Util.zeroPad;
@@ -58,10 +57,12 @@ import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.filter;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.UtilKt.consumer;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.menuItem;
 import static sp.it.pl.util.reactive.UtilKt.attach;
 import static sp.it.pl.util.reactive.UtilKt.attachSize;
+import static sp.it.pl.util.reactive.UtilKt.onChange;
 import static sp.it.pl.util.reactive.UtilKt.syncSize;
 
 /**
@@ -156,12 +157,14 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			if (search.isActive())
 				search.updateSearchStyles();
 		});
-		changesOf(getItems()).subscribe(c -> {
+		onChange(getItems(), runnable(() -> {
 			if (search.isActive())
 				search.updateSearchStyles();
-		});
-		changesOf(getItems()).subscribe(c -> resizeIndexColumn());
+		}));
 
+		onChange(getItems(), runnable(() -> {
+			resizeIndexColumn();
+		}));
 		footerVisible.set(true);
 
 		initPlaceholder();
@@ -395,7 +398,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 		@Override
 		public void doSearch(String query) {
-			APP.actionStream.push("Table search");
+			APP.actionStream.invoke("Table search");
 			Function1<? super T,Boolean> matcher = field.searchMatch(itemS -> isMatchNth(itemS, query));
 			for (int i = 0; i<getItems().size(); i++) {
 				T item = getItems().get(i);

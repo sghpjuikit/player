@@ -8,7 +8,6 @@ import javafx.scene.image.Image
 import javafx.stage.Stage
 import mu.KLogging
 import org.atteo.evo.inflector.English.plural
-import org.reactfx.EventSource
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -87,6 +86,7 @@ import sp.it.pl.util.file.mimetype.MimeTypes
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.graphics.image.getImageDim
 import sp.it.pl.util.reactive.Handler0
+import sp.it.pl.util.reactive.Handler1
 import sp.it.pl.util.stacktraceAsString
 import sp.it.pl.util.system.SystemOutListener
 import sp.it.pl.util.type.ClassName
@@ -225,8 +225,8 @@ class App: Application(), Configurable<Any> {
     @F val parameterProcessor = AppParameterProcessor()
     /** Various actions for the application */
     @F val actions = AppActions()
-    /** Global event bus. Usage: simply push an event or observe. Use of Any() event constants and === is advised. */
-    @F val actionStream = EventSource<Any>()
+    /** Global event bus. Usage: simply push an event or observe. Use of event constants and === is advised. */
+    @F val actionStream = Handler1<Any>()
     /** Allows sending and receiving [java.lang.String] messages to and from other instances of this application. */
     @F val appCommunicator = AppInstanceComm()
     /** Observable [System.out]. */

@@ -26,7 +26,6 @@ import javafx.scene.input.TransferMode
 import javafx.stage.PopupWindow
 import javafx.stage.Stage
 import mu.KotlinLogging
-import org.reactfx.Subscription
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
@@ -70,6 +69,7 @@ import sp.it.pl.util.graphics.createIcon
 import sp.it.pl.util.graphics.isAnyParentOf
 import sp.it.pl.util.graphics.root
 import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.onItemSyncWhile
@@ -183,7 +183,7 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
     // preserve selection when observable tree item children source changes
     @Suppress("UNCHECKED_CAST")
     rootProperty() syncNonNullWhile { root ->
-        Subscription.multi(
+        Subscription(
                 root.onEventDown(SELECTION_DISTURBED_CLEAR) {
                     val childStack = properties.computeIfAbsent(SELECTION_DISTURBED_STACK_KEY) { Stack<Unit>() } as Stack<Unit>
                     childStack.push(Unit)

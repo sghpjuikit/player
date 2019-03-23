@@ -32,7 +32,6 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import org.reactfx.util.TriFunction;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.functional.Functors.Ƒ1E;
 import sp.it.pl.util.functional.Functors.Ƒ2;
@@ -956,23 +955,27 @@ public interface Util {
 				.mapToObj(i -> mapper.apply(x + i*byX, y + i*byY));
 	}
 
-	static <R> Stream<R> forEachOnCircle(long count, TriFunction<Double,Double,Double,R> mapper) {
+	static <R> Stream<R> forEachOnCircle(long count, TriDoubleFunction<R> mapper) {
 		failIf(count<0);
 		return forEachOnCircle(0, 0, 1, count, mapper);
 	}
 
-	static <R> Stream<R> forEachOnCircleBy(double x, double y, double by, long count, TriFunction<Double,Double,Double,R> mapper) {
+	static <R> Stream<R> forEachOnCircleBy(double x, double y, double by, long count, TriDoubleFunction<R> mapper) {
 		failIf(count<0);
 		double circumference = by*count;
 		double radius = circumference/(2*PI);
 		return forEachOnCircle(x, y, radius, count, mapper);
 	}
 
-	static <R> Stream<R> forEachOnCircle(double x, double y, double radius, long count, TriFunction<Double,Double,Double,R> mapper) {
+	static <R> Stream<R> forEachOnCircle(double x, double y, double radius, long count, TriDoubleFunction<R> mapper) {
 		failIf(count<0);
 		return DoubleStream.iterate(0, a -> a + 2*PI/count)
 				.limit(count)
 				.mapToObj(a -> mapper.apply(x + radius*cos(a), y + radius*sin(a), a));
+	}
+
+	interface TriDoubleFunction<R> {
+		R apply(double d1, double d2, double d3);
 	}
 
 	/****************************** () -> collection ******************************/

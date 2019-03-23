@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import org.reactfx.Subscription;
 import sp.it.pl.layout.area.IOLayer;
+import sp.it.pl.util.reactive.Subscription;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 
 public class Input<T> extends Put<T> {

@@ -5,12 +5,12 @@ import javafx.application.Platform
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
 import mu.KotlinLogging
-import org.reactfx.Subscription
 import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.async.future.Fut.Companion.fut
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.kt
+import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.units.millis
 import java.awt.EventQueue
 import java.util.concurrent.Executor

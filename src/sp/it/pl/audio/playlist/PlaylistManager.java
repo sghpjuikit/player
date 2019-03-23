@@ -4,11 +4,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence;
+import sp.it.pl.util.access.V;
 import sp.it.pl.util.action.IsAction;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.Configurable;
 import sp.it.pl.util.functional.Functors.Ƒ1;
-import sp.it.pl.util.reactive.ValueEventSource;
 import static sp.it.pl.util.functional.Util.listRO;
 
 /** Manages playlists. */
@@ -19,9 +19,9 @@ public class PlaylistManager implements Configurable {
 	public static final PlayingSequence playingItemSelector = new PlayingSequence();
 
 	/** Last selected item on playlist or null if none. */
-	public static final ValueEventSource<PlaylistSong> selectedItemES = new ValueEventSource<>(null);
+	public static final V<PlaylistSong> selectedItemES = new V<>(null);
 	/** Selected items on playlist or empty list if none. */
-	public static final ValueEventSource<List<PlaylistSong>> selectedItemsES = new ValueEventSource<>(listRO());
+	public static final V<List<PlaylistSong>> selectedItemsES = new V<>(listRO());
 
 	public static void use(Consumer<Playlist> action) {
 		Playlist p = null;

@@ -2,7 +2,7 @@ package sp.it.pl.layout.widget.controller.io;
 
 import java.util.Objects;
 import java.util.UUID;
-import org.reactfx.Subscription;
+import sp.it.pl.util.reactive.Subscription;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 
 public class Output<T> extends Put<T> {

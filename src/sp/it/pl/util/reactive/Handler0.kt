@@ -1,6 +1,5 @@
 package sp.it.pl.util.reactive
 
-import org.reactfx.Subscription
 import sp.it.pl.util.functional.Functors.Ƒ
 import java.util.HashSet
 

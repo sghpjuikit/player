@@ -1,8 +1,8 @@
 package sp.it.pl.service
 
-import org.reactfx.Subscription
 import sp.it.pl.main.APP
 import sp.it.pl.util.collections.map.ClassMap
+import sp.it.pl.util.reactive.Subscription
 import java.lang.reflect.InvocationTargetException
 import java.util.HashSet
 import java.util.Optional

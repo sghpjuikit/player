@@ -1,8 +1,8 @@
 package sp.it.pl.util.access
 
 import javafx.beans.property.SimpleObjectProperty
-import org.reactfx.Subscription
 import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.attachChanges
 import sp.it.pl.util.reactive.sync

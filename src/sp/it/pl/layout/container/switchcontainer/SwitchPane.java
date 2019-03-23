@@ -497,7 +497,7 @@ public class SwitchPane implements ContainerNode {
         zt.setDuration(z.getDuration());
         zt.setByX(tox/5);
         zt.play();
-        APP.actionStream.push("Zoom mode");
+        APP.actionStream.invoke("Zoom mode");
     }
     private void zoomNoAcc(double d) {
         if (d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");

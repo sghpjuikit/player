@@ -38,11 +38,11 @@ import sp.it.pl.util.access.VarEnum;
 import sp.it.pl.util.access.Vo;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
 import sp.it.pl.util.access.fieldvalue.ObjectField;
+import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.graphics.drag.DragUtil;
-import static java.time.Duration.ofMillis;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -54,7 +54,6 @@ import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.stage.WindowEvent.WINDOW_SHOWN;
-import static org.reactfx.EventStreams.changesOf;
 import static sp.it.pl.audio.tagging.Metadata.Field.CATEGORY;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.AVG_RATING;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE;
@@ -72,8 +71,11 @@ import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.menuItem;
 import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
+import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.reactive.UtilKt.onChange;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
 
 @Info(
@@ -261,22 +263,22 @@ public class LibraryView extends SimpleController {
 
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
+
         // forward on selection
-        onClose.plusAssign(changesOf(table.getSelectedItems())
-          .reduceSuccessions((a,b) -> b, ofMillis(100)).subscribe(c -> {
-                if (!sel_ignore)
-                    out_sel_met.setValue(filterList(in_items.getValue(),true));
-                if (sel_ignore_canturnback) {
-                    sel_ignore_canturnback = false;
-                    sel_ignore = false;
-                }
-        }));
-        onClose.plusAssign(changesOf(table.getSelectionModel().selectedItemProperty())
-          .reduceSuccessions((a,b) -> b, ofMillis(100)).subscribe(s -> {
-                MetadataGroup nv = s.getNewValue();
-                if (!sel_ignore)
-                    sel_last = nv==null ? "null" : nv.getValueS("");
-        }));
+        var selectedItemsReducer = EventReducer.<Void>toLast(100, it -> {
+            if (!sel_ignore)
+                out_sel_met.setValue(filterList(in_items.getValue(),true));
+            if (sel_ignore_canturnback) {
+                sel_ignore_canturnback = false;
+                sel_ignore = false;
+            }
+        });
+        var selectedItemReducer = EventReducer.<MetadataGroup>toLast(100, it -> {
+            if (!sel_ignore)
+                sel_last = it==null ? "null" : it.getValueS("");
+        });
+        onClose.plusAssign(onChange(table.getSelectedItems(), runnable(() -> selectedItemsReducer.push(null))));
+        onClose.plusAssign(maintain(table.getSelectionModel().selectedItemProperty(), selectedItemReducer::push));
 
         // prevent volume change
         table.setOnScroll(Event::consume);

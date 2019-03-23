@@ -1,6 +1,5 @@
 package sp.it.pl.util.reactive
 
-import org.reactfx.Subscription
 import java.util.HashSet
 
 /** Set of functions taking 1 parameter. Use as a collection of handlers/listeners. */

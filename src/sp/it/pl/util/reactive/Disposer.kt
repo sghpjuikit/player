@@ -1,7 +1,5 @@
 package sp.it.pl.util.reactive
 
-import org.reactfx.Subscription
-
 class Disposer: () -> Unit, (Subscription) -> Unit {
 
     private val disposers = ArrayList<() -> Unit>()

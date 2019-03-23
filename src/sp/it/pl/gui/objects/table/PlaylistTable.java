@@ -21,8 +21,8 @@ import javafx.util.Duration;
 import kotlin.Unit;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.playlist.Playlist;
-import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.audio.playlist.PlaylistManager;
+import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.audio.tagging.PlaylistSongGroup;
 import sp.it.pl.gui.objects.contextmenu.TableContextMenuR;
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
@@ -36,11 +36,11 @@ import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
+import static sp.it.pl.audio.playlist.PlaylistReaderKt.isPlaylistFile;
+import static sp.it.pl.audio.playlist.PlaylistReaderKt.readPlaylist;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.LENGTH;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.NAME;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.TITLE;
-import static sp.it.pl.audio.playlist.PlaylistReaderKt.isPlaylistFile;
-import static sp.it.pl.audio.playlist.PlaylistReaderKt.readPlaylist;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
@@ -289,13 +289,11 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 	public boolean movingItems = false;
 	ChangeListener<PlaylistSong> selItemListener = (o, ov, nv) -> {
 		if (movingItems) return;
-		PlaylistManager.selectedItemES.push(nv);
+		PlaylistManager.selectedItemES.setValue(nv);
 	};
 	ListChangeListener<PlaylistSong> selItemsListener = (ListChangeListener.Change<? extends PlaylistSong> c) -> {
 		if (movingItems) return;
-		while (c.next()) {
-			PlaylistManager.selectedItemsES.push(getSelectionModel().getSelectedItems());
-		}
+		PlaylistManager.selectedItemsES.setValue(getSelectedItemsCopy());
 	};
 
 	/**

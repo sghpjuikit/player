@@ -24,8 +24,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import kotlin.jvm.functions.Function1;
-import org.reactfx.EventSource;
-import org.reactfx.Subscription;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Chapter;
 import sp.it.pl.audio.tagging.Metadata;
@@ -38,8 +36,10 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.Loop;
 import sp.it.pl.util.animation.interpolator.CircularInterpolator;
+import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.async.executor.FxTimer;
 import sp.it.pl.util.functional.Try;
+import sp.it.pl.util.reactive.Subscription;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CHECK;
@@ -52,7 +52,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TRASH_ALT;
 import static java.lang.Double.max;
 import static java.lang.Math.abs;
 import static java.lang.Math.signum;
-import static java.time.Duration.ofMillis;
 import static javafx.beans.binding.Bindings.notEqual;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
@@ -228,10 +227,9 @@ public final class Seeker extends AnchorPane {
 	}
 
 	private void onHoverChanged(Consumer<? super Boolean> handler) {
-		EventSource<Boolean> h = new EventSource<>();
-		hoverProperty().addListener((o, ov, nv) -> h.push(nv || addB.root.isHover()));
-		addB.root.hoverProperty().addListener((o, ov, nv) -> h.push(nv || isHover()));
-		h.successionEnds(ofMillis(50)).subscribe(handler);
+		var reducer = EventReducer.<Boolean>toLast(50, handler);
+		hoverProperty().addListener((o, ov, nv) -> reducer.push(nv || addB.root.isHover()));
+		addB.root.hoverProperty().addListener((o, ov, nv) -> reducer.push(nv || isHover()));
 	}
 
 //****************************** runners animation *****************************/

@@ -1,7 +1,6 @@
 package sp.it.pl.plugin.library
 
 import mu.KLogging
-import org.reactfx.Subscription
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.tagging.addSongsToLibTask
 import sp.it.pl.audio.tagging.removeMissingSongsFromLibTask
@@ -27,6 +26,7 @@ import sp.it.pl.util.file.FileMonitor.monitorDirectory
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.isAnyChildOf
 import sp.it.pl.util.reactive.Subscribed
+import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.onItemAdded
 import sp.it.pl.util.reactive.onItemRemoved
 import sp.it.pl.util.reactive.sync
@@ -44,7 +44,7 @@ class LibraryWatcher: PluginBase("Song Library", false) {
     private val sourceDirs by cList<File>().only(DIRECTORY)
     private val sourceDirsChangeHandler = Subscribed {
         sourceDirs.forEach { handleLocationAdded(it) }
-        Subscription.multi(
+        Subscription(
                 sourceDirs.onItemAdded { handleLocationAdded(it) },
                 sourceDirs.onItemRemoved { handleLocationRemoved(it) }
         )
@@ -62,7 +62,7 @@ class LibraryWatcher: PluginBase("Song Library", false) {
     private val dirMonitors = HashMap<File, FileMonitor>()
     private val dirMonitoring = when {
         dirMonitoringSupported -> Subscribed {
-            Subscription.multi(
+            Subscription(
                     dirMonitoringEnabled sync { sourceDirsChangeHandler.subscribe(it) },
                     Subscription { sourceDirsChangeHandler.subscribe(false) }
             )

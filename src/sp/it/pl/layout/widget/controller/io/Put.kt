@@ -2,7 +2,7 @@ package sp.it.pl.layout.widget.controller.io
 
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
-import org.reactfx.Subscription
+import sp.it.pl.util.reactive.Subscription
 import java.util.HashSet
 
 open class Put<T>: XPut<T> {

@@ -18,7 +18,6 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.TransferMode
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
-import org.reactfx.EventSource
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
@@ -50,6 +49,7 @@ import sp.it.pl.util.graphics.drag.DragUtil.installDrag
 import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.vBox
+import sp.it.pl.util.reactive.Handler1
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.text.keys
 import sp.it.pl.util.units.millis
@@ -57,7 +57,7 @@ import sp.it.pl.util.units.seconds
 import sp.it.pl.util.units.times
 import java.util.ArrayList
 
-class Guide(guideEvents: EventSource<Any> = EventSource()): MultiConfigurableBase("${Settings.PLUGINS}.Guide") {
+class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGINS}.Guide") {
 
     @IsConfig(name = "Hint", editable = EditMode.APP)
     private var at by c(-1)
@@ -71,7 +71,7 @@ class Guide(guideEvents: EventSource<Any> = EventSource()): MultiConfigurableBas
     private var prevAt = -1
     private val guideTitleText = v("")
     private val guideText = v("")
-    private val guideEvents = guideEvents.apply { subscribe { handleAction(it) } }
+    private val guideEvents = guideEvents.apply { add { handleAction(it) } }
     private val popup = lazy { buildPopup() }
     private val popupContent: VBox by lazy { buildContent() }
     private val eventConsumer = Event::consume
@@ -179,7 +179,7 @@ class Guide(guideEvents: EventSource<Any> = EventSource()): MultiConfigurableBas
 
     fun open() {
         proceed()
-        guideEvents.push("Guide opening")
+        guideEvents.invoke("Guide opening")
     }
 
     fun close() {
@@ -213,7 +213,7 @@ class Guide(guideEvents: EventSource<Any> = EventSource()): MultiConfigurableBas
             val onEnter: () -> Unit = {},
             val onExit: () -> Unit = {}
     ) {
-        fun proceedIfActive() = guideEvents.push(action)
+        fun proceedIfActive() = guideEvents(action)
     }
 
     companion object {

@@ -8,7 +8,7 @@ import javafx.css.PseudoClass;
 import javafx.scene.control.TableRow;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import org.reactfx.Subscription;
+import sp.it.pl.util.reactive.Subscription;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 

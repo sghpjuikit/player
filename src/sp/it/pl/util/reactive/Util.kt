@@ -17,8 +17,6 @@ import javafx.scene.control.TreeItem
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.stage.Window
-import org.reactfx.EventStreams
-import org.reactfx.Subscription
 import sp.it.pl.util.async.runLater
 import sp.it.pl.util.dev.Experimental
 import sp.it.pl.util.dev.fail
@@ -59,7 +57,7 @@ infix fun <O> ObservableValue<O>.sync(block: (O) -> Unit) = maintain(Consumer { 
 
 /** Sets a disposable block to be fired immediately and on every value change. */
 infix fun <O> ObservableValue<O>.syncWhile(block: (O) -> Subscription): Subscription {
-    var inner: Subscription = Subscription.EMPTY
+    var inner = Subscription()
     val outer = sync {
         inner.unsubscribe()
         inner = block(it)
@@ -233,7 +231,9 @@ fun <O: Any?, R: Any> ObservableValue<O>.syncNonNullIntoWhile(extractor: (O) -> 
 // TODO: remove
 fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, u: Consumer<in V>): Subscription {
     u(m(this.value))
-    return EventStreams.valuesOf(this).map(m).subscribe(u)
+    val l = ChangeListener<O> { _, _, nv -> u(m(nv)) }
+    this.addListener(l)
+    return Subscription { this.removeListener(l) }
 }
 
 // TODO: remove

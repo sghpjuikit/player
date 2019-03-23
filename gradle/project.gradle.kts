@@ -115,7 +115,6 @@ dependencies {
 
     "JavaFX" requires {
         implementation("de.jensd", "fontawesomefx", "8.9")
-        implementation("org.reactfx", "reactfx", "2.0-M5")
     }
 
     "Native" requires {

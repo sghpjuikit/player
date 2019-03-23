@@ -1,7 +1,6 @@
 package sp.it.pl.util.reactive
 
 import javafx.beans.value.ObservableValue
-import org.reactfx.Subscription
 
 /** Lazy subscribing. Convenient for creating toggleable features. */
 class Subscribed: Subscription {

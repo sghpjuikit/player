@@ -60,13 +60,13 @@ import javafx.scene.text.TextAlignment
 import javafx.stage.Screen
 import javafx.stage.Window
 import javafx.util.Callback
-import org.reactfx.Subscription
 import sp.it.pl.util.JavaLegacy
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.traverse
 import sp.it.pl.util.graphics.image.FitFrom
 import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.sync
 import kotlin.math.abs
 import kotlin.math.max

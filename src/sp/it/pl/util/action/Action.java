@@ -185,7 +185,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 		runFX(() -> {
 			logger(Action.class).info("Executing action {}", name);
 			action.run();
-			APP.actionStream.push(name);
+			APP.actionStream.invoke(name);
 		});
 	}
 

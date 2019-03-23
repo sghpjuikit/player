@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import org.reactfx.Subscription;
+import sp.it.pl.util.reactive.Subscription;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 
 /**

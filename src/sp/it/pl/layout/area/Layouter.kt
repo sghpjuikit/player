@@ -140,7 +140,7 @@ class Layouter: ContainerNode {
 
     private fun showContainer(c: Container<*>) {
         container.addChild(index, c)
-        if (c is BiContainer) APP.actionStream.push("Divide layout")
+        if (c is BiContainer) APP.actionStream("Divide layout")
     }
 
     private fun showWidgetArea() {
@@ -151,7 +151,7 @@ class Layouter: ContainerNode {
                 root.onMouseExited = null
                 container.addChild(index, factory.create())
                 if (APP.ui.isLayoutMode) container.show()
-                APP.actionStream.push("New widget")
+                APP.actionStream("New widget")
             }
         }
         wp.onCancel = {

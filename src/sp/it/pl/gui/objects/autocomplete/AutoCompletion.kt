@@ -31,8 +31,8 @@ package sp.it.pl.gui.objects.autocomplete
 
 import javafx.scene.control.TextField
 import javafx.util.StringConverter
-import org.reactfx.Subscription
 import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.attach
 
 /**

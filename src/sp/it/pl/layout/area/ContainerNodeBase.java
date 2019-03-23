@@ -84,7 +84,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
         );
 	Icon lockB = new Icon(null, 12, "Lock widget layout", () -> {
 	    container.locked.set(!container.locked.get());
-	    APP.actionStream.push("Widget layout lock");
+	    APP.actionStream.invoke("Widget layout lock");
 	});
         maintain(container.locked, mapB(LOCK,UNLOCK),lockB::icon);
 	absB = new Icon(LINK, 12, "Resize widget proportionally", () -> {
@@ -93,7 +93,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
 	});
 	Icon closeB = new Icon(TIMES, 12, "Close widget", () -> {
 	    container.close();
-	    APP.actionStream.push("Close widget");
+	    APP.actionStream.invoke("Close widget");
 	});
         Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
 

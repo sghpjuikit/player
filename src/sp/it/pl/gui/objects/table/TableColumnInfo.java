@@ -5,8 +5,7 @@ import java.util.List;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
-import org.reactfx.util.Tuple2;
-import org.reactfx.util.Tuples;
+import kotlin.Pair;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import static java.lang.Boolean.parseBoolean;
@@ -126,7 +125,7 @@ public final class TableColumnInfo {
 	}
 
 	public static final class ColumnSortInfo {
-		public final List<Tuple2<String,SortType>> sorts = new ArrayList<>();
+		public final List<Pair<String,SortType>> sorts = new ArrayList<>();
 
 		public ColumnSortInfo() {}
 
@@ -136,7 +135,7 @@ public final class TableColumnInfo {
 
 		public void fromTable(TableView<?> table) {
 			sorts.clear();
-			sorts.addAll(map(table.getSortOrder(), c -> Tuples.t(c.getText(), c.getSortType())));
+			sorts.addAll(map(table.getSortOrder(), c -> new Pair<>(c.getText(), c.getSortType())));
 		}
 
 		public <T> void toTable(TableView<T> table) {
@@ -144,10 +143,10 @@ public final class TableColumnInfo {
 			table.getSortOrder().clear();
 			sorts.forEach(t ->
 					stream(table.getColumns())
-							.filter(c -> t._1.equals(c.getText()))
+							.filter(c -> t.getFirst().equals(c.getText()))
 							.findAny()
 							.ifPresent(c -> {
-								c.setSortType(t._2);
+								c.setSortType(t.getSecond());
 								so.add(c);
 							})
 			);
@@ -156,14 +155,14 @@ public final class TableColumnInfo {
 
 		@Override
 		public String toString() {
-			return toS(sorts, t -> t._1 + S3 + t._2, S2);
+			return toS(sorts, t -> t.getFirst() + S3 + t.getSecond(), S2);
 		}
 
 		public static ColumnSortInfo fromString(String s) {
 			ColumnSortInfo tsi = new ColumnSortInfo();
 			tsi.sorts.addAll(split(s, S2, str -> {
 				String[] a = str.split(S3, -1);
-				return Tuples.t(a[0], SortType.valueOf(a[1]));
+				return new Pair<>(a[0], SortType.valueOf(a[1]));
 			}));
 			return tsi;
 		}

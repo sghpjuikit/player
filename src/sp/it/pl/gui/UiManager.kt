@@ -90,7 +90,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
     val snapDistance by cv(12.0)
     @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
-    val lockedLayout by cv(false) { SimpleBooleanProperty(it).apply { attach { APP.actionStream.push("Layout lock") } } }
+    val lockedLayout by cv(false) { SimpleBooleanProperty(it).apply { attach { APP.actionStream("Layout lock") } } }
     @IsConfig(name = "Table orientation", group = Settings.Ui.TABLE, info = "Orientation of the table.")
     val tableOrient by cv(NodeOrientation.INHERIT)
     @IsConfig(name = "Zeropad numbers", group = Settings.Ui.TABLE, info = "Adds 0s for number length consistency.")
@@ -125,7 +125,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
                 APP.widgetManager.layouts.findAllActive().forEach { it.hide() }
                 setZoomMode(false)
             }
-            if (v) APP.actionStream.push(Actions.LAYOUT_MODE)
+            if (v) APP.actionStream(Actions.LAYOUT_MODE)
         }
 
 

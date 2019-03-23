@@ -4,11 +4,11 @@ import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.control.ScrollBar
 import javafx.scene.control.skin.ScrollBarSkin
 import javafx.scene.layout.StackPane
-import org.reactfx.Subscription
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.graphics.onHoverOrDragEnd
 import sp.it.pl.util.graphics.onHoverOrDragStart
 import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.type.Util.getFieldValue

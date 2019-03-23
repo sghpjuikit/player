@@ -17,7 +17,6 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.stage.Screen
 import javafx.stage.Stage
-import org.reactfx.Subscription
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.pane.OverlayPane.Companion.globalDisplay
 import sp.it.pl.gui.pane.OverlayPane.Companion.globalDisplayBgr
@@ -49,6 +48,7 @@ import sp.it.pl.util.graphics.size
 import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.Handler0
+import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.reactive.syncTo
@@ -359,11 +359,11 @@ private class PolarResize {
      * @param resizable the node that will resize
      */
     fun install(dragActivator: Node?, eventEmitter: Node, resizable: Pane?): Subscription {
-        if (resizable==null) return Subscription.EMPTY
+        if (resizable==null) return Subscription()
 
         resizable.setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE)
 
-        return Subscription.multi(
+        return Subscription(
                 resizable.onEventDown(MOUSE_PRESSED) {
                     if (dragActivator!=null) {
                         // drag by a resizable Node

@@ -13,7 +13,6 @@ import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.shape.Shape
 import javafx.stage.Window
 import javafx.util.Callback
-import org.reactfx.Subscription
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.tree.buildTreeCell
 import sp.it.pl.gui.objects.tree.buildTreeView
@@ -46,6 +45,7 @@ import sp.it.pl.util.graphics.propagateESCAPE
 import sp.it.pl.util.graphics.styleclassToggle
 import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.Subscribed
+import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.onItemSyncWhile

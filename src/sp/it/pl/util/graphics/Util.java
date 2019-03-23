@@ -2,7 +2,6 @@ package sp.it.pl.util.graphics;
 
 import java.util.List;
 import java.util.function.Consumer;
-import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -17,7 +16,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.image.WritableImage;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -27,15 +25,10 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import org.reactfx.EventSource;
-import org.reactfx.Subscription;
 import sp.it.pl.util.JavaLegacy;
 import sp.it.pl.util.access.V;
-import static java.time.Duration.ofMillis;
+import sp.it.pl.util.reactive.Subscription;
 import static javafx.geometry.Pos.CENTER_RIGHT;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED_TARGET;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
-import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
@@ -309,28 +302,6 @@ public interface Util {
 	// TODO: make dpi aware
 	static WritableImage makeSnapshot(Node n) {
 		return n.snapshot(new SnapshotParameters(), null);
-	}
-
-	@Deprecated
-	static Subscription hovered(Node n, Consumer<? super Boolean> handler) {
-		EventSource<Boolean> events = new EventSource<>();
-		EventHandler<MouseEvent> eTrue = e -> events.push(true);
-		EventHandler<MouseEvent> eFalse = e -> events.push(false);
-		ChangeListener<Boolean> eVal = (o, ov, nv) -> events.push(nv);
-
-		n.hoverProperty().addListener(eVal);
-		//        n.addEventFilter(MOUSE_MOVED, eTrue);
-		//        n.addEventFilter(MOUSE_ENTERED_TARGET, eTrue);
-		//        n.addEventFilter(MOUSE_EXITED_TARGET, eFalse);
-		Subscription s = events.successionEnds(ofMillis(50)).subscribe(handler);
-
-		return Subscription.multi(
-				s,
-				() -> n.removeEventFilter(MOUSE_MOVED, eTrue),
-				() -> n.removeEventFilter(MOUSE_ENTERED_TARGET, eTrue),
-				() -> n.removeEventFilter(MOUSE_EXITED_TARGET, eFalse),
-				() -> n.hoverProperty().removeListener(eVal)
-		);
 	}
 
 /* ---------- TABLE ------------------------------------------------------------------------------------------------- */

@@ -30,6 +30,7 @@ abstract class Area<T: Container<*>>: ContainerNode {
         }
         this.index = index
 
+        contentRoot.styleClass += STYLECLASS_BGR
         root.layFullArea += contentRoot
     }
 

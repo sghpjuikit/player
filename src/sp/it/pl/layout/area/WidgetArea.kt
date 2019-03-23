@@ -1,8 +1,6 @@
 package sp.it.pl.layout.area
 
-import javafx.fxml.FXML
 import javafx.scene.layout.AnchorPane
-import javafx.scene.layout.StackPane
 import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget
@@ -16,8 +14,6 @@ import sp.it.pl.main.IconOC
 import sp.it.pl.util.access.ref.SingleR
 import sp.it.pl.util.access.toggle
 import sp.it.pl.util.graphics.drag.DragUtil
-import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
-import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.layFullArea
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.on
@@ -34,8 +30,7 @@ import sp.it.pl.util.reactive.syncTo
  */
 class WidgetArea: Area<Container<*>> {
 
-    @FXML private lateinit var content: AnchorPane
-    @FXML lateinit var content_padding: StackPane
+    private val content = AnchorPane()
     @JvmField val controls: AreaControls
     private val widget: Widget
     private val disposer = Disposer()
@@ -56,10 +51,9 @@ class WidgetArea: Area<Container<*>> {
         this.widget.parentTemp = this.container
         this.widget.areaTemp = this
 
-        ConventionFxmlLoader(WidgetArea::class.java, contentRoot, this).loadNoEx<Any>()
-
         controls = AreaControls(this)
-        content_padding.lay += controls.root
+        contentRoot.layFullArea += content
+        contentRoot.layFullArea += controls.root
 
         DragUtil.installDrag(
                 root, IconFA.EXCHANGE, "Switch components",
@@ -115,18 +109,15 @@ class WidgetArea: Area<Container<*>> {
 
     fun isUnderLock(): Boolean = widget.lockedUnder.value
 
-    @FXML
     fun toggleLocked() = widget.locked.toggle()
 
-    @FXML
     override fun show() = controls.show()
 
-    @FXML
     override fun hide() = controls.hide()
 
     fun setStandaloneStyle() {
+        contentRoot.styleClass.clear()
         content.styleClass.clear()
-        content_padding.styleClass.clear()
     }
 
     override fun close() = disposer()

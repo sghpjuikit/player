@@ -186,7 +186,7 @@ public final class AreaControls {
         // - the weak behavior must not work in strong mode
         // weak show - activator behavior
         BooleanProperty inside = new SimpleBooleanProperty(false);
-        Pane p = area.content_padding;
+        Pane p = area.contentRoot;
         var showS = (Consumer<MouseEvent>) e -> {
             // ignore when already showing, under lock or in strong mode
             if (!isShowingWeak && !area.isUnderLock() && !isShowingStrong) {

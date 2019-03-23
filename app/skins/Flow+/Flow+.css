@@ -194,43 +194,12 @@
 }
 
 /**
- * Pane border created with path.
- * The path is build out of multiple path objects and does not necessarily create 
- * a single visual shape
- * extends .path, .shape
- */
-.path-border {
-    -fx-fill: null;
-    -fx-stroke: -fx-def-font-color;
-    -fx-stroke-width: 0; /* originally 2 */
-    -fx-stroke-type: inside;
-}
-
-/** 
- * Area pane border.
- * inherits: .path-border.
- */
-.area-path-border {
-    -fx-fill: null;
-    -fx-stroke: -fx-pane-color;
-    -fx-stroke-width: 0;  /* originally 2 */
-    -fx-stroke-type: inside ;
-    -fx-stroke-line-cap: butt;
-}
-
-/**
  * Widget area
  * pseudoclasses: dragged
  */
 .area {
     -fx-background-color: -fx-pane-color;
-    /*
-    default padding for all widgets
-    note: widgets shouldnt have their own padding to remain consistent
-    */
     -fx-padding: 4 ;
-    -fx-background-insets: 0; /* margin, by default set to area-path-border width */
-
     -fx-border-width: 0.5;
     -fx-border-radius: 5;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -fx-def-font-color 100%)

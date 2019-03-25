@@ -1,21 +1,264 @@
-/*
+/* 
     Document    : Flow
     Author      : Martin Polakovic
-    Description : Flow+ skin with tweaks to improve UI performance
+    Description : skin
 */
 
-@import url("../Flow+/Flow+.css");
+@import url("../Main/Main.css");
+
+.root {
+    skin-main-color: rgb(150,200,220);
+
+    -fx-font-family: "Arial";
+    -fx-font-size: 1em;
+    -fx-def-font-color: rgb(130,180,240);
+    -fx-def-icon-border-color: rgba(130,180,240, 0.3);
+    -fx-sel-font-color: rgb(175, 175, 176);
+    -fx-prompt-font-color: rgba(165, 165, 165, 0.4);
+    
+    -fx-pane-color: rgba(100,130,180,0.1);
+    -fx-popup-def-bgr-color: rgba(15,30,55,0.9);
+
+    -fx-focus-color: #ffcc66;
+    -fx-faint-focus-color: #ffcc66;
+    -fx-def-font-color-hover: #ffcc66;
+}
+
+.block {
+    -fx-background-color: -fx-pane-color;
+}
 
 .bgr-image {
     -fx-background-color: rgb(0, 20, 40);
+    -fx-opacity: 1;
     -fx-background-image: none;
 }
 
 .icon {
+    -glyph-gap: 12;
+
+    -fx-border-color: -fx-def-icon-border-color;
+    -fx-border-width: 0.083333em; /* 1 */
+    -fx-border-radius: 11111; /* big value to always achieve perfect circle */
+
     -fx-effect: none;
 }
 
 .icon:hover {
     -fx-fill: -fx-focus-color;
+    -fx-border-color:  -fx-focus-color;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
+}
+
+.icon-info-icon,
+.icon-info-icon:hover,
+.search-icon-sign,
+.search-icon-sign:hover,
+.resize-content-icon,
+.resize-content-icon:hover,
+.config-field-default-button,
+.config-field-default-button: hover,
+.config-field-warn-button,
+.config-field-warn-button: hover,
+.value-text-field-arrow,
+.value-text-field-arrow: hover {
+    -fx-border-color:  none;
+}
+
+/* inherits: .icon */
+.seeker-add-chapter-button,
+.seeker-add-chapter-button:hover {
+    -fx-effect: none;
+}
+
+.indexed-cell:played,
+.indexed-cell:played:selected {
+    -fx-text-fill: -fx-focus-color;
+    -fx-underline: false;
+    -fx-effect: dropshadow(gaussian, -fx-focus-color, 9,0 , 0,0);
+}
+.indexed-cell,
+.table-row-cell,
+.table-row-cell:played,
+.table-row-cell:played:selected {
+    -fx-effect: none;
+}
+
+.indexed-cell:corrupt,
+.indexed-cell:corrupt:selected {
+    -fx-text-fill: red;
+}
+
+.combo-box-base,
+.combo-box-base:editable,
+.choice-box,
+.choice-box:showing,
+.text-input {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+    -fx-padding: 3 5 2 5;
+    -fx-text-fill: -fx-def-font-color;
+    -fx-prompt-text-fill: -fx-def-font-color;
+    -fx-effect: null;
+}
+
+.combo-box-base:hover,
+.combo-box-base:editable:hover,
+.combo-box-base:showing:hover,
+.choice-box:hover,
+.text-input:hover {
+    -fx-background-color: rgba(0,0,0,0.1);
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+    -fx-padding: 3 5 2 5;
+    -fx-text-fill: -fx-def-font-color;
+    -fx-prompt-text-fill: -fx-def-font-color;
+    -fx-effect: null;
+}
+
+.combo-box-base:focused,
+.combo-box-base:editable:focused,
+.combo-box-base:showing:focused,
+.choice-box:focused,
+.text-input:focused {
+    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+    -fx-padding: 3 5 2 5;
+    -fx-text-fill: -fx-def-font-color;
+    -fx-prompt-text-fill: -fx-def-font-color;
+    -fx-effect: null;
+}
+.combo-box:hover > .list-cell, 
+.combo-box > .list-cell {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+    -fx-text-fill:-fx-def-font-color;
+    -fx-padding: 0;
+    -fx-effect: null;
+}
+
+.menu-item:focused > .label {
+    -fx-text-fill: -fx-focus-color;
+}
+.menu-item:focused {
+    -fx-background-color: null;
+}
+
+.accordion .titled-pane:focused > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded:focused > .title > .arrow-button .arrow {
+    -fx-background-color: -fx-focus-color;
+    -fx-effect: dropshadow(gaussian, -fx-focus-color, 9,0 , 0,0);
+}
+
+.accordion .titled-pane:focused > .title,
+.accordion .titled-pane:expanded > .title,
+.accordion .titled-pane:expanded:focused > .title {
+    -fx-text-color: -fx-focus-color;
+    -fx-effect: dropshadow(gaussian, -fx-focus-color, 9,0 , 0,0);
+}
+
+.combo-box-popup > .list-view {
+    -fx-padding: 5;
+    -fx-background-color: -fx-popup-def-bgr-color;
+    /*-fx-background-insets:  0 -5 -5 -5; *//* expands menu bgr left,bottom,right */
+    -fx-background-radius: 0;
+    -fx-border-width: 1;
+    -fx-stroke: -fx-def-font-color; 
+    -fx-stroke-width: 2;
+    -fx-fill: null; /* bgr of the shape the path makes - we dont want any */
+}
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
+    -fx-padding: 5;
+    -fx-background-color: null;
+    -fx-text-fill: -fx-def-font-color;
+}
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
+    -fx-background: null;
+    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-text-fill: -fx-focus-color;
+}
+.combo-box-popup > .list-view > .placeholder > .label {
+    -fx-text-fill: derive(-fx-control-inner-background,-30%);
+}
+
+/* BUGFIX, doesnt get applied */
+.config-field-warn-button {
+    -fx-fill: -fx-focus-color;
+}
+
+/**
+ * Widget area
+ * pseudoclasses: dragged
+ */
+.area {
+    -fx-background-color: -fx-pane-color;
+    -fx-padding: 4 ;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 5;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -fx-def-font-color 100%)
+                         linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, transparent 20%)
+                         linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, transparent 20%)
+                         linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -fx-def-font-color 100%);
+}
+
+.area: active {
+    -fx-border-width: 0.5;
+    -fx-border-radius: 5;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.2) 40%, -fx-def-font-color 100%)
+                         linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, rgba(255,255,255,0.2) 40%)
+                         linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, rgba(255,255,255,0.2) 40%)
+                         linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.2) 40%, -fx-def-font-color 100%);
+}
+
+.split-pane:horizontal > .split-pane-divider {
+   -fx-border-color: transparent;
+   -fx-background-color: -fx-pane-color;
+   /*-fx-padding: 0.0;*/
+}
+.split-pane:vertical > .split-pane-divider {
+   -fx-border-color: transparent;
+   -fx-background-color: -fx-pane-color;
+   /*-fx-padding: 1;*/
+}
+.split-pane *.vertical-grabber {
+    -fx-padding: 1 111 1 111;
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
+    -fx-background-insets: 0;
+}
+.split-pane *.horizontal-grabber {
+    -fx-padding: 111 1 111 0.5;
+    -fx-background-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
+    -fx-background-insets: 0;
+}
+
+.split-pane:collapsed > .split-pane-divider {
+   -fx-background-color: -fx-pane-color;
+   -fx-padding: 6;
+}
+
+.grid-cell:selected {
+    -fx-background-insets: -2;
+    -fx-background-color: rgba(0,0,0,0.4);
+    -fx-padding: -2;
+}
+
+.icon-grid-cell,
+.icon-grid-cell:selected {
+    -fx-background-color: transparent;
+}
+
+/**
+ * Remove icon border from specified .icon elements
+ */
+.inode,
+.onode,
+.ionode,
+.seeker-add-chapter-button {
+    -fx-border-width: 0
 }

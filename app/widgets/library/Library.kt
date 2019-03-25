@@ -22,7 +22,7 @@ import sp.it.pl.audio.tagging.Metadata.Field.Companion.TITLE
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.removeMissingSongsFromLibTask
 import sp.it.pl.gui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
-import sp.it.pl.gui.objects.contextmenu.TableContextMenuR
+import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.table.FilteredTable
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV
 import sp.it.pl.gui.objects.table.TableColumnInfo
@@ -170,7 +170,8 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
                         if (!r.isSelected)
                             tbl.selectionModel.clearAndSelect(r.index)
 
-                        contextMenuInstance.show(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy), table, e)
+                        contextMenuInstance.setValueAndItems(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy))
+                        contextMenuInstance.show(table, e)
                     }
                     styleRuleAdd(pc_playing) { m -> Player.playingSong.value.same(m) }
                 }
@@ -249,7 +250,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
     companion object {
         private val pc_playing = pseudoclass("played")
-        private val contextMenuInstance = TableContextMenuR<MetadataGroup>()
+        private val contextMenuInstance by lazy { ValueContextMenu<MetadataGroup>() }
     }
 
 }

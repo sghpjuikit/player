@@ -110,12 +110,6 @@ public class SelectionMenuItem extends Menu {
 		icon.setOnMouseClicked(e -> h.run());
 	}
 
-	public static <I> Menu buildSingleSelectionMenu(String text, List<I> inputs, I selected, Ƒ1<I,String> toText, Consumer<I> action) {
-		Menu menu = new Menu(text);
-		menu.getItems().addAll(buildSingleSelectionMenu(inputs, selected, toText, action));
-		return menu;
-	}
-
 	public static <I> List<MenuItem> buildSingleSelectionMenu(List<I> inputs, I selected, Ƒ1<I,String> toText, Consumer<I> action) {
 		List<MenuItem> ms = map(inputs,
 				input -> {

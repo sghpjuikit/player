@@ -24,7 +24,7 @@ import sp.it.pl.audio.playlist.Playlist;
 import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.audio.tagging.PlaylistSongGroup;
-import sp.it.pl.gui.objects.contextmenu.TableContextMenuR;
+import sp.it.pl.gui.objects.contextmenu.ValueContextMenu;
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
@@ -67,7 +67,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 	private static final PseudoClass STYLE_CORRUPT = pseudoclass("corrupt");
 	private static final PseudoClass STYLE_PLAYED = pseudoclass("played");
-	private static final TableContextMenuR<PlaylistSongGroup> contextMenu = new TableContextMenuR<>();
+	private static final ValueContextMenu<PlaylistSongGroup> contextMenu = new ValueContextMenu<>();
 
 	public final V<Boolean> scrollToPlaying = new V<>(true);
 	private double selectionLastScreenY;
@@ -117,7 +117,8 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 						getSelectionModel().clearAndSelect(getIndex());
 
 					ImprovedTable<PlaylistSong> table = PlaylistTable.this;
-					contextMenu.show(new PlaylistSongGroup(table.getSelectedItemsCopy()), table, e);
+					contextMenu.setValueAndItems(new PlaylistSongGroup(table.getSelectedItemsCopy()));
+					contextMenu.show(table, e);
 				});
 				// handle drag transfer
 				setOnDragDropped(e -> dropDrag(e, isEmpty() ? getItems().size() : getIndex()));

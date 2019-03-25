@@ -36,6 +36,8 @@ import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Side.BOTTOM;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
+import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.dev.FailKt.noNull;
@@ -196,13 +198,13 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		return columnState;
 	}
 
+	// TODO: move initialization logic out of here
 	public TableColumnInfo getDefaultColumnInfo() {
 		if (defColInfo==null) {
 			// generate column states
-			List<ColumnInfo> colinfos = map(getFields(), colStateFact);
 			defColInfo = new TableColumnInfo();
 			defColInfo.nameKeyMapper = keyNameColMapper;
-			defColInfo.columns.addAll(colinfos);
+			defColInfo.columns.addAll(map(getFields(), colStateFact));
 			// insert index column state manually
 			defColInfo.columns.removeIf(f -> f.name.equals(ColumnField.INDEX.name()));
 			defColInfo.columns.forEach(t -> t.position++);
@@ -210,22 +212,25 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			// leave sort order empty
 
 			columnState = defColInfo;
-
 			// build new table column menu
-			defColInfo.columns.streamV()
-				.map(c -> {
-					ObjectField<T,?> f = nameToCF(c.name);
-					SelectionMenuItem m = new SelectionMenuItem(c.name, c.visible, v -> setColumnVisible(f, v));
-					String d = f.description();
-					if (!d.isEmpty()) Tooltip.install(m.getGraphic(), appTooltip(d));
-					return m;
-				})
-				.sorted(by(MenuItem::getText))
-				.forEach(columnVisibleMenu.getItems()::add);
 			// update columnVisibleMenu check icons every time we show it
 			// the menu is rarely shown + this way we do not need to update it any other time
-			columnVisibleMenu.setOnShowing(e -> columnVisibleMenu.getItems()
-				.forEach(i -> ((SelectionMenuItem) i).selected.setValue(isColumnVisible(nameToCF(i.getText())))));
+			columnMenu.addEventHandler(WINDOW_HIDDEN, e -> columnVisibleMenu.getItems().clear());
+			columnMenu.addEventHandler(WINDOW_SHOWING, e -> {
+				columnVisibleMenu.getItems().addAll(
+					defColInfo.columns.streamV()
+						.map(c -> {
+							ObjectField<T,?> f = nameToCF(c.name);
+							SelectionMenuItem m = new SelectionMenuItem(c.name, c.visible, v -> setColumnVisible(f, v));
+							String d = f.description();
+							if (!d.isEmpty()) Tooltip.install(m.getGraphic(), appTooltip(d));
+							return m;
+						})
+						.sorted(by(MenuItem::getText))
+						.collect(toList())
+				);
+				columnVisibleMenu.getItems().forEach(i -> ((SelectionMenuItem) i).selected.setValue(isColumnVisible(nameToCF(i.getText()))));
+			});
 
 			// link table column button to our menu instead of an old one
 			if (getSkin()==null) setSkin(new TableViewSkin<>(this));    // make sure skin exists

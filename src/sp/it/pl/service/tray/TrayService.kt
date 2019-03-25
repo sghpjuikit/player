@@ -1,7 +1,6 @@
 package sp.it.pl.service.tray
 
 import javafx.scene.control.ContextMenu
-import javafx.scene.control.MenuItem
 import javafx.scene.input.MouseButton.MIDDLE
 import javafx.scene.input.MouseButton.NONE
 import javafx.scene.input.MouseButton.PRIMARY
@@ -15,7 +14,6 @@ import sp.it.pl.main.APP
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.util.async.runAwt
 import sp.it.pl.util.async.runFX
-import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
@@ -57,21 +55,23 @@ class TrayService: ServiceBase("Tray", true) {
     private var onClick = onClickDefault
     private var contextMenu: ContextMenu? = null
     private var contextMenuOwner: Stage? = null
-    private val contextMenuItemsDefault = listOf(
+
+    /** Right mouse click context menu items. */
+    var contextMenuItemsBuilder = {
+        listOf(
             menuItem("Show actions") { APP.actions.openOpen() },
             menuItem("Settings") { APP.actions.openSettings() },
             menuItem("New window") { APP.windowManager.createWindow() },
             menuItem("Play/pause") { Player.pause_resume() },
             menuItem("Disable tray") { stop() },
             menuItem("Exit") { APP.close() }
-    )
-    private var contextMenuItems: MutableList<MenuItem> = ArrayList(contextMenuItemsDefault)
+        )
+    }
 
     override fun start() {
         if (!supported) return
 
         val cm = ContextMenu().apply {
-            items += contextMenuItems
             isAutoFix = true
             consumeAutoHidingEvents = false
         }
@@ -80,10 +80,11 @@ class TrayService: ServiceBase("Tray", true) {
             focusedProperty() syncFalse {
                 if (cm.isShowing) cm.hide()
                 if (isShowing) hide()
+                cm.items.clear()
             }
         }
-        contextMenu = cm
         contextMenuOwner = cmOwner
+        contextMenu = cm
 
         // build tray
         runAwt {
@@ -111,6 +112,7 @@ class TrayService: ServiceBase("Tray", true) {
                                 SECONDARY -> runFX {
                                     cmOwner.show()
                                     cmOwner.requestFocus()
+                                    cm.items += contextMenuItemsBuilder()
                                     cm.show(cmOwner, me.screenX, me.screenY-40)
                                 }
                                 else -> {}
@@ -202,12 +204,6 @@ class TrayService: ServiceBase("Tray", true) {
     /** Set action on left mouse tray click. Null sets default behavior. */
     fun setOnTrayClick(action: ((MouseEvent) -> Unit)?) {
         onClick = action ?: onClickDefault
-    }
-
-    /** Adjust or provide tray right mouse click context menu items. Null sets default context menu. */
-    fun setContextMenuItems(menuItems: MutableList<MenuItem>?) {
-        contextMenuItems = menuItems ?: ArrayList(contextMenuItemsDefault)
-        contextMenu?.let { it.items setTo contextMenuItems }
     }
 
     companion object: KLogging()

@@ -4,32 +4,20 @@ import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.input.ContextMenuEvent
 import javafx.scene.input.MouseEvent
-import sp.it.pl.util.access.AccessibleValue
+import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import sp.it.pl.util.collections.setTo
+import sp.it.pl.util.reactive.onEventDown
 
-
-/**
- * Context menu wrapping a value - usually an object set before showing, for menu items' action.
- * It can then generate the items based on the value from supported actions, using [contextMenuGenerator].
- */
-open class ValueContextMenu<E: Any?>: ContextMenu(), AccessibleValue<E> {
-
-    protected var v: E? = null
+/** Context menu displaying items for a value. These are generated using [contextMenuGenerator]. */
+open class ValueContextMenu<E: Any?>(clearItemsOnHidden: Boolean = true): ContextMenu() {
 
     init {
         consumeAutoHidingEvents = false
+        if (clearItemsOnHidden) onEventDown(WINDOW_HIDDEN) { items.clear() }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun getValue(): E = v as E
-
-    override fun setValue(value: E) {
-        v = value
-    }
-
-    /** Invokes [setValue] and sets items to those provided by [contextMenuGenerator] for the value of this menu. */
+    /** Sets items to those provided by [contextMenuGenerator] for the specified value. */
     open fun setValueAndItems(value: E) {
-        setValue(value)
         items setTo contextMenuGenerator[this, value]
     }
 

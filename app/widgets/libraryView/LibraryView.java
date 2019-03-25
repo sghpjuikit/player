@@ -20,7 +20,7 @@ import sp.it.pl.audio.tagging.Metadata.Field;
 import sp.it.pl.audio.tagging.MetadataGroup;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.gui.objects.contextmenu.SelectionMenuItem;
-import sp.it.pl.gui.objects.contextmenu.TableContextMenuR;
+import sp.it.pl.gui.objects.contextmenu.ValueContextMenu;
 import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
 import sp.it.pl.gui.objects.table.TableColumnInfo;
@@ -53,7 +53,8 @@ import static javafx.scene.input.KeyCode.DELETE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
-import static javafx.stage.WindowEvent.WINDOW_SHOWN;
+import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
+import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static sp.it.pl.audio.tagging.Metadata.Field.CATEGORY;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.AVG_RATING;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE;
@@ -103,7 +104,7 @@ import static sp.it.pl.util.reactive.UtilKt.syncTo;
 public class LibraryView extends SimpleController {
 
     private static final PseudoClass PC_PLAYING = pseudoclass("played");
-    private static final TableContextMenuR<MetadataGroup> contextMenu = new TableContextMenuR<>();
+    private static final ValueContextMenu<MetadataGroup> contextMenuInstance = new ValueContextMenu<>();
 
     private final FilteredTable<MetadataGroup> table = new FilteredTable<>(MetadataGroup.class, VALUE);
 
@@ -185,7 +186,7 @@ public class LibraryView extends SimpleController {
         table.setColumnState(columnStateS!=null ? TableColumnInfo.fromString(columnStateS) : table.getDefaultColumnInfo());
 
         // rows
-        table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>() {{
+        table.setRowFactory(tbl -> new ImprovedTableRow<>() {{
                 styleRuleAdd(PC_PLAYING, MetadataGroup::isPlaying);
                 onLeftDoubleClick((row,e) -> playSelected());
                 onRightSingleClick((row,e) -> {
@@ -193,35 +194,34 @@ public class LibraryView extends SimpleController {
                     if (!row.isSelected())
                         tbl.getSelectionModel().clearAndSelect(row.getIndex());
 
-                    contextMenu.show(MetadataGroup.groupOfUnrelated(filerListToSelectedNsort()), table, e);
+                    contextMenuInstance.setValueAndItems(MetadataGroup.groupOfUnrelated(filerListToSelectedNsort()));
+                    contextMenuInstance.show(table, e);
                 });
             }}
         );
         onClose.plusAssign(Player.playingSong.onUpdate(m -> table.updateStyleRules()));   // maintain playing item css
 
-        // column context menu - add change VALUE column menus
-        Menu m = (Menu) table.columnVisibleMenu.getItems().stream().filter(i -> i.getText().equals("Value")).findFirst()
-            .orElseThrow(() -> new RuntimeException("Menu must contain a 'Value' item"));
-        m.getItems().addAll(
-            buildSingleSelectionMenu(
-                list(Metadata.Field.FIELDS),
-                null,
-                Metadata.Field::name,
-                fieldFilter::setValue
-            )
-        );
-        // refresh when menu opens
-        table.columnMenu.addEventHandler(WINDOW_SHOWN, e ->
-            m.getItems().forEach(mi ->
-                ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().name().equals(mi.getText()))
-            )
-        );
+        // column context menu - add group by menu
+        Menu fieldMenu = new Menu("Group by");
+        table.columnMenu.getItems().add(fieldMenu);
+        table.columnMenu.addEventHandler(WINDOW_HIDDEN, e -> fieldMenu.getItems().clear());
+        table.columnMenu.addEventHandler(WINDOW_SHOWING, e -> {
+            fieldMenu.getItems().addAll(
+                buildSingleSelectionMenu(
+                    list(Metadata.Field.FIELDS),
+                    null,
+                    Metadata.Field::name,
+                    fieldFilter::setValue
+                )
+            );
+            fieldMenu.getItems().forEach(it -> ((SelectionMenuItem)it).selected.setValue(fieldFilter.getValue().name().equals(it.getText())));
+        });
 
         // add menu items
         table.menuRemove.getItems().addAll(
-            menuItem("Remove selected groups from library", e -> APP.db.removeSongs(MetadataGroup.ungroup(table.getSelectedItems()))),
+            menuItem("Remove selected groups from library", e -> APP.db.removeSongs(ungroup(table.getSelectedItems()))),
             menuItem("Remove playing group from library", e -> APP.db.removeSongs(ungroup(table.getItems().stream().filter(MetadataGroup::isPlaying)))),
-            menuItem("Remove all groups from library", e -> APP.db.removeSongs(MetadataGroup.ungroup(table.getItems())))
+            menuItem("Remove all groups from library", e -> APP.db.removeSongs(ungroup(table.getItems())))
         );
 
         // key actions

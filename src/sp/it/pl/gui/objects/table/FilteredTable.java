@@ -48,6 +48,8 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
+import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
+import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Util.zeroPad;
@@ -394,7 +396,15 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		/**
 		 * Menu item for displaying and selecting {link {@link #field}}.
 		 */
-		private Menu menu = null;
+		private Menu menu = new Menu("Search column");
+
+		{
+			columnMenu.getItems().add(menu);
+			columnMenu.addEventHandler(WINDOW_HIDDEN, e -> menu.getItems().clear());
+			columnMenu.addEventHandler(WINDOW_SHOWING, e -> menu.getItems().addAll(
+				buildSingleSelectionMenu(filter(getFieldsAll(), ObjectField::searchSupported), field, ObjectField::name, this::setColumn)
+			));
+		}
 
 		@Override
 		public void doSearch(String query) {
@@ -446,14 +456,6 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			}
 		}
 
-		private boolean isMenuCreated() {
-			return search.menu!=null;
-		}
-
-		private void buildSearchMenu() {
-			menu = buildSingleSelectionMenu("Search column", filter(getFieldsAll(), ObjectField::searchSupported), field, ObjectField::name, this::setColumn);
-			columnMenu.getItems().add(menu);
-		}
 	}
 
 /* --------------------- SORT --------------------------------------------------------------------------------------- */
@@ -519,13 +521,6 @@ public class FilteredTable<T> extends FieldedTable<T> {
 				}
 			}
 		});
-	}
-
-	@Override
-	public TableColumnInfo getDefaultColumnInfo() {
-		TableColumnInfo tci = super.getDefaultColumnInfo();
-		if (!search.isMenuCreated()) search.buildSearchMenu();  // TODO: remove
-		return tci;
 	}
 
 }

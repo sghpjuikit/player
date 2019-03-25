@@ -29,7 +29,6 @@ import kotlin.Unit;
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu;
 import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.pl.util.access.V;
-import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.file.ImageFileFormat;
@@ -653,14 +652,12 @@ public class Thumbnail {
 
 /* --------------------- CONTEXT MENU ------------------------------------------------------------------------------- */
 
-	private static final SingleR<ValueContextMenu<Object>,Thumbnail> contextMenu = new SingleR<>(
-			ValueContextMenu::new,
-			(menu, thumbnail) -> menu.setValueAndItems(thumbnail.new ContextMenuData())
-	);
+	private static final ValueContextMenu<ContextMenuData> contextMenu = new ValueContextMenu<>();
 
 	private final EventHandler<MouseEvent> contextMenuHandler = e -> {
 		if (e.getButton()==SECONDARY) {
-			contextMenu.getM(this).show(root, e);
+			contextMenu.setValueAndItems(new ContextMenuData());
+			contextMenu.show(root, e);
 			e.consume();
 		}
 	};

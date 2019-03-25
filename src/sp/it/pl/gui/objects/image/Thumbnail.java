@@ -656,7 +656,7 @@ public class Thumbnail {
 
 	private final EventHandler<MouseEvent> contextMenuHandler = e -> {
 		if (e.getButton()==SECONDARY) {
-			contextMenu.setValueAndItems(new ContextMenuData());
+			contextMenu.setItemsFor(new ContextMenuData());
 			contextMenu.show(root, e);
 			e.consume();
 		}

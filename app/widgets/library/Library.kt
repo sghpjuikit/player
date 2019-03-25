@@ -170,7 +170,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
                         if (!r.isSelected)
                             tbl.selectionModel.clearAndSelect(r.index)
 
-                        contextMenuInstance.setValueAndItems(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy))
+                        contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy))
                         contextMenuInstance.show(table, e)
                     }
                     styleRuleAdd(pc_playing) { m -> Player.playingSong.value.same(m) }

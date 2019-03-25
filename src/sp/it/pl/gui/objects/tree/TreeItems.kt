@@ -332,7 +332,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
     }
 
     fun <T> showMenu(o: T?, t: TreeView<T>, n: Node, e: MouseEvent) {
-        globalContextMenu.setValueAndItems(t.selectionModel.selectedItems.map { it.value })
+        globalContextMenu.setItemsFor(t.selectionModel.selectedItems.map { it.value })
         globalContextMenu.show(n, e)
     }
 

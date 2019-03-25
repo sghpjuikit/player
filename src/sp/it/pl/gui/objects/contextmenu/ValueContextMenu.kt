@@ -17,7 +17,7 @@ open class ValueContextMenu<E: Any?>(clearItemsOnHidden: Boolean = true): Contex
     }
 
     /** Sets items to those provided by [contextMenuGenerator] for the specified value. */
-    open fun setValueAndItems(value: E) {
+    open fun setItemsFor(value: E) {
         items setTo contextMenuGenerator[this, value]
     }
 

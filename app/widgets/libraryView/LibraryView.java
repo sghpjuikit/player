@@ -194,7 +194,7 @@ public class LibraryView extends SimpleController {
                     if (!row.isSelected())
                         tbl.getSelectionModel().clearAndSelect(row.getIndex());
 
-                    contextMenuInstance.setValueAndItems(MetadataGroup.groupOfUnrelated(filerListToSelectedNsort()));
+                    contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(filerListToSelectedNsort()));
                     contextMenuInstance.show(table, e);
                 });
             }}

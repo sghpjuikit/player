@@ -2,64 +2,11 @@
     Document    : Default
     Author      : Martin Polakovic
     Year        : 2014
-    Description : Skin reference
+    Description : skin
 */
 
-/*
- * MODENA Copyright
- * Copyright (c) 2009, 2013, Oracle and/or its affiliates. All rights reserved. 
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER. 
- *  
- * This code is free software; you can redistribute it and/or modify it 
- * under the terms of the GNU General Public License version 2 only, as 
- * published by the Free Software Foundation.  Oracle designates this 
- * particular file as subject to the "Classpath" exception as provided 
- * by Oracle in the LICENSE file that accompanied this code. 
- *  
- * This code is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License 
- * version 2 for more details (a copy is included in the LICENSE file that 
- * accompanied this code). 
- *  
- * You should have received a copy of the GNU General Public License version 
- * 2 along with this work; if not, write to the Free Software Foundation, 
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA. 
- *  
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA 
- * or visit www.oracle.com if you need additional information or have any 
- * questions.
- *                                                                              
- */
-
-/*  
-
-    Content: 
-
-        JAVA OFFICIAL ELEMENTS:          line 50
-        APPLICATION SPECIFIC CONTROLS:  line 3200
-
-    Complete JavaFX CSS Reference Guide at : 
-        http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html
-
-*/
-
-
-
-
-/*******************************************************************************
- *                                                                             *
- * CSS Styles for core infrastructure bits.  The .root section provides the    *
- * overall default colors used by the rest of the sections.                    *
- *                                                                             *
- ******************************************************************************/
-
-.root {
-    
-    -fx-font-family: "Arial";
-    -fx-font-size: 11;
-    
-    /*global variables*/
+/* Global variables*/
+* {
     -fx-def-font-color: rgb(190, 190, 195);
     -fx-def-font-color-hover: rgb(235,235,230);
     -fx-sel-font-color: rgb(175, 175, 176);
@@ -67,33 +14,32 @@
     -fx-color-darker: rgba(0,0,0,0.2);
     -fx-color-lighter: rgba(180,200,255,0.08);
 
-    /* default color for panels such as header or widget area or other areas. 
+    /* default color for panels such as header or widget area or other areas.
        Panel is equivalent to java's .filler i suppose. */
     /* when changing this value be aware that .header class emulates it manually
        be sure to change it there too*/
-    -fx-pane-color: rgba(0,0,0,0.32);
+    -fx-pane-color: rgba(100,130,180,0.1);
     /* Darker version of pane color. By default used for :dragged pseudoclass */
-    -fx-pane-color-dragged: rgba(0,0,0,0.5);
+    -fx-pane-color-dragged: rgba(0,0,0,0.3);
     /* Default bgr color for tooltips and popups. */
     -fx-popup-def-bgr-color: rgba(28,42,60,0.9);
 }
 
-/*******************************************************************************
- *                                                                             *
- * Common Styles                                                               *
- *                                                                             *
- * These are styles that give a standard look to a whole range of controls     *
- *                                                                             *
+.root {
+    -fx-font-family: "Arial";
+    -fx-font-size: 1em;
+}
+
+/******************************************************************************
+ *
+ *  THE APPLICATION OVERRIDES OF JAVAFX
+ *
  ******************************************************************************/
 
 /* ====   TEXT NODES IN CONTROLS   ========================================== */
 
 .text {
-    /* This adjusts text alignment within the bounds of text nodes so that
-       the text is always vertically centered within the bounds. Based on
-       the cap height of the text. */
     -fx-bounds-type: logical_vertical_center;
-    /* Enable LCD text rendering */
     -fx-font-smoothing-type: lcd;
 }
 
@@ -368,11 +314,8 @@
     -fx-opacity:0.9;
 }
 
-/*******************************************************************************
- *                                                                             *
- * ScrollBar                                                                   *
- *                                                                             *
- ******************************************************************************/
+/********************************** ScrollBar *************************************
+ */
 
 .scroll-bar {
     -fx-skin: "sp.it.pl.gui.objects.ImprovedScrollBarSkin";
@@ -510,11 +453,8 @@
     -fx-background-radius: 1em; /* 3px */
 }
 
-/*******************************************************************************
- *                                                                             *
- * ScrollPane                                                                  *
- *                                                                             *
- ******************************************************************************/
+/********************************* ScrollPane *********************************/
+
 .scroll-pane > .viewport {
     -fx-background-color: null;
 }
@@ -561,11 +501,8 @@
     -fx-padding: 0.25em; /*3px*/ 
 }
 
-/*******************************************************************************
- *                                                                             *
- * Separator                                                                   *
- *                                                                             *
- ******************************************************************************/
+/********************************** Separator *************************************
+ */
 
 .separator:horizontal .line {
     -fx-border-color: -fx-text-box-border transparent transparent transparent,
@@ -579,11 +516,7 @@
     -fx-border-insets: 0, 0 0 0 1;
 }
 
-/*******************************************************************************
- *                                                                             *
- * Text BOXES                                                                  *
- *                                                                             *
- ******************************************************************************/
+/********************************* Text boxes *********************************/
 
 .choice-box,
 .choice-box:hover,
@@ -764,7 +697,7 @@
     -fx-text-fill: derive(-fx-control-inner-background,-30%);
 }
 
-/*********************************** LABEL ************************************/
+/*********************************** Label ************************************/
 
 .label {
     -fx-text-fill: -fx-def-font-color;
@@ -856,11 +789,7 @@
     -fx-shape: null;
 }
 
-/*******************************************************************************
- *                                                                             *
- * TabPane                                                                     *
- *                                                                             *
- ******************************************************************************/
+/********************************* TabPane ************************************/
 
 .tab-pane {
     -fx-tab-min-height: 1.8333em; /* 22 */
@@ -1061,11 +990,7 @@
     -fx-text-color: -fx-focus-color;
 }
 
-/*******************************************************************************
-*                                                                              *
-* SplitPane                                                                    *
-*                                                                              *
-*******************************************************************************/
+/********************************* SplitPane **********************************/
 
 .split-pane:horizontal > .split-pane-divider {
    -fx-border-color: transparent;
@@ -1093,11 +1018,7 @@
    -fx-padding: 6;
 }
 
-/*******************************************************************************
- *                                                                             *
- * ColorPicker                                                                 *
- *                                                                             *
- ******************************************************************************/
+/********************************* ColorPicker ********************************/
 
 .color-picker > .arrow-button {
     -fx-background-color: null;
@@ -1302,96 +1223,7 @@
     -fx-alignment: bottom-right;
 }
 
-/*******************************************************************************
- *                                                                             *
- * Pagination                                                                  *
- *                                                                             *
- ******************************************************************************/
-
-.pagination {
-    -fx-padding: 0;        
-    -fx-arrows-visible: true;
-    -fx-tooltip-visible: true;
-    -fx-page-information-visible: true;
-    -fx-page-information-alignment: bottom;
-    -fx-arrow-button-gap: 0;
-}
-.pagination > .page {
-    -fx-background-color: transparent;
-}
-.pagination > .pagination-control {
-    -fx-background-color: transparent;
-    -fx-font-size: 0.82em;
-}
-.pagination > .pagination-control > .control-box {
-    -fx-padding: 5px 0 0 0;
-    -fx-spacing: 2;
-    -fx-alignment: center;
-}
-.pagination > .pagination-control > .control-box > .left-arrow-button {
-    -fx-background-radius: 3 0 0 3, 3 0 0 3, 2 0 0 2, 1 0 0 1;
-    -fx-background-insets: 0 0 -1 5, 0 0 0 5, 1 1 1 6, 2 2 2 7;
-    -fx-padding: 0em 0.417em 0em 0.833em; /* 0 5 0 10 */
-}
-.pagination > .pagination-control > .control-box > .right-arrow-button {
-    -fx-background-radius: 0 3 3 0, 0 3 3 0, 0 2 2 0, 0 1 1 0;
-    -fx-background-insets: 0 5 -1 0, 0 5 0 0, 1 6 1 1, 2 7 2 2;
-    -fx-padding: 0em 0.75em 0em 0.417em; /* 0 9 0 5 */
-}
-.pagination > .pagination-control .left-arrow {
-    -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
-    -fx-background-insets: 1 0 -1 0, 0;
-    -fx-padding: 0.375em 0.291em 0.375em 0.291em;
-    -fx-shape: "M 0 0 L -13 7 L 0 13 z";
-    -fx-scale-shape: true;
-}
-.pagination > .pagination-control .right-arrow {
-    -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
-    -fx-background-insets: 1 0 -1 0, 0;
-    -fx-padding: 0.375em 0.291em 0.375em 0.291em;
-    -fx-shape: "M 0 0 L 13 7 L 0 13 z";
-    -fx-scale-shape: true;
-}
-.pagination > .pagination-control > .control-box > .bullet-button {   
-   -fx-background-radius: 0, 4em, 4em, 4em, 4em;
-   -fx-padding: 0.333em;
-   -fx-background-color: transparent, -fx-outer-border, -fx-inner-border, -fx-body-color;
-   -fx-background-insets: 0, 5,  6,  7;
-}
-.pagination > .pagination-control > .control-box > .bullet-button:selected {   
-    -fx-base: -fx-accent;
-}
-.pagination.bullet > .pagination-control > .control-box {
-    -fx-spacing: 0;
-    -fx-alignment: center;
-}
-.pagination.bullet > .pagination-control > .control-box > .left-arrow-button {
-    -fx-background-radius: 4em;
-    -fx-background-insets: 0, 1, 2;
-    -fx-padding: 0em 0.25em 0em 0.083em; /* 0 3 0 1 */
-} 
-.pagination.bullet > .pagination-control > .control-box > .right-arrow-button {
-    -fx-background-radius: 4em;
-    -fx-background-insets: 0, 1, 2;
-    -fx-padding: 0em 0.083em 0em 0.25em; /* 0 1 0 3 */
-}
-.pagination > .pagination-control > .control-box > .number-button {
-    -fx-background-radius: 0;
-    -fx-padding: 0.166667em 0.25em 0.25em 0.333em;
-    -fx-background-color: -fx-shadow-highlight-color, -fx-outer-border, -fx-inner-border, -fx-body-color;
-}
-.pagination > .pagination-control > .control-box > .number-button:selected {   
-    -fx-base: -fx-accent;
-}
-.pagination > .pagination-control > .page-information {   
-    -fx-padding: 0.416em 0 0 0;
-}
-
-/*******************************************************************************
- *                                                                             *
- * Customised CSS for controls placed directly within cells                    *
- *                                                                             *
- ******************************************************************************/
+/********* Customised CSS for controls placed directly within cells ***********/
 
 .cell > .choice-box {
     -fx-background-color: transparent;
@@ -1411,11 +1243,7 @@
     -fx-background-color: -fx-mark-highlight-color, white;
 }
 
-/*******************************************************************************
- *                                                                             *
- * List, Tree, Table COMMON                                                    *
- *                                                                             *
- ******************************************************************************/
+/************************* List, Tree, Table COMMON ***************************/
 
 .cell {
     -fx-background-color: null;
@@ -1479,22 +1307,14 @@
     /*-fx-background-insets: 0, 1, 2;*/
 }
 
-/*******************************************************************************
- *                                                                             *
- * ListView and ListCell                                                       *
- *                                                                             *
- ******************************************************************************/
+/*********************************** ListView *********************************/
 
 .list-cell {}
 .list-cell:odd {
     -fx-background-color: null;
 }
 
-/*******************************************************************************
- *                                                                             *
- * TreeView and TreeCell                                                       *
- *                                                                             *
- ******************************************************************************/
+/*********************************** TreeView *********************************/
 
 .tree-cell {
     -fx-indent: 1em;
@@ -1518,11 +1338,7 @@
     -fx-rotate: 90;
 }
 
-/*******************************************************************************
- *                                                                             *
- * TableView                                                                   *
- *                                                                             *
- ******************************************************************************/
+/********************************* TableView  *********************************/
 
 .table-view,
 .tree-table-view {
@@ -1654,12 +1470,6 @@
     -fx-font-size: 1.166667em; /* 14pt - 2 more than the default font */
 }
 
-/*******************************************************************************
- *                                                                             *
- * Table Cells                                                                 *
- *                                                                             *
- ******************************************************************************/
-
 .check-box-table-cell {
     -fx-alignment: center;
     -fx-padding: 0;
@@ -1684,41 +1494,7 @@
     -fx-background-color: derive(-fx-accent,40%), -fx-background;
 }
 
-/*******************************************************************************
- *                                                                             *
- * TreeTableView                                                               *
- *                                                                             *
- * Note: A lot of the CSS for TreeTableView is included with the TreeView and  *
- * TableView CSS styles elsewhere in modena.css (as they are the same, just   *
- * targeting different CSS style classes).                                     *
- ******************************************************************************/
-
-.tree-table-row-cell {
-    -fx-background: -fx-control-inner-background;
-    -fx-background-color: -fx-background;
-    -fx-padding: 0;
-    -fx-text-fill: -fx-text-background-color;
-    -fx-indent: 1em;
-}
-.tree-table-cell {
-    /* tree-table-cell needs slightly different padding to make the text sit at
-    the right height for the arrow */
-    -fx-padding: 0.25em 0.166667em 0.083em 0.166667em; /* 3 2 1 2 , plus border adds 1px */
-    -fx-background-color: null;
-    -fx-border-color: transparent -fx-table-cell-border-color transparent transparent;
-    -fx-cell-size: 2.0em; /* 24 */
-    -fx-text-fill: -fx-text-background-color;
-}
-
-/*******************************************************************************
- *                                                                             *
- * Combinations                                                                *
- *                                                                             *
- * This section is for special handling of when one control is nested inside   *
- * another control. There are many cases where we would end up with ugly       *
- * double borders that are fixed here.                                         *
- *                                                                             *
- ******************************************************************************/
+/********************************* Combinations  ******************************/
 
 .tab-pane > * > .table-view,
 .tab-pane > * > .tree-table-view,
@@ -1791,203 +1567,15 @@
     -fx-padding: 0.8em;
 }
 
-/*******************************************************************************
- *                                                                             *
- * DatePicker                                                                  *
- *                                                                             *
- ******************************************************************************/
+/*********************************** POPUP ***********************************/
 
-.date-picker > .arrow-button > .arrow {
-    -fx-shape: "M0,0v9h9V0H0z M2,8H1V7h1V8z M2,6H1V5h1V6z M2,4H1V3h1V4z M4,8H3V7h1V8z M4,6H3V5h1V6z M4,4H3V3h1V4z M6,8H5V7h1V8z M6,6H5 V5h1V6z M6,4H5V3h1V4z M8,8H7V7h1V8z M8,6H7V5h1V6z M8,4H7V3h1V4z";
-    -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
-    -fx-background-insets: 1 0 -1 0, 0;
-    -fx-padding: 0.416667em 0.416667em 0.333333em 0.333333em; /* 5 5 4 4 */
-    -fx-scale-shape: true;
-}
-
-.date-picker-popup {
-     -fx-background-color:
-        linear-gradient(to bottom,
-            derive(-fx-color,-17%),
-            derive(-fx-color,-30%)
-        ),
-        -fx-control-inner-background;
-    -fx-background-insets: 0, 1;
-    -fx-background-radius: 0;
-    -fx-alignment: CENTER; /* VBox */
-    -fx-spacing: 0; /* VBox */
-    -fx-padding: 0.083333em; /* 1 1 1 1 */
-    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 12, 0.0 , 0 , 8 );
-}
-.date-picker-popup > .month-year-pane {
-    -fx-padding: 0.588883em 0.5em 0.666667em 0.5em; /* 7 6 8 6 */
-    -fx-background-color: derive(-fx-box-border,30%), linear-gradient(to bottom, derive(-fx-base,-3%), derive(-fx-base,5%) 50%, derive(-fx-base,-3%));
-    -fx-background-insets: 0 0 0 0, 0 0 1 0;
-}
-.date-picker-popup > * > .spinner {
-    -fx-spacing: 0.25em; /* 3 */
-    -fx-alignment: CENTER;
-    -fx-fill-height: false;
-}
-.date-picker-popup > * > .spinner > .button {
-    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;
-    -fx-background-insets: 0, 1, 2;
-    -fx-color: transparent;
-    -fx-background-radius: 0;
-}
-.date-picker-popup > * > .spinner > .button:focused {
-    -fx-background-color: -fx-focus-color, -fx-inner-border, -fx-body-color, -fx-faint-focus-color, -fx-body-color;
-    -fx-color: -fx-hover-base;
-    -fx-background-insets: -0.2, 1, 2, -1.4, 2.6;
-}
-.date-picker-popup > * > .spinner > .button:hover {
-    -fx-color: -fx-hover-base;
-}
-.date-picker-popup > * > .spinner > .button:armed {
-    -fx-color: -fx-pressed-base;
-}
-.date-picker-popup > * > .spinner > .left-button {
-    -fx-padding: 0 0.333333em 0 0.25em; /* 0 4 0 3 */
-}
-.date-picker-popup > * > .spinner > .right-button {
-    -fx-padding: 0 0.25em 0 0.333333em; /* 0 3 0 4 */
-}
-.date-picker-popup > * > .spinner > .button > .left-arrow,
-.date-picker-popup > * > .spinner > .button > .right-arrow {
-    -fx-background-color: -fx-mark-highlight-color, derive(-fx-base,-45%);
-    -fx-background-insets: 1 0 -1 0, 0;
-    -fx-padding: 0.333333em 0.166667em 0.333333em 0.166667em; /* 4 2 4 2 */
-    -fx-effect: dropshadow(two-pass-box , -fx-shadow-highlight-color, 1, 0.0 , 0, 1.4);
-}
-.date-picker-popup > * > .spinner > .button:hover > .left-arrow,
-.date-picker-popup > * > .spinner > .button:hover > .right-arrow {
-    -fx-background-color: -fx-mark-highlight-color, derive(-fx-base,-50%);
-}
-.date-picker-popup > * > .spinner > .button:pressed > .left-arrow,
-.date-picker-popup > * > .spinner > .button:pressed > .right-arrow {
-    -fx-background-color: -fx-mark-highlight-color, derive(-fx-base,-55%);
-}
-.date-picker-popup > * > .spinner > .button > .left-arrow {
-    -fx-padding: 0.333333em 0.25em 0.333333em 0.166667em; /* 4 3 4 2 */
-    -fx-shape: "M5.997,5.072L5.995,6.501l-2.998-4l2.998-4l0.002,1.43l-1.976,2.57L5.997,5.072z";
-    -fx-scale-shape: true;
-}
-.date-picker-popup > * > .spinner > .button > .right-arrow {
-    -fx-padding: 0.333333em 0.25em 0.333333em 0.166667em; /* 4 3 4 2 */
-    -fx-shape: "M2.998-0.07L3-1.499l2.998,4L3,6.501l-0.002-1.43l1.976-2.57L2.998-0.07z";
-    -fx-scale-shape: true;
-}
-.date-picker-popup > * > .spinner > .label {
-    -fx-alignment: CENTER;
-}
-.date-picker-popup > .month-year-pane > .secondary-label {
-    -fx-alignment: BASELINE_CENTER;
-    -fx-padding: 0.5em 0 0 0; /* 6 0 0 0 */
-    -fx-text-fill: #f3622d;
-}
-
-.date-picker-popup > .calendar-grid {
-    -fx-background-color: derive(-fx-selection-bar-non-focused, 60%);
-    /*-fx-background-insets: 1 0 0 0;*/
-    -fx-padding: 0;
-}
-.date-picker-popup > * > .date-cell { 
-    -fx-background-color: transparent;
-    -fx-background-insets: 1, 2;
-    -fx-padding: 0;
-    -fx-alignment: BASELINE_CENTER;
-    -fx-opacity: 1.0;
-}
-.date-picker-popup > * > .day-name-cell,
-.date-picker-popup > * > .week-number-cell {
-    -fx-font-size: 0.916667em; 
-}
-.date-picker-popup > * > .week-number-cell {
-    -fx-padding: 0.333333em 0.583333em 0.333333em 0.583333em; /* 4 7 4 7 */
-    -fx-border-color: -fx-control-inner-background;
-    -fx-border-width: 1px;
-    -fx-background: -fx-control-inner-background;
-    -fx-background-color: -fx-background;
-    -fx-text-fill: -fx-accent;
-}
-.date-picker-popup > * > .day-cell {
-    -fx-padding: 0.333333em 0.583333em 0.333333em 0.583333em; /* 4 7 4 7 */
-    -fx-border-color: derive(-fx-selection-bar-non-focused, 60%);
-    -fx-border-width: 1px;
-    -fx-font-size: 1em;
-    -fx-background: -fx-control-inner-background;
-    -fx-background-color: -fx-background;
-    -fx-text-fill: -fx-text-background-color;
-}
-.date-picker-popup > * > .hijrah-day-cell {
-    -fx-alignment: TOP_LEFT;
-    -fx-padding: 0.083333em 0.333333em 0.083333em 0.333333em; /* 1 4 1 4 */
-    -fx-cell-size: 2.75em;
-}
-.date-picker-popup > * > .day-cell > .secondary-text {
-    -fx-fill: #f3622d;
-}
-.date-picker-popup > * > .today {
-    -fx-background-color: -fx-control-inner-background, derive(-fx-selection-bar-non-focused, -20%), -fx-control-inner-background;
-    -fx-background-insets: 1, 2, 3;
-}
-.date-picker-popup > * > .day-cell:hover,
-.date-picker-popup > * > .selected,
-.date-picker-popup > * > .previous-month.selected,
-.date-picker-popup > * > .next-month.selected {
-    -fx-background: -fx-selection-bar;
-}
-.date-picker-popup > * > .previous-month:hover,
-.date-picker-popup > * > .next-month:hover {
-    -fx-background: -fx-selection-bar-non-focused;
-}
-.date-picker-popup > * > .today:hover,
-.date-picker-popup > * > .today.selected {
-    -fx-background-color: -fx-selection-bar, derive(-fx-selection-bar-non-focused, -20%),-fx-selection-bar;
-}
-.date-picker-popup > * > .day-cell:focused,
-.date-picker-popup > * > .today:focused {
-    -fx-background-color: -fx-control-inner-background, -fx-cell-focus-inner-border, -fx-control-inner-background;
-    -fx-background-insets: 1, 2, 3;
-}
-.date-picker-popup > * > .day-cell:focused:hover,
-.date-picker-popup > * > .today:focused:hover,
-.date-picker-popup > * > .selected:focused,
-.date-picker-popup > * > .today.selected:focused {
-    -fx-background-color: -fx-selection-bar, -fx-cell-focus-inner-border, -fx-selection-bar;
-}
-.date-picker-popup > * > .previous-month,
-.date-picker-popup > * > .next-month {
-    -fx-background: derive(-fx-control-inner-background, -4%);
-}
-.date-picker-popup > * > .day-cell:hover > .secondary-text,
-.date-picker-popup > * > .previous-month > .secondary-text,
-.date-picker-popup > * > .next-month > .secondary-text,
-.date-picker-popup > * > .selected > .secondary-text {
-    -fx-fill: -fx-text-background-color;
-}
-.date-picker-popup > * > .previous-month.today,
-.date-picker-popup > * > .next-month.today {
-    -fx-background-color: derive(-fx-control-inner-background, -4%), derive(-fx-selection-bar-non-focused, -20%), derive(-fx-control-inner-background, -4%);
-}
-
-.date-picker-popup > * > .previous-month.today:hover,
-.date-picker-popup > * > .next-month.today:hover {
-    -fx-background-color: -fx-selection-bar-non-focused, derive(-fx-selection-bar-non-focused, -20%), -fx-selection-bar-non-focused;
-}
-
-
-/******************************************************************************
- * Popup.
- */
 .popup {
     -fx-background-color: transparent;
 }
 
-/******************************************************************************
- * Tooltip.
- */
-.tooltip {    
+/********************************** TOOLTIP **********************************/
+
+.tooltip {
     -fx-text-fill: -fx-def-font-color;
     -fx-background-color: -fx-popup-def-bgr-color;
     -fx-background-radius: 5;
@@ -1997,19 +1585,7 @@
     -fx-padding: 0.5em 1em 0.5em 1em;
 }
 
-
-
-
-
-
-
-
-
-/******************************************************************************
- *
- *  THE APPLICATION OVERRIDES OF JAVAFX
- *
- ******************************************************************************/
+/********************************* FIXED_ROWS *********************************/
 
 .list-view,
 .table-view,
@@ -2176,11 +1752,8 @@
  * an example would be a slight image overlay over background
  */
 .bgr-image {
-    /*-fx-background-image: url("bgr.jpg");*/
-    /* This causes unexpected bug, the image is not resized properly.
-     * Solution: simply define the image in the skin, just like here. I do not know why
-     * inheriting this causes resize bugs...
-     */
+    -fx-background-color: rgb(0, 10, 25);
+    -fx-background-image: none; /* for example: url("bgr.jpg"); */
     -fx-background-size: stretch;
 }
 

@@ -6,17 +6,14 @@
 
 @import url("../Main/Main.css");
 
-.root {
-    skin-main-color: rgb(150,200,220);
-
-    -fx-font-family: "Arial";
-    -fx-font-size: 1em;
-    -fx-def-font-color: rgb(130,180,240);
-    -fx-def-icon-border-color: rgba(130,180,240, 0.3);
+* {
+    -fx-def-font-color: rgb(190, 190, 195);
+    -fx-def-icon-border-color: rgba(130,180,240, 0.2);
     -fx-sel-font-color: rgb(175, 175, 176);
     -fx-prompt-font-color: rgba(165, 165, 165, 0.4);
-    
+
     -fx-pane-color: rgba(100,130,180,0.1);
+    -fx-pane-color-dragged: rgba(0,0,0,0.3);
     -fx-popup-def-bgr-color: rgba(15,30,55,0.9);
 
     -fx-focus-color: #ffcc66;
@@ -29,9 +26,7 @@
 }
 
 .bgr-image {
-    -fx-background-color: rgb(0, 20, 40);
-    -fx-opacity: 1;
-    -fx-background-image: none;
+    -fx-background-color: rgb(0, 10, 25);
 }
 
 .icon {

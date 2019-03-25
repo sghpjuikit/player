@@ -215,7 +215,7 @@ object CoreMenus: Core {
 
     private fun ContextMenuGenerator.Builder<*>.menuFor(contextMenu: ContextMenu, menuName: String, value: Any?) = menu(
             text = menuName,
-            items = contextMenuGenerator[contextMenu, value]
+            items = menuItemBuilders[contextMenu, value]
     )
 
 }

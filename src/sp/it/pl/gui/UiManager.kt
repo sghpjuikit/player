@@ -24,7 +24,6 @@ import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.file.FileMonitor
 import sp.it.pl.util.file.Util
-import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.div
 import sp.it.pl.util.file.isAnyParentOf
 import sp.it.pl.util.file.seqChildren
@@ -64,14 +63,11 @@ class UiManager(val skinDir: File): Configurable<Any> {
                 }
     }
 
+    /** Skin of the application. Defined stylesheet file to be applied on `.root` of windows. */
     @IsConfig(name = "Skin", info = "Application skin.")
     val skin by cv("Flow") { VarEnum.ofStream(it) { skins.stream().map { it.name } } }
 
-    /**
-     * Font of the application. Overrides font defined by skin. The font can be overridden programmatically or stylesheet.
-     *
-     * Note: font is applied only if the GUI is fully initialized, otherwise does nothing.
-     */
+    /** Font of the application. Overrides `-fx-font-family` and `-fx-font-size` defined by css on `.root`. */
     @IsConfig(name = "Font", info = "Application font.")
     val font by cv(Font.getDefault())
 
@@ -285,7 +281,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
             skins += findSkins()
 
             val refreshAlways = true    // skins may import each other hence it is more convenient to refresh always
-            val currentSkinDir = skinDir.childOf(skin.get())
+            val currentSkinDir = skinDir/skin.value
             val isActive = currentSkinDir isAnyParentOf file
             if (isActive || refreshAlways) reloadSkin()
         }

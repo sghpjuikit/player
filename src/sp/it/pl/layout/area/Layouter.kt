@@ -118,6 +118,9 @@ class Layouter: ContainerNode {
     override fun hide() = showControls(false)
 
     private fun showControls(value: Boolean) {
+        val isWidgetSelectionActive = root.children.size!=1
+        if (value && isWidgetSelectionActive) return
+
         a1.stop()
         a2.stop()
         if (value) {

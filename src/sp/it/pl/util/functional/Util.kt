@@ -46,10 +46,10 @@ fun Any.toUnit() = Unit
 infix fun <A, B, C> ((A) -> B).compose(then: (B) -> C): (A) -> C = { then(this(it)) }
 
 /** @return kotlin consumer that invokes java consumer */
-fun <T> consumer(consumer: Consumer<T>?): ((T) -> Unit)? = consumer?.let { { consumer(it) } }
+fun <T> consumer(consumer: Consumer<T>): (T) -> Unit = { consumer(it) }
 
 /** @return kotlin runnable that invokes java runnable */
-fun <T> runnable(runnable: Runnable?): (() -> Unit)? = runnable?.let { { runnable() } }
+fun <T> runnable(runnable: Runnable): () -> Unit = { runnable() }
 
 /** @return return value if it has been initialized or null otherwise */
 fun <T> Lazy<T>.orNull() = if (isInitialized()) value else null

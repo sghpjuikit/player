@@ -14,7 +14,7 @@ import java.util.concurrent.ExecutionException
 private val logger = KotlinLogging.logger {}
 
 /**
- * Thread-safe and type-safe convenience method to execute this task on currect thread.
+ * Thread-safe and type-safe convenience method to execute this task on current thread.
  *
  * Invokes [Task.run] and then [Task.get] on current thread, catching exceptions and wrapping the result in [Result].
  * Does not throw exception (thrown in the task's execution), blocks and is thread-safe.

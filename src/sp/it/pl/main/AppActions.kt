@@ -260,14 +260,9 @@ class AppActions {
         System.gc()
     }
 
-    @IsAction(name = "Search (os)", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
+    @IsAction(name = "Search", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
     fun showSearchPosScreen() {
         showSearch(ScreenPos.SCREEN_CENTER)
-    }
-
-    @IsAction(name = "Search (app)", desc = "Display application search.", keys = "CTRL+I")
-    fun showSearchPosApp() {
-        showSearch(ScreenPos.APP_CENTER)
     }
 
     fun showSearch(pos: ScreenPos) {

@@ -76,7 +76,6 @@ import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.functional.Util;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
 import sp.it.pl.util.validation.InputConstraints;
 import static java.util.Collections.singletonList;
@@ -127,6 +126,8 @@ import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.TAG;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.formIcon;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
+import static sp.it.pl.main.AppDragKt.getAudio;
+import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -139,6 +140,7 @@ import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.UtilKt.createIcon;
 import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.graphics.UtilKt.setTextAlignment;
+import static sp.it.pl.util.graphics.drag.DragUtilKt.handlerAccepting;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /**
@@ -301,7 +303,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         });
 
         // drag & drop content
-        root.setOnDragOver(DragUtil.audioDragAcceptHandler);
+        root.setOnDragOver(handlerAccepting(e -> hasAudio(e.getDragboard())));
         root.setOnDragDropped(drag_dropped_handler);
 
         // remove cover on drag exit
@@ -887,7 +889,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
                        // list will automatically update now
                        list.setItems(allSongs);
                        // support same drag & drop as tagger
-                       list.setOnDragOver(DragUtil.audioDragAcceptHandler);
+                       list.setOnDragOver(handlerAccepting(e -> hasAudio(e.getDragboard())));
                        list.setOnDragDropped(drag_dropped_handler);
 
 
@@ -908,8 +910,8 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
     }
 
     private final EventHandler<DragEvent> drag_dropped_handler = e -> {
-        if (DragUtil.hasAudio(e)) {
-            List<Song> dropped = DragUtil.getAudioItems(e);
+        if (hasAudio(e.getDragboard())) {
+            List<Song> dropped = getAudio(e.getDragboard());
             //end drag transfer
             e.setDropCompleted(true);
             e.consume();

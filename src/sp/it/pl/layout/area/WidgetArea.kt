@@ -9,11 +9,14 @@ import sp.it.pl.layout.widget.Widget.LoadType.MANUAL
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.DelayAnimator
+import sp.it.pl.main.Df
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
+import sp.it.pl.main.contains
+import sp.it.pl.main.get
 import sp.it.pl.util.access.ref.SingleR
 import sp.it.pl.util.access.toggle
-import sp.it.pl.util.graphics.drag.DragUtil
+import sp.it.pl.util.graphics.drag.installDrag
 import sp.it.pl.util.graphics.layFullArea
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.on
@@ -55,11 +58,11 @@ class WidgetArea: Area<Container<*>> {
         contentRoot.layFullArea += content
         contentRoot.layFullArea += controls.root
 
-        DragUtil.installDrag(
+        installDrag(
                 root, IconFA.EXCHANGE, "Switch components",
-                { e -> DragUtil.hasComponent(e) },
-                { e -> DragUtil.getComponent(e).let { it==this.container || it==widget } },
-                { e -> DragUtil.getComponent(e).swapWith(this.container, this.index) }
+                { e -> Df.COMPONENT in e.dragboard },
+                { e -> e.dragboard[Df.COMPONENT].let { it==this.container || it==widget } },
+                { e -> e.dragboard[Df.COMPONENT].swapWith(this.container, this.index) }
         )
 
         loadWidget()

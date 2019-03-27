@@ -24,8 +24,8 @@ import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.WidgetLoader;
 import sp.it.pl.main.AppAnimator;
+import sp.it.pl.main.Df;
 import sp.it.pl.util.animation.Anim;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLONE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
@@ -43,10 +43,15 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.layout.area.Area.STYLECLASS_CONTAINER_AREA_CONTROLS;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
+import static sp.it.pl.main.AppDragKt.contains;
+import static sp.it.pl.main.AppDragKt.get;
+import static sp.it.pl.main.AppDragKt.set;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.mapB;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchors;
+import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 public abstract class ContainerNodeBase<C extends Container<?>> implements ContainerNode {
@@ -98,11 +103,11 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
         Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
 
         // drag
-        DragUtil.installDrag(
+        installDrag(
             ctrls, EXCHANGE, "Switch components",
-            DragUtil::hasComponent,
-            e -> DragUtil.getComponent(e) == container,
-            e -> DragUtil.getComponent(e).swapWith(container.getParent(),container.indexInParent())
+            e -> contains(e.getDragboard(), Df.COMPONENT),
+            e -> get(e.getDragboard(), Df.COMPONENT) == container,
+	        consumer(e -> get(e.getDragboard(), Df.COMPONENT).swapWith(container.getParent(), container.indexInParent()))
         );
 
         // not that dragging children will drag those, dragging container
@@ -110,7 +115,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
         EventHandler<MouseEvent> dh = e -> {
             if (e.getButton()==PRIMARY) {   // primary button drag only
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                DragUtil.setComponent(container,db);
+	            set(db, Df.COMPONENT, container);
                 // signal dragging graphically with css
                 ctrls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
                 e.consume();

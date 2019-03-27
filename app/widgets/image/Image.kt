@@ -11,13 +11,15 @@ import sp.it.pl.layout.widget.controller.io.IsInput
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.getImageFile
+import sp.it.pl.main.getImageFileOrUrl
+import sp.it.pl.main.hasImageFileOrUrl
 import sp.it.pl.main.scaleEM
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cn
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.only
-import sp.it.pl.util.graphics.drag.DragUtil
-import sp.it.pl.util.graphics.drag.DragUtil.installDrag
+import sp.it.pl.util.graphics.drag.installDrag
 import sp.it.pl.util.graphics.image.FitFrom
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.prefSize
@@ -58,9 +60,9 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
 
         installDrag(
                 root, IconMD.DETAILS, "Display",
-                { DragUtil.hasImage(it) },
-                { e -> img!=null && img==DragUtil.getImageNoUrl(e) },
-                { e -> DragUtil.getImage(e) ui { showImage(it) } }
+                { e -> e.dragboard.hasImageFileOrUrl() },
+                { e -> img!=null && img==e.dragboard.getImageFile() },
+                { e -> e.dragboard.getImageFileOrUrl() ui { showImage(it) } }
         )
         root.onEventDown(KEY_PRESSED) {
             when {

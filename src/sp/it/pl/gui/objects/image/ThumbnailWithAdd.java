@@ -3,9 +3,9 @@ package sp.it.pl.gui.objects.image;
 import de.jensd.fx.glyphs.GlyphIcons;
 import java.io.File;
 import java.util.function.Consumer;
+import sp.it.pl.main.AppDragKt;
 import sp.it.pl.util.async.future.Fut;
 import sp.it.pl.util.graphics.drag.DragPane;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
@@ -13,10 +13,13 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static sp.it.pl.main.AppDragKt.getImageFile;
+import static sp.it.pl.main.AppDragKt.hasImageFileOrUrl;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.future.Fut.fut;
 import static sp.it.pl.util.file.FileType.FILE;
-import static sp.it.pl.util.graphics.drag.DragUtil.hasImage;
+import static sp.it.pl.util.functional.UtilKt.consumer;
+import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 
 /**
@@ -54,7 +57,7 @@ public class ThumbnailWithAdd extends Thumbnail {
 		// highlight on hover | drag
 		root.addEventHandler(MOUSE_EXITED, e -> highlight(false));
 		root.addEventHandler(MOUSE_ENTERED, e -> highlight(true));
-		root.addEventHandler(DRAG_OVER, e -> { if (hasImage(e)) onHighlight.accept(true); });
+		root.addEventHandler(DRAG_OVER, e -> { if (hasImageFileOrUrl(e.getDragboard())) onHighlight.accept(true); });
 		root.addEventHandler(DRAG_EXITED, e -> onHighlight.accept(false));
 
 		// add image on click
@@ -70,24 +73,20 @@ public class ThumbnailWithAdd extends Thumbnail {
 		});
 
 		// drag&drop
-		DragUtil.installDrag(
+		installDrag(
 				root, dragIcon, dragDescription,
-				e -> hasImage(e),
+				e -> hasImageFileOrUrl(e.getDragboard()),
 				e -> {
-					// why does the Fut (CompletableFuture) compute without running the Fut ???
-					// now the Fut executes over and over because this event fires like that (btw wtf?)
-					// so the below can not be used right now
-//                Fut<File> fi = getImage(e);
-//                File i = fi.isDone() ? fi.getDone() : null;
-//                boolean same = i!=null && i.equals(except.get());
-
-					File i = DragUtil.getImageNoUrl(e);
+	                // Fut<File> fi = getImage(e);
+	                // File i = fi.isDone() ? fi.getDone() : null;
+	                // boolean same = i!=null && i.equals(except.get());
+					File i = getImageFile(e.getDragboard());
 					return i!=null && i.equals(getFile());  // false if image file is already displayed
 				},
-				e -> {
+				consumer(e -> {
 					if (onFileDropped!=null)
-						onFileDropped.accept(DragUtil.getImage(e));
-				}
+						onFileDropped.accept(AppDragKt.getImageFileOrUrl(e.getDragboard()));
+				})
 		);
 	}
 
@@ -97,4 +96,5 @@ public class ThumbnailWithAdd extends Thumbnail {
 
 		onHighlight.accept(v);
 	}
+
 }

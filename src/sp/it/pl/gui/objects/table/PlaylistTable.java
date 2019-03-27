@@ -28,7 +28,6 @@ import sp.it.pl.gui.objects.contextmenu.ValueContextMenu;
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.fieldvalue.ColumnField;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.reactive.Disposer;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.stream.Collectors.toList;
@@ -41,16 +40,20 @@ import static sp.it.pl.audio.playlist.PlaylistReaderKt.readPlaylist;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.LENGTH;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.NAME;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.TITLE;
+import static sp.it.pl.main.AppDragKt.getAudio;
+import static sp.it.pl.main.AppDragKt.hasAudio;
+import static sp.it.pl.main.AppDragKt.setSongsAndFiles;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
 import static sp.it.pl.util.functional.Util.SAME;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.computeFontWidth;
 import static sp.it.pl.util.graphics.Util.selectRows;
 import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
-import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.attach;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.units.UtilKt.toHMSMs;
@@ -232,11 +235,9 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 		// drag&drop from
 		setOnDragDetected(e -> {
-			if (e.getButton()==PRIMARY && !e.isControlDown() && !getSelectedItems().isEmpty()
-				&& isRowFull(getRowS(e.getSceneX(), e.getSceneY()))) {
-
+			if (e.getButton()==PRIMARY && !e.isControlDown() && !getSelectedItems().isEmpty() && isRowFull(getRowS(e.getSceneX(), e.getSceneY()))) {
 				Dragboard db = startDragAndDrop(TransferMode.COPY);
-				DragUtil.setSongList(getSelectedItemsCopy(), db, true);
+				setSongsAndFiles(db, getSelectedItemsCopy());
 			}
 			e.consume();
 		});
@@ -245,15 +246,15 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		// Note: Empty table has no rows => drag for empty table is handled here
 		installDrag(
 			this, PLAYLIST_PLUS, "Add to playlist",
-			DragUtil::hasAudio,
+			e -> hasAudio(e.getDragboard()),
 			e -> e.getGestureSource()==this,// || !getItemsRaw().isEmpty(),
-			e -> dropDrag(e, getItemsRaw().size())
+			consumer(e -> dropDrag(e, getItemsRaw().size()))
 		);
 		installDrag(
 			this, PLAYLIST_PLUS, "Add to playlist",
 			e -> e.getDragboard().hasFiles() && e.getDragboard().getFiles().stream().anyMatch(it -> isPlaylistFile(it)),
 //			e -> !getItemsRaw().isEmpty(),
-			e -> dropDrag(e, getItemsRaw().size())
+			consumer(e -> dropDrag(e, getItemsRaw().size()))
 		);
 
 		// scroll to playing item
@@ -323,13 +324,14 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 /* --------------------- DRAG AND DROP ------------------------------------------------------------------------------ */
 
 	private void dropDrag(DragEvent e, int index) {
-		if (DragUtil.hasAudio(e)) {
-			List<Song> songs = DragUtil.getAudioItems(e);
+		if (hasAudio(e.getDragboard())) {
+			List<Song> songs = getAudio(e.getDragboard());
 			getPlaylist().addItems(songs, index);
 
 			e.setDropCompleted(true);
 			e.consume();
 		}
+		// TODO: move to Drag utils
 		if (e.getDragboard().hasFiles() && e.getDragboard().getFiles().stream().anyMatch(it -> isPlaylistFile(it))) {
 			List<File> files = e.getDragboard().getFiles();
 			runNew(() ->

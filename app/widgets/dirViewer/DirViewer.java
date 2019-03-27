@@ -32,7 +32,6 @@ import sp.it.pl.util.file.FileFlatter;
 import sp.it.pl.util.file.FileSort;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.Resolution;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.graphics.image.FitFrom;
 import sp.it.pl.util.validation.Constraint;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
@@ -66,6 +65,7 @@ import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.max;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
+import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
 import static sp.it.pl.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
@@ -174,14 +174,13 @@ public class DirViewer extends SimpleController {
         });
 
         // drag & drop
-        DragUtil.installDrag(
+        installDrag(
             root, FOLDER_PLUS, "Explore directory",
-            DragUtil::hasFiles,
-            e -> files.list.setAll(
-                DragUtil.getFiles((e)).stream().allMatch(File::isDirectory)
-                    ? DragUtil.getFiles((e))
-                    : list(getCommonRoot(DragUtil.getFiles((e))))
-            )
+            e -> e.getDragboard().hasFiles(),
+            consumer(e -> {
+                var fs = e.getDragboard().getFiles();
+                files.list.setAll(fs.stream().allMatch(File::isDirectory) ? fs : list(getCommonRoot(fs)));
+            })
         );
 
         fileFlatter.onChange(ff -> revisitCurrent());

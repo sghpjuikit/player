@@ -32,6 +32,7 @@ import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
+import sp.it.pl.main.AppDragKt;
 import sp.it.pl.main.Widgets;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
@@ -42,7 +43,6 @@ import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -238,10 +238,9 @@ public class LibraryView extends SimpleController {
 
         // drag&drop from
         table.setOnDragDetected(e -> {
-            if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty()
-                    && table.isRowFull(table.getRowS(e.getSceneX(), e.getSceneY()))) {
+            if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty() && table.isRowFull(table.getRowS(e.getSceneX(), e.getSceneY()))) {
                 Dragboard db = table.startDragAndDrop(COPY);
-                DragUtil.setSongList(filerListToSelectedNsort(),db,true);
+                AppDragKt.setSongsAndFiles(db, filerListToSelectedNsort());
             }
             e.consume();
         });

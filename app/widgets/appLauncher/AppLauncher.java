@@ -30,7 +30,6 @@ import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.file.FileSort;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.graphics.Resolution;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.ENTER;
@@ -55,7 +54,7 @@ import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
 import static sp.it.pl.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
@@ -141,8 +140,8 @@ public class AppLauncher extends SimpleController {
 
         installDrag(
             root, FontAwesomeIcon.PLUS_SQUARE_ALT, "Add launcher",
-            DragUtil::hasFiles,
-            e -> files.list.addAll(DragUtil.getFiles(e))
+            e -> e.getDragboard().hasFiles(),
+            consumer(e -> files.list.addAll(e.getDragboard().getFiles()))
         );
 
         sync1IfInScene(root, runnable(() -> {

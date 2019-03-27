@@ -10,8 +10,7 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.file.FileType.DIRECTORY
 import sp.it.pl.util.file.FileType.FILE
 import sp.it.pl.util.graphics.Util.layHorizontally
-import sp.it.pl.util.graphics.drag.DragUtil
-import sp.it.pl.util.graphics.drag.DragUtil.getFiles
+import sp.it.pl.util.graphics.drag.handlerAccepting
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.system.chooseFile
 import sp.it.pl.util.validation.Constraint.FileActor
@@ -32,8 +31,8 @@ class FileTextField(constraint: FileActor): ValueTextField<File>({ APP.converter
 
             type sync { b1.icon(if (it==FILE) IconFA.FILE else IconFA.FOLDER) }
         }
-        addEventHandler(DRAG_OVER, DragUtil.accept { e -> getFiles(e).any { constraint.isValid(it) } })
-        addEventHandler(DRAG_DROPPED) { value = getFiles(it).find { constraint.isValid(it) } }
+        addEventHandler(DRAG_OVER, handlerAccepting({ it.dragboard.hasFiles() && it.dragboard.files.any { constraint.isValid(it) } }))
+        addEventHandler(DRAG_DROPPED) { value = it.dragboard.files.find { constraint.isValid(it) } }
     }
 
     override fun onDialogAction() {

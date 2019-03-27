@@ -39,7 +39,6 @@ import sp.it.pl.util.dev.SwitchException;
 import sp.it.pl.util.functional.TriConsumer;
 import sp.it.pl.util.functional.Util;
 import sp.it.pl.util.graphics.Resolution;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.graphics.image.Image2PassLoader;
 import sp.it.pl.util.graphics.image.ImageSize;
 import static albumView.AlbumView.AnimateOn.IMAGE_CHANGE_1ST_TIME;
@@ -51,6 +50,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
+import static sp.it.pl.main.AppDragKt.setSongsAndFiles;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.oneTPExecutor;
@@ -381,7 +381,7 @@ public class AlbumView extends SimpleController {
 				if (e.getButton()==MouseButton.PRIMARY && view.selectedItem.get()!=null) {
 					Dragboard db = thumb.getPane().startDragAndDrop(TransferMode.COPY);
 					if (thumb.getImage()!=null) db.setDragView(thumb.getImage());
-					DragUtil.setSongList(filerListToSelectedNsort(),db,true);
+					setSongsAndFiles(db, filerListToSelectedNsort());
 				}
 				e.consume();
 			});

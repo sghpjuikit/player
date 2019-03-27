@@ -14,16 +14,18 @@ import sp.it.pl.layout.area.ContainerNode;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.type.ClassName;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static org.slf4j.LoggerFactory.getLogger;
 import static sp.it.pl.layout.widget.EmptyWidgetKt.getEmptyWidgetFactory;
+import static sp.it.pl.main.AppDragKt.getText;
+import static sp.it.pl.main.AppDragKt.hasText;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.util.functional.UtilKt.consumer;
+import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 
 /**
  * Component able to store other Components.
@@ -96,19 +98,19 @@ public abstract class Container<G extends ContainerNode> extends Component imple
             root.getRoot(),
             MaterialDesignIcon.DICE_2,
             "Accepts text containing digit '2' and does nothing"
-          + "\n\t• Release mouse to drop drag and execute action"
-          + "\n\t• Continue moving to try elsewhere",
-            e -> DragUtil.hasText(e) && DragUtil.getText(e).contains("2"),
-            e -> {}
+              + "\n\t• Release mouse to drop drag and execute action"
+              + "\n\t• Continue moving to try elsewhere",
+            e -> hasText(e.getDragboard()) && getText(e.getDragboard()).contains("2"),
+            consumer(e -> {})
         );
         installDrag(
             w.load(),
             MaterialDesignIcon.DICE_2,
             "Accepts text containing digit '2' and does nothing"
-          + "\n\t• Release mouse to drop drag and execute action"
-          + "\n\t• Continue moving to try elsewhere",
-            e -> DragUtil.hasText(e) && DragUtil.getText(e).contains("2"),
-            e -> {}
+              + "\n\t• Release mouse to drop drag and execute action"
+              + "\n\t• Continue moving to try elsewhere",
+            e -> hasText(e.getDragboard()) && getText(e.getDragboard()).contains("2"),
+            consumer(e -> {})
         );
 
         return root;

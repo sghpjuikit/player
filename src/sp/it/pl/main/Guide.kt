@@ -44,8 +44,7 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.toUnit
 import sp.it.pl.util.graphics.Util.layHorizontally
-import sp.it.pl.util.graphics.drag.DragUtil
-import sp.it.pl.util.graphics.drag.DragUtil.installDrag
+import sp.it.pl.util.graphics.drag.installDrag
 import sp.it.pl.util.graphics.label
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.vBox
@@ -514,8 +513,8 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGI
                                         ("Accepts text containing digit '2' and does nothing"
                                                 +"\n\t• Release mouse to drop drag and execute action"
                                                 +"\n\t• Continue moving to try elsewhere"),
-                                        { e -> DragUtil.hasText(e) && DragUtil.getText(e).contains("2") },
-                                        { _ -> }
+                                        { e -> e.dragboard.hasText() && e.dragboard.getText().let { "2" in it } },
+                                        { }
                                 )
                                 installDrag(
                                         root.root,
@@ -523,8 +522,8 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGI
                                         ("Accepts text containing digit '2' or '3' and does nothing"
                                                 +"\n\t• Release mouse to drop drag and execute action"
                                                 +"\n\t• Continue moving to try elsewhere"),
-                                        { e -> DragUtil.hasText(e) && (DragUtil.getText(e).contains("2") || DragUtil.getText(e).contains("3")) },
-                                        { _ -> }
+                                        { e -> e.dragboard.hasText() && e.dragboard.getText().let { "2" in it || "3" in it } },
+                                        { }
                                 )
                             }
                         }.withText("Start"),

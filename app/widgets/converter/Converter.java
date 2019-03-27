@@ -41,6 +41,7 @@ import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.Opener;
 import sp.it.pl.layout.widget.feature.SongWriter;
+import sp.it.pl.main.AppDragKt;
 import sp.it.pl.main.Widgets;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.access.VarEnum;
@@ -48,7 +49,6 @@ import sp.it.pl.util.collections.map.ClassListMap;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.file.Util;
 import sp.it.pl.util.functional.Functors.Ƒ0;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.text.StringSplitParser.SplitData;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
@@ -64,6 +64,7 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
+import static sp.it.pl.main.AppDragKt.getAny;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.showAppProgress;
@@ -86,10 +87,11 @@ import static sp.it.pl.util.functional.Util.split;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.Util.streamBi;
 import static sp.it.pl.util.functional.Util.toS;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.graphics.Util.layHorizontally;
 import static sp.it.pl.util.graphics.Util.layStack;
 import static sp.it.pl.util.graphics.Util.layVertically;
-import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 
 @SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal", "unused"})
 @Widget.Info(
@@ -156,8 +158,9 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         // drag&drop
         installDrag(
             root, LIST_ALT, () -> "Set data as input",
-            e -> true, e -> false,
-            e -> setData(DragUtil.getAny(e)),
+            e -> true,
+            e -> false,
+            consumer(e -> setData(getAny(e.getDragboard()))),
             e -> ta_in.getNode().getLayoutBounds()
         );
 
@@ -318,7 +321,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 installDrag(
                     getNode(), OctIcon.DATABASE, () -> "Set data to " + this.name.get() + " edit area",
                     e -> true,
-                    e -> setData(unpackData(DragUtil.getAny(e)))
+                    consumer(e -> setData(unpackData(AppDragKt.getAny(e.getDragboard()))))
                 );
             }
 

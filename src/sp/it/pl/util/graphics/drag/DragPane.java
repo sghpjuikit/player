@@ -51,7 +51,7 @@ public class DragPane extends Placeholder {
 		DragPane.install(r, icon, () -> name, cond);
 	}
 
-	public static void install(Node r, GlyphIcons icon, Supplier<String> name, Predicate<? super DragEvent> cond) {
+	public static void install(Node r, GlyphIcons icon, Supplier<? extends String> name, Predicate<? super DragEvent> cond) {
 		install(r, icon, name, cond, e -> false, null);
 	}
 
@@ -68,16 +68,16 @@ public class DragPane extends Placeholder {
 	 * @param cond predicate filtering the drag events. The highlighting will show if the drag event tests true.
 	 * <p/>
 	 * Must be consistent with the node's DRAG_OVER event handler which accepts the drag in order for highlighting to
-	 * make sense! Check out {@link DragUtil#installDrag(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons,
-	 * java.lang.String, java.util.function.Predicate, java.util.function.Consumer) } which guarantees consistency.
+	 * make sense! Check out {@link sp.it.pl.util.graphics.drag.DragUtilKt#installDrag(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, String, kotlin.jvm.functions.Function1, kotlin.jvm.functions.Function1)}, which
+	 * guarantees consistency.
 	 * <p/>
 	 * Normally, one simple queries the dragboard of the event for type of content. Predicate returning always true will
 	 * cause the drag highlighting to show regardless of the content of the drag - even if the node does not allow the
 	 * content to be dropped.
 	 * <p/>
 	 * It is recommended to build a predicate and use it for drag over handler as well, see {@link
-	 * DragUtil#accept(java.util.function.Predicate) }. This will guarantee absolute consistency in drag highlighting
-	 * and drag accepting behavior.
+	 * sp.it.pl.util.graphics.drag.DragUtilKt#handlerAccepting(kotlin.jvm.functions.Function1)}. This will guarantee
+	 * consistency in drag highlighting and drag accepting behavior.
 	 * @param except Optionally, it is possible to forbid drag highlighting even if the condition tests true. This is
 	 * useful for when node that shouldn't accept given event doesn't wish for any of its parents accept (and highlight
 	 * if installed) the drag. For example node may use this parameter to refuse drag&drop from itself.
@@ -101,7 +101,7 @@ public class DragPane extends Placeholder {
 	 * may be used to calculate size and position of the highlight. The result can be a portion of the node's area and
 	 * even react on mouse drag moving across the node.
 	 */
-	public static void install(Node node, GlyphIcons icon, Supplier<String> name, Predicate<? super DragEvent> cond, Predicate<? super DragEvent> except, Ƒ1<DragEvent,Bounds> area) {
+	public static void install(Node node, GlyphIcons icon, Supplier<? extends String> name, Predicate<? super DragEvent> cond, Predicate<? super DragEvent> except, Ƒ1<DragEvent,Bounds> area) {
 		Data d = new Data(name, icon, cond);
 		node.getProperties().put(INSTALLED, d);
 		node.addEventHandler(DragEvent.DRAG_OVER, e -> {
@@ -160,17 +160,17 @@ public class DragPane extends Placeholder {
 	}
 
 	public static class Data {
-		private final Supplier<String> name;
+		private final Supplier<? extends String> name;
 		private final GlyphIcons icon;
 		private final Predicate<? super DragEvent> cond;
 
-		public Data(Supplier<String> name, GlyphIcons icon) {
+		public Data(Supplier<? extends String> name, GlyphIcons icon) {
 			this.name = name;
 			this.icon = icon;
 			this.cond = IS;
 		}
 
-		public Data(Supplier<String> name, GlyphIcons icon, Predicate<? super DragEvent> cond) {
+		public Data(Supplier<? extends String> name, GlyphIcons icon, Predicate<? super DragEvent> cond) {
 			this.name = name;
 			this.icon = icon;
 			this.cond = cond;

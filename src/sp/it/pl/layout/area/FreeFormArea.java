@@ -16,19 +16,23 @@ import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.container.freeformcontainer.FreeFormContainer;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.util.graphics.drag.DragUtil;
+import sp.it.pl.main.Df;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DASHBOARD;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
+import static sp.it.pl.main.AppDragKt.contains;
+import static sp.it.pl.main.AppDragKt.get;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.functional.Util.findFirstEmptyKey;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.Util.setAnchor;
 import static sp.it.pl.util.graphics.Util.setAnchors;
+import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
 
@@ -68,14 +72,12 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
         // drag
         rt.setOnDragDone(e -> rt.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
-        DragUtil.installDrag(
+        installDrag(
             root, EXCHANGE, () -> "Move component here",
-            DragUtil::hasComponent,
-            e -> container==DragUtil.getComponent(e),
-            e -> DragUtil.getComponent(e).swapWith(container,addEmptyWindowAt(e.getX(),e.getY())),
-            e -> bestRecBounds(e.getX(),e.getY(),null)
-            // alternative implementation
-            // e -> bestRecBounds(e.getX(),e.getY(),getWindow(DragUtil.getComponent(e)))
+            e -> contains(e.getDragboard(), Df.COMPONENT),
+            e -> get(e.getDragboard(), Df.COMPONENT) == container,
+            consumer(e -> get(e.getDragboard(), Df.COMPONENT).swapWith(container,addEmptyWindowAt(e.getX(),e.getY()))),
+            e -> bestRecBounds(e.getX(),e.getY(),null) // alternatively: e -> bestRecBounds(e.getX(),e.getY(),DragUtilKt.get(e, Df.COMPONENT).getWindow()))
         );
 
         rt.widthProperty().addListener((o,ov,nv) -> {

@@ -33,10 +33,11 @@ import sp.it.pl.layout.widget.controller.io.InOutput;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.controller.io.XPut;
+import sp.it.pl.main.AppDragKt;
+import sp.it.pl.main.Df;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.collections.map.Map2D;
 import sp.it.pl.util.collections.map.Map2D.Key;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.pow;
@@ -60,7 +61,7 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
-import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 
 /**
  * Display for {@link sp.it.pl.layout.widget.controller.io.XPut} of components, displaying their relations as am editable graph.
@@ -461,19 +462,19 @@ public class IOLayer extends StackPane {
             // drag&drop
             installDrag(
                 i, null, "",
-                DragUtil::hasAny,
-                e -> {
-                    if (DragUtil.hasWidgetOutput(e)) {
-                        input.bind(DragUtil.getWidgetOutput(e));
+                e -> true,
+                consumer(e -> {
+                    if (AppDragKt.contains(e.getDragboard(), Df.WIDGET_OUTPUT)) {
+                        input.bind((Output) AppDragKt.get(e.getDragboard(), Df.WIDGET_OUTPUT));
                         drawGraph();
                     } else {
-                        Object o = DragUtil.getAny(e);
+                        Object o = AppDragKt.getAny(e.getDragboard());
                         Class c = o.getClass();
                         if (input.type.isAssignableFrom(c)) {
                             input.setValue((T)o);
                         }
                     }
-                }
+                })
             );
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, false));
@@ -497,7 +498,7 @@ public class IOLayer extends StackPane {
 
             // drag&drop
             i.addEventFilter(DRAG_DETECTED,e -> {
-                if (selected) DragUtil.setWidgetOutput(output,i.startDragAndDrop(TransferMode.LINK));
+                if (selected) AppDragKt.set(i.startDragAndDrop(TransferMode.LINK), Df.WIDGET_OUTPUT, output);
                 else editBegin(this);
                 e.consume();
             });
@@ -521,19 +522,19 @@ public class IOLayer extends StackPane {
             // drag&drop
             installDrag(
                 i, null, "",
-                DragUtil::hasWidgetOutput,
-                e -> {
-                    Output o = DragUtil.getWidgetOutput(e);
+                e -> AppDragKt.contains(e.getDragboard(), Df.WIDGET_OUTPUT),
+                consumer(e -> {
+                    Output o = AppDragKt.get(e.getDragboard(), Df.WIDGET_OUTPUT);
                     if (o!=output) {
                         input.bind(o);
                         drawGraph();
                     }
-                }
+                })
             );
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, false));
             i.addEventFilter(DRAG_DETECTED,e -> {
-                if (selected) DragUtil.setWidgetOutput(output,i.startDragAndDrop(TransferMode.LINK));
+                if (selected) AppDragKt.set(i.startDragAndDrop(TransferMode.LINK), Df.WIDGET_OUTPUT, output);
                 else editBegin(this);
                 e.consume();
             });

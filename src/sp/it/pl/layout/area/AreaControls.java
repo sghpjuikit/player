@@ -24,9 +24,9 @@ import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.main.AppAnimator;
+import sp.it.pl.main.Df;
 import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.animation.Anim;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
@@ -46,6 +46,7 @@ import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
+import static sp.it.pl.main.AppDragKt.set;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.functional.UtilKt.runnable;
@@ -153,7 +154,7 @@ public final class AreaControls {
                     area.detach();
                 } else {
                     Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                    DragUtil.setComponent(area.getWidget(), db);
+                    set(db, Df.COMPONENT, area.getWidget());
                     // signal dragging graphically with css
                     root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
                 }

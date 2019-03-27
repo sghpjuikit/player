@@ -38,6 +38,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.scaleEM
+import sp.it.pl.main.setSongsAndFiles
 import sp.it.pl.util.access.Vo
 import sp.it.pl.util.access.fieldvalue.ColumnField
 import sp.it.pl.util.async.runNew
@@ -53,7 +54,6 @@ import sp.it.pl.util.file.FileType.DIRECTORY
 import sp.it.pl.util.file.Util.getCommonRoot
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.graphics.drag.DragUtil
 import sp.it.pl.util.graphics.item
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.prefSize
@@ -197,11 +197,9 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
             }
         }
         table.onEventDown(DRAG_DETECTED) {
-            if (it.button==PRIMARY && !table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY))) {
-                val db = table.startDragAndDrop(COPY)
-                DragUtil.setSongList(table.selectedItemsCopy, db, true)
-            }
             it.consume()
+            if (it.button==PRIMARY && !table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY)))
+                table.startDragAndDrop(COPY).setSongsAndFiles(table.selectedItemsCopy)
         }
         table.onScroll = EventHandler { it.consume() }
 

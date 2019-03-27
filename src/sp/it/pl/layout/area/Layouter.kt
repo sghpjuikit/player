@@ -1,6 +1,5 @@
 package sp.it.pl.layout.area
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE
 import javafx.animation.FadeTransition
 import javafx.animation.Interpolator.LINEAR
 import javafx.animation.ScaleTransition
@@ -18,11 +17,14 @@ import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.container.bicontainer.BiContainer
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
+import sp.it.pl.main.Df
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.contains
+import sp.it.pl.main.get
 import sp.it.pl.main.nodeAnimation
 import sp.it.pl.util.animation.interpolator.CircularInterpolator
 import sp.it.pl.util.animation.interpolator.EasingMode.EASE_OUT
-import sp.it.pl.util.graphics.drag.DragUtil
-import sp.it.pl.util.graphics.drag.DragUtil.installDrag
+import sp.it.pl.util.graphics.drag.installDrag
 import sp.it.pl.util.graphics.layFullArea
 
 /**
@@ -70,10 +72,10 @@ class Layouter: ContainerNode {
         cp.root.scaleX = 0.0
         cp.root.scaleY = 0.0
         installDrag(
-                root, EXCHANGE, "Switch components",
-                { DragUtil.hasComponent(it) },
-                { container===DragUtil.getComponent(it) },
-                { DragUtil.getComponent(it).swapWith(container, index) }
+                root, IconFA.EXCHANGE, "Switch components",
+                { e -> Df.COMPONENT in e.dragboard },
+                { e -> e.dragboard[Df.COMPONENT]===container },
+                { e -> e.dragboard[Df.COMPONENT].swapWith(container, index) }
         )
         clickShowHider = EventHandler {
             if (it.button==PRIMARY) {

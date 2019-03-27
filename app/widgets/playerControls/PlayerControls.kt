@@ -34,6 +34,8 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.PLAYBACK
+import sp.it.pl.main.getAudio
+import sp.it.pl.main.hasAudio
 import sp.it.pl.main.scaleEM
 import sp.it.pl.util.access.toggle
 import sp.it.pl.util.collections.setToOne
@@ -41,9 +43,7 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.graphics.EM
-import sp.it.pl.util.graphics.drag.DragUtil.getAudioItems
-import sp.it.pl.util.graphics.drag.DragUtil.hasAudio
-import sp.it.pl.util.graphics.drag.DragUtil.installDrag
+import sp.it.pl.util.graphics.drag.installDrag
 import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.graphics.prefSize
@@ -83,7 +83,7 @@ import java.io.File
 )
 class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature, HorizontalDock {
 
-    val volume = Slider();
+    val volume = Slider()
     val currTime = Label("00:00")
     val totalTime = Label("00:00")
     val realTime = Label("00:00")
@@ -150,11 +150,8 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
                 root,
                 IconMD.PLAYLIST_PLUS,
                 "Add to active playlist",
-                { e -> hasAudio(e) },
-                { e ->
-                    val items = getAudioItems(e)
-                    PlaylistManager.use { it.addItems(items) }
-                }
+                { e -> e.dragboard.hasAudio() },
+                { e -> PlaylistManager.use { it.addItems(e.dragboard.getAudio()) } }
         )
 
         root.heightProperty().map { it.toDouble()<100.0.scaleEM() } sync {

@@ -39,7 +39,6 @@ import sp.it.pl.util.async.executor.FxTimer;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.graphics.Util;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_RIGHT;
@@ -55,6 +54,10 @@ import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
+import static sp.it.pl.main.AppDragKt.getAudio;
+import static sp.it.pl.main.AppDragKt.hasAudio;
+import static sp.it.pl.main.AppDragKt.hasImageFileOrUrl;
+import static sp.it.pl.main.AppDragKt.hasImageFilesOrUrl;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.showAppProgress;
@@ -71,7 +74,7 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
-import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 @SuppressWarnings({"WeakerAccess", "unused", "FieldCanBeLocal"})
@@ -261,26 +264,26 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
 
         // drag&drop
         installDrag(
-            root, DETAILS,"Display",
-            e -> DragUtil.hasImage(e) || DragUtil.hasAudio(e) || DragUtil.hasFiles(e),
+            root, DETAILS, "Display",
+            e -> hasImageFileOrUrl(e.getDragboard()) || hasAudio(e.getDragboard()) || e.getDragboard().hasFiles(),
             e -> e.getGestureSource()==mainImage.getPane(),
-            e -> {
+            consumer(e -> {
                 if (e.getDragboard().hasFiles()) {
                     dataChanged(getCommonRoot(e.getDragboard().getFiles()));
                     return;
                 }
-                if (DragUtil.hasAudio(e)) {
+                if (hasAudio(e.getDragboard())) {
                     // get first item
-                    List<Song> songs = DragUtil.getAudioItems(e);
+                    List<Song> songs = getAudio(e.getDragboard());
                     if (!songs.isEmpty()) dataChanged(songs.get(0));
                 } else
-                if (DragUtil.hasImage(e)) {
+                if (hasImageFileOrUrl(e.getDragboard())) {
                     showAppProgress(
-                        DragUtil.getImages(e).useBy(FX, this::showImages),
+                        hasImageFilesOrUrl(e.getDragboard()).useBy(FX, this::showImages),
                         widget.custom_name.getValue() + "Loading images"
                     );
                 }
-            }
+            })
         );
 
         // forbid app scrolling when thumbnails are visible

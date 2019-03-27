@@ -36,13 +36,13 @@ import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.container.switchcontainer.SwitchContainer;
 import sp.it.pl.layout.container.switchcontainer.SwitchPane;
 import sp.it.pl.main.AppProgress;
+import sp.it.pl.main.Df;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.action.Action;
 import sp.it.pl.util.action.ActionManager;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
 import sp.it.pl.util.async.executor.EventReducer;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import sp.it.pl.util.reactive.Disposer;
 import sp.it.pl.util.reactive.Subscription;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
@@ -89,6 +89,8 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.Resize.NONE;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
+import static sp.it.pl.main.AppDragKt.contains;
+import static sp.it.pl.main.AppDragKt.getAnyFut;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.access.SequentialValue.next;
 import static sp.it.pl.util.access.SequentialValue.previous;
@@ -106,6 +108,7 @@ import static sp.it.pl.util.graphics.UtilKt.getScreen;
 import static sp.it.pl.util.graphics.UtilKt.initClip;
 import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
+import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 /** Window for application. */
@@ -170,11 +173,11 @@ public class Window extends WindowBase {
 		});
 
 		// drag&drop
-		DragUtil.installDrag(
+		installDrag(
 			root, GAVEL,
 			"Display possible actions\n\nMoving the drag elsewhere may offer other actions",
-			e -> !DragUtil.hasWidgetOutput(e),
-			e -> APP.actionPane.show(DragUtil.getAnyFut(e))
+			e -> !contains(e.getDragboard(), Df.WIDGET_OUTPUT),
+			consumer(e -> APP.actionPane.show(getAnyFut(e.getDragboard())))
 		);
 
 		// maintain custom pseudoclasses for .window styleclass

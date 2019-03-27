@@ -14,8 +14,8 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.layout.TilePane;
-import sp.it.pl.audio.Song;
 import sp.it.pl.audio.Player;
+import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.Metadata.Field;
 import sp.it.pl.audio.tagging.MetadataWriter;
@@ -37,7 +37,6 @@ import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.Config.PropertyConfig;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.graphics.drag.DragUtil;
 import static java.lang.Double.max;
 import static java.lang.Integer.max;
 import static java.lang.Math.ceil;
@@ -75,6 +74,8 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TRACK_INFO;
 import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
+import static sp.it.pl.main.AppDragKt.getAudio;
+import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -85,8 +86,7 @@ import static sp.it.pl.util.file.Util.copyFiles;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.graphics.drag.DragUtil.hasAudio;
-import static sp.it.pl.util.graphics.drag.DragUtil.installDrag;
+import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
 
 @Widget.Info(
@@ -225,8 +225,8 @@ public class FileInfo extends SimpleController implements SongReader {
         // drag & drop
         installDrag(
             root, MaterialIcon.DETAILS, "Display",
-            e -> hasAudio(e),
-            e -> DragUtil.getSongs(e).useBy(FX, items -> items.findFirst().ifPresent(this::read))
+            e -> hasAudio(e.getDragboard()),
+            consumer(e -> getAudio(e.getDragboard()).stream().findFirst().ifPresent(this::read))
         );
     }
 

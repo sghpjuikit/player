@@ -53,16 +53,20 @@ Due to mouse polling (using a native library), blocking all threads (like on a b
 
 ## Widgets
 
-Widgets are compiled and loaded by the application and their development is completely standalone. But for syntax highlighting and error reporting they are set up as a separate module.
+Widgets are compiled and loaded by the application, their development is completely standalone and can be done while the application is running.
+It also does not require an IDE or any setup whatsoever.
+
+The widgets bundled with the application are no different, but for convenience, they are part of the project as separate modules.
+This allows auto-completion, syntax highlighting as well as build failure when any widget fails to compile.
+Simply put, they seem as though they are ordinary project source files.
 
 - Creating a widget is done by creating a widget directory   
   To create widget `MyWidget`:
-   - Create `app/widgets/mywidget` widget directory (name must be [java package name](https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html)
+   - Create `app/widgets/myWidget` widget directory (should be [java package name](https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html)
    - `app/widgets/mywidget/MyWidget.kt` kotlin (.kt) or java (.java) source file
-   - declare package `package mywidget` which is the name of the directory
-   - there, declare a top level class `MyWidget` (must be the same as the name of the directory, use [camel case](https://en.wikipedia.org/wiki/Camel_case))
+   - declare package `package myWidget` which is the name of the directory
+   - there, declare a top level class `MyWidget` (must be the same as the name of the directory, capitalized [camel case](https://en.wikipedia.org/wiki/Camel_case))
    - and extend `sp.it.pl.layout.widget.controller.SimpleController`
-   - [app/widgets/mywidget](app/widgets/mywidget) directory
 - To delete widget delete the widget directory
 
 Developing a widget carries several conveniences:

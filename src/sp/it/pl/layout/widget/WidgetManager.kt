@@ -45,15 +45,15 @@ import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.div
 import sp.it.pl.util.file.hasExtension
+import sp.it.pl.util.file.isAnyChildOf
 import sp.it.pl.util.file.isAnyParentOf
 import sp.it.pl.util.file.isParentOf
 import sp.it.pl.util.file.listChildren
-import sp.it.pl.util.file.parentDir
-import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.file.toURLOrNull
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.asArray
+import sp.it.pl.util.functional.ifFalse
 import sp.it.pl.util.functional.ifNull
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.orNull
@@ -116,22 +116,18 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         factoriesC += emptyWidgetFactory
 
         // external factories
-        val isMetaInfWidget: File.() -> Boolean = { path.contains("META-INF") }
         val dirW = APP.DIR_WIDGETS
         if (!isValidatedDirectory(dirW)) {
             logger.error { "External widgets registration failed." }
         } else {
-            dirW.listChildren()
-                    .filter { it.isDirectory && !it.isMetaInfWidget() }
-                    .forEach { widgetDir ->
-                        val name = widgetDir.nameWithoutExtension.capitalize()
-                        monitors.computeIfAbsent(name) { WidgetDir(name, widgetDir) }.registerExternalFactory()
-                    }
+            dirW.listChildren().filter { it.isDirectory }.forEach { widgetDir ->
+                val name = widgetDir.nameWithoutExtension.capitalize()
+                monitors.computeIfAbsent(name) { WidgetDir(name, widgetDir) }.registerExternalFactory()
+            }
 
             FileMonitor.monitorDirectory(dirW, true) { type, f ->
                 when {
                     dirW==f -> {}
-                    dirW.isMetaInfWidget() -> {}
                     dirW isParentOf f -> {
                         val name = f.nameWithoutExtension.capitalize()
                         if (type===ENTRY_CREATE) {
@@ -223,25 +219,24 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
     }
 
     private inner class WidgetDir constructor(val widgetName: String, val widgetDir: File) {
-        val skinFile = File(widgetDir, "skin.css")
-        val scheduleRefresh = EventReducer.toLast<Void>(500.0) { registerExternalFactory() }
+        val skinFile = widgetDir/"skin.css"
+        val compileDir = widgetDir/"out"
         val scheduleCompilation = EventReducer.toLast<Void>(500.0) { compileFx() }
 
         /** @return primary source file (either Kotlin or Java) or null if none exists */
         fun findSrcFile() = null
-                ?: widgetDir.childOf("$widgetName.java").takeIf { it.exists() }
                 ?: widgetDir.childOf("$widgetName.kt").takeIf { it.exists() }
+                ?: widgetDir.childOf("$widgetName.java").takeIf { it.exists() }
 
         fun findSrcFiles() = widgetDir.seqChildren().filter { it.hasExtension("java", "kt") }
 
-        fun findClassFile() = widgetDir/"$widgetName.class"
+        fun findClassFile() = compileDir/widgetName.decapitalize()/"$widgetName.class"
 
-        fun findClassFiles() = widgetDir.seqChildren().filter { it hasExtension "class" }
+        fun findClassFiles() = compileDir.walk().filter { it hasExtension "class" }
 
         fun computeClassPath(): String = computeClassPathElements().joinToString(classpathSeparator)
 
-        private fun computeClassPathElements() = sequenceOf(".")+getAppJarFile()+
-                (findAppLibFiles()+sequenceOf(widgetDir)+findLibFiles()).map { it.relativeToApp() }
+        private fun computeClassPathElements() = getAppJarFile()+(findAppLibFiles()+compileDir+findLibFiles()).map { it.relativeToApp() }
 
         private fun findLibFiles() = widgetDir.seqChildren().filterSourceJars()
 
@@ -280,11 +275,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                                     }
                                 }
                     }
-                    file hasExtension "class" -> {
-                        logger.info { "Widget=$widgetName class file=${file.name} changed $type" }
-                        if (widgets.autoRecompile.value && widgets.autoRecompileSupported)
-                            scheduleRefresh()
-                    }
+                    file==compileDir || file.isAnyChildOf(compileDir) -> {}
+                    file hasExtension "class" -> {}
                     else -> {
                         logger.info { "Widget=$widgetName source file=${file.name} changed $type" }
                         if (widgets.autoRecompile.value && widgets.autoRecompileSupported)
@@ -308,8 +300,6 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             val srcFiles = findSrcFiles().toList()
             val srcFilesKt = srcFiles.filter { it hasExtension "kt" }
             val srcFilesJava = srcFiles.filter { it hasExtension "java" }
-            val srcFilesKtExist = srcFilesKt.isNotEmpty()
-            val srcFilesJavaExist = srcFilesJava.isNotEmpty()
             val classFile = findClassFile()
             val classFiles = findClassFiles().toList()
             val classFilesKt = classFiles.filter { cf -> srcFilesKt.any { sf -> sf.nameWithoutExtension==cf.nameWithoutExtension } }
@@ -319,19 +309,14 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             val classFileAvailableKt = classFilesKt modifiedAfter srcFilesKt
             val classFileAvailableJava = classFilesJava modifiedAfter srcFilesJava
             val classFileAvailable = classFile.exists() && classFileAvailableKt && classFileAvailableJava
-            val isKtJavaCompilationRequired = srcFilesKtExist && srcFilesJavaExist
-            val isKtJavaCompilationActive = isKtJavaCompilationRequired && (classFileAvailableKt xor classFileAvailableJava)
-
-            if (isKtJavaCompilationActive) return
 
             logger.info { "Widget=$widgetName factory update, source files available=$srcFileAvailable class files available=$classFileAvailable" }
 
             if (classFileAvailable) {
-                val controllerType = loadClass(widgetDir.nameWithoutExtension, classFile, findLibFiles())
+                val controllerType = loadClass(widgetDir.nameWithoutExtension, classFile, compileDir, findLibFiles())
                 createFactory(controllerType, widgetDir)
             } else if (srcFileAvailable) {
-                if (!widgets.blockInitialization.value || initialized) compileFx()
-                else compile().ifOk { registerExternalFactory() }
+                compileFx()
             }
         }
 
@@ -348,12 +333,19 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             }.onDone(FX) {
                 reportDone(it)
                 factories.factoriesInCompilation -= widgetName
-                it.or { Try.error("Widget $widgetName Compilation failed due to unspecified error") }.ifError { userErrorLogger(it) }
+                val result = it.or { Try.error("Widget $widgetName Compilation failed due to unspecified error") }
+                if (result.isOk) registerExternalFactory()
+                result.ifError { userErrorLogger(it) }
             }
         }
 
         private fun compile(): Try<Void, String> {
             logger.info { "Widget=$widgetName compiling..." }
+
+            val errorText = "Widget $widgetName failed to compile. Reason:"
+
+            if (compileDir.exists()) compileDir.deleteRecursively().ifFalse { return Try.error("$errorText Failed to delete $compileDir") }
+            compileDir.mkdirs().ifFalse { return Try.error("$errorText Failed to create $compileDir") }
 
             val srcFiles = findSrcFiles().toList()
             val hasKotlin = srcFiles.any { it hasExtension "kt" }
@@ -364,13 +356,14 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 hasJava -> compileJava(srcFiles.asSequence())
                 else -> Try.error("No source files available")
             }
-            return result.mapError { "Widget $widgetName failed to compile. Reason: $it" }
+            return result.mapError { "$errorText  $it" }
         }
 
         /** Compiles specified .java files into .class files. */
         private fun compileJava(javaSrcFiles: Sequence<File>): Try<Void, String> {
             val options = sequenceOf(
                     "-encoding", APP.encoding.name(),
+                    "-d", compileDir.relativeToApp(),
                     "-Xlint",
                     "-Xlint:-path",
                     "-Xlint:-processing",
@@ -401,7 +394,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 }
                 val command = listOf(
                         compilerFile.absolutePath,
-                        "-d", APP.DIR_WIDGETS.relativeToApp(),
+                        "-d", compileDir.relativeToApp(),
                         "-jdk-home", APP.DIR_APP.childOf("java").relativeToApp(),
                         "-jvm-target", "1.8",
                         "-cp", computeClassPath(),
@@ -441,10 +434,6 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
 
         @IsConfig(name = "Recompile all widgets", info = "Re-compiles every widget. Useful when auto-compilation is disabled or unsupported.")
         val recompile by cr { monitors.forEach { it.scheduleCompilation() } }
-
-        @IsConfig(name = "Wait to compile", info = "If application needs to compile widgets when it starts, it will delay start " +
-                "until compilation completes.  Otherwise app will start immediately and any open widgets will load later as they get compiled.")
-        val blockInitialization by cv(false)
 
         /** Widgets that are not part of layout. */
         private val standaloneWidgets: MutableList<Widget> = ArrayList()
@@ -621,12 +610,11 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
     companion object: KLogging() {
 
         /** @return new instance of a class represented by specified class file using one shot class loader or null if error */
-        private fun loadClass(widgetName: String, classFile: File, libFiles: Sequence<File>): Class<*>? {
+        private fun loadClass(widgetName: String, classFile: File, compileDir: File, libFiles: Sequence<File>): Class<*>? {
             val className = "$widgetName.${classFile.nameWithoutExtension}"
-            val dir = classFile.parentDir!!
 
             return try {
-                createControllerClassLoader(dir, libFiles)
+                createControllerClassLoader(compileDir, libFiles)
                         .ifNull { logger.info { "Class loading failed for $classFile" } }
                         ?.loadClass(className)
             } catch (e: ClassNotFoundException) {
@@ -636,8 +624,8 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         }
 
         /** @return new class loader using specified files to load classes and resources from or null if error */
-        private fun createControllerClassLoader(dir: File, libFiles: Sequence<File>): ClassLoader? {
-            return (libFiles+dir.parentDirOrRoot)
+        private fun createControllerClassLoader(compileDir: File, libFiles: Sequence<File>): ClassLoader? {
+            return (libFiles+compileDir)
                     .map { it.toURLOrNull().ifNull { logger.error { "Failed to construct class loader due to invalid URL of file=$it" } } }
                     .asArray()
                     .takeIf { it.all { it!=null } }

@@ -8,7 +8,6 @@ app/kotlinc
 app/user
 app/vlc/
 app/widgets/**/*class
-app/widgets/META-INF/
 app/PlayerFX.jar
 private/
 *.log

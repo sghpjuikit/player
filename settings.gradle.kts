@@ -7,7 +7,7 @@ rootProject.apply {
         name = "widgets"
         projectDir = file("app")
 
-        file("app/widgets").listFiles().filter { it.name!="META-INF" }.forEach {
+        file("app/widgets").listFiles().forEach {
             include(":widgets:${it.name}")
             project(":widgets:${it.name}").apply {
                 name = "player-widgets-${it.name}"

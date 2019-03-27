@@ -1,4 +1,4 @@
-package sp.it.pl.util.file.mimetype
+package sp.it.pl.util.file.type
 
 data class MimeExt(val name: String) {
 

@@ -4,9 +4,9 @@ import javafx.scene.image.Image
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.WindowsShortcut
 import sp.it.pl.util.file.div
-import sp.it.pl.util.file.mimetype.MimeExt.Companion.exe
-import sp.it.pl.util.file.mimetype.MimeExt.Companion.lnk
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
+import sp.it.pl.util.file.type.MimeExt.Companion.exe
+import sp.it.pl.util.file.type.MimeExt.Companion.lnk
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.runIf
 import sp.it.pl.util.graphics.image.toFX

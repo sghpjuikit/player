@@ -2,8 +2,8 @@ package sp.it.pl.util.file
 
 import sp.it.pl.util.access.VarEnum
 import sp.it.pl.util.file.Util.getSuffix
-import sp.it.pl.util.file.mimetype.MimeTypes
-import sp.it.pl.util.file.mimetype.mimeType
+import sp.it.pl.util.file.type.MimeTypes
+import sp.it.pl.util.file.type.mimeType
 import sp.it.pl.util.functional.Functors
 import java.io.File
 

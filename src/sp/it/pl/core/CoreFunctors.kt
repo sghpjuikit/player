@@ -27,11 +27,11 @@ import sp.it.pl.util.file.AudioFileFormat.Use.APP
 import sp.it.pl.util.file.AudioFileFormat.Use.PLAYBACK
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.WindowsShortcut
-import sp.it.pl.util.file.mimetype.MimeExt
-import sp.it.pl.util.file.mimetype.MimeType
-import sp.it.pl.util.file.mimetype.mimeType
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
+import sp.it.pl.util.file.type.MimeExt
+import sp.it.pl.util.file.type.MimeType
+import sp.it.pl.util.file.type.mimeType
 import sp.it.pl.util.functional.Functors
 import sp.it.pl.util.functional.Util.IS
 import sp.it.pl.util.functional.Util.ISØ

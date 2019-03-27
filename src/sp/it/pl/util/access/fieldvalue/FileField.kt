@@ -7,10 +7,10 @@ import com.drew.metadata.xmp.XmpDirectory
 import mu.KotlinLogging
 import sp.it.pl.util.dev.failCase
 import sp.it.pl.util.file.FileType
-import sp.it.pl.util.file.mimetype.MimeType
-import sp.it.pl.util.file.mimetype.mimeType
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
+import sp.it.pl.util.file.type.MimeType
+import sp.it.pl.util.file.type.mimeType
 import sp.it.pl.util.localDateTimeFromMillis
 import sp.it.pl.util.units.FileSize
 import java.io.File

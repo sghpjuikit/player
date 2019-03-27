@@ -2,8 +2,8 @@ package sp.it.pl.util.graphics.image
 
 import javafx.scene.image.Image
 import mu.KotlinLogging
-import sp.it.pl.util.file.mimetype.MimeType
-import sp.it.pl.util.file.mimetype.mimeType
+import sp.it.pl.util.file.type.MimeType
+import sp.it.pl.util.file.type.mimeType
 import sp.it.pl.util.graphics.IconExtractor
 import sp.it.pl.util.graphics.image.ImageLoader.Params
 import java.io.File

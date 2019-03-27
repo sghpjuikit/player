@@ -82,7 +82,7 @@ import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.div
 import sp.it.pl.util.file.hasExtension
-import sp.it.pl.util.file.mimetype.MimeTypes
+import sp.it.pl.util.file.type.MimeTypes
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.graphics.image.getImageDim
 import sp.it.pl.util.reactive.Handler0

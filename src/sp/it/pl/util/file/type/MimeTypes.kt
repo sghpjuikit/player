@@ -1,4 +1,4 @@
-package sp.it.pl.util.file.mimetype
+package sp.it.pl.util.file.type
 
 import sp.it.pl.util.file.Util.getSuffix
 import java.io.File

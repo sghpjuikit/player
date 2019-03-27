@@ -138,7 +138,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
                 root,
                 IconFA.LIST_ALT,
                 "Inspect",
-                { e -> true },
+                { true },
                 { e -> open(e.dragboard.getAny()) }
         )
         root.onScroll = EventHandler { it.consume() } // prevent scrolling event from propagating

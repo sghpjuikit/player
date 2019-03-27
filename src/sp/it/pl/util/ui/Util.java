@@ -1,4 +1,4 @@
-package sp.it.pl.util.graphics;
+package sp.it.pl.util.ui;
 
 import java.util.List;
 import java.util.function.Consumer;

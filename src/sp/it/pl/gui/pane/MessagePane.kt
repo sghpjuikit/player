@@ -5,10 +5,10 @@ import javafx.geometry.Pos.CENTER
 import javafx.geometry.VPos
 import javafx.scene.text.TextAlignment
 import sp.it.pl.gui.objects.Text
-import sp.it.pl.util.graphics.Util.layScrollVTextCenter
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.setMinPrefMaxSize
-import sp.it.pl.util.graphics.stackPane
+import sp.it.pl.util.ui.Util.layScrollVTextCenter
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.setMinPrefMaxSize
+import sp.it.pl.util.ui.stackPane
 
 class MessagePane: OverlayPane<String>() {
 

@@ -5,17 +5,17 @@ import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.HBox
-import sp.it.pl.audio.Song
 import sp.it.pl.audio.Player
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY
 import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.util.async.runOn
-import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
-import sp.it.pl.util.graphics.setAnchors
 import sp.it.pl.util.identityHashCode
+import sp.it.pl.util.ui.fxml.ConventionFxmlLoader
+import sp.it.pl.util.ui.setAnchors
 
 /** Basic display for song information. */
 class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), SongReader {

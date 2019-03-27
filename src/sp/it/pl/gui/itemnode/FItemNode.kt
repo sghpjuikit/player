@@ -13,8 +13,8 @@ import sp.it.pl.util.conf.Config.AccessorConfig
 import sp.it.pl.util.functional.Functors
 import sp.it.pl.util.functional.Functors.PƑ
 import sp.it.pl.util.functional.Functors.Ƒ1
-import sp.it.pl.util.graphics.hBox
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.ui.hBox
 import java.util.ArrayList
 import java.util.function.Consumer
 import java.util.function.Supplier

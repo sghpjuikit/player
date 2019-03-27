@@ -9,14 +9,14 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.SkinBase
 import javafx.scene.layout.StackPane
 import javafx.scene.shape.Arc
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.maxSize
-import sp.it.pl.util.graphics.stackPane
-import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.maxSize
+import sp.it.pl.util.ui.stackPane
+import sp.it.pl.util.ui.x
 import sp.it.pl.util.units.millis
 import sp.it.pl.util.units.seconds
 

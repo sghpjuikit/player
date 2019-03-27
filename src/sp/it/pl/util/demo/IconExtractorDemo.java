@@ -11,7 +11,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import sp.it.pl.util.graphics.IconExtractor;
+import sp.it.pl.util.ui.IconExtractor;
 import static javafx.collections.FXCollections.observableArrayList;
 
 class IconExtractorDemo extends Application {

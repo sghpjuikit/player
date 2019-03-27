@@ -43,13 +43,13 @@ import javafx.scene.shape.Rectangle
 import sp.it.pl.main.IconFA
 import sp.it.pl.util.Util.clip
 import sp.it.pl.util.collections.setTo
-import sp.it.pl.util.graphics.createIcon
-import sp.it.pl.util.graphics.hBox
-import sp.it.pl.util.graphics.pseudoclass
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.syncFrom
+import sp.it.pl.util.ui.createIcon
+import sp.it.pl.util.ui.hBox
+import sp.it.pl.util.ui.pseudoclass
 import java.lang.Math.ceil
 
 /** Skin for [Rating]. */

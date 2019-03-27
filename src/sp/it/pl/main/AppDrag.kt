@@ -19,9 +19,9 @@ import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.getFilesAudio
 import sp.it.pl.util.functional.Util.listRO
-import sp.it.pl.util.graphics.drag.DataFormat
-import sp.it.pl.util.graphics.drag.contains
-import sp.it.pl.util.graphics.drag.get
+import sp.it.pl.util.ui.drag.DataFormat
+import sp.it.pl.util.ui.drag.contains
+import sp.it.pl.util.ui.drag.get
 import java.io.File
 import java.io.IOException
 import java.net.URI

@@ -13,8 +13,8 @@ import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.asArray
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.net
-import sp.it.pl.util.graphics.menuItem
-import sp.it.pl.util.graphics.menuSeparator
+import sp.it.pl.util.ui.menuItem
+import sp.it.pl.util.ui.menuSeparator
 
 val contextMenuGenerator = ContextMenuGenerator()
 

@@ -54,8 +54,8 @@ import static sp.it.pl.util.functional.Util.repeat;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.Util.layHeaderTop;
 import static sp.it.pl.util.reactive.UtilKt.onChange;
+import static sp.it.pl.util.ui.Util.layHeaderTop;
 
 public class GridViewSkin<T, F> implements Skin<GridView> {
 

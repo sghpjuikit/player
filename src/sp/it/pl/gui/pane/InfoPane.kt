@@ -16,15 +16,15 @@ import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.main.APP
 import sp.it.pl.main.infoIcon
 import sp.it.pl.util.conf.MultiConfigurable
-import sp.it.pl.util.graphics.Util.layVertically
-import sp.it.pl.util.graphics.hBox
-import sp.it.pl.util.graphics.label
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.scrollPane
-import sp.it.pl.util.graphics.stackPane
-import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.system.copyToSysClipboard
 import sp.it.pl.util.toLocalDateTime
+import sp.it.pl.util.ui.Util.layVertically
+import sp.it.pl.util.ui.hBox
+import sp.it.pl.util.ui.label
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.scrollPane
+import sp.it.pl.util.ui.stackPane
+import sp.it.pl.util.ui.vBox
 import sp.it.pl.util.units.javafx
 import sp.it.pl.util.units.toHMSMs
 

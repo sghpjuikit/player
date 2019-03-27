@@ -1,4 +1,4 @@
-package sp.it.pl.util.graphics
+package sp.it.pl.util.ui
 
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FreeSpec

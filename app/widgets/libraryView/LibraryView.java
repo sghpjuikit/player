@@ -73,11 +73,11 @@ import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.Util.menuItem;
-import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.reactive.UtilKt.onChange;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
+import static sp.it.pl.util.ui.Util.menuItem;
+import static sp.it.pl.util.ui.UtilKt.pseudoclass;
 
 @Info(
     author = "Martin Polakovic",

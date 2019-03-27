@@ -69,10 +69,6 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.graphics.centre
-import sp.it.pl.util.graphics.getScreen
-import sp.it.pl.util.graphics.size
-import sp.it.pl.util.graphics.toP
 import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.on
@@ -81,6 +77,10 @@ import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1If
 import sp.it.pl.util.system.Os
 import sp.it.pl.util.type.Util
+import sp.it.pl.util.ui.centre
+import sp.it.pl.util.ui.getScreen
+import sp.it.pl.util.ui.size
+import sp.it.pl.util.ui.toP
 import sp.it.pl.util.units.millis
 import java.util.ArrayList
 

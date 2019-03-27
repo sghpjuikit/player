@@ -18,14 +18,14 @@ import sp.it.pl.util.action.Action
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.util.conf.cv
-import sp.it.pl.util.graphics.Util.layVertically
-import sp.it.pl.util.graphics.hBox
-import sp.it.pl.util.graphics.label
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.scrollPane
-import sp.it.pl.util.graphics.stackPane
-import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.ui.Util.layVertically
+import sp.it.pl.util.ui.hBox
+import sp.it.pl.util.ui.label
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.scrollPane
+import sp.it.pl.util.ui.stackPane
+import sp.it.pl.util.ui.vBox
 
 class ShortcutPane(override val configurableDiscriminant: String): OverlayPane<Collection<Action>>(), MultiConfigurable {
 

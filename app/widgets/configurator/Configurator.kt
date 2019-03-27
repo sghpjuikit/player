@@ -28,15 +28,15 @@ import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.functional.recurse
-import sp.it.pl.util.graphics.expandToRootAndSelect
-import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
-import sp.it.pl.util.graphics.hBox
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.prefSize
-import sp.it.pl.util.graphics.propagateESCAPE
-import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.on
+import sp.it.pl.util.ui.expandToRootAndSelect
+import sp.it.pl.util.ui.fxml.ConventionFxmlLoader
+import sp.it.pl.util.ui.hBox
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.prefSize
+import sp.it.pl.util.ui.propagateESCAPE
+import sp.it.pl.util.ui.x
 import java.util.ArrayList
 
 @Suppress("MemberVisibilityCanBePrivate")

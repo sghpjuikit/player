@@ -8,8 +8,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import sp.it.pl.util.reactive.Subscription;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.ui.UtilKt.pseudoclass;
 
 /**
  * Very simple alternative CheckBox control.

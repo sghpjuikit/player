@@ -88,10 +88,10 @@ import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.Util.streamBi;
 import static sp.it.pl.util.functional.Util.toS;
 import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.graphics.Util.layHorizontally;
-import static sp.it.pl.util.graphics.Util.layStack;
-import static sp.it.pl.util.graphics.Util.layVertically;
-import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
+import static sp.it.pl.util.ui.Util.layHorizontally;
+import static sp.it.pl.util.ui.Util.layStack;
+import static sp.it.pl.util.ui.Util.layVertically;
+import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 @SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal", "unused"})
 @Widget.Info(

@@ -6,12 +6,12 @@ import javafx.stage.Screen
 import javafx.stage.Window
 import sp.it.pl.main.APP
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.graphics.centreX
-import sp.it.pl.util.graphics.centreY
-import sp.it.pl.util.graphics.getScreenForMouse
-import sp.it.pl.util.graphics.screen
-import sp.it.pl.util.graphics.size
 import sp.it.pl.util.math.P
+import sp.it.pl.util.ui.centreX
+import sp.it.pl.util.ui.centreY
+import sp.it.pl.util.ui.getScreenForMouse
+import sp.it.pl.util.ui.screen
+import sp.it.pl.util.ui.size
 
 // TODO: add css support for the gap value
 // gap between screen border and the popover

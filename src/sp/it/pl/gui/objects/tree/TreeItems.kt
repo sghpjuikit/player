@@ -65,9 +65,6 @@ import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.nameOrRoot
 import sp.it.pl.util.file.parentDir
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.graphics.createIcon
-import sp.it.pl.util.graphics.isAnyParentOf
-import sp.it.pl.util.graphics.root
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.attach
@@ -78,6 +75,9 @@ import sp.it.pl.util.system.open
 import sp.it.pl.util.text.plural
 import sp.it.pl.util.type.Util.getFieldValue
 import sp.it.pl.util.type.nullify
+import sp.it.pl.util.ui.createIcon
+import sp.it.pl.util.ui.isAnyParentOf
+import sp.it.pl.util.ui.root
 import java.io.File
 import java.nio.file.Path
 import java.util.ArrayList

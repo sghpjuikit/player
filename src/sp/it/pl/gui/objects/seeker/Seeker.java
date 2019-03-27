@@ -76,10 +76,10 @@ import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.functional.Util.minBy;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.Util.layHeaderRight;
-import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
-import static sp.it.pl.util.graphics.UtilKt.typeText;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.ui.Util.layHeaderRight;
+import static sp.it.pl.util.ui.UtilKt.pseudoclass;
+import static sp.it.pl.util.ui.UtilKt.typeText;
 import static sp.it.pl.util.units.UtilKt.toHMSMs;
 
 /**

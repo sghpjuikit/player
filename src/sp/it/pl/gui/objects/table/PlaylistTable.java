@@ -50,12 +50,12 @@ import static sp.it.pl.util.functional.Util.SAME;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.graphics.Util.computeFontWidth;
-import static sp.it.pl.util.graphics.Util.selectRows;
-import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
-import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.attach;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.ui.Util.computeFontWidth;
+import static sp.it.pl.util.ui.Util.selectRows;
+import static sp.it.pl.util.ui.UtilKt.pseudoclass;
+import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.units.UtilKt.toHMSMs;
 
 /**

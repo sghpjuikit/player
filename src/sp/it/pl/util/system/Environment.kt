@@ -31,7 +31,7 @@ import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.Try.ok
 import sp.it.pl.util.functional.ifNotNull
 import sp.it.pl.util.functional.ifNull
-import sp.it.pl.util.graphics.ordinal
+import sp.it.pl.util.ui.ordinal
 import java.awt.Desktop
 import java.io.File
 import java.io.IOException

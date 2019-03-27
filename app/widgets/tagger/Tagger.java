@@ -76,7 +76,7 @@ import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.functional.Util;
-import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
+import sp.it.pl.util.ui.fxml.ConventionFxmlLoader;
 import sp.it.pl.util.validation.InputConstraints;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -137,11 +137,11 @@ import static sp.it.pl.util.functional.Util.noDups;
 import static sp.it.pl.util.functional.Util.noEx;
 import static sp.it.pl.util.functional.Util.split;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.UtilKt.createIcon;
-import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
-import static sp.it.pl.util.graphics.UtilKt.setTextAlignment;
-import static sp.it.pl.util.graphics.drag.DragUtilKt.handlerAccepting;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.ui.UtilKt.createIcon;
+import static sp.it.pl.util.ui.UtilKt.pseudoclass;
+import static sp.it.pl.util.ui.UtilKt.setTextAlignment;
+import static sp.it.pl.util.ui.drag.DragUtilKt.handlerAccepting;
 
 /**
  * Tagger graphical component.

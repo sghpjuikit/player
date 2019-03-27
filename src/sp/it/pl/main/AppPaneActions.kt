@@ -60,11 +60,6 @@ import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.graphics.hBox
-import sp.it.pl.util.graphics.label
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.stackPane
-import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.system.browse
@@ -74,6 +69,11 @@ import sp.it.pl.util.system.edit
 import sp.it.pl.util.system.open
 import sp.it.pl.util.system.recycle
 import sp.it.pl.util.system.saveFile
+import sp.it.pl.util.ui.hBox
+import sp.it.pl.util.ui.label
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.stackPane
+import sp.it.pl.util.ui.vBox
 import sp.it.pl.util.units.millis
 import java.io.File
 import kotlin.streams.toList

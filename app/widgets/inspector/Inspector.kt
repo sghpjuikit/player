@@ -34,16 +34,6 @@ import sp.it.pl.util.file.isAnyChildOf
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.traverse
-import sp.it.pl.util.graphics.drag.installDrag
-import sp.it.pl.util.graphics.expandToRootAndSelect
-import sp.it.pl.util.graphics.hBox
-import sp.it.pl.util.graphics.isAnyChildOf
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.pickTopMostAt
-import sp.it.pl.util.graphics.prefSize
-import sp.it.pl.util.graphics.propagateESCAPE
-import sp.it.pl.util.graphics.styleclassToggle
-import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.attach
@@ -51,6 +41,16 @@ import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.onItemSyncWhile
 import sp.it.pl.util.reactive.plus
 import sp.it.pl.util.reactive.syncNonNullIntoWhile
+import sp.it.pl.util.ui.drag.installDrag
+import sp.it.pl.util.ui.expandToRootAndSelect
+import sp.it.pl.util.ui.hBox
+import sp.it.pl.util.ui.isAnyChildOf
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.pickTopMostAt
+import sp.it.pl.util.ui.prefSize
+import sp.it.pl.util.ui.propagateESCAPE
+import sp.it.pl.util.ui.styleclassToggle
+import sp.it.pl.util.ui.x
 import java.io.File
 import javafx.stage.Window as WindowFX
 

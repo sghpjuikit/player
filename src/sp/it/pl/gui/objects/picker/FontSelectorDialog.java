@@ -62,8 +62,8 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
 import static javafx.scene.layout.Priority.SOMETIMES;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
-import static sp.it.pl.util.graphics.Util.layHorizontally;
-import static sp.it.pl.util.graphics.Util.layVertically;
+import static sp.it.pl.util.ui.Util.layHorizontally;
+import static sp.it.pl.util.ui.Util.layVertically;
 
 public class FontSelectorDialog extends PopOver<VBox> {
 

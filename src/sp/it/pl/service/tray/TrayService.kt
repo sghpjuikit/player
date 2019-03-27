@@ -21,12 +21,12 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.file.div
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.graphics.image.ImageSize
-import sp.it.pl.util.graphics.image.createImageBlack
-import sp.it.pl.util.graphics.image.loadBufferedImage
-import sp.it.pl.util.graphics.menuItem
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.syncFalse
+import sp.it.pl.util.ui.image.ImageSize
+import sp.it.pl.util.ui.image.createImageBlack
+import sp.it.pl.util.ui.image.loadBufferedImage
+import sp.it.pl.util.ui.menuItem
 import java.awt.Image
 import java.awt.SystemTray
 import java.awt.TrayIcon

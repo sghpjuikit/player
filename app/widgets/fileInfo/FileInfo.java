@@ -86,8 +86,8 @@ import static sp.it.pl.util.file.Util.copyFiles;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
+import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 @Widget.Info(
     author = "Martin Polakovic",

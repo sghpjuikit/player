@@ -67,10 +67,10 @@ import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.split;
 import static sp.it.pl.util.functional.Util.toS;
-import static sp.it.pl.util.graphics.UtilKt.findParent;
-import static sp.it.pl.util.graphics.UtilKt.onNodeDispose;
-import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
-import static sp.it.pl.util.graphics.UtilKt.removeFromParent;
+import static sp.it.pl.util.ui.UtilKt.findParent;
+import static sp.it.pl.util.ui.UtilKt.onNodeDispose;
+import static sp.it.pl.util.ui.UtilKt.pseudoclass;
+import static sp.it.pl.util.ui.UtilKt.removeFromParent;
 
 /**
  * Widget graphical component with a functionality.

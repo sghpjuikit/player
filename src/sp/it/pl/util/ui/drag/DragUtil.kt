@@ -1,4 +1,4 @@
-package sp.it.pl.util.graphics.drag
+package sp.it.pl.util.ui.drag
 
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.event.EventHandler

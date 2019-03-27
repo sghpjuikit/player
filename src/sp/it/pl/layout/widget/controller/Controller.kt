@@ -14,14 +14,14 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator
 import sp.it.pl.util.conf.CachedConfigurable
-import sp.it.pl.util.graphics.hBox
-import sp.it.pl.util.graphics.label
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.setScaleXY
-import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onChange
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.ui.hBox
+import sp.it.pl.util.ui.label
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.setScaleXY
+import sp.it.pl.util.ui.vBox
 import sp.it.pl.util.units.millis
 
 /**

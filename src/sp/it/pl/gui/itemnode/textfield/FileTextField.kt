@@ -9,10 +9,10 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.util.access.v
 import sp.it.pl.util.file.FileType.DIRECTORY
 import sp.it.pl.util.file.FileType.FILE
-import sp.it.pl.util.graphics.Util.layHorizontally
-import sp.it.pl.util.graphics.drag.handlerAccepting
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.system.chooseFile
+import sp.it.pl.util.ui.Util.layHorizontally
+import sp.it.pl.util.ui.drag.handlerAccepting
 import sp.it.pl.util.validation.Constraint.FileActor
 import java.io.File
 

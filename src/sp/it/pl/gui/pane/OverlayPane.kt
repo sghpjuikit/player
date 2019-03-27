@@ -32,20 +32,6 @@ import sp.it.pl.util.conf.MultiConfigurableBase
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.graphics.Util.createFMNTStage
-import sp.it.pl.util.graphics.Util.layStack
-import sp.it.pl.util.graphics.Util.setAnchors
-import sp.it.pl.util.graphics.applyViewPort
-import sp.it.pl.util.graphics.getScreen
-import sp.it.pl.util.graphics.getScreenForMouse
-import sp.it.pl.util.graphics.image.FitFrom
-import sp.it.pl.util.graphics.image.imgImplLoadFX
-import sp.it.pl.util.graphics.makeScreenShot
-import sp.it.pl.util.graphics.minus
-import sp.it.pl.util.graphics.pane
-import sp.it.pl.util.graphics.screenToLocal
-import sp.it.pl.util.graphics.size
-import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.Handler0
 import sp.it.pl.util.reactive.Subscription
@@ -53,6 +39,20 @@ import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.reactive.syncTo
 import sp.it.pl.util.system.getWallpaperFile
+import sp.it.pl.util.ui.Util.createFMNTStage
+import sp.it.pl.util.ui.Util.layStack
+import sp.it.pl.util.ui.Util.setAnchors
+import sp.it.pl.util.ui.applyViewPort
+import sp.it.pl.util.ui.getScreen
+import sp.it.pl.util.ui.getScreenForMouse
+import sp.it.pl.util.ui.image.FitFrom
+import sp.it.pl.util.ui.image.imgImplLoadFX
+import sp.it.pl.util.ui.makeScreenShot
+import sp.it.pl.util.ui.minus
+import sp.it.pl.util.ui.pane
+import sp.it.pl.util.ui.screenToLocal
+import sp.it.pl.util.ui.size
+import sp.it.pl.util.ui.stackPane
 import sp.it.pl.util.units.millis
 
 /**

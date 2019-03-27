@@ -40,13 +40,13 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.util.Callback
 import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.graphics.listView
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sizes
 import sp.it.pl.util.reactive.syncTo
 import sp.it.pl.util.type.nullify
+import sp.it.pl.util.ui.listView
 
 open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
     private val control: AutoCompletePopup<T>

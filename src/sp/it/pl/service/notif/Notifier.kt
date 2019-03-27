@@ -25,11 +25,11 @@ import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.stackPane
-import sp.it.pl.util.graphics.text
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.stackPane
+import sp.it.pl.util.ui.text
 import sp.it.pl.util.units.millis
 
 /** Provides notification functionality. */

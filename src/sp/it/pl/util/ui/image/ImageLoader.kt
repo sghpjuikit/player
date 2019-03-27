@@ -1,11 +1,11 @@
-package sp.it.pl.util.graphics.image
+package sp.it.pl.util.ui.image
 
 import javafx.scene.image.Image
 import mu.KotlinLogging
 import sp.it.pl.util.file.type.MimeType
 import sp.it.pl.util.file.type.mimeType
-import sp.it.pl.util.graphics.IconExtractor
-import sp.it.pl.util.graphics.image.ImageLoader.Params
+import sp.it.pl.util.ui.IconExtractor
+import sp.it.pl.util.ui.image.ImageLoader.Params
 import java.io.File
 import java.io.IOException
 import java.util.zip.ZipFile

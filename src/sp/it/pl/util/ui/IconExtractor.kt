@@ -1,4 +1,4 @@
-package sp.it.pl.util.graphics
+package sp.it.pl.util.ui
 
 import javafx.scene.image.Image
 import sp.it.pl.util.file.Util
@@ -9,8 +9,8 @@ import sp.it.pl.util.file.type.MimeExt.Companion.exe
 import sp.it.pl.util.file.type.MimeExt.Companion.lnk
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.runIf
-import sp.it.pl.util.graphics.image.toFX
 import sp.it.pl.util.system.Os
+import sp.it.pl.util.ui.image.toFX
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File

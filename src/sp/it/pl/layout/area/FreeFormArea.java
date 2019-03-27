@@ -30,11 +30,11 @@ import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.functional.Util.findFirstEmptyKey;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.Util.setAnchor;
-import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
+import static sp.it.pl.util.ui.Util.setAnchor;
+import static sp.it.pl.util.ui.Util.setAnchors;
+import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 

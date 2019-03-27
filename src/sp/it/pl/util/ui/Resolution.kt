@@ -1,4 +1,4 @@
-package sp.it.pl.util.graphics
+package sp.it.pl.util.ui
 
 @Suppress("EnumEntryName")
 enum class Resolution(@JvmField val width: Double, @JvmField val height: Double) {

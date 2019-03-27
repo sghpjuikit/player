@@ -209,12 +209,12 @@ import static sp.it.pl.util.functional.Util.minBy;
 import static sp.it.pl.util.functional.Util.repeat;
 import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.graphics.Util.computeFontHeight;
-import static sp.it.pl.util.graphics.Util.computeFontWidth;
-import static sp.it.pl.util.graphics.Util.layAnchor;
-import static sp.it.pl.util.graphics.Util.layHorizontally;
-import static sp.it.pl.util.graphics.Util.layStack;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.ui.Util.computeFontHeight;
+import static sp.it.pl.util.ui.Util.computeFontWidth;
+import static sp.it.pl.util.ui.Util.layAnchor;
+import static sp.it.pl.util.ui.Util.layHorizontally;
+import static sp.it.pl.util.ui.Util.layStack;
 
 @SuppressWarnings({"unused","UnnecessaryLocalVariable"})
 @Widget.Info(

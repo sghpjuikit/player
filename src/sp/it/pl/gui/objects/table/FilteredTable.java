@@ -60,12 +60,12 @@ import static sp.it.pl.util.functional.Util.filter;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.Util.layHorizontally;
-import static sp.it.pl.util.graphics.Util.menuItem;
 import static sp.it.pl.util.reactive.UtilKt.attach;
 import static sp.it.pl.util.reactive.UtilKt.attachSize;
 import static sp.it.pl.util.reactive.UtilKt.onChange;
 import static sp.it.pl.util.reactive.UtilKt.syncSize;
+import static sp.it.pl.util.ui.Util.layHorizontally;
+import static sp.it.pl.util.ui.Util.menuItem;
 
 /**
  * Table with a search filter header that supports filtering with provided gui.

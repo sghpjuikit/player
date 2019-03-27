@@ -29,14 +29,14 @@ import sp.it.pl.util.animation.Loop
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.functional.Try
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.prefSize
-import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1IfInScene
 import sp.it.pl.util.reactive.syncFrom
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.prefSize
+import sp.it.pl.util.ui.x
 import java.lang.Math.PI
 import java.lang.Math.cos
 import java.lang.Math.min

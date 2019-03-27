@@ -23,14 +23,14 @@ import sp.it.pl.util.access.minus
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.collections.setToOne
 import sp.it.pl.util.conf.Config
-import sp.it.pl.util.graphics.install
-import sp.it.pl.util.graphics.label
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.setMinPrefMaxSize
-import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.type.isSubclassOf
+import sp.it.pl.util.ui.install
+import sp.it.pl.util.ui.label
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.setMinPrefMaxSize
+import sp.it.pl.util.ui.stackPane
 import java.util.ArrayList
 
 class ConfigSearch: AutoCompletion<Entry> {

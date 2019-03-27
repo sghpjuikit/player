@@ -1,4 +1,4 @@
-package sp.it.pl.util.graphics.fxml;
+package sp.it.pl.util.ui.fxml;
 
 import java.io.IOException;
 import javafx.fxml.FXMLLoader;

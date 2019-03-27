@@ -1,4 +1,4 @@
-package sp.it.pl.util.graphics.drag;
+package sp.it.pl.util.ui.drag;
 
 import de.jensd.fx.glyphs.GlyphIcons;
 import java.util.function.Predicate;
@@ -68,7 +68,7 @@ public class DragPane extends Placeholder {
 	 * @param cond predicate filtering the drag events. The highlighting will show if the drag event tests true.
 	 * <p/>
 	 * Must be consistent with the node's DRAG_OVER event handler which accepts the drag in order for highlighting to
-	 * make sense! Check out {@link sp.it.pl.util.graphics.drag.DragUtilKt#installDrag(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, String, kotlin.jvm.functions.Function1, kotlin.jvm.functions.Function1)}, which
+	 * make sense! Check out {@link sp.it.pl.util.ui.drag.DragUtilKt#installDrag(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, String, kotlin.jvm.functions.Function1, kotlin.jvm.functions.Function1)}, which
 	 * guarantees consistency.
 	 * <p/>
 	 * Normally, one simple queries the dragboard of the event for type of content. Predicate returning always true will
@@ -76,7 +76,7 @@ public class DragPane extends Placeholder {
 	 * content to be dropped.
 	 * <p/>
 	 * It is recommended to build a predicate and use it for drag over handler as well, see {@link
-	 * sp.it.pl.util.graphics.drag.DragUtilKt#handlerAccepting(kotlin.jvm.functions.Function1)}. This will guarantee
+	 * sp.it.pl.util.ui.drag.DragUtilKt#handlerAccepting(kotlin.jvm.functions.Function1)}. This will guarantee
 	 * consistency in drag highlighting and drag accepting behavior.
 	 * @param except Optionally, it is possible to forbid drag highlighting even if the condition tests true. This is
 	 * useful for when node that shouldn't accept given event doesn't wish for any of its parents accept (and highlight

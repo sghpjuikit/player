@@ -19,12 +19,12 @@ import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.dev.Dependency
 import sp.it.pl.util.file.div
-import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
-import sp.it.pl.util.graphics.prefSize
-import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.type.Util.getFieldValue
 import sp.it.pl.util.type.Util.invokeMethodP1
+import sp.it.pl.util.ui.fxml.ConventionFxmlLoader
+import sp.it.pl.util.ui.prefSize
+import sp.it.pl.util.ui.x
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.pl.web.WebBarInterpreter

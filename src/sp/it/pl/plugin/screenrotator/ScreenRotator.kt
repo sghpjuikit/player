@@ -8,9 +8,9 @@ import sp.it.pl.util.action.Action
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cr
 import sp.it.pl.util.dev.fail
-import sp.it.pl.util.graphics.getScreenForMouse
 import sp.it.pl.util.system.Os
 import sp.it.pl.util.system.open
+import sp.it.pl.util.ui.getScreenForMouse
 import java.io.IOException
 
 class ScreenRotator: PluginBase("Screen Rotator", true) {

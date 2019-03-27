@@ -1,4 +1,4 @@
-package sp.it.pl.util.graphics
+package sp.it.pl.util.ui
 
 import javafx.scene.Node
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED

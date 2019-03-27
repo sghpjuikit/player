@@ -21,9 +21,9 @@ import sp.it.pl.util.async.executor.EventReducer
 import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.ValueConfig
-import sp.it.pl.util.graphics.setScaleXY
-import sp.it.pl.util.graphics.text
 import sp.it.pl.util.reactive.attachChanges
+import sp.it.pl.util.ui.setScaleXY
+import sp.it.pl.util.ui.text
 import sp.it.pl.util.units.millis
 import sp.it.pl.util.units.seconds
 import sp.it.pl.util.validation.Constraint

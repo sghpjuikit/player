@@ -27,7 +27,7 @@ import sp.it.pl.main.AppAnimator;
 import sp.it.pl.main.Df;
 import sp.it.pl.util.access.ref.SingleR;
 import sp.it.pl.util.animation.Anim;
-import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
+import sp.it.pl.util.ui.fxml.ConventionFxmlLoader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;

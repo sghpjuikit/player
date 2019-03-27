@@ -32,9 +32,9 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Util.zeroPad;
-import static sp.it.pl.util.graphics.Util.computeFontWidth;
-import static sp.it.pl.util.graphics.Util.selectRows;
 import static sp.it.pl.util.type.Util.getFieldValue;
+import static sp.it.pl.util.ui.Util.computeFontWidth;
+import static sp.it.pl.util.ui.Util.selectRows;
 
 public class ImprovedTable<T> extends TableView<T> {
 

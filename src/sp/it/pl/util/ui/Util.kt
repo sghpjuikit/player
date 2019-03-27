@@ -1,4 +1,4 @@
-package sp.it.pl.util.graphics
+package sp.it.pl.util.ui
 
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.css.PseudoClass
@@ -63,11 +63,11 @@ import javafx.util.Callback
 import sp.it.pl.util.JavaLegacy
 import sp.it.pl.util.functional.asIf
 import sp.it.pl.util.functional.traverse
-import sp.it.pl.util.graphics.image.FitFrom
 import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.ui.image.FitFrom
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -668,7 +668,7 @@ object EM {
 }
 
 /** @return value in [EM] units */
-val Number.EM get() = toDouble()/sp.it.pl.util.graphics.EM.toDouble()
+val Number.EM get() = toDouble()/sp.it.pl.util.ui.EM.toDouble()
 
 /** Sets font, overriding css style. */
 fun Parent.setFontAsStyle(font: Font) {

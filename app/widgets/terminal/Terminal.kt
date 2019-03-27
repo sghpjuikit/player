@@ -23,14 +23,14 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cvn
 import sp.it.pl.util.conf.only
 import sp.it.pl.util.file.div
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.prefSize
-import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.syncSize
 import sp.it.pl.util.system.Os
 import sp.it.pl.util.text.keys
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.prefSize
+import sp.it.pl.util.ui.x
 import sp.it.pl.util.validation.Constraint.FileActor.FILE
 import java.io.File
 

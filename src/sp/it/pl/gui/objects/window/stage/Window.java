@@ -103,13 +103,13 @@ import static sp.it.pl.util.functional.Util.forEachIStream;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.graphics.UtilKt.getScreen;
-import static sp.it.pl.util.graphics.UtilKt.initClip;
-import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
-import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
-import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.ui.Util.setAnchors;
+import static sp.it.pl.util.ui.UtilKt.getScreen;
+import static sp.it.pl.util.ui.UtilKt.initClip;
+import static sp.it.pl.util.ui.UtilKt.pseudoclass;
+import static sp.it.pl.util.ui.UtilKt.setScaleXY;
+import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 /** Window for application. */
 @SuppressWarnings({"WeakerAccess", "unused"})

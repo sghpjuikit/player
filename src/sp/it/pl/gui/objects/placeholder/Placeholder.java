@@ -9,9 +9,9 @@ import javafx.scene.layout.StackPane;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.util.reactive.Subscription;
 import static sp.it.pl.util.dev.FailKt.noNull;
-import static sp.it.pl.util.graphics.Util.layHeaderBottom;
-import static sp.it.pl.util.graphics.UtilKt.removeFromParent;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.ui.Util.layHeaderBottom;
+import static sp.it.pl.util.ui.UtilKt.removeFromParent;
 
 /**
  * Placeholder pane. Can invoke action and display its icon and name.<br/>

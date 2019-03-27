@@ -33,14 +33,14 @@ import sp.it.pl.util.file.Util.writeImage
 import sp.it.pl.util.file.div
 import sp.it.pl.util.file.isPlayable
 import sp.it.pl.util.functional.ifFalse
-import sp.it.pl.util.graphics.item
-import sp.it.pl.util.graphics.items
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.copyToSysClipboard
 import sp.it.pl.util.system.edit
 import sp.it.pl.util.system.open
 import sp.it.pl.util.system.recycle
 import sp.it.pl.util.system.saveFile
+import sp.it.pl.util.ui.item
+import sp.it.pl.util.ui.items
 import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import sp.it.pl.web.SearchUriBuilder
 import java.io.File

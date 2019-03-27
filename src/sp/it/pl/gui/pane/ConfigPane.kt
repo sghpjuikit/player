@@ -15,9 +15,9 @@ import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.functional.supplyIf
-import sp.it.pl.util.graphics.Util.computeFontWidth
-import sp.it.pl.util.graphics.hBox
-import sp.it.pl.util.graphics.lay
+import sp.it.pl.util.ui.Util.computeFontWidth
+import sp.it.pl.util.ui.hBox
+import sp.it.pl.util.ui.lay
 
 class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
     private var fields: List<ConfigField<*>> = listOf()

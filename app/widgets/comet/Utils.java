@@ -124,13 +124,13 @@ import static sp.it.pl.util.functional.Util.set;
 import static sp.it.pl.util.functional.Util.setRO;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.Util.layHeaderTop;
-import static sp.it.pl.util.graphics.Util.layHorizontally;
-import static sp.it.pl.util.graphics.Util.layStack;
-import static sp.it.pl.util.graphics.Util.layVertically;
-import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.type.Util.getEnumConstants;
+import static sp.it.pl.util.ui.Util.layHeaderTop;
+import static sp.it.pl.util.ui.Util.layHorizontally;
+import static sp.it.pl.util.ui.Util.layStack;
+import static sp.it.pl.util.ui.Util.layVertically;
+import static sp.it.pl.util.ui.UtilKt.setScaleXY;
 import static sp.it.pl.util.units.UtilKt.toHMSMs;
 
 @SuppressWarnings({"unused","UnnecessaryLocalVariable"})

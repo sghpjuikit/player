@@ -31,8 +31,8 @@ import sp.it.pl.util.file.FileFilters;
 import sp.it.pl.util.file.FileFlatter;
 import sp.it.pl.util.file.FileSort;
 import sp.it.pl.util.file.FileType;
-import sp.it.pl.util.graphics.Resolution;
-import sp.it.pl.util.graphics.image.FitFrom;
+import sp.it.pl.util.ui.Resolution;
+import sp.it.pl.util.ui.image.FitFrom;
 import sp.it.pl.util.validation.Constraint;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static java.util.Comparator.nullsLast;
@@ -65,13 +65,13 @@ import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.max;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
 import static sp.it.pl.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.edit;
 import static sp.it.pl.util.system.EnvironmentKt.open;
+import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 @Widget.Info(
     author = "Martin Polakovic",

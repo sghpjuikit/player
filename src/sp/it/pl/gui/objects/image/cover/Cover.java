@@ -2,7 +2,7 @@ package sp.it.pl.gui.objects.image.cover;
 
 import java.io.File;
 import javafx.scene.image.Image;
-import sp.it.pl.util.graphics.image.ImageSize;
+import sp.it.pl.util.ui.image.ImageSize;
 
 public interface Cover {
 

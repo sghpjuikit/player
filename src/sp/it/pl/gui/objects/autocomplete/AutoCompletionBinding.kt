@@ -38,8 +38,8 @@ import sp.it.pl.util.async.runLater
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.functional.ifIs
-import sp.it.pl.util.graphics.minPrefMaxWidth
 import sp.it.pl.util.reactive.Handler1
+import sp.it.pl.util.ui.minPrefMaxWidth
 
 /**
  * Base class for auto-completion bindings.

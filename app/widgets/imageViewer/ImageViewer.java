@@ -38,8 +38,8 @@ import sp.it.pl.util.async.executor.EventReducer;
 import sp.it.pl.util.async.executor.FxTimer;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.graphics.Util;
-import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
+import sp.it.pl.util.ui.Util;
+import sp.it.pl.util.ui.fxml.ConventionFxmlLoader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_RIGHT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
@@ -72,10 +72,10 @@ import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
-import static sp.it.pl.util.graphics.UtilKt.setMinPrefMaxSize;
-import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.ui.UtilKt.pseudoclass;
+import static sp.it.pl.util.ui.UtilKt.setMinPrefMaxSize;
+import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 @SuppressWarnings({"WeakerAccess", "unused", "FieldCanBeLocal"})
 @Widget.Info(

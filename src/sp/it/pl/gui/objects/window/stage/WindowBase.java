@@ -210,7 +210,7 @@ public class WindowBase {
 	protected Screen screen = Screen.getPrimary();
 
 	private void updateScreen() {
-		screen = sp.it.pl.util.graphics.UtilKt.getScreen(getCenter());
+		screen = sp.it.pl.util.ui.UtilKt.getScreen(getCenter());
 	}
 
 	/**
@@ -563,17 +563,17 @@ public class WindowBase {
 
 	/** @return window-relative position of the centre of this window */
 	public P getCentre() {
-		return sp.it.pl.util.graphics.UtilKt.getCentre(s);
+		return sp.it.pl.util.ui.UtilKt.getCentre(s);
 	}
 
 	/** @return window-relative x position of the centre of this window */
 	public double getCentreX() {
-		return sp.it.pl.util.graphics.UtilKt.getCentreX(s);
+		return sp.it.pl.util.ui.UtilKt.getCentreX(s);
 	}
 
 	/** @return window-relative y position of the centre of this window */
 	public double getCentreY() {
-		return sp.it.pl.util.graphics.UtilKt.getCentreY(s);
+		return sp.it.pl.util.ui.UtilKt.getCentreY(s);
 	}
 
 	/**

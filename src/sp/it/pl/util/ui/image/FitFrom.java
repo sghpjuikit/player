@@ -1,4 +1,4 @@
-package sp.it.pl.util.graphics.image;
+package sp.it.pl.util.ui.image;
 
 /** Fitting of an image with original aspect ration into an arbitrary rectangular area. */
 public enum FitFrom {

@@ -16,9 +16,9 @@ import sp.it.pl.main.IconOC
 import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.functional.Try
-import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader
-import sp.it.pl.util.graphics.lay
 import sp.it.pl.util.reactive.onEventDown
+import sp.it.pl.util.ui.fxml.ConventionFxmlLoader
+import sp.it.pl.util.ui.lay
 import java.util.function.Consumer
 
 /**

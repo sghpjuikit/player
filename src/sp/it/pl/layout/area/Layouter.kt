@@ -24,8 +24,8 @@ import sp.it.pl.main.get
 import sp.it.pl.main.nodeAnimation
 import sp.it.pl.util.animation.interpolator.CircularInterpolator
 import sp.it.pl.util.animation.interpolator.EasingMode.EASE_OUT
-import sp.it.pl.util.graphics.drag.installDrag
-import sp.it.pl.util.graphics.layFullArea
+import sp.it.pl.util.ui.drag.installDrag
+import sp.it.pl.util.ui.layFullArea
 
 /**
  * Container graphics for container null child.

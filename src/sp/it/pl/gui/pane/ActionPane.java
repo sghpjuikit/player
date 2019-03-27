@@ -84,12 +84,12 @@ import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.graphics.Util.layHeaderTopBottom;
-import static sp.it.pl.util.graphics.Util.layHorizontally;
-import static sp.it.pl.util.graphics.Util.layScrollVTextCenter;
-import static sp.it.pl.util.graphics.Util.layStack;
-import static sp.it.pl.util.graphics.Util.layVertically;
-import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
+import static sp.it.pl.util.ui.Util.layHeaderTopBottom;
+import static sp.it.pl.util.ui.Util.layHorizontally;
+import static sp.it.pl.util.ui.Util.layScrollVTextCenter;
+import static sp.it.pl.util.ui.Util.layStack;
+import static sp.it.pl.util.ui.Util.layVertically;
+import static sp.it.pl.util.ui.UtilKt.setScaleXY;
 
 /** Action chooser pane. Displays icons representing certain actions. */
 public class ActionPane extends OverlayPane<Object> implements MultiConfigurable {

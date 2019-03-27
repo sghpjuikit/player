@@ -5,13 +5,13 @@ import javafx.scene.control.Slider
 import javafx.scene.control.skin.SliderSkin
 import javafx.scene.layout.StackPane
 import sp.it.pl.util.animation.Anim.Companion.anim
-import sp.it.pl.util.graphics.onHoverOrDragEnd
-import sp.it.pl.util.graphics.onHoverOrDragStart
-import sp.it.pl.util.graphics.setScaleXY
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.type.Util.getFieldValue
+import sp.it.pl.util.ui.onHoverOrDragEnd
+import sp.it.pl.util.ui.onHoverOrDragStart
+import sp.it.pl.util.ui.setScaleXY
 import sp.it.pl.util.units.millis
 
 /** SliderSkin skin that adds animations & improved usability - track expands on mouse hover. */

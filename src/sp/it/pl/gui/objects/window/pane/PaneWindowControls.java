@@ -16,7 +16,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
 import sp.it.pl.gui.objects.window.Resize;
-import sp.it.pl.util.graphics.fxml.ConventionFxmlLoader;
+import sp.it.pl.util.ui.fxml.ConventionFxmlLoader;
 import static de.jensd.fx.glyphs.GlyphsDude.setIcon;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLOSE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS_SQUARE_ALT;
@@ -31,9 +31,9 @@ import static sp.it.pl.gui.objects.window.Resize.S;
 import static sp.it.pl.gui.objects.window.Resize.SE;
 import static sp.it.pl.gui.objects.window.Resize.SW;
 import static sp.it.pl.gui.objects.window.Resize.W;
-import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.ui.Util.setAnchors;
+import static sp.it.pl.util.ui.UtilKt.pseudoclass;
 
 public class PaneWindowControls extends WindowPane {
 

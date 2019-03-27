@@ -29,8 +29,8 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
 import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.pl.util.functional.net
-import sp.it.pl.util.graphics.Util.layHorizontally
 import sp.it.pl.util.type.ClassName
+import sp.it.pl.util.ui.Util.layHorizontally
 import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.KClass
 

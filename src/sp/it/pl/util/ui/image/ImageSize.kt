@@ -1,4 +1,4 @@
-package sp.it.pl.util.graphics.image
+package sp.it.pl.util.ui.image
 
 import java.awt.Dimension
 

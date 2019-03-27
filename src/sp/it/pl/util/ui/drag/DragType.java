@@ -1,4 +1,4 @@
-package sp.it.pl.util.graphics.drag;
+package sp.it.pl.util.ui.drag;
 
 import javafx.scene.input.TransferMode;
 

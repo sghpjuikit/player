@@ -30,14 +30,14 @@ import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.functional.Util.set
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.graphics.isAnyParentOf
-import sp.it.pl.util.graphics.setFontAsStyle
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.onItemAdded
 import sp.it.pl.util.reactive.onItemSyncWhile
 import sp.it.pl.util.reactive.plus
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncNonNullIntoWhile
+import sp.it.pl.util.ui.isAnyParentOf
+import sp.it.pl.util.ui.setFontAsStyle
 import sp.it.pl.util.units.millis
 import java.io.File
 import java.net.MalformedURLException

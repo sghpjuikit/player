@@ -5,9 +5,9 @@ import javafx.geometry.Pos.CENTER
 import javafx.scene.control.Label
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.stackPane
 import sp.it.pl.util.system.copyToSysClipboard
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.stackPane
 
 /**
  * Displays an icon with its name. Has tooltip displaying additional information.

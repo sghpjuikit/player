@@ -59,9 +59,9 @@ import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.min;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
-import static sp.it.pl.util.graphics.UtilKt.setScaleXY;
-import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
+import static sp.it.pl.util.ui.UtilKt.pseudoclass;
+import static sp.it.pl.util.ui.UtilKt.setScaleXY;
+import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 /**
  * Display for {@link sp.it.pl.layout.widget.controller.io.XPut} of components, displaying their relations as am editable graph.

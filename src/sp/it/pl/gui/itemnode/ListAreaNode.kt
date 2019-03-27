@@ -9,9 +9,9 @@ import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.util.collections.getElementType
 import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.functional.Functors
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.vBox
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.vBox
 import java.util.function.Consumer
 
 // TODO: manual text edits should be part of transformation chain. It

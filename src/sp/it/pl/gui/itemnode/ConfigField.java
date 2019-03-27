@@ -85,10 +85,10 @@ import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.equalsAny;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.graphics.Util.layHeaderTop;
-import static sp.it.pl.util.graphics.Util.layHorizontally;
-import static sp.it.pl.util.graphics.UtilKt.pseudoclass;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.ui.Util.layHeaderTop;
+import static sp.it.pl.util.ui.Util.layHorizontally;
+import static sp.it.pl.util.ui.UtilKt.pseudoclass;
 
 /**
  * Editable and settable graphic control for configuring {@link sp.it.pl.util.conf.Config}.

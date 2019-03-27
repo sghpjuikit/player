@@ -50,9 +50,9 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.graphics.Util.setAnchors;
-import static sp.it.pl.util.graphics.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.pl.util.ui.Util.setAnchors;
+import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 public abstract class ContainerNodeBase<C extends Container<?>> implements ContainerNode {
 

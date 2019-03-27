@@ -84,7 +84,6 @@ import sp.it.pl.util.file.div
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.type.MimeTypes
 import sp.it.pl.util.functional.Try
-import sp.it.pl.util.graphics.image.getImageDim
 import sp.it.pl.util.reactive.Handler0
 import sp.it.pl.util.reactive.Handler1
 import sp.it.pl.util.stacktraceAsString
@@ -94,6 +93,7 @@ import sp.it.pl.util.type.InstanceInfo
 import sp.it.pl.util.type.InstanceName
 import sp.it.pl.util.type.ObjectFieldMap
 import sp.it.pl.util.type.Util.getGenericPropertyType
+import sp.it.pl.util.ui.image.getImageDim
 import sp.it.pl.util.units.FileSize
 import java.io.File
 import java.lang.management.ManagementFactory

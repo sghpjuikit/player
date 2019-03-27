@@ -32,9 +32,9 @@ import sp.it.pl.util.access.V;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.file.ImageFileFormat;
-import sp.it.pl.util.graphics.image.FitFrom;
-import sp.it.pl.util.graphics.image.ImageSize;
-import sp.it.pl.util.graphics.image.ImageStandardLoader;
+import sp.it.pl.util.ui.image.FitFrom;
+import sp.it.pl.util.ui.image.ImageSize;
+import sp.it.pl.util.ui.image.ImageStandardLoader;
 import static java.lang.Double.min;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.DataFormat.FILES;
@@ -52,9 +52,9 @@ import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.file.UtilKt.toFileOrNull;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.graphics.UtilKt.setScaleXYByTo;
 import static sp.it.pl.util.reactive.UtilKt.sync1If;
 import static sp.it.pl.util.type.Util.getFieldValue;
+import static sp.it.pl.util.ui.UtilKt.setScaleXYByTo;
 
 /**
  * Thumbnail.

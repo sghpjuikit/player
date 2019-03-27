@@ -11,10 +11,10 @@ import sp.it.pl.main.scaleEM
 import sp.it.pl.util.access.initSync
 import sp.it.pl.util.access.v
 import sp.it.pl.util.async.runPeriodic
-import sp.it.pl.util.graphics.lay
-import sp.it.pl.util.graphics.prefSize
-import sp.it.pl.util.graphics.x
 import sp.it.pl.util.reactive.on
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.prefSize
+import sp.it.pl.util.ui.x
 import sp.it.pl.util.units.seconds
 
 @Widget.Info(

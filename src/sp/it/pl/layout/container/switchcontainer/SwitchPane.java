@@ -497,6 +497,8 @@ public class SwitchPane implements ContainerNode {
         zt.setDuration(z.getDuration());
         zt.setByX(tox/5);
         zt.play();
+        byx = 0;
+        tox = 0;
         APP.actionStream.invoke("Zoom mode");
     }
     private void zoomNoAcc(double d) {

@@ -50,8 +50,15 @@ class VlcPlayer: GeneralPlayer.Play {
     }
 
     override fun seek(duration: Duration) {
-        // player?.controls()?.setTime(duration.toMillis().toLong())   // doesn't work that well
-        player?.controls()?.setPosition((duration.toMillis().toFloat()/player!!.status().length().toFloat()).coerceIn(0f..1f))
+        player?.let {
+            // When we seek after song finishes, setPosition() becomes no-op, hence the complicated logic.
+            it.controls().play()
+
+            // doesn't work correctly (wrong time)
+            // player?.controls()?.setTime(duration.toMillis().toLong())
+
+            it.controls().setPosition((duration.toMillis().toFloat()/it.status().length().toFloat()).coerceIn(0f..1f))
+        }
     }
 
     override fun stop() {
@@ -85,10 +92,8 @@ class VlcPlayer: GeneralPlayer.Play {
         if (Player.startTime!=null) {
             when (state.status.value) {
                 PLAYING -> play()
-                PAUSED -> {
-                }
-                else -> {
-                }
+                PAUSED -> {}
+                else -> {}
             }
         }
 

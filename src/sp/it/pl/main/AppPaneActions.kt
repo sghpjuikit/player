@@ -50,7 +50,6 @@ import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.FileType.DIRECTORY
 import sp.it.pl.util.file.FileType.FILE
-import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.getCommonRoot
 import sp.it.pl.util.file.Util.getFilesAudio
@@ -260,7 +259,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             SlowAction(
                     "Print raw  metadata", "Prints all image metadata to console.",
                     IconMA.IMAGE_ASPECT_RATIO,
-                    { ImageFileFormat.isSupported(it) },
+                    { it.isImage() },
                     { APP.actions.printAllImageFileMetadata(it) }
             ),
             FastAction(
@@ -329,14 +328,14 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "View image",
                     "Opens image in an image viewer widget.",
                     IconFA.IMAGE,
-                    { ImageFileFormat.isSupported(it) },
+                    { it.isImage() },
                     { img_file -> APP.widgetManager.widgets.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(img_file) } }
             ),
             FastColAction(
                     "View image",
                     "Opens image in an image browser widget.",
                     IconFA.IMAGE,
-                    { ImageFileFormat.isSupported(it) },
+                    { it.isImage() },
                     { img_files -> APP.widgetManager.widgets.use<ImagesDisplayFeature>(NO_LAYOUT) { it.showImages(img_files) } }
             ),
             FastAction(

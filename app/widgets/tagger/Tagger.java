@@ -74,7 +74,6 @@ import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
-import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.functional.Util;
 import sp.it.pl.util.ui.fxml.ConventionFxmlLoader;
 import sp.it.pl.util.validation.InputConstraints;
@@ -129,10 +128,12 @@ import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppDragKt.getAudio;
 import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
+import static sp.it.pl.main.AppFileKt.isImageJaudiotagger;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
+import static sp.it.pl.util.file.Util.getSuffix;
 import static sp.it.pl.util.functional.Util.noDups;
 import static sp.it.pl.util.functional.Util.noEx;
 import static sp.it.pl.util.functional.Util.split;
@@ -634,11 +635,10 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
     private void addImg(File f) {
         if (isEmpty()) return;
 
-        new_cover_file = f!=null && ImageFileFormat.isSupported(f) ? f : null;
+        new_cover_file = f!=null && isImageJaudiotagger(f) ? f : null;
         if (new_cover_file != null) {
             CoverV.loadImage(new_cover_file);
-            CoverL.setText(ImageFileFormat.of(new_cover_file.toURI()) + " "
-                    +(int)CoverV.getImage().getWidth()+"/"+(int)CoverV.getImage().getHeight());
+            CoverL.setText(getSuffix(new_cover_file) + " "+(int)CoverV.getImage().getWidth()+"/"+(int)CoverV.getImage().getHeight());
             CoverL.setUserData(true);
         } else {
             CoverV.loadImage((Image)null);

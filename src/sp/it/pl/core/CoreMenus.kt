@@ -21,6 +21,9 @@ import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.APP
 import sp.it.pl.main.configure
+import sp.it.pl.main.imageWriteExtensionFilter
+import sp.it.pl.main.isImage
+import sp.it.pl.main.writeImage
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.conf.Configurable.configsFromFxPropertiesOf
@@ -28,8 +31,6 @@ import sp.it.pl.util.conf.ConfigurableBase
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.only
-import sp.it.pl.util.file.ImageFileFormat
-import sp.it.pl.util.file.Util.writeImage
 import sp.it.pl.util.file.div
 import sp.it.pl.util.file.isPlayable
 import sp.it.pl.util.functional.ifFalse
@@ -83,7 +84,7 @@ object CoreMenus: Core {
                     item("Play") { PlaylistManager.use { it.playUri(selected.toURI()) } }
                     item("Enqueue") { PlaylistManager.use { it.addFile(selected) } }
                 }
-                if (ImageFileFormat.isSupported(selected)) {
+                if (selected.isImage()) {
                     item("Fullscreen") {
                         APP.actions.openImageFullscreen(selected)
                     }
@@ -185,7 +186,7 @@ object CoreMenus: Core {
                     menu("Cover") {
                         item("Save image as ...") {
                             saveFile("Save image as...", APP.DIR_APP, selected.iFile?.name ?: "new_image",
-                                    contextMenu.ownerWindow, ImageFileFormat.filter())
+                                    contextMenu.ownerWindow, imageWriteExtensionFilter())
                                     .ifOk { writeImage(selected.image, it) }
                         }
                         item("Copy to clipboard") { copyToSysClipboard(DataFormat.IMAGE, selected.image) }

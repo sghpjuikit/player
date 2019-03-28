@@ -31,7 +31,6 @@ import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.dev.Dependency;
-import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.ui.image.FitFrom;
 import sp.it.pl.util.ui.image.ImageSize;
 import sp.it.pl.util.ui.image.ImageStandardLoader;
@@ -45,6 +44,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
@@ -668,7 +668,7 @@ public class Thumbnail {
 		public final File iFile = getFile();
 		public final File fsImageFile = iFile!=null ? iFile : file;
 		public final Image image = getImage();
-		public final boolean fsDisabled = fsImageFile==null || !ImageFileFormat.isSupported(fsImageFile);
+		public final boolean fsDisabled = fsImageFile==null || !isImage(fsImageFile);
 		public final Thumbnail thumbnail = Thumbnail.this;
 	}
 

@@ -9,18 +9,13 @@ import javafx.stage.FileChooser
 import javafx.stage.Screen
 import javafx.stage.Window
 import mu.KotlinLogging
-import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
-import sp.it.pl.layout.widget.feature.ImageDisplayFeature
-import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.isValidSkinFile
 import sp.it.pl.main.isValidWidgetFile
 import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.async.runNew
-import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.FileType
-import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.find1stExistingParentDir
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
@@ -228,34 +223,6 @@ fun File.recycle(): Try<Void, Void> {
         }
     } else {
         Try.error()
-    }
-}
-
-fun File.openIn() {
-    when {
-        AudioFileFormat.isSupported(this, AudioFileFormat.Use.PLAYBACK) -> PlaylistManager.use { it.addUri(toURI()) }
-        ImageFileFormat.isSupported(this) -> APP.widgetManager.widgets.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(this) }
-        else -> open()
-    }
-}
-
-fun openIn(files: List<File>) {
-    if (files.isEmpty()) {
-        return
-    } else if (files.size==1) {
-        files[0].openIn()
-    } else {
-        val audio = files.filter { AudioFileFormat.isSupported(it, AudioFileFormat.Use.PLAYBACK) }
-        val images = files.filter { ImageFileFormat.isSupported(it) }
-
-        if (!audio.isEmpty())
-            PlaylistManager.use { it.addUris(audio.map { it.toURI() }) }
-
-        if (images.size==1) {
-            APP.widgetManager.widgets.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(images[0]) }
-        } else if (images.size>1) {
-            APP.widgetManager.widgets.use<ImagesDisplayFeature>(NO_LAYOUT) { it.showImages(images) }
-        }
     }
 }
 

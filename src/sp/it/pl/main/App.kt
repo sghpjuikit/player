@@ -77,7 +77,6 @@ import sp.it.pl.util.dev.fail
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.FileType
-import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.div
@@ -435,7 +434,7 @@ class App: Application(), Configurable<Any> {
                 { ui.setSkin(it[0]) }
         )
         addFileProcessor(
-                { ImageFileFormat.isSupported(it) },
+                { it.isImage() },
                 // { fs -> widgetManager.use(ImageDisplayFeature::class.java, NO_LAYOUT) { it.showImages(fs) } }
                 { fs -> fs.firstOrNull()?.let { actions.openImageFullscreen(it) } } // More convenient for user, add option to call one or the other
         )
@@ -537,8 +536,7 @@ class App: Application(), Configurable<Any> {
             map[FileField.TIME_CREATED.name()] = FileField.TIME_CREATED.getOfS(f, "n/a")
             map[FileField.TIME_MODIFIED.name()] = FileField.TIME_MODIFIED.getOfS(f, "n/a")
 
-            val iff = ImageFileFormat.of(f.toURI())
-            if (iff.isSupported) {
+            if (f.isImage()) {
                 val res = getImageDim(f).map { "${it.width} x ${it.height}" }.getOr("n/a")
                 map["Resolution"] = res
             }

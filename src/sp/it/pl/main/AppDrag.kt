@@ -15,7 +15,6 @@ import sp.it.pl.util.dev.fail
 import sp.it.pl.util.dev.failIf
 import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.AudioFileFormat.Use
-import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.getFilesAudio
 import sp.it.pl.util.functional.Util.listRO
@@ -97,7 +96,7 @@ fun Dragboard.getAnyFut(): Any? = when {
     Df.FILES in this -> this[Df.FILES]
     Df.IMAGE in this -> this[Df.IMAGE]
     Df.URL in this -> when {
-        ImageFileFormat.isSupported(url) -> futUrl(url)
+        url.isImage() -> futUrl(url)
         else -> this[Df.URL]
     }
     Df.PLAIN_TEXT in this -> this[Df.PLAIN_TEXT]
@@ -150,9 +149,9 @@ fun Dragboard.getAudio(): List<Song> = when {
 
 // TODO: clearly specify (and fix) contracts for getImage family
 
-fun Dragboard.hasImageFile(): Boolean = (hasFiles() && Util.containsImageFiles(files))
+fun Dragboard.hasImageFile(): Boolean = (hasFiles() && files.any { it.isImage() })
 
-fun Dragboard.getImageFile(): File? = Util.getImageFiles(files).firstOrNull()
+fun Dragboard.getImageFile(): File? = files.firstOrNull { it.isImage() }
 
 /**
  * Returns true if dragboard contains an image file/s. True guarantees the presence of the image.
@@ -160,12 +159,12 @@ fun Dragboard.getImageFile(): File? = Util.getImageFiles(files).firstOrNull()
  *
  * @return true iff contains at least 1 img file or an img url
  */
-fun Dragboard.hasImageFileOrUrl(): Boolean = (hasFiles() && Util.containsImageFiles(files)) || (hasUrl() && ImageFileFormat.isSupported(url))
+fun Dragboard.hasImageFileOrUrl(): Boolean = hasImageFile() || (hasUrl() && url.isImage())
 
 /** @return supplier of 1st found image according to [Dragboard.hasImageFileOrUrl] */
 fun Dragboard.getImageFileOrUrl(): Fut<File?> = when {
-    hasFiles() -> fut(Util.getImageFiles(files).firstOrNull())
-    hasUrl() && ImageFileFormat.isSupported(url) -> futUrl(url)
+    hasFiles() -> fut(getImageFile())
+    hasUrl() && url.isImage() -> futUrl(url)
     else -> fail { "Dragboard must contain image file" }
 }
 
@@ -184,11 +183,11 @@ fun Dragboard.getImageFileOrUrl(): Fut<File?> = when {
  */
 fun Dragboard.hasImageFilesOrUrl(): Fut<List<File>> {
     if (hasFiles()) {
-        val images = Util.getImageFiles(files)
+        val images = files.filter { it.isImage() }
         if (!images.isEmpty())
             return fut(images)
     }
-    if (hasUrl() && ImageFileFormat.isSupported(url)) {
+    if (hasUrl() && url.isImage()) {
         val url = url
         return runNew {
             try {

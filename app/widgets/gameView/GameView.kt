@@ -39,9 +39,11 @@ import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
+import sp.it.pl.main.FastFile
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.appTooltipForData
+import sp.it.pl.main.isImage
 import sp.it.pl.main.scaleEM
 import sp.it.pl.main.showAppProgress
 import sp.it.pl.util.access.fieldvalue.CachingFile
@@ -61,9 +63,7 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cList
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.only
-import sp.it.pl.util.file.FastFile
 import sp.it.pl.util.file.FileType
-import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.Properties
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.div
@@ -412,7 +412,7 @@ class GameView(widget: Widget): SimpleController(widget) {
             if (i==-1) {
                 false
             } else {
-                filename.substring(0, i).equals(imageName, ignoreCase = true) && ImageFileFormat.isSupported(it.toURI())
+                filename.substring(0, i).equals(imageName, ignoreCase = true) && it.isImage()
             }
         }
 

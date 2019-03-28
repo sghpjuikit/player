@@ -59,6 +59,7 @@ import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppDragKt.hasImageFileOrUrl;
 import static sp.it.pl.main.AppDragKt.hasImageFilesOrUrl;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
+import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.showAppProgress;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -66,7 +67,7 @@ import static sp.it.pl.util.async.executor.EventReducer.toFirstDelayed;
 import static sp.it.pl.util.async.executor.EventReducer.toLast;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.file.Util.getCommonRoot;
-import static sp.it.pl.util.file.Util.getFilesImage;
+import static sp.it.pl.util.file.Util.getFilesR;
 import static sp.it.pl.util.file.UtilKt.childOf;
 import static sp.it.pl.util.functional.Util.forEachWithI;
 import static sp.it.pl.util.functional.Util.listRO;
@@ -417,7 +418,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
             // discover files
             List<File> files = folder.get()==null
                 ? listRO()
-                : getFilesImage(folder.get(),folderTreeDepth).limit(thumbsLimit).collect(toList());
+                : getFilesR(folder.get(), folderTreeDepth, it -> isImage(it)).limit(thumbsLimit).collect(toList());
             if (files.isEmpty()) {
                 Platform.runLater(() -> setImage(-1));
             } else {

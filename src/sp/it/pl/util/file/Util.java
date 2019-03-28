@@ -20,17 +20,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.Image;
-import javax.imageio.ImageIO;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.functional.Try;
-import static java.util.stream.Collectors.toList;
 import static sp.it.pl.util.Util.filenamizeString;
 import static sp.it.pl.util.dev.DebugKt.logger;
-import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.file.UtilKt.listChildren;
-import static sp.it.pl.util.functional.Util.ISNTØ;
 
 public interface Util {
 
@@ -113,14 +107,6 @@ public interface Util {
 		return files.stream().flatMap(f -> getFilesAudio(f, use, depth));
 	}
 
-	static Stream<File> getFilesImage(File dir, int depth) {
-		return getFilesR(dir, depth, ImageFileFormat::isSupported);
-	}
-
-	static Stream<File> getFilesImage(List<File> files, int depth) {
-		return files.stream().flatMap(f -> getFilesImage(f, depth));
-	}
-
 	/**
 	 * Checks if there is at least one supported audio file in the list.
 	 *
@@ -136,18 +122,6 @@ public interface Util {
 		for (File f : files)
 			if (f.isDirectory() || AudioFileFormat.isSupported(f, use)) return true;
 		return false;
-	}
-
-	static boolean containsImageFiles(List<File> files) {
-		for (File f : files)
-			if (ImageFileFormat.isSupported(f)) return true;
-		return false;
-	}
-
-	static List<File> getImageFiles(List<File> files) {
-		return files.stream().filter(ISNTØ)
-				.filter(ImageFileFormat::isSupported)
-				.collect(toList());
 	}
 
 	/** @return first common parent directory for specified files or the parent if list size is 1 or null if empty or no shared root */
@@ -331,33 +305,6 @@ public interface Util {
 	 */
 	static void deleteDirContent(File dir) {
 		listChildren(dir).forEach(Util::deleteFile);
-	}
-
-	/**
-	 * Saves image as a file, both being provided as parameters. If
-	 * the file is of type that is not supported by the application, the operation
-	 * will not take place.
-	 *
-	 * @param img source image to save
-	 * @param f destination file
-	 * @throws NullPointerException if any of the parameters null
-	 * @see ImageFileFormat for specifications
-	 */
-	static void writeImage(Image img, File f) {
-		noNull(img);
-		noNull(f);
-
-		ImageFileFormat t = ImageFileFormat.of(f.toURI());
-		if (!t.isSupported()) {
-			logger(Util.class).error("Could not save image to file {}. Format {} not supported.", f, t);
-			return;
-		}
-
-		try {
-			ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", f);
-		} catch (IOException e) {
-			logger(Util.class).error("Could not save image to file {}", f, e);
-		}
 	}
 
 	/**

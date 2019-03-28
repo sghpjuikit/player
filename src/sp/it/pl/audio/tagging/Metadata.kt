@@ -30,12 +30,12 @@ import sp.it.pl.gui.objects.image.cover.Cover.CoverSource
 import sp.it.pl.gui.objects.image.cover.FileCover
 import sp.it.pl.gui.objects.image.cover.ImageCover
 import sp.it.pl.main.APP
+import sp.it.pl.main.isImage
 import sp.it.pl.util.access.fieldvalue.ObjectFieldBase
 import sp.it.pl.util.dev.Blocks
 import sp.it.pl.util.dev.failCase
 import sp.it.pl.util.dev.failIfFxThread
 import sp.it.pl.util.file.AudioFileFormat
-import sp.it.pl.util.file.ImageFileFormat
 import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.nameWithoutExtensionOrRoot
 import sp.it.pl.util.file.parentDirOrRoot
@@ -626,7 +626,7 @@ class Metadata: Song, Serializable {
             return sequenceOf(getFilename().takeIf { it.isNotBlank() }, title, album, "cover", "folder")
                     .filterNotNull()
                     .flatMap { filename -> fs.asSequence().filter { it.nameWithoutExtensionOrRoot.equals(filename, true) } }
-                    .find { ImageFileFormat.isSupported(it) }
+                    .find { it.isImage() }
                     ?.let { FileCover(it, "") }
         }
     }

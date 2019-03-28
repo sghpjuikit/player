@@ -17,11 +17,12 @@ import sp.it.pl.util.access.fieldvalue.CachingFile;
 import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.file.FileType;
-import sp.it.pl.util.file.ImageFileFormat;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.ui.IconExtractor;
 import sp.it.pl.util.ui.image.Image2PassLoader;
 import sp.it.pl.util.ui.image.ImageSize;
+import static sp.it.pl.main.AppFileKt.getImageExtensionsRead;
+import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.util.dev.FailKt.failIfFxThread;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.FileType.FILE;
@@ -128,20 +129,18 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		if (disposed) return null;
 		if (dir==null) return null;
 
-		for (ImageFileFormat format : ImageFileFormat.values()) {
-			if (format.isSupported()) {
-				File f = new File(dir, name + "." + format.toString());
+		for (String ext : getImageExtensionsRead()) {
+			File f = new File(dir, name + "." + ext);
 
-				if (dir==val) {
-					return file_exists(this, f) ? f : null;
+			if (dir==val) {
+				return file_exists(this, f) ? f : null;
+			} else {
+				if (parent!=null && parent.val!=null && parent.val.equals(f.getParentFile())) {
+					if (file_exists(parent, f))
+						return f;
 				} else {
-					if (parent!=null && parent.val!=null && parent.val.equals(f.getParentFile())) {
-						if (file_exists(parent, f))
-							return f;
-					} else {
-						if (f.exists())
-							return f;
-					}
+					if (f.exists())
+						return f;
 				}
 			}
 		}
@@ -152,11 +151,9 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		if (disposed) return null;
 		if (dir==null) return null;
 
-		for (ImageFileFormat format : ImageFileFormat.values()) {
-			if (format.isSupported()) {
-				File f = new File(dir, name + "." + format.toString());
-				if (file_exists(this, f)) return f;
-			}
+		for (String ext : getImageExtensionsRead()) {
+			File f = new File(dir, name + "." + ext);
+			if (file_exists(this, f)) return f;
 		}
 		return null;
 	}
@@ -217,7 +214,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			cover_file = getImageT(val, "cover");
 		} else {
 			// image files are their own thumbnail
-			if (ImageFileFormat.isSupported(val)) {
+			if (isImage(val)) {
 				cover_file = val;
 			} else {
 				File i = getImage(val.getParentFile(), getNameWithoutExtensionOrRoot(val));

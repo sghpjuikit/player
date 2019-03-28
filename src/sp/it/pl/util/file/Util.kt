@@ -2,7 +2,6 @@ package sp.it.pl.util.file
 
 import mu.KotlinLogging
 import sp.it.pl.util.functional.Try
-import sp.it.pl.util.system.Os
 import java.io.File
 import java.io.FileFilter
 import java.io.FilenameFilter
@@ -117,90 +116,4 @@ fun File.toURLOrNull() =
             toURI().toURL()
         } catch (e: MalformedURLException) {
             null
-        }
-
-enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>) {
-    NONE({ it.stream().distinct() }),
-    DIRS({
-        it.asSequence().distinct()
-                .flatMap { sequenceOf(it).filter { it.isFile }+it.walk().filter { it.isDirectory } }
-                .asStream()
-    }),
-    TOP_LVL({ it.stream().distinct().flatMap { it.listChildren() } }),
-    TOP_LVL_AND_DIRS({
-        it.stream().distinct()
-                .flatMap { it.listChildren() }
-                .flatMap { (sequenceOf(it).filter { it.isFile }+it.walk().filter { it.isDirectory }).asStream() }
-    }),
-    TOP_LVL_AND_DIRS_AND_WITH_COVER({
-
-        fun File.hasCover(cache: HashSet<FastFile>): Boolean {
-            val p = parentDirOrRoot
-            val n = nameWithoutExtension
-            return ImageFileFormat.values().asSequence()
-                    .filter { it.isSupported }
-                    .any { cache.contains(p.childOf("$n.$it")) }
-        }
-        fun File.walkDirsAndWithCover(): Sequence<File> {
-            return if (isDirectory) {
-                val dir = this
-                val cmdDirs = """cmd /U /c dir /s /b /ad "${dir.absolutePath}" 2>nul"""
-                val cmdFiles = """cmd /U /c dir /s /b /a-d "${dir.absolutePath}" 2>nul"""
-
-                val dirs = try {
-                    Runtime.getRuntime().exec(cmdDirs)
-                            .inputStream.bufferedReader(Charsets.UTF_16LE)
-                            .useLines { it.map { FastFile(it, true, false) }.toList() }
-                } catch (e: Throwable) {
-                    logger.error(e) { "Failed to read files in $this using command $cmdDirs" }
-                    listOf<FastFile>()
-                }
-                val files = try {
-                    Runtime.getRuntime().exec(cmdFiles)
-                            .inputStream.bufferedReader(Charsets.UTF_16LE)
-                            .useLines { it.map { FastFile(it, false, true) }.toList() }
-                } catch (e: Throwable) {
-                    logger.error(e) { "Failed to read files in $this using command $cmdFiles" }
-                    listOf<FastFile>()
-                }
-
-                val cache = (dirs+files).toHashSet()
-                cache.asSequence().filter { it.isDirectory || it.hasCover(cache) }
-            } else {
-                sequenceOf(this)
-            }
-        }
-
-        it.asSequence().distinct().flatMap { it.walkDirsAndWithCover() }.asStream()
-    }),
-    ALL({ it.asSequence().distinct().flatMap { it.asFileTree() }.asStream() });
-}
-
-class FastFile(path: String, private val isDir: Boolean, private val isFil: Boolean): File(path) {
-    override fun isDirectory(): Boolean = isDir
-    override fun isFile(): Boolean = isFil
-}
-
-private fun File.asFileTree(): Sequence<File> =
-        when (Os.current) {
-            Os.WINDOWS -> {
-                if (isDirectory) {
-                    val dir = this
-                    val cmdFiles = """cmd /U /c dir /s /b /a-d "${dir.absolutePath}" 2>nul"""
-                    try {
-                        val files = Runtime.getRuntime().exec(cmdFiles)
-                                .inputStream.bufferedReader(Charsets.UTF_16LE)
-                                .useLines { it.map { FastFile(it, false, true) }.toList() }
-                        files.asSequence()
-                    } catch (e: Throwable) {
-                        logger.error(e) { "Failed to read files in $this using command $cmdFiles" }
-                        sequenceOf<File>()
-                    }
-                } else {
-                    sequenceOf(this)
-                }
-            }
-            else -> {
-                walk().filter(File::isFile)
-            }
         }

@@ -22,9 +22,6 @@ import sp.it.pl.util.Util.replaceAllRegex
 import sp.it.pl.util.Util.retainChars
 import sp.it.pl.util.Util.split
 import sp.it.pl.util.Util.splitJoin
-import sp.it.pl.util.file.AudioFileFormat
-import sp.it.pl.util.file.AudioFileFormat.Use.APP
-import sp.it.pl.util.file.AudioFileFormat.Use.PLAYBACK
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.WindowsShortcut
 import sp.it.pl.util.file.nameOrRoot
@@ -212,9 +209,6 @@ object CoreFunctors: Core {
 
             add("File", Song::class.java, File::class.java) { it.getFile() }
             add("URI", Song::class.java, URI::class.java) { it.uri }
-
-            add("Is supported", AudioFileFormat::class.java, B) { it.isSupported(APP) }
-            add("Is playable", AudioFileFormat::class.java, B) { it.isSupported(PLAYBACK) }
 
             addPredicatesComparable(Short::class.java, 0.toShort())
             addPredicatesComparable(Int::class.java, 0)

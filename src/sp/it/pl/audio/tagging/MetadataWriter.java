@@ -41,7 +41,6 @@ import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Song;
 import sp.it.pl.service.notif.Notifier;
 import sp.it.pl.util.dev.SwitchException;
-import sp.it.pl.util.file.AudioFileFormat;
 import sp.it.pl.util.units.NofX;
 import static java.lang.Math.max;
 import static java.util.Collections.singletonList;
@@ -294,12 +293,12 @@ public class MetadataWriter extends Song {
 	private void setRating(double val) {
 		double v = val<0 ? -1 : clipRating(tag, val);
 		switch (getFormat()) {
-			case mp3: setRatingMP3((AbstractID3v2Tag) tag, v); break;
-			case wav: setRatingMP3(wavToId3((WavTag) tag), v); break;
-			case flac:
-			case ogg: setRatingVorbisOgg(v); break;
-			case mp4:
-			case m4a: setRatingMP4(v); break;
+			case MP3: setRatingMP3((AbstractID3v2Tag) tag, v); break;
+			case WAV: setRatingMP3(wavToId3((WavTag) tag), v); break;
+			case FLAC:
+			case OGG: setRatingVorbisOgg(v); break;
+			case MP4:
+			case M4A: setRatingMP4(v); break;
 			default:    // rest not supported
 		}
 	}
@@ -429,12 +428,12 @@ public class MetadataWriter extends Song {
 	/** @param val the publisher to set */
 	public void setPublisher(String val) {
 		switch (getFormat()) {
-			case flac:
-			case ogg: setVorbisField("PUBLISHER", val); break;
-			case mp3: setPublisherID3((AbstractID3v2Tag) tag, val); break;
-			case wav: setPublisherID3(wavToId3((WavTag) tag), val); break;
-			case mp4:
-			case m4a: setPublisherMP4(val); break;
+			case FLAC:
+			case OGG: setVorbisField("PUBLISHER", val); break;
+			case MP3: setPublisherID3((AbstractID3v2Tag) tag, val); break;
+			case WAV: setPublisherID3(wavToId3((WavTag) tag), val); break;
+			case MP4:
+			case M4A: setPublisherMP4(val); break;
 			default:    // rest not supported
 		}
 		// increment fields_changed in implementations
@@ -482,7 +481,7 @@ public class MetadataWriter extends Song {
 	public void setUserMailID3(String val) {
 		AudioFileFormat f = getFormat();
 		switch (f) {
-			case mp3: seUserPopmID3(val); break;
+			case MP3: seUserPopmID3(val); break;
 			default:    // rest not supported
 		}
 	}

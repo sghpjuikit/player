@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.functional.Try;
 import static sp.it.pl.util.Util.filenamizeString;
 import static sp.it.pl.util.dev.DebugKt.logger;
@@ -83,6 +82,10 @@ public interface Util {
 		return files.stream().flatMap(d -> getFilesR(d, depth, f -> true));
 	}
 
+	/**
+	 * @param depth the maximum number of levels of directories to visit. A value of 0 means that only the starting file
+	 * is visited. Integer.MAX_VALUE may be used to indicate that all levels should be visited.
+	 */
 	static Stream<File> getFilesR(File dir, int depth, Predicate<? super File> filter) {
 		if (dir.isDirectory()) {
 			try {
@@ -93,35 +96,6 @@ public interface Util {
 		}
 
 		return filter.test(dir) ? Stream.of(dir) : Stream.empty();
-	}
-
-	/**
-	 * @param depth the maximum number of levels of directories to visit. A value of 0 means that only the starting file
-	 * is visited. Integer.MAX_VALUE may be used to indicate that all levels should be visited.
-	 */
-	static Stream<File> getFilesAudio(File dir, Use use, int depth) {
-		return getFilesR(dir, depth, f -> AudioFileFormat.isSupported(f, use));
-	}
-
-	static Stream<File> getFilesAudio(Collection<File> files, Use use, int depth) {
-		return files.stream().flatMap(f -> getFilesAudio(f, use, depth));
-	}
-
-	/**
-	 * Checks if there is at least one supported audio file in the list.
-	 *
-	 * @return true if the list contains at least one supported audio file.
-	 */
-	static boolean containsAudioFiles(List<File> files, Use use) {
-		for (File f : files)
-			if (AudioFileFormat.isSupported(f, use)) return true;
-		return false;
-	}
-
-	static boolean containsAudioFileOrDir(List<File> files, Use use) {
-		for (File f : files)
-			if (f.isDirectory() || AudioFileFormat.isSupported(f, use)) return true;
-		return false;
 	}
 
 	/** @return first common parent directory for specified files or the parent if list size is 1 or null if empty or no shared root */

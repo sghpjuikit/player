@@ -16,7 +16,6 @@ import sp.it.pl.util.animation.Anim
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.async.runOn
-import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.reactive.attach1IfNonNull
 import sp.it.pl.util.units.millis
 import java.lang.Math.pow
@@ -66,7 +65,7 @@ class GeneralPlayer {
             onUnableToPlay(song)
         } else {
             runOn(Player.IO_THREAD) {
-                if (song.isCorrupt(AudioFileFormat.Use.PLAYBACK)) {
+                if (song.isCorrupt()) {
                     onUnableToPlay(song)
                 } else {
                     runFX {

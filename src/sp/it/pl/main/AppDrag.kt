@@ -13,10 +13,7 @@ import sp.it.pl.util.async.future.Fut.Companion.fut
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.dev.failIf
-import sp.it.pl.util.file.AudioFileFormat
-import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.Util
-import sp.it.pl.util.file.Util.getFilesAudio
 import sp.it.pl.util.functional.Util.listRO
 import sp.it.pl.util.ui.drag.DataFormat
 import sp.it.pl.util.ui.drag.contains
@@ -24,7 +21,6 @@ import sp.it.pl.util.ui.drag.get
 import java.io.File
 import java.io.IOException
 import java.net.URI
-import kotlin.streams.toList
 import javafx.scene.input.DataFormat as DataFormatFX
 
 private val logger = KotlinLogging.logger {}
@@ -132,17 +128,17 @@ fun Dragboard.setSongsAndFiles(items: List<Song>) {
  *
  * @return true iff contains at least 1 audio file or audio url or (any) directory
  */
-fun Dragboard.hasAudio(): Boolean = Df.SONGS in this ||
-        (hasFiles() && Util.containsAudioFileOrDir(files, Use.APP)) ||
-        (hasUrl() && AudioFileFormat.isSupported(url, Use.APP))
+fun Dragboard.hasAudio(): Boolean = Df.SONGS in this || (hasFiles() && files.any { it.isDirectory || it.isAudio() }) || (hasUrl() && url.isAudio())
 
 /** @return list of songs as specified in [Dragboard.hasAudio] */
 fun Dragboard.getAudio(): List<Song> = when {
     Df.SONGS in this -> this[Df.SONGS]
-    hasFiles() -> getFilesAudio(files, Use.APP, Integer.MAX_VALUE).map { SimpleSong(it) }.toList()
+    hasFiles() -> findAudio(files).map { SimpleSong(it) }.toList()
     hasUrl() -> {
-        val url = url
-        if (AudioFileFormat.isSupported(url, Use.APP)) listOf(SimpleSong(URI.create(url))) else listOf()
+        when {
+            url.isAudio() -> listOf(SimpleSong(URI.create(url)))
+            else -> listOf()
+        }
     }
     else -> fail { "Dragboard must contain audio" }
 }

@@ -7,7 +7,6 @@ import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.main.APP
 import sp.it.pl.util.dev.failIfFxThread
-import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.toUnit
@@ -27,7 +26,7 @@ fun Song.readMetadata(): Metadata {
     failIfFxThread()
 
     return when {
-        isCorrupt(Use.APP) -> Metadata.EMPTY
+        isCorrupt() -> Metadata.EMPTY
         isFileBased() -> getFile()!!.readAudioFile().orNull()?.net { Metadata(it) } ?: Metadata.EMPTY
         else ->
             // TODO: implement properly & watch out for new Media() throwing Exception, see JavaFxPlayer.java

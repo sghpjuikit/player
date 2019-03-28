@@ -67,6 +67,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
     @IsConfig(editable = EditMode.APP)
     var showsAppSettings by c(true)
 
+
     init {
         root.prefSize = 800.scaleEM() x 600.scaleEM()
 

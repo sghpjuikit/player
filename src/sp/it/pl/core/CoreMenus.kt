@@ -22,6 +22,7 @@ import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.APP
 import sp.it.pl.main.configure
 import sp.it.pl.main.imageWriteExtensionFilter
+import sp.it.pl.main.isAudio
 import sp.it.pl.main.isImage
 import sp.it.pl.main.writeImage
 import sp.it.pl.util.async.runNew
@@ -32,7 +33,6 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.only
 import sp.it.pl.util.file.div
-import sp.it.pl.util.file.isPlayable
 import sp.it.pl.util.functional.ifFalse
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.copyToSysClipboard
@@ -80,7 +80,7 @@ object CoreMenus: Core {
                     }
             }
             add<File> {
-                if (selected.isPlayable) {
+                if (selected.isAudio()) {
                     item("Play") { PlaylistManager.use { it.playUri(selected.toURI()) } }
                     item("Enqueue") { PlaylistManager.use { it.addFile(selected) } }
                 }

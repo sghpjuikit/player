@@ -47,6 +47,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import sp.it.pl.audio.Song;
+import sp.it.pl.audio.tagging.AudioFileFormat;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.MetadataReaderKt;
 import sp.it.pl.audio.tagging.MetadataWriter;
@@ -72,8 +73,6 @@ import sp.it.pl.service.notif.Notifier;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.file.AudioFileFormat;
-import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.functional.Util;
 import sp.it.pl.util.ui.fxml.ConventionFxmlLoader;
 import sp.it.pl.util.validation.InputConstraints;
@@ -128,6 +127,7 @@ import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppDragKt.getAudio;
 import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
+import static sp.it.pl.main.AppFileKt.isAudioEditable;
 import static sp.it.pl.main.AppFileKt.isImageJaudiotagger;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -411,8 +411,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         List<Metadata> ready = new ArrayList<>();
         List<Song> needs_read = new ArrayList<>();
         added.stream()
-            // filter out untaggable
-            .filter(i -> !i.isCorrupt(Use.DB) && i.isFileBased())
+            .filter(i -> !i.isCorrupt() && i.isFileBased() && isAudioEditable(i.getFile()))
             .forEach(i -> {
                 if (!readAll && i instanceof Metadata) ready.add((Metadata)i);
                 else needs_read.add(i);
@@ -727,9 +726,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
              c.setDisable(!v);
         }
         public void setSupported(Collection<AudioFileFormat> formats) {
-            boolean v = formats.stream().map(frm->frm.isTagWriteSupported(f))
-                               .reduce(Boolean::logicalAnd).orElse(false);
-            c.setDisable(!v);
+            c.setDisable(formats.stream().anyMatch(f -> !isAudioEditable(f)));
         }
         void emptyContent() {
             c.setText("");              // set empty
@@ -876,8 +873,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
                                 } else {
                                     int index = getIndex() + 1;
                                     setText(index + "   " + song.getFilenameFull());
-                                    // handle untaggable
-                                    boolean untaggable = song.isCorrupt(Use.DB) || !song.isFileBased();
+                                    boolean untaggable = song.isCorrupt() || !song.isFileBased() || !isAudioEditable(song.getFile());
                                     pseudoClassStateChanged(corrupt, untaggable);
                                     cb.selected.setValue(!untaggable);
                                     cb.setDisable(untaggable);

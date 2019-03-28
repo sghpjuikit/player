@@ -6,6 +6,7 @@ import javafx.scene.media.Media
 import javafx.util.Duration
 import org.jaudiotagger.tag.FieldKey
 import sp.it.pl.audio.Song
+import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.main.APP
@@ -13,8 +14,6 @@ import sp.it.pl.util.access.fieldvalue.ObjectFieldBase
 import sp.it.pl.util.async.runFX
 import sp.it.pl.util.dev.failCase
 import sp.it.pl.util.dev.failIfFxThread
-import sp.it.pl.util.file.AudioFileFormat
-import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.identityHashCode
@@ -107,7 +106,7 @@ class PlaylistSong: Song {
      * metadata object is required.
      */
     fun update() {
-        if (isUpdated || isCorrupt(Use.APP)) return
+        if (isUpdated || isCorrupt()) return
         isUpdated = true
 
         // if library contains the item, use it & avoid I/O
@@ -163,9 +162,8 @@ class PlaylistSong: Song {
     }
 
     /** @return true if this item is corrupted */
-    override fun isCorrupt(use: AudioFileFormat.Use): Boolean {
-        val f = getFormat()
-        isCorruptCached = !f.isSupported(Use.PLAYBACK) || isCorruptWeak()
+    override fun isCorrupt(): Boolean {
+        isCorruptCached = super.isCorrupt()
         return isCorruptCached
     }
 

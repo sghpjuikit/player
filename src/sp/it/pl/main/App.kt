@@ -74,8 +74,6 @@ import sp.it.pl.util.conf.cr
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.preserveOrder
 import sp.it.pl.util.dev.fail
-import sp.it.pl.util.file.AudioFileFormat
-import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.Util.isValidatedDirectory
 import sp.it.pl.util.file.childOf
@@ -426,7 +424,7 @@ class App: Application(), Configurable<Any> {
 
     private fun AppParameterProcessor.initForApp() {
         addFileProcessor(
-                { AudioFileFormat.isSupported(it, Use.APP) },
+                { it.isAudio() },
                 { fs -> widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addFiles(fs) } }
         )
         addFileProcessor(

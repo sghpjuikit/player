@@ -14,14 +14,13 @@ import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
 import sp.it.pl.util.HierarchicalBase;
 import sp.it.pl.util.access.fieldvalue.CachingFile;
-import sp.it.pl.util.file.AudioFileFormat;
-import sp.it.pl.util.file.AudioFileFormat.Use;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.ui.IconExtractor;
 import sp.it.pl.util.ui.image.Image2PassLoader;
 import sp.it.pl.util.ui.image.ImageSize;
 import static sp.it.pl.main.AppFileKt.getImageExtensionsRead;
+import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.util.dev.FailKt.failIfFxThread;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
@@ -172,8 +171,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					cover_loadedThumb.set(true);
 					return Try.ok(new LoadResult(null, cover));
 				}
-				if (AudioFileFormat.isSupported(val, Use.APP)) {
-					cover = MetadataReaderKt.readMetadata(new SimpleSong(val)).getCover(CoverSource.TAG).getImage(size);
+				if (isAudio(val)) {
+					cover = MetadataReaderKt.readMetadata(new SimpleSong(val)).getCover(CoverSource.TAG).getImage(size);    // TODO: use fallback if Cover is empty
 					cover_loadedFull.set(true);
 					cover_loadedThumb.set(true);
 					return Try.ok(new LoadResult(null, cover));

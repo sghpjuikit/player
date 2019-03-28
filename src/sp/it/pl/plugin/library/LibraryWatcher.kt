@@ -5,6 +5,7 @@ import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.tagging.addSongsToLibTask
 import sp.it.pl.audio.tagging.removeMissingSongsFromLibTask
 import sp.it.pl.main.APP
+import sp.it.pl.main.findAudio
 import sp.it.pl.main.showAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.service.notif.Notifier
@@ -21,10 +22,8 @@ import sp.it.pl.util.conf.cList
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.only
 import sp.it.pl.util.conf.readOnlyUnless
-import sp.it.pl.util.file.AudioFileFormat
 import sp.it.pl.util.file.FileMonitor
 import sp.it.pl.util.file.FileMonitor.monitorDirectory
-import sp.it.pl.util.file.Util.getFilesAudio
 import sp.it.pl.util.file.isAnyChildOf
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.Subscription
@@ -37,7 +36,6 @@ import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
-import kotlin.streams.toList
 
 class LibraryWatcher: PluginBase("Song Library", false) {
 
@@ -143,7 +141,7 @@ class LibraryWatcher: PluginBase("Song Library", false) {
     private fun updateLibrary() {
         val dirs = sourceDirs.materialize()
         runNew {
-            val songs = getFilesAudio(dirs, AudioFileFormat.Use.APP, Integer.MAX_VALUE).map { SimpleSong(it) }.toList()
+            val songs = findAudio(dirs).map { SimpleSong(it) }.toList()
             addSongsToLibTask(songs).runGet()
             removeMissingSongsFromLibTask().run()
         }.showAppProgress("Updating song library from disk")

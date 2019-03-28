@@ -1,10 +1,8 @@
 package sp.it.pl.audio
 
 import sp.it.pl.audio.playlist.PlaylistSong
+import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.util.file.AudioFileFormat
-import sp.it.pl.util.file.AudioFileFormat.Use
-import sp.it.pl.util.file.AudioFileFormat.Use.PLAYBACK
 import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.file.toFileOrNull
 import sp.it.pl.util.functional.net
@@ -86,10 +84,6 @@ abstract class Song {
      */
     fun getInitialName(): String = getFilename()
 
-
-    /** Equivalent to `isCorrupt(PLAYBACK)` */
-    fun isNotPlayable(): Boolean = isCorrupt(PLAYBACK)
-
     /** @return true iff this song's underlying resource (e.g. file) is being played */
     fun isPlayingSame(): Boolean = same(Player.playingSong.value)
 
@@ -99,16 +93,11 @@ abstract class Song {
      * Song is labeled corrupt iff it fulfills at any of the conditions for file based songs:
      * * file does not exist
      * * file is not a file (is a directory)
-     * * is not supported audio file
-     * * file can not be read
-     *
-     * Also see [isCorruptWeak].
+     * * file is not readable
      *
      * @return playability/validity of the song
      */
-    open fun isCorrupt(use: Use): Boolean = !getFormat().isSupported(use) || isCorruptWeak()
-
-    protected fun isCorruptWeak(): Boolean = getFile()?.net { !it.isFile || !it.exists() || !it.canRead() } ?: false
+    open fun isCorrupt(): Boolean = getFile()?.net { !it.isFile || !it.exists() || !it.canRead() } ?: false
 
     /** @return true iff the URIs of the songs are equal */
     fun same(i: Song?): Boolean = i!=null && i.uri==uri

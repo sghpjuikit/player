@@ -23,9 +23,9 @@ import javafx.scene.Node;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
-import sp.it.pl.audio.Song;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.PlayerConfiguration;
+import sp.it.pl.audio.Song;
 import sp.it.pl.gui.objects.form.Form;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
@@ -34,19 +34,19 @@ import sp.it.pl.gui.objects.window.stage.WindowBase;
 import sp.it.pl.util.collections.mapset.MapSet;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.ValueConfig;
-import sp.it.pl.util.file.AudioFileFormat;
-import sp.it.pl.util.file.AudioFileFormat.Use;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.form.Form.form;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
+import static sp.it.pl.main.AppFileKt.audioExtensionFilter;
+import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
-import static sp.it.pl.util.file.Util.getFilesAudio;
+import static sp.it.pl.util.file.Util.getFilesR;
 import static sp.it.pl.util.functional.Util.map;
 import static sp.it.pl.util.functional.Util.toS;
 import static sp.it.pl.util.functional.UtilKt.consumer;
@@ -157,7 +157,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 		List<PlaylistSong> staying = new ArrayList<>();
 		for (int i = 0; i<size(); i++) {
 			PlaylistSong p = get(i);
-			if (!p.isCorrupt(Use.PLAYBACK))
+			if (!p.isCorrupt())
 				staying.add(p);
 		}
 		if (staying.size()==size()) return;
@@ -420,9 +420,9 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 		if (song!=null && transform().contains(song)) {
 			Player.IO_THREAD.execute(() -> {
 				// we cant play song -> we try to play next one and eventually get here again => need defend against case where no song is playable
-				boolean unplayable = song.isNotPlayable();  // potentially blocking
+				boolean unplayable = song.isCorrupt();  // potentially blocking
 				if (unplayable) {
-					boolean isNonePlayable = unplayable1st==song && stream().allMatch(PlaylistSong::isNotPlayable); // potentially blocking
+					boolean isNonePlayable = unplayable1st==song && stream().allMatch(PlaylistSong::isCorrupt); // potentially blocking
 					runFX(() -> {
 						if (isNonePlayable) {
 							Player.stop();
@@ -689,7 +689,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 				"Choose Audio Files",
 				PlayerConfiguration.Companion.getBrowse(),
 				APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
-				AudioFileFormat.filter(Use.PLAYBACK)
+				audioExtensionFilter()
 		).ifOk(files -> {
 					PlayerConfiguration.Companion.setBrowse(files.get(0).getParentFile());
 					List<URI> queue = new ArrayList<>();
@@ -719,7 +719,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 		).ifOk(dir -> {
 					PlayerConfiguration.Companion.setBrowse(dir);
 					List<URI> queue = new ArrayList<>();
-					getFilesAudio(dir, Use.APP, Integer.MAX_VALUE).forEach(f -> queue.add(f.toURI()));
+					getFilesR(dir, Integer.MAX_VALUE, f -> isAudio(f)).forEach(f -> queue.add(f.toURI()));
 
 					if (add) addUris(queue);
 					else {

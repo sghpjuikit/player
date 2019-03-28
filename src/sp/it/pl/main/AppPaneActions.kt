@@ -45,14 +45,11 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.readOnlyIf
 import sp.it.pl.util.conf.readOnlyUnless
-import sp.it.pl.util.file.AudioFileFormat
-import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.FileType.DIRECTORY
 import sp.it.pl.util.file.FileType.FILE
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.getCommonRoot
-import sp.it.pl.util.file.Util.getFilesAudio
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.functional.Try
@@ -150,8 +147,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Open file chooser to find a audio files",
                     IconMD.MUSIC_NOTE,
                     {
-                        val filters = AudioFileFormat.supportedValues(Use.APP).map { it.toExtFilter() }.toTypedArray()
-                        chooseFiles("Open audio...", APP.DIR_HOME, ap.scene?.window, *filters)
+                        chooseFiles("Open audio...", APP.DIR_HOME, ap.scene?.window, audioExtensionFilter())
                                 .map { runLater { APP.actionPane.show(it) } }   // may auto-close on finish, delay show()
                     }
             )
@@ -265,7 +261,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             FastAction(
                     "Print raw  metadata", "Prints all audio metadata to console.",
                     IconMA.IMAGE_ASPECT_RATIO,
-                    { AudioFileFormat.isSupported(it, Use.APP) },
+                    { it.isAudio() },
                     { APP.actions.printAllAudioFileMetadata(it) }
             ),
             FastAction(
@@ -287,14 +283,14 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Add to new playlist",
                     "Add songs to new playlist widget.",
                     IconMD.PLAYLIST_PLUS,
-                    { f -> AudioFileFormat.isSupported(f, Use.APP) },
+                    { it.isAudio() },
                     { fs -> APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { it.playlist.addFiles(fs) } }
             ),
             SlowAction(
                     "Open playlist",
                     "Add songs to new playlist widget.",
                     IconMD.PLAYLIST_PLAY,
-                    { f -> f.isPlaylistFile() },
+                    { it.isPlaylistFile() },
                     { f -> PlaylistManager.use { it.setNplay(readPlaylist(f)) } }
             ),
             SlowColAction(
@@ -314,7 +310,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Add to existing playlist",
                     "Add songs to existing playlist widget if possible or to a new one if not.",
                     IconMD.PLAYLIST_PLUS,
-                    { f -> AudioFileFormat.isSupported(f, Use.APP) },
+                    { it.isAudio() },
                     { f -> APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addFiles(f) } }
             ),
             FastAction(
@@ -370,7 +366,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
 
 @Suppress("UNCHECKED_CAST")
 private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<File>, List<File>> = ComplexActionData(
-        { files -> fut(files).then { getFilesAudio(it, AudioFileFormat.Use.APP, Integer.MAX_VALUE).toList() } },
+        { files -> fut(files).then { findAudio(it).toList() } },
         { files ->
 
             val executed = v(false)

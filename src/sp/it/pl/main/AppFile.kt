@@ -5,22 +5,75 @@ import javafx.scene.image.Image
 import javafx.stage.FileChooser
 import mu.KotlinLogging
 import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.pl.layout.widget.WidgetUse
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
-import sp.it.pl.util.file.AudioFileFormat
+import sp.it.pl.util.access.VarEnum
+import sp.it.pl.util.file.Util
+import sp.it.pl.util.file.Util.getFilesR
 import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.parentDirOrRoot
+import sp.it.pl.util.file.type.MimeTypes
+import sp.it.pl.util.file.type.mimeType
+import sp.it.pl.util.functional.Functors
 import sp.it.pl.util.system.Os
 import sp.it.pl.util.system.open
 import java.io.File
 import java.io.IOException
 import java.util.stream.Stream
 import javax.imageio.ImageIO
+import kotlin.streams.asSequence
 import kotlin.streams.asStream
 
 private val logger = KotlinLogging.logger { }
+
+/** Lowercase audio file extensions supported by this application. */
+val audioExtensions = setOf(
+        "mp3",
+        "ogg",
+        "flac",
+        "wav",
+        "m4a",
+        "mp4",
+        "spx",
+        "snd",
+        "aifc",
+        "aif",
+        "au",
+        "mp1",
+        "mp2",
+        "aac"
+        // TODO: add more formats, perhaps check what vlc supports
+)
+
+/** See [audioExtensionsJaudiotagger]. */
+fun File.isAudio() = extension.toLowerCase() in audioExtensions
+
+/** See [audioExtensionsJaudiotagger]. */
+fun String.isAudio() = toLowerCase() in audioExtensions
+
+/** [FileChooser.ExtensionFilter] for [audioExtensions]. */
+fun audioExtensionFilter() = FileChooser.ExtensionFilter("Audio files", audioExtensions.map { "*.$it" })
+
+/** Lowercase audio file extensions supported by jaudiotagger library for reading/writing song tags. */
+val audioExtensionsJaudiotagger = setOf(
+        "mp4",
+        "m4a",
+        "mp3",
+        "ogg",
+        "wav",
+        "flac"
+)
+
+/** See [audioExtensionsJaudiotagger]. */
+fun File.isAudioEditable() = extension.toLowerCase() in audioExtensionsJaudiotagger
+
+/** See [audioExtensionsJaudiotagger]. */
+fun AudioFileFormat.isAudioEditable() = name.toLowerCase() in audioExtensionsJaudiotagger
+
+fun findAudio(files: Collection<File>, depth: Int = Int.MAX_VALUE) = files.asSequence().flatMap { f -> getFilesR(f, depth) { it.isAudio() }.asSequence() }
 
 // Extracted from jaudiotagger org.jaudiotagger.tag.id3.valuepair.ImageFormats
 // image/jpeg
@@ -110,7 +163,7 @@ fun writeImage(img: Image, file: File) {
 
 fun File.openInApp() {
     when {
-        AudioFileFormat.isSupported(this, AudioFileFormat.Use.PLAYBACK) -> PlaylistManager.use { it.addUri(toURI()) }
+        isAudio() -> PlaylistManager.use { it.addUri(toURI()) }
         isImage() -> APP.widgetManager.widgets.use<ImageDisplayFeature>(WidgetUse.NO_LAYOUT) { it.showImage(this) }
         else -> open()
     }
@@ -122,7 +175,7 @@ fun openInApp(files: List<File>) {
     } else if (files.size==1) {
         files[0].openInApp()
     } else {
-        val audio = files.filter { AudioFileFormat.isSupported(it, AudioFileFormat.Use.PLAYBACK) }
+        val audio = files.filter { it.isAudio() }
         val images = files.filter { it.isImage() }
 
         if (!audio.isEmpty())
@@ -134,6 +187,54 @@ fun openInApp(files: List<File>) {
             APP.widgetManager.widgets.use<ImagesDisplayFeature>(WidgetUse.NO_LAYOUT) { it.showImages(images) }
         }
     }
+}
+
+/**
+ * Pool of file filters intended for simple enum-like file filter selection in UI.
+ *
+ * Because we can not yet serialize functions (see [sp.it.pl.util.functional.Functors] and
+ * [sp.it.pl.util.parsing.Converter]), it is useful to define predicates not from function pool,
+ * but hardcoded filters, which are enumerable and we look up by name.
+ */
+object FileFilters {
+    val filterPrimary = Functors.PƑ0("File - all", File::class.java, Boolean::class.java) { true }
+    private val filters = ArrayList<Functors.PƑ0<File, Boolean>>()
+
+    init {
+        filters += filterPrimary
+        filters += Functors.PƑ0("File - is audio", File::class.java, Boolean::class.java) { it.isAudio() }
+        filters += Functors.PƑ0("File - is image", File::class.java, Boolean::class.java) { it.isImage() }
+        filters += Functors.PƑ0("File type - file", File::class.java, Boolean::class.java) { it.isFile }
+        filters += Functors.PƑ0("File type - directory", File::class.java, Boolean::class.java) { it.isDirectory }
+        MimeTypes.setOfGroups().forEach { group ->
+            filters += Functors.PƑ0("Mime type group - is ${group.capitalize()}", File::class.java, Boolean::class.java) { group==it.mimeType().group }
+        }
+        MimeTypes.setOfMimeTypes().forEach { mime ->
+            filters += Functors.PƑ0("Mime type - is ${mime.name}", File::class.java, Boolean::class.java) { it.mimeType()==mime }
+        }
+        MimeTypes.setOfExtensions().forEach { extension ->
+            filters += Functors.PƑ0("Type - is $extension", File::class.java, Boolean::class.java) { Util.getSuffix(it).equals(extension, ignoreCase = true) }
+        }
+    }
+
+    /** @return filter with specified name or primary filter if no such filter */
+    @JvmStatic fun getOrPrimary(name: String) = filters.find { it.name==name } ?: filterPrimary
+
+    /** @return enumerable string value enumerating all available predicate names */
+    @JvmStatic fun toEnumerableValue() = FileFilterValue(filters.map { it.name })
+}
+
+class FileFilterValue(enumerated: Collection<String>): VarEnum<String>("File - all", enumerated) {
+
+    private var filter = FileFilters.filterPrimary
+
+    override fun setValue(v: String) {
+        filter = FileFilters.getOrPrimary(v)
+        super.setValue(v)
+    }
+
+    /** @return the filter represented by the current value, which is the name of the returned filter */
+    fun getValueAsFilter() = filter
 }
 
 enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>) {

@@ -37,6 +37,7 @@ import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.pl.main.Widgets
+import sp.it.pl.main.audioExtensionFilter
 import sp.it.pl.main.scaleEM
 import sp.it.pl.main.setSongsAndFiles
 import sp.it.pl.util.access.Vo
@@ -48,8 +49,6 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cn
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.only
-import sp.it.pl.util.file.AudioFileFormat
-import sp.it.pl.util.file.AudioFileFormat.Use
 import sp.it.pl.util.file.FileType.DIRECTORY
 import sp.it.pl.util.file.Util.getCommonRoot
 import sp.it.pl.util.functional.net
@@ -227,14 +226,14 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
     }
 
     private fun addDirectory() {
-        chooseFile("Add folder to library", DIRECTORY, lastAddDirLocation, root.scene.window, AudioFileFormat.filter(Use.APP)).ifOk {
+        chooseFile("Add folder to library", DIRECTORY, lastAddDirLocation, root.scene.window).ifOk {
             APP.actionPane.show(it)
             lastAddDirLocation = it.parentFile
         }
     }
 
     private fun addFiles() {
-        chooseFiles("Add files to library", lastAddFilesLocation, root.scene.window, AudioFileFormat.filter(Use.APP)).ifOk {
+        chooseFiles("Add files to library", lastAddFilesLocation, root.scene.window, audioExtensionFilter()).ifOk {
             APP.actionPane.show(it)
             lastAddFilesLocation = getCommonRoot(it)
         }

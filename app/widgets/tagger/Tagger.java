@@ -130,6 +130,7 @@ import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppFileKt.isAudioEditable;
 import static sp.it.pl.main.AppFileKt.isImageJaudiotagger;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.util.Util.startsWithNoCase;
 import static sp.it.pl.util.async.AsyncKt.FX;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.AsyncKt.runNew;
@@ -710,14 +711,12 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
             });
 
             // autocompletion
-            if (c instanceof TextField && !Util.equalsAny(f, TITLE, RATING_RAW, COMMENT, LYRICS, COLOR)) {
-               Comparator<String> cmpRaw = String::compareTo;
-               Comparator<String> cmp = f!=YEAR ? cmpRaw : cmpRaw.reversed();
+            if (c instanceof TextField && f.isAutoCompletable()) {
                AutoCompletion.Companion.autoComplete(
                    (TextField) c,
                    text -> APP.db.getItemUniqueValuesByField().get(f).stream()
-                          .filter(a -> a.startsWith(text))
-                          .sorted(cmp)
+                          .filter(a -> startsWithNoCase(a, text))
+                          .sorted()
                           .collect(toList())
                );
             }

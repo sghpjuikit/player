@@ -59,7 +59,7 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
 
     override fun start() {
         apply()
-        onStop += Player.playingSong.onChange { ov, _ -> incrementQueued(ov) }
+        onStop += Player.playingSong.onChange { ov, _ -> if (!ov.isEmpty()) incrementQueued(ov) }
         running = true
     }
 

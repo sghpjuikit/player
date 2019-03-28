@@ -87,12 +87,13 @@ public class Player {
 		// note: for performance reasons we update AFTER song stops playing, not WHEN it starts
 		// as with playcount incrementing, it could disrupt playback, although now we are losing
 		// updates on application closing!
-		playingSong.onChange((o, n) ->
-			MetadataWriter.use(o, w -> {
-				w.setPlayedFirstNowIfEmpty();
-				w.setPlayedLastNow();
-			})
-		);
+		playingSong.onChange((o, n) -> {
+			if (!o.isEmpty())
+				MetadataWriter.use(o, w -> {
+					w.setPlayedFirstNowIfEmpty();
+					w.setPlayedLastNow();
+				});
+		});
 
 		player.getRealTime().initialize();
 		onPlaybackAt.add(at(new Portion(1), f(() -> onPlaybackAt.forEach(h -> h.restart(Player.playingSong.getValue().getLength()))))); // TODO: fix possible StackOverflowError

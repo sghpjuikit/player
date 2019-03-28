@@ -201,7 +201,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 		int index = 0;
 		List<PlaylistSong> to_dup = new ArrayList<>();
 		for (PlaylistSong song : songs) {
-			int i = songs.indexOf(song);
+			int i = indexOf(song);
 			if (i!=-1) {
 				to_dup.add(song.copy());
 				index = i + 1;

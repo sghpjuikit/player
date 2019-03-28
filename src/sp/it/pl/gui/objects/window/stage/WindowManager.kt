@@ -191,7 +191,7 @@ class WindowManager {
     fun create(owner: Stage?, style: StageStyle, canBeMain: Boolean): Window {
         val w = Window(owner, style)
 
-        ConventionFxmlLoader(Window::class.java, w.root, w).loadNoEx<Any>()
+        ConventionFxmlLoader(w.root, w).loadNoEx<Any>()
         if (canBeMain && mainWindow==null) setAsMain(w)
 
         w.initialize()

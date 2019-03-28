@@ -60,8 +60,7 @@ public class PaneWindowControls extends WindowPane {
 	public PaneWindowControls(AnchorPane own) {
 		super(own);
 
-		// load fxml
-		new ConventionFxmlLoader(PaneWindowControls.class, root, this).loadNoEx();
+		new ConventionFxmlLoader(root, this).loadNoEx();
 
 		// clip the content to its bounds to prevent leaking out
 		Rectangle mask = new Rectangle(1, 1, BLACK);

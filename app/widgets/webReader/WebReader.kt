@@ -10,6 +10,7 @@ import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.widget.controller.fxmlLoaderForController
 import sp.it.pl.main.APP
 import sp.it.pl.main.scaleEM
 import sp.it.pl.util.access.VarEnum
@@ -22,7 +23,6 @@ import sp.it.pl.util.file.div
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.type.Util.getFieldValue
 import sp.it.pl.util.type.Util.invokeMethodP1
-import sp.it.pl.util.ui.fxml.ConventionFxmlLoader
 import sp.it.pl.util.ui.prefSize
 import sp.it.pl.util.ui.x
 import sp.it.pl.web.DuckDuckGoQBuilder
@@ -58,7 +58,7 @@ class WebReader(widget: Widget): SimpleController(widget) {
     init {
         root.prefSize = 300.scaleEM() x 500.scaleEM()
 
-        ConventionFxmlLoader(root, this).loadNoEx<Any>()
+        fxmlLoaderForController(this).loadNoEx<Any>()
 
         engine = webView.engine
         engine.userDataDirectory = userLocation/"browser"

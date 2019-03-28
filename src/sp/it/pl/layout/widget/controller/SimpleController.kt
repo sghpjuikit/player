@@ -7,7 +7,10 @@ import sp.it.pl.layout.widget.controller.io.Outputs
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.ConfigValueSource
 import sp.it.pl.util.conf.MultiConfigurable
+import sp.it.pl.util.file.div
+import sp.it.pl.util.file.toURLOrNull
 import sp.it.pl.util.reactive.Disposer
+import sp.it.pl.util.ui.fxml.ConventionFxmlLoader
 import java.util.HashMap
 
 /**
@@ -62,3 +65,8 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
 
 /** Denotes [Controller] that requires manual config initialization. */
 annotation class LegacyController
+
+/** @return [ConventionFxmlLoader] with root [SimpleController.root], specified controller and location of fxml in widget's directory */
+fun fxmlLoaderForController(controller: SimpleController) = ConventionFxmlLoader(controller.root, controller).apply {
+    location = (controller.location/"${controller.javaClass.simpleName}.fxml").toURLOrNull()!!
+}

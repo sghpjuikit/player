@@ -39,7 +39,6 @@ import sp.it.pl.util.async.executor.FxTimer;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.ui.Util;
-import sp.it.pl.util.ui.fxml.ConventionFxmlLoader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_RIGHT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
@@ -54,6 +53,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
+import static sp.it.pl.layout.widget.controller.SimpleControllerKt.fxmlLoaderForController;
 import static sp.it.pl.main.AppDragKt.getAudio;
 import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppDragKt.hasImageFileOrUrl;
@@ -163,7 +163,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         root.setPrefSize(scaleEM(400), scaleEM(400));
         root.getStylesheets().add(childOf(getLocation(), "skin.css").toURI().toASCIIString());
 
-        new ConventionFxmlLoader(root, this).loadNoEx();
+        fxmlLoaderForController(this).loadNoEx();
 
         inputLocationOf.bind(Player.playing.o);
 

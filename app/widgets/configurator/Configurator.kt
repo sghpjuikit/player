@@ -17,6 +17,7 @@ import sp.it.pl.gui.objects.tree.tree
 import sp.it.pl.gui.pane.ConfigPane
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.widget.controller.fxmlLoaderForController
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
@@ -31,7 +32,6 @@ import sp.it.pl.util.functional.recurse
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.ui.expandToRootAndSelect
-import sp.it.pl.util.ui.fxml.ConventionFxmlLoader
 import sp.it.pl.util.ui.hBox
 import sp.it.pl.util.ui.lay
 import sp.it.pl.util.ui.prefSize
@@ -73,7 +73,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
 
         inputs.create<Configurable<out Any>>("To configure", { configure(it) })
 
-        ConventionFxmlLoader(root, this).loadNoEx<Any>()
+        fxmlLoaderForController(this).loadNoEx<Any>()
 
         configsRootPane.children += configsPane
 

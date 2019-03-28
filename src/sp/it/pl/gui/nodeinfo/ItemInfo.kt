@@ -31,7 +31,7 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), Son
     private var dataId = null.identityHashCode()
 
     init {
-        ConventionFxmlLoader(ItemInfo::class.java, this).loadNoEx<Any>()
+        ConventionFxmlLoader(this).loadNoEx<Any>()
 
         ratingL.graphic = rating
         rating.alignment.value = Pos.CENTER_LEFT

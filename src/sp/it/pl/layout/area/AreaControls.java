@@ -111,8 +111,7 @@ public final class AreaControls {
     public AreaControls(WidgetArea area) {
         this.area = area;
 
-        // load fxml
-        new ConventionFxmlLoader(AreaControls.class, root, this).loadNoEx();
+        new ConventionFxmlLoader(root, this).loadNoEx();
 
         root.getStyleClass().add(Area.STYLECLASS_WIDGET_AREA_CONTROLS);
         header.setStyle("-fx-pref-height: 2em;");

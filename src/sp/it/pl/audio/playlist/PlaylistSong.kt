@@ -171,7 +171,7 @@ class PlaylistSong: Song {
     override fun toPlaylist() = this
 
     /** @return true iff this is the same object as the other, same as using === */
-    override fun equals(other: Any?): Boolean = this===other
+    override fun equals(other: Any?) = this===other
 
     override fun hashCode() = identityHashCode()
 

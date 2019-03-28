@@ -120,7 +120,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 						getSelectionModel().clearAndSelect(getIndex());
 
 					ImprovedTable<PlaylistSong> table = PlaylistTable.this;
-					contextMenu.setItemsFor(new PlaylistSongGroup(table.getSelectedItemsCopy()));
+					contextMenu.setItemsFor(new PlaylistSongGroup(playlist, table.getSelectedItemsCopy()));
 					contextMenu.show(table, e);
 				});
 				// handle drag transfer

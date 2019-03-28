@@ -161,18 +161,18 @@ object CoreMenus: Core {
                     }
             }
             add<PlaylistSongGroup> {
-                item("Play songs") { PlaylistManager.use { it.playItem(selected.songs[0]) } }
-                item("Remove songs") { PlaylistManager.use { it.removeAll(selected.songs) } }
+                item("Play songs") { selected.playlist.playItem(selected.songs[0]) }
+                item("Remove songs") { selected.playlist.removeAll(selected.songs) }
                 menu("Show in") {
                     widgetItems<SongReader> { it.read(selected.songs) }
                 }
                 menu("Edit tags in") {
                     widgetItems<SongWriter> { it.read(selected.songs) }
                 }
-                item("Crop") { PlaylistManager.use { it.retainAll(selected.songs) } }
+                item("Crop") { selected.playlist.retainAll(selected.songs) }
                 menu("Duplicate") {
-                    item("as group") { PlaylistManager.use { it.duplicateItemsAsGroup(selected.songs) } }
-                    item("individually") { PlaylistManager.use { it.duplicateItemsByOne(selected.songs) } }
+                    item("as group") { selected.playlist.duplicateItemsAsGroup(selected.songs) }
+                    item("individually") { selected.playlist.duplicateItemsByOne(selected.songs) }
                 }
                 item("Explore directory") { APP.actions.browseMultipleFiles(selected.songs.asSequence().mapNotNull { it.getFile() }) }
                 menu("Search album cover") {

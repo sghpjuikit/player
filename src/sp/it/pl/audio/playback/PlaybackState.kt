@@ -10,7 +10,6 @@ import sp.it.pl.util.units.minus
 /** State of playback. */
 class PlaybackState {
     @JvmField val volume = VolumeProperty(VolumeProperty.AVG)
-    @JvmField val balance = BalanceProperty(0.0)
     @JvmField val loopMode = v(LoopMode.PLAYLIST)
     @JvmField val status = v(Status.UNKNOWN)
     @JvmField val duration = v(0.millis)
@@ -26,7 +25,6 @@ class PlaybackState {
             +"Current Time: "+currentTime.value+", "
             +"Real Time: "+realTime.value+", "
             +"Volume: "+volume+", "
-            +"Balance: "+balance+", "
             +"Rate: "+rate+", "
             +"Mute: "+mute+", "
             +"Playback Status: "+status.value+", "

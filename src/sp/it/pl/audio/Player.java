@@ -606,18 +606,6 @@ public class Player {
 		state.playback.volume.decByStep();
 	}
 
-	/** Increment balance by elementary unit. */
-	@IsAction(name = "Balance right", desc = "Shift balance to right by elementary unit.", repeat = true)
-	public static void balanceRight() {
-		state.playback.balance.leftByStep();
-	}
-
-	/** Decrement balance by elementary unit. */
-	@IsAction(name = "Balance left", desc = "Shift balance to left by elementary unit.", repeat = true)
-	public static void balanceLeft() {
-		state.playback.balance.rightByStep();
-	}
-
 	public static PlayingSequence.LoopMode getLoopMode() {
 		return state.playback.loopMode.get();
 	}

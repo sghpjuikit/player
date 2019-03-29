@@ -25,7 +25,7 @@ import static sp.it.pl.util.reactive.UtilKt.syncTo;
 public class JavaFxPlayer implements GeneralPlayer.Play {
 
 	private MediaPlayer player;
-	private Subscription d1, d2, d3, d4, d5, d6;
+	private Subscription d1, d2, d4, d5, d6;
 
 	@Override
 	public void play() {
@@ -81,7 +81,6 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 				// bind (not read only) values
 				d1 = maintain(state.volume, v -> linToLog(v.doubleValue()), player.volumeProperty());
 				d2 = syncTo(state.mute, player.muteProperty());
-				d3 = syncTo(state.balance, player.balanceProperty());
 				d4 = syncTo(state.rate, player.rateProperty());
 				player.setOnEndOfMedia(Player.onPlaybackEnd);
 
@@ -129,7 +128,6 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 		// cut player side effects, do so before disposing
 		if (d1!=null) d1.unsubscribe();
 		if (d2!=null) d2.unsubscribe();
-		if (d3!=null) d3.unsubscribe();
 		if (d4!=null) d4.unsubscribe();
 		if (d5!=null) d5.unsubscribe();
 		if (d6!=null) d6.unsubscribe();

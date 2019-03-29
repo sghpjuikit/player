@@ -80,7 +80,6 @@ class VlcPlayer: GeneralPlayer.Play {
 
         state.volume sync { p.audio().setVolume((100*it.toDouble()).roundToInt()) } on d
         state.mute sync { p.audio().isMute = it } on d
-        state.balance sync { } on d // TODO: implement
         state.rate sync { p.controls().setRate(it.toFloat()) } on d
 
         p.media().prepare(song.uriAsVlcPath())

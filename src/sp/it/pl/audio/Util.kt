@@ -34,7 +34,6 @@ class PlayerStateDB: Serializable {
 
 class PlaybackStateDB(s: PlaybackState): Serializable {
     var volume: Double = s.volume.value
-    var balance: Double = s.balance.value
     var loopMode: String = s.loopMode.value.toString()
     var status: String = s.status.value.toString()
     var duration: Double = s.duration.value.toMillis()
@@ -45,7 +44,6 @@ class PlaybackStateDB(s: PlaybackState): Serializable {
 
     fun toDomain() = PlaybackState().also {
         it.volume.value = volume
-        it.balance.value = balance
         it.loopMode.value = LoopMode.valueOf(loopMode)
         it.status.value = Status.valueOf(status)
         it.duration.value = duration.millis

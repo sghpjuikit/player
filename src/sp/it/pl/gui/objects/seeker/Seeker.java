@@ -452,11 +452,11 @@ public final class Seeker extends AnchorPane {
 		}
 
 		void select(Chap c) {
-			Runnable oc = chapterDisplayActivation.get()==ChapterDisplayActivation.HOVER ? c::showPopup : null;
+			var oc = chapterDisplayActivation.get()==ChapterDisplayActivation.HOVER ? runnable(c::showPopup) : null;
 			chapterSelected = c;
 			setCenterX(c.getCenterX());                     // move this to chapter
 			select.playOpen();                              // animate this
-			selectChapAnim.playOpenDoClose(runnable(oc));   // animate runners & open chap in middle
+			selectChapAnim.playOpenDoClose(oc);             // animate runners & open chap in middle
 			matox = c.getCenterX();                         // animate-move runners to chapter
 		}
 

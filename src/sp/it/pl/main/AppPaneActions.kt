@@ -34,7 +34,7 @@ import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.util.Util.enumToHuman
 import sp.it.pl.util.access.v
-import sp.it.pl.util.action.Action
+import sp.it.pl.util.action.ActionRegistrar
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.future.Fut.Companion.fut
 import sp.it.pl.util.async.future.runGet
@@ -104,12 +104,12 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                                 .ifOk { dir -> app.widgetManager.factories.getFactories().forEach { it.create().exportFxwlDefault(dir) } }
                     }
             ),
-            FastAction(IconMD.KEYBOARD_VARIANT, Action.get("Show shortcuts")),
-            FastAction(IconMD.INFORMATION_OUTLINE, Action.get("Show system info")),
-            FastAction(IconFA.GITHUB, Action.get("Open on Github")),
-            FastAction(IconFA.CSS3, Action.get("Open css guide")),
-            FastAction(IconFA.IMAGE, Action.get("Open icon viewer")),
-            FastAction(IconMD.FOLDER, Action.get("Open app directory"))
+            FastAction(IconMD.KEYBOARD_VARIANT, ActionRegistrar["Show shortcuts"]),
+            FastAction(IconMD.INFORMATION_OUTLINE, ActionRegistrar["Show system info"]),
+            FastAction(IconFA.GITHUB, ActionRegistrar["Open on Github"]),
+            FastAction(IconFA.CSS3, ActionRegistrar["Open css guide"]),
+            FastAction(IconFA.IMAGE, ActionRegistrar["Open icon viewer"]),
+            FastAction(IconMD.FOLDER, ActionRegistrar["Open app directory"])
     )
     ap.register<AppOpen>(
             FastAction(

@@ -290,6 +290,7 @@ class App: Application(), Configurable<Any> {
         appCommunicator.initForApp()
 
         // start parts that can be started from non application fx thread
+        ActionManager.onActionRunPost += { APP.actionStream.invoke(it.name) }
         ActionManager.startActionListening()
         appCommunicator.start()
     }
@@ -307,13 +308,13 @@ class App: Application(), Configurable<Any> {
             services += PlaycountIncrementer()
 
             // install actions
-            Action.gatherActions(Player::class.java, null)
-            Action.gatherActions(PlaylistManager::class.java, null)
-            Action.gatherActions(Thumbnail::class.java, null)
-            Action.gatherActions(SearchAutoCancelable::class.java, null)
-            Action.gatherActions(SwitchContainer::class.java, null)
-            Action.gatherActions(Action::class.java, null)
-            Action.installActions(
+            configuration.gatherActions(Player::class.java, null)
+            configuration.gatherActions(PlaylistManager::class.java, null)
+            configuration.gatherActions(Thumbnail::class.java, null)
+            configuration.gatherActions(SearchAutoCancelable::class.java, null)
+            configuration.gatherActions(SwitchContainer::class.java, null)
+            configuration.gatherActions(Action::class.java, null)
+            configuration.installActions(
                     this,
                     ui,
                     actions,

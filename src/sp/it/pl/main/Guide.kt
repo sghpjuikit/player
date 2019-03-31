@@ -28,8 +28,8 @@ import sp.it.pl.layout.widget.orEmpty
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.Widgets.PLAYLIST
 import sp.it.pl.util.access.v
-import sp.it.pl.util.action.Action
 import sp.it.pl.util.action.ActionManager
+import sp.it.pl.util.action.ActionRegistrar
 import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.async.future.Fut.Companion.fut
@@ -320,7 +320,7 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGI
                     +"\n\nTo configure shortcuts, visit Settings > Shortcuts. Shortcuts can be global "
                     +"or local. Global shortcuts will work even if the application has no focus."
                     +"\n\nTo see all the available shortcuts, simply press "
-                    +Action.get("Show shortcuts").keys.pretty()+".")
+                    +ActionRegistrar["Show shortcuts"].keys.pretty()+".")
                 },
                 null,
                 {
@@ -392,7 +392,7 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGI
                     "When widget header is visible, the widget is in layout mode. Layout mode is used "+
                     "for advanced manipulation with the widget. In order to quickly make changes to the layout, layout "+
                     "mode can be activated by shortcut."+
-                    "\n\nPress "+Action.get(Actions.LAYOUT_MODE).keys.pretty()+" to enter/leave layout mode"
+                    "\n\nPress "+ActionRegistrar[Actions.LAYOUT_MODE].keys.pretty()+" to enter/leave layout mode"
                 }
         )
         val h15_layoutMode = hint("Layout mode",
@@ -427,7 +427,7 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGI
                             +"locked. Locked layout will enter layout mode only with shortcut."
                             +"\nYou may want to lock the layout after configuring it to your needs."
                             +"\n\nClick on the lock button in the window header or press "
-                            +Action.get("Lock layout - toggle").keys.pretty()+" to lock layout."
+                            +ActionRegistrar["Lock layout - toggle"].keys.pretty()+" to lock layout."
                 )}
         )
         val h18_layoutLock = hint("Widget layout lock",

@@ -5,7 +5,6 @@ import javafx.scene.input.KeyCode.ALT_GRAPH
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyCode.WINDOWS
 import javafx.stage.Stage
-import sp.it.pl.service.hotkey.Hotkeys
 import sp.it.pl.util.access.initSync
 import sp.it.pl.util.access.v
 import sp.it.pl.util.action.ActionRegistrar.hotkeys
@@ -17,6 +16,7 @@ import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.dev.fail
+import sp.it.pl.util.reactive.Handler1
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.onItemSyncWhile
@@ -146,6 +146,10 @@ object ActionManager {
         hotkeys.stop()
     }
 
+    /** Invokes immediately before [Action.run]. */
+    val onActionRunPre = Handler1<Action>()
+    /** Invokes immediately after [Action.run]. */
+    val onActionRunPost = Handler1<Action>()
 }
 
 object ActionRegistrar {
@@ -166,6 +170,6 @@ object ActionRegistrar {
      * @return the action with the given [name]
      * @throws RuntimeException if no action with that name exists (programmatic error)
      */
-    operator fun get(name: String): Action = actions[name] ?: fail { "No action: '$name' found. " }
+    @JvmStatic operator fun get(name: String): Action = actions[name] ?: fail { "No action: '$name' found. " }
 
 }

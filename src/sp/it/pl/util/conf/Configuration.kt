@@ -2,16 +2,23 @@ package sp.it.pl.util.conf
 
 import sp.it.pl.util.action.Action
 import sp.it.pl.util.action.ActionRegistrar
+import sp.it.pl.util.action.IsAction
 import sp.it.pl.util.collections.mapset.MapSet
 import sp.it.pl.util.conf.ConfigurationUtil.configsOf
+import sp.it.pl.util.dev.failIf
 import sp.it.pl.util.file.Properties
 import sp.it.pl.util.file.Properties.Property
 import sp.it.pl.util.functional.compose
 import sp.it.pl.util.type.isSubclassOf
 import java.io.File
+import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
+import java.lang.reflect.Modifier.isStatic
 import java.time.LocalDateTime
+import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
+import java.util.stream.Stream
+import kotlin.streams.asSequence
 
 /** Persistable [Configurable]. */
 open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${it.name}" } ): Configurable<Any?> {
@@ -89,6 +96,58 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
             ActionRegistrar.getActions() += config
             config.register()
         }
+    }
+
+    fun installActions(vararg os: Any) {
+        os.asSequence().flatMap {
+            when (it) {
+                is Sequence<*> -> it
+                is Stream<*> -> it.asSequence()
+                is Optional<*> -> it.stream().asSequence()
+                is Array<*> -> os.asSequence()
+                is Collection<*> -> it.asSequence()
+                else -> sequenceOf(it)
+            }
+        }.filterNotNull().forEach {
+            gatherActions(it)
+        }
+    }
+
+    fun gatherActions(o: Any) {
+        gatherActions(o.javaClass, o)
+    }
+
+    fun <T: Any> gatherActions(type: Class<T>, instance: T?) {
+        val useStatic = instance!=null
+        val methodLookup = MethodHandles.lookup()
+        type.declaredMethods.asSequence()
+                .map { it to isStatic(it.modifiers) }
+                .filter { it.second xor useStatic }
+                .filter { it.first.isAnnotationPresent(IsAction::class.java) }
+                .map { m ->
+                    failIf(m.first.parameters.isNotEmpty()) { "Action method=${m.first} must have 0 parameters" }
+
+                    val a = m.first.getAnnotation(IsAction::class.java)
+                    val group = instance?.let { computeConfigGroup(it) } ?: obtainConfigGroup(null, type)
+                    val mh: MethodHandle
+                    try {
+                        m.first.isAccessible = true
+                        mh = methodLookup.unreflect(m.first)
+                    } catch (e: IllegalAccessException) {
+                        throw RuntimeException(e)
+                    }
+
+                    val r = Runnable {
+                        try {
+                            if (m.second) mh.invokeExact()
+                            else mh.invoke(instance)
+                        } catch (e: Throwable) {
+                            throw RuntimeException("Error during running action", e)
+                        }
+                    }
+                    Action(a, group, r)
+                }
+                .forEach { collect(it) }
     }
 
     fun <T> drop(config: Config<T>) {

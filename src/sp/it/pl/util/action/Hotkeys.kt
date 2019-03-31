@@ -1,4 +1,4 @@
-package sp.it.pl.service.hotkey
+package sp.it.pl.util.action
 
 import javafx.scene.input.KeyCode
 import mu.KLogging
@@ -7,8 +7,6 @@ import org.jnativehook.NativeHookException
 import org.jnativehook.NativeInputEvent
 import org.jnativehook.keyboard.NativeKeyEvent
 import org.jnativehook.keyboard.NativeKeyListener
-import sp.it.pl.util.action.Action
-import sp.it.pl.util.action.ActionRegistrar
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.functional.Util.list
 import java.util.concurrent.AbstractExecutorService

@@ -1,33 +1,21 @@
 package sp.it.pl.util.action;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodHandles.Lookup;
-import java.util.Collection;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.util.Pair;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 import sp.it.pl.util.conf.Config;
 import sp.it.pl.util.conf.EditMode;
 import sp.it.pl.util.validation.Constraint;
-import static java.lang.reflect.Modifier.isStatic;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
-import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.conf.ConfigurationUtilKt.computeConfigGroup;
-import static sp.it.pl.util.conf.ConfigurationUtilKt.obtainConfigGroup;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.functional.Util.setRO;
-import static sp.it.pl.util.functional.Util.stream;
 
 /**
  * Behavior with a name and possible shortcut.
@@ -54,7 +42,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	private final String defaultKeys;
 	private final boolean defaultGlobal;
 
-	private Action(IsAction a, String group, Runnable action) {
+	public Action(IsAction a, String group, Runnable action) {
 		this(a.name(), action, a.desc(), group, a.keys(), a.global(), a.repeat());
 	}
 
@@ -184,8 +172,9 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	public void run() {
 		runFX(() -> {
 			logger(Action.class).info("Executing action {}", name);
+			ActionManager.INSTANCE.getOnActionRunPre().invoke(this);
 			action.run();
-			APP.actionStream.invoke(name);
+			ActionManager.INSTANCE.getOnActionRunPost().invoke(this);
 		});
 	}
 
@@ -397,8 +386,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 		return new Action(isGlobal, keys);
 	}
 
-	// internal use
-	@Deprecated
+	@Deprecated // internal use
 	static Action from(Action a, String str) {
 		Action tmp = fromString(str);
 		if (tmp!=null) {
@@ -411,62 +399,6 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	@Override
 	public String toString() {
 		return global + "," + getKeys();
-	}
-
-
-	public static Action get(String name) {
-		return ActionRegistrar.INSTANCE.get(name);
-	}
-
-
-	public static void installActions(Object... os) {
-		stream(os)
-			.flatMap(o -> {
-				if (o instanceof Stream) return (Stream<?>) o;
-				if (o instanceof Optional) return ((Optional<?>) o).stream();
-				if (o instanceof Object[]) return stream(((Object[]) o));
-				if (o instanceof Collection) return Stream.concat(Stream.of(o), ((Collection<?>)o).stream());
-				return stream(o);
-			})
-			.forEach(o -> gatherActions(o));
-	}
-
-	public static void gatherActions(Object object) {
-		gatherActions(object.getClass(), object);
-	}
-
-	public static <T> void gatherActions(Class<? extends T> type, T instance) {
-		boolean useStatic = instance!=null;
-		Lookup method_lookup = MethodHandles.lookup();
-		stream(type.getDeclaredMethods())
-			.map(m -> new Pair<>(m, isStatic(m.getModifiers())))
-			.filter(m -> useStatic^m.getValue())
-			.filter(m -> m.getKey().isAnnotationPresent(IsAction.class))
-			.map(m -> {
-				if (m.getKey().getParameters().length>0)
-					throw new RuntimeException("Action method=" + m.getKey() + " must have 0 parameters!");
-
-				IsAction a = m.getKey().getAnnotation(IsAction.class);
-				String group = instance==null ? obtainConfigGroup(null, type) : computeConfigGroup(instance);
-				MethodHandle mh;
-				try {
-					m.getKey().setAccessible(true);
-					mh = method_lookup.unreflect(m.getKey());
-				} catch (IllegalAccessException e) {
-					throw new RuntimeException(e);
-				}
-
-				Runnable r = () -> {
-					try {
-						if (m.getValue()) mh.invokeExact();
-						else mh.invoke(instance);
-					} catch (Throwable e) {
-						throw new RuntimeException("Error during running action", e);
-					}
-				};
-				return new Action(a, group, r);
-			})
-			.forEach(APP.configuration::collect);
 	}
 
 }

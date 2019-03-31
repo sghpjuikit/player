@@ -38,8 +38,8 @@ import sp.it.pl.layout.container.switchcontainer.SwitchPane;
 import sp.it.pl.main.AppProgress;
 import sp.it.pl.main.Df;
 import sp.it.pl.util.access.V;
-import sp.it.pl.util.action.Action;
 import sp.it.pl.util.action.ActionManager;
+import sp.it.pl.util.action.ActionRegistrar;
 import sp.it.pl.util.animation.Anim;
 import sp.it.pl.util.animation.interpolator.ElasticInterpolator;
 import sp.it.pl.util.async.executor.EventReducer;
@@ -315,17 +315,17 @@ public class Window extends WindowBase {
 
 		setTitle("");
 		double is = 15;
-		Icon propB = new Icon(GEARS, is, Action.get("Open settings"));
-		Icon runB = new Icon(GAVEL, is, Action.get("Open app actions"));
+		Icon propB = new Icon(GEARS, is, ActionRegistrar.get("Open settings"));
+		Icon runB = new Icon(GAVEL, is, ActionRegistrar.get("Open app actions"));
 		Icon lockB = new Icon(null, is, "Lock layout\n\nRestricts certain layout operations to "
 			+ "prevent accidents and configuration getting in the way. Widgets, containers and "
 			+ "layouts can also be locked individually.", () -> APP.ui.toggleLayoutLocked());
 		maintain(APP.ui.getLockedLayout(), mapB(LOCK, UNLOCK), lockB::icon);
-		Icon lmB = new Icon(null, is, Action.get("Layout zoom overlay in/out"));
-		Icon ltB = new Icon(CARET_LEFT, is, Action.get("Layout move left"));
-		Icon rtB = new Icon(CARET_RIGHT, is, Action.get("Layout move right"));
+		Icon lmB = new Icon(null, is, ActionRegistrar.get("Layout zoom overlay in/out"));
+		Icon ltB = new Icon(CARET_LEFT, is, ActionRegistrar.get("Layout move left"));
+		Icon rtB = new Icon(CARET_RIGHT, is, ActionRegistrar.get("Layout move right"));
 		maintain(APP.ui.getLayoutMode(), mapB(TH, TH_LARGE), lmB::icon);
-		Icon guideB = new Icon(GRADUATION_CAP, is, Action.get("Open guide"));
+		Icon guideB = new Icon(GRADUATION_CAP, is, ActionRegistrar.get("Open guide"));
 		Icon helpB = infoIcon("Available actions:\n"
 			+ "\tHeader icons : Providing custom functionalities. See tooltips.\n"
 			+ "\tHeader buttons : Providing window control. See tooltips.\n"

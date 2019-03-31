@@ -9,31 +9,30 @@ import javafx.stage.FileChooser
 import javafx.stage.Screen
 import javafx.stage.Window
 import mu.KotlinLogging
-import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
-import sp.it.pl.main.APP
-import sp.it.pl.main.isValidSkinFile
-import sp.it.pl.main.isValidWidgetFile
 import sp.it.pl.util.async.future.Fut
 import sp.it.pl.util.async.runNew
 import sp.it.pl.util.file.FileType
-import sp.it.pl.util.file.childOf
 import sp.it.pl.util.file.find1stExistingParentDir
-import sp.it.pl.util.file.nameWithoutExtensionOrRoot
-import sp.it.pl.util.file.parentDir
 import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.file.toFileOrNull
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.Try.ok
 import sp.it.pl.util.functional.ifNotNull
 import sp.it.pl.util.functional.ifNull
+import sp.it.pl.util.system.EnvironmentContext.defaultChooseFileDir
+import sp.it.pl.util.system.EnvironmentContext.runAsProgramArgsTransformer
 import sp.it.pl.util.ui.ordinal
 import java.awt.Desktop
 import java.io.File
 import java.io.IOException
 import java.net.URI
-import java.util.ArrayList
 
 private val logger = KotlinLogging.logger { }
+
+object EnvironmentContext {
+    var runAsProgramArgsTransformer: (List<String>) -> List<String> = { it }
+    var defaultChooseFileDir: File = File(System.getProperty("user.home"))
+}
 
 /** Puts the specified string to system clipboard. Does nothing if null. */
 fun copyToSysClipboard(s: String?) = copyToSysClipboard(DataFormat.PLAIN_TEXT, s)
@@ -54,13 +53,8 @@ fun copyToSysClipboard(df: DataFormat, o: Any?) = o?.let { Clipboard.getSystemCl
 @JvmOverloads
 fun File.runAsProgram(vararg arguments: String, then: (Process) -> Unit = {}): Fut<Try<Process, Exception>> {
     return runNew {
-        val command = ArrayList<String>()
-        if (Os.WINDOWS.isCurrent)
-            command += APP.DIR_APP.childOf("elevate.exe").absolutePath   // use elevate.exe to run command
-
-        command += absoluteFile.path
-        command += arguments.asSequence().filter { it.isNotBlank() }.map { "-$it" }
-
+        val commandRaw = listOf(absoluteFile.path, *arguments)
+        val command = runAsProgramArgsTransformer(commandRaw)
         try {
             val process = ProcessBuilder(command)
                     .directory(parentDirOrRoot)
@@ -181,26 +175,20 @@ fun File.open() {
     logger.info { "Opening file=$this" }
     runNew<Unit> {
         when {
-            isExecutable() -> {
-                // If the file is executable, Desktop#open() will execute it, however the spawned process' working directory
-                // will be set to the working directory of this application, which is not illegal, but definitely dangerous
-                // Hence, we execute files on our own
-                runAsProgram()
-            }
-            else -> when {
-                isDirectory && APP.DIR_SKINS==parentDir || this.isValidSkinFile() -> APP.ui.setSkin(this)
-                isDirectory && APP.DIR_WIDGETS==parentDir || this.isValidWidgetFile() -> APP.widgetManager.widgets.find(nameWithoutExtensionOrRoot, NO_LAYOUT)
-                else -> {
-                    if (Desktop.Action.OPEN.isSupportedOrWarn()) {
-                        try {
-                            Desktop.getDesktop().open(this)
-                        } catch (e: IOException) {
-                            val noApp = "No application is associated with the specified file for this operation" in e.message.orEmpty()
-                            if (noApp) logger.warn(e) { "Couldn't find an application association for file=$this" }
-                            else logger.error(e) { "Opening file=$this in native app failed" }
-                        } catch (e: IllegalArgumentException) {
-                            // file does not exists, nothing to do
-                        }
+            // If the file is executable, Desktop#open() will execute it, however the spawned process' working directory
+            // will be set to the working directory of this application, which is not illegal, but definitely dangerous
+            // Hence, we execute files on our own
+            isExecutable() -> runAsProgram()
+            else ->  {
+                if (Desktop.Action.OPEN.isSupportedOrWarn()) {
+                    try {
+                        Desktop.getDesktop().open(this)
+                    } catch (e: IOException) {
+                        val noApp = "No application is associated with the specified file for this operation" in e.message.orEmpty()
+                        if (noApp) logger.warn(e) { "Couldn't find an application association for file=$this" }
+                        else logger.error(e) { "Opening file=$this in native app failed" }
+                    } catch (e: IllegalArgumentException) {
+                        // file does not exists, nothing to do
                     }
                 }
             }
@@ -231,7 +219,7 @@ fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? 
         FileType.DIRECTORY -> {
             val c = DirectoryChooser().apply {
                 this.title = title
-                this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(APP.DIR_APP)
+                this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
             }
             val f = c.showDialog(w)
             return if (f!=null) ok<File, Void>(f) else Try.error()
@@ -239,7 +227,7 @@ fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? 
         FileType.FILE -> {
             val c = FileChooser().apply {
                 this.title = title
-                this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(APP.DIR_APP)
+                this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
                 this.extensionFilters += extensions
             }
             val f = c.showOpenDialog(w)
@@ -251,7 +239,7 @@ fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? 
 fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<List<File>, Void> {
     val c = FileChooser().apply {
         this.title = title
-        this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(APP.DIR_APP)
+        this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
         this.extensionFilters += extensions
     }
     val fs = c.showOpenMultipleDialog(w)
@@ -261,7 +249,7 @@ fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg 
 fun saveFile(title: String, initial: File? = null, initialName: String, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void> {
     val c = FileChooser().apply {
         this.title = title
-        this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(APP.DIR_APP)
+        this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
         this.initialFileName = initialName
         this.extensionFilters += extensions
     }

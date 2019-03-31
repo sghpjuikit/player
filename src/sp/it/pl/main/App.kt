@@ -15,6 +15,7 @@ import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.core.CoreConverter
+import sp.it.pl.core.CoreEnv
 import sp.it.pl.core.CoreFunctors
 import sp.it.pl.core.CoreImageIO
 import sp.it.pl.core.CoreInstances
@@ -162,6 +163,7 @@ class App: Application(), Configurable<Any> {
 
     // cores (always active, mostly singletons)
     @F val logging = CoreLogging(DIR_RESOURCES.childOf("log_configuration.xml"), DIR_LOG)
+    @F val env = CoreEnv.apply { init() }
     @F val imageIo = CoreImageIO(DIR_TEMP.childOf("imageio"))
     @F val converter = CoreConverter().apply { init() }
     @F val configuration = MainConfiguration.apply { rawAdd(FILE_SETTINGS) }
@@ -375,6 +377,7 @@ class App: Application(), Configurable<Any> {
         serializerXml.dispose()
         converter.dispose()
         imageIo.dispose()
+        env.dispose()
         logging.dispose()
     }
 

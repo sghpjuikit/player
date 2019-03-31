@@ -4,11 +4,7 @@ import javafx.embed.swing.SwingFXUtils
 import javafx.scene.image.Image
 import javafx.stage.FileChooser
 import mu.KotlinLogging
-import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.AudioFileFormat
-import sp.it.pl.layout.widget.WidgetUse
-import sp.it.pl.layout.widget.feature.ImageDisplayFeature
-import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.util.access.VarEnum
 import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.getFilesR
@@ -19,7 +15,6 @@ import sp.it.pl.util.file.type.MimeTypes
 import sp.it.pl.util.file.type.mimeType
 import sp.it.pl.util.functional.Functors
 import sp.it.pl.util.system.Os
-import sp.it.pl.util.system.open
 import java.io.File
 import java.io.IOException
 import java.util.stream.Stream
@@ -158,34 +153,6 @@ fun writeImage(img: Image, file: File) {
         ImageIO.write(SwingFXUtils.fromFXImage(img, null), file.extension, file)
     } catch (e: IOException) {
         logger.error(e) { "Could not save image to file=$file" }
-    }
-}
-
-fun File.openInApp() {
-    when {
-        isAudio() -> PlaylistManager.use { it.addUri(toURI()) }
-        isImage() -> APP.widgetManager.widgets.use<ImageDisplayFeature>(WidgetUse.NO_LAYOUT) { it.showImage(this) }
-        else -> open()
-    }
-}
-
-fun openInApp(files: List<File>) {
-    if (files.isEmpty()) {
-        return
-    } else if (files.size==1) {
-        files[0].openInApp()
-    } else {
-        val audio = files.filter { it.isAudio() }
-        val images = files.filter { it.isImage() }
-
-        if (!audio.isEmpty())
-            PlaylistManager.use { it.addUris(audio.map { it.toURI() }) }
-
-        if (images.size==1) {
-            APP.widgetManager.widgets.use<ImageDisplayFeature>(WidgetUse.NO_LAYOUT) { it.showImage(images[0]) }
-        } else if (images.size>1) {
-            APP.widgetManager.widgets.use<ImagesDisplayFeature>(WidgetUse.NO_LAYOUT) { it.showImages(images) }
-        }
     }
 }
 

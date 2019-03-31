@@ -65,6 +65,7 @@ import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.pl.main.AppDragKt.getAny;
+import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.showAppProgress;
@@ -91,7 +92,6 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.ui.Util.layHorizontally;
 import static sp.it.pl.util.ui.Util.layStack;
 import static sp.it.pl.util.ui.Util.layVertically;
-import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 @SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal", "unused"})
 @Widget.Info(

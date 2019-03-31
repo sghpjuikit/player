@@ -14,6 +14,7 @@ import sp.it.pl.main.IconMD
 import sp.it.pl.main.getImageFile
 import sp.it.pl.main.getImageFileOrUrl
 import sp.it.pl.main.hasImageFileOrUrl
+import sp.it.pl.main.installDrag
 import sp.it.pl.main.scaleEM
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cn
@@ -23,7 +24,6 @@ import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sync1IfInScene
 import sp.it.pl.util.reactive.syncFrom
-import sp.it.pl.util.ui.drag.installDrag
 import sp.it.pl.util.ui.image.FitFrom
 import sp.it.pl.util.ui.lay
 import sp.it.pl.util.ui.prefSize

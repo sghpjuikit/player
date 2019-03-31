@@ -52,6 +52,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT;
+import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.by;
@@ -61,7 +62,6 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.ui.UtilKt.pseudoclass;
 import static sp.it.pl.util.ui.UtilKt.setScaleXY;
-import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 /**
  * Display for {@link sp.it.pl.layout.widget.controller.io.XPut} of components, displaying their relations as am editable graph.

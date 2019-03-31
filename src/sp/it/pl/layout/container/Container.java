@@ -22,10 +22,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static sp.it.pl.layout.widget.EmptyWidgetKt.getEmptyWidgetFactory;
 import static sp.it.pl.main.AppDragKt.getText;
 import static sp.it.pl.main.AppDragKt.hasText;
+import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.stream;
 import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 /**
  * Component able to store other Components.

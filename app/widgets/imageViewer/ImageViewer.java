@@ -58,6 +58,7 @@ import static sp.it.pl.main.AppDragKt.getAudio;
 import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppDragKt.hasImageFileOrUrl;
 import static sp.it.pl.main.AppDragKt.hasImageFilesOrUrl;
+import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
@@ -76,7 +77,6 @@ import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.ui.UtilKt.pseudoclass;
 import static sp.it.pl.util.ui.UtilKt.setMinPrefMaxSize;
-import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 @SuppressWarnings({"WeakerAccess", "unused", "FieldCanBeLocal"})
 @Widget.Info(

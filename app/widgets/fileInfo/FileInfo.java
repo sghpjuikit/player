@@ -76,6 +76,7 @@ import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppDragKt.getAudio;
 import static sp.it.pl.main.AppDragKt.hasAudio;
+import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -87,7 +88,6 @@ import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
-import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 @Widget.Info(
     author = "Martin Polakovic",

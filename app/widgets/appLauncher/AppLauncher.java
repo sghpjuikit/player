@@ -40,6 +40,7 @@ import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.KEY_PRESS;
 import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
 import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_HOVER;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
+import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.Sort.ASCENDING;
@@ -58,7 +59,6 @@ import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
 import static sp.it.pl.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.open;
-import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 @Widget.Info(
     author = "Martin Polakovic",

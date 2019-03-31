@@ -47,7 +47,6 @@ import sp.it.pl.util.reactive.Handler1
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.text.keys
 import sp.it.pl.util.ui.Util.layHorizontally
-import sp.it.pl.util.ui.drag.installDrag
 import sp.it.pl.util.ui.label
 import sp.it.pl.util.ui.lay
 import sp.it.pl.util.ui.vBox

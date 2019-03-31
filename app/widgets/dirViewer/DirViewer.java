@@ -45,6 +45,7 @@ import static javafx.util.Duration.minutes;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppBuildersKt.appTooltipForData;
+import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.showAppProgress;
@@ -71,7 +72,6 @@ import static sp.it.pl.util.reactive.UtilKt.syncTo;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.edit;
 import static sp.it.pl.util.system.EnvironmentKt.open;
-import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 @Widget.Info(
     author = "Martin Polakovic",

@@ -1,11 +1,16 @@
 package sp.it.pl.main
 
+import de.jensd.fx.glyphs.GlyphIcons
+import javafx.geometry.Bounds
+import javafx.scene.Node
 import javafx.scene.image.Image
+import javafx.scene.input.DragEvent
 import javafx.scene.input.Dragboard
 import mu.KotlinLogging
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.MetadataGroup
+import sp.it.pl.gui.objects.placeholder.DragPane
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.util.async.future.Fut
@@ -14,13 +19,17 @@ import sp.it.pl.util.async.runNew
 import sp.it.pl.util.dev.fail
 import sp.it.pl.util.dev.failIf
 import sp.it.pl.util.file.Util
+import sp.it.pl.util.functional.Functors
 import sp.it.pl.util.functional.Util.listRO
 import sp.it.pl.util.ui.drag.DataFormat
 import sp.it.pl.util.ui.drag.contains
 import sp.it.pl.util.ui.drag.get
+import sp.it.pl.util.ui.drag.handlerAccepting
 import java.io.File
 import java.io.IOException
 import java.net.URI
+import java.util.function.Predicate
+import java.util.function.Supplier
 import javafx.scene.input.DataFormat as DataFormatFX
 
 private val logger = KotlinLogging.logger {}
@@ -210,4 +219,34 @@ private fun futUrl(url: String): Fut<File?> = runNew {
         logger.error(e) { "Could not download file from url=$url" }
         null
     }
+}
+
+/** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
+fun installDrag(node: Node, icon: GlyphIcons, description: String, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
+        installDrag(node, icon, description, condition, { false }, action)
+
+/** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
+fun installDrag(node: Node, icon: GlyphIcons, description: String, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
+        sp.it.pl.main.installDrag(node, icon, Supplier { description }, condition, exc, action)
+
+/** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
+fun installDrag(node: Node, icon: GlyphIcons, description: Supplier<out String>, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
+        sp.it.pl.main.installDrag(node, icon, description, condition, { false }, action)
+
+/** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
+@JvmOverloads
+fun installDrag(node: Node, icon: GlyphIcons, description: Supplier<out String>, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit, area: ((DragEvent) -> Bounds)? = null) {
+    // accept drag if desired
+    node.addEventHandler(DragEvent.DRAG_OVER, handlerAccepting(condition, exc))
+    // handle drag & clear data
+    node.addEventHandler(DragEvent.DRAG_DROPPED) { e ->
+        if (condition(e)) {
+            action(e)
+            e.isDropCompleted = true
+            dragData = null
+            e.consume()
+        }
+    }
+    // show hint
+    DragPane.install(node, icon, description, Predicate { condition(it) }, Predicate { exc(it) }, if (area==null) null else Functors.Ƒ1 { area(it) })
 }

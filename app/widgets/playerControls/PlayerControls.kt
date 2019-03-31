@@ -36,6 +36,7 @@ import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.getAudio
 import sp.it.pl.main.hasAudio
+import sp.it.pl.main.installDrag
 import sp.it.pl.main.scaleEM
 import sp.it.pl.util.access.toggle
 import sp.it.pl.util.collections.setToOne
@@ -49,7 +50,6 @@ import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncBi
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.ui.EM
-import sp.it.pl.util.ui.drag.installDrag
 import sp.it.pl.util.ui.hBox
 import sp.it.pl.util.ui.lay
 import sp.it.pl.util.ui.prefSize

@@ -45,6 +45,7 @@ import static sp.it.pl.layout.area.Area.STYLECLASS_CONTAINER_AREA_CONTROLS;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.get;
+import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppDragKt.set;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.functional.Util.mapB;
@@ -52,7 +53,6 @@ import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.ui.Util.setAnchors;
-import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 public abstract class ContainerNodeBase<C extends Container<?>> implements ContainerNode {
 

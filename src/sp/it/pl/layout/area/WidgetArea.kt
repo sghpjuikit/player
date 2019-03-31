@@ -14,13 +14,13 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.contains
 import sp.it.pl.main.get
+import sp.it.pl.main.installDrag
 import sp.it.pl.util.access.ref.SingleR
 import sp.it.pl.util.access.toggle
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncTo
-import sp.it.pl.util.ui.drag.installDrag
 import sp.it.pl.util.ui.layFullArea
 
 /**

@@ -42,6 +42,7 @@ import static sp.it.pl.audio.playlist.PlaylistSong.Field.NAME;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.TITLE;
 import static sp.it.pl.main.AppDragKt.getAudio;
 import static sp.it.pl.main.AppDragKt.hasAudio;
+import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppDragKt.setSongsAndFiles;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.FX;
@@ -55,7 +56,6 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.ui.Util.computeFontWidth;
 import static sp.it.pl.util.ui.Util.selectRows;
 import static sp.it.pl.util.ui.UtilKt.pseudoclass;
-import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 import static sp.it.pl.util.units.UtilKt.toHMSMs;
 
 /**

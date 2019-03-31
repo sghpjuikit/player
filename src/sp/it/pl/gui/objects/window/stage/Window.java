@@ -91,6 +91,7 @@ import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.getAnyFut;
+import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.access.SequentialValue.next;
 import static sp.it.pl.util.access.SequentialValue.previous;
@@ -109,7 +110,6 @@ import static sp.it.pl.util.ui.UtilKt.getScreen;
 import static sp.it.pl.util.ui.UtilKt.initClip;
 import static sp.it.pl.util.ui.UtilKt.pseudoclass;
 import static sp.it.pl.util.ui.UtilKt.setScaleXY;
-import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 /** Window for application. */
 @SuppressWarnings({"WeakerAccess", "unused"})

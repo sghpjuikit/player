@@ -28,6 +28,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.getAny
+import sp.it.pl.main.installDrag
 import sp.it.pl.main.scaleEM
 import sp.it.pl.util.collections.getElementType
 import sp.it.pl.util.file.isAnyChildOf
@@ -41,7 +42,6 @@ import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.onItemSyncWhile
 import sp.it.pl.util.reactive.plus
 import sp.it.pl.util.reactive.syncNonNullIntoWhile
-import sp.it.pl.util.ui.drag.installDrag
 import sp.it.pl.util.ui.expandToRootAndSelect
 import sp.it.pl.util.ui.hBox
 import sp.it.pl.util.ui.isAnyChildOf

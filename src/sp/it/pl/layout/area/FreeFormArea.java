@@ -25,6 +25,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.get;
+import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.functional.Util.findFirstEmptyKey;
@@ -34,7 +35,6 @@ import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
 import static sp.it.pl.util.ui.Util.setAnchor;
 import static sp.it.pl.util.ui.Util.setAnchors;
-import static sp.it.pl.util.ui.drag.DragUtilKt.installDrag;
 
 public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 

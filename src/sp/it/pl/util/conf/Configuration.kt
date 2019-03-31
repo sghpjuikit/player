@@ -11,7 +11,6 @@ import sp.it.pl.util.file.Properties.Property
 import sp.it.pl.util.functional.compose
 import sp.it.pl.util.type.isSubclassOf
 import java.io.File
-import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.reflect.Modifier.isStatic
 import java.time.LocalDateTime
@@ -119,30 +118,21 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
 
     fun <T: Any> gatherActions(type: Class<T>, instance: T?) {
         val useStatic = instance!=null
-        val methodLookup = MethodHandles.lookup()
         type.declaredMethods.asSequence()
-                .map { it to isStatic(it.modifiers) }
-                .filter { it.second xor useStatic }
-                .filter { it.first.isAnnotationPresent(IsAction::class.java) }
-                .map { m ->
-                    failIf(m.first.parameters.isNotEmpty()) { "Action method=${m.first} must have 0 parameters" }
+                .filter { isStatic(it.modifiers) xor useStatic && it.isAnnotationPresent(IsAction::class.java) }
+                .map {
+                    failIf(it.parameters.isNotEmpty()) { "Action method=$it must have 0 parameters" }
 
-                    val a = m.first.getAnnotation(IsAction::class.java)
+                    val a = it.getAnnotation(IsAction::class.java)
                     val group = instance?.let { computeConfigGroup(it) } ?: obtainConfigGroup(null, type)
-                    val mh: MethodHandle
-                    try {
-                        m.first.isAccessible = true
-                        mh = methodLookup.unreflect(m.first)
-                    } catch (e: IllegalAccessException) {
-                        throw RuntimeException(e)
-                    }
-
                     val r = Runnable {
                         try {
-                            if (m.second) mh.invokeExact()
-                            else mh.invoke(instance)
+                            it.isAccessible = true
+                            it.invoke(instance)
+                        } catch (e: IllegalAccessException) {
+                            throw RuntimeException("Failed to run action=${a.name}", e)
                         } catch (e: Throwable) {
-                            throw RuntimeException("Error during running action", e)
+                            throw RuntimeException("Failed to run action=${a.name}", e)
                         }
                     }
                     Action(a, group, r)

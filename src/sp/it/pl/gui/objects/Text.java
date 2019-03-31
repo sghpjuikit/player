@@ -4,13 +4,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 
-/**
- * {@link javafx.scene.text.Text} with a default styleclass "text-shape" and
- * support for automatic wrap width based on contained text value.
- */
+/** {@link javafx.scene.text.Text} with support for automatic wrap width based on contained text value. */
 public class Text extends javafx.scene.text.Text {
-
-	public static final String STYLECLASS = "text-shape";
 
 	/**
 	 * Whether wrapping width is automatically changed to maintain natural width/height ratio of the area.
@@ -36,18 +31,14 @@ public class Text extends javafx.scene.text.Text {
 
 	public Text() {
 		super();
-		getStyleClass().add(STYLECLASS);
-
 	}
 
 	public Text(String text) {
 		super(text);
-		getStyleClass().add(STYLECLASS);
 	}
 
 	public Text(double x, double y, String text) {
 		super(x, y, text);
-		getStyleClass().add(STYLECLASS);
 	}
 
 	/**

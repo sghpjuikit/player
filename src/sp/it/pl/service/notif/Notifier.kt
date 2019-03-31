@@ -9,6 +9,7 @@ import javafx.scene.media.MediaPlayer.Status.STOPPED
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.nodeinfo.ItemInfo
+import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.objects.popover.ScreenUse
 import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
@@ -29,7 +30,6 @@ import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.ui.lay
 import sp.it.pl.util.ui.stackPane
-import sp.it.pl.util.ui.text
 import sp.it.pl.util.units.millis
 
 /** Provides notification functionality. */
@@ -145,7 +145,7 @@ class Notifier: ServiceBase("Notifications", true) {
             val root = stackPane {
                 setMinSize(150.0, 70.0)
 
-                lay += text(txt) {
+                lay += Text(txt).apply {
                     wrappingWithNatural.value = true
                 }
             }

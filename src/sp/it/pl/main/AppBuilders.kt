@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicLong
  */
 @JvmOverloads
 fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> {
-    val t = text(textContent) {
+    val t = Text(textContent).apply {
         styleClass += "help-popover-text"
         wrappingWithNatural.value = true
     }

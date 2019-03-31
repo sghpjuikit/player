@@ -572,6 +572,11 @@
     -fx-padding: 3 6 2 6;
 }
 
+/*********************************** Text *************************************/
+
+Text {
+    -fx-fill: -fx-def-font-color;
+}
 
 /********************************* ComboBox ***********************************/
 
@@ -2153,14 +2158,6 @@
 .volume .thumb {}
 .volume .thumb:hover {}
 .volume .track {}
-
-/*********************************** TEXT ******************************************************************************
- * javafx.scene.text.Text does not actually have a style class so this is a custom
- * implementation of that used by a subclass
- */
-.text-shape {
-    -fx-fill: -fx-def-font-color;
-}
 
 /********************************** CONFIG ****************************************************************************/
 

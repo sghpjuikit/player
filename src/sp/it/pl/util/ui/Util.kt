@@ -252,7 +252,7 @@ inline fun scrollTextCenter(block: () -> Text) = Util.layScrollVTextCenter(block
 inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply(block)
 inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply(block)
 inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply(block)
-inline fun text(text: String = "", block: sp.it.pl.gui.objects.Text.() -> Unit = {}) = sp.it.pl.gui.objects.Text(text).apply(block)
+inline fun text(text: String = "", block: Text.() -> Unit = {}) = Text(text).apply(block)
 inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)
 fun menuItem(text: String, action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
 inline fun menuSeparator(block: (SeparatorMenuItem).() -> Unit = {}) = SeparatorMenuItem().apply(block)

@@ -82,7 +82,6 @@ import sp.it.pl.util.functional.Functors.Ƒ;
 import sp.it.pl.util.functional.Functors.Ƒ0;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.functional.TriConsumer;
-import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.functional.Util;
 import static comet.Comet.Constants.FPS;
 import static comet.Utils.Achievement.achievement01;
@@ -112,6 +111,7 @@ import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.util.Util.clip;
 import static sp.it.pl.util.Util.pyth;
 import static sp.it.pl.util.dev.FailKt.failIf;
+import static sp.it.pl.util.functional.TryKt.runTry;
 import static sp.it.pl.util.functional.Util.ISNTØ;
 import static sp.it.pl.util.functional.Util.array;
 import static sp.it.pl.util.functional.Util.by;
@@ -2366,9 +2366,9 @@ interface Utils {
 			VoronoiDiagramBuilder diagram = new VoronoiDiagramBuilder();
 			diagram.setClipEnvelope(new Envelope(0, game.field.width, 0, game.field.height));
 			diagram.setSites(cords);
-			Try.tryS(() -> diagram.getDiagram(new GeometryFactory()), Exception.class)
-				.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
-				.ifOk(g ->
+			runTry(() -> diagram.getDiagram(new GeometryFactory()))
+				.ifErrorUse(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
+				.ifOkUse(g ->
 						IntStream.range(0, g.getNumGeometries())
 							.mapToObj(g::getGeometryN)
 							.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
@@ -2786,9 +2786,9 @@ interface Utils {
 			VoronoiDiagramBuilder voronoi = new VoronoiDiagramBuilder();
 			voronoi.setClipEnvelope(new Envelope(0, W, 0, H));
 			voronoi.setSites(cells);
-			Try.tryS(() -> voronoi.getDiagram(new GeometryFactory()), Exception.class)
-				.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
-				.ifOk(g ->
+			runTry(() -> voronoi.getDiagram(new GeometryFactory()))
+				.ifErrorUse(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
+				.ifOkUse(g ->
 					edgesAction.accept(IntStream.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
 						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
@@ -2850,9 +2850,9 @@ interface Utils {
 		VoronoiDiagramBuilder voronoi = new VoronoiDiagramBuilder();
 		voronoi.setClipEnvelope(new Envelope(0, game.field.width, 0, game.field.height));
 		voronoi.setSites(cells);
-		Try.tryS(() -> voronoi.getDiagram(new GeometryFactory()), Exception.class)
-			.ifError(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
-			.ifOk(g ->
+		runTry(() -> voronoi.getDiagram(new GeometryFactory()))
+			.ifErrorUse(e -> LOGGER.warn("Computation of Voronoi diagram failed", e))
+			.ifOkUse(g ->
 					IntStream.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
 						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))

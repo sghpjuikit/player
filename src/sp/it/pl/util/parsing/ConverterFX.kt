@@ -3,22 +3,21 @@ package sp.it.pl.util.parsing
 import mu.KLogging
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.functional.Try
-import sp.it.pl.util.functional.Try.error
-import sp.it.pl.util.functional.Try.ok
 import sp.it.pl.util.functional.net
 
 /** Converter for javaFX bean convention.  */
 class ConverterFX: Converter() {
 
+    // TODO: escape text
     private val delimiterVal = "-"
     private val delimiterName = ":"
 
     @Suppress("UNCHECKED_CAST")
     override fun <T> ofS(type: Class<T>, text: String): Try<T, String> {
         if (text==Parsers.DEFAULT.stringNull)
-            return Try.ok(null)
+            return Try.ok(null) as Try<T, String>   // TODO: fix type-safety hazard
 
-        try {
+        return try {
             val values = text.split(delimiterVal).toTypedArray()
             val valueType = Class.forName(values[0])
             if (type.isAssignableFrom(valueType)) {
@@ -36,16 +35,15 @@ class ConverterFX: Converter() {
                                 // ignore instead of error
                             }
                         }
-                return ok(v)
+                Try.ok(v)
             } else {
                 val message = "$valueType is not $type"
                 logger.warn { message }
-                return error(message)
+                Try.error(message)
             }
-
         } catch (e: Exception) {
             logger.warn(e) { "Parsing failed, class=$type text=$text" }
-            return error(e.message)
+            Try.error(e.message ?: "")
         }
     }
 

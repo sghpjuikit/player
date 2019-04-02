@@ -27,6 +27,8 @@ import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.FileType.FILE;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static sp.it.pl.util.file.UtilKt.listChildren;
+import static sp.it.pl.util.functional.Try.Java.error;
+import static sp.it.pl.util.functional.Try.Java.ok;
 import static sp.it.pl.util.functional.Util.list;
 
 /**
@@ -159,7 +161,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	public Try<LoadResult,Void> loadCover(boolean full, ImageSize size) {
 		failIfFxThread();
-		if (disposed) return Try.error();
+		if (disposed) return error();
 
 		boolean wasCoverFile_loaded = coverFile_loaded;
 		File file = getCoverFile();
@@ -169,13 +171,13 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					cover = IconExtractor.getFileIcon(val);
 					cover_loadedFull.set(true);
 					cover_loadedThumb.set(true);
-					return Try.ok(new LoadResult(null, cover));
+					return ok(new LoadResult(null, cover));
 				}
 				if (isAudio(val)) {
 					cover = MetadataReaderKt.readMetadata(new SimpleSong(val)).getCover(CoverSource.TAG).getImage(size);    // TODO: use fallback if Cover is empty
 					cover_loadedFull.set(true);
 					cover_loadedThumb.set(true);
-					return Try.ok(new LoadResult(null, cover));
+					return ok(new LoadResult(null, cover));
 				}
 			}
 		} else {
@@ -184,7 +186,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					Image img = Image2PassLoader.INSTANCE.getHq().invoke(file, size);
 					if (img!=null) {
 						cover = img;
-						return Try.ok(new LoadResult(file, cover));
+						return ok(new LoadResult(file, cover));
 					}
 					cover_loadedFull.set(true);
 				}
@@ -195,10 +197,10 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					cover = imgCached!=null ? imgCached : Image2PassLoader.INSTANCE.getLq().invoke(file, size);
 					cover_loadedThumb.set(true);
 				}
-				return Try.ok(new LoadResult(file, cover));
+				return ok(new LoadResult(file, cover));
 			}
 		}
-		return Try.error();
+		return error();
 	}
 
 	// guaranteed to execute only once

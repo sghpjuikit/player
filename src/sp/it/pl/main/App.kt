@@ -82,6 +82,7 @@ import sp.it.pl.util.file.div
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.type.MimeTypes
 import sp.it.pl.util.functional.Try
+import sp.it.pl.util.functional.runTry
 import sp.it.pl.util.reactive.Handler0
 import sp.it.pl.util.reactive.Handler1
 import sp.it.pl.util.stacktraceAsString
@@ -302,7 +303,7 @@ class App: Application(), Configurable<Any> {
             return
         }
 
-        isInitialized = Try.tryCatchAll {
+        isInitialized = runTry {
             services += TrayService()
             services += Notifier()
             services += PlaycountIncrementer()

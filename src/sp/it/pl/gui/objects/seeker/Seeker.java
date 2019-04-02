@@ -74,6 +74,7 @@ import static sp.it.pl.util.animation.Anim.mapTo01;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
 import static sp.it.pl.util.dev.FailKt.noNull;
+import static sp.it.pl.util.functional.TryKt.getAny;
 import static sp.it.pl.util.functional.Util.minBy;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
@@ -679,7 +680,7 @@ public final class Seeker extends AnchorPane {
 				Try<String,String> result = validateChapterText(text);
 				warnB.setVisible(result.isError());
 				commitB.setDisable(result.isError());
-				warnTooltip.setText(result.map(t -> "").getAny());
+				warnTooltip.setText(getAny(result.map(t -> "")));
 			});
 
 			// maintain proper content

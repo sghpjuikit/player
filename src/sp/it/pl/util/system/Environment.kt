@@ -16,7 +16,6 @@ import sp.it.pl.util.file.find1stExistingParentDir
 import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.file.toFileOrNull
 import sp.it.pl.util.functional.Try
-import sp.it.pl.util.functional.Try.ok
 import sp.it.pl.util.functional.ifNotNull
 import sp.it.pl.util.functional.ifNull
 import sp.it.pl.util.system.EnvironmentContext.defaultChooseFileDir
@@ -61,10 +60,10 @@ fun File.runAsProgram(vararg arguments: String, then: (Process) -> Unit = {}): F
                     .start()
                     .apply(then)
 
-            Try.ok<Process, Exception>(process)
+            Try.ok(process)
         } catch (e: IOException) {
             logger.error(e) { "Failed to launch program" }
-            Try.error<Process, Exception>(e)
+            Try.error(e)
         }
     }
 }
@@ -82,10 +81,10 @@ fun runCommand(command: String, then: (Process) -> Unit = {}): Fut<Try<Process, 
     return runNew {
         try {
             val process = Runtime.getRuntime().exec(command).apply(then)
-            Try.ok<Process, Exception>(process)
+            Try.ok(process)
         } catch (e: IOException) {
             logger.error(e) { "Error running command '$command'" }
-            Try.error<Process, Exception>(e)
+            Try.error(e)
         }
     }
 }
@@ -201,20 +200,20 @@ fun File.open() {
  *
  * @return success if file was deleted or did not exist or error if error occurs during deletion
  */
-fun File.recycle(): Try<Void, Void> {
+fun File.recycle(): Try<Nothing?, Nothing?> {
     logger.info { "Recycling file=$this" }
     return if (Desktop.Action.MOVE_TO_TRASH.isSupportedOrWarn()) {
         try {
-            if (Desktop.getDesktop().moveToTrash(this)) Try.ok<Void>() else Try.error()
+            if (Desktop.getDesktop().moveToTrash(this)) Try.ok() else Try.error()
         } catch (e: IllegalArgumentException) {
-            Try.ok<Void>()
+            Try.ok()
         }
     } else {
         Try.error()
     }
 }
 
-fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void> {
+fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void?> {
     when (type) {
         FileType.DIRECTORY -> {
             val c = DirectoryChooser().apply {
@@ -222,7 +221,7 @@ fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? 
                 this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
             }
             val f = c.showDialog(w)
-            return if (f!=null) ok<File, Void>(f) else Try.error()
+            return if (f!=null) Try.ok(f) else Try.error()
         }
         FileType.FILE -> {
             val c = FileChooser().apply {
@@ -231,22 +230,22 @@ fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? 
                 this.extensionFilters += extensions
             }
             val f = c.showOpenDialog(w)
-            return if (f!=null) ok<File, Void>(f) else Try.error()
+            return if (f!=null) Try.ok(f) else Try.error()
         }
     }
 }
 
-fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<List<File>, Void> {
+fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<List<File>, Void?> {
     val c = FileChooser().apply {
         this.title = title
         this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
         this.extensionFilters += extensions
     }
     val fs = c.showOpenMultipleDialog(w)
-    return if (fs!=null && !fs.isEmpty()) ok<List<File>, Void>(fs) else Try.error()
+    return if (fs!=null && !fs.isEmpty()) Try.ok(fs) else Try.error()
 }
 
-fun saveFile(title: String, initial: File? = null, initialName: String, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void> {
+fun saveFile(title: String, initial: File? = null, initialName: String, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void?> {
     val c = FileChooser().apply {
         this.title = title
         this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)

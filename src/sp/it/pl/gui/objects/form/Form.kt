@@ -84,7 +84,7 @@ class Form<T>: AnchorPane {
     private fun validate(): Try<*, *> {
         val validation: Try<*, *> = fields.getConfigFields().asSequence()
                 .map { it.value }
-                .reduce { v1, v2 -> v1.and(v2) } ?: Try.ok<Unit?, Unit?>(null)
+                .reduce { v1, v2 -> v1.and(v2) } ?: Try.ok(null)
         showWarnButton(validation)
         return validation
     }

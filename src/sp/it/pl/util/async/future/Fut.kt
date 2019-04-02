@@ -105,13 +105,13 @@ class Fut<T>(private var f: CompletableFuture<T>) {
         data class ResultInterrupted(val error: InterruptedException): Result<Nothing>()
 
         data class ResultFail(val error: ExecutionException): Result<Nothing>() {
-            constructor(error: Throwable): this(if (error is ExecutionException) error else ExecutionException("", error))
+            constructor(error: Throwable): this(error as? ExecutionException ?: ExecutionException("", error))
         }
 
-        fun toTry(): Try<out T, out Exception> = when (this) {
-            is ResultOk<T> -> Try.ok<T, Exception>(value)
-            is ResultInterrupted -> Try.error<Nothing, InterruptedException>(error)
-            is ResultFail -> Try.error<Nothing, ExecutionException>(error)
+        fun toTry(): Try<T, Exception> = when (this) {
+            is ResultOk<T> -> Try.ok(value)
+            is ResultInterrupted -> Try.error(error)
+            is ResultFail -> Try.error(error)
         }
 
         fun or(block: () -> @UnsafeVariance T): T = if (this is ResultOk<T>) this.value else block.invoke()

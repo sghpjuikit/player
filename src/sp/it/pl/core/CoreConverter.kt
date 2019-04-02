@@ -11,6 +11,7 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.util.functional.Functors
 import sp.it.pl.util.functional.Try
 import sp.it.pl.util.functional.Util
+import sp.it.pl.util.functional.getOr
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.math.StrExF
 import sp.it.pl.util.parsing.ConverterDefault
@@ -81,11 +82,7 @@ class CoreConverter: Core {
         )
         addT<GlyphIcons>(
                 { "${it.fontFamily}.${it.name()}" },
-                {
-                    Icon.GLYPHS[it]
-                            ?.let { Try.ok<GlyphIcons, String>(it) }
-                            ?: Try.error("No such icon=$it")
-                }
+                { Icon.GLYPHS[it]?.let { Try.ok(it) } ?: Try.error("No such icon=$it") }
         )
         addT<Effect>({ Parsers.FX.toS(it) }, { Parsers.FX.ofS<Effect>(it) })
         addT<Class<*>>({ it.name }, tryF({ Class.forName(it) }, Throwable::class))
@@ -99,7 +96,6 @@ class CoreConverter: Core {
                         val name = data[0]
                         val typeIn = ofS<Class<*>>(data[1]).getOr(null)
                         val typeOut = ofS<Class<*>>(data[2]).getOr(null)
-
                         if (name==null || typeIn==null || typeOut==null) null
                         else Functors.pool.getPF(name, typeIn, typeOut)
                     }
@@ -122,11 +118,11 @@ class CoreConverter: Core {
             try {
                 Try.ok(f(it))
             } catch (e: Throwable) {
-                ecs.find { it.isInstance(e) }?.let { Try.errorOf<O>(e) } ?: throw e
+                ecs.find { it.isInstance(e) }?.let { Try.error(e.message ?: "Unknown error") } ?: throw e
             }
         }
     }
 
-    private fun <T> Try<T, out Throwable>.orMessage() = mapError { it.message ?: "null" }
+    private fun <T> Try<T, Throwable>.orMessage() = mapError { it.message ?: "Unknown error" }
 
 }

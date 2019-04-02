@@ -339,7 +339,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
             }
         }
 
-        private fun compile(): Try<Void, String> {
+        private fun compile(): Try<Nothing?, String> {
             logger.info { "Widget=$widgetName compiling..." }
 
             val errorText = "Widget $widgetName failed to compile. Reason:"
@@ -360,7 +360,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         }
 
         /** Compiles specified .java files into .class files. */
-        private fun compileJava(javaSrcFiles: Sequence<File>): Try<Void, String> {
+        private fun compileJava(javaSrcFiles: Sequence<File>): Try<Nothing?, String> {
             val options = sequenceOf(
                     "-encoding", APP.encoding.name(),
                     "-d", compileDir.relativeToApp(),
@@ -386,7 +386,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         }
 
         /** Compiles specified .kt files into .class files. */
-        private fun compileKotlin(kotlinSrcFiles: Sequence<File>): Try<Void, String> {
+        private fun compileKotlin(kotlinSrcFiles: Sequence<File>): Try<Nothing?, String> {
             try {
                 val compilerFile = when (Os.current) {
                     Os.UNIX -> APP.DIR_APP/"kotlinc"/"bin"/"kotlinc"
@@ -418,7 +418,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 return if (isSuccess) Try.ok() else Try.error("Compilation failed with errors")
             } catch (e: Exception) {
                 logger.error { "Compilation failed" }
-                return Try.error(e.message)
+                return Try.error(e.message ?: "")
             }
         }
     }

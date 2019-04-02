@@ -13,9 +13,7 @@ import java.util.Set;
 import java.util.function.Function;
 import sp.it.pl.util.functional.Functors.Ƒ1;
 import sp.it.pl.util.functional.Try;
-import static sp.it.pl.util.functional.Try.errorOf;
-import static sp.it.pl.util.functional.Try.ok;
-import static sp.it.pl.util.functional.Try.tryF;
+import static sp.it.pl.util.functional.Try.Java.ok;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listRO;
 import static sp.it.pl.util.functional.Util.stream;
@@ -26,7 +24,6 @@ public interface Parsers {
     ConverterDefault DEFAULT = new ConverterDefault();
     Converter FX = new ConverterFX();
 
-    @SuppressWarnings("unchecked")
     static Method getValueOfStatic(Class<?> type) {
         if (type.getEnclosingClass()!=null && type.getEnclosingClass().isEnum())
             type = type.getEnclosingClass();
@@ -63,31 +60,31 @@ public interface Parsers {
         boolean no_input = params.isEmpty();
         return no_input
             ? in -> {
-            try {
-                return ok(m.invoke((Object[]) null));
-            } catch (IllegalAccessException|InvocationTargetException e) {
-                for (Class<?> ec : ecs) {
-                    if (e.getCause()!=null && ec.isInstance(e.getCause().getCause()))
-                        return errorOf(e.getCause().getCause());
-                    if (ec.isInstance(e.getCause())) return errorOf(e.getCause());
-                    if (ec.isInstance(e)) return errorOf(e);
+                try {
+                    return ok(m.invoke((Object[]) null));
+                } catch (IllegalAccessException|InvocationTargetException e) {
+                    for (Class<?> ec : ecs) {
+                        if (e.getCause()!=null && ec.isInstance(e.getCause().getCause()))
+                            return errorOf(e.getCause().getCause());
+                        if (ec.isInstance(e.getCause())) return errorOf(e.getCause());
+                        if (ec.isInstance(e)) return errorOf(e);
+                    }
+                    throw new RuntimeException("Converter cant invoke the method: " + m, e.getCause());
                 }
-                throw new RuntimeException("Converter cant invoke the method: " + m, e.getCause());
             }
-        }
             : in -> {
-            try {
-                return ok(m.invoke(null, in));
-            } catch (IllegalAccessException|InvocationTargetException e) {
-                for (Class<?> ec : ecs) {
-                    if (e.getCause()!=null && ec.isInstance(e.getCause().getCause()))
-                        return errorOf(e.getCause().getCause());
-                    if (ec.isInstance(e.getCause())) return errorOf(e.getCause());
-                    if (ec.isInstance(e)) return errorOf(e);
+                try {
+                    return ok(m.invoke(null, in));
+                } catch (IllegalAccessException|InvocationTargetException e) {
+                    for (Class<?> ec : ecs) {
+                        if (e.getCause()!=null && ec.isInstance(e.getCause().getCause()))
+                            return errorOf(e.getCause().getCause());
+                        if (ec.isInstance(e.getCause())) return errorOf(e.getCause());
+                        if (ec.isInstance(e)) return errorOf(e);
+                    }
+                    throw new RuntimeException("Converter cant invoke the method: " + m, e.getCause());
                 }
-                throw new RuntimeException("Converter cant invoke the method: " + m, e.getCause());
-            }
-        };
+            };
     }
 
     @SuppressWarnings("unchecked")
@@ -163,7 +160,11 @@ public interface Parsers {
         Set<Class<?>> ecs = new HashSet<>();
         if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
         if (m!=null) ecs.addAll(list(m.getExceptionTypes()));
-        return tryF(f, ecs);
+        return i -> Try.Java.tryS(() -> f.apply(i), ecs).mapError(e -> e.getMessage()!=null ? e.getMessage() : "Unknown error");
+    }
+
+    private static <R> Try<R,String> errorOf(Throwable e) {
+        return Try.Java.error(e.getMessage()!=null ? e.getMessage() : "Unknown error");
     }
 
     interface Invokable<I> {

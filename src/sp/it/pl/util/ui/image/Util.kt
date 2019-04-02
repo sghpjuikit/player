@@ -186,7 +186,7 @@ fun imgImplLoadFX(file: File, W: Int, H: Int, loadFullSize: Boolean): ImageFx {
  * Returns image size in pixels or error if unable to find out.
  * Does i/o, but does not read whole image into memory.
  */
-fun getImageDim(f: File): Try<Dimension, Void> {
+fun getImageDim(f: File): Try<Dimension, Nothing?> {
     // see more at:
     // http://stackoverflow.com/questions/672916/how-to-get-image-height-and-width-using-java
     val suffix = getSuffix(f.toURI())

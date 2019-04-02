@@ -4,6 +4,8 @@ import java.util.List;
 import javafx.util.Duration;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.functional.Try;
+import static sp.it.pl.util.functional.Try.Java.error;
+import static sp.it.pl.util.functional.Try.Java.ok;
 import static sp.it.pl.util.functional.Util.split;
 
 public class Util {
@@ -24,7 +26,7 @@ public class Util {
 					int t = unit*amount;
 					sumT += t;
 				}
-				return Try.ok(new Duration(sumT));
+				return ok(new Duration(sumT));
 			}
 
 			// parse normally
@@ -41,23 +43,19 @@ public class Util {
 			double value = Double.parseDouble(index==-1 ? s : s.substring(0, index));
 
 			if (index==-1)
-				return Try.ok(new Duration(value));
+				return ok(new Duration(value));
 			else {
 				String suffix = s.substring(index);
-				if ("ms".equals(suffix)) {
-					return Try.ok(new Duration(value));
-				} else if ("s".equals(suffix)) {
-					return Try.ok(new Duration(1000*value));
-				} else if ("m".equals(suffix)) {
-					return Try.ok(new Duration(60000*value));
-				} else if ("h".equals(suffix)) {
-					return Try.ok(new Duration(3600000*value));
-				} else {
-					throw new IllegalArgumentException("Must have suffix from [ms|s|m|h]");
+				switch (suffix) {
+					case "ms": return ok(new Duration(value));
+					case "s": return ok(new Duration(1000*value));
+					case "m": return ok(new Duration(60000*value));
+					case "h": return ok(new Duration(3600000*value));
+					default: throw new IllegalArgumentException("Must have suffix from [ms|s|m|h]");
 				}
 			}
 		} catch (IllegalArgumentException e) {
-			return Try.error(e);
+			return error(e);
 		}
 	}
 }

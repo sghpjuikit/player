@@ -51,16 +51,19 @@ fun <T> consumer(consumer: Consumer<T>): (T) -> Unit = { consumer(it) }
 /** @return kotlin runnable that invokes java runnable */
 fun <T> runnable(runnable: Runnable): () -> Unit = { runnable() }
 
-/** @return return value if it has been initialized or null otherwise */
+/** @return value if it has been initialized or null otherwise */
 fun <T> Lazy<T>.orNull() = if (isInitialized()) value else null
 
-/** @return return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
+/** @return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
 fun <T> Optional<T>.orNull(): T? = orElse(null)
 
-/** @return return value or null if error (if the value is nullable, this destroys the information of null's origin) */
+/** @return this result represented as a [Try] */
+fun <T> Result<T>.toTry(): Try<T, Throwable> = fold({ Try.ok(it) }, { Try.error(it) })
+
+/** @return value or null if error (if the value is nullable, this destroys the information of null's origin) */
 fun <R, E> Try<R, E>.orNull(): R? = getOr(null)
 
-/** @return return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
+/** @return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
 infix fun <R, E> Try<R, E>.orNull(onError: (E) -> Unit): R? = ifError(onError).getOr(null)
 
 /**
@@ -80,14 +83,6 @@ fun <T> supplyIf(test: Boolean, block: () -> T): (() -> T)? = if (test) block el
 
 /** @return specified supplier if test is false or null otherwise */
 fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyIf(!testNegated, block)
-
-/**
- * Run the specified block safely (no exception will be thrown).
- * @return the result or any caught exception.
- */
-fun <R> runTry(block: () -> R): Try<R, Throwable> = Try.tryS(Supplier { block() }, Throwable::class.java)
-
-infix fun <R, E> Try<R, E>.onE(handle: (E) -> Unit) = ifError(handle)!!
 
 /**
  * Type-safe [let] with non null -> non null transformation and safe null propagation.

@@ -285,9 +285,9 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 						}
 
 					item.loadCover(false, size)
-						.ifOk(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))        // load immediately
-//						.ifOk(result -> setCoverPost(item, result.file, result.cover, then))                        // load after all previous
-						.ifError(e -> then.runNothing());
+						.ifOkUse(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))        // load immediately
+//						.ifOkUse(result -> setCoverPost(item, result.file, result.cover, then))                        // load after all previous
+						.ifErrorUse(e -> then.runNothing());
 				}
 			));
 
@@ -303,10 +303,10 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 						}
 
 						item.loadCover(true, size)
-							.ifOk(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))    // load after all previous
-//							.ifOk(result -> setCoverPost(item, result.file, result.cover, then))                    // load immediately
-							.ifError(e -> then.runNothing())
-							.ifError(e -> System.out.println("fml" + itemVolatile.val));
+							.ifOkUse(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))    // load after all previous
+//							.ifOkUse(result -> setCoverPost(item, result.file, result.cover, then))                    // load immediately
+							.ifErrorUse(e -> then.runNothing())
+							.ifErrorUse(e -> System.out.println("fml" + itemVolatile.val));
 					}
 				));
 		}

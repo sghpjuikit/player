@@ -37,8 +37,8 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.file.Util.readFileLines;
-import static sp.it.pl.util.functional.Try.error;
-import static sp.it.pl.util.functional.Try.ok;
+import static sp.it.pl.util.functional.Try.Java.error;
+import static sp.it.pl.util.functional.Try.Java.ok;
 
 public final class CoreSerializerXml implements Core {
 

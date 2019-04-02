@@ -13,8 +13,6 @@ import sp.it.pl.util.collections.map.ClassListMap
 import sp.it.pl.util.collections.map.ClassMap
 import sp.it.pl.util.dev.failIfNot
 import sp.it.pl.util.functional.Try
-import sp.it.pl.util.functional.Try.error
-import sp.it.pl.util.functional.Try.ok
 import sp.it.pl.util.text.Password
 import sp.it.pl.util.type.Util.getGenericInterface
 import sp.it.pl.util.type.Util.instantiateOrThrow
@@ -31,9 +29,7 @@ interface Constraint<in T> {
 
     fun message(): String
 
-    fun validate(value: T?): Try<Void, String> {
-        return if (isValid(value)) ok(null) else error(message())
-    }
+    fun validate(value: T?): Try<Nothing?, String> = if (isValid(value)) Try.ok() else Try.error(message())
 
     @MustBeDocumented
     @Retention(RUNTIME)

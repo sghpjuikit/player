@@ -14,8 +14,8 @@ import sp.it.pl.util.parsing.Parsers.Invokable;
 import sp.it.pl.util.parsing.Parsers.ParseDir;
 import sp.it.pl.util.parsing.StringParseStrategy.From;
 import sp.it.pl.util.parsing.StringParseStrategy.To;
-import static sp.it.pl.util.functional.Try.error;
-import static sp.it.pl.util.functional.Try.ok;
+import static sp.it.pl.util.functional.Try.Java.error;
+import static sp.it.pl.util.functional.Try.Java.ok;
 import static sp.it.pl.util.functional.Util.firstNotNull;
 import static sp.it.pl.util.parsing.Parsers.getMethodStatic;
 import static sp.it.pl.util.parsing.Parsers.getValueOfStatic;
@@ -97,7 +97,7 @@ public class ConverterDefault extends Converter {
 
     public <T> void addParserAsF(Class<T> c, Function<? super T,String> to, Function<String,? extends T> of) {
         addParserToS(c, to);
-        addParserOfS(c, of.andThen(Try::ok));
+        addParserOfS(c, of.andThen(Try.Java::ok));
     }
 
     @SuppressWarnings("unchecked")
@@ -151,7 +151,7 @@ public class ConverterDefault extends Converter {
         return (Function) firstNotNull(
             () -> parsersToS.getElementOfSuper(c),
             () -> buildToSParser(c),
-            () -> defaultTos.andThen(Try::ok)
+            () -> defaultTos.andThen(Try.Java::ok)
         );
     }
 
@@ -174,7 +174,7 @@ public class ConverterDefault extends Converter {
 
                     ofS = text -> {
                         try {
-                            return Try.ok((T) f.get(null));
+                            return ok((T) f.get(null));
                         } catch (IllegalAccessException e) {
                             throw new IllegalStateException("Field " + f + " is not accessible");
                         }
@@ -256,7 +256,7 @@ public class ConverterDefault extends Converter {
                         };
                 return noExWrap(m, a, ParseDir.TOS, f);
             } else if (strategy==To.TO_STRING_METHOD) {
-                return (Function) defaultTos.andThen(Try::ok);
+                return (Function) defaultTos.andThen(Try.Java::ok);
             } else if (strategy==To.FX) {
                 return in -> ok(Parsers.FX.toS(in));
             } else {

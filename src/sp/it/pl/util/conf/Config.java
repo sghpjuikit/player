@@ -36,8 +36,8 @@ import static javafx.collections.FXCollections.observableArrayList;
 import static sp.it.pl.util.conf.Config.VarList.NULL_SUPPLIER;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.dev.FailKt.failIf;
-import static sp.it.pl.util.functional.Try.error;
-import static sp.it.pl.util.functional.Try.ok;
+import static sp.it.pl.util.functional.Try.Java.ok;
+import static sp.it.pl.util.functional.Try.Java.error;
 import static sp.it.pl.util.functional.Util.firstNotNull;
 import static sp.it.pl.util.functional.Util.forEachBoth;
 import static sp.it.pl.util.functional.Util.list;
@@ -158,7 +158,7 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 	 * @param s string to parse
 	 */
 	public void setValueS(String s) {
-		ofS(s).ifOk(this::setValue).ifError(e -> LOGGER.warn("Unable to set value from text={}, reason={}", s, e));
+		ofS(s).ifOkUse(this::setValue).ifErrorUse(e -> LOGGER.warn("Unable to set value from text={}, reason={}", s, e));
 	}
 
 	/**
@@ -193,7 +193,7 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 			//   because toS adds the prefix to the values and the string parameter of this method
 			//   has it already removed. To bypass this, we rely on Converter.toS/fromS directly,
 			//   rather than Config.toS/fromS. This is also dangerous. Of course we could fix this
-			//   by having OverridableConfig provide its own implementation, but I dont want to
+			//   by having OverridableConfig provide its own implementation, but I don't want to
 			//   spread problematic code such as this around. Not till 1 gets fixed up.
 			for (T v : enumerateValues())
 				if (Parsers.DEFAULT.toS(v).equalsIgnoreCase(s)) return ok(v);
@@ -748,7 +748,7 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 
 		@Override
 		public void setValueS(String s) {
-			ofS(s).ifOk(a.list::setAll);
+			ofS(s).ifOkUse(a.list::setAll);
 		}
 
 		@Override

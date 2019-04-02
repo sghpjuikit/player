@@ -8,6 +8,8 @@ import java.util.function.Function;
 import sp.it.pl.util.dev.Dependency;
 import sp.it.pl.util.functional.Try;
 import static java.util.Collections.emptyMap;
+import static sp.it.pl.util.functional.Try.Java.error;
+import static sp.it.pl.util.functional.Try.Java.ok;
 import static sp.it.pl.util.functional.Util.forEachBoth;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.repeat;
@@ -120,13 +122,13 @@ public class StringSplitParser implements Function<String,List<String>> {
 					limiter = 0;
 					if (!key.isEmpty()) ssp.parse_keys.add(key);
 					else
-						return Try.error("Cant create split string expression. Wrong format. '" + expression + "'");
+						return error("Cant create split string expression. Wrong format. '" + expression + "'");
 					key = "";
 				} else {
 					limiter = 1;
 					if (!sep.isEmpty()) ssp.key_separators.add(sep);
 					if (sep.isEmpty() && i!=0)
-						return Try.error("Cant create split string expression. Wrong format. '" + expression + "'");
+						return error("Cant create split string expression. Wrong format. '" + expression + "'");
 					sep = "";
 				}
 			} else {
@@ -135,11 +137,11 @@ public class StringSplitParser implements Function<String,List<String>> {
 			}
 		}
 		if (limiter==1)
-			return Try.error("Cant create split string expression. Wrong format. '" + expression + "'");
+			return error("Cant create split string expression. Wrong format. '" + expression + "'");
 		if (ssp.parse_keys.isEmpty())
-			return Try.error("Cant create split string expression. Wrong format. '" + expression + "'");
+			return error("Cant create split string expression. Wrong format. '" + expression + "'");
 
-		return Try.ok(ssp);
+		return ok(ssp);
 	}
 
 	public static class Split {

@@ -48,8 +48,8 @@ import sp.it.pl.util.conf.readOnlyUnless
 import sp.it.pl.util.file.FileType
 import sp.it.pl.util.file.FileType.DIRECTORY
 import sp.it.pl.util.file.FileType.FILE
-import sp.it.pl.util.file.Util
 import sp.it.pl.util.file.Util.getCommonRoot
+import sp.it.pl.util.file.Util.getFilesR
 import sp.it.pl.util.file.hasExtension
 import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.functional.Try
@@ -81,7 +81,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Set as data",
                     "Sets the selected data as input.",
                     IconMD.DATABASE,
-                    ap.converting { Try.ok<Any, Void>(it) }
+                    ap.converting { Try.ok(it) }
             ),
             FastColAction(
                     "Open in Converter",
@@ -298,7 +298,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "Looks for files recursively in the the data.",
                     IconMD.FILE_FIND,
                     // TODO: make fully configurable, recursion depth lvl, filtering, ...
-                    ap.converting { fs -> Try.ok<List<File>, Void>(Util.getFilesR(fs, Integer.MAX_VALUE).toList()) }
+                    ap.converting { fs -> Try.ok(getFilesR(fs, Integer.MAX_VALUE).toList()) }
             ),
             SlowColAction<File>(
                     "Add to library",

@@ -24,6 +24,8 @@ import sp.it.pl.util.functional.Try;
 import static sp.it.pl.util.Util.filenamizeString;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.file.UtilKt.listChildren;
+import static sp.it.pl.util.functional.Try.Java.error;
+import static sp.it.pl.util.functional.Try.Java.ok;
 
 public interface Util {
 
@@ -262,12 +264,12 @@ public interface Util {
 
 		try {
 			Files.delete(f.toPath());
-			return Try.ok(true);
+			return ok(true);
 		} catch (NoSuchFileException e) {
-			return Try.ok(false);
+			return ok(false);
 		} catch (IOException | SecurityException e) {
 			logger(Util.class).error("Could not delete file {}", f, e);
-			return Try.error(e);
+			return error(e);
 		}
 	}
 

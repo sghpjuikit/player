@@ -7,10 +7,11 @@ import java.util.UUID
 class Outputs {
     private val m = HashMap<String, Output<*>>()
 
-    inline fun <reified T> create(id: UUID, name: String, value: T?) = create<T>(id, name, T::class.java, value)
+    inline fun <reified T> create(id: UUID, name: String, value: T?) = create(id, name, T::class.java, value)
 
+    @Suppress("UNCHECKED_CAST")
     fun <T> create(id: UUID, name: String, type: Class<T>, value: T?): Output<T?> {
-        val o = Output<T?>(id, name, type as Class<T?>)
+        val o = Output(id, name, type as Class<T?>)
         o.value = value
         m[name] = o
         return o

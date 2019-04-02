@@ -187,7 +187,7 @@ class TrayService: ServiceBase("Tray", true) {
     }
 
     /** Set tray icon. Null sets default icon. */
-    fun setIcon(img: File?): Try<Void, IOException> {
+    fun setIcon(img: File?): Try<Nothing?, IOException> {
         if (!running || !supported) return Try.ok()
 
         trayIconImage = img ?: trayIconImageDefault
@@ -198,7 +198,9 @@ class TrayService: ServiceBase("Tray", true) {
                         trayIcon?.image = it
                     }
                     .map { null }
-        } else Try.ok()
+        } else {
+            Try.ok()
+        }
     }
 
     /** Set action on left mouse tray click. Null sets default behavior. */

@@ -509,7 +509,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 
 	public <I> ConvertingConsumer<? super I> converting(Ƒ1<? super I,Try<?,?>> converter) {
 		return d -> {
-			converter.apply(d).ifOk(result -> runFX(() -> ActionPane.this.show(result)));
+			converter.apply(d).ifOkUse(result -> runFX(() -> ActionPane.this.show(result)));
 			return Unit.INSTANCE;
 		};
 	}

@@ -28,7 +28,7 @@ import sp.it.pl.util.access.v
 import sp.it.pl.util.animation.Loop
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
-import sp.it.pl.util.functional.Try
+import sp.it.pl.util.functional.runTry
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sync
@@ -171,7 +171,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
             // draw cells
             gc.save()
 
-            Try.tryCatchAll {
+            runTry {
                 // the computation can fail under some circumstances, so lets defend against it with Try
                 diagram.getDiagram(GeometryFactory()) as Geometry
             }.ifError {

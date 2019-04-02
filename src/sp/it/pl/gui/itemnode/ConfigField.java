@@ -79,7 +79,8 @@ import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.util.Util.enumToHuman;
 import static sp.it.pl.util.async.AsyncKt.runFX;
 import static sp.it.pl.util.conf.ConfigurationUtilKt.isEditableByUserRightNow;
-import static sp.it.pl.util.functional.Try.ok;
+import static sp.it.pl.util.functional.Try.Java.ok;
+import static sp.it.pl.util.functional.TryKt.getAny;
 import static sp.it.pl.util.functional.Util.IS;
 import static sp.it.pl.util.functional.Util.by;
 import static sp.it.pl.util.functional.Util.equalsAny;
@@ -293,6 +294,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     protected abstract Try<T,String> get();
 
+    @SuppressWarnings("unchecked")
     public Try<T,String> getValid() {
         value = get().and(v -> config.getConstraints().stream().map(c -> c.validate(v)).reduce(ok(),Try::and));
         if (observer!=null) observer.accept(value);
@@ -456,7 +458,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         public void refreshItem() {
             n.setText(config.getValueS());
             showOkButton(false);
-            showWarnButton(Try.ok());
+            showWarnButton(ok());
         }
 
         @Override
@@ -481,7 +483,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private void showWarnButton(Try<?,String> value) {
             n.right.setValue(value.isError() ? warnB : null);
             warnB.setVisible(value.isError());
-            warnTooltip.setText(value.map(v -> "").getAny());
+            warnTooltip.setText(getAny(value.map(v -> "")));
         }
 
         private void showWarnButton(boolean val) {

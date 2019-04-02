@@ -28,13 +28,13 @@ val File.nameOrRoot: String
 val File.nameWithoutExtensionOrRoot: String get() = nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
 
 /** @return file itself if exists or its first existing parent or error if null or no parent exists */
-fun File.find1stExistingParentFile(): Try<File, Void> = when {
+fun File.find1stExistingParentFile(): Try<File, Nothing?> = when {
     exists() -> Try.ok(this)
     else -> parentDir?.find1stExistingParentFile() ?: Try.error()
 }
 
 /** @return first existing directory in this file's hierarchy or error if no parent exists */
-fun File.find1stExistingParentDir(): Try<File, Void> = when {
+fun File.find1stExistingParentDir(): Try<File, Nothing?> = when {
     exists() && isDirectory -> Try.ok(this)
     else -> parentDir?.find1stExistingParentDir() ?: Try.error()
 }

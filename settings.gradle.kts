@@ -2,6 +2,21 @@ rootProject.apply {
     projectDir = file(".")
     buildFileName = "gradle/project.gradle.kts"
 
+
+    include(":util")
+    project(":util").apply {
+        name = "util"
+        projectDir = file("src/util")
+        buildFileName = "../../gradle/util.gradle.kts"
+    }
+
+    include(":demo")
+    project(":demo").apply {
+        name = "demo"
+        projectDir = file("src/demo")
+        buildFileName = "../../gradle/demo.gradle.kts"
+    }
+
     include(":widgets")
     project(":widgets").apply {
         name = "widgets"

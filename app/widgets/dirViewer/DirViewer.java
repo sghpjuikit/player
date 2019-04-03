@@ -110,7 +110,7 @@ public class DirViewer extends SimpleController {
     private final Placeholder placeholder = new Placeholder(
         FOLDER_PLUS, "Click to explore directory",
         () -> chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, root.getScene().getWindow())
-            .ifOk(files.list::setAll)
+            .ifOkUse(files.list::setAll)
     );
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
     final FileFilterValue filter = FileFilters.toEnumerableValue();

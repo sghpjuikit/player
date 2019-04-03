@@ -91,7 +91,7 @@ public class AppLauncher extends SimpleController {
     private final Placeholder placeholder = new Placeholder(
         FOLDER_PLUS, "Click to add launcher or drag & drop a file",
         () -> chooseFile("Choose program or file", FILE, APP.DIR_HOME, root.getScene().getWindow())
-				.ifOk(files.list::setAll)
+				.ifOkUse(files.list::setAll)
     );
 
     @IsConfig(name = "Sort", info = "Sorting effect.")

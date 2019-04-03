@@ -153,21 +153,21 @@ allprojects {
 
     }
 
-    test {
-        useJUnitPlatform { }
+    tests {
+        useJUnitPlatform()
         testLogging.showStandardStreams = true
     }
 
 }
 
 sourceSets {
-    getByName("main") {
-        java.setSrcDirs(listOf("src/player/main"))
-        resources.setSrcDirs(listOf("src/player/main"))
+    main {
+        java.srcDir("src/player/main")
+        resources.srcDir("src/player/main")
     }
-    getByName("test") {
-        java.setSrcDirs(listOf("src/player/test"))
-        resources.setSrcDirs(listOf("src/player/test"))
+    test {
+        java.srcDir("src/player/test")
+        resources.srcDir("src/player/test")
     }
 }
 
@@ -330,7 +330,10 @@ fun failIO(cause: Throwable? = null, message: () -> String): Nothing = throw IOE
 
 fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, message) }
 
-@Suppress("UNUSED_VARIABLE")
-fun Project.test(configuration: Test.() -> Unit) {
-    val test by tasks.getting(Test::class, configuration)
+fun Project.tests(configuration: Test.() -> Unit) {
+    tasks {
+        test {
+            configuration()
+        }
+    }
 }

@@ -82,6 +82,7 @@ allprojects {
             implementation(kotlin("reflect"))
             implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core")
             implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.1.0")
+            implementation("org.jetbrains", "annotations", "17.0.0")
         }
 
         "JavaFX" group {

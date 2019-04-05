@@ -13,7 +13,6 @@ plugins {
     application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
-    id("org.openjfx.javafxplugin") version "0.0.7"
 }
 
 /** Working directory of the application */
@@ -37,23 +36,9 @@ val javaSupportedVersions = arrayOf(JavaVersion.VERSION_11, JavaVersion.VERSION_
     }
 }
 
-javafx {
-    modules = listOf("javafx.controls", "javafx.graphics", "javafx.fxml", "javafx.media", "javafx.swing", "javafx.web")
-}
-
-sourceSets {
-    getByName("main") {
-        java.setSrcDirs(listOf("src"))
-        resources.setSrcDirs(listOf("src"))
-    }
-    getByName("test") {
-        java.setSrcDirs(listOf("src-test"))
-        resources.setSrcDirs(listOf("src-test"))
-    }
-}
-
 allprojects {
     apply(plugin = "kotlin")
+
     buildDir = file("player.buildDir".prjProp ?: rootDir/"build")/name
 
     tasks.withType<JavaCompile> {
@@ -89,69 +74,105 @@ allprojects {
         mavenCentral()
         maven("https://jitpack.io")
     }
+
+    dependencies {
+
+        "Kotlin" group {
+            implementation(kotlin("stdlib-jdk8"))
+            implementation(kotlin("reflect"))
+            implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core")
+            implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.1.0")
+        }
+
+        "JavaFX" group {
+            val version = "11.0.2"
+            val os = org.gradle.internal.os.OperatingSystem.current()
+            val classifier = when {
+                os.isLinux -> "linux"
+                os.isMacOsX -> "mac"
+                os.isWindows -> "win"
+                else -> failIO { "Unable to determine javafx dependency classifier due to unfamiliar system=$os" }
+            }
+            implementation("org.openjfx:javafx-base:$version:$classifier")
+            implementation("org.openjfx:javafx-controls:$version:$classifier")
+            implementation("org.openjfx:javafx-graphics:$version:$classifier")
+            implementation("org.openjfx:javafx-fxml:$version:$classifier")
+            implementation("org.openjfx:javafx-media:$version:$classifier")
+            implementation("org.openjfx:javafx-swing:$version:$classifier")
+            implementation("org.openjfx:javafx-web:$version:$classifier")
+
+            implementation("de.jensd", "fontawesomefx", "8.9")
+        }
+        "Logging" group {
+            implementation("org.slf4j", "slf4j-api")
+            implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
+            implementation("ch.qos.logback", "logback-classic", "1.2.3")
+            implementation("io.github.microutils", "kotlin-logging", "1.6.22")
+        }
+
+        "Audio" group {
+            implementation("uk.co.caprica", "vlcj", "4.0.6")
+            implementation("de.u-mass", "lastfm-java", "0.1.2")
+            implementation("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
+        }
+
+        "Native" group {
+            implementation("net.java.dev.jna", "jna-platform")
+            implementation("com.1stleg", "jnativehook", "2.1.0")
+        }
+
+        "Misc" group {
+            implementation("net.objecthunter", "exp4j", "0.4.8")
+            implementation("org.atteo", "evo-inflector", "1.2.2")
+            implementation("com.thoughtworks.xstream", "xstream", "1.4.11.1")
+        }
+
+        "Image" group {
+            implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
+            fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.4.1")
+            imageIO("bmp")
+            imageIO("jpeg")
+            imageIO("iff")
+            imageIO("icns")
+            imageIO("pcx")
+            imageIO("pict")
+            imageIO("clippath")
+            imageIO("hdr")
+            imageIO("pdf")
+            imageIO("pnm")
+            imageIO("psd")
+            imageIO("tga")
+            imageIO("sgi")
+            imageIO("thumbsdb")
+            imageIO("tiff")
+        }
+
+        "Test" group {
+            testImplementation("io.kotlintest", "kotlintest-runner-junit5", "3.2.1")
+        }
+
+    }
+
+    tests {
+        useJUnitPlatform()
+        testLogging.showStandardStreams = true
+    }
+
+}
+
+sourceSets {
+    main {
+        java.srcDir("src/player/main")
+        resources.srcDir("src/player/main")
+    }
+    test {
+        java.srcDir("src/player/test")
+        resources.srcDir("src/player/test")
+    }
 }
 
 dependencies {
-
-    "Kotlin" requires {
-        implementation(kotlin("stdlib-jdk8"))
-        implementation(kotlin("reflect"))
-        implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core")
-        implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.1.0")
-    }
-
-    "Logging" requires {
-        implementation("org.slf4j", "slf4j-api")
-        implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
-        implementation("ch.qos.logback", "logback-classic", "1.2.3")
-        implementation("io.github.microutils", "kotlin-logging", "1.6.22")
-    }
-
-    "Audio" requires {
-        implementation("uk.co.caprica", "vlcj", "4.0.6")
-        implementation("de.u-mass", "lastfm-java", "0.1.2")
-        implementation("com.github.goxr3plus", "Jaudiotagger", "V2.2.6")
-    }
-
-    "JavaFX" requires {
-        implementation("de.jensd", "fontawesomefx", "8.9")
-    }
-
-    "Native" requires {
-        implementation("net.java.dev.jna", "jna-platform")
-        implementation("com.1stleg", "jnativehook", "2.1.0")
-    }
-
-    "Misc" requires {
-        implementation("net.objecthunter", "exp4j", "0.4.8")
-        implementation("org.atteo", "evo-inflector", "1.2.2")
-        implementation("com.thoughtworks.xstream", "xstream", "1.4.11.1")
-    }
-
-    "Image" requires {
-        implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
-        fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.4.1")
-        imageIO("bmp")
-        imageIO("jpeg")
-        imageIO("iff")
-        imageIO("icns")
-        imageIO("pcx")
-        imageIO("pict")
-        imageIO("clippath")
-        imageIO("hdr")
-        imageIO("pdf")
-        imageIO("pnm")
-        imageIO("psd")
-        imageIO("tga")
-        imageIO("sgi")
-        imageIO("thumbsdb")
-        imageIO("tiff")
-    }
-
-    "Test" requires {
-        testImplementation("io.kotlintest", "kotlintest-runner-junit5", "3.2.1")
-    }
-
+    implementation(project(":util"))
 }
 
 tasks {
@@ -266,11 +287,6 @@ tasks {
 
 }
 
-test {
-    useJUnitPlatform { }
-    testLogging.showStandardStreams = true
-}
-
 application {
     applicationName = "PlayerFX"
     mainClassName = "sp.it.pl.main.AppKt"
@@ -308,13 +324,16 @@ val String.prjProp: String?
 val String.sysProp: String?
     get() = System.getProperty(this)?.takeIf { it.isNotBlank() }
 
-infix fun String.requires(block: () -> Unit) = block()
+infix fun String.group(block: () -> Unit) = block()
 
 fun failIO(cause: Throwable? = null, message: () -> String): Nothing = throw IOException(message(), cause)
 
 fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, message) }
 
-@Suppress("UNUSED_VARIABLE")
-fun Project.test(configuration: Test.() -> Unit) {
-    val test by tasks.getting(Test::class, configuration)
+fun Project.tests(configuration: Test.() -> Unit) {
+    tasks {
+        test {
+            configuration()
+        }
+    }
 }

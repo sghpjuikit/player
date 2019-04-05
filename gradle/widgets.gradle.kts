@@ -3,12 +3,14 @@ plugins {
 }
 
 sourceSets {
-    getByName("main") {
-        java.setSrcDirs(listOf("."))
+    main {
+        java.srcDir(".")
         java.exclude("**.class")
+        resources.setSrcDirs(listOf())
     }
-    getByName("test") {
+    test {
         java.setSrcDirs(listOf())
+        resources.setSrcDirs(listOf())
     }
 }
 

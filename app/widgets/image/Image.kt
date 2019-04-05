@@ -64,18 +64,8 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
                 { e -> img!=null && img==e.dragboard.getImageFile() },
                 { e -> e.dragboard.getImageFileOrUrl() ui { showImage(it) } }
         )
-        root.onEventDown(KEY_PRESSED) {
-            when {
-                it.code==ENTER -> {
-                    img?.let { APP.actions.openImageFullscreen(it) }
-                    it.consume()
-                }
-                it.code==SPACE -> {
-                    fitFrom.setNextValue()
-                    it.consume()
-                }
-            }
-        }
+        root.onEventDown(KEY_PRESSED, ENTER) { img?.let { APP.actions.openImageFullscreen(it) } }
+        root.onEventDown(KEY_PRESSED, SPACE) { fitFrom.setNextValue() }
 
         showImage(img)
     }

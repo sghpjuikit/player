@@ -9,7 +9,9 @@ import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.SECONDARY
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
@@ -98,19 +100,19 @@ abstract class OverlayPane<in T>: StackPane() {
         isVisible = false
         styleClass += ROOT_STYLECLASS
 
-        setOnMouseClicked {
-            if (it.button==SECONDARY && isShown()) {
+        onEventDown(MOUSE_CLICKED, SECONDARY, false) {
+            if (isShown()) {
                 hide()
                 it.consume()
             }
         }
-        addEventHandler(KeyEvent.ANY) {
-            // close on ESC press
-            if (it.eventType==KeyEvent.KEY_PRESSED && it.code==ESCAPE && isShown()) hide()
-
-            // prevent events from propagating, user should not be able to interact with UI below
-            it.consume()
+        onEventDown(KEY_PRESSED, ESCAPE, false) {
+            if (isShown()) {
+                hide()
+                it.consume()
+            }
         }
+        onEventDown(KeyEvent.ANY) { it.consume() }  // user should not be able to interact with UI below
 
         resizeB = resizeButton().apply {
             cursor = Cursor.SE_RESIZE

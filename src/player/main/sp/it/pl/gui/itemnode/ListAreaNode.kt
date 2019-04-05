@@ -2,14 +2,15 @@ package sp.it.pl.gui.itemnode
 
 import javafx.collections.FXCollections
 import javafx.scene.control.TextArea
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
+import javafx.scene.input.KeyCode.CONTROL
+import javafx.scene.input.KeyCode.V
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.util.collections.getElementType
 import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.functional.Functors
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.ui.lay
 import sp.it.pl.util.ui.vBox
 import java.util.function.Consumer
@@ -90,11 +91,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
             if (transforms.typeOut==String::class.java)
                 output setTo newVal
         }
-        textArea.addEventHandler<KeyEvent>(KEY_PRESSED) {
-            if (it.code==KeyCode.V && it.isControlDown) {
-                it.consume()
-            }
-        }
+        textArea.onEventDown(KEY_PRESSED, CONTROL, V) { it.consume() }
 
         root.lay += textArea
         root.lay(ALWAYS) += transforms.getNode()

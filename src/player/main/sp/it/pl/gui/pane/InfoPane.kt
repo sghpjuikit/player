@@ -1,6 +1,5 @@
 package sp.it.pl.gui.pane
 
-import javafx.event.EventHandler
 import javafx.geometry.HPos
 import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER
@@ -9,6 +8,8 @@ import javafx.geometry.VPos
 import javafx.scene.Cursor
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
@@ -16,6 +17,8 @@ import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.main.APP
 import sp.it.pl.main.infoIcon
 import sp.it.pl.util.conf.MultiConfigurable
+import sp.it.pl.util.reactive.consumeScrolling
+import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.system.copyToSysClipboard
 import sp.it.pl.util.toLocalDateTime
 import sp.it.pl.util.ui.Util.layVertically
@@ -43,12 +46,12 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
             }
             lay(ALWAYS) += stackPane {
                 lay += scrollPane {
-                    onScroll = EventHandler { it.consume() }
                     content = stackPane(g)
                     isFitToWidth = true
                     isFitToHeight = false
                     hbarPolicy = NEVER
                     vbarPolicy = AS_NEEDED
+                    consumeScrolling()
                 }
             }
         }
@@ -90,7 +93,7 @@ class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>
                         val nameL = label(name)
                         val valL = label(value) {
                             cursor = Cursor.HAND
-                            setOnMouseClicked { copyToSysClipboard(value) }
+                            onEventDown(MOUSE_CLICKED, PRIMARY) { copyToSysClipboard(value) }
                         }
                         g.add(valL, 0, i)
                         g.add(nameL, 2, i)

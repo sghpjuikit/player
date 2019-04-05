@@ -5,7 +5,6 @@ import javafx.animation.Interpolator.LINEAR
 import javafx.animation.ScaleTransition
 import javafx.event.EventHandler
 import javafx.scene.input.MouseButton.PRIMARY
-import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.layout.AnchorPane
@@ -25,6 +24,8 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.main.nodeAnimation
 import sp.it.pl.util.animation.interpolator.CircularInterpolator
 import sp.it.pl.util.animation.interpolator.EasingMode.EASE_OUT
+import sp.it.pl.util.reactive.Subscription
+import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.ui.layFullArea
 
 /**
@@ -43,8 +44,6 @@ class Layouter: ContainerNode {
     private val cp: ContainerPicker
     private val a1: FadeTransition
     private val a2: ScaleTransition
-    private val clickShowHider: EventHandler<MouseEvent>
-    private val exitHider: EventHandler<MouseEvent>
     var onCancel: () -> Unit = {}
 
     constructor(container: Container<*>, index: Int) {
@@ -77,39 +76,28 @@ class Layouter: ContainerNode {
                 { e -> e.dragboard[Df.COMPONENT]===container },
                 { e -> e.dragboard[Df.COMPONENT].swapWith(container, index) }
         )
-        clickShowHider = EventHandler {
-            if (it.button==PRIMARY) {
+
+        weakMode = false
+    }
+
+    private var weakModeSubscription: Subscription? = null
+    private var weakMode: Boolean
+        set(value) {
+            field = value
+            if (root.onMouseExited==null)
+                root.onMouseExited = EventHandler {
+                    if (!isCancelPlaying) {
+                        cp.onCancel()
+                        it.consume()
+                    }
+                }
+
+            weakModeSubscription?.unsubscribe()
+            weakModeSubscription = root.onEventDown(if (value) MOUSE_ENTERED else MOUSE_CLICKED, PRIMARY, false) {
                 if (cp.root.opacity==0.0 && !container.lockedUnder.value) {
                     show()
                     it.consume()
                 }
-            }
-        }
-        exitHider = EventHandler {
-            if (!isCancelPlaying) {
-                cp.onCancel()
-                it.consume()
-            }
-        }
-
-        isWeakMode = false
-    }
-
-    /**
-     * In normal mode the controls are displayed on mouse click
-     * In weak mode the controls are displayed on mouse hover
-     */
-    private var isWeakMode: Boolean
-        set(value) {
-            field = value
-            if (root.onMouseExited==null)
-                root.onMouseExited = exitHider
-            if (value) {
-                root.addEventHandler(MOUSE_ENTERED, clickShowHider)
-                root.removeEventHandler(MOUSE_CLICKED, clickShowHider)
-            } else {
-                root.addEventHandler(MOUSE_CLICKED, clickShowHider)
-                root.removeEventHandler(MOUSE_ENTERED, clickShowHider)
             }
         }
 
@@ -166,7 +154,7 @@ class Layouter: ContainerNode {
             }
         }
         wp.consumeCancelEvent = true // we need right click to not close container
-        wp.root.addEventHandler(MOUSE_CLICKED) { it.consume() } // also left click to not open container chooser
+        wp.root.onEventDown(MOUSE_CLICKED) { it.consume() } // also left click to not open container chooser
         wp.buildContent()
 
         root.layFullArea += wp.root

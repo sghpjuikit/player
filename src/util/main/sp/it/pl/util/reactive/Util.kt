@@ -9,14 +9,9 @@ import javafx.beans.value.WritableValue
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.ObservableSet
-import javafx.event.Event
-import javafx.event.EventHandler
-import javafx.event.EventType
 import javafx.scene.Node
-import javafx.scene.control.TreeItem
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
-import javafx.stage.Window
 import sp.it.pl.util.async.runLater
 import sp.it.pl.util.dev.Experimental
 import sp.it.pl.util.dev.fail
@@ -381,39 +376,4 @@ fun <T> ObservableList<T>.onItemSyncWhile(subscriber: (T) -> Subscription): Subs
         ds.forEach { it.value.unsubscribe() }
         ds.clear()
     }
-}
-
-/** Equivalent to [Window.addEventHandler]. */
-fun <T: Event> Window.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
-    val handler = EventHandler<T> { eventHandler(it) }
-    addEventHandler(eventType, handler)
-    return Subscription { removeEventHandler(eventType, handler) }
-}
-
-/** Equivalent to [Window.addEventFilter]. */
-fun <T: Event> Window.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
-    val handler = EventHandler<T> { eventHandler(it) }
-    addEventFilter(eventType, handler)
-    return Subscription { removeEventFilter(eventType, handler) }
-}
-
-/** Equivalent to [Node.addEventHandler]. */
-fun <T: Event> Node.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
-    val handler = EventHandler<T> { eventHandler(it) }
-    addEventHandler(eventType, handler)
-    return Subscription { removeEventHandler(eventType, handler) }
-}
-
-/** Equivalent to [Node.addEventFilter]. */
-fun <T: Event> Node.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
-    val handler = EventHandler<T> { eventHandler(it) }
-    addEventFilter(eventType, handler)
-    return Subscription { removeEventFilter(eventType, handler) }
-}
-
-/** Equivalent to [TreeItem.addEventHandler]. */
-fun <R, T: Event> TreeItem<R>.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
-    val handler = EventHandler<T> { eventHandler(it) }
-    addEventHandler(eventType, handler)
-    return Subscription { removeEventHandler(eventType, handler) }
 }

@@ -30,10 +30,12 @@ import javafx.scene.control.TreeView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.image.WritableImage
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
-import javafx.scene.input.MouseDragEvent
+import javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED
 import javafx.scene.input.MouseEvent
+import javafx.scene.input.MouseEvent.DRAG_DETECTED
+import javafx.scene.input.MouseEvent.MOUSE_ENTERED
+import javafx.scene.input.MouseEvent.MOUSE_EXITED
+import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Background
 import javafx.scene.layout.BackgroundFill
@@ -66,6 +68,7 @@ import sp.it.pl.util.functional.traverse
 import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.Subscription
+import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.ui.image.FitFrom
 import kotlin.math.abs
@@ -749,16 +752,6 @@ fun <T> TreeView<T>.expandToRootAndSelect(item: TreeItem<out T>) {
     selectionModel.clearAndSelect(getRow(item))
 }
 
-/** Bypass consuming ESCAPE key events, which [TreeView] does by default. */
-fun TreeView<*>.propagateESCAPE() {
-    addEventHandler(KeyEvent.ANY, { e ->
-        if (editingItem==null && e.code==KeyCode.ESCAPE) {
-            parent?.fireEvent(e)
-            e.consume()
-        }
-    })
-}
-
 /** Scrolls to the row, so it is visible in the vertical center of the table. Does nothing if index out of bounds.  */
 fun <T> TreeView<T>.scrollToCenter(i: Int) {
     var index = i
@@ -793,56 +786,39 @@ fun <T> TreeView<T>.scrollToCenter(item: TreeItem<T>) {
 fun Node.onHoverOrDragStart(onStart: () -> Unit): Subscription {
     if (isHover) onStart()
 
-    val onMouseEnteredEH = EventHandler<MouseEvent> {
-        if (properties["isHoverOrDrag"]!=true)
-            onStart()
-    }
-    val onDragEnteredEH = EventHandler<MouseEvent> {
-        properties["isHoverOrDrag"] = true
-        if (!isHover)
-            onStart()
-    }
-
-    addEventFilter(MouseEvent.MOUSE_ENTERED, onMouseEnteredEH)
-    addEventFilter(MouseEvent.DRAG_DETECTED, onDragEnteredEH)
-
-    return Subscription {
-        removeEventFilter(MouseEvent.MOUSE_ENTERED, onMouseEnteredEH)
-        removeEventFilter(MouseEvent.DRAG_DETECTED, onDragEnteredEH)
-    }
+    return Subscription(
+            onEventUp(MOUSE_ENTERED) {
+                if (properties["isHoverOrDrag"]!=true)
+                    onStart()
+            },
+            onEventUp(DRAG_DETECTED) {
+                properties["isHoverOrDrag"] = true
+                if (!isHover)
+                    onStart()
+            }
+    )
 }
 
 /**
  * Sets an action to execute when hover or drag with mouse on this node ends
  * More reliable than [MouseEvent.MOUSE_EXITED]. Use in combination with [Node.onHoverOrDragStart].
  */
-fun Node.onHoverOrDragEnd(onEnd: () -> Unit): Subscription {
-    val onMouseExitedEH = EventHandler<MouseEvent> {
-        if (properties["isHoverOrDrag"]!=true)
-            onEnd()
-    }
-    val onMouseDragReleasedEH = EventHandler<MouseDragEvent> {
-        properties["isHoverOrDrag"] = false
-        if (!isHover)
-            onEnd()
-    }
-    val onMouseReleasedEH = EventHandler<MouseEvent> {
-        properties["isHoverOrDrag"] = false
-        if (!isHover)
-            onEnd()
-    }
-
-    addEventFilter(MouseEvent.MOUSE_EXITED, onMouseExitedEH)
-    addEventFilter(MouseDragEvent.MOUSE_DRAG_RELEASED, onMouseDragReleasedEH)
-    addEventFilter(MouseEvent.MOUSE_RELEASED, onMouseReleasedEH)
-
-    return Subscription {
-        removeEventFilter(MouseEvent.MOUSE_EXITED, onMouseExitedEH)
-        removeEventFilter(MouseDragEvent.MOUSE_DRAG_RELEASED, onMouseDragReleasedEH)
-        removeEventFilter(MouseEvent.MOUSE_RELEASED, onMouseReleasedEH)
-    }
-
-}
+fun Node.onHoverOrDragEnd(onEnd: () -> Unit): Subscription = Subscription(
+        onEventUp(MOUSE_EXITED) {
+            if (properties["isHoverOrDrag"]!=true)
+                onEnd()
+        },
+        onEventUp(MOUSE_DRAG_RELEASED) {
+            properties["isHoverOrDrag"] = false
+            if (!isHover)
+                onEnd()
+        },
+        onEventUp(MOUSE_RELEASED) {
+            properties["isHoverOrDrag"] = false
+            if (!isHover)
+                onEnd()
+        }
+)
 
 /* ---------- SCREEN ------------------------------------------------------------------------------------------------ */
 

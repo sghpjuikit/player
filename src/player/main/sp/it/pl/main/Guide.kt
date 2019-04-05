@@ -1,6 +1,5 @@
 package sp.it.pl.main
 
-import javafx.event.Event
 import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.HORIZONTAL
@@ -12,10 +11,12 @@ import javafx.scene.input.DataFormat
 import javafx.scene.input.KeyCode.LEFT
 import javafx.scene.input.KeyCode.RIGHT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.MouseButton.BACK
+import javafx.scene.input.MouseButton.FORWARD
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import javafx.scene.input.TransferMode
+import javafx.scene.input.TransferMode.COPY
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
 import sp.it.pl.gui.objects.icon.Icon
@@ -44,6 +45,7 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.functional.toUnit
 import sp.it.pl.util.reactive.Handler1
+import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.text.keys
 import sp.it.pl.util.ui.Util.layHorizontally
@@ -72,7 +74,6 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGI
     private val guideEvents = guideEvents.apply { add { handleAction(it) } }
     private val popup = lazy { buildPopup() }
     private val popupContent: VBox by lazy { buildContent() }
-    private val eventConsumer = Event::consume
     private val proceedAnim = anim(400.millis) { popupContent.opacity = -(it*it-1) }
     val hints = Hints()
 
@@ -83,31 +84,27 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGI
 
     private fun buildContent() = vBox(25) {
         padding = Insets(30.0)
-        addEventHandler(MOUSE_CLICKED) {
-            when {
-                !it.isStillSincePress -> {}
-                it.button==PRIMARY -> goToNext()
-                it.button==SECONDARY && hints[at].action=="Navigation" -> {
-                    runFX(proceedAnim.cycleDuration*3.0) { goToNext() }
-                    runFX(proceedAnim.cycleDuration*6.0) { goToNext() }
+
+        onEventDown(KEY_PRESSED, LEFT) { goToPrevious() }
+        onEventDown(KEY_PRESSED, RIGHT) { goToNext() }
+        onEventDown(MOUSE_CLICKED) {
+            if (it.isStillSincePress) {
+                when(it.button) {
+                    PRIMARY, FORWARD -> goToNext()
+                    SECONDARY, BACK -> {
+                        if (hints[at].action=="Navigation") {
+                            runFX(proceedAnim.cycleDuration*3.0) { goToNext() }
+                            runFX(proceedAnim.cycleDuration*6.0) { goToNext() }
+                        } else {
+                            goToPrevious()
+                        }
+                    }
+                    else -> {}
                 }
-                it.button==SECONDARY -> goToPrevious()
             }
             it.consume()
         }
-        addEventHandler(KEY_PRESSED) {
-            when (it.code) {
-                LEFT -> {
-                    goToPrevious()
-                    it.consume()
-                }
-                RIGHT -> {
-                    goToNext()
-                    it.consume()
-                }
-                else -> {}
-            }
-        }
+
         lay(ALWAYS) += TextArea().apply {
             isEditable = false
             isMouseTransparent = true
@@ -164,7 +161,7 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGI
         guideText.value = h.text()
         popupContent.children setToOne popupContent.children[0]
         h.graphics?.invoke(h)?.let {
-            it.addEventHandler(MOUSE_CLICKED, eventConsumer)
+            it.onEventDown(MOUSE_CLICKED) { it.consume() }
             popupContent.children += it
         }
 
@@ -528,13 +525,13 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGI
                         }.withText("Start"),
                         Icon(IconMD.DICE_2, ICON_SIZE).apply {
                             setOnDragDetected {
-                                this.startDragAndDrop(TransferMode.COPY).setContent(mapOf(DataFormat.PLAIN_TEXT to "2"))
+                                startDragAndDrop(COPY).setContent(mapOf(DataFormat.PLAIN_TEXT to "2"))
                                 it.consume()
                             }
                         }.withText("Drag '2'"),
                         Icon(IconMD.DICE_3, ICON_SIZE).apply {
                             setOnDragDetected {
-                                this.startDragAndDrop(TransferMode.COPY).setContent(mapOf(DataFormat.PLAIN_TEXT to "3"))
+                                startDragAndDrop(COPY).setContent(mapOf(DataFormat.PLAIN_TEXT to "3"))
                                 it.consume()
                             }
                         }.withText("Drag '3'")

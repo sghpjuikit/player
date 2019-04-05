@@ -5,11 +5,9 @@ import com.kodedu.terminalfx.TerminalTab
 import com.kodedu.terminalfx.config.TerminalConfig
 import javafx.scene.control.TabPane
 import javafx.scene.control.TabPane.TabClosingPolicy
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
+import javafx.scene.input.KeyCode.T
+import javafx.scene.input.KeyCode.W
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.KeyEvent.KEY_RELEASED
-import javafx.scene.input.KeyEvent.KEY_TYPED
 import javafx.scene.paint.Color.rgb
 import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.layout.widget.Widget
@@ -23,6 +21,7 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cvn
 import sp.it.pl.util.conf.only
 import sp.it.pl.util.file.div
+import sp.it.pl.util.reactive.SHORTCUT
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.syncSize
@@ -47,7 +46,7 @@ class Terminal(widget: Widget): SimpleController(widget) {
     private val tConfig = TerminalConfig()
     private val tBuilder = TerminalBuilder(tConfig)
     private val tabPane = TabPane()
-    private val placeholder = Placeholder(IconFA.TERMINAL, "New terminal (${keys("CTRL+T")})", { openNewTab() })
+    private val placeholder = Placeholder(IconFA.TERMINAL, "New terminal (${keys("CTRL+T")})") { openNewTab() }
 
     @IsConfig(name = "Shell path", info = "Path to the shell or none for default")
     val shellPath by cvn(null as File?) {
@@ -73,14 +72,18 @@ class Terminal(widget: Widget): SimpleController(widget) {
         tConfig.webViewUserDataDirectory = APP.DIR_TEMP/".terminalFx"/"webView"
         tabPane.tabClosingPolicy = TabClosingPolicy.ALL_TABS
 
-        root.onEventUp(KEY_PRESSED) { handleKey(it) }
-        root.onEventUp(KEY_RELEASED) { handleKey(it) }
-        root.onEventUp(KEY_TYPED) { handleKey(it) }
+        root.onEventUp(KEY_PRESSED, SHORTCUT, W) { closeActiveTab() }
+        root.onEventUp(KEY_PRESSED, SHORTCUT, T) { openNewTab() }
 
         tabPane.tabs syncSize { tabPane.isVisible = it!=0 } on onClose
         tabPane.tabs syncSize { placeholder.show(root, it==0) } on onClose
 
         onClose += { closeAllTabs() }
+    }
+
+    override fun focus() {
+        if (placeholder.isVisible) placeholder.requestFocus()
+        else super.focus()
     }
 
     fun openNewTab() {
@@ -102,18 +105,5 @@ class Terminal(widget: Widget): SimpleController(widget) {
     }
 
     private fun focusActiveTab() = tabPane.selectionModel.selectedItem?.content?.requestFocus()
-
-    private fun handleKey(e: KeyEvent) {
-        if (e.eventType==KEY_PRESSED && e.isShortcutDown) {
-            if (e.code==KeyCode.T) {
-                openNewTab()
-                e.consume()
-            }
-            if (e.code==KeyCode.W) {
-                closeActiveTab()
-                e.consume()
-            }
-        }
-    }
 
 }

@@ -9,6 +9,7 @@ import javafx.geometry.VPos
 import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.Slider
+import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.AnchorPane
@@ -144,7 +145,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
         Player.playingSong.onUpdateAndNow { playingItemChanged(it) } on onClose
         elapsedTime sync { timeChanged(ps, true) } on onClose
 
-        currTime.onEventDown(MOUSE_CLICKED) { elapsedTime.toggle() }
+        currTime.onEventDown(MOUSE_CLICKED, PRIMARY) { elapsedTime.toggle() }
 
         installDrag(
                 root,
@@ -264,7 +265,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
     inner class LayoutBig: AnchorPane(), Layout {
 
         init {
-            lay(0.0, 0.0, 60.0, 0.0) += hBox(40.0) {
+            lay(0.0, 0.0, 15.0, 0.0) += hBox(40.0) {
                 lay += hBox(5.0, CENTER) {
                     padding = Insets(0.0, 0.0, 0.0, 20.0)
 

@@ -602,7 +602,7 @@ public final class Seeker extends AnchorPane {
 				p.setAutoFix(false);
 				p.setOnHidden(e -> {
 					if (isEdited.getValue()) cancelEdit();
-					hover.playCloseDo(runnable(just_created ? () -> Seeker.this.getChildren().remove(this) : null));
+					hover.playCloseDo(just_created ? runnable(() -> Seeker.this.getChildren().remove(this)) : null);
 				});
 				p.title.setValue(toHMSMs(c.getTime()));
 				p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);

@@ -72,6 +72,7 @@ import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.math.P
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.on
+import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.sync1If
@@ -380,8 +381,8 @@ open class PopOver<N: Node>(): PopupControl() {
         initializeMovingBehavior(isMoveWithOwner)
 
         // hideOnESC calls hide(), so there is no effect in detached mode, fix here
-        scene.addEventHandler(KEY_PRESSED) {
-            if (it.code==ESCAPE && isHideOnEscape) {
+        scene.root.onEventDown(KEY_PRESSED, ESCAPE, false) {
+            if (isHideOnEscape) {
                 hideStrong()
                 it.consume()
             }

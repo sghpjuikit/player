@@ -1,6 +1,5 @@
 package configurator
 
-import javafx.event.EventHandler
 import javafx.fxml.FXML
 import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Pos.TOP_RIGHT
@@ -30,12 +29,13 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.c
 import sp.it.pl.util.functional.recurse
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.reactive.consumeScrolling
 import sp.it.pl.util.reactive.on
+import sp.it.pl.util.reactive.propagateESCAPE
 import sp.it.pl.util.ui.expandToRootAndSelect
 import sp.it.pl.util.ui.hBox
 import sp.it.pl.util.ui.lay
 import sp.it.pl.util.ui.prefSize
-import sp.it.pl.util.ui.propagateESCAPE
 import sp.it.pl.util.ui.x
 import java.util.ArrayList
 
@@ -70,6 +70,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
 
     init {
         root.prefSize = 800.scaleEM() x 600.scaleEM()
+        root.consumeScrolling()
 
         inputs.create<Configurable<out Any>>("To configure", { configure(it) })
 
@@ -92,8 +93,6 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
         groups.propagateESCAPE()
         groups.selectionModel.selectedItemProperty() attach { storeAppSettingsSelection(it) } on onClose
         groups.selectionModel.selectedItemProperty() attach { showConfigs(it?.value) } on onClose
-
-        root.onScroll = EventHandler { it.consume() }
 
         refresh()
     }

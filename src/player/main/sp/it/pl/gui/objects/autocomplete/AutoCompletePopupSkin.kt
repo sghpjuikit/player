@@ -63,25 +63,17 @@ open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
                 prefHeight = snappedTopInset() + snappedBottomInset() + cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
             } on onDispose
 
-            onEventDown(MOUSE_CLICKED) {
-                if (it.button==PRIMARY && it.clickCount==activationClickCount) {
+            onEventDown(MOUSE_CLICKED, PRIMARY, false) {
+                if (it.clickCount==activationClickCount) {
                     chooseSuggestion()
                     it.consume()
                 }
             }
-            onEventDown(KEY_PRESSED) {
-                when (it.code) {
-                    ENTER -> {
-                        chooseSuggestion()
-                        it.consume()
-                    }
-                    ESCAPE -> {
-                        if (control.isHideOnEscape) {
-                            control.hide()
-                            it.consume()
-                        }
-                    }
-                    else -> {}
+            onEventDown(KEY_PRESSED, ENTER) { chooseSuggestion() }
+            onEventDown(KEY_PRESSED, ESCAPE, false) {
+                if (control.isHideOnEscape) {
+                    control.hide()
+                    it.consume()
                 }
             }
         }

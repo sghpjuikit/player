@@ -90,8 +90,10 @@ public class AppLauncher extends SimpleController {
 	private final AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
         FOLDER_PLUS, "Click to add launcher or drag & drop a file",
-        () -> chooseFile("Choose program or file", FILE, APP.DIR_HOME, root.getScene().getWindow())
+        runnable(() ->
+            chooseFile("Choose program or file", FILE, APP.DIR_HOME, root.getScene().getWindow())
 				.ifOkUse(files.list::setAll)
+        )
     );
 
     @IsConfig(name = "Sort", info = "Sorting effect.")

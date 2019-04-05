@@ -8,6 +8,8 @@ import com.vividsolutions.jts.triangulate.VoronoiDiagramBuilder
 import javafx.event.Event
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
+import javafx.scene.input.MouseButton
+import javafx.scene.input.MouseButton.*
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
@@ -72,7 +74,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
         root.lay += canvas
 
         root.focusedProperty() sync { canvas.pause(!it) } on onClose
-        root.onEventDown(MOUSE_CLICKED) { canvas.pause(false) }
+        root.onEventDown(MOUSE_CLICKED, PRIMARY) { canvas.pause(false) }
         root.onEventDown(Event.ANY) { it.consume() }
 
         root.sync1IfInScene { canvas.loop.start() } on onClose
@@ -95,12 +97,10 @@ class Voronoi(widget: Widget): SimpleController(widget) {
         init {
             onEventDown(MOUSE_PRESSED) { draggedCell = selectedCell }
             onEventDown(MOUSE_RELEASED) { draggedCell = null }
-            onEventDown(MOUSE_DRAGGED) { e ->
-                mousePos = P(e.x, e.y)
-                draggedCell?.let {
-                    it.x = e.x
-                    it.y = e.y
-                }
+            onEventDown(MOUSE_DRAGGED) {
+                mousePos = P(it.x, it.y)
+                draggedCell?.x = it.x
+                draggedCell?.y = it.y
             }
             onEventDown(MOUSE_MOVED) { mousePos = P(it.x, it.y) }
             onEventDown(MOUSE_EXITED) { mousePos = null }

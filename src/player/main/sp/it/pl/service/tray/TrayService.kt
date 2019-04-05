@@ -1,6 +1,8 @@
 package sp.it.pl.service.tray
 
 import javafx.scene.control.ContextMenu
+import javafx.scene.input.MouseButton.BACK
+import javafx.scene.input.MouseButton.FORWARD
 import javafx.scene.input.MouseButton.MIDDLE
 import javafx.scene.input.MouseButton.NONE
 import javafx.scene.input.MouseButton.PRIMARY
@@ -10,6 +12,7 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.stage.Stage
 import mu.KLogging
 import sp.it.pl.audio.Player
+import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.main.APP
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.util.async.runAwt
@@ -98,13 +101,20 @@ class TrayService: ServiceBase("Tray", true) {
                     toolTip = tooltipText
                     addMouseListener(object: MouseAdapter() {
                         override fun mouseClicked(e: java.awt.event.MouseEvent) {
-                            // transform to javaFX MouseEvent
-                            val bi = e.button
-                            val b = if (bi==1) PRIMARY else if (bi==3) SECONDARY else if (bi==2) MIDDLE else NONE
-                            val me = MouseEvent(MOUSE_CLICKED, -1.0, -1.0,
+                            val b = when (e.button) {
+                                1 -> PRIMARY
+                                2 -> MIDDLE
+                                3 -> SECONDARY
+                                4 -> FORWARD
+                                5 -> BACK
+                                else -> NONE
+                            }
+                            val me = MouseEvent(
+                                    MOUSE_CLICKED, -1.0, -1.0,
                                     e.xOnScreen.toDouble(), e.yOnScreen.toDouble(), b, e.clickCount,
                                     e.isShiftDown, e.isControlDown, e.isAltDown, e.isMetaDown,
-                                    b==PRIMARY, false, b==SECONDARY, false, true, true, null)
+                                    b==PRIMARY, false, b==SECONDARY, false, true, true, null
+                            )
 
                             // show menu on right click
                             when (me.button) {
@@ -115,6 +125,8 @@ class TrayService: ServiceBase("Tray", true) {
                                     cm.items += contextMenuItemsBuilder()
                                     cm.show(cmOwner, me.screenX, me.screenY-40)
                                 }
+                                FORWARD -> PlaylistManager.use { it.playNextItem() }
+                                BACK -> PlaylistManager.use { it.playPreviousItem() }
                                 else -> {}
                             }
                         }

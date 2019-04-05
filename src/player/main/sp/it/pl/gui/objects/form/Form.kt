@@ -4,7 +4,6 @@ import javafx.fxml.FXML
 import javafx.scene.control.Label
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.StackPane
@@ -16,6 +15,7 @@ import sp.it.pl.main.IconOC
 import sp.it.pl.util.access.v
 import sp.it.pl.util.conf.Configurable
 import sp.it.pl.util.functional.Try
+import sp.it.pl.util.reactive.consumeScrolling
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.ui.fxml.ConventionFxmlLoader
 import sp.it.pl.util.ui.lay
@@ -60,13 +60,8 @@ class Form<T>: AnchorPane {
         fields.getConfigFields().forEach { it.observer = observer }
 
         okB.onClickDo { ok() }
-        fieldsPane.onEventDown(KEY_PRESSED) {
-            if (it.code==ENTER) {
-                ok()
-                it.consume()
-            }
-        }
-        fieldsPane.onEventDown(SCROLL) { it.consume() }
+        fieldsPane.onEventDown(KEY_PRESSED, ENTER) { ok() }
+        fieldsPane.consumeScrolling()
 
         validate()
     }

@@ -16,12 +16,13 @@ import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.image.Image
 import javafx.scene.input.DataFormat
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
-import javafx.scene.input.MouseButton
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
+import javafx.scene.input.MouseEvent.DRAG_DETECTED
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.TransferMode
 import javafx.stage.PopupWindow
 import javafx.stage.Stage
@@ -69,6 +70,7 @@ import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.onEventDown
+import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.onItemSyncWhile
 import sp.it.pl.util.reactive.syncNonNullWhile
 import sp.it.pl.util.system.open
@@ -157,27 +159,17 @@ fun <T: Any> buildTreeView() = TreeView<T>().initTreeView()
 
 fun <T: Any> TreeView<T>.initTreeView() = apply {
 
-    addEventFilter(KeyEvent.KEY_PRESSED) {
-        when (it.code) {
-            KeyCode.ENTER -> {
-                doAction(selectionModel.selectedItem?.value, {})
-                it.consume()
-            }
-            else -> {
-            }
+    onEventUp(KEY_PRESSED, ENTER) { doAction(selectionModel.selectedItem?.value, {}) }
+    onEventDown(DRAG_DETECTED, PRIMARY, false) { e ->
+        if (!selectionModel.isEmpty) {
+            val items = selectionModel.selectedItems.asSequence()
+                    .map { it.value }
+                    .filterIsInstance<File>()
+                    .toList()
+            val mode = if (e.isShiftDown) TransferMode.MOVE else TransferMode.COPY
+            startDragAndDrop(mode).setContent(mapOf(DataFormat.FILES to items))
+            e.consume()
         }
-    }
-    setOnDragDetected { e ->
-        if (e.button!=MouseButton.PRIMARY) return@setOnDragDetected
-        if (selectionModel.isEmpty) return@setOnDragDetected
-
-        val items = selectionModel.selectedItems.asSequence()
-                .map { it.value }
-                .filterIsInstance<File>()
-                .toList()
-        val mode = if (e.isShiftDown) TransferMode.MOVE else TransferMode.COPY
-        startDragAndDrop(mode).setContent(mapOf(DataFormat.FILES to items))
-        e.consume()
     }
 
     // preserve selection when observable tree item children source changes
@@ -230,7 +222,7 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
 @Suppress("UNUSED_PARAMETER")
 fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
     init {
-        addEventFilter(MouseEvent.ANY) { doOnClick(it) }
+        onEventUp(MOUSE_CLICKED) { doOnClick(it) }
     }
 
     override fun updateItem(o: T?, empty: Boolean) {
@@ -297,7 +289,6 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
         // https://bugs.openjdk.java.net/browse/JDK-8092146
         // https://stackoverflow.com/questions/15509203/disable-treeitems-default-expand-collapse-on-double-click-javafx-2-2
         if (e.clickCount==2) e.consume()
-        if (e.eventType!=MouseEvent.MOUSE_CLICKED) return
 
         if (item!=null) {
             when (e.button) {

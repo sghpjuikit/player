@@ -71,10 +71,12 @@ import sp.it.pl.util.file.listChildren
 import sp.it.pl.util.file.seqChildren
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.math.max
+import sp.it.pl.util.reactive.consumeScrolling
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onChange
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.onEventUp
+import sp.it.pl.util.reactive.propagateESCAPE
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.system.browse
 import sp.it.pl.util.system.chooseFile
@@ -91,7 +93,6 @@ import sp.it.pl.util.ui.layFullArea
 import sp.it.pl.util.ui.minPrefMaxHeight
 import sp.it.pl.util.ui.minPrefMaxWidth
 import sp.it.pl.util.ui.prefSize
-import sp.it.pl.util.ui.propagateESCAPE
 import sp.it.pl.util.ui.scrollPane
 import sp.it.pl.util.ui.stackPane
 import sp.it.pl.util.ui.text
@@ -143,24 +144,21 @@ class GameView(widget: Widget): SimpleController(widget) {
 
     init {
         root.prefSize = 1000.scaleEM() x 700.scaleEM()
+        root.consumeScrolling()
 
         files.onChange { viewGames() } on onClose
         files.onChange { placeholder.show(root, files.isEmpty()) } on onClose
 
-        root.onEventDown(SCROLL) { it.consume() }
-
         root.lay += grid.apply {
             cellFactory = Callback { Cell() }
-            onEventDown(KEY_PRESSED) {
-                if (it.code==ENTER) {
-                    val si = grid.selectedItem.value
-                    if (si!=null) viewGame(si.`val`)
-                    it.consume()
-                }
+            onEventDown(KEY_PRESSED, ENTER) {
+                val si = grid.selectedItem.value
+                if (si!=null) viewGame(si.`val`)
             }
             onEventUp(SCROLL) {
                 if (it.isShortcutDown) {
                     it.consume()
+
                     val isInc = it.deltaY<0 || it.deltaX>0
                     val useFreeStyle = it.isShiftDown
                     if (useFreeStyle) {
@@ -339,21 +337,9 @@ class GameView(widget: Widget): SimpleController(widget) {
                 }
             }
 
-            onEventDown(MOUSE_CLICKED) {
-                if (it.button==SECONDARY) {
-                    close()
-                    it.consume()
-                }
-            }
-            onEventDown(KEY_PRESSED) {
-                when (it.code) {
-                    ESCAPE, BACK_SPACE -> {
-                        close()
-                        it.consume()
-                    }
-                    else -> {}
-                }
-            }
+            onEventDown(MOUSE_CLICKED, SECONDARY) { close() }
+            onEventDown(KEY_PRESSED, ESCAPE) { close() }
+            onEventDown(KEY_PRESSED, BACK_SPACE) { close() }
 
             animated.forEach { it.opacity = 0.0 }
         }

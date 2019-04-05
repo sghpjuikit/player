@@ -13,6 +13,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLIPBOARD;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.DragEvent.DRAG_EXITED_TARGET;
 import static sp.it.pl.util.functional.Util.IS;
+import static sp.it.pl.util.functional.UtilKt.runnable;
 
 /**
  * Placeholder node as a visual aid for mouse drag operations. Shown when drag enters drag accepting {@link Node} and
@@ -67,7 +68,7 @@ public class DragPane extends Placeholder {
 	 * @param cond predicate filtering the drag events. The highlighting will show if the drag event tests true.
 	 * <p/>
 	 * Must be consistent with the node's DRAG_OVER event handler which accepts the drag in order for highlighting to
-	 * make sense! Check out {@link sp.it.pl.util.ui.drag.DragUtilKt#installDrag(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, String, kotlin.jvm.functions.Function1, kotlin.jvm.functions.Function1)}, which
+	 * make sense! Check out {@link sp.it.pl.main.AppDragKt#installDrag(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, String, kotlin.jvm.functions.Function1, kotlin.jvm.functions.Function1)}, which
 	 * guarantees consistency.
 	 * <p/>
 	 * Normally, one simple queries the dragboard of the event for type of content. Predicate returning always true will
@@ -177,7 +178,7 @@ public class DragPane extends Placeholder {
 	}
 
 	private DragPane() {
-		super(DEFAULT_ICON, "", () -> {});
+		super(DEFAULT_ICON, "", runnable(() -> {}));
 		icon.styleclass(STYLECLASS_ICON);
 		getStyleClass().add(STYLECLASS);
 		setMouseTransparent(true);   // must not interfere with events

@@ -9,7 +9,16 @@ import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.OverrunStyle
 import javafx.scene.control.TextField
-import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCode.A
+import javafx.scene.input.KeyCode.BACK_SPACE
+import javafx.scene.input.KeyCode.CONTROL
+import javafx.scene.input.KeyCode.DELETE
+import javafx.scene.input.KeyCode.DOWN
+import javafx.scene.input.KeyCode.END
+import javafx.scene.input.KeyCode.HOME
+import javafx.scene.input.KeyCode.LEFT
+import javafx.scene.input.KeyCode.RIGHT
+import javafx.scene.input.KeyCode.UP
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.HBox
 import javafx.scene.layout.StackPane
@@ -53,16 +62,8 @@ class ConfigSearch: AutoCompletion<Entry> {
         this.history = history
         this.textField.prefWidth = 550.0 // affects the popup width
 
-        this.textField.onEventUp(KEY_PRESSED) {
-            if (it.isControlDown && (it.code==KeyCode.UP || it.code==KeyCode.DOWN)) {
-                when (it.code) {
-                    KeyCode.UP -> history.up(this)
-                    KeyCode.DOWN -> history.down(this)
-                    else -> {}
-                }
-                it.consume()
-            }
-        }
+        this.textField.onEventUp(KEY_PRESSED, CONTROL, UP) { history.up(this) }
+        this.textField.onEventUp(KEY_PRESSED, CONTROL, DOWN) { history.down(this) }
     }
 
     override fun buildPopup() = object: AutoCompletePopup<Entry>() {
@@ -75,17 +76,17 @@ class ConfigSearch: AutoCompletion<Entry> {
                     // set keys & allow typing
                     skinnable.onEventUp(KEY_PRESSED) {
                         if (!ignoreEvent)
-                            if (it.isControlDown && (it.code==KeyCode.UP || it.code==KeyCode.DOWN)) {
+                            if (it.isControlDown && (it.code==UP || it.code==DOWN)) {
                                 when (it.code) {
-                                    KeyCode.UP -> history.up(this@ConfigSearch)
-                                    KeyCode.DOWN -> history.down(this@ConfigSearch)
+                                    UP -> history.up(this@ConfigSearch)
+                                    DOWN -> history.down(this@ConfigSearch)
                                     else -> {}
                                 }
                                 it.consume()
-                            } else if (it.code==KeyCode.BACK_SPACE) {
+                            } else if (it.code==BACK_SPACE) {
                                 textField.deletePreviousChar()
                                 it.consume()
-                            } else if (it.code==KeyCode.DELETE) {
+                            } else if (it.code==DELETE) {
                                 textField.deleteNextChar()
                                 it.consume()
                             } else if (!it.code.isNavigationKey) {
@@ -101,31 +102,31 @@ class ConfigSearch: AutoCompletion<Entry> {
                     }
                     node.onEventUp(KEY_PRESSED) {
                         if (!ignoreEvent)
-                            if (it.isControlDown && (it.code==KeyCode.UP || it.code==KeyCode.DOWN)) {
+                            if (it.isControlDown && (it.code==UP || it.code==DOWN)) {
                                 when (it.code) {
-                                    KeyCode.UP -> history.up(this@ConfigSearch)
-                                    KeyCode.DOWN -> history.down(this@ConfigSearch)
+                                    UP -> history.up(this@ConfigSearch)
+                                    DOWN -> history.down(this@ConfigSearch)
                                     else -> {}
                                 }
                                 it.consume()
-                            } else if (it.isControlDown && it.code==KeyCode.A) {
+                            } else if (it.isControlDown && it.code==A) {
                                 textField.selectAll()
                                 it.consume()
                                 // TODO:
                                 // else if (e.getCode()==KeyCode.BACK_SPACE) {
                                 //     textField.deletePreviousChar(); // doesn't work here
                                 //     e.consume();
-                            } else if (it.code==KeyCode.END) {
+                            } else if (it.code==END) {
                                 if (it.isShiftDown) textField.selectEnd() else textField.positionCaret(textField.length)
                                 it.consume()
-                            } else if (it.code==KeyCode.HOME) {
+                            } else if (it.code==HOME) {
                                 if (it.isShiftDown) textField.selectHome() else textField.positionCaret(0)
                                 it.consume()
-                            } else if (it.code==KeyCode.LEFT) {
+                            } else if (it.code==LEFT) {
                                 if (it.isControlDown) textField.selectPreviousWord() else textField.selectBackward()
                                 if (!it.isShiftDown) textField.deselect()
                                 it.consume()
-                            } else if (it.code==KeyCode.RIGHT) {
+                            } else if (it.code==RIGHT) {
                                 if (it.isControlDown) textField.selectNextWord() else textField.selectForward()
                                 if (!it.isShiftDown) textField.deselect()
                                 it.consume()

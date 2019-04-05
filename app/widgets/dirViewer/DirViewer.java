@@ -39,6 +39,7 @@ import static java.util.Comparator.nullsLast;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
+import static javafx.scene.input.MouseButton.BACK;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.minutes;
@@ -109,8 +110,10 @@ public class DirViewer extends SimpleController {
     private AtomicLong visitId = new AtomicLong(0);
     private final Placeholder placeholder = new Placeholder(
         FOLDER_PLUS, "Click to explore directory",
-        () -> chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, root.getScene().getWindow())
-            .ifOkUse(files.list::setAll)
+        runnable(() ->
+            chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, root.getScene().getWindow())
+                .ifOkUse(files.list::setAll)
+        )
     );
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
     final FileFilterValue filter = FileFilters.toEnumerableValue();
@@ -123,8 +126,8 @@ public class DirViewer extends SimpleController {
 
     @Constraint.FileType(Constraint.FileActor.DIRECTORY)
     @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
-    File lastVisited = null;
-    Item item = null;   // item, children of which are displayed
+    private File lastVisited = null;
+    private Item item = null;   // item, children of which are displayed
 
     public DirViewer(Widget widget) {
         super(widget);
@@ -151,7 +154,7 @@ public class DirViewer extends SimpleController {
                 visitUp();
         });
         grid.setOnMouseClicked(e -> {
-            if (e.getButton() == SECONDARY)
+            if (e.getButton()==SECONDARY || e.getButton()==BACK)
                 visitUp();
         });
         grid.addEventFilter(ScrollEvent.SCROLL, e -> {

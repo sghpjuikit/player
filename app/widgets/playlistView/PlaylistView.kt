@@ -1,6 +1,5 @@
 package playlistView
 
-import javafx.event.EventHandler
 import javafx.geometry.NodeOrientation.INHERIT
 import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.stage.FileChooser
@@ -39,6 +38,7 @@ import sp.it.pl.util.conf.only
 import sp.it.pl.util.file.parentDirOrRoot
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.reactive.consumeScrolling
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.sync
 import sp.it.pl.util.reactive.syncFrom
@@ -110,6 +110,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
     init {
         root.prefSize = 450.scaleEM() x 600.scaleEM()
+        root.consumeScrolling()
 
         playlist.playingI sync { outPlaying.value = playlist.playing } on onClose
         Player.playlistSelected.i.bind(outSelected) on onClose
@@ -191,8 +192,6 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
                 }
             }
         }
-
-        root.onScroll = EventHandler { it.consume() }
     }
 
     override fun getFields(): Collection<Config<Any>> {

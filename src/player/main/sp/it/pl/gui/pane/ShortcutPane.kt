@@ -1,6 +1,5 @@
 package sp.it.pl.gui.pane
 
-import javafx.event.EventHandler
 import javafx.geometry.HPos
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
@@ -19,6 +18,7 @@ import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.MultiConfigurable
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.reactive.consumeScrolling
 import sp.it.pl.util.ui.Util.layVertically
 import sp.it.pl.util.ui.hBox
 import sp.it.pl.util.ui.label
@@ -50,12 +50,12 @@ class ShortcutPane(override val configurableDiscriminant: String): OverlayPane<C
             }
             lay(ALWAYS) += stackPane {
                 lay += scrollPane {
-                    onScroll = EventHandler { it.consume() }
                     content = stackPane(g)
                     isFitToWidth = true
                     isFitToHeight = false
                     hbarPolicy = NEVER
                     vbarPolicy = AS_NEEDED
+                    consumeScrolling()
                 }
             }
         }

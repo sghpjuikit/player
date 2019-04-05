@@ -1,12 +1,12 @@
 package sp.it.pl.gui.objects.picker
 
-import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.VPos.CENTER
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
@@ -18,6 +18,7 @@ import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.functional.supplyIf
 import sp.it.pl.util.math.max
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.ui.label
 import sp.it.pl.util.ui.lay
 import sp.it.pl.util.ui.pane
@@ -99,12 +100,10 @@ open class Picker<E> {
             isPannable = false  // forbid mouse panning (can cause unwanted horizontal scrolling)
             isFitToWidth = true // make content horizontally resize with scroll pane
             hbarPolicy = NEVER
-            setOnMouseClicked(EventHandler {
-                if (it.button==SECONDARY) {
-                    onCancel()
-                    if (consumeCancelEvent) it.consume()
-                }
-            })
+            onEventDown(MOUSE_CLICKED, SECONDARY, false) {
+                onCancel()
+                if (consumeCancelEvent) it.consume()
+            }
             styleClass += STYLE_CLASS
         }
     }
@@ -114,12 +113,7 @@ open class Picker<E> {
                 .sortedBy(textConverter)
                 .map { item ->
                     cellFactory(item).apply {
-                        onMouseClicked = EventHandler {
-                            if (it.button==PRIMARY) {
-                                onSelect(item)
-                                it.consume()
-                            }
-                        }
+                        onEventDown(MOUSE_CLICKED, PRIMARY) { onSelect(item) }
                     }
                 }
         tiles.children += pane {

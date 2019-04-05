@@ -177,7 +177,10 @@ class UiManager(val skinDir: File): Configurable<Any> {
     @IsAction(name = "Show/hide all windows", desc = "Shows/hides all application windows.", global = true)
     fun toggleMinimize() {
         val m = APP.windowManager.windows.any { it.isMinimized }
-        APP.windowManager.windows.forEach { it.isMinimized = !m }
+        APP.windowManager.windows.forEach {
+            it.isMinimized = !m
+            if (m) it.focus()
+        }
     }
 
     @IsAction(name = "Maximize window", desc = "Switch maximized mode.", keys = "F11")

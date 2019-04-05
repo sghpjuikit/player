@@ -3,12 +3,16 @@ package sp.it.pl.service.notif
 import javafx.scene.Node
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.scene.input.MouseEvent.MOUSE_ENTERED
+import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.util.Duration
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.pl.util.collections.setToOne
 import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.ui.stackPane
 import sp.it.pl.util.units.seconds
 
@@ -42,12 +46,10 @@ class Notification: PopOver<Node>() {
         styleClass += "notification"
 
         contentNode.value = root.apply {
-            setOnMouseClicked {
-                if (it.button==PRIMARY) lClickAction()
-                if (it.button==SECONDARY) rClickAction()
-            }
-            setOnMouseEntered { closer.pause() }
-            setOnMouseExited { closer.unpause() }
+            onEventDown(MOUSE_CLICKED, PRIMARY) { lClickAction() }
+            onEventDown(MOUSE_CLICKED, SECONDARY) { rClickAction() }
+            onEventDown(MOUSE_ENTERED) { closer.pause() }
+            onEventDown(MOUSE_EXITED) { closer.unpause() }
         }
     }
 

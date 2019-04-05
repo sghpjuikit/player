@@ -1,12 +1,12 @@
 package inspector
 
-import javafx.event.EventHandler
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.scene.control.TreeItem
+import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
@@ -38,9 +38,11 @@ import sp.it.pl.util.functional.traverse
 import sp.it.pl.util.reactive.Subscribed
 import sp.it.pl.util.reactive.Subscription
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.reactive.consumeScrolling
 import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.onItemSyncWhile
 import sp.it.pl.util.reactive.plus
+import sp.it.pl.util.reactive.propagateESCAPE
 import sp.it.pl.util.reactive.syncNonNullIntoWhile
 import sp.it.pl.util.ui.expandToRootAndSelect
 import sp.it.pl.util.ui.hBox
@@ -48,7 +50,6 @@ import sp.it.pl.util.ui.isAnyChildOf
 import sp.it.pl.util.ui.lay
 import sp.it.pl.util.ui.pickTopMostAt
 import sp.it.pl.util.ui.prefSize
-import sp.it.pl.util.ui.propagateESCAPE
 import sp.it.pl.util.ui.styleclassToggle
 import sp.it.pl.util.ui.x
 import java.io.File
@@ -83,7 +84,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
                 selected = selected?.highlight(false)
                 selected = wRoot.pickTopMostVisible(it)?.takeIf { !it.isAnyChildOf(root) }?.highlight(true)
             }
-            val d2 = wRoot.onEventUp(MOUSE_CLICKED) {
+            val d2 = wRoot.onEventUp(MOUSE_CLICKED, PRIMARY) {
                 feature.unsubscribe()
                 selected = selected?.highlight(false)
                 wRoot.pickTopMostVisible(it)?.takeIf { !it.isAnyChildOf(root) }?.let { exploreNode(it) }
@@ -97,7 +98,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
     }
     val selectingWindow = Subscribed { feature ->
         observeWindowRoots { root ->
-            root.onEventUp(MOUSE_CLICKED) {
+            root.onEventUp(MOUSE_CLICKED, PRIMARY) {
                 feature.unsubscribe()
                 exploreWindow(root.scene.window)
                 it.consume()
@@ -107,6 +108,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
 
     init {
         root.prefSize = 600.scaleEM() x 600.scaleEM()
+        root.consumeScrolling()
 
         root.lay += tree.apply {
             selectionModel.selectionMode = MULTIPLE
@@ -141,7 +143,6 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
                 { true },
                 { e -> open(e.dragboard.getAny()) }
         )
-        root.onScroll = EventHandler { it.consume() } // prevent scrolling event from propagating
 
         onClose += { tree.selectionModel.clearSelection() }
         onClose += { tree.root?.disposeIfDisposable() }

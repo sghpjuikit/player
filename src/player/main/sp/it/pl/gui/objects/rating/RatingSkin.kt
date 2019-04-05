@@ -30,14 +30,14 @@
 package sp.it.pl.gui.objects.rating
 
 import de.jensd.fx.glyphs.GlyphIcons
-import javafx.event.EventHandler
 import javafx.scene.CacheHint
 import javafx.scene.Node
 import javafx.scene.control.SkinBase
 import javafx.scene.input.MouseButton.PRIMARY
-import javafx.scene.input.MouseEvent
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
+import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.layout.HBox
 import javafx.scene.shape.Rectangle
 import sp.it.pl.main.IconFA
@@ -46,11 +46,13 @@ import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.on
+import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.ui.createIcon
 import sp.it.pl.util.ui.hBox
 import sp.it.pl.util.ui.pseudoclass
 import java.lang.Math.ceil
+import kotlin.math.roundToInt
 
 /** Skin for [Rating]. */
 class RatingSkin(r: Rating): SkinBase<Rating>(r) {
@@ -70,15 +72,14 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
 
     init {
         backgroundContainer.alignmentProperty() syncFrom r.alignment on onDispose
-        backgroundContainer.onMouseMoved = EventHandler<MouseEvent> {
+        backgroundContainer.onEventDown(MOUSE_MOVED) {
             if (skinnable.editable.value) {
                 val v = computeRating(it.sceneX, it.sceneY)
                 updateClipAndStyle(v)
-                it.consume()
             }
         }
-        backgroundContainer.onMouseClicked = EventHandler<MouseEvent> {
-            if (skinnable.editable.value && it.button==PRIMARY) {
+        backgroundContainer.onEventDown(MOUSE_CLICKED, PRIMARY, false) {
+            if (skinnable.editable.value) {
                 val v = computeRating(it.sceneX, it.sceneY)
                 updateClipAndStyle(v)
                 ratingOld = v
@@ -97,12 +98,10 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
         r.icons attach { updateButtons() } on onDispose
         r.partialRating attach { updateClipAndStyle() } on onDispose
 
-        r.addEventHandler(MOUSE_ENTERED) {
-            it.consume()
+        r.onEventDown(MOUSE_ENTERED) {
             if (r.editable.value) ratingOld = r.rating.value
         }
-        r.addEventHandler(MOUSE_EXITED) {
-            it.consume()
+        r.onEventDown(MOUSE_EXITED) {
             if (r.editable.value) updateClipAndStyle(ratingOld)
         }
     }
@@ -145,7 +144,7 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
 
     private fun updateClip(v: Double? = skinnable.rating.value) {
         val icons = foregroundIcons.boundsInParent
-        foregroundMask.width = icons.minX+(v ?: 0.0)*icons.width
+        foregroundMask.width = icons.minX.roundToInt()-1.0+(v ?: 0.0)*(icons.width+1.0)
         foregroundMask.height = skinnable.height
     }
 

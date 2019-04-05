@@ -318,12 +318,10 @@ class AppActions {
 
             window.scene.fill = BLACK
             root.asIf<Pane>()?.background = bgr(BLACK)
-            root.onEventUp(KEY_PRESSED) {
-                if (it.code==ESCAPE || it.code==ENTER) {
-                    window.hide()
-                    it.consume()
-                }
-            }
+
+            root.onEventUp(KEY_PRESSED, ENTER) { window.hide() }
+            root.onEventUp(KEY_PRESSED, ESCAPE) { window.hide() }
+
             window.showingProperty().sync1If({ it }) {
                 f.showImage(image)
             }

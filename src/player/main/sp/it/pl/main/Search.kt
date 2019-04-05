@@ -1,11 +1,13 @@
 package sp.it.pl.main
 
 import javafx.scene.Node
+import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.textfield.DecoratedTextField
 import sp.it.pl.util.animation.Anim.Companion.anim
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.units.millis
 
@@ -18,7 +20,7 @@ class Search {
             val clearB = Icon().also {
                 it.styleClass += "search-clear-button"
                 it.opacity = 0.0
-                it.setOnMouseReleased { clear() }
+                it.onEventDown(MOUSE_RELEASED) { clear() }
                 it.managedProperty() syncFrom editableProperty()
                 it.visibleProperty() syncFrom editableProperty()
             }

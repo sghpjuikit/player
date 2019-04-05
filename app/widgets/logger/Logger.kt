@@ -1,6 +1,5 @@
 package logger
 
-import javafx.event.EventHandler
 import javafx.scene.control.TextArea
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
@@ -10,6 +9,7 @@ import sp.it.pl.main.Widgets
 import sp.it.pl.main.scaleEM
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
+import sp.it.pl.util.reactive.consumeScrolling
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.ui.lay
@@ -32,6 +32,8 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
 
     init {
         root.prefSize = 500.scaleEM() x 500.scaleEM()
+        root.consumeScrolling()
+
         root.lay += area.apply {
             isEditable = false
             isWrapText = false
@@ -39,8 +41,6 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
 
             text = "# This is redirected output (System.out) stream of this application.\n"
         }
-
-        root.onScroll = EventHandler { it.consume() }
 
         APP.systemout.addListener { area.appendText(it) } on onClose
     }

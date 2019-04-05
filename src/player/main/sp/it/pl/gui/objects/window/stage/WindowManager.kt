@@ -1,6 +1,7 @@
 package sp.it.pl.gui.objects.window.stage
 
 import javafx.collections.FXCollections.observableArrayList
+import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.Node
@@ -299,6 +300,7 @@ class WindowManager {
                     showAnim.stop()
                     showAnim.rate = 1.0
                     showAnim.playFrom(300.millis-d)
+                    showAnim.onFinished = EventHandler { content.isMouseTransparent = true }
                 }
             }
             mwRoot.onEventUp(MouseEvent.ANY) {
@@ -318,19 +320,12 @@ class WindowManager {
                     showAnim.stop()
                     showAnim.rate = -1.0
                     showAnim.playFrom(d)
+                    showAnim.onFinished = EventHandler { content.isMouseTransparent = false }
                 }
             }
-            mwRoot.onEventUp(MOUSE_ENTERED) {
-                if (mw.isShowing) shower.start(dockHoverDelay.value)
-            }
-            mwRoot.onEventDown(MOUSE_CLICKED) {
-                if (it.button==PRIMARY) {
-                    if (mw.isShowing) shower.runNow()
-                }
-                if (it.button==SECONDARY) {
-                    if (mw.isShowing) hider.runNow()
-                }
-            }
+            mwRoot.onEventDown(MOUSE_CLICKED, SECONDARY) { hider.runNow() }
+            mwRoot.onEventDown(MOUSE_CLICKED, PRIMARY) { shower.runNow() }
+            mwRoot.onEventUp(MOUSE_ENTERED) { shower.start(dockHoverDelay.value) }
         } else {
             dockWindow?.close()
             dockWindow = null

@@ -2,7 +2,8 @@ package webReader;
 
 import javafx.fxml.FXML
 import javafx.scene.control.TextField
-import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.web.WebEngine
 import javafx.scene.web.WebView
 import mu.KLogging
@@ -21,6 +22,7 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.dev.Dependency
 import sp.it.pl.util.file.div
 import sp.it.pl.util.reactive.attach
+import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.type.Util.getFieldValue
 import sp.it.pl.util.type.Util.invokeMethodP1
 import sp.it.pl.util.ui.prefSize
@@ -66,12 +68,10 @@ class WebReader(widget: Widget): SimpleController(widget) {
             url = it
             addressBar.text = url
         }
-        addressBar.setOnKeyPressed { e ->
-            if (e.code==KeyCode.ENTER) {
-                val text = addressBar.text
-                val url = WebBarInterpreter.toUrlString(text, searchEngine.get())
-                loadPage(url)
-            }
+        addressBar.onEventDown(KEY_PRESSED, ENTER) {
+            val text = addressBar.text
+            val url = WebBarInterpreter.toUrlString(text, searchEngine.get())
+            loadPage(url)
         }
 
         // engine.documentProperty() sync { if (noBgr.get()) engine.setTransparentBgrColor() } on onClose

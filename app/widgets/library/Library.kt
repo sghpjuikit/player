@@ -1,6 +1,5 @@
 package library
 
-import javafx.event.EventHandler
 import javafx.geometry.NodeOrientation
 import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.scene.control.TableCell
@@ -53,6 +52,7 @@ import sp.it.pl.util.file.FileType.DIRECTORY
 import sp.it.pl.util.file.Util.getCommonRoot
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
+import sp.it.pl.util.reactive.consumeScrolling
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onEventDown
 import sp.it.pl.util.reactive.sync
@@ -113,6 +113,8 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
     init {
         root.prefSize = 850.scaleEM() x 600.scaleEM()
+        root.consumeScrolling()
+
         root.lay += table.root
 
         outputSelected.bind(Player.librarySelected.i) on onClose
@@ -181,26 +183,24 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
         table.defaultColumnInfo   // trigger menu initialization
         table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo
 
-        table.onEventDown(KEY_PRESSED) {
-            if (it.code==ENTER) {
-                if (!table.selectionModel.isEmpty) {
-                    PlaylistManager.use { it.setNplayFrom(table.items, table.selectionModel.selectedIndex) }
-                    it.consume()
-                }
-            }
-            if (it.code==DELETE) {
-                if (!table.selectionModel.isEmpty) {
-                    APP.db.removeSongs(table.selectedItems)
-                    it.consume()
-                }
+        table.onEventDown(KEY_PRESSED, ENTER, false) {
+            if (!table.selectionModel.isEmpty) {
+                PlaylistManager.use { it.setNplayFrom(table.items, table.selectionModel.selectedIndex) }
+                it.consume()
             }
         }
-        table.onEventDown(DRAG_DETECTED) {
-            it.consume()
-            if (it.button==PRIMARY && !table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY)))
+        table.onEventDown(KEY_PRESSED, DELETE, false) {
+            if (!table.selectionModel.isEmpty) {
+                APP.db.removeSongs(table.selectedItems)
+                it.consume()
+            }
+        }
+        table.onEventDown(DRAG_DETECTED, PRIMARY, false) {
+            if (!table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY))) {
                 table.startDragAndDrop(COPY).setSongsAndFiles(table.selectedItemsCopy)
+                it.consume()
+            }
         }
-        table.onScroll = EventHandler { it.consume() }
 
         // sync outputs
         table.selectionModel.selectedItemProperty() sync { outputSelected.value = it } on onClose

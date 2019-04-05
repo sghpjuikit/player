@@ -11,6 +11,7 @@ import sp.it.pl.audio.playback.BalanceProperty
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.attach
 import sp.it.pl.util.reactive.on
+import sp.it.pl.util.reactive.onEventUp
 import sp.it.pl.util.reactive.syncFrom
 import sp.it.pl.util.reactive.syncTo
 import java.lang.Math.abs
@@ -78,19 +79,9 @@ class BalancerSkin(b: Balancer): SkinBase<Balancer>(b) {
             isSnapToTicks = true
             prefWidth = 100.0
         }
-        b.addEventFilter(KEY_PRESSED) {
-            when (it.code) {
-                RIGHT -> {
-                    skinnable.incToRight()
-                    it.consume()
-                }
-                LEFT -> {
-                    skinnable.incToLeft()
-                    it.consume()
-                }
-                else -> {}
-            }
-        }
+
+        slider.onEventUp(KEY_PRESSED, LEFT) { skinnable.incToLeft() }
+        slider.onEventUp(KEY_PRESSED, RIGHT) { skinnable.incToRight() }
     }
 
     override fun dispose() {

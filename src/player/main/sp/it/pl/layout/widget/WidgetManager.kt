@@ -2,11 +2,11 @@ package sp.it.pl.layout.widget
 
 import javafx.collections.FXCollections.observableArrayList
 import javafx.scene.Scene
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
+import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Region
 import javafx.stage.Screen
-import javafx.stage.WindowEvent
+import javafx.stage.WindowEvent.WINDOW_HIDING
 import mu.KLogging
 import sp.it.pl.gui.objects.window.stage.Window
 import sp.it.pl.gui.objects.window.stage.WindowManager
@@ -696,15 +696,10 @@ sealed class WidgetLoader: (Widget) -> Unit {
             val root = anchorPane()
             val window = Util.createFMNTStage(screen, false).apply {
                 scene = Scene(root)
-                onEventUp(WindowEvent.WINDOW_HIDING) { w.rootParent.close() }
+                onEventUp(WINDOW_HIDING) { w.rootParent.close() }
             }
 
-            root.onEventUp(KeyEvent.KEY_PRESSED) {
-                if (it.code==KeyCode.ESCAPE) {
-                    window.hide()
-                    it.consume()
-                }
-            }
+            root.onEventUp(KEY_PRESSED, ESCAPE) { window.hide() }
 
             w.load().apply {
                 minPrefMaxWidth = Region.USE_COMPUTED_SIZE

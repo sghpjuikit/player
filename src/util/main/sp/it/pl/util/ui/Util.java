@@ -25,6 +25,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import sp.it.pl.util.JavaLegacy;
 import sp.it.pl.util.access.V;
 import sp.it.pl.util.reactive.Subscription;
@@ -287,12 +288,12 @@ public interface Util {
 		return s;
 	}
 
-	static <E extends Event> void addEventHandler1Time(Stage eTarget, EventType<E> eType, Consumer<E> eHandler) {
-		eTarget.addEventHandler(eType, new EventHandler<>() {
+	static <E extends Event> void addEventHandler1Time(Window window, EventType<E> eType, Consumer<E> eHandler) {
+		window.addEventHandler(eType, new EventHandler<>() {
 			@Override
 			public void handle(E event) {
 				eHandler.accept(event);
-				eTarget.removeEventHandler(eType, this);
+				window.removeEventHandler(eType, this);
 			}
 		});
 	}

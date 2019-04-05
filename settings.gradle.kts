@@ -1,8 +1,12 @@
+// Gradle settings file for multi-project build. Convention. Executed during the initialization phase.
+// Defines all projects and build script classpath.
+
 rootProject.apply {
     projectDir = file(".")
     buildFileName = "gradle/project.gradle.kts"
 
 
+    // Project containing Java/Kotlin utility classes not directly related to the player
     include(":util")
     project(":util").apply {
         name = "util"
@@ -10,6 +14,8 @@ rootProject.apply {
         buildFileName = "../../gradle/util.gradle.kts"
     }
 
+    // Project containing Java/Kotlin executable classes prototyping, showcasing & learning Java/Kotlin/lib features not
+    // directly related to the player
     include(":demo")
     project(":demo").apply {
         name = "demo"
@@ -17,6 +23,7 @@ rootProject.apply {
         buildFileName = "../../gradle/demo.gradle.kts"
     }
 
+    // Set of projects containing player widgets. 1 project per widget. Projects share the same build file.
     include(":widgets")
     project(":widgets").apply {
         name = "widgets"

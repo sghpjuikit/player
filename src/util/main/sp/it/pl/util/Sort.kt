@@ -32,13 +32,10 @@ enum class Sort {
      * 0) when none.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> of(c: Comparator<T>?): Comparator<T>? {
-        if (c==null) return null
-        return when (this) {
-            ASCENDING -> c
-            DESCENDING -> c.reversed() // preserves reference of the original comparator, see impl. (ReversedComparator)
-            NONE -> sp.it.pl.util.functional.Util.SAME as Comparator<T>
-        }
+    fun <T> of(c: Comparator<T>): Comparator<T> = when (this) {
+        ASCENDING -> c
+        DESCENDING -> c.reversed() // preserves reference of the original comparator, see impl. (ReversedComparator)
+        NONE -> sp.it.pl.util.functional.Util.SAME as Comparator<T>
     }
 
     companion object {
@@ -67,4 +64,4 @@ enum class Sort {
 
 
 /** @see Sort.of */
-fun <T> Comparator<T>?.inSort(sort: Sort) = sort.of(this)
+fun <T> Comparator<T>.inSort(sort: Sort) = sort.of(this)

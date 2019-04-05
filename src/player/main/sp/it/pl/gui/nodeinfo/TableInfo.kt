@@ -5,7 +5,7 @@ import javafx.scene.control.TableView
 import sp.it.pl.util.reactive.Disposer
 import sp.it.pl.util.reactive.on
 import sp.it.pl.util.reactive.onChange
-import sp.it.pl.util.text.plural
+import sp.it.pl.util.text.pluralUnit
 import kotlin.properties.Delegates.observable
 
 /**
@@ -76,7 +76,7 @@ class TableInfo<E>: NodeInfo<TableView<E>> {
         @JvmField val DEFAULT_TEXT_FACTORY: (Boolean, List<*>) -> String = { isSelectionEmpty, list ->
             val prefix = if (isSelectionEmpty) "All: " else "Selected: "
             val size = list.size
-            "$prefix$size ${"item".plural(size)}"
+            "$prefix " + "item".pluralUnit(size)
         }
 
     }

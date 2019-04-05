@@ -125,7 +125,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		});
 		SubscriptionKt.on(onChange(grid.getItemsShown(), runnable(() -> flow.changeItemsLazy())), onDispose);
 
-		root = layHeaderTop(10, Pos.TOP_RIGHT, filterPane, flow.root);
+		root = layHeaderTop(0, Pos.TOP_RIGHT, filterPane, flow.root);
 		filter = new Filter(grid.type, grid.itemsFiltered);
 
 		// selection

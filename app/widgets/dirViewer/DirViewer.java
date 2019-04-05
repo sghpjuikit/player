@@ -1,13 +1,23 @@
 package dirViewer;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import kotlin.jvm.functions.Function1;
 import sp.it.pl.gui.objects.grid.GridFileThumbCell;
 import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader;
 import sp.it.pl.gui.objects.grid.GridView;
@@ -37,10 +47,12 @@ import sp.it.pl.util.validation.Constraint;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static java.util.Comparator.nullsLast;
 import static java.util.stream.Collectors.toList;
+import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.BACK;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.minutes;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
@@ -68,12 +80,15 @@ import static sp.it.pl.util.functional.Util.max;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
+import static sp.it.pl.util.reactive.UtilKt.onChange;
 import static sp.it.pl.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
 import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
 import static sp.it.pl.util.system.EnvironmentKt.edit;
 import static sp.it.pl.util.system.EnvironmentKt.open;
+import static sp.it.pl.util.ui.Util.layHeaderTop;
 
+@SuppressWarnings({"WeakerAccess", "unused", "ConstantConditions"})
 @Widget.Info(
     author = "Martin Polakovic",
     name = "Dir Viewer",
@@ -123,11 +138,25 @@ public class DirViewer extends SimpleController {
     final V<FileSort> sort_file = new V<>(DIR_FIRST).initAttachC(v -> applySort());
     @IsConfig(name = "Sort seconds", info = "Sorting criteria.")
     final V<FileField<?>> sortBy = new VarEnum<>(FileField.NAME, () -> FileField.FIELDS).initAttachC(v -> applySort());
-
     @Constraint.FileType(Constraint.FileActor.DIRECTORY)
     @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
     private File lastVisited = null;
+
     private Item item = null;   // item, children of which are displayed
+
+    private Breadcrumbs<Item> navigation = new Breadcrumbs<>(
+        it -> it.val==null
+            ? files.getValue().size()==1 ? files.getValue().get(0).getAbsolutePath() : "Library"
+            : it.val.getName(),
+        it -> visit(it)
+    );
+    private final StackPane navigationPane = new StackPane();
+    @IsConfig(name = "Show breadcrumbs", info = "Whether breadcrumb navigation bar is visible.")
+    private final V<Boolean> navigationVisible = new V<>(true).initSyncC(v -> {
+        if (v) navigationPane.getChildren().add(0, navigation);
+        else navigationPane.getChildren().remove(navigation);
+    });
+
 
     public DirViewer(Widget widget) {
         super(widget);
@@ -136,7 +165,9 @@ public class DirViewer extends SimpleController {
         grid.search.field = FileField.PATH;
         grid.primaryFilterField = FileField.NAME_FULL;
         grid.setCellFactory(grid -> new Cell());
-        root.getChildren().add(grid);
+        root.getChildren().add(
+            layHeaderTop(0.0, Pos.CENTER_LEFT, navigationPane, grid)
+        );
 
         placeholder.show(root, files.list.isEmpty());
 
@@ -227,6 +258,9 @@ public class DirViewer extends SimpleController {
         visitId.incrementAndGet();
 
         item = dir;
+        var bs = Stream.iterate(item, it -> it.parent).takeWhile(it -> it!=null).collect(toList());
+        Collections.reverse(bs);
+        navigation.values.setAll(bs);
         lastVisited = dir.val;
         showAppProgress(
             fut(item)
@@ -422,6 +456,29 @@ public class DirViewer extends SimpleController {
                 return null;
             }
         }
+    }
+
+    private class Breadcrumbs<T> extends HBox {
+        final ObservableList<T> values = observableArrayList();
+
+        Breadcrumbs(Function1<? super T, ? extends String> converter, Consumer<? super T> onClick) {
+            setPadding(new Insets(10.0));
+            setSpacing(10.0);
+
+            onChange(values, runnable(() -> {
+                var cs = new ArrayList<Label>();
+                values.forEach(it -> {
+                    var l = new Label(converter.invoke(it));
+                    l.addEventHandler(MOUSE_CLICKED, e -> onClick.accept(it));
+                    cs.add(l);
+                    cs.add(new Label(">"));
+                });
+                if (!cs.isEmpty()) cs.remove(cs.size()-1);
+
+                getChildren().setAll(cs);
+            }));
+        }
+
     }
 
 }

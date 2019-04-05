@@ -185,15 +185,18 @@ object FileFilters {
     }
 
     /** @return filter with specified name or primary filter if no such filter */
-    @JvmStatic fun getOrPrimary(name: String) = filters.find { it.name==name } ?: filterPrimary
+    @JvmStatic
+    fun getOrPrimary(name: String) = filters.find { it.name==name } ?: filterPrimary
 
     /** @return enumerable string value enumerating all available predicate names */
-    @JvmStatic fun toEnumerableValue() = FileFilterValue(filters.map { it.name })
+    @JvmStatic
+    @JvmOverloads
+    fun toEnumerableValue(initialValue: String = FileFilters.filterPrimary.name) = FileFilterValue(initialValue, filters.map { it.name })
 }
 
-class FileFilterValue(enumerated: Collection<String>): VarEnum<String>("File - all", enumerated) {
+class FileFilterValue(initialValue: String = FileFilters.filterPrimary.name, enumerated: Collection<String>): VarEnum<String>(initialValue, enumerated) {
 
-    private var filter = FileFilters.filterPrimary
+    private var filter = FileFilters.getOrPrimary(initialValue)
 
     override fun setValue(v: String) {
         filter = FileFilters.getOrPrimary(v)

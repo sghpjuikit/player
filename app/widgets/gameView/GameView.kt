@@ -132,7 +132,7 @@ class GameView(widget: Widget): SimpleController(widget) {
     @IsConfig(name = "Location", info = "Location of the library.")
     val files by cList<File>().only(DIRECTORY)
 
-    val grid = GridView<Item, File>(File::class.java, { it.`val` }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio+CELL_TEXT_HEIGHT, 10.0, 10.0)
+    val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio+CELL_TEXT_HEIGHT, 10.0, 10.0)
     val imageLoader = GridFileThumbCell.Loader(
             burstTPExecutor(8, 1.minutes, threadFactory("gameView-img-thumb", true)),
             burstTPExecutor(8, 1.minutes, threadFactory("gameView-img-full", true))
@@ -153,7 +153,7 @@ class GameView(widget: Widget): SimpleController(widget) {
             cellFactory = Callback { Cell() }
             onEventDown(KEY_PRESSED, ENTER) {
                 val si = grid.selectedItem.value
-                if (si!=null) viewGame(si.`val`)
+                if (si!=null) viewGame(si.value)
             }
             onEventUp(SCROLL) {
                 if (it.isShortcutDown) {
@@ -209,7 +209,7 @@ class GameView(widget: Widget): SimpleController(widget) {
 
     private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
         grid.setCellSize(width, height+CELL_TEXT_HEIGHT)
-        grid.itemsRaw setTo grid.itemsRaw.map { FItem(null, it.`val`, it.valType) }
+        grid.itemsRaw setTo grid.itemsRaw.map { FItem(null, it.value, it.valType) }
     }
 
     private inner class Cell: GridFileThumbCell(imageLoader) {
@@ -223,7 +223,7 @@ class GameView(widget: Widget): SimpleController(widget) {
             root install appTooltipForData { thumb.representant }
         }
 
-        override fun onAction(i: Item, edit: Boolean) = viewGame(i.`val`)
+        override fun onAction(i: Item, edit: Boolean) = viewGame(i.value)
 
     }
 

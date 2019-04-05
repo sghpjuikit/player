@@ -37,7 +37,7 @@ public class Name extends HierarchicalBase<String,Name> {
 		boolean isLeaf = i<0;
 
 		if (isLeaf) {
-			stream(getHChildren()).filter(name -> path.equals(name.val)).findFirst().ifPresentOrElse(
+			stream(getHChildren()).filter(name -> path.equals(name.value)).findFirst().ifPresentOrElse(
 				name -> {},
 				() -> getHChildren().add(new Name(path, this))
 			);
@@ -45,7 +45,7 @@ public class Name extends HierarchicalBase<String,Name> {
 			String prefix = path.substring(0, i);
 			String suffix = path.substring(i + 1);
 
-			stream(getHChildren()).filter(name -> prefix.equals(name.val)).findFirst()
+			stream(getHChildren()).filter(name -> prefix.equals(name.value)).findFirst()
 				.ifPresentOrElse(
 					name -> name.addPath(suffix),
 					() -> {
@@ -59,7 +59,7 @@ public class Name extends HierarchicalBase<String,Name> {
 
 	public void sort() {
 		if (children!=null) {
-			children.sort(by(name -> name.val));
+			children.sort(by(name -> name.value));
 			children.forEach(Name::sort);
 		}
 	}

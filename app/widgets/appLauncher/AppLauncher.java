@@ -81,7 +81,7 @@ public class AppLauncher extends SimpleController {
     @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
     final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5).initAttachC(v -> applyCellSize());
 
-    private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.val, cellSize.get().width,cellSize.get().width*cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT,5,5);
+    private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.value, cellSize.get().width,cellSize.get().width*cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT,5,5);
     private final ExecutorService executorIO = oneTPExecutor();
     private final ExecutorService executorThumbs = oneTPExecutor();
     private final Loader imageLoader = new Loader(executorThumbs, null);
@@ -176,9 +176,9 @@ public class AppLauncher extends SimpleController {
     private void doubleClickItem(Item i) {
         if (closeOnLaunch.get()) {
             widget.areaTemp.close();
-            runFX(millis(250), () -> open(i.val));
+            runFX(millis(250), () -> open(i.value));
         } else {
-            open(i.val);
+            open(i.value);
         }
     }
 
@@ -197,7 +197,7 @@ public class AppLauncher extends SimpleController {
              sortHomo = sort.get(); // sorts each group separately
         FileField<?> field = sortBy.get(); // pre-compute once for consistency and performance
         Comparator<Item> cmpHetero = sortHetero.of(by(i -> i.valType)),
-                         cmpHomo = sortHomo.of(by(i -> i.val, field.comparator()));
+                         cmpHomo = sortHomo.of(by(i -> i.value, field.comparator()));
         return cmpHetero.thenComparing(cmpHomo);
     }
 
@@ -243,7 +243,7 @@ public class AppLauncher extends SimpleController {
         }
 
         @Override
-        protected Stream<File> children_files() {
+        protected Stream<File> childrenFiles() {
             return files.list.stream().distinct();
         }
 

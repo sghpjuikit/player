@@ -95,7 +95,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		Set<String> all = new HashSet<>();
 		List<Item> dirs = new ArrayList<>();
 		List<Item> files = new ArrayList<>();
-		children_files().forEach(f -> {
+		childrenFiles().forEach(f -> {
 			if (!disposed) {
 				all.add(f.getPath().toLowerCase());
 				FileType type = FileType.of(f);
@@ -116,8 +116,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		}
 	}
 
-	protected Stream<File> children_files() {
-		return listChildren(val).map(CachingFile::new);
+	protected Stream<File> childrenFiles() {
+		return listChildren(value).map(CachingFile::new);
 	}
 
 	protected boolean filterChildFile(File f) {
@@ -133,10 +133,10 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		for (String ext : getImageExtensionsRead()) {
 			File f = new File(dir, name + "." + ext);
 
-			if (dir==val) {
+			if (dir==value) {
 				return file_exists(this, f) ? f : null;
 			} else {
-				if (parent!=null && parent.val!=null && parent.val.equals(f.getParentFile())) {
+				if (parent!=null && parent.value!=null && parent.value.equals(f.getParentFile())) {
 					if (file_exists(parent, f))
 						return f;
 				} else {
@@ -167,14 +167,14 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		File file = getCoverFile();
 		if (file==null) {
 			if (!wasCoverFile_loaded && cover_file==null && valType==FILE) {
-				if (val.getPath().endsWith(".exe") || val.getPath().endsWith(".lnk")) {
-					cover = IconExtractor.getFileIcon(val);
+				if (value.getPath().endsWith(".exe") || value.getPath().endsWith(".lnk")) {
+					cover = IconExtractor.getFileIcon(value);
 					cover_loadedFull.set(true);
 					cover_loadedThumb.set(true);
 					return ok(new LoadResult(null, cover));
 				}
-				if (isAudio(val)) {
-					cover = MetadataReaderKt.readMetadata(new SimpleSong(val)).getCover(CoverSource.TAG).getImage(size);    // TODO: use fallback if Cover is empty
+				if (isAudio(value)) {
+					cover = MetadataReaderKt.readMetadata(new SimpleSong(value)).getCover(CoverSource.TAG).getImage(size);    // TODO: use fallback if Cover is empty
 					cover_loadedFull.set(true);
 					cover_loadedThumb.set(true);
 					return ok(new LoadResult(null, cover));
@@ -212,13 +212,13 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 		if (valType==DIRECTORY) {
 			if (all_children==null) buildChildren();
-			cover_file = getImageT(val, "cover");
+			cover_file = getImageT(value, "cover");
 		} else {
 			// image files are their own thumbnail
-			if (isImage(val)) {
-				cover_file = val;
+			if (isImage(value)) {
+				cover_file = value;
 			} else {
-				File i = getImage(val.getParentFile(), getNameWithoutExtensionOrRoot(val));
+				File i = getImage(value.getParentFile(), getNameWithoutExtensionOrRoot(value));
 				if (i==null && parent!=null) cover_file = parent.getCoverFile();
 				else cover_file = i;
 			}

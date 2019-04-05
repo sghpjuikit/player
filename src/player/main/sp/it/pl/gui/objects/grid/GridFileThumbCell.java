@@ -59,7 +59,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	}
 
 	protected String computeName(Item item) {
-		return item.valType==FileType.DIRECTORY ? item.val.getName() : getNameWithoutExtensionOrRoot(item.val);
+		return item.valType==FileType.DIRECTORY ? item.value.getName() : getNameWithoutExtensionOrRoot(item.value);
 	}
 
 	protected double computeCellTextHeight() {
@@ -158,7 +158,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		thumb = new Thumbnail() {
 			@Override
 			public Object getRepresentant() {
-				return getItem()==null ? null : getItem().val;
+				return getItem()==null ? null : getItem().value;
 			}
 		};
 		thumb.setBorderVisible(false);
@@ -306,7 +306,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 							.ifOkUse(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))    // load after all previous
 //							.ifOkUse(result -> setCoverPost(item, result.file, result.cover, then))                    // load immediately
 							.ifErrorUse(e -> then.runNothing())
-							.ifErrorUse(e -> System.out.println("fml" + itemVolatile.val));
+							.ifErrorUse(e -> System.out.println("fml" + itemVolatile.value));
 					}
 				));
 		}

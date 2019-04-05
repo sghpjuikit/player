@@ -258,9 +258,9 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
                 n
             }
         }
-        o is Name -> o.`val`
+        o is Name -> o.value
         o is Feature -> o.name
-        o is HierarchicalBase<*, *> -> computeText(o.`val`)
+        o is HierarchicalBase<*, *> -> computeText(o.value)
         else -> o.toString()
     }
 
@@ -313,7 +313,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
 
     fun doOnSingleClick(o: Any?) {
         when (o) {
-            is HierarchicalBase<*, *> -> doOnSingleClick(o.`val`)
+            is HierarchicalBase<*, *> -> doOnSingleClick(o.value)
         }
     }
 
@@ -336,7 +336,7 @@ private fun doAction(o: Any?, otherwise: () -> Unit) {
         is File -> o.open()
         is Configurable<*> -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(o) }
         is TreeItem<*> -> doAction(o.value, otherwise)
-        is HierarchicalBase<*, *> -> doAction(o.`val`, otherwise)
+        is HierarchicalBase<*, *> -> doAction(o.value, otherwise)
         else -> otherwise()
     }
 }

@@ -1,0 +1,378 @@
+package libraryView
+
+import javafx.geometry.NodeOrientation
+import javafx.geometry.Pos.CENTER_LEFT
+import javafx.geometry.Pos.CENTER_RIGHT
+import javafx.scene.control.Menu
+import javafx.scene.control.SelectionMode.MULTIPLE
+import javafx.scene.control.TableCell
+import javafx.scene.control.TableColumn
+import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
+import javafx.scene.input.KeyCode.DELETE
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseEvent.DRAG_DETECTED
+import javafx.scene.input.TransferMode.COPY
+import javafx.stage.WindowEvent.WINDOW_HIDDEN
+import javafx.stage.WindowEvent.WINDOW_SHOWING
+import javafx.util.Callback
+import sp.it.pl.audio.Player
+import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.audio.tagging.Metadata
+import sp.it.pl.audio.tagging.Metadata.Field.Companion.CATEGORY
+import sp.it.pl.audio.tagging.MetadataGroup
+import sp.it.pl.audio.tagging.MetadataGroup.Companion.ungroup
+import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.AVG_RATING
+import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.VALUE
+import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.W_RATING
+import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData
+import sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu
+import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
+import sp.it.pl.gui.objects.table.FilteredTable
+import sp.it.pl.gui.objects.table.ImprovedTable.PojoV
+import sp.it.pl.gui.objects.table.TableColumnInfo
+import sp.it.pl.gui.objects.tablecell.NumberRatingCellFactory
+import sp.it.pl.gui.objects.tablerow.ImprovedTableRow
+import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.Widget.Group.LIBRARY
+import sp.it.pl.layout.widget.Widget.Info
+import sp.it.pl.layout.widget.controller.LegacyController
+import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.widget.controller.io.Input
+import sp.it.pl.layout.widget.controller.io.Output
+import sp.it.pl.main.APP
+import sp.it.pl.main.Widgets
+import sp.it.pl.main.scaleEM
+import sp.it.pl.main.setSongsAndFiles
+import sp.it.pl.util.access.VarEnum
+import sp.it.pl.util.access.Vo
+import sp.it.pl.util.access.fieldvalue.ColumnField
+import sp.it.pl.util.access.fieldvalue.ObjectField
+import sp.it.pl.util.access.initAttach
+import sp.it.pl.util.async.executor.EventReducer
+import sp.it.pl.util.async.runNew
+import sp.it.pl.util.collections.setTo
+import sp.it.pl.util.conf.Config
+import sp.it.pl.util.conf.EditMode
+import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.cv
+import sp.it.pl.util.functional.Util.forEachWithI
+import sp.it.pl.util.functional.Util.list
+import sp.it.pl.util.functional.Util.stream
+import sp.it.pl.util.functional.invoke
+import sp.it.pl.util.functional.net
+import sp.it.pl.util.functional.orNull
+import sp.it.pl.util.reactive.consumeScrolling
+import sp.it.pl.util.reactive.on
+import sp.it.pl.util.reactive.onChange
+import sp.it.pl.util.reactive.onEventDown
+import sp.it.pl.util.reactive.sync
+import sp.it.pl.util.reactive.syncTo
+import sp.it.pl.util.ui.Util.menuItem
+import sp.it.pl.util.ui.lay
+import sp.it.pl.util.ui.prefSize
+import sp.it.pl.util.ui.pseudoclass
+import sp.it.pl.util.ui.x
+import java.util.function.Consumer
+import kotlin.collections.set
+import kotlin.streams.asSequence
+import kotlin.streams.toList
+
+@Suppress("UNCHECKED_CAST")
+@Info(
+        author = "Martin Polakovic",
+        name = Widgets.SONG_GROUP_TABLE,
+        description = "Provides database filtering.",
+        howto = "Available actions:\n"+
+        "    Song left click : Selects item\n"+
+        "    Song right click : Opens context menu\n"+
+        "    Song double click : Plays item\n"+
+        "    Type : search & filter\n"+
+        "    Press ENTER : Plays item\n"+
+        "    Press ESC : Clear selection & filter\n"+
+        "    Scroll : Scroll table vertically\n"+
+        "    Scroll + SHIFT : Scroll table horizontally\n"+
+        "    Column drag : swap columns\n"+
+        "    Column right click: show column menu\n"+
+        "    Click column : Sort - ascending | descending | none\n"+
+        "    Click column + SHIFT : Sorts by multiple columns\n",
+        version = "0.9.0",
+        year = "2015",
+        group = LIBRARY)
+@LegacyController
+class LibraryView(widget: Widget): SimpleController(widget) {
+
+    private val table = FilteredTable(MetadataGroup::class.java, VALUE)
+    private val outputSelectedGroup: Output<MetadataGroup?> = outputs.create(widget.id, "Selected Group", null) // TODO: use List<MetadataGroup>
+    private val outputSelectedSongs: Output<List<Metadata>?> = outputs.create(widget.id, "Selected", listOf())
+    private val inputItems: Input<List<Metadata>?> = inputs.create("To display", listOf()) { setItems(it) }
+
+    @IsConfig(name = "Table orientation", info = "Orientation of the table.")
+    val tableOrient by cv(NodeOrientation.INHERIT) { Vo(APP.ui.tableOrient) }
+    @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
+    val tableZeropad by cv(true) { Vo(APP.ui.tableZeropad) }
+    @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
+    val tableOrigIndex by cv(true) { Vo(APP.ui.tableOrigIndex) }
+    @IsConfig(name = "Show table header", info = "Show table header with columns.")
+    val tableShowHeader by cv(true) { Vo(APP.ui.tableShowHeader) }
+    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table content information.")
+    val tableShowFooter by cv(true) { Vo(APP.ui.tableShowFooter) }
+    @IsConfig(name = "Field")
+    val fieldFilter by cv(CATEGORY as Metadata.Field<*>) {
+        VarEnum(it, Metadata.Field.FIELDS.filter { it.isTypeStringRepresentable() })
+                .initAttach { applyData() }
+    }
+
+    // restoring selection if table items change, we want to preserve as many
+    // selected items as possible - when selection changes, we select all items
+    // (previously selected) that are still in the table
+    private var selIgnore = false
+    private var selIgnoreCanTurnBack = true
+    private var selOld: Set<Any?>? = null
+    // restoring selection from previous session, we serialize string
+    // representation and try to restore when application runs again
+    // we restore only once
+    @IsConfig(name = "Last selected", editable = EditMode.APP)
+    private var selLast = "null"
+    private var selLastRestored = false
+
+    init {
+        root.prefSize = 600.scaleEM() x 600.scaleEM()
+        root.consumeScrolling()
+        root.lay += table.root
+
+        table.selectionModel.selectionMode = MULTIPLE
+        table.search.setColumn(VALUE)
+        tableOrient syncTo table.nodeOrientationProperty() on onClose
+        tableZeropad syncTo table.zeropadIndex on onClose
+        tableOrigIndex syncTo table.showOriginalIndex on onClose
+        tableShowHeader syncTo table.headerVisible on onClose
+        tableShowFooter syncTo table.footerVisible on onClose
+
+        // set up table columns
+        table.setKeyNameColMapper { name -> if (ColumnField.INDEX.name()==name) name else MetadataGroup.Field.valueOf(name).toString() }
+        table.setColumnFactory { f ->
+            if (f is MetadataGroup.Field<*>) {
+                val mgf = f as MetadataGroup.Field<*>
+                val mf = fieldFilter.value
+                TableColumn<MetadataGroup, Any>(mgf.toString(mf)).apply {
+                    cellValueFactory = Callback { it.value?.let { PojoV(mgf.getOf(it)) } }
+                    cellFactory = when (mgf) {
+                        AVG_RATING -> APP.ratingCell.value as Callback<TableColumn<MetadataGroup, Any?>, TableCell<MetadataGroup, Any?>>
+                        W_RATING -> NumberRatingCellFactory as Callback<TableColumn<MetadataGroup, Any?>, TableCell<MetadataGroup, Any?>>
+                        else -> Callback<TableColumn<MetadataGroup, Any?>, TableCell<MetadataGroup, Any?>> {
+                            table.buildDefaultCell(mgf as ObjectField<in MetadataGroup, Any?>).apply {
+                               alignment = if (mgf.getType(mf)==String::class.java) CENTER_LEFT else CENTER_RIGHT
+                            }
+                        }
+                    }
+                }
+            } else {
+                TableColumn<MetadataGroup, Any>(f.toString()).apply {
+                    cellValueFactory = Callback { it.value?.let { PojoV(f.getOf(it)) } }
+                    cellFactory = Callback { table.buildDefaultCell(f) }
+                }
+            }
+        }
+        APP.ratingCell sync { cf -> table.getColumn(AVG_RATING).orNull()?.cellFactory = cf as Callback<TableColumn<MetadataGroup, Double?>, TableCell<MetadataGroup, Double?>>} on onClose
+
+        // rows
+        table.setRowFactory { tbl ->
+            object: ImprovedTableRow<MetadataGroup>() {
+                init {
+                    styleRuleAdd(pcPlaying) { it.isPlaying() }
+                    onLeftDoubleClick { _,_ -> playSelected() }
+                    onRightSingleClick { row, e ->
+                        // prep selection for context menu
+                        if (!row.isSelected)
+                            tbl.selectionModel.clearAndSelect(row.index)
+
+                        contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(filerListToSelectedNsort()))
+                        contextMenuInstance.show(table, e)
+                    }
+                }
+            }
+        }
+        Player.playingSong.onUpdate { _ -> table.updateStyleRules() } on onClose
+
+        table.defaultColumnInfo   // trigger menu initialization
+        table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo
+
+        // column context menu - add group by menu
+        val fieldMenu = Menu("Group by")
+        table.columnMenu.items.add(fieldMenu)
+        table.columnMenu.onEventDown(WINDOW_HIDDEN) { fieldMenu.items.clear() }
+        table.columnMenu.onEventDown(WINDOW_SHOWING) {
+            fieldMenu.items setTo buildSingleSelectionMenu(
+                    list(Metadata.Field.FIELDS), fieldFilter.value,
+                    { it.name() },
+                    { fieldFilter.setValue(it) }
+            )
+        }
+
+        // add menu items
+        table.menuRemove.items.addAll(
+                menuItem("Remove selected groups from library") { APP.db.removeSongs(ungroup(table.selectedItems)) },
+                menuItem("Remove playing group from library") {  APP.db.removeSongs(ungroup(table.items.filter { it.isPlaying() })) },
+                menuItem("Remove all groups from library") { APP.db.removeSongs(ungroup(table.items)) }
+        )
+
+        table.onEventDown(KEY_PRESSED, ENTER) { playSelected() }
+        table.onEventDown(KEY_PRESSED, DELETE) { APP.db.removeSongs(table.selectedItems.flatMap { it.grouped }) }
+        table.onEventDown(DRAG_DETECTED, PRIMARY, false) {
+            if (!table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY))) {
+                table.startDragAndDrop(COPY).setSongsAndFiles(filerListToSelectedNsort())
+                it.consume()
+            }
+        }
+
+        // resizing
+        table.setColumnResizePolicy { resize ->
+            val b = UNCONSTRAINED_RESIZE_POLICY(resize)
+            val t = table   // (FilteredTable) resize.getTable()
+            // resize index column
+            t.getColumn(ColumnField.INDEX).ifPresent { it.setPrefWidth(t.computeIndexColumnWidth()) }
+            // resize main column to span remaining space
+            t.getColumn(VALUE).ifPresent { c ->
+                val sumW = t.columns.asSequence().filter { it.isVisible }.sumByDouble { it.width }
+                val sbW = t.vScrollbarWidth
+                c.setPrefWidth(t.width-(sbW+sumW-c.width))
+            }
+            b
+        }
+
+        // forward selection
+        val selectedItemsReducer = EventReducer.toLast<Void>(100.0) {
+            if (!selIgnore) {
+                outputSelectedSongs.value = filterList(inputItems.value, true)
+            }
+
+            if (selIgnoreCanTurnBack) {
+                selIgnoreCanTurnBack = false
+                selIgnore = false
+            }
+        }
+        val selectedItemReducer = EventReducer.toLast<MetadataGroup>(100.0) {
+            if (!selIgnore) {
+                outputSelectedGroup.value = it
+                selLast = it?.getValueS("") ?: "null"
+            }
+        }
+        table.selectedItems.onChange { selectedItemsReducer.push(null) } on onClose
+        table.selectionModel.selectedItemProperty() sync { selectedItemReducer.push(it) } on onClose
+
+        applyData()
+    }
+
+    override fun getFields(): Collection<Config<Any>> {
+        widget.properties["columns"] = table.columnState.toString()
+        return super.getFields()
+    }
+
+    private fun applyData() {
+        // rebuild value column
+        table.getColumn(VALUE).ifPresent {
+            val t = table.getColumnFactory<Any>().call(VALUE)
+            it.text = t.text
+            it.cellValueFactory = t.cellValueFactory
+            it.cellFactory = t.cellFactory
+            table.refreshColumn(it)
+        }
+
+        // update filters
+        val f = fieldFilter.value
+        table.filterPane.inconsistent_state = true
+        table.filterPane.setPrefTypeSupplier { PredicateData.ofField(VALUE) }
+        table.filterPane.data = MetadataGroup.Field.FIELDS.map { mgf -> PredicateData(mgf.toString(f), mgf.getType(f), mgf as ObjectField<MetadataGroup, Any>) }
+        table.filterPane.shrinkTo(0)
+        val c = table.filterPane.onItemChange
+        table.filterPane.onItemChange = Consumer { }
+        table.filterPane.growTo1() // TODO: fix class path exception, for now we remove onItemChange temporarily
+        table.filterPane.clear()
+        setItems(inputItems.value)
+        table.filterPane.onItemChange = c
+    }
+
+    /** Populates metadata groups to table from metadata list. */
+    private fun setItems(list: List<Metadata>?) {
+        if (list==null) return
+
+        val f = fieldFilter.value
+        runNew  {
+            val mgs = stream(MetadataGroup.groupOf(f, list), MetadataGroup.groupsOf(f, list)).asSequence().toList()
+            val fl = filterList(list, true)
+            mgs to fl
+        } ui {
+            if (!it.first.isEmpty()) {
+                selectionStore()
+                table.setItemsRaw(it.first)
+                selectionReStore()
+                outputSelectedSongs.value = it.second
+            }
+        }
+    }
+
+    private fun filterList(list: List<Metadata>?, orAll: Boolean): List<Metadata> = when {
+        list==null -> listOf()
+        list.isEmpty() -> listOf()
+        else -> {
+            val mgs = table.getSelectedOrAllItems(orAll).toList()
+            when {
+                mgs.any { it.isAll } -> list    // selecting "All" row is equivalent to selecting all rows
+                else -> mgs.flatMap { it.grouped }
+            }
+        }
+    }
+
+    private fun filerListToSelectedNsort(): List<Metadata> = filterList(inputItems.value, false).sortedWith(APP.db.libraryComparator.value)
+
+    private fun playSelected() = play(filerListToSelectedNsort())
+
+    private fun play(items: List<Metadata>) {
+        if (!items.isEmpty())
+            PlaylistManager.use { it.setNplay(items) }
+    }
+
+    private fun selectionStore() {
+        // remember selected
+        selOld = table.selectedItems.mapTo(HashSet()) { it.value }
+        selIgnore = true
+        selIgnoreCanTurnBack = false
+    }
+
+    private fun selectionReStore() {
+        if (table.items.isEmpty()) return
+
+        // restore last selected from previous session
+        if (!selLastRestored && "null"!=selLast) {
+            forEachWithI(table.items) { i, mg ->
+                if (mg.getValueS("")==selLast) {
+                    table.selectionModel.select(i!!)
+                    selLastRestored = true // restore only once
+                    return@forEachWithI  // TODO: this may be a bug
+                }
+            }
+
+            // update selected - restore every available old one
+        } else {
+            forEachWithI(table.items) { i, mg ->
+                if (selOld!!.contains(mg.value)) {
+                    table.selectionModel.select(i!!)
+                }
+            }
+        }
+        // performance optimization - prevents refreshes of a lot of items
+        if (table.selectionModel.isEmpty)
+            table.selectionModel.select(0)
+
+        // selIgnore = false;   // TODO: remove?
+        selIgnoreCanTurnBack = true
+    }
+
+    companion object {
+        private val pcPlaying = pseudoclass("played")
+        private val contextMenuInstance by lazy { ValueContextMenu<MetadataGroup>() }
+    }
+
+}

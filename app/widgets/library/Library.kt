@@ -114,7 +114,6 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
     init {
         root.prefSize = 850.scaleEM() x 600.scaleEM()
         root.consumeScrolling()
-
         root.lay += table.root
 
         outputSelected.bind(Player.librarySelected.i) on onClose
@@ -174,7 +173,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
                         contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy))
                         contextMenuInstance.show(table, e)
                     }
-                    styleRuleAdd(pc_playing) { m -> Player.playingSong.value.same(m) }
+                    styleRuleAdd(pcPlaying) { m -> Player.playingSong.value.same(m) }
                 }
             }
         }
@@ -246,7 +245,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
     }
 
     companion object {
-        private val pc_playing = pseudoclass("played")
+        private val pcPlaying = pseudoclass("played")
         private val contextMenuInstance by lazy { ValueContextMenu<MetadataGroup>() }
     }
 

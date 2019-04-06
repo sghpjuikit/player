@@ -105,8 +105,14 @@ import java.util.function.Consumer
 )
 class DirViewer(widget: Widget): SimpleController(widget) {
 
+    private val inputFile = inputs.create("Root directory", File::class.java, null, Consumer<File?> {
+        if (it!=null && it.isDirectory && it.exists())
+            files setToOne it
+    })
+
     @IsConfig(name = "Location", info = "Root directories of the content.")
     private val files by cList<File>().only(FileActor.DIRECTORY)
+    private var filesMaterialized = files.materialize()
     @IsConfig(name = "Location joiner", info = "Merges location files into a virtual view.")
     private val fileFlatter by cv(FileFlatter.TOP_LVL)
 
@@ -171,11 +177,6 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
         placeholder.show(root, files.isEmpty())
 
-        inputs.create("Root directory", File::class.java, null, Consumer<File?> {
-            if (it!=null && it.isDirectory && it.exists())
-                files setToOne it
-        })
-
         grid.onEventDown(KEY_PRESSED, ENTER) {
             val si = grid.selectedItem.value
             if (si!=null) doubleClickItem(si, it.isShiftDown)
@@ -227,6 +228,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
             if (it) navigationPane.children.add(0, navigation)
             else navigationPane.children -= navigation
         }
+        files.onChange { filesMaterialized = files.materialize() }
         files.onChange { revisitTop() }
         files.onChange { placeholder.show(root, files.isEmpty()) }
         onClose += { disposeItems() }
@@ -378,9 +380,9 @@ class DirViewer(widget: Widget): SimpleController(widget) {
             coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value)
         }
 
-        override fun childrenFiles() = fileFlatter.value.flatten(files).map { CachingFile(it) as File }
+        override fun childrenFiles() = fileFlatter.value.flatten(filesMaterialized).map { CachingFile(it) as File }
 
-        override fun getCoverFile() = when (files.size) {
+        override fun getCoverFile() = when (children.size) {
             1 -> children.first().value.parentDir?.let { getImageT(it, "cover") }
             else -> null
         }

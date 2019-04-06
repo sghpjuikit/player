@@ -2,7 +2,9 @@ package appLauncher;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
@@ -76,6 +78,7 @@ public class AppLauncher extends SimpleController {
 
     @IsConfig(name = "Location", info = "Add program")
     final VarList<File> files = new VarList<>(File.class, Elements.NOT_NULL);
+    List<File> filesMaterialized = new ArrayList<>(files.list);
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
     final V<CellSize> cellSize = new V<>(NORMAL).initAttachC(v -> applyCellSize());
     @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
@@ -113,6 +116,7 @@ public class AppLauncher extends SimpleController {
         super(widget);
         root.setPrefSize(scaleEM(1000), scaleEM(700));
 
+        files.onListInvalid(list -> filesMaterialized = new ArrayList<>(files.list));
         files.onListInvalid(list -> visit());
         files.onListInvalid(list -> placeholder.show(root, list.isEmpty()));
         grid.search.field = FileField.PATH;
@@ -244,7 +248,7 @@ public class AppLauncher extends SimpleController {
 
         @Override
         protected Stream<File> childrenFiles() {
-            return files.list.stream().distinct();
+            return filesMaterialized.stream().distinct();
         }
 
         @Override

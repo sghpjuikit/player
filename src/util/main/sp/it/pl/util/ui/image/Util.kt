@@ -28,7 +28,7 @@ private val logger = KotlinLogging.logger {}
 fun ImageBf.toFX(to: ImageWr? = null) = SwingFXUtils.toFXImage(this, to)!!
 
 @JvmOverloads
-fun ImageFx.toBuffered(to: ImageBf? = null) = SwingFXUtils.fromFXImage(this, to)!!
+fun ImageFx.toBuffered(to: ImageBf? = null): ImageBf? = SwingFXUtils.fromFXImage(this, to)
 
 /** Scales image down to requested size. Size must not be 0. */
 private fun ImageBf.toScaledDown(W: Int, H: Int): ImageBf {

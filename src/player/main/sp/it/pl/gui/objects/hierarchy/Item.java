@@ -12,12 +12,10 @@ import java.util.stream.Stream;
 import javafx.scene.image.Image;
 import sp.it.pl.audio.SimpleSong;
 import sp.it.pl.audio.tagging.MetadataReaderKt;
-import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
 import sp.it.pl.util.HierarchicalBase;
 import sp.it.pl.util.JavaLegacy;
 import sp.it.pl.util.access.fieldvalue.CachingFile;
-import sp.it.pl.util.access.ref.LazyR;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.ui.IconExtractor;
@@ -50,15 +48,15 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	public final FileType valType;
 	public Set<Item> children;              // filtered files
 	public Set<String> all_children;        // all files, cache, use instead File.exists to reduce I/O
-	public Image cover;                     // cover cache
-	public File cover_file;                 // cover file cache
-	public boolean coverFile_loaded;
+	public volatile Image cover;            // cover cache
+	public volatile File cover_file;        // cover file cache
+	public volatile boolean coverFile_loaded;
 	public final AtomicBoolean cover_loadedThumb = new AtomicBoolean(false);
 	public final AtomicBoolean cover_loadedFull = new AtomicBoolean(false);
 	private volatile boolean disposed = false;  // TODO: this inherently can not work, use AtomicReference on fields
 	public double loadProgress; // 0-1
 	public double lastScrollPosition; // 0-1
-	public final LazyR<HashMap<String, Object>> properties = new LazyR<>(() -> new HashMap<>());
+	private HashMap<String, Object> properties = new HashMap<>();
 
 	public Item(Item parent, File value, FileType valueType) {
 		super(value, parent);
@@ -178,7 +176,6 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		failIfFxThread();
 		if (disposed) return error();
 
-		boolean wasCoverFile_loaded = coverFile_loaded;
 		File file = getCoverFile();
 		if (file==null) {
 			if (valType==DIRECTORY) {
@@ -189,61 +186,64 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 						.filter(it -> it!=null)
 						.limit(4)
 						.map(it -> Image2PassLoader.INSTANCE.getLq().invoke(it, size.div(2)))
+						.filter(it -> it!=null)
 						.collect(toList());
-
 					var w = (int) size.width;
 					var h = (int) size.height;
 					var imgFin = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 					var imgFinGraphics = imgFin.getGraphics();
 					var i = 0;
 					for (Image img: subcovers) {
-						var bi = toBuffered(img);
+						var bi = img==null ? null : toBuffered(img);
 						imgFinGraphics.drawImage(bi, w/2*(i%2), h/2*((i+1)%2), null);
-						bi.flush();
+						if (bi!=null) bi.flush();
 						JavaLegacy.destroyImage(img);
 						i++;
 					}
 
-					cover = toFX(imgFin);
+					var coverToBe = toFX(imgFin);
+					cover = coverToBe;
 					cover_loadedFull.set(true);
 					cover_loadedThumb.set(true);
-					return ok(new LoadResult(null, cover));
+					return ok(new LoadResult(null, coverToBe));
 				}
 			} else if (valType==FILE) {
 				if (value.getPath().endsWith(".exe") || value.getPath().endsWith(".lnk")) {
-					cover = IconExtractor.getFileIcon(value);
+					var coverToBe = IconExtractor.getFileIcon(value);
+					cover = coverToBe;
 					cover_loadedFull.set(true);
 					cover_loadedThumb.set(true);
-					return ok(new LoadResult(null, cover));
+					if (coverToBe!=null) return ok(new LoadResult(null, coverToBe));
 				}
 				if (isAudio(value)) {
 					var c = MetadataReaderKt.readMetadata(new SimpleSong(value)).getCover(CoverSource.ANY);
-					cover = c.isEmpty() ? null : c.getImage(size);
+					var coverToBe = c.isEmpty() ? null : c.getImage(size);
+					cover = coverToBe;
 					cover_loadedFull.set(true);
 					cover_loadedThumb.set(true);
-					return ok(new LoadResult(null, cover));
+					if (coverToBe!=null) return ok(new LoadResult(null, coverToBe));
 				}
 			}
 		} else {
 			if (full) {
 				if (!cover_loadedFull.get()) {
-					Image img = Image2PassLoader.INSTANCE.getHq().invoke(file, size);
-					if (img!=null) {
-						cover = img;
-						return ok(new LoadResult(file, cover));
-					}
+					var coverToBe = Image2PassLoader.INSTANCE.getHq().invoke(file, size);
+					cover = coverToBe;
 					cover_loadedFull.set(true);
+					if (coverToBe!=null) return ok(new LoadResult(file, coverToBe));
 				}
 			} else {
-				boolean wasLoaded = cover_loadedThumb.get();
-				if (!wasLoaded) {
-					Image imgCached = Thumbnail.getCached(file, size);
-					cover = imgCached!=null ? imgCached : Image2PassLoader.INSTANCE.getLq().invoke(file, size);
+				if (!cover_loadedThumb.get()) {
+					var coverToBe = Image2PassLoader.INSTANCE.getLq().invoke(file, size);
+					cover = coverToBe;
 					cover_loadedThumb.set(true);
+					if (coverToBe!=null) return ok(new LoadResult(file, coverToBe));
 				}
-				return ok(new LoadResult(file, cover));
 			}
 		}
+
+		if (full) cover_loadedFull.set(true);
+		if (!full) cover_loadedThumb.set(true);
 		return error();
 	}
 
@@ -276,13 +276,26 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return children();
 	}
 
-	@SuppressWarnings("unsafe")
-	public CoverStrategy getCoverStrategy() {
-		return (CoverStrategy) getHRoot().properties.get().getOrDefault(COVER_STRATEGY_KEY, CoverStrategy.DEFAULT);
+	private void property(String key, Object o) {
+		failIfNotFxThread();
+		var root = getHRoot();
+		if (root.properties==null) root.properties = new HashMap<>();
+		root.properties.put(key, o);
+	}
+
+	private Object property(String key) {
+		var root = getHRoot();
+		return root.properties==null ? null : root.properties.get(key);
 	}
 
 	public void setCoverStrategy(CoverStrategy coverStrategy) {
-		getHRoot().properties.get().put(COVER_STRATEGY_KEY, coverStrategy);
+		property(COVER_STRATEGY_KEY, coverStrategy);
+	}
+
+	@SuppressWarnings("unsafe")
+	public CoverStrategy getCoverStrategy() {
+		var cs = (CoverStrategy) property(COVER_STRATEGY_KEY);
+		return cs!=null ? cs : CoverStrategy.DEFAULT;
 	}
 
 	private static boolean file_exists(Item c, File f) {

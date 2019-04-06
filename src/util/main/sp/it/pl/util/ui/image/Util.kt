@@ -223,7 +223,7 @@ fun getImageDim(f: File): Try<Dimension, Nothing?> {
 }
 
 /** @return new black image of specified size */
-fun createImageBlack(size: ImageSize) = java.awt.image.BufferedImage(size.width.toInt(), size.height.toInt(), java.awt.image.BufferedImage.TYPE_INT_RGB)
+fun createImageBlack(size: ImageSize) = ImageBf(size.width.toInt(), size.height.toInt(), ImageBf.TYPE_INT_RGB)
 
 /** @return new transparent image of specified size */
-fun createImageTransparent(size: ImageSize) = java.awt.image.BufferedImage(size.width.toInt(), size.height.toInt(), java.awt.image.BufferedImage.TYPE_INT_ARGB)
+fun createImageTransparent(size: ImageSize) = ImageBf(size.width.toInt(), size.height.toInt(), ImageBf.TYPE_INT_ARGB)

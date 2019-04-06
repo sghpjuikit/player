@@ -28,6 +28,7 @@ import static sp.it.pl.main.AppFileKt.getImageExtensionsRead;
 import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.util.dev.FailKt.failIfFxThread;
+import static sp.it.pl.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.pl.util.file.FileType.DIRECTORY;
 import static sp.it.pl.util.file.FileType.FILE;
 import static sp.it.pl.util.file.UtilKt.getNameWithoutExtensionOrRoot;
@@ -43,6 +44,8 @@ import static sp.it.pl.util.ui.image.UtilKt.toFX;
  * We cache various stuff in here, including the cover image and children files.
  */
 public abstract class Item extends HierarchicalBase<File,Item> {
+
+	private static final String COVER_STRATEGY_KEY = "coverStrategy";
 
 	public final FileType valType;
 	public Set<Item> children;              // filtered files
@@ -81,6 +84,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	public void dispose() {
+		failIfNotFxThread();
+
 		if (children!=null) children.forEach(Item::dispose);
 		if (children!=null) children.clear();
 		if (all_children!=null) all_children.clear();
@@ -91,6 +96,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	public void disposeChildren() {
+		failIfNotFxThread();
+
 		if (children!=null) children.forEach(Item::dispose);
 		if (children!=null) children.clear();
 		if (all_children!=null) all_children.clear();
@@ -271,11 +278,11 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	@SuppressWarnings("unsafe")
 	public CoverStrategy getCoverStrategy() {
-		return (CoverStrategy) getHRoot().properties.get().getOrDefault(CoverStrategy.PROPERTY_KEY, CoverStrategy.DEFAULT);
+		return (CoverStrategy) getHRoot().properties.get().getOrDefault(COVER_STRATEGY_KEY, CoverStrategy.DEFAULT);
 	}
 
 	public void setCoverStrategy(CoverStrategy coverStrategy) {
-		getHRoot().properties.get().put(CoverStrategy.PROPERTY_KEY, coverStrategy);
+		getHRoot().properties.get().put(COVER_STRATEGY_KEY, coverStrategy);
 	}
 
 	private static boolean file_exists(Item c, File f) {
@@ -293,7 +300,6 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	public static class CoverStrategy {
-		public static final String PROPERTY_KEY = "coverStrategy";
 		public static final CoverStrategy DEFAULT = new CoverStrategy(true, true);
 
 		public boolean useParentCoverIfNone;

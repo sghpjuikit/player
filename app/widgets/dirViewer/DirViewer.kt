@@ -20,6 +20,7 @@ import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader
 import sp.it.pl.gui.objects.grid.GridView
 import sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL
 import sp.it.pl.gui.objects.hierarchy.Item
+import sp.it.pl.gui.objects.hierarchy.Item.CoverStrategy
 import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
@@ -116,6 +117,11 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
     private val fitFrom by cv(FitFrom.OUTSIDE)
 
+    @IsConfig(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")
+    private val coverLoadingUseComposedDirCover by cv(CoverStrategy.DEFAULT.useComposedDirCover)
+    @IsConfig(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
+    private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone)
+
     private val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio+CELL_TEXT_HEIGHT, 5.0, 5.0)
     private val executorIO = oneTPExecutor()
     private val executorThumbs = burstTPExecutor(8, 1.minutes, threadFactory("dirView-img-thumb", true))
@@ -208,6 +214,8 @@ class DirViewer(widget: Widget): SimpleController(widget) {
                 }
         )
 
+        coverLoadingUseComposedDirCover.attach { revisitCurrent() }
+        coverUseParentCoverIfNone.attach { revisitCurrent() }
         sort.attach { applySort() }
         sortFile.attach { applySort() }
         sortBy.attach { applySort() }
@@ -228,7 +236,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
         }
     }
 
-    internal fun visitUp() {
+    private fun visitUp() {
         item?.parent?.let {
             item?.disposeChildren()
             visit(it)
@@ -365,6 +373,10 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     }
 
     private inner class TopItem: FItem(null, null, null) {
+
+        init {
+            coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value)
+        }
 
         override fun childrenFiles() = fileFlatter.value.flatten(files).map { CachingFile(it) as File }
 

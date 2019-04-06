@@ -1,7 +1,9 @@
 package sp.it.pl.gui.objects.hierarchy;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,12 +15,15 @@ import sp.it.pl.audio.tagging.MetadataReaderKt;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
 import sp.it.pl.util.HierarchicalBase;
+import sp.it.pl.util.JavaLegacy;
 import sp.it.pl.util.access.fieldvalue.CachingFile;
+import sp.it.pl.util.access.ref.LazyR;
 import sp.it.pl.util.file.FileType;
 import sp.it.pl.util.functional.Try;
 import sp.it.pl.util.ui.IconExtractor;
 import sp.it.pl.util.ui.image.Image2PassLoader;
 import sp.it.pl.util.ui.image.ImageSize;
+import static java.util.stream.Collectors.toList;
 import static sp.it.pl.main.AppFileKt.getImageExtensionsRead;
 import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppFileKt.isImage;
@@ -30,6 +35,8 @@ import static sp.it.pl.util.file.UtilKt.listChildren;
 import static sp.it.pl.util.functional.Try.Java.error;
 import static sp.it.pl.util.functional.Try.Java.ok;
 import static sp.it.pl.util.functional.Util.list;
+import static sp.it.pl.util.ui.image.UtilKt.toBuffered;
+import static sp.it.pl.util.ui.image.UtilKt.toFX;
 
 /**
  * File wrapper, content of Cell with an image cover.<br/>
@@ -48,6 +55,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	private volatile boolean disposed = false;  // TODO: this inherently can not work, use AtomicReference on fields
 	public double loadProgress; // 0-1
 	public double lastScrollPosition; // 0-1
+	public final LazyR<HashMap<String, Object>> properties = new LazyR<>(() -> new HashMap<>());
 
 	public Item(Item parent, File value, FileType valueType) {
 		super(value, parent);
@@ -92,9 +100,9 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	private void buildChildren() {
 		if (disposed) return;
 
-		Set<String> all = new HashSet<>();
-		List<Item> dirs = new ArrayList<>();
-		List<Item> files = new ArrayList<>();
+		var all = new HashSet<String>();
+		var dirs = new ArrayList<Item>();
+		var files = new ArrayList<Item>();
 		childrenFiles().forEach(f -> {
 			if (!disposed) {
 				all.add(f.getPath().toLowerCase());
@@ -166,7 +174,35 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		boolean wasCoverFile_loaded = coverFile_loaded;
 		File file = getCoverFile();
 		if (file==null) {
-			if (!wasCoverFile_loaded && cover_file==null && valType==FILE) {
+			if (valType==DIRECTORY) {
+				if (getCoverStrategy().useComposedDirCover) {
+					var subcovers = children.stream()
+						.filter(it -> it.valType==FILE)
+						.map(it -> it.getCoverFile())
+						.filter(it -> it!=null)
+						.limit(4)
+						.map(it -> Image2PassLoader.INSTANCE.getLq().invoke(it, size.div(2)))
+						.collect(toList());
+
+					var w = (int) size.width;
+					var h = (int) size.height;
+					var imgFin = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+					var imgFinGraphics = imgFin.getGraphics();
+					var i = 0;
+					for (Image img: subcovers) {
+						var bi = toBuffered(img);
+						imgFinGraphics.drawImage(bi, w/2*(i%2), h/2*((i+1)%2), null);
+						bi.flush();
+						JavaLegacy.destroyImage(img);
+						i++;
+					}
+
+					cover = toFX(imgFin);
+					cover_loadedFull.set(true);
+					cover_loadedThumb.set(true);
+					return ok(new LoadResult(null, cover));
+				}
+			} else if (valType==FILE) {
 				if (value.getPath().endsWith(".exe") || value.getPath().endsWith(".lnk")) {
 					cover = IconExtractor.getFileIcon(value);
 					cover_loadedFull.set(true);
@@ -174,7 +210,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					return ok(new LoadResult(null, cover));
 				}
 				if (isAudio(value)) {
-					cover = MetadataReaderKt.readMetadata(new SimpleSong(value)).getCover(CoverSource.TAG).getImage(size);    // TODO: use fallback if Cover is empty
+					var c = MetadataReaderKt.readMetadata(new SimpleSong(value)).getCover(CoverSource.ANY);
+					cover = c.isEmpty() ? null : c.getImage(size);
 					cover_loadedFull.set(true);
 					cover_loadedThumb.set(true);
 					return ok(new LoadResult(null, cover));
@@ -214,18 +251,15 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			if (all_children==null) buildChildren();
 			cover_file = getImageT(value, "cover");
 		} else {
-			// image files are their own thumbnail
-			if (isImage(value)) {
+			if (cover_file==null && isImage(value)) {
 				cover_file = value;
-			} else {
+			}
+			if (cover_file==null && getCoverStrategy().useParentCoverIfNone) {
 				File i = getImage(value.getParentFile(), getNameWithoutExtensionOrRoot(value));
 				if (i==null && parent!=null) cover_file = parent.getCoverFile();
 				else cover_file = i;
 			}
 		}
-
-//	    if (cover_file==null)
-//		    use icons if still no cover
 
 		return cover_file;
 	}
@@ -233,6 +267,15 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	@Override
 	public List<Item> getHChildren() {
 		return children();
+	}
+
+	@SuppressWarnings("unsafe")
+	public CoverStrategy getCoverStrategy() {
+		return (CoverStrategy) getHRoot().properties.get().getOrDefault(CoverStrategy.PROPERTY_KEY, CoverStrategy.DEFAULT);
+	}
+
+	public void setCoverStrategy(CoverStrategy coverStrategy) {
+		getHRoot().properties.get().put(CoverStrategy.PROPERTY_KEY, coverStrategy);
 	}
 
 	private static boolean file_exists(Item c, File f) {
@@ -249,4 +292,16 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		}
 	}
 
+	public static class CoverStrategy {
+		public static final String PROPERTY_KEY = "coverStrategy";
+		public static final CoverStrategy DEFAULT = new CoverStrategy(true, true);
+
+		public boolean useParentCoverIfNone;
+		public boolean useComposedDirCover;
+
+		public CoverStrategy(boolean useComposedDirCover, boolean useParentCoverIfNone) {
+			this.useParentCoverIfNone = useParentCoverIfNone;
+			this.useComposedDirCover = useComposedDirCover;
+		}
+	}
 }

@@ -298,11 +298,6 @@ public interface Util {
 		return new LinkedHashSet<>(c);
 	}
 
-	// TODO: remove
-	static <OUT> Ƒ1<Boolean,OUT> mapB(OUT y, OUT n) {
-		return in -> in ? y : n;
-	}
-
 /* ---------- FUNCTION -> FUNCTION ---------------------------------------------------------------------------------- */
 
 	/** Faster alternative to {@link #firstNotNull(java.lang.Object...) }. */

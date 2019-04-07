@@ -1051,7 +1051,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             };
             ConfigField cf = create(Config.forProperty(c.getType(),"", vo.real));
             Util.setField(cf.config, "defaultValue", c.getDefaultValue());
-            maintain(vo.override, b -> !b, cf.getControl().disableProperty());
+            maintain(vo.override, it -> cf.getControl().setDisable(!it));
             root.getChildren().addAll(cf.getNode(),bf.getNode());
         }
         @Override

@@ -48,7 +48,6 @@ import static sp.it.pl.main.AppDragKt.get;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppDragKt.set;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
@@ -77,21 +76,22 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
         ctrls.getStyleClass().addAll(STYLECLASS_CONTAINER_AREA_CONTROLS);
 
 	// build header buttons
-	Icon infoB = infoIcon("Container settings. See icon tooltips."
-                + "\nActions:"
-                + "\n\tLeft click: visit children"
-                + "\n\tRight click: visit parent container"
-        );
+	Icon infoB = infoIcon(
+		"Container settings. See icon tooltips."
+            + "\nActions:"
+            + "\n\tLeft click: visit children"
+            + "\n\tRight click: visit parent container"
+    );
 	Icon detachB = new Icon(CLONE, 12, "Detach widget to own window", this::detach);
 	Icon changeB = new Icon(TH_LARGE, 12, "Change widget", ()->{});
-        Icon actB = new Icon(GAVEL, 12, actbTEXT, () ->
-            APP.actionPane.show(Container.class, container)
-        );
+    Icon actB = new Icon(GAVEL, 12, actbTEXT, () ->
+        APP.actionPane.show(Container.class, container)
+    );
 	Icon lockB = new Icon(null, 12, "Lock widget layout", () -> {
 	    container.locked.set(!container.locked.get());
 	    APP.actionStream.invoke("Widget layout lock");
 	});
-        maintain(container.locked, mapB(LOCK,UNLOCK),lockB::icon);
+    maintain(container.locked, it -> lockB.icon(it ? LOCK : UNLOCK));
 	absB = new Icon(LINK, 12, "Resize widget proportionally", () -> {
 	    toggleAbsSize();
 	    updateAbsB();
@@ -100,31 +100,31 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
 	    container.close();
 	    APP.actionStream.invoke("Close widget");
 	});
-        Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
+    Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
 
-        // drag
-        installDrag(
-            ctrls, EXCHANGE, "Switch components",
-            e -> contains(e.getDragboard(), Df.COMPONENT),
-            e -> get(e.getDragboard(), Df.COMPONENT) == container,
-	        consumer(e -> get(e.getDragboard(), Df.COMPONENT).swapWith(container.getParent(), container.indexInParent()))
-        );
+    // drag
+    installDrag(
+        ctrls, EXCHANGE, "Switch components",
+        e -> contains(e.getDragboard(), Df.COMPONENT),
+        e -> get(e.getDragboard(), Df.COMPONENT) == container,
+        consumer(e -> get(e.getDragboard(), Df.COMPONENT).swapWith(container.getParent(), container.indexInParent()))
+    );
 
-        // not that dragging children will drag those, dragging container
-        // will drag whole container with all its children
-        EventHandler<MouseEvent> dh = e -> {
-            if (e.getButton()==PRIMARY) {   // primary button drag only
-                Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-	            set(db, Df.COMPONENT, container);
-                // signal dragging graphically with css
-                ctrls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
-                e.consume();
-            }
-        };
-        dragB.setOnDragDetected(dh);
-        ctrls.setOnDragDetected(dh);
-        // return graphics to normal
-        root.setOnDragDone(e -> ctrls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
+    // not that dragging children will drag those, dragging container
+    // will drag whole container with all its children
+    EventHandler<MouseEvent> dh = e -> {
+        if (e.getButton()==PRIMARY) {   // primary button drag only
+            Dragboard db = root.startDragAndDrop(TransferMode.ANY);
+            set(db, Df.COMPONENT, container);
+            // signal dragging graphically with css
+            ctrls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
+            e.consume();
+        }
+    };
+    dragB.setOnDragDetected(dh);
+    ctrls.setOnDragDetected(dh);
+    // return graphics to normal
+    root.setOnDragDone(e -> ctrls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
 
 	icons.setNodeOrientation(LEFT_TO_RIGHT);
 	icons.setAlignment(Pos.CENTER_RIGHT);

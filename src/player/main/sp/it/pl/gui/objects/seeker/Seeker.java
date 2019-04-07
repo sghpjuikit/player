@@ -596,7 +596,7 @@ public final class Seeker extends AnchorPane {
 				p = new PopOver<>(content);
 				p.getSkinn().setContentPadding(new Insets(10));
 				p.arrowLocation.set(ArrowLocation.TOP_CENTER);
-				maintain(isEdited, v -> !v, p::setAutoHide); // breaks editing >> p.setAutoHide(true);
+				maintain(isEdited, it -> p.setAutoHide(!it)); // breaks editing >> p.setAutoHide(true);
 				p.setHideOnEscape(true);
 				p.setHideOnClick(false); // will emulate on our own
 				p.setAutoFix(false);

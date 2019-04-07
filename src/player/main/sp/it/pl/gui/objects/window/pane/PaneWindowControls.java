@@ -74,9 +74,11 @@ public class PaneWindowControls extends WindowPane {
 		focused.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFocused, nv));
 
 		// disable resizing behavior completely when not resizable
-		maintain(resizable, v -> !v, v -> borders.getChildren().stream()
+		maintain(resizable, it ->
+			borders.getChildren().stream()
 				.filter(c -> !(c instanceof Pane))
-				.forEach(b -> b.setMouseTransparent(v)));
+				.forEach(b -> b.setMouseTransparent(!it))
+		);
 
 //        moveOnDragOf(header);
 

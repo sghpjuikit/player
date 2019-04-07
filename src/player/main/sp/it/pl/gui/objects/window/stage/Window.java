@@ -102,7 +102,6 @@ import static sp.it.pl.util.functional.Util.filter;
 import static sp.it.pl.util.functional.Util.forEachIRStream;
 import static sp.it.pl.util.functional.Util.forEachIStream;
 import static sp.it.pl.util.functional.Util.list;
-import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.ui.Util.setAnchors;
@@ -190,7 +189,7 @@ public class Window extends WindowBase {
 		// makes gui consistent & prevents potential bugs
 		//
 		// note the poor impl. only borders must be Regions!
-		maintain(resizable, v -> !v, v -> front.getChildren().stream().filter(c -> c.getClass().equals(Region.class)).forEach(c -> c.setMouseTransparent(v)));
+		maintain(resizable, it -> front.getChildren().stream().filter(c -> c.getClass().equals(Region.class)).forEach(c -> c.setMouseTransparent(!it)));
 
 		// app dragging
 		header.addEventHandler(DRAG_DETECTED, this::moveStart);
@@ -320,11 +319,11 @@ public class Window extends WindowBase {
 		Icon lockB = new Icon(null, is, "Lock layout\n\nRestricts certain layout operations to "
 			+ "prevent accidents and configuration getting in the way. Widgets, containers and "
 			+ "layouts can also be locked individually.", () -> APP.ui.toggleLayoutLocked());
-		maintain(APP.ui.getLockedLayout(), mapB(LOCK, UNLOCK), lockB::icon);
+		maintain(APP.ui.getLockedLayout(), it -> lockB.icon(it ? LOCK : UNLOCK));
 		Icon lmB = new Icon(null, is, ActionRegistrar.get("Layout zoom overlay in/out"));
 		Icon ltB = new Icon(CARET_LEFT, is, ActionRegistrar.get("Layout move left"));
 		Icon rtB = new Icon(CARET_RIGHT, is, ActionRegistrar.get("Layout move right"));
-		maintain(APP.ui.getLayoutMode(), mapB(TH, TH_LARGE), lmB::icon);
+		maintain(APP.ui.getLayoutMode(), it -> lmB.icon(it ? TH : TH_LARGE));
 		Icon guideB = new Icon(GRADUATION_CAP, is, ActionRegistrar.get("Open guide"));
 		Icon helpB = infoIcon("Available actions:\n"
 			+ "\tHeader icons : Providing custom functionalities. See tooltips.\n"
@@ -349,13 +348,13 @@ public class Window extends WindowBase {
 
 
 		Icon miniB = new Icon(null, is, "Toggle dock", () -> APP.windowManager.getDockShow().setCycledValue());
-		maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP, ANGLE_UP), miniB::icon);
+		maintain(miniB.hoverProperty(), it -> miniB.icon(it ? ANGLE_DOUBLE_UP : ANGLE_UP));
 		Icon onTopB = new Icon(null, is, "Always on top\n\nForbid hiding this window behind other "
 			+ "application windows", this::toggleAlwaysOnTop);
-		maintain(alwaysOnTop, mapB(SQUARE, SQUARE_ALT), onTopB::icon);
+		maintain(alwaysOnTop, it -> onTopB.icon(it ? SQUARE : SQUARE_ALT));
 		Icon fullsB = new Icon(null, is, "Fullscreen\n\nExpand window to span whole screen and "
 			+ "put it on top", this::toggleFullscreen).scale(1.3);
-		maintain(fullscreen, mapB(FULLSCREEN_EXIT, FULLSCREEN), fullsB::icon);
+		maintain(fullscreen, it -> fullsB.icon(it ? FULLSCREEN_EXIT : FULLSCREEN));
 		Icon minB = new Icon(WINDOW_MINIMIZE, is, "Minimize application", this::toggleMinimize);
 		Icon maxB = new Icon(WINDOW_MAXIMIZE, is, "Maximize\n\nExpand window to span whole screen",
 			this::toggleMaximize);

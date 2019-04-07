@@ -204,7 +204,6 @@ import static sp.it.pl.util.functional.Util.forEachOnCircleBy;
 import static sp.it.pl.util.functional.Util.forEachPair;
 import static sp.it.pl.util.functional.Util.list;
 import static sp.it.pl.util.functional.Util.listF;
-import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.functional.Util.minBy;
 import static sp.it.pl.util.functional.Util.repeat;
 import static sp.it.pl.util.functional.Util.set;
@@ -283,7 +282,7 @@ public class Comet extends SimpleController {
 				new Icon(MaterialDesignIcon.NUMERIC_6_BOX_OUTLINE,15,"Start 6 player game",() -> game.start(6)),
 				new Icon(MaterialDesignIcon.NUMERIC_7_BOX_OUTLINE,15,"Start 7 player game",() -> game.start(7)),
 				new Icon(MaterialDesignIcon.NUMERIC_8_BOX_OUTLINE,15,"Start 8 player game",() -> game.start(8)),
-				new Icon(null,16){{ maintain(game.paused,mapB(MaterialDesignIcon.PLAY,MaterialDesignIcon.PAUSE), this::icon); }}.onClick(() -> game.pause(!game.paused.get())),
+				new Icon(null,16){{ maintain(game.paused, it -> icon(it ? MaterialDesignIcon.PLAY : MaterialDesignIcon.PAUSE)); }}.onClick(() -> game.pause(!game.paused.get())),
 				new Icon(FontAwesomeIcon.GEARS,14,"Settings").onClick(e -> APP.windowManager.showSettings(new ListConfigurable<>(Configurable.configsFromFieldsOf(this)),e)),
 				new Icon(FontAwesomeIcon.INFO,14,"How to play").onClick(() -> new HowToPane().show(game))
 			),
@@ -1725,7 +1724,7 @@ public class Comet extends SimpleController {
 							gc.setLineWidth(1+15*ttl);
 							gc.setGlobalAlpha(0.1+0.5*ttl);
 							double w = 30+180*(1-ttl), h=10+20*(1-ttl);
-							Affine a = Utils.rotate(gc, dr,x,y);
+							Affine a = comet.Utils.rotate(gc, dr,x,y);
 							gc.strokeOval(x-w/2,y-h/2,w,h);
 							gc.setTransform(a);
 							gc.restore();
@@ -1767,7 +1766,7 @@ public class Comet extends SimpleController {
 								gc.setLineWidth(1+3*ttl);
 								gc.setGlobalAlpha(0.1+0.5*ttl);
 								double w = 10+30*(1-ttl), h=5+10*(1-ttl);
-								Affine a = Utils.rotate(gc, dr,this.x,this.y);
+								Affine a = comet.Utils.rotate(gc, dr,this.x,this.y);
 								gc.strokeOval(x-w/2,y-h/2,w,h);
 								gc.setTransform(a);
 								gc.restore();
@@ -2483,7 +2482,7 @@ public class Comet extends SimpleController {
 			}
 		};
 		public final TimeDouble gunAngleBase = new TimeDouble(0, D120);
-		public final TimeDouble gunAngle = new TimeDouble(0, Utils.ttlVal(D360, seconds(2)));
+		public final TimeDouble gunAngle = new TimeDouble(0, comet.Utils.ttlVal(D360, seconds(2)));
 
 
 //		boolean hasSwarmers = randBoolean();
@@ -3964,7 +3963,7 @@ public class Comet extends SimpleController {
 		}
 		@Override void onHitParticles(SO o) {
 			repeat((int)(size*4), i -> game.runNext.add(millis(randMN(100,300)), () -> {
-				  double r = 50+radius*2*Utils.rand01();
+				  double r = 50+radius*2*comet.Utils.rand01();
 				  double d = randAngleRad();
 				  new FermiGraphics(x+r*cos(d),y+r*sin(d),2).color = game.colors.main;
 			}));

@@ -79,7 +79,7 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 				player.setAudioSpectrumListener(Player.spectrumListenerDistributor);
 
 				// bind (not read only) values
-				d1 = maintain(state.volume, v -> linToLog(v.doubleValue()), player.volumeProperty());
+				d1 = maintain(state.volume, v -> player.setVolume(linToLog(v.doubleValue())));
 				d2 = syncTo(state.mute, player.muteProperty());
 				d4 = syncTo(state.rate, player.rateProperty());
 				player.setOnEndOfMedia(Player.onPlaybackEnd);

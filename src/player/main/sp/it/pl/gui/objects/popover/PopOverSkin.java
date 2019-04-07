@@ -64,7 +64,6 @@ import static javafx.beans.binding.Bindings.multiply;
 import static javafx.beans.binding.Bindings.subtract;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static sp.it.pl.main.AppBuildersKt.resizeButton;
-import static sp.it.pl.util.functional.Util.mapB;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 import static sp.it.pl.util.reactive.UtilKt.syncTo;
@@ -123,7 +122,7 @@ public class PopOverSkin implements Skin<PopOver> {
 			p.setAutoHide(!p.isAutoHide());
 
 		});
-		maintain(p.autoHideProperty(), mapB(PIN_OFF, PIN), pinB::icon);
+		maintain(p.autoHideProperty(), it -> pinB.icon(it ? PIN_OFF : PIN));
 
 		HBox headerControls = new HBox();
 		headerControls.setSpacing(5);
@@ -160,7 +159,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		BorderPane.setAlignment(title, Pos.CENTER_LEFT);
 		BorderPane.setAlignment(headerControls, Pos.CENTER_RIGHT);
 		// header visibility
-		maintain(p.headerVisible, b -> b ? header : null, content.topProperty());
+		maintain(p.headerVisible, it -> content.setTop(it ? header : null));
 
 		// footer
 		Icon resizeB = resizeButton();

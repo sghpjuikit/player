@@ -202,11 +202,11 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             maintain(w.y, v -> { if (!resizing) container.properties.put(i+"y", v.doubleValue()/rt.getHeight());});
             maintain(w.w, v -> { if (!resizing) container.properties.put(i+"w", (w.x.get()+v.doubleValue())/rt.getWidth());});
             maintain(w.h, v -> { if (!resizing) container.properties.put(i+"h", (w.y.get()+v.doubleValue())/rt.getHeight());});
-            maintain(APP.ui.getSnapDistance(), d->d, w.snapDistance);
+            maintain(APP.ui.getSnapDistance(), it -> w.snapDistance.setValue(it));
             syncTo(APP.ui.getSnapping(), w.snappable);
         });
-        maintain(container.lockedUnder, l -> !l, w.resizable);
-        maintain(container.lockedUnder, l -> !l, w.movable);
+        maintain(container.lockedUnder, it -> w.resizable.setValue(!it));
+        maintain(container.lockedUnder, it -> w.movable.setValue(!it));
         w.resizing.addListener((o,ov,nv) -> {
             if (nv!=Resize.NONE) any_window_resizing = true;
             else runFX(millis(100.0), () -> any_window_resizing = false);

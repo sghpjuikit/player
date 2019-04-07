@@ -145,10 +145,10 @@ infix fun <O> ObservableValue<O>.attachChanges(block: (O, O) -> Unit): Subscript
 }
 
 /** Sets a block to be fired if the value is true immediately and on every value change. */
-infix fun ObservableValue<Boolean>.syncTrue(block: (Boolean) -> Unit): Subscription = maintain(Consumer { if (it) block(it) })
+infix fun ObservableValue<Boolean>.syncTrue(block: (Boolean) -> Unit) = sync { if (it) block(it) }
 
 /** Sets a block to be fired if the value is false immediately and on every value change. */
-infix fun ObservableValue<Boolean>.syncFalse(block: (Boolean) -> Unit): Subscription = maintain(Consumer { if (!it) block(it) })
+infix fun ObservableValue<Boolean>.syncFalse(block: (Boolean) -> Unit) = sync { if (!it) block(it) }
 
 /** Sets a block to be fired immediately and on every list size change. */
 infix fun <T> ObservableList<T>.syncSize(block: (Int) -> Unit): Subscription {
@@ -224,25 +224,9 @@ fun <O, R> ObservableValue<O>.syncIntoWhile(extractor: (O) -> ObservableValue<R>
 fun <O: Any?, R: Any> ObservableValue<O>.syncNonNullIntoWhile(extractor: (O) -> ObservableValue<R?>, block: (R) -> Subscription) = syncIntoWhile(extractor) { it?.net(block).orEmpty() }
 
 // TODO: remove
-fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, u: Consumer<in V>): Subscription {
-    u(m(this.value))
-    val l = ChangeListener<O> { _, _, nv -> u(m(nv)) }
-    this.addListener(l)
-    return Subscription { this.removeListener(l) }
-}
-
-// TODO: remove
 fun <O> ObservableValue<O>.maintain(u: Consumer<O>): Subscription {
     val l = ChangeListener<O> { _, _, nv -> u(nv) }
     u(this.value)
-    this.addListener(l)
-    return Subscription { this.removeListener(l) }
-}
-
-// TODO: remove
-fun <O, V> ObservableValue<O>.maintain(m: (O) -> V, w: WritableValue<in V>): Subscription {
-    w.value = m(this.value)
-    val l = ChangeListener<O> { _, _, nv -> w.value = m(nv) }
     this.addListener(l)
     return Subscription { this.removeListener(l) }
 }

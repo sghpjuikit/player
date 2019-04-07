@@ -18,6 +18,7 @@ import sp.it.pl.util.conf.IsConfig;
 import sp.it.pl.util.conf.ListConfigurable;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.reactive.UtilKt.maintain;
 
 @Info(
@@ -47,7 +48,7 @@ public class IconBox extends SimpleController implements HorizontalDock {
         },
         i -> new ListConfigurable<>(
             (Config) Config.forProperty(Icon.class, "Icon", new FAccessor<>(i::icon, i::getGlyph)),
-            (Config) Config.forProperty(String.class, "Action", new VarAction(i.getOnClickAction(), i::onClick))
+            (Config) Config.forProperty(String.class, "Action", new VarAction(i.getOnClickAction(), consumer(i::onClick)))
         )
     );
 

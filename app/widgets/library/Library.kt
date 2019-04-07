@@ -50,6 +50,7 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.only
 import sp.it.pl.util.file.FileType.DIRECTORY
 import sp.it.pl.util.file.Util.getCommonRoot
+import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
 import sp.it.pl.util.reactive.consumeScrolling
@@ -154,27 +155,25 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
         APP.ratingCell sync { cf -> table.getColumn(RATING).orNull()?.cellFactory = cf } on onClose
 
         // column resizing
-        table.setColumnResizePolicy { resize ->
-            val b = UNCONSTRAINED_RESIZE_POLICY.call(resize)
-            table.getColumn(ColumnField.INDEX).orNull()?.prefWidth = table.computeIndexColumnWidth()
-            b
+        table.setColumnResizePolicy {
+            UNCONSTRAINED_RESIZE_POLICY(it).apply {
+                table.getColumn(ColumnField.INDEX).orNull()?.prefWidth = table.computeIndexColumnWidth()
+            }
         }
 
         // row behavior
-        table.setRowFactory { tbl ->
-            object: ImprovedTableRow<Metadata>() {
-                init {
-                    onLeftDoubleClick { r, _ -> PlaylistManager.use { pl -> pl.setNplayFrom(table.items, r.index) } }
-                    onRightSingleClick { r, e ->
-                        // prep selection for context menu
-                        if (!r.isSelected)
-                            tbl.selectionModel.clearAndSelect(r.index)
+        table.setRowFactory { t ->
+            ImprovedTableRow<Metadata>().apply {
+                onLeftDoubleClick { r, _ -> PlaylistManager.use { it.setNplayFrom(table.items, r.index) } }
+                onRightSingleClick { r, e ->
+                    // prep selection for context menu
+                    if (!r.isSelected)
+                        t.selectionModel.clearAndSelect(r.index)
 
-                        contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy))
-                        contextMenuInstance.show(table, e)
-                    }
-                    styleRuleAdd(pcPlaying) { m -> Player.playingSong.value.same(m) }
+                    contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy))
+                    contextMenuInstance.show(table, e)
                 }
+                styleRuleAdd(pcPlaying) { Player.playingSong.value.same(it) }
             }
         }
         Player.playingSong.onUpdate { _ -> table.updateStyleRules() } on onClose

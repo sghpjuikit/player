@@ -33,16 +33,13 @@ open class VarEnum<T>: V<T>, EnumerableValue<T> {
         @Suppress("UNUSED_PARAMETER")
         private fun <T> valOrFirst(v: T, enumerator: () -> Collection<T>) = v // if (v in enumerator()) v else enumerator().first()   // TODO: enable
 
-        @JvmStatic fun <V> ofArray(value: V, enumerator: () -> Array<V>) =
-                VarEnum(value, enumerator = { enumerator().toList() })
+        fun <V> ofArray(value: V, enumerator: () -> Array<V>) = VarEnum(value, { enumerator().toList() })
 
-        @JvmStatic fun <V> ofStream(value: V, enumerator: () -> Stream<V>) =
-                VarEnum(value, enumerator = { enumerator().toList() })
+        fun <V> ofStream(value: V, enumerator: () -> Stream<V>) = VarEnum(value, { enumerator().toList() })
 
-        fun <V> ofSequence(value: V, enumerator: () -> Sequence<V>) = VarEnum(value, enumerator = { enumerator().toList() })
+        fun <V> ofSequence(value: V, enumerator: () -> Sequence<V>) = VarEnum(value, { enumerator().toList() })
 
-        fun <V> ofInstances(value: V, type: Class<V>, instanceSource: InstanceMap) =
-                VarEnum(value, enumerator = { instanceSource.getInstances(type) })
+        fun <V> ofInstances(value: V, type: Class<V>, instanceSource: InstanceMap) = VarEnum(value, { instanceSource.getInstances(type) })
 
         inline fun <reified V> ofInstances(value: V, instanceSource: InstanceMap) = ofInstances(value, V::class.java, instanceSource)
     }

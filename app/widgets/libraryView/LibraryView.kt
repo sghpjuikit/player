@@ -74,7 +74,6 @@ import sp.it.pl.util.ui.prefSize
 import sp.it.pl.util.ui.pseudoclass
 import sp.it.pl.util.ui.x
 import java.util.function.Consumer
-import kotlin.collections.set
 import kotlin.streams.asSequence
 import kotlin.streams.toList
 
@@ -179,19 +178,17 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         APP.ratingCell sync { cf -> table.getColumn(AVG_RATING).orNull()?.cellFactory = cf as CellFactory<Double?> } on onClose
 
         // rows
-        table.setRowFactory { tbl ->
-            object: ImprovedTableRow<MetadataGroup>() {
-                init {
-                    styleRuleAdd(pcPlaying) { it.isPlaying() }
-                    onLeftDoubleClick { _,_ -> playSelected() }
-                    onRightSingleClick { row, e ->
-                        // prep selection for context menu
-                        if (!row.isSelected)
-                            tbl.selectionModel.clearAndSelect(row.index)
+        table.setRowFactory { t ->
+            ImprovedTableRow<MetadataGroup>().apply {
+                styleRuleAdd(pcPlaying) { it.isPlaying() }
+                onLeftDoubleClick { _, _ -> playSelected() }
+                onRightSingleClick { row, e ->
+                    // prep selection for context menu
+                    if (!row.isSelected)
+                        t.selectionModel.clearAndSelect(row.index)
 
-                        contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(filerListToSelectedNsort()))
-                        contextMenuInstance.show(table, e)
-                    }
+                    contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(filerListToSelectedNsort()))
+                    contextMenuInstance.show(table, e)
                 }
             }
         }
@@ -230,17 +227,17 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
         // resizing
         table.setColumnResizePolicy { resize ->
-            val b = UNCONSTRAINED_RESIZE_POLICY(resize)
-            val t = table   // (FilteredTable) resize.getTable()
-            // resize index column
-            t.getColumn(ColumnField.INDEX).ifPresent { it.setPrefWidth(t.computeIndexColumnWidth()) }
-            // resize main column to span remaining space
-            t.getColumn(VALUE).ifPresent { c ->
-                val sumW = t.columns.asSequence().filter { it.isVisible }.sumByDouble { it.width }
-                val sbW = t.vScrollbarWidth
-                c.setPrefWidth(t.width-(sbW+sumW-c.width))
+            UNCONSTRAINED_RESIZE_POLICY(resize).apply {
+                val t = table
+                // resize index column
+                t.getColumn(ColumnField.INDEX).ifPresent { it.setPrefWidth(t.computeIndexColumnWidth()) }
+                // resize main column to span remaining space
+                t.getColumn(VALUE).ifPresent { c ->
+                    val sumW = t.columns.asSequence().filter { it.isVisible }.sumByDouble { it.width }
+                    val sbW = t.vScrollbarWidth
+                    c.setPrefWidth(t.width-(sbW+sumW-c.width))
+                }
             }
-            b
         }
 
         // forward selection

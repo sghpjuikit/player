@@ -131,8 +131,8 @@ class Notifier: ServiceBase("Notifications", true) {
                 animationDuration.value = notificationFadeTime
                 duration = notificationDuration
                 focusOnShow.value = false
-                lClickAction = onClickL.getValueAction()
-                rClickAction = onClickR.getValueAction()
+                lClickAction = onClickL.valueAsAction
+                rClickAction = onClickR.valueAsAction
                 screenPreference = notificationScr
                 show(notificationPos)
             }

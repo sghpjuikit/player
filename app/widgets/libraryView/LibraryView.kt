@@ -57,7 +57,6 @@ import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
 import sp.it.pl.util.conf.cv
-import sp.it.pl.util.functional.Util.forEachWithI
 import sp.it.pl.util.functional.Util.list
 import sp.it.pl.util.functional.Util.stream
 import sp.it.pl.util.functional.invoke
@@ -78,6 +77,8 @@ import java.util.function.Consumer
 import kotlin.collections.set
 import kotlin.streams.asSequence
 import kotlin.streams.toList
+
+private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, TableCell<MetadataGroup, T>>
 
 @Suppress("UNCHECKED_CAST")
 @Info(
@@ -104,7 +105,7 @@ import kotlin.streams.toList
 class LibraryView(widget: Widget): SimpleController(widget) {
 
     private val table = FilteredTable(MetadataGroup::class.java, VALUE)
-    private val outputSelectedGroup: Output<MetadataGroup?> = outputs.create(widget.id, "Selected Group", null) // TODO: use List<MetadataGroup>
+    private val outputSelectedGroup: Output<List<MetadataGroup>?> = outputs.create(widget.id, "Selected Group", listOf())
     private val outputSelectedSongs: Output<List<Metadata>?> = outputs.create(widget.id, "Selected", listOf())
     private val inputItems: Input<List<Metadata>?> = inputs.create("To display", listOf()) { setItems(it) }
 
@@ -151,7 +152,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         tableShowFooter syncTo table.footerVisible on onClose
 
         // set up table columns
-        table.setKeyNameColMapper { name -> if (ColumnField.INDEX.name()==name) name else MetadataGroup.Field.valueOf(name).toString() }
+        table.setKeyNameColMapper { name -> if (ColumnField.INDEX.name()==name) name else MetadataGroup.Field.valueOf(name).name() }
         table.setColumnFactory { f ->
             if (f is MetadataGroup.Field<*>) {
                 val mgf = f as MetadataGroup.Field<*>
@@ -159,9 +160,9 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                 TableColumn<MetadataGroup, Any>(mgf.toString(mf)).apply {
                     cellValueFactory = Callback { it.value?.let { PojoV(mgf.getOf(it)) } }
                     cellFactory = when (mgf) {
-                        AVG_RATING -> APP.ratingCell.value as Callback<TableColumn<MetadataGroup, Any?>, TableCell<MetadataGroup, Any?>>
-                        W_RATING -> NumberRatingCellFactory as Callback<TableColumn<MetadataGroup, Any?>, TableCell<MetadataGroup, Any?>>
-                        else -> Callback<TableColumn<MetadataGroup, Any?>, TableCell<MetadataGroup, Any?>> {
+                        AVG_RATING -> APP.ratingCell.value as CellFactory<Any?>
+                        W_RATING -> NumberRatingCellFactory as CellFactory<Any?>
+                        else -> CellFactory {
                             table.buildDefaultCell(mgf as ObjectField<in MetadataGroup, Any?>).apply {
                                alignment = if (mgf.getType(mf)==String::class.java) CENTER_LEFT else CENTER_RIGHT
                             }
@@ -175,7 +176,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                 }
             }
         }
-        APP.ratingCell sync { cf -> table.getColumn(AVG_RATING).orNull()?.cellFactory = cf as Callback<TableColumn<MetadataGroup, Double?>, TableCell<MetadataGroup, Double?>>} on onClose
+        APP.ratingCell sync { cf -> table.getColumn(AVG_RATING).orNull()?.cellFactory = cf as CellFactory<Double?> } on onClose
 
         // rows
         table.setRowFactory { tbl ->
@@ -255,7 +256,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         }
         val selectedItemReducer = EventReducer.toLast<MetadataGroup>(100.0) {
             if (!selIgnore) {
-                outputSelectedGroup.value = it
+                outputSelectedGroup.value = table.selectedItemsCopy
                 selLast = it?.getValueS("") ?: "null"
             }
         }
@@ -284,7 +285,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         val f = fieldFilter.value
         table.filterPane.inconsistent_state = true
         table.filterPane.setPrefTypeSupplier { PredicateData.ofField(VALUE) }
-        table.filterPane.data = MetadataGroup.Field.FIELDS.map { mgf -> PredicateData(mgf.toString(f), mgf.getType(f), mgf as ObjectField<MetadataGroup, Any>) }
+        table.filterPane.data = MetadataGroup.Field.FIELDS.map { PredicateData(it.toString(f), it.getType(f), it as ObjectField<MetadataGroup, Any>) }
         table.filterPane.shrinkTo(0)
         val c = table.filterPane.onItemChange
         table.filterPane.onItemChange = Consumer { }
@@ -346,19 +347,19 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
         // restore last selected from previous session
         if (!selLastRestored && "null"!=selLast) {
-            forEachWithI(table.items) { i, mg ->
+            table.items.forEachIndexed { i, mg ->
                 if (mg.getValueS("")==selLast) {
-                    table.selectionModel.select(i!!)
+                    table.selectionModel.select(i)
                     selLastRestored = true // restore only once
-                    return@forEachWithI  // TODO: this may be a bug
+                    return
                 }
             }
 
-            // update selected - restore every available old one
+        // update selected - restore every available old one
         } else {
-            forEachWithI(table.items) { i, mg ->
-                if (selOld!!.contains(mg.value)) {
-                    table.selectionModel.select(i!!)
+            table.items.forEachIndexed { i, mg ->
+                if (mg.value in selOld!!) {
+                    table.selectionModel.select(i)
                 }
             }
         }
@@ -366,7 +367,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         if (table.selectionModel.isEmpty)
             table.selectionModel.select(0)
 
-        // selIgnore = false;   // TODO: remove?
+        // selIgnore = false;
         selIgnoreCanTurnBack = true
     }
 

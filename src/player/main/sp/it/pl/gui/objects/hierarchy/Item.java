@@ -48,12 +48,12 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	public final FileType valType;
 	public Set<Item> children;              // filtered files
 	public Set<String> all_children;        // all files, cache, use instead File.exists to reduce I/O
+	public final AtomicBoolean cover_loadedThumb = new AtomicBoolean(false);
+	public final AtomicBoolean cover_loadedFull = new AtomicBoolean(false);
 	public volatile Image cover;            // cover cache
 	public volatile File cover_file;        // cover file cache
 	public volatile boolean coverFile_loaded;
-	public final AtomicBoolean cover_loadedThumb = new AtomicBoolean(false);
-	public final AtomicBoolean cover_loadedFull = new AtomicBoolean(false);
-	private volatile boolean disposed = false;  // TODO: this inherently can not work, use AtomicReference on fields
+	private volatile boolean disposed = false;
 	public double loadProgress; // 0-1
 	public double lastScrollPosition; // 0-1
 	private HashMap<String, Object> properties = new HashMap<>();

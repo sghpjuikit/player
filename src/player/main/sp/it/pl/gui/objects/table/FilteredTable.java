@@ -450,9 +450,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 				String itemS = item==null ? null : field.getOfS(item, "");
 				boolean isMatch = itemS!=null && isMatch(itemS, searchQuery.get());
 				row.pseudoClassStateChanged(PC_SEARCH_MATCH, searchOn && isMatch);
-				row.getChildrenUnmodifiable().forEach(c -> c.pseudoClassStateChanged(PC_SEARCH_MATCH, searchOn && isMatch));
 				row.pseudoClassStateChanged(PC_SEARCH_MATCH_NOT, searchOn && !isMatch);
-				row.getChildrenUnmodifiable().forEach(c -> c.pseudoClassStateChanged(PC_SEARCH_MATCH_NOT, searchOn && !isMatch));
 			}
 		}
 

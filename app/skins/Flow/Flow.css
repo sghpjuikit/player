@@ -65,13 +65,6 @@
 .seeker-add-chapter-button:hover {
     -fx-effect: none;
 }
-
-.indexed-cell:played,
-.indexed-cell:played:selected {
-    -fx-text-fill: -fx-focus-color;
-    -fx-underline: false;
-    -fx-effect: dropshadow(gaussian, -fx-focus-color, 9,0 , 0,0);
-}
 .indexed-cell,
 .table-row-cell,
 .table-row-cell:played,
@@ -79,8 +72,15 @@
     -fx-effect: none;
 }
 
-.indexed-cell:corrupt,
-.indexed-cell:corrupt:selected {
+.table-row-cell:played > .indexed-cell:played,
+.table-row-cell:played > .indexed-cell:played:selected {
+    -fx-text-fill: -fx-focus-color;
+    -fx-underline: false;
+    -fx-effect: dropshadow(gaussian, -fx-focus-color, 9,0 , 0,0);
+}
+
+.table-row-cell:corrupt > .indexed-cell,
+.table-row-cell:corrupt:selected > .indexed-cell {
     -fx-text-fill: red;
 }
 

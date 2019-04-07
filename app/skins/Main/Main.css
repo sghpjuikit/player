@@ -1851,37 +1851,19 @@ Text {
     -fx-stroke-color: black;
 }
 
-/****** Additional row/cell pseudoclasses for ListView, TableView, TreeView, etc *****
- *
- * dev. note: note that applying pseudoclasses on rows will not affect the cells within them
- * it depends on what attribute is being changed. Pseudoclasses must be
- * set on both row-cell and children cells in the row cell factory.
- *
- * indexed-cell applies to both row-cell and cell, so be aware, that using effects
- * (e.g. shadow) will apply it twice
- */
+/****** Additional row/cell pseudoclasses for ListView, TableView, TreeView, etc **************************************/
 
 /* Denotes a currently played record in the playlist or other table. */
-.indexed-cell:played,
-.indexed-cell:played:selected {
+.table-row-cell:played > .indexed-cell,
+.table-row-cell:played:selected > .indexed-cell {
     -fx-text-fill: rgba(180, 200, 240, 0.8);
     -fx-underline: true;
 }
-.table-row-cell:played,
-.table-row-cell:played:selected {
-/*    setting text fill here wont work, because text is in cells not rows
-    in general set only non-content properties in row*/
-}
 
 /* Denotes broken or inconsistent record, e.g. unplayable item on playlist. */
-.indexed-cell:corrupt,
-.indexed-cell:corrupt:selected {
+.table-row-cell:corrupt > .indexed-cell,
+.table-row-cell:corrupt:selected > .indexed-cell {
     -fx-text-fill: rgba(250, 180, 180, 0.8);
-}
-.table-row-cell:corrupt,
-.table-row-cell:corrupt:selected{
-/*    setting text fill here wont work, because text is in cells not rows
-    in general set only non-content properties in row*/
 }
 
 /*
@@ -1889,20 +1871,19 @@ Text {
  * while search is active all items have one of the following pseudoclasses
  * matched items.
  */
-.indexed-cell:searchmatch,
-.indexed-cell:searchmatch:selected {
+.table-row-cell:searchmatch > .indexed-cell,
+.table-row-cell:searchmatch:selected > .indexed-cell {
     /* We leave matched items are normal and instead use of unmatched items style. */
 }
 /* Unmatched items. */
-.indexed-cell:searchmatchnot {
+.table-row-cell:searchmatchnot > .indexed-cell {
     -fx-opacity: 0.4;
 }
-.table-row-cell:searchmatchnot {
+.table-row-cell:searchmatchnot > .table-row-cell {
     -fx-opacity: 1;
 }
 
-/******************************** ENHANCED TEXT FIELDS *****************************************************************
- */
+/******************************** ENHANCED TEXT FIELDS ****************************************************************/
 
 /**
  * inherits: .text-field

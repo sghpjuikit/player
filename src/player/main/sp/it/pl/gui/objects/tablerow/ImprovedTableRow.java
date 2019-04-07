@@ -114,9 +114,6 @@ public class ImprovedTableRow<T> extends TableRow<T> {
 		styleRules.forEach(rule -> {
 			boolean v = rule.condition.test(getItem());
 			pseudoClassStateChanged(rule.pseudoclass, v);
-			// since the content is within cells themselves - the pseudoclass has to be passed down
-			// if we want the content (like text, not just the cell) to be styled correctly
-			getChildrenUnmodifiable().forEach(c -> c.pseudoClassStateChanged(rule.pseudoclass, v));
 		});
 	}
 

@@ -286,7 +286,7 @@ class WindowManager {
             mw.isBorderless.set(true)
             mw.update()
             mw.back.style = "-fx-background-size: cover;" // disallow bgr stretching
-            mw.content.style = "-fx-background-color: -fx-pane-color;" // imitate widget area bgr
+            mw.content.style = "-fx-background-color: -skin-pane-color;" // imitate widget area bgr
 
             // auto-hiding
             val mwh = mw.H.subtract(2) // leave 2 pixels visible

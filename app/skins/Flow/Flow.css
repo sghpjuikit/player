@@ -8,28 +8,26 @@
 
 * {
     -skin-bgr-color: rgb(0, 10, 25);
-    -fx-def-font-color: rgb(190, 190, 195);
-    -fx-def-icon-border-color: rgba(130,180,240, 0.2);
-    -fx-sel-font-color: rgb(175, 175, 176);
-    -fx-prompt-font-color: rgba(165, 165, 165, 0.4);
-
-    -fx-pane-color: rgba(100,130,180,0.1);
-    -fx-pane-color-dragged: rgba(0,0,0,0.3);
-    -fx-popup-def-bgr-color: rgba(15,30,55,0.9);
-
+    -skin-def-font-color: rgb(190, 190, 195);
+    -skin-def-icon-border-color: rgba(130,180,240, 0.2);
+    -skin-sel-font-color: rgb(175, 175, 176);
+    -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
+    -skin-pane-color: rgba(100,130,180,0.1);
+    -skin-pane-color-dragged: rgba(0,0,0,0.3);
+    -skin-popup-def-bgr-color: rgba(15,30,55,0.9);
+    -skin-def-font-color-hover: #ffcc66;
     -fx-focus-color: #ffcc66;
     -fx-faint-focus-color: #ffcc66;
-    -fx-def-font-color-hover: #ffcc66;
 }
 
 .block {
-    -fx-background-color: -fx-pane-color;
+    -fx-background-color: -skin-pane-color;
 }
 
 .icon {
     -glyph-gap: 12;
 
-    -fx-border-color: -fx-def-icon-border-color;
+    -fx-border-color: -skin-def-icon-border-color;
     -fx-border-width: 0.083333em; /* 1 */
     -fx-border-radius: 11111; /* big value to always achieve perfect circle */
 
@@ -90,8 +88,8 @@
     -fx-background-insets: 0;
     -fx-background-radius: 2;
     -fx-padding: 3 5 2 5;
-    -fx-text-fill: -fx-def-font-color;
-    -fx-prompt-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-prompt-text-fill: -skin-def-font-color;
     -fx-effect: null;
 }
 
@@ -104,8 +102,8 @@
     -fx-background-insets: 0;
     -fx-background-radius: 2;
     -fx-padding: 3 5 2 5;
-    -fx-text-fill: -fx-def-font-color;
-    -fx-prompt-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-prompt-text-fill: -skin-def-font-color;
     -fx-effect: null;
 }
 
@@ -118,8 +116,8 @@
     -fx-background-insets: 0;
     -fx-background-radius: 2;
     -fx-padding: 3 5 2 5;
-    -fx-text-fill: -fx-def-font-color;
-    -fx-prompt-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-prompt-text-fill: -skin-def-font-color;
     -fx-effect: null;
 }
 .combo-box:hover > .list-cell, 
@@ -127,7 +125,7 @@
     -fx-background-color: null;
     -fx-background-insets: 0;
     -fx-background-radius: 2;
-    -fx-text-fill:-fx-def-font-color;
+    -fx-text-fill:-skin-def-font-color;
     -fx-padding: 0;
     -fx-effect: null;
 }
@@ -155,18 +153,18 @@
 
 .combo-box-popup > .list-view {
     -fx-padding: 5;
-    -fx-background-color: -fx-popup-def-bgr-color;
+    -fx-background-color: -skin-popup-def-bgr-color;
     /*-fx-background-insets:  0 -5 -5 -5; *//* expands menu bgr left,bottom,right */
     -fx-background-radius: 0;
     -fx-border-width: 1;
-    -fx-stroke: -fx-def-font-color; 
+    -fx-stroke: -skin-def-font-color;
     -fx-stroke-width: 2;
     -fx-fill: null; /* bgr of the shape the path makes - we dont want any */
 }
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
     -fx-padding: 5;
     -fx-background-color: null;
-    -fx-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
 }
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
@@ -189,48 +187,48 @@
  * pseudoclasses: dragged
  */
 .area {
-    -fx-background-color: -fx-pane-color;
+    -fx-background-color: -skin-pane-color;
     -fx-padding: 4 ;
     -fx-border-width: 0.5;
     -fx-border-radius: 5;
-    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -fx-def-font-color 100%)
-                         linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, transparent 20%)
-                         linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, transparent 20%)
-                         linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -fx-def-font-color 100%);
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -skin-def-font-color 100%)
+                         linear-gradient(from 0% 0% to 100% 100%, -skin-def-font-color 0%, transparent 20%)
+                         linear-gradient(from 0% 0% to 100% 100%, -skin-def-font-color 0%, transparent 20%)
+                         linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -skin-def-font-color 100%);
 }
 
 .area: active {
     -fx-border-width: 0.5;
     -fx-border-radius: 5;
-    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.2) 40%, -fx-def-font-color 100%)
-                         linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, rgba(255,255,255,0.2) 40%)
-                         linear-gradient(from 0% 0% to 100% 100%, -fx-def-font-color 0%, rgba(255,255,255,0.2) 40%)
-                         linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.2) 40%, -fx-def-font-color 100%);
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.2) 40%, -skin-def-font-color 100%)
+                         linear-gradient(from 0% 0% to 100% 100%, -skin-def-font-color 0%, rgba(255,255,255,0.2) 40%)
+                         linear-gradient(from 0% 0% to 100% 100%, -skin-def-font-color 0%, rgba(255,255,255,0.2) 40%)
+                         linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.2) 40%, -skin-def-font-color 100%);
 }
 
 .split-pane:horizontal > .split-pane-divider {
    -fx-border-color: transparent;
-   -fx-background-color: -fx-pane-color;
+   -fx-background-color: -skin-pane-color;
    /*-fx-padding: 0.0;*/
 }
 .split-pane:vertical > .split-pane-divider {
    -fx-border-color: transparent;
-   -fx-background-color: -fx-pane-color;
+   -fx-background-color: -skin-pane-color;
    /*-fx-padding: 1;*/
 }
 .split-pane *.vertical-grabber {
     -fx-padding: 1 111 1 111;
-    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
     -fx-background-insets: 0;
 }
 .split-pane *.horizontal-grabber {
     -fx-padding: 111 1 111 0.5;
-    -fx-background-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
+    -fx-background-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
     -fx-background-insets: 0;
 }
 
 .split-pane:collapsed > .split-pane-divider {
-   -fx-background-color: -fx-pane-color;
+   -fx-background-color: -skin-pane-color;
    -fx-padding: 6;
 }
 

@@ -8,27 +8,18 @@
 /* Global variables*/
 * {
     -skin-bgr-color: rgb(0, 10, 25);
-    -fx-def-font-color: rgb(190, 190, 195);
-    -fx-def-font-color-hover: rgb(235,235,230);
-    -fx-sel-font-color: rgb(175, 175, 176);
-    -fx-prompt-font-color: rgba(165, 165, 165, 0.4);
-    -fx-color-darker: rgba(0,0,0,0.2);
-    -fx-color-lighter: rgba(180,200,255,0.08);
-
-    /* default color for panels such as header or widget area or other areas.
-       Panel is equivalent to java's .filler i suppose. */
-    /* when changing this value be aware that .header class emulates it manually
-       be sure to change it there too*/
-    -fx-pane-color: rgba(100,130,180,0.1);
+    -skin-def-font-color: rgb(190, 190, 195);
+    -skin-def-font-color-hover: rgb(235,235,230);
+    -skin-sel-font-color: rgb(175, 175, 176);
+    -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
+    -skin-color-darker: rgba(0,0,0,0.2);
+    -skin-color-lighter: rgba(180,200,255,0.08);
+    /* default color for panels such as header or widget area or other areas. */
+    -skin-pane-color: rgba(100,130,180,0.1);
     /* Darker version of pane color. By default used for :dragged pseudoclass */
-    -fx-pane-color-dragged: rgba(0,0,0,0.3);
+    -skin-pane-color-dragged: rgba(0,0,0,0.3);
     /* Default bgr color for tooltips and popups. */
-    -fx-popup-def-bgr-color: rgba(28,42,60,0.9);
-}
-
-.root {
-    -fx-font-family: "Arial";
-    -fx-font-size: 1em;
+    -skin-popup-def-bgr-color: rgba(28,42,60,0.9);
 }
 
 /******************************************************************************
@@ -36,6 +27,11 @@
  *  THE APPLICATION OVERRIDES OF JAVAFX
  *
  ******************************************************************************/
+
+.root {
+    -fx-font-family: "Arial";
+    -fx-font-size: 1em;
+}
 
 /* ====   TEXT NODES IN CONTROLS   ========================================== */
 
@@ -62,7 +58,7 @@
         rgba(255,255,255,0));
     -fx-background-radius: 4, 3, 3, 3, 2, 3;
     -fx-background-insets: -3 -3 -4 -3, -3, 0, 1, 2, 0;
-    -fx-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
     -fx-padding: 0;
     -fx-alignment: CENTER;
     -fx-content-display: LEFT;*/
@@ -73,7 +69,7 @@
         rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.5) rgba(255, 255, 255, 0.1);
     -fx-border-width: 1, 1.5;
     -fx-border-insets: -2, -0.5;
-    -fx-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
     -fx-padding: 0;
     -fx-alignment: CENTER;
     -fx-content-display: LEFT;
@@ -220,7 +216,7 @@
 .combo-box-base > .arrow-button > .arrow,
 .web-view .form-select-button .arrow,
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button > .arrow  {
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
     /* use this to get nice not filled arrow */
     /*-fx-background-color: -fx-mark-highlight-color, -fx-mark-color;*/
     -fx-background-insets: 1 0 -1 0, 0;
@@ -231,7 +227,7 @@
 /* ====   CHOICE BOX LIKE THINGS   ========================================== */
 
 .menu-button {
-    -fx-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
     -fx-background-color:
         rgba(255, 255, 255, 0.3),
         linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
@@ -248,7 +244,7 @@
 .menu-button > .label,
 .color-picker > .label {
     /*-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em;*/ /* 4 8 4 8 */
-    -fx-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
 }
 .choice-box > .open-button,
 .menu-button > .arrow-button {
@@ -296,7 +292,7 @@
 .slider:focused .thumb,
 .slider:focused .thumb:hover,
 .slider:focused .thumb:pressed {
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
     -fx-padding: 0.166667em;
     -fx-background-radius: 1;
 }
@@ -310,7 +306,7 @@
 .slider:vertical .track {}
 .slider .axis {
     -fx-tick-mark-stroke: ladder(-fx-background, derive(-fx-background,30%) 40%, derive(-fx-background,-30%) 41%);
-    -fx-tick-label-fill: -fx-def-font-color;
+    -fx-tick-label-fill: -skin-def-font-color;
     -fx-background-insets: -6,5,4,3;
     -fx-opacity:0.9;
 }
@@ -343,17 +339,17 @@
     -fx-background-color: rgb(211,211,211);
     -fx-background-insets: 2, 3, 4;
     -fx-background-radius: 3, 2, 1;*/
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
     -fx-background-insets: 0.525em;
     -fx-background-radius: 0.25em; /* 3px */
 }
 .scroll-bar:vertical > .thumb {
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
 }
 .scroll-bar > .increment-button,
 .scroll-bar > .decrement-button {
     -fx-background-color: null;
-    -fx-color: -fx-def-font-color;
+    -fx-color: -skin-def-font-color;
     -fx-padding: 0.25em; /* 3px */
 }
 .scroll-bar:horizontal > .increment-button,
@@ -366,15 +362,15 @@
 }
 .scroll-bar > .increment-button > .increment-arrow,
 .scroll-bar > .decrement-button > .decrement-arrow {
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
 }
 .scroll-bar > .increment-button:hover > .increment-arrow,
 .scroll-bar > .decrement-button:hover > .decrement-arrow {
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
 }
 .scroll-bar > .increment-button:pressed > .increment-arrow,
 .scroll-bar > .decrement-button:pressed > .decrement-arrow {
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
 }
 .scroll-bar:horizontal > .decrement-button > .decrement-arrow {
     -fx-padding: 0.333em 0.167em 0.333em 0.167em; /* 4 2 4 2 */
@@ -449,7 +445,7 @@
 .tree-table-view > .virtual-flow > .scroll-bar:vertical > .thumb,
 .tree-table-view > .virtual-flow > .scroll-bar:horizontal > .thumb {
     -fx-padding: 0;
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
     -fx-background-insets: 0.75em;
     -fx-background-radius: 1em; /* 3px */
 }
@@ -532,13 +528,13 @@
     -fx-padding: 3 5 2 5;
     -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
     
-    -fx-prompt-text-fill: -fx-prompt-font-color;
+    -fx-prompt-text-fill: -skin-prompt-font-color;
 }
 .choice-box:focused,
 .text-input:focused,
 .decorated-text-field,
 .decorated-text-field:focused {
-    -fx-prompt-text-fill: -fx-prompt-font-color;
+    -fx-prompt-text-fill: -skin-prompt-font-color;
     -fx-background-color: rgba(235, 235, 235, 0.7), rgba(0, 0, 0, 0.6), rgba(255, 255, 255, 0.92);
 }
 .text-input:hover:readonly,
@@ -576,7 +572,7 @@
 /*********************************** Text *************************************/
 
 Text {
-    -fx-fill: -fx-def-font-color;
+    -fx-fill: -skin-def-font-color;
 }
 
 /********************************* ComboBox ***********************************/
@@ -604,7 +600,7 @@ Text {
     -fx-background-radius: 3, 2, 2;
     -fx-padding: 3 10 2 10;
     -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
-    -fx-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
     -fx-alignment: CENTER;
     -fx-content-display: LEFT;
 }
@@ -681,7 +677,7 @@ Text {
 /********* PopupControl that is displayed when the button is pressed **********/
 
 .combo-box-popup > .list-view {
-    -fx-background-color: -fx-popup-def-bgr-color;
+    -fx-background-color: -skin-popup-def-bgr-color;
     -fx-background-insets: 0, 1;
     -fx-effect: null;
     /*gets in the way of transparent bgr*/
@@ -690,14 +686,14 @@ Text {
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
     -fx-padding: 0;
     -fx-background-color: null;
-    -fx-text-fill:-fx-def-font-color;
+    -fx-text-fill:-skin-def-font-color;
 }
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
     -fx-background: null;
-    -fx-background-color: -fx-color-darker;
-    -fx-text-fill:-fx-def-font-color;
+    -fx-background-color: -skin-color-darker;
+    -fx-text-fill:-skin-def-font-color;
 }
 .combo-box-popup > .list-view > .placeholder > .label {
     -fx-text-fill: derive(-fx-control-inner-background,-30%);
@@ -706,7 +702,7 @@ Text {
 /*********************************** Label ************************************/
 
 .label {
-    -fx-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
     /* decreases performance for little eye candy */
     /*-fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.7), 0,0 , 0,1 );*/
 }
@@ -714,7 +710,7 @@ Text {
 /*********************************** Hyperlink ********************************/
 
 .hyperlink {
-    -fx-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
 }
 .hyperlink:hover {
     -fx-text-fill: -fx-focus-color;
@@ -724,7 +720,7 @@ Text {
  * PopupMenu
  */
 .context-menu {
-    -fx-background-color: -fx-popup-def-bgr-color;
+    -fx-background-color: -skin-popup-def-bgr-color;
     -fx-background-radius: 0;
     -fx-background-insets: 0;
     -fx-border-width: 0;
@@ -737,7 +733,7 @@ Text {
 
 .context-menu .separator:horizontal .line {
     -fx-border-width: 1;
-    -fx-border-color: -fx-def-font-color transparent transparent transparent;
+    -fx-border-color: -skin-def-font-color transparent transparent transparent;
     -fx-border-insets: 1 0 0 0;
 }
 
@@ -812,7 +808,7 @@ Text {
 }
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
     -fx-alignment: CENTER;
-    -fx-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
 }
 .tab-pane > .tab-header-area > .headers-region > .tab {
     -fx-background-insets: 0 1 1 0, 1 2 1 1, 2 3 1 2;
@@ -835,7 +831,7 @@ Text {
     -fx-color: null;
 }
 .tab-pane > .tab-header-area > .headers-region > .tab:selected {
-    -fx-background-color:-fx-color-lighter;
+    -fx-background-color:-skin-color-lighter;
     -fx-background-insets: 0 1 1 0, 1 2 0 1, 2 3 0 2;
 }
 .tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
@@ -929,7 +925,7 @@ Text {
 /********************************* TitledPane *********************************/
 
 .titled-pane {
-    -fx-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
     -fx-border-width: 0;
 }
 .titled-pane > .title {
@@ -951,7 +947,7 @@ Text {
     -fx-padding: 0.0em 0.25em 0.0em 0.0em; /* 0 3 0 0 */
 }
 .titled-pane > .title > .arrow-button > .arrow {
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
     /* use to get nice not filled arrow */
     /*-fx-background-color: -fx-mark-highlight-color, -fx-mark-color;*/
     -fx-background-insets: 1 0 -1 0, 0;
@@ -1029,16 +1025,16 @@ Text {
 }
 
 .split-pane:collapsed > .split-pane-divider {
-   -fx-background-color: -fx-pane-color;
+   -fx-background-color: -skin-pane-color;
    -fx-padding: 6;
 }
 
 /********************************* ColorPicker ********************************/
 
 .color-palette {
-    -fx-background-color: -fx-popup-def-bgr-color;
+    -fx-background-color: -skin-popup-def-bgr-color;
     -fx-border-width: 1;
-    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
     -fx-border-radius: 5;
 }
 
@@ -1047,7 +1043,7 @@ Text {
 }
 
 .custom-color-dialog .controls-pane .customcolor-controls-background {
-    -fx-background-color: -fx-pane-color;
+    -fx-background-color: -skin-pane-color;
 }
 
 /********* Customised CSS for controls placed directly within cells ***********/
@@ -1076,7 +1072,7 @@ Text {
     -fx-background-color: null;
     -fx-border-color: null;
     -fx-padding: 0 2 0 2;
-    -fx-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
 }
 
 /* remove double borders from scrollbars */
@@ -1111,7 +1107,7 @@ Text {
 .table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
 .tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
     -fx-background-color: rgba(0, 0, 0, 0.2);
-    -fx-text-fill: -fx-sel-font-color;
+    -fx-text-fill: -skin-sel-font-color;
 }
 /* Selected when control is not focused */
 .list-cell:filled:selected,
@@ -1121,7 +1117,7 @@ Text {
 .table-row-cell:filled > .table-cell:selected,
 .tree-table-row-cell:filled > .tree-table-cell:selected {
     -fx-background-color: rgba(0, 0, 0, 0.2);
-    -fx-text-fill: -fx-sel-font-color;
+    -fx-text-fill: -skin-sel-font-color;
 }
 /* focused cell (keyboard navigation) */
 .list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:focused,
@@ -1156,7 +1152,7 @@ Text {
 .tree-cell > .tree-disclosure-node > .arrow,
 .tree-table-row-cell > .tree-disclosure-node > .arrow {
 /*    -fx-background-color: -fx-text-background-color;*/
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
     -fx-padding: 0.333333em 0.229em 0.333333em 0.229em; /* 4 */
     -fx-shape: "M 0 -3.5 L 4 0 L 0 3.5 z";
 }
@@ -1203,7 +1199,7 @@ Text {
 /* The column-resize-line is shown when the user is attempting to resize a column. */
 .table-view .column-resize-line,
 .tree-table-view .column-resize-line {
-    -fx-background: -fx-def-font-color;
+    -fx-background: -skin-def-font-color;
     -fx-opacity: 0.6;
     -fx-background-color: -fx-background;
     -fx-padding: 0.0em 0.0416667em 0.0em 0.0416667em; /* 0 0.571429 0 0.571429 */
@@ -1250,7 +1246,7 @@ Text {
 }
 .table-view .column-header .sort-order-dot,
 .tree-table-view .column-header .sort-order-dot {
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
     -fx-padding: 0.115em;
     -fx-background-radius: 0.115em;
 }
@@ -1262,7 +1258,7 @@ Text {
 /* Plus Symbol - like table menu button for controlling columns visibility*/
 .table-view .show-hide-column-image,
 .tree-table-view .show-hide-column-image {
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
     -fx-padding: 0.25em; /* 3px */
     -fx-shape: "M398.902,298.045c0.667,0,1.333,0,2,0c0,0.667,0,1.333,0,2c0.667,0,1.333,0,2,0c0,0.667,0,1.333,0,2c-0.667,0-1.333,0-2,0c0,0.666,0,1.332,0,1.999c-0.667,0-1.333,0-2,0c0-0.667,0-1.333,0-1.999c-0.666,0-1.333,0-1.999,0c0-0.667,0-1.334,0-2c0.666,0,1.333,0,1.999,0C398.902,299.378,398.902,298.711,398.902,298.045z"; 
 }
@@ -1286,7 +1282,7 @@ Text {
 /* Header Sort Arrows */
 .table-view /*> column-header-background > nested-column-header >*/ .arrow,
 .tree-table-view /*> column-header-background > nested-column-header >*/ .arrow {
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
 }
@@ -1403,11 +1399,11 @@ Text {
 /********************************** TOOLTIP **********************************/
 
 .tooltip {
-    -fx-text-fill: -fx-def-font-color;
-    -fx-background-color: -fx-popup-def-bgr-color;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-background-color: -skin-popup-def-bgr-color;
     -fx-background-radius: 5;
     -fx-border-width: 1;
-    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
     -fx-border-radius: 5;
     -fx-padding: 0.5em 1em 0.5em 1em;
 }
@@ -1473,14 +1469,14 @@ Text {
  *             -glyph-size - size
  */
 .icon {
-    -fx-fill: -fx-def-font-color;
+    -fx-fill: -skin-def-font-color;
     -glyph-name: "FontAwesomeIcon.CLOSE";
     -glyph-size: 1em;
     -glyph-gap: 12;
 }
 
 .icon:hover {
-    -fx-fill: -fx-def-font-color-hover;
+    -fx-fill: -skin-def-font-color-hover;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
 .icon:disabled {
@@ -1554,7 +1550,7 @@ Text {
             assign it area too. Must be done manually.
     */
 .block {
-    -fx-background-color: -fx-pane-color;
+    -fx-background-color: -skin-pane-color;
 }
 
 
@@ -1589,7 +1585,7 @@ Text {
  * inherits: .header
  */
 .window .header {
-    -fx-background-color: -fx-pane-color;
+    -fx-background-color: -skin-pane-color;
 }
 
 /*
@@ -1598,7 +1594,7 @@ Text {
  * Skinning both header and border similarly is recommended
  */
 .w-border {
-    -fx-background-color: -fx-pane-color;
+    -fx-background-color: -skin-pane-color;
 }
 
 /**********************************************************************************************************************/
@@ -1608,7 +1604,7 @@ Text {
  * pseudoclasses: dragged
  */
 .area {
-    -fx-background-color: -fx-pane-color;
+    -fx-background-color: -skin-pane-color;
     -fx-padding: 4 ;
     -fx-border-width: 0.5;
     -fx-border-color: none;
@@ -1616,7 +1612,7 @@ Text {
 
 .area: active {
     -fx-border-width: 0.5;
-    -fx-border-color: -fx-def-font-color;
+    -fx-border-color: -skin-def-font-color;
 }
 
 /**
@@ -1629,13 +1625,13 @@ Text {
  * Container area in layout mode. Inherits .block styleclass.
  */
 .container-control {
-    -fx-background-color: -fx-pane-color;
+    -fx-background-color: -skin-pane-color;
 }
 
 .area:dragged,
 .widget-control:dragged,
 .container-control:dragged {
-    -fx-background-color: -fx-pane-color-dragged;
+    -fx-background-color: -skin-pane-color-dragged;
 }
 
 
@@ -1646,7 +1642,7 @@ Text {
 
 /* Control for setting up layout. */
 .layouter {}
-/** Choosable element inside layouter. Subclasses .block */
+/** Element inside layouter. Subclasses .block */
 .layouter-element {}
 
 
@@ -1658,7 +1654,7 @@ Text {
    Font picker from within text area. */
 .dialog-button {
     /* arrow css used for other components like combo-box */
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
     /* use this to get nice not filled arrow */
     /* -fx-background-color: -fx-mark-highlight-color, -fx-mark-color; */
     -fx-background-insets: 1 0 -1 0, 0;
@@ -1764,15 +1760,15 @@ Text {
 }
 
 .item-picker-element {
-    -fx-background-color: -fx-pane-color;
+    -fx-background-color: -skin-pane-color;
     -fx-background-radius: 0;
     -fx-pref-height: 2em;
 }
 
 .item-picker-element:hover {
-    -fx-background-color: -fx-pane-color;
+    -fx-background-color: -skin-pane-color;
     -fx-background-insets: 2;
-    -fx-effect: dropshadow(three-pass-box, -fx-pane-color, 2, 0.0, 0, 1);
+    -fx-effect: dropshadow(three-pass-box, -skin-pane-color, 2, 0.0, 0, 1);
 }
 .item-picker-element:empty:hover {
     -fx-background-insets: 0;
@@ -1808,10 +1804,10 @@ Text {
  * inherits: Path (which is Shape)
  */
 .popover-root > .bgr {
-    -fx-fill: -fx-popup-def-bgr-color;
-    -fx-text-fill: -fx-def-font-color;
-    -fx-stroke: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
-                /* -fx-def-font-color; */
+    -fx-fill: -skin-popup-def-bgr-color;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-stroke: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+                /* -skin-def-font-color; */
     -fx-stroke-width: 1;
     /* radius is not styleable for now and is fixed to programmatic value */
 }
@@ -1895,7 +1891,7 @@ Text {
 
 /* 
  * The actual image.
- * inherits: .imageview
+ * inherits: .image-view
  */
 .thumbnail-image {}
 
@@ -1935,7 +1931,7 @@ Text {
  *                                 it to tag
  */
 .seeker-marker {
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: -skin-def-font-color;
     -fx-opacity: 0.5;
     -fx-padding: 4 1 4 1; /* sets height=4, width=2 */
 }
@@ -1978,7 +1974,7 @@ Text {
 .combobox-field-config:focused:edited > .list-cell {
     -fx-pref-column-count: 40;
     -fx-text-fill: -fx-focus-color;
-    -fx-prompt-text-fill: -fx-prompt-font-color;
+    -fx-prompt-text-fill: -skin-prompt-font-color;
 }
 
 /** 
@@ -2028,7 +2024,7 @@ Text {
     -glyph-size: 0.66667em; /* 8 */
     -fx-background-color: transparent;
     -fx-graphic-text-gap: 0px;
-    -fx-text-fill: -fx-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
     -fx-padding: 2 0 0 0; /* fix vertical alignment*/
 }
 .config-field-default-button:pressed:hover {
@@ -2118,7 +2114,7 @@ icon-info-icon {
  * the 'empty' rating button
  */
 .rating-button {
-    -fx-fill: -fx-def-font-color;
+    -fx-fill: -skin-def-font-color;
     -fx-font-size: 10px;
 }
 
@@ -2131,7 +2127,7 @@ icon-info-icon {
 }
 
 .rating-button:max {
-    -fx-fill: derive(-fx-def-font-color,50%);
+    -fx-fill: derive(-skin-def-font-color,50%);
 }
 
 /*
@@ -2150,7 +2146,7 @@ icon-info-icon {
 
 .spinner {
     -fx-fill: null;
-    -fx-stroke: -fx-def-font-color;
+    -fx-stroke: -skin-def-font-color;
     -fx-stroke-line-cap: butt;
     -fx-stroke-width: 0.15em;
     -fx-stroke-type: inside;
@@ -2225,7 +2221,7 @@ icon-info-icon {
 .inode:drag-over,
 .onode:drag-over,
 .ionode:drag-over {
-    -fx-fill: -fx-def-font-color-hover;
+    -fx-fill: -skin-def-font-color-hover;
     -fx-scale-x: 1.3;
     -fx-scale-y: 1.3;
 }
@@ -2244,7 +2240,7 @@ icon-info-icon {
  */
 .ioline {
     -fx-opacity: 0.8;
-    -fx-stroke: -fx-def-font-color;
+    -fx-stroke: -skin-def-font-color;
     -fx-stroke-width: 2;
     -fx-fill: null; /* bgr of the shape the path makes - we do not want any*/
 }
@@ -2280,10 +2276,10 @@ icon-info-icon {
     -fx-background-color: rgba(0,20,30,0.1);
     -fx-effect: dropshadow(three-pass-box, black, 10, 0 , 0,0);
     -fx-background-radius: 15;
-    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -fx-def-font-color 50%, transparent 100%);
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
     -fx-border-width: 1;
     /* alternative border style */
-    /*-fx-border-color: -fx-def-font-color;
+    /*-fx-border-color: -skin-def-font-color;
      -fx-border-width: 0.5; */
     -fx-border-radius: 15;
     -fx-padding: 20;

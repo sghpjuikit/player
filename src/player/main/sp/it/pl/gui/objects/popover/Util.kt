@@ -139,19 +139,19 @@ enum class ScreenUse {
         if (this==MAIN)
             return ps.bounds
         if (this==APP_WINDOW) {
-            val s = if (w==null) getScreenForMouse() else w.screen
+            val s = w?.screen ?: getScreenForMouse()
             return s.bounds
         }
 
         val ss = Screen.getScreens()
-        val left = ss.asSequence().map { f -> f.bounds }.minBy { b -> b.minX } ?: psb
-        val right = ss.asSequence().map { f -> f.bounds }.maxBy { b -> b.maxX } ?: psb
+        val left = ss.asSequence().map { it.bounds }.minBy { it.minX } ?: psb
+        val right = ss.asSequence().map { it.bounds }.maxBy { it.maxX } ?: psb
         return when (pos) {
             ScreenPos.SCREEN_BOTTOM_LEFT, ScreenPos.SCREEN_TOP_LEFT -> left
             ScreenPos.SCREEN_BOTTOM_RIGHT, ScreenPos.SCREEN_TOP_RIGHT -> right
             ScreenPos.SCREEN_CENTER -> {
-                val top = ss.asSequence().map { f -> f.bounds }.minBy { b -> b.minY } ?: psb
-                val bottom = ss.asSequence().map { f -> f.bounds }.maxBy { b -> b.maxY } ?: psb
+                val top = ss.asSequence().map { it.bounds }.minBy { it.minY } ?: psb
+                val bottom = ss.asSequence().map { it.bounds }.maxBy { it.maxY } ?: psb
                 Rectangle2D(left.minX, top.minY, right.maxX-left.minX, bottom.maxY-top.minY)
             }
             else -> null

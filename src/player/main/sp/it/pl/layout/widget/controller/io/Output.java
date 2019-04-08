@@ -69,7 +69,7 @@ public class Output<T> extends Put<T> {
 		}
 
 		public static Id fromString(String s) {
-			int i = s.indexOf(",");
+			int i = s.lastIndexOf(",");
 			String n = s.substring(0,i);
 			UUID u = UUID.fromString(s.substring(i+1, s.length()));
 			return new Id(u,n);

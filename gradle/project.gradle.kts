@@ -9,7 +9,7 @@ import kotlin.text.Charsets.UTF_8
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
     id("com.gradle.build-scan") version "2.1"
-    kotlin("jvm") version "1.3.0"
+    kotlin("jvm") version "1.3.21"
     application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
@@ -218,9 +218,9 @@ tasks {
         val fileKotlinVersion = dirKotlinc/"build.txt"
         val nameKotlinc = when {
             !useExperimentalKotlinc -> "kotlin-compiler-$kotlinVersion.zip"
-            os.isLinux -> "experimental-kotlin-compiler-$kotlinVersion-linux-x64.zip"
-            os.isMacOsX -> "experimental-kotlin-compiler-$kotlinVersion-macos-x64.zip"
-            os.isWindows -> "experimental-kotlin-compiler-$kotlinVersion-windows-x64.zip"
+            os.isLinux -> "experimental-kotlin-compiler-linux-x64.zip"
+            os.isMacOsX -> "experimental-kotlin-compiler-macos-x64.zip"
+            os.isWindows -> "experimental-kotlin-compiler-windows-x64.zip"
             else -> failIO { "Unable to determine kotlinc version due to unfamiliar system=$os" }
         }
         val fileKotlinc = dirKotlinc/"bin"/"kotlinc"

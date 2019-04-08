@@ -18,7 +18,6 @@ import sp.it.pl.layout.widget.Widget.Group
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
 import sp.it.pl.layout.widget.WidgetUse.OPEN
 import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.APP
@@ -88,8 +87,8 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
     private val playlist = computeInitialPlaylist(widget.id)
     private val table = PlaylistTable(playlist)
-    private var outSelected: Output<PlaylistSong?> = outputs.create(widget.id, "Selected", PlaylistSong::class.java, null)
-    private var outPlaying: Output<PlaylistSong?> = outputs.create(widget.id, "Playing", PlaylistSong::class.java, null)
+    private var outSelected = outputs.create<PlaylistSong>(widget.id, "Selected", null)
+    private var outPlaying = outputs.create<PlaylistSong>(widget.id, "Playing", null)
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     val tableOrient by cv(INHERIT) { Vo(APP.ui.tableOrient) }

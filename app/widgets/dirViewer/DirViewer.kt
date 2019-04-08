@@ -93,7 +93,6 @@ import sp.it.pl.util.validation.Constraint.FileActor
 import java.io.File
 import java.util.Stack
 import java.util.concurrent.atomic.AtomicLong
-import java.util.function.Consumer
 
 @Widget.Info(
         author = "Martin Polakovic",
@@ -105,10 +104,10 @@ import java.util.function.Consumer
 )
 class DirViewer(widget: Widget): SimpleController(widget) {
 
-    private val inputFile = inputs.create("Root directory", File::class.java, null, Consumer<File?> {
+    private val inputFile = inputs.create<File>("Root directory", null) {
         if (it!=null && it.isDirectory && it.exists())
             files setToOne it
-    })
+    }
 
     @IsConfig(name = "Location", info = "Root directories of the content.")
     private val files by cList<File>().only(FileActor.DIRECTORY)
@@ -146,7 +145,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     @IsConfig(name = "Sort seconds", info = "Sorting criteria.")
     private val sortBy by cv(FileField.NAME as FileField<*>) { VarEnum(it) { FileField.FIELDS } }
     @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
-    private var lastVisited by cn<File?>(null).only(FileActor.DIRECTORY)
+    private var lastVisited by cn<File>(null).only(FileActor.DIRECTORY)
 
     private var item: Item? = null   // item, children of which are displayed
 

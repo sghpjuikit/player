@@ -51,6 +51,7 @@ import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.util.Duration.millis;
+import static sp.it.pl.layout.area.IOLayerUtilKt.xPutToStr;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
@@ -421,7 +422,7 @@ public class IOLayer extends StackPane {
                 // i.setOnMouseEntered(e -> a.playOpen());
                 // t.setOnMouseExited(e -> a.playClose());
 
-                output.sync(consumer(v -> a.playCloseDoOpen(runnable(() -> t.setText(oToStr(output))))));
+                output.sync(consumer(v -> a.playCloseDoOpen(runnable(() -> t.setText(xPutToStr(output))))));
                 output.sync(consumer(v ->
                     inputnodes.values().stream().map(in -> in.input).filter(i -> i.getSources().contains(output)).forEach(input ->
                         connections.getOpt(new Key<>(input,output)).ifPresent(c -> c.send())
@@ -479,7 +480,7 @@ public class IOLayer extends StackPane {
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, false));
 
-            t.setText(iToStr(input));
+            t.setText(xPutToStr(input));
         }
 
     }
@@ -655,14 +656,6 @@ public class IOLayer extends StackPane {
             editMove(e);
         }
 
-    }
-
-    private static String oToStr(Output<?> o) {
-        return APP.className.get(o.type) + " : " + o.getName() + "\n" + APP.instanceName.get(o.getValue());
-    }
-
-    private static String iToStr(Input<?> i) {
-        return APP.className.get(i.type) + " : " + i.name + "\n";
     }
 
 }

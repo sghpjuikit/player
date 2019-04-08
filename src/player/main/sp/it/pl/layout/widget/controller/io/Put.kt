@@ -1,32 +1,33 @@
 package sp.it.pl.layout.widget.controller.io
 
-import javafx.beans.property.ObjectProperty
-import javafx.beans.property.SimpleObjectProperty
 import sp.it.pl.util.reactive.Subscription
+import java.lang.reflect.Type
 import java.util.HashSet
 
 open class Put<T>: XPut<T> {
+    @JvmField val name: String
     @JvmField val type: Class<T>
-    @JvmField protected val `val`: ObjectProperty<T>
+    @JvmField var typeRaw: Type? = null
     @JvmField protected val monitors: MutableSet<(T) -> Unit>
+    private var `val`: T
 
-    constructor(type: Class<T>, init_val: T) {
+    constructor(type: Class<T>, name: String, initialValue: T) {
+        this.name = name
         this.type = type
-        this.`val` = SimpleObjectProperty(init_val)
+        this.`val` = initialValue
         this.monitors = HashSet()
     }
 
     var value: T
-        get() = `val`.get()
+        get() = `val`
         set(v) {
-            `val`.value = v
-            monitors.forEach { m -> m(v) }
+            `val` = v
+            monitors.forEach { it(v) }
         }
 
     fun sync(action: (T) -> Unit): Subscription {
-        monitors += action
         action(value)
-        return Subscription { monitors -= action }
+        return attach(action)
     }
 
     fun attach(action: (T) -> Unit): Subscription {

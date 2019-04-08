@@ -42,6 +42,8 @@ import sp.it.pl.web.WebBarInterpreter
 @ExperimentalController("Insufficient features and of questionable use")
 class WebReader(widget: Widget): SimpleController(widget) {
 
+    private val inputHtml = inputs.create<String>("Html") { loadHtml(it) }
+    private val inputUrl = inputs.create<String>("Url") { loadPage(it) }
     @FXML private lateinit var addressBar: TextField
     @FXML private lateinit var webView: WebView
     private var engine: WebEngine
@@ -75,8 +77,6 @@ class WebReader(widget: Widget): SimpleController(widget) {
         }
 
         // engine.documentProperty() sync { if (noBgr.get()) engine.setTransparentBgrColor() } on onClose
-        inputs.create<String>("Html") { loadHtml(it) }
-        inputs.create<String>("Url") { loadPage(it) }
 
         refresh()
     }

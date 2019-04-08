@@ -21,7 +21,6 @@ import sp.it.pl.gui.objects.tree.tree
 import sp.it.pl.gui.objects.tree.treeApp
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.FileExplorerFeature
 import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.main.IconFA
@@ -74,7 +73,7 @@ import javafx.stage.Window as WindowFX
 )
 class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, Opener {
     private val tree = buildTreeView<Any>()
-    private val outSelected: Output<Any?> = outputs.create(widget.id, "Selected", Any::class.java, null)
+    private val outSelected = outputs.create<Any>(widget.id, "Selected", null)
     private var highlighted: Node? = null
     val selectingNode = Subscribed { feature ->
         var selected: Node? = null

@@ -30,10 +30,10 @@ import sp.it.pl.util.units.seconds
 @ExperimentalController("Needs better skin and transparent background setting")
 class HtmlViewer(widget: Widget): SimpleController(widget) {
 
-    val editor = HTMLEditor()
-    val text = v("").initSync { editor.htmlText = it }
-    val input = inputs.create<String>("Html") { text.value = it ?: "" }
-    val output = outputs.create(widget.id, "Html", "")
+    private val editor = HTMLEditor()
+    private val text = v("").initSync { editor.htmlText = it }
+    private val input = inputs.create<String>("Html") { text.value = it ?: "" }
+    private val output = outputs.create(widget.id, "Html", "")
 
     init {
         root.prefSize = 600.scaleEM() x 500.scaleEM()

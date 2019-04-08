@@ -39,8 +39,6 @@ import sp.it.pl.layout.widget.Widget.Group.LIBRARY
 import sp.it.pl.layout.widget.Widget.Info
 import sp.it.pl.layout.widget.controller.LegacyController
 import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.controller.io.Input
-import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.scaleEM
@@ -104,9 +102,9 @@ private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, Table
 class LibraryView(widget: Widget): SimpleController(widget) {
 
     private val table = FilteredTable(MetadataGroup::class.java, VALUE)
-    private val outputSelectedGroup: Output<List<MetadataGroup>?> = outputs.create(widget.id, "Selected Group", listOf())
-    private val outputSelectedSongs: Output<List<Metadata>?> = outputs.create(widget.id, "Selected", listOf())
-    private val inputItems: Input<List<Metadata>?> = inputs.create("To display", listOf()) { setItems(it) }
+    private val outputSelectedGroup = outputs.create<List<MetadataGroup>>(widget.id, "Selected Groups", listOf())
+    private val outputSelectedSongs = outputs.create<List<Metadata>>(widget.id, "Selected Songs", listOf())
+    private val inputItems = inputs.create<List<Metadata>>("To display", listOf()) { setItems(it) }
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     val tableOrient by cv(NodeOrientation.INHERIT) { Vo(APP.ui.tableOrient) }

@@ -1,14 +1,19 @@
 package sp.it.pl.layout.widget.controller.io
 
 import sp.it.pl.util.type.isSubclassOf
+import sp.it.pl.util.type.type
 import java.util.HashMap
 import java.util.function.Consumer
 
 class Inputs {
     private val m = HashMap<String, Input<*>>()
 
-    inline fun <reified T> create(name: String, crossinline action: (T?) -> Unit) = create<T>(name, T::class.java, Consumer { action(it) })
-    inline fun <reified T> create(name: String, initialValue: T?, crossinline action: (T?) -> Unit) = create<T>(name, T::class.java, initialValue, Consumer { action(it) })
+    inline fun <reified T> create(name: String, crossinline action: (T?) -> Unit) = create<T>(name, T::class.java, Consumer { action(it) }).apply {
+        typeRaw = type<T?>()
+    }
+    inline fun <reified T> create(name: String, initialValue: T?, crossinline action: (T?) -> Unit) = create<T>(name, T::class.java, initialValue, Consumer { action(it) }).apply {
+        typeRaw = type<T?>()
+    }
 
     @Suppress("UNCHECKED_CAST")
     fun <T> create(name: String, type: Class<T>, action: Consumer<in T?>): Input<T?> {

@@ -55,6 +55,7 @@ import java.util.ArrayList
 )
 class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature {
 
+    private val inputValue = inputs.create<Configurable<Any>>("To configure") { configure(it) }
     @FXML private lateinit var groups: TreeView<Name>
     @FXML private lateinit var controls: Pane
     @FXML private lateinit var configsRootPane: AnchorPane
@@ -72,7 +73,6 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
         root.prefSize = 800.scaleEM() x 600.scaleEM()
         root.consumeScrolling()
 
-        inputs.create<Configurable<out Any>>("To configure", { configure(it) })
 
         fxmlLoaderForController(this).loadNoEx<Any>()
 

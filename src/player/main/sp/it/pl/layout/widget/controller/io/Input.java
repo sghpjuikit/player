@@ -9,7 +9,6 @@ import sp.it.pl.util.reactive.Subscription;
 import static sp.it.pl.util.functional.UtilKt.consumer;
 
 public class Input<T> extends Put<T> {
-	public final String name;
 	public final Map<Output<? extends T>,Subscription> sources = new HashMap<>();
 
 	public Input(String name, Class<T> c, Consumer<? super T> action) {
@@ -17,8 +16,7 @@ public class Input<T> extends Put<T> {
 	}
 
 	public Input(String name, Class<T> c, T init_val, Consumer<? super T> action) {
-		super(c, init_val);
-		this.name = name;
+		super(c, name, init_val);
 		attach(consumer(action));
 	}
 

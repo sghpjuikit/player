@@ -9,12 +9,8 @@ public class Output<T> extends Put<T> {
 	public final Id id;
 
 	public Output(UUID id, String name, Class<T> c) {
-		super(c, null);
+		super(c, name, null);
 		this.id = new Id(id, name);
-	}
-
-	public String getName() {
-		return id.name;
 	}
 
 	Subscription monitor(Input<T> input) {

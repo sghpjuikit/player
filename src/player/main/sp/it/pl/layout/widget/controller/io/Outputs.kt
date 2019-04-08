@@ -1,13 +1,16 @@
 package sp.it.pl.layout.widget.controller.io
 
 import sp.it.pl.util.type.isSuperclassOf
+import sp.it.pl.util.type.type
 import java.util.HashMap
 import java.util.UUID
 
 class Outputs {
     private val m = HashMap<String, Output<*>>()
 
-    inline fun <reified T> create(id: UUID, name: String, value: T?) = create(id, name, T::class.java, value)
+    inline fun <reified T> create(id: UUID, name: String, value: T?): Output<T?> = create(id, name, T::class.java, value).apply {
+        typeRaw = type<T?>()
+    }
 
     @Suppress("UNCHECKED_CAST")
     fun <T> create(id: UUID, name: String, type: Class<T>, value: T?): Output<T?> {

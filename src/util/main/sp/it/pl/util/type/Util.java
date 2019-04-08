@@ -497,7 +497,7 @@ public interface Util {
 		return null;
 	}
 
-	private static Class<?> getRawType(Type type) {
+	public static Class<?> getRawType(Type type) {
 		if (type instanceof Class<?>) {
 			return (Class<?>) type;
 		} else if (type instanceof ParameterizedType) {

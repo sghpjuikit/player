@@ -16,5 +16,6 @@ sourceSets {
 
 dependencies {
     compileOnly(rootProject)
+    compileOnly(project(":util"))
     compileOnly(files(projectDir.listFiles().filter { it.path.endsWith(".jar") }))
 }

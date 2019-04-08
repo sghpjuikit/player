@@ -26,13 +26,13 @@ import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaType
 
 fun <T: Any> c(initialValue: T): ConfS<T> = ConfS(initialValue).but(Constraint.ObjectNonNull())
-fun <T: Any?> cn(initialValue: T?): ConfS<T?> = ConfS(initialValue)
+fun <T: Any> cn(initialValue: T?): ConfS<T?> = ConfS(initialValue)
 fun <T: Any> cv(initialValue: T): ConfV<T, V<T>> = ConfV<T, V<T>>(initialValue, { v(it) }).but(Constraint.ObjectNonNull())
 fun <T: Any, W: WritableValue<T>> cv(initialValue: T, valueSupplier: (T) -> W): ConfV<T, W> = ConfV(initialValue, valueSupplier).but(Constraint.ObjectNonNull())
 fun <T: Any, W: ObservableValue<T>> cvro(initialValue: T, valueSupplier: (T) -> W): ConfVRO<T, W> = ConfVRO(initialValue, valueSupplier).but(Constraint.ObjectNonNull())
-fun <T: Any?> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(it) })
-fun <T: Any?, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueSupplier)
-fun <T: Any?, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
+fun <T: Any> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(it) })
+fun <T: Any, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueSupplier)
+fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
 fun <T: () -> Unit> cr(action: T): ConfR<T> = ConfR(action)
 inline fun <reified T: Any> cList(): ConfL<T> = ConfL(T::class.java)
 

@@ -45,7 +45,7 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
     private val thumb = Thumbnail()
 
     @IsConfig(name = "Custom image", info = "Image file to display.")
-    private var img by cn<File?>(null).only(FILE)
+    private var img by cn<File>(null).only(FILE)
     @IsConfig(name = "Fit from", info = "Image fitting.")
     private val fitFrom by cv(FitFrom.INSIDE)
 

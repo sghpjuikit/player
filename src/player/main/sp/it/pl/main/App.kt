@@ -518,7 +518,7 @@ class App: Application(), Configurable<Any> {
         add(Feature::class.java, { "Feature" })
         add(Collection::class.java) {
             val eType = getGenericPropertyType(it.javaClass)
-            val eName = if (eType==null || eType==Any::class.java) "Item" else className[eType]
+            val eName = if (eType==it.javaClass || eType==null || eType==Any::class.java) "Item" else className[eType]
             it.size.toString()+" "+plural(eName, it.size)
         }
     }

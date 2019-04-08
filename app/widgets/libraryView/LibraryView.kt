@@ -54,6 +54,7 @@ import sp.it.pl.util.collections.setTo
 import sp.it.pl.util.conf.Config
 import sp.it.pl.util.conf.EditMode
 import sp.it.pl.util.conf.IsConfig
+import sp.it.pl.util.conf.c
 import sp.it.pl.util.conf.cv
 import sp.it.pl.util.functional.Util.list
 import sp.it.pl.util.functional.Util.stream
@@ -126,13 +127,12 @@ class LibraryView(widget: Widget): SimpleController(widget) {
     // selected items as possible - when selection changes, we select all items
     // (previously selected) that are still in the table
     private var selIgnore = false
-    private var selIgnoreCanTurnBack = true
-    private var selOld: Set<Any?>? = null
+    private var selOld = setOf<Any?>()
     // restoring selection from previous session, we serialize string
     // representation and try to restore when application runs again
     // we restore only once
     @IsConfig(name = "Last selected", editable = EditMode.APP)
-    private var selLast = "null"
+    private var selLast by c("null")
     private var selLastRestored = false
 
     init {
@@ -185,7 +185,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                     if (!row.isSelected)
                         t.selectionModel.clearAndSelect(row.index)
 
-                    contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(filerListToSelectedNsort()))
+                    contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(filerSortInputList()))
                     contextMenuInstance.show(table, e)
                 }
             }
@@ -218,7 +218,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         table.onEventDown(KEY_PRESSED, DELETE) { APP.db.removeSongs(table.selectedItems.flatMap { it.grouped }) }
         table.onEventDown(DRAG_DETECTED, PRIMARY, false) {
             if (!table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY))) {
-                table.startDragAndDrop(COPY).setSongsAndFiles(filerListToSelectedNsort())
+                table.startDragAndDrop(COPY).setSongsAndFiles(filerSortInputList())
                 it.consume()
             }
         }
@@ -240,25 +240,13 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
         // forward selection
         val selectedItemsReducer = EventReducer.toLast<Void>(100.0) {
-            if (!selIgnore) {
-                outputSelectedSongs.value = filterList(inputItems.value, true)
-            }
-
-            if (selIgnoreCanTurnBack) {
-                selIgnoreCanTurnBack = false
-                selIgnore = false
-            }
+            outputSelectedGroup.value = table.selectedItemsCopy
+            outputSelectedSongs.value = filterList(inputItems.value, true)
         }
-        val selectedItemReducer = EventReducer.toLast<MetadataGroup>(100.0) {
-            if (!selIgnore) {
-                outputSelectedGroup.value = table.selectedItemsCopy
-                selLast = it?.getValueS("") ?: "null"
-            }
-        }
-        table.selectedItems.onChange { selectedItemsReducer.push(null) } on onClose
-        table.selectionModel.selectedItemProperty() sync { selectedItemReducer.push(it) } on onClose
+        table.selectedItems.onChange { if (!selIgnore) selectedItemsReducer.push(null) } on onClose
+        table.selectionModel.selectedItemProperty() sync { selLast = it?.getValueS("") ?: "null" } on onClose
 
-        applyData()
+        applyData(false)
     }
 
     override fun getFields(): Collection<Config<Any>> {
@@ -266,7 +254,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         return super.getFields()
     }
 
-    private fun applyData() {
+    private fun applyData(refreshItems: Boolean = true) {
         // rebuild value column
         table.getColumn(VALUE).ifPresent {
             val t = table.getColumnFactory<Any>().call(VALUE)
@@ -286,7 +274,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         table.filterPane.onItemChange = Consumer { }
         table.filterPane.growTo1() // TODO: fix class path exception, for now we remove onItemChange temporarily
         table.filterPane.clear()
-        setItems(inputItems.value)
+        if (refreshItems) setItems(inputItems.value)
         table.filterPane.onItemChange = c
     }
 
@@ -295,16 +283,13 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         if (list==null) return
 
         val f = fieldFilter.value
-        runNew  {
-            val mgs = stream(MetadataGroup.groupOf(f, list), MetadataGroup.groupsOf(f, list)).asSequence().toList()
-            val fl = filterList(list, true)
-            mgs to fl
+        runNew {
+            stream(MetadataGroup.groupOf(f, list), MetadataGroup.groupsOf(f, list)).asSequence().toList()
         } ui {
-            if (!it.first.isEmpty()) {
+            if (!it.isEmpty()) {
                 selectionStore()
-                table.setItemsRaw(it.first)
+                table.setItemsRaw(it)
                 selectionReStore()
-                outputSelectedSongs.value = it.second
             }
         }
     }
@@ -321,9 +306,9 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         }
     }
 
-    private fun filerListToSelectedNsort(): List<Metadata> = filterList(inputItems.value, false).sortedWith(APP.db.libraryComparator.value)
+    private fun filerSortInputList(): List<Metadata> = filterList(inputItems.value, false).sortedWith(APP.db.libraryComparator.value)
 
-    private fun playSelected() = play(filerListToSelectedNsort())
+    private fun playSelected() = play(filerSortInputList())
 
     private fun play(items: List<Metadata>) {
         if (!items.isEmpty())
@@ -331,39 +316,38 @@ class LibraryView(widget: Widget): SimpleController(widget) {
     }
 
     private fun selectionStore() {
-        // remember selected
         selOld = table.selectedItems.mapTo(HashSet()) { it.value }
         selIgnore = true
-        selIgnoreCanTurnBack = false
     }
 
     private fun selectionReStore() {
         if (table.items.isEmpty()) return
 
-        // restore last selected from previous session
-        if (!selLastRestored && "null"!=selLast) {
+        // restore last selected from previous session, runs once
+        if (!selLastRestored) {
+            selIgnore = false
+            selLastRestored = true
             table.items.forEachIndexed { i, mg ->
                 if (mg.getValueS("")==selLast) {
                     table.selectionModel.select(i)
-                    selLastRestored = true // restore only once
-                    return
                 }
             }
+            return
+        }
 
-        // update selected - restore every available old one
-        } else {
-            table.items.forEachIndexed { i, mg ->
-                if (mg.value in selOld!!) {
-                    table.selectionModel.select(i)
-                }
+        // restore selection
+        table.items.forEachIndexed { i, mg ->
+            if (mg.value in selOld) {
+                table.selectionModel.select(i)
             }
         }
         // performance optimization - prevents refreshes of a lot of items
         if (table.selectionModel.isEmpty)
             table.selectionModel.select(0)
 
-        // selIgnore = false;
-        selIgnoreCanTurnBack = true
+        selIgnore = false
+        outputSelectedGroup.value = table.selectedItemsCopy
+        outputSelectedSongs.value = filterList(inputItems.value, true)
     }
 
     companion object {

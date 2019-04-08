@@ -96,13 +96,6 @@ public class ImprovedTableRow<T> extends TableRow<T> {
 		updateStyleRules();
 	}
 
-	// TODO: there are cases where we need this (someone dutiful pls investigate)
-	@Override
-	protected void layoutChildren() {
-		super.layoutChildren();
-		updateStyleRules();
-	}
-
 	/**
 	 * Updates pseudoclasses based on the rules. Use to manually refresh the
 	 * styles. This is necessary if the condition of the rule stops applying.

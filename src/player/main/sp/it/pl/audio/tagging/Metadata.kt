@@ -246,11 +246,10 @@ class Metadata: Song, Serializable {
         // track
         val tr = loadAsString(this, FieldKey.TRACK)
         if (tr!=null) {
-            val i = tr.indexOf('/')
-            if (i!=-1) {
+            if ('/' in tr) {
                 // some apps use TRACK for "x/y" string format, we cover that
-                track = tr.substring(0, i).toIntOrNull()
-                tracksTotal = tr.substring(i+1, tr.length).toIntOrNull()
+                track = tr.substringBefore('/').toIntOrNull()
+                tracksTotal = tr.substringAfter('/').toIntOrNull()
             } else {
                 track = tr.toIntOrNull()
                 tracksTotal = loadAsInt(this, FieldKey.TRACK_TOTAL)
@@ -260,11 +259,10 @@ class Metadata: Song, Serializable {
         // disc
         val dr = loadAsString(this, FieldKey.DISC_NO)
         if (dr!=null) {
-            val j = dr.indexOf('/')
-            if (j!=-1) {
+            if ('/' in dr) {
                 // some apps use DISC_NO for "x/y" string format, we cover that
-                disc = dr.substring(0, j).toIntOrNull()
-                discsTotal = dr.substring(j+1, dr.length).toIntOrNull()
+                disc = dr.substringBefore('/').toIntOrNull()
+                discsTotal = dr.substringAfter('/').toIntOrNull()
             } else {
                 disc = dr.toIntOrNull()
                 discsTotal = loadAsInt(this, FieldKey.DISC_TOTAL)

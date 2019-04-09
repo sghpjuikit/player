@@ -1,4 +1,4 @@
-package sp.it.util.demo;
+package sp.it.demo;
 
 import java.io.File;
 import javafx.application.Application;

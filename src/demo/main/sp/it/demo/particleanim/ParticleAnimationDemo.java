@@ -1,4 +1,4 @@
-package sp.it.util.demo.particleanim;
+package sp.it.demo.particleanim;
 
 import java.util.ArrayList;
 import java.util.List;

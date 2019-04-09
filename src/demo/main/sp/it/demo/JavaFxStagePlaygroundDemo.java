@@ -1,4 +1,4 @@
-package sp.it.util.demo;
+package sp.it.demo;
 
 import javafx.application.Application;
 import javafx.scene.Scene;

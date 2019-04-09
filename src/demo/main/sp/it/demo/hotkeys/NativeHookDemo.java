@@ -1,4 +1,4 @@
-package sp.it.util.demo.hotkeys;
+package sp.it.demo.hotkeys;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

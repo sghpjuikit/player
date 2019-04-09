@@ -1,4 +1,4 @@
-package sp.it.util.demo;
+package sp.it.demo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;

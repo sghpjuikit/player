@@ -56,7 +56,7 @@ public interface Util {
 	 * Additional provided arguments are name of the property and its non-erased generic type.
 	 * Javafx properties are obtained from public nameProperty() methods using reflection.
 	 */
-	@SuppressWarnings({"UnnecessaryLocalVariable", "unchecked", "ConstantConditions"})
+	@SuppressWarnings({"UnnecessaryLocalVariable", "ConstantConditions", "SpellCheckingInspection"})
 	static void forEachJavaFXProperty(Object o, TriConsumer<Observable,String,Class> action) {
 		// Standard JavaFX Properties
 		for (Method method : o.getClass().getMethods()) {
@@ -497,7 +497,7 @@ public interface Util {
 		return null;
 	}
 
-	public static Class<?> getRawType(Type type) {
+	static Class<?> getRawType(Type type) {
 		if (type instanceof Class<?>) {
 			return (Class<?>) type;
 		} else if (type instanceof ParameterizedType) {

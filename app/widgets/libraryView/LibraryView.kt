@@ -114,7 +114,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
     val tableOrigIndex by cv(true) { Vo(APP.ui.tableOrigIndex) }
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
     val tableShowHeader by cv(true) { Vo(APP.ui.tableShowHeader) }
-    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table content information.")
+    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
     val tableShowFooter by cv(true) { Vo(APP.ui.tableShowFooter) }
     @IsConfig(name = "Field")
     val fieldFilter by cv(CATEGORY as Metadata.Field<*>) {

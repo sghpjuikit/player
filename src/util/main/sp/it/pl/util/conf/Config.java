@@ -36,8 +36,8 @@ import static javafx.collections.FXCollections.observableArrayList;
 import static sp.it.pl.util.conf.Config.VarList.NULL_SUPPLIER;
 import static sp.it.pl.util.dev.DebugKt.logger;
 import static sp.it.pl.util.dev.FailKt.failIf;
-import static sp.it.pl.util.functional.Try.Java.ok;
 import static sp.it.pl.util.functional.Try.Java.error;
+import static sp.it.pl.util.functional.Try.Java.ok;
 import static sp.it.pl.util.functional.Util.firstNotNull;
 import static sp.it.pl.util.functional.Util.forEachBoth;
 import static sp.it.pl.util.functional.Util.list;
@@ -465,9 +465,11 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 			super(propertyType, name, c, constraints, defaultValue, category);
 			value = property;
 
-			// support enumeration by delegation if property supports is
-			if (value instanceof EnumerableValue)
+			if (value instanceof EnumerableValue) {
 				valueEnumerator = ((EnumerableValue<T>) value)::enumerateValues;
+			} else if(isEnum(propertyType)) {
+				valueEnumerator = () -> list(getEnumConstants(propertyType));
+			}
 		}
 
 		/**
@@ -482,9 +484,11 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 			super(propertyType, name, c, constraints, property.getValue(), category);
 			value = property;
 
-			// support enumeration by delegation if property supports is
-			if (value instanceof EnumerableValue)
+			if (value instanceof EnumerableValue) {
 				valueEnumerator = ((EnumerableValue<T>) value)::enumerateValues;
+			} else if(isEnum(propertyType)) {
+				valueEnumerator = () -> list(getEnumConstants(propertyType));
+			}
 		}
 
 		/**
@@ -498,9 +502,11 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 			super(propertyType, name, gui_name, property.getValue(), category, info, editable);
 			value = property;
 
-			// support enumeration by delegation if property supports is
-			if (value instanceof EnumerableValue)
+			if (value instanceof EnumerableValue) {
 				valueEnumerator = ((EnumerableValue<T>) value)::enumerateValues;
+			} else if(isEnum(propertyType)) {
+				valueEnumerator = () -> list(getEnumConstants(propertyType));
+			}
 		}
 
 		/**

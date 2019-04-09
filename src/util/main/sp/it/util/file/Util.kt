@@ -107,7 +107,7 @@ fun URI.toFileOrNull() =
             null
         }
 
-/** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown */
+/** @return file denoting the resource of this uri or null if [MalformedURLException] is thrown */
 fun File.toURLOrNull() =
         try {
             toURI().toURL()

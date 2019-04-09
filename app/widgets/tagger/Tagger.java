@@ -476,7 +476,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
             if ((boolean) trackF.getUserData())        w.setTrack(trackF.getText());
             if ((boolean) tracksTotalF.getUserData())  w.setTracksTotal(tracksTotalF.getText());
             if ((boolean) discF.getUserData())         w.setDisc(discF.getText());
-            if ((boolean) discsTotalF.getUserData())   w.setDiscsTotal(discF.getText());
+            if ((boolean) discsTotalF.getUserData())   w.setDiscsTotal(discsTotalF.getText());
             if ((boolean) genreF.getUserData())        w.setGenre(genreF.getText());
             if ((boolean) categoryF.getUserData())     w.setCategory(categoryF.getText());
             if ((boolean) yearF.getUserData())         w.setYear(yearF.getText());

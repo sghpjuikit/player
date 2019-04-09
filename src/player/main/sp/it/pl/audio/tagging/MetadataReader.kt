@@ -125,23 +125,19 @@ fun addSongsToLibTask(songs: Collection<Song>) = object: Task<AddSongsToLibResul
         for (song in songs) {
             if (isCancelled) break
 
-            try {
-                var m = APP.db.getSong(song)
-                if (m==null) {
-                    MetadataWriter.useNoRefresh(song) { it.setLibraryAddedNowIfEmpty() }
-                    m = song.readMetadata()
+            var m = APP.db.getSong(song)
+            if (m==null) {
+                MetadataWriter.useNoRefresh(song) { it.setLibraryAddedNowIfEmpty() }
+                m = song.readMetadata()
 
-                    if (m.isEmpty()) skipped.add(song)
-                    else converted.add(m)
+                if (m.isEmpty()) skipped += song
+                else converted += m
 
-                } else {
-                    skipped.add(song)
-                }
-            } catch (e: Exception) {
-                logger.warn(e) { "Problem during reading tag of $song" }
+            } else {
+                skipped += song
             }
 
-            processed.add(song)
+            processed += song
 
             updateMessage(all.size, processed.size, skipped.size)
             updateProgress(processed.size.toLong(), all.size.toLong())
@@ -164,7 +160,7 @@ fun addSongsToLibTask(songs: Collection<Song>) = object: Task<AddSongsToLibResul
         sb += done
         sb += " / "
         sb += all
-        sb += " Removed: "
+        sb += " Skipped: "
         sb += skipped
         updateMessage(sb.toString())
     }

@@ -3,7 +3,7 @@ package sp.it.pl.audio.playback
 import javafx.beans.property.SimpleDoubleProperty
 import sp.it.pl.audio.playback.BalanceProperty.Companion.MAX
 import sp.it.pl.audio.playback.BalanceProperty.Companion.MIN
-import sp.it.pl.util.Util.clip
+import sp.it.util.Util.clip
 
 /** Double property for playback left-right volume balance. Value is always within valid range [MIN]-[MAX]. */
 class BalanceProperty: SimpleDoubleProperty {

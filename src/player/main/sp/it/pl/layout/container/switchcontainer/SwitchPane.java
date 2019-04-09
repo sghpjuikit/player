@@ -21,10 +21,10 @@ import sp.it.pl.layout.area.Layouter;
 import sp.it.pl.layout.area.WidgetArea;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.util.access.V;
-import sp.it.pl.util.animation.Anim;
-import sp.it.pl.util.animation.interpolator.CircularInterpolator;
-import sp.it.pl.util.async.executor.FxTimer;
+import sp.it.util.access.V;
+import sp.it.util.animation.Anim;
+import sp.it.util.animation.interpolator.CircularInterpolator;
+import sp.it.util.async.executor.FxTimer;
 import static java.lang.Double.NaN;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
@@ -38,14 +38,14 @@ import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.Util.clip;
-import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_IN;
-import static sp.it.pl.util.animation.interpolator.EasingMode.EASE_OUT;
-import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
-import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
-import static sp.it.pl.util.ui.Util.setAnchors;
+import static sp.it.util.Util.clip;
+import static sp.it.util.animation.interpolator.EasingMode.EASE_IN;
+import static sp.it.util.animation.interpolator.EasingMode.EASE_OUT;
+import static sp.it.util.async.AsyncKt.runFX;
+import static sp.it.util.async.executor.FxTimer.fxTimer;
+import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.ui.Util.setAnchors;
 
 /**
  * Pane with switchable content.

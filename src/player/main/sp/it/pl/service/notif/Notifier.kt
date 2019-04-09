@@ -18,19 +18,19 @@ import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.hasFeature
 import sp.it.pl.main.APP
 import sp.it.pl.service.ServiceBase
-import sp.it.pl.util.access.VarAction
-import sp.it.pl.util.access.VarEnum
-import sp.it.pl.util.access.initSync
-import sp.it.pl.util.action.IsAction
-import sp.it.pl.util.conf.EditMode
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.c
-import sp.it.pl.util.conf.cv
-import sp.it.pl.util.reactive.Disposer
-import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.ui.lay
-import sp.it.pl.util.ui.stackPane
-import sp.it.pl.util.units.millis
+import sp.it.util.access.VarAction
+import sp.it.util.access.VarEnum
+import sp.it.util.access.initSync
+import sp.it.util.action.IsAction
+import sp.it.util.conf.EditMode
+import sp.it.util.conf.IsConfig
+import sp.it.util.conf.c
+import sp.it.util.conf.cv
+import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.attach
+import sp.it.util.ui.lay
+import sp.it.util.ui.stackPane
+import sp.it.util.units.millis
 
 /** Provides notification functionality. */
 class Notifier: ServiceBase("Notifications", true) {

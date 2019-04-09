@@ -11,7 +11,7 @@ import sp.it.pl.layout.area.WidgetArea;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.Widget;
 import static java.util.Collections.singletonMap;
-import static sp.it.pl.util.ui.Util.setAnchors;
+import static sp.it.util.ui.Util.setAnchors;
 
 
 /**

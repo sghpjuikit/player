@@ -12,10 +12,10 @@ import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY
 import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.layout.widget.feature.SongReader
-import sp.it.pl.util.async.runOn
-import sp.it.pl.util.identityHashCode
-import sp.it.pl.util.ui.fxml.ConventionFxmlLoader
-import sp.it.pl.util.ui.setAnchors
+import sp.it.util.async.runOn
+import sp.it.util.identityHashCode
+import sp.it.util.ui.fxml.ConventionFxmlLoader
+import sp.it.util.ui.setAnchors
 
 /** Basic display for song information. */
 class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), SongReader {

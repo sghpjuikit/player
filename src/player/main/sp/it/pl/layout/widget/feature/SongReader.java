@@ -3,7 +3,7 @@ package sp.it.pl.layout.widget.feature;
 import java.util.List;
 import sp.it.pl.audio.Song;
 import static java.util.Collections.singletonList;
-import static sp.it.pl.util.functional.Util.listRO;
+import static sp.it.util.functional.Util.listRO;
 
 /**
  * Capable of reading data to song tags

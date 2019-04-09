@@ -35,7 +35,7 @@ import javafx.scene.Node;
 import javafx.scene.control.skin.TextFieldSkin;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.HitInfo;
-import static sp.it.pl.util.ui.UtilKt.pseudoclass;
+import static sp.it.util.ui.UtilKt.pseudoclass;
 
 public class DecoratedTextFieldSkin extends TextFieldSkin {
 

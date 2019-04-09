@@ -25,16 +25,16 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.util.Callback;
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow;
-import sp.it.pl.util.Util;
-import sp.it.pl.util.access.fieldvalue.ColumnField;
+import sp.it.util.Util;
+import sp.it.util.access.fieldvalue.ColumnField;
 import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.Util.zeroPad;
-import static sp.it.pl.util.type.Util.getFieldValue;
-import static sp.it.pl.util.ui.Util.computeFontWidth;
-import static sp.it.pl.util.ui.Util.selectRows;
+import static sp.it.util.Util.zeroPad;
+import static sp.it.util.type.Util.getFieldValue;
+import static sp.it.util.ui.Util.computeFontWidth;
+import static sp.it.util.ui.Util.selectRows;
 
 public class ImprovedTable<T> extends TableView<T> {
 

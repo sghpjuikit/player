@@ -3,15 +3,15 @@ package sp.it.pl.plugin.waifu2k
 import sp.it.pl.main.APP
 import sp.it.pl.main.configure
 import sp.it.pl.plugin.PluginBase
-import sp.it.pl.util.action.Action
-import sp.it.pl.util.async.runNew
-import sp.it.pl.util.conf.ConfigurableBase
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.cvn
-import sp.it.pl.util.conf.only
-import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.system.runAsProgram
-import sp.it.pl.util.validation.Constraint.FileActor.FILE
+import sp.it.util.action.Action
+import sp.it.util.async.runNew
+import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.IsConfig
+import sp.it.util.conf.cvn
+import sp.it.util.conf.only
+import sp.it.util.reactive.attach
+import sp.it.util.system.runAsProgram
+import sp.it.util.validation.Constraint.FileActor.FILE
 import java.io.File
 
 class Waifu2kPlugin: PluginBase("Waifu2k", false) {

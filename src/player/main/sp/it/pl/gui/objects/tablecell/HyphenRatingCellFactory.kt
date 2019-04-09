@@ -4,9 +4,9 @@ import javafx.geometry.Pos
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.util.parsing.StringParseStrategy
-import sp.it.pl.util.parsing.StringParseStrategy.From
-import sp.it.pl.util.parsing.StringParseStrategy.To
+import sp.it.util.parsing.StringParseStrategy
+import sp.it.util.parsing.StringParseStrategy.From
+import sp.it.util.parsing.StringParseStrategy.To
 import java.lang.Math.round
 
 /** Cell for rating displaying the value as text from '' to '*****'. */

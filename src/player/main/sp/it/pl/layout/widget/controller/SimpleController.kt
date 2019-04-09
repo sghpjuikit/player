@@ -4,20 +4,20 @@ import javafx.scene.layout.StackPane
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.io.Inputs
 import sp.it.pl.layout.widget.controller.io.Outputs
-import sp.it.pl.util.conf.Config
-import sp.it.pl.util.conf.ConfigValueSource
-import sp.it.pl.util.conf.MultiConfigurable
-import sp.it.pl.util.file.div
-import sp.it.pl.util.file.toURLOrNull
-import sp.it.pl.util.reactive.Disposer
-import sp.it.pl.util.ui.fxml.ConventionFxmlLoader
+import sp.it.util.conf.Config
+import sp.it.util.conf.ConfigValueSource
+import sp.it.util.conf.MultiConfigurable
+import sp.it.util.file.div
+import sp.it.util.file.toURLOrNull
+import sp.it.util.reactive.Disposer
+import sp.it.util.ui.fxml.ConventionFxmlLoader
 import java.util.HashMap
 
 /**
  * Base controller implementation that provides
  * - [root]
  * - support for automatic restoration of configurable properties, using delegated configurable properties, see
- * [sp.it.pl.util.conf.cv] family of methods. This is [MultiConfigurable] and uses [widget] as [configurableValueStore].
+ * [sp.it.util.conf.cv] family of methods. This is [MultiConfigurable] and uses [widget] as [configurableValueStore].
  */
 open class SimpleController(widget: Widget): Controller(widget), MultiConfigurable {
 

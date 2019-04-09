@@ -2,13 +2,13 @@ package sp.it.pl.plugin
 
 import mu.KLogging
 import sp.it.pl.main.APP
-import sp.it.pl.util.access.initSync
-import sp.it.pl.util.access.v
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.cv
-import sp.it.pl.util.dev.Idempotent
-import sp.it.pl.util.file.Util.isValidatedDirectory
-import sp.it.pl.util.functional.ifFalse
+import sp.it.util.access.initSync
+import sp.it.util.access.v
+import sp.it.util.conf.IsConfig
+import sp.it.util.conf.cv
+import sp.it.util.dev.Idempotent
+import sp.it.util.file.Util.isValidatedDirectory
+import sp.it.util.functional.ifFalse
 
 abstract class PluginBase(override val name: String, isEnabledByDefault: Boolean): Plugin {
 

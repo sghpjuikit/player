@@ -9,16 +9,16 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.SkinBase
 import javafx.scene.layout.StackPane
 import javafx.scene.shape.Arc
-import sp.it.pl.util.reactive.Disposer
-import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.reactive.on
-import sp.it.pl.util.reactive.sync
-import sp.it.pl.util.ui.lay
-import sp.it.pl.util.ui.maxSize
-import sp.it.pl.util.ui.stackPane
-import sp.it.pl.util.ui.x
-import sp.it.pl.util.units.millis
-import sp.it.pl.util.units.seconds
+import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.attach
+import sp.it.util.reactive.on
+import sp.it.util.reactive.sync
+import sp.it.util.ui.lay
+import sp.it.util.ui.maxSize
+import sp.it.util.ui.stackPane
+import sp.it.util.ui.x
+import sp.it.util.units.millis
+import sp.it.util.units.seconds
 
 /** Very simple custom [ProgressIndicator]. */
 class Spinner: ProgressIndicator {

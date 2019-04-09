@@ -1,8 +1,8 @@
 package sp.it.pl.gui.itemnode
 
 import javafx.scene.Node
-import sp.it.pl.util.conf.Config
-import sp.it.pl.util.functional.invoke
+import sp.it.util.conf.Config
+import sp.it.util.functional.invoke
 import java.util.function.Consumer
 
 /** Graphics with a value, usually an ui editor. */

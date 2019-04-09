@@ -23,22 +23,22 @@ import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.container.switchcontainer.SwitchContainer;
 import sp.it.pl.layout.container.uncontainer.UniContainer;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.util.dev.Blocks;
-import sp.it.pl.util.functional.Try;
-import sp.it.pl.util.serialize.xstream.BooleanPropertyConverter;
-import sp.it.pl.util.serialize.xstream.DoublePropertyConverter;
-import sp.it.pl.util.serialize.xstream.IntegerPropertyConverter;
-import sp.it.pl.util.serialize.xstream.LongPropertyConverter;
-import sp.it.pl.util.serialize.xstream.ObjectPropertyConverter;
-import sp.it.pl.util.serialize.xstream.ObservableListConverter;
-import sp.it.pl.util.serialize.xstream.StringPropertyConverter;
-import sp.it.pl.util.serialize.xstream.VConverter;
+import sp.it.util.dev.Blocks;
+import sp.it.util.functional.Try;
+import sp.it.util.serialize.xstream.BooleanPropertyConverter;
+import sp.it.util.serialize.xstream.DoublePropertyConverter;
+import sp.it.util.serialize.xstream.IntegerPropertyConverter;
+import sp.it.util.serialize.xstream.LongPropertyConverter;
+import sp.it.util.serialize.xstream.ObjectPropertyConverter;
+import sp.it.util.serialize.xstream.ObservableListConverter;
+import sp.it.util.serialize.xstream.StringPropertyConverter;
+import sp.it.util.serialize.xstream.VConverter;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static sp.it.pl.util.dev.DebugKt.logger;
-import static sp.it.pl.util.file.Util.readFileLines;
-import static sp.it.pl.util.functional.Try.Java.error;
-import static sp.it.pl.util.functional.Try.Java.ok;
+import static sp.it.util.dev.DebugKt.logger;
+import static sp.it.util.file.Util.readFileLines;
+import static sp.it.util.functional.Try.Java.error;
+import static sp.it.util.functional.Try.Java.ok;
 
 public final class CoreSerializerXml implements Core {
 

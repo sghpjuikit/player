@@ -2,8 +2,8 @@ package sp.it.pl.layout.widget.controller.io;
 
 import java.util.Objects;
 import java.util.UUID;
-import sp.it.pl.util.reactive.Subscription;
-import static sp.it.pl.util.functional.UtilKt.consumer;
+import sp.it.util.reactive.Subscription;
+import static sp.it.util.functional.UtilKt.consumer;
 
 public class Output<T> extends Put<T> {
 	public final Id id;

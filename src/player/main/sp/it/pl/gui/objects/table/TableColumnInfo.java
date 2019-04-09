@@ -6,16 +6,16 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import kotlin.Pair;
-import sp.it.pl.util.collections.mapset.MapSet;
-import sp.it.pl.util.functional.Functors.Ƒ1;
+import sp.it.util.collections.mapset.MapSet;
+import sp.it.util.functional.Functors.Ƒ1;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
-import static sp.it.pl.util.functional.Util.map;
-import static sp.it.pl.util.functional.Util.split;
-import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.functional.Util.toIndexedStream;
-import static sp.it.pl.util.functional.Util.toS;
+import static sp.it.util.functional.Util.map;
+import static sp.it.util.functional.Util.split;
+import static sp.it.util.functional.Util.stream;
+import static sp.it.util.functional.Util.toIndexedStream;
+import static sp.it.util.functional.Util.toS;
 
 /**
  * Data structure for holding complete table column information, mostly for serializing and deserializing purposes.

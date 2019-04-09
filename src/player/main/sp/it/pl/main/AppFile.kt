@@ -5,16 +5,16 @@ import javafx.scene.image.Image
 import javafx.stage.FileChooser
 import mu.KotlinLogging
 import sp.it.pl.audio.tagging.AudioFileFormat
-import sp.it.pl.util.access.VarEnum
-import sp.it.pl.util.file.Util
-import sp.it.pl.util.file.Util.getFilesR
-import sp.it.pl.util.file.childOf
-import sp.it.pl.util.file.listChildren
-import sp.it.pl.util.file.parentDirOrRoot
-import sp.it.pl.util.file.type.MimeTypes
-import sp.it.pl.util.file.type.mimeType
-import sp.it.pl.util.functional.Functors
-import sp.it.pl.util.system.Os
+import sp.it.util.access.VarEnum
+import sp.it.util.file.Util
+import sp.it.util.file.Util.getFilesR
+import sp.it.util.file.childOf
+import sp.it.util.file.listChildren
+import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.type.MimeTypes
+import sp.it.util.file.type.mimeType
+import sp.it.util.functional.Functors
+import sp.it.util.system.Os
 import java.io.File
 import java.io.IOException
 import java.util.stream.Stream
@@ -159,8 +159,8 @@ fun writeImage(img: Image, file: File) {
 /**
  * Pool of file filters intended for simple enum-like file filter selection in UI.
  *
- * Because we can not yet serialize functions (see [sp.it.pl.util.functional.Functors] and
- * [sp.it.pl.util.parsing.Converter]), it is useful to define predicates not from function pool,
+ * Because we can not yet serialize functions (see [sp.it.util.functional.Functors] and
+ * [sp.it.util.parsing.Converter]), it is useful to define predicates not from function pool,
  * but hardcoded filters, which are enumerable and we look up by name.
  */
 object FileFilters {

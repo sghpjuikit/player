@@ -16,20 +16,20 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.main.APP
 import sp.it.pl.main.infoIcon
-import sp.it.pl.util.conf.MultiConfigurable
-import sp.it.pl.util.reactive.consumeScrolling
-import sp.it.pl.util.reactive.onEventDown
-import sp.it.pl.util.system.copyToSysClipboard
-import sp.it.pl.util.toLocalDateTime
-import sp.it.pl.util.ui.Util.layVertically
-import sp.it.pl.util.ui.hBox
-import sp.it.pl.util.ui.label
-import sp.it.pl.util.ui.lay
-import sp.it.pl.util.ui.scrollPane
-import sp.it.pl.util.ui.stackPane
-import sp.it.pl.util.ui.vBox
-import sp.it.pl.util.units.javafx
-import sp.it.pl.util.units.toHMSMs
+import sp.it.util.conf.MultiConfigurable
+import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.onEventDown
+import sp.it.util.system.copyToSysClipboard
+import sp.it.util.toLocalDateTime
+import sp.it.util.ui.Util.layVertically
+import sp.it.util.ui.hBox
+import sp.it.util.ui.label
+import sp.it.util.ui.lay
+import sp.it.util.ui.scrollPane
+import sp.it.util.ui.stackPane
+import sp.it.util.ui.vBox
+import sp.it.util.units.javafx
+import sp.it.util.units.toHMSMs
 
 class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>(), MultiConfigurable {
 

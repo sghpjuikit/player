@@ -12,15 +12,15 @@ import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Song;
-import sp.it.pl.util.reactive.Subscription;
+import sp.it.util.reactive.Subscription;
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import static sp.it.pl.audio.playback.VolumeProperty.linToLog;
-import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.dev.DebugKt.logger;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
-import static sp.it.pl.util.reactive.UtilKt.syncTo;
+import static sp.it.util.async.AsyncKt.runFX;
+import static sp.it.util.dev.DebugKt.logger;
+import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncTo;
 
 public class JavaFxPlayer implements GeneralPlayer.Play {
 

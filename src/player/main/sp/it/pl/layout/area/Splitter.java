@@ -14,8 +14,8 @@ import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.util.access.V;
-import sp.it.pl.util.collections.map.PropertyMap;
+import sp.it.util.access.V;
+import sp.it.util.collections.map.PropertyMap;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_RIGHT;
@@ -28,13 +28,13 @@ import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.access.SequentialValue.next;
-import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
-import static sp.it.pl.util.reactive.UtilKt.syncTo;
-import static sp.it.pl.util.ui.Util.setAnchor;
-import static sp.it.pl.util.ui.Util.setAnchors;
-import static sp.it.pl.util.ui.UtilKt.pseudoclass;
+import static sp.it.util.access.SequentialValue.next;
+import static sp.it.util.async.AsyncKt.runFX;
+import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncTo;
+import static sp.it.util.ui.Util.setAnchor;
+import static sp.it.util.ui.Util.setAnchors;
+import static sp.it.util.ui.UtilKt.pseudoclass;
 
 public final class Splitter extends ContainerNodeBase<BiContainer> {
 

@@ -28,10 +28,10 @@ import javafx.scene.layout.Pane;
 import javafx.scene.text.TextAlignment;
 import sp.it.pl.gui.objects.contextmenu.SelectionMenuItem;
 import sp.it.pl.gui.objects.table.TableColumnInfo.ColumnInfo;
-import sp.it.pl.util.Sort;
-import sp.it.pl.util.access.fieldvalue.ColumnField;
-import sp.it.pl.util.access.fieldvalue.ObjectField;
-import sp.it.pl.util.functional.Functors.Ƒ1;
+import sp.it.util.Sort;
+import sp.it.util.access.fieldvalue.ColumnField;
+import sp.it.util.access.fieldvalue.ObjectField;
+import sp.it.util.functional.Functors.Ƒ1;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Side.BOTTOM;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -40,12 +40,12 @@ import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.dev.FailKt.noNull;
-import static sp.it.pl.util.functional.Util.SAME;
-import static sp.it.pl.util.functional.Util.by;
-import static sp.it.pl.util.functional.Util.map;
-import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.type.Util.invokeMethodP0;
+import static sp.it.util.dev.FailKt.noNull;
+import static sp.it.util.functional.Util.SAME;
+import static sp.it.util.functional.Util.by;
+import static sp.it.util.functional.Util.map;
+import static sp.it.util.functional.Util.stream;
+import static sp.it.util.type.Util.invokeMethodP0;
 
 /**
  * Table for objects using {@link ObjectField}. This facilitates column creation, sorting and
@@ -284,7 +284,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * Comparator for ordering items reflecting this table's sort order.
 	 * Read only, changing value will have no effect.
 	 * <p/>
-	 * The value is never null, rather {@link sp.it.pl.util.functional.Util#SAME} is used to indicate no
+	 * The value is never null, rather {@link sp.it.util.functional.Util#SAME} is used to indicate no
 	 * particular order.
 	 */
 	public final ObjectProperty<Comparator<? super T>> itemsComparator = new SimpleObjectProperty<>(SAME);
@@ -310,7 +310,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * Sorts the items by the column.
 	 * Same as {@link #sortBy(javafx.scene.control.TableColumn,
 	 * javafx.scene.control.TableColumn.SortType)}, but uses
-	 * {@link #getColumn(sp.it.pl.util.access.fieldvalue.ObjectField)} for column lookup.
+	 * {@link #getColumn(sp.it.util.access.fieldvalue.ObjectField)} for column lookup.
 	 */
 	public void sortBy(ObjectField<T,?> field, SortType type) {
 		getColumn(field).ifPresent(c -> sortBy(c, type));

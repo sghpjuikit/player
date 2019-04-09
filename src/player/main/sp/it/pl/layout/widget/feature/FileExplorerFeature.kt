@@ -1,6 +1,6 @@
 package sp.it.pl.layout.widget.feature
 
-import sp.it.pl.util.file.Util.getCommonFile
+import sp.it.util.file.Util.getCommonFile
 import java.io.File
 
 @Feature(

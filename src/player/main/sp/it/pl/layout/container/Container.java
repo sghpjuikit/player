@@ -14,7 +14,7 @@ import sp.it.pl.layout.area.ContainerNode;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.util.type.ClassName;
+import sp.it.util.type.ClassName;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
@@ -23,9 +23,9 @@ import static sp.it.pl.layout.widget.EmptyWidgetKt.getEmptyWidgetFactory;
 import static sp.it.pl.main.AppDragKt.getText;
 import static sp.it.pl.main.AppDragKt.hasText;
 import static sp.it.pl.main.AppDragKt.installDrag;
-import static sp.it.pl.util.functional.Util.list;
-import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.functional.UtilKt.consumer;
+import static sp.it.util.functional.Util.list;
+import static sp.it.util.functional.Util.stream;
+import static sp.it.util.functional.UtilKt.consumer;
 
 /**
  * Component able to store other Components.

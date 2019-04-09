@@ -9,20 +9,20 @@ import sp.it.pl.layout.widget.controller.io.Outputs
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.appProgressIndicator
-import sp.it.pl.util.Locatable
-import sp.it.pl.util.access.v
-import sp.it.pl.util.animation.Anim.Companion.anim
-import sp.it.pl.util.animation.interpolator.ElasticInterpolator
-import sp.it.pl.util.conf.CachedConfigurable
-import sp.it.pl.util.reactive.on
-import sp.it.pl.util.reactive.onChange
-import sp.it.pl.util.reactive.sync
-import sp.it.pl.util.ui.hBox
-import sp.it.pl.util.ui.label
-import sp.it.pl.util.ui.lay
-import sp.it.pl.util.ui.setScaleXY
-import sp.it.pl.util.ui.vBox
-import sp.it.pl.util.units.millis
+import sp.it.util.Locatable
+import sp.it.util.access.v
+import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.animation.interpolator.ElasticInterpolator
+import sp.it.util.conf.CachedConfigurable
+import sp.it.util.reactive.on
+import sp.it.util.reactive.onChange
+import sp.it.util.reactive.sync
+import sp.it.util.ui.hBox
+import sp.it.util.ui.label
+import sp.it.util.ui.lay
+import sp.it.util.ui.setScaleXY
+import sp.it.util.ui.vBox
+import sp.it.util.units.millis
 
 /**
  * Defines behavior and ui of [Widget].
@@ -40,7 +40,7 @@ import sp.it.pl.util.units.millis
  *
  * Configurable state:
  * Controller may wish to make its state user customizable. This is provided through the inherited
- * [sp.it.pl.util.conf.Configurable] API.
+ * [sp.it.util.conf.Configurable] API.
  *
  * Persisted state:
  * Controller may wish to make its state persistable. For fine-grained control, use [Widget.properties] directly, but

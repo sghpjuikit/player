@@ -6,7 +6,7 @@ import de.umass.lastfm.scrobble.ScrobbleResult;
 import java.util.prefs.Preferences;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
-import static sp.it.pl.util.dev.DebugKt.logger;
+import static sp.it.util.dev.DebugKt.logger;
 
 public class Scrobbling {
 

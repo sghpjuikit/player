@@ -8,12 +8,12 @@ import javafx.scene.input.KeyCode.LEFT
 import javafx.scene.input.KeyCode.RIGHT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import sp.it.pl.audio.playback.BalanceProperty
-import sp.it.pl.util.reactive.Disposer
-import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.reactive.on
-import sp.it.pl.util.reactive.onEventUp
-import sp.it.pl.util.reactive.syncFrom
-import sp.it.pl.util.reactive.syncTo
+import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.attach
+import sp.it.util.reactive.on
+import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.syncTo
 import java.lang.Math.abs
 
 class Balancer: Control {

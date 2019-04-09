@@ -33,10 +33,10 @@ import javafx.collections.FXCollections.observableArrayList
 import javafx.scene.Node
 import javafx.scene.control.PopupControl
 import javafx.util.StringConverter
-import sp.it.pl.util.JavaLegacy.COMBO_BOX_STYLE_CLASS
-import sp.it.pl.util.access.v
-import sp.it.pl.util.dev.fail
-import sp.it.pl.util.reactive.Handler1
+import sp.it.util.JavaLegacy.COMBO_BOX_STYLE_CLASS
+import sp.it.util.access.v
+import sp.it.util.dev.fail
+import sp.it.util.reactive.Handler1
 
 /** Provides a list of available suggestions in order to complete current user input. */
 open class AutoCompletePopup<T>: PopupControl() {

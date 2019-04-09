@@ -14,19 +14,19 @@ import javafx.util.Duration;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.gui.objects.form.Form;
-import sp.it.pl.util.conf.Config;
-import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.IsConfigurable;
-import sp.it.pl.util.conf.MapConfigurable;
-import sp.it.pl.util.conf.ValueConfig;
-import sp.it.pl.util.dev.Experimental;
-import sp.it.pl.util.reactive.Subscription;
-import sp.it.pl.util.text.Password;
-import sp.it.pl.util.validation.Constraint.PasswordNonEmpty;
-import sp.it.pl.util.validation.Constraint.StringNonEmpty;
+import sp.it.util.conf.Config;
+import sp.it.util.conf.IsConfig;
+import sp.it.util.conf.IsConfigurable;
+import sp.it.util.conf.MapConfigurable;
+import sp.it.util.conf.ValueConfig;
+import sp.it.util.dev.Experimental;
+import sp.it.util.reactive.Subscription;
+import sp.it.util.text.Password;
+import sp.it.util.validation.Constraint.PasswordNonEmpty;
+import sp.it.util.validation.Constraint.StringNonEmpty;
 import static sp.it.pl.gui.objects.form.Form.form;
-import static sp.it.pl.util.dev.DebugKt.logger;
-import static sp.it.pl.util.functional.UtilKt.consumer;
+import static sp.it.util.dev.DebugKt.logger;
+import static sp.it.util.functional.UtilKt.consumer;
 
 @Experimental(reason = "Work in progress")
 @IsConfigurable("Services.LastFM")

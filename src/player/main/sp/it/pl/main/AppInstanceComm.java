@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static sp.it.pl.util.async.AsyncKt.runFX;
+import static sp.it.util.async.AsyncKt.runFX;
 
 /**
  * Application instance communicator.

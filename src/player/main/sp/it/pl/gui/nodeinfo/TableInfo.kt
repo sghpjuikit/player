@@ -2,10 +2,10 @@ package sp.it.pl.gui.nodeinfo
 
 import javafx.scene.control.Labeled
 import javafx.scene.control.TableView
-import sp.it.pl.util.reactive.Disposer
-import sp.it.pl.util.reactive.on
-import sp.it.pl.util.reactive.onChange
-import sp.it.pl.util.text.pluralUnit
+import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.on
+import sp.it.util.reactive.onChange
+import sp.it.util.text.pluralUnit
 import kotlin.properties.Delegates.observable
 
 /**

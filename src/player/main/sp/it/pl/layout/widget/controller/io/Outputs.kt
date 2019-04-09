@@ -1,7 +1,7 @@
 package sp.it.pl.layout.widget.controller.io
 
-import sp.it.pl.util.type.isSuperclassOf
-import sp.it.pl.util.type.type
+import sp.it.util.type.isSuperclassOf
+import sp.it.util.type.type
 import java.util.HashMap
 import java.util.UUID
 

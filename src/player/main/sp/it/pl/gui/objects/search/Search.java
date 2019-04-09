@@ -17,8 +17,8 @@ import static javafx.scene.input.KeyCode.TAB;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.util.Util.removeLastChar;
-import static sp.it.pl.util.ui.UtilKt.pseudoclass;
+import static sp.it.util.Util.removeLastChar;
+import static sp.it.util.ui.UtilKt.pseudoclass;
 
 /**
  * <p/>

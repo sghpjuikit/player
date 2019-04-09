@@ -31,15 +31,15 @@ package sp.it.pl.gui.objects.autocomplete
 
 import javafx.scene.Node
 import javafx.util.StringConverter
-import sp.it.pl.util.access.v
-import sp.it.pl.util.async.executor.EventReducer
-import sp.it.pl.util.async.executor.EventReducer.toLast
-import sp.it.pl.util.async.runLater
-import sp.it.pl.util.async.runNew
-import sp.it.pl.util.collections.setTo
-import sp.it.pl.util.functional.ifIs
-import sp.it.pl.util.reactive.Handler1
-import sp.it.pl.util.ui.minPrefMaxWidth
+import sp.it.util.access.v
+import sp.it.util.async.executor.EventReducer
+import sp.it.util.async.executor.EventReducer.toLast
+import sp.it.util.async.runLater
+import sp.it.util.async.runNew
+import sp.it.util.collections.setTo
+import sp.it.util.functional.ifIs
+import sp.it.util.reactive.Handler1
+import sp.it.util.ui.minPrefMaxWidth
 
 /**
  * Base class for auto-completion bindings.

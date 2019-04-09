@@ -4,12 +4,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence;
-import sp.it.pl.util.access.V;
-import sp.it.pl.util.action.IsAction;
-import sp.it.pl.util.collections.mapset.MapSet;
-import sp.it.pl.util.conf.Configurable;
-import sp.it.pl.util.functional.Functors.Ƒ1;
-import static sp.it.pl.util.functional.Util.listRO;
+import sp.it.util.access.V;
+import sp.it.util.action.IsAction;
+import sp.it.util.collections.mapset.MapSet;
+import sp.it.util.conf.Configurable;
+import sp.it.util.functional.Functors.Ƒ1;
+import static sp.it.util.functional.Util.listRO;
 
 /** Manages playlists. */
 public class PlaylistManager implements Configurable {

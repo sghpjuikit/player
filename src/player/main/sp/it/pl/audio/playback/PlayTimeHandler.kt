@@ -1,9 +1,9 @@
 package sp.it.pl.audio.playback
 
 import javafx.util.Duration
-import sp.it.pl.util.async.executor.FxTimer
-import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.pl.util.math.Portion
+import sp.it.util.async.executor.FxTimer
+import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.math.Portion
 
 /** Handler for handling events at specific point of song playback. */
 class PlayTimeHandler {

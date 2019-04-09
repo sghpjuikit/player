@@ -13,19 +13,19 @@ import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.gui.objects.icon.CheckIcon
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.infoIcon
-import sp.it.pl.util.action.Action
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.MultiConfigurable
-import sp.it.pl.util.conf.cv
-import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.reactive.consumeScrolling
-import sp.it.pl.util.ui.Util.layVertically
-import sp.it.pl.util.ui.hBox
-import sp.it.pl.util.ui.label
-import sp.it.pl.util.ui.lay
-import sp.it.pl.util.ui.scrollPane
-import sp.it.pl.util.ui.stackPane
-import sp.it.pl.util.ui.vBox
+import sp.it.util.action.Action
+import sp.it.util.conf.IsConfig
+import sp.it.util.conf.MultiConfigurable
+import sp.it.util.conf.cv
+import sp.it.util.reactive.attach
+import sp.it.util.reactive.consumeScrolling
+import sp.it.util.ui.Util.layVertically
+import sp.it.util.ui.hBox
+import sp.it.util.ui.label
+import sp.it.util.ui.lay
+import sp.it.util.ui.scrollPane
+import sp.it.util.ui.stackPane
+import sp.it.util.ui.vBox
 
 class ShortcutPane(override val configurableDiscriminant: String): OverlayPane<Collection<Action>>(), MultiConfigurable {
 

@@ -3,10 +3,10 @@ package sp.it.pl.gui.objects.tree;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import sp.it.pl.util.HierarchicalBase;
-import static sp.it.pl.util.dev.FailKt.noNull;
-import static sp.it.pl.util.functional.Util.by;
-import static sp.it.pl.util.functional.Util.stream;
+import sp.it.util.HierarchicalBase;
+import static sp.it.util.dev.FailKt.noNull;
+import static sp.it.util.functional.Util.by;
+import static sp.it.util.functional.Util.stream;
 
 public class Name extends HierarchicalBase<String,Name> {
 	private static final char DELIMITER = '.';

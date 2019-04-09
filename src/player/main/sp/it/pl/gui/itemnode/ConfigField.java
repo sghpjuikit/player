@@ -42,22 +42,22 @@ import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.textfield.DecoratedTextField;
 import sp.it.pl.gui.pane.ConfigPane;
-import sp.it.pl.util.access.Vo;
-import sp.it.pl.util.action.Action;
-import sp.it.pl.util.conf.Config;
-import sp.it.pl.util.conf.Config.ListConfig;
-import sp.it.pl.util.conf.Config.OverridablePropertyConfig;
-import sp.it.pl.util.conf.Config.PropertyConfig;
-import sp.it.pl.util.conf.Config.ReadOnlyPropertyConfig;
-import sp.it.pl.util.conf.Configurable;
-import sp.it.pl.util.functional.Functors.Ƒ1;
-import sp.it.pl.util.functional.Try;
-import sp.it.pl.util.text.Password;
-import sp.it.pl.util.type.Util;
-import sp.it.pl.util.validation.Constraint;
-import sp.it.pl.util.validation.Constraint.HasNonNullElements;
-import sp.it.pl.util.validation.Constraint.NumberMinMax;
-import sp.it.pl.util.validation.Constraint.ReadOnlyIf;
+import sp.it.util.access.Vo;
+import sp.it.util.action.Action;
+import sp.it.util.conf.Config;
+import sp.it.util.conf.Config.ListConfig;
+import sp.it.util.conf.Config.OverridablePropertyConfig;
+import sp.it.util.conf.Config.PropertyConfig;
+import sp.it.util.conf.Config.ReadOnlyPropertyConfig;
+import sp.it.util.conf.Configurable;
+import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Try;
+import sp.it.util.text.Password;
+import sp.it.util.type.Util;
+import sp.it.util.validation.Constraint;
+import sp.it.util.validation.Constraint.HasNonNullElements;
+import sp.it.util.validation.Constraint.NumberMinMax;
+import sp.it.util.validation.Constraint.ReadOnlyIf;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_16;
@@ -76,23 +76,23 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
-import static sp.it.pl.util.Util.enumToHuman;
-import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.conf.ConfigurationUtilKt.isEditableByUserRightNow;
-import static sp.it.pl.util.functional.Try.Java.ok;
-import static sp.it.pl.util.functional.TryKt.getAny;
-import static sp.it.pl.util.functional.Util.IS;
-import static sp.it.pl.util.functional.Util.by;
-import static sp.it.pl.util.functional.Util.equalsAny;
-import static sp.it.pl.util.functional.Util.list;
-import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
-import static sp.it.pl.util.ui.Util.layHeaderTop;
-import static sp.it.pl.util.ui.Util.layHorizontally;
-import static sp.it.pl.util.ui.UtilKt.pseudoclass;
+import static sp.it.util.Util.enumToHuman;
+import static sp.it.util.async.AsyncKt.runFX;
+import static sp.it.util.conf.ConfigurationUtilKt.isEditableByUserRightNow;
+import static sp.it.util.functional.Try.Java.ok;
+import static sp.it.util.functional.TryKt.getAny;
+import static sp.it.util.functional.Util.IS;
+import static sp.it.util.functional.Util.by;
+import static sp.it.util.functional.Util.equalsAny;
+import static sp.it.util.functional.Util.list;
+import static sp.it.util.functional.Util.stream;
+import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.ui.Util.layHeaderTop;
+import static sp.it.util.ui.Util.layHorizontally;
+import static sp.it.util.ui.UtilKt.pseudoclass;
 
 /**
- * Editable and settable graphic control for configuring {@link sp.it.pl.util.conf.Config}.
+ * Editable and settable graphic control for configuring {@link sp.it.util.conf.Config}.
  * <p/>
  * Convenient way to create wide and diverse property sheets, that take
  * type of configuration into consideration. For example

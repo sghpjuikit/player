@@ -41,16 +41,16 @@ import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.layout.HBox
 import javafx.scene.shape.Rectangle
 import sp.it.pl.main.IconFA
-import sp.it.pl.util.Util.clip
-import sp.it.pl.util.collections.setTo
-import sp.it.pl.util.reactive.Disposer
-import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.reactive.on
-import sp.it.pl.util.reactive.onEventDown
-import sp.it.pl.util.reactive.syncFrom
-import sp.it.pl.util.ui.createIcon
-import sp.it.pl.util.ui.hBox
-import sp.it.pl.util.ui.pseudoclass
+import sp.it.util.Util.clip
+import sp.it.util.collections.setTo
+import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.attach
+import sp.it.util.reactive.on
+import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.syncFrom
+import sp.it.util.ui.createIcon
+import sp.it.util.ui.hBox
+import sp.it.util.ui.pseudoclass
 import java.lang.Math.ceil
 import kotlin.math.roundToInt
 

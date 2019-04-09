@@ -14,19 +14,19 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.objects.spinner.Spinner
-import sp.it.pl.util.animation.Anim
-import sp.it.pl.util.animation.Anim.Companion.anim
-import sp.it.pl.util.animation.interpolator.ElasticInterpolator
-import sp.it.pl.util.async.executor.EventReducer
-import sp.it.pl.util.async.future.Fut
-import sp.it.pl.util.conf.Configurable
-import sp.it.pl.util.conf.ValueConfig
-import sp.it.pl.util.reactive.attachChanges
-import sp.it.pl.util.ui.setScaleXY
-import sp.it.pl.util.ui.text
-import sp.it.pl.util.units.millis
-import sp.it.pl.util.units.seconds
-import sp.it.pl.util.validation.Constraint
+import sp.it.util.animation.Anim
+import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.animation.interpolator.ElasticInterpolator
+import sp.it.util.async.executor.EventReducer
+import sp.it.util.async.future.Fut
+import sp.it.util.conf.Configurable
+import sp.it.util.conf.ValueConfig
+import sp.it.util.reactive.attachChanges
+import sp.it.util.ui.setScaleXY
+import sp.it.util.ui.text
+import sp.it.util.units.millis
+import sp.it.util.units.seconds
+import sp.it.util.validation.Constraint
 import java.util.concurrent.atomic.AtomicLong
 
 /**

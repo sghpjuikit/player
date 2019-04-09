@@ -1,9 +1,9 @@
 package sp.it.pl.core
 
 import sp.it.pl.main.APP
-import sp.it.pl.util.file.div
-import sp.it.pl.util.system.EnvironmentContext
-import sp.it.pl.util.system.Os
+import sp.it.util.file.div
+import sp.it.util.system.EnvironmentContext
+import sp.it.util.system.Os
 
 object CoreEnv: Core {
     override fun init() {

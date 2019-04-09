@@ -4,9 +4,9 @@ import java.io.File;
 import java.util.Objects;
 import javafx.scene.image.Image;
 import sp.it.pl.gui.objects.image.Thumbnail;
-import sp.it.pl.util.ui.image.ImageSize;
-import sp.it.pl.util.ui.image.ImageStandardLoader;
-import static sp.it.pl.util.dev.FailKt.noNull;
+import sp.it.util.ui.image.ImageSize;
+import sp.it.util.ui.image.ImageStandardLoader;
+import static sp.it.util.dev.FailKt.noNull;
 
 /**
  * Denotes Cover represented by a {@link java.io.File}.

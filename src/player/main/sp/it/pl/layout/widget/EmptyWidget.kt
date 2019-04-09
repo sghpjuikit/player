@@ -5,8 +5,8 @@ import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.controller.io.Inputs
 import sp.it.pl.layout.widget.controller.io.Outputs
 import sp.it.pl.main.APP
-import sp.it.pl.util.conf.Config
-import sp.it.pl.util.file.childOf
+import sp.it.util.conf.Config
+import sp.it.util.file.childOf
 
 /** Empty widget. Useful for certain layout operations and as a fill in for null. */
 @Widget.Info(

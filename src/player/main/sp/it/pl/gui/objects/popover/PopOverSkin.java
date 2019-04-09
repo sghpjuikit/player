@@ -55,7 +55,7 @@ import javafx.scene.shape.QuadCurveTo;
 import javafx.scene.shape.VLineTo;
 import javafx.stage.Window;
 import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.util.math.P;
+import sp.it.util.math.P;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TIMES_CIRCLE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PIN_OFF;
@@ -64,13 +64,13 @@ import static javafx.beans.binding.Bindings.multiply;
 import static javafx.beans.binding.Bindings.subtract;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static sp.it.pl.main.AppBuildersKt.resizeButton;
-import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
-import static sp.it.pl.util.reactive.UtilKt.syncTo;
-import static sp.it.pl.util.ui.MouseDragKt.initMouseDrag;
-import static sp.it.pl.util.ui.UtilKt.initClip;
-import static sp.it.pl.util.ui.UtilKt.pseudoclass;
-import static sp.it.pl.util.ui.UtilKt.setMinPrefMaxSize;
+import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncTo;
+import static sp.it.util.ui.MouseDragKt.initMouseDrag;
+import static sp.it.util.ui.UtilKt.initClip;
+import static sp.it.util.ui.UtilKt.pseudoclass;
+import static sp.it.util.ui.UtilKt.setMinPrefMaxSize;
 
 public class PopOverSkin implements Skin<PopOver> {
 

@@ -6,10 +6,10 @@ import mu.KotlinLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.main.APP
-import sp.it.pl.util.dev.failIfFxThread
-import sp.it.pl.util.functional.net
-import sp.it.pl.util.functional.orNull
-import sp.it.pl.util.functional.toUnit
+import sp.it.util.dev.failIfFxThread
+import sp.it.util.functional.net
+import sp.it.util.functional.orNull
+import sp.it.util.functional.toUnit
 import java.util.ArrayList
 import java.util.function.BiConsumer
 import kotlin.streams.asSequence

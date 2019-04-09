@@ -1,8 +1,8 @@
 package sp.it.pl.layout.widget
 
 import sp.it.pl.layout.widget.feature.Feature
-import sp.it.pl.util.functional.Util.toS
-import sp.it.pl.util.type.isSuperclassOf
+import sp.it.util.functional.Util.toS
+import sp.it.util.type.isSuperclassOf
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 

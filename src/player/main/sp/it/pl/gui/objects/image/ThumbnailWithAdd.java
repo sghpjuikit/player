@@ -5,7 +5,7 @@ import java.io.File;
 import java.util.function.Consumer;
 import sp.it.pl.gui.objects.placeholder.DragPane;
 import sp.it.pl.main.AppDragKt;
-import sp.it.pl.util.async.future.Fut;
+import sp.it.util.async.future.Fut;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
@@ -17,10 +17,10 @@ import static sp.it.pl.main.AppDragKt.getImageFile;
 import static sp.it.pl.main.AppDragKt.hasImageFileOrUrl;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.async.future.Fut.fut;
-import static sp.it.pl.util.file.FileType.FILE;
-import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
+import static sp.it.util.async.future.Fut.fut;
+import static sp.it.util.file.FileType.FILE;
+import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.system.EnvironmentKt.chooseFile;
 
 /**
  * Thumbnail which can accept a file. A custom action invoked afterwards can be

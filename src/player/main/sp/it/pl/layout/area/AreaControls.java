@@ -25,9 +25,9 @@ import sp.it.pl.layout.container.bicontainer.BiContainer;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.main.AppAnimator;
 import sp.it.pl.main.Df;
-import sp.it.pl.util.access.ref.SingleR;
-import sp.it.pl.util.animation.Anim;
-import sp.it.pl.util.ui.fxml.ConventionFxmlLoader;
+import sp.it.util.access.ref.SingleR;
+import sp.it.util.animation.Anim;
+import sp.it.util.ui.fxml.ConventionFxmlLoader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
@@ -48,8 +48,8 @@ import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
 import static sp.it.pl.main.AppDragKt.set;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.maintain;
 
 /**
  * Controls for a widget area.

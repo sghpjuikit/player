@@ -16,19 +16,19 @@ import sp.it.pl.main.getImageFileOrUrl
 import sp.it.pl.main.hasImageFileOrUrl
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.scaleEM
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.cn
-import sp.it.pl.util.conf.cv
-import sp.it.pl.util.conf.only
-import sp.it.pl.util.reactive.on
-import sp.it.pl.util.reactive.onEventDown
-import sp.it.pl.util.reactive.sync1IfInScene
-import sp.it.pl.util.reactive.syncFrom
-import sp.it.pl.util.ui.image.FitFrom
-import sp.it.pl.util.ui.lay
-import sp.it.pl.util.ui.prefSize
-import sp.it.pl.util.ui.x
-import sp.it.pl.util.validation.Constraint.FileActor.FILE
+import sp.it.util.conf.IsConfig
+import sp.it.util.conf.cn
+import sp.it.util.conf.cv
+import sp.it.util.conf.only
+import sp.it.util.reactive.on
+import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.sync1IfInScene
+import sp.it.util.reactive.syncFrom
+import sp.it.util.ui.image.FitFrom
+import sp.it.util.ui.lay
+import sp.it.util.ui.prefSize
+import sp.it.util.ui.x
+import sp.it.util.validation.Constraint.FileActor.FILE
 import java.io.File
 
 @Widget.Info(

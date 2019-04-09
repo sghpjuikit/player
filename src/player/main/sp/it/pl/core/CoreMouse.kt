@@ -2,11 +2,11 @@ package sp.it.pl.core
 
 import javafx.geometry.Point2D
 import javafx.scene.robot.Robot
-import sp.it.pl.util.async.executor.FxTimer
-import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.pl.util.reactive.Subscription
-import sp.it.pl.util.units.div
-import sp.it.pl.util.units.seconds
+import sp.it.util.async.executor.FxTimer
+import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.reactive.Subscription
+import sp.it.util.units.div
+import sp.it.util.units.seconds
 import java.util.HashSet
 
 /** Provides access to mouse position and mouse speed. By default lazy, i.e., consumes resources only if observed. */

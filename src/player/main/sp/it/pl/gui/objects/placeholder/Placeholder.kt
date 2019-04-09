@@ -11,17 +11,17 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.util.functional.traverse
-import sp.it.pl.util.reactive.Subscription
-import sp.it.pl.util.reactive.onEventDown
-import sp.it.pl.util.reactive.sync
-import sp.it.pl.util.ui.Util.layHeaderBottom
-import sp.it.pl.util.ui.lay
-import sp.it.pl.util.ui.maxSize
-import sp.it.pl.util.ui.minSize
-import sp.it.pl.util.ui.prefSize
-import sp.it.pl.util.ui.removeFromParent
-import sp.it.pl.util.ui.size
+import sp.it.util.functional.traverse
+import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.sync
+import sp.it.util.ui.Util.layHeaderBottom
+import sp.it.util.ui.lay
+import sp.it.util.ui.maxSize
+import sp.it.util.ui.minSize
+import sp.it.util.ui.prefSize
+import sp.it.util.ui.removeFromParent
+import sp.it.util.ui.size
 
 /**
  * Placeholder pane. Can invoke action and display its icon and name.

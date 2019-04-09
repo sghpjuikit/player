@@ -12,23 +12,23 @@ import javafx.scene.layout.HBox;
 import javafx.util.Callback;
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox;
 import sp.it.pl.gui.objects.icon.CheckIcon;
-import sp.it.pl.util.access.fieldvalue.ObjectField;
-import sp.it.pl.util.collections.list.PrefList;
-import sp.it.pl.util.functional.Functors.PƑ;
-import sp.it.pl.util.functional.Util;
+import sp.it.util.access.fieldvalue.ObjectField;
+import sp.it.util.collections.list.PrefList;
+import sp.it.util.functional.Functors.PƑ;
+import sp.it.util.functional.Util;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static sp.it.pl.util.dev.FailKt.noNull;
-import static sp.it.pl.util.functional.Util.IS;
-import static sp.it.pl.util.functional.Util.ISNT;
-import static sp.it.pl.util.functional.Util.ISNTØ;
-import static sp.it.pl.util.functional.Util.ISØ;
-import static sp.it.pl.util.functional.Util.by;
-import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.util.dev.FailKt.noNull;
+import static sp.it.util.functional.Util.IS;
+import static sp.it.util.functional.Util.ISNT;
+import static sp.it.util.functional.Util.ISNTØ;
+import static sp.it.util.functional.Util.ISØ;
+import static sp.it.util.functional.Util.by;
+import static sp.it.util.functional.Util.stream;
 
 /**
- * Filter node producing {@link sp.it.pl.util.access.fieldvalue.ObjectField} predicate.
+ * Filter node producing {@link sp.it.util.access.fieldvalue.ObjectField} predicate.
  */
 public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends ValueNode<Predicate<V>> {
 

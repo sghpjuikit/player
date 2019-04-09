@@ -1,6 +1,6 @@
 package sp.it.pl.core
 
-import sp.it.pl.util.file.Util.isValidatedDirectory
+import sp.it.util.file.Util.isValidatedDirectory
 import java.awt.color.ColorSpace
 import java.awt.color.ICC_Profile
 import java.io.File

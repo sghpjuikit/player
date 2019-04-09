@@ -5,11 +5,11 @@ import javafx.scene.layout.Region
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetLoader
-import sp.it.pl.util.functional.asIf
-import sp.it.pl.util.reactive.sync1If
-import sp.it.pl.util.ui.layFullArea
-import sp.it.pl.util.ui.pseudoclass
-import sp.it.pl.util.ui.size
+import sp.it.util.functional.asIf
+import sp.it.util.reactive.sync1If
+import sp.it.util.ui.layFullArea
+import sp.it.util.ui.pseudoclass
+import sp.it.util.ui.size
 
 abstract class Area<T: Container<*>>: ContainerNode {
 

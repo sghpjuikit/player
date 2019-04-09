@@ -115,8 +115,8 @@ The project contains a shared code style in .idea/codeStyles for IDEA with defin
  - do not use java assertions
  - use runtime exceptions (e.g. `java.lang.AssertionError`), Encouraged is the use of methods:
    - `Objects.requireNonNull()`
-   - `sp.it.pl.util.dev.fail`
-   - `sp.it.pl.util.dev.failIf`
+   - `sp.it.util.dev.fail`
+   - `sp.it.util.dev.failIf`
 
 ### Comments
  - always write javadoc for public elements, be as concise as possible, but describe and define full contract

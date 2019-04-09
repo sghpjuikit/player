@@ -35,9 +35,9 @@ import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.controller.io.XPut;
 import sp.it.pl.main.AppDragKt;
 import sp.it.pl.main.Df;
-import sp.it.pl.util.animation.Anim;
-import sp.it.pl.util.collections.map.Map2D;
-import sp.it.pl.util.collections.map.Map2D.Key;
+import sp.it.util.animation.Anim;
+import sp.it.util.collections.map.Map2D;
+import sp.it.util.collections.map.Map2D.Key;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.pow;
@@ -55,14 +55,14 @@ import static sp.it.pl.layout.area.IOLayerUtilKt.xPutToStr;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.functional.Util.ISNTØ;
-import static sp.it.pl.util.functional.Util.by;
-import static sp.it.pl.util.functional.Util.forEachWithI;
-import static sp.it.pl.util.functional.Util.min;
-import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.ui.UtilKt.pseudoclass;
-import static sp.it.pl.util.ui.UtilKt.setScaleXY;
+import static sp.it.util.functional.Util.ISNTØ;
+import static sp.it.util.functional.Util.by;
+import static sp.it.util.functional.Util.forEachWithI;
+import static sp.it.util.functional.Util.min;
+import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.ui.UtilKt.pseudoclass;
+import static sp.it.util.ui.UtilKt.setScaleXY;
 
 /**
  * Display for {@link sp.it.pl.layout.widget.controller.io.XPut} of components, displaying their relations as am editable graph.

@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import static java.util.stream.Collectors.toList;
-import static sp.it.pl.util.file.UtilKt.toFileOrNull;
-import static sp.it.pl.util.functional.Util.ISNTØ;
+import static sp.it.util.file.UtilKt.toFileOrNull;
+import static sp.it.util.functional.Util.ISNTØ;
 
 /**
  * Processes application parameters.

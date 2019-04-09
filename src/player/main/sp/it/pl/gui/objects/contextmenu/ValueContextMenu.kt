@@ -5,8 +5,8 @@ import javafx.scene.control.ContextMenu
 import javafx.scene.input.ContextMenuEvent
 import javafx.scene.input.MouseEvent
 import javafx.stage.WindowEvent.WINDOW_HIDDEN
-import sp.it.pl.util.collections.setTo
-import sp.it.pl.util.reactive.onEventDown
+import sp.it.util.collections.setTo
+import sp.it.util.reactive.onEventDown
 
 /** Context menu displaying items for a value. These are generated using [contextMenuGenerator]. */
 open class ValueContextMenu<E: Any?>(clearItemsOnHidden: Boolean = true): ContextMenu() {

@@ -25,7 +25,7 @@ import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.WidgetLoader;
 import sp.it.pl.main.AppAnimator;
 import sp.it.pl.main.Df;
-import sp.it.pl.util.animation.Anim;
+import sp.it.util.animation.Anim;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLONE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
@@ -48,10 +48,10 @@ import static sp.it.pl.main.AppDragKt.get;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppDragKt.set;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
-import static sp.it.pl.util.ui.Util.setAnchors;
+import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.ui.Util.setAnchors;
 
 public abstract class ContainerNodeBase<C extends Container<?>> implements ContainerNode {
 

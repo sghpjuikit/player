@@ -6,14 +6,14 @@ import javafx.scene.input.DragEvent.DRAG_OVER
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
-import sp.it.pl.util.access.v
-import sp.it.pl.util.file.FileType.DIRECTORY
-import sp.it.pl.util.file.FileType.FILE
-import sp.it.pl.util.reactive.sync
-import sp.it.pl.util.system.chooseFile
-import sp.it.pl.util.ui.Util.layHorizontally
-import sp.it.pl.util.ui.drag.handlerAccepting
-import sp.it.pl.util.validation.Constraint.FileActor
+import sp.it.util.access.v
+import sp.it.util.file.FileType.DIRECTORY
+import sp.it.util.file.FileType.FILE
+import sp.it.util.reactive.sync
+import sp.it.util.system.chooseFile
+import sp.it.util.ui.Util.layHorizontally
+import sp.it.util.ui.drag.handlerAccepting
+import sp.it.util.validation.Constraint.FileActor
 import java.io.File
 
 /** Text field for [File] with file/dir constraint, drag & drop and picker. */

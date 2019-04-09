@@ -31,9 +31,9 @@ package sp.it.pl.gui.objects.autocomplete
 
 import javafx.scene.control.TextField
 import javafx.util.StringConverter
-import sp.it.pl.util.reactive.Disposer
-import sp.it.pl.util.reactive.Subscription
-import sp.it.pl.util.reactive.attach
+import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.attach
 
 /**
  * Represents a binding between a text field and a auto-completion popup

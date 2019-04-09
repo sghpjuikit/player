@@ -12,19 +12,19 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.pane.ConfigPane
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
-import sp.it.pl.util.access.v
-import sp.it.pl.util.conf.Configurable
-import sp.it.pl.util.functional.Try
-import sp.it.pl.util.reactive.consumeScrolling
-import sp.it.pl.util.reactive.onEventDown
-import sp.it.pl.util.ui.fxml.ConventionFxmlLoader
-import sp.it.pl.util.ui.lay
+import sp.it.util.access.v
+import sp.it.util.conf.Configurable
+import sp.it.util.functional.Try
+import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.onEventDown
+import sp.it.util.ui.fxml.ConventionFxmlLoader
+import sp.it.util.ui.lay
 import java.util.function.Consumer
 
 /**
- * [sp.it.pl.util.conf.Configurable] editor. Has optional submit button.
+ * [sp.it.util.conf.Configurable] editor. Has optional submit button.
  *
- * @param <T> type of the [sp.it.pl.util.conf.Configurable] for this component.
+ * @param <T> type of the [sp.it.util.conf.Configurable] for this component.
  */
 class Form<T>: AnchorPane {
 

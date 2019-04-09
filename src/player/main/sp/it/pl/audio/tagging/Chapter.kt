@@ -1,8 +1,8 @@
 package sp.it.pl.audio.tagging
 
 import javafx.util.Duration
-import sp.it.pl.util.functional.Try
-import sp.it.pl.util.text.Strings
+import sp.it.util.functional.Try
+import sp.it.util.text.Strings
 import java.util.Objects
 
 /** Chapter is a text associated with specific point of time in a song. */

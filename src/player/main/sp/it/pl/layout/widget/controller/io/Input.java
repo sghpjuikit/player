@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import sp.it.pl.layout.area.IOLayer;
-import sp.it.pl.util.reactive.Subscription;
-import static sp.it.pl.util.functional.UtilKt.consumer;
+import sp.it.util.reactive.Subscription;
+import static sp.it.util.functional.UtilKt.consumer;
 
 public class Input<T> extends Put<T> {
 	public final Map<Output<? extends T>,Subscription> sources = new HashMap<>();

@@ -3,9 +3,9 @@ package sp.it.pl.layout.widget
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.main.APP
-import sp.it.pl.util.file.div
-import sp.it.pl.util.file.nameOrRoot
-import sp.it.pl.util.type.ClassName
+import sp.it.util.file.div
+import sp.it.util.file.nameOrRoot
+import sp.it.util.type.ClassName
 import java.io.File
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation

@@ -20,18 +20,18 @@ import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.main.Widgets;
-import sp.it.pl.util.Sort;
-import sp.it.pl.util.access.V;
-import sp.it.pl.util.access.VarEnum;
-import sp.it.pl.util.access.fieldvalue.FileField;
-import sp.it.pl.util.async.executor.FxTimer;
-import sp.it.pl.util.conf.Config.VarList;
-import sp.it.pl.util.conf.Config.VarList.Elements;
-import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.dev.Dependency;
-import sp.it.pl.util.file.FileSort;
-import sp.it.pl.util.file.FileType;
-import sp.it.pl.util.ui.Resolution;
+import sp.it.util.Sort;
+import sp.it.util.access.V;
+import sp.it.util.access.VarEnum;
+import sp.it.util.access.fieldvalue.FileField;
+import sp.it.util.async.executor.FxTimer;
+import sp.it.util.conf.Config.VarList;
+import sp.it.util.conf.Config.VarList.Elements;
+import sp.it.util.conf.IsConfig;
+import sp.it.util.dev.Dependency;
+import sp.it.util.file.FileSort;
+import sp.it.util.file.FileType;
+import sp.it.util.ui.Resolution;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.ENTER;
@@ -45,22 +45,22 @@ import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.Sort.ASCENDING;
-import static sp.it.pl.util.async.AsyncKt.FX;
-import static sp.it.pl.util.async.AsyncKt.oneTPExecutor;
-import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.async.AsyncKt.runOn;
-import static sp.it.pl.util.async.executor.FxTimer.fxTimer;
-import static sp.it.pl.util.file.FileSort.DIR_FIRST;
-import static sp.it.pl.util.file.FileType.FILE;
-import static sp.it.pl.util.functional.Util.by;
-import static sp.it.pl.util.functional.Util.list;
-import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.reactive.UtilKt.attach1IfNonNull;
-import static sp.it.pl.util.reactive.UtilKt.sync1IfInScene;
-import static sp.it.pl.util.system.EnvironmentKt.chooseFile;
-import static sp.it.pl.util.system.EnvironmentKt.open;
+import static sp.it.util.Sort.ASCENDING;
+import static sp.it.util.async.AsyncKt.FX;
+import static sp.it.util.async.AsyncKt.oneTPExecutor;
+import static sp.it.util.async.AsyncKt.runFX;
+import static sp.it.util.async.AsyncKt.runOn;
+import static sp.it.util.async.executor.FxTimer.fxTimer;
+import static sp.it.util.file.FileSort.DIR_FIRST;
+import static sp.it.util.file.FileType.FILE;
+import static sp.it.util.functional.Util.by;
+import static sp.it.util.functional.Util.list;
+import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.attach1IfNonNull;
+import static sp.it.util.reactive.UtilKt.sync1IfInScene;
+import static sp.it.util.system.EnvironmentKt.chooseFile;
+import static sp.it.util.system.EnvironmentKt.open;
 
 @Widget.Info(
     author = "Martin Polakovic",
@@ -228,12 +228,12 @@ public class AppLauncher extends SimpleController {
 
     private static class FItem extends Item {
 
-        public FItem(Item parent, File value, sp.it.pl.util.file.FileType type) {
+        public FItem(Item parent, File value, sp.it.util.file.FileType type) {
             super(parent, value, type);
         }
 
         @Override
-        protected FItem createItem(Item parent, File value, sp.it.pl.util.file.FileType type) {
+        protected FItem createItem(Item parent, File value, sp.it.util.file.FileType type) {
 			return getPortableAppExe(value, type)
 				.map(f -> new FItem(parent, getPortableAppExe(value, type).orElse(null), FileType.FILE))
 				.orElseGet(() -> new FItem(parent, value, type));

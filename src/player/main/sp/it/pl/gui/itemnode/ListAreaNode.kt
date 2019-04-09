@@ -6,13 +6,13 @@ import javafx.scene.input.KeyCode.CONTROL
 import javafx.scene.input.KeyCode.V
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
-import sp.it.pl.util.collections.getElementType
-import sp.it.pl.util.collections.setTo
-import sp.it.pl.util.functional.Functors
-import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.reactive.onEventDown
-import sp.it.pl.util.ui.lay
-import sp.it.pl.util.ui.vBox
+import sp.it.util.collections.getElementType
+import sp.it.util.collections.setTo
+import sp.it.util.functional.Functors
+import sp.it.util.reactive.attach
+import sp.it.util.reactive.onEventDown
+import sp.it.util.ui.lay
+import sp.it.util.ui.vBox
 import java.util.function.Consumer
 
 // TODO: manual text edits should be part of transformation chain. It

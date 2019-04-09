@@ -4,9 +4,9 @@ import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
-import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.units.minus
-import sp.it.pl.util.units.plus
+import sp.it.util.reactive.attach
+import sp.it.util.units.minus
+import sp.it.util.units.plus
 
 class RealTimeProperty {
     private val totalTime: ObjectProperty<Duration>

@@ -7,14 +7,14 @@ import sp.it.pl.layout.widget.feature.TextDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.scaleEM
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.cv
-import sp.it.pl.util.reactive.consumeScrolling
-import sp.it.pl.util.reactive.on
-import sp.it.pl.util.reactive.syncFrom
-import sp.it.pl.util.ui.lay
-import sp.it.pl.util.ui.prefSize
-import sp.it.pl.util.ui.x
+import sp.it.util.conf.IsConfig
+import sp.it.util.conf.cv
+import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.on
+import sp.it.util.reactive.syncFrom
+import sp.it.util.ui.lay
+import sp.it.util.ui.prefSize
+import sp.it.util.ui.x
 
 @Widget.Info(
         author = "Martin Polakovic",

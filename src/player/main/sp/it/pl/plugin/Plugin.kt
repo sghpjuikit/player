@@ -2,11 +2,11 @@ package sp.it.pl.plugin
 
 import sp.it.pl.main.APP
 import sp.it.pl.main.Settings
-import sp.it.pl.util.Locatable
-import sp.it.pl.util.conf.Configurable
-import sp.it.pl.util.conf.MultiConfigurable
-import sp.it.pl.util.dev.Idempotent
-import sp.it.pl.util.file.div
+import sp.it.util.Locatable
+import sp.it.util.conf.Configurable
+import sp.it.util.conf.MultiConfigurable
+import sp.it.util.dev.Idempotent
+import sp.it.util.file.div
 
 /** Plugin is like Service, but with no API to consume so developer never uses it directly. */
 interface Plugin: Configurable<Any>, MultiConfigurable, Locatable {

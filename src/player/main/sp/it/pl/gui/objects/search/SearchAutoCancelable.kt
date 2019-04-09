@@ -2,13 +2,13 @@ package sp.it.pl.gui.objects.search
 
 import sp.it.pl.gui.objects.search.SearchAutoCancelable.Match.CONTAINS
 import sp.it.pl.main.Settings
-import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.MultiConfigurableBase
-import sp.it.pl.util.conf.c
-import sp.it.pl.util.conf.cv
-import sp.it.pl.util.units.millis
-import sp.it.pl.util.units.seconds
+import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.conf.IsConfig
+import sp.it.util.conf.MultiConfigurableBase
+import sp.it.util.conf.c
+import sp.it.util.conf.cv
+import sp.it.util.units.millis
+import sp.it.util.units.seconds
 
 /** Search that auto-cancels after given period of time. */
 abstract class SearchAutoCancelable: Search() {

@@ -9,12 +9,12 @@ import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.util.Duration
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
-import sp.it.pl.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.pl.util.collections.setToOne
-import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.reactive.onEventDown
-import sp.it.pl.util.ui.stackPane
-import sp.it.pl.util.units.seconds
+import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.collections.setToOne
+import sp.it.util.functional.invoke
+import sp.it.util.reactive.onEventDown
+import sp.it.util.ui.stackPane
+import sp.it.util.units.seconds
 
 /** Notification popover. */
 class Notification: PopOver<Node>() {

@@ -4,13 +4,13 @@ import javafx.stage.Screen
 import mu.KLogging
 import sp.it.pl.main.APP
 import sp.it.pl.plugin.PluginBase
-import sp.it.pl.util.action.Action
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.cr
-import sp.it.pl.util.dev.fail
-import sp.it.pl.util.system.Os
-import sp.it.pl.util.system.open
-import sp.it.pl.util.ui.getScreenForMouse
+import sp.it.util.action.Action
+import sp.it.util.conf.IsConfig
+import sp.it.util.conf.cr
+import sp.it.util.dev.fail
+import sp.it.util.system.Os
+import sp.it.util.system.open
+import sp.it.util.ui.getScreenForMouse
 import java.io.IOException
 
 class ScreenRotator: PluginBase("Screen Rotator", true) {

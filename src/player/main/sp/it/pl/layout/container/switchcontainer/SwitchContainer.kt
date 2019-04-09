@@ -9,11 +9,11 @@ import javafx.scene.Node
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.main.Settings
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.MultiConfigurableBase
-import sp.it.pl.util.conf.between
-import sp.it.pl.util.conf.cv
-import sp.it.pl.util.reactive.syncFrom
+import sp.it.util.conf.IsConfig
+import sp.it.util.conf.MultiConfigurableBase
+import sp.it.util.conf.between
+import sp.it.util.conf.cv
+import sp.it.util.reactive.syncFrom
 import java.util.HashMap
 
 class SwitchContainer: Container<SwitchPane>() {

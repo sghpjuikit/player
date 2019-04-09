@@ -40,8 +40,8 @@ import org.slf4j.LoggerFactory;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Song;
 import sp.it.pl.service.notif.Notifier;
-import sp.it.pl.util.dev.SwitchException;
-import sp.it.pl.util.units.NofX;
+import sp.it.util.dev.SwitchException;
+import sp.it.util.units.NofX;
 import static java.lang.Math.max;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
@@ -59,12 +59,12 @@ import static sp.it.pl.audio.tagging.Metadata.TAG_ID_PLAYED_FIRST;
 import static sp.it.pl.audio.tagging.Metadata.TAG_ID_PLAYED_LAST;
 import static sp.it.pl.audio.tagging.Metadata.TAG_ID_TAGS;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.Util.clip;
-import static sp.it.pl.util.Util.emptyOr;
-import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.functional.Util.list;
-import static sp.it.pl.util.functional.Util.split;
-import static sp.it.pl.util.functional.Util.stream;
+import static sp.it.util.Util.clip;
+import static sp.it.util.Util.emptyOr;
+import static sp.it.util.async.AsyncKt.runFX;
+import static sp.it.util.functional.Util.list;
+import static sp.it.util.functional.Util.split;
+import static sp.it.util.functional.Util.stream;
 
 /**
  * Manages writing Metadata objects back into files. Handles all tag related data

@@ -4,9 +4,9 @@ import javafx.scene.control.TextField
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import sp.it.pl.gui.objects.textfield.DecoratedTextField
-import sp.it.pl.util.access.AccessibleValue
-import sp.it.pl.util.functional.invoke
-import sp.it.pl.util.reactive.onEventDown
+import sp.it.util.access.AccessibleValue
+import sp.it.util.functional.invoke
+import sp.it.util.reactive.onEventDown
 import java.util.function.BiConsumer
 
 /**

@@ -8,10 +8,10 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataWriter
 import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.main.APP
-import sp.it.pl.util.parsing.StringParseStrategy
-import sp.it.pl.util.parsing.StringParseStrategy.From
-import sp.it.pl.util.parsing.StringParseStrategy.To
-import sp.it.pl.util.reactive.syncFrom
+import sp.it.util.parsing.StringParseStrategy
+import sp.it.util.parsing.StringParseStrategy.From
+import sp.it.util.parsing.StringParseStrategy.To
+import sp.it.util.reactive.syncFrom
 
 /** Cell for rating displaying the value as rating control. */
 @StringParseStrategy(from = From.SINGLETON, to = To.CONSTANT, constant = "Stars")

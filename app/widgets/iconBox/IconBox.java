@@ -10,16 +10,16 @@ import sp.it.pl.layout.widget.Widget.Info;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.feature.HorizontalDock;
-import sp.it.pl.util.access.FAccessor;
-import sp.it.pl.util.access.VarAction;
-import sp.it.pl.util.conf.Config;
-import sp.it.pl.util.conf.Config.VarList;
-import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.conf.ListConfigurable;
+import sp.it.util.access.FAccessor;
+import sp.it.util.access.VarAction;
+import sp.it.util.conf.Config;
+import sp.it.util.conf.Config.VarList;
+import sp.it.util.conf.IsConfig;
+import sp.it.util.conf.ListConfigurable;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
-import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
+import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.reactive.UtilKt.maintain;
 
 @Info(
     author = "Martin Polakovic",

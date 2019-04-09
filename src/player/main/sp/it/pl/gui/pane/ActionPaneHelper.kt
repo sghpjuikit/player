@@ -5,12 +5,12 @@ import javafx.scene.Node
 import sp.it.pl.gui.pane.GroupApply.FOR_ALL
 import sp.it.pl.gui.pane.GroupApply.FOR_EACH
 import sp.it.pl.gui.pane.GroupApply.NONE
-import sp.it.pl.util.action.Action
-import sp.it.pl.util.async.future.Fut
-import sp.it.pl.util.collections.getElementType
-import sp.it.pl.util.dev.fail
-import sp.it.pl.util.functional.Util.IS
-import sp.it.pl.util.functional.Util.ISNT
+import sp.it.util.action.Action
+import sp.it.util.async.future.Fut
+import sp.it.util.collections.getElementType
+import sp.it.util.dev.fail
+import sp.it.util.functional.Util.IS
+import sp.it.util.functional.Util.ISNT
 import java.util.function.Supplier
 
 inline fun <reified T> ActionPane.register(vararg actions: ActionData<T, *>) = register(T::class.java, *actions)

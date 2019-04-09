@@ -7,13 +7,13 @@ import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
-import sp.it.pl.util.access.ref.SingleR;
-import sp.it.pl.util.functional.Functors.Ƒ1;
+import sp.it.util.access.ref.SingleR;
+import sp.it.util.functional.Functors.Ƒ1;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLIPBOARD;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.DragEvent.DRAG_EXITED_TARGET;
-import static sp.it.pl.util.functional.Util.IS;
-import static sp.it.pl.util.functional.UtilKt.runnable;
+import static sp.it.util.functional.Util.IS;
+import static sp.it.util.functional.UtilKt.runnable;
 
 /**
  * Placeholder node as a visual aid for mouse drag operations. Shown when drag enters drag accepting {@link Node} and
@@ -76,7 +76,7 @@ public class DragPane extends Placeholder {
 	 * content to be dropped.
 	 * <p/>
 	 * It is recommended to build a predicate and use it for drag over handler as well, see {@link
-	 * sp.it.pl.util.ui.drag.DragUtilKt#handlerAccepting(kotlin.jvm.functions.Function1)}. This will guarantee
+	 * sp.it.util.ui.drag.DragUtilKt#handlerAccepting(kotlin.jvm.functions.Function1)}. This will guarantee
 	 * consistency in drag highlighting and drag accepting behavior.
 	 * @param except Optionally, it is possible to forbid drag highlighting even if the condition tests true. This is
 	 * useful for when node that shouldn't accept given event doesn't wish for any of its parents accept (and highlight

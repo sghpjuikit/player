@@ -72,17 +72,17 @@ import org.slf4j.LoggerFactory;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.pane.OverlayPane;
-import sp.it.pl.util.access.ref.R;
-import sp.it.pl.util.animation.Anim;
-import sp.it.pl.util.collections.map.ClassMap;
-import sp.it.pl.util.collections.map.Map2D;
-import sp.it.pl.util.collections.mapset.MapSet;
-import sp.it.pl.util.dev.SwitchException;
-import sp.it.pl.util.functional.Functors.Ƒ;
-import sp.it.pl.util.functional.Functors.Ƒ0;
-import sp.it.pl.util.functional.Functors.Ƒ1;
-import sp.it.pl.util.functional.TriConsumer;
-import sp.it.pl.util.functional.Util;
+import sp.it.util.access.ref.R;
+import sp.it.util.animation.Anim;
+import sp.it.util.collections.map.ClassMap;
+import sp.it.util.collections.map.Map2D;
+import sp.it.util.collections.mapset.MapSet;
+import sp.it.util.dev.SwitchException;
+import sp.it.util.functional.Functors.Ƒ;
+import sp.it.util.functional.Functors.Ƒ0;
+import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.TriConsumer;
+import sp.it.util.functional.Util;
 import static comet.Comet.Constants.FPS;
 import static comet.Utils.Achievement.achievement01;
 import static comet.Utils.Achievement.achievement0N;
@@ -108,30 +108,30 @@ import static javafx.util.Duration.millis;
 import static javafx.util.Duration.minutes;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
-import static sp.it.pl.util.Util.clip;
-import static sp.it.pl.util.Util.pyth;
-import static sp.it.pl.util.dev.FailKt.failIf;
-import static sp.it.pl.util.functional.TryKt.runTry;
-import static sp.it.pl.util.functional.Util.ISNTØ;
-import static sp.it.pl.util.functional.Util.array;
-import static sp.it.pl.util.functional.Util.by;
-import static sp.it.pl.util.functional.Util.forEachCartesianHalfNoSelf;
-import static sp.it.pl.util.functional.Util.forEachPair;
-import static sp.it.pl.util.functional.Util.forEachWithI;
-import static sp.it.pl.util.functional.Util.range;
-import static sp.it.pl.util.functional.Util.repeat;
-import static sp.it.pl.util.functional.Util.set;
-import static sp.it.pl.util.functional.Util.setRO;
-import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
-import static sp.it.pl.util.type.Util.getEnumConstants;
-import static sp.it.pl.util.ui.Util.layHeaderTop;
-import static sp.it.pl.util.ui.Util.layHorizontally;
-import static sp.it.pl.util.ui.Util.layStack;
-import static sp.it.pl.util.ui.Util.layVertically;
-import static sp.it.pl.util.ui.UtilKt.setScaleXY;
-import static sp.it.pl.util.units.UtilKt.toHMSMs;
+import static sp.it.util.Util.clip;
+import static sp.it.util.Util.pyth;
+import static sp.it.util.dev.FailKt.failIf;
+import static sp.it.util.functional.TryKt.runTry;
+import static sp.it.util.functional.Util.ISNTØ;
+import static sp.it.util.functional.Util.array;
+import static sp.it.util.functional.Util.by;
+import static sp.it.util.functional.Util.forEachCartesianHalfNoSelf;
+import static sp.it.util.functional.Util.forEachPair;
+import static sp.it.util.functional.Util.forEachWithI;
+import static sp.it.util.functional.Util.range;
+import static sp.it.util.functional.Util.repeat;
+import static sp.it.util.functional.Util.set;
+import static sp.it.util.functional.Util.setRO;
+import static sp.it.util.functional.Util.stream;
+import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.type.Util.getEnumConstants;
+import static sp.it.util.ui.Util.layHeaderTop;
+import static sp.it.util.ui.Util.layHorizontally;
+import static sp.it.util.ui.Util.layStack;
+import static sp.it.util.ui.Util.layVertically;
+import static sp.it.util.ui.UtilKt.setScaleXY;
+import static sp.it.util.units.UtilKt.toHMSMs;
 
 @SuppressWarnings({"unused","UnnecessaryLocalVariable"})
 interface Utils {
@@ -1406,7 +1406,7 @@ interface Utils {
 		}
 	}
 
-	class Loop extends sp.it.pl.util.animation.Loop {
+	class Loop extends sp.it.util.animation.Loop {
 		/** Loop id, starts at 0, incremented by 1 every loop. */
 		public long id = 0;
 		/** The timestamp of the current loop given in milliseconds. */

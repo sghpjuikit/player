@@ -13,10 +13,10 @@ import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.LoadType;
-import sp.it.pl.util.access.V;
-import sp.it.pl.util.collections.map.PropertyMap;
-import sp.it.pl.util.conf.IsConfig;
-import sp.it.pl.util.type.Util;
+import sp.it.util.access.V;
+import sp.it.util.collections.map.PropertyMap;
+import sp.it.util.conf.IsConfig;
+import sp.it.util.type.Util;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.main.AppKt.APP;
 

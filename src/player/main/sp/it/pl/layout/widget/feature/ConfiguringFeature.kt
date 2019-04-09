@@ -1,8 +1,8 @@
 package sp.it.pl.layout.widget.feature
 
-import sp.it.pl.util.conf.Config
-import sp.it.pl.util.conf.Configurable
-import sp.it.pl.util.conf.ListConfigurable
+import sp.it.util.conf.Config
+import sp.it.util.conf.Configurable
+import sp.it.util.conf.ListConfigurable
 
 /** Editor for [Configurable]. */
 @Feature(name = "Configurator", description = "Provides settings and configurations", type = ConfiguringFeature::class)

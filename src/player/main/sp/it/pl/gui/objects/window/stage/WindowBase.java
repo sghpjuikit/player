@@ -19,10 +19,10 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import kotlin.Unit;
 import sp.it.pl.gui.objects.window.Resize;
-import sp.it.pl.util.access.CyclicEnum;
-import sp.it.pl.util.dev.Dependency;
-import sp.it.pl.util.math.P;
-import sp.it.pl.util.system.Os;
+import sp.it.util.access.CyclicEnum;
+import sp.it.util.dev.Dependency;
+import sp.it.util.math.P;
+import sp.it.util.system.Os;
 import static com.sun.jna.platform.win32.WinUser.GWL_STYLE;
 import static java.lang.Math.abs;
 import static javafx.stage.StageStyle.TRANSPARENT;
@@ -31,9 +31,9 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.ALL;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.NONE;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
-import static sp.it.pl.util.reactive.UtilKt.sync1If;
+import static sp.it.util.async.AsyncKt.runFX;
+import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.sync1If;
 
 /**
  * Customized Stage, window of the application.
@@ -210,7 +210,7 @@ public class WindowBase {
 	protected Screen screen = Screen.getPrimary();
 
 	private void updateScreen() {
-		screen = sp.it.pl.util.ui.UtilKt.getScreen(getCenter());
+		screen = sp.it.util.ui.UtilKt.getScreen(getCenter());
 	}
 
 	/**
@@ -563,17 +563,17 @@ public class WindowBase {
 
 	/** @return window-relative position of the centre of this window */
 	public P getCentre() {
-		return sp.it.pl.util.ui.UtilKt.getCentre(s);
+		return sp.it.util.ui.UtilKt.getCentre(s);
 	}
 
 	/** @return window-relative x position of the centre of this window */
 	public double getCentreX() {
-		return sp.it.pl.util.ui.UtilKt.getCentreX(s);
+		return sp.it.util.ui.UtilKt.getCentreX(s);
 	}
 
 	/** @return window-relative y position of the centre of this window */
 	public double getCentreY() {
-		return sp.it.pl.util.ui.UtilKt.getCentreY(s);
+		return sp.it.util.ui.UtilKt.getCentreY(s);
 	}
 
 	/**

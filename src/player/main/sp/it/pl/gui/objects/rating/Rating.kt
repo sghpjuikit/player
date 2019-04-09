@@ -2,9 +2,9 @@ package sp.it.pl.gui.objects.rating
 
 import javafx.geometry.Pos
 import javafx.scene.control.Control
-import sp.it.pl.util.Util.clip
-import sp.it.pl.util.access.V
-import sp.it.pl.util.access.v
+import sp.it.util.Util.clip
+import sp.it.util.access.V
+import sp.it.util.access.v
 
 /** A control for allowing users to provide a rating as 0-1 double. */
 class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double? = null): Control() {

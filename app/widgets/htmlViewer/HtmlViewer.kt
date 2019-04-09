@@ -8,14 +8,14 @@ import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.scaleEM
-import sp.it.pl.util.access.initSync
-import sp.it.pl.util.access.v
-import sp.it.pl.util.async.runPeriodic
-import sp.it.pl.util.reactive.on
-import sp.it.pl.util.ui.lay
-import sp.it.pl.util.ui.prefSize
-import sp.it.pl.util.ui.x
-import sp.it.pl.util.units.seconds
+import sp.it.util.access.initSync
+import sp.it.util.access.v
+import sp.it.util.async.runPeriodic
+import sp.it.util.reactive.on
+import sp.it.util.ui.lay
+import sp.it.util.ui.prefSize
+import sp.it.util.ui.x
+import sp.it.util.units.seconds
 
 @Widget.Info(
         name = "HtmlEditor",

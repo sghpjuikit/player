@@ -7,14 +7,14 @@ import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import sp.it.pl.gui.pane.collectionUnwrap
 import sp.it.pl.gui.pane.collectionWrap
-import sp.it.pl.util.collections.getElementType
-import sp.it.pl.util.collections.map.ClassListMap
-import sp.it.pl.util.dev.fail
-import sp.it.pl.util.functional.asArray
-import sp.it.pl.util.functional.asIf
-import sp.it.pl.util.functional.net
-import sp.it.pl.util.ui.menuItem
-import sp.it.pl.util.ui.menuSeparator
+import sp.it.util.collections.getElementType
+import sp.it.util.collections.map.ClassListMap
+import sp.it.util.dev.fail
+import sp.it.util.functional.asArray
+import sp.it.util.functional.asIf
+import sp.it.util.functional.net
+import sp.it.util.ui.menuItem
+import sp.it.util.ui.menuSeparator
 
 val contextMenuGenerator = ContextMenuGenerator()
 

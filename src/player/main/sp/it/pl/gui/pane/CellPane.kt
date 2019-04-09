@@ -1,7 +1,7 @@
 package sp.it.pl.gui.pane
 
 import javafx.scene.layout.Pane
-import sp.it.pl.util.async.runLater
+import sp.it.util.async.runLater
 import java.lang.Integer.max
 import java.lang.Math.ceil
 import java.lang.Math.floor

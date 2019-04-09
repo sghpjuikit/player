@@ -12,12 +12,12 @@ import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.util.animation.Anim
-import sp.it.pl.util.animation.Anim.Companion.anim
-import sp.it.pl.util.async.runFX
-import sp.it.pl.util.async.runOn
-import sp.it.pl.util.reactive.attach1IfNonNull
-import sp.it.pl.util.units.millis
+import sp.it.util.animation.Anim
+import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.async.runFX
+import sp.it.util.async.runOn
+import sp.it.util.reactive.attach1IfNonNull
+import sp.it.util.units.millis
 import java.lang.Math.pow
 
 /** Audio player which abstracts away from the implementation. */

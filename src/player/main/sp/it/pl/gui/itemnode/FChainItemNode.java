@@ -3,13 +3,13 @@ package sp.it.pl.gui.itemnode;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javafx.collections.ListChangeListener;
-import sp.it.pl.util.collections.list.PrefList;
-import sp.it.pl.util.functional.Functors.NullIn;
-import sp.it.pl.util.functional.Functors.NullOut;
-import sp.it.pl.util.functional.Functors.PƑ;
-import sp.it.pl.util.functional.Functors.TypeAwareƑ;
-import sp.it.pl.util.functional.Functors.Ƒ1;
-import static sp.it.pl.util.functional.Util.IDENTITY;
+import sp.it.util.collections.list.PrefList;
+import sp.it.util.functional.Functors.NullIn;
+import sp.it.util.functional.Functors.NullOut;
+import sp.it.util.functional.Functors.PƑ;
+import sp.it.util.functional.Functors.TypeAwareƑ;
+import sp.it.util.functional.Functors.Ƒ1;
+import static sp.it.util.functional.Util.IDENTITY;
 
 /**
  * Function editor with function chaining.
@@ -34,7 +34,7 @@ import static sp.it.pl.util.functional.Util.IDENTITY;
  * <ul>
  * <li> null. Functions in the chain  are wrapped to function wrappers to
  * cases of producing or receiving null. The strategy can be customized
- * {@link #setNullHandling(sp.it.pl.util.functional.Functors.NullIn, sp.it.pl.util.functional.Functors.NullOut)}
+ * {@link #setNullHandling(sp.it.util.functional.Functors.NullIn, sp.it.util.functional.Functors.NullOut)}
  * <li> Void. Functions with void parameter can simulate supplier (no input) or
  * consumers (no output) functions. They can be anywhere within the chain.
  * </ul>

@@ -28,18 +28,18 @@ import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.layout.widget.ComponentFactory
 import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
-import sp.it.pl.util.access.minus
-import sp.it.pl.util.action.Action
-import sp.it.pl.util.collections.setToOne
-import sp.it.pl.util.conf.Config
-import sp.it.pl.util.reactive.onEventUp
-import sp.it.pl.util.reactive.syncFrom
-import sp.it.pl.util.type.isSubclassOf
-import sp.it.pl.util.ui.install
-import sp.it.pl.util.ui.label
-import sp.it.pl.util.ui.lay
-import sp.it.pl.util.ui.setMinPrefMaxSize
-import sp.it.pl.util.ui.stackPane
+import sp.it.util.access.minus
+import sp.it.util.action.Action
+import sp.it.util.collections.setToOne
+import sp.it.util.conf.Config
+import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.syncFrom
+import sp.it.util.type.isSubclassOf
+import sp.it.util.ui.install
+import sp.it.util.ui.label
+import sp.it.util.ui.lay
+import sp.it.util.ui.setMinPrefMaxSize
+import sp.it.util.ui.stackPane
 import java.util.ArrayList
 
 class ConfigSearch: AutoCompletion<Entry> {

@@ -51,19 +51,19 @@ import javafx.event.Event;
 import javafx.scene.control.Control;
 import javafx.util.Callback;
 import sp.it.pl.gui.objects.search.SearchAutoCancelable;
-import sp.it.pl.util.access.V;
-import sp.it.pl.util.access.fieldvalue.ObjectField;
-import sp.it.pl.util.access.fieldvalue.StringGetter;
-import sp.it.pl.util.functional.Functors.Ƒ1;
+import sp.it.util.access.V;
+import sp.it.util.access.fieldvalue.ObjectField;
+import sp.it.util.access.fieldvalue.StringGetter;
+import sp.it.util.functional.Functors.Ƒ1;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.KEY_PRESS;
 import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
-import static sp.it.pl.util.functional.Util.set;
-import static sp.it.pl.util.functional.Util.stream;
-import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.reactive.UtilKt.onChange;
+import static sp.it.util.functional.Util.set;
+import static sp.it.util.functional.Util.stream;
+import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.onChange;
 
 /**
  * A GridView is an 2D virtualized control for displaying items in a 2D grid. It offers similar set of features as

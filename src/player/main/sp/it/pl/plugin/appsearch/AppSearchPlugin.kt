@@ -7,17 +7,17 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.showAppProgress
 import sp.it.pl.plugin.PluginBase
-import sp.it.pl.util.async.runNew
-import sp.it.pl.util.collections.materialize
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.cList
-import sp.it.pl.util.conf.cr
-import sp.it.pl.util.conf.cv
-import sp.it.pl.util.conf.only
-import sp.it.pl.util.file.hasExtension
-import sp.it.pl.util.file.nameWithoutExtensionOrRoot
-import sp.it.pl.util.system.runAsProgram
-import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
+import sp.it.util.async.runNew
+import sp.it.util.collections.materialize
+import sp.it.util.conf.IsConfig
+import sp.it.util.conf.cList
+import sp.it.util.conf.cr
+import sp.it.util.conf.cv
+import sp.it.util.conf.only
+import sp.it.util.file.hasExtension
+import sp.it.util.file.nameWithoutExtensionOrRoot
+import sp.it.util.system.runAsProgram
+import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 
 class AppSearchPlugin: PluginBase("App Search", false) {

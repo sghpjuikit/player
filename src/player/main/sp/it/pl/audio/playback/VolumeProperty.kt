@@ -7,7 +7,7 @@ package sp.it.pl.audio.playback
 import javafx.beans.property.SimpleDoubleProperty
 import sp.it.pl.audio.playback.VolumeProperty.Companion.MAX
 import sp.it.pl.audio.playback.VolumeProperty.Companion.MIN
-import sp.it.pl.util.Util.clip
+import sp.it.util.Util.clip
 
 /** Double property for playback volume. Value is always within valid range [MIN]-[MAX]. */
 class VolumeProperty: SimpleDoubleProperty {

@@ -3,9 +3,9 @@ package sp.it.pl.audio.playback
 import javafx.scene.media.MediaPlayer.Status
 import javafx.util.Duration
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode
-import sp.it.pl.util.access.v
-import sp.it.pl.util.units.millis
-import sp.it.pl.util.units.minus
+import sp.it.util.access.v
+import sp.it.util.units.millis
+import sp.it.util.units.minus
 
 /** State of playback. */
 class PlaybackState {

@@ -6,12 +6,12 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
-import sp.it.pl.util.access.fieldvalue.ObjectField;
-import sp.it.pl.util.functional.Functors.Ƒ1;
-import static sp.it.pl.util.functional.Util.IS;
+import sp.it.util.access.fieldvalue.ObjectField;
+import sp.it.util.functional.Functors.Ƒ1;
+import static sp.it.util.functional.Util.IS;
 
 /**
- * Chained filter node producing {@link sp.it.pl.util.access.fieldvalue.ObjectField} predicate.
+ * Chained filter node producing {@link sp.it.util.access.fieldvalue.ObjectField} predicate.
  */
 public class FieldedPredicateChainItemNode<T, F extends ObjectField<T,Object>> extends ChainValueNode<Predicate<T>,FieldedPredicateItemNode<T,F>> {
 

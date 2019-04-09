@@ -27,14 +27,14 @@ import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.get;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.util.async.AsyncKt.runFX;
-import static sp.it.pl.util.functional.Util.findFirstEmptyKey;
-import static sp.it.pl.util.functional.UtilKt.consumer;
-import static sp.it.pl.util.functional.UtilKt.runnable;
-import static sp.it.pl.util.reactive.UtilKt.maintain;
-import static sp.it.pl.util.reactive.UtilKt.syncTo;
-import static sp.it.pl.util.ui.Util.setAnchor;
-import static sp.it.pl.util.ui.Util.setAnchors;
+import static sp.it.util.async.AsyncKt.runFX;
+import static sp.it.util.functional.Util.findFirstEmptyKey;
+import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncTo;
+import static sp.it.util.ui.Util.setAnchor;
+import static sp.it.util.ui.Util.setAnchors;
 
 public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 

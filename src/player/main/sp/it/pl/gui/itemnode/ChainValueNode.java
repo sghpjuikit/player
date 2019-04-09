@@ -22,9 +22,9 @@ import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
-import static sp.it.pl.util.dev.FailKt.failIf;
-import static sp.it.pl.util.functional.Util.ISNTØ;
-import static sp.it.pl.util.functional.Util.repeat;
+import static sp.it.util.dev.FailKt.failIf;
+import static sp.it.util.functional.Util.ISNTØ;
+import static sp.it.util.functional.Util.repeat;
 
 /**
  * {@link ValueNode} containing editable list of {@link ValueNode}.

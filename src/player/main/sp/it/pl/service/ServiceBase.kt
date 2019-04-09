@@ -1,10 +1,10 @@
 package sp.it.pl.service
 
 import mu.KLogging
-import sp.it.pl.util.access.initSync
-import sp.it.pl.util.access.v
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.cv
+import sp.it.util.access.initSync
+import sp.it.util.access.v
+import sp.it.util.conf.IsConfig
+import sp.it.util.conf.cv
 
 abstract class ServiceBase(override val name: String, isEnabledByDefault: Boolean): Service {
 

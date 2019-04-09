@@ -1,6 +1,6 @@
 package sp.it.pl.layout.widget.controller.io
 
-import sp.it.pl.util.reactive.Subscription
+import sp.it.util.reactive.Subscription
 import java.lang.reflect.Type
 import java.util.HashSet
 

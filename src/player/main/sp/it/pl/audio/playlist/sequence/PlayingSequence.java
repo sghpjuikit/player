@@ -3,9 +3,9 @@ package sp.it.pl.audio.playlist.sequence;
 import java.util.ArrayList;
 import java.util.List;
 import sp.it.pl.audio.playlist.PlaylistSong;
-import sp.it.pl.util.access.CyclicEnum;
-import sp.it.pl.util.access.SequentialValue;
-import static sp.it.pl.util.dev.FailKt.noNull;
+import sp.it.util.access.CyclicEnum;
+import sp.it.util.access.SequentialValue;
+import static sp.it.util.dev.FailKt.noNull;
 
 /**
  * Determines playing items. Provides customizable item selector and also the

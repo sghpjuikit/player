@@ -1,16 +1,16 @@
 package sp.it.pl.audio
 
 import sp.it.pl.main.APP
-import sp.it.pl.util.conf.EditMode
-import sp.it.pl.util.conf.IsConfig
-import sp.it.pl.util.conf.MultiConfigurableBase
-import sp.it.pl.util.conf.between
-import sp.it.pl.util.conf.c
-import sp.it.pl.util.conf.cvn
-import sp.it.pl.util.conf.cvro
-import sp.it.pl.util.conf.only
-import sp.it.pl.util.units.seconds
-import sp.it.pl.util.validation.Constraint.FileActor.DIRECTORY
+import sp.it.util.conf.EditMode
+import sp.it.util.conf.IsConfig
+import sp.it.util.conf.MultiConfigurableBase
+import sp.it.util.conf.between
+import sp.it.util.conf.c
+import sp.it.util.conf.cvn
+import sp.it.util.conf.cvro
+import sp.it.util.conf.only
+import sp.it.util.units.seconds
+import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 
 class PlayerConfiguration {
     companion object: MultiConfigurableBase("Playback") {

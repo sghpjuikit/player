@@ -7,7 +7,7 @@ import sp.it.pl.gui.objects.picker.MoodPicker
 import sp.it.pl.gui.objects.popover.NodePos
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.main.APP
-import sp.it.pl.util.access.v
+import sp.it.util.access.v
 
 /** Text field for audio mood tagging values with a picker and autocompletion. */
 class MoodItemNode: ValueTextField<String>({ APP.converter.general.toS(it) }) {

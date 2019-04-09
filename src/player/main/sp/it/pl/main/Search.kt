@@ -5,11 +5,11 @@ import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.textfield.DecoratedTextField
-import sp.it.pl.util.animation.Anim.Companion.anim
-import sp.it.pl.util.reactive.attach
-import sp.it.pl.util.reactive.onEventDown
-import sp.it.pl.util.reactive.syncFrom
-import sp.it.pl.util.units.millis
+import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.reactive.attach
+import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.syncFrom
+import sp.it.util.units.millis
 
 class Search {
     val sources = HashSet<() -> Sequence<ConfigSearch.Entry>>()

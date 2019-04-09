@@ -6,7 +6,7 @@ import sp.it.pl.gui.objects.tablecell.NumberRatingCellFactory
 import sp.it.pl.gui.objects.tablecell.RatingCellFactory
 import sp.it.pl.gui.objects.tablecell.RatingRatingCellFactory
 import sp.it.pl.gui.objects.tablecell.TextStarRatingCellFactory
-import sp.it.pl.util.type.InstanceMap
+import sp.it.util.type.InstanceMap
 import sp.it.pl.web.BingImageSearchQBuilder
 import sp.it.pl.web.DuckDuckGoImageQBuilder
 import sp.it.pl.web.DuckDuckGoQBuilder

@@ -4,8 +4,8 @@ import sp.it.pl.layout.widget.ComponentFactory
 import sp.it.pl.layout.widget.WidgetFactory
 import sp.it.pl.main.APP
 import sp.it.pl.main.isUsableByUser
-import sp.it.pl.util.functional.asIf
-import sp.it.pl.util.functional.net
+import sp.it.util.functional.asIf
+import sp.it.util.functional.net
 
 /** Widget factory picker. */
 class WidgetPicker: Picker<ComponentFactory<*>>() {

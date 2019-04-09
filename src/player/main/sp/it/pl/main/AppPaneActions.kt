@@ -54,7 +54,6 @@ import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
-import sp.it.util.functional.invoke
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
@@ -367,8 +366,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
 @Suppress("UNCHECKED_CAST")
 private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<File>, List<File>> = ComplexActionData(
         { files -> fut(files).then { findAudio(it).toList() } },
-        { files ->
-
+        { audioFiles ->
             val executed = v(false)
             val conf = object: ConfigurableBase<Boolean>() {
                 @IsConfig(name = "Make files writable if read-only", group ="1") val makeWritable by cv(true).readOnlyIf(executed)
@@ -376,8 +374,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                 @IsConfig(name = "Edit only added files", group ="3") val editOnlyAdded by cv(false).readOnlyUnless(editInTagger)
                 @IsConfig(name = "Enqueue in playlist", group ="4") val enqueue by cv(false)
             }
-            val fs = files()
-            val task = addSongsToLibTask(fs.map { SimpleSong(it) })
+            val task = addSongsToLibTask(audioFiles.map { SimpleSong(it) })
             val info = object: Any() {
                     private val computeProgress = { it: Number -> when(task.state) { SCHEDULED, READY -> 1.0 else -> it.toDouble() } }
                     val message = label { textProperty() syncFrom task.messageProperty() }
@@ -408,7 +405,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                         }.play()
 
                         runNew {
-                            if (conf.makeWritable.value) fs.forEach { it.setWritable(true) }
+                            if (conf.makeWritable.value) audioFiles.forEach { it.setWritable(true) }
                             task.runGet().toTry().orNull()
                         }.ui { result ->
                             if (result!=null) {

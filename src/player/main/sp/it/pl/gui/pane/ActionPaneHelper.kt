@@ -11,7 +11,6 @@ import sp.it.util.collections.getElementType
 import sp.it.util.dev.fail
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.Util.ISNT
-import java.util.function.Supplier
 
 inline fun <reified T> ActionPane.register(vararg actions: ActionData<T, *>) = register(T::class.java, *actions)
 
@@ -68,10 +67,10 @@ private typealias Act<T> = (T) -> Unit
 interface ConvertingConsumer<T>: Act<T>
 
 class ComplexActionData<R, T> {
-    @JvmField val gui: (Supplier<T>) -> Node
+    @JvmField val gui: (T) -> Node
     @JvmField val input: (R) -> Any
 
-    constructor(input: (R) -> Fut<T>, gui: (Supplier<T>) -> Node) {
+    constructor(input: (R) -> Fut<T>, gui: (T) -> Node) {
         this.gui = gui
         this.input = input
     }
@@ -91,7 +90,7 @@ abstract class ActionData<C, T> {
 
     @JvmField var isComplex = false
     @JvmField var preventClosing = false
-    @JvmField var complexData: ((ActionPane) -> ComplexActionData<*, *>)? = null
+    @JvmField var complexData: ((ActionPane) -> ComplexActionData<T, *>)? = null
 
     protected constructor(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, condition: Test<T>, isLong: Boolean, action: Act<T>) {
         this.name = name

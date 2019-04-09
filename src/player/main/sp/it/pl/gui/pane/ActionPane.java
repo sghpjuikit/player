@@ -109,7 +109,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	private final InstanceInfo instanceInfo;
 
 	private boolean showIcons = true;
-	private Node insteadIcons = null;
+	private Supplier<? extends Node> insteadIcons = null;
 
 	public ActionPane(String configurableDiscriminant, ClassName className, InstanceName instanceName, InstanceInfo instanceInfo) {
 		this.configurableDiscriminant = configurableDiscriminant;
@@ -288,12 +288,13 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	}
 
 	@SuppressWarnings("unchecked")
-	private void doneHide(ActionData<?,?> action) {
+	private <DATA, NEW_DATA> void doneHide(ActionData<?, DATA> action) {
 		if (action.isComplex) {
-			ComplexActionData complexAction = action.complexData.invoke(this);
+			ComplexActionData<DATA, NEW_DATA> complexAction = (ComplexActionData) action.complexData.invoke(this);
 			showIcons = false;
-			insteadIcons = (Node) complexAction.gui.invoke((Supplier) () -> action.prepInput(getData()));
-			show(complexAction.input.invoke(action.prepInput(getData())));
+			insteadIcons = () -> (Node) complexAction.gui.invoke((NEW_DATA) getData());
+			var newData = complexAction.input.invoke(action.prepInput(getData()));
+			show(newData);
 		}
 
 		if (!action.preventClosing)
@@ -501,10 +502,11 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		iconPaneComplex.getParent().getChildrenUnmodifiable().forEach(n -> n.setVisible(true));
 		iconPaneComplex.getChildren().clear();
 	}
+
 	private void showCustomActionUi() {
 		iconPaneComplex.getParent().getChildrenUnmodifiable().forEach(n -> n.setVisible(false));
 		iconPaneComplex.setVisible(true);
-		iconPaneComplex.getChildren().setAll(insteadIcons);
+		iconPaneComplex.getChildren().setAll(insteadIcons.get());
 	}
 
 	public <I> ConvertingConsumer<? super I> converting(Ƒ1<? super I,Try<?,?>> converter) {

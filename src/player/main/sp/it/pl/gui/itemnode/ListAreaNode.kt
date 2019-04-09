@@ -93,8 +93,8 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
         }
         textArea.onEventDown(KEY_PRESSED, CONTROL, V) { it.consume() }
 
-        root.lay += textArea
-        root.lay(ALWAYS) += transforms.getNode()
+        root.lay(ALWAYS) += textArea
+        root.lay += transforms.getNode()
     }
 
     /**

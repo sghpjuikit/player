@@ -189,7 +189,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                 }
             }
         }
-        Player.playingSong.onUpdate { _ -> table.updateStyleRules() } on onClose
+        Player.playingSong.onUpdate { table.updateStyleRules() } on onClose
 
         table.defaultColumnInfo   // trigger menu initialization
         table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo

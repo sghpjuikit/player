@@ -59,6 +59,7 @@ import static sp.it.pl.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.pl.util.dev.FailKt.noNull;
 import static sp.it.pl.util.functional.Functors.Ƒ.f;
 import static sp.it.pl.util.functional.Util.list;
+import static sp.it.pl.util.functional.UtilKt.consumer;
 import static sp.it.pl.util.functional.UtilKt.runnable;
 import static sp.it.pl.util.system.EnvironmentKt.browse;
 import static sp.it.pl.util.units.UtilKt.uuid;
@@ -79,7 +80,7 @@ public class Player {
 	public static void initialize() {
 		anySelected.i.bind(playlistSelected.o);
 		anySelected.i.bind(librarySelected.o);
-		playingSong.onUpdate(playing.i::setValue);
+		playingSong.onUpdate(consumer(playing.i::setValue));
 
 		// use jaudiotagger for total time value (fixes incorrect values coming from player classes)
 		playingSong.onChange(m -> state.playback.duration.set(m.getLength()));
@@ -207,8 +208,8 @@ public class Player {
 		 * Note: It is safe to call {@link #getValue()} method when this even fires.
 		 * It has already been updated.
 		 */
-		public Subscription onUpdate(Consumer<? super Metadata> bc) {
-			return onUpdate((o, n) -> bc.accept(n));
+		public Subscription onUpdate(Function1<? super Metadata, ? extends Unit> bc) {
+			return onUpdate((o, n) -> bc.invoke(n));
 		}
 
 		public Subscription onUpdateAndNow(Function1<? super Metadata, ? extends Unit> bc) {

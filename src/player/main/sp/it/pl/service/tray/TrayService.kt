@@ -137,9 +137,9 @@ class TrayService: ServiceBase("Tray", true) {
             }
         }
 
-        onEnd += Player.playingSong.onUpdate { m ->
+        onEnd += Player.playingSong.onUpdate {
             if (showPlayingInTooltip.value)
-                setTooltipText(m.getTitle()?.let { "${APP.name} - $it" })
+                setTooltipText(it.getTitle()?.let { "${APP.name} - $it" })
         }
 
         running = true

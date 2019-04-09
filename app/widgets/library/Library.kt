@@ -49,6 +49,7 @@ import sp.it.pl.util.conf.cv
 import sp.it.pl.util.conf.only
 import sp.it.pl.util.file.FileType.DIRECTORY
 import sp.it.pl.util.file.Util.getCommonRoot
+import sp.it.pl.util.file.parentDir
 import sp.it.pl.util.functional.invoke
 import sp.it.pl.util.functional.net
 import sp.it.pl.util.functional.orNull
@@ -175,7 +176,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
                 styleRuleAdd(pcPlaying) { Player.playingSong.value.same(it) }
             }
         }
-        Player.playingSong.onUpdate { _ -> table.updateStyleRules() } on onClose
+        Player.playingSong.onUpdate { table.updateStyleRules() } on onClose
 
         table.defaultColumnInfo   // trigger menu initialization
         table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo
@@ -225,7 +226,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
     private fun addDirectory() {
         chooseFile("Add folder to library", DIRECTORY, lastAddDirLocation, root.scene.window).ifOk {
             APP.actionPane.show(it)
-            lastAddDirLocation = it.parentFile
+            lastAddDirLocation = it.parentDir
         }
     }
 

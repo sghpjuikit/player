@@ -1,6 +1,5 @@
 package sp.it.pl.audio.tagging
 
-import sp.it.pl.util.file.Util.getSuffix
 import java.net.URI
 
 enum class AudioFileFormat {
@@ -24,9 +23,9 @@ enum class AudioFileFormat {
 
         private val formats = values().associateBy { it.name.toLowerCase() }
 
-        fun of(uri: URI): AudioFileFormat = of(getSuffix(uri.path))
+        fun of(uri: URI): AudioFileFormat = of(uri.path)
 
-        fun of(uri: String): AudioFileFormat = formats[getSuffix(uri).toLowerCase()] ?: UNKNOWN
+        fun of(uri: String): AudioFileFormat = formats[uri.substringAfterLast(".").toLowerCase()] ?: UNKNOWN
 
     }
 

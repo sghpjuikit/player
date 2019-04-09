@@ -72,7 +72,6 @@ import sp.it.pl.util.ui.lay
 import sp.it.pl.util.ui.prefSize
 import sp.it.pl.util.ui.pseudoclass
 import sp.it.pl.util.ui.x
-import java.util.function.Consumer
 import kotlin.streams.asSequence
 import kotlin.streams.toList
 
@@ -270,12 +269,9 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         table.filterPane.setPrefTypeSupplier { PredicateData.ofField(VALUE) }
         table.filterPane.data = MetadataGroup.Field.FIELDS.map { PredicateData(it.toString(f), it.getType(f), it as ObjectField<MetadataGroup, Any>) }
         table.filterPane.shrinkTo(0)
-        val c = table.filterPane.onItemChange
-        table.filterPane.onItemChange = Consumer { }
-        table.filterPane.growTo1() // TODO: fix class path exception, for now we remove onItemChange temporarily
+        table.filterPane.growTo1()
         table.filterPane.clear()
         if (refreshItems) setItems(inputItems.value)
-        table.filterPane.onItemChange = c
     }
 
     /** Populates metadata groups to table from metadata list. */

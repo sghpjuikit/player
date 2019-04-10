@@ -55,11 +55,6 @@
     -fx-border-color:  none;
 }
 
-/* inherits: .icon */
-.seeker-add-chapter-button,
-.seeker-add-chapter-button:hover {
-    -fx-effect: none;
-}
 .indexed-cell,
 .table-row-cell,
 .table-row-cell:played,
@@ -248,7 +243,6 @@
  */
 .inode,
 .onode,
-.ionode,
-.seeker-add-chapter-button {
+.ionode {
     -fx-border-width: 0
 }

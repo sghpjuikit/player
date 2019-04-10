@@ -18,7 +18,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -40,6 +39,7 @@ import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.FxTimer;
 import sp.it.util.functional.Try;
 import sp.it.util.reactive.Subscription;
+import sp.it.util.type.Util;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CHECK;
@@ -47,14 +47,13 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CHEVRON_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CHEVRON_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EDIT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.REPLY;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SORT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TRASH_ALT;
 import static java.lang.Double.max;
 import static java.lang.Math.abs;
 import static java.lang.Math.signum;
-import static javafx.beans.binding.Bindings.notEqual;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
@@ -94,7 +93,6 @@ public final class Seeker extends AnchorPane {
 
 	private static final String STYLECLASS = "seeker";
 	private static final String STYLECLASS_CHAP = "seeker-marker";
-	private static final String STYLECLASS_CHAP_ADD_BUTTON = "seeker-add-chapter-button";
 	private static final PseudoClass STYLE_CHAP_NEW = pseudoclass("newly-created");
 
 	private final Slider seeker = new Slider(0, 1, 0);
@@ -126,7 +124,7 @@ public final class Seeker extends AnchorPane {
 
 				// snap to chapter
 				Chap ch = minBy(chapters, chapterSnapDistance.get(), c -> abs(x - c.position*w)).orElse(null);
-				seeker.setValue(ch==null ? v : ch.position);
+				setSeekerValue(ch==null ? v : ch.position);
 			}
 			e.consume();
 		});
@@ -146,7 +144,7 @@ public final class Seeker extends AnchorPane {
 		});
 		// We simulate mouse click with mouse released events) and should therefore consume it
 		// so if any parent node waits for it, it wont cause double behavior
-		seeker.addEventHandler(MouseEvent.MOUSE_CLICKED, Event::consume);
+		seeker.addEventHandler(MOUSE_CLICKED, Event::consume);
 
 		// new chapter button
 		addB.root.toFront();
@@ -179,7 +177,7 @@ public final class Seeker extends AnchorPane {
 			if (!user_drag && !addB.isVisible())
 				addB.show();
 		});
-		seeker.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
+		seeker.addEventHandler(KEY_PRESSED, e -> {
 			if (e.getCode()==KeyCode.RIGHT) {
 				Player.seekForwardAbsolute();
 				e.consume();
@@ -206,6 +204,14 @@ public final class Seeker extends AnchorPane {
 		}).intpl(new CircularInterpolator())
 			.delay(millis(150));
 		onHoverChanged(sa::playFromDir);
+	}
+
+	private void setSeekerValue(double value) {
+//		 seeker.setValue(value);    // This triggers expensive layout
+
+		var skin = seeker.getSkin();
+		var thumb = skin==null ? null : Util.<StackPane>getFieldValue(skin, "thumb");
+		if (thumb!=null) thumb.setTranslateX(seeker.getLayoutBounds().getWidth()*value-thumb.getLayoutBounds().getWidth()/2.0);
 	}
 
 	@Override
@@ -236,7 +242,6 @@ public final class Seeker extends AnchorPane {
 //****************************** runners animation *****************************/
 
 	private static final double MA_ISIZE = 10;
-	private static final double MA_WIDTH2 = 2.5;    // hardcoded, layoutBounds().getWidth() !work
 	private final Loop ma = new Loop(this::ma_do);
 	private final Icon r1 = new Icon(ANGLE_DOWN, MA_ISIZE);
 	private final Icon r2 = new Icon(ANGLE_UP, MA_ISIZE);
@@ -245,22 +250,18 @@ public final class Seeker extends AnchorPane {
 	private double maspeed = 0;
 
 	private void ma_do() {
-		// calculate new x
 		double diff = matox - macurx;
-		if (diff==0) return;                     // perf optim. & bug fix
+		if (diff==0) return;                     // performance optimization & bug fix
 		double dir = signum(diff);
 		double dist = abs(diff);
 		maspeed = max(1, dist/10d);              // prevents animation from never finishing
 		macurx += dir*maspeed;
 		if (abs(macurx - matox)<1) macurx = matox;   // finish anim in next cycle
 
-		// apply
 		double x = macurx;
 		x = clip(0, x, getWidth());        // fixes outside of area bugs
-		r1.setLayoutX(x - MA_WIDTH2);
-		r2.setLayoutX(x - MA_WIDTH2);
-		// we can also move add chapter button here (for different behavior)
-		// addB.root.setLayoutX(macurx-addB.root.getWidth()/2);
+		r1.setLayoutX(x - r1.getLayoutBounds().getWidth()/2.0);
+		r2.setLayoutX(x - r2.getLayoutBounds().getWidth()/2.0);
 	}
 
 	private void ma_init() {
@@ -384,7 +385,7 @@ public final class Seeker extends AnchorPane {
 			long now = System.currentTimeMillis();
 			if (now - polastUpdate>posUpdateInterval) {
 				polastUpdate = now;
-				seeker.setValue(posLast);
+				setSeekerValue(posLast);
 			}
 		}
 		posLastFrame = frame;
@@ -393,23 +394,17 @@ public final class Seeker extends AnchorPane {
 	/**************************************************************************************************/
 
 	private final class AddChapButton {
-		Icon i = new Icon(SORT, 16);
-		StackPane root = new StackPane(i);
-		Anim fade = new Anim(millis(800), p -> {
-			double p1 = mapTo01(p, 0, 0.45);
-			double p2 = mapTo01(p, 0.55, 1);
-			i.setScaleY(p1);
-			i.setRotate(90*p2);
-		});
-		Anim select = new Anim(millis(250), p -> i.setRotate(90 + 90*p));
-		boolean visible = false;
+		private final StackPane root = new StackPane();
+		private final Anim fade = new Anim(millis(800), p -> {});
+		private final Anim select = new Anim(millis(250), p -> {});
+		private boolean visible = false;
 
 		public AddChapButton() {
 			// this button is mouse transparent, we handle click on our own
 			// and avoid nodes blocking events + we can use arbitrary click area
 			seeker.addEventFilter(MOUSE_CLICKED, e -> {
 				if (e.getButton()==SECONDARY) {
-					if (isShown() && abs(getCenterX() - e.getX())<16/2) { // if addB contains event
+					if (isShown() && abs(getCenterX() - e.getX())<16.0/2.0) { // if addB contains event
 						if (isSelected()) {
 							if (chapterDisplayActivation.get()==ChapterDisplayActivation.RIGHT_CLICK) chapterSelected.showPopup();
 						} else {
@@ -422,19 +417,15 @@ public final class Seeker extends AnchorPane {
 
 			root.setPrefSize(25, 25);
 			root.setMouseTransparent(true);
-			root.visibleProperty().bind(notEqual(i.scaleYProperty(), 0)); // fixes potential bugs
+			root.setVisible(false);
+			root.setManaged(false);   // fixes a resizing issue
 			getChildren().add(root);
-			root.setManaged(false);   // fixex a resizing issue
-			i.styleclass(STYLECLASS_CHAP_ADD_BUTTON);
-			i.setDisable(false);
-			i.tooltip("Create chapter.\n\nCreates a new empty comment at this position and opens the editor.");
 
 			fade.applyNow();
 			select.applyNow();
 		}
 
 		void show() {
-			i.setDisable(!Player.playingSong.getValue().isFileBased());
 			fade.playOpenDo(runnable(() -> visible = true));
 		}
 

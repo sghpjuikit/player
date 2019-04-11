@@ -75,11 +75,8 @@ public class Player {
 	public static final InOutput<Metadata> playing = InOutput.invoke(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing", Metadata.class);
 	public static final InOutput<PlaylistSong> playlistSelected = InOutput.invoke(uuid("ca002c1d-8689-49f6-b1a0-0d0f8ff2e2a8"), "Selected in playlist", PlaylistSong.class);
 	public static final InOutput<Metadata> librarySelected = InOutput.invoke(uuid("ba002c1d-2185-49f6-b1a0-0d0f8ff2e2a8"), "Selected in Library", Metadata.class);
-	public static final InOutput<Song> anySelected = InOutput.invoke(uuid("1a01ca96-2e60-426e-831d-93b24605595f"), "Selected anywhere", Song.class);
 
 	public static void initialize() {
-		anySelected.i.bind(playlistSelected.o);
-		anySelected.i.bind(librarySelected.o);
 		playingSong.onUpdate(consumer(playing.i::setValue));
 
 		// use jaudiotagger for total time value (fixes incorrect values coming from player classes)

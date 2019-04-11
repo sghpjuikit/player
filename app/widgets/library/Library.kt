@@ -30,7 +30,6 @@ import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
 import sp.it.pl.layout.widget.Widget.Info
 import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.controller.io.IsInput
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
@@ -96,6 +95,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
     private val table = FilteredTable(Metadata::class.java, Metadata.EMPTY.getMainField())
     private val outputSelected = outputs.create<Metadata>(widget.id, "Selected", null)
+    private val inputItems = inputs.create<List<Metadata>>("To display", listOf()) { setItems(it) }
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     val tableOrient by cv(NodeOrientation.INHERIT) { Vo(APP.ui.tableOrient) }
@@ -217,7 +217,6 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
         table.setItemsRaw(items.map { it.toMeta() })
     }
 
-    @IsInput("To display")
     fun setItems(items: List<Metadata>?) {
         if (items==null) return
         table.setItemsRaw(items)

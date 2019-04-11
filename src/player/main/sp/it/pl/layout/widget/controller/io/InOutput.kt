@@ -16,7 +16,7 @@ class InOutput<T>: XPut<T?> {
         this.o = Output(id, name, getRawType(type) as Class<T?>)
         this.o.typeRaw = type
         this.i = object: Input<T>(name, getRawType(type) as Class<T?>, null, { o.value = it }) {
-            override fun canBind(output: Output<*>) = output!==o && super.canBind(output)
+            override fun isAssignable(output: Output<*>) = output!==o && super.isAssignable(output)
         }
         this.i.typeRaw = type
         IOLayer.all_inoutputs.add(this)

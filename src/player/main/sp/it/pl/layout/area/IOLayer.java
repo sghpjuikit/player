@@ -244,7 +244,7 @@ public class IOLayer extends StackPane {
 
         // start effect: disable & visually differentiate bindable & unbindable nodes
         outputnodes.forEach((input, node) -> node.onEditActive(true, false));
-        inputnodes.forEach((input, node) -> node.onEditActive(true, node.input.canBind(editFrom.output)));
+        inputnodes.forEach((input, node) -> node.onEditActive(true, node.input.isAssignable(editFrom.output)));
         connections.forEach((inOutput, line) -> line.onEditActive(true));
     }
 
@@ -255,7 +255,7 @@ public class IOLayer extends StackPane {
 
         XNode n = inputnodes.values().stream()
                .filter(in -> pow(in.cx-e.getX(),2)+pow(in.cy-e.getY(),2)<8*8)
-               .filter(in -> in.input.canBind(editFrom.output))
+               .filter(in -> in.input.isAssignable(editFrom.output))
                .findAny().orElse(null);
 
         if (editTo!=n) {
@@ -467,9 +467,9 @@ public class IOLayer extends StackPane {
                         drawGraph();
                     } else {
                         Object o = AppDragKt.getAny(e.getDragboard());
-                        Class c = o.getClass();
+                        Class<?> c = o==null ? Void.class : o.getClass();
                         if (input.type.isAssignableFrom(c)) {
-                            input.setValue((T)o);
+                            input.setValueAny(o);
                         }
                     }
                 })

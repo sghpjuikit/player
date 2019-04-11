@@ -26,7 +26,6 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.container.switchcontainer.SwitchPane;
 import sp.it.pl.layout.widget.controller.Controller;
 import sp.it.pl.layout.widget.controller.io.InOutput;
@@ -77,31 +76,29 @@ public class IOLayer extends StackPane {
     public static final PseudoClass XNODE_SELECTED = pseudoclass("selected");
     private static final Object XNODE_KEY = new Object();
 
+    static public final ObservableSet<IOLayer> all_layers = FXCollections.observableSet();
+    static public final Map2D<Input<?>,Output<?>, Object> all_connections = new Map2D<>();
     static public final ObservableSet<Input<?>> all_inputs = FXCollections.observableSet();
     static public final ObservableSet<Output<?>> all_outputs = FXCollections.observableSet();
     static public final ObservableSet<InOutput<?>> all_inoutputs = FXCollections.observableSet();
-    static public final Map2D<Input<?>,Output<?>,IOLine> connections = new Map2D<>();
-    static public final Map<Input<?>,XNode<?,?,?>> inputnodes = new HashMap<>();
-    static public final Map<Output<?>,XNode<?,?,?>> outputnodes = new HashMap<>();
-    static public final Map<InOutput<?>,InOutputNode> inoutputnodes = new HashMap<>();
-
+    public final Map2D<Input<?>,Output<?>,IOLine> connections = new Map2D<>();
+    public final Map<Input<?>,XNode<?,?,?>> inputnodes = new HashMap<>();
+    public final Map<Output<?>,XNode<?,?,?>> outputnodes = new HashMap<>();
+    public final Map<InOutput<?>,InOutputNode> inoutputnodes = new HashMap<>();
 
     public static void relayout() {
-        APP.windowManager.windows.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io)
-              .forEach(IOLayer::requestLayout);
+        all_layers.forEach(IOLayer::requestLayout);
     }
 
     public static void addConnectionE(Input<?> i, Output<?> o) {
-        APP.windowManager.windows.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io)
-              .forEach(wio -> wio.addConnection(i,o));
+        all_connections.put(i, o, new Object());
+        all_layers.forEach(it -> it.addConnection(i,o));
     }
 
     public static void remConnectionE(Input<?> i, Output<?> o) {
-        APP.windowManager.windows.stream().map(Window::getSwitchPane).filter(ISNTØ).map(s -> s.widget_io)
-              .forEach(wio -> wio.remConnection(i,o));
+        all_connections.remove2D(i, o);
+        all_layers.forEach(it -> it.remConnection(i,o));
     }
-
-
 
     public void addController(Controller c) {
         c.getOwnedInputs().getInputs().forEach(this::addInput);
@@ -188,6 +185,7 @@ public class IOLayer extends StackPane {
         scalex = sp.zoomProperty();
         scaley = sp.zoomProperty();
         scalex.addListener((o,ov,nv) -> layoutChildren());
+        all_layers.add(this);
 
         parentProperty().addListener((o,ov,nv) ->
             nv.addEventFilter(MOUSE_CLICKED, e -> selectNode(null))
@@ -220,6 +218,10 @@ public class IOLayer extends StackPane {
             if (aio!=null) addInOutput(aio);
             if (rio!=null) remInOutput(rio);
         });
+    }
+
+    public void dispose() {
+        all_layers.remove(this);
     }
 
     private void removeChild(Node n) {

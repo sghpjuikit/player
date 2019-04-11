@@ -163,7 +163,12 @@ public class SwitchPane implements ContainerNode {
 	double byx = 0;
     double tox = 0;
 
-/********************************    TABS   ***********************************/
+    @Override
+    public void close() {
+        widget_io.dispose();
+    }
+
+    /********************************    TABS   ***********************************/
 
     public final Map<Integer,TabPane> tabs = new HashMap<>();
     boolean changed = false;

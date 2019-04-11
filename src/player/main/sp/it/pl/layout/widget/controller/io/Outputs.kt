@@ -17,7 +17,8 @@ class Outputs {
     fun <T> create(id: UUID, name: String, type: Type, value: T?): Output<T?> {
         failIf(m[name]!=null) { "Output $name already exists" }
 
-        val o = Output(id, name, getRawType(type) as Class<T?>)
+        val o = Output<T?>(id, name, getRawType(type) as Class<T?>)
+        o.typeRaw = type
         o.value = value
         m[name] = o
         return o

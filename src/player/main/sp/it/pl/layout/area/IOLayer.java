@@ -236,7 +236,7 @@ public class IOLayer extends StackPane {
     private XNode editTo = null;
 
     @SuppressWarnings("unchecked")
-    void editBegin(XNode n) {
+    private void editBegin(XNode n) {
         if (n==null) return;
 
         editFrom = n;
@@ -244,20 +244,19 @@ public class IOLayer extends StackPane {
 //        getChildren().add(edit);
 
         // start effect: disable & visually differentiate bindable & unbindable nodes
-        outputnodes.forEach((input,node) -> node.onEditActive(true,false));
-        inputnodes.forEach((input,node) -> node.onEditActive(true, node.input.canBind(editFrom.output)));
-        connections.forEach((input_and_output,line) -> line.onEditActive(true));
+        outputnodes.forEach((input, node) -> node.onEditActive(true, false));
+        inputnodes.forEach((input, node) -> node.onEditActive(true, node.input.canBind(editFrom.output)));
+        connections.forEach((inOutput, line) -> line.onEditActive(true));
     }
 
-    @SuppressWarnings("unchecked")
-    void editMove(MouseEvent e) {
+    private void editMove(MouseEvent e) {
         if (edit==null || editFrom ==null) return;
 
         edit.lay(editFrom.cx, editFrom.cy, e.getX(), e.getY());
 
         XNode n = inputnodes.values().stream()
                .filter(in -> pow(in.cx-e.getX(),2)+pow(in.cy-e.getY(),2)<8*8)
-               .filter(in -> in!=editFrom) // inoutput must not bind to self
+               .filter(in -> in!=editFrom) // forbid self -> self binding
                .filter(in -> in.input.canBind(editFrom.output))
                .findAny().orElse(null);
 
@@ -269,7 +268,7 @@ public class IOLayer extends StackPane {
     }
 
     @SuppressWarnings("unchecked")
-    void editEnd() {
+    private void editEnd() {
         if (edit==null) return;
 
         if (editTo!=null) editTo.input.bind(editFrom.output);
@@ -285,7 +284,7 @@ public class IOLayer extends StackPane {
         connections.forEach((input_and_output,line) -> line.onEditActive(false));
     }
 
-    void selectNode(XNode n) {
+    private void selectNode(XNode n) {
         if (selected!=null) selected.select(false);
         selected = n;
         if (selected!=null) selected.select(true);
@@ -534,7 +533,7 @@ public class IOLayer extends StackPane {
             );
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(XNODE_DRAGOVER, false));
-            i.addEventFilter(DRAG_DETECTED,e -> {
+            i.addEventFilter(DRAG_DETECTED, e -> {
                 if (selected) AppDragKt.set(i.startDragAndDrop(TransferMode.LINK), Df.WIDGET_OUTPUT, output);
                 else editBegin(this);
                 e.consume();

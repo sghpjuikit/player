@@ -38,6 +38,7 @@ import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Group;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
+import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.Opener;
 import sp.it.pl.layout.widget.feature.SongWriter;
@@ -148,8 +149,6 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 	    super(widget);
         root.setPrefSize(scaleEM(800), scaleEM(500));
 
-        inputs.create("Input", Object.class, this::setData);
-
         // layout
         HBox ll = new HBox(5, ta_in.getNode(),layout);
         HBox.setHgrow(ta_in.getNode(), ALWAYS);
@@ -234,6 +233,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         applier.fillActs(Void.class);
     }
 
+    @IsInput("Value")
     public void setData(Object o) {
         source.setAll(unpackData(o));
     }

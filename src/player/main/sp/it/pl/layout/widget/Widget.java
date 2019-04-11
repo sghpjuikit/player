@@ -9,6 +9,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -46,6 +47,7 @@ import sp.it.util.conf.Configuration;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.IsConfig;
 import sp.it.util.dev.Dependency;
+import sp.it.util.dev.FailKt;
 import sp.it.util.file.Properties;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.reactive.Disposer;
@@ -67,6 +69,7 @@ import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.set;
 import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.Util.toS;
+import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.ui.UtilKt.findParent;
 import static sp.it.util.ui.UtilKt.onNodeDispose;
 import static sp.it.util.ui.UtilKt.pseudoclass;
@@ -259,14 +262,15 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 				IsInput a = m.getAnnotation(IsInput.class);
 				if (a!=null) {
 					int params = m.getParameterCount();
-					if (Modifier.isStatic(m.getModifiers()) || params>1) throw new RuntimeException("Method " + m + " can not be an input.");
+					FailKt.failIf(Modifier.isStatic(m.getModifiers()), () -> "Input method can not be static");
+					FailKt.failIf(params>1, () -> "Input method must have 0 or 1 parameters");
 
 					String iName = a.value();
 					boolean isVoid = params==0;
-					Class iType = isVoid ? Void.class : m.getParameterTypes()[0];
+					Type iType = isVoid ? Void.class : m.getGenericParameterTypes()[0];
 					Consumer iAction = isVoid
 						? value -> {
-								if (value!=null) throw new ClassCastException(cc + " " + m + ": Can not cast " + value + " into Void.class");
+								if (value!=null) throw new ClassCastException(cc + " " + m + ": Can not cast " + value + " into " + Void.class);
 								try {
 									m.setAccessible(true);
 									m.invoke(c);
@@ -283,7 +287,7 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 								}
 							};
 
-					c.getOwnedInputs().create(iName, iType, iAction);
+					c.getOwnedInputs().create(iName, iType, consumer(iAction));
 				}
 			}
 		}

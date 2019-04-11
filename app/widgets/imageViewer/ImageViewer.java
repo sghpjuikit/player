@@ -112,7 +112,6 @@ import static sp.it.util.ui.UtilKt.setMinPrefMaxSize;
 @LegacyController
 public class ImageViewer extends SimpleController implements ImageDisplayFeature, ImagesDisplayFeature {
 
-
     @FXML ScrollPane thumb_root;
     @FXML TilePane thumb_pane;
     private final Thumbnail mainImage = new Thumbnail();
@@ -156,7 +155,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
     @IsConfig(name = "Displayed image", editable = EditMode.APP)
     private int active_image = -1;
 
-    private Input<Song> inputLocationOf = inputs.create("Location of", Song.class, this::dataChanged);
+    private Input<Song> inputLocationOf = inputs.create("Location of", Song.class, consumer(this::dataChanged));
 
     public ImageViewer(Widget widget) {
         super(widget);
@@ -350,7 +349,6 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
 
 /****************************** HELPER METHODS ********************************/
 
-    @IsInput("Location of")
     private void dataChanged(Song i) {
         if (i==null) dataChanged(Metadata.EMPTY);
         else APP.db.songToMeta(i, consumer(this::dataChanged));

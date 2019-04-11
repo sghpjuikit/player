@@ -1,30 +1,26 @@
 package sp.it.pl.layout.widget.controller.io
 
+import sp.it.util.dev.failIf
+import sp.it.util.type.Util.getRawType
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.type
+import java.lang.reflect.Type
 import java.util.HashMap
-import java.util.function.Consumer
 
 class Inputs {
     private val m = HashMap<String, Input<*>>()
 
-    inline fun <reified T> create(name: String, crossinline action: (T?) -> Unit) = create<T>(name, T::class.java, Consumer { action(it) }).apply {
-        typeRaw = type<T?>()
-    }
-    inline fun <reified T> create(name: String, initialValue: T?, crossinline action: (T?) -> Unit) = create<T>(name, T::class.java, initialValue, Consumer { action(it) }).apply {
-        typeRaw = type<T?>()
-    }
+    @Suppress("UNCHECKED_CAST")
+    @JvmOverloads
+    inline fun <reified T> create(name: String, initialValue: T? = null, noinline action: (T?) -> Unit) = create(name, type<T?>(), initialValue, action)
 
     @Suppress("UNCHECKED_CAST")
-    fun <T> create(name: String, type: Class<T>, action: Consumer<in T?>): Input<T?> {
-        val i: Input<T?> = Input(name, type as Class<T?>, action)
-        m[name] = i
-        return i
-    }
+    @JvmOverloads
+    fun <T> create(name: String, type: Type, initialValue: T? = null, action: (T?) -> Unit): Input<T?> {
+        failIf(m[name]!=null) { "Input $name already exists" }
 
-    @Suppress("UNCHECKED_CAST")
-    fun <T> create(name: String, type: Class<T>, initialValue: T?, action: Consumer<in T?>): Input<T?> {
-        val i: Input<T?> = Input(name, type as Class<T?>, initialValue, action)
+        val i: Input<T?> = Input(name, getRawType(type) as Class<T?>, initialValue, action)
+        i.typeRaw = type
         m[name] = i
         return i
     }

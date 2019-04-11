@@ -241,7 +241,6 @@ public class IOLayer extends StackPane {
 
         editFrom = n;
         edit = new EditIOLine<>(n);
-//        getChildren().add(edit);
 
         // start effect: disable & visually differentiate bindable & unbindable nodes
         outputnodes.forEach((input, node) -> node.onEditActive(true, false));
@@ -256,7 +255,6 @@ public class IOLayer extends StackPane {
 
         XNode n = inputnodes.values().stream()
                .filter(in -> pow(in.cx-e.getX(),2)+pow(in.cy-e.getY(),2)<8*8)
-               .filter(in -> in!=editFrom) // forbid self -> self binding
                .filter(in -> in.input.canBind(editFrom.output))
                .findAny().orElse(null);
 

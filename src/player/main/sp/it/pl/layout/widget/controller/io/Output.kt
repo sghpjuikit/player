@@ -54,7 +54,7 @@ class Output<T>: Put<T?> {
 
     class Id(@JvmField val carrier_id: UUID, @JvmField val name: String) {
 
-        override fun equals(o: Any?) = this===o || o is Id && o.name==name && o.carrier_id==carrier_id
+        override fun equals(other: Any?) = this===other || other is Id && other.name==name && other.carrier_id==carrier_id
 
         override fun hashCode(): Int {
             var hash = 3

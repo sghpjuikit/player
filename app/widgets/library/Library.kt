@@ -56,6 +56,7 @@ import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
 import sp.it.util.system.chooseFile
@@ -116,8 +117,6 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
         root.prefSize = 850.scaleEM() x 600.scaleEM()
         root.consumeScrolling()
         root.lay += table.root
-
-        outputSelected.bind(Player.librarySelected.i) on onClose
 
         // table properties
         table.selectionModel.selectionMode = MULTIPLE
@@ -202,9 +201,12 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
         // sync outputs
         table.selectionModel.selectedItemProperty() sync { outputSelected.value = it } on onClose
+        outputSelected.bind(Player.librarySelected.i) on onClose
+        root.sync1IfInScene { if (!inputItems.isBound()) inputItems.bind(APP.db.songs.o) } on onClose
 
         // sync library comparator
         table.itemsComparator syncTo APP.db.libraryComparator on onClose
+
     }
 
     override fun getFields(): Collection<Config<Any>> {

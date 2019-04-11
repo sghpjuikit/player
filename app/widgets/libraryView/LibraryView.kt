@@ -66,6 +66,7 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncTo
 import sp.it.util.ui.Util.menuItem
 import sp.it.util.ui.lay
@@ -237,13 +238,14 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             }
         }
 
-        // forward selection
+        // sync outputs
         val selectedItemsReducer = EventReducer.toLast<Void>(100.0) {
             outputSelectedGroup.value = table.selectedItemsCopy
             outputSelectedSongs.value = filterList(inputItems.value, true)
         }
         table.selectedItems.onChange { if (!selIgnore) selectedItemsReducer.push(null) } on onClose
         table.selectionModel.selectedItemProperty() sync { selLast = it?.getValueS("") ?: "null" } on onClose
+        root.sync1IfInScene { if (!inputItems.isBound()) inputItems.bind(APP.db.songs.o) } on onClose
 
         applyData(false)
     }

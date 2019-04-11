@@ -29,7 +29,6 @@ import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Input;
-import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature;
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature;
 import sp.it.util.access.V;
@@ -75,6 +74,7 @@ import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 import static sp.it.util.ui.UtilKt.setMinPrefMaxSize;
 
@@ -155,6 +155,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
     @IsConfig(name = "Displayed image", editable = EditMode.APP)
     private int active_image = -1;
 
+    private Input<File> inputLocation = inputs.create("Location", File.class, consumer(this::dataChanged));
     private Input<Song> inputLocationOf = inputs.create("Location of", Song.class, consumer(this::dataChanged));
 
     public ImageViewer(Widget widget) {
@@ -163,8 +164,6 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         root.getStylesheets().add(childOf(getLocation(), "skin.css").toURI().toASCIIString());
 
         fxmlLoaderForController(this).loadNoEx();
-
-        inputLocationOf.bind(Player.playing.o);
 
         // main image
         mainImage.setBorderVisible(true);
@@ -319,6 +318,11 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
 
         onClose.plusAssign(thumb_reader::stop);
         onClose.plusAssign(slideshow::stop);
+
+        onClose.plusAssign(sync1IfInScene(root, runnable(() -> {
+            if (!inputLocation.isBound() && !inputLocationOf.isBound())
+                inputLocationOf.bind(Player.playing.o);
+        })));
     }
 
     public boolean isEmpty() {
@@ -362,7 +366,6 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         dataChanged(new_folder);
     }
 
-    @IsInput("Directory")
     private void dataChanged(File new_folder) {
         // prevent refreshing location if should not
         if (keepContentOnEmpty && new_folder==null) return;

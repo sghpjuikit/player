@@ -1,6 +1,7 @@
 package sp.it.pl.layout.widget.controller.io
 
 import sp.it.pl.layout.area.IOLayer
+import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf
 import sp.it.util.functional.asIf
 import sp.it.util.reactive.Subscription
@@ -78,11 +79,8 @@ open class Input<T>: Put<T?> {
             }
         }
 
-    /**
-     * Binds to the output.
-     * Sets its value immediately and then every time it changes.
-     * Binding multiple times has no effect.
-     */
+    /** Sets value of this input to that of the specified output immediately and on every output value change. */
+    @Idempotent
     fun bind(output: Output<out T>): Subscription {
         // Normally we would use this::setValue, but we want to allow generalized binding, which supports subtyping
         // and selective type filtering
@@ -92,6 +90,10 @@ open class Input<T>: Put<T?> {
         return Subscription { unbind(output) }
     }
 
+    /** @return true iff at least one [Output] is bound to this input using [bind]. ]*/
+    fun isBound(): Boolean = sources.isNotEmpty()
+
+    @Idempotent
     fun unbind(output: Output<out T>) {
         sources.remove(output)?.unsubscribe()
         IOLayer.remConnectionE(this, output)

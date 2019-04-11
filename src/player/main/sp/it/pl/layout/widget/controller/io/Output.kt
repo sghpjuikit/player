@@ -1,7 +1,11 @@
 package sp.it.pl.layout.widget.controller.io
 
 import sp.it.util.dev.failIf
+import sp.it.util.functional.asIf
 import sp.it.util.reactive.Subscription
+import sp.it.util.type.Util.getRawType
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
 import java.util.Objects
 import java.util.UUID
 
@@ -13,12 +17,28 @@ class Output<T>: Put<T?> {
         this.id = Id(id, name)
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun monitor(input: Input<T>): Subscription {
         failIf(!input.canBind(this)) { "Input<${input.type}> can not bind to put<$type>" }
+        fun Type?.listType() = getRawType(this.asIf<ParameterizedType>()!!.actualTypeArguments[0])
 
         return sync { v ->
-            if (v!=null && input.type.isInstance(v))
-                input.value = v
+            if (v!=null) {
+                when {
+                    input.type==List::class.java && type==List::class.java -> {
+                        input.value = v
+                    }
+                    input.type==List::class.java -> {
+                        if (input.typeRaw.listType().isInstance(v))
+                            input.value = listOf(v) as T
+                    }
+                    type==List::class.java -> {}
+                    else -> {
+                        if (input.type.isInstance(v))
+                            input.value = v
+                    }
+                }
+            }
         }
     }
 

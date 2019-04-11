@@ -1,7 +1,12 @@
 package sp.it.pl.layout.widget.controller.io
 
 import sp.it.pl.layout.area.IOLayer
+import sp.it.util.functional.asIf
 import sp.it.util.reactive.Subscription
+import sp.it.util.type.Util
+import sp.it.util.type.isSubclassOf
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
 import java.util.HashMap
 
 open class Input<T>: Put<T?> {
@@ -18,8 +23,21 @@ open class Input<T>: Put<T?> {
      * `getType().isAssignableFrom(output.getType())`
      */
     open fun canBind(output: Output<*>): Boolean {
-        return output.type.isAssignableFrom(type) || type.isAssignableFrom(output.type)
+        fun Type?.listType() = Util.getRawType(this.asIf<ParameterizedType>()!!.actualTypeArguments[0])
+
+        return when {
+            type==List::class.java && output.type==List::class.java -> {
+                output.typeRaw.listType().isSubclassOf(typeRaw.listType())
+            }
+            type==List::class.java -> {
+                canBind(output.type, typeRaw.listType())
+            }
+            output.type==List::class.java -> false
+            else -> canBind(output.type, type)
+        }
     }
+
+    private fun canBind(type1: Class<*>, type2: Class<*>) = type1.isSubclassOf(type2) || type2.isSubclassOf(type1)
 
     /**
      * Binds to the output.

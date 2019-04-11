@@ -12,6 +12,7 @@ class InOutput<T>: XPut<T?> {
     @JvmField val i: Input<T>
 
     // private due to use of reified generics
+    @Suppress("UNCHECKED_CAST")
     private constructor(id: UUID, name: String, type: Type) {
         this.o = Output(id, name, getRawType(type) as Class<T?>)
         this.o.typeRaw = type
@@ -19,7 +20,7 @@ class InOutput<T>: XPut<T?> {
             override fun isAssignable(output: Output<*>) = output!==o && super.isAssignable(output)
         }
         this.i.typeRaw = type
-        IOLayer.all_inoutputs.add(this)
+        IOLayer.all_inoutputs += this
     }
 
     companion object {

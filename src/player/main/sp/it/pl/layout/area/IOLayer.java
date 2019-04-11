@@ -379,23 +379,23 @@ public class IOLayer extends StackPane {
         boolean selected = false;
 
         @SuppressWarnings("unchecked")
-        XNode(X xput) {
-            this.xput = xput;
+        XNode(X xPut) {
+            this.xput = xPut;
 
-            if (xput instanceof Input) {
-                input = (Input<T>)xput;
+            if (xPut instanceof Input) {
+                input = (Input<T>) xPut;
                 output = null;
                 inoutput = null;
             } else
-            if (xput instanceof Output) {
+            if (xPut instanceof Output) {
                 input = null;
-                output = (Output<T>)xput;
+                output = (Output<T>) xPut;
                 inoutput = null;
             } else
-            if (xput instanceof InOutput) {
-                input = ((InOutput<T>)xput).i;
-                output = ((InOutput<T>)xput).o;
-                inoutput = (InOutput<T>)xput;
+            if (xPut instanceof InOutput) {
+                input = ((InOutput<T>) xPut).i;
+                output = ((InOutput<T>) xPut).o;
+                inoutput = (InOutput<T>) xPut;
             } else {
                 throw new IllegalArgumentException("Not a valid type");
             }
@@ -408,18 +408,15 @@ public class IOLayer extends StackPane {
                 e.consume();
             });
 
+
+            Anim a = new Anim(millis(250), at -> {
+                t.setOpacity(at);
+                setScaleXY(t, 0.8+0.2*at);
+            });
+            var valuePut = xPut instanceof Input ? input : output;
+            valuePut.sync(consumer(v -> a.playCloseDoOpen(runnable(() -> t.setText(xPutToStr(valuePut))))));
+
             if (output!=null) {
-                Anim a = new Anim(millis(250), at -> setScaleXY(t, at));
-
-                // This only makes sense when the descriptions are hidden by default, but that would
-                // be very confusing for the user. As it is, manual description show/hide is useless
-                // and even confusing. It could help when the layer is zoomed out though, this needs
-                // some figuring out.
-                //
-                // i.setOnMouseEntered(e -> a.playOpen());
-                // t.setOnMouseExited(e -> a.playClose());
-
-                output.sync(consumer(v -> a.playCloseDoOpen(runnable(() -> t.setText(xPutToStr(output))))));
                 output.sync(consumer(v ->
                     inputnodes.values().stream().map(in -> in.input).filter(i -> i.getSources().contains(output)).forEach(input ->
                         connections.getOpt(new Key<>(input,output)).ifPresent(c -> c.send())

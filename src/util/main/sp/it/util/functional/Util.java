@@ -33,7 +33,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import sp.it.util.functional.Functors.Ƒ1;
-import sp.it.util.functional.Functors.Ƒ1E;
 import sp.it.util.functional.Functors.Ƒ2;
 import sp.it.util.functional.Functors.ƑEC;
 import sp.it.util.functional.Functors.ƑP;
@@ -200,16 +199,6 @@ public interface Util {
 
 /* ---------- COMPARATORS ------------------------------------------------------------------------------------------- */
 
-	/** Comparator utilizing Comparable.compareTo() of the Comparable. */
-	@SuppressWarnings("unchecked")
-	Comparator<Comparable> COMPARATOR_DEF = Comparable::compareTo;
-
-	/** String comparator utilizing String.compareTo() of the Strings */
-	Comparator<? super String> COMPARATOR_STR = COMPARATOR_DEF;
-
-	/** String comparator utilizing String.compareToIgnoreCase(). */
-	Comparator<String> COMPARATOR_STR_NO_CASE = String::compareToIgnoreCase;
-
 	/**
 	 * Creates comparator comparing E elements by extracted {@link Comparable} value.
 	 * <p/>
@@ -298,7 +287,7 @@ public interface Util {
 		return new LinkedHashSet<>(c);
 	}
 
-/* ---------- FUNCTION -> FUNCTION ---------------------------------------------------------------------------------- */
+/* ---------- SUPPLIERS --------------------------------------------------------------------------------------------- */
 
 	/** Faster alternative to {@link #firstNotNull(java.lang.Object...) }. */
 	static <O> O firstNotNull(O o1, O o2) {
@@ -354,108 +343,6 @@ public interface Util {
 			if (i!=null) return i;
 		}
 		return null;
-	}
-
-	/** Equivalent to {@code noEx(f, null, ecs); } */
-	static <I, O> Ƒ1<I,O> noEx(Function<I,O> f, Class<?>... ecs) {
-		return noEx(null, f, ecs);
-	}
-
-	/** Equivalent to {@code noEx(f, null, ecs); } */
-	static <I, O> Ƒ1<I,O> noEx(Function<I,O> f, Collection<Class<?>> ecs) {
-		return noEx(null, f, ecs);
-	}
-
-	/**
-	 * Return function functionally equivalent to the one provided, but which
-	 * returns null if any of the exception types or subtypes is caught. The
-	 * function will never throw any (including runtime) of the specified
-	 * exceptions, but will keep throwing other exception types.
-	 *
-	 * @param f function to wrap
-	 * @param or value to return when exception is caught
-	 * @param ecs exception types. Any exception that is equal to the type or subtype of any of the exceptions types
-	 * will be caught. Using Exception.class will effectively catch all exception types. Throwable.class is also an
-	 * option.
-	 */
-	static <I, O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Class<?>... ecs) {
-		return noEx(or, f, list(ecs));
-	}
-
-	/** Equivalent to {@link #noEx(Object, java.util.function.Function, Class[])}. */
-	static <I, O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Collection<Class<?>> ecs) {
-		return i -> {
-			try {
-				return f.apply(i);
-			} catch (Exception e) {
-				for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
-				throw e;
-			}
-		};
-	}
-
-	/** Equivalent to {@code noExE(f, null, ecs); } */
-	static <I, O> Ƒ1<I,O> noExE(Ƒ1E<I,O,?> f, Class<?>... ecs) {
-		return noExE(null, f, ecs);
-	}
-
-	/** Equivalent to {@code noExE(f, null, ecs); } */
-	static <I, O> Ƒ1<I,O> noExE(Ƒ1E<I,O,?> f, Collection<Class<?>> ecs) {
-		return noExE(null, f, ecs);
-	}
-
-	/**
-	 * Return function functionally equivalent to the one provided, but which
-	 * returns null if any of the exception types or subtypes is caught. The
-	 * function will never throw any (including runtime) of the specified
-	 * exceptions, but will keep throwing other exception types.
-	 *
-	 * @param f function to wrap
-	 * @param or value to return when exception is caught
-	 * @param ecs exception types. Any exception that is equal to the type or subtype of any of the exceptions types
-	 * will be caught. Using Exception.class will effectively catch all exception types. Throwable.class is also an
-	 * option.
-	 */
-	static <I, O> Ƒ1<I,O> noExE(O or, Ƒ1E<I,O,?> f, Class<?>... ecs) {
-		return noExE(or, f, list(ecs));
-	}
-
-	/** Equivalent to {@link #noExE(Object, sp.it.util.functional.Functors.Ƒ1E, Class[])}. */
-	static <I, O> Ƒ1<I,O> noExE(O or, Ƒ1E<I,O,?> f, Collection<Class<?>> ecs) {
-		return i -> {
-			try {
-				return f.apply(i);
-			} catch (Throwable e) {
-				for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
-				throw new RuntimeException(e);
-			}
-		};
-	}
-
-	/****************************** collection -> list ****************************/
-
-	static <T, E> List<T> flatMapToList(Collection<E> col, Function<E,Collection<T>> mapper) {
-		return col.stream().flatMap(e -> mapper.apply(e).stream()).collect(Collectors.toList());
-	}
-
-	static <T, E> List<T> flatsMapToList(Collection<E> col, Function<E,Stream<T>> mapper) {
-		return col.stream().flatMap(mapper).collect(Collectors.toList());
-	}
-
-	static <T, E> List<T> flatMapToList(Stream<E> col, Function<E,Collection<T>> mapper) {
-		return col.flatMap(e -> mapper.apply(e).stream()).collect(Collectors.toList());
-	}
-
-	static <T, E> List<T> flatsMapToList(Stream<E> col, Function<E,Stream<T>> mapper) {
-		return col.flatMap(mapper).collect(Collectors.toList());
-	}
-
-	static <T, E> List<T> flatMapToList(Map<?,E> col, Function<E,Collection<T>> mapper) {
-		return col.values().stream().flatMap(e -> mapper.apply(e).stream()).collect(Collectors.toList());
-	}
-
-	static <T, E> List<T> flatsMapToList(Map<?,E> col, Function<E,Stream<T>> mapper) {
-		return col.values().stream().flatMap(mapper).collect(Collectors.toList());
 	}
 
 /* ---------- COLLECTION -> OBJECT ------------------------------------------------------------------------------ */

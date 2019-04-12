@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -72,6 +73,7 @@ import sp.it.pl.service.notif.Notifier;
 import sp.it.util.access.V;
 import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.conf.IsConfig;
+import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.functional.Util;
 import sp.it.util.validation.InputConstraints;
 import static java.util.Collections.singletonList;
@@ -134,7 +136,6 @@ import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.AsyncKt.runNew;
 import static sp.it.util.file.Util.getSuffix;
 import static sp.it.util.functional.Util.noDups;
-import static sp.it.util.functional.Util.noEx;
 import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.maintain;
@@ -837,6 +838,17 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         public boolean isInValid() {
             return !isValid();
         }
+    }
+
+    static <I, O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Class<?>... ecs) {
+        return i -> {
+            try {
+                return f.apply(i);
+            } catch (Exception e) {
+                for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
+                throw e;
+            }
+        };
     }
 
     private final static List<String> textFieldStyleClass = new ArrayList<>(new TextField().getStyleClass());

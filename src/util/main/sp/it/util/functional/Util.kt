@@ -245,9 +245,6 @@ inline fun <reified E> Sequence<E>.asArray() = toList().toTypedArray()
 /** @return an array containing all elements */
 inline fun <reified E> Stream<E>.asArray() = toList().toTypedArray()
 
-/** @return stream that yields elements of this stream sorted by value selected by specified [selector] function. */
-inline fun <T, R: Comparable<R>> Stream<T>.sortedBy(crossinline selector: (T) -> R?) = sorted(compareBy(selector))!!
-
 /** @return null-safe comparator wrapper putting nulls at the end */
 fun <T> Comparator<T>.nullsLast(): Comparator<T?> = Comparator.nullsLast(this) as Comparator<T?>
 

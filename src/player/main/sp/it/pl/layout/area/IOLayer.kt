@@ -54,6 +54,7 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.syncWhile
+import sp.it.util.text.plural
 import sp.it.util.type.Util.getRawType
 import sp.it.util.type.isSuperclassOf
 import sp.it.util.ui.maxSize
@@ -769,7 +770,11 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             return if (t!=null) {
                 val c = getRawType(t)
                 when {
-                    Collection::class.isSuperclassOf(c) -> "List of "+APP.className[getRawType(t.asIf<ParameterizedType>()!!.actualTypeArguments[0])]
+                    Collection::class.isSuperclassOf(c) -> {
+                        val elementType = getRawType(t.asIf<ParameterizedType>()!!.actualTypeArguments[0])
+                        val elementTypeName = APP.className[elementType].plural()
+                        "List of $elementTypeName"
+                    }
                     else -> APP.className[c]
                 }
             } else {

@@ -48,7 +48,7 @@ class SwitchContainer: Container<SwitchPane>() {
                 it.zoomScaleFactor syncFrom zoom
             }
         }
-        children.forEach { i, c -> ui.addTab(i, c) }
+        children.forEach { (i, c) -> ui.addTab(i, c) }
         return ui.root
     }
 

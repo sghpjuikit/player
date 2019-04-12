@@ -86,6 +86,11 @@ public class SwitchPane implements ContainerNode {
     public SwitchPane(SwitchContainer container) {
         this.container = container;
 
+        root.setId("switch-pane-root");
+        zoom.setId("switch-pane-zoom");
+        ui.setId("switch-pane-ui");
+        widget_io.setId("switch-pane-io");
+
         // set ui
         root.getChildren().add(zoom);
         setAnchors(zoom, 0d);

@@ -23,7 +23,7 @@ class InOutput<T>: XPut<T?> {
     }
 
     fun appWide() = apply {
-        IOLayer.all_inoutputs += this
+        IOLayer.allInoutputs += this
     }
 
     companion object {

@@ -321,8 +321,8 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 
 			var is = c.io.i.getInputs();
 			var os = c.io.o.getOutputs();
-			IOLayer.all_inputs.removeAll(is);
-			IOLayer.all_outputs.removeAll(os);
+			IOLayer.allInputs.removeAll(is);
+			IOLayer.allOutputs.removeAll(os);
 
 			c.close();
 
@@ -582,7 +582,7 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 				w.controller.io.i.getInputs().forEach(is::add);
 				w.controller.io.o.getOutputs().forEach(o -> os.put(o.id, o));
 			});
-		IOLayer.all_inoutputs.forEach(io -> os.put(io.o.id, io.o));
+		IOLayer.allInoutputs.forEach(io -> os.put(io.o.id, io.o));
 
 		ios.forEach(io -> {
 			if (io.widget.controller==null) return;
@@ -591,10 +591,10 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 			io.outputs_ids.stream().map(os::get).filter(ISNTØ).forEach(i::bind);
 		});
 
-		IOLayer.all_inoutputs.forEach(io -> is.remove(io.i));
-		IOLayer.all_inoutputs.forEach(io -> os.remove(io.o.id));
-		IOLayer.all_inputs.addAll(is);
-		IOLayer.all_outputs.addAll(os.values());
+		IOLayer.allInoutputs.forEach(io -> is.remove(io.i));
+		IOLayer.allInoutputs.forEach(io -> os.remove(io.o.id));
+		IOLayer.allInputs.addAll(is);
+		IOLayer.allOutputs.addAll(os.values());
 	}
 
 	// called when widget is loaded/closed (or rather, when inputs or outputs are created/removed)
@@ -603,8 +603,8 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 		// because widget inputs can be bound to other widget outputs, and because widgets can be
 		// loaded passively (then its i/o does not exists yet), we need to update all widget i/os
 		// because we do not know which bind to this widget
-		IOLayer.all_inputs.addAll(controller.io.i.getInputs());
-		IOLayer.all_outputs.addAll(controller.io.o.getOutputs());
+		IOLayer.allInputs.addAll(controller.io.i.getInputs());
+		IOLayer.allOutputs.addAll(controller.io.o.getOutputs());
 		deserializeWidgetIO();
 	}
 

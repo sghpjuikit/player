@@ -50,6 +50,10 @@ public class Map2D<K1, K2, E> extends HashMap<Key<K1,K2>,E> {
 		return Optional.ofNullable(get(key));
 	}
 
+	public E get(K1 key1, K2 key2) {
+		return get(new Key<>(key1, key2));
+	}
+
 	/**
 	 * 2 dimensional map key consisting of 2 sub-keys.
 	 * Use with {@link Map2D} or any map implementation.

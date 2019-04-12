@@ -20,11 +20,7 @@ open class Input<T>: Put<T?> {
         attach(action)
     }
 
-    /**
-     * Return true if this input can receive values from given output. Equivalent to
-     *
-     * `getType().isAssignableFrom(output.getType())`
-     */
+    /** @return true if this input can receive values from given output */
     open fun isAssignable(output: Output<*>): Boolean = when {
         type==List::class.java && output.type==List::class.java -> {
             output.typeRaw.listType().isSubclassOf(typeRaw.listType())
@@ -38,7 +34,8 @@ open class Input<T>: Put<T?> {
 
     private fun isAssignable(type1: Class<*>, type2: Class<*>) = type1.isSubclassOf(type2) || type2.isSubclassOf(type1)
 
-    private fun isAssignable(value: Any?): Boolean = when {
+    /** @return true if this input can receive the specified value */
+    fun isAssignable(value: Any?): Boolean = when {
         value==null -> true
         type==List::class.java -> typeRaw.listType().isInstance(value)
         else -> type.isInstance(value)

@@ -75,10 +75,10 @@ class IO(private val id: UUID) {
 
     inner class Outputs {
 
-        inline fun <reified T> create(id: UUID, name: String, value: T?): Output<T?> = create(id, name, type<T?>(), value)
+        inline fun <reified T> create(name: String, value: T?): Output<T?> = create(name, type<T?>(), value)
 
         @Suppress("UNCHECKED_CAST")
-        fun <T> create(id: UUID, name: String, type: Type, value: T?): Output<T?> {
+        fun <T> create(name: String, type: Type, value: T?): Output<T?> {
             failIf(mo[name]!=null) { "Output $name already exists" }
 
             val o = Output<T?>(id, name, getRawType(type) as Class<T?>)

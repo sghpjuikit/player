@@ -55,7 +55,7 @@ import java.util.ArrayList
 )
 class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature {
 
-    private val inputValue = inputs.create<Configurable<Any>>("To configure") { configure(it) }
+    private val inputValue = io.i.create<Configurable<Any>>("To configure") { configure(it) }
     @FXML private lateinit var groups: TreeView<Name>
     @FXML private lateinit var controls: Pane
     @FXML private lateinit var configsRootPane: AnchorPane

@@ -72,8 +72,8 @@ import javafx.stage.Window as WindowFX
         group = Widget.Group.APP
 )
 class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, Opener {
+    private val outputSelected = io.o.create<Any>("Selected", null)
     private val tree = buildTreeView<Any>()
-    private val outSelected = outputs.create<Any>(widget.id, "Selected", null)
     private var highlighted: Node? = null
     val selectingNode = Subscribed { feature ->
         var selected: Node? = null
@@ -117,7 +117,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
             selectionModel.selectedItemProperty() attach {
                 highlighted = highlighted?.highlight(false)
                 highlighted = it?.value.asIf<Node>()?.highlight(true)
-                outSelected.value = it
+                outputSelected.value = it
             }
             propagateESCAPE()
         }
@@ -145,7 +145,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
 
         onClose += { tree.selectionModel.clearSelection() }
         onClose += { tree.root?.disposeIfDisposable() }
-        onClose += { outSelected.value.asIf<Node>()?.highlight(false) }
+        onClose += { outputSelected.value.asIf<Node>()?.highlight(false) }
         onClose += selectingNode
         onClose += selectingWindow
     }

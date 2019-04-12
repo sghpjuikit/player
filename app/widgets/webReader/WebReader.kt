@@ -14,6 +14,9 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.controller.fxmlLoaderForController
 import sp.it.pl.main.APP
 import sp.it.pl.main.scaleEM
+import sp.it.pl.web.DuckDuckGoQBuilder
+import sp.it.pl.web.SearchUriBuilder
+import sp.it.pl.web.WebBarInterpreter
 import sp.it.util.access.VarEnum
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.IsConfig
@@ -27,9 +30,6 @@ import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.Util.invokeMethodP1
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
-import sp.it.pl.web.DuckDuckGoQBuilder
-import sp.it.pl.web.SearchUriBuilder
-import sp.it.pl.web.WebBarInterpreter
 
 @Widget.Info(
         name = "WebReader",
@@ -42,8 +42,8 @@ import sp.it.pl.web.WebBarInterpreter
 @ExperimentalController("Insufficient features and of questionable use")
 class WebReader(widget: Widget): SimpleController(widget) {
 
-    private val inputHtml = inputs.create<String>("Html") { loadHtml(it) }
-    private val inputUrl = inputs.create<String>("Url") { loadPage(it) }
+    private val inputHtml = io.i.create<String>("Html") { loadHtml(it) }
+    private val inputUrl = io.i.create<String>("Url") { loadPage(it) }
     @FXML private lateinit var addressBar: TextField
     @FXML private lateinit var webView: WebView
     private var engine: WebEngine

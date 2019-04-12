@@ -21,8 +21,6 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
 
     @JvmField val root = StackPane()
     @JvmField val onClose = Disposer()
-    @JvmField val inputs = io.i
-    @JvmField val outputs = io.o
     private val configs = HashMap<String, Config<*>>()
     override val configurableDiscriminant = null as String?
     override val configurableValueStore: ConfigValueSource by lazy {

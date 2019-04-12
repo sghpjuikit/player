@@ -87,8 +87,8 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
     private val playlist = computeInitialPlaylist(widget.id)
     private val table = PlaylistTable(playlist)
-    private var outSelected = outputs.create<PlaylistSong>(widget.id, "Selected", null)
-    private var outPlaying = outputs.create<PlaylistSong>(widget.id, "Playing", null)
+    private var outputSelected = io.o.create<PlaylistSong>("Selected", null)
+    private var outputPlaying = io.o.create<PlaylistSong>("Playing", null)
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     val tableOrient by cv(INHERIT) { Vo(APP.ui.tableOrient) }
@@ -111,11 +111,11 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
         root.prefSize = 450.scaleEM() x 600.scaleEM()
         root.consumeScrolling()
 
-        playlist.playingI sync { outPlaying.value = playlist.playing } on onClose
-        Player.playlistSelected.i.bind(outSelected) on onClose
+        playlist.playingI sync { outputPlaying.value = playlist.playing } on onClose
+        Player.playlistSelected.i.bind(outputSelected) on onClose
         Player.onSongRefresh { ms ->
-            outPlaying.value?.let { ms.ifHasK(it.uri, Consumer { outPlaying.value = it.toPlaylist() }) }
-            outSelected.value?.let { ms.ifHasK(it.uri, Consumer { outSelected.value = it.toPlaylist() }) }
+            outputPlaying.value?.let { ms.ifHasK(it.uri, Consumer { outputPlaying.value = it.toPlaylist() }) }
+            outputSelected.value?.let { ms.ifHasK(it.uri, Consumer { outputSelected.value = it.toPlaylist() }) }
         } on onClose
 
         playVisible sync {
@@ -148,7 +148,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
         onClose += table::dispose
         onClose += table.selectionModel.selectedItemProperty() attach {
             if (!table.movingItems)
-                outSelected.value = it
+                outputSelected.value = it
         }
 
         root.lay += table.root

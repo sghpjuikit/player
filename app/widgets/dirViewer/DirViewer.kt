@@ -104,7 +104,7 @@ import java.util.concurrent.atomic.AtomicLong
 )
 class DirViewer(widget: Widget): SimpleController(widget) {
 
-    private val inputFile = inputs.create<File>("Root directory", null) {
+    private val inputFile = io.i.create<File>("Root directory", null) {
         if (it!=null && it.isDirectory && it.exists())
             files setToOne it
     }

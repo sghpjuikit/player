@@ -149,7 +149,7 @@ public class FileInfo extends SimpleController implements SongReader {
     private final Map<String,Config<Boolean>> fieldConfigs = fields.stream()
         .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig, "FileInfo","Show this field", EditMode.USER))
         .collect(toMap(c -> c.getName(), c -> c));
-    private Output<Metadata> data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
+    private Output<Metadata> data_out = io.o.create("Displayed", Metadata.class, Metadata.EMPTY);
     private Metadata data = Metadata.EMPTY;
     private final HandlerLast<Song> dataReading = EventReducer.toLast(200, this::setValue);
 

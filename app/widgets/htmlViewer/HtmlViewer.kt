@@ -32,8 +32,8 @@ class HtmlViewer(widget: Widget): SimpleController(widget) {
 
     private val editor = HTMLEditor()
     private val text = v("").initSync { editor.htmlText = it }
-    private val input = inputs.create<String>("Html") { text.value = it ?: "" }
-    private val output = outputs.create(widget.id, "Html", "")
+    private val input = io.i.create<String>("Html") { text.value = it ?: "" }
+    private val output = io.o.create("Html", "")
 
     init {
         root.prefSize = 600.scaleEM() x 500.scaleEM()

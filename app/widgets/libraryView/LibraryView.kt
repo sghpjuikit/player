@@ -103,8 +103,8 @@ private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, Table
 class LibraryView(widget: Widget): SimpleController(widget) {
 
     private val table = FilteredTable(MetadataGroup::class.java, VALUE)
-    private val inputItems = inputs.create<List<Metadata>>("To display", listOf()) { setItems(it) }
-    private val outputSelectedGroup = outputs.create<List<MetadataGroup>>(widget.id, "Selected", listOf())
+    private val inputItems = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
+    private val outputSelectedGroup = io.o.create<List<MetadataGroup>>("Selected", listOf())
     private val outputSelectedSongs = io.io.mapped(outputSelectedGroup, "As Songs") { filterList(inputItems.value, true) }
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")

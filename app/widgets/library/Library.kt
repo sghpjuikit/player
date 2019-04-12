@@ -95,8 +95,8 @@ import sp.it.util.validation.Constraint.FileActor
 class Library(widget: Widget): SimpleController(widget), SongReader {
 
     private val table = FilteredTable(Metadata::class.java, Metadata.EMPTY.getMainField())
-    private val outputSelected = outputs.create<Metadata>(widget.id, "Selected", null)
-    private val inputItems = inputs.create<List<Metadata>>("To display", listOf()) { setItems(it) }
+    private val outputSelected = io.o.create<Metadata>("Selected", null)
+    private val inputItems = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     val tableOrient by cv(NodeOrientation.INHERIT) { Vo(APP.ui.tableOrient) }

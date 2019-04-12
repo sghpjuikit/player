@@ -226,7 +226,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         acts.accumulate(new WriteFileAct());
         acts.accumulate(new ActCreateDirs());
 
-        Output<String> output = outputs.create(widget.id, "Text", String.class, "");
+        Output<String> output = io.o.create("Text", String.class, "");
         ta_in.outputText.addListener((o, ov, nv) -> output.setValue(nv));
 
         // set empty content

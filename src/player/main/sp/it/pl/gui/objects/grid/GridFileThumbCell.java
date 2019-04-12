@@ -305,8 +305,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 						item.loadCover(true, size)
 							.ifOkUse(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))    // load after all previous
 //							.ifOkUse(result -> setCoverPost(item, result.file, result.cover, then))                    // load immediately
-							.ifErrorUse(e -> then.runNothing())
-							.ifErrorUse(e -> System.out.println("fml" + itemVolatile.value));
+							.ifErrorUse(e -> then.runNothing());
 					}
 				));
 		}

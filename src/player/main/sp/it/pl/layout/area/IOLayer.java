@@ -27,6 +27,7 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.container.switchcontainer.SwitchPane;
 import sp.it.pl.layout.widget.controller.Controller;
 import sp.it.pl.layout.widget.controller.io.InOutput;
@@ -343,6 +344,7 @@ public class IOLayer extends StackPane {
         double translation_offset = translation.get();
         APP.widgetManager.widgets.findAll(OPEN_LAYOUT)
             .filter(w -> w!=null && w.getController()!=null)
+	        .filter(w -> w.getWindow().map(Window::getStage).orElse(null)==getScene().getWindow())
             .forEach(w -> {
                 Controller c = w.getController();
                 var is = c.io.i.getInputsMixed().stream()
@@ -363,8 +365,6 @@ public class IOLayer extends StackPane {
                     .collect(toList());
 
                 widgetIos.addAll(c.io.io.getInOutputs());
-
-                if (w.areaTemp==null || w.areaTemp.getRoot()==null) return; // TODO: during initialization we are not ready yet, try to remove
 
                 Node wr = w.areaTemp.getRoot();
                 Bounds b = wr.localToScene(wr.getBoundsInLocal());

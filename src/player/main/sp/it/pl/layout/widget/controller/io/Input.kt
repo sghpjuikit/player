@@ -72,7 +72,7 @@ open class Input<T>: Put<T?> {
         get() = value
         set(it) {
             value = when (type) {
-                List::class.java -> when(it) {
+                List::class.java -> when (it) {
                     is List<*> -> it as T?
                     else -> listOf(it) as T?
                 }
@@ -103,11 +103,11 @@ open class Input<T>: Put<T?> {
     }
 
     /**
-     * @param exceptWithId id of outputs to be not considered as bindings even if this is bound to any of them
+     * @param exceptOwner id of outputs to be not considered as bindings even if this is bound to any of them
      * @return true iff at least one [Output] is bound to this input using [bind]. ]
      */
     @JvmOverloads
-    fun isBound(exceptWithId: UUID? = null): Boolean = sources.keys.any { it.id.carrier_id!=exceptWithId }
+    fun isBound(exceptOwner: UUID? = null): Boolean = sources.keys.any { it.id.ownerId!=exceptOwner }
 
     @Idempotent
     fun unbind(output: Output<*>) {

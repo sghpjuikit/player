@@ -32,7 +32,7 @@ class InOutput<T>: XPut<T?> {
         @JvmStatic
         operator fun <T> invoke(id: UUID, name: String, type: Type): InOutput<T?> = InOutput(id, name, type)
 
-        inline operator fun <reified T:Any> invoke(id: UUID, name: String): InOutput<T?> = invoke(id, name, type<T>())
+        inline operator fun <reified T: Any> invoke(id: UUID, name: String): InOutput<T?> = invoke(id, name, type<T>())
     }
 
 }

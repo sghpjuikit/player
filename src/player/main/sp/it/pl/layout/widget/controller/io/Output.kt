@@ -21,18 +21,9 @@ class Output<T>: Put<T?> {
 
     override fun hashCode() = 5*89+Objects.hashCode(this.id)
 
-    class Id(@JvmField val carrier_id: UUID, @JvmField val name: String) {
+    data class Id(@JvmField val ownerId: UUID, @JvmField val name: String) {
 
-        override fun equals(other: Any?) = this===other || other is Id && other.name==name && other.carrier_id==carrier_id
-
-        override fun hashCode(): Int {
-            var hash = 3
-            hash = 79*hash+Objects.hashCode(this.carrier_id)
-            hash = 79*hash+Objects.hashCode(this.name)
-            return hash
-        }
-
-        override fun toString() = "$name,$carrier_id"
+        override fun toString() = "$name,$ownerId"
 
         companion object {
 

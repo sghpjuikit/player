@@ -354,7 +354,7 @@ public class IOLayer extends StackPane {
         var ioOffsetX = 0.0;
         var ioOffsetYShift = -10.0;
         var ioOffsetY = H-150.0;
-        var ios = inoutputnodes.values().stream().filter(it -> !widgetIos.contains(it.inoutput)).sorted(by(it -> it.inoutput.o.id.carrier_id)).collect(toList());
+        var ios = inoutputnodes.values().stream().filter(it -> !widgetIos.contains(it.inoutput)).sorted(by(it -> it.inoutput.o.id.ownerId)).collect(toList());
         for (InOutputNode<?> io: ios) {
             io.graphics.autosize(); // necessary before asking for size
             var is2 = io.i.getLayoutBounds().getWidth()/2.0;

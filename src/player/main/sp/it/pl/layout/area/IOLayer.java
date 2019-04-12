@@ -36,8 +36,11 @@ import sp.it.pl.layout.widget.controller.io.XPut;
 import sp.it.pl.main.AppDragKt;
 import sp.it.pl.main.Df;
 import sp.it.util.animation.Anim;
+import sp.it.util.async.executor.EventReducer;
 import sp.it.util.collections.map.Map2D;
 import sp.it.util.collections.map.Map2D.Key;
+import sp.it.util.reactive.Disposer;
+import sp.it.util.reactive.Subscription;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.pow;
@@ -59,12 +62,15 @@ import static sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.pyth;
+import static sp.it.util.animation.Anim.anim;
 import static sp.it.util.functional.Util.ISNTØ;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.forEachWithI;
 import static sp.it.util.functional.Util.min;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.EventsKt.onEventUp;
+import static sp.it.util.reactive.UtilKt.syncWhile;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 import static sp.it.util.ui.UtilKt.setScaleXY;
 
@@ -180,9 +186,13 @@ public class IOLayer extends StackPane {
     private final DoubleProperty translation;
     private final DoubleProperty scalex;
     private final DoubleProperty scaley;
+    private double anim1Opacity = 0;
+    private double anim2Opacity = 0;
+    private double anim3Opacity = 0;
 
     private EditIOLine<?> edit = null;
     private XNode selected = null;
+    private Disposer disposer = new Disposer();
 
     public IOLayer(SwitchPane sp) {
         switchpane = sp;
@@ -192,16 +202,43 @@ public class IOLayer extends StackPane {
         scalex.addListener((o,ov,nv) -> layoutChildren());
         all_layers.add(this);
 
-        parentProperty().addListener((o,ov,nv) ->
-            nv.addEventFilter(MOUSE_CLICKED, e -> selectNode(null))
-        );
+        disposer.plusAssign(syncWhile(parentProperty(), it ->
+            it!=null
+                ? onEventUp(it, MOUSE_CLICKED, consumer(e ->
+                    selectNode(null)
+                ))
+                : Subscription.Companion.invoke()
+        ));
 
         setMouseTransparent(false);
         setPickOnBounds(false);
-        visibleProperty().bind(APP.ui.getLayoutMode());
-//        scaleXProperty().bind(scalex);
-//        scaleYProperty().bind(scaley);
         translateXProperty().bind(translation.multiply(scalex));
+
+        var av = anim(millis(900), consumer(it -> {
+            setOpacity(it==0 ? 0.0 : 1.0);
+
+            anim1Opacity = Anim.mapTo01(it, 0, 0.2);
+            anim2Opacity = Anim.mapTo01(it, 0.25, 0.65);
+            anim3Opacity = Anim.mapTo01(it, 0.8, 1.0);
+            inputnodes.values().forEach(n -> n.i.setOpacity(anim1Opacity));
+            outputnodes.values().forEach(n -> n.i.setOpacity(anim1Opacity));
+            inoutputnodes.values().forEach(n -> n.i.setOpacity(anim1Opacity));
+            connections.forEach((i,o,line) -> {
+                setScaleXY(line.showClip1, anim2Opacity);
+                setScaleXY(line.showClip2, anim2Opacity);
+            });
+            inputnodes.values().forEach(n -> n.t.setOpacity(anim3Opacity));
+            outputnodes.values().forEach(n -> n.t.setOpacity(anim3Opacity));
+            inoutputnodes.values().forEach(n -> n.t.setOpacity(anim3Opacity));
+        })).applyAt(0);
+        var avReducer = EventReducer.toLast(100, it -> {
+            if (APP.ui.getLayoutMode().getValue())
+                av.playOpen();
+        });
+        APP.ui.getLayoutMode().addListener((o,ov,nv) -> {
+            if (nv) avReducer.push(null);
+            else av.playClose();
+        });
 
         // set & maintain children
         all_inoutputs.forEach(this::addInOutput);
@@ -226,6 +263,7 @@ public class IOLayer extends StackPane {
     }
 
     public void dispose() {
+        disposer.invoke();
         all_layers.remove(this);
     }
 
@@ -437,6 +475,7 @@ public class IOLayer extends StackPane {
                 throw new IllegalArgumentException("Not a valid type");
             }
 
+            i.setOpacity(anim1Opacity);
             i.addEventHandler(MOUSE_CLICKED, e -> {
             	if (e.getClickCount()==1)
 	                selectNode(e.getButton()==SECONDARY ? null : this);
@@ -445,7 +484,7 @@ public class IOLayer extends StackPane {
                 e.consume();
             });
 
-
+            t.setOpacity(anim2Opacity);
             Anim a = new Anim(millis(250), at -> {
                 t.setOpacity(at);
                 setScaleXY(t, 0.8+0.2*at);
@@ -580,6 +619,9 @@ public class IOLayer extends StackPane {
         double startX, startY, toX, toY, length;
         private Path effect = new Path();
         private Pane effectClip = new Pane();
+        private Circle showClip1 = new Circle();
+        private Circle showClip2 = new Circle();
+        private Pane showClip = new Pane(showClip1, showClip2);
 
         public IOLine(XPut<T> i, XPut<T> o) {
             input = i;
@@ -588,6 +630,9 @@ public class IOLayer extends StackPane {
             getStyleClass().add(IOLINE_STYLECLASS);
             setMouseTransparent(false);
             setPickOnBounds(false);
+            setScaleXY(showClip1, anim3Opacity);
+            setScaleXY(showClip2, anim3Opacity);
+            setClip(showClip);
             IOLayer.this.getChildren().add(this);
 
             IOLayer.this.getChildren().add(effect);
@@ -616,6 +661,12 @@ public class IOLayer extends StackPane {
 
         public void layInputs(double inX, double inY, double outX, double outY) {
             startX = outX; startY = outY; toX = inX; toY = inY; length = pyth(inX-outX, inY-outY);
+            showClip1.setRadius(length+50);
+            showClip1.setCenterX(inX);
+            showClip1.setCenterY(inY);
+            showClip2.setRadius(length+50);
+            showClip2.setCenterX(outX);
+            showClip2.setCenterY(outY);
 
             double d = 20;
             getElements().clear();
@@ -627,6 +678,12 @@ public class IOLayer extends StackPane {
 
         public void layOutputs(double inX, double inY, double outX, double outY) {
             startX = outX; startY = outY; toX = inX; toY = inY; length = pyth(inX-outX, inY-outY);
+            showClip1.setRadius(length+50);
+            showClip1.setCenterX(inX);
+            showClip1.setCenterY(inY);
+            showClip2.setRadius(length+50);
+            showClip2.setCenterX(outX);
+            showClip2.setCenterY(outY);
 
             double d = 20;
             getElements().clear();
@@ -638,6 +695,12 @@ public class IOLayer extends StackPane {
 
         public void lay(double inX, double inY, double outX, double outY) {
             startX = outX; startY = outY; toX = inX; toY = inY; length = pyth(inX-outX, inY-outY);
+            showClip1.setRadius(length+50);
+            showClip1.setCenterX(inX);
+            showClip1.setCenterY(inY);
+            showClip2.setRadius(length+50);
+            showClip2.setCenterX(outX);
+            showClip2.setCenterY(outY);
 
             getElements().clear();
             getElements().add(new MoveTo(inX, inY));

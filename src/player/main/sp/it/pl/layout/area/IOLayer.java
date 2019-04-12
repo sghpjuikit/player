@@ -43,6 +43,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.pow;
 import static java.lang.Math.random;
 import static java.lang.Math.signum;
+import static java.lang.Math.sqrt;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.DragEvent.DRAG_ENTERED;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
@@ -51,10 +52,13 @@ import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.util.Duration.millis;
+import static sp.it.pl.layout.area.IOLayerUtilKt.dataArrived;
+import static sp.it.pl.layout.area.IOLayerUtilKt.duplicateTo;
 import static sp.it.pl.layout.area.IOLayerUtilKt.xPutToStr;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.util.Util.pyth;
 import static sp.it.util.functional.Util.ISNTØ;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.forEachWithI;
@@ -72,7 +76,7 @@ public class IOLayer extends StackPane {
     public static final String ONODE_STYLECLASS = "onode";
     public static final String IONODE_STYLECLASS = "ionode";
     public static final String IOLINE_STYLECLASS = "ioline";
-    public static final String IOLINE_RUNNER_STYLECLASS = "ioline-runner";
+    public static final String IOLINE_RUNNER_STYLECLASS = "ioline-effect-dot";
     public static final PseudoClass XNODE_DRAGOVER = pseudoclass("drag-over");
     public static final PseudoClass XNODE_SELECTED = pseudoclass("selected");
     private static final Object XNODE_KEY = new Object();
@@ -572,17 +576,25 @@ public class IOLayer extends StackPane {
 
     class IOLine<T> extends Path {
 
-        XPut<T> output;
-        XPut<T> input;
+        XPut<T> input, output;
+        double startX, startY, toX, toY, length;
+        private Path effect = new Path();
+        private Pane effectClip = new Pane();
 
         public IOLine(XPut<T> i, XPut<T> o) {
             input = i;
             output = o;
 
-            IOLayer.this.getChildren().add(this);
             getStyleClass().add(IOLINE_STYLECLASS);
-            IOLine.this.setMouseTransparent(false);
-            IOLine.this.setPickOnBounds(false);
+            setMouseTransparent(false);
+            setPickOnBounds(false);
+            IOLayer.this.getChildren().add(this);
+
+            IOLayer.this.getChildren().add(effect);
+            effect.getStyleClass().add("ioline-effect-line");
+            effect.setMouseTransparent(true);
+            effect.setClip(effectClip);
+            duplicateTo(this, effect);
 
             setOnMouseClicked(e -> {
                 if (e.getButton()==SECONDARY) {
@@ -602,44 +614,50 @@ public class IOLayer extends StackPane {
             setDisable(active);
         }
 
-        public void layInputs(double startx, double starty, double tox, double toy) {
+        public void layInputs(double inX, double inY, double outX, double outY) {
+            startX = outX; startY = outY; toX = inX; toY = inY; length = pyth(inX-outX, inY-outY);
+
             double d = 20;
             getElements().clear();
-            getElements().add(new MoveTo(startx, starty));
-            getElements().add(new LineTo(startx+d,starty-d));
-            getElements().add(new LineTo(tox+d,toy+d));
-            getElements().add(new LineTo(tox,toy));
+            getElements().add(new MoveTo(inX, inY));
+            getElements().add(new LineTo(inX+d,inY-d));
+            getElements().add(new LineTo(outX+d,outY+d));
+            getElements().add(new LineTo(outX,outY));
         }
 
-        public void layOutputs(double startx, double starty, double tox, double toy) {
+        public void layOutputs(double inX, double inY, double outX, double outY) {
+            startX = outX; startY = outY; toX = inX; toY = inY; length = pyth(inX-outX, inY-outY);
+
             double d = 20;
             getElements().clear();
-            getElements().add(new MoveTo(startx, starty));
-            getElements().add(new LineTo(startx-d,starty-d));
-            getElements().add(new LineTo(tox-d,toy+d));
-            getElements().add(new LineTo(tox,toy));
+            getElements().add(new MoveTo(inX, inY));
+            getElements().add(new LineTo(inX-d,inY-d));
+            getElements().add(new LineTo(outX-d,outY+d));
+            getElements().add(new LineTo(outX,outY));
         }
 
-        public void lay(double startx, double starty, double tox, double toy) {
+        public void lay(double inX, double inY, double outX, double outY) {
+            startX = outX; startY = outY; toX = inX; toY = inY; length = pyth(inX-outX, inY-outY);
+
             getElements().clear();
-            getElements().add(new MoveTo(startx, starty));
+            getElements().add(new MoveTo(inX, inY));
 
             double h = IOLayer.this.getHeight();
-            double dx = tox-startx;
-            double dy = toy-starty;
+            double dx = outX-inX;
+            double dy = outY-inY;
             if (dx>0) {
                 double d = 20; //Math.random()*30/10*10+10;
                 // enhance start
-                starty += d*signum(dy);
-                getElements().add(new LineTo(startx,starty));
+                inY += d*signum(dy);
+                getElements().add(new LineTo(inX,inY));
                 // enhance end
                 not_finished = true;
-                not_finished_x = tox;
-                not_finished_y = toy;
-                tox -= d*signum(dx);
-                toy -= 2*d*signum(dy);
+                not_finished_x = outX;
+                not_finished_y = outY;
+                outX -= d*signum(dx);
+                outY -= 2*d*signum(dy);
             }
-            layTo(startx, starty, tox, toy, h);
+            layTo(inX, inY, outX, outY, h);
         }
 
         private boolean not_finished = false;
@@ -665,17 +683,34 @@ public class IOLayer extends StackPane {
         }
 
         public void send() {
-            // TODO: figure out speed = f(length) or speed = constant
-            // Do not know how to obtain path length anyway...
-            // naive attempt below
-            // double length = sqrt(getWidth()*getWidth()+getHeight()*getHeight());
-            Circle n = new Circle(3);
-                   n.getStyleClass().add(IOLINE_RUNNER_STYLECLASS);
-            IOLayer.this.getChildren().add(n);
-            PathTransition a = new PathTransition(millis(2000), this, n);
-            a.setRate(-1);
-            a.setOnFinished(e -> IOLayer.this.getChildren().remove(n));
-            a.playFrom(a.getDuration());
+            var lengthNormalized = max(1.0, length/100.0);
+
+            Circle pRunner = new Circle(3);
+            pRunner.getStyleClass().add(IOLINE_RUNNER_STYLECLASS);
+            IOLayer.this.getChildren().add(pRunner);
+            PathTransition a1 = new PathTransition(millis(1500), this, pRunner);
+            a1.setRate(-1);
+            a1.setOnFinished(e -> IOLayer.this.getChildren().remove(pRunner));
+            a1.playFrom(a1.getDuration());
+
+            Circle eRunner = new Circle(15*lengthNormalized);
+            effectClip.getChildren().add(eRunner);
+            PathTransition ea2 = new PathTransition(millis(1500), this, eRunner);
+            ea2.setRate(-1);
+            ea2.setDelay(millis(150));
+            ea2.setOnFinished(e -> dataArrived(IOLayer.this, toX, toY));
+
+            eRunner.setScaleX(0.0);
+            eRunner.setScaleY(0.0);
+            eRunner.setCenterX(startX);
+            eRunner.setCenterY(startY);
+            var ea3 = Anim.Companion.anim(millis(300), consumer(it -> setScaleXY(eRunner, 1-sqrt(it)))).delay(millis(1500));
+            ea3.setOnFinished(e -> effectClip.getChildren().remove(eRunner));
+            var ea1 = Anim.Companion.anim(millis(300), consumer(it -> setScaleXY(eRunner, sqrt(it)))).delay(millis(0));
+
+            ea1.play();
+            ea2.playFrom(ea2.getDuration());
+            ea3.play();
         }
 
     }

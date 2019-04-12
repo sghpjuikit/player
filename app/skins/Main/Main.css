@@ -2220,16 +2220,16 @@ icon-info-icon {
 .onode:selected,
 .ionode:selected {
     -fx-fill: -fx-focus-color;
-    -glyph-size: 1.25em; /* 15 */
+    -fx-scale-x: 1.3;
+    -fx-scale-y: 1.3;
 }
-
 
 /* 
  * Output -> Input connection line.
  * inherits: .path
  */
 .ioline {
-    -fx-opacity: 0.8;
+    -fx-opacity: 0.5;
     -fx-stroke: -skin-def-font-color;
     -fx-stroke-width: 2;
     -fx-fill: null; /* bgr of the shape the path makes - we do not want any*/
@@ -2241,13 +2241,36 @@ icon-info-icon {
 }
 /* .path does not seem to have disabled pseudoclass defined so we do it here */
 .ioline:disabled {
-    -fx-opacity: 0.4;
+    -fx-opacity: 0.2;
 }
 
-.ioline-runner {
+/*
+ * Dot runner effect on line when data changes
+ * inherits: Circle, Shape
+ */
+.ioline-effect-dot {
     -fx-fill: -fx-focus-color;
 }
 
+/*
+ * Area runner effect on line when data changes
+ * inherits: Path, Shape
+ */
+.ioline-effect-line {
+    -fx-stroke: -fx-focus-color;
+    -fx-stroke-width: 3;
+}
+
+/*
+ * Highlight effect on receiving node when data arrives
+ * inherits: Circle, Shape
+ */
+.ioline-effect-receive {
+    -fx-radius: 0.5em;
+    -fx-fill: null;
+    -fx-stroke: -fx-focus-color;
+    -fx-stroke-width: 2;
+}
 
 /***************************** OVERLAY PANE *****************************
  * Pane laying 'above' some content creating 'overlay' bgr above it. Used for various things, mostly

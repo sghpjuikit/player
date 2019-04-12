@@ -210,16 +210,19 @@ class UiManager(val skinDir: File): Configurable<Any> {
     fun toggleZoomMode() = APP.windowManager.getActive().orNull()?.switchPane?.toggleZoom()
 
     fun setLayoutNzoom(v: Boolean) {
-        isLayoutMode = v
-        setZoomMode(v)
+        if (isLayoutMode && APP.windowManager.getActive().orNull()?.switchPane?.isZoomed!=true) {
+            setZoomMode(true)
+        } else {
+            isLayoutMode = v
+            setZoomMode(v)
+        }
     }
 
     fun setZoomMode(v: Boolean) = APP.windowManager.getActive().orNull()?.switchPane?.zoom(v)
 
     @IsAction(name = "Layout zoom overlay in/out", desc = "Shows/hides layout overlay & zooms in/out.", keys = "ALT+DOWN")
     fun toggleLayoutNzoom() {
-        toggleLayoutMode()
-        toggleZoomMode()
+        setLayoutNzoom(!layoutMode.value)
     }
 
     /**

@@ -1,5 +1,6 @@
 package sp.it.pl.layout.area;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -77,11 +78,11 @@ public class IOLayer extends StackPane {
     private static final Object XNODE_KEY = new Object();
 
     static public final ObservableSet<IOLayer> all_layers = FXCollections.observableSet();
-    static public final Map2D<Input<?>,Output<?>, Object> all_connections = new Map2D<>();
+    static public final Map2D<XPut<?>,XPut<?>, Object> all_connections = new Map2D<>();
     static public final ObservableSet<Input<?>> all_inputs = FXCollections.observableSet();
     static public final ObservableSet<Output<?>> all_outputs = FXCollections.observableSet();
     static public final ObservableSet<InOutput<?>> all_inoutputs = FXCollections.observableSet();
-    public final Map2D<Input<?>,Output<?>,IOLine> connections = new Map2D<>();
+    public final Map2D<XPut<?>,XPut<?>,IOLine> connections = new Map2D<>();
     public final Map<Input<?>,XNode<?,?,?>> inputnodes = new HashMap<>();
     public final Map<Output<?>,XNode<?,?,?>> outputnodes = new HashMap<>();
     public final Map<InOutput<?>,InOutputNode> inoutputnodes = new HashMap<>();
@@ -90,24 +91,24 @@ public class IOLayer extends StackPane {
         all_layers.forEach(IOLayer::requestLayout);
     }
 
-    public static void addConnectionE(Input<?> i, Output<?> o) {
+    public static void addConnectionE(XPut<?> i, XPut<?> o) {
         all_connections.put(i, o, new Object());
         all_layers.forEach(it -> it.addConnection(i,o));
     }
 
-    public static void remConnectionE(Input<?> i, Output<?> o) {
+    public static void remConnectionE(XPut<?> i, XPut<?> o) {
         all_connections.remove2D(i, o);
         all_layers.forEach(it -> it.remConnection(i,o));
     }
 
     public void addController(Controller c) {
-        c.getOwnedInputs().getInputs().forEach(this::addInput);
-        c.getOwnedOutputs().getOutputs().forEach(this::addOutput);
+        c.io.i.getInputs().forEach(this::addInput);
+        c.io.o.getOutputs().forEach(this::addOutput);
     }
 
     public void remController(Controller c) {
-        c.getOwnedInputs().getInputs().forEach(this::remInput);
-        c.getOwnedOutputs().getOutputs().forEach(this::remOutput);
+        c.io.i.getInputs().forEach(this::remInput);
+        c.io.o.getOutputs().forEach(this::remOutput);
     }
 
     @SuppressWarnings("unchecked")
@@ -161,11 +162,11 @@ public class IOLayer extends StackPane {
     }
 
     @SuppressWarnings("unchecked")
-    private void addConnection(Input<?> i, Output<?> o) {
+    private void addConnection(XPut<?> i, XPut<?> o) {
         connections.computeIfAbsent(new Key(i,o), key -> new IOLine(i,o));
         drawGraph();
     }
-    private void remConnection(Input<?> i, Output<?> o) {
+    private void remConnection(XPut<?> i, XPut<?> o) {
         removeChild(connections.remove2D(i,o));
         drawGraph();
     }
@@ -295,16 +296,33 @@ public class IOLayer extends StackPane {
 	    var W = getWidth();
 	    var H = getHeight();
 
+	    var widgetIos = new ArrayList<InOutput<?>>();
         double header_offset = switchpane.getRoot().localToScene(0,0).getY();
         double translation_offset = translation.get();
         APP.widgetManager.widgets.findAll(OPEN_LAYOUT)
             .filter(w -> w!=null && w.getController()!=null)
             .forEach(w -> {
                 Controller c = w.getController();
-                var is = c.getOwnedInputs().getInputs().stream().map(inputnodes::get).filter(ISNTØ).collect(toList());
-	            var os = c.getOwnedOutputs().getOutputs().stream().map(outputnodes::get).filter(ISNTØ).collect(toList());
+                var is = c.io.i.getInputsMixed().stream()
+                    .map(it -> {
+                        if (it instanceof Input<?>) return inputnodes.get(it);
+                        if (it instanceof InOutput<?>) return inoutputnodes.get(it);
+                        return null;
+                    })
+                    .filter(ISNTØ)
+                    .collect(toList());
+	            var os = c.io.o.getOutputsMixed().stream()
+                    .map(it -> {
+                        if (it instanceof Output<?>) return outputnodes.get(it);
+                        if (it instanceof InOutput<?>) return inoutputnodes.get(it);
+                        return null;
+                    })
+                    .filter(ISNTØ)
+                    .collect(toList());
 
-                if (w.areaTemp==null || w.areaTemp.getRoot()==null) return; // TODO: during initiaization we are not ready yet, try to remove
+                widgetIos.addAll(c.io.io.getInOutputs());
+
+                if (w.areaTemp==null || w.areaTemp.getRoot()==null) return; // TODO: during initialization we are not ready yet, try to remove
 
                 Node wr = w.areaTemp.getRoot();
                 Bounds b = wr.localToScene(wr.getBoundsInLocal());
@@ -336,7 +354,7 @@ public class IOLayer extends StackPane {
         var ioOffsetX = 0.0;
         var ioOffsetYShift = -10.0;
         var ioOffsetY = H-150.0;
-        var ios = inoutputnodes.values().stream().sorted(by(it -> it.inoutput.o.id.carrier_id)).collect(toList());
+        var ios = inoutputnodes.values().stream().filter(it -> !widgetIos.contains(it.inoutput)).sorted(by(it -> it.inoutput.o.id.carrier_id)).collect(toList());
         for (InOutputNode<?> io: ios) {
             io.graphics.autosize(); // necessary before asking for size
             var is2 = io.i.getLayoutBounds().getWidth()/2.0;
@@ -350,12 +368,25 @@ public class IOLayer extends StackPane {
         drawGraph();
     }
 
+    @SuppressWarnings({"ConstantConditions", "SuspiciousMethodCalls"})
     public void drawGraph() {
         connections.forEach((input,output,line) -> {
-            XNode inputnode = inputnodes.get(input);
-            XNode outputnode = outputnodes.get(output);
-            if (inputnode!=null && outputnode!=null)
-                line.lay(inputnode.cx, inputnode.cy, outputnode.cx, outputnode.cy);
+            XNode in = null;
+            if (in==null) in = inputnodes.get(input);
+            if (in==null) in = outputnodes.get(input);
+
+            XNode on = null;
+            if (on==null) on = inputnodes.get(output);
+            if (on==null) on = outputnodes.get(output);
+
+            if (in!=null && on!=null) {
+                if (input instanceof Input<?> && output instanceof Input<?>)
+                    line.layInputs(in.cx, in.cy, on.cx, on.cy);
+                else if (input instanceof Output<?> && output instanceof Output<?>)
+                    line.layOutputs(in.cx, in.cy, on.cx, on.cy);
+                else
+                    line.lay(in.cx, in.cy, on.cx, on.cy);
+            }
         });
     }
 
@@ -541,10 +572,10 @@ public class IOLayer extends StackPane {
 
     class IOLine<T> extends Path {
 
-        Output<T> output;
-        Input<T> input;
+        XPut<T> output;
+        XPut<T> input;
 
-        public IOLine(Input<T> i, Output<T> o) {
+        public IOLine(XPut<T> i, XPut<T> o) {
             input = i;
             output = o;
 
@@ -554,7 +585,11 @@ public class IOLayer extends StackPane {
             IOLine.this.setPickOnBounds(false);
 
             setOnMouseClicked(e -> {
-                if (e.getButton()==SECONDARY) i.unbind(o);
+                if (e.getButton()==SECONDARY) {
+                    if (i instanceof Input<?> && o instanceof Output<?>) {
+                        ((Input<?>) i).unbind(((Output<?>) o));
+                    }
+                }
                 e.consume();
             });
             setOnDragDetected(e -> {
@@ -565,6 +600,24 @@ public class IOLayer extends StackPane {
 
         void onEditActive(boolean active) {
             setDisable(active);
+        }
+
+        public void layInputs(double startx, double starty, double tox, double toy) {
+            double d = 20;
+            getElements().clear();
+            getElements().add(new MoveTo(startx, starty));
+            getElements().add(new LineTo(startx+d,starty-d));
+            getElements().add(new LineTo(tox+d,toy+d));
+            getElements().add(new LineTo(tox,toy));
+        }
+
+        public void layOutputs(double startx, double starty, double tox, double toy) {
+            double d = 20;
+            getElements().clear();
+            getElements().add(new MoveTo(startx, starty));
+            getElements().add(new LineTo(startx-d,starty-d));
+            getElements().add(new LineTo(tox-d,toy+d));
+            getElements().add(new LineTo(tox,toy));
         }
 
         public void lay(double startx, double starty, double tox, double toy) {

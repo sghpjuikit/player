@@ -4,8 +4,7 @@ import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
 import javafx.scene.layout.Pane
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.io.Inputs
-import sp.it.pl.layout.widget.controller.io.Outputs
+import sp.it.pl.layout.widget.controller.io.IO
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.appProgressIndicator
@@ -51,8 +50,7 @@ abstract class Controller(widget: Widget): CachedConfigurable<Any>, Locatable {
 
     /** Widget owning this controller. */
     @JvmField val widget = widget
-    abstract val ownedOutputs: Outputs
-    abstract val ownedInputs: Inputs
+    @JvmField val io = IO(widget.id)
     override val location get() = widget.location
     override val userLocation get() = widget.userLocation
 

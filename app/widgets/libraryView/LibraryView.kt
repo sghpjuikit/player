@@ -103,9 +103,9 @@ private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, Table
 class LibraryView(widget: Widget): SimpleController(widget) {
 
     private val table = FilteredTable(MetadataGroup::class.java, VALUE)
-    private val outputSelectedGroup = outputs.create<List<MetadataGroup>>(widget.id, "Selected Groups", listOf())
-    private val outputSelectedSongs = outputs.create<List<Metadata>>(widget.id, "Selected Songs", listOf())
     private val inputItems = inputs.create<List<Metadata>>("To display", listOf()) { setItems(it) }
+    private val outputSelectedGroup = outputs.create<List<MetadataGroup>>(widget.id, "Selected", listOf())
+    private val outputSelectedSongs = io.io.mapped(outputSelectedGroup, "As Songs") { filterList(inputItems.value, true) }
 
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     val tableOrient by cv(NodeOrientation.INHERIT) { Vo(APP.ui.tableOrient) }
@@ -241,7 +241,6 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         // sync outputs
         val selectedItemsReducer = EventReducer.toLast<Void>(100.0) {
             outputSelectedGroup.value = table.selectedItemsCopy
-            outputSelectedSongs.value = filterList(inputItems.value, true)
         }
         table.selectedItems.onChange { if (!selIgnore) selectedItemsReducer.push(null) } on onClose
         table.selectionModel.selectedItemProperty() sync { selLast = it?.getValueS("") ?: "null" } on onClose
@@ -345,7 +344,6 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
         selIgnore = false
         outputSelectedGroup.value = table.selectedItemsCopy
-        outputSelectedSongs.value = filterList(inputItems.value, true)
     }
 
     companion object {

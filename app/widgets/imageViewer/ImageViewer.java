@@ -123,7 +123,6 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
     private final List<File> images = new ArrayList<>();
     private final List<Thumbnail> thumbnails = new ArrayList<>();
     private FxTimer slideshow = fxTimer(Duration.ZERO,INDEFINITE, runnable(this::nextImage));
-    private Metadata data = Metadata.EMPTY;
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
     public final V<Double> thumbSize = new V<>(70d).initAttachC(v -> thumbnails.forEach(t-> setMinPrefMaxSize(t.getPane(), v, v)));
@@ -155,8 +154,8 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
     @IsConfig(name = "Displayed image", editable = EditMode.APP)
     private int active_image = -1;
 
-    private Input<File> inputLocation = inputs.create("Location", File.class, consumer(this::dataChanged));
-    private Input<Song> inputLocationOf = inputs.create("Location of", Song.class, consumer(this::dataChanged));
+    private Input<File> inputLocation = io.i.create("Location", File.class, consumer(this::dataChanged));
+    private Input<Song> inputLocationOf = io.io.mapped(inputLocation, "Location of", Song.class, it -> it.getLocation());
 
     public ImageViewer(Widget widget) {
         super(widget);
@@ -274,7 +273,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
                 if (hasAudio(e.getDragboard())) {
                     // get first item
                     List<Song> songs = getAudio(e.getDragboard());
-                    if (!songs.isEmpty()) dataChanged(songs.get(0));
+                    if (!songs.isEmpty()) inputLocationOf.setValue(songs.get(0));
                 } else
                 if (hasImageFileOrUrl(e.getDragboard())) {
                     showAppProgress(
@@ -320,7 +319,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         onClose.plusAssign(slideshow::stop);
 
         onClose.plusAssign(sync1IfInScene(root, runnable(() -> {
-            if (!inputLocation.isBound() && !inputLocationOf.isBound())
+            if (!inputLocation.isBound(widget.id) && !inputLocationOf.isBound(widget.id))
                 inputLocationOf.bind(Player.playing.o);
         })));
     }
@@ -351,27 +350,16 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         imgFiles.forEach(this::addThumbnail);
     }
 
-/****************************** HELPER METHODS ********************************/
+    private void dataChanged(File newLocation) {
+        if (keepContentOnEmpty && newLocation==null) return;    // prevent refreshing location if should not
 
-    private void dataChanged(Song i) {
-        if (i==null) dataChanged(Metadata.EMPTY);
-        else APP.db.songToMeta(i, consumer(this::dataChanged));
-    }
-
-    private void dataChanged(Metadata m) {
-        // remember data
-        data = m;
-        // calculate new location
-        File new_folder = data==null ? null : data.getLocation();
-        dataChanged(new_folder);
-    }
-
-    private void dataChanged(File new_folder) {
-        // prevent refreshing location if should not
-        if (keepContentOnEmpty && new_folder==null) return;
-        // refresh location
-        folder.set(new_folder);
-        if (theater_mode.getValue()) itemPane.setValue(data);
+        folder.setValue(newLocation);
+        if (theater_mode.getValue()) {
+            itemPane.setValue(Metadata.EMPTY);
+            var s = inputLocationOf.getValue();
+            if (s!=null)
+                APP.db.songToMeta(s, consumer(itemPane::setValue));
+        }
     }
 
     private void run() {navAnim.playClose();}
@@ -532,7 +520,10 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
             itemPaneRoot.setPickOnBounds(false);
             root.getChildren().add(itemPaneRoot);
 
-            itemPane.setValue(data);
+            itemPane.setValue(Metadata.EMPTY);
+            var s = inputLocationOf.getValue();
+            if (s!=null)
+                APP.db.songToMeta(s, consumer(itemPane::setValue));
         }
 
         slideshow_on.setValue(v ? false : slideshow_on.getValue());

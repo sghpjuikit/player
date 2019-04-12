@@ -2,8 +2,6 @@ package sp.it.pl.layout.widget
 
 import javafx.scene.layout.Pane
 import sp.it.pl.layout.widget.controller.Controller
-import sp.it.pl.layout.widget.controller.io.Inputs
-import sp.it.pl.layout.widget.controller.io.Outputs
 import sp.it.pl.main.APP
 import sp.it.util.conf.Config
 import sp.it.util.file.childOf
@@ -21,8 +19,6 @@ import sp.it.util.file.childOf
 class EmptyWidget(widget: Widget): Controller(widget) {
 
     private val root = Pane()
-    override val ownedInputs = Inputs()
-    override val ownedOutputs = Outputs()
 
     override fun loadFirstTime() = root
     override fun focus() {}

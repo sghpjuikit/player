@@ -20,6 +20,9 @@ class InOutput<T>: XPut<T?> {
             override fun isAssignable(output: Output<*>) = output!==o && super.isAssignable(output)
         }
         this.i.typeRaw = type
+    }
+
+    fun appWide() = apply {
         IOLayer.all_inoutputs += this
     }
 

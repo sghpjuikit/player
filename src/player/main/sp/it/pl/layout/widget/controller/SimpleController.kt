@@ -2,8 +2,6 @@ package sp.it.pl.layout.widget.controller
 
 import javafx.scene.layout.StackPane
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.io.Inputs
-import sp.it.pl.layout.widget.controller.io.Outputs
 import sp.it.util.conf.Config
 import sp.it.util.conf.ConfigValueSource
 import sp.it.util.conf.MultiConfigurable
@@ -23,10 +21,8 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
 
     @JvmField val root = StackPane()
     @JvmField val onClose = Disposer()
-    @JvmField val outputs = Outputs()
-    @JvmField val inputs = Inputs()
-    override val ownedOutputs = outputs
-    override val ownedInputs = inputs
+    @JvmField val inputs = io.i
+    @JvmField val outputs = io.o
     private val configs = HashMap<String, Config<*>>()
     override val configurableDiscriminant = null as String?
     override val configurableValueStore: ConfigValueSource by lazy {
@@ -55,7 +51,7 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
 
     override fun close() {
         onClose()
-        inputs.getInputs().forEach { it.unbindAll() }
+        io.dispose()
     }
 
     @Suppress("UNCHECKED_CAST")

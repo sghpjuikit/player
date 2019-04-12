@@ -287,7 +287,7 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 								}
 							};
 
-					c.getOwnedInputs().create(iName, iType, consumer(iAction));
+					c.io.i.create(iName, iType, consumer(iAction));
 				}
 			}
 		}
@@ -319,8 +319,8 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 			Controller c = controller;
 			controller = null;
 
-			var is = c.getOwnedInputs().getInputs();
-			var os = c.getOwnedOutputs().getOutputs();
+			var is = c.io.i.getInputs();
+			var os = c.io.o.getOutputs();
 			IOLayer.all_inputs.removeAll(is);
 			IOLayer.all_outputs.removeAll(os);
 
@@ -446,7 +446,7 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 		// Prepare input-outputs
 		// If widget is loaded, we serialize inputs & outputs
 		if (isLoaded) {
-			getController().getOwnedInputs().getInputs().forEach(i ->
+			getController().io.i.getInputs().forEach(i ->
 					properties.put("io" + i.name, toS(i.getSources(), o -> o.id.toString(), ":"))
 			);
 			// Otherwise we still have the deserialized inputs/outputs leave them as they are
@@ -579,14 +579,14 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 		APP.widgetManager.widgets.findAll(OPEN)
 			.filter(w -> w.controller!=null)
 			.forEach(w -> {
-				w.controller.getOwnedInputs().getInputs().forEach(is::add);
-				w.controller.getOwnedOutputs().getOutputs().forEach(o -> os.put(o.id, o));
+				w.controller.io.i.getInputs().forEach(is::add);
+				w.controller.io.o.getOutputs().forEach(o -> os.put(o.id, o));
 			});
 		IOLayer.all_inoutputs.forEach(io -> os.put(io.o.id, io.o));
 
 		ios.forEach(io -> {
 			if (io.widget.controller==null) return;
-			Input i = io.widget.controller.getOwnedInputs().getInputRaw(io.input_name);
+			Input i = io.widget.controller.io.i.getInputRaw(io.input_name);
 			if (i==null) return;
 			io.outputs_ids.stream().map(os::get).filter(ISNTØ).forEach(i::bind);
 		});
@@ -603,8 +603,8 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 		// because widget inputs can be bound to other widget outputs, and because widgets can be
 		// loaded passively (then its i/o does not exists yet), we need to update all widget i/os
 		// because we do not know which bind to this widget
-		IOLayer.all_inputs.addAll(controller.getOwnedInputs().getInputs());
-		IOLayer.all_outputs.addAll(controller.getOwnedOutputs().getOutputs());
+		IOLayer.all_inputs.addAll(controller.io.i.getInputs());
+		IOLayer.all_outputs.addAll(controller.io.o.getOutputs());
 		deserializeWidgetIO();
 	}
 

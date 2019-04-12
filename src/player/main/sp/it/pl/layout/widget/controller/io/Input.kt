@@ -10,6 +10,7 @@ import sp.it.util.type.isSubclassOf
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.HashMap
+import java.util.UUID
 
 open class Input<T>: Put<T?> {
 
@@ -90,11 +91,26 @@ open class Input<T>: Put<T?> {
         return Subscription { unbind(output) }
     }
 
-    /** @return true iff at least one [Output] is bound to this input using [bind]. ]*/
-    fun isBound(): Boolean = sources.isNotEmpty()
+    @Suppress("UNCHECKED_CAST")
+    @Idempotent
+    fun <R> bind(output: Output<out R?>, mapper: (R) -> T): Subscription {
+        // Normally we would use this::setValue, but we want to allow generalized binding, which supports subtyping
+        // and selective type filtering
+        // sources.computeIfAbsent(output, o -> o.monitor(this::setValue));
+        sources.computeIfAbsent(output as Output<T>) { it.sync { value = if (it==null) null else mapper(it as R) } }
+        IOLayer.addConnectionE(this, output)
+        return Subscription { unbind(output) }
+    }
+
+    /**
+     * @param exceptWithId id of outputs to be not considered as bindings even if this is bound to any of them
+     * @return true iff at least one [Output] is bound to this input using [bind]. ]
+     */
+    @JvmOverloads
+    fun isBound(exceptWithId: UUID? = null): Boolean = sources.keys.any { it.id.carrier_id!=exceptWithId }
 
     @Idempotent
-    fun unbind(output: Output<out T>) {
+    fun unbind(output: Output<*>) {
         sources.remove(output)?.unsubscribe()
         IOLayer.remConnectionE(this, output)
     }

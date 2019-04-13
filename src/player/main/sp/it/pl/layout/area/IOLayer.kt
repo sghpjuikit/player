@@ -253,7 +253,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     private fun editMove(e: MouseEvent) {
         if (edit==null || editFrom==null) return
 
-        edit!!.lay(editFrom!!.cx, editFrom!!.cy, e.x, e.y)
+        edit!!.line.lay(editFrom!!.cx, editFrom!!.cy, e.x, e.y)
 
         val n = inputnodes.values.asSequence()
                 .filter { pyth(it.cx-e.x, it.cy-e.y)<8 }
@@ -270,7 +270,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         if (edit==null) return
 
         if (editTo!=null) editTo!!.input!!.bindAny(editFrom!!.output!!)
-        children -= edit
+        children -= edit!!.line
         edit = null
         editTo?.select(false)
         editTo = null
@@ -533,7 +533,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
     }
 
-    private open inner class IOLine(val input: Put<*>?, val output: Put<*>?): Path() {
+    private inner class IOLine(val input: Put<*>?, val output: Put<*>?): Path() {
         var startX = 0.0
         var startY = 0.0
         var toX = 0.0
@@ -565,7 +565,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             duplicateTo(effect)
             this@IOLayer.children += effect
 
-            if (this!=edit && input!=null && output!=null) {
+            if (edit?.line!=this && input!=null && output!=null) {
                 output.sync { dataSend() } on disposer
             }
             onEventDown(MOUSE_CLICKED, SECONDARY) {
@@ -687,8 +687,8 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
     }
 
-    private inner class EditIOLine(node: XNode<*, *>): IOLine(node.input, node.output) {
-
+    private inner class EditIOLine(node: XNode<*, *>)  {
+        val line = IOLine(node.input, node.output)
         init {
             val editDrawer = EventHandler<MouseEvent> { layToMouse(it) }
             val editCanceler = object: EventHandler<MouseEvent> {
@@ -703,7 +703,6 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         }
 
         fun layToMouse(e: MouseEvent) = editMove(e)
-
     }
 
     companion object {

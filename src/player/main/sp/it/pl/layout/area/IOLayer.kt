@@ -27,7 +27,6 @@ import javafx.scene.shape.Path
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.layout.container.switchcontainer.SwitchPane
-import sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.layout.widget.controller.io.Input
@@ -44,7 +43,6 @@ import sp.it.util.collections.map.Map2D.Key
 import sp.it.util.dev.failCase
 import sp.it.util.functional.Util.min
 import sp.it.util.functional.asIf
-import sp.it.util.functional.orNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
@@ -233,7 +231,6 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             if (ao!=null) addOutput(ao)
             if (ro!=null) remOutput(ro)
         }
-
         allInoutputs.forEach { addInOutput(it) }
         allInoutputs.addListener { c: SetChangeListener.Change<out InOutput<*>> ->
             val aio = c.elementAdded
@@ -315,52 +312,56 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         val widgetIos = ArrayList<InOutput<*>>()
         val headerOffset = switchpane.root.localToScene(0.0, 0.0).y
         val translationOffset = tTranslate.get()
-        APP.widgetManager.widgets.findAll(OPEN_LAYOUT)
-                .filter { it!=null && it.controller!=null }
-                .filter { it.window.orNull()?.stage===scene.window }
-                .forEach { w ->
-                    val c = w.controller
-                    val `is` = c.io.i.getInputsMixed().mapNotNull {
-                        when (it) {
-                            is Input<*> -> inputnodes[it]
-                            is InOutput<*> -> inoutputnodes[it]
-                            else -> null
-                        }
-                    }
-                    val os = c.io.o.getOutputsMixed().mapNotNull {
-                        when (it) {
-                            is Output<*> -> outputnodes[it]
-                            is InOutput<*> -> inoutputnodes[it]
-                            else -> null
-                        }
-                    }
 
-                    widgetIos += c.io.io.getInOutputs()
+        inputnodes.values.forEach { it.graphics.isVisible = false }
+        outputnodes.values.forEach { it.graphics.isVisible = false }
+        inoutputnodes.values.forEach { it.graphics.isVisible = false }
 
-                    val wr = w.areaTemp.root
-                    val b = wr.localToScene(wr.boundsInLocal)
-                    val baseX = b.minX/tScaleX.doubleValue()-translationOffset
-                    val baseY = b.minY-headerOffset
-                    val ww = b.width/tScaleX.doubleValue()
-                    val wh = b.height
-                    val ihx = wh/(`is`.size+1)
-                    val ohx = wh/(os.size+1)
-
-                    `is`.forEachIndexed { i, o ->
-                        o.graphics.autosize() // necessary before asking for size
-                        val is2 = o.i.layoutBounds.width/2.0
-                        o.cx = calcScaleX(baseX+padding)
-                        o.cy = calcScaleY(baseY+ihx*(i+1))
-                        o.graphics.relocate(o.cx-is2, o.cy-o.graphics.height/2)
-                    }
-                    os.forEachIndexed { i, o ->
-                        o.graphics.autosize() // necessary before asking for size
-                        val is2 = o.i.layoutBounds.width/2.0
-                        o.cx = calcScaleX(baseX+ww-padding-2*is2)
-                        o.cy = calcScaleY(baseY+ohx*(i+1))
-                        o.graphics.relocate(o.cx-o.graphics.layoutBounds.width+is2, o.cy-o.graphics.layoutBounds.height/2)
-                    }
+        switchpane.container.rootParent.allWidgets.filter { it?.controller!=null }.forEach { w ->
+            val c = w.controller
+            val `is` = c.io.i.getInputsMixed().mapNotNull {
+                when (it) {
+                    is Input<*> -> inputnodes[it]
+                    is InOutput<*> -> inoutputnodes[it]
+                    else -> null
                 }
+            }
+            val os = c.io.o.getOutputsMixed().mapNotNull {
+                when (it) {
+                    is Output<*> -> outputnodes[it]
+                    is InOutput<*> -> inoutputnodes[it]
+                    else -> null
+                }
+            }
+
+            widgetIos += c.io.io.getInOutputs()
+
+            val wr = w.areaTemp.root
+            val b = wr.localToScene(wr.boundsInLocal)
+            val baseX = b.minX/tScaleX.doubleValue()-translationOffset
+            val baseY = b.minY-headerOffset
+            val ww = b.width/tScaleX.doubleValue()
+            val wh = b.height
+            val ihx = wh/(`is`.size+1)
+            val ohx = wh/(os.size+1)
+
+            `is`.forEachIndexed { i, n ->
+                n.graphics.isVisible = true
+                n.graphics.autosize() // necessary before asking for size
+                val is2 = n.i.layoutBounds.width/2.0
+                n.cx = calcScaleX(baseX+padding)
+                n.cy = calcScaleY(baseY+ihx*(i+1))
+                n.graphics.relocate(n.cx-is2, n.cy-n.graphics.height/2)
+            }
+            os.forEachIndexed { i, n ->
+                n.graphics.isVisible = true
+                n.graphics.autosize() // necessary before asking for size
+                val is2 = n.i.layoutBounds.width/2.0
+                n.cx = calcScaleX(baseX+ww-padding-2*is2)
+                n.cy = calcScaleY(baseY+ohx*(i+1))
+                n.graphics.relocate(n.cx-n.graphics.layoutBounds.width+is2, n.cy-n.graphics.layoutBounds.height/2)
+            }
+        }
 
         val ioMinWidthX = 200.0
         val ioGapX = 10.0
@@ -368,13 +369,14 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         val ioOffsetYShift = -10.0
         var ioOffsetY = H-150.0
         val ios = inoutputnodes.values.asSequence().filter { it.inoutput !in widgetIos }.sortedBy { it.inoutput!!.o.id.ownerId }.toList()
-        for (io in ios) {
-            io.graphics.autosize() // necessary before asking for size
-            val is2 = io.i.layoutBounds.width/2.0
-            io.cx = ioOffsetX
-            io.cy = ioOffsetY
-            io.graphics.relocate(io.cx-is2, io.cy-is2)
-            ioOffsetX += max(io.graphics.layoutBounds.width, ioMinWidthX)+ioGapX
+        for (n in ios) {
+            n.graphics.isVisible = true
+            n.graphics.autosize() // necessary before asking for size
+            val is2 = n.i.layoutBounds.width/2.0
+            n.cx = ioOffsetX
+            n.cy = ioOffsetY
+            n.graphics.relocate(n.cx-is2, n.cy-is2)
+            ioOffsetX += max(n.graphics.layoutBounds.width, ioMinWidthX)+ioGapX
             ioOffsetY += ioOffsetYShift
         }
 

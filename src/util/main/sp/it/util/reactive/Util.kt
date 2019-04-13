@@ -9,6 +9,7 @@ import javafx.beans.value.WritableValue
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.ObservableSet
+import javafx.collections.SetChangeListener
 import javafx.scene.Node
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
@@ -324,6 +325,15 @@ fun <T> ObservableList<T>.onItemAdded(block: (T) -> Unit): Subscription {
     return Subscription { removeListener(l) }
 }
 
+/** Call specified block every time an item is added to this set passing it as argument */
+fun <T> ObservableSet<T>.onItemAdded(block: (T) -> Unit): Subscription {
+    val l = SetChangeListener<T> {
+        if (it.wasAdded()) block(it.elementAdded)
+    }
+    addListener(l)
+    return Subscription { removeListener(l) }
+}
+
 /** Call specified block every time an item is removed from this list passing it as argument */
 fun <T> ObservableList<T>.onItemRemoved(block: (T) -> Unit): Subscription {
     val l = ListChangeListener<T> {
@@ -337,8 +347,23 @@ fun <T> ObservableList<T>.onItemRemoved(block: (T) -> Unit): Subscription {
     return Subscription { removeListener(l) }
 }
 
-/** Call specified block for every current and future item of this collection. */
+/** Call specified block every time an item is removed from this set passing it as argument */
+fun <T> ObservableSet<T>.onItemRemoved(block: (T) -> Unit): Subscription {
+    val l = SetChangeListener<T> {
+        if (it.wasRemoved()) block(it.elementRemoved)
+    }
+    addListener(l)
+    return Subscription { removeListener(l) }
+}
+
+/** Call specified block for every current and future item of this list. */
 fun <T> ObservableList<T>.onItemSync(block: (T) -> Unit): Subscription {
+    forEach { block(it) }
+    return onItemAdded { block(it) }
+}
+
+/** Call specified block for every current and future item of this set. */
+fun <T> ObservableSet<T>.onItemSync(block: (T) -> Unit): Subscription {
     forEach { block(it) }
     return onItemAdded { block(it) }
 }

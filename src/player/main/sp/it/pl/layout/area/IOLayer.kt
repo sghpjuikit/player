@@ -3,7 +3,6 @@ package sp.it.pl.layout.area
 import javafx.animation.PathTransition
 import javafx.beans.property.DoubleProperty
 import javafx.collections.FXCollections.observableSet
-import javafx.collections.SetChangeListener
 import javafx.event.EventHandler
 import javafx.geometry.Point2D
 import javafx.geometry.Pos
@@ -44,14 +43,14 @@ import sp.it.util.dev.failCase
 import sp.it.util.functional.Util.min
 import sp.it.util.functional.asIf
 import sp.it.util.reactive.Disposer
-import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
-import sp.it.util.reactive.syncWhile
+import sp.it.util.reactive.onItemSync
+import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.text.plural
 import sp.it.util.type.Util.getRawType
 import sp.it.util.type.isSuperclassOf
@@ -122,7 +121,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     private fun remInput(i: Input<*>) {
         allInputs -= i
         i.getSources().forEach { o -> removeChild(connections.remove2D(Key(i, o))) }
-        removeXNode(inputnodes.remove(i))
+        removeChild(inputnodes.remove(i))
     }
 
     private fun addOutput(o: Output<*>) {
@@ -136,7 +135,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
     private fun remOutput(o: Output<*>) {
         allOutputs -= o
-        removeXNode(outputnodes.remove(o))
+        removeChild(outputnodes.remove(o))
         removeChildren(connections.removeIfKey2(o))
     }
 
@@ -155,7 +154,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     private fun remInOutput(io: InOutput<*>) {
         allInoutputs -= io
         io.i.getSources().forEach { o -> removeChild(connections.remove2D(Key(io.i, o))) }
-        removeXNode(inoutputnodes.remove(io))
+        removeChild(inoutputnodes.remove(io))
         removeChildren(connections.removeIfKey2(io.o))
         inputnodes -= io.i
         outputnodes -= io.o
@@ -172,24 +171,14 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     }
 
     init {
+        isMouseTransparent = false
+        isPickOnBounds = false
         tTranslate = switchpane.translateProperty()
         tScaleX = switchpane.zoomProperty()
         tScaleY = switchpane.zoomProperty()
         tScaleX attach { layoutChildren() } on disposer
-
-        allLayers += this
-        disposer += { allLayers -= this }
-
-        parentProperty().syncWhile {
-            when {
-                it!=null -> it.onEventUp(MOUSE_CLICKED) { selectNode(null) }
-                else -> Subscription()
-            }
-        } on disposer
-
-        isMouseTransparent = false
-        isPickOnBounds = false
         translateXProperty().bind(tTranslate.multiply(tScaleX))
+        parentProperty().syncNonNullWhile { it.onEventUp(MOUSE_CLICKED) { selectNode(null) } } on disposer
 
         val av = anim(900.millis) {
             opacity = if (it==0.0) 0.0 else 1.0
@@ -217,40 +206,32 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             else av.playClose()
         } on disposer
 
-        // set & maintain children
+        allInputs.onItemSync { addInput(it) } on disposer
+        allInputs.onItemRemoved { remInput(it) } on disposer
+        allOutputs.onItemSync { addOutput(it) } on disposer
+        allOutputs.onItemRemoved { remOutput(it) } on disposer
+        allInoutputs.onItemSync { addInOutput(it) } on disposer
+        allInoutputs.onItemRemoved { remInOutput(it) } on disposer
 
-        allInputs.addListener { c: SetChangeListener.Change<out Input<*>> ->
-            val ai = c.elementAdded
-            val ri = c.elementRemoved
-            if (ai!=null) addInput(ai)
-            if (ri!=null) remInput(ri)
-        }
-        allOutputs.addListener { c: SetChangeListener.Change<out Output<*>> ->
-            val ao = c.elementAdded
-            val ro = c.elementRemoved
-            if (ao!=null) addOutput(ao)
-            if (ro!=null) remOutput(ro)
-        }
-        allInoutputs.forEach { addInOutput(it) }
-        allInoutputs.addListener { c: SetChangeListener.Change<out InOutput<*>> ->
-            val aio = c.elementAdded
-            val rio = c.elementRemoved
-            if (aio!=null) addInOutput(aio)
-            if (rio!=null) remInOutput(rio)
-        }
+        allLayers += this
+        disposer += { allLayers -= this }
     }
 
     fun dispose() {
+        inputnodes.values.forEach { it.disposer() }
+        outputnodes.values.forEach { it.disposer() }
+        inoutputnodes.values.forEach { it.disposer() }
+        connections.values.forEach { it.disposer() }
         disposer()
         allLayers -= this
     }
 
     private fun removeChild(n: Node?) {
-        if (n!=null) children.remove(n)
+        if (n!=null) children -= n
     }
 
-    private fun removeXNode(n: XNode<*, *>?) {
-        if (n!=null) children.remove(n.graphics)
+    private fun removeChild(n: XNode<*, *>?) {
+        if (n!=null) children -= n.graphics
     }
 
     private fun removeChildren(ns: Stream<out Node>) {
@@ -279,9 +260,9 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
                 .find { it.input!!.isAssignable(editFrom!!.output!!) }
 
         if (editTo!==n) {
-            if (editTo!=null) editTo!!.select(false)
+            editTo?.select(false)
             editTo = n
-            if (editTo!=null) editTo!!.select(true)
+            editTo?.select(true)
         }
     }
 
@@ -289,9 +270,8 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         if (edit==null) return
 
         if (editTo!=null) editTo!!.input!!.bindAny(editFrom!!.output!!)
-        children.remove(edit)
+        children -= edit
         edit = null
-
         editTo?.select(false)
         editTo = null
 
@@ -308,7 +288,6 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     }
 
     override fun layoutChildren() {
-        val H = height
         val widgetIos = ArrayList<InOutput<*>>()
         val headerOffset = switchpane.root.localToScene(0.0, 0.0).y
         val translationOffset = tTranslate.get()
@@ -367,7 +346,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         val ioGapX = 10.0
         var ioOffsetX = 0.0
         val ioOffsetYShift = -10.0
-        var ioOffsetY = H-150.0
+        var ioOffsetY = height-150.0
         val ios = inoutputnodes.values.asSequence().filter { it.inoutput !in widgetIos }.sortedBy { it.inoutput!!.o.id.ownerId }.toList()
         for (n in ios) {
             n.graphics.isVisible = true
@@ -414,6 +393,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         var cy = 80+random()*20
         var cx = 80+random()*20
         var selected = false
+        val disposer = Disposer()
 
         val sceneXY: Point2D
             get() = Point2D(i.layoutBounds.minX+i.layoutBounds.width/2, i.layoutBounds.minY+i.layoutBounds.height/2)
@@ -453,7 +433,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
                 t.setScaleXY(0.8+0.2*it)
             }
             val valuePut = if (xput is Input<*>) input else output
-            valuePut!!.sync { a.playCloseDoOpen { t.text = valuePut.xPutToStr() } }
+            valuePut!!.sync { a.playCloseDoOpen { t.text = valuePut.xPutToStr() } } on disposer
         }
 
         fun select(v: Boolean) {
@@ -568,6 +548,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         private var notFinishedX = 0.0
         private var notFinishedY = 0.0
         private val lineGap = 20.0
+        val disposer = Disposer()
 
         init {
             styleClass += IOLINE_STYLECLASS
@@ -585,7 +566,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             this@IOLayer.children += effect
 
             if (this!=edit && input!=null && output!=null) {
-                output.sync { dataSend() }
+                output.sync { dataSend() } on disposer
             }
             onEventDown(MOUSE_CLICKED, SECONDARY) {
                 if (input is Input<*> && output is Output<*>)

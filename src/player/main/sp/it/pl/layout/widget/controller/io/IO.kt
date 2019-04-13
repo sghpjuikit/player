@@ -124,7 +124,7 @@ class IO(private val id: UUID) {
             mi[name] = io.i
             inputsMixed.add(inputsMixed.indexOf(input)+1, io.i)
             onDispose += input.bind(io.o, mapper)
-            IOLayer.addConnectionE(io.i, input)
+            IOLayer.addConnectionE(input, io.i)
             onDispose += { IOLayer.remConnectionE(io.i, input) }
             return io.i
         }
@@ -137,7 +137,7 @@ class IO(private val id: UUID) {
             mo[name] = io.o
             outputsMixed.add(outputsMixed.indexOf(output), io.o)
             onDispose += io.i.bind(output, mapper)
-            IOLayer.addConnectionE(output, io.o)
+            IOLayer.addConnectionE(io.o, output)
             onDispose += { IOLayer.remConnectionE(output, io.o) }
             return io.o
         }

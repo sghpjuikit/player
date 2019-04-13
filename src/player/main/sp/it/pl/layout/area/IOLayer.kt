@@ -73,13 +73,13 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 
-private typealias Fff<T> = java.util.function.Function<Key<XPut<*>, XPut<*>>, T>
+private typealias Compute<T> = java.util.function.Function<Key<Put<*>, Put<*>>, T>
 
 /**
  * Display for [sp.it.pl.layout.widget.controller.io.XPut] of components, displaying their relations as am editable graph.
  */
 class IOLayer(private val switchpane: SwitchPane): StackPane() {
-    private val connections = Map2D<XPut<*>, XPut<*>, IOLine>()
+    private val connections = Map2D<Put<*>, Put<*>, IOLine>()
     private val inputnodes: MutableMap<Input<*>, XNode<*, *>> = HashMap()
     private val outputnodes: MutableMap<Output<*>, XNode<*, *>> = HashMap()
     private val inoutputnodes: MutableMap<InOutput<*>, InOutputNode> = HashMap()
@@ -113,7 +113,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         allInputs += i
         inputnodes.computeIfAbsent(i) {
             val iNode = InputNode(i)
-            i.getSources().forEach { o -> connections.computeIfAbsent(Key(i, o), Fff { IOLine(i, o) }) }
+            i.getSources().forEach { o -> connections.computeIfAbsent(Key(i, o), Compute { IOLine(i, o) }) }
             children += iNode.graphics
             iNode
         }
@@ -146,7 +146,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             val ion = InOutputNode(io)
             inputnodes[io.i] = ion
             outputnodes[io.o] = ion
-            io.i.getSources().forEach { o -> connections.computeIfAbsent(Key(io.i, o), Fff { IOLine(io.i, o) }) }
+            io.i.getSources().forEach { o -> connections.computeIfAbsent(Key(io.i, o), Compute { IOLine(io.i, o) }) }
             children += ion.graphics
             ion
         }
@@ -161,12 +161,12 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         outputnodes -= io.o
     }
 
-    private fun addConnection(i: XPut<*>, o: XPut<*>) {
+    private fun addConnection(i: Put<*>, o: Put<*>) {
         connections.computeIfAbsent(Key(i, o)) { IOLine(i, o) }
         drawGraph()
     }
 
-    private fun remConnection(i: XPut<*>, o: XPut<*>) {
+    private fun remConnection(i: Put<*>, o: Put<*>) {
         removeChild(connections.remove2D(i, o))
         drawGraph()
     }
@@ -454,14 +454,6 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             }
             val valuePut = if (xput is Input<*>) input else output
             valuePut!!.sync { a.playCloseDoOpen { t.text = valuePut.xPutToStr() } }
-
-            // TODO: move out
-            output?.sync {
-                inputnodes.values.asSequence()
-                        .map { it.input }
-                        .filter { it!!.getSources().contains(output) }
-                        .forEach { connections.get(it!!, output)?.send() }
-            }
         }
 
         fun select(v: Boolean) {
@@ -561,7 +553,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
     }
 
-    private open inner class IOLine(val input: XPut<*>?, val output: XPut<*>?): Path() {
+    private open inner class IOLine(val input: Put<*>?, val output: Put<*>?): Path() {
         var startX = 0.0
         var startY = 0.0
         var toX = 0.0
@@ -592,6 +584,9 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             duplicateTo(effect)
             this@IOLayer.children += effect
 
+            if (this!=edit && input!=null && output!=null) {
+                output.sync { dataSend() }
+            }
             onEventDown(MOUSE_CLICKED, SECONDARY) {
                 if (input is Input<*> && output is Output<*>)
                     input.unbind(output)
@@ -608,15 +603,15 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
         fun layInputs(inX: Double, inY: Double, outX: Double, outY: Double) {
             layInit(inX, inY, outX, outY)
-            elements += LineTo(inX+lineGap, inY-lineGap)
-            elements += LineTo(outX+lineGap, outY+lineGap)
+            elements += LineTo(inX+lineGap, inY+lineGap)
+            elements += LineTo(outX+lineGap, outY-lineGap)
             elements += LineTo(outX, outY)
         }
 
         fun layOutputs(inX: Double, inY: Double, outX: Double, outY: Double) {
             layInit(inX, inY, outX, outY)
-            elements += LineTo(inX-lineGap, inY-lineGap)
-            elements += LineTo(outX-lineGap, outY+lineGap)
+            elements += LineTo(inX-lineGap, inY+lineGap)
+            elements += LineTo(outX-lineGap, outY-lineGap)
             elements += LineTo(outX, outY)
         }
 
@@ -678,7 +673,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             }
         }
 
-        fun send() {
+        fun dataSend() {
             val lengthNormalized = max(1.0, length/100.0)
 
             val pRunner = Circle(3.0).apply {
@@ -740,7 +735,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         private val pcXNodeSelected = pseudoclass("selected")
 
         @JvmField val allLayers = observableSet<IOLayer>()!!
-        @JvmField val allConnections = Map2D<XPut<*>, XPut<*>, Any>()
+        @JvmField val allConnections = Map2D<Put<*>, Put<*>, Any>()
         @JvmField val allInputs = observableSet<Input<*>>()!!
         @JvmField val allOutputs = observableSet<Output<*>>()!!
         @JvmField val allInoutputs = observableSet<InOutput<*>>()!!
@@ -751,13 +746,13 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         }
 
         @JvmStatic
-        fun addConnectionE(i: XPut<*>, o: XPut<*>) {
+        fun addConnectionE(i: Put<*>, o: Put<*>) {
             allConnections.put(i, o, Any())
             allLayers.forEach { it.addConnection(i, o) }
         }
 
         @JvmStatic
-        fun remConnectionE(i: XPut<*>, o: XPut<*>) {
+        fun remConnectionE(i: Put<*>, o: Put<*>) {
             allConnections.remove2D(i, o)
             allLayers.forEach { it.remConnection(i, o) }
         }

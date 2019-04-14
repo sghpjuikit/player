@@ -73,8 +73,6 @@ public class Player {
 	public static final CurrentItem playingSong = new CurrentItem();
 	public static final GeneralPlayer player = new GeneralPlayer(state);
 	public static final InOutput<Metadata> playing = InOutput.<Metadata>invoke(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing", Metadata.class).appWide();
-	public static final InOutput<PlaylistSong> playlistSelected = InOutput.<PlaylistSong>invoke(uuid("ca002c1d-8689-49f6-b1a0-0d0f8ff2e2a8"), "Selected in playlist", PlaylistSong.class).appWide();
-	public static final InOutput<Metadata> librarySelected = InOutput.<Metadata>invoke(uuid("ba002c1d-2185-49f6-b1a0-0d0f8ff2e2a8"), "Selected in Library", Metadata.class).appWide();
 
 	public static void initialize() {
 		playingSong.onUpdate(consumer(playing.i::setValue));
@@ -393,10 +391,6 @@ public class Player {
 				mm.ifHasE(playingSong.getValue(), playingSong::update);
 
 				if (playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
-				if (playlistSelected.i.getValue()!=null)
-					mm.ifHasK(playlistSelected.i.getValue().getUri(), m -> playlistSelected.i.setValue(m.toPlaylist()));
-				if (librarySelected.i.getValue()!=null)
-					mm.ifHasE(librarySelected.i.getValue(), librarySelected.i::setValue);
 
 				// refresh rest
 				refreshHandlers.forEach(h -> h.accept(mm));

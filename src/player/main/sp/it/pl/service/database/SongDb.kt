@@ -35,7 +35,7 @@ class SongDb {
     private lateinit var moods: Set<String>
 
     /** All library songs. Use output for reading/observing. Using input does not change db and has little use. */
-    val songs = InOutput<List<Metadata>>(uuid("396d2407-7040-401e-8f85-56bc71288818"), "All library songs").appWide()
+    val songs = InOutput<List<Metadata>>(uuid("396d2407-7040-401e-8f85-56bc71288818"), "Song library").appWide()
     /** All library songs by [Song.id]. This is in memory db and should be used as read-only. */
     @ThreadSafe val songsById = MapSet(ConcurrentHashMap<String, Metadata>(2000, 1f, 3), { it.id })
     /** Map of unique values per field gathered from [songsById] */

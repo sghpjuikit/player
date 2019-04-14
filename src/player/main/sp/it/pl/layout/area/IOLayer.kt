@@ -184,7 +184,8 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         parentProperty().syncNonNullWhile { it.onEventUp(MOUSE_CLICKED) { selectNode(null) } } on disposer
 
         val av = anim(900.millis) {
-            opacity = if (it==0.0) 0.0 else 1.0
+            isVisible = it!=0.0
+            isMouseTransparent = it!=1.0
 
             anim1Opacity = mapTo01(it, 0.0, 0.2)
             anim2Opacity = mapTo01(it, 0.25, 0.65)

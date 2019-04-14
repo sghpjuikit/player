@@ -381,10 +381,13 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             val i: XNode<*, *>? = inputnodes[input] ?: outputnodes[input]
             val o: XNode<*, *>? = inputnodes[output] ?: outputnodes[output]
             if (i!=null && o!=null) {
-                when {
-                    input is Input<*> && output is Input<*> -> line.layInputs(i.cx, i.cy, o.cx, o.cy)
-                    input is Output<*> && output is Output<*> -> line.layOutputs(i.cx, i.cy, o.cx, o.cy)
-                    else -> line.lay(i.cx, i.cy, o.cx, o.cy)
+                line.isVisible = i.graphics.isVisible && o.graphics.isVisible
+                if (line.isVisible) {
+                    when {
+                        input is Input<*> && output is Input<*> -> line.layInputs(i.cx, i.cy, o.cx, o.cy)
+                        input is Output<*> && output is Output<*> -> line.layOutputs(i.cx, i.cy, o.cx, o.cy)
+                        else -> line.lay(i.cx, i.cy, o.cx, o.cy)
+                    }
                 }
             }
         }
@@ -436,7 +439,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             i.onEventDown(MOUSE_CLICKED) {
                 when {
                     it.clickCount==1 -> selectNode(if (it.button==SECONDARY) null else this)
-                    it.clickCount==2 && output!=null && output.value!=null -> APP.actionPane.show(output.value)
+                    it.clickCount==2 && output?.value!=null -> APP.actionPane.show(output.value)
                 }
                 it.consume()
             }

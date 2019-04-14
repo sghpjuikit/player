@@ -2234,6 +2234,9 @@ icon-info-icon {
     -fx-stroke-width: 2;
     -fx-fill: null; /* bgr of the shape the path makes - we do not want any*/
 }
+.ioline:value-only {
+    -fx-stroke-dash-array: 2 12 12 2;
+}
 .ioline:hover {
     -fx-opacity: 1;
     -fx-stroke: -fx-focus-color;
@@ -2242,6 +2245,16 @@ icon-info-icon {
 /* .path does not seem to have disabled pseudoclass defined so we do it here */
 .ioline:disabled {
     -fx-opacity: 0.2;
+}
+
+/*
+ * Line visible during edit, when user links two i/o nodes
+ * inherits: .ioline
+ * pseudoclasses: value-only - when only value is transferred instead of nodes permanently connected
+ */
+.ioline-edit {}
+.ioline-edit:value-only {
+    -fx-stroke-dash-array: 2 12 12 2;
 }
 
 /*

@@ -34,6 +34,7 @@ import sp.it.pl.layout.widget.controller.io.Put
 import sp.it.pl.layout.widget.controller.io.XPut
 import sp.it.pl.main.*
 import sp.it.util.Util.pyth
+import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.mapTo01
 import sp.it.util.async.executor.EventReducer
@@ -95,7 +96,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     private var selected: XNode<*, *>? = null
     private val disposer = Disposer()
 
-    private var editFrom: XNode<*, *>? = null // editFrom == edit.node, editFrom.output == edit.output
+    private var editFrom: XNode<*, *>? = null
     private var editTo: XNode<*, *>? = null
 
     fun addController(c: Controller) {
@@ -218,6 +219,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     }
 
     fun dispose() {
+        children.clear()
         inputnodes.values.forEach { it.disposer() }
         outputnodes.values.forEach { it.disposer() }
         inoutputnodes.values.forEach { it.disposer() }
@@ -267,13 +269,25 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     }
 
     private fun editEnd() {
-        if (edit==null) return
-
-        if (editTo!=null) editTo!!.input!!.bindAny(editFrom!!.output!!)
-        children -= edit!!.line
+        val e = edit ?: return
+        val eFrom = editFrom!!
+        val eTo = editTo
         edit = null
-        editTo?.select(false)
+        editFrom = null
         editTo = null
+
+        if (eTo!=null) {
+            if (e.isValueOnly.value) {
+                eTo.input!!.valueAny = eFrom.output!!.value
+                dataArrived(eTo.cx, eTo.cy)
+            } else {
+                eTo.input!!.bindAny(eFrom.output!!)
+                connections.get(eTo.input, eFrom.output).dataSend()
+            }
+        }
+
+        eTo?.select(false)
+        e.line.disposer()
 
         // stop effect: disable & visually differentiate bindable nodes
         outputnodes.forEach { (_, node) -> node.onEditActive(false, true) }
@@ -558,12 +572,14 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             showClip2.setScaleXY(anim3Opacity)
             clip = showClip
             this@IOLayer.children += this
+            disposer += { this@IOLayer.children -= this }
 
             effect.styleClass += "ioline-effect-line"
             effect.isMouseTransparent = true
             effect.clip = effectClip
             duplicateTo(effect)
             this@IOLayer.children += effect
+            disposer += { this@IOLayer.children -= effect }
 
             if (edit?.line!=this && input!=null && output!=null) {
                 output.sync { dataSend() } on disposer
@@ -689,11 +705,20 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
     private inner class EditIOLine(node: XNode<*, *>)  {
         val line = IOLine(node.input, node.output)
+        val isValueOnly = v(false)
+
         init {
-            val editDrawer = EventHandler<MouseEvent> { layToMouse(it) }
+            line.styleClass += "ioline-edit"
+            isValueOnly attach { line.pseudoClassStateChanged(pseudoclass("value-only"), it) } on disposer
+
+            val editDrawer = EventHandler<MouseEvent> {
+                isValueOnly.value = it.isShiftDown
+                layToMouse(it);
+            }
             val editCanceler = object: EventHandler<MouseEvent> {
                 override fun handle(e: MouseEvent) {
                     editEnd()
+                    isValueOnly.value = false
                     this@IOLayer.removeEventFilter(MOUSE_CLICKED, this)
                     this@IOLayer.removeEventFilter(MouseEvent.ANY, editDrawer)
                 }

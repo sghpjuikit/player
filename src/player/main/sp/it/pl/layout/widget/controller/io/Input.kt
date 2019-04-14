@@ -68,8 +68,9 @@ open class Input<T>: Put<T?> {
     var valueAny: Any?
         get() = value
         set(it) {
-            value = when (type) {
-                List::class.java -> when (it) {
+            value = when {
+                it==null -> null
+                type==List::class.java -> when (it) {
                     is List<*> -> it as T?
                     else -> listOf(it) as T?
                 }

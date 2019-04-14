@@ -1,6 +1,8 @@
 package sp.it.pl.layout.widget.controller.io
 
 import sp.it.pl.layout.area.IOLayer
+import sp.it.pl.layout.widget.WidgetSource
+import sp.it.pl.main.APP
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf
 import sp.it.util.functional.asIf
@@ -11,6 +13,7 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.HashMap
 import java.util.UUID
+import kotlin.streams.toList
 
 open class Input<T>: Put<T?> {
 
@@ -91,15 +94,16 @@ open class Input<T>: Put<T?> {
 
     @Suppress("UNCHECKED_CAST")
     @Idempotent
-    fun <R> bind(output: Output<out R?>, mapper: (R) -> T): Subscription {
-        // Normally we would use this::setValue, but we want to allow generalized binding, which supports subtyping
-        // and selective type filtering
-        // sources.computeIfAbsent(output, o -> o.monitor(this::setValue));
-        sources.computeIfAbsent(output as Output<T>) { it.sync { value = if (it==null) null else mapper(it as R) } }
-        IOLayer.addConnectionE(this, output)
-        return Subscription { unbind(output) }
+    fun bindAllIdentical() {
+        val allWidgets = APP.widgetManager.widgets.findAll(WidgetSource.OPEN).toList()
+        val outputs = getSources().mapTo(HashSet()) { o -> o.id to allWidgets.find { o in it.controller.io.o.getOutputsMixed() }?.factory }
+        outputs.forEach { (id, factory) ->
+            allWidgets.asSequence()
+                    .filter { it.factory==factory }
+                    .map { it.controller.io.o.getOutputs().find { it.id.name==id.name }!! }
+                    .forEach { (this as Input<Any?>).bind(it as Output<Any?>) }
+        }
     }
-
     /**
      * @param exceptOwner id of outputs to be not considered as bindings even if this is bound to any of them
      * @return true iff at least one [Output] is bound to this input using [bind]. ]

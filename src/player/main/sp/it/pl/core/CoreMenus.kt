@@ -14,6 +14,9 @@ import sp.it.pl.gui.objects.contextmenu.item
 import sp.it.pl.gui.objects.contextmenu.menu
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
+import sp.it.pl.layout.widget.controller.io.InOutput
+import sp.it.pl.layout.widget.controller.io.Input
+import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.FileExplorerFeature
 import sp.it.pl.layout.widget.feature.Opener
@@ -25,6 +28,7 @@ import sp.it.pl.main.imageWriteExtensionFilter
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.isImage
 import sp.it.pl.main.writeImage
+import sp.it.pl.web.SearchUriBuilder
 import sp.it.util.async.runNew
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.Configurable.configsFromFxPropertiesOf
@@ -43,7 +47,6 @@ import sp.it.util.system.saveFile
 import sp.it.util.ui.item
 import sp.it.util.ui.items
 import sp.it.util.validation.Constraint.FileActor.DIRECTORY
-import sp.it.pl.web.SearchUriBuilder
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
@@ -196,7 +199,29 @@ object CoreMenus: Core {
                 if (selected.representant!=null)
                     menuFor(contextMenu, selected.representant)
             }
-
+            add<Input<*>> {
+                menu("Link") {
+                    item("All identical") { selected.bindAllIdentical() }
+                }
+                menu("Unlink") {
+                    item("Inbound") { selected.unbindAll() }
+                }
+            }
+            add<Output<*>> {
+                menu("Unlink") {
+                    item("Outbound") { selected.unbindAll() }
+                }
+            }
+            add<InOutput<*>> {
+                menu("Link") {
+                    item("All identical") { selected.i.bindAllIdentical() }
+                }
+                menu("Unlink") {
+                    item("All") { selected.i.unbindAll(); selected.o.unbindAll() }
+                    item("Inbound") { selected.i.unbindAll() }
+                    item("Outbound") { selected.o.unbindAll() }
+                }
+            }
         }
     }
 

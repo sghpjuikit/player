@@ -9,6 +9,7 @@ import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.input.DragEvent.DRAG_ENTERED
 import javafx.scene.input.DragEvent.DRAG_EXITED
+import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
@@ -24,6 +25,7 @@ import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
 import sp.it.pl.gui.objects.Text
+import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.layout.container.switchcontainer.SwitchPane
 import sp.it.pl.layout.widget.controller.Controller
@@ -437,9 +439,22 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
             i.opacity = anim1Opacity
             i.onEventDown(MOUSE_CLICKED) {
-                when {
-                    it.clickCount==1 -> selectNode(if (it.button==SECONDARY) null else this)
-                    it.clickCount==2 && output?.value!=null -> APP.actionPane.show(output.value)
+                when(it.clickCount) {
+                    1 -> {
+                        when(it.button) {
+                            PRIMARY -> selectNode(this)
+                            SECONDARY -> {
+                                contextMenuInstance.setItemsFor(xput)
+                                contextMenuInstance.show(i, it)
+                            }
+                            else -> {}
+                        }
+                    }
+                    2 -> {
+                        output?.value?.let {
+                            APP.actionPane.show(it)
+                        }
+                    }
                 }
                 it.consume()
             }
@@ -741,6 +756,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         const val IOLINE_RUNNER_STYLECLASS = "ioline-effect-dot"
         private val pcXNodeDragOver = pseudoclass("drag-over")
         private val pcXNodeSelected = pseudoclass("selected")
+        private val contextMenuInstance by lazy { ValueContextMenu<XPut<*>>() }
 
         @JvmField val allLayers = observableSet<IOLayer>()!!
         @JvmField val allConnections = Map2D<Put<*>, Put<*>, Any>()

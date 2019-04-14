@@ -3,6 +3,7 @@ package sp.it.pl.layout.widget.controller.io
 import sp.it.pl.layout.area.IOLayer
 import sp.it.util.dev.failIf
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Subscription
 import sp.it.util.type.Util.getRawType
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.isSuperclassOf
@@ -123,7 +124,7 @@ class IO(private val id: UUID) {
             mio[name] = io
             mi[name] = io.i
             inputsMixed.add(inputsMixed.indexOf(input)+1, io.i)
-            onDispose += input.bind(io.o, mapper)
+            onDispose += input.bindMapped(io.o, mapper)
             IOLayer.addConnectionE(input, io.i)
             onDispose += { IOLayer.remConnectionE(io.i, input) }
             return io.i
@@ -136,7 +137,7 @@ class IO(private val id: UUID) {
             mio[name] = io
             mo[name] = io.o
             outputsMixed.add(outputsMixed.indexOf(output), io.o)
-            onDispose += io.i.bind(output, mapper)
+            onDispose += io.i.bindMapped(output, mapper)
             IOLayer.addConnectionE(io.o, output)
             onDispose += { IOLayer.remConnectionE(output, io.o) }
             return io.o
@@ -149,5 +150,13 @@ class IO(private val id: UUID) {
         fun getSize(): Int = mio.size
 
         fun getInOutputs(): Collection<InOutput<*>> = mio.values
+    }
+
+    companion object {
+
+        private fun <T,R> Input<T?>.bindMapped(output: Output<out R?>, mapper: (R) -> T?): Subscription {
+            return output.sync { value = if (it==null) null else mapper(it) }
+        }
+
     }
 }

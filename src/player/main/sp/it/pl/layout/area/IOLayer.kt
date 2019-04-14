@@ -45,6 +45,7 @@ import sp.it.util.collections.map.Map2D.Key
 import sp.it.util.dev.failCase
 import sp.it.util.functional.Util.min
 import sp.it.util.functional.asIf
+import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -462,7 +463,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
             t.opacity = anim2Opacity
             val a = anim(250.millis) {
-                t.opacity = it
+                t.opacity = it min anim2Opacity
                 t.setScaleXY(0.8+0.2*it)
             }
             val valuePut = if (xput is Input<*>) input else output

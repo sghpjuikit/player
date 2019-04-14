@@ -716,7 +716,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
             val editDrawer = EventHandler<MouseEvent> {
                 isValueOnly.value = it.isShiftDown
-                layToMouse(it);
+                layToMouse(it)
             }
             val editCanceler = object: EventHandler<MouseEvent> {
                 override fun handle(e: MouseEvent) {
@@ -749,7 +749,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         @JvmField val allInoutputs = observableSet<InOutput<*>>()!!
 
         @JvmStatic
-        fun relayout() {
+        fun requestLayoutForAll() {
             allLayers.forEach { it.requestLayout() }
         }
 

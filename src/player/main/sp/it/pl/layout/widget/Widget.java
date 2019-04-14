@@ -613,7 +613,7 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 	private void updateIOLayout() {
 		// because we call this before the widget is part of scenegraph, we delay execution
 		// suffering from badly designed (recursive) widget loading again...
-		runLater(() -> IOLayer.relayout());
+		runLater(() -> IOLayer.requestLayoutForAll());
 	}
 
 	/** Widget metadata. Passed from code to program. Use on controller class. */

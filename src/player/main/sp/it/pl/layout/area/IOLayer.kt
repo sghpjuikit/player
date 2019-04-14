@@ -167,7 +167,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     }
 
     private fun remConnection(i: Put<*>, o: Put<*>) {
-        removeChild(connections.remove2D(i, o))
+        connections.remove2D(i, o)?.let { it.disposer() }
         drawGraph()
     }
 

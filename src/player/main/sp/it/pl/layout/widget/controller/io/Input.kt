@@ -114,7 +114,10 @@ open class Input<T>: Put<T?> {
     }
 
     fun unbindAll() {
-        sources.values.forEach { it.unsubscribe() }
+        sources.forEach { (o, disposer) ->
+            disposer.unsubscribe()
+            IOLayer.remConnectionE(this, o)
+        }
         sources.clear()
     }
 

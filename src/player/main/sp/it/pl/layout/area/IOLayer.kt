@@ -123,8 +123,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     private fun remInput(i: Input<*>) {
         allInputs -= i
-        i.getSources().forEach { o -> removeChild(connections.remove2D(Key(i, o))) }
         removeChild(inputNodes.remove(i))
+        connections.removeIf { it.key1()==i || it.key2()==i }.forEach { it.disposer() }
     }
 
     private fun addOutput(o: Output<*>) {
@@ -139,7 +139,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
     private fun remOutput(o: Output<*>) {
         allOutputs -= o
         removeChild(outputNodes.remove(o))
-        removeChildren(connections.removeIfKey2(o))
+        connections.removeIf { it.key1()==o || it.key2()==o }.forEach { it.disposer() }
     }
 
     private fun addInOutput(io: InOutput<*>) {
@@ -156,11 +156,11 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     private fun remInOutput(io: InOutput<*>) {
         allInoutputs -= io
-        io.i.getSources().forEach { o -> removeChild(connections.remove2D(Key(io.i, o))) }
-        removeChild(inoutputNodes.remove(io))
-        removeChildren(connections.removeIfKey2(io.o))
         inputNodes -= io.i
         outputNodes -= io.o
+        removeChild(inoutputNodes.remove(io))
+        removeChildren(connections.removeIfKey2(io.o))
+        connections.removeIf { it.key1()==io.i || it.key1()==io.o || it.key2()==io.i || it.key2()==io.o }.forEach { it.disposer() }
     }
 
     private fun addConnection(i: Put<*>, o: Put<*>) {
@@ -170,7 +170,6 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     private fun remConnection(i: Put<*>, o: Put<*>) {
         connections.remove2D(i, o)?.let { it.disposer() }
-        drawGraph()
     }
 
     init {

@@ -20,8 +20,6 @@ class IO(private val id: UUID) {
     private val mi = HashMap<String, Input<*>>()
     private val mo = HashMap<String, Output<*>>()
     private val mio = HashMap<String, InOutput<*>>()
-    private val inputsMixed = ArrayList<XPut<*>>()
-    private val outputsMixed = ArrayList<XPut<*>>()
     private val onDispose = Disposer()
 
     fun dispose() {
@@ -43,7 +41,6 @@ class IO(private val id: UUID) {
             val i: Input<T?> = Input(name, getRawType(type) as Class<T?>, initialValue, action)
             i.typeRaw = type
             mi[name] = i
-            inputsMixed += i
             return i
         }
 
@@ -70,8 +67,6 @@ class IO(private val id: UUID) {
 
         fun getInputs(): Collection<Input<*>> = mi.values
 
-        fun getInputsMixed(): List<XPut<*>> = inputsMixed
-
     }
 
     inner class Outputs {
@@ -86,7 +81,6 @@ class IO(private val id: UUID) {
             o.typeRaw = type
             o.value = value
             mo[name] = o
-            outputsMixed += o
             return o
         }
 
@@ -111,8 +105,6 @@ class IO(private val id: UUID) {
 
         fun getOutputs(): Collection<Output<*>> = mo.values
 
-        fun getOutputsMixed(): List<XPut<*>> = outputsMixed
-
     }
 
     inner class InOutputs {
@@ -123,7 +115,6 @@ class IO(private val id: UUID) {
             val io = InOutput<R>(id, name, type)
             mio[name] = io
             mi[name] = io.i
-            inputsMixed.add(inputsMixed.indexOf(input)+1, io.i)
             onDispose += input.bindMapped(io.o, mapper)
             IOLayer.addConnectionE(input, io.i)
             onDispose += { IOLayer.remConnectionE(io.i, input) }
@@ -136,7 +127,6 @@ class IO(private val id: UUID) {
             val io = InOutput<R>(id, name, type)
             mio[name] = io
             mo[name] = io.o
-            outputsMixed.add(outputsMixed.indexOf(output), io.o)
             onDispose += io.i.bindMapped(output, mapper)
             IOLayer.addConnectionE(io.o, output)
             onDispose += { IOLayer.remConnectionE(output, io.o) }

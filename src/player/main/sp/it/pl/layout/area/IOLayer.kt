@@ -69,7 +69,6 @@ import java.lang.Math.random
 import java.lang.Math.signum
 import java.lang.Math.sqrt
 import java.lang.reflect.ParameterizedType
-import java.util.ArrayList
 import java.util.HashMap
 import java.util.stream.Stream
 import kotlin.collections.component1
@@ -306,7 +305,6 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     }
 
     override fun layoutChildren() {
-        val widgetIos = ArrayList<InOutput<*>>()
         val headerOffset = switchpane.root.localToScene(0.0, 0.0).y
         val translationOffset = tTranslate.get()
 
@@ -316,22 +314,8 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
         switchpane.container.rootParent.allWidgets.filter { it?.controller!=null }.forEach { w ->
             val c = w.controller
-            val `is` = c.io.i.getInputsMixed().mapNotNull {
-                when (it) {
-                    is Input<*> -> inputnodes[it]
-                    is InOutput<*> -> inoutputnodes[it]
-                    else -> null
-                }
-            }
-            val os = c.io.o.getOutputsMixed().mapNotNull {
-                when (it) {
-                    is Output<*> -> outputnodes[it]
-                    is InOutput<*> -> inoutputnodes[it]
-                    else -> null
-                }
-            }
-
-            widgetIos += c.io.io.getInOutputs()
+            val `is` = c.io.i.getInputs().mapNotNull { inputnodes[it] }
+            val os = c.io.o.getOutputs().mapNotNull { outputnodes[it] }
 
             val wr = w.areaTemp.root
             val b = wr.localToScene(wr.boundsInLocal)
@@ -365,7 +349,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         var ioOffsetX = 0.0
         val ioOffsetYShift = -10.0
         var ioOffsetY = height-150.0
-        val ios = inoutputnodes.values.asSequence().filter { it.inoutput !in widgetIos }.sortedBy { it.inoutput!!.o.id.ownerId }.toList()
+        val ios = inoutputnodes.values.asSequence().sortedBy { it.inoutput!!.o.id.ownerId }.toList()
         for (n in ios) {
             n.graphics.isVisible = true
             n.graphics.autosize() // necessary before asking for size

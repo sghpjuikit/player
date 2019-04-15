@@ -80,11 +80,11 @@ private typealias Compute<T> = java.util.function.Function<Key<Put<*>, Put<*>>, 
 /**
  * Display for [sp.it.pl.layout.widget.controller.io.XPut] of components, displaying their relations as am editable graph.
  */
-class IOLayer(private val switchpane: SwitchPane): StackPane() {
+class IOLayer(private val switchPane: SwitchPane): StackPane() {
     private val connections = Map2D<Put<*>, Put<*>, IOLine>()
-    private val inputnodes: MutableMap<Input<*>, XNode<*, *>> = HashMap()
-    private val outputnodes: MutableMap<Output<*>, XNode<*, *>> = HashMap()
-    private val inoutputnodes: MutableMap<InOutput<*>, InOutputNode> = HashMap()
+    private val inputNodes = HashMap<Input<*>, XNode<*, *>>()
+    private val outputNodes = HashMap<Output<*>, XNode<*, *>>()
+    private val inoutputNodes = HashMap<InOutput<*>, InOutputNode>()
 
     private val padding = 15.0
     private val tTranslate: DoubleProperty
@@ -113,7 +113,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
     private fun addInput(i: Input<*>) {
         allInputs += i
-        inputnodes.computeIfAbsent(i) {
+        inputNodes.computeIfAbsent(i) {
             val iNode = InputNode(i)
             i.getSources().forEach { o -> connections.computeIfAbsent(Key(i, o), Compute { IOLine(i, o) }) }
             children += iNode.graphics
@@ -124,12 +124,12 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     private fun remInput(i: Input<*>) {
         allInputs -= i
         i.getSources().forEach { o -> removeChild(connections.remove2D(Key(i, o))) }
-        removeChild(inputnodes.remove(i))
+        removeChild(inputNodes.remove(i))
     }
 
     private fun addOutput(o: Output<*>) {
         allOutputs += o
-        outputnodes.computeIfAbsent(o) {
+        outputNodes.computeIfAbsent(o) {
             val on = OutputNode(o)
             children += on.graphics
             on
@@ -138,16 +138,16 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
     private fun remOutput(o: Output<*>) {
         allOutputs -= o
-        removeChild(outputnodes.remove(o))
+        removeChild(outputNodes.remove(o))
         removeChildren(connections.removeIfKey2(o))
     }
 
     private fun addInOutput(io: InOutput<*>) {
         allInoutputs += io
-        inoutputnodes.computeIfAbsent(io) {
+        inoutputNodes.computeIfAbsent(io) {
             val ion = InOutputNode(io)
-            inputnodes[io.i] = ion
-            outputnodes[io.o] = ion
+            inputNodes[io.i] = ion
+            outputNodes[io.o] = ion
             io.i.getSources().forEach { o -> connections.computeIfAbsent(Key(io.i, o), Compute { IOLine(io.i, o) }) }
             children += ion.graphics
             ion
@@ -157,10 +157,10 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     private fun remInOutput(io: InOutput<*>) {
         allInoutputs -= io
         io.i.getSources().forEach { o -> removeChild(connections.remove2D(Key(io.i, o))) }
-        removeChild(inoutputnodes.remove(io))
+        removeChild(inoutputNodes.remove(io))
         removeChildren(connections.removeIfKey2(io.o))
-        inputnodes -= io.i
-        outputnodes -= io.o
+        inputNodes -= io.i
+        outputNodes -= io.o
     }
 
     private fun addConnection(i: Put<*>, o: Put<*>) {
@@ -176,9 +176,9 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     init {
         isMouseTransparent = false
         isPickOnBounds = false
-        tTranslate = switchpane.translateProperty()
-        tScaleX = switchpane.zoomProperty()
-        tScaleY = switchpane.zoomProperty()
+        tTranslate = switchPane.translateProperty()
+        tScaleX = switchPane.zoomProperty()
+        tScaleY = switchPane.zoomProperty()
         tScaleX attach { layoutChildren() } on disposer
         translateXProperty().bind(tTranslate.multiply(tScaleX))
         parentProperty().syncNonNullWhile { it.onEventUp(MOUSE_CLICKED) { selectNode(null) } } on disposer
@@ -190,16 +190,16 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             anim1Opacity = mapTo01(it, 0.0, 0.2)
             anim2Opacity = mapTo01(it, 0.25, 0.65)
             anim3Opacity = mapTo01(it, 0.8, 1.0)
-            inputnodes.values.forEach { it.i.opacity = anim1Opacity }
-            outputnodes.values.forEach { it.i.opacity = anim1Opacity }
-            inoutputnodes.values.forEach { it.i.opacity = anim1Opacity }
+            inputNodes.values.forEach { it.i.opacity = anim1Opacity }
+            outputNodes.values.forEach { it.i.opacity = anim1Opacity }
+            inoutputNodes.values.forEach { it.i.opacity = anim1Opacity }
             connections.forEach { _, _, line ->
                 line.showClip1.setScaleXY(anim2Opacity)
                 line.showClip2.setScaleXY(anim2Opacity)
             }
-            inputnodes.values.forEach { it.t.opacity = anim3Opacity }
-            outputnodes.values.forEach { it.t.opacity = anim3Opacity }
-            inoutputnodes.values.forEach { it.t.opacity = anim3Opacity }
+            inputNodes.values.forEach { it.t.opacity = anim3Opacity }
+            outputNodes.values.forEach { it.t.opacity = anim3Opacity }
+            inoutputNodes.values.forEach { it.t.opacity = anim3Opacity }
         }.applyAt(0.0)
         val avReducer = EventReducer.toLast<Any>(100.0) {
             if (APP.ui.layoutMode.value)
@@ -223,9 +223,9 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
     fun dispose() {
         children.clear()
-        inputnodes.values.forEach { it.disposer() }
-        outputnodes.values.forEach { it.disposer() }
-        inoutputnodes.values.forEach { it.disposer() }
+        inputNodes.values.forEach { it.disposer() }
+        outputNodes.values.forEach { it.disposer() }
+        inoutputNodes.values.forEach { it.disposer() }
         connections.values.forEach { it.disposer() }
         disposer()
         allLayers -= this
@@ -250,8 +250,8 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         edit = EditIOLine(n)
 
         // start effect: disable & visually differentiate bindable & unbindable nodes
-        outputnodes.forEach { (_, node) -> node.onEditActive(true, false) }
-        inputnodes.forEach { (_, node) -> node.onEditActive(true, node.input!!.isAssignable(editFrom!!.output!!)) }
+        outputNodes.forEach { (_, node) -> node.onEditActive(true, false) }
+        inputNodes.forEach { (_, node) -> node.onEditActive(true, node.input!!.isAssignable(editFrom!!.output!!)) }
         connections.forEach { _, line -> line.onEditActive(true) }
     }
 
@@ -260,7 +260,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
         edit!!.line.lay(editFrom!!.cx, editFrom!!.cy, e.x, e.y)
 
-        val n = inputnodes.values.asSequence()
+        val n = inputNodes.values.asSequence()
                 .filter { pyth(it.cx-e.x, it.cy-e.y)<8 }
                 .find { it.input!!.isAssignable(editFrom!!.output!!) }
 
@@ -293,8 +293,8 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         e.line.disposer()
 
         // stop effect: disable & visually differentiate bindable nodes
-        outputnodes.forEach { (_, node) -> node.onEditActive(false, true) }
-        inputnodes.forEach { (_, node) -> node.onEditActive(false, true) }
+        outputNodes.forEach { (_, node) -> node.onEditActive(false, true) }
+        inputNodes.forEach { (_, node) -> node.onEditActive(false, true) }
         connections.forEach { _, line -> line.onEditActive(false) }
     }
 
@@ -305,17 +305,17 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
     }
 
     override fun layoutChildren() {
-        val headerOffset = switchpane.root.localToScene(0.0, 0.0).y
+        val headerOffset = switchPane.root.localToScene(0.0, 0.0).y
         val translationOffset = tTranslate.get()
 
-        inputnodes.values.forEach { it.graphics.isVisible = false }
-        outputnodes.values.forEach { it.graphics.isVisible = false }
-        inoutputnodes.values.forEach { it.graphics.isVisible = false }
+        inputNodes.values.forEach { it.graphics.isVisible = false }
+        outputNodes.values.forEach { it.graphics.isVisible = false }
+        inoutputNodes.values.forEach { it.graphics.isVisible = false }
 
-        switchpane.container.rootParent.allWidgets.filter { it?.controller!=null }.forEach { w ->
+        switchPane.container.rootParent.allWidgets.filter { it?.controller!=null }.forEach { w ->
             val c = w.controller
-            val `is` = c.io.i.getInputs().mapNotNull { inputnodes[it] }
-            val os = c.io.o.getOutputs().mapNotNull { outputnodes[it] }
+            val `is` = c.io.i.getInputs().mapNotNull { inputNodes[it] }
+            val os = c.io.o.getOutputs().mapNotNull { outputNodes[it] }
 
             val wr = w.areaTemp.root
             val b = wr.localToScene(wr.boundsInLocal)
@@ -349,7 +349,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         var ioOffsetX = 0.0
         val ioOffsetYShift = -10.0
         var ioOffsetY = height-150.0
-        val ios = inoutputnodes.values.asSequence().sortedBy { it.inoutput!!.o.id.ownerId }.toList()
+        val ios = inoutputNodes.values.asSequence().sortedBy { it.inoutput!!.o.id.ownerId }.toList()
         for (n in ios) {
             n.graphics.isVisible = true
             n.graphics.autosize() // necessary before asking for size
@@ -366,8 +366,8 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
 
     fun drawGraph() {
         connections.forEach { input, output, line ->
-            val i: XNode<*, *>? = inputnodes[input] ?: outputnodes[input]
-            val o: XNode<*, *>? = inputnodes[output] ?: outputnodes[output]
+            val i: XNode<*, *>? = inputNodes[input] ?: outputNodes[input]
+            val o: XNode<*, *>? = inputNodes[output] ?: outputNodes[output]
             if (i!=null && o!=null) {
                 line.isVisible = i.graphics.isVisible && o.graphics.isVisible
                 if (line.isVisible) {
@@ -388,7 +388,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
         return middle+tScaleY.doubleValue()*(y-middle)
     }
 
-    private abstract inner class XNode<X: XPut<*>, P: Pane>(xput: X) {
+    private abstract inner class XNode<X: XPut<*>, P: Pane>(xPut: X) {
         val input: Input<*>?
         val output: Output<*>?
         val inoutput: InOutput<*>?
@@ -404,23 +404,23 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
             get() = Point2D(i.layoutBounds.minX+i.layoutBounds.width/2, i.layoutBounds.minY+i.layoutBounds.height/2)
 
         init {
-            when (xput) {
+            when (xPut) {
                 is Input<*> -> {
-                    input = xput
+                    input = xPut
                     output = null
                     inoutput = null
                 }
                 is Output<*> -> {
                     input = null
-                    output = xput
+                    output = xPut
                     inoutput = null
                 }
                 is InOutput<*> -> {
-                    input = xput.i
-                    output = xput.o
-                    inoutput = xput
+                    input = xPut.i
+                    output = xPut.o
+                    inoutput = xPut
                 }
-                else -> failCase(xput)
+                else -> failCase(xPut)
             }
 
             i.opacity = anim1Opacity
@@ -430,7 +430,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
                         when(it.button) {
                             PRIMARY -> selectNode(this)
                             SECONDARY -> {
-                                contextMenuInstance.setItemsFor(xput)
+                                contextMenuInstance.setItemsFor(xPut)
                                 contextMenuInstance.show(i, it)
                             }
                             else -> {}
@@ -450,7 +450,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
                 t.opacity = it min anim2Opacity
                 t.setScaleXY(0.8+0.2*it)
             }
-            val valuePut = if (xput is Input<*>) input else output
+            val valuePut = if (xPut is Input<*>) input else output
             valuePut!!.sync { a.playCloseDoOpen { t.text = valuePut.xPutToStr() } } on disposer
         }
 
@@ -593,7 +593,7 @@ class IOLayer(private val switchpane: SwitchPane): StackPane() {
                     input.unbind(output)
             }
             onEventDown(DRAG_DETECTED) {
-                editBegin(outputnodes[output])
+                editBegin(outputNodes[output])
                 it.consume()
             }
         }

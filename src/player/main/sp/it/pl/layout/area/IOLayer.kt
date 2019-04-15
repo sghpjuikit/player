@@ -586,7 +586,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
             disposer += { this@IOLayer.children -= effect }
 
             if (edit?.line!=this && input!=null && output!=null) {
-                output.sync { dataSend() } on disposer
+                output.attach { dataSend() } on disposer
             }
             onEventDown(MOUSE_CLICKED, SECONDARY) {
                 if (input is Input<*> && output is Output<*>)

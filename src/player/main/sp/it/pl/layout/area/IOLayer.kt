@@ -249,8 +249,9 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         edit = EditIOLine(n)
 
         // start effect: disable & visually differentiate bindable & unbindable nodes
-        outputNodes.forEach { (_, node) -> node.onEditActive(true, false) }
+        outputNodes.forEach { (_, node) -> node.onEditActive(true, node.output===editFrom!!.output) }
         inputNodes.forEach { (_, node) -> node.onEditActive(true, node.input!!.isAssignable(editFrom!!.output!!)) }
+        inoutputNodes.forEach { (_, node) -> node.onEditActive(true, node.output===editFrom!!.output || node.input!!.isAssignable(editFrom!!.output!!)) }
         connections.forEach { _, line -> line.onEditActive(true) }
     }
 

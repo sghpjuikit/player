@@ -9,7 +9,7 @@ import kotlin.text.Charsets.UTF_8
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
     id("com.gradle.build-scan") version "2.1"
-    kotlin("jvm") version "1.3.21"
+    kotlin("jvm") version "1.3.30"
     application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
@@ -66,7 +66,7 @@ allprojects {
         )
         kotlinOptions.javaParameters = true
         kotlinOptions.jdkHome = dirJdk.path
-        kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
+        kotlinOptions.jvmTarget = "12"
     }
 
     repositories {

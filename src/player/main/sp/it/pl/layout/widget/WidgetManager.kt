@@ -396,7 +396,7 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                         compilerFile.absolutePath,
                         "-d", compileDir.relativeToApp(),
                         "-jdk-home", APP.DIR_APP.childOf("java").relativeToApp(),
-                        "-jvm-target", "1.8",
+                        "-jvm-target", "12",
                         "-cp", computeClassPath(),
                         kotlinSrcFiles.joinToString(" ") { it.relativeToApp() }
                 )

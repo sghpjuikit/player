@@ -185,13 +185,14 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         translateXProperty().bind(tTranslate.multiply(tScaleX))
         parentProperty().syncNonNullWhile { it.onEventUp(MOUSE_CLICKED) { selectNode(null) } } on disposer
 
+        var aDir = true
         val av = anim(900.millis) {
             isVisible = it!=0.0
             isMouseTransparent = it!=1.0
 
-            anim1Opacity = mapTo01(it, 0.0, 0.2)
-            anim2Opacity = mapTo01(it, 0.25, 0.65)
-            anim3Opacity = mapTo01(it, 0.8, 1.0)
+            anim1Opacity = if(aDir) it else mapTo01(it, 0.0, 0.2)
+            anim2Opacity = if(aDir) it else mapTo01(it, 0.25, 0.65)
+            anim3Opacity = if(aDir) it else mapTo01(it, 0.8, 1.0)
             inputNodes.values.forEach { it.i.opacity = anim1Opacity }
             outputNodes.values.forEach { it.i.opacity = anim1Opacity }
             inoutputNodes.values.forEach { it.i.opacity = anim1Opacity }
@@ -205,11 +206,12 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         }.applyAt(0.0)
         val avReducer = EventReducer.toLast<Any>(100.0) {
             if (APP.ui.layoutMode.value)
-                av.playOpen()
+                av.dur(900.millis).playOpen()
         }
         APP.ui.layoutMode attach {
+            aDir = !it
             if (it) avReducer.push(null)
-            else av.playClose()
+            else av.dur(300.millis).playClose()
         } on disposer
 
         allInputs.onItemSync { addInput(it) } on disposer

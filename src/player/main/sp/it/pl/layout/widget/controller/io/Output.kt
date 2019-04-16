@@ -21,7 +21,7 @@ class Output<T>: Put<T?> {
 
     /** Calls [sp.it.pl.layout.widget.controller.io.Input.unbind] on all inputs bound to this output. */
     fun unbindAll() {
-        IOLayer.allConnections.keys.asSequence()
+        IOLayer.allLinks.keys.asSequence()
                 .filter { it.key1()==this || it.key2()==this }
                 .flatMap {
                     sequenceOf(it.key1(), it.key2()).mapNotNull {

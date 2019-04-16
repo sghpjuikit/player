@@ -116,8 +116,8 @@ class IO(private val id: UUID) {
             mio[name] = io
             mi[name] = io.i
             onDispose += input.bindMapped(io.o, mapper)
-            IOLayer.addConnectionE(input, io.i)
-            onDispose += { IOLayer.remConnectionE(io.i, input) }
+            IOLayer.addLinkForAll(input, io.i)
+            onDispose += { IOLayer.remLinkForAll(io.i, input) }
             return io.i
         }
 
@@ -128,8 +128,8 @@ class IO(private val id: UUID) {
             mio[name] = io
             mo[name] = io.o
             onDispose += io.i.bindMapped(output, mapper)
-            IOLayer.addConnectionE(io.o, output)
-            onDispose += { IOLayer.remConnectionE(output, io.o) }
+            IOLayer.addLinkForAll(io.o, output)
+            onDispose += { IOLayer.remLinkForAll(output, io.o) }
             return io.o
         }
 

@@ -5,9 +5,6 @@ import javafx.beans.property.DoubleProperty
 import javafx.beans.property.Property
 import javafx.collections.FXCollections.observableSet
 import javafx.event.EventHandler
-import javafx.geometry.Point2D
-import javafx.geometry.Pos
-import javafx.scene.Node
 import javafx.scene.input.DragEvent.DRAG_ENTERED
 import javafx.scene.input.DragEvent.DRAG_EXITED
 import javafx.scene.input.MouseButton.PRIMARY
@@ -20,12 +17,10 @@ import javafx.scene.input.TransferMode
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
-import javafx.scene.layout.VBox
 import javafx.scene.shape.Circle
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
-import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.layout.container.switchcontainer.SwitchPane
@@ -40,13 +35,14 @@ import sp.it.util.Util.pyth
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.mapTo01
+import sp.it.util.animation.Loop
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.collections.map.Map2D
 import sp.it.util.collections.map.Map2D.Key
 import sp.it.util.dev.failCase
+import sp.it.util.functional.Util.forEachCartesianHalfNoSelf
 import sp.it.util.functional.Util.min
 import sp.it.util.functional.asIf
-import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -59,25 +55,23 @@ import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.text.plural
 import sp.it.util.type.Util.getRawType
 import sp.it.util.type.isSuperclassOf
-import sp.it.util.ui.maxSize
 import sp.it.util.ui.pseudoclass
 import sp.it.util.ui.setScaleXY
-import sp.it.util.ui.x
+import sp.it.util.ui.text
 import sp.it.util.units.millis
 import java.lang.Math.abs
 import java.lang.Math.atan2
 import java.lang.Math.cos
 import java.lang.Math.max
-import java.lang.Math.random
 import java.lang.Math.signum
 import java.lang.Math.sin
 import java.lang.Math.sqrt
 import java.lang.reflect.ParameterizedType
 import java.util.HashMap
-import java.util.stream.Stream
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
+import kotlin.properties.Delegates.observable
 
 private typealias Compute<T> = java.util.function.Function<Key<Put<*>, Put<*>>, T>
 
@@ -85,12 +79,43 @@ private typealias Compute<T> = java.util.function.Function<Key<Put<*>, Put<*>>, 
  * Display for [sp.it.pl.layout.widget.controller.io.XPut] of components, displaying their relations as am editable graph.
  */
 class IOLayer(private val switchPane: SwitchPane): StackPane() {
-    private val connections = Map2D<Put<*>, Put<*>, IOLine>()
-    private val inputNodes = HashMap<Input<*>, XNode<*, *>>()
-    private val outputNodes = HashMap<Output<*>, XNode<*, *>>()
+    private val inputNodes = HashMap<Input<*>, XNode<*>>()
+    private val outputNodes = HashMap<Output<*>, XNode<*>>()
     private val inoutputNodes = HashMap<InOutput<*>, InOutputNode>()
+    private val links = Map2D<Put<*>, Put<*>, IOLine>()
 
-    private val padding = 15.0
+    private val paneLinks = Pane()
+    private val paneNodes = Pane()
+    private val paneLabels = Pane()
+    private val paneLabelsLayouter = Loop(Runnable {
+        val labels = xNodes().map { it.label }.toList()
+
+        forEachCartesianHalfNoSelf(labels) { l1, l2 ->
+            val dir = atan2(l1.text.layoutY-l2.text.layoutY, l1.text.layoutX-l2.text.layoutX)
+            val dist = pyth(l1.text.layoutX-l2.text.layoutX, l1.text.layoutY-l2.text.layoutY)
+            when {
+                dist>100 -> {}
+                else -> {
+                    val f = (100.0-(dist.coerceIn(0.0, 100.0)))/10.0
+                    l1.text.layoutX += f*cos(dir)
+                    l1.text.layoutY += f*sin(dir)
+                    l2.text.layoutX -= f*cos(dir)
+                    l2.text.layoutY -= f*sin(dir)
+                }
+            }
+        }
+        labels.forEach {
+            val dist = pyth(it.x-it.text.layoutX, it.y-it.text.layoutY)
+            val dir = atan2(it.y-it.text.layoutY, it.x-it.text.layoutX)
+            val f = dist/10.0
+            it.text.layoutX += f*cos(dir)
+            it.text.layoutY += f*sin(dir)
+            it.byX = it.x-it.text.layoutX
+            it.byY = it.y-it.text.layoutY
+        }
+    })
+
+    private val padding = 20.0
     private val tTranslate: DoubleProperty
     private val tScaleX: Property<Number>
     private val tScaleY: Property<Number>
@@ -99,11 +124,11 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
     private var anim3Opacity = 0.0
 
     private var edit: EditIOLine? = null
-    private var selected: XNode<*, *>? = null
-    private val disposer = Disposer()
+    private var editFrom: XNode<*>? = null
+    private var editTo: XNode<*>? = null
+    private var selected: XNode<*>? = null
 
-    private var editFrom: XNode<*, *>? = null
-    private var editTo: XNode<*, *>? = null
+    private val disposer = Disposer()
 
     fun addController(c: Controller) {
         c.io.i.getInputs().forEach { addInput(it) }
@@ -119,7 +144,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         allInputs += i
         inputNodes.computeIfAbsent(i) {
             val iNode = InputNode(i)
-            i.getSources().forEach { o -> connections.computeIfAbsent(Key(i, o), Compute { IOLine(i, o) }) }
+            i.getSources().forEach { o -> links.computeIfAbsent(Key(i, o), Compute { IOLine(i, o) }) }
             children += iNode.graphics
             iNode
         }
@@ -128,7 +153,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
     private fun remInput(i: Input<*>) {
         allInputs -= i
         removeChild(inputNodes.remove(i))
-        connections.removeIf { it.key1()==i || it.key2()==i }.forEach { it.disposer() }
+        links.removeIf { it.key1()==i || it.key2()==i }.forEach { it.disposer() }
     }
 
     private fun addOutput(o: Output<*>) {
@@ -143,7 +168,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
     private fun remOutput(o: Output<*>) {
         allOutputs -= o
         removeChild(outputNodes.remove(o))
-        connections.removeIf { it.key1()==o || it.key2()==o }.forEach { it.disposer() }
+        links.removeIf { it.key1()==o || it.key2()==o }.forEach { it.disposer() }
     }
 
     private fun addInOutput(io: InOutput<*>) {
@@ -152,7 +177,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
             val ion = InOutputNode(io)
             inputNodes[io.i] = ion
             outputNodes[io.o] = ion
-            io.i.getSources().forEach { o -> connections.computeIfAbsent(Key(io.i, o), Compute { IOLine(io.i, o) }) }
+            io.i.getSources().forEach { o -> links.computeIfAbsent(Key(io.i, o), Compute { IOLine(io.i, o) }) }
             children += ion.graphics
             ion
         }
@@ -163,17 +188,16 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         inputNodes -= io.i
         outputNodes -= io.o
         removeChild(inoutputNodes.remove(io))
-        removeChildren(connections.removeIfKey2(io.o))
-        connections.removeIf { it.key1()==io.i || it.key1()==io.o || it.key2()==io.i || it.key2()==io.o }.forEach { it.disposer() }
+        links.removeIf { it.key1()==io.i || it.key1()==io.o || it.key2()==io.i || it.key2()==io.o }.forEach { it.disposer() }
     }
 
     private fun addConnection(i: Put<*>, o: Put<*>) {
-        connections.computeIfAbsent(Key(i, o)) { IOLine(i, o) }
+        links.computeIfAbsent(Key(i, o)) { IOLine(i, o) }
         drawGraph()
     }
 
     private fun remConnection(i: Put<*>, o: Put<*>) {
-        connections.remove2D(i, o)?.let { it.disposer() }
+        links.remove2D(i, o)?.let { it.disposer() }
     }
 
     init {
@@ -186,24 +210,28 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         translateXProperty().bind(tTranslate.multiply(tScaleX))
         parentProperty().syncNonNullWhile { it.onEventUp(MOUSE_CLICKED) { selectNode(null) } } on disposer
 
+        paneLabels.layoutX = 0.0
+        paneLabels.layoutY = 0.0
+        paneLabels.isMouseTransparent = true
+        children += listOf(paneLinks, paneNodes, paneLabels)
+
+        paneLabelsLayouter.start()
+        disposer += { paneLabelsLayouter.stop() }
+
         var aDir = true
         val av = anim(900.millis) {
             isVisible = it!=0.0
             isMouseTransparent = it!=1.0
-
             anim1Opacity = if(aDir) it else mapTo01(it, 0.0, 0.2)
             anim2Opacity = if(aDir) it else mapTo01(it, 0.25, 0.65)
             anim3Opacity = if(aDir) it else mapTo01(it, 0.8, 1.0)
-            inputNodes.values.forEach { it.i.opacity = anim1Opacity }
-            outputNodes.values.forEach { it.i.opacity = anim1Opacity }
-            inoutputNodes.values.forEach { it.i.opacity = anim1Opacity }
-            connections.forEach { _, _, line ->
+
+            paneLinks.opacity = anim1Opacity
+            links.forEach { _, _, line ->
                 line.showClip1.setScaleXY(anim2Opacity)
                 line.showClip2.setScaleXY(anim2Opacity)
             }
-            inputNodes.values.forEach { it.t.opacity = anim3Opacity }
-            outputNodes.values.forEach { it.t.opacity = anim3Opacity }
-            inoutputNodes.values.forEach { it.t.opacity = anim3Opacity }
+            paneLabels.opacity = anim3Opacity
         }.applyAt(0.0)
         val avReducer = EventReducer.toLast<Any>(100.0) {
             if (APP.ui.layoutMode.value)
@@ -231,24 +259,16 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         inputNodes.values.forEach { it.disposer() }
         outputNodes.values.forEach { it.disposer() }
         inoutputNodes.values.forEach { it.disposer() }
-        connections.values.forEach { it.disposer() }
+        links.values.forEach { it.disposer() }
         disposer()
         allLayers -= this
     }
 
-    private fun removeChild(n: Node?) {
-        if (n!=null) children -= n
-    }
-
-    private fun removeChild(n: XNode<*, *>?) {
+    private fun removeChild(n: XNode<*>?) {
         if (n!=null) children -= n.graphics
     }
 
-    private fun removeChildren(ns: Stream<out Node>) {
-        ns.forEach { removeChild(it) }
-    }
-
-    private fun editBegin(n: XNode<*, *>?) {
+    private fun editBegin(n: XNode<*>?) {
         if (n==null) return
 
         editFrom = n
@@ -258,16 +278,16 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         outputNodes.forEach { (_, node) -> node.onEditActive(true, node.output===editFrom!!.output) }
         inputNodes.forEach { (_, node) -> node.onEditActive(true, node.input!!.isAssignable(editFrom!!.output!!)) }
         inoutputNodes.forEach { (_, node) -> node.onEditActive(true, node.output===editFrom!!.output || node.input!!.isAssignable(editFrom!!.output!!)) }
-        connections.forEach { _, line -> line.onEditActive(true) }
+        links.forEach { _, line -> line.onEditActive(true) }
     }
 
     private fun editMove(e: MouseEvent) {
         if (edit==null || editFrom==null) return
 
-        edit!!.line.lay(editFrom!!.cx, editFrom!!.cy, e.x, e.y)
+        edit!!.line.lay(editFrom!!.x, editFrom!!.y, e.x, e.y)
 
         val n = inputNodes.values.asSequence()
-                .filter { pyth(it.cx-e.x, it.cy-e.y)<8 }
+                .filter { pyth(it.x-e.x, it.y-e.y)<8 }
                 .find { it.input!!.isAssignable(editFrom!!.output!!) }
 
         if (editTo!==n) {
@@ -288,10 +308,10 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         if (eTo!=null) {
             if (e.isValueOnly.value) {
                 eTo.input!!.valueAny = eFrom.output!!.value
-                dataArrived(eTo.cx, eTo.cy)
+                dataArrived(eTo.x, eTo.y)
             } else {
                 eTo.input!!.bindAny(eFrom.output!!)
-                connections.get(eTo.input, eFrom.output).dataSend()
+                links.get(eTo.input, eFrom.output).dataSend()
             }
         }
 
@@ -301,52 +321,45 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         // stop effect: disable & visually differentiate bindable nodes
         outputNodes.forEach { (_, node) -> node.onEditActive(false, true) }
         inputNodes.forEach { (_, node) -> node.onEditActive(false, true) }
-        connections.forEach { _, line -> line.onEditActive(false) }
+        links.forEach { _, line -> line.onEditActive(false) }
     }
 
-    private fun selectNode(n: XNode<*, *>?) {
+    private fun selectNode(n: XNode<*>?) {
         selected?.select(false)
         selected = n
         selected?.select(true)
     }
 
+    private fun xNodes(): Sequence<XNode<*>> = (inputNodes.asSequence()+outputNodes.asSequence()+inoutputNodes.asSequence()).map { it.value }
+
     override fun layoutChildren() {
         val headerOffset = switchPane.root.localToScene(0.0, 0.0).y
-        val translationOffset = tTranslate.get()
+        val translationOffset = tTranslate.value
 
-        inputNodes.values.forEach { it.graphics.isVisible = false }
-        outputNodes.values.forEach { it.graphics.isVisible = false }
-        inoutputNodes.values.forEach { it.graphics.isVisible = false }
+        xNodes().forEach { it.graphics.isVisible = false }
 
         switchPane.container.rootParent.allWidgets.filter { it?.controller!=null }.forEach { w ->
             val c = w.controller
-            val `is` = c.io.i.getInputs().mapNotNull { inputNodes[it] }
-            val os = c.io.o.getOutputs().mapNotNull { outputNodes[it] }
+            val ins = c.io.i.getInputs().mapNotNull { inputNodes[it] }
+            val ons = c.io.o.getOutputs().mapNotNull { outputNodes[it] }
 
-            val wr = w.areaTemp.root
-            val b = wr.localToScene(wr.boundsInLocal)
+            val b = w.areaTemp.root.let { it.localToScene(it.layoutBounds) }
             val baseX = b.minX/tScaleX.value.toDouble()-translationOffset
             val baseY = b.minY-headerOffset
             val ww = b.width/tScaleX.value.toDouble()
             val wh = b.height
-            val ihx = wh/(`is`.size+1)
-            val ohx = wh/(os.size+1)
+            val ihx = wh/(ins.size+1)
+            val ohx = wh/(ons.size+1)
 
-            `is`.forEachIndexed { i, n ->
+            ins.forEachIndexed { i, n ->
                 n.graphics.isVisible = true
-                n.graphics.autosize() // necessary before asking for size
-                val is2 = n.i.layoutBounds.width/2.0
-                n.cx = calcScaleX(baseX+padding)
-                n.cy = calcScaleY(baseY+ihx*(i+1))
-                n.graphics.relocate(n.cx-is2, n.cy-n.graphics.height/2)
+                n.graphics.autosize()
+                n.updatePosition(calcScaleX(baseX+padding), calcScaleY(baseY+ihx*(i+1)))
             }
-            os.forEachIndexed { i, n ->
+            ons.forEachIndexed { i, n ->
                 n.graphics.isVisible = true
-                n.graphics.autosize() // necessary before asking for size
-                val is2 = n.i.layoutBounds.width/2.0
-                n.cx = calcScaleX(baseX+ww-padding-2*is2)
-                n.cy = calcScaleY(baseY+ohx*(i+1))
-                n.graphics.relocate(n.cx-n.graphics.layoutBounds.width+is2, n.cy-n.graphics.layoutBounds.height/2)
+                n.graphics.autosize()
+                n.updatePosition(calcScaleX(baseX+ww-padding), calcScaleY(baseY+ohx*(i+1)))
             }
         }
 
@@ -355,32 +368,31 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         var ioOffsetX = 0.0
         val ioOffsetYShift = -10.0
         var ioOffsetY = height-150.0
-        val ios = inoutputNodes.values.asSequence().sortedBy { it.inoutput!!.o.id.ownerId }.toList()
-        for (n in ios) {
+        val ions = inoutputNodes.values.asSequence().sortedBy { it.inoutput!!.o.id.ownerId }.toList()
+        for (n in ions) {
             n.graphics.isVisible = true
-            n.graphics.autosize() // necessary before asking for size
-            val is2 = n.i.layoutBounds.width/2.0
-            n.cx = ioOffsetX
-            n.cy = ioOffsetY
-            n.graphics.relocate(n.cx-is2, n.cy-is2)
+            n.graphics.autosize()
+            n.updatePosition(ioOffsetX, ioOffsetY)
             ioOffsetX += max(n.graphics.layoutBounds.width, ioMinWidthX)+ioGapX
             ioOffsetY += ioOffsetYShift
         }
 
         drawGraph()
+
+        paneLabels.resizeRelocate(0.0, 0.0, width, height)
     }
 
     fun drawGraph() {
-        connections.forEach { input, output, line ->
-            val i: XNode<*, *>? = inputNodes[input] ?: outputNodes[input]
-            val o: XNode<*, *>? = inputNodes[output] ?: outputNodes[output]
+        links.forEach { input, output, line ->
+            val i: XNode<*>? = inputNodes[input] ?: outputNodes[input]
+            val o: XNode<*>? = inputNodes[output] ?: outputNodes[output]
             if (i!=null && o!=null) {
                 line.isVisible = i.graphics.isVisible && o.graphics.isVisible
                 if (line.isVisible) {
                     when {
-                        input is Input<*> && output is Input<*> -> line.layInputs(i.cx, i.cy, o.cx, o.cy)
-                        input is Output<*> && output is Output<*> -> line.layOutputs(i.cx, i.cy, o.cx, o.cy)
-                        else -> line.lay(i.cx, i.cy, o.cx, o.cy)
+                        input is Input<*> && output is Input<*> -> line.layInputs(i.x, i.y, o.x, o.y)
+                        input is Output<*> && output is Output<*> -> line.layOutputs(i.x, i.y, o.x, o.y)
+                        else -> line.lay(i.x, i.y, o.x, o.y)
                     }
                 }
             }
@@ -394,20 +406,17 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         return middle+tScaleY.value.toDouble()*(y-middle)
     }
 
-    private abstract inner class XNode<X: XPut<*>, P: Pane>(xPut: X) {
+    private abstract inner class XNode<X: XPut<*>>(xPut: X, iconStyleclass: String) {
         val input: Input<*>?
         val output: Output<*>?
         val inoutput: InOutput<*>?
-        lateinit var graphics: P
-        var t = Text()
-        var i = Icon()
-        var cy = 80+random()*20
-        var cx = 80+random()*20
+        val i = Icon()
+        val graphics = HBox(0.0, i)
+        val label = XLabel()
+        var x by observable(0.0) { _, _, nv -> label.y = nv+15 }
+        var y by observable(0.0) { _, _, nv -> label.x = nv+15 }
         var selected = false
         val disposer = Disposer()
-
-        val sceneXY: Point2D
-            get() = Point2D(i.layoutBounds.minX+i.layoutBounds.width/2, i.layoutBounds.minY+i.layoutBounds.height/2)
 
         init {
             when (xPut) {
@@ -429,7 +438,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
                 else -> failCase(xPut)
             }
 
-            i.opacity = anim1Opacity
+            i.styleclass(iconStyleclass)
             i.onEventDown(MOUSE_CLICKED) {
                 when(it.clickCount) {
                     1 -> {
@@ -451,13 +460,13 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
                 it.consume()
             }
 
-            t.opacity = anim2Opacity
+            paneLabels.children += label.text
             val a = anim(250.millis) {
-                t.opacity = it min anim2Opacity
-                t.setScaleXY(0.8+0.2*it)
+                label.text.opacity = it
+                label.text.setScaleXY(0.8+0.2*it)
             }
             val valuePut = if (xPut is Input<*>) input else output
-            valuePut!!.sync { a.playCloseDoOpen { t.text = valuePut.xPutToStr() } } on disposer
+            valuePut!!.sync { a.playCloseDoOpen { label.text.text = valuePut.xPutToStr() } } on disposer
         }
 
         fun select(v: Boolean) {
@@ -470,18 +479,34 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
             graphics.isDisable = active && !canAccept
         }
 
+        fun updatePosition(toX: Double, toY: Double) {
+            x = toX
+            y = toY
+            graphics.relocate(x-graphics.layoutBounds.width/2.0, y-graphics.layoutBounds.height/2.0)
+            label.updatePosition()
+        }
+
+        inner class XLabel {
+            var x = 0.0
+            var y = 0.0
+            var byX = 0.0
+            var byY = 0.0
+            var text = text {
+                translateX = 20.0
+                translateY = 20.0
+            }
+
+            fun updatePosition() {
+                x = this@XNode.x
+                y = this@XNode.y
+                text.layoutX = this@XNode.x-byX
+                text.layoutY = this@XNode.y-byY
+            }
+        }
     }
 
-    private inner class InputNode(xPut: Input<*>): XNode<Input<*>, HBox>(xPut) {
-
+    private inner class InputNode(xPut: Input<*>): XNode<Input<*>>(xPut, "inode") {
         init {
-            graphics = HBox(8.0, i, t).apply {
-                maxSize = 80 x 120
-                alignment = Pos.CENTER_LEFT
-                isMouseTransparent = false
-            }
-            i.styleclass(INODE_STYLECLASS)
-
             i.onEventUp(DRAG_ENTERED) { i.pseudoClassStateChanged(pcXNodeDragOver, true) }
             i.onEventUp(DRAG_EXITED) { i.pseudoClassStateChanged(pcXNodeDragOver, false) }
             installDrag(
@@ -500,41 +525,21 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
                         }
                     }
             )
-
-            t.text = input!!.xPutToStr()
         }
-
     }
 
-    private inner class OutputNode(xPut: Output<*>): XNode<Output<*>, HBox>(xPut) {
-
+    private inner class OutputNode(xPut: Output<*>): XNode<Output<*>>(xPut, "onode") {
         init {
-            graphics = HBox(8.0, t, i).apply {
-                maxSize = 80 x 120
-                alignment = Pos.CENTER_RIGHT
-                isMouseTransparent = false
-            }
-            i.styleclass(ONODE_STYLECLASS)
-
             i.onEventUp(DRAG_DETECTED) {
                 if (selected) i.startDragAndDrop(TransferMode.LINK)[Df.WIDGET_OUTPUT] = output!!
                 else editBegin(this)
                 it.consume()
             }
         }
-
     }
 
-    private inner class InOutputNode(xPut: InOutput<*>): XNode<InOutput<*>, VBox>(xPut) {
-
+    private inner class InOutputNode(xPut: InOutput<*>): XNode<InOutput<*>>(xPut, "ionode") {
         init {
-            graphics = VBox(8.0, i, t).apply {
-                maxSize = 80 x 120
-                alignment = Pos.CENTER_LEFT
-                isMouseTransparent = false
-            }
-            i.styleclass(IONODE_STYLECLASS)
-
             i.onEventUp(DRAG_ENTERED) { i.pseudoClassStateChanged(pcXNodeDragOver, true) }
             i.onEventUp(DRAG_EXITED) { i.pseudoClassStateChanged(pcXNodeDragOver, false) }
             i.onEventUp(DRAG_DETECTED) {
@@ -554,7 +559,6 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
                     }
             )
         }
-
     }
 
     private inner class IOLine(val input: Put<*>?, val output: Put<*>?): Path() {
@@ -573,21 +577,21 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         val disposer = Disposer()
 
         init {
-            styleClass += IOLINE_STYLECLASS
+            styleClass += "ioline"
             isMouseTransparent = false
             isPickOnBounds = false
             showClip1.setScaleXY(anim3Opacity)
             showClip2.setScaleXY(anim3Opacity)
             clip = showClip
-            this@IOLayer.children += this
-            disposer += { this@IOLayer.children -= this }
+            paneLinks.children += this
+            disposer += { paneLinks.children -= this }
 
             effect.styleClass += "ioline-effect-line"
             effect.isMouseTransparent = true
             effect.clip = effectClip
             duplicateTo(effect)
-            this@IOLayer.children += effect
-            disposer += { this@IOLayer.children -= effect }
+            paneLinks.children += effect
+            disposer += { paneLinks.children -= effect }
 
             if (edit?.line!=this && input!=null && output!=null) {
                 output.attach { dataSend() } on disposer
@@ -673,7 +677,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
             val lengthNormalized = max(1.0, length/100.0)
 
             val pRunner = Circle(3.0).apply {
-                styleClass += IOLINE_RUNNER_STYLECLASS
+                styleClass += "ioline-effect-dot"
                 this@IOLayer.children += this
             }
             val eRunner = Circle(15*lengthNormalized).apply {
@@ -702,7 +706,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     }
 
-    private inner class EditIOLine(node: XNode<*, *>)  {
+    private inner class EditIOLine(node: XNode<*>)  {
         val line = IOLine(node.input, node.output)
         val isValueOnly = v(false)
 
@@ -730,17 +734,12 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
     }
 
     companion object {
-        const val INODE_STYLECLASS = "inode"
-        const val ONODE_STYLECLASS = "onode"
-        const val IONODE_STYLECLASS = "ionode"
-        const val IOLINE_STYLECLASS = "ioline"
-        const val IOLINE_RUNNER_STYLECLASS = "ioline-effect-dot"
         private val pcXNodeDragOver = pseudoclass("drag-over")
         private val pcXNodeSelected = pseudoclass("selected")
         private val contextMenuInstance by lazy { ValueContextMenu<XPut<*>>() }
 
         @JvmField val allLayers = observableSet<IOLayer>()!!
-        @JvmField val allConnections = Map2D<Put<*>, Put<*>, Any>()
+        @JvmField val allLinks = Map2D<Put<*>, Put<*>, Any>()
         @JvmField val allInputs = observableSet<Input<*>>()!!
         @JvmField val allOutputs = observableSet<Output<*>>()!!
         @JvmField val allInoutputs = observableSet<InOutput<*>>()!!
@@ -751,14 +750,14 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         }
 
         @JvmStatic
-        fun addConnectionE(i: Put<*>, o: Put<*>) {
-            allConnections.put(i, o, Any())
+        fun addLinkForAll(i: Put<*>, o: Put<*>) {
+            allLinks.put(i, o, Any())
             allLayers.forEach { it.addConnection(i, o) }
         }
 
         @JvmStatic
-        fun remConnectionE(i: Put<*>, o: Put<*>) {
-            allConnections.remove2D(i, o)
+        fun remLinkForAll(i: Put<*>, o: Put<*>) {
+            allLinks.remove2D(i, o)
             allLayers.forEach { it.remConnection(i, o) }
         }
 

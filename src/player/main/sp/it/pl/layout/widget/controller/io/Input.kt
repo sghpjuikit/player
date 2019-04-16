@@ -88,7 +88,7 @@ open class Input<T>: Put<T?> {
         // and selective type filtering
         // sources.computeIfAbsent(output, o -> o.monitor(this::setValue));
         sources.computeIfAbsent(output) { monitor(it) }
-        IOLayer.addConnectionE(this, output)
+        IOLayer.addLinkForAll(this, output)
         return Subscription { unbind(output) }
     }
 
@@ -114,13 +114,13 @@ open class Input<T>: Put<T?> {
     @Idempotent
     fun unbind(output: Output<*>) {
         sources.remove(output)?.unsubscribe()
-        IOLayer.remConnectionE(this, output)
+        IOLayer.remLinkForAll(this, output)
     }
 
     fun unbindAll() {
         sources.forEach { (o, disposer) ->
             disposer.unsubscribe()
-            IOLayer.remConnectionE(this, o)
+            IOLayer.remLinkForAll(this, o)
         }
         sources.clear()
     }

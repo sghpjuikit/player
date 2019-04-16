@@ -2,6 +2,7 @@ package sp.it.pl.audio.playback
 
 import javafx.scene.media.MediaPlayer.Status
 import javafx.scene.media.MediaPlayer.Status.PLAYING
+import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.util.Duration
 import mu.KLogging
 import sp.it.pl.audio.Player
@@ -27,7 +28,6 @@ import uk.co.caprica.vlcj.factory.discovery.strategy.WindowsNativeDiscoveryStrat
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import java.io.File
-import javax.print.attribute.standard.PrinterStateReason.PAUSED
 import kotlin.math.roundToInt
 
 

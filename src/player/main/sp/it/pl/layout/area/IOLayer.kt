@@ -64,9 +64,12 @@ import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import java.lang.Math.abs
+import java.lang.Math.atan2
+import java.lang.Math.cos
 import java.lang.Math.max
 import java.lang.Math.random
 import java.lang.Math.signum
+import java.lang.Math.sin
 import java.lang.Math.sqrt
 import java.lang.reflect.ParameterizedType
 import java.util.HashMap
@@ -562,10 +565,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         val showClip1 = Circle()
         val showClip2 = Circle()
         private val showClip = Pane(showClip1, showClip2)
-        private var notFinished = false
-        private var notFinishedX = 0.0
-        private var notFinishedY = 0.0
         private val lineGap = 20.0
+        private val lineEndOffset = 8.0
         val disposer = Disposer()
 
         init {
@@ -604,40 +605,32 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
         fun layInputs(inX: Double, inY: Double, outX: Double, outY: Double) {
             layInit(inX, inY, outX, outY)
+            elements += MoveTo(inX+loX(1.0, 1.0), inY+loY(1.0, 1.0))
             elements += LineTo(inX+lineGap, inY+lineGap)
             elements += LineTo(outX+lineGap, outY-lineGap)
-            elements += LineTo(outX, outY)
+            elements += LineTo(outX+loX(1.0, 1.0), outY-loY(1.0, 1.0))
         }
 
         fun layOutputs(inX: Double, inY: Double, outX: Double, outY: Double) {
             layInit(inX, inY, outX, outY)
+            elements += MoveTo(inX-loX(1.0, 1.0), inY+loY(1.0, 1.0))
             elements += LineTo(inX-lineGap, inY+lineGap)
             elements += LineTo(outX-lineGap, outY-lineGap)
-            elements += LineTo(outX, outY)
+            elements += LineTo(outX-loX(1.0, 1.0), outY-loY(1.0, 1.0))
         }
 
         @Suppress("LocalVariableName", "CanBeVal")
         fun lay(inX: Double, inY: Double, outX: Double, outY: Double) {
             layInit(inX, inY, outX, outY)
-            var inX_ = inX
-            var inY_ = inY
-            var outX_ = outX
-            var outY_ = outY
 
-            val dx = outX_-inX_
-            val dy = outY_-inY_
-            if (dx>0) {
-                // enhance start
-                inY_ += lineGap*signum(dy)
-                elements += LineTo(inX_, inY_)
-                // enhance end
-                notFinished = true
-                notFinishedX = outX_
-                notFinishedY = outY_
-                outX_ -= lineGap*signum(dx)
-                outY_ -= lineGap*signum(dy)
-            }
-            layTo(inX_, inY_, outX_, outY_)
+            val dx = signum(outX-inX)
+            val dy = signum(outY-inY)
+            val inX_ = inX+lineGap*dx
+            val inY_ = inY+lineGap*dy
+            elements += MoveTo(inX+loX(dx, dy), inY+loY(dx, dy))
+            elements += LineTo(inX_, inY_)
+            layTo(inX_, inY_, outX-lineGap*dx, outY-lineGap*dy)
+            elements += LineTo(outX-loX(dx, dy), outY-loY(dx, dy))
         }
 
         fun layInit(inX: Double, inY: Double, outX: Double, outY: Double) {
@@ -653,7 +646,6 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
             showClip2.centerX = outX
             showClip2.centerY = outY
             elements.clear()
-            elements += MoveTo(inX, inY)
         }
 
         private fun layTo(inX: Double, inY: Double, outX: Double, outY: Double) {
@@ -661,10 +653,6 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
             val dy = outY-inY
             if (dx==0.0 || dy==0.0) {
                 elements += LineTo(outX, outY)
-                if (notFinished) {
-                    notFinished = false
-                    elements += LineTo(notFinishedX, notFinishedY)
-                }
             } else {
                 val dXy = min(abs(dx), abs(dy))
                 val x = inX+signum(dx)*dXy
@@ -673,6 +661,10 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
                 layTo(x, y, outX, outY)
             }
         }
+
+        private fun loX(x: Double, y: Double) = lineEndOffset*cos(atan2(y, x))
+
+        private fun loY(x: Double, y: Double) = lineEndOffset*sin(atan2(y, x))
 
         fun dataSend() {
             val lengthNormalized = max(1.0, length/100.0)

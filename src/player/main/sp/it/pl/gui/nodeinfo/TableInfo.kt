@@ -73,7 +73,8 @@ class TableInfo<E>: NodeInfo<TableView<E>> {
     companion object {
 
         /** Default text factory. Provides texts like 'All: 1 item' or 'Selected: 89 items'. */
-        @JvmField val DEFAULT_TEXT_FACTORY: (Boolean, List<*>) -> String = { isSelectionEmpty, list ->
+        @JvmField
+        val DEFAULT_TEXT_FACTORY: (Boolean, List<*>) -> String = { isSelectionEmpty, list ->
             val prefix = if (isSelectionEmpty) "All: " else "Selected: "
             val size = list.size
             "$prefix " + "item".pluralUnit(size)

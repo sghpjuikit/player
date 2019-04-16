@@ -141,7 +141,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         if (cm instanceof Widget) {
             WidgetArea wa = new WidgetArea(container,i,(Widget)cm);
             // add maximize button
-            wa.controls.header_buttons.getChildren().add(1,lb);
+            wa.getControls().header_buttons.getChildren().add(1,lb);
             w.moveOnDragOf(wa.contentRoot);
             n = wa.getRoot();
         } else {
@@ -248,11 +248,11 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
         return new TupleM4(b.a/rt.getWidth(),b.c/rt.getHeight(), (b.b-b.a)/rt.getWidth(),(b.d-b.c)/rt.getHeight());
     }
-    Bounds bestRecBounds(double x, double y, PaneWindowControls new_w) {
+    Bounds bestRecBounds(double x, double y, PaneWindowControls newW) {
         TupleM4 b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
 
         for (PaneWindowControls w : windows.values()) {
-            if (w==new_w) continue;   // ignore self
+            if (w==newW) continue;   // ignore self
             double wl = w.x.get()+w.w.get();
             if (wl<x && wl>b.a) b.a = wl;
             double wr = w.x.get();
@@ -266,7 +266,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         b.a = 0d;
         b.b = rt.getWidth();
         for (PaneWindowControls w : windows.values()) {
-            if (w==new_w) continue;   // ignore self
+            if (w==newW) continue;   // ignore self
             double wl = w.x.get()+w.w.get();
             double wr = w.x.get();
             double ht = w.y.get()+w.h.get();

@@ -247,8 +247,8 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
     @Override
     protected void updateAbsB() {
         super.updateAbsB();
-        if (wa1!=null) wa1.controls.updateAbsB();
-        if (wa2!=null) wa2.controls.updateAbsB();
+        if (wa1!=null) wa1.getControls().updateAbsB();
+        if (wa2!=null) wa2.getControls().updateAbsB();
     }
 
 /********************************** COLLAPSING ********************************/

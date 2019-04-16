@@ -1,8 +1,8 @@
 package sp.it.pl.audio.playback
 
-import javafx.scene.media.MediaPlayer.Status
-import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.PAUSED
+import javafx.scene.media.MediaPlayer.Status.PLAYING
+import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import mu.KLogging
 import sp.it.pl.audio.Player
@@ -122,14 +122,14 @@ class VlcPlayer: GeneralPlayer.Play {
         override fun stopped(mediaPlayer: MediaPlayer) {
             runFX {
                 if (!Player.suspension_flag)
-                    state.status.value = Status.STOPPED
+                    state.status.value = STOPPED
             }
         }
 
         override fun paused(mediaPlayer: MediaPlayer) {
             runFX {
                 if (!Player.suspension_flag)
-                    state.status.value = Status.PAUSED
+                    state.status.value = PAUSED
 
                 if (Player.startTime!=null) {
                     seek(Player.startTime)
@@ -177,6 +177,7 @@ class VlcPlayer: GeneralPlayer.Play {
 
         private fun NativeDiscoveryStrategy.wrap() = NativeDiscoveryStrategyWrapper(this)
 
+        @Suppress("SpellCheckingInspection")
         private fun NativeDiscoveryStrategy.customize(location: File) = object: BaseNativeDiscoveryStrategy(
                 when (this@customize) {
                     is WindowsNativeDiscoveryStrategy -> arrayOf("libvlc\\.dll", "libvlccore\\.dll")

@@ -13,6 +13,7 @@ import sp.it.pl.gui.objects.window.stage.WindowManager
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.container.layout.Layout
+import sp.it.pl.layout.widget.WidgetSource.NONE
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT
 import sp.it.pl.layout.widget.WidgetSource.OPEN_STANDALONE
@@ -444,10 +445,10 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         }
 
         fun findAll(source: WidgetSource): Stream<Widget> = when (source) {
-            WidgetSource.NONE -> Stream.empty()
-            WidgetSource.OPEN_LAYOUT -> layouts.findAllActive().asStream().flatMap { it.allWidgets }
-            WidgetSource.OPEN_STANDALONE -> standaloneWidgets.stream()
-            WidgetSource.OPEN -> Stream.concat(findAll(OPEN_STANDALONE), findAll(OPEN_LAYOUT))
+            NONE -> Stream.empty()
+            OPEN_LAYOUT -> layouts.findAllActive().asStream().flatMap { it.allWidgets }
+            OPEN_STANDALONE -> standaloneWidgets.stream()
+            OPEN -> Stream.concat(findAll(OPEN_STANDALONE), findAll(OPEN_LAYOUT))
         }
 
         /**
@@ -734,7 +735,7 @@ sealed class WidgetUse(val widgetFinder: WidgetSource) {
     /** Use open widget as per [WidgetSource.OPEN] or do nothing if none available. */
     object OPEN: WidgetUse(WidgetSource.OPEN)
     /** Use newly created widget. */
-    object NEW: NewAnd(WidgetSource.NONE, WidgetLoader.POPUP)
+    object NEW: NewAnd(NONE, WidgetLoader.POPUP)
     /** Use open widget as per [WidgetSource.OPEN] or use newly created widget. */
     object ANY: NewAnd(WidgetSource.OPEN, WidgetLoader.POPUP)
     /** Use open widget as per [WidgetSource.OPEN_STANDALONE] or use newly created widget. */

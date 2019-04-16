@@ -33,8 +33,8 @@ import sp.it.util.ui.layFullArea
  */
 class WidgetArea: Area<Container<*>> {
 
+    val controls: AreaControls
     private val content = AnchorPane()
-    @JvmField val controls: AreaControls
     private val widget: Widget
     private val disposer = Disposer()
     private val passiveLoadPane = SingleR<Placeholder, Widget>(

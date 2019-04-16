@@ -39,29 +39,29 @@ import kotlin.math.sqrt
 /**
  * Generic picker.
  *
- * The elements are obtained using [itemSupply] when [buildContent] is called, sorted lexicographically and disaplayed
+ * The elements are obtained using [itemSupply] when [buildContent] is called, sorted lexicographically and displayed
  * in a 2D grid using [textConverter], [infoConverter].
  */
 open class Picker<E> {
 
     private val tiles = CellPane()
     /** Scene graph root of this object. */
-    @JvmField public val root = ScrollPane(tiles)
+    val root = ScrollPane(tiles)
     /** Invoked when item is selected. Default implementation does nothing. */
-    @JvmField public var onSelect: (E) -> Unit = {}
+    var onSelect: (E) -> Unit = {}
     /** Invoked when user user cancels the picking. Default implementation does nothing. */
-    @JvmField public var onCancel: () -> Unit = {}
+    var onCancel: () -> Unit = {}
     /** It may be desirable to consume the mouse click event that caused the cancellation. Default false. */
-    @JvmField public var consumeCancelEvent = false
+    var consumeCancelEvent = false
     /** Cell text factory producing name/title of the item. Default implementation calls [Any.toString] */
-    @JvmField public var textConverter: (E) -> String = Any?::toString
+    var textConverter: (E) -> String = Any?::toString
     /** Cell detail text text factory producing description of the item. Default implementation returns empty string. */
-    @JvmField public var infoConverter: (E) -> String = { "" }
+    var infoConverter: (E) -> String = { "" }
     /** Supplier that returns items to be displayed. Default implementation returns empty sequence. */
-    @JvmField public var itemSupply: () -> Sequence<E> = { sequenceOf() }
+    var itemSupply: () -> Sequence<E> = { sequenceOf() }
 
     private val cellFactory: (E) -> Pane = { item ->
-        stackPane() {
+        stackPane {
             setMinSize(90.0, 30.0)
             styleClass += CELL_STYLE_CLASS
             padding = Insets(20.0)
@@ -94,7 +94,7 @@ open class Picker<E> {
         }
     }
 
-    public constructor() {
+    constructor() {
         root.apply {
             setMinPrefMaxSize(USE_COMPUTED_SIZE)
             isPannable = false  // forbid mouse panning (can cause unwanted horizontal scrolling)
@@ -108,7 +108,7 @@ open class Picker<E> {
         }
     }
 
-    public fun buildContent() {
+    fun buildContent() {
         tiles.children setTo itemSupply()
                 .sortedBy(textConverter)
                 .map { item ->
@@ -137,9 +137,9 @@ open class Picker<E> {
 
     private inner class CellPane: Pane() {
 
-        override protected fun layoutChildren() {
+        override fun layoutChildren() {
             val cells = getCells()
-            val padding = root.getPadding()
+            val padding = root.padding
             val gap = 1.0
             val width = root.width-padding.left-padding.right
             val height = root.height-padding.top-padding.bottom
@@ -157,9 +157,9 @@ open class Picker<E> {
             val gapSumY = (rows-1)*gap
             val cellHeight = if (height<rows*cellMinHeight) cellMinHeight else (height-gapSumY)/rows-1.0/rows
 
-            val W = if (rows*(cellHeight+gap)-gap>height) width-15 else width // TODO: take care of scrollbar better
+            val w = if (rows*(cellHeight+gap)-gap>height) width-15 else width // TODO: take care of scrollbar better
             val gapSumX = (columns-1)*gap
-            val cellWidth = (W-gapSumX)/columns
+            val cellWidth = (w-gapSumX)/columns
 
             cells.forEachIndexed { i, n ->
                 val x = padding.left+i%columns*(cellWidth+gap)
@@ -172,7 +172,7 @@ open class Picker<E> {
                 )
             }
 
-            val needsEmptyCell = cells.size==0 || cells.size!=columns*rows
+            val needsEmptyCell = cells.isEmpty() || cells.size!=columns*rows
             val emptyCell = children.find { it.properties.containsKey(KEY_EMPTY_CELL) }!!
             if (needsEmptyCell) {
                 val i = cells.size
@@ -194,7 +194,7 @@ open class Picker<E> {
     }
 
     companion object {
-        val STYLE_CLASS = "item-picker"
+        const val STYLE_CLASS = "item-picker"
         val CELL_STYLE_CLASS = listOf("block", "item-picker-element")
         private const val KEY_EMPTY_CELL = "empty_cell"
     }

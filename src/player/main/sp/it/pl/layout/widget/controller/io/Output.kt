@@ -13,13 +13,13 @@ class Output<T>: Put<T?> {
         this.id = Id(id, name)
     }
 
-    /** Calls [sp.it.pl.layout.widget.controller.io.Input.bind] on specified input with this output.  */
+    /** Calls [sp.it.pl.layout.widget.controller.io.Input.bind] on specified input with this output. */
     fun bind(input: Input<in T>) = input.bind(this)
 
-    /** Calls [sp.it.pl.layout.widget.controller.io.Input.unbind] on specified input with this output.  */
+    /** Calls [sp.it.pl.layout.widget.controller.io.Input.unbind] on specified input with this output. */
     fun unbind(input: Input<in T>) = input.unbind(this)
 
-    /** Calls [sp.it.pl.layout.widget.controller.io.Input.unbind] on all inputs bound to this output.  */
+    /** Calls [sp.it.pl.layout.widget.controller.io.Input.unbind] on all inputs bound to this output. */
     fun unbindAll() {
         IOLayer.allConnections.keys.asSequence()
                 .filter { it.key1()==this || it.key2()==this }

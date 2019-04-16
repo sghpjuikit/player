@@ -2,6 +2,7 @@ package sp.it.pl.layout.area
 
 import javafx.animation.PathTransition
 import javafx.beans.property.DoubleProperty
+import javafx.beans.property.Property
 import javafx.collections.FXCollections.observableSet
 import javafx.event.EventHandler
 import javafx.geometry.Point2D
@@ -91,8 +92,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     private val padding = 15.0
     private val tTranslate: DoubleProperty
-    private val tScaleX: DoubleProperty
-    private val tScaleY: DoubleProperty
+    private val tScaleX: Property<Number>
+    private val tScaleY: Property<Number>
     private var anim1Opacity = 0.0
     private var anim2Opacity = 0.0
     private var anim3Opacity = 0.0
@@ -180,8 +181,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         isPickOnBounds = false
         tTranslate = switchPane.translateProperty()
         tScaleX = switchPane.zoomProperty()
-        tScaleY = switchPane.zoomProperty()
         tScaleX attach { layoutChildren() } on disposer
+        tScaleY = v(1.0)    // switchPane.zoomProperty()
         translateXProperty().bind(tTranslate.multiply(tScaleX))
         parentProperty().syncNonNullWhile { it.onEventUp(MOUSE_CLICKED) { selectNode(null) } } on disposer
 
@@ -324,9 +325,9 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
             val wr = w.areaTemp.root
             val b = wr.localToScene(wr.boundsInLocal)
-            val baseX = b.minX/tScaleX.doubleValue()-translationOffset
+            val baseX = b.minX/tScaleX.value.toDouble()-translationOffset
             val baseY = b.minY-headerOffset
-            val ww = b.width/tScaleX.doubleValue()
+            val ww = b.width/tScaleX.value.toDouble()
             val wh = b.height
             val ihx = wh/(`is`.size+1)
             val ohx = wh/(os.size+1)
@@ -386,11 +387,11 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         }
     }
 
-    private fun calcScaleX(x: Double): Double = x*tScaleX.doubleValue()
+    private fun calcScaleX(x: Double): Double = x*tScaleX.value.toDouble()
 
     private fun calcScaleY(y: Double): Double {
         val middle = height/2
-        return middle+tScaleY.doubleValue()*(y-middle)
+        return middle+tScaleY.value.toDouble()*(y-middle)
     }
 
     private abstract inner class XNode<X: XPut<*>, P: Pane>(xPut: X) {

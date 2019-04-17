@@ -5,6 +5,7 @@ import javafx.beans.property.DoubleProperty
 import javafx.beans.property.Property
 import javafx.collections.FXCollections.observableSet
 import javafx.event.EventHandler
+import javafx.scene.Node
 import javafx.scene.input.DragEvent.DRAG_ENTERED
 import javafx.scene.input.DragEvent.DRAG_EXITED
 import javafx.scene.input.MouseButton.PRIMARY
@@ -79,8 +80,8 @@ private typealias Compute<T> = java.util.function.Function<Key<Put<*>, Put<*>>, 
  * Display for [sp.it.pl.layout.widget.controller.io.XPut] of components, displaying their relations as am editable graph.
  */
 class IOLayer(private val switchPane: SwitchPane): StackPane() {
-    private val inputNodes = HashMap<Input<*>, XNode<*>>()
-    private val outputNodes = HashMap<Output<*>, XNode<*>>()
+    private val inputNodes = HashMap<Input<*>, XNode>()
+    private val outputNodes = HashMap<Output<*>, XNode>()
     private val inoutputNodes = HashMap<InOutput<*>, InOutputNode>()
     private val links = Map2D<Put<*>, Put<*>, IOLink>()
 
@@ -124,9 +125,9 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
     private var anim3Opacity = 0.0
 
     private var edit: EditIOLink? = null
-    private var editFrom: XNode<*>? = null
-    private var editTo: XNode<*>? = null
-    private var selected: XNode<*>? = null
+    private var editFrom: XNode? = null
+    private var editTo: XNode? = null
+    private var selected: XNode? = null
 
     private val disposer = Disposer()
 
@@ -152,7 +153,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     private fun remInput(i: Input<*>) {
         allInputs -= i
-        removeChild(inputNodes.remove(i))
+        inputNodes.remove(i)?.let { children -= it.graphics }
         links.removeIf { it.key1()==i || it.key2()==i }.forEach { it.disposer() }
     }
 
@@ -167,7 +168,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     private fun remOutput(o: Output<*>) {
         allOutputs -= o
-        removeChild(outputNodes.remove(o))
+        outputNodes.remove(o)?.let { children -= it.graphics }
         links.removeIf { it.key1()==o || it.key2()==o }.forEach { it.disposer() }
     }
 
@@ -187,7 +188,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         allInoutputs -= io
         inputNodes -= io.i
         outputNodes -= io.o
-        removeChild(inoutputNodes.remove(io))
+        inoutputNodes.remove(io)?.let { children -= it.graphics }
         links.removeIf { it.key1()==io.i || it.key1()==io.o || it.key2()==io.i || it.key2()==io.o }.forEach { it.disposer() }
     }
 
@@ -255,20 +256,16 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
     }
 
     fun dispose() {
+        allLayers -= this
         children.clear()
         inputNodes.values.forEach { it.disposer() }
         outputNodes.values.forEach { it.disposer() }
         inoutputNodes.values.forEach { it.disposer() }
         links.values.forEach { it.disposer() }
         disposer()
-        allLayers -= this
     }
 
-    private fun removeChild(n: XNode<*>?) {
-        if (n!=null) children -= n.graphics
-    }
-
-    private fun editBegin(eFrom: XNode<*>?) {
+    private fun editBegin(eFrom: XNode?) {
         if (eFrom==null) return
 
         selectNode(null)
@@ -278,8 +275,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         editFrom = eFrom
 
         // start effect: disable & visually differentiate bindable & unbindable nodes
-        e.link.pseudoClassStateChanged(pseudoclass("highlighted"), true)
-        eFrom.i.pseudoClassStateChanged(pseudoclass("highlighted"), true)
+        e.link.change("highlighted", true)
+        eFrom.i.change("highlighted", true)
         outputNodes.forEach { (_, node) -> node.onEditActive(true, node.output===eFrom.output) }
         inputNodes.forEach { (_, node) -> node.onEditActive(true, node.input!!.isAssignable(eFrom.output!!)) }
         inoutputNodes.forEach { (_, node) -> node.onEditActive(true, node.output===eFrom.output || node.input!!.isAssignable(eFrom.output!!)) }
@@ -297,9 +294,9 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
                 .find { it.input!!.isAssignable(eFrom.output!!) }
 
         if (editTo!==n) {
-            editTo?.i?.pseudoClassStateChanged(pseudoclass("highlighted"), false)
+            editTo?.i?.change("highlighted", false)
             editTo = n
-            editTo?.i?.pseudoClassStateChanged(pseudoclass("highlighted"), true)
+            editTo?.i?.change("highlighted", true)
         }
     }
 
@@ -325,19 +322,19 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         e.link.disposer()
 
         // stop effect: disable & visually differentiate bindable nodes
-        eFrom.i.pseudoClassStateChanged(pseudoclass("highlighted"), false)
+        eFrom.i.change("highlighted", false)
         outputNodes.forEach { (_, node) -> node.onEditActive(false, true) }
         inputNodes.forEach { (_, node) -> node.onEditActive(false, true) }
         links.forEach { _, link -> link.onEditActive(false) }
     }
 
-    private fun selectNode(n: XNode<*>?) {
+    private fun selectNode(n: XNode?) {
         selected?.select(false)
         selected = n
         selected?.select(true)
     }
 
-    private fun xNodes(): Sequence<XNode<*>> = (inputNodes.asSequence()+outputNodes.asSequence()+inoutputNodes.asSequence()).map { it.value }
+    private fun xNodes(): Sequence<XNode> = (inputNodes.asSequence()+outputNodes.asSequence()+inoutputNodes.asSequence()).map { it.value }
 
     override fun layoutChildren() {
         val headerOffset = switchPane.root.localToScene(0.0, 0.0).y
@@ -391,8 +388,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     fun drawGraph() {
         links.forEach { input, output, link ->
-            val i: XNode<*>? = inputNodes[input] ?: outputNodes[input]
-            val o: XNode<*>? = inputNodes[output] ?: outputNodes[output]
+            val i: XNode? = inputNodes[input] ?: outputNodes[input]
+            val o: XNode? = inputNodes[output] ?: outputNodes[output]
             if (i!=null && o!=null) {
                 link.isVisible = i.graphics.isVisible && o.graphics.isVisible
                 if (link.isVisible) {
@@ -413,7 +410,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         return middle+tScaleY.value.toDouble()*(y-middle)
     }
 
-    private abstract inner class XNode<X: XPut<*>>(xPut: X, iconStyleclass: String) {
+    private abstract inner class XNode(xPut: XPut<*>, iconStyleclass: String) {
         val input: Input<*>?
         val output: Output<*>?
         val inoutput: InOutput<*>?
@@ -479,7 +476,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         fun select(v: Boolean) {
             if (selected==v) return
             selected = v
-            i.pseudoClassStateChanged(pcXNodeSelected, v)
+            i.change("selected", v)
         }
 
         fun onEditActive(active: Boolean, canAccept: Boolean) {
@@ -512,10 +509,10 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         }
     }
 
-    private inner class InputNode(xPut: Input<*>): XNode<Input<*>>(xPut, "inode") {
+    private inner class InputNode(xPut: Input<*>): XNode(xPut, "inode") {
         init {
-            i.onEventUp(DRAG_ENTERED) { i.pseudoClassStateChanged(pcXNodeDragOver, true) }
-            i.onEventUp(DRAG_EXITED) { i.pseudoClassStateChanged(pcXNodeDragOver, false) }
+            i.onEventUp(DRAG_ENTERED) { i.change("drag-over", true) }
+            i.onEventUp(DRAG_EXITED) { i.change("drag-over", false) }
             installDrag(
                     i, IconFA.CLIPBOARD, "",
                     { true },
@@ -535,7 +532,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         }
     }
 
-    private inner class OutputNode(xPut: Output<*>): XNode<Output<*>>(xPut, "onode") {
+    private inner class OutputNode(xPut: Output<*>): XNode(xPut, "onode") {
         init {
             i.onEventUp(DRAG_DETECTED) {
                 if (selected) i.startDragAndDrop(TransferMode.LINK)[Df.WIDGET_OUTPUT] = output!!
@@ -545,10 +542,10 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         }
     }
 
-    private inner class InOutputNode(xPut: InOutput<*>): XNode<InOutput<*>>(xPut, "ionode") {
+    private inner class InOutputNode(xPut: InOutput<*>): XNode(xPut, "ionode") {
         init {
-            i.onEventUp(DRAG_ENTERED) { i.pseudoClassStateChanged(pcXNodeDragOver, true) }
-            i.onEventUp(DRAG_EXITED) { i.pseudoClassStateChanged(pcXNodeDragOver, false) }
+            i.onEventUp(DRAG_ENTERED) { i.change("drag-over", true) }
+            i.onEventUp(DRAG_EXITED) { i.change("drag-over", false) }
             i.onEventUp(DRAG_DETECTED) {
                 if (selected) i.startDragAndDrop(TransferMode.LINK)[Df.WIDGET_OUTPUT] = output!!
                 else editBegin(this)
@@ -606,8 +603,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
             hoverProperty() attach {
                 val n1 = inputNodes[input] ?: outputNodes[input]
                 val n2 = inputNodes[output] ?: outputNodes[output]
-                n1?.i?.pseudoClassStateChanged(pseudoclass("highlighted"), it)
-                n2?.i?.pseudoClassStateChanged(pseudoclass("highlighted"), it)
+                n1?.i?.change("highlighted", it)
+                n2?.i?.change("highlighted", it)
             }
             onEventDown(MOUSE_CLICKED, SECONDARY) {
                 if (input is Input<*> && output is Output<*>)
@@ -719,13 +716,13 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     }
 
-    private inner class EditIOLink(node: XNode<*>)  {
+    private inner class EditIOLink(node: XNode)  {
         val link = IOLink(node.input, node.output)
         val isValueOnly = v(false)
 
         init {
             link.styleClass += "iolink-edit"
-            isValueOnly attach { link.pseudoClassStateChanged(pseudoclass("value-only"), it) } on disposer
+            isValueOnly attach { link.change("value-only", it) } on disposer
 
             val editDrawer = EventHandler<MouseEvent> {
                 isValueOnly.value = it.isShiftDown
@@ -747,15 +744,12 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
     }
 
     companion object {
-        private val pcXNodeDragOver = pseudoclass("drag-over")
-        private val pcXNodeSelected = pseudoclass("selected")
-        private val contextMenuInstance by lazy { ValueContextMenu<XPut<*>>() }
-
         @JvmField val allLayers = observableSet<IOLayer>()!!
         @JvmField val allLinks = Map2D<Put<*>, Put<*>, Any>()
         @JvmField val allInputs = observableSet<Input<*>>()!!
         @JvmField val allOutputs = observableSet<Output<*>>()!!
         @JvmField val allInoutputs = observableSet<InOutput<*>>()!!
+        private val contextMenuInstance by lazy { ValueContextMenu<XPut<*>>() }
 
         @JvmStatic
         fun requestLayoutForAll() {
@@ -795,6 +789,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
                 APP.className[type]
             }
         }
+
+        private fun Node.change(pseudoClassState: String, state: Boolean) = pseudoClassStateChanged(pseudoclass(pseudoClassState), state)
 
         private fun Path.duplicateTo(path: Path) {
             elements.onItemAdded { path.elements += it }

@@ -2,7 +2,6 @@ package sp.it.pl.layout.area
 
 import javafx.animation.PathTransition
 import javafx.beans.property.DoubleProperty
-import javafx.beans.property.Property
 import javafx.collections.FXCollections.observableSet
 import javafx.event.EventHandler
 import javafx.scene.Node
@@ -117,11 +116,10 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     private val padding = 20.0
     private val tTranslate: DoubleProperty
-    private val tScaleX: Property<Number>
-    private val tScaleY: Property<Number>
-    private var anim1Opacity = 0.0
-    private var anim2Opacity = 0.0
-    private var anim3Opacity = 0.0
+    private val tScaleX: DoubleProperty
+    private var animPos1 = 0.0
+    private var animPos2 = 0.0
+    private var animPos3 = 0.0
 
     private var edit: EditIOLink? = null
     private var editFrom: XNode? = null
@@ -129,6 +127,67 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
     private var selected: XNode? = null
 
     private val disposer = Disposer()
+
+    init {
+        interact(doLayout = true, noMouse = false, noPick = false)
+        tTranslate = switchPane.translateProperty()
+        tScaleX = switchPane.zoomProperty()
+        tScaleX attach { requestLayout() } on disposer
+        translateXProperty().bind(tTranslate.multiply(tScaleX))
+        parentProperty().syncNonNullWhile { it.onEventUp(MOUSE_CLICKED) { selectNode(null) } } on disposer
+
+        paneLinks.interact(doLayout = false, noMouse = false, noPick = false)
+        paneNodes.interact(doLayout = false, noMouse = false, noPick = false)
+        paneLabels.interact(doLayout = false, noMouse = true, noPick = false)
+        children += listOf(paneLinks, paneNodes, paneLabels)
+
+        visibleProperty() attach { if (it) paneLabelsLayouter.start() else paneLabelsLayouter.stop() } on disposer
+        disposer += { paneLabelsLayouter.stop() }
+
+        var aDir = true
+        val av = anim(900.millis) {
+            isVisible = it!=0.0
+            isMouseTransparent = it!=1.0
+            animPos1 = if(aDir) it else mapTo01(it, 0.0, 0.2)
+            animPos2 = if(aDir) it else mapTo01(it, 0.25, 0.65)
+            animPos3 = if(aDir) it else mapTo01(it, 0.8, 1.0)
+
+            paneLinks.opacity = animPos1
+            links.forEach { _, _, link ->
+                link.showClip1.setScaleXY(animPos2)
+                link.showClip2.setScaleXY(animPos2)
+            }
+            paneLabels.opacity = animPos3
+        }.applyAt(0.0)
+        val avReducer = EventReducer.toLast<Any>(100.0) {
+            if (APP.ui.layoutMode.value)
+                av.dur(900.millis).playOpen()
+        }
+        APP.ui.layoutMode attach {
+            aDir = !it
+            if (it) avReducer.push(null)
+            else av.dur(300.millis).playClose()
+        } on disposer
+
+        allInputs.onItemSync { addInput(it) } on disposer
+        allInputs.onItemRemoved { remInput(it) } on disposer
+        allOutputs.onItemSync { addOutput(it) } on disposer
+        allOutputs.onItemRemoved { remOutput(it) } on disposer
+        allInoutputs.onItemSync { addInOutput(it) } on disposer
+        allInoutputs.onItemRemoved { remInOutput(it) } on disposer
+
+        allLayers += this
+    }
+
+    fun dispose() {
+        allLayers -= this
+        children.clear()
+        inputNodes.values.forEach { it.disposer() }
+        outputNodes.values.forEach { it.disposer() }
+        inoutputNodes.values.forEach { it.disposer() }
+        links.values.forEach { it.disposer() }
+        disposer()
+    }
 
     private fun addInput(i: Input<*>) {
         allInputs += i
@@ -187,68 +246,6 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     private fun remConnection(i: Put<*>, o: Put<*>) {
         links.remove2D(i, o)?.let { it.disposer() }
-    }
-
-    init {
-        interact(doLayout = true, noMouse = false, noPick = false)
-        tTranslate = switchPane.translateProperty()
-        tScaleX = switchPane.zoomProperty()
-        tScaleX attach { layoutChildren() } on disposer
-        tScaleY = v(1.0)    // switchPane.zoomProperty()
-        translateXProperty().bind(tTranslate.multiply(tScaleX))
-        parentProperty().syncNonNullWhile { it.onEventUp(MOUSE_CLICKED) { selectNode(null) } } on disposer
-
-        paneLinks.interact(doLayout = false, noMouse = false, noPick = false)
-        paneNodes.interact(doLayout = false, noMouse = false, noPick = false)
-        paneLabels.interact(doLayout = false, noMouse = true, noPick = false)
-        children += listOf(paneLinks, paneNodes, paneLabels)
-
-        visibleProperty() attach { if (it) paneLabelsLayouter.start() else paneLabelsLayouter.stop() } on disposer
-        disposer += { paneLabelsLayouter.stop() }
-
-        var aDir = true
-        val av = anim(900.millis) {
-            isVisible = it!=0.0
-            isMouseTransparent = it!=1.0
-            anim1Opacity = if(aDir) it else mapTo01(it, 0.0, 0.2)
-            anim2Opacity = if(aDir) it else mapTo01(it, 0.25, 0.65)
-            anim3Opacity = if(aDir) it else mapTo01(it, 0.8, 1.0)
-
-            paneLinks.opacity = anim1Opacity
-            links.forEach { _, _, link ->
-                link.showClip1.setScaleXY(anim2Opacity)
-                link.showClip2.setScaleXY(anim2Opacity)
-            }
-            paneLabels.opacity = anim3Opacity
-        }.applyAt(0.0)
-        val avReducer = EventReducer.toLast<Any>(100.0) {
-            if (APP.ui.layoutMode.value)
-                av.dur(900.millis).playOpen()
-        }
-        APP.ui.layoutMode attach {
-            aDir = !it
-            if (it) avReducer.push(null)
-            else av.dur(300.millis).playClose()
-        } on disposer
-
-        allInputs.onItemSync { addInput(it) } on disposer
-        allInputs.onItemRemoved { remInput(it) } on disposer
-        allOutputs.onItemSync { addOutput(it) } on disposer
-        allOutputs.onItemRemoved { remOutput(it) } on disposer
-        allInoutputs.onItemSync { addInOutput(it) } on disposer
-        allInoutputs.onItemRemoved { remInOutput(it) } on disposer
-
-        allLayers += this
-    }
-
-    fun dispose() {
-        allLayers -= this
-        children.clear()
-        inputNodes.values.forEach { it.disposer() }
-        outputNodes.values.forEach { it.disposer() }
-        inoutputNodes.values.forEach { it.disposer() }
-        links.values.forEach { it.disposer() }
-        disposer()
     }
 
     private fun editBegin(eFrom: XNode?) {
@@ -391,10 +388,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     private fun calcScaleX(x: Double): Double = x*tScaleX.value.toDouble()
 
-    private fun calcScaleY(y: Double): Double {
-        val middle = height/2
-        return middle+tScaleY.value.toDouble()*(y-middle)
-    }
+    private fun calcScaleY(y: Double): Double = y
 
     private abstract inner class XNode(xPut: XPut<*>, iconStyleclass: String) {
         val input: Input<*>?
@@ -572,8 +566,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
             styleClass += "iolink"
             isMouseTransparent = false
             isPickOnBounds = false
-            showClip1.setScaleXY(anim3Opacity)
-            showClip2.setScaleXY(anim3Opacity)
+            showClip1.setScaleXY(animPos2)
+            showClip2.setScaleXY(animPos2)
             clip = showClip
             paneLinks.children += this
             disposer += { paneLinks.children -= this }
@@ -610,10 +604,10 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
         fun layInputs(inX: Double, inY: Double, outX: Double, outY: Double) {
             layInit(inX, inY, outX, outY)
-            elements += MoveTo(inX+loX(1.0, 1.0), inY+loY(1.0, 1.0))
-            elements += LineTo(inX+linkGap, inY+linkGap)
-            elements += LineTo(outX+linkGap, outY-linkGap)
-            elements += LineTo(outX+loX(1.0, 1.0), outY-loY(1.0, 1.0))
+            elements += MoveTo(inX+loX(1.0, 1.0), inY-loY(1.0, 1.0))
+            elements += LineTo(inX+linkGap, inY-linkGap)
+            elements += LineTo(outX+linkGap, outY+linkGap)
+            elements += LineTo(outX+loX(1.0, 1.0), outY+loY(1.0, 1.0))
         }
 
         fun layOutputs(inX: Double, inY: Double, outX: Double, outY: Double) {
@@ -739,13 +733,11 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         @JvmField val allInoutputs = observableSet<InOutput<*>>()!!
         private val contextMenuInstance by lazy { ValueContextMenu<XPut<*>>() }
 
-        @JvmStatic
         fun addLinkForAll(i: Put<*>, o: Put<*>) {
             allLinks.put(i, o, Any())
             allLayers.forEach { it.addConnection(i, o) }
         }
 
-        @JvmStatic
         fun remLinkForAll(i: Put<*>, o: Put<*>) {
             allLinks.remove2D(i, o)
             allLayers.forEach { it.remConnection(i, o) }

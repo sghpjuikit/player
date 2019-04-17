@@ -58,7 +58,6 @@ import static java.util.Objects.deepEquals;
 import static sp.it.pl.layout.widget.EmptyWidgetKt.getEmptyWidgetFactory;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.file.Util.deleteFile;
 import static sp.it.util.file.Util.writeFile;
 import static sp.it.util.functional.Util.ISNTØ;
@@ -224,8 +223,6 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 				}
 			}
 		}
-
-		updateIOLayout();
 
 		return root;
 	}
@@ -606,14 +603,6 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 		IOLayer.allInputs.addAll(controller.io.i.getInputs());
 		IOLayer.allOutputs.addAll(controller.io.o.getOutputs());
 		deserializeWidgetIO();
-	}
-
-	// called when widget is added/removed/moved within the scenegraph - we need to redraw the
-	// i/o connections
-	private void updateIOLayout() {
-		// because we call this before the widget is part of scenegraph, we delay execution
-		// suffering from badly designed (recursive) widget loading again...
-		runLater(() -> IOLayer.requestLayoutForAll());
 	}
 
 	/** Widget metadata. Passed from code to program. Use on controller class. */

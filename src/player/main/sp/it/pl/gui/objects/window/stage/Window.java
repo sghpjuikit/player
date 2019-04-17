@@ -96,7 +96,6 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.access.SequentialValue.next;
 import static sp.it.util.access.SequentialValue.previous;
 import static sp.it.util.animation.Anim.animPar;
-import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.forEachIRStream;
@@ -283,11 +282,6 @@ public class Window extends WindowBase {
 			if (e.getCode().equals(ActionManager.INSTANCE.getKeyManageLayout())) {
 				if (e.getEventType().equals(KEY_RELEASED)) APP.ui.setLayoutMode(false);
 				if (e.getEventType().equals(KEY_PRESSED)) APP.ui.setLayoutMode(true);
-				if (e.getEventType().equals(KEY_PRESSED) && getSwitchPane()!=null)
-					runLater(() -> {
-						getSwitchPane().widget_io.layout();
-						getSwitchPane().widget_io.drawGraph();
-					});
 			}
 			// toggle maximized
 			if (e.getEventType().equals(KEY_PRESSED)) {

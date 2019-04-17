@@ -2248,31 +2248,31 @@ icon-info-icon {
  * inherits: Path
  * pseudoclasses: highlighted - when line (including input/output) is hovered or edited
  */
-.ioline {
+.iolink {
     -fx-opacity: 0.5;
     -fx-stroke: -skin-def-font-color;
     -fx-stroke-width: 2;
     -fx-fill: null; /* bgr of the shape the path makes - we do not want any*/
 }
 
-.ioline:hover,
-.ioline:highlighted {
+.iolink:hover,
+.iolink:highlighted {
     -fx-opacity: 1;
     -fx-stroke: -fx-focus-color;
     -fx-stroke-width: 2;
 }
 
-.ioline:disabled {
+.iolink:disabled {
     -fx-opacity: 0.2;
 }
 
 /*
  * Line visible during edit, when user links two i/o nodes
- * inherits: .ioline
+ * inherits: .iolink
  * pseudoclasses: value-only - when only value is transferred instead of nodes permanently connected
  */
-.ioline-edit {}
-.ioline-edit:value-only {
+.iolink-edit {}
+.iolink-edit:value-only {
     -fx-stroke-dash-array: 2 12 12 2;
 }
 
@@ -2280,7 +2280,7 @@ icon-info-icon {
  * Dot runner effect on line when data changes
  * inherits: Circle, Shape
  */
-.ioline-effect-dot {
+.iolink-effect-dot {
     -fx-fill: -fx-focus-color;
 }
 
@@ -2288,7 +2288,7 @@ icon-info-icon {
  * Area runner effect on line when data changes
  * inherits: Path, Shape
  */
-.ioline-effect-line {
+.iolink-effect-link {
     -fx-stroke: -fx-focus-color;
     -fx-stroke-width: 3;
 }
@@ -2297,7 +2297,7 @@ icon-info-icon {
  * Highlight effect on receiving node when data arrives
  * inherits: Circle, Shape
  */
-.ioline-effect-receive {
+.iolink-effect-receive {
     -fx-radius: 0.5em;
     -fx-fill: null;
     -fx-stroke: -fx-focus-color;

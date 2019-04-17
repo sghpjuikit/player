@@ -43,6 +43,9 @@ import sp.it.pl.layout.container.switchcontainer.SwitchContainer
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.layout.widget.WidgetUse.ANY
+import sp.it.pl.layout.widget.controller.io.InOutput
+import sp.it.pl.layout.widget.controller.io.Input
+import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.plugin.Plugin
@@ -500,22 +503,28 @@ class App: Application(), Configurable<Any> {
         add(Plugin::class.java, "Plugin")
         add(Widget::class.java, "Widget")
         add(Container::class.java, "Container")
+        add(Input::class.java, "Input")
+        add(Output::class.java, "Output")
+        add(InOutput::class.java, "In-Output")
         add(Feature::class.java, "Feature")
         add(List::class.java, "List")
     }
 
     private fun InstanceName.initApp() {
         add(Void::class.java) { "<none>" }
-        add(File::class.java, { it.path })
+        add(File::class.java) { it.path }
         add(App::class.java) { "This application" }
-        add(Song::class.java, { it.getPathAsString() })
-        add(PlaylistSong::class.java, { it.getTitle() })
-        add(Metadata::class.java, { it.getTitleOrEmpty() })
+        add(Song::class.java) { it.getPathAsString() }
+        add(PlaylistSong::class.java) { it.getTitle() }
+        add(Metadata::class.java) { it.getTitleOrEmpty() }
         add(MetadataGroup::class.java) { it.getValueS("<none>") }
-        add(Service::class.java, { it.name })
-        add(Plugin::class.java, { it.name })
-        add(Component::class.java, { it.exportName })
-        add(Feature::class.java, { "Feature" })
+        add(Service::class.java) { it.name }
+        add(Plugin::class.java) { it.name }
+        add(Component::class.java) { it.exportName }
+        add(Feature::class.java) { "Feature" }
+        add(Input::class.java) { it.name }
+        add(Output::class.java) { it.name }
+        add(InOutput::class.java) { it.o.name }
         add(Collection::class.java) {
             val eType = getGenericPropertyType(it.javaClass)
             val eName = if (eType==it.javaClass || eType==null || eType==Any::class.java) "Item" else className[eType]

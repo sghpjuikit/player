@@ -59,9 +59,15 @@ object CoreMenus: Core {
 
     override fun init() {
         menuItemBuilders.apply {
+            addNull {
+                menu("Inspect in") {
+                    item("Object viewer") { APP.actionPane.show(selected) }
+                    widgetItems<Opener> { it.open(selected) }
+                }
+            }
             add<Any> {
-                item("Show available actions") { APP.actionPane.show(selected) }
-                menu("Show in") {
+                menu("Inspect in") {
+                    item("Object viewer") { APP.actionPane.show(selected) }
                     widgetItems<Opener> { it.open(selected) }
                 }
                 if (APP.developerMode)
@@ -200,26 +206,29 @@ object CoreMenus: Core {
                     menuFor(contextMenu, selected.representant)
             }
             add<Input<*>> {
+                menuFor(contextMenu, "Value", selected.value)
                 menu("Link") {
                     item("All identical") { selected.bindAllIdentical() }
                 }
                 menu("Unlink") {
-                    item("Inbound") { selected.unbindAll() }
+                    item("All inbound") { selected.unbindAll() }
                 }
             }
             add<Output<*>> {
+                menuFor(contextMenu, "Value", selected.value)
                 menu("Unlink") {
-                    item("Outbound") { selected.unbindAll() }
+                    item("All outbound") { selected.unbindAll() }
                 }
             }
             add<InOutput<*>> {
+                menuFor(contextMenu, "Value", selected.o.value)
                 menu("Link") {
                     item("All identical") { selected.i.bindAllIdentical() }
                 }
                 menu("Unlink") {
                     item("All") { selected.i.unbindAll(); selected.o.unbindAll() }
-                    item("Inbound") { selected.i.unbindAll() }
-                    item("Outbound") { selected.o.unbindAll() }
+                    item("All inbound") { selected.i.unbindAll() }
+                    item("All outbound") { selected.o.unbindAll() }
                 }
             }
         }

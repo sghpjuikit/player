@@ -20,8 +20,17 @@ val contextMenuGenerator = ContextMenuGenerator()
 
 /** Context menu generator with per type generator registry */
 class ContextMenuGenerator {
+
+    private val mNull = ArrayList<(ContextMenu, Any?) -> Sequence<MenuItem>>()
     private val mSingle = ClassListMap<(ContextMenu, Any?) -> Sequence<MenuItem>> { fail() }
     private val mMany = ClassListMap<(ContextMenu, Any?) -> Sequence<MenuItem>> { fail() }
+
+    @Suppress("UNCHECKED_CAST")
+    fun addNull(items: Builder<Nothing?>.() -> Unit) {
+        mNull += { menu, item ->
+            Builder(menu, item as Nothing?).apply(items).asSequence()
+        }
+    }
 
     @Suppress("UNCHECKED_CAST")
     fun <T: Any> add(type: Class<T>, items: Builder<T>.() -> Unit) {
@@ -45,8 +54,8 @@ class ContextMenuGenerator {
         val valueSingle = value?.let { collectionUnwrap(it) }
         val valueMulti = value?.let { collectionWrap(value) }?.takeUnless { it.isEmpty() }
 
-        val items1Type = valueSingle?.javaClass ?: Void::class.java
-        val items1 = mSingle.getElementsOfSuperV(items1Type)
+        val items1Type = valueSingle?.javaClass
+        val items1 = valueSingle?.net { mSingle.getElementsOfSuperV(items1Type) } ?: mNull
 
         val itemsNType = valueMulti.asIf<Collection<*>>()?.getElementType()
         val itemsN = itemsNType?.net { mMany.getElementsOfSuperV(it) } ?: listOf()

@@ -40,10 +40,7 @@
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
 
-
-/**
- * Remove icon border from specified .icon elements
- */
+/** Remove icon border from specified .icon elements */
 .inode,
 .onode,
 .ionode,
@@ -60,6 +57,27 @@
 .value-text-field-arrow,
 .value-text-field-arrow: hover {
     -fx-border-width: 0.0
+}
+
+.inode:hover Text,
+.onode:hover Text,
+.ionode:hover Text,
+.inode:highlighted Text,
+.onode:highlighted Text,
+.ionode:highlighted Text,
+.inode:hover,
+.onode:hover,
+.ionode:hover,
+.inode:highlighted,
+.onode:highlighted,
+.ionode:highlighted {
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
+    -fx-border-width: 0.0
+}
+
+.ioline:hover,
+.ioline:highlighted {
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
 
 .inode:selected,

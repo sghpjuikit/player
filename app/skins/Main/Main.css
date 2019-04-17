@@ -2131,7 +2131,7 @@ icon-info-icon {
 
 /********************************** SPINNER ****************************************************************************
  * Simple progress indicator control.
- * inherits: .arc, .shape
+ * inherits: Arc, Shape
  */
 
 .spinner {
@@ -2200,6 +2200,8 @@ icon-info-icon {
  * all three behave the same with same properties, etc.
  * inherits: .icon
  * pseudoclasses: drag-over  - when user's drag&drop hovers on this icon
+ *                highlighted - when line (including input/output) is hovered or edited
+ *                selected - when node is clicked
  */
 .inode,
 .onode,
@@ -2216,6 +2218,23 @@ icon-info-icon {
     -fx-scale-y: 1.3;
 }
 
+.inode:hover Text,
+.onode:hover Text,
+.ionode:hover Text,
+.inode:highlighted Text,
+.onode:highlighted Text,
+.ionode:highlighted Text,
+.inode:hover,
+.onode:hover,
+.ionode:hover,
+.inode:highlighted,
+.onode:highlighted,
+.ionode:highlighted {
+    -fx-stroke: -fx-focus-color;
+    -fx-text-fill: -fx-focus-color;
+    -fx-fill: -fx-focus-color;
+}
+
 .inode:selected,
 .onode:selected,
 .ionode:selected {
@@ -2226,7 +2245,8 @@ icon-info-icon {
 
 /* 
  * Output -> Input connection line.
- * inherits: .path
+ * inherits: Path
+ * pseudoclasses: highlighted - when line (including input/output) is hovered or edited
  */
 .ioline {
     -fx-opacity: 0.5;
@@ -2234,15 +2254,14 @@ icon-info-icon {
     -fx-stroke-width: 2;
     -fx-fill: null; /* bgr of the shape the path makes - we do not want any*/
 }
-.ioline:value-only {
-    -fx-stroke-dash-array: 2 12 12 2;
-}
-.ioline:hover {
+
+.ioline:hover,
+.ioline:highlighted {
     -fx-opacity: 1;
     -fx-stroke: -fx-focus-color;
-    -fx-stroke-width: 3;
+    -fx-stroke-width: 2;
 }
-/* .path does not seem to have disabled pseudoclass defined so we do it here */
+
 .ioline:disabled {
     -fx-opacity: 0.2;
 }

@@ -268,32 +268,38 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         if (n!=null) children -= n.graphics
     }
 
-    private fun editBegin(n: XNode<*>?) {
-        if (n==null) return
+    private fun editBegin(eFrom: XNode<*>?) {
+        if (eFrom==null) return
 
-        editFrom = n
-        edit = EditIOLine(n)
+        selectNode(null)
+
+        val e = EditIOLine(eFrom)
+        edit = e
+        editFrom = eFrom
 
         // start effect: disable & visually differentiate bindable & unbindable nodes
-        outputNodes.forEach { (_, node) -> node.onEditActive(true, node.output===editFrom!!.output) }
-        inputNodes.forEach { (_, node) -> node.onEditActive(true, node.input!!.isAssignable(editFrom!!.output!!)) }
-        inoutputNodes.forEach { (_, node) -> node.onEditActive(true, node.output===editFrom!!.output || node.input!!.isAssignable(editFrom!!.output!!)) }
+        e.line.pseudoClassStateChanged(pseudoclass("highlighted"), true)
+        eFrom.i.pseudoClassStateChanged(pseudoclass("highlighted"), true)
+        outputNodes.forEach { (_, node) -> node.onEditActive(true, node.output===eFrom.output) }
+        inputNodes.forEach { (_, node) -> node.onEditActive(true, node.input!!.isAssignable(eFrom.output!!)) }
+        inoutputNodes.forEach { (_, node) -> node.onEditActive(true, node.output===eFrom.output || node.input!!.isAssignable(eFrom.output!!)) }
         links.forEach { _, line -> line.onEditActive(true) }
     }
 
-    private fun editMove(e: MouseEvent) {
-        if (edit==null || editFrom==null) return
+    private fun editMove(m: MouseEvent) {
+        val e = edit ?: return
+        val eFrom = editFrom ?: return
 
-        edit!!.line.lay(editFrom!!.x, editFrom!!.y, e.x, e.y)
+        e.line.lay(eFrom.x, eFrom.y, m.x, m.y)
 
         val n = inputNodes.values.asSequence()
-                .filter { pyth(it.x-e.x, it.y-e.y)<8 }
-                .find { it.input!!.isAssignable(editFrom!!.output!!) }
+                .filter { pyth(it.x-m.x, it.y-m.y)<8 }
+                .find { it.input!!.isAssignable(eFrom.output!!) }
 
         if (editTo!==n) {
-            editTo?.select(false)
+            editTo?.i?.pseudoClassStateChanged(pseudoclass("highlighted"), false)
             editTo = n
-            editTo?.select(true)
+            editTo?.i?.pseudoClassStateChanged(pseudoclass("highlighted"), true)
         }
     }
 
@@ -319,6 +325,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         e.line.disposer()
 
         // stop effect: disable & visually differentiate bindable nodes
+        eFrom.i.pseudoClassStateChanged(pseudoclass("highlighted"), false)
         outputNodes.forEach { (_, node) -> node.onEditActive(false, true) }
         inputNodes.forEach { (_, node) -> node.onEditActive(false, true) }
         links.forEach { _, line -> line.onEditActive(false) }
@@ -593,8 +600,14 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
             paneLinks.children += effect
             disposer += { paneLinks.children -= effect }
 
-            if (edit?.line!=this && input!=null && output!=null) {
-                output.attach { dataSend() } on disposer
+            if (input!=null && output!=null) {
+                output.attach { if (edit?.line!=this) dataSend() } on disposer
+            }
+            hoverProperty() attach {
+                val n1 = inputNodes[input] ?: outputNodes[input]
+                val n2 = inputNodes[output] ?: outputNodes[output]
+                n1?.i?.pseudoClassStateChanged(pseudoclass("highlighted"), it)
+                n2?.i?.pseudoClassStateChanged(pseudoclass("highlighted"), it)
             }
             onEventDown(MOUSE_CLICKED, SECONDARY) {
                 if (input is Input<*> && output is Output<*>)

@@ -46,6 +46,7 @@ import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
 import sp.it.util.ui.item
 import sp.it.util.ui.items
+import sp.it.util.ui.separator
 import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 import java.lang.reflect.InvocationTargetException
@@ -62,12 +63,14 @@ object CoreMenus: Core {
             addNull {
                 menu("Inspect in") {
                     item("Object viewer") { APP.actionPane.show(selected) }
+                    separator()
                     widgetItems<Opener> { it.open(selected) }
                 }
             }
             add<Any> {
                 menu("Inspect in") {
                     item("Object viewer") { APP.actionPane.show(selected) }
+                    separator()
                     widgetItems<Opener> { it.open(selected) }
                 }
                 if (APP.developerMode)

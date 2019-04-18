@@ -106,12 +106,12 @@ interface Constraint<in T> {
 
     /** Denotes type of [java.io.File]. For example to decide between file and directory chooser. */
     enum class FileActor constructor(private val condition: (File) -> Boolean, private val message: String): Constraint<File?> {
-        FILE( { it.isFile }, "File must not be directory"),
-        DIRECTORY( { it.isDirectory }, "File must be directory"),
+        FILE( { !it.exists() || it.isFile }, "File must not be directory"),
+        DIRECTORY( { !it.exists() || it.isDirectory }, "File must be directory"),
         ANY({ true }, "");
 
         override fun isValid(value: File?) = value==null || condition(value)
-        override fun message() =  message
+        override fun message() = message
 
     }
 

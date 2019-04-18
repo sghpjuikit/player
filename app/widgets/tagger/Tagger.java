@@ -64,7 +64,7 @@ import sp.it.pl.gui.objects.textfield.DecoratedTextField;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
-import sp.it.pl.layout.widget.controller.io.IsInput;
+import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.feature.SongReader;
 import sp.it.pl.layout.widget.feature.SongWriter;
 import sp.it.pl.main.AppProgress;
@@ -75,6 +75,7 @@ import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.conf.IsConfig;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.functional.Util;
+import sp.it.util.type.TypeToken;
 import sp.it.util.validation.InputConstraints;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -137,6 +138,7 @@ import static sp.it.util.async.AsyncKt.runNew;
 import static sp.it.util.file.Util.getSuffix;
 import static sp.it.util.functional.Util.noDups;
 import static sp.it.util.functional.Util.split;
+import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.maintain;
 import static sp.it.util.ui.UtilKt.createIcon;
@@ -174,6 +176,8 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
     private static Color EMPTY_COLOR = new Color(0, 0, 0, 0);
 
+    public final Input<List<Song>> inputValue;
+
     @FXML VBox content;
     @FXML BorderPane header;
     @FXML AnchorPane scrollContent;
@@ -208,6 +212,8 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         super(widget);
         root.setMinSize(USE_PREF_SIZE, USE_PREF_SIZE);
         root.setPrefSize(scaleEM(650), scaleEM(700));
+
+        inputValue = io.i.create("Edit", new TypeToken<List<Song>>() {}.getType(), null, consumer(v -> read(v)));
 
         fxmlLoaderForController(this).loadNoEx();
 
@@ -381,9 +387,10 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
      * <p/>
      * {@inheritDoc}
      */
+    @SuppressWarnings("unchecked")
     @Override
-    @IsInput("Edit")
     public void read(List<? extends Song> items) {
+        inputValue.setValue((List<Song>) items);
         if (items==null) return;
 
         // remove duplicates

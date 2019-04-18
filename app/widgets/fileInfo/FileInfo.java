@@ -27,7 +27,7 @@ import sp.it.pl.gui.pane.SlowAction;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
-import sp.it.pl.layout.widget.controller.io.IsInput;
+import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.SongReader;
 import sp.it.util.access.V;
@@ -119,6 +119,8 @@ public class FileInfo extends SimpleController implements SongReader {
                         gap3 = new Label(" ");
     private final List<Label> labels = new ArrayList<>();
 
+    public final Input<Song> inputValue;
+
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
     public final V<Double> minColumnWidth = new V<>(150.0).initAttachC(v -> tiles.layout());
     @IsConfig(name = "Cover source", info = "Source for cover image.")
@@ -156,6 +158,8 @@ public class FileInfo extends SimpleController implements SongReader {
     public FileInfo(Widget widget) {
         super(widget);
         root.setPrefSize(scaleEM(400.0), scaleEM(400.0));
+
+        inputValue = io.i.create("To display", Object.class, null, consumer(v -> dataReading.push(v)));
 
         // keep updated content (unless the content is scheduled for change, then this could cause invalid content)
         onClose.plusAssign(Player.onSongRefresh(refreshed -> {
@@ -250,9 +254,8 @@ public class FileInfo extends SimpleController implements SongReader {
     }
 
     @Override
-    @IsInput("To display")
     public void read(Song song) {
-        dataReading.push(song);
+        inputValue.setValue(song);
     }
 
     @Override

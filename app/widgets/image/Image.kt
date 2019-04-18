@@ -7,7 +7,6 @@ import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.controller.io.IsInput
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMD
@@ -42,8 +41,9 @@ import java.io.File
 )
 class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
 
-    private val thumb = Thumbnail()
+    val inputImg = io.i.create<File>("To display", null) { showImageImpl(it) }
 
+    private val thumb = Thumbnail()
     @IsConfig(name = "Custom image", info = "Image file to display.")
     private var img by cn<File>(null).only(FILE)
     @IsConfig(name = "Fit from", info = "Image fitting.")
@@ -62,20 +62,23 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
                 root, IconMD.DETAILS, "Display",
                 { e -> e.dragboard.hasImageFileOrUrl() },
                 { e -> img!=null && img==e.dragboard.getImageFile() },
-                { e -> e.dragboard.getImageFileOrUrl() ui { showImage(it) } }
+                { e -> e.dragboard.getImageFileOrUrl() ui { inputImg.value = it } }
         )
         root.onEventDown(KEY_PRESSED, ENTER) { img?.let { APP.actions.openImageFullscreen(it) } }
         root.onEventDown(KEY_PRESSED, SPACE) { fitFrom.setNextValue() }
 
-        showImage(img)
+        inputImg.value = img
     }
 
-    @IsInput("To display")
     override fun showImage(imgFile: File?) {
+        inputImg.value = imgFile
+    }
+
+    private fun showImageImpl(imgFile: File?) {
         img = imgFile
 
         onClose += root.sync1IfInScene {
-            thumb.loadImage(imgFile)
+            thumb.loadImage(img)
             root.requestFocus()
         }
     }

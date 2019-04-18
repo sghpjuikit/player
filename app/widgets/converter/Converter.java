@@ -38,7 +38,7 @@ import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Group;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
-import sp.it.pl.layout.widget.controller.io.IsInput;
+import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.Opener;
 import sp.it.pl.layout.widget.feature.SongWriter;
@@ -137,6 +137,8 @@ import static sp.it.util.ui.Util.layVertically;
 @LegacyController
 public class Converter extends SimpleController implements Opener, SongWriter {
 
+    public final Input<Object> inputValue;
+
     private final ObservableList<Object> source = observableArrayList();
     private final EditArea ta_in = new EditArea("In", true);
     private final ObservableList<EditArea> tas = observableArrayList(ta_in);
@@ -149,6 +151,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 	    super(widget);
         root.setPrefSize(scaleEM(800), scaleEM(500));
 
+        inputValue = io.i.create("Value", Object.class, null, consumer(v -> source.setAll(unpackData(v))));
+
         // layout
         HBox ll = new HBox(5, ta_in.getNode(),layout);
         HBox.setHgrow(ta_in.getNode(), ALWAYS);
@@ -159,7 +163,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             root, LIST_ALT, () -> "Set data as input",
             e -> true,
             e -> false,
-            consumer(e -> setData(getAny(e.getDragboard()))),
+            consumer(e -> inputValue.setValue(getAny(e.getDragboard()))),
             e -> ta_in.getNode().getLayoutBounds()
         );
 
@@ -233,30 +237,23 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         applier.fillActs(Void.class);
     }
 
-    @IsInput("Value")
-    public void setData(Object o) {
-        source.setAll(unpackData(o));
+    @Override
+    public void read(List<? extends Song> items) {
+        inputValue.setValue(map(items, Song::toMeta));
+    }
+
+    @Override
+    public void open(Object data) {
+        inputValue.setValue(data);
     }
 
     @SuppressWarnings("unchecked")
-    public static List<?> unpackData(Object o) {
+    private static List<?> unpackData(Object o) {
         if (o instanceof String)
             return split((String) o, "\n", x->x);
         else if (o instanceof Collection)
             return list((Collection) o);
         else return listRO(o);
-    }
-
-/******************************** features ************************************/
-
-    @Override
-    public void read(List<? extends Song> items) {
-        setData(map(items, Song::toMeta));
-    }
-
-    @Override
-    public void open(Object data) {
-        setData(data);
     }
 
 /******************************* helper classes *******************************/

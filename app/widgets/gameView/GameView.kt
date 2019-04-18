@@ -16,6 +16,7 @@ import javafx.scene.input.KeyCode.BACK_SPACE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
@@ -338,6 +339,7 @@ class GameView(widget: Widget): SimpleController(widget) {
             }
 
             onEventDown(MOUSE_CLICKED, SECONDARY) { close() }
+            onEventDown(MOUSE_CLICKED, BACK) { close() }
             onEventDown(KEY_PRESSED, ESCAPE) { close() }
             onEventDown(KEY_PRESSED, BACK_SPACE) { close() }
 

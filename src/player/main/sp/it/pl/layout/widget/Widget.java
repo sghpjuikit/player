@@ -7,9 +7,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,7 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
@@ -36,7 +32,6 @@ import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.LoadErrorController;
 import sp.it.pl.layout.widget.controller.NoFactoryController;
 import sp.it.pl.layout.widget.controller.io.Input;
-import sp.it.pl.layout.widget.controller.io.IsInput;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.util.Locatable;
 import sp.it.util.access.V;
@@ -47,7 +42,6 @@ import sp.it.util.conf.Configuration;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.IsConfig;
 import sp.it.util.dev.Dependency;
-import sp.it.util.dev.FailKt;
 import sp.it.util.file.Properties;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.reactive.Disposer;
@@ -68,7 +62,6 @@ import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.set;
 import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.Util.toS;
-import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.ui.UtilKt.findParent;
 import static sp.it.util.ui.UtilKt.onNodeDispose;
 import static sp.it.util.ui.UtilKt.pseudoclass;
@@ -252,42 +245,6 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 				}
 			}
 		);
-
-		// generate inputs
-		if (c!=null) {
-			for (Method m : cc.getDeclaredMethods()) {
-				IsInput a = m.getAnnotation(IsInput.class);
-				if (a!=null) {
-					int params = m.getParameterCount();
-					FailKt.failIf(Modifier.isStatic(m.getModifiers()), () -> "Input method can not be static");
-					FailKt.failIf(params>1, () -> "Input method must have 0 or 1 parameters");
-
-					String iName = a.value();
-					boolean isVoid = params==0;
-					Type iType = isVoid ? Void.class : m.getGenericParameterTypes()[0];
-					Consumer iAction = isVoid
-						? value -> {
-								if (value!=null) throw new ClassCastException(cc + " " + m + ": Can not cast " + value + " into " + Void.class);
-								try {
-									m.setAccessible(true);
-									m.invoke(c);
-								} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
-									LOGGER.error("Input {} in widget {} failed to process value.", iName, name, e);
-								}
-							}
-						: value -> {
-								try {
-									m.setAccessible(true);
-									m.invoke(c, value);
-								} catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException e) {
-									LOGGER.error("Input {} in widget {} failed to process value.", iName, name, e);
-								}
-							};
-
-					c.io.i.create(iName, iType, consumer(iAction));
-				}
-			}
-		}
 
 		return c;
 	}

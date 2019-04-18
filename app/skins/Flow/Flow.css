@@ -203,19 +203,7 @@
     -fx-text-fill: derive(-fx-control-inner-background,-30%);
 }
 
-/* BUGFIX, doesnt get applied */
-.config-field-warn-button {
-    -fx-fill: -fx-focus-color;
-}
-
-/**
- * Widget area
- * pseudoclasses: dragged
- */
 .area {
-    -fx-background-color: -skin-pane-color;
-    -fx-padding: 4 ;
-    -fx-border-width: 0.5;
     -fx-border-radius: 5;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -skin-def-font-color 100%)
                          linear-gradient(from 0% 0% to 100% 100%, -skin-def-font-color 0%, transparent 20%)

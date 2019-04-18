@@ -1605,7 +1605,7 @@ Text {
  */
 .area {
     -fx-background-color: -skin-pane-color;
-    -fx-padding: 4 ;
+    -fx-padding: 1em;
     -fx-border-width: 0.5;
     -fx-border-color: none;
 }

@@ -21,8 +21,10 @@ open class Put<T>: XPut<T> {
     var value: T
         get() = `val`
         set(v) {
-            `val` = v
-            monitors.forEach { it(v) }
+            if (value!=v) {
+                `val` = v
+                monitors.forEach { it(v) }
+            }
         }
 
     fun sync(action: (T) -> Unit): Subscription {

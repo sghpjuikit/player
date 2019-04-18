@@ -44,9 +44,12 @@ import sp.it.pl.main.FastFile
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.appTooltipForData
+import sp.it.pl.main.configure
 import sp.it.pl.main.isImage
 import sp.it.pl.main.scaleEM
 import sp.it.pl.main.showAppProgress
+import sp.it.pl.web.WebSearchUriBuilder
+import sp.it.pl.web.WikipediaQBuilder
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.initAttach
 import sp.it.util.access.minus
@@ -60,17 +63,22 @@ import sp.it.util.async.runOn
 import sp.it.util.async.threadFactory
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
+import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.IsConfig
+import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.only
+import sp.it.util.dev.fail
 import sp.it.util.file.FileType
 import sp.it.util.file.Properties
 import sp.it.util.file.Util
 import sp.it.util.file.div
 import sp.it.util.file.listChildren
+import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.seqChildren
 import sp.it.util.functional.net
+import sp.it.util.functional.runTry
 import sp.it.util.math.max
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
@@ -104,8 +112,7 @@ import sp.it.util.units.millis
 import sp.it.util.units.minutes
 import sp.it.util.units.times
 import sp.it.util.validation.Constraint.FileActor.DIRECTORY
-import sp.it.pl.web.WebSearchUriBuilder
-import sp.it.pl.web.WikipediaQBuilder
+import sp.it.util.validation.Constraint.FileActor.FILE
 import java.io.File
 import java.lang.Math.rint
 import java.net.URI
@@ -250,14 +257,16 @@ class GameView(widget: Widget): SimpleController(widget) {
             if (f.exists()) Properties.load(f) else HashMap()
         }
 
+        fun exeFile(): File? = null
+                ?: (location/"play.lnk").takeIf { it.exists() }
+                ?: (location/"play.bat").takeIf { it.exists() }
+                ?: settings["pathAbs"]?.net { File(it) }
+                ?: settings["path"]?.net { location/it }
+
         fun play() {
-            val file: File? = null
-                    ?: (location/"play.lnk").takeIf { it.exists() }
-                    ?: (location/"play.bat").takeIf { it.exists() }
-                    ?: settings["pathAbs"]?.net { File(it) }
-                    ?: settings["path"]?.net { location/it }
+            val file = exeFile()
             if (file==null) {
-                APP.messagePane.show("No path is set up.")
+                APP.messagePane.show("No launcher is set up.")
             } else {
                 val arguments = settings["arguments"]
                         ?.let { it.replace(", ", ",").split(",").filter { it.isNotBlank() }.map { "-$it" } }
@@ -325,7 +334,26 @@ class GameView(widget: Widget): SimpleController(widget) {
                                             file.edit()
                                         }
                                     }
-                                    lay += IconFA.GAMEPAD onClick { game.play() }
+                                    lay += IconFA.GAMEPAD onClick {
+                                        val exeFile = game.exeFile()
+                                        if (exeFile==null) {
+                                            object: ConfigurableBase<Any?>() {
+                                                @IsConfig(name = "File") var file by c(game.location/"exe").only(FILE)
+                                            }.configure("Set up launcher") {
+                                                runTry {
+                                                    if (!it.file.exists()) fail { "Target file does not exist." }
+                                                    val targetDir = it.file.parentDirOrRoot.absolutePath.substringAfter(game.location.absolutePath+File.separator)
+                                                    val targetName = it.file.name
+                                                    val link = game.location/"play.bat"
+                                                    link.writeText("""@echo off${'\n'}start "" /d "$targetDir" "$targetName"""")
+                                                }.ifError {
+                                                    APP.messagePane.show("Error:\n${it.message}")
+                                                }
+                                            }
+                                        } else {
+                                            game.play()
+                                        }
+                                    }
                                     lay += IconFA.FOLDER onClick { game.location.open() }
                                     lay += IconMD.WIKIPEDIA onClick { WikipediaQBuilder(game.name).browse() }
                                     lay += IconMD.STEAM onClick { SteamQBuilder(game.name).browse() }

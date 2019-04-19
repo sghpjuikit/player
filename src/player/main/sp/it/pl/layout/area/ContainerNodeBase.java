@@ -124,6 +124,10 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
     // return graphics to normal
     root.setOnDragDone(e -> controls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
 
+    // report component graphics changes
+    maintain(root.parentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
+    maintain(root.layoutBoundsProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
+
 	icons.setNodeOrientation(LEFT_TO_RIGHT);
 	icons.setAlignment(Pos.CENTER_RIGHT);
         icons.setPrefColumns(10);

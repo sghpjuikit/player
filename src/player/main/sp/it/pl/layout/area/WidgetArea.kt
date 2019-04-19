@@ -68,6 +68,10 @@ class WidgetArea: Area<Container<*>> {
                 { e -> e.dragboard[Df.COMPONENT].swapWith(this.container, this.index) }
         )
 
+        // report component graphics changes
+        root.parentProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
+        root.layoutBoundsProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
+
         loadWidget()
         if (APP.ui.isLayoutMode) show() else hide()
     }

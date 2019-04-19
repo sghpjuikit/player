@@ -20,10 +20,6 @@
     -fx-faint-focus-color: #ffcc66;
 }
 
-.block {
-    -fx-background-color: -skin-pane-color;
-}
-
 .icon {
     -glyph-gap: 12;
 
@@ -203,7 +199,7 @@
     -fx-text-fill: derive(-fx-control-inner-background,-30%);
 }
 
-.area {
+.widget-area {
     -fx-border-radius: 5;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -skin-def-font-color 100%)
                          linear-gradient(from 0% 0% to 100% 100%, -skin-def-font-color 0%, transparent 20%)
@@ -211,7 +207,7 @@
                          linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -skin-def-font-color 100%);
 }
 
-.area: active {
+.widget-area: active {
     -fx-border-width: 0.5;
     -fx-border-radius: 5;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.2) 40%, -skin-def-font-color 100%)
@@ -245,15 +241,3 @@
    -fx-background-color: -skin-pane-color;
    -fx-padding: 6;
 }
-
-.grid-cell:selected {
-    -fx-background-insets: -2;
-    -fx-background-color: rgba(0,0,0,0.4);
-    -fx-padding: -2;
-}
-
-.icon-grid-cell,
-.icon-grid-cell:selected {
-    -fx-background-color: transparent;
-}
-

@@ -1537,22 +1537,10 @@ Text {
    scaleY: 1.5;
 }
 
-/***********************************************************************************************************************
-
-/* Default 'block'. Several elements subclass block but some can use it directly
-   too. Use to set default properties for all blocks and block derived classes.
-   One can for example make several GUI layout elements appear the same.
-
-   Subclasses: window > .header, area, area-controls, layouter-element,
-               .item-picker-element
-   Pseudoclasses: dragged (all subclasses inherit those)
-   Dev note: assigning a subclass styleclass to a javaFX object does not automatically
-            assign it area too. Must be done manually.
-    */
-.block {
-    -fx-background-color: -skin-pane-color;
+.header-icon {
+    -fx-padding: 0.416667em;  /* 5 */
+    -glyph-size: 1.166667em; /* 14 */
 }
-
 
 /************************************ WINDOW ***************************************************************************
  * Window. More specifically its root pane. 
@@ -1597,54 +1585,53 @@ Text {
     -fx-background-color: -skin-pane-color;
 }
 
-/**********************************************************************************************************************/
+/************************************ COMPONENT ***********************************************************************/
 
 /**
  * Widget area
- * pseudoclasses: dragged
+ * pseudoclasses: dragged - when component is being dragged
+ *                active - when component has focus (1 per window)
  */
-.area {
+.widget-area {
     -fx-background-color: -skin-pane-color;
-    -fx-padding: 1em;
     -fx-border-width: 0.5;
     -fx-border-color: none;
 }
 
-.area: active {
+.widget-area: active {
     -fx-border-width: 0.5;
     -fx-border-color: -skin-def-font-color;
 }
 
-/**
- * Widget area controls. Shown in layout mode. 
- */
-.widget-control {
-    -fx-background-color: null;
-}
-/**
- * Container area in layout mode. Inherits .block styleclass.
- */
-.container-control {
-    -fx-background-color: -skin-pane-color;
+/** Widget area content, containing the ui of the widget. */
+.widget-area-content {
+    -fx-padding: 1em;
 }
 
-.area:dragged,
-.widget-control:dragged,
-.container-control:dragged {
+/** Widget area controls. Shown in layout mode. */
+.widget-area-controls {
+    -fx-background-color: null;
+    -fx-padding: 1em;
+}
+
+/** Container area controls. Shown in layout mode. */
+.container-area-controls {
+    -fx-background-color: -skin-pane-color;
+    -fx-padding: 1em;
+}
+
+.widget-area:dragged,
+.widget-area-controls:dragged,
+.container-area-controls:dragged {
     -fx-background-color: -skin-pane-color-dragged;
 }
-
 
 .freeflowcontainer-window {}
 .freeflowcontainer-window >.content {
     -fx-padding: 2.5;
 }
 
-/* Control for setting up layout. */
-.layouter {}
-/** Element inside layouter. Subclasses .block */
-.layouter-element {}
-
+/**********************************************************************************************************************/
 
 /* HBox containing buttons within a header */
 .header-buttons {}
@@ -1752,7 +1739,7 @@ Text {
 
 /******************************** ITEM PICKER **************************************************************************
  * Picker displays elements to choose from as a scrollable tile grid.
- * inherits: ScrollPane, .block
+ * inherits: ScrollPane
  * Used in layouts (should mirror the style of widget area), but also popups.
  */
 .item-picker {
@@ -1792,7 +1779,7 @@ Text {
 /*
  * Container for .bgr and .content
  * Rectangular, not in the popover shape. D not use for bgr coloring
- * inherits: StackPane 
+ * inherits: StackPane
  */
 .popover-root {
     -fx-background-color: transparent;  /* null causes mouse events pass through transparent parts */
@@ -1801,7 +1788,7 @@ Text {
 /*
  * Bgr - bgr in the shape of the popover. The shape representing the whole popup area including 
  * the arrow. use for basic appearance like border or bgr styling.
- * inherits: Path (which is Shape)
+ * inherits: Path
  */
 .popover-root > .bgr {
     -fx-fill: -skin-popup-def-bgr-color;

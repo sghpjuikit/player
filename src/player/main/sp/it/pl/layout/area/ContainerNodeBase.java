@@ -41,7 +41,6 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
-import static sp.it.pl.layout.area.Area.STYLECLASS_CONTAINER_AREA_CONTROLS;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.get;
@@ -61,8 +60,8 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
 
     protected final C container;
     protected final AnchorPane root = new AnchorPane();
-    protected final TilePane icons = new TilePane(8, 8);
-    protected final AnchorPane ctrls = new AnchorPane(icons);
+    protected final TilePane icons = new TilePane(4.0, 4.0);
+    protected final AnchorPane controls = new AnchorPane(icons);
     protected boolean isAltCon = false;
     protected boolean isAlt = false;
 
@@ -71,9 +70,9 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
     public ContainerNodeBase(C container) {
         this.container = container;
 
-        root.getChildren().add(ctrls);
-        setAnchors(ctrls, 0d);
-        ctrls.getStyleClass().addAll(STYLECLASS_CONTAINER_AREA_CONTROLS);
+        root.getChildren().add(controls);
+        setAnchors(controls, 0d);
+        controls.getStyleClass().addAll("container-area-controls");
 
 	// build header buttons
 	Icon infoB = infoIcon(
@@ -81,30 +80,29 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
             + "\nActions:"
             + "\n\tLeft click: visit children"
             + "\n\tRight click: visit parent container"
-    );
-	Icon detachB = new Icon(CLONE, 12, "Detach widget to own window", this::detach);
-	Icon changeB = new Icon(TH_LARGE, 12, "Change widget", ()->{});
-    Icon actB = new Icon(GAVEL, 12, actbTEXT, () ->
+    ).styleclass("header-icon");
+	Icon detachB = new Icon(CLONE, -1, "Detach widget to own window", this::detach).styleclass("header-icon");
+	Icon changeB = new Icon(TH_LARGE, -1, "Change widget", () -> {}).styleclass("header-icon");
+    Icon actB = new Icon(GAVEL, -1, actbTEXT, () ->
         APP.actionPane.show(Container.class, container)
-    );
-	Icon lockB = new Icon(null, 12, "Lock widget layout", () -> {
+    ).styleclass("header-icon");
+	Icon lockB = new Icon(null, -1, "Lock widget layout", () -> {
 	    container.locked.set(!container.locked.get());
 	    APP.actionStream.invoke("Widget layout lock");
-	});
+	}).styleclass("header-icon");
     maintain(container.locked, it -> lockB.icon(it ? LOCK : UNLOCK));
-	absB = new Icon(LINK, 12, "Resize widget proportionally", () -> {
+	absB = new Icon(LINK, -1, "Resize widget proportionally", () -> {
 	    toggleAbsSize();
 	    updateAbsB();
-	});
-	Icon closeB = new Icon(TIMES, 12, "Close widget", () -> {
+	}).styleclass("header-icon");
+	Icon closeB = new Icon(TIMES, -1, "Close widget", () -> {
 	    container.close();
 	    APP.actionStream.invoke("Close widget");
-	});
-    Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
+	}).styleclass("header-icon");
+    Icon dragB = new Icon(MAIL_REPLY, -1, "Move widget by dragging").styleclass("header-icon");
 
     // drag
-    installDrag(
-        ctrls, EXCHANGE, "Switch components",
+    installDrag(controls, EXCHANGE, "Switch components",
         e -> contains(e.getDragboard(), Df.COMPONENT),
         e -> get(e.getDragboard(), Df.COMPONENT) == container,
         consumer(e -> get(e.getDragboard(), Df.COMPONENT).swapWith(container.getParent(), container.indexInParent()))
@@ -117,14 +115,14 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
             Dragboard db = root.startDragAndDrop(TransferMode.ANY);
             set(db, Df.COMPONENT, container);
             // signal dragging graphically with css
-            ctrls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
+            controls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
             e.consume();
         }
     };
     dragB.setOnDragDetected(dh);
-    ctrls.setOnDragDetected(dh);
+    controls.setOnDragDetected(dh);
     // return graphics to normal
-    root.setOnDragDone(e -> ctrls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
+    root.setOnDragDone(e -> controls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
 
 	icons.setNodeOrientation(LEFT_TO_RIGHT);
 	icons.setAlignment(Pos.CENTER_RIGHT);
@@ -135,8 +133,8 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
         AnchorPane.setLeftAnchor(icons,0d);
         icons.getChildren().addAll(infoB, dragB, absB, lockB, actB, detachB, changeB, closeB);
 
-        ctrls.setOpacity(0);
-        ctrls.mouseTransparentProperty().bind(ctrls.opacityProperty().isEqualTo(0));
+        controls.setOpacity(0);
+        controls.mouseTransparentProperty().bind(controls.opacityProperty().isEqualTo(0));
 
         // switch container/normal layout mode using right/left click
         root.setOnMouseClicked(e -> {
@@ -151,7 +149,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
                 e.consume();
             }
         });
-        ctrls.setOnMouseClicked(e -> {
+        controls.setOnMouseClicked(e -> {
             if (isAltCon && e.getButton()==PRIMARY) {
                 setAltCon(false);
                 e.consume();
@@ -199,7 +197,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
 
     List<Node> getC() {
         List<Node> o = new ArrayList<>(root.getChildren());
-        o.remove(ctrls);
+        o.remove(controls);
         return o;
     }
 
@@ -208,12 +206,12 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
         if (isAltCon==b) return;
         isAltCon = b;
         new Anim(this::applyanim).dur(millis(250)).intpl(b ? x->x : x->1-x).play();
-        ctrls.toFront();
+        controls.toFront();
     }
 
     void applyanim(double at) {
         getC().forEach(c->c.setOpacity(1-0.8*at));
-        ctrls.setOpacity(at);
+        controls.setOpacity(at);
     }
 
 
@@ -238,7 +236,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
 	Container c = container;
 	if (c != null && c instanceof BiContainer) {
 	    boolean l = c.properties.getI("abs_size") != 0;
-            absB.icon(l ? UNLINK : LINK);
+        absB.icon(l ? UNLINK : LINK);
 	    if (!icons.getChildren().contains(absB))
 		icons.getChildren().add(5, absB);
 	} else

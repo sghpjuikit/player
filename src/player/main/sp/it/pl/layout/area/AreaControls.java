@@ -10,12 +10,12 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.TilePane;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.CheckIcon;
@@ -27,6 +27,8 @@ import sp.it.pl.main.AppAnimator;
 import sp.it.pl.main.Df;
 import sp.it.util.access.ref.SingleR;
 import sp.it.util.animation.Anim;
+import sp.it.util.reactive.Subscribed;
+import sp.it.util.reactive.Subscription;
 import sp.it.util.ui.fxml.ConventionFxmlLoader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
@@ -37,6 +39,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLINK;
 import static de.jensd.fx.glyphs.octicons.OctIcon.FOLD;
 import static de.jensd.fx.glyphs.octicons.OctIcon.UNFOLD;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
+import static javafx.scene.input.DragEvent.DRAG_DONE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
@@ -48,8 +51,11 @@ import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
 import static sp.it.pl.main.AppDragKt.set;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.EventsKt.onEventUp;
 import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.ui.UtilKt.getCentre;
 
 /**
  * Controls for a widget area.
@@ -92,52 +98,51 @@ public final class AreaControls {
     });
 
     @FXML public AnchorPane root = new AnchorPane();
-    @FXML public Region deactivator;
-    @FXML public Region deactivator2;
     @FXML public BorderPane header;
     @FXML public Label title;
     public Icon propB;
     public @FXML TilePane header_buttons;
     Icon infoB, absB, lockB;
 
-    // animations // dont setParentRec here or make final
+    private WidgetArea area;
+
+    private boolean isShowingStrong = false;
+    private boolean isShowingWeak = false;
+    private Subscribed hiderWeak;
     private final FadeTransition contrAnim;
     private final FadeTransition contAnim;
     private final Transition blurAnim;
-
-    WidgetArea area;
 
     public AreaControls(WidgetArea area) {
         this.area = area;
 
         new ConventionFxmlLoader(root, this).loadNoEx();
 
-        root.getStyleClass().add(Area.STYLECLASS_WIDGET_AREA_CONTROLS);
+        root.getStyleClass().add("widget-area-controls");
         header.setStyle("-fx-pref-height: 2em;");
         header_buttons.setStyle("-fx-pref-height: 2em;");
 
         // avoid clashing of title and control buttons for small root size
         header_buttons.maxWidthProperty()
             .bind(root.widthProperty().subtract(title.widthProperty())
-            .divide(2).subtract(15));
+            .divide(2).subtract(30));
         header_buttons.setMinWidth(15);
 
         // build header buttons
-        double is = 13;
-        Icon closeB = new Icon(TIMES, is, closebTEXT, this::close);
-        Icon actB = new Icon(GAVEL, is, actbTEXT, () -> APP.actionPane.show(Widget.class, area.getWidget()));
-        propB = new Icon(COGS, is, propbTEXT, this::settings);
-        lockB = new Icon(null, is, lockbTEXT, () -> {
+        Icon closeB = new Icon(TIMES, -1, closebTEXT, this::close).styleclass("header-icon");
+        Icon actB = new Icon(GAVEL, -1, actbTEXT, () -> APP.actionPane.show(Widget.class, area.getWidget())).styleclass("header-icon");
+        propB = new Icon(COGS, -1, propbTEXT, this::settings).styleclass("header-icon");
+        lockB = new Icon(null, -1, lockbTEXT, () -> {
             toggleLocked();
             APP.actionStream.invoke("Widget layout lock");
-        });
+        }).styleclass("header-icon");
 //		maintain(area.container.locked, mapB(LOCK,UNLOCK),lockB::icon);
-        absB = new Icon(LINK, is, absbTEXT, e -> {
+        absB = new Icon(LINK, -1, absbTEXT, e -> {
             toggleAbsSize();
             updateAbsB();
-        });
+        }).styleclass("header-icon");
         CheckIcon loadB = new CheckIcon();
-        loadB.size(is);
+        loadB.styleclass("header-icon");
         loadB.tooltip("Switch between automatic or manual widget loading.");
         maintain(area.getWidget().loadType, it -> loadB.selected.setValue(it==AUTOMATIC));
         maintain(loadB.selected, it -> loadB.icon(it ? UNFOLD : FOLD));
@@ -145,25 +150,7 @@ public final class AreaControls {
         // ^ technically we've got ourselves bidirectional binding and risk stackoverflow. We know
         // the value changes fire only when value is different, so we ara safe
 
-        // dragging
-        root.setOnDragDetected(e -> {
-            if (e.getButton()==PRIMARY) {   // primary button drag only
-                if (e.isShortcutDown()) {
-                    area.detach();
-                } else {
-                    Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                    set(db, Df.COMPONENT, area.getWidget());
-                    // signal dragging graphically with css
-                    root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
-                }
-                e.consume();
-            }
-        });
-        // return graphics to normal
-        root.setOnDragDone(e -> root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
-
-
-        infoB = new Icon(INFO, is, infobTEXT, this::showInfo); // consistent with Icon.infoIcon()
+        infoB = new Icon(INFO, -1, infobTEXT, this::showInfo).styleclass("header-icon"); // consistent with Icon.infoIcon()
 
         // build header
         header_buttons.setNodeOrientation(LEFT_TO_RIGHT);
@@ -202,39 +189,43 @@ public final class AreaControls {
         p.addEventFilter(MOUSE_ENTERED, showS::accept);
         p.addEventFilter(MOUSE_EXITED, e -> inside.set(false));
 
-        // weak hide - deactivator behavior
-        Consumer<MouseEvent> hideWeakTry = e -> {
-            if (
-                // ignore when already not showing or in strong mode
-                isShowingWeak && !isShowingStrong &&
-                // mouse entering the popup qualifies as root.mouseExited which we need
-                // to avoid (now we need to handle hiding when popup closes)
-                (helpP.isØ() || !helpP.get().isShowing()) &&
-                // only when the deactivators are !'hovered'
-                // (Node.isHover() !work here) & we need to transform coords into scene-relative
-                !deactivator.localToScene(deactivator.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY()) &&
-                !deactivator2.localToScene(deactivator2.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY())
-            ) {
-                hideWeak();
-            }
-        };
-        deactivator.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
-        deactivator2.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
-        header_buttons.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
-        p.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
-
-            // hide on mouse exit from area
-        // sometimes mouse exited deactivator does not fire in fast movement
-        // same thing as above - need to take care of popup...
-        p.addEventFilter(MOUSE_EXITED, e -> {
-            if (isShowingWeak && !isShowingStrong && (helpP.isØ() || !helpP.get().isShowing()))
-            hide();
+        hiderWeak = new Subscribed(feature -> {
+            var eh = consumer((MouseEvent e) -> {
+                if (
+                    isShowingWeak &&    // ignore when not showing
+                    !isShowingStrong &&     // ignore in strong mode
+                    (helpP.isØ() || !helpP.get().isShowing()) &&    // keep visible when popup is shown
+                    !root.getPseudoClassStates().contains(PSEUDOCLASS_DRAGGED) &&   // keep visible when dragging
+                    (
+                        !root.localToScene(root.getLayoutBounds()).contains(e.getSceneX(), e.getSceneY()) ||
+                        header_buttons.getChildren().stream().allMatch(it -> getCentre(it.localToScene(it.getLayoutBounds())).distance(e.getSceneX(), e.getSceneY())>100)
+                    )
+                ) {
+                    hideWeak();
+                }
+            });
+            return Subscription.Companion.invoke(
+                onEventUp(root, MOUSE_MOVED, eh),
+                onEventUp(root, MOUSE_EXITED, eh),
+                onEventUp(p, MOUSE_EXITED, eh),
+                onEventUp(root, DRAG_DONE, consumer(e -> eh.invoke(new MouseEvent(MOUSE_MOVED, e.getX(), e.getY(), e.getScreenX(), e.getScreenY(), MouseButton.NONE, 0 , false, false, false, false, false, false, false, false, false, true, null))))
+            );
         });
 
-            // enlarge deactivator that resizes with control buttons to give more
-        // room for mouse movement
-        deactivator.setScaleX(1.2);
-        deactivator.setScaleY(1.2);
+        // dragging
+        root.setOnDragDetected(e -> {
+            if (e.getButton()==PRIMARY) {
+                if (e.isShortcutDown()) {
+                    area.detach();
+                } else {
+                    Dragboard db = root.startDragAndDrop(TransferMode.ANY);
+                    set(db, Df.COMPONENT, area.getWidget());
+                    root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
+                }
+                e.consume();
+            }
+        });
+        root.setOnDragDone(e -> root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
     }
 
     void toggleLocked() {
@@ -271,20 +262,24 @@ public final class AreaControls {
     }
 
     private void showWeak() {
-        //set state
         isShowingWeak = true;
+        hiderWeak.subscribe(true);
+
         // stop animations if active
         contrAnim.stop();
         contAnim.stop();
         blurAnim.stop();
+
         // put new values
         contrAnim.setToValue(1);
         contAnim.setToValue(1 - APP.ui.getOpacityLM());
         blurAnim.setRate(1);
+
         // play
         contrAnim.play();
         if (APP.ui.getOpacityLayoutMode()) contAnim.play();
         if (APP.ui.getBlurLayoutMode()) blurAnim.play();
+
         // handle graphics
         area.getContent().setMouseTransparent(true);
         root.setMouseTransparent(false);
@@ -292,7 +287,9 @@ public final class AreaControls {
     }
 
     private void hideWeak() {
+        hiderWeak.subscribe(false);
         isShowingWeak = false;
+
         contrAnim.stop();
         contAnim.stop();
         blurAnim.stop();
@@ -304,25 +301,21 @@ public final class AreaControls {
         if (APP.ui.getBlurLayoutMode()) blurAnim.play();
         area.getContent().setMouseTransparent(false);
         root.setMouseTransparent(true);
+
         // hide help popup if open
         if (!helpP.isØ() && helpP.get().isShowing()) helpP.get().hide();
     }
 
     public void show() {
-        //set state
         isShowingStrong = true;
         showWeak();
         APP.actionStream.invoke("Widget control");
     }
 
     public void hide() {
-        //set state
         isShowingStrong = false;
         hideWeak();
     }
-
-    private boolean isShowingStrong = false;
-    private boolean isShowingWeak = false;
 
     public boolean isShowing() {
         return isShowingStrong;

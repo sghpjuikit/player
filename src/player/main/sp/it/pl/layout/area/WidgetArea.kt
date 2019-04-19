@@ -55,7 +55,10 @@ class WidgetArea: Area<Container<*>> {
         this.widget.areaTemp = this
 
         controls = AreaControls(this)
-        contentRoot.layFullArea += content
+        contentRoot.layFullArea += content.apply {
+            id += "widget-area-content"
+            styleClass += "widget-area-content"
+        }
         contentRoot.layFullArea += controls.root
 
         installDrag(

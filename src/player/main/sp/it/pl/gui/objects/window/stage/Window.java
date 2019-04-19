@@ -307,18 +307,17 @@ public class Window extends WindowBase {
 		});
 
 		setTitle("");
-		double is = 15;
-		Icon propB = new Icon(GEARS, is, ActionRegistrar.get("Open settings"));
-		Icon runB = new Icon(GAVEL, is, ActionRegistrar.get("Open app actions"));
-		Icon lockB = new Icon(null, is, "Lock layout\n\nRestricts certain layout operations to "
+		Icon propB = new Icon(GEARS, -1, ActionRegistrar.get("Open settings")).styleclass("header-icon");
+		Icon runB = new Icon(GAVEL, -1, ActionRegistrar.get("Open app actions")).styleclass("header-icon");
+		Icon lockB = new Icon(null, -1, "Lock layout\n\nRestricts certain layout operations to "
 			+ "prevent accidents and configuration getting in the way. Widgets, containers and "
-			+ "layouts can also be locked individually.", () -> APP.ui.toggleLayoutLocked());
+			+ "layouts can also be locked individually.", () -> APP.ui.toggleLayoutLocked()).styleclass("header-icon");
 		maintain(APP.ui.getLockedLayout(), it -> lockB.icon(it ? LOCK : UNLOCK));
-		Icon lmB = new Icon(null, is, ActionRegistrar.get("Layout zoom overlay in/out"));
-		Icon ltB = new Icon(CARET_LEFT, is, ActionRegistrar.get("Layout move left"));
-		Icon rtB = new Icon(CARET_RIGHT, is, ActionRegistrar.get("Layout move right"));
+		Icon lmB = new Icon(null, -1, ActionRegistrar.get("Layout zoom overlay in/out")).styleclass("header-icon");
+		Icon ltB = new Icon(CARET_LEFT, -1, ActionRegistrar.get("Layout move left")).styleclass("header-icon");
+		Icon rtB = new Icon(CARET_RIGHT, -1, ActionRegistrar.get("Layout move right")).styleclass("header-icon");
 		maintain(APP.ui.getLayoutMode(), it -> lmB.icon(it ? TH : TH_LARGE));
-		Icon guideB = new Icon(GRADUATION_CAP, is, ActionRegistrar.get("Open guide"));
+		Icon guideB = new Icon(GRADUATION_CAP, -1, ActionRegistrar.get("Open guide")).styleclass("header-icon");
 		Icon helpB = infoIcon("Available actions:\n"
 			+ "\tHeader icons : Providing custom functionalities. See tooltips.\n"
 			+ "\tHeader buttons : Providing window control. See tooltips.\n"
@@ -329,8 +328,9 @@ public class Window extends WindowBase {
 			+ "\tDouble right click : Toggle hide header on/off.\n"
 			+ "\tPress ALT : Show hidden header temporarily.\n"
 			+ "\tPress ALT : Activate layout mode.\n"
-			+ "\tContent right drag : drag tabs.").size(is);
-		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, is).scale(0.4).onClick(e -> AppProgress.INSTANCE.showTasks((Node) e.getTarget())).tooltip("Progress & Tasks");
+			+ "\tContent right drag : drag tabs."
+		).styleclass("header-icon");
+		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4).onClick(e -> AppProgress.INSTANCE.showTasks((Node) e.getTarget())).tooltip("Progress & Tasks");
 
 		leftHeaderBox.getChildren().addAll(
 			propB, runB, new Label(" "),
@@ -341,20 +341,17 @@ public class Window extends WindowBase {
 		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
 
 
-		Icon miniB = new Icon(null, is, "Toggle dock", () -> APP.windowManager.getDockShow().setCycledValue());
+		Icon miniB = new Icon(null, -1, "Toggle dock", () -> APP.windowManager.getDockShow().setCycledValue()).styleclass("header-icon");
 		maintain(miniB.hoverProperty(), it -> miniB.icon(it ? ANGLE_DOUBLE_UP : ANGLE_UP));
-		Icon onTopB = new Icon(null, is, "Always on top\n\nForbid hiding this window behind other "
-			+ "application windows", this::toggleAlwaysOnTop);
+		Icon onTopB = new Icon(null, -1, "Always on top\n\nForbid hiding this window behind other application windows", this::toggleAlwaysOnTop).styleclass("header-icon");
 		maintain(alwaysOnTop, it -> onTopB.icon(it ? SQUARE : SQUARE_ALT));
-		Icon fullsB = new Icon(null, is, "Fullscreen\n\nExpand window to span whole screen and "
-			+ "put it on top", this::toggleFullscreen).scale(1.3);
+		Icon fullsB = new Icon(null, -1, "Fullscreen\n\nExpand window to span whole screen and put it on top", this::toggleFullscreen).scale(1.3).styleclass("header-icon");
 		maintain(fullscreen, it -> fullsB.icon(it ? FULLSCREEN_EXIT : FULLSCREEN));
-		Icon minB = new Icon(WINDOW_MINIMIZE, is, "Minimize application", this::toggleMinimize);
-		Icon maxB = new Icon(WINDOW_MAXIMIZE, is, "Maximize\n\nExpand window to span whole screen",
-			this::toggleMaximize);
+		Icon minB = new Icon(WINDOW_MINIMIZE, -1, "Minimize application", this::toggleMinimize).styleclass("header-icon");
+		Icon maxB = new Icon(WINDOW_MAXIMIZE, -1, "Maximize\n\nExpand window to span whole screen", this::toggleMaximize).styleclass("header-icon");
 //        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
-		Icon closeB = new Icon(CLOSE, is, "Close\n\nCloses window. If the window is main, application closes as well.", this::close);
-		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, is).scale(0.4)
+		Icon closeB = new Icon(CLOSE, -1, "Close\n\nCloses window. If the window is main, application closes as well.", this::close).styleclass("header-icon");
+		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4)
 			.onClick(() -> APP.windowManager.setAsMain(this));
 		maintain(isMain, v -> mainB.setOpacity(v ? 1.0 : 0.4));
 		maintain(isMain, v -> mainB.tooltip(v

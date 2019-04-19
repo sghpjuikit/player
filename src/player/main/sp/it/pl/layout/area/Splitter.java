@@ -61,7 +61,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
 
         prop = c.properties;
 
-        Icon orienB = new Icon(MAGIC, 12, "Change orientation", this::toggleOrientation);
+        Icon orienB = new Icon(MAGIC, -1, "Change orientation", this::toggleOrientation).styleclass("header-icon");
         maintain(c.orientation, it -> orienB.icon(it==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H));
         icons.getChildren().add(2,orienB);
 

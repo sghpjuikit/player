@@ -30,8 +30,11 @@ abstract class Area<T: Container<*>>: ContainerNode {
         }
         this.index = index
 
-        contentRoot.styleClass += STYLECLASS_BGR
-        root.layFullArea += contentRoot
+        root.id = "widget-area-root"
+        root.layFullArea += contentRoot.apply {
+            id = "widget-area-contentRoot"
+            styleClass += STYLECLASS
+        }
     }
 
     /** @return the primary component */
@@ -56,10 +59,8 @@ abstract class Area<T: Container<*>>: ContainerNode {
     }
 
     companion object {
+        const val STYLECLASS = "widget-area"
         @JvmField val PSEUDOCLASS_DRAGGED = pseudoclass("dragged")
-        @JvmField val STYLECLASS_BGR = listOf("block", "area")
-        const val STYLECLASS_WIDGET_AREA_CONTROLS = "widget-control"
-        const val STYLECLASS_CONTAINER_AREA_CONTROLS = "container-control"
     }
 
 }

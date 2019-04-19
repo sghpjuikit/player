@@ -34,7 +34,7 @@
                                     <Insets left="5.0" right="5.0" top="8.0" />
                                 </padding>
                                 <left>
-                                    <HBox fx:id="leftHeaderBox" alignment="CENTER_LEFT" fillHeight="false" pickOnBounds="false" spacing="5.0" BorderPane.alignment="CENTER_LEFT">
+                                    <HBox fx:id="leftHeaderBox" alignment="CENTER_LEFT" fillHeight="false" pickOnBounds="false" spacing="4.0" BorderPane.alignment="CENTER_LEFT">
                                         <Label fx:id="titleL" BorderPane.alignment="CENTER">
                                             <BorderPane.margin>
                                                 <Insets left="10.0" />
@@ -43,7 +43,7 @@
                                     </HBox>
                                 </left>
                                 <right>
-                                    <HBox fx:id="rightHeaderBox" alignment="CENTER_RIGHT" fillHeight="false" onMouseDragged="#consumeMouseEvent" onMousePressed="#consumeMouseEvent" pickOnBounds="false" spacing="5.0" visible="true" BorderPane.alignment="CENTER_RIGHT" />
+                                    <HBox fx:id="rightHeaderBox" alignment="CENTER_RIGHT" fillHeight="false" onMouseDragged="#consumeMouseEvent" onMousePressed="#consumeMouseEvent" pickOnBounds="false" spacing="4.0" BorderPane.alignment="CENTER_RIGHT" />
                                 </right>
                             </BorderPane>
                         </children>

@@ -571,6 +571,9 @@ val Number.x2 get() = P(this.toDouble(), this.toDouble())
 /** Size of the bounds represented as point */
 val Bounds.size get() = P(width, height)
 
+/** Window-relative position of the centre of this window */
+val Bounds.centre get() = P(centerX, centerY)
+
 /** Left top point */
 val Bounds.leftTop get() = P(minX, minY)
 

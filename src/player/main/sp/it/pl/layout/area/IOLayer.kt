@@ -50,6 +50,7 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.onItemSync
+import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.text.plural
 import sp.it.util.type.Util.getRawType
@@ -87,7 +88,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
     private val paneNodes = Pane()
     private val paneLabels = Pane()
     private val paneLabelsLayouter = Loop(Runnable {
-        val labels = xNodes().map { it.label }.toList()
+        val labels = xNodes().mapNotNull { it.label.takeIf { it.isVisible() } }.toList()
 
         forEachCartesianHalfNoSelf(labels) { l1, l2 ->
             val dir = atan2(l1.text.layoutY-l2.text.layoutY, l1.text.layoutX-l2.text.layoutX)
@@ -424,7 +425,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
             paneNodes.children += graphics
             disposer += { paneNodes.children -= graphics }
-            paneLabels.children += label.text
+            graphics.visibleProperty() sync { if (it) paneLabels.children += label.text else paneLabels.children -= label.text } on disposer
             disposer += { paneLabels.children -= label.text }
 
             i.styleclass(iconStyleclass)
@@ -483,6 +484,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
                 translateX = 20.0
                 translateY = 20.0
             }
+
+            fun isVisible() = text.parent!=null
 
             fun updatePosition() {
                 x = this@XNode.x

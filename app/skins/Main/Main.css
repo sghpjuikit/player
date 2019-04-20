@@ -961,22 +961,22 @@ Text {
 
 .split-pane:horizontal > .split-pane-divider {
    -fx-border-color: transparent;
-   -fx-background-color: transparent;
-   -fx-padding: 1;
+   -fx-background-color: -skin-pane-color;
+   -fx-padding: 0;
 }
 .split-pane:vertical > .split-pane-divider {
    -fx-border-color: transparent;
-   -fx-background-color: transparent;
-   -fx-padding: 1;
+   -fx-background-color: -skin-pane-color;
+   -fx-padding: 0;
 }
 .split-pane *.vertical-grabber {
-    -fx-padding: 0;
-    -fx-background-color: transparent;
+    -fx-padding: 1 111 1 111;
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
     -fx-background-insets: 0;
 }
 .split-pane *.horizontal-grabber {
-    -fx-padding: 0;
-    -fx-background-color: transparent;
+    -fx-padding: 111 1 111 0.5;
+    -fx-background-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
     -fx-background-insets: 0;
 }
 
@@ -1550,24 +1550,35 @@ Text {
  */
 .widget-area {
     -fx-background-color: -skin-pane-color;
-    -fx-border-width: 0.5;
-    -fx-border-color: none;
 }
 
 .widget-area: active {
-    -fx-border-width: 0.5;
-    -fx-border-color: -skin-def-font-color;
+    -fx-border-radius: 5;
+
 }
 
 /** Widget area content, containing the ui of the widget. */
 .widget-area-content {
     -fx-padding: 1em;
+
+    -fx-border-color: transparent;
+    -fx-border-width: 0.5;
+}
+
+.widget-area:active .widget-area-content {
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -skin-def-font-color 100%)
+                      linear-gradient(from 0% 0% to 100% 100%, -skin-def-font-color 0%, transparent 20%)
+                      linear-gradient(from 0% 0% to 100% 100%, -skin-def-font-color 0%, transparent 20%)
+                      linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -skin-def-font-color 100%);
 }
 
 /** Widget area controls. Shown in layout mode. */
 .widget-area-controls {
-    -fx-background-color: null;
     -fx-padding: 1em;
+
+    -fx-border-color: rgba(0,0,0,0.3);
+    -fx-border-width: 1;
+    -fx-background-color: null;
 }
 
 /** Container area controls. Shown in layout mode. */

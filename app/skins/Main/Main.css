@@ -20,6 +20,7 @@
     -skin-pane-color-dragged: rgba(0,0,0,0.3);
     /* Default bgr color for tooltips and popups. */
     -skin-popup-def-bgr-color: rgba(28,42,60,0.9);
+    -skin-value-font-color: rgb(75, 175, 105);
 }
 
 /******************************************************************************
@@ -515,31 +516,85 @@
 
 /********************************* Text boxes *********************************/
 
+.combo-box-base,
+.combo-box-base:editable,
+.combo-box-base:showing,
 .choice-box,
-.choice-box:hover,
 .choice-box:showing,
 .text-input {
-    -fx-background-color:
-        rgba(255, 255, 255, 0.3),
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
-        rgb(218, 226, 224);
-    -fx-background-insets: 0 0 -1 0, 0, 1.5;
-    -fx-background-radius: 3, 2, 2;
-    -fx-padding: 3 5 2 5;
-    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
-    
-    -fx-prompt-text-fill: -skin-prompt-font-color;
-}
-.choice-box:focused,
-.text-input:focused,
-.decorated-text-field,
-.decorated-text-field:focused {
-    -fx-prompt-text-fill: -skin-prompt-font-color;
-    -fx-background-color: rgba(235, 235, 235, 0.7), rgba(0, 0, 0, 0.6), rgba(255, 255, 255, 0.92);
-}
-.text-input:hover:readonly,
-.text-input:focused:readonly {
     -fx-background-color: null;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 5;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-prompt-text-fill: -skin-def-font-color;
+    -fx-effect: null;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+}
+
+.combo-box-base:hover,
+.combo-box-base:editable:hover,
+.combo-box-base:showing:hover,
+.choice-box:hover,
+.choice-box:showing:hover,
+.text-input:readonly:focused,
+.text-input:hover {
+    -fx-background-color: rgba(0,0,0,0.1);
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 5;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-prompt-text-fill: -skin-def-font-color;
+    -fx-effect: null;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+}
+
+.combo-box-base:focused,
+.combo-box-base:editable:focused,
+.combo-box-base:showing:focused,
+.choice-box:focused,
+.choice-box:showing:focused,
+.text-input:focused {
+    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 5;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-prompt-text-fill: -skin-def-font-color;
+    -fx-effect: null;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+}
+
+.combo-box-base,
+.combo-box-base:editable,
+.combo-box-base:showing,
+.choice-box,
+.choice-box:showing,
+.combo-box-base:hover,
+.combo-box-base:editable:hover,
+.combo-box-base:showing:hover,
+.choice-box:hover,
+.choice-box:showing:hover,
+.combo-box-base:focused,
+.combo-box-base:editable:focused,
+.combo-box-base:showing:focused,
+.choice-box:focused,
+.choice-box:showing:focused {
+    -fx-padding: 0;
+}
+
+.combo-box > .list-cell,
+.combo-box:hover > .list-cell {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-effect: null;
+    -fx-padding: 0 0 0 5;
+    -fx-effect: null;
 }
 
 /********************************* TextArea ***********************************/
@@ -577,114 +632,15 @@ Text {
 
 /********************************* ComboBox ***********************************/
 
-/* Customise the ListCell that appears in the ComboBox button itself */
-.combo-box > .list-cell {
-    -fx-background: null;
-    -fx-background-color: null;
-    -fx-text-fill: -fx-text-base-color;
-    /*-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em;*/ /* 4 8 4 8 */
-}
-.combo-box-base:editable > .arrow-button,
-.combo-box-base > .arrow-button {
-    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
-    /*-fx-padding: 0.5em 0.667em 0.5em 0.833333em;*/ /* 6 8 6 10 */
-    -fx-background-color: null;
-}
-.combo-box-base,
-.combo-box-base:editable {
-    -fx-background-color:
-        rgba(255, 255, 255, 0.3),
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
-        rgb(218, 226, 224);
-    -fx-background-insets: 0 0 -1 0, 0, 1.5;
-    -fx-background-radius: 3, 2, 2;
-    -fx-padding: 3 10 2 10;
-    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
-    -fx-text-fill: -skin-def-font-color;
-    -fx-alignment: CENTER;
-    -fx-content-display: LEFT;
-}
-.menu-button > .label {
-    -fx-alignment: CENTER_LEFT;
-}
-.combo-box-base:hover,
-.combo-box-base:editable:hover{
-    -fx-background-color:
-        rgba(255, 255, 255, 0.3),
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
-        rgb(218, 226, 224);
-    -fx-background-insets: 0 0 -1 0, 0, 1.5;
-    -fx-background-radius: 3, 2, 2;
-    -fx-padding: 3 10 2 10;
-    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
-}
-.combo-box-base:showing,
-.combo-box-base:editable:showing > .arrow-button {
-    -fx-background-color:
-        rgba(255, 255, 255, 0.3),
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
-        rgb(218, 226, 224);
-    -fx-background-insets: 0 0 -1 0, 0, 1.5;
-    -fx-background-radius: 3, 2, 2;
-    -fx-padding: 3 10 2 10;
-    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
-}
-.combo-box-base:focused {
-    -fx-background-color: rgba(235, 235, 235, 0.7),
-                          rgba(0, 0, 0, 0.6),
-                          rgba(255, 255, 255, 0.92);
-}
-
-/* editable combobox */
-.combo-box-base:editable > .arrow-button,
-.combo-box-base:editable > .text-field,
-.combo-box-base:editable:contains-focus,
-.combo-box-base:editable:focused > .text-field,
-.combo-box-base:editable > .text-field:focused,
-.combo-box-base:editable:contains-focus > .arrow-button {}
-
-
-.date-picker > .arrow-button {
-    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;
-    -fx-background-insets: 1 1 1 0, 1, 2;
-    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
-}
-.date-picker > .text-field {
-    -fx-background-color: -fx-control-inner-background;
-    -fx-background-insets: 1 0 1 1;
-    -fx-background-radius: 2 0 0 2;
-}
-.date-picker:contains-focus {
-    -fx-background-color: -fx-focus-color;
-    -fx-background-insets: -0.2;
-    -fx-background-radius: 3;
-}
-.date-picker:focused > .text-field,
-.date-picker > .text-field:focused {
-    -fx-background-color: 
-        -fx-control-inner-background,
-        -fx-faint-focus-color,
-        linear-gradient(from 0px 0px to 0px 5px, derive(-fx-control-inner-background, -9%), -fx-control-inner-background);
-    -fx-background-insets: 1 0 1 1, 1 0 1 1, 3 2 3 3;
-    -fx-background-radius: 2 0 0 2, 1 0 0 1, 0;
-}
-.date-picker:contains-focus > .arrow-button {
-    -fx-background-color: -fx-inner-border, -fx-body-color, -fx-faint-focus-color, -fx-body-color;
-    -fx-background-insets: 1, 2, 1, 2.6;
-    -fx-background-radius: 0 2 2 0, 0 1 1 0, 0 1 1 0, 0 1 1 0;
-}
-
 /********* PopupControl that is displayed when the button is pressed **********/
 
 .combo-box-popup > .list-view {
     -fx-background-color: -skin-popup-def-bgr-color;
-    -fx-background-insets: 0, 1;
+    -fx-background-insets: 0;
     -fx-effect: null;
-    /*gets in the way of transparent bgr*/
-    /*-fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 12, 0.0 , 0 , 8 );*/
 }
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
-    -fx-padding: 0;
+    -fx-padding: 0 0 0 10;
     -fx-background-color: null;
     -fx-text-fill:-skin-def-font-color;
 }
@@ -693,7 +649,7 @@ Text {
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
     -fx-background: null;
     -fx-background-color: -skin-color-darker;
-    -fx-text-fill:-skin-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
 }
 .combo-box-popup > .list-view > .placeholder > .label {
     -fx-text-fill: derive(-fx-control-inner-background,-30%);
@@ -1943,26 +1899,57 @@ Text {
  * pseudoclasses: edited (it is basically focused)
  */
 .text-field-config,
+.text-field-config:hover,
 .text-field-config:edited,
 .text-field-config:hover:edited,
 .text-field-config:focused:edited,
+.combobox-field-config > .list-cell,
+.combobox-field-config:hover > .list-cell,
 .combobox-field-config:edited > .list-cell,
 .combobox-field-config:hover:edited > .list-cell,
 .combobox-field-config:focused:edited > .list-cell {
     -fx-pref-column-count: 40;
-    -fx-text-fill: -fx-focus-color;
+    -fx-text-fill: -skin-value-font-color;
     -fx-prompt-text-fill: -skin-prompt-font-color;
 }
 
-/** 
+
+/**
  * Ok icon used in config fields to apply change.
- * inherits: .icon
+ * inherits: .text-field, .text-field-config
  */
-.config-field-ok-button {
-    -glyph-name: "FontAwesomeIcon.CHECK";
+.shortcut-config-field,
+.shortcut-config-field:readonly,
+.shortcut-config-field:hover,
+.shortcut-config-field:readonly:hover,
+.shortcut-config-field:focused,
+.shortcut-config-field:readonly:focused {
+    -fx-text-fill: -skin-value-font-color;
+    -fx-prompt-text-fill: -skin-value-font-color;
 }
 
-.boolean-config-field {}
+/**
+ * inherits: .check-icon
+ */
+.boolean-config-field Text,
+.boolean-config-field: hover Text {
+    -fx-fill: -skin-value-font-color;
+}
+
+/**
+ * inherits: .slider
+ */
+.slider-config-field .thumb,
+.slider-config-field .thumb:hover,
+.slider-config-field .thumb:armed,
+.slider-config-field:focused .thumb,
+.slider-config-field:focused .thumb:hover,
+.slider-config-field:focused .thumb:armed,
+.slider-config-field:hover .thumb {
+    -fx-fill: -skin-value-font-color;
+    -fx-text-fill: -skin-value-font-color;
+    -fx-background-color: -skin-value-font-color;
+}
 
 .override-config-field {
     -glyph-name: "MaterialDesignIcon.CHECKBOX_MULTIPLE_BLANK_OUTLINE";
@@ -1972,13 +1959,33 @@ Text {
 }
 
 .config-shortcut-run-icon {
-    -glyph-name: "FontAwesomeIcon.REFRESH";
+    -glyph-name: "FontAwesomeIcon.PLAY";
 }
 .config-shortcut-global-icon {
     -glyph-name: "MaterialDesignIcon.CAST";
 }
 .config-shortcut-global-icon:selected {
     -glyph-name: "MaterialDesignIcon.CAST_CONNECTED";
+}
+
+/* Effect type chooser button for effect config field. */
+.effect-config-field-type-button {
+    -glyph-name: "MaterialDesignIcon.AUTO_FIX";
+    -glyph-size: 0.66667em; /* 8 */
+}
+
+/* Effect properties button for effect config field. */
+.effect-config-field-conf-button {
+    -glyph-name: "FontAwesomeIcon.GEAR";
+    -glyph-size: 0.66667em; /* 8 */
+}
+
+/**
+ * Ok icon used in config fields to apply change.
+ * inherits: .icon
+ */
+.config-field-ok-button {
+    -glyph-name: "FontAwesomeIcon.CHECK";
 }
 
 /** 
@@ -2009,18 +2016,6 @@ Text {
 }
 .config-field-default-button:hover {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
-}
-
-/* Effect type chooser button for effect config field. */
-.effect-config-field-type-button {
-    -glyph-name: "MaterialDesignIcon.AUTO_FIX";
-    -glyph-size: 0.66667em; /* 8 */
-}
-
-/* Effect properties button for effect config field. */
-.effect-config-field-conf-button {
-    -glyph-name: "FontAwesomeIcon.GEAR";
-    -glyph-size: 0.66667em; /* 8 */
 }
 
 /************************************ SEARCH ***************************************************************************

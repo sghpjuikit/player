@@ -23,6 +23,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.Effect;
 import javafx.scene.input.KeyCode;
@@ -70,6 +71,7 @@ import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.DELETE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyCode.TAB;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
@@ -343,27 +345,28 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 /* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
 
     private static class PasswordField extends ConfigField<Password> {
-        javafx.scene.control.PasswordField graphics = new javafx.scene.control.PasswordField();
+        private javafx.scene.control.PasswordField editor = new javafx.scene.control.PasswordField();
 
         public PasswordField(Config<Password> c) {
             super(c);
-            graphics.setPromptText(c.getGuiName());
+            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
+            editor.setPromptText(c.getGuiName());
             refreshItem();
         }
 
         @Override
         Node getControl() {
-            return graphics;
+            return editor;
         }
 
         @Override
         public Try<Password,String> get() {
-            return ok(new Password(graphics.getText()));
+            return ok(new Password(editor.getText()));
         }
 
         @Override
         public void refreshItem() {
-            graphics.setText(config.getValue().getValue());
+            editor.setText(config.getValue().getValue());
         }
 
     }
@@ -389,7 +392,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             warnB.styleclass(STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
             warnB.tooltip(warnTooltip);
 
-            n.getStyleClass().setAll("text-field","text-input");
             n.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             n.setPromptText(c.getGuiName());
             n.setText(c.getValueS());
@@ -554,6 +556,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             max = new Label(String.valueOf(range.getMax()));
 
             slider = new Slider(range.getMin(),range.getMax(),val);
+            slider.getStyleClass().add("slider-config-field");
             cur = new Label(computeLabelText());
             cur.setPadding(new Insets(0, 5, 0, 0)); // add gap
             // there is a slight bug where isValueChanging is false even if it should not. It appears when mouse clicks
@@ -667,7 +670,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     }
     private static class ShortcutField extends ConfigField<Action> {
-        DecoratedTextField txtF;
+        TextField txtF;
         CheckIcon globB;
         HBox group;
         String t="";
@@ -684,12 +687,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             globB.tooltip(globTooltip);
             globB.selected.addListener((o,ov,nv) -> apply(false));
 
-            txtF = new DecoratedTextField();
+            txtF = new TextField();
+            txtF.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
+            txtF.getStyleClass().add("shortcut-config-field");
             txtF.setPromptText(computePromptText());
             txtF.setOnKeyReleased(e -> {
                 KeyCode c = e.getCode();
                 // handle subtraction
-                if (c==BACK_SPACE || c==DELETE) {
+                if (c==TAB) {
+                } else if (c==BACK_SPACE || c==DELETE) {
                     txtF.setPromptText("<none>");
                     if (!txtF.getText().isEmpty()) txtF.setPromptText(computePromptText());
 
@@ -713,24 +719,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             });
             txtF.setEditable(false);
             txtF.setTooltip(appTooltip(a.getInfo()));
-            txtF.focusedProperty().addListener((o,ov,nv) -> {
-                if (nv) {
-                    txtF.setText(a.getKeys());
-                } else {
-                    // prevent 'deselection' if we txtF lost focus because glob
-                    // received click
-                    if (!globB.isFocused())
-                        txtF.setText("");
-                }
-            });
-            txtF.left.setValue(globB);
+            txtF.focusedProperty().addListener((o,ov,nv) -> txtF.setText(a.getKeys()));
 
             runB = new Icon();
             runB.styleclass("config-shortcut-run-icon");
             runB.onClick(a);
             runB.tooltip("Run " + a.getGuiName());
 
-            group = new HBox(5, runB, txtF);
+            group = new HBox(5, runB, globB, txtF);
             group.setAlignment(CENTER_LEFT);
             group.setPadding(Insets.EMPTY);
         }
@@ -791,41 +787,43 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
     }
     private static class ColorField extends ConfigField<Color> {
-        ColorPicker picker = new ColorPicker();
+        private ColorPicker editor = new ColorPicker();
 
         private ColorField(Config<Color> c) {
             super(c);
             refreshItem();
-            picker.valueProperty().addListener((o,ov,nv) -> apply(false));
+            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
+            editor.valueProperty().addListener((o,ov,nv) -> apply(false));
         }
 
         @Override public Control getControl() {
-            return picker;
+            return editor;
         }
         @Override public Try<Color,String> get() {
-            return ok(picker.getValue());
+            return ok(editor.getValue());
         }
         @Override public void refreshItem() {
-            picker.setValue(config.getValue());
+            editor.setValue(config.getValue());
         }
     }
     private static class FontField extends ConfigField<Font> {
-        FontTextField txtF = new FontTextField();
+        private FontTextField editor = new FontTextField();
 
         private FontField(Config<Font> c) {
             super(c);
             refreshItem();
-            txtF.setOnValueChange((ov, nv) -> apply(false));
+            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
+            editor.setOnValueChange((ov, nv) -> apply(false));
         }
 
         @Override public Control getControl() {
-            return txtF;
+            return editor;
         }
         @Override public Try<Font,String> get() {
-            return ok(txtF.getValue());
+            return ok(editor.getValue());
         }
         @Override public void refreshItem() {
-            txtF.setValue(config.getValue());
+            editor.setValue(config.getValue());
         }
     }
     private static class FileField extends ConfigField<File> {
@@ -841,6 +839,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 .findFirst().orElse(Constraint.FileActor.ANY);
 
             editor = new FileTextField(constraint);
+            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             editor.setValue(config.getValue());
             editor.setOnKeyPressed(e -> {
                 if (e.getCode()==ENTER) {
@@ -875,6 +874,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         public EffectField(Config<Effect> c, Class<? extends Effect> effectType) {
             super(c);
             editor = new EffectTextField(effectType);
+            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             refreshItem();
             editor.setOnValueChange((ov, nv) -> apply(false));
         }

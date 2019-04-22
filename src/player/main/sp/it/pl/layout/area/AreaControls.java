@@ -56,6 +56,7 @@ import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.EventsKt.onEventUp;
 import static sp.it.util.reactive.UtilKt.maintain;
 import static sp.it.util.ui.UtilKt.getCentre;
+import static sp.it.util.ui.UtilKt.pseudoclass;
 
 /**
  * Controls for a widget area.
@@ -308,12 +309,14 @@ public final class AreaControls {
 
     public void show() {
         isShowingStrong = true;
+        area.contentRoot.pseudoClassStateChanged(pseudoclass("layout-mode"), true);
         showWeak();
         APP.actionStream.invoke("Widget control");
     }
 
     public void hide() {
         isShowingStrong = false;
+        area.contentRoot.pseudoClassStateChanged(pseudoclass("layout-mode"), false);
         hideWeak();
     }
 

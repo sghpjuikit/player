@@ -30,7 +30,7 @@ abstract class Area<T: Container<*>>: ContainerNode {
         }
         this.index = index
 
-        root.id = "widget-area-root"
+        root.id = "widget-area"
         root.layFullArea += contentRoot.apply {
             id = "widget-area-contentRoot"
             styleClass += STYLECLASS

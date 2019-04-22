@@ -65,7 +65,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
 
     /** Skin of the application. Defined stylesheet file to be applied on `.root` of windows. */
     @IsConfig(name = "Skin", info = "Application skin.")
-    val skin by cv("Flow") { VarEnum.ofStream(it) { skins.stream().map { it.name } } }
+    val skin by cv("Main") { VarEnum.ofStream(it) { skins.stream().map { it.name } } }
 
     /** Font of the application. Overrides `-fx-font-family` and `-fx-font-size` defined by css on `.root`. */
     @IsConfig(name = "Font", info = "Application font.")

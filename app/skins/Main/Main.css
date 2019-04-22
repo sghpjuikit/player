@@ -9,7 +9,7 @@
 * {
     -skin-bgr-color: rgb(0, 10, 25);
     -skin-def-font-color: rgb(190, 190, 195);
-    -skin-def-font-color-hover: rgb(235,235,230);
+    -skin-def-font-color-hover: #ffcc66;
     -skin-sel-font-color: rgb(175, 175, 176);
     -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
     -skin-color-darker: rgba(0,0,0,0.2);
@@ -19,8 +19,11 @@
     /* Darker version of pane color. By default used for :dragged pseudoclass */
     -skin-pane-color-dragged: rgba(0,0,0,0.3);
     /* Default bgr color for tooltips and popups. */
-    -skin-popup-def-bgr-color: rgba(28,42,60,0.9);
+    -skin-popup-def-bgr-color: rgba(15,25,45,0.95);
     -skin-value-font-color: rgb(75, 175, 105);
+
+    -fx-focus-color: #ffcc66;
+    -fx-faint-focus-color: #ffcc66;
 }
 
 /******************************************************************************
@@ -716,6 +719,10 @@ Text {
     -fx-padding: 0.5em;
 }
 
+.menu-item:focused > .label {
+    -fx-text-fill: -fx-focus-color;
+}
+
 /*******************************************************************************
  * ChoiceBox
  */
@@ -791,13 +798,7 @@ Text {
     -fx-background-insets: 0 1 1 0, 1 2 0 1, 2 3 0 2;
 }
 .tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
-    -fx-border-width: 1, 1;
-    /*-fx-border-color: -fx-focus-color, -fx-faint-focus-color;*/
-    -fx-border-insets: -4 -4 -6 -5, -2 -2 -5 -3;
-    -fx-border-radius: 2, 1; /* looks sharper if outer border has a tighter radius (2 instead of 3) */
-}
-.tab-pane:focused > .tab-header-area > .headers-region > .tab:bottom:selected .focus-indicator {
-    -fx-border-insets: -6 -5 -4 -4, -5 -3 -2 -2;
+    -fx-border-width: 0;
 }
 .tab-pane > .tab-header-area > .headers-region > .tab:disabled:hover {
     -fx-color: -fx-base;
@@ -1543,10 +1544,11 @@ Text {
 
 /************************************ COMPONENT ***********************************************************************/
 
-/**
+/*
  * Widget area
  * pseudoclasses: dragged - when component is being dragged
  *                active - when component has focus (1 per window)
+ *                layout-mode - when layout mode is active
  */
 .widget-area {
     -fx-background-color: -skin-pane-color;
@@ -1576,12 +1578,24 @@ Text {
 .widget-area-controls {
     -fx-padding: 1em;
 
-    -fx-border-color: rgba(0,0,0,0.3);
-    -fx-border-width: 1;
     -fx-background-color: null;
 }
 
-/** Container area controls. Shown in layout mode. */
+.widget-area:layout-mode {
+    -fx-background-insets: 0.5;
+}
+
+/*
+ * Container area
+ * pseudoclasses: layout-mode - when layout mode is active
+ */
+.container-area {}
+
+.container-area:layout-mode .split-pane .split-pane-divider {
+    -fx-background-color: transparent;
+}
+
+/* Container area controls. Shown in layout mode. */
 .container-area-controls {
     -fx-background-color: -skin-pane-color;
     -fx-padding: 1em;
@@ -1628,14 +1642,13 @@ Text {
 /* Denotes a currently played record in the playlist or other table. */
 .table-row-cell:played > .indexed-cell,
 .table-row-cell:played:selected > .indexed-cell {
-    -fx-text-fill: rgba(180, 200, 240, 0.8);
-    -fx-underline: true;
+    -fx-text-fill: -fx-focus-color;
 }
 
 /* Denotes broken or inconsistent record, e.g. unplayable item on playlist. */
 .table-row-cell:corrupt > .indexed-cell,
 .table-row-cell:corrupt:selected > .indexed-cell {
-    -fx-text-fill: rgba(250, 180, 180, 0.8);
+    -fx-text-fill: rgb(255, 122, 122);
 }
 
 /*

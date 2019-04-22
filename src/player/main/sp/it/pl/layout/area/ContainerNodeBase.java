@@ -51,6 +51,7 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.maintain;
 import static sp.it.util.ui.Util.setAnchors;
+import static sp.it.util.ui.UtilKt.pseudoclass;
 
 public abstract class ContainerNodeBase<C extends Container<?>> implements ContainerNode {
 
@@ -70,66 +71,68 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
     public ContainerNodeBase(C container) {
         this.container = container;
 
+        root.getStyleClass().add("container-area");
+
+        controls.getStyleClass().addAll("container-area-controls");
         root.getChildren().add(controls);
         setAnchors(controls, 0d);
-        controls.getStyleClass().addAll("container-area-controls");
 
-	// build header buttons
-	Icon infoB = infoIcon(
-		"Container settings. See icon tooltips."
-            + "\nActions:"
-            + "\n\tLeft click: visit children"
-            + "\n\tRight click: visit parent container"
-    ).styleclass("header-icon");
-	Icon detachB = new Icon(CLONE, -1, "Detach widget to own window", this::detach).styleclass("header-icon");
-	Icon changeB = new Icon(TH_LARGE, -1, "Change widget", () -> {}).styleclass("header-icon");
-    Icon actB = new Icon(GAVEL, -1, actbTEXT, () ->
-        APP.actionPane.show(Container.class, container)
-    ).styleclass("header-icon");
-	Icon lockB = new Icon(null, -1, "Lock widget layout", () -> {
-	    container.locked.set(!container.locked.get());
-	    APP.actionStream.invoke("Widget layout lock");
-	}).styleclass("header-icon");
-    maintain(container.locked, it -> lockB.icon(it ? LOCK : UNLOCK));
-	absB = new Icon(LINK, -1, "Resize widget proportionally", () -> {
-	    toggleAbsSize();
-	    updateAbsB();
-	}).styleclass("header-icon");
-	Icon closeB = new Icon(TIMES, -1, "Close widget", () -> {
-	    container.close();
-	    APP.actionStream.invoke("Close widget");
-	}).styleclass("header-icon");
-    Icon dragB = new Icon(MAIL_REPLY, -1, "Move widget by dragging").styleclass("header-icon");
+		// build header buttons
+		Icon infoB = infoIcon(
+			"Container settings. See icon tooltips."
+	            + "\nActions:"
+	            + "\n\tLeft click: visit children"
+	            + "\n\tRight click: visit parent container"
+	    ).styleclass("header-icon");
+		Icon detachB = new Icon(CLONE, -1, "Detach widget to own window", this::detach).styleclass("header-icon");
+		Icon changeB = new Icon(TH_LARGE, -1, "Change widget", () -> {}).styleclass("header-icon");
+	    Icon actB = new Icon(GAVEL, -1, actbTEXT, () ->
+	        APP.actionPane.show(Container.class, container)
+	    ).styleclass("header-icon");
+		Icon lockB = new Icon(null, -1, "Lock widget layout", () -> {
+		    container.locked.set(!container.locked.get());
+		    APP.actionStream.invoke("Widget layout lock");
+		}).styleclass("header-icon");
+	    maintain(container.locked, it -> lockB.icon(it ? LOCK : UNLOCK));
+		absB = new Icon(LINK, -1, "Resize widget proportionally", () -> {
+		    toggleAbsSize();
+		    updateAbsB();
+		}).styleclass("header-icon");
+		Icon closeB = new Icon(TIMES, -1, "Close widget", () -> {
+		    container.close();
+		    APP.actionStream.invoke("Close widget");
+		}).styleclass("header-icon");
+	    Icon dragB = new Icon(MAIL_REPLY, -1, "Move widget by dragging").styleclass("header-icon");
 
-    // drag
-    installDrag(controls, EXCHANGE, "Switch components",
-        e -> contains(e.getDragboard(), Df.COMPONENT),
-        e -> get(e.getDragboard(), Df.COMPONENT) == container,
-        consumer(e -> get(e.getDragboard(), Df.COMPONENT).swapWith(container.getParent(), container.indexInParent()))
-    );
+	    // drag
+	    installDrag(controls, EXCHANGE, "Switch components",
+	        e -> contains(e.getDragboard(), Df.COMPONENT),
+	        e -> get(e.getDragboard(), Df.COMPONENT) == container,
+	        consumer(e -> get(e.getDragboard(), Df.COMPONENT).swapWith(container.getParent(), container.indexInParent()))
+	    );
 
-    // not that dragging children will drag those, dragging container
-    // will drag whole container with all its children
-    EventHandler<MouseEvent> dh = e -> {
-        if (e.getButton()==PRIMARY) {   // primary button drag only
-            Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-            set(db, Df.COMPONENT, container);
-            // signal dragging graphically with css
-            controls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
-            e.consume();
-        }
-    };
-    dragB.setOnDragDetected(dh);
-    controls.setOnDragDetected(dh);
-    // return graphics to normal
-    root.setOnDragDone(e -> controls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
+	    // not that dragging children will drag those, dragging container
+	    // will drag whole container with all its children
+	    EventHandler<MouseEvent> dh = e -> {
+	        if (e.getButton()==PRIMARY) {   // primary button drag only
+	            Dragboard db = root.startDragAndDrop(TransferMode.ANY);
+	            set(db, Df.COMPONENT, container);
+	            // signal dragging graphically with css
+	            controls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
+	            e.consume();
+	        }
+	    };
+	    dragB.setOnDragDetected(dh);
+	    controls.setOnDragDetected(dh);
+	    // return graphics to normal
+	    root.setOnDragDone(e -> controls.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
 
-    // report component graphics changes
-    maintain(root.parentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
-    maintain(root.layoutBoundsProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
+	    // report component graphics changes
+	    maintain(root.parentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
+	    maintain(root.layoutBoundsProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
 
-	icons.setNodeOrientation(LEFT_TO_RIGHT);
-	icons.setAlignment(Pos.CENTER_RIGHT);
+		icons.setNodeOrientation(LEFT_TO_RIGHT);
+		icons.setAlignment(Pos.CENTER_RIGHT);
         icons.setPrefColumns(10);
         icons.setPrefHeight(25);
         AnchorPane.setTopAnchor(icons,0d);
@@ -175,6 +178,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
         //     setAltCon(true);
 
         isAlt = true;
+	    root.pseudoClassStateChanged(pseudoclass("layout-mode"), true);
 
         container.getChildren().values().forEach(c -> {
             if (c instanceof Container) ((Container)c).show();
@@ -189,6 +193,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
     public void hide() {
         if (isAltCon) setAltCon(false);
         isAlt = false;
+	    root.pseudoClassStateChanged(pseudoclass("layout-mode"), false);
 
         container.getChildren().values().forEach(c -> {
             if (c instanceof Container) ((Container)c).hide();

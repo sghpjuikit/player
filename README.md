@@ -16,8 +16,13 @@
 
 **Is this ready?** Yes and no. It is completely functional, but unprepared for release. An experimental release is due soon. This will mean no automatic updates, need to reimport the library, etc.
 
-**Sneak peek:**
-![Playlist View](assets/screenshots/screenshot_playlists.jpg)
+**Looks like this:**
+
+![Looks like this](assets/screenshots/screenshot_playlists.jpg)
+
+**Can do this:**
+
+![Can do this](assets/screenshots/screenshot_io.gif)
 
 ## Do I need this?
 

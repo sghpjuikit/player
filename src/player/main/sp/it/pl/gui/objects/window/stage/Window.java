@@ -663,7 +663,7 @@ public class Window extends WindowBase {
 			double Y = e.getSceneY();
 			double WW = getWidth();
 			double WH = getHeight();
-			double L = 18; // corner threshold
+			double L = 20; // corner threshold
 
 			Resize r = NONE;
 			if ((X>WW - L) && (Y>WH - L)) r = Resize.SE;

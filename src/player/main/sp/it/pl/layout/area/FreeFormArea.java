@@ -1,5 +1,6 @@
 package sp.it.pl.layout.area;
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.beans.property.BooleanProperty;
@@ -17,6 +18,7 @@ import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.container.freeformcontainer.FreeFormContainer;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.main.Df;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLOSE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DASHBOARD;
 import static javafx.application.Platform.runLater;
@@ -38,12 +40,11 @@ import static sp.it.util.ui.Util.setAnchors;
 
 public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
+    public static final String autolayoutTootlip = "Auto-layout\n\nResize components to maximize used space.";
     private static final String laybTEXT = "Maximize & align\n\n"
         + "Sets best size and position for the widget. Maximizes widget size "
         + "and tries to align it with other widgets so it does not cover other "
         + "widgets.";
-    private static final String autolbTEXT = "Autolayout\n\nLayout algorithm will resize widgets "
-        + "to maximalize used space.";
 
     private final AnchorPane rt = new AnchorPane();
     private final Map<Integer,PaneWindowControls> windows = new HashMap<>();
@@ -52,16 +53,13 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
     public FreeFormArea(FreeFormContainer con) {
         super(con);
-        setAnchor(root, rt,0d);
-
-        Icon layB = new Icon(VIEW_DASHBOARD, 12, autolbTEXT, this::bestLayout);
-        icons.getChildren().add(1,layB);
+        setAnchor(root_, rt, 0d);
 
         // add new widget on left click
         BooleanProperty isEmptySpace = new SimpleBooleanProperty(false);
         rt.setOnMousePressed(e -> isEmptySpace.set(isEmptySpace(e)));
         rt.setOnMouseClicked(e -> {
-            if (!isAltCon && (APP.ui.isLayoutMode() || !container.lockedUnder.get())) {
+            if (!isContainerMode && (APP.ui.isLayoutMode() || !container.lockedUnder.get())) {
                 isEmptySpace.set(isEmptySpace.get() && isEmptySpace(e));
                 if (e.getButton()==PRIMARY && isEmptySpace.get() && !any_window_resizing) {
                     addEmptyWindowAt(e.getX(),e.getY());
@@ -72,8 +70,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
         // drag
         rt.setOnDragDone(e -> rt.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
-        installDrag(
-            root, EXCHANGE, () -> "Move component here",
+        installDrag(root_, EXCHANGE, () -> "Move component here",
             e -> contains(e.getDragboard(), Df.COMPONENT),
             e -> get(e.getDragboard(), Df.COMPONENT) == container,
             consumer(e -> get(e.getDragboard(), Df.COMPONENT).swapWith(container,addEmptyWindowAt(e.getX(),e.getY()))),
@@ -110,6 +107,18 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         });
     }
 
+    @Override
+    protected ContainerAreaControls buildControls() {
+        var c = super.buildControls();
+
+        Icon layB = new Icon(VIEW_DASHBOARD, -1, autolayoutTootlip, this::autoLayoutAll).styleclass("header-icon");
+        c.icons.getChildren().add(1, layB);
+        Icon headerB = new Icon(FontAwesomeIcon.HEADER, -1, "Show window headers.", () -> container.getShowHeaders().setValue(!container.getShowHeaders().getValue())).styleclass("header-icon");
+        c.icons.getChildren().add(1, headerB);
+
+        return c;
+    }
+
     private boolean isEmptySpace(MouseEvent e) {
         double x = e.getX();
         double y = e.getY();
@@ -121,28 +130,19 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
     }
 
     public void loadWindow(int i, Component cm) {
-        PaneWindowControls w = getWindow(i);
+        PaneWindowControls w = getWindow(i, cm);
 
         Node n;
         Layouter l = null;
-        Icon lb = cm==null ? null : new Icon(VIEW_DASHBOARD, 12, laybTEXT, () -> {
-                TupleM4 p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
-                w.x.set(p.a*rt.getWidth());
-                w.y.set(p.b*rt.getHeight());
-                w.w.set(p.c*rt.getWidth());
-                w.h.set(p.d*rt.getHeight());
-            });
         if (cm instanceof Container) {
             Container c  = (Container) cm;
             n = c.load(w.content);
             if (c.ui instanceof ContainerNodeBase)
-                ((ContainerNodeBase)c.ui).icons.getChildren().add(1,lb);
-        } else
-        if (cm instanceof Widget) {
+                ((ContainerNodeBase<?>)c.ui).controls.get().updateIcons();
+        } else if (cm instanceof Widget) {
             WidgetArea wa = new WidgetArea(container,i,(Widget)cm);
-            // add maximize button
+            Icon lb = new Icon(VIEW_DASHBOARD, 12, laybTEXT, () -> autoLayout(w));
             wa.getControls().header_buttons.getChildren().add(1,lb);
-            w.moveOnDragOf(wa.contentRoot);
             n = wa.getRoot();
         } else {
             l = new Layouter(container, i);
@@ -150,6 +150,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             n = l.getRoot();
         }
 
+        w.moveOnDragOf(w.root);
         w.content.getChildren().setAll(n);
         setAnchors(n, 0d);
         if (l!=null) l.show();
@@ -167,37 +168,34 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         }
     }
 
-    private PaneWindowControls getWindow(int i) {
+    private PaneWindowControls getWindow(int i, Component cm) {
         PaneWindowControls w = windows.get(i);
         if (w==null) {
-            w = buidWindow(i);
-            windows.put(i,w);
+            w = buildWindow(i, cm);
+            windows.put(i, w);
         }
         return w;
     }
 
-    private PaneWindowControls getWindow(Component c) {
-        Integer i = container.indexOf(c);
-        return i==null ? null : windows.get(i);
-    }
-
-    private PaneWindowControls buidWindow(int i) {
+    private PaneWindowControls buildWindow(int i, Component cm) {
         PaneWindowControls w = new PaneWindowControls(rt);
         w.root.getStyleClass().add("freeflowcontainer-window");
-        w.setHeaderVisible(false);
         w.offscreenFixOn.set(false);
+
         // initial size/pos
         w.open();
         w.resizeHalf();
         w.alignCenter();
         w.snappable.set(false);
+
         // values from previous session (used when deserializing)
         if (container.properties.containsKey(i+"x")) w.x.set(container.properties.getD(i+"x")*rt.getWidth());
         if (container.properties.containsKey(i+"y")) w.y.set(container.properties.getD(i+"y")*rt.getHeight());
         if (container.properties.containsKey(i+"w")) w.w.set(container.properties.getD(i+"w")*rt.getWidth()-container.properties.getD(i+"x")*rt.getWidth());
         if (container.properties.containsKey(i+"h")) w.h.set(container.properties.getD(i+"h")*rt.getHeight()-container.properties.getD(i+"y")*rt.getHeight());
+
         // store for restoration (runLater avoids initialization problems)
-        runLater(()->{
+        runLater(() -> {
             maintain(w.x, v -> { if (!resizing) container.properties.put(i+"x", v.doubleValue()/rt.getWidth());});
             maintain(w.y, v -> { if (!resizing) container.properties.put(i+"y", v.doubleValue()/rt.getHeight());});
             maintain(w.w, v -> { if (!resizing) container.properties.put(i+"w", (w.x.get()+v.doubleValue())/rt.getWidth());});
@@ -207,10 +205,30 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         });
         maintain(container.lockedUnder, it -> w.resizable.setValue(!it));
         maintain(container.lockedUnder, it -> w.movable.setValue(!it));
+        maintain(container.getShowHeaders(), it -> w.setHeaderVisible(it));
+        maintain(container.getShowHeaders(), it -> {
+            if (it) {
+                w.controls.getChildren().addAll(
+                    new Icon(VIEW_DASHBOARD, -1, autolayoutTootlip, () -> autoLayout(w)).styleclass("header-icon"),
+                    new Icon(CLOSE, -1, "Close this component", () -> container.removeChild(i)).styleclass("header-icon")
+                );
+            } else {
+                w.controls.getChildren().clear();
+            }
+        });
+
+        if (cm instanceof Widget) maintain(((Widget) cm).custom_name, it -> w.setTitle(it));
+        else w.setTitle("");
+
+
         w.resizing.addListener((o,ov,nv) -> {
             if (nv!=Resize.NONE) any_window_resizing = true;
             else runFX(millis(100.0), () -> any_window_resizing = false);
         });
+
+        // report component graphics changes
+        maintain(w.root.parentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
+        maintain(w.root.boundsInParentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
 
         return w;
     }
@@ -312,14 +330,20 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         return i;
     }
 
-    public void bestLayout() {
-        windows.forEach((i,w) -> {
-            TupleM4 p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
-            w.x.set(p.a*rt.getWidth());
-            w.y.set(p.b*rt.getHeight());
-            w.w.set(p.c*rt.getWidth());
-            w.h.set(p.d*rt.getHeight());
-        });
+    public void autoLayout(Component c) {
+        autoLayout(getWindow(c.indexInParent(), c));
+    }
+
+    public void autoLayout(PaneWindowControls w) {
+        TupleM4 p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
+        w.x.set(p.a*rt.getWidth());
+        w.y.set(p.b*rt.getHeight());
+        w.w.set(p.c*rt.getWidth());
+        w.h.set(p.d*rt.getHeight());
+    }
+
+    public void autoLayoutAll() {
+        windows.forEach((i,w) -> autoLayout(w));
     }
 
     private static class TupleM4 {

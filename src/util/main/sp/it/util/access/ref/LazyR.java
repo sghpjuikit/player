@@ -36,7 +36,8 @@ public class LazyR<V> extends R<V> {
 
 	@Override
 	public void set(V val) {
-		isSet = true; super.set(val);
+		isSet = true;
+		super.set(val);
 	}
 
 	@Override

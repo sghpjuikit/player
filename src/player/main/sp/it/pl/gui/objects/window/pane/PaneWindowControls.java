@@ -5,7 +5,6 @@ import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -14,15 +13,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Rectangle;
 import sp.it.pl.gui.objects.window.Resize;
 import sp.it.util.ui.fxml.ConventionFxmlLoader;
-import static de.jensd.fx.glyphs.GlyphsDude.setIcon;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLOSE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS_SQUARE_ALT;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS_SQUARE_ALT;
-import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
-import static javafx.scene.paint.Color.BLACK;
 import static sp.it.pl.gui.objects.window.Resize.N;
 import static sp.it.pl.gui.objects.window.Resize.NE;
 import static sp.it.pl.gui.objects.window.Resize.NONE;
@@ -31,42 +23,30 @@ import static sp.it.pl.gui.objects.window.Resize.S;
 import static sp.it.pl.gui.objects.window.Resize.SE;
 import static sp.it.pl.gui.objects.window.Resize.SW;
 import static sp.it.pl.gui.objects.window.Resize.W;
+import static sp.it.pl.main.AppBuildersKt.resizeButton;
 import static sp.it.util.reactive.UtilKt.maintain;
 import static sp.it.util.ui.Util.setAnchors;
+import static sp.it.util.ui.UtilKt.initClip;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
 public class PaneWindowControls extends WindowPane {
 
-	/** Psududoclass active when this window is resized. Applied on root as '.window'. */
+	/** Pseudoclass active when this window is resized. Applied on root as '.window'. */
 	public static final PseudoClass pcResized = pseudoclass("resized");
-	/** Psududoclass active when this window is moved. Applied on root as '.window'. */
+	/** Pseudoclass active when this window is moved. Applied on root as '.window'. */
 	public static final PseudoClass pcMoved = pseudoclass("moved");
-	/** Psududoclass active when this window is focused. Applied on root as '.window'. */
+	/** Pseudoclass active when this window is focused. Applied on root as '.window'. */
 	public static final PseudoClass pcFocused = pseudoclass("focused");
 
-	@FXML
-	public AnchorPane borders;
-	@FXML
-	public AnchorPane content;
-	@FXML
-	private HBox controls;
-	@FXML
-	Button minimizeB;
-	@FXML
-	Button maximizeB;
-	@FXML
-	Button closeB;
+	@FXML public AnchorPane borders;
+	@FXML public AnchorPane content;
+	@FXML public HBox controls;
 
-	public PaneWindowControls(AnchorPane own) {
-		super(own);
+	public PaneWindowControls(AnchorPane owner) {
+		super(owner);
 
 		new ConventionFxmlLoader(root, this).loadNoEx();
-
-		// clip the content to its bounds to prevent leaking out
-		Rectangle mask = new Rectangle(1, 1, BLACK);
-		mask.widthProperty().bind(content.widthProperty());
-		mask.heightProperty().bind(content.heightProperty());
-		content.setClip(mask);
+		initClip(content);
 
 		// maintain custom pseudoclasses for .window styleclass
 		resizing.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcResized, nv!=NONE));
@@ -80,58 +60,24 @@ public class PaneWindowControls extends WindowPane {
 				.forEach(b -> b.setMouseTransparent(!it))
 		);
 
-//        moveOnDragOf(header);
-
-		// header double click maximize, show header on/off
-//	root.setOnMouseClicked(e -> {
-//	    if (e.getButton() == MouseButton.PRIMARY)
-//		if (e.getClickCount() == 2)
-//		    max();
-//	    if (e.getButton() == MouseButton.SECONDARY)
-//		if (e.getClickCount() == 2)
-//		    setHeaderVisible(!headerVisible);
-//	});
-
-		// controls
-		setIcon(minimizeB, MINUS_SQUARE_ALT, "13", GRAPHIC_ONLY);
-		minimizeB.setOnMouseClicked(e -> close());
-		setIcon(maximizeB, PLUS_SQUARE_ALT, "13", GRAPHIC_ONLY);
-		maximizeB.setOnMouseClicked(e -> close());
-		setIcon(closeB, CLOSE, "13", GRAPHIC_ONLY);
-		closeB.setOnMouseClicked(e -> close());
-		controls.getChildren().addAll();
+		var resizeB = resizeButton();
+		resizeB.setOnMouseDragged(this::border_onDragged);
+		resizeB.setOnMousePressed(this::border_onDragStart);
+		resizeB.setOnMouseReleased(this::border_onDragEnd);
+		borders.getChildren().add(resizeB);
+		setAnchors(resizeB, null, 0.0, 0.0, null);
 	}
 
-	/**
-	 * **************************** CONTENT *************************************
-	 */
 	public void setContent(Node n) {
 		content.getChildren().clear();
 		content.getChildren().add(n);
 		setAnchors(n, 0d);
 	}
 
-	/**
-	 * Blocks input to content, but not to root.
-	 * <p/>
-	 * Use when any input to content is not desirable, for example during
-	 * window manipulation like animations.
-	 * <p/>
-	 * Sometimes content could consume or interfere with the input directed
-	 * towards the window (root), in such situations this method will help.
-	 * <p/>
-	 */
-	public void setContentMouseTransparent(boolean val) {
-		content.setMouseTransparent(val);
-	}
-
 	/***************************    HEADER & BORDER    ****************************/
-	@FXML
-	private StackPane header;
-	@FXML
-	private ImageView iconI;
-	@FXML
-	private Label titleL;
+	@FXML public StackPane header;
+	@FXML private ImageView iconI;
+	@FXML private Label titleL;
 	@FXML
 	private HBox leftHeaderBox;
 	private boolean headerVisible = true;
@@ -194,8 +140,6 @@ public class PaneWindowControls extends WindowPane {
 		borders.setVisible(!v);
 	}
 
-	/*******************************    RESIZING  *********************************/
-
 	@FXML
 	private void border_onDragStart(MouseEvent e) {
 		// start resize if allowed
@@ -205,7 +149,7 @@ public class PaneWindowControls extends WindowPane {
 			double Y = b.getY() - y.get();
 			double WW = w.get();
 			double WH = h.get();
-			double L = 18; // corner treshold
+			double L = 20; // corner threshold
 
 			Resize r = NONE;
 			if ((X>WW - L) && (Y>WH - L)) r = SE;

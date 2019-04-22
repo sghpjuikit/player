@@ -2,6 +2,7 @@ package sp.it.pl.layout.container;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
+import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -136,14 +137,15 @@ public abstract class Container<G extends ContainerNode> extends Component imple
         lockedUnder.initLocked(c);
     }
 
-    /**
+    /*
      * Properly links up this container with its children and propagates this
      * call down on the children and so on.
      * This method is required to fully setParentRec the layout after deserialization
- because some field values can not be serialized and need to be manually
- initialized.
- Use on layout reload, immediately after the container.load() method.
+     * because some field values can not be serialized and need to be manually
+     * initialized.
+     * Use on layout reload, immediately after the container.load() method.
      */
+    // TODO: remove
     public void setParentRec() {
         for (Component c: getChildren().values()) {
             if (c instanceof Container) {
@@ -395,4 +397,20 @@ public abstract class Container<G extends ContainerNode> extends Component imple
             .forEach(AltState::hide);
     }
 
+    /**
+     * Invoked just after deserialization.
+     *
+     * @implSpec Resolve object by initializing non-deserializable fields or providing an alternative instance (e.g. to
+     * adhere to singleton pattern).
+     */
+    protected Object readResolve() throws ObjectStreamException {
+        super.readResolve();
+
+        getChildren().values().forEach(it -> {
+            if (it instanceof Container<?>)
+                ((Container) it).setParent(this);
+        });
+
+        return this;
+    }
 }

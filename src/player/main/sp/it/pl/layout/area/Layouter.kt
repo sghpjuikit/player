@@ -40,6 +40,7 @@ class Layouter: ContainerNode {
     private val index: Int
 
     override val root = AnchorPane()
+    private var wasSelected = false
     private var isCancelPlaying = false
     private val cp: ContainerPicker
     private val a1: FadeTransition
@@ -50,7 +51,10 @@ class Layouter: ContainerNode {
         this.container = container
         this.index = index
         this.cp = ContainerPicker({ showContainer(it) }, { showWidgetArea() }).apply {
-            onSelect = { AppAnimator.closeAndDo(root) { it.onSelect() } }
+            onSelect = {
+                wasSelected = true
+                AppAnimator.closeAndDo(root) { it.onSelect() }
+            }
             onCancel = {
                 isCancelPlaying = true
                 if (!APP.ui.isLayoutMode)
@@ -116,11 +120,12 @@ class Layouter: ContainerNode {
             a1.toValue = 1.0
             a2.toX = 1.0
             a2.toY = 1.0
+            wasSelected = false
         } else {
             val wasCancelPlaying = isCancelPlaying
             a1.onFinished = EventHandler {
                 isCancelPlaying = false
-                if (wasCancelPlaying) onCancel()
+                if (wasCancelPlaying && !wasSelected) onCancel()
             }
             a1.toValue = 0.0
             a2.toX = 0.0

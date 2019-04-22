@@ -189,8 +189,8 @@ open class Picker<E> {
             }
         }
 
-        private val Double.snapX: Double get() = snapPositionX(this)
-        private val Double.snapY: Double get() = snapPositionY(this)
+        private val Double.snapX: Double get() = this//snapPositionX(this)
+        private val Double.snapY: Double get() = this//snapPositionY(this)
     }
 
     companion object {

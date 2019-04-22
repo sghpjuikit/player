@@ -22,6 +22,7 @@ import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.layout.container.bicontainer.BiContainer;
+import sp.it.pl.layout.container.freeformcontainer.FreeFormContainer;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.main.AppAnimator;
 import sp.it.pl.main.Df;
@@ -218,12 +219,13 @@ public final class AreaControls {
             if (e.getButton()==PRIMARY) {
                 if (e.isShortcutDown()) {
                     area.detach();
-                } else {
+                    e.consume();
+                } else if (!(area.container instanceof FreeFormContainer)) {
                     Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                     set(db, Df.COMPONENT, area.getWidget());
                     root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
+                    e.consume();
                 }
-                e.consume();
             }
         });
         root.setOnDragDone(e -> root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
@@ -255,7 +257,7 @@ public final class AreaControls {
     void updateAbsB() {
     if (area.container instanceof BiContainer) {
         boolean l = area.container.properties.getI("abs_size") == area.index;
-            absB.icon(l ? UNLINK : LINK);
+        absB.icon(l ? UNLINK : LINK);
         if (!header_buttons.getChildren().contains(absB))
         header_buttons.getChildren().add(6, absB);
     } else

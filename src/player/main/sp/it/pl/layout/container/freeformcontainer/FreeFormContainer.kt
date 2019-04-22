@@ -4,10 +4,12 @@ import javafx.scene.Node
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.area.FreeFormArea
 import sp.it.pl.layout.container.Container
+import sp.it.util.access.v
 import java.util.HashMap
 
 class FreeFormContainer: Container<FreeFormArea>() {
 
+    val showHeaders = v(true)
     private val children = HashMap<Int, Component>()
 
     override fun getChildren(): Map<Int, Component> = children

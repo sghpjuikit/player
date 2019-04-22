@@ -27,9 +27,6 @@
                         <children>
                             <StackPane styleClass="header" />
                             <BorderPane fx:id="header">
-                                <opaqueInsets>
-                                    <Insets />
-                                </opaqueInsets>
                                 <padding>
                                     <Insets left="5.0" right="5.0" top="8.0" />
                                 </padding>

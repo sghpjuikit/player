@@ -54,16 +54,12 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
     public Splitter(BiContainer c) {
         super(c);
 
-        setAnchor(root, splitPane,0d);
+        setAnchor(root_, splitPane,0d);
         splitPane.setMinSize(0,0);
         root_child1.setMinSize(0,0);
         root_child2.setMinSize(0,0);
 
         prop = c.properties;
-
-        Icon orienB = new Icon(MAGIC, -1, "Change orientation", this::toggleOrientation).styleclass("header-icon");
-        maintain(c.orientation, it -> orienB.icon(it==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H));
-        icons.getChildren().add(2,orienB);
 
         Icon coll1B = new Icon(ARROW_RIGHT, 10, "Collapse", this::toggleCollapsed1);
         maintain(c.orientation, it -> coll1B.icon(it==HORIZONTAL ? ARROW_RIGHT : ARROW_DOWN));
@@ -83,7 +79,7 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         setupCollapsed(getCollapsed());
 
         // activate animation if mouse if leaving area
-        splitPane.setOnMouseClicked(root.getOnMouseClicked());
+        splitPane.setOnMouseClicked(root_.getOnMouseClicked());
 
         V<Double> position = new V<>(splitPane.getDividers().get(0).getPosition());
         splitPane.setOnMouseReleased(e -> {
@@ -164,8 +160,20 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         });
     }
 
+    @Override
+    protected ContainerAreaControls buildControls() {
+        var c = super.buildControls();
+
+        Icon orientB = new Icon(MAGIC, -1, "Change orientation", this::toggleOrientation).styleclass("header-icon");
+        maintain(container.orientation, it -> orientB.icon(it==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H));
+        c.icons.getChildren().add(2, orientB);
+
+        return c;
+    }
+
     private Layouter layouter1, layouter2;
     private WidgetArea wa1, wa2;
+    private ContainerNodeBase<?> ca1, ca2;
 
     public void setComponent(int i, Component c) {
         if (i!=1 && i!=2) throw new IllegalArgumentException("Only 1 or 2 supported as index.");
@@ -175,15 +183,18 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         Node n;
         AltState as;
         if (c instanceof Widget) {
-            WidgetArea wa = new WidgetArea(container,i,(Widget)c);
+            var wa = new WidgetArea(container,i,(Widget)c);
             if (i==1) wa1 = wa; else wa2 = wa;
             n = wa.getRoot();
             as = wa;
         } else if (c instanceof Container) {
             n = ((Container)c).load(r);
-            as = (Container)c;
+            var caa = ((Container) c).ui;
+            var ca = caa instanceof ContainerNodeBase<?> ? (ContainerNodeBase<?>) caa : null;
+            if (i==1) ca1 = ca; else ca2 = ca;
+            as = (Container) c;
         } else { // ==null
-            Layouter l = i==1 ? layouter1 : layouter2;
+            var l = i==1 ? layouter1 : layouter2;
             if (l==null) l = new Layouter(container, i);
             if (i==1) layouter1 = l; else layouter2 = l;
             n = l.getRoot();
@@ -231,24 +242,20 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
 
     public void setAbsoluteSize(int i) {
         if (i<0 || i>2)
-            throw new IllegalArgumentException("Only valiues 0,1,2 allowed here.");
+            throw new IllegalArgumentException("Only values 0,1,2 allowed here.");
 
         SplitPane.setResizableWithParent(root_child1, i!=1);
         SplitPane.setResizableWithParent(root_child2, i!=2);
 
         prop.put("abs_size", i);
-        updateAbsB();
+        if (wa1!=null) wa1.getControls().updateAbsB();
+        if (wa2!=null) wa2.getControls().updateAbsB();
+        if (ca1!=null && ca1.controls.isSet()) ca1.controls.get().updateIcons();
+        if (ca2!=null && ca2.controls.isSet()) ca2.controls.get().updateIcons();
     }
 
     public int getAbsoluteSize() {
         return prop.getI("abs_size");
-    }
-
-    @Override
-    protected void updateAbsB() {
-        super.updateAbsB();
-        if (wa1!=null) wa1.getControls().updateAbsB();
-        if (wa2!=null) wa2.getControls().updateAbsB();
     }
 
 /********************************** COLLAPSING ********************************/

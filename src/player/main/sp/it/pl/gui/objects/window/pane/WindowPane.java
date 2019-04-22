@@ -124,8 +124,8 @@ public class WindowPane {
 	public final DoubleProperty offScreenFixOffset = new SimpleDoubleProperty(0);
 	public final ReadOnlyBooleanProperty focused = _focused.getReadOnlyProperty();
 
-	public WindowPane(AnchorPane own) {
-		owner = own;
+	public WindowPane(AnchorPane owner) {
+		this.owner = owner;
 		root.addEventFilter(MOUSE_PRESSED, e -> root.toFront());
 	}
 

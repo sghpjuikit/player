@@ -6,9 +6,9 @@ import javafx.scene.control.skin.ScrollBarSkin
 import javafx.scene.layout.StackPane
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.reactive.Disposer
-import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.on
-import sp.it.util.reactive.sync
+import sp.it.util.reactive.plus
+import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.ui.onHoverOrDragEnd
 import sp.it.util.ui.onHoverOrDragStart
@@ -42,15 +42,13 @@ open class ImprovedScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar)
     }
 
     fun initHoverParentAnimation() {
-        val disposer = Disposer()
         val a = anim(350.millis) { node.opacity = 0.6+0.4*it*it }.applyNow()
-        skinnable.parentProperty() sync {
-            disposer()
-            disposer += it?.onHoverOrDragStart { a.playOpen() } ?: Subscription {}
-            disposer += it?.onHoverOrDragEnd { a.playClose() } ?: Subscription {}
-        } on onDispose
-        onDispose += disposer
         onDispose += a::stop
+        onDispose += skinnable.parentProperty() syncNonNullWhile {
+            val s1 = it.onHoverOrDragStart { a.playOpen() }
+            val s2 = it.onHoverOrDragEnd { a.playClose() }
+            s1+s2
+        }
     }
 
 }

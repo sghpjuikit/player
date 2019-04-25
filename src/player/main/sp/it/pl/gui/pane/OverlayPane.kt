@@ -215,7 +215,7 @@ abstract class OverlayPane<in T>: StackPane() {
                         // - decrease blur amount
 
                         op.opacityNode = window.content
-                        op.blurBackNode = window.subroot
+                        op.blurBackNode = window.root
                         if (!op.children.isEmpty()) op.blurFrontNode = op.children[0]
                         op.blurBackNode!!.effect = op.blurBack
                         op.blurFrontNode!!.effect = op.blurFront

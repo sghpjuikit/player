@@ -126,9 +126,7 @@ public class Window extends WindowBase {
 	public static final PseudoClass pcFullscreen = pseudoclass("fullscreen");
 
 	/** Scene root. Assigned {@link #scWindow} styleclass. */
-	@FXML public AnchorPane root = new AnchorPane();
-	/** Single child of the {@link #root}. */
-	@FXML public StackPane subroot;
+	@FXML public StackPane root = new StackPane();
 	@FXML public StackPane back, backImage;
 	@FXML public AnchorPane bordersVisual;
 	@FXML public AnchorPane front, content;
@@ -199,7 +197,7 @@ public class Window extends WindowBase {
 		root.addEventFilter(MOUSE_PRESSED, e -> {
 			if (e.getButton()==PRIMARY && e.isAltDown() && e.isShiftDown()) {
 				isMovingAlt = true;
-				subroot.setMouseTransparent(true);
+				root.setMouseTransparent(true);
 				moveStart(e);
 				e.consume();
 			}
@@ -213,7 +211,7 @@ public class Window extends WindowBase {
 		root.addEventFilter(MOUSE_RELEASED, e -> {
 			if (e.getButton()==PRIMARY && isMovingAlt) {
 				isMovingAlt = false;
-				subroot.setMouseTransparent(false);
+				root.setMouseTransparent(false);
 				moveEnd(e);
 				e.consume();
 			}

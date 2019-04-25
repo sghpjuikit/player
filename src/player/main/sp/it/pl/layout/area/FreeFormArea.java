@@ -213,7 +213,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             if (it) {
                 w.controls.getChildren().addAll(
                     new Icon(VIEW_DASHBOARD, -1, autolayoutTootlip, () -> autoLayout(w)).styleclass("header-icon"),
-                    new Icon(CLOSE, -1, "Close this component", () -> { if (cm!=null) cm.close(); closeWindow(i); }).styleclass("header-icon")
+                    new Icon(CLOSE, -1, "Close this component", () -> { container.removeChild(i); closeWindow(i); }).styleclass("header-icon")
                 );
             } else {
                 w.controls.getChildren().clear();

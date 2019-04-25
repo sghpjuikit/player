@@ -469,6 +469,7 @@ class WindowManager {
     }
 
     fun instantiateComponent(launcher: File): Component? {
+        if (!launcher.exists()) return null
         val isLauncherEmpty = launcher.useLines { it.count()==0 }
         val wf = if (isLauncherEmpty) APP.widgetManager.factories.getComponentFactoryByGuiName(launcher.nameWithoutExtension) else null
         return null

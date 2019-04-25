@@ -158,11 +158,13 @@ public class Icon extends StackPane {
 	}
 
 	public Icon(GlyphIcons i, double size, String tooltip, EventHandler<MouseEvent> onClick) {
+		setId("icon");
 		this.size.addListener((o, ov, nv) -> updateSize());
 		gap.addListener((o, ov, nv) -> updateSize());
 		glyphStyle.addListener((o, ov, nv) -> updateStyle());
 		icon.addListener((o, ov, nv) -> updateIcon());
 
+		node.setId("icon-text");
 		node.getStyleClass().clear();
 		node.getStyleClass().add(STYLECLASS);
 		styleclass(STYLECLASS);

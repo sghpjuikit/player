@@ -121,8 +121,6 @@ public final class AreaControls {
         new ConventionFxmlLoader(root, this).loadNoEx();
 
         root.getStyleClass().add("widget-area-controls");
-        header.setStyle("-fx-pref-height: 2em;");
-        header_buttons.setStyle("-fx-pref-height: 2em;");
 
         // avoid clashing of title and control buttons for small root size
         header_buttons.maxWidthProperty()

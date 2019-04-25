@@ -137,8 +137,11 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         if (cm instanceof Container) {
             Container c  = (Container) cm;
             n = c.load(w.content);
-            if (c.ui instanceof ContainerNodeBase)
-                ((ContainerNodeBase<?>)c.ui).controls.get().updateIcons();
+            if (c.ui instanceof ContainerNodeBase) {
+                var ui = (ContainerNodeBase<?>) c.ui;
+                if (ui.controls.isSet())
+                    ui.controls.get().updateIcons();
+            }
         } else if (cm instanceof Widget) {
             WidgetArea wa = new WidgetArea(container,i,(Widget)cm);
             Icon lb = new Icon(VIEW_DASHBOARD, 12, laybTEXT, () -> autoLayout(w));

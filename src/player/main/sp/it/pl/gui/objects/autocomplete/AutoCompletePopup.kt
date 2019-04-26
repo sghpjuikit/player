@@ -57,7 +57,7 @@ open class AutoCompletePopup<T>: PopupControl() {
         styleClass += STYLE_CLASS
     }
 
-    /** Shows this popup right below the specified node. Node must be attached to scenegraph in a window.  */
+    /** Shows this popup right below the specified node. Node must be attached to scene graph in a window.  */
     fun show(node: Node) {
         if (isShowing) return
 

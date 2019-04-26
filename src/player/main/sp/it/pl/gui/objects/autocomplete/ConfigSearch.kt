@@ -225,9 +225,9 @@ class ConfigSearch: AutoCompletion<Entry> {
 
         companion object {
 
-            fun of(nameΛ: () -> String, infoΛ: () -> String = { "" }, searchTextΛ: () -> String = nameΛ, graphicsΛ: () -> Node, runΛ: () -> Unit) = Entry.ΛEntry(nameΛ, infoΛ, searchTextΛ, graphicsΛ, runΛ)
+            fun of(nameΛ: () -> String, infoΛ: () -> String = { "" }, searchTextΛ: () -> String = nameΛ, graphicsΛ: () -> Node, runΛ: () -> Unit) = ΛEntry(nameΛ, infoΛ, searchTextΛ, graphicsΛ, runΛ)
 
-            fun of(config: Config<*>) = Entry.ConfigEntry(config)
+            fun of(config: Config<*>) = ConfigEntry(config)
 
             fun of(f: ComponentFactory<*>): Entry {
                 return SimpleEntry(

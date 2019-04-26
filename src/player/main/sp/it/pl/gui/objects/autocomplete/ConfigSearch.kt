@@ -28,6 +28,7 @@ import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.layout.widget.ComponentFactory
 import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
+import sp.it.pl.main.scaleEM
 import sp.it.util.access.minus
 import sp.it.util.action.Action
 import sp.it.util.collections.setToOne
@@ -59,8 +60,8 @@ class ConfigSearch: AutoCompletion<Entry> {
             AutoCompletion.defaultStringConverter()
     ) {
         this.textField = textField
+        this.textField.prefWidth = 550.0.scaleEM() // affects the popup width
         this.history = history
-        this.textField.prefWidth = 550.0 // affects the popup width
 
         this.textField.onEventUp(KEY_PRESSED, CONTROL, UP) { history.up(this) }
         this.textField.onEventUp(KEY_PRESSED, CONTROL, DOWN) { history.down(this) }

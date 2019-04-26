@@ -206,13 +206,15 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
                 .filter { it.name==widgetFactory.name() } // can not rely on type since we just reloaded the class!
                 .toList()    // avoids possible concurrent modification
                 .forEach { widgetOld ->
+                    val wasFocused = widgetOld.focused.value
                     val i = widgetOld.indexInParent()
-                    val widgetNew = widgetFactory.create()
-                    widgetNew.setStateFrom(widgetOld)
                     if (i!=null) {
+                        val widgetNew = widgetFactory.create()
+                        widgetNew.setStateFrom(widgetOld)
                         val c = widgetOld.parent
                         c.removeChild(i)
                         c.addChild(i, widgetNew)
+                        if (wasFocused) widgetNew.focus()
                     } else {
                         // TODO: implement
                     }

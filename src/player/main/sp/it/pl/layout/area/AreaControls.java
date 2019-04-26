@@ -1,8 +1,6 @@
 package sp.it.pl.layout.area;
 
 import java.util.function.Consumer;
-import javafx.animation.FadeTransition;
-import javafx.animation.Transition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
@@ -104,16 +102,14 @@ public final class AreaControls {
     @FXML public Label title;
     public Icon propB;
     public @FXML TilePane header_buttons;
-    Icon infoB, absB, lockB;
+    public Icon infoB, absB, lockB;
 
     private WidgetArea area;
 
     private boolean isShowingStrong = false;
     private boolean isShowingWeak = false;
     private Subscribed hiderWeak;
-    private final FadeTransition contrAnim;
-    private final FadeTransition contAnim;
-    private final Transition blurAnim;
+    private final Anim anim;
 
     public AreaControls(WidgetArea area) {
         this.area = area;
@@ -158,17 +154,21 @@ public final class AreaControls {
         header_buttons.getChildren().addAll(infoB, loadB, absB, lockB, propB, actB, closeB);
 
         // build animations
-        contrAnim = new FadeTransition(APP.ui.getDurationLM(), root);
-        contAnim = new FadeTransition(APP.ui.getDurationLM(), area.getContent());
         BoxBlur blur = new BoxBlur(0, 0, 1);
-        area.getContent().setEffect(blur);
-        blurAnim = new Anim(at -> {
-                blur.setWidth(at* APP.ui.getBlurLM());
-                blur.setHeight(at* APP.ui.getBlurLM());
+        anim = new Anim(it -> {
+                root.setOpacity(it);
+                root.setVisible(it!=0.0);
+                root.setMouseTransparent(it!=1.0);
+
+                blur.setWidth(it*APP.ui.getBlurLM());
+                blur.setHeight(it*APP.ui.getBlurLM());
+                area.getContent().setEffect(APP.ui.getBlurLayoutMode().getValue() ? blur : null);
+                area.getContent().setOpacity(APP.ui.getOpacityLayoutMode().getValue() ? 1-APP.ui.getOpacityLM()*it : 1);
+                area.getContent().setMouseTransparent(it==1.0);
             }).dur(APP.ui.getDurationLM());
 
         // weak mode and strong mode - strong mode is show/hide called from external code
-        // - weak mode is show/hide by mouse enter/exit events in the corner (activator/deactivator)
+        // - weak mode is show/hide by mouse enter/exit events in the corner
         // - the weak behavior must not work in strong mode
         // weak show - activator behavior
         BooleanProperty inside = new SimpleBooleanProperty(false);
@@ -265,43 +265,15 @@ public final class AreaControls {
     private void showWeak() {
         isShowingWeak = true;
         hiderWeak.subscribe(true);
+        anim.playOpen();
 
-        // stop animations if active
-        contrAnim.stop();
-        contAnim.stop();
-        blurAnim.stop();
-
-        // put new values
-        contrAnim.setToValue(1);
-        contAnim.setToValue(1 - APP.ui.getOpacityLM());
-        blurAnim.setRate(1);
-
-        // play
-        contrAnim.play();
-        if (APP.ui.getOpacityLayoutMode()) contAnim.play();
-        if (APP.ui.getBlurLayoutMode()) blurAnim.play();
-
-        // handle graphics
-        area.getContent().setMouseTransparent(true);
-        root.setMouseTransparent(false);
         updateAbsB();
     }
 
     private void hideWeak() {
         hiderWeak.subscribe(false);
         isShowingWeak = false;
-
-        contrAnim.stop();
-        contAnim.stop();
-        blurAnim.stop();
-        contrAnim.setToValue(0);
-        contAnim.setToValue(1);
-        blurAnim.setRate(-1);
-        contrAnim.play();
-        if (APP.ui.getOpacityLayoutMode()) contAnim.play();
-        if (APP.ui.getBlurLayoutMode()) blurAnim.play();
-        area.getContent().setMouseTransparent(false);
-        root.setMouseTransparent(true);
+        anim.playClose();
 
         // hide help popup if open
         if (!helpP.isØ() && helpP.get().isShowing()) helpP.get().hide();

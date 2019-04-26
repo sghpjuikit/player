@@ -22,6 +22,7 @@ import sp.it.util.conf.IsConfigurable
 import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
+import sp.it.util.conf.readOnlyUnless
 import sp.it.util.file.FileMonitor
 import sp.it.util.file.Util
 import sp.it.util.file.div
@@ -72,13 +73,13 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val font by cv(Font.getDefault())
 
     @IsConfig(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")
-    var blurLayoutMode by c(false)
+    val blurLayoutMode by cv(false)
     @IsConfig(name = "Layout mode fade bgr", info = "Layout mode use fade effect.")
-    var opacityLayoutMode by c(true)
+    val opacityLayoutMode by cv(true)
     @IsConfig(name = "Layout mode fade intensity", info = "Layout mode fade effect intensity.")
-    var opacityLM by c(1.0).between(0.0, 1.0)
+    var opacityLM by c(1.0).between(0.0, 1.0).readOnlyUnless(opacityLayoutMode)
     @IsConfig(name = "Layout mode blur intensity", info = "Layout mode blur effect intensity.")
-    var blurLM by c(4.0).between(0.0, 20.0)
+    var blurLM by c(4.0).between(0.0, 20.0).readOnlyUnless(blurLayoutMode)
     @IsConfig(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
     var durationLM by c(250.millis)
     @IsConfig(name = "Snap", info = "Allows snapping feature for windows and controls.")

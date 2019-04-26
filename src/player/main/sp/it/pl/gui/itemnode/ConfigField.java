@@ -13,7 +13,6 @@ import javafx.animation.FadeTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -91,7 +90,6 @@ import static sp.it.util.functional.Util.stream;
 import static sp.it.util.reactive.UtilKt.maintain;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
-import static sp.it.util.ui.UtilKt.pseudoclass;
 
 /**
  * Editable and settable graphic control for configuring {@link sp.it.util.conf.Config}.
@@ -102,7 +100,6 @@ import static sp.it.util.ui.UtilKt.pseudoclass;
  */
 abstract public class ConfigField<T> extends ConfigNode<T> {
 
-    private static final PseudoClass editedPC = pseudoclass("edited");
     private static final Tooltip okTooltip = appTooltip("Apply value");
     private static final Tooltip warnTooltip = appTooltip("Erroneous value");
     private static final Tooltip defTooltip = appTooltip("Default value");
@@ -397,25 +394,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             n.setText(c.getValueS());
 
             n.focusedProperty().addListener((o,ov,nv) -> {
-                if (nv) {
-                    n.pseudoClassStateChanged(editedPC, true);
-                } else {
-                    n.pseudoClassStateChanged(editedPC, false);
-//                    // the timer solves a little bug where the focus shift from
-//                    // txtF to okB has a delay which we need to jump over
-//                    run(80, () -> {
-//                        if (!okBL.isFocused() && !okB.isFocused()) {
-//                            txtF.setText("");
-//                            showOkButton(false);
-//                        }
-//                    });
-                    refreshItem();
-                }
+                if (!nv) refreshItem();
             });
 
             n.addEventHandler(KEY_RELEASED, e -> {
-                if (e.getCode()==ESCAPE)
-                    root.requestFocus();
+                if (e.getCode()==ESCAPE) {
+                    refreshItem();
+                    e.consume();
+                }
             });
             // applying value
             n.textProperty().addListener((o,ov,nv)-> {
@@ -631,7 +617,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             n.setValue(c.getValue());
             n.valueProperty().addListener((o,ov,nv) -> apply(false));
             n.getStyleClass().add("combobox-field-config");
-            n.focusedProperty().addListener((o,ov,nv) -> n.pseudoClassStateChanged(editedPC, nv));
         }
 
         @Override

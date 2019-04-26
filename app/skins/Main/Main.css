@@ -1814,11 +1814,6 @@ Text {
     /*-fx-padding: 0 0 0 5;*/ 
 }
 
-/* Some usage examples... */
-.popover:detached > .popover-root > .bgr {}
-.popover:focused > .popover-root > .bgr,
-.popover:detached:focused > .popover-root > .bgr {}
-
 /******************************* HELP POPOVER **************************************************************************
  * Help popover, usually associated with a help icon. Acts mostly as a tooltip.
  * Has purely informative use. Provides basically no interaction.
@@ -1918,25 +1913,21 @@ Text {
 /********************************** CONFIG ****************************************************************************/
 
 /** 
- * Text box for configuring objects, e.g. in settings. * 
+ * Text box for configuring objects, e.g. in settings.
  * inherits: .text-field
- * pseudoclasses: edited (it is basically focused)
  */
 .text-field-config,
 .text-field-config:hover,
-.text-field-config:edited,
-.text-field-config:hover:edited,
-.text-field-config:focused:edited,
+.text-field-config:focused,
+.text-field-config:focused:hover,
 .combobox-field-config > .list-cell,
 .combobox-field-config:hover > .list-cell,
-.combobox-field-config:edited > .list-cell,
-.combobox-field-config:hover:edited > .list-cell,
-.combobox-field-config:focused:edited > .list-cell {
+.combobox-field-config:focused > .list-cell,
+.combobox-field-config:focused:hover > .list-cell,
     -fx-pref-column-count: 40;
     -fx-text-fill: -skin-value-font-color;
     -fx-prompt-text-fill: -skin-prompt-font-color;
 }
-
 
 /**
  * Ok icon used in config fields to apply change.

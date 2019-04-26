@@ -283,7 +283,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      *
      * @return setter control for this field
      */
-    abstract Node getControl();
+    public abstract Node getControl();
 
     protected String getTooltipText() {
         return config.getInfo();
@@ -355,7 +355,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        Node getControl() {
+        public Node getControl() {
             return editor;
         }
 
@@ -644,7 +644,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             n.setValue(config.getValue());
         }
 
-        @Override Node getControl() {
+        @Override
+        public Node getControl() {
             return n;
         }
     }
@@ -944,7 +945,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        Node getControl() {
+        public Node getControl() {
             return chain.getNode();
         }
 
@@ -1020,7 +1021,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        Node getControl() {
+        public Node getControl() {
             return graphics;
         }
 
@@ -1055,7 +1056,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             root.getChildren().addAll(cf.getNode(),bf.getNode());
         }
         @Override
-        Node getControl() {
+        public Node getControl() {
             return root;
         }
 

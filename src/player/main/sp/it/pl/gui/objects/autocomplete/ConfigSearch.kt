@@ -57,7 +57,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                         .sortedBy { it.name }
                         .toList()
             },
-            AutoCompletion.defaultStringConverter()
+            defaultStringConverter()
     ) {
         this.textField = textField
         this.textField.prefWidth = 550.0.scaleEM() // affects the popup width
@@ -203,7 +203,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                             textAlignment = TextAlignment.RIGHT
                         }
                     }
-                    config.type.isSubclassOf<Boolean>() || config.isTypeEnumerable -> ConfigField.create(config).getNode()
+                    config.type.isSubclassOf<Boolean>() || config.isTypeEnumerable -> ConfigField.create(config).getControl()
                     else -> null
                 }
             }

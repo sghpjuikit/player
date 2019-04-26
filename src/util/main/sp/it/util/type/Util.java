@@ -83,7 +83,7 @@ public interface Util {
 						if (observable!=null && propertyName!=null && propertyType!=null) {
 							action.accept(observable, propertyName, propertyType);
 						} else {
-							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", observable, propertyName, propertyName);
+							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", observable, propertyName, propertyType);
 						}
 
 					} catch (IllegalAccessException|InvocationTargetException e) {
@@ -113,7 +113,7 @@ public interface Util {
 						if (observable!=null && propertyName!=null && propertyType!=null) {
 							action.accept(observable, propertyName, propertyType);
 						} else {
-							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", observable, propertyName, propertyName);
+							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", observable, propertyName, propertyType);
 						}
 
 					} catch (IllegalAccessException e) {

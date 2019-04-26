@@ -51,11 +51,15 @@ class ConfigSearch: AutoCompletion<Entry> {
     constructor(textField: TextField, history: History = History(), entries: () -> Sequence<Entry>): super(
             textField,
             { text ->
-                val phrases = text.split(" ").toList()
-                entries()
-                        .filter { phrases.all { phrase -> it.searchText.contains(phrase, true) } }
-                        .sortedBy { it.name }
-                        .toList()
+                if (text.isEmpty())
+                    listOf()
+                else {
+                    val phrases = text.split(" ").toList()
+                    entries()
+                            .filter { phrases.all { phrase -> it.searchText.contains(phrase, true) } }
+                            .sortedBy { it.name }
+                            .toList()
+                }
             },
             defaultStringConverter()
     ) {

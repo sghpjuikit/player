@@ -962,12 +962,12 @@ Text {
 
 .split-pane:horizontal > .split-pane-divider {
    -fx-border-color: transparent;
-   -fx-background-color: -skin-pane-color;
+   -fx-background-color: transparent;
    -fx-padding: 0;
 }
 .split-pane:vertical > .split-pane-divider {
    -fx-border-color: transparent;
-   -fx-background-color: -skin-pane-color;
+   -fx-background-color: transparent;
    -fx-padding: 0;
 }
 .split-pane *.vertical-grabber {
@@ -1591,8 +1591,13 @@ Text {
  */
 .container-area {}
 
+.container-area .split-pane .split-pane-divider {
+    -fx-background-color: -skin-pane-color;
+}
+
 .container-area:layout-mode .split-pane .split-pane-divider {
-    -fx-background-color: transparent;
+    -fx-background-color: -skin-pane-color;
+    -fx-opacity: 0.0;
 }
 
 /* Container area controls. Shown in layout mode. */

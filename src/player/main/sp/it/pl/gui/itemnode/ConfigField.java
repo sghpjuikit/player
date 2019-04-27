@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-import javafx.animation.FadeTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -29,9 +28,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.util.Duration;
 import sp.it.pl.gui.itemnode.ChainValueNode.ListConfigField;
 import sp.it.pl.gui.itemnode.textfield.EffectTextField;
 import sp.it.pl.gui.itemnode.textfield.FileTextField;
@@ -43,6 +42,7 @@ import sp.it.pl.gui.objects.textfield.DecoratedTextField;
 import sp.it.pl.gui.pane.ConfigPane;
 import sp.it.util.access.Vo;
 import sp.it.util.action.Action;
+import sp.it.util.animation.Anim;
 import sp.it.util.conf.Config;
 import sp.it.util.conf.Config.ListConfig;
 import sp.it.util.conf.Config.OverridablePropertyConfig;
@@ -115,6 +115,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     public static final String STYLECLASS_CONFIG_FIELD_OK_BUTTON = "config-field-ok-button";
     public static final String STYLECLASS_CONFIG_FIELD_WARN_BUTTON = "config-field-warn-button";
     public static final String STYLECLASS_TEXT_CONFIG_FIELD = "text-field-config";
+    private static final double defBLayoutSize = 15.0;
+    private static Insets paddingNoDefB = new Insets(0.0, defBLayoutSize, 0.0, 0.0);
+    private static Insets paddingWithDefB = Insets.EMPTY;
 
     @SuppressWarnings("unchecked")
     private static Map<Class<?>,Ƒ1<Config,ConfigField>> CF_BUILDERS = new HashMap<>() {{
@@ -180,54 +183,16 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-    protected final HBox root = new HBox();
     public boolean applyOnChange = true;
     protected boolean inconsistentState = false;
-    private Icon defB;
     public Try<T,String> value = ok(null);
     public Consumer<? super Try<T,String>> observer;
+    private HBox root;
+    private Icon defB;
+    private Anim defBA;
 
-    private ConfigField(Config<T> c) {
-        super(c);
-
-        root.setMinSize(0,20);   // min height actually required to get consistent look
-        root.setPrefSize(-1,-1); // support variable content height
-        root.setMaxSize(-1,-1);  // support variable content height
-        root.setSpacing(5);
-        root.setAlignment(CENTER_LEFT);
-        root.setPadding(new Insets(0, 15, 0, 0)); // space for defB (11+5)(defB.width+box.spacing)
-
-        // display default button when hovered for certain time
-        root.addEventFilter(MOUSE_ENTERED, e -> {
-            if (!isEditableByUserRightNow(config)) return;
-            runFX(millis(270), () -> {
-                if (root.isHover()) {
-                    if (defB==null && isEditableByUserRightNow(c)) {
-                        defB = new Icon(null, 11, null, this::setNapplyDefault);
-                        defB.tooltip(defTooltip);
-                        defB.styleclass("config-field-default-button");
-                        defB.setOpacity(0);
-                        root.getChildren().add(defB);
-                        root.setPadding(Insets.EMPTY);
-                    }
-                    FadeTransition fa = new FadeTransition(millis(450), defB);
-                    fa.stop();
-                    fa.setToValue(1);
-                    fa.play();
-                }
-            });
-        });
-        // hide default button
-        root.addEventFilter(MOUSE_EXITED, e-> {
-            // return if nothing to hide
-            if (defB == null) return;
-            // hide it
-            FadeTransition fa = new FadeTransition(millis(450), defB);
-            fa.stop();
-            fa.setDelay(Duration.ZERO);
-            fa.setToValue(0);
-            fa.play();
-        });
+    private ConfigField(Config<T> config) {
+        super(config);
     }
 
     /**
@@ -267,11 +232,64 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      */
     @Override
     public final HBox getNode() {
-        Node config = getControl();
-        if (!root.getChildren().contains(config))
+        if (root==null) {
+            root = new HBox(5.0);
+            root.setMinSize(0,20);   // min height actually required to get consistent look
+            root.setPrefSize(-1,-1); // support variable content height
+            root.setMaxSize(-1,-1);  // support variable content height
+            root.setAlignment(CENTER_LEFT);
+            root.setPadding(new Insets(0, 15, 0, 0)); // space for defB (11+5)(defB.width+box.spacing)
+
+            root.addEventFilter(MOUSE_ENTERED, e -> {
+                if (!isEditableByUserRightNow(config)) return;
+                runFX(millis(270), () -> {
+                    if (root.isHover()) {
+                        if (defB==null && isEditableByUserRightNow(config)) {
+                            defB = new Icon(null, -1, null, this::setNapplyDefault);
+                            defB.tooltip(defTooltip);
+                            defB.styleclass("config-field-default-button");
+                            defB.setManaged(false);
+                            defB.setOpacity(0);
+
+                            var defBRoot = new StackPane(defB) {
+                                @Override
+                                protected void layoutChildren() {
+                                    defB.relocate(
+                                        getWidth()/2d-defB.getLayoutBounds().getWidth()/2,
+                                        getHeight()/2d-defB.getLayoutBounds().getHeight()/2
+                                    );
+                                }
+                            };
+                            defBRoot.setPrefSize(defBLayoutSize, defBLayoutSize);
+                            root.getChildren().add(defBRoot);
+                            root.setPadding(paddingWithDefB);
+
+                            defBA = Anim.anim(millis(450), consumer(it -> {
+                                if (defB!=null)
+                                    defB.setOpacity(it*it);
+                            }));
+                        }
+                        if (defBA!=null)
+                            defBA.playOpenDo(null);
+                    }
+                });
+            });
+            root.addEventFilter(MOUSE_EXITED, e -> {
+                if (defBA!=null)
+                    defBA.playCloseDo(runnable(() -> {
+                        root.getChildren().remove(defB.getParent());
+                        defB = null;
+                        defBA = null;
+                        root.setPadding(paddingNoDefB);
+                    }));
+            });
+
+            var config = getControl();
             root.getChildren().add(0, config);
-        HBox.setHgrow(config, ALWAYS);
-        HBox.setHgrow(config.getParent(), ALWAYS);
+            root.setPadding(paddingNoDefB);
+            HBox.setHgrow(config, ALWAYS);
+            HBox.setHgrow(config.getParent(), ALWAYS);
+        }
         return root;
     }
 
@@ -371,7 +389,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     private static class GeneralField<T> extends ConfigField<T> {
         private final DecoratedTextField n = new DecoratedTextField();
         private final boolean isObservable;
-        private final Icon okI= new Icon();
+        private final Icon okI = new Icon();
         private final Icon warnB = new Icon();
         private final AnchorPane okB = new AnchorPane(okI);
 

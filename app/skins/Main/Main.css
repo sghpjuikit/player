@@ -2029,7 +2029,7 @@ Text {
     -fx-background-color: transparent;
     -fx-graphic-text-gap: 0px;
     -fx-text-fill: -skin-def-font-color;
-    -fx-padding: 2 0 0 0; /* fix vertical alignment*/
+    -fx-translate-y: 1; /* fix vertical alignment*/
 }
 .config-field-default-button:pressed:hover {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );

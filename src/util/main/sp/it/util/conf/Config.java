@@ -280,7 +280,7 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 			() -> forPropertyImpl((Class) type, name, value),
 			() -> {
 				if (value instanceof ObservableList)
-					return new ListConfig<T>(name, new VarList<T>((Class) type, Elements.NULLABLE, (ObservableList) value));
+					return new ListConfig<T>(name, new VarList<T>((Class) Object.class, Elements.NULLABLE, (ObservableList) value));
 				else
 					return forProperty(type, name, new V<>(value));
 			}

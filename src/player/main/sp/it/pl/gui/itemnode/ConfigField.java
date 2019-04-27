@@ -104,6 +104,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     private static final Tooltip okTooltip = appTooltip("Apply value");
     private static final Tooltip warnTooltip = appTooltip("Erroneous value");
     private static final Tooltip defTooltip = appTooltip("Default value");
+    private static final Tooltip actTooltip = appTooltip("Run action");
     private static final Tooltip globTooltip = appTooltip("Global shortcut"
             + "\n\nGlobal shortcuts can be used even when the application doesn't have focus.\n"
             + "Note that only one application can use this shortcut. If multiple applications use "
@@ -729,7 +730,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             runB = new Icon();
             runB.styleclass("config-shortcut-run-icon");
             runB.onClick(a);
-            runB.tooltip("Run " + a.getGuiName());
+            runB.tooltip(actTooltip);
 
             group = new HBox(5, runB, globB, txtF);
             group.setAlignment(CENTER_LEFT);

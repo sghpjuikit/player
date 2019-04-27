@@ -1979,6 +1979,7 @@ Text {
 }
 
 .config-shortcut-run-icon {
+    -glyph-size: 0.66667em; /* 8 */
     -glyph-name: "FontAwesomeIcon.PLAY";
 }
 .config-shortcut-global-icon {

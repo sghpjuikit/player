@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -399,7 +400,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
             ObservableValue<T> obv = getObservableValue(c);
             isObservable = obv!=null;
-            if (isObservable) obv.addListener((o,ov,nv) -> refreshItem());
+            if (isObservable) {
+                obv.addListener((o,ov,nv) -> refreshItem());
+            }
+
+            // Assumes that any observable config is final
+            if (Observable.class.isAssignableFrom(c.getType())) {
+                var v = (Observable) c.getValue();
+                if (v!=null) v.addListener(it -> refreshItem());
+            }
 
             okB.setPrefSize(11, 11);
             okB.setMinSize(11, 11);

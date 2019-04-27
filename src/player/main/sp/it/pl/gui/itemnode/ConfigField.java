@@ -123,28 +123,28 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     @SuppressWarnings("unchecked")
     private static Map<Class<?>,Ƒ1<Config,ConfigField>> CF_BUILDERS = new HashMap<>() {{
-        put(boolean.class, BooleanField::new);
-        put(Boolean.class, BooleanField::new);
-        put(String.class, GeneralField::new);
-        put(Action.class, ShortcutField::new);
-        put(Color.class, ColorField::new);
-        put(File.class, FileField::new);
-        put(Font.class, FontField::new);
-        put(Effect.class, config -> new EffectField(config, Effect.class));
-        put(Password.class, PasswordField::new);
-        put(Charset.class, charset -> new EnumerableField<>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
-        put(KeyCode.class, KeyCodeField::new);
-        put(Configurable.class, ConfigurableField::new);
+        put(boolean.class, BoolCF::new);
+        put(Boolean.class, BoolCF::new);
+        put(String.class, GeneralCF::new);
+        put(Action.class, ShortcutCF::new);
+        put(Color.class, ColorCF::new);
+        put(File.class, FileCF::new);
+        put(Font.class, FontCF::new);
+        put(Effect.class, config -> new EffectCF(config, Effect.class));
+        put(Password.class, PasswordCF::new);
+        put(Charset.class, charset -> new EnumerableCF<>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
+        put(KeyCode.class, KeyCodeCF::new);
+        put(Configurable.class, ConfigurableCF::new);
         put(ObservableList.class, config -> {
             if (config instanceof ListConfig) {
                 return Configurable.class.isAssignableFrom(((ListConfig)config).a.itemType)
-                    ? new ListFieldPaginated(config)
-                    : new ListField<>(config);
+                    ? new PaginatedObservableListCF(config)
+                    : new ObservableListCF<>(config);
             } else {
-                return new GeneralField<>(config);
+                return new GeneralCF<>(config);
             }
         });
-        EffectTextField.EFFECT_TYPES.stream().map(et -> et.getType()).filter(t -> t!=null).forEach(t -> put(t, config -> new EffectField(config, t)));
+        EffectTextField.EFFECT_TYPES.stream().map(et -> et.getType()).filter(t -> t!=null).forEach(t -> put(t, config -> new EffectCF(config, t)));
     }};
 
     /**
@@ -156,10 +156,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     public static <T> ConfigField<T> create(Config<T> config) {
         Config c = config;
         ConfigField cf;
-        if (c instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) c);
-        else if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeField(c) : new EnumerableField(c);
-        else if (isMinMax(c)) cf = new SliderField(c);
-        else cf = CF_BUILDERS.computeIfAbsent(c.getType(), key -> GeneralField::new).apply(c);
+        if (c instanceof OverridablePropertyConfig) cf = new OverriddenCF((OverridablePropertyConfig) c);
+        else if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeCF(c) : new EnumerableCF(c);
+        else if (isMinMax(c)) cf = new SliderCF(c);
+        else cf = CF_BUILDERS.computeIfAbsent(c.getType(), key -> GeneralCF::new).apply(c);
 
 	    disableIfReadOnly(cf, c);
 
@@ -362,10 +362,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
 /* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
 
-    private static class PasswordField extends ConfigField<Password> {
+    private static class PasswordCF extends ConfigField<Password> {
         private javafx.scene.control.PasswordField editor = new javafx.scene.control.PasswordField();
 
-        public PasswordField(Config<Password> c) {
+        public PasswordCF(Config<Password> c) {
             super(c);
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             editor.setPromptText(c.getGuiName());
@@ -388,14 +388,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
     }
-    private static class GeneralField<T> extends ConfigField<T> {
+    private static class GeneralCF<T> extends ConfigField<T> {
         private final DecoratedTextField n = new DecoratedTextField();
         private final boolean isObservable;
         private final Icon okI = new Icon();
         private final Icon warnB = new Icon();
         private final AnchorPane okB = new AnchorPane(okI);
 
-        private GeneralField(Config<T> c) {
+        private GeneralCF(Config<T> c) {
             super(c);
 
             ObservableValue<T> obv = getObservableValue(c);
@@ -509,11 +509,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
     }
-    private static class BooleanField extends ConfigField<Boolean> {
+    private static class BoolCF extends ConfigField<Boolean> {
         protected final CheckIcon graphics;
         private final boolean isObservable;
 
-        private BooleanField(Config<Boolean> c) {
+        private BoolCF(Config<Boolean> c) {
             super(c);
 
             ObservableValue<Boolean> v = getObservableValue(c);
@@ -542,20 +542,20 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 graphics.selected.setValue(config.getValue());
         }
     }
-    private static class OverrideField extends BooleanField {
-        private OverrideField(Config<Boolean> c) {
+    private static class OverriddenBoolCF extends BoolCF {
+        private OverriddenBoolCF(Config<Boolean> c) {
             super(c);
             graphics.styleclass("override-config-field");
             graphics.tooltip(overTooltip);
         }
     }
-    private static class SliderField extends ConfigField<Number> {
+    private static class SliderCF extends ConfigField<Number> {
         private final Slider slider;
         private final Label cur, min, max;
         private final HBox box;
         private final boolean isObservable;
 
-        private SliderField(Config<Number> c) {
+        private SliderCF(Config<Number> c) {
             super(c);
 
             ObservableValue<Number> v = getObservableValue(c);
@@ -626,14 +626,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             return getValid().map(Object::toString).getOr("");
         }
     }
-    private static class EnumerableField<T> extends ConfigField<T> {
+    private static class EnumerableCF<T> extends ConfigField<T> {
         ComboBox<T> n;
 
-        private EnumerableField(Config<T> c) {
+        private EnumerableCF(Config<T> c) {
             this(c, c.enumerateValues());
         }
 
-        private EnumerableField(Config<T> c, Collection<T> enumeration) {
+        private EnumerableCF(Config<T> c, Collection<T> enumeration) {
             super(c);
 
             boolean sortable = c.getConstraints().stream().noneMatch(con -> con instanceof Constraint.PreserveOrder);
@@ -663,9 +663,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             return n;
         }
     }
-    private static class KeyCodeField extends EnumerableField<KeyCode> {
+    private static class KeyCodeCF extends EnumerableCF<KeyCode> {
 
-        private KeyCodeField(Config<KeyCode> c) {
+        private KeyCodeCF(Config<KeyCode> c) {
             super(c);
 
             n.setOnKeyPressed(Event::consume);
@@ -684,7 +684,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
     }
-    private static class ShortcutField extends ConfigField<Action> {
+    private static class ShortcutCF extends ConfigField<Action> {
         TextField txtF;
         CheckIcon globB;
         HBox group;
@@ -692,7 +692,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         Action a;
         Icon runB;
 
-        private ShortcutField(Config<Action> con) {
+        private ShortcutCF(Config<Action> con) {
             super(con);
             a = con.getValue();
 
@@ -801,10 +801,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             globB.selected.setValue(a.isGlobal());
         }
     }
-    private static class ColorField extends ConfigField<Color> {
+    private static class ColorCF extends ConfigField<Color> {
         private ColorPicker editor = new ColorPicker();
 
-        private ColorField(Config<Color> c) {
+        private ColorCF(Config<Color> c) {
             super(c);
             refreshItem();
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
@@ -821,10 +821,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             editor.setValue(config.getValue());
         }
     }
-    private static class FontField extends ConfigField<Font> {
+    private static class FontCF extends ConfigField<Font> {
         private FontTextField editor = new FontTextField();
 
-        private FontField(Config<Font> c) {
+        private FontCF(Config<Font> c) {
             super(c);
             refreshItem();
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
@@ -841,11 +841,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             editor.setValue(config.getValue());
         }
     }
-    private static class FileField extends ConfigField<File> {
+    private static class FileCF extends ConfigField<File> {
         FileTextField editor;
         boolean isObservable;
 
-        public FileField(Config<File> c) {
+        public FileCF(Config<File> c) {
             super(c);
             ObservableValue<File> v = getObservableValue(c);
             isObservable = v!=null;
@@ -882,11 +882,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 editor.setValue(config.getValue());
         }
     }
-    private static class EffectField extends ConfigField<Effect> {
+    private static class EffectCF extends ConfigField<Effect> {
 
         private final EffectTextField editor;
 
-        public EffectField(Config<Effect> c, Class<? extends Effect> effectType) {
+        public EffectCF(Config<Effect> c, Class<? extends Effect> effectType) {
             super(c);
             editor = new EffectTextField(effectType);
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
@@ -911,10 +911,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             });
         }
     }
-    private static class ConfigurableField extends ConfigField<Configurable<?>> {
+    private static class ConfigurableCF extends ConfigField<Configurable<?>> {
         private final ConfigPane<Object> configPane = new ConfigPane<>();
 
-        private ConfigurableField(Config<Configurable<?>> c) {
+        private ConfigurableCF(Config<Configurable<?>> c) {
             super(c);
             configPane.configure(c.getValue().getFields());
         }
@@ -932,7 +932,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override
         public void refreshItem() {}
     }
-    private static class ListField<T> extends ConfigField<ObservableList<T>> {
+    private static class ObservableListCF<T> extends ConfigField<ObservableList<T>> {
 
         private final ListConfig<T> lc;
         private final ListConfigField<T,ConfigurableField> chain;
@@ -940,7 +940,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private ListConfigField<T,ConfigurableField>.Link syntheticEventLink = null;
 
         @SuppressWarnings("unchecked")
-        public ListField(Config<ObservableList<T>> c) {
+        public ObservableListCF(Config<ObservableList<T>> c) {
             super(c);
             lc = (ListConfig) c;
             var list = lc.a.list;
@@ -1025,7 +1025,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         }
     }
-    private static class ListFieldPaginated extends ConfigField<ObservableList<Configurable<?>>> {
+    private static class PaginatedObservableListCF extends ConfigField<ObservableList<Configurable<?>>> {
 
         private int at = -1;
         private final ListConfig<Configurable<?>> lc;
@@ -1037,7 +1037,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             configPane
         );
 
-        public ListFieldPaginated(Config<ObservableList<Configurable<?>>> c) {
+        public PaginatedObservableListCF(Config<ObservableList<Configurable<?>>> c) {
             super(c);
             lc = (ListConfig<Configurable<?>>) c;
             next();
@@ -1074,10 +1074,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override
         public void refreshItem() {}
     }
-    private static class OverridableField<T> extends ConfigField<T> {
+    private static class OverriddenCF<T> extends ConfigField<T> {
         final FlowPane root = new FlowPane(5,5);
 
-        public OverridableField(OverridablePropertyConfig<T> c) {
+        public OverriddenCF(OverridablePropertyConfig<T> c) {
             super(c);
             Vo<T> vo = c.getProperty();
 
@@ -1085,7 +1085,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 //            root.setPrefSize(-1,-1);
 //            root.setMaxSize(-1,-1);
 
-            BooleanField bf = new OverrideField(Config.forProperty(Boolean.class, "Override", vo.override)) {
+            BoolCF bf = new OverriddenBoolCF(Config.forProperty(Boolean.class, "Override", vo.override)) {
                 @Override
                 public void setNapplyDefault() {
                     vo.override.setValue(c.getDefaultOverrideValue());

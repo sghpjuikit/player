@@ -7,7 +7,9 @@ import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import javafx.collections.ListChangeListener
+import javafx.collections.MapChangeListener
 import javafx.collections.ObservableList
+import javafx.collections.ObservableMap
 import javafx.collections.ObservableSet
 import javafx.collections.SetChangeListener
 import javafx.scene.Node
@@ -308,6 +310,20 @@ fun <T> ObservableList<T>.onChange(block: () -> Unit): Subscription {
             block()
         }
     }
+    addListener(l)
+    return Subscription { removeListener(l) }
+}
+
+/** Call specified handler every time an item in this set changes */
+fun <T> ObservableSet<T>.onChange(block: () -> Unit): Subscription {
+    val l = SetChangeListener<T> { block() }
+    addListener(l)
+    return Subscription { removeListener(l) }
+}
+
+/** Call specified handler every time an entry in this map changes */
+fun <K,V> ObservableMap<K,V>.onChange(block: () -> Unit): Subscription {
+    val l = MapChangeListener<K,V> { block() }
     addListener(l)
     return Subscription { removeListener(l) }
 }

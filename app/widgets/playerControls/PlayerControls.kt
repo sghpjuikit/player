@@ -173,11 +173,11 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
     }
 
     private fun playingItemChanged(song: Metadata) {
-        titleL.text = song.getTitle()
-        artistL.text = song.getArtist()
-        bitrateL.text = song.getFieldS(BITRATE, "")
-        sampleRateL.text = song.getSampleRate()
-        channelsL.text = song.getChannels()
+        titleL.text = song.getTitle() ?: "<no title>"
+        artistL.text = song.getArtist() ?: "<no artist>"
+        bitrateL.text = song.getFieldS(BITRATE,  "<no bitrate>")
+        sampleRateL.text = song.getSampleRate() ?: "<no sample rate>"
+        channelsL.text = song.getChannels() ?: "<no channels>"
         seeker.reloadChapters(song)
     }
 

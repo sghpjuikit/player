@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import javafx.animation.FadeTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
@@ -52,6 +51,7 @@ import sp.it.util.conf.Config.ReadOnlyPropertyConfig;
 import sp.it.util.conf.Configurable;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.functional.Try;
+import sp.it.util.reactive.Subscription;
 import sp.it.util.text.Password;
 import sp.it.util.type.Util;
 import sp.it.util.validation.Constraint;
@@ -64,7 +64,6 @@ import static java.nio.charset.StandardCharsets.UTF_16;
 import static java.nio.charset.StandardCharsets.UTF_16BE;
 import static java.nio.charset.StandardCharsets.UTF_16LE;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.DELETE;
@@ -82,12 +81,14 @@ import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.conf.ConfigurationUtilKt.isEditableByUserRightNow;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.TryKt.getAny;
-import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.equalsAny;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.onItemSyncWhile;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
 
@@ -907,26 +908,54 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         private final ListConfig<T> lc;
         private final ListConfigField<T,ConfigurableField> chain;
-        private final Runnable changeHandler;
+        private boolean isSyntheticEvent = false;
+        private ListConfigField<T,ConfigurableField>.Link syntheticEventLink = null;
 
         @SuppressWarnings("unchecked")
         public ListField(Config<ObservableList<T>> c) {
             super(c);
             lc = (ListConfig) c;
-            Predicate<T> p = c.getConstraints().stream().anyMatch(HasNonNullElements.class::isInstance)
-                    ? Objects::nonNull
-                    : (Predicate) IS;
+            var list = lc.a.list;
+            var isNullable = c.getConstraints().stream().anyMatch(HasNonNullElements.class::isInstance);
 
             // create chain
             chain = new ListConfigField<>(0, () -> new ConfigurableField(lc.a.itemType, lc.a.factory.get()));
-            changeHandler = () -> lc.a.list.setAll(chain.getValues().filter(p).collect(toList()));
 
-            // initialize chain - add existing list values to chain
-            lc.a.list.forEach(v -> chain.addChained(new ConfigurableField(lc.a.itemType, v)));
+            // bind list to the chain
+            chain.onUserItemAdded.add(consumer(v -> {
+                if (isNullable || v.chained.value!=null)
+                    list.add(v.chained.value);
+            }));
+            chain.onUserItemRemoved.add(consumer(v ->
+                list.remove(v.chained.value)
+            ));
+            chain.onUserItemEnabled.add(consumer(v -> {
+                isSyntheticEvent=true;
+                syntheticEventLink = v;
+                if (isNullable || v.chained.value!=null)
+                    list.add(v.chained.value);
+                syntheticEventLink = null;
+                isSyntheticEvent=false;
+            }));
+            chain.onUserItemDisabled.add(consumer(v -> {
+                isSyntheticEvent=true;
+                if (isNullable || v.chained.value!=null)
+                    list.remove(v.chained.value);
+                isSyntheticEvent=false;
+            }));
+            chain.onItemChange = it -> {};
+            onItemSyncWhile(list, v -> {
+                    var link = isSyntheticEvent
+                        ? syntheticEventLink
+                        : chain.addChained(new ConfigurableField(lc.a.itemType, v));
+                    return link==null
+                        ? Subscription.Companion.invoke()
+                        : Subscription.Companion.invoke(runnable(() -> {
+                            if (link.on.getValue())
+                                link.onRem();
+                        }));
+            });
             chain.growTo1();
-
-            // bind list to the chain values (after it was initialized above)
-            chain.onItemChange = it -> changeHandler.run();
         }
 
         @Override
@@ -949,7 +978,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             public ConfigurableField(Class<T> type, T value) {
                 super(value);
                 this.type = type;
-                pane.setOnChange(changeHandler);
+                pane.setOnChange(() -> {});
                 pane.configure(lc.toConfigurable.apply(this.value));
             }
 
@@ -962,8 +991,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             public T getVal() {
                 // TODO: use Type instead of Class for Config.type or add list type support to Config
                 Class<? extends T> oType = pane.getConfigFields().get(0).config.getType();
-                T o = pane.getConfigFields().get(0).getVal();
-                if (type==oType) return o;
+                if (type==oType) return pane.getConfigFields().get(0).getVal();
                 else return value;
             }
 

@@ -11,11 +11,11 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.util.reactive.Handler1;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import static java.util.stream.Collectors.toList;
@@ -48,6 +48,10 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 	protected boolean homogeneous = true;
 	public boolean inconsistent_state = true;
 	protected BiPredicate<Integer,V> isHomogeneous = (i, v) -> false;
+	public final Handler1<Link> onUserItemAdded = new Handler1<>();
+	public final Handler1<Link> onUserItemRemoved = new Handler1<>();
+	public final Handler1<Link> onUserItemEnabled = new Handler1<>();
+	public final Handler1<Link> onUserItemDisabled = new Handler1<>();
 
 	/** Creates unlimited chain of 1 initial chained element. */
 	public ChainValueNode(V initialValue) {
@@ -79,23 +83,26 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 		inconsistent_state = false;
 	}
 
-	public void addChained() {
-		addChained(chain.size(), chainedFactory.get());
+	public Link addChained() {
+		return addChained(chain.size(), chainedFactory.get());
 	}
 
-	public void addChained(int i) {
-		addChained(i, chainedFactory.get());
+	public Link addChained(int i) {
+		return addChained(i, chainedFactory.get());
 	}
 
-	public void addChained(C chained) {
-		addChained(chain.size(), chained);
+	public Link addChained(C chained) {
+		return addChained(chain.size(), chained);
 	}
 
-	public void addChained(int i, C chained) {
+	public Link addChained(int i, C chained) {
 		if (chain.size()<maxChainLength.get()) {
 			Link c = new Link(chained);
 			chain.add(i, c);
 			generateValue();
+			return c;
+		} else {
+			return null;
 		}
 	}
 
@@ -136,6 +143,10 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 			generateValue();
 			chain.forEach(Link::updateIcons);
 		}
+	}
+
+	public int length() {
+		return chain.size();
 	}
 
 	/** {@inheritDoc} */
@@ -187,7 +198,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 		Link c = chain.get(0);
 		Icon i = c.rem;
 		i.icon(icon==null ? MINUS : icon);
-		i.setOnMouseClicked(icon==null ? c::onRem : e -> { action.run(); e.consume(); });
+		i.setOnMouseClicked(icon==null ? e -> c.onRem() : e -> { action.run(); e.consume(); });
 		i.tooltip(icon==null ? addTooltip : t);
 		c.rem_alt = true;
 		c.updateIcons();
@@ -214,8 +225,9 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 			HBox.setHgrow(chained.getNode(), ALWAYS);
 			setAlignment(CENTER_LEFT);
 			on.addListener((o, ov, nv) -> generateValue());
-			rem.setOnMouseClicked(this::onRem);
-			add.setOnMouseClicked(e -> addChained(getIndex() + 1));
+			on.addListener((o, ov, nv) -> { if (nv) onUserItemEnabled.invoke(this); else onUserItemDisabled.invoke(this); });
+			rem.setOnMouseClicked(e -> { onRem(); onUserItemRemoved.invoke(this); });
+			add.setOnMouseClicked(e -> { onUserItemAdded.invoke(addChained(getIndex() + 1)); });
 			rem.tooltip(remTooltip);
 			add.tooltip(addTooltip);
 			onB.tooltip(onTooltip);
@@ -227,7 +239,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 			return chain.indexOf(this);
 		}
 
-		void updateIcons() {
+		public void updateIcons() {
 			int l = chain.size();
 			boolean h = isHomogeneous();
 
@@ -236,9 +248,11 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 			this.setDisable(!h);
 		}
 
-		void onRem(MouseEvent e) {
-			if (chain.size()>1) {
-				chain.remove(this);
+		public void onRem() {
+			chain.remove(this);
+			if (chain.isEmpty()) {
+				growTo1();
+			} else {
 				generateValue();
 			}
 		}

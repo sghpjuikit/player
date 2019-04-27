@@ -189,7 +189,7 @@ fun Dragboard.getImageFileOrUrl(): Fut<File?> = when {
 fun Dragboard.hasImageFilesOrUrl(): Fut<List<File>> {
     if (hasFiles()) {
         val images = files.filter { it.isImage() }
-        if (!images.isEmpty())
+        if (images.isNotEmpty())
             return fut(images)
     }
     if (hasUrl() && url.isImage()) {
@@ -227,11 +227,11 @@ fun installDrag(node: Node, icon: GlyphIcons, description: String, condition: (D
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
 fun installDrag(node: Node, icon: GlyphIcons, description: String, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
-        sp.it.pl.main.installDrag(node, icon, Supplier { description }, condition, exc, action)
+        installDrag(node, icon, Supplier { description }, condition, exc, action)
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
 fun installDrag(node: Node, icon: GlyphIcons, description: Supplier<out String>, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
-        sp.it.pl.main.installDrag(node, icon, description, condition, { false }, action)
+        installDrag(node, icon, description, condition, { false }, action)
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
 @JvmOverloads

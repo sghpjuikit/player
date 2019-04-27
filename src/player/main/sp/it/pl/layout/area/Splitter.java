@@ -30,6 +30,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.access.SequentialValue.next;
 import static sp.it.util.async.AsyncKt.runFX;
+import static sp.it.util.reactive.SubscriptionKt.on;
 import static sp.it.util.reactive.UtilKt.maintain;
 import static sp.it.util.reactive.UtilKt.syncTo;
 import static sp.it.util.ui.Util.setAnchor;
@@ -165,8 +166,8 @@ public final class Splitter extends ContainerNodeBase<BiContainer> {
         var c = super.buildControls();
 
         Icon orientB = new Icon(MAGIC, -1, "Change orientation", this::toggleOrientation).styleclass("header-icon");
-        maintain(container.orientation, it -> orientB.icon(it==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H));
-        c.icons.getChildren().add(2, orientB);
+        on(maintain(container.orientation, it -> orientB.icon(it==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H)), c.disposer);
+        c.addExtraIcon(orientB);
 
         return c;
     }

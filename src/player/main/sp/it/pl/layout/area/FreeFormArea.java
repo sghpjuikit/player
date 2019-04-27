@@ -29,6 +29,7 @@ import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.get;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.util.access.PropertiesKt.toggle;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.functional.Util.findFirstEmptyKey;
 import static sp.it.util.functional.UtilKt.consumer;
@@ -111,10 +112,13 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
     protected ContainerAreaControls buildControls() {
         var c = super.buildControls();
 
-        Icon layB = new Icon(VIEW_DASHBOARD, -1, autolayoutTootlip, this::autoLayoutAll).styleclass("header-icon");
-        c.icons.getChildren().add(1, layB);
-        Icon headerB = new Icon(FontAwesomeIcon.HEADER, -1, "Show window headers.", () -> container.getShowHeaders().setValue(!container.getShowHeaders().getValue())).styleclass("header-icon");
-        c.icons.getChildren().add(1, headerB);
+        c.addExtraIcon(
+            new Icon(VIEW_DASHBOARD, -1, autolayoutTootlip, this::autoLayoutAll).styleclass("header-icon")
+        );
+
+        c.addExtraIcon(
+            new Icon(FontAwesomeIcon.HEADER, -1, "Show window headers.", () -> toggle(container.getShowHeaders())).styleclass("header-icon")
+        );
 
         return c;
     }

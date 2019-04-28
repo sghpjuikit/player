@@ -350,6 +350,15 @@ fun <T> ObservableSet<T>.onItemAdded(block: (T) -> Unit): Subscription {
     return Subscription { removeListener(l) }
 }
 
+/** Call specified block every time an item is added to this map passing it as argument */
+fun <K,V> ObservableMap<K,V>.onItemAdded(block: (K,V) -> Unit): Subscription {
+    val l = MapChangeListener<K,V> {
+        if (it.wasAdded()) block(it.key, it.valueAdded)
+    }
+    addListener(l)
+    return Subscription { removeListener(l) }
+}
+
 /** Call specified block every time an item is removed from this list passing it as argument */
 fun <T> ObservableList<T>.onItemRemoved(block: (T) -> Unit): Subscription {
     val l = ListChangeListener<T> {
@@ -358,6 +367,15 @@ fun <T> ObservableList<T>.onItemRemoved(block: (T) -> Unit): Subscription {
                 if (it.wasRemoved()) it.removed.forEach(block)
             }
         }
+    }
+    addListener(l)
+    return Subscription { removeListener(l) }
+}
+
+/** Call specified block every time an item is removed from this set passing it as argument */
+fun <K,V> ObservableMap<K,V>.onItemRemoved(block: (K,V) -> Unit): Subscription {
+    val l = MapChangeListener<K, V> {
+        if (it.wasRemoved()) block(it.key, it.valueRemoved)
     }
     addListener(l)
     return Subscription { removeListener(l) }
@@ -374,14 +392,20 @@ fun <T> ObservableSet<T>.onItemRemoved(block: (T) -> Unit): Subscription {
 
 /** Call specified block for every current and future item of this list. */
 fun <T> ObservableList<T>.onItemSync(block: (T) -> Unit): Subscription {
-    forEach { block(it) }
-    return onItemAdded { block(it) }
+    forEach(block)
+    return onItemAdded(block)
 }
 
 /** Call specified block for every current and future item of this set. */
 fun <T> ObservableSet<T>.onItemSync(block: (T) -> Unit): Subscription {
-    forEach { block(it) }
-    return onItemAdded { block(it) }
+    forEach(block)
+    return onItemAdded(block)
+}
+
+/** Call specified block for every current and future item of this set. */
+fun <K,V> ObservableMap<K,V>.onItemSync(block: (K,V) -> Unit): Subscription {
+    forEach(block)
+    return onItemAdded(block)
 }
 
 /**

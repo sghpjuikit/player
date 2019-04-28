@@ -243,6 +243,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     private fun addConnection(i: Put<*>, o: Put<*>) {
         links.computeIfAbsent(Key(i, o)) { IOLink(i, o) }
+        requestLayout()
     }
 
     private fun remConnection(i: Put<*>, o: Put<*>) {

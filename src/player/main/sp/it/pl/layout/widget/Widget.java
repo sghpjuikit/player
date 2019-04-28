@@ -99,8 +99,8 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 	@XStreamOmitField public final WidgetFactory<?> factory;
 	@XStreamOmitField protected Pane root;
 	@XStreamOmitField protected Controller controller;
-
 	@XStreamOmitField private HashMap<String,Config<Object>> configs = new HashMap<>();
+	@XStreamOmitField Disposer onClose = new Disposer();
 
 	// Temporary workaround for bad design. Widget-Container-Controller-Area relationship is badly
 	// designed. This particular problem: Area can contain not yet loaded widget. Thus, we cant
@@ -118,10 +118,6 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 	 */
 	@XStreamOmitField public ContainerNode areaTemp;
 
-	@XStreamOmitField Disposer onClose = new Disposer();
-
-	// configuration
-
 	/** Whether this widget will be preferred over other widgets in widget lookup. */
 	@IsConfig(name = "Is preferred", info = "Prefer this widget among all widgets of its type. If there is a request "
 			+ "for widget, preferred one will be selected. ")
@@ -135,10 +131,17 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 	@IsConfig(name = "Custom name", info = "Name displayed in gui. User can set his own. By default component type name.")
 	public final V<String> custom_name = new V<>("");
 
-	/** Whether this widget is active/focused. Each window has 0 or 1 active widgets. Default false.*/
+	/** Whether this widget is active/focused. Each window has 0 or 1 active widgets. Default false. */
 	@Dependency("name - accessed using reflection by name")
 	@IsConfig(name = "Focused", info = "Whether widget is active/focused.", editable = EditMode.APP)
 	@XStreamOmitField public final V<Boolean> focused = new V<>(false); // TODO: make read-only
+
+	/**
+	 * Whether this widget has been created from persisted state or normally by application/user.
+	 * May be used for sensitive initialization, like setting default values that must not override user settings.
+	 */
+	@Dependency("name - accessed using reflection by name")
+	@XStreamOmitField public final boolean isDeserialized = false;
 
 	public Widget(String name, WidgetFactory<?> factory) {
 		this.name = name;
@@ -425,6 +428,8 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 	@SuppressWarnings("unchecked")
 	protected Object readResolve() throws ObjectStreamException {
 		super.readResolve();
+
+		Util.setField(this, "isDeserialized", true);
 
 		// try to assign factory (it must exist) or fallback to empty widget
 		if (factory==null) {

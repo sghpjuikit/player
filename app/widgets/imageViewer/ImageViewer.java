@@ -319,7 +319,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         onClose.plusAssign(slideshow::stop);
 
         onClose.plusAssign(sync1IfInScene(root, runnable(() -> {
-            if (!inputLocation.isBound(widget.id) && !inputLocationOf.isBound(widget.id))
+            if (!inputLocation.isBound(widget.id) && !inputLocationOf.isBound(widget.id) && !widget.isDeserialized)
                 inputLocationOf.bind(Player.playing.o);
         })));
     }

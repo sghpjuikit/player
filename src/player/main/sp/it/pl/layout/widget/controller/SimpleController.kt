@@ -2,12 +2,15 @@ package sp.it.pl.layout.widget.controller
 
 import javafx.scene.layout.StackPane
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.controller.io.Input
+import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.util.conf.Config
 import sp.it.util.conf.ConfigValueSource
 import sp.it.util.conf.MultiConfigurable
 import sp.it.util.file.div
 import sp.it.util.file.toURLOrNull
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Subscription
 import sp.it.util.ui.fxml.ConventionFxmlLoader
 import java.util.HashMap
 
@@ -54,6 +57,15 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
 
     @Suppress("UNCHECKED_CAST")
     override fun getFieldsMap(): Map<String, Config<Any>> = configs as Map<String, Config<Any>>
+
+    /** Invoke [bind][Input.bind] on this input and the specified output if this widget [has never been serialized][Widget.isDeserialized]. */
+    fun <T> Input<T>.bindIf1stLoad(output: Output<out T>) = if (widget.isDeserialized) Subscription() else bind(output)
+
+    /** Invoke [bind][Input.bind] on this input and the specified output if [isBound(widget.id)][Input.isBound] is false. */
+    fun <T> Input<T>.bindDefault(output: Output<out T>) = if (isBound(widget.id)) Subscription() else bind(output)
+
+    /** Invoke [bind][Input.bindDefault] on this input and the specified output if both [Input.isBound] is and [Widget.isDeserialized] is false. */
+    fun <T> Input<T>.bindDefaultIf1stLoad(output: Output<out T>) = if (widget.isDeserialized) Subscription() else bindIf1stLoad(output)
 
 }
 

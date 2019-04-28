@@ -201,7 +201,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
         // sync outputs
         table.selectionModel.selectedItemProperty() sync { outputSelected.value = it } on onClose
-        root.sync1IfInScene { if (!inputItems.isBound()) inputItems.bind(APP.db.songs.o) } on onClose
+        root.sync1IfInScene { inputItems.bindDefaultIf1stLoad(APP.db.songs.o) } on onClose
 
         // sync library comparator
         table.itemsComparator syncTo APP.db.libraryComparator on onClose

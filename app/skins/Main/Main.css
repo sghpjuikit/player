@@ -976,14 +976,9 @@ Text {
     -fx-background-insets: 0;
 }
 .split-pane *.horizontal-grabber {
-    -fx-padding: 111 1 111 0.5;
+    -fx-padding: 111 1 111 1;
     -fx-background-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
     -fx-background-insets: 0;
-}
-
-.split-pane:collapsed > .split-pane-divider {
-   -fx-background-color: -skin-pane-color;
-   -fx-padding: 6;
 }
 
 /********************************* ColorPicker ********************************/
@@ -1413,6 +1408,18 @@ Text {
 }
 .text-input:align-justify *.text {
     -fx-text-alignment: justify;
+}
+
+/********************************* SPLIT PANE *********************************/
+
+.split-pane:collapsed > .split-pane-divider {
+   -fx-padding: 6;
+}
+.split-pane:collapsed *.vertical-grabber {
+    -fx-padding: 3 111 3 111;
+}
+.split-pane:collapsed *.horizontal-grabber {
+    -fx-padding: 111 3 111 3;
 }
 
 /************************************ ICONS ***********************************/

@@ -1935,7 +1935,7 @@ Text {
 .combobox-field-config > .list-cell,
 .combobox-field-config:hover > .list-cell,
 .combobox-field-config:focused > .list-cell,
-.combobox-field-config:focused:hover > .list-cell,
+.combobox-field-config:focused:hover > .list-cell {
     -fx-pref-column-count: 40;
     -fx-text-fill: -skin-value-font-color;
     -fx-prompt-text-fill: -skin-prompt-font-color;
@@ -2008,7 +2008,7 @@ Text {
     -glyph-size: 0.66667em; /* 8 */
 }
 
-/**
+/*
  * Ok icon used in config fields to apply change.
  * inherits: .icon
  */
@@ -2016,17 +2016,16 @@ Text {
     -glyph-name: "FontAwesomeIcon.CHECK";
 }
 
-/** 
+/*
  * Warn icon used in config fields to signal erroneous input.
  * inherits: .icon
  */
-.config-field-warn-button {
+.config-field-warn-button,
+.config-field-warn-button Text,
+.config-field-warn-button:hover,
+.config-field-warn-button:hover Text {
     -glyph-name: "FontAwesomeIcon.EXCLAMATION_TRIANGLE";
     -glyph-size: 0.66667em; /* 8 */
-    -fx-fill: -fx-focus-color;
-    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
-}
-.config-field-warn-button:hover {
     -fx-fill: -fx-focus-color;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }

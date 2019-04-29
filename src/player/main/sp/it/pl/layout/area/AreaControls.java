@@ -247,7 +247,7 @@ public final class AreaControls {
 
     private void toggleAbsSize() {
         if (area.container instanceof BiContainer) {
-            Splitter s = ((BiContainer) area.container).ui;
+            BiContainerArea s = ((BiContainer) area.container).ui;
             s.toggleAbsoluteSizeFor(area.index);
         }
     }

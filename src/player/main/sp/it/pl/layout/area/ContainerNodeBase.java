@@ -107,7 +107,7 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
     private void toggleAbsSize() {
 		Container c = container;
 		if (c instanceof BiContainer) {
-		    Splitter s = ((BiContainer) c).ui;
+		    BiContainerArea s = ((BiContainer) c).ui;
 		    s.toggleAbsoluteSizeFor(c.indexInParent());
 		}
     }

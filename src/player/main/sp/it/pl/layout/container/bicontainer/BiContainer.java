@@ -7,14 +7,14 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import sp.it.pl.layout.Component;
-import sp.it.pl.layout.area.Splitter;
+import sp.it.pl.layout.area.BiContainerArea;
 import sp.it.pl.layout.container.Container;
 import static javafx.geometry.Orientation.VERTICAL;
 
 /**
  * Implementation of {@link Container Container} containing two children.
  */
-public class BiContainer extends Container<Splitter> {
+public class BiContainer extends Container<BiContainerArea> {
 
     /** Orientation of this container. */
     public final ObjectProperty<Orientation> orientation = new SimpleObjectProperty<>(VERTICAL);
@@ -28,7 +28,7 @@ public class BiContainer extends Container<Splitter> {
     @Override
     public Node load() {
         // lazy load (needed because of the serialization omitting this field)
-        if (ui == null) ui = new Splitter(this);
+        if (ui == null) ui = new BiContainerArea(this);
 
         ui.setChild1(children.get(1));
         ui.setChild2(children.get(2));

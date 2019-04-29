@@ -118,7 +118,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     public static final String STYLECLASS_CONFIG_FIELD_WARN_BUTTON = "config-field-warn-button";
     public static final String STYLECLASS_TEXT_CONFIG_FIELD = "text-field-config";
     private static final double defBLayoutSize = 15.0;
-    private static Insets paddingNoDefB = new Insets(0.0, defBLayoutSize, 0.0, 0.0);
+    private static final double configRootSpacing = 5.0;
+    private static Insets paddingNoDefB = new Insets(0.0, defBLayoutSize+configRootSpacing, 0.0, 0.0);
     private static Insets paddingWithDefB = Insets.EMPTY;
 
     @SuppressWarnings("unchecked")
@@ -235,7 +236,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     @Override
     public final HBox getNode() {
         if (root==null) {
-            root = new HBox(5.0);
+            root = new HBox(configRootSpacing);
             root.setMinSize(0,20);   // min height actually required to get consistent look
             root.setPrefSize(-1,-1); // support variable content height
             root.setMaxSize(-1,-1);  // support variable content height

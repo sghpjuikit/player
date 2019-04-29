@@ -2046,6 +2046,14 @@ Text {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
 
+/*
+ * inherits: .icon
+ */
+.form-ok-button {
+    -glyph-name: "OctIcon.CHECK";
+    -glyph-size: 2em; /* 24 */
+}
+
 /************************************ SEARCH ***************************************************************************
  * Search control
  * inherits: .text-field

@@ -7,11 +7,8 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.StackPane
-import sp.it.pl.gui.itemnode.ConfigField.STYLECLASS_CONFIG_FIELD_WARN_BUTTON
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.pane.ConfigPane
-import sp.it.pl.main.IconFA
-import sp.it.pl.main.IconOC
 import sp.it.util.access.v
 import sp.it.util.conf.Configurable
 import sp.it.util.functional.Try
@@ -32,7 +29,7 @@ class Form<T>: AnchorPane {
     @FXML private lateinit var okPane: StackPane
     @FXML private lateinit var fieldsPane: StackPane
     @FXML private lateinit var warnLabel: Label
-    private val okB = Icon(IconOC.CHECK, 25.0)
+    private val okB = Icon()
     private var fields = ConfigPane<T>()
     private val anchorOk: Double
     private val anchorWarn = 20.0
@@ -59,6 +56,7 @@ class Form<T>: AnchorPane {
         val observer = Consumer<Try<T, String>> { validate() }
         fields.getConfigFields().forEach { it.observer = observer }
 
+        okB.styleclass("form-ok-button")
         okB.onClickDo { ok() }
         fieldsPane.onEventDown(KEY_PRESSED, ENTER) { ok() }
         fieldsPane.consumeScrolling()
@@ -85,8 +83,6 @@ class Form<T>: AnchorPane {
     }
 
     private fun showWarnButton(validation: Try<*, *>) {
-        if (validation.isError) okB.styleclass(STYLECLASS_CONFIG_FIELD_WARN_BUTTON)
-        okB.icon(if (validation.isOk) IconOC.CHECK else IconFA.EXCLAMATION_TRIANGLE)
         okB.isMouseTransparent = validation.isError
         buttonPane.bottom = if (validation.isOk) null else warnLabel
         updateAnchor()

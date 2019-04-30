@@ -237,6 +237,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     public final HBox getNode() {
         if (root==null) {
             root = new HBox(configRootSpacing);
+            root.getStyleClass().add("config-field");
             root.setMinSize(0,20);   // min height actually required to get consistent look
             root.setPrefSize(-1,-1); // support variable content height
             root.setMaxSize(-1,-1);  // support variable content height

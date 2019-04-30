@@ -1924,6 +1924,14 @@ Text {
 
 /********************************** CONFIG ****************************************************************************/
 
+/*
+ * Config field ui, containing the editor and stuff like default button.
+ * inherits: HBox
+ */
+.config-field {
+    -fx-min-height: 2em;
+}
+
 /** 
  * Text box for configuring objects, e.g. in settings.
  * inherits: .text-field

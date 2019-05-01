@@ -114,4 +114,6 @@ abstract class Song {
     /** @return simple song representation this song */
     open fun toSimple() = SimpleSong(uri)
 
+    companion object
+
 }

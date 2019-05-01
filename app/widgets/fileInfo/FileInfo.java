@@ -18,7 +18,7 @@ import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.Metadata.Field;
-import sp.it.pl.audio.tagging.MetadataWriter;
+import sp.it.pl.audio.tagging.SongWritingKt;
 import sp.it.pl.gui.objects.image.ThumbnailWithAdd;
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
 import sp.it.pl.gui.objects.rating.Rating;
@@ -37,6 +37,7 @@ import sp.it.util.conf.Config;
 import sp.it.util.conf.Config.PropertyConfig;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.IsConfig;
+import sp.it.util.dev.FailKt;
 import static java.lang.Double.max;
 import static java.lang.Integer.max;
 import static java.lang.Math.ceil;
@@ -72,6 +73,8 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TITLE;
 import static sp.it.pl.audio.tagging.Metadata.Field.TRACKS_TOTAL;
 import static sp.it.pl.audio.tagging.Metadata.Field.TRACK_INFO;
 import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
+import static sp.it.pl.audio.tagging.SongWritingKt.rate;
+import static sp.it.pl.audio.tagging.SongWritingKt.writeNoRefresh;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
 import static sp.it.pl.main.AppDragKt.getAudio;
@@ -82,6 +85,7 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.AsyncKt.runNew;
+import static sp.it.util.dev.FailKt.failIfFxThread;
 import static sp.it.util.file.Util.copyFileSafe;
 import static sp.it.util.file.Util.copyFiles;
 import static sp.it.util.functional.Util.by;
@@ -222,9 +226,7 @@ public class FileInfo extends SimpleController implements SongReader {
         onClose.plusAssign(syncTo(APP.getMaxRating(),rater.icons));
         onClose.plusAssign(syncTo(APP.getPartialRating(), rater.partialRating));
         rater.editable.set(true);
-        rater.onRatingEdited = consumer(r -> {
-            if (r != null) MetadataWriter.useToRate(data, r);
-        });
+        rater.onRatingEdited = consumer(it -> rate(data, it));
 
         // drag & drop
         installDrag(
@@ -320,6 +322,7 @@ public class FileInfo extends SimpleController implements SongReader {
     }
 
     private void setAsCover(File file, boolean setAsCover) {
+        failIfFxThread();
         if (file==null || !data.isFileBased()) return;
 
         if (setAsCover) copyFileSafe(file, data.getLocation(), "cover");
@@ -329,6 +332,7 @@ public class FileInfo extends SimpleController implements SongReader {
     }
 
     private void tagAsCover(File file, boolean includeAlbum) {
+        failIfFxThread();
         if (file==null || !data.isFileBased()) return;
 
         Collection<Metadata> items = includeAlbum
@@ -340,7 +344,7 @@ public class FileInfo extends SimpleController implements SongReader {
             : new HashSet<>();
         items.add(data); // make sure the original is included (Set avoids duplicates)
 
-        MetadataWriter.useNoRefresh(items, w -> w.setCover(file));
+        writeNoRefresh(items, consumer(w -> w.setCover(file)));
         Player.refreshSongs(items);
     }
 

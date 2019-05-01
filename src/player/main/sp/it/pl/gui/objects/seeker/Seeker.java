@@ -26,7 +26,6 @@ import kotlin.jvm.functions.Function1;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Chapter;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.audio.tagging.MetadataWriter;
 import sp.it.pl.gui.itemnode.ConfigField;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.ArrowLocation;
@@ -65,6 +64,7 @@ import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.Chapter.validateChapterText;
+import static sp.it.pl.audio.tagging.SongWritingKt.write;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.util.Util.clip;
@@ -75,6 +75,7 @@ import static sp.it.util.async.executor.FxTimer.fxTimer;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.TryKt.getAny;
 import static sp.it.util.functional.Util.minBy;
+import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.maintain;
 import static sp.it.util.ui.Util.layHeaderRight;
@@ -553,7 +554,7 @@ public final class Seeker extends AnchorPane {
 				commitB = new Icon(CHECK, 11, "Confirm changes", this::commitEdit);
 				delB = new Icon(TRASH_ALT, 11, "Remove chapter", () -> {
 					Metadata m = Player.playingSong.getValue();
-					MetadataWriter.use(m, w -> w.removeChapter(c, m));
+					write(m, consumer(it -> it.removeChapter(c, m)));
 				});
 				cancelB = new Icon(REPLY, 11, "Cancel edit", this::cancelEdit);
 				nextB = new Icon(CHEVRON_RIGHT, 11, "Next chapter", () -> {
@@ -692,7 +693,7 @@ public final class Seeker extends AnchorPane {
 				// and physically
 				c.setText(text);
 				Metadata m = Player.playingSong.getValue();
-				MetadataWriter.use(m, w -> w.addChapter(c, m));
+				write(m, consumer(it -> it.addChapter(c, m)));
 			}
 			// maintain proper content
 			content.getChildren().remove(ta.getParent());

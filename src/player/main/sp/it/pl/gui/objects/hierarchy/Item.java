@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 import javafx.scene.image.Image;
 import sp.it.pl.audio.SimpleSong;
-import sp.it.pl.audio.tagging.MetadataReaderKt;
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
 import sp.it.util.HierarchicalBase;
 import sp.it.util.JavaLegacy;
@@ -22,6 +21,7 @@ import sp.it.util.ui.IconExtractor;
 import sp.it.util.ui.image.Image2PassLoader;
 import sp.it.util.ui.image.ImageSize;
 import static java.util.stream.Collectors.toList;
+import static sp.it.pl.audio.tagging.SongReadingKt.read;
 import static sp.it.pl.main.AppFileKt.getImageExtensionsRead;
 import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppFileKt.isImage;
@@ -216,7 +216,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					if (coverToBe!=null) return ok(new LoadResult(null, coverToBe));
 				}
 				if (isAudio(value)) {
-					var c = MetadataReaderKt.readMetadata(new SimpleSong(value)).getCover(CoverSource.ANY);
+					var c = read(new SimpleSong(value)).getCover(CoverSource.ANY);
 					var coverToBe = c.isEmpty() ? null : c.getImage(size);
 					cover = coverToBe;
 					cover_loadedFull.set(true);

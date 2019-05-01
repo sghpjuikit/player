@@ -5,7 +5,7 @@ import javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.MetadataWriter
+import sp.it.pl.audio.tagging.rate
 import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.main.APP
 import sp.it.util.parsing.StringParseStrategy
@@ -27,7 +27,7 @@ object RatingRatingCellFactory: RatingCellFactory {
             r.partialRating syncFrom APP.partialRating
             r.editable.value = true
             if (c.userData==Metadata.Field.RATING)
-                r.onRatingEdited = { it?.let { MetadataWriter.useToRate(c.tableView.items[index], it) } }
+                r.onRatingEdited = { c.tableView.items[index].rate(it) }
         }
 
         override fun updateItem(item: Double?, empty: Boolean) {

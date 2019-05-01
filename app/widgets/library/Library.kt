@@ -19,7 +19,7 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.RATING
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.TITLE
 import sp.it.pl.audio.tagging.MetadataGroup
-import sp.it.pl.audio.tagging.removeMissingSongsFromLibTask
+import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.gui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.table.FilteredTable
@@ -238,7 +238,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
     }
 
     private fun removeInvalid() {
-        val task = removeMissingSongsFromLibTask()
+        val task = Song.removeMissingFromLibTask()
         runNew(task)
         AppProgress.start(task)
     }

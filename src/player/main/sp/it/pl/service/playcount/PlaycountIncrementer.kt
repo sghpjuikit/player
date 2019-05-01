@@ -5,8 +5,9 @@ import sp.it.pl.audio.Player
 import sp.it.pl.audio.playback.PlayTimeHandler
 import sp.it.pl.audio.playback.PlayTimeHandler.Companion.at
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.MetadataWriter
-import sp.it.pl.audio.tagging.readMetadata
+import sp.it.pl.audio.tagging.read
+import sp.it.pl.audio.tagging.write
+import sp.it.pl.audio.tagging.writeNoRefresh
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.service.ServiceBase
@@ -90,8 +91,8 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
                     APP.services.use<TrayService> { it.showNotification(Widgets.SONG_TAGGER, "Playcount incremented scheduled", INFO) }
             } else {
                 val pc = 1+m.getPlaycountOr0()
-                MetadataWriter.use(m, { it.setPlaycount(pc) }) { ok ->
-                    if (ok!!) {
+                m.write({ it.setPlaycount(pc) }) { ok ->
+                    if (ok) {
                         if (showNotification.value)
                             APP.services.use<Notifier> { it.showTextNotification("Song playcount incremented to: $pc", "Playcount") }
                         if (showBubble.value)
@@ -141,8 +142,8 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
             queue.removeIf { it.same(m) }
             val p = queuedTimes+m.getPlaycountOr0()
             Player.IO_THREAD.execute {
-                MetadataWriter.useNoRefresh(m) { it.setPlaycount(p) }
-                Player.refreshItemWith(m.readMetadata(), true)
+                m.writeNoRefresh { it.setPlaycount(p) }
+                Player.refreshItemWith(m.read(), true)
             }
         }
     }

@@ -39,5 +39,8 @@ class PlayerConfiguration {
         @IsConfig(name = "Last playlist export location")
         var lastSavePlaylistLocation by c(APP.DIR_USERDATA).only(DIRECTORY)
 
+        @IsConfig(name = "No song modification", info = "Disallow all song modifications by this application")
+        var readOnly by c(true)
+
     }
 }

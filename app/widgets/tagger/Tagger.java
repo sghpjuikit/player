@@ -49,8 +49,8 @@ import javafx.scene.text.TextAlignment;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.AudioFileFormat;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.audio.tagging.MetadataReaderKt;
-import sp.it.pl.audio.tagging.MetadataWriter;
+import sp.it.pl.audio.tagging.SongReadingKt;
+import sp.it.pl.audio.tagging.SongWritingKt;
 import sp.it.pl.gui.itemnode.textfield.MoodItemNode;
 import sp.it.pl.gui.objects.autocomplete.AutoCompletion;
 import sp.it.pl.gui.objects.icon.CheckIcon;
@@ -426,9 +426,9 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
         // read metadata for items
 
-        var task = MetadataReaderKt.readMetadataTask(needs_read);
+        var task = SongReadingKt.readTask(Song.Companion, needs_read);
         AppProgress.INSTANCE.start(task);
-        MetadataReaderKt.setOnDone(task, (ok, result) -> {
+        SongReadingKt.setOnDone(task, (ok, result) -> {
             if (ok) {
                 // remove duplicates
                 MapSet<URI, Metadata> unique = new MapSet<>(Metadata::getUri);
@@ -473,50 +473,53 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         showProgressWriting();
 
         // writing
-        MetadataWriter.use(metadatas, w -> {
-            // write to tag if field committable
-            if ((boolean) titleF.getUserData())        w.setTitle(titleF.getText());
-            if ((boolean) albumF.getUserData())        w.setAlbum(albumF.getText());
-            if ((boolean) artistF.getUserData())       w.setArtist(artistF.getText());
-            if ((boolean) albumArtistF.getUserData())  w.setAlbum_artist(albumArtistF.getText());
-            if ((boolean) composerF.getUserData())     w.setComposer(composerF.getText());
-            if ((boolean) publisherF.getUserData())    w.setPublisher(publisherF.getText());
-            if ((boolean) trackF.getUserData())        w.setTrack(trackF.getText());
-            if ((boolean) tracksTotalF.getUserData())  w.setTracksTotal(tracksTotalF.getText());
-            if ((boolean) discF.getUserData())         w.setDisc(discF.getText());
-            if ((boolean) discsTotalF.getUserData())   w.setDiscsTotal(discsTotalF.getText());
-            if ((boolean) genreF.getUserData())        w.setGenre(genreF.getText());
-            if ((boolean) categoryF.getUserData())     w.setCategory(categoryF.getText());
-            if ((boolean) yearF.getUserData())         w.setYear(yearF.getText());
-            if ((boolean) ratingF.getUserData())       w.setRatingPercent(ratingPF.getText());
-            if ((boolean) playcountF.getUserData())    w.setPlaycount(playcountF.getText());
-            if ((boolean) commentF.getUserData())      w.setComment(commentF.getText());
-            if ((boolean) moodF.getUserData())         w.setMood(moodF.getText());
-            colorFPicker.setUserData(true);
-            if ((boolean) colorFPicker.getUserData()&&colorFPicker.getValue()!=EMPTY_COLOR)        w.setColor(colorFPicker.getValue());
-            if ((boolean) colorF.getUserData())        w.setCustom1(colorF.getText());
-            if ((boolean) tagsF.getUserData())         w.setTags(noDups(split(tagsF.getText().replace(", ",","),",")));
-//            if ((boolean)playedFirstF.getUserData())  w.setPla(playedFirstF.getText());
-//            if ((boolean)playedLastF.getUserData())   w.setCustom1(playedLastF.getText());
-//            if ((boolean)addedToLibF.getUserData())   w.setCustom1(addedToLibF.getText());
-            if ((boolean) LyricsA.getUserData())       w.setLyrics(LyricsA.getText());
-            if ((boolean) CoverL.getUserData())        w.setCover(new_cover_file);
-            if ((boolean) custom1F.getUserData())      w.setCustom2(custom1F.getText());
-            if ((boolean) custom4F.getUserData())      w.setCustom4(custom4F.getText());
-            // enabling the following these has no effect as they are not
-            // editable and graphics are disabled, thus will always be empty
-            // we comment it out to prevent needless checking
-            // if ((boolean)custom2F.getUserData())      w.setCustom2(custom2F.getText());
-            // if ((boolean)custom3F.getUserData())      w.setCustom3(custom3F.getText());
-            // if ((boolean)custom5F.getUserData())      w.setCustom5(custom5F.getText());
-        }, items -> {
-            // post (make sure its on FX)
-            runFX(() -> {
-                writing = false;
-                populate(items);
-                APP.services.use(Notifier.class, s -> s.showTextNotification("Tagging complete", Widgets.SONG_TAGGER));
-            });
-        });
+        SongWritingKt.write(
+            metadatas,
+            consumer(w -> {
+                // write to tag if field committable
+                if ((boolean) titleF.getUserData())        w.setTitle(titleF.getText());
+                if ((boolean) albumF.getUserData())        w.setAlbum(albumF.getText());
+                if ((boolean) artistF.getUserData())       w.setArtist(artistF.getText());
+                if ((boolean) albumArtistF.getUserData())  w.setAlbum_artist(albumArtistF.getText());
+                if ((boolean) composerF.getUserData())     w.setComposer(composerF.getText());
+                if ((boolean) publisherF.getUserData())    w.setPublisher(publisherF.getText());
+                if ((boolean) trackF.getUserData())        w.setTrack(trackF.getText());
+                if ((boolean) tracksTotalF.getUserData())  w.setTracksTotal(tracksTotalF.getText());
+                if ((boolean) discF.getUserData())         w.setDisc(discF.getText());
+                if ((boolean) discsTotalF.getUserData())   w.setDiscsTotal(discsTotalF.getText());
+                if ((boolean) genreF.getUserData())        w.setGenre(genreF.getText());
+                if ((boolean) categoryF.getUserData())     w.setCategory(categoryF.getText());
+                if ((boolean) yearF.getUserData())         w.setYear(yearF.getText());
+                if ((boolean) ratingF.getUserData())       w.setRatingPercent(ratingPF.getText());
+                if ((boolean) playcountF.getUserData())    w.setPlaycount(playcountF.getText());
+                if ((boolean) commentF.getUserData())      w.setComment(commentF.getText());
+                if ((boolean) moodF.getUserData())         w.setMood(moodF.getText());
+                colorFPicker.setUserData(true);
+                if ((boolean) colorFPicker.getUserData()&&colorFPicker.getValue()!=EMPTY_COLOR)        w.setColor(colorFPicker.getValue());
+                if ((boolean) colorF.getUserData())        w.setCustom1(colorF.getText());
+                if ((boolean) tagsF.getUserData())         w.setTags(noDups(split(tagsF.getText().replace(", ",","),",")));
+                // if ((boolean)playedFirstF.getUserData())  w.setPla(playedFirstF.getText());
+                // if ((boolean)playedLastF.getUserData())   w.setCustom1(playedLastF.getText());
+                // if ((boolean)addedToLibF.getUserData())   w.setCustom1(addedToLibF.getText());
+                if ((boolean) LyricsA.getUserData())       w.setLyrics(LyricsA.getText());
+                if ((boolean) CoverL.getUserData())        w.setCover(new_cover_file);
+                if ((boolean) custom1F.getUserData())      w.setCustom2(custom1F.getText());
+                if ((boolean) custom4F.getUserData())      w.setCustom4(custom4F.getText());
+                // enabling the following these has no effect as they are not
+                // editable and graphics are disabled, thus will always be empty
+                // we comment it out to prevent needless checking
+                // if ((boolean)custom2F.getUserData())      w.setCustom2(custom2F.getText());
+                // if ((boolean)custom3F.getUserData())      w.setCustom3(custom3F.getText());
+                // if ((boolean)custom5F.getUserData())      w.setCustom5(custom5F.getText());
+            }),
+            consumer(items -> {
+                runFX(() -> {
+                    writing = false;
+                    populate(items);
+                    APP.services.use(Notifier.class, s -> s.showTextNotification("Tagging complete", Widgets.SONG_TAGGER));
+                });
+            })
+        );
 
     }
 

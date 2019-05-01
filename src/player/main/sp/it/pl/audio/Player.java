@@ -27,8 +27,7 @@ import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence;
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.audio.tagging.MetadataReaderKt;
-import sp.it.pl.audio.tagging.MetadataWriter;
+import sp.it.pl.audio.tagging.SongReadingKt;
 import sp.it.pl.layout.widget.controller.io.InOutput;
 import sp.it.pl.main.AppProgress;
 import sp.it.util.action.IsAction;
@@ -47,6 +46,8 @@ import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.playback.PlayTimeHandler.at;
+import static sp.it.pl.audio.tagging.SongWritingKt.rate;
+import static sp.it.pl.audio.tagging.SongWritingKt.write;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runFX;
@@ -85,10 +86,10 @@ public class Player {
 		// updates on application closing!
 		playingSong.onChange((o, n) -> {
 			if (!o.isEmpty())
-				MetadataWriter.use(o, w -> {
-					w.setPlayedFirstNowIfEmpty();
-					w.setPlayedLastNow();
-				});
+				write(o, consumer(it -> {
+					it.setPlayedFirstNowIfEmpty();
+					it.setPlayedLastNow();
+				}));
 		});
 
 		player.getRealTime().initialize();
@@ -257,7 +258,7 @@ public class Player {
 		// load metadata, type indicates UPDATE vs CHANGE
 		private void load(boolean changeType, Song song) {
 			fut(song)
-				.then(Player.IO_THREAD, MetadataReaderKt::readMetadata)
+				.then(Player.IO_THREAD, SongReadingKt::read)
 				.useBy(FX, m -> setValue(changeType, m.isEmpty() ? song.toMeta() : m));
 		}
 
@@ -267,7 +268,7 @@ public class Player {
 			PlaylistSong next = PlaylistManager.use(Playlist::getNextPlaying, null);
 			if (next!=null) {
 				fut(next)
-					.then(Player.IO_THREAD, MetadataReaderKt::readMetadata)
+					.then(Player.IO_THREAD, SongReadingKt::read)
 					.useBy(FX, m -> valNext = m);
 			}
 		}
@@ -315,9 +316,9 @@ public class Player {
 		noNull(is);
 		if (is.isEmpty()) return;
 
-		var task = MetadataReaderKt.readMetadataTask(is);
+		var task = SongReadingKt.readTask(Song.Companion, is);
 		AppProgress.INSTANCE.start(task);
-		MetadataReaderKt.setOnDone(task, (ok, m) -> {
+		SongReadingKt.setOnDone(task, (ok, m) -> {
 			if (ok) refreshSongsWith(m);
 		});
 		runNew(task);
@@ -629,45 +630,45 @@ public class Player {
 	 * @param rating <0,1> representing percentage of the rating, 0 being minimum and 1 maximum possible rating for
 	 * current song.
 	 */
-	public static void rate(double rating) {
+	public static void ratePlaying(double rating) {
 		if (PlaylistManager.active==null) return;
-		MetadataWriter.useToRate(Player.playingSong.getValue(), rating);
+		rate(Player.playingSong.getValue(), rating);
 	}
 
 	/** Rate playing song 0/5. */
 	@IsAction(name = "Rate playing 0/5", desc = "Rate currently playing song 0/5.", keys = "ALT+BACK_QUOTE", global = true)
 	public static void rate0() {
-		rate(0);
+		ratePlaying(0);
 	}
 
 	/** Rate playing song 1/5. */
 	@IsAction(name = "Rate playing 1/5", desc = "Rate currently playing song 1/5.", keys = "ALT+1", global = true)
 	public static void rate1() {
-		rate(0.2);
+		ratePlaying(0.2);
 	}
 
 	/** Rate playing song 2/5. */
 	@IsAction(name = "Rate playing 2/5", desc = "Rate currently playing song 2/5.", keys = "ALT+2", global = true)
 	public static void rate2() {
-		rate(0.4);
+		ratePlaying(0.4);
 	}
 
 	/** Rate playing song 3/5. */
 	@IsAction(name = "Rate playing 3/5", desc = "Rate currently playing song 3/5.", keys = "ALT+3", global = true)
 	public static void rate3() {
-		rate(0.6);
+		ratePlaying(0.6);
 	}
 
 	/** Rate playing song 4/5. */
 	@IsAction(name = "Rate playing 4/5", desc = "Rate currently playing song 4/5.", keys = "ALT+4", global = true)
 	public static void rate4() {
-		rate(0.8);
+		ratePlaying(0.8);
 	}
 
 	/** Rate playing song 5/5. */
 	@IsAction(name = "Rate playing 5/5", desc = "Rate currently playing song 5/5.", keys = "ALT+5", global = true)
 	public static void rate5() {
-		rate(1);
+		ratePlaying(1);
 	}
 
 	/** Explore current song directory - opens file browser for its location. */

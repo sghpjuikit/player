@@ -2,8 +2,9 @@ package sp.it.pl.plugin.library
 
 import mu.KLogging
 import sp.it.pl.audio.SimpleSong
-import sp.it.pl.audio.tagging.addSongsToLibTask
-import sp.it.pl.audio.tagging.removeMissingSongsFromLibTask
+import sp.it.pl.audio.Song
+import sp.it.pl.audio.tagging.addToLibTask
+import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.main.APP
 import sp.it.pl.main.findAudio
 import sp.it.pl.main.showAppProgress
@@ -132,7 +133,7 @@ class LibraryWatcher: PluginBase("Song Library", false) {
         }
 
         runNew {
-            addSongsToLibTask(toAdd.map { SimpleSong(it) }).runGet()
+            Song.addToLibTask(toAdd.map { SimpleSong(it) }).runGet()
             APP.db.removeSongs(toRem.map { SimpleSong(it) })
         }.showAppProgress("Updating song library from detected changes")
     }
@@ -142,8 +143,8 @@ class LibraryWatcher: PluginBase("Song Library", false) {
         val dirs = sourceDirs.materialize()
         runNew {
             val songs = findAudio(dirs).map { SimpleSong(it) }.toList()
-            addSongsToLibTask(songs).runGet()
-            removeMissingSongsFromLibTask().run()
+            Song.addToLibTask(songs).runGet()
+            Song.removeMissingFromLibTask().run()
         }.showAppProgress("Updating song library from disk")
     }
 

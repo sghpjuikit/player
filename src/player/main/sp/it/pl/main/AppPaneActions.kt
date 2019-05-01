@@ -13,7 +13,7 @@ import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.isPlaylistFile
 import sp.it.pl.audio.playlist.readPlaylist
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.addSongsToLibTask
+import sp.it.pl.audio.tagging.addToLibTask
 import sp.it.pl.gui.pane.ActionPane
 import sp.it.pl.gui.pane.ComplexActionData
 import sp.it.pl.gui.pane.ConfigPane
@@ -374,7 +374,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                 @IsConfig(name = "Edit only added files", group ="3") val editOnlyAdded by cv(false).readOnlyUnless(editInTagger)
                 @IsConfig(name = "Enqueue in playlist", group ="4") val enqueue by cv(false)
             }
-            val task = addSongsToLibTask(audioFiles.map { SimpleSong(it) })
+            val task = Song.addToLibTask(audioFiles.map { SimpleSong(it) })
             val info = object: Any() {
                     private val computeProgress = { it: Number -> when(task.state) { SCHEDULED, READY -> 1.0 else -> it.toDouble() } }
                     val message = label { textProperty() syncFrom task.messageProperty() }

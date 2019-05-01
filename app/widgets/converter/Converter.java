@@ -25,8 +25,7 @@ import javafx.scene.layout.VBox;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.audio.tagging.MetadataReaderKt;
-import sp.it.pl.audio.tagging.MetadataWriter;
+import sp.it.pl.audio.tagging.SongReadingKt;
 import sp.it.pl.gui.itemnode.ChainValueNode.ListConfigField;
 import sp.it.pl.gui.itemnode.ConfigField;
 import sp.it.pl.gui.itemnode.ListAreaNode;
@@ -65,6 +64,7 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
+import static sp.it.pl.audio.tagging.SongWritingKt.writeNoRefresh;
 import static sp.it.pl.main.AppDragKt.getAny;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
@@ -219,10 +219,10 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                    .useBy(Player.IO_THREAD, it -> {
                         for (int i=0; i<songs.size(); i++) {
                             int j = i;
-                            MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field, values) -> w.setFieldS(Metadata.Field.valueOf(field), values.get(j))));
+                            writeNoRefresh(songs.get(i), consumer(w -> data.forEach((field, values) -> w.setFieldS(Metadata.Field.valueOf(field), values.get(j)))));
                         }
 
-                        Player.refreshSongsWith(stream(songs).map(MetadataReaderKt::readMetadata).filter(m -> !m.isEmpty()).collect(toList()));
+                        Player.refreshSongsWith(stream(songs).map(SongReadingKt::read).filter(m -> !m.isEmpty()).collect(toList()));
                    }),
                 widget.custom_name.getValue() + "Editing song tags"
             );

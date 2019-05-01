@@ -22,7 +22,7 @@ private val logger = KotlinLogging.logger { }
  * @return metadata for specified song or [Metadata.EMPTY] if error occurs
  * @throws RuntimeException if called on fx thread
  */
-fun Song.readMetadata(): Metadata {
+fun Song.read(): Metadata {
     failIfFxThread()
 
     return when {
@@ -51,7 +51,7 @@ fun Song.readMetadata(): Metadata {
  * @return the task reading metadata returning all successfully read metadata
  * @throws NullPointerException if any parameter null
  */
-fun readMetadataTask(songs: Collection<Song>) = object: Task<List<Metadata>>() {
+fun Song.Companion.readTask(songs: Collection<Song>) = object: Task<List<Metadata>>() {
     private val sb = StringBuilder(40)
 
     init {
@@ -69,7 +69,7 @@ fun readMetadataTask(songs: Collection<Song>) = object: Task<List<Metadata>>() {
 
             completed++
 
-            val m = song.readMetadata()
+            val m = song.read()
             if (m.isEmpty()) failed++ // on fail
             else metadatas.add(m)    // on success
 
@@ -107,7 +107,7 @@ fun readMetadataTask(songs: Collection<Song>) = object: Task<List<Metadata>>() {
  *
  * @return the task
  */
-fun addSongsToLibTask(songs: Collection<Song>) = object: Task<AddSongsToLibResult>() {
+fun Song.Companion.addToLibTask(songs: Collection<Song>) = object: Task<AddSongsToLibResult>() {
     private val sb = StringBuilder(40)
 
     init {
@@ -127,8 +127,8 @@ fun addSongsToLibTask(songs: Collection<Song>) = object: Task<AddSongsToLibResul
 
             var m = APP.db.getSong(song)
             if (m==null) {
-                MetadataWriter.useNoRefresh(song) { it.setLibraryAddedNowIfEmpty() }
-                m = song.readMetadata()
+                song.writeNoRefresh { it.setLibraryAddedNowIfEmpty() }
+                m = song.read()
 
                 if (m.isEmpty()) skipped += song
                 else converted += m
@@ -175,7 +175,7 @@ class AddSongsToLibResult(
 
 // TODO: return proper Result object
 /** @return a task that removes from library all songs, which refer to non-existent files */
-fun removeMissingSongsFromLibTask() = object: Task<Unit>() {
+fun Song.Companion.removeMissingFromLibTask() = object: Task<Unit>() {
     private val sb = StringBuilder(40)
 
     init {

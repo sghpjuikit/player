@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.scene.paint.Color;
@@ -39,13 +38,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Song;
-import sp.it.pl.service.notif.Notifier;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.units.NofX;
 import static java.lang.Math.max;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static org.jaudiotagger.tag.FieldKey.CUSTOM3;
 import static org.jaudiotagger.tag.FieldKey.RATING;
 import static sp.it.pl.audio.tagging.ExtKt.clipRating;
@@ -61,16 +57,16 @@ import static sp.it.pl.audio.tagging.Metadata.TAG_ID_TAGS;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
 import static sp.it.util.Util.emptyOr;
-import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.split;
-import static sp.it.util.functional.Util.stream;
 
 /**
  * Manages writing Metadata objects back into files. Handles all tag related data
  * for items.
  * <p/>
- * The writer must be instantiated for use. It is reusable for an item.
+ * The writer must be instantiated for use.
+ * The writer is stateful and must not be used concurrently.
+ * It is reusable for multiple songs using {@link #reset(sp.it.pl.audio.Song)}.
  */
 // TODO: limit rating bounds value, multiple values, id3 popularimeter mail settings
 public class MetadataWriter extends Song {
@@ -275,10 +271,8 @@ public class MetadataWriter extends Song {
 	 */
 	public void setRatingPercent(double val) {
 		if (val==-1) setRating(val);
-		else if (val>1)
-			LOGGER.error("Rating number must be <= 1");
-		else if (val<0)
-			LOGGER.error("Rating number must be >= 0");
+		else if (val>1) LOGGER.error("Rating number must be <= 1");
+		else if (val<0) LOGGER.error("Rating number must be >= 0");
 		else setRating(getRatingMax(tag)*val);
 	}
 
@@ -771,8 +765,6 @@ public class MetadataWriter extends Song {
 		throw new SwitchException(field);
 	}
 
-/* ------------------------------------------------------------------------------------------------------------------ */
-
 	/**
 	 * Writes all changes to tag.
 	 * <p/>
@@ -782,7 +774,7 @@ public class MetadataWriter extends Song {
 	 * @return true if data were written to tag or false if tag didnt change, either because there was nothing to change
 	 * or writing failed.
 	 */
-	private boolean write() {
+	boolean write() {
 		if (!hasFields()) return false;
 		LOGGER.debug("Writing {} tag fields to: {}", fields_changed, file);
 
@@ -879,79 +871,6 @@ public class MetadataWriter extends Song {
 			fields_changed = 0;
 			isWriting.set(false);
 		}
-	}
-
-	/******************************************************************************/
-
-	// TODO: use Fut
-	public static <I extends Song> void use(I item, Consumer<MetadataWriter> setter) {
-		use(singletonList(item), setter);
-	}
-
-	public static <I extends Song> void use(Collection<I> items, Consumer<MetadataWriter> setter) {
-		use(items, setter, null);
-	}
-
-	public static <I extends Song> void use(Collection<I> items, Consumer<MetadataWriter> setter, Consumer<List<Metadata>> action) {
-		Player.IO_THREAD.execute(() -> {
-			MetadataWriter w = new MetadataWriter();
-			for (I i : items)
-				if (i.isFileBased()) {
-					w.reset(i);
-					setter.accept(w);
-					w.write();
-				}
-			List<Metadata> ms = stream(items).map(MetadataReaderKt::readMetadata).filter(m -> !m.isEmpty()).collect(toList());
-			Player.refreshSongsWith(ms);
-			if (action!=null) runFX(() -> action.accept(ms));
-		});
-	}
-
-	public static <I extends Song> void use(I item, Consumer<MetadataWriter> setter, Consumer<Boolean> action) {
-		if (item.isFileBased()) {
-			Player.IO_THREAD.execute(() -> {
-				MetadataWriter w = new MetadataWriter();
-				w.reset(item);
-				setter.accept(w);
-				boolean b = w.write();
-
-				Metadata m = MetadataReaderKt.readMetadata(item);
-				if (!m.isEmpty()) Player.refreshItemWith(m);
-				if (action!=null) runFX(() -> action.accept(b));
-			});
-		}
-	}
-
-	public static <I extends Song> void useNoRefresh(I item, Consumer<MetadataWriter> setter) {
-		if (item.isFileBased()) {
-			MetadataWriter w = new MetadataWriter();
-			w.reset(item);
-			setter.accept(w);
-			w.write();
-		}
-	}
-
-	public static <I extends Song> void useNoRefresh(Collection<I> items, Consumer<MetadataWriter> setter) {
-		MetadataWriter w = new MetadataWriter();
-		for (I i : items) {
-			if (i.isFileBased()) {
-				w.reset(i);
-				setter.accept(w);
-				w.write();
-			}
-		}
-	}
-
-	/**
-	 * Rates item.
-	 *
-	 * @param item to useToRate.
-	 * @param rating <0-1> representing percentage of the rating, 0 being minimum and 1 maximum possible rating for
-	 * current item. Value outside range will be ignored.
-	 */
-	public static void useToRate(Metadata item, double rating) {
-		use(item, w -> w.setRatingPercent(rating));
-		APP.services.use(Notifier.class, n -> n.showTextNotification("Song rating changed to: " + rating, "Update"));
 	}
 
 }

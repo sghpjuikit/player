@@ -2,19 +2,23 @@ package sp.it.pl.gui
 
 import javafx.beans.property.BooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
+import javafx.collections.FXCollections.observableArrayList
 import javafx.geometry.NodeOrientation
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.Scene
+import javafx.scene.control.Skin
 import javafx.scene.control.Tooltip
 import javafx.scene.input.MouseEvent
 import javafx.scene.text.Font
 import mu.KLogging
+import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions
 import sp.it.pl.main.Settings
 import sp.it.util.access.VarEnum
+import sp.it.util.access.initSync
 import sp.it.util.action.IsAction
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.IsConfig
@@ -22,6 +26,7 @@ import sp.it.util.conf.IsConfigurable
 import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
+import sp.it.util.conf.cvn
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.file.FileMonitor
 import sp.it.util.file.Util
@@ -31,7 +36,9 @@ import sp.it.util.file.seqChildren
 import sp.it.util.functional.Util.set
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.plus
@@ -43,11 +50,14 @@ import sp.it.util.units.millis
 import java.io.File
 import java.net.MalformedURLException
 import java.util.HashSet
+import kotlin.reflect.KClass
+import kotlin.reflect.jvm.jvmName
 import javafx.stage.Window as WindowFX
 
 @IsConfigurable(Settings.UI)
 class UiManager(val skinDir: File): Configurable<Any> {
     val skins: MutableSet<SkinCss> = HashSet()
+    val additionalStylesheets = observableArrayList<File>()!!
 
     val layoutMode: BooleanProperty = SimpleBooleanProperty(false)
     val focusChangedHandler: (Node?) -> Unit = { n ->
@@ -88,6 +98,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val snapDistance by cv(12.0)
     @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
     val lockedLayout by cv(false) { SimpleBooleanProperty(it).apply { attach { APP.actionStream("Layout lock") } } }
+
     @IsConfig(name = "Table orientation", group = Settings.Ui.TABLE, info = "Orientation of the table.")
     val tableOrient by cv(NodeOrientation.INHERIT)
     @IsConfig(name = "Zeropad numbers", group = Settings.Ui.TABLE, info = "Adds 0s for number length consistency.")
@@ -98,8 +109,31 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val tableShowHeader by cv(true)
     @IsConfig(name = "Show table controls", group = Settings.Ui.TABLE, info = "Show table controls at the bottom of the table. Displays menu bar and table content information")
     val tableShowFooter by cv(true)
+
     @IsConfig(name = "Thumbnail anim duration", group = "${Settings.UI}.Images", info = "Preferred hover scale animation duration for thumbnails.")
     val thumbnailAnimDur by cv(100.millis)
+
+    @IsConfig(name = "Rating skin", info = "Rating ui component skin")
+    val ratingSkin by cvn(null as KClass<out Skin<Rating>>?) {
+        VarEnum.ofInstances(it, APP.instances).initSync {
+            runTry {
+                val f = APP.DIR_TEMP/"user-rating-skin.css"
+                additionalStylesheets -= f
+                it?.let {
+                    f.writeText(""".rating { -fx-skin: "${it.jvmName}"; }""", Charsets.UTF_8)
+                    additionalStylesheets += f
+                }
+            }.ifError {
+                logger.error(it) { "Failed to apply rating skin=$it" }
+            }
+        }
+    }
+
+    @IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.")
+    val maxRating by cv(5).between(0, 10)
+
+    @IsConfig(name = "Rating allow partial", info = "Allow partial values for rating.")
+    val partialRating by cv(true)
 
     /**
      * Sets layout mode for all active components.
@@ -297,9 +331,10 @@ class UiManager(val skinDir: File): Configurable<Any> {
     private fun observeWindowsAndApplySkin() {
         WindowFX.getWindows().onItemSyncWhile {
             it.sceneProperty().syncNonNullIntoWhile(Scene::rootProperty) { root ->
-                val s1 = font sync { root.applyFontGui(it) }
                 val s2 = skin sync { root.applySkinGui(it) }
-                s1 + s2
+                val s1 = font sync { root.applyFontGui(it) }
+                val s3 = additionalStylesheets.onChange { root.applySkinGui(skin.value) }
+                s1 + s2 +s3
             }
         }
         Tooltip.getWindows().onItemAdded { (it as? Tooltip)?.font = font.value }
@@ -314,17 +349,13 @@ class UiManager(val skinDir: File): Configurable<Any> {
     }
 
     private fun Parent.applySkinGui(skin: String) {
-        val skinFile = skinDir/skin/"$skin.css"
-        val urlOld = properties[skinKey] as String?
-        val urlNew = try {
-            skinFile.toURI().toURL().toExternalForm()
-        } catch (e: MalformedURLException) {
-            logger.error(e) { "Could not load skin $skinFile" }
-            null
-        }
-        if (urlOld!=null) stylesheets -= urlOld
-        if (urlNew!=null) stylesheets += urlNew
-        properties[skinKey] = urlNew
+        stylesheets.clear()
+        this addStyleSheet skinDir/skin/"$skin.css"
+        additionalStylesheets.forEach { this addStyleSheet it }
+    }
+
+    data class SkinCss(val name: String, val file: File) {
+        constructor(cssFile: File): this(cssFile.nameWithoutExtension, cssFile)
     }
 
     enum class OpenStrategy {
@@ -332,6 +363,16 @@ class UiManager(val skinDir: File): Configurable<Any> {
     }
 
     companion object: KLogging() {
-        private const val skinKey = "skin_old_url"
+
+        private fun File.toStyleSheet() = try {
+            toURI().toURL().toExternalForm()
+        } catch (e: MalformedURLException) {
+            logger.error(e) { "Could not load css file $this" }
+            null
+        }
+
+        private infix fun Parent.addStyleSheet(file: File) = file.toStyleSheet()?.let { stylesheets += it }
+
     }
+
 }

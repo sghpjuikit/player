@@ -29,8 +29,6 @@ import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.search.SearchAutoCancelable
-import sp.it.pl.gui.objects.tablecell.RatingCellFactory
-import sp.it.pl.gui.objects.tablecell.RatingRatingCellFactory
 import sp.it.pl.gui.objects.window.stage.WindowManager
 import sp.it.pl.gui.pane.ActionPane
 import sp.it.pl.gui.pane.InfoPane
@@ -192,15 +190,6 @@ class App: Application(), Configurable<Any> {
     val logLevelFile by cv(Level.WARN) {
         VarEnum.ofSequence(it) { logLevels }.initSync { logging.changeLogBackLoggerAppenderLevel("FILE", it) }
     }.preserveOrder()
-
-    @C(name = "Rating control", info = "The style of the graphics of the rating control.")
-    val ratingCell by cv(RatingRatingCellFactory as RatingCellFactory) { VarEnum.ofInstances(it, instances) }
-
-    @C(name = "Rating icon amount", info = "Number of icons in rating control.")
-    val maxRating by cv(5).between(0, 10)
-
-    @C(name = "Rating allow partial", info = "Allow partial values for rating.")
-    val partialRating by cv(true)
 
     @C(name = "Text for no value", info = "Preferred text when no tag value for field. This value can be overridden.")
     var textNoVal by c("<none>")

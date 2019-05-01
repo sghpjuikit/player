@@ -53,7 +53,7 @@ class WebReader(widget: Widget): SimpleController(widget) {
 
     @IsConfig(name = "Search engine")
     private val searchEngine by cv(DuckDuckGoQBuilder as SearchUriBuilder) {
-        VarEnum.ofInstances(DuckDuckGoQBuilder, SearchUriBuilder::class.java, APP.instances)
+        VarEnum.ofInstances<SearchUriBuilder>(DuckDuckGoQBuilder, APP.instances)
     }
 
     @IsConfig(name = "No background")

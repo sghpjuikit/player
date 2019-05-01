@@ -1,22 +1,38 @@
 package sp.it.util.type
 
-import sp.it.util.collections.map.ClassListMap
+import java.lang.reflect.Type
 
 /** Map of instances per type. Useful for customization by pluggable & extensible behaviors. */
 open class InstanceMap {
-    private val m = ClassListMap<Any> { it.javaClass }
+    private val m = HashMap<List<Class<*>>, MutableList<Any>>()
 
     /** Add instances of the specified type. */
-    fun <T> addInstance(type: Class<T>, vararg instances: T) = m.accumulate(type, *instances)
+    fun <T: Any> addInstances(type: List<Class<*>>, instances: Collection<T>) = m.computeIfAbsent(type) { ArrayList() }.addAll(instances)
 
-    /** Add instances of the specified type. */
-    inline fun <reified T> addInstance(vararg instances: T) = addInstance(T::class.java, *instances)
+    /** Add instances of the type represented by the flattened list of specified classes. */
+    fun <T: Any> addInstances(type: Type, instances: Collection<T>) = addInstances(type.flattenToRawTypes().toList(), instances)
 
-    /** @return instances of the specified type */
+    /** Add instances of the type represented by the specified generic type argument. */
+    inline fun <reified T: Any> addInstances(vararg instances: T) = addInstances(typeLiteral<T>(), instances.toList())
+
+    /** @return instances of the type represented by the flattened list of specified classes */
     @Suppress("UNCHECKED_CAST")
-    fun <T> getInstances(type: Class<T>): List<T> = m[type].orEmpty().asSequence().toList() as List<T>
+    fun <T> getInstances(type: List<Class<*>>): List<T> = m[type].orEmpty() as List<T>
 
     /** @return instances of the specified type */
-    inline fun <reified T> getInstances(): Sequence<T> = getInstances(T::class.java).asSequence()
+    fun <T> getInstances(type: Type): List<T> = getInstances(type.flattenToRawTypes().toList())
+
+    /**
+     * Note on nullability:
+     *
+     * The nullability of the specified generic type argument will be respected, thus if it is nullable, the sequence
+     * will contain null.
+     *
+     * @return instances of the type represented byt the specified generic type argument */
+    inline fun <reified T: Any?> getInstances(): Sequence<T> = getInstances<T>(typeLiteral<T>()).asSequence().let {
+        val isNullable = null is T
+        if (isNullable) it.plus(null as T)
+        else it
+    }
 
 }

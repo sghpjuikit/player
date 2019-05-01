@@ -35,6 +35,6 @@ class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double
         styleClass += "rating"
     }
 
-    override fun createDefaultSkin() = RatingSkin(this)
+    override fun createDefaultSkin() = RatingSkinStar(this)
 
 }

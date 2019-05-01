@@ -32,7 +32,7 @@ import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.table.FilteredTable
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV
 import sp.it.pl.gui.objects.table.TableColumnInfo
-import sp.it.pl.gui.objects.tablecell.NumberRatingCellFactory
+import sp.it.pl.gui.objects.rating.RatingCellFactory
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
@@ -60,7 +60,6 @@ import sp.it.util.functional.Util.list
 import sp.it.util.functional.Util.stream
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
-import sp.it.util.functional.orNull
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
@@ -157,8 +156,19 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                 TableColumn<MetadataGroup, Any>(mgf.toString(mf)).apply {
                     cellValueFactory = Callback { it.value?.let { PojoV(mgf.getOf(it)) } }
                     cellFactory = when (mgf) {
-                        AVG_RATING -> APP.ratingCell.value as CellFactory<Any?>
-                        W_RATING -> NumberRatingCellFactory as CellFactory<Any?>
+                        AVG_RATING -> RatingCellFactory as CellFactory<Any?>
+                        W_RATING -> CellFactory<Double?> {
+                            object: TableCell<MetadataGroup, Double?>() {
+                                init {
+                                    alignment = CENTER_RIGHT
+                                }
+
+                                override fun updateItem(item: Double?, empty: Boolean) {
+                                    super.updateItem(item, empty)
+                                    text = if (empty) null else String.format("%.2f", item)
+                                }
+                            }
+                        } as CellFactory<Any?>
                         else -> CellFactory {
                             table.buildDefaultCell(mgf as ObjectField<in MetadataGroup, Any?>).apply {
                                alignment = if (mgf.getType(mf)==String::class.java) CENTER_LEFT else CENTER_RIGHT
@@ -173,7 +183,6 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                 }
             }
         }
-        APP.ratingCell sync { cf -> table.getColumn(AVG_RATING).orNull()?.cellFactory = cf as CellFactory<Double?> } on onClose
 
         // rows
         table.setRowFactory { t ->
@@ -264,6 +273,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             table.refreshColumn(it)
         }
 
+
         // update filters
         val f = fieldFilter.value
         table.filterPane.inconsistent_state = true
@@ -283,7 +293,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         runNew {
             stream(MetadataGroup.groupOf(f, list), MetadataGroup.groupsOf(f, list)).asSequence().toList()
         } ui {
-            if (!it.isEmpty()) {
+            if (it.isNotEmpty()) {
                 selectionStore()
                 table.setItemsRaw(it)
                 selectionReStore()
@@ -308,7 +318,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
     private fun playSelected() = play(filerSortInputList())
 
     private fun play(items: List<Metadata>) {
-        if (!items.isEmpty())
+        if (items.isNotEmpty())
             PlaylistManager.use { it.setNplay(items) }
     }
 

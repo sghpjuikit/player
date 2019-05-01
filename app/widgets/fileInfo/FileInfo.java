@@ -18,7 +18,6 @@ import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.Metadata.Field;
-import sp.it.pl.audio.tagging.SongWritingKt;
 import sp.it.pl.gui.objects.image.ThumbnailWithAdd;
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
 import sp.it.pl.gui.objects.rating.Rating;
@@ -37,7 +36,6 @@ import sp.it.util.conf.Config;
 import sp.it.util.conf.Config.PropertyConfig;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.IsConfig;
-import sp.it.util.dev.FailKt;
 import static java.lang.Double.max;
 import static java.lang.Integer.max;
 import static java.lang.Math.ceil;
@@ -223,8 +221,8 @@ public class FileInfo extends SimpleController implements SongReader {
         rating.setContentDisplay(ContentDisplay.RIGHT);
 
         // bind rating to app configs
-        onClose.plusAssign(syncTo(APP.getMaxRating(),rater.icons));
-        onClose.plusAssign(syncTo(APP.getPartialRating(), rater.partialRating));
+        onClose.plusAssign(syncTo(APP.ui.getMaxRating(),rater.icons));
+        onClose.plusAssign(syncTo(APP.ui.getPartialRating(), rater.partialRating));
         rater.editable.set(true);
         rater.onRatingEdited = consumer(it -> rate(data, it));
 

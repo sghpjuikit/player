@@ -26,8 +26,8 @@ import sp.it.util.ui.pseudoclass
 import java.lang.Math.ceil
 import kotlin.math.roundToInt
 
-/** Skin for [Rating]. */
-class RatingSkin(r: Rating): SkinBase<Rating>(r) {
+/** Skin for [Rating] displaying the value as horizontal sequence of icons. Editable. */
+class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
 
     private val backgroundContainer = hBox()
     private val foregroundContainer = object: HBox() {
@@ -108,8 +108,7 @@ class RatingSkin(r: Rating): SkinBase<Rating>(r) {
     }
 
     private fun updateClip(v: Double? = skinnable.rating.value) {
-        val icons = foregroundIcons.boundsInParent
-        foregroundMask.width = icons.minX.roundToInt()-1.0+(v ?: 0.0)*(icons.width+1.0)
+        foregroundMask.width = foregroundIcons.boundsInParent.minX.roundToInt()-1.0+(v ?: 0.0)*(foregroundIcons.layoutBounds.width+1.0)
         foregroundMask.height = skinnable.height
     }
 

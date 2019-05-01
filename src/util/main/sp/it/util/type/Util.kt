@@ -2,6 +2,9 @@ package sp.it.util.type
 
 import sp.it.util.dev.Experimental
 import java.lang.reflect.Field
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+import java.lang.reflect.WildcardType
 import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.Level
 import kotlin.properties.ReadWriteProperty
@@ -64,6 +67,29 @@ inline fun <reified T: Any> classLiteral() = T::class
 
 /** @return type representing the generic type argument of this method */
 inline fun <reified T> typeLiteral() = object: TypeToken<T>() {}.type
+
+/**
+ * Flattens a type to individual type fragments represented by jvm classes, removing variance (wildcards) and nullability.
+ *
+ * Examples:
+ *
+ * `Any` -> [Object.class]
+ * `Any?` -> [Object.class]
+ * `List<*>` -> [List.class, Object.class]
+ * `List<Int?>` -> [List.class, Integer.class]
+ * `List<out Int>` -> [List.class, Integer.class]
+ * `List<in Int?>` -> [List.class, Integer.class]
+ * `MutableList<Int>` -> [List.class, Integer.class]
+ * `ArrayList<Int>` -> [ArrayList.class, Integer.class]
+ *
+ * @return sequence of classes representing the specified type and its generic type arguments
+ */
+fun Type.flattenToRawTypes(): Sequence<Class<*>> = when {
+    this is WildcardType -> (if (lowerBounds.isNullOrEmpty()) upperBounds else lowerBounds).asSequence().flatMap { it.flattenToRawTypes() }
+    this is ParameterizedType -> sequenceOf(Util.getRawType(this)!!)+actualTypeArguments.asSequence().flatMap { it.flattenToRawTypes() }
+    this is Class<*> -> sequenceOf(this)
+    else -> throw Exception(toString())
+}
 
 /** Set specified property of this object to null. Use for disposal of read-only properties and avoiding memory leaks. */
 @Experimental("Uses reflection and its usefulness must be thoroughly evaluated")

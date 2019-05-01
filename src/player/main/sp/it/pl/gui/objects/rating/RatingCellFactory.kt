@@ -1,30 +1,26 @@
-package sp.it.pl.gui.objects.tablecell
+package sp.it.pl.gui.objects.rating
 
 import javafx.geometry.Pos
 import javafx.scene.control.ContentDisplay.GRAPHIC_ONLY
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
+import javafx.util.Callback
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.rate
-import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.main.APP
-import sp.it.util.parsing.StringParseStrategy
-import sp.it.util.parsing.StringParseStrategy.From
-import sp.it.util.parsing.StringParseStrategy.To
 import sp.it.util.reactive.syncFrom
 
-/** Cell for rating displaying the value as rating control. */
-@StringParseStrategy(from = From.SINGLETON, to = To.CONSTANT, constant = "Stars")
-object RatingRatingCellFactory: RatingCellFactory {
+/** Cell factory for cells displaying nullable <0,1> [Double] value in [Rating] control. */
+object RatingCellFactory: Callback<TableColumn<Metadata, Double?>, TableCell<Metadata, Double?>> {
 
-    override fun apply(c: TableColumn<Metadata, Double?>) = object : TableCell<Metadata, Double?>() {
-        var r = Rating(APP.maxRating.get())
+    override fun call(c: TableColumn<Metadata, Double?>) = object: TableCell<Metadata, Double?>() {
+        val r = Rating()
 
         init {
             contentDisplay = GRAPHIC_ONLY
             alignment = Pos.CENTER
-            r.icons syncFrom APP.maxRating
-            r.partialRating syncFrom APP.partialRating
+            r.icons syncFrom APP.ui.maxRating
+            r.partialRating syncFrom APP.ui.partialRating
             r.editable.value = true
             if (c.userData==Metadata.Field.RATING)
                 r.onRatingEdited = { c.tableView.items[index].rate(it) }
@@ -36,7 +32,7 @@ object RatingRatingCellFactory: RatingCellFactory {
                 graphic = null
             } else {
                 r.rating.set(item)
-                if (graphic == null) graphic = r
+                if (graphic==null) graphic = r
             }
         }
 

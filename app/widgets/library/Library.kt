@@ -25,6 +25,7 @@ import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.table.FilteredTable
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV
 import sp.it.pl.gui.objects.table.TableColumnInfo
+import sp.it.pl.gui.objects.rating.RatingCellFactory
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
@@ -145,13 +146,12 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
             TableColumn<Metadata, Any?>(field.name()).apply {
                 @Suppress("UNCHECKED_CAST")
                 cellFactory = when(field) {
-                    RATING -> APP.ratingCell.value as Callback<TableColumn<Metadata, Any?>, TableCell<Metadata, Any?>>
+                    RATING -> RatingCellFactory as Callback<TableColumn<Metadata, Any?>, TableCell<Metadata, Any?>>
                     else -> Callback { table.buildDefaultCell(field) }
                 }
                 cellValueFactory = Callback { it.value?.net { PojoV(field.getOf(it)) } }
             }
         }
-        APP.ratingCell sync { cf -> table.getColumn(RATING).orNull()?.cellFactory = cf } on onClose
 
         // column resizing
         table.setColumnResizePolicy {

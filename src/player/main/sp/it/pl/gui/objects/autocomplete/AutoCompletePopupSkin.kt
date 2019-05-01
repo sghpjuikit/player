@@ -92,7 +92,7 @@ open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
 
     private fun chooseSuggestion(suggestion: T? = list.selectionModel.selectedItem) {
         if (suggestion!=null)
-            skinnable.onSuggestion(suggestion)
+            control.onSuggestion(suggestion)
     }
 
     protected open fun buildListCell(listView: ListView<T>): ListCell<T> = TextFieldListCell.forListView(control.converter)(listView)

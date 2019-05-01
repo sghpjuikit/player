@@ -63,7 +63,7 @@ fun <T> atomic(initialValue: T) = object: ReadWriteProperty<Any?, T> {
 inline fun <reified T: Any> classLiteral() = T::class
 
 /** @return type representing the generic type argument of this method */
-inline fun <reified T> type() = object: TypeToken<T>() {}.type
+inline fun <reified T> typeLiteral() = object: TypeToken<T>() {}.type
 
 /** Set specified property of this object to null. Use for disposal of read-only properties and avoiding memory leaks. */
 @Experimental("Uses reflection and its usefulness must be thoroughly evaluated")

@@ -155,6 +155,8 @@ public class AppLauncher extends SimpleController {
             applyCellSize();
             visit();
         }));
+
+        onClose.plusAssign(runnable(() -> imageLoader.shutdown()));
     }
 
     @Override

@@ -186,6 +186,8 @@ class GameView(widget: Widget): SimpleController(widget) {
             }
         }
 
+        onClose += { imageLoader.shutdown() }
+
         placeholder.show(root, files.isEmpty())
         viewGames()
     }

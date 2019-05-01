@@ -231,6 +231,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
         files.onChange { revisitTop() }
         files.onChange { placeholder.show(root, files.isEmpty()) }
         onClose += { disposeItems() }
+        onClose += { imageLoader.shutdown() }
 
         root.sync1IfInScene {
             revisitCurrent()

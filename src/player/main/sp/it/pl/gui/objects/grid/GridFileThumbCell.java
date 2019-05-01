@@ -345,6 +345,13 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 			this.executorThumbs = executorThumbs;
 			this.executorImage = executorImage;
 		}
+
+		public void shutdown() {
+			if (executorThumbs!=null) executorThumbs.shutdownNow();
+			if (executorImage!=null) executorImage.shutdownNow();
+			loadSynchronizerThumb.shutdownNow();
+			loadSynchronizerFull.shutdownNow();
+		}
 	}
 
 	public static class RunnableLocked implements Runnable {

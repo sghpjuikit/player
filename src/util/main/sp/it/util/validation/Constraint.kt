@@ -157,17 +157,17 @@ interface Constraint<in T> {
         }
     }
 
-    class HasNonNullElements: Constraint<Collection<*>> {
+    object HasNonNullElements: Constraint<Collection<*>> {
         override fun isValid(value: Collection<*>?) = value==null || value.all { it!=null }
         override fun message() = "All items of the list must be non null"
     }
 
-    class ObjectNonNull: Constraint<Any> {
+    object ObjectNonNull: Constraint<Any> {
         override fun isValid(value: Any?) = value!=null
         override fun message() = "Value must not be null"
     }
 
-    class PreserveOrder: Constraint<Any> {
+    object PreserveOrder: Constraint<Any> {
         override fun isValid(value: Any?) = true
         override fun message() = "Items must preserve original order"
     }
@@ -215,8 +215,8 @@ class Constraints {
                 register<Constraint.MinMax> { Constraint.NumberMinMax(it.min, it.max) }
                 register<Constraint.NonEmpty> { Constraint.StringNonEmpty() }
                 register<Constraint.Length> { Constraint.StringLength(it.min, it.max) }
-                register<Constraint.NonNullElements> { Constraint.HasNonNullElements() }
-                register<Constraint.NonNull> { Constraint.ObjectNonNull() }
+                register<Constraint.NonNullElements> { Constraint.HasNonNullElements }
+                register<Constraint.NonNull> { Constraint.ObjectNonNull }
                 register<Constraint.ConstraintBy> { instantiateOrThrow(it.value.java) }
                 registerByType<Duration, Constraint.DurationNonNegative>()
             }

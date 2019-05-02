@@ -709,7 +709,7 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 			super((Class) ObservableList.class, name, c, val.getValue(), category);
 			failIf(val.list.getClass().getSimpleName().toLowerCase().contains("unmodifiable")!=(c.editable()==EditMode.NONE));
 			a = val;
-			if (val.nullElements==Elements.NOT_NULL) constraints(new HasNonNullElements());
+			if (val.nullElements==Elements.NOT_NULL) constraints(HasNonNullElements.INSTANCE);
 			toConfigurable = val.toConfigurable.andApply(configurable -> {
 				if (configurable instanceof Config)
 					((Config) configurable).constraints(constraints);

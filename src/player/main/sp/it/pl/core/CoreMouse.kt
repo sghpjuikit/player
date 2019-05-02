@@ -19,7 +19,7 @@ object CoreMouse: Core {
     private val velocitySubscribers = HashSet<(Double) -> Unit>()
 
     /** @return mouse position in screen coordinates */
-    fun getMousePosition(): Point2D = Robot().mousePosition
+    val mousePosition: Point2D get() = Robot().mousePosition
 
     /** Observe mouse position in screen coordinates. */
     fun observeMousePosition(action: (Point2D) -> Unit): Subscription {
@@ -44,7 +44,7 @@ object CoreMouse: Core {
     private fun pulseStart() {
         if (pulse==null)
             pulse = fxTimer(1.seconds/pulseFrequency, -1) {
-                val p = getMousePosition()
+                val p = mousePosition
                 positionSubscribers.forEach { it(p) }
                 if (observeSpeed && lastPos!=null) {
                     val speed = p.distance(lastPos!!)*pulseFrequency
@@ -60,8 +60,8 @@ object CoreMouse: Core {
     }
 
     private fun pulseUpdate() {
-        val shouldObserveSpeed = !velocitySubscribers.isEmpty()
-        val shouldObservePosition = !positionSubscribers.isEmpty() || shouldObserveSpeed
+        val shouldObserveSpeed = velocitySubscribers.isNotEmpty()
+        val shouldObservePosition = positionSubscribers.isNotEmpty() || shouldObserveSpeed
         observeSpeed = shouldObserveSpeed
         if (shouldObservePosition) pulseStart() else pulseStop()
     }

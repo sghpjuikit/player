@@ -19,7 +19,6 @@ import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.HPos;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -141,6 +140,7 @@ import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.ui.UtilKt.containsMouse;
 import static sp.it.util.ui.UtilKt.createIcon;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 import static sp.it.util.ui.UtilKt.setTextAlignment;
@@ -315,11 +315,9 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
         // remove cover on drag exit
         CoverV.getPane().setOnDragDetected( e -> CoverV.getPane().startFullDrag());
-        root.addEventFilter(MOUSE_DRAG_RELEASED, e-> {
-            Point2D click = CoverV.getPane().sceneToLocal(e.getSceneX(),e.getSceneY());
-            // only if drag starts on the cover and ends outside of it
-            if (e.getGestureSource().equals(CoverV.getPane()) && !CoverV.getPane().contains(click)) {
-                addImg(null); // removes image
+        root.addEventFilter(MOUSE_DRAG_RELEASED, e -> {
+            if (e.getGestureSource().equals(CoverV.getPane()) && !containsMouse(CoverV.getPane(), e)) {
+                addImg(null);
             }
         });
 

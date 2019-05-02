@@ -10,13 +10,13 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
-import sp.it.pl.core.CoreMouse
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.ui.Util.layHeaderBottom
+import sp.it.util.ui.containsMouse
 import sp.it.util.ui.lay
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
@@ -48,7 +48,7 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
         onEventDown(MOUSE_CLICKED, PRIMARY) { action() }
         onEventDown(KEY_PRESSED, ENTER) { action() }
         parentProperty() sync {
-            if (it!=null && it.scene?.window?.isShowing==true && it.contains(it.screenToLocal(CoreMouse.mousePosition)))
+            if (it!=null && it.scene?.window?.isShowing==true && it.containsMouse())
                 pseudoClassChanged("hover", true)
         }
 

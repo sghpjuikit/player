@@ -45,6 +45,7 @@ import sp.it.util.ui.Util.createFMNTStage
 import sp.it.util.ui.Util.layStack
 import sp.it.util.ui.Util.setAnchors
 import sp.it.util.ui.applyViewPort
+import sp.it.util.ui.containsMouse
 import sp.it.util.ui.getScreen
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.image.FitFrom
@@ -369,7 +370,7 @@ private class PolarResize {
                 resizable.onEventDown(MOUSE_PRESSED) {
                     if (dragActivator!=null) {
                         // drag by a resizable Node
-                        if (dragActivator.contains(dragActivator.screenToLocal(it))) {
+                        if (dragActivator.containsMouse(it)) {
                             isActive = true
                             offset = resizable.size-resizable.screenToLocal(it)
                         }

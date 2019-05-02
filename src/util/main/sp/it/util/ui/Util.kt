@@ -134,6 +134,24 @@ fun Node.removeFromParent() {
     }
 }
 
+/** @return whether this node shape contains the scene coordinates represented by the specified point */
+fun Node.containsScene(scenePoint: Point2D): Boolean = contains(sceneToLocal(scenePoint))
+
+/** @return whether this node shape contains the scene coordinates */
+fun Node.containsScene(sceneX: Double, sceneY: Double) = containsScene(Point2D(sceneX, sceneY))
+
+/** @return whether this node shape contains the screen coordinates represented by the specified point */
+fun Node.containsScreen(screenPoint: Point2D): Boolean = contains(screenToLocal(screenPoint))
+
+/** @return whether this node shape contains the screen coordinates */
+fun Node.containsScreen(screenX: Double, screenY: Double) = containsScene(Point2D(screenX, screenY))
+
+/** @return whether this node shape contains the coordinates of the specified mouse event */
+fun Node.containsMouse(event: MouseEvent) = containsScene(Point2D(event.sceneX, event.sceneY))
+
+/** @return whether this node shape contains the coordinates of the mouse */
+fun Node.containsMouse() = containsScreen(Robot().mousePosition)
+
 /** @return topmost child node containing the specified scene coordinates optionally testing against the specified test or null if no match */
 fun Node.pickTopMostAt(sceneX: Double, sceneY: Double, test: (Node) -> Boolean = { true }): Node? {
     // Groups need to be handled specially - they need to be transparent

@@ -75,6 +75,7 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.maintain;
 import static sp.it.util.reactive.UtilKt.sync1IfInScene;
+import static sp.it.util.ui.UtilKt.containsMouse;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 import static sp.it.util.ui.UtilKt.setMinPrefMaxSize;
 
@@ -295,8 +296,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         // show/hide thumbnails eager
         root.addEventHandler(MOUSE_EXITED, e -> {
             if (hideThumbEager.getValue()) {
-                double x = e.getX(), y = e.getY();
-                if (!root.contains(x,y)) // make sure mouse really is out
+                if (!containsMouse(root, e))
                     showThumbnails.setValue(false);
             }
         });

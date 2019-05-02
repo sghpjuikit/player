@@ -21,7 +21,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
-import sp.it.util.ui.pseudoclass
+import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.size
 
@@ -49,7 +49,7 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
         onEventDown(KEY_PRESSED, ENTER) { action() }
         parentProperty() sync {
             if (it!=null && it.scene?.window?.isShowing==true && it.contains(it.screenToLocal(CoreMouse.mousePosition)))
-                pseudoClassStateChanged(pseudoclass("hover"), true)
+                pseudoClassChanged("hover", true)
         }
 
         lay += layHeaderBottom(8.0, Pos.CENTER, icon, desc)

@@ -169,6 +169,9 @@ fun Node.pickTopMostAt(sceneX: Double, sceneY: Double, test: (Node) -> Boolean =
     }
 }
 
+/** Convenience for [Node.pseudoClassStateChanged]. */
+fun Node.pseudoClassChanged(pseudoClass: String, active: Boolean) = pseudoClassStateChanged(pseudoclass(pseudoClass), active)
+
 /** Adds the specified styleclass to [Node.styleClass] of this node, if it has not yet been assigned. */
 fun Node.styleclassAdd(styleClass: String) {
     if (styleClass !in this.styleClass)
@@ -654,17 +657,17 @@ fun Node.sceneToLocal(e: MouseEvent) = sceneToLocal(e.sceneX, e.sceneY)!!
 
 /** Sets alignment of the text of this text area. */
 fun TextArea.setTextAlignment(alignment: TextAlignment) {
-    pseudoClassStateChanged(pseudoclass("align-left"), false)
-    pseudoClassStateChanged(pseudoclass("align-right"), false)
-    pseudoClassStateChanged(pseudoclass("align-center"), false)
-    pseudoClassStateChanged(pseudoclass("align-justify"), false)
-    pseudoClassStateChanged(
-            pseudoclass(when(alignment) {
+    pseudoClassChanged("align-left", false)
+    pseudoClassChanged("align-right", false)
+    pseudoClassChanged("align-center", false)
+    pseudoClassChanged("align-justify", false)
+    pseudoClassChanged(
+            when (alignment) {
                 TextAlignment.LEFT -> "align-left"
                 TextAlignment.RIGHT -> "align-right"
                 TextAlignment.CENTER -> "align-center"
                 TextAlignment.JUSTIFY -> "align-justify"
-            }),
+            },
             true
     )
 }

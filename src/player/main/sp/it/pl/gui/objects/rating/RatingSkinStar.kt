@@ -22,7 +22,7 @@ import sp.it.util.reactive.syncTo
 import sp.it.util.reactive.syncWhile
 import sp.it.util.ui.createIcon
 import sp.it.util.ui.hBox
-import sp.it.util.ui.pseudoclass
+import sp.it.util.ui.pseudoClassChanged
 import java.lang.Math.ceil
 import kotlin.math.roundToInt
 
@@ -81,7 +81,7 @@ class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
 
         backgroundIcons = createButton(IconFA.STAR_ALT)
         foregroundIcons = createButton(IconFA.STAR).apply {
-            styleClass += selected
+            styleClass += "strong"
         }
         backgroundContainer.children += backgroundIcons
         foregroundContainer.children += foregroundIcons
@@ -114,11 +114,11 @@ class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
 
     private fun updateStyle(v: Double? = skinnable.rating.value) {
         val isEmpty = v==null
-        backgroundContainer.children.forEach { it.pseudoClassStateChanged(empty, isEmpty) }
+        backgroundContainer.children.forEach { it.pseudoClassChanged("empty", isEmpty) }
         val is0 = v==0.0
-        backgroundContainer.children.forEach { it.pseudoClassStateChanged(min, is0) }
+        backgroundContainer.children.forEach { it.pseudoClassChanged("min", is0) }
         val is1 = v==1.0
-        foregroundContainer.children.forEach { it.pseudoClassStateChanged(max, is1) }
+        foregroundContainer.children.forEach { it.pseudoClassChanged("max", is1) }
     }
 
     private fun updateClipAndStyle(v: Double? = skinnable.rating.value) {
@@ -136,10 +136,4 @@ class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
         super.dispose()
     }
 
-    companion object {
-        const val selected = "strong"
-        val empty = pseudoclass("empty")
-        val min = pseudoclass("min")
-        val max = pseudoclass("max")
-    }
 }

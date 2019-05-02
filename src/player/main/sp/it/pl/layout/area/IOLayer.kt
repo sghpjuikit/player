@@ -55,7 +55,7 @@ import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.text.plural
 import sp.it.util.type.Util.getRawType
 import sp.it.util.type.isSuperclassOf
-import sp.it.util.ui.pseudoclass
+import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.text
 import sp.it.util.units.millis
@@ -260,8 +260,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         editFrom = eFrom
 
         // start effect: disable & visually differentiate bindable & unbindable nodes
-        e.link.change("highlighted", true)
-        eFrom.i.change("highlighted", true)
+        e.link.pseudoClassChanged("highlighted", true)
+        eFrom.i.pseudoClassChanged("highlighted", true)
         outputNodes.forEach { (_, node) -> node.onEditActive(true, node.output===eFrom.output) }
         inputNodes.forEach { (_, node) -> node.onEditActive(true, node.input!!.isAssignable(eFrom.output!!)) }
         inoutputNodes.forEach { (_, node) -> node.onEditActive(true, node.output===eFrom.output || node.input!!.isAssignable(eFrom.output!!)) }
@@ -279,9 +279,9 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
                 .find { it.input!!.isAssignable(eFrom.output!!) }
 
         if (editTo!==n) {
-            editTo?.i?.change("highlighted", false)
+            editTo?.i?.pseudoClassChanged("highlighted", false)
             editTo = n
-            editTo?.i?.change("highlighted", true)
+            editTo?.i?.pseudoClassChanged("highlighted", true)
         }
     }
 
@@ -307,7 +307,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         e.link.disposer()
 
         // stop effect: disable & visually differentiate bindable nodes
-        eFrom.i.change("highlighted", false)
+        eFrom.i.pseudoClassChanged("highlighted", false)
         outputNodes.forEach { (_, node) -> node.onEditActive(false, true) }
         inputNodes.forEach { (_, node) -> node.onEditActive(false, true) }
         links.forEach { _, link -> link.onEditActive(false) }
@@ -462,7 +462,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
         fun select(v: Boolean) {
             if (selected==v) return
             selected = v
-            i.change("selected", v)
+            i.pseudoClassChanged("selected", v)
         }
 
         fun onEditActive(active: Boolean, canAccept: Boolean) {
@@ -499,8 +499,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     private inner class InputNode(xPut: Input<*>): XNode(xPut, "inode") {
         init {
-            i.onEventUp(DRAG_ENTERED) { i.change("drag-over", true) }
-            i.onEventUp(DRAG_EXITED) { i.change("drag-over", false) }
+            i.onEventUp(DRAG_ENTERED) { i.pseudoClassChanged("drag-over", true) }
+            i.onEventUp(DRAG_EXITED) { i.pseudoClassChanged("drag-over", false) }
             installDrag(
                     i, IconFA.CLIPBOARD, "",
                     { true },
@@ -531,8 +531,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     private inner class InOutputNode(xPut: InOutput<*>): XNode(xPut, "ionode") {
         init {
-            i.onEventUp(DRAG_ENTERED) { i.change("drag-over", true) }
-            i.onEventUp(DRAG_EXITED) { i.change("drag-over", false) }
+            i.onEventUp(DRAG_ENTERED) { i.pseudoClassChanged("drag-over", true) }
+            i.onEventUp(DRAG_EXITED) { i.pseudoClassChanged("drag-over", false) }
             i.onEventUp(DRAG_DETECTED) {
                 if (selected) i.startDragAndDrop(TransferMode.LINK)[Df.WIDGET_OUTPUT] = output!!
                 else editBegin(this)
@@ -589,8 +589,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
             hoverProperty() attach {
                 val n1 = inputNodes[input] ?: outputNodes[input]
                 val n2 = inputNodes[output] ?: outputNodes[output]
-                n1?.i?.change("highlighted", it)
-                n2?.i?.change("highlighted", it)
+                n1?.i?.pseudoClassChanged("highlighted", it)
+                n2?.i?.pseudoClassChanged("highlighted", it)
             }
             onEventDown(MOUSE_CLICKED, SECONDARY) {
                 if (input is Input<*> && output is Output<*>)
@@ -708,7 +708,7 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
         init {
             link.styleClass += "iolink-edit"
-            isValueOnly attach { link.change("value-only", it) } on disposer
+            isValueOnly attach { link.pseudoClassChanged("value-only", it) } on disposer
 
             val editDrawer = EventHandler<MouseEvent> {
                 isValueOnly.value = it.isShiftDown
@@ -774,8 +774,6 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
             isMouseTransparent = noMouse
             isPickOnBounds = noPick
         }
-
-        private fun Node.change(pseudoClassState: String, state: Boolean) = pseudoClassStateChanged(pseudoclass(pseudoClassState), state)
 
         private fun Path.duplicateTo(path: Path) {
             elements.onItemAdded { path.elements += it }

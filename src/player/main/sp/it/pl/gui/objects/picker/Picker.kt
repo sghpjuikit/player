@@ -22,7 +22,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.pane
-import sp.it.util.ui.pseudoclass
+import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.scrollTextCenter
 import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.setScaleXY
@@ -118,7 +118,7 @@ open class Picker<E> {
                 }
         tiles.children += pane {
             styleClass += CELL_STYLE_CLASS
-            pseudoClassStateChanged(pseudoclass("empty"), true)
+            pseudoClassChanged("empty", true)
             properties[KEY_EMPTY_CELL] = null
             isManaged = false
         }

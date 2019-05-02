@@ -5,7 +5,6 @@ import javafx.scene.input.KeyCode.ALT_GRAPH
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyCode.WINDOWS
 import javafx.stage.Stage
-import sp.it.util.access.initSync
 import sp.it.util.access.v
 import sp.it.util.action.ActionRegistrar.hotkeys
 import sp.it.util.collections.mapset.MapSet
@@ -51,26 +50,26 @@ object ActionManager {
 
     @IsConfig(name = "Global shortcuts enabled", info = "Allows using the shortcuts even if application is not focused.")
     val globalShortcutsEnabled by cv(true) {
-        v(it && isGlobalShortcutsSupported).initSync {
-            if (isGlobalShortcutsSupported) {
-                if (it) {
-                    startGlobalListening()
-                    // re-register shortcuts to switch from local
-                    ActionRegistrar.getActions().forEach { a ->
-                        a.unregister()
-                        a.register()
-                    }
-                } else {
-                    stopGlobalListening()
-                    // re-register shortcuts to switch to local
-                    ActionRegistrar.getActions().forEach { a ->
-                        a.unregister()
-                        a.register()
-                    }
+        v(it && isGlobalShortcutsSupported)
+    }.readOnlyUnless(isGlobalShortcutsSupported) sync {
+        if (isGlobalShortcutsSupported) {
+            if (it) {
+                startGlobalListening()
+                // re-register shortcuts to switch from local
+                ActionRegistrar.getActions().forEach { a ->
+                    a.unregister()
+                    a.register()
+                }
+            } else {
+                stopGlobalListening()
+                // re-register shortcuts to switch to local
+                ActionRegistrar.getActions().forEach { a ->
+                    a.unregister()
+                    a.register()
                 }
             }
         }
-    }.readOnlyUnless(isGlobalShortcutsSupported)
+    }
 
     /** @return whether the action listening is running */
     var isActionListening = false

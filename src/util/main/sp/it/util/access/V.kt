@@ -20,8 +20,10 @@ open class V<T>(value: T): SimpleObjectProperty<T>(value), AccessibleValue<T> {
 
     fun onChange(action: Consumer<in T>) = attach { action(it) }
 
+    /** Declarative convenience method. Invokes [attach] on this with the specified action and returns this. */
     fun initAttachC(action: Consumer<in T>) = apply { attach { action(it) } }
 
+    /** Declarative convenience method. Invokes [sync] on this with the specified action and returns this. */
     fun initSyncC(action: Consumer<in T>) = apply { sync { action(it) } }
 
     fun onChange(action: BiConsumer<in T, in T>) = attachChanges { ov, nv -> action(ov, nv) }
@@ -38,9 +40,3 @@ fun <T: Any> v(value: T): V<T> = V(value)
 
 /** @return new [V] value allowing null values, initialized to the specified value or null if no specified */
 fun <T: Any?> vn(value: T? = null): V<T?> = V(value)
-
-/** Declarative convenience method. Invokes [attach] on this with the specified action and returns this. */
-fun <T, W: V<T>> W.initAttach(action: (T) -> Unit) = apply { attach { action(it) } }
-
-/** Declarative convenience method. Invokes [sync] on this with the specified action and returns this. */
-fun <T, W: V<T>> W.initSync(action: (T) -> Unit) = apply { sync(action) }

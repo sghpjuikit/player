@@ -4,7 +4,6 @@ import javafx.scene.control.ComboBox
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox
-import sp.it.util.access.initAttach
 import sp.it.util.access.vn
 import sp.it.util.collections.list.PrefList
 import sp.it.util.collections.setTo
@@ -13,6 +12,7 @@ import sp.it.util.conf.Config.AccessorConfig
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Functors.PƑ
 import sp.it.util.functional.Functors.Ƒ1
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
 import sp.it.util.ui.hBox
 import java.util.ArrayList
@@ -87,7 +87,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): Value
         private fun <T> Config<T>.toConfigField() = ConfigField.create(this)
 
         private fun <T> Functors.Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
-            val a = vn(defaultValue).initAttach { onChange(it) }
+            val a = vn(defaultValue).apply { attach { onChange(it) } }
             return AccessorConfig(type, name, description, Consumer { a.value = it }, Supplier { a.value })
         }
 

@@ -2,8 +2,6 @@ package sp.it.pl.plugin
 
 import mu.KLogging
 import sp.it.pl.main.APP
-import sp.it.util.access.initSync
-import sp.it.util.access.v
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
 import sp.it.util.dev.Idempotent
@@ -13,7 +11,7 @@ import sp.it.util.functional.ifFalse
 abstract class PluginBase(override val name: String, isEnabledByDefault: Boolean): Plugin {
 
     @IsConfig(name = "Enable", info = "Enable/disable this plugin")
-    private val enabled by cv(isEnabledByDefault) { v(it).initSync { runWhenReady { enable(it) } } }
+    private val enabled by cv(isEnabledByDefault) sync { runWhenReady { enable(it) } }
     private var isRunning = false
 
     private fun enable(isToBeRunning: Boolean) {

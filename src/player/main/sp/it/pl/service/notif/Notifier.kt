@@ -19,13 +19,12 @@ import sp.it.pl.layout.widget.hasFeature
 import sp.it.pl.main.APP
 import sp.it.pl.service.ServiceBase
 import sp.it.util.access.VarAction
-import sp.it.util.access.VarEnum
-import sp.it.util.access.initSync
 import sp.it.util.action.IsAction
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
+import sp.it.util.conf.valuesIn
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.ui.lay
@@ -55,16 +54,13 @@ class Notifier: ServiceBase("Notifications", true) {
     @IsConfig(name = "On click right", info = "Right click action")
     val onClickR by cv("Notification hide") { VarAction(it) }
     @IsConfig(name = "Playback change graphics")
-    val graphics by cv("Normal") {
-        VarEnum.ofSequence(it,
-                {
-                    APP.widgetManager.factories.getFactories()
-                            .filter { it.hasFeature<SongReader>() }
-                            .map { it.nameGui() }
-                            .plus("Normal")
-                            .plus("Normal - no cover")
-                }
-        ).initSync {
+    val graphics by cv("Normal").valuesIn {
+            APP.widgetManager.factories.getFactories()
+                    .filter { it.hasFeature<SongReader>() }
+                    .map { it.nameGui() }
+                    .plus("Normal")
+                    .plus("Normal - no cover")
+        } sync {
             when (it) {
                 "Normal" -> {
                     val ii = ItemInfo(true)
@@ -93,7 +89,6 @@ class Notifier: ServiceBase("Notifications", true) {
                 )
             }
         }
-    }
     private val onStop = Disposer()
     private var running = false
     private var n: Notification? = null

@@ -8,8 +8,7 @@ import com.vividsolutions.jts.triangulate.VoronoiDiagramBuilder
 import javafx.event.Event
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
-import javafx.scene.input.MouseButton
-import javafx.scene.input.MouseButton.*
+import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
@@ -25,8 +24,6 @@ import sp.it.pl.main.scaleEM
 import sp.it.util.Util.clip
 import sp.it.util.Util.pyth
 import sp.it.util.access.V
-import sp.it.util.access.initSync
-import sp.it.util.access.v
 import sp.it.util.animation.Loop
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
@@ -64,7 +61,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
     private val canvas = RenderNode()
 
     @IsConfig(name = "Displayed")
-    val displayed by cv(CellGenerator.CIRCLES) { v(it).initSync { canvas.displayedToBe = it } }
+    val displayed by cv(CellGenerator.CIRCLES) sync { canvas.displayedToBe = it }
 
     init {
         root.prefSize = 850.scaleEM() x 600.scaleEM()

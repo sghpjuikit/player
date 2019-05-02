@@ -29,25 +29,22 @@ import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.W_RATING
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData
 import sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
+import sp.it.pl.gui.objects.rating.RatingCellFactory
 import sp.it.pl.gui.objects.table.FilteredTable
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV
 import sp.it.pl.gui.objects.table.TableColumnInfo
-import sp.it.pl.gui.objects.rating.RatingCellFactory
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
 import sp.it.pl.layout.widget.Widget.Info
-import sp.it.pl.layout.widget.controller.LegacyController
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.scaleEM
 import sp.it.pl.main.setSongsAndFiles
-import sp.it.util.access.VarEnum
 import sp.it.util.access.Vo
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.ObjectField
-import sp.it.util.access.initAttach
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.runNew
 import sp.it.util.collections.setTo
@@ -56,6 +53,7 @@ import sp.it.util.conf.EditMode
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
+import sp.it.util.conf.values
 import sp.it.util.functional.Util.list
 import sp.it.util.functional.Util.stream
 import sp.it.util.functional.invoke
@@ -74,6 +72,8 @@ import sp.it.util.ui.pseudoclass
 import sp.it.util.ui.x
 import kotlin.streams.asSequence
 import kotlin.streams.toList
+import sp.it.pl.audio.tagging.Metadata.Field as MField
+import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
 
 private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, TableCell<MetadataGroup, T>>
 
@@ -97,8 +97,8 @@ private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, Table
         "    Click column + SHIFT : Sorts by multiple columns\n",
         version = "0.9.0",
         year = "2015",
-        group = LIBRARY)
-@LegacyController
+        group = LIBRARY
+)
 class LibraryView(widget: Widget): SimpleController(widget) {
 
     private val table = FilteredTable(MetadataGroup::class.java, VALUE)
@@ -117,9 +117,8 @@ class LibraryView(widget: Widget): SimpleController(widget) {
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
     val tableShowFooter by cv(true) { Vo(APP.ui.tableShowFooter) }
     @IsConfig(name = "Field")
-    val fieldFilter by cv(CATEGORY as Metadata.Field<*>) {
-        VarEnum(it, Metadata.Field.FIELDS.filter { it.isTypeStringRepresentable() })
-                .initAttach { applyData() }
+    val fieldFilter by cv<MField<*>>(CATEGORY).values(MField.FIELDS.filter { it.isTypeStringRepresentable() }) attach {
+        applyData()
     }
 
     // restoring selection if table items change, we want to preserve as many
@@ -148,10 +147,10 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         tableShowFooter syncTo table.footerVisible on onClose
 
         // set up table columns
-        table.setKeyNameColMapper { name -> if (ColumnField.INDEX.name()==name) name else MetadataGroup.Field.valueOf(name).name() }
+        table.setKeyNameColMapper { name -> if (ColumnField.INDEX.name()==name) name else MgField.valueOf(name).name() }
         table.setColumnFactory { f ->
-            if (f is MetadataGroup.Field<*>) {
-                val mgf = f as MetadataGroup.Field<*>
+            if (f is MgField<*>) {
+                val mgf = f as MgField<*>
                 val mf = fieldFilter.value
                 TableColumn<MetadataGroup, Any>(mgf.toString(mf)).apply {
                     cellValueFactory = Callback { it.value?.let { PojoV(mgf.getOf(it)) } }
@@ -210,7 +209,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         table.columnMenu.onEventDown(WINDOW_HIDDEN) { fieldMenu.items.clear() }
         table.columnMenu.onEventDown(WINDOW_SHOWING) {
             fieldMenu.items setTo buildSingleSelectionMenu(
-                    list(Metadata.Field.FIELDS), fieldFilter.value,
+                    list(MField.FIELDS), fieldFilter.value,
                     { it.name() },
                     { fieldFilter.setValue(it) }
             )
@@ -278,7 +277,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         val f = fieldFilter.value
         table.filterPane.inconsistent_state = true
         table.filterPane.setPrefTypeSupplier { PredicateData.ofField(VALUE) }
-        table.filterPane.data = MetadataGroup.Field.FIELDS.map { PredicateData(it.toString(f), it.getType(f), it as ObjectField<MetadataGroup, Any>) }
+        table.filterPane.data = MgField.FIELDS.map { PredicateData(it.toString(f), it.getType(f), it as ObjectField<MetadataGroup, Any>) }
         table.filterPane.shrinkTo(0)
         table.filterPane.growTo1()
         table.filterPane.clear()

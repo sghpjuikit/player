@@ -1,13 +1,20 @@
 package sp.it.util.type
 
+import javafx.collections.FXCollections.observableArrayList
+import javafx.collections.ObservableList
+import sp.it.util.collections.ObservableListRO
+import sp.it.util.collections.setTo
 import java.lang.reflect.Type
 
 /** Map of instances per type. Useful for customization by pluggable & extensible behaviors. */
 open class InstanceMap {
-    private val m = HashMap<List<Class<*>>, MutableList<Any>>()
+    private val m = HashMap<List<Class<*>>, ObservableList<Any?>>()
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <T> at(type: List<Class<*>>): ObservableList<T> = m.computeIfAbsent(type) { observableArrayList(listOf()) } as ObservableList<T>
 
     /** Add instances of the specified type. */
-    fun <T: Any> addInstances(type: List<Class<*>>, instances: Collection<T>) = m.computeIfAbsent(type) { ArrayList() }.addAll(instances)
+    fun <T: Any> addInstances(type: List<Class<*>>, instances: Collection<T>) = at<T>(type).addAll(instances)
 
     /** Add instances of the type represented by the flattened list of specified classes. */
     fun <T: Any> addInstances(type: Type, instances: Collection<T>) = addInstances(type.flattenToRawTypes().toList(), instances)
@@ -15,24 +22,31 @@ open class InstanceMap {
     /** Add instances of the type represented by the specified generic type argument. */
     inline fun <reified T: Any> addInstances(vararg instances: T) = addInstances(typeLiteral<T>(), instances.toList())
 
-    /** @return instances of the type represented by the flattened list of specified classes */
-    @Suppress("UNCHECKED_CAST")
-    fun <T> getInstances(type: List<Class<*>>): List<T> = m[type].orEmpty() as List<T>
+    /** @return read only observable list of instances of the type represented by the flattened list of specified classes */
+    fun <T> getInstances(type: List<Class<*>>): ObservableListRO<T> = ObservableListRO(at(type))
 
-    /** @return instances of the specified type */
-    fun <T> getInstances(type: Type): List<T> = getInstances(type.flattenToRawTypes().toList())
+    /** @return read only observable list of instances of the specified type */
+    fun <T> getInstances(type: Type): ObservableListRO<T> = getInstances(type.flattenToRawTypes().toList())
 
     /**
-     * Note on nullability:
+     * Nullability:
      *
-     * The nullability of the specified generic type argument will be respected, thus if it is nullable, the sequence
-     * will contain null.
+     * The nullability of the specified generic type argument will be respected, thus if it is nullable, the returned
+     * list will contain null.
      *
-     * @return instances of the type represented byt the specified generic type argument */
-    inline fun <reified T: Any?> getInstances(): Sequence<T> = getInstances<T>(typeLiteral<T>()).asSequence().let {
+     * @return read only observable list of instances of the type represented by the specified generic type argument
+     */
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified T: Any?> getInstances(): ObservableListRO<T> {
+        val list = getInstances<T>(typeLiteral<T>())
         val isNullable = null is T
-        if (isNullable) it.plus(null as T)
-        else it
+        return if (isNullable) {
+            val out = observableArrayList<T>(listOf())
+            list.addListener { out setTo (list+(null as T)) }
+            ObservableListRO(out)
+        } else {
+            list
+        }
     }
 
 }

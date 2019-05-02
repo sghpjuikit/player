@@ -8,10 +8,10 @@ import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.scaleEM
-import sp.it.util.access.initSync
 import sp.it.util.access.v
 import sp.it.util.async.runPeriodic
 import sp.it.util.reactive.on
+import sp.it.util.reactive.sync
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
@@ -31,7 +31,7 @@ import sp.it.util.units.seconds
 class HtmlViewer(widget: Widget): SimpleController(widget) {
 
     private val editor = HTMLEditor()
-    private val text = v("").initSync { editor.htmlText = it }
+    private val text = v("")
     private val input = io.i.create<String>("Html") { text.value = it ?: "" }
     private val output = io.o.create("Html", "")
 
@@ -41,6 +41,7 @@ class HtmlViewer(widget: Widget): SimpleController(widget) {
             fixHardcodedSize()
         }
 
+        text sync { editor.htmlText = it }
         input.sync { text.value = it ?: "" } on onClose
         runPeriodic(5.seconds) { output.value = editor.htmlText } on onClose
     }

@@ -20,8 +20,6 @@ import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_T
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_AND_PERCENT
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_OR_PERCENT
 import sp.it.pl.service.tray.TrayService
-import sp.it.util.access.initAttach
-import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.between
@@ -37,11 +35,11 @@ import java.util.ArrayList
 class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
 
     @IsConfig(name = "Incrementing strategy", info = "Playcount strategy for incrementing playback.")
-    val whenStrategy by cv(ON_PERCENT) { v(it).initAttach { apply() } }
+    val whenStrategy by cv(ON_PERCENT) attach { apply() }
     @IsConfig(name = "Increment at percent", info = "Percent at which playcount is incremented.")
-    val whenPercent by cv(0.4) { v(it).initAttach { apply() } }.between(0.0, 1.0)
+    val whenPercent by cv(0.4).between(0.0, 1.0) attach { apply() }
     @IsConfig(name = "Increment at time", info = "Time at which playcount is incremented.")
-    val whenTime by cv(seconds(5.0)) { v(it).initAttach { apply() } }
+    val whenTime by cv(seconds(5.0)) attach { apply() }
     @IsConfig(name = "Show notification", info = "Shows notification when playcount is incremented.")
     val showNotification by cv(false)
     @IsConfig(name = "Show tray bubble", info = "Shows tray bubble notification when playcount is incremented.")

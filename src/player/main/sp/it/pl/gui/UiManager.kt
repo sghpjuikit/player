@@ -3,6 +3,7 @@ package sp.it.pl.gui
 import javafx.beans.property.BooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.FXCollections.observableArrayList
+import javafx.collections.FXCollections.observableSet
 import javafx.geometry.NodeOrientation
 import javafx.scene.Node
 import javafx.scene.Parent
@@ -17,9 +18,9 @@ import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions
 import sp.it.pl.main.Settings
-import sp.it.util.access.VarEnum
-import sp.it.util.access.initSync
 import sp.it.util.action.IsAction
+import sp.it.util.collections.project
+import sp.it.util.collections.setTo
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.IsConfigurable
@@ -28,6 +29,9 @@ import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.readOnlyUnless
+import sp.it.util.conf.uiConverter
+import sp.it.util.conf.values
+import sp.it.util.conf.valuesIn
 import sp.it.util.file.FileMonitor
 import sp.it.util.file.Util
 import sp.it.util.file.div
@@ -49,14 +53,13 @@ import sp.it.util.ui.setFontAsStyle
 import sp.it.util.units.millis
 import java.io.File
 import java.net.MalformedURLException
-import java.util.HashSet
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 import javafx.stage.Window as WindowFX
 
 @IsConfigurable(Settings.UI)
 class UiManager(val skinDir: File): Configurable<Any> {
-    val skins: MutableSet<SkinCss> = HashSet()
+    val skins = observableSet<SkinCss>(hashSetOf())!!
     val additionalStylesheets = observableArrayList<File>()!!
 
     val layoutMode: BooleanProperty = SimpleBooleanProperty(false)
@@ -74,9 +77,13 @@ class UiManager(val skinDir: File): Configurable<Any> {
                 }
     }
 
+    init {
+        initSkins()
+    }
+
     /** Skin of the application. Defined stylesheet file to be applied on `.root` of windows. */
     @IsConfig(name = "Skin", info = "Application skin.")
-    val skin by cv("Main") { VarEnum.ofStream(it) { skins.stream().map { it.name } } }
+    val skin by cv("Main").values(skins.project { it.name })
 
     /** Font of the application. Overrides `-fx-font-family` and `-fx-font-size` defined by css on `.root`. */
     @IsConfig(name = "Font", info = "Application font.")
@@ -114,18 +121,18 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val thumbnailAnimDur by cv(100.millis)
 
     @IsConfig(name = "Rating skin", info = "Rating ui component skin")
-    val ratingSkin by cvn(null as KClass<out Skin<Rating>>?) {
-        VarEnum.ofInstances(it, APP.instances).initSync {
-            runTry {
-                val f = APP.DIR_TEMP/"user-rating-skin.css"
-                additionalStylesheets -= f
-                it?.let {
-                    f.writeText(""".rating { -fx-skin: "${it.jvmName}"; }""", Charsets.UTF_8)
-                    additionalStylesheets += f
-                }
-            }.ifError {
-                logger.error(it) { "Failed to apply rating skin=$it" }
+    val ratingSkin by cvn<KClass<out Skin<Rating>>>(null).valuesIn(APP.instances).uiConverter {
+        it?.simpleName ?: "<none> (App skin decides)"
+    } sync {
+        runTry {
+            val f = APP.DIR_TEMP/"user-rating-skin.css"
+            additionalStylesheets -= f
+            it?.let {
+                f.writeText(""".rating { -fx-skin: "${it.jvmName}"; }""", Charsets.UTF_8)
+                additionalStylesheets += f
             }
+        }.ifError {
+            logger.error(it) { "Failed to apply rating skin=$it" }
         }
     }
 
@@ -158,11 +165,6 @@ class UiManager(val skinDir: File): Configurable<Any> {
             }
             if (v) APP.actionStream(Actions.LAYOUT_MODE)
         }
-
-
-    init {
-        initSkins()
-    }
 
     fun focusClickedWidget(e: MouseEvent) {
         val n = e.target as? Node
@@ -287,7 +289,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
 
     private fun registerSkin(s: SkinCss): SkinCss {
         logger.info("Registering skin={}", s.name)
-        skins.add(s)
+        skins += s
         return s
     }
 
@@ -295,7 +297,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
         logger.info("Setting skin={}", s.name)
 
         registerSkin(s)
-        skin.set(s.name)
+        skin.value = s.name
     }
 
     fun setSkin(cssFile: File) {
@@ -308,8 +310,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     }
 
     private fun initSkins() {
-        skins.clear()
-        skins += findSkins()
+        skins setTo findSkins()
         monitorSkinFiles()
         observeWindowsAndApplySkin()
     }
@@ -318,8 +319,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
         FileMonitor.monitorDirectory(skinDir, true) { type, file ->
             logger.info { "Change=$type detected in skin directory for $file" }
 
-            skins.clear()
-            skins += findSkins()
+            skins setTo findSkins()
 
             val refreshAlways = true    // skins may import each other hence it is more convenient to refresh always
             val currentSkinDir = skinDir/skin.value

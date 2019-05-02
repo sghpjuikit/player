@@ -51,9 +51,7 @@ import sp.it.pl.main.showAppProgress
 import sp.it.pl.web.WebSearchUriBuilder
 import sp.it.pl.web.WikipediaQBuilder
 import sp.it.util.access.fieldvalue.CachingFile
-import sp.it.util.access.initAttach
 import sp.it.util.access.minus
-import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.animPar
 import sp.it.util.async.NEW
@@ -132,9 +130,9 @@ import kotlin.streams.asSequence
 class GameView(widget: Widget): SimpleController(widget) {
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-    val cellSize by cv(CellSize.NORMAL) { v(it).initAttach { applyCellSize() } }
+    val cellSize by cv(CellSize.NORMAL) attach { applyCellSize() }
     @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-    val cellSizeRatio by cv(Resolution.R_1x1) { v(it).initAttach { applyCellSize() } }
+    val cellSizeRatio by cv(Resolution.R_1x1) attach { applyCellSize() }
     @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
     val fitFrom by cv(OUTSIDE)
     @IsConfig(name = "Location", info = "Location of the library.")

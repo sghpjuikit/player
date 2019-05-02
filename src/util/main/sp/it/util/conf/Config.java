@@ -19,7 +19,7 @@ import sp.it.util.access.AccessibleValue;
 import sp.it.util.access.TypedValue;
 import sp.it.util.access.V;
 import sp.it.util.access.Vo;
-import sp.it.util.access.fieldvalue.EnumerableValue;
+import sp.it.util.access.EnumerableValue;
 import sp.it.util.conf.Config.VarList.Elements;
 import sp.it.util.dev.Dependency;
 import sp.it.util.functional.Functors.Ƒ1;
@@ -158,7 +158,7 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 	 * @param s string to parse
 	 */
 	public void setValueS(String s) {
-		ofS(s).ifOkUse(this::setValue).ifErrorUse(e -> LOGGER.warn("Unable to set value from text={}, reason={}", s, e));
+		ofS(s).ifOkUse(this::setValue).ifErrorUse(e -> LOGGER.warn("Unable to set config={} value from text={}, reason={}", getName(), s, e));
 	}
 
 	/**
@@ -181,11 +181,11 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 	@Override
 	public Try<T,String> ofS(String s) {
 		if (isTypeEnumerable()) {
-			// 1 Notice we are traversing all enumarated values to look up the one which we want to
+			// 1 Notice we are traversing all enumerated values to look up the one which we want to
 			//   deserialize.
 			//   We do this by converting each value to string and compare. This is potentially
 			//   inefficient operation. It is much better to parse the string to value first and
-			//   then compare obejcts. The problem is Im not sure if relying on Object equals() is
+			//   then compare objects. The problem is Im not sure if relying on Object equals() is
 			//   very safe, this should be investigated and optimized.
 			//
 			// 2 OverridableConfig adds additional information as a prefix when serializing the
@@ -225,7 +225,10 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> Supplier<Collection<T>> buildEnumEnumerator(T v) {
+	private Supplier<Collection<T>> buildEnumEnumerator(T v) {
+		var vs = (Constraint.ValueSet<T>) getConstraints().stream().filter(it -> it instanceof Constraint.ValueSet).findFirst().orElse(null);
+		if (vs!=null) return () -> vs.getEnumerator().invoke();
+
 		Class c = v==null ? Void.class : v.getClass();
 		return isEnum(c) ? () -> list(getEnumConstants(c)) : null;
 	}

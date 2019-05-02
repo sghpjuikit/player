@@ -15,8 +15,6 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.scaleEM
-import sp.it.util.access.initSync
-import sp.it.util.access.vn
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cvn
 import sp.it.util.conf.only
@@ -49,16 +47,14 @@ class Terminal(widget: Widget): SimpleController(widget) {
     private val placeholder = Placeholder(IconFA.TERMINAL, "New terminal (${keys("CTRL+T")})") { openNewTab() }
 
     @IsConfig(name = "Shell path", info = "Path to the shell or none for default")
-    val shellPath by cvn(null as File?) {
-        vn(it).initSync {
-            closeAllTabs()
-            when (Os.current) {
-                Os.WINDOWS -> tConfig.windowsTerminalStarter = it?.absolutePath ?: "cmd.exe"
-                Os.UNIX -> tConfig.unixTerminalStarter = it?.absolutePath ?: "/bin/bash -i"
-                else -> {}
-            }
+    val shellPath by cvn(null as File?).only(FILE) sync {
+        closeAllTabs()
+        when (Os.current) {
+            Os.WINDOWS -> tConfig.windowsTerminalStarter = it?.absolutePath ?: "cmd.exe"
+            Os.UNIX -> tConfig.unixTerminalStarter = it?.absolutePath ?: "/bin/bash -i"
+            else -> {}
         }
-    }.only(FILE)
+    }
 
     init {
         root.prefSize = 600.scaleEM() x 500.scaleEM()

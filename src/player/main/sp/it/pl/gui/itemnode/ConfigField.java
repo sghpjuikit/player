@@ -3,7 +3,6 @@ package sp.it.pl.gui.itemnode;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import java.io.File;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -12,12 +11,10 @@ import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ColorPicker;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -25,7 +22,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.Effect;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -36,7 +32,6 @@ import sp.it.pl.gui.itemnode.ChainValueNode.ListConfigField;
 import sp.it.pl.gui.itemnode.textfield.EffectTextField;
 import sp.it.pl.gui.itemnode.textfield.FileTextField;
 import sp.it.pl.gui.itemnode.textfield.FontTextField;
-import sp.it.pl.gui.objects.combobox.ImprovedComboBox;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.textfield.DecoratedTextField;
@@ -77,12 +72,10 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
-import static sp.it.util.Util.enumToHuman;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.conf.ConfigurationUtilKt.isEditableByUserRightNow;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.TryKt.getAny;
-import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.equalsAny;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.stream;
@@ -148,11 +141,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         EffectTextField.EFFECT_TYPES.stream().map(et -> et.getType()).filter(t -> t!=null).forEach(t -> put(t, config -> new EffectCF(config, t)));
     }};
 
-    /**
-     * Creates ConfigFfield best suited for the specified Field.
-     *
-     * @param config field for which the GUI will be created
-     */
+    /** @return config field best suited for the specified config */
     @SuppressWarnings("unchecked")
     public static <T> ConfigField<T> create(Config<T> config) {
         Config c = config;
@@ -176,7 +165,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> ObservableValue<T> getObservableValue(Config<T> c) {
+    protected static <T> ObservableValue<T> getObservableValue(Config<T> c) {
         return c instanceof PropertyConfig && ((PropertyConfig)c).getProperty() instanceof ObservableValue
                    ? (ObservableValue)((PropertyConfig)c).getProperty()
                    : c instanceof ReadOnlyPropertyConfig
@@ -194,7 +183,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     private Icon defB;
     private Anim defBA;
 
-    private ConfigField(Config<T> config) {
+    protected ConfigField(Config<T> config) {
         super(config);
     }
 
@@ -627,64 +616,6 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private String computeLabelText() {
             return getValid().map(Object::toString).getOr("");
         }
-    }
-    private static class EnumerableCF<T> extends ConfigField<T> {
-        ComboBox<T> n;
-
-        private EnumerableCF(Config<T> c) {
-            this(c, c.enumerateValues());
-        }
-
-        private EnumerableCF(Config<T> c, Collection<T> enumeration) {
-            super(c);
-
-            boolean sortable = c.getConstraints().stream().noneMatch(con -> con instanceof Constraint.PreserveOrder);
-
-            n = new ImprovedComboBox<>(item -> enumToHuman(c.toS(item)));
-
-            if (enumeration instanceof ObservableList) n.setItems((ObservableList<T>)enumeration);
-            else n.getItems().setAll(enumeration);
-            if (sortable) n.getItems().sort(by(c::toS));
-            n.setValue(c.getValue());
-            n.valueProperty().addListener((o,ov,nv) -> apply(false));
-            n.getStyleClass().add("combobox-field-config");
-        }
-
-        @Override
-        public Try<T,String> get() {
-            return ok(n.getValue());
-        }
-
-        @Override
-        public void refreshItem() {
-            n.setValue(config.getValue());
-        }
-
-        @Override
-        public Node getControl() {
-            return n;
-        }
-    }
-    private static class KeyCodeCF extends EnumerableCF<KeyCode> {
-
-        private KeyCodeCF(Config<KeyCode> c) {
-            super(c);
-
-            n.setOnKeyPressed(Event::consume);
-            n.setOnKeyReleased(Event::consume);
-            n.setOnKeyTyped(Event::consume);
-            n.addEventFilter(KeyEvent.ANY, e -> {
-                // Note that in case of UP, DOWN, LEFT, RIGHT arrow keys and potentially others (any
-                // which cause selection change) the KEY_PRESSED event will not get fired!
-                //
-                // Hence we set the value in case of key event of any type. This causes the value to
-                // be set twice, but should be all right since the value is the same anyway.
-                n.setValue(e.getCode());
-
-                e.consume();
-            });
-        }
-
     }
     private static class ShortcutCF extends ConfigField<Action> {
         TextField txtF;

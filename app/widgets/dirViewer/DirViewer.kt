@@ -33,7 +33,6 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.main.scaleEM
 import sp.it.pl.main.showAppProgress
 import sp.it.util.Sort.ASCENDING
-import sp.it.util.access.VarEnum
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.animation.Anim.Companion.anim
@@ -52,6 +51,7 @@ import sp.it.util.conf.cList
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
 import sp.it.util.conf.only
+import sp.it.util.conf.values
 import sp.it.util.file.FileSort.DIR_FIRST
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
@@ -143,7 +143,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     @IsConfig(name = "Sort first", info = "Group directories and files - files first, last or no separation.")
     private val sortFile by cv(DIR_FIRST)
     @IsConfig(name = "Sort seconds", info = "Sorting criteria.")
-    private val sortBy by cv(FileField.NAME as FileField<*>) { VarEnum(it) { FileField.FIELDS } }
+    private val sortBy by cv<FileField<*>>(FileField.NAME).values(FileField.FIELDS)
     @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
     private var lastVisited by cn<File>(null).only(FileActor.DIRECTORY)
 

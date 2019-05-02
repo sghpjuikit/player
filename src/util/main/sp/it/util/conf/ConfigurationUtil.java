@@ -167,7 +167,7 @@ public class ConfigurationUtil {
 								.isPresent()
 						)
 						.map(Constraints::toConstraint),
-				Constraints.IMPLICIT_CONSTRAINTS.getElementsOfSuper(type).stream()
+				Constraints.Companion.getIMPLICIT_CONSTRAINTS().getElementsOfSuper(type).stream()
 						.map(constraint -> (Constraint<T>) constraint)
 				//		    .filter(constraint -> stream(annotations).noneMatch(annotation.))
 		).collect(toSet());

@@ -9,7 +9,6 @@ import javafx.stage.Screen
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import mu.KLogging
 import sp.it.pl.gui.objects.window.stage.Window
-import sp.it.pl.gui.objects.window.stage.WindowManager
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.container.layout.Layout
@@ -85,7 +84,7 @@ import kotlin.streams.asStream
 import kotlin.streams.toList
 
 /** Handles operations with Widgets. */
-class WidgetManager(private val windowManager: WindowManager, private val userErrorLogger: (String) -> Unit) {
+class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
     /** Public API for layout management. */
     @JvmField val layouts = Layouts()
@@ -575,10 +574,10 @@ class WidgetManager(private val windowManager: WindowManager, private val userEr
         private val layoutsAvailable = ArrayList<String>()
 
         /** @return layout of focused window or null if no window focused */
-        fun findActive(): Layout? = windowManager.getFocused().orNull()?.layout
+        fun findActive(): Layout? = APP.windowManager.getFocused().orNull()?.layout
 
         /** @return all Layouts in the application */
-        fun findAllActive(): Sequence<Layout> = windowManager.windows.asSequence().mapNotNull { it.layout }
+        fun findAllActive(): Sequence<Layout> = APP.windowManager.windows.asSequence().mapNotNull { it.layout }
 
         /** @return all names of all layouts available to the application, including serialized layouts in files. */
         fun getAllNames(): Sequence<String> {

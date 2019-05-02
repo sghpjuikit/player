@@ -19,7 +19,6 @@ import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.scaleEM
 import sp.it.util.access.V
-import sp.it.util.access.initAttach
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.collections.setTo
@@ -27,6 +26,7 @@ import sp.it.util.conf.Config
 import sp.it.util.functional.net
 import sp.it.util.math.P
 import sp.it.util.math.StrExF
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.ui.anchorPane
@@ -58,12 +58,12 @@ private typealias Num = Double
         group = DEVELOPMENT
 )
 class FunctionViewer(widget: Widget): SimpleController(widget) {
-    private val function = v(StrExF.fromString("x").orThrow).initAttach { plotAnimated(it) }
+    private val function = v(StrExF.fromString("x").orThrow).apply { attach { plotAnimated(it) } }
     private val functionConfigField = ConfigField.create(Config.forProperty(StrExF::class.java, "Function", function))
-    private val xMin = v(-1.0).initAttach { plot() }
-    private val xMax = v(1.0).initAttach { plot() }
-    private val yMin = v(-1.0).initAttach { plot() }
-    private val yMax = v(1.0).initAttach { plot() }
+    private val xMin = v(-1.0).apply { attach { plot() } }
+    private val xMax = v(1.0).apply { attach { plot() } }
+    private val yMin = v(-1.0).apply { attach { plot() } }
+    private val yMax = v(1.0).apply { attach { plot() } }
     private val plot = Plot()
     private val plotAnimation = anim(700.millis) { plot.animation.value = 1.0-it*it*it*it }
     private var updateCoord: (P) -> Unit = {}

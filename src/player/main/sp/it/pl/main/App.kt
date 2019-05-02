@@ -59,10 +59,8 @@ import sp.it.pl.service.database.SongDb
 import sp.it.pl.service.notif.Notifier
 import sp.it.pl.service.playcount.PlaycountIncrementer
 import sp.it.pl.service.tray.TrayService
-import sp.it.util.access.VarEnum
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
-import sp.it.util.access.initSync
 import sp.it.util.action.Action
 import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
@@ -74,7 +72,8 @@ import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
-import sp.it.util.conf.preserveOrder
+import sp.it.util.conf.uiNoOrder
+import sp.it.util.conf.values
 import sp.it.util.dev.fail
 import sp.it.util.file.FileType
 import sp.it.util.file.Util.isValidatedDirectory
@@ -182,14 +181,10 @@ class App: Application(), Configurable<Any> {
     @F val functors = CoreFunctors
 
     @C(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")
-    val logLevelConsole by cv(Level.INFO) {
-        VarEnum.ofSequence(it) { logLevels }.initSync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
-    }.preserveOrder()
+    val logLevelConsole by cv(Level.INFO).values(logLevels).uiNoOrder() sync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
 
     @C(name = "Level (file)", group = "Logging", info = "Logging level for logging to file")
-    val logLevelFile by cv(Level.WARN) {
-        VarEnum.ofSequence(it) { logLevels }.initSync { logging.changeLogBackLoggerAppenderLevel("FILE", it) }
-    }.preserveOrder()
+    val logLevelFile by cv(Level.WARN).values(logLevels).uiNoOrder() sync { logging.changeLogBackLoggerAppenderLevel("FILE", it) }
 
     @C(name = "Text for no value", info = "Preferred text when no tag value for field. This value can be overridden.")
     var textNoVal by c("<none>")
@@ -239,10 +234,10 @@ class App: Application(), Configurable<Any> {
 
     /** Manages persistence and in-memory storage. */
     @F val db = SongDb()
+    /** Manages widgets. */
+    @F val widgetManager = WidgetManager(messagePane::show)
     /** Manages windows. */
     @F val windowManager = WindowManager()
-    /** Manages widgets. */
-    @F val widgetManager = WidgetManager(windowManager, messagePane::show)
     /** Manages services. */
     @F val services = ServiceManager()
     /** Manages services. */
@@ -456,7 +451,7 @@ class App: Application(), Configurable<Any> {
     private fun Search.initForApp() {
         sources += { configuration.fields.asSequence().map { Entry.of(it) } }
         sources += { widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map { Entry.of(it) } }
-        sources += { ui.skin.enumerateValues().asSequence().map { Entry.of({ "Open skin: $it" }, graphicsΛ = { Icon(IconMA.BRUSH) }) { ui.skin.value = it } } }
+        sources += { ui.skins.asSequence().map { Entry.of({ "Open skin: ${it.name}" }, graphicsΛ = { Icon(IconMA.BRUSH) }) { ui.skin.value = it.name } } }
     }
 
     private fun AppInstanceComm.initForApp() {
@@ -562,7 +557,7 @@ class App: Application(), Configurable<Any> {
 
     companion object: KLogging() {
 
-        private val logLevels = sequenceOf(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF)
+        private val logLevels = listOf(Level.ALL, Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.OFF)
 
     }
 

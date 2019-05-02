@@ -17,11 +17,11 @@ import sp.it.pl.main.scaleEM
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.pl.web.WebBarInterpreter
-import sp.it.util.access.VarEnum
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
+import sp.it.util.conf.valuesIn
 import sp.it.util.dev.Dependency
 import sp.it.util.file.div
 import sp.it.util.reactive.attach
@@ -52,9 +52,7 @@ class WebReader(widget: Widget): SimpleController(widget) {
     private var url by c("https://duckduckgo.com/")
 
     @IsConfig(name = "Search engine")
-    private val searchEngine by cv(DuckDuckGoQBuilder as SearchUriBuilder) {
-        VarEnum.ofInstances<SearchUriBuilder>(DuckDuckGoQBuilder, APP.instances)
-    }
+    private val searchEngine by cv<SearchUriBuilder>(DuckDuckGoQBuilder).valuesIn(APP.instances)
 
     @IsConfig(name = "No background")
     private val noBgr by cv(false)

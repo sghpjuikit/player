@@ -35,9 +35,6 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Settings
 import sp.it.pl.main.Widgets.PLAYBACK
-import sp.it.util.access.VarEnum
-import sp.it.util.access.initAttach
-import sp.it.util.access.initSync
 import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
@@ -50,6 +47,8 @@ import sp.it.util.conf.IsConfigurable
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.conf.readOnlyUnless
+import sp.it.util.conf.valuesIn
+import sp.it.util.dev.fail
 import sp.it.util.file.Util.isValidatedDirectory
 import sp.it.util.file.div
 import sp.it.util.file.seqChildren
@@ -57,6 +56,7 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.orNull
 import sp.it.util.math.P
 import sp.it.util.math.max
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
@@ -97,22 +97,24 @@ class WindowManager {
     val windowOpacity by cv(1.0).between(0.0, 1.0)
 
     @IsConfig(name = "Borderless", info = "Hides window borders.")
-    val window_borderless by cv(true)
+    val windowBorderless by cv(true)
 
     @IsConfig(name = "Headerless", info = "Hides window header.")
-    val window_headerless by cv(false)
+    val windowHeaderless by cv(false)
 
     private var dockIsTogglingWindows = false
     private var dockHiddenWindows = ArrayList<Window>()
-    private val dockToggleWindows = v(true).initAttach { v ->
-        if (APP.normalLoad) {
-            if (v) {
-                dockHiddenWindows.forEach { it.show() }
-            } else {
-                dockHiddenWindows setTo windows.asSequence().filter { it!==dockWindow }
-                dockIsTogglingWindows = true
-                dockHiddenWindows.forEach { it.hide() }
-                dockIsTogglingWindows = false
+    private val dockToggleWindows = v(true).apply {
+        attach {
+            if (APP.normalLoad) {
+                if (it) {
+                    dockHiddenWindows.forEach { it.show() }
+                } else {
+                    dockHiddenWindows setTo windows.asSequence().filter { it!==dockWindow }
+                    dockIsTogglingWindows = true
+                    dockHiddenWindows.forEach { it.hide() }
+                    dockIsTogglingWindows = false
+                }
             }
         }
     }
@@ -127,14 +129,12 @@ class WindowManager {
     val dockHideInactiveDelay by cv(1500.millis).readOnlyUnless(dockHideInactive)
 
     @IsConfig(name = "Dock content", group = Settings.Ui.DOCK, info = "Widget to use in dock.")
-    val dockWidget by cv(PLAYBACK) {
-        VarEnum.ofSequence(it) {
-            APP.widgetManager.factories.getFactoriesWith<HorizontalDock>().map { it.nameGui() }
-        }
+    val dockWidget by cv(PLAYBACK).valuesIn {
+        APP.widgetManager.factories.getFactoriesWith<HorizontalDock>().map { it.nameGui() }
     }
 
     @IsConfig(name = "Dock", group = Settings.Ui.DOCK, info = "Whether application has docked window in the top of the screen.")
-    val dockShow by cv(false) { v(it).initSync { showDockImpl(it) } }
+    val dockShow by cv(false) sync { showDockImpl(it) }
 
     /** @return main window or null if no main window (only possible when no window is open) */
     fun getMain(): Optional<Window> = Optional.ofNullable(mainWindow)
@@ -197,8 +197,8 @@ class WindowManager {
 
         w.initialize()
 
-        window_borderless syncTo w.isBorderless on w.onClose
-        window_headerless syncTo w.isHeaderVisible on w.onClose
+        windowBorderless syncTo w.isBorderless on w.onClose
+        windowHeaderless syncTo w.isHeaderVisible on w.onClose
         w.stage.title = APP.name
         w.stage.icons setTo windowIcons
 
@@ -434,7 +434,7 @@ class WindowManager {
             this.title.value = title
             this.isAutoFix = false
 
-            val w = getActive().get()
+            val w = getActive().orNull() ?: fail { "No window open" }
             show(w.stage, w.centerX, w.centerY)
         }
     }

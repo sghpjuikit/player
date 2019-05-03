@@ -1,8 +1,8 @@
 package sp.it.pl.audio.playlist
 
 import mu.KotlinLogging
-import sp.it.pl.audio.Song
 import sp.it.pl.audio.SimpleSong
+import sp.it.pl.audio.Song
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIfFxThread

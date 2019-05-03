@@ -22,10 +22,10 @@ import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.gui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
+import sp.it.pl.gui.objects.rating.RatingCellFactory
 import sp.it.pl.gui.objects.table.FilteredTable
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV
 import sp.it.pl.gui.objects.table.TableColumnInfo
-import sp.it.pl.gui.objects.rating.RatingCellFactory
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY

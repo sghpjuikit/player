@@ -36,6 +36,8 @@ import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.TextDisplayFeature
+import sp.it.pl.web.DuckDuckGoQBuilder
+import sp.it.pl.web.WebBarInterpreter
 import sp.it.util.Util.urlEncodeUtf8
 import sp.it.util.access.fieldvalue.StringGetter
 import sp.it.util.action.ActionRegistrar
@@ -66,8 +68,6 @@ import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.stackPane
 import sp.it.util.units.millis
 import sp.it.util.units.times
-import sp.it.pl.web.DuckDuckGoQBuilder
-import sp.it.pl.web.WebBarInterpreter
 import java.io.File
 import java.io.IOException
 import java.net.URI

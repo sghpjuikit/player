@@ -1,6 +1,5 @@
 package logger
 
-import javafx.beans.value.ChangeListener
 import javafx.scene.control.TextArea
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
@@ -8,13 +7,10 @@ import sp.it.pl.layout.widget.feature.TextDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.scaleEM
-import sp.it.util.access.v
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
-import sp.it.util.reactive.onChange
-import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize

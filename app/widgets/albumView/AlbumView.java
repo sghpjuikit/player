@@ -105,7 +105,7 @@ public class AlbumView extends SimpleController {
 		view.search.field = VALUE;
 		view.primaryFilterField = VALUE;
 		view.setCellFactory(grid -> new AlbumCell());
-		view.selectedItem.onChange(item -> {
+		view.selectedItem.attachC(item -> {
 			out_sel.setValue(item== null ? null : item.items);
 			out_sel_met.setValue(item== null ? Util.listRO() : item.items.getGrouped());
 		});
@@ -128,8 +128,8 @@ public class AlbumView extends SimpleController {
 			return Unit.INSTANCE;
 		});
 
-		cellSize.onChange(v -> applyCellSize());
-		cellSizeRatio.onChange(v -> applyCellSize());
+		cellSize.attachC(v -> applyCellSize());
+		cellSizeRatio.attachC(v -> applyCellSize());
 	}
 
 	@Override

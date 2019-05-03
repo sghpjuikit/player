@@ -2,7 +2,6 @@ package sp.it.util.access
 
 import javafx.beans.property.SimpleObjectProperty
 import sp.it.util.functional.invoke
-import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachChanges
 import sp.it.util.reactive.sync
@@ -18,20 +17,20 @@ open class V<T>(value: T): SimpleObjectProperty<T>(value), AccessibleValue<T> {
     @Suppress("RedundantOverride")  // helps Kotlin with null-safety inference
     override fun setValue(v: T) = super.setValue(v)
 
-    fun onChange(action: Consumer<in T>) = attach { action(it) }
+    /** Java convenience method. [attach] that takes [Consumer]. */
+    fun attachC(action: Consumer<in T>) = attach { action(it) }
 
-    /** Declarative convenience method. Invokes [attach] on this with the specified action and returns this. */
+    /** Java convenience method. [sync] that takes [Consumer]. */
+    fun syncC(action: Consumer<in T>) = sync { action(it) }
+
+    /** Java convenience method. [attachChanges] that takes [BiConsumer]. */
+    fun attachChangesC(action: BiConsumer<in T, in T>) = attachChanges { ov, nv -> action(ov, nv) }
+
+    /** Java convenience method. Invokes [attach] on this with the specified action and returns this. */
     fun initAttachC(action: Consumer<in T>) = apply { attach { action(it) } }
 
-    /** Declarative convenience method. Invokes [sync] on this with the specified action and returns this. */
+    /** Java convenience method. Invokes [sync] on this with the specified action and returns this. */
     fun initSyncC(action: Consumer<in T>) = apply { sync { action(it) } }
-
-    fun onChange(action: BiConsumer<in T, in T>) = attachChanges { ov, nv -> action(ov, nv) }
-
-    fun maintain(action: Consumer<in T>): Subscription {
-        action(value)
-        return attach { action(it) }
-    }
 
 }
 

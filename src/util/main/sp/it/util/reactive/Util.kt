@@ -1,6 +1,7 @@
 package sp.it.util.reactive
 
 import javafx.beans.InvalidationListener
+import javafx.beans.Observable
 import javafx.beans.binding.Bindings.size
 import javafx.beans.property.Property
 import javafx.beans.value.ChangeListener
@@ -303,27 +304,20 @@ fun sync1IfImageLoaded(image: Image, action: Runnable) = image.progressProperty(
 
 fun doIfImageLoaded(imageView: ImageView, action: Consumer<Image>) = imageView.imageProperty().syncInto(Image::progressProperty) { p -> if (p==1.0) action(imageView.image) }
 
-/** Call specified handler every time an item in this list changes */
-fun <T> ObservableList<T>.onChange(block: () -> Unit): Subscription {
-    val l = ListChangeListener<T> {
-        while (it.next()) {
-            block()
-        }
-    }
-    addListener(l)
-    return Subscription { removeListener(l) }
-}
-
-/** Call specified handler every time an item in this set changes */
-fun <T> ObservableSet<T>.onChange(block: () -> Unit): Subscription {
-    val l = SetChangeListener<T> { block() }
-    addListener(l)
-    return Subscription { removeListener(l) }
-}
-
-/** Call specified handler every time an entry in this map changes */
-fun <K,V> ObservableMap<K,V>.onChange(block: () -> Unit): Subscription {
-    val l = MapChangeListener<K,V> { block() }
+/**
+ *  Call specified block on every invalidation, using [Observable.addListener].
+ *
+ *  The number of events is the same as when using concrete listeners, such as [ChangeListener], [ListChangeListener] or
+ *  [SetChangeListener].
+ *
+ *  If this is [ObservableList], [ObservableList.addAll], [ObservableList.clear], [ObservableList.setAll] produce
+ *  only one event.
+ *
+ *  If this is [ObservableSet] events fire for each item change so [ObservableSet.clear] will fire as many events as
+ *  there is items in the set.
+ */
+fun Observable.onChange(block: () -> Unit): Subscription {
+    val l = InvalidationListener { block() }
     addListener(l)
     return Subscription { removeListener(l) }
 }

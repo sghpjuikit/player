@@ -533,7 +533,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         @Override
         public Node getNode() {
             Node n = ConfigField.create(Config.forProperty(File.class, "Location", loc)).getNode();
-            use_loc.maintain(v -> n.setDisable(!v));
+            use_loc.syncC(v -> n.setDisable(!v));
             return layVertically(5,TOP_CENTER,
                 layHorizontally(5,CENTER_LEFT,
                     new Label("In directory"),

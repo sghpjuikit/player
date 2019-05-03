@@ -249,7 +249,7 @@ interface Utils {
 	static Node createPlayerStat(Player p) {
 		Label score = new Label();
 		installFont(score, FONT_UI);
-		p.score.maintain(s -> score.setText("Score: " + s));
+		p.score.syncC(s -> score.setText("Score: " + s));
 
 		Label nameL = new Label();
 		installFont(nameL, FONT_UI);
@@ -257,7 +257,7 @@ interface Utils {
 
 		HBox lives = layHorizontally(5, CENTER_LEFT);
 		repeat(p.lives.get(), () -> lives.getChildren().add(createPlayerLiveIcon()));
-		p.lives.onChange((ol,nl) -> {
+		p.lives.attachChangesC((ol, nl) -> {
 			repeat(ol-nl, i -> {
 				Icon ic = (Icon)lives.getChildren().get(lives.getChildren().size()-1-i);
 				createHyperSpaceAnim(ic).playOpenDo(runnable(() -> lives.getChildren().remove(ic)));
@@ -271,7 +271,7 @@ interface Utils {
 
 		Label energy = new Label();
 		installFont(energy, FONT_UI);
-		p.energy.maintain(e -> energy.setText("Energy: " + e.intValue()));
+		p.energy.syncC(e -> energy.setText("Energy: " + e.intValue()));
 
 		VBox node = layVertically(5, CENTER_LEFT, nameL,score,lives,energy);
 		node.setMaxHeight(VBox.USE_PREF_SIZE); // fixes alignment in parent by not expanding this box

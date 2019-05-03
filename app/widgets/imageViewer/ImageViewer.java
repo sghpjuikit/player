@@ -288,7 +288,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         // forbid app scrolling when thumbnails are visible
         thumb_root.setOnScroll(Event::consume);
 
-        showThumbnails.maintain(v -> {
+        showThumbnails.syncC(v -> {
             thumbAnim.playFromDir(v);
             if (v) navAnim.playClose();
         });
@@ -306,13 +306,13 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
             }
         });
 
-        thums_rect.maintain(v ->
+        thums_rect.syncC(v ->
             thumbnails.forEach(t -> {
                 t.setBorderToImage(!v);
                 t.setBackgroundVisible(v);
             })
         );
-        theater_mode.maintain(this::applyTheaterMode);
+        theater_mode.syncC(this::applyTheaterMode);
         readThumbnails();
 
         onClose.plusAssign(thumb_reader::stop);

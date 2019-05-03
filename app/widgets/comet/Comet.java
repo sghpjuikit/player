@@ -1329,10 +1329,10 @@ public class Comet extends SimpleController {
 			keyLeft.set(kLeft);
 			keyRight.set(kRight);
 			keyAbility.set(kAbility);
-			ability_type.onChange(v -> {
+			ability_type.attachC(v -> {
 				if (rocket!=null) rocket.changeAbility(v);
 			});
-			score.onChange((os,ns) -> {
+			score.attachChangesC((os, ns) -> {
 				if (os/game.settings.PLAYER_SCORE_NEW_LIFE<ns/game.settings.PLAYER_SCORE_NEW_LIFE)
 					lives.setValueOf(l -> l+1);
 			});

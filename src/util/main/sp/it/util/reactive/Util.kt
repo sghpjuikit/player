@@ -305,16 +305,18 @@ fun sync1IfImageLoaded(image: Image, action: Runnable) = image.progressProperty(
 fun doIfImageLoaded(imageView: ImageView, action: Consumer<Image>) = imageView.imageProperty().syncInto(Image::progressProperty) { p -> if (p==1.0) action(imageView.image) }
 
 /**
- *  Call specified block on every invalidation, using [Observable.addListener].
+ * Call specified block on every invalidation, using [Observable.addListener].
  *
- *  The number of events is the same as when using concrete listeners, such as [ChangeListener], [ListChangeListener] or
- *  [SetChangeListener].
+ * Change vs. Invalidation:
  *
- *  If this is [ObservableList], [ObservableList.addAll], [ObservableList.clear], [ObservableList.setAll] produce
- *  only one event.
+ * The number of events is the same as when using concrete listeners, such as [ChangeListener], [ListChangeListener] or
+ * [SetChangeListener].
  *
- *  If this is [ObservableSet] events fire for each item change so [ObservableSet.clear] will fire as many events as
- *  there is items in the set.
+ * Event avoidance:
+ * * [WritableValue.setValue] with the same (as per equals) value as already set will not fire event.
+ * * [ObservableList.addAll], [ObservableList.clear], [ObservableList.setAll] produce only one event.
+ * * [ObservableSet], unlike list, fires events for each item so [ObservableSet.clear] and the like fire as many events
+ * as there is items added/removed.
  */
 fun Observable.onChange(block: () -> Unit): Subscription {
     val l = InvalidationListener { block() }

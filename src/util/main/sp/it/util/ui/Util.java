@@ -6,10 +6,12 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TableCell;
@@ -35,6 +37,9 @@ import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
 import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.dev.FailKt.noNull;
+import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.sync1IfNonNull;
 
 @SuppressWarnings("unused")
 public interface Util {
@@ -264,14 +269,26 @@ public interface Util {
 	}
 
 	static ScrollPane layScrollVText(Text t) {
-		double reserve = 5;
 		ScrollPane s = new ScrollPane(t);
 		s.setOnScroll(Event::consume);
 		s.setPannable(false);
 		s.setFitToWidth(false);
 		s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
 		s.setHbarPolicy(ScrollBarPolicy.NEVER);
-		t.wrappingWidthProperty().bind(s.widthProperty().subtract(15 + reserve));   // TODO: Scrollbar width hardcoded!
+
+		sync1IfNonNull(s.skinProperty(), consumer(skin -> {
+			ScrollBar scrollBar = (ScrollBar) s.lookupAll("ScrollBar").stream()
+				.filter(it -> it instanceof ScrollBar && ((ScrollBar) it).getOrientation()==Orientation.VERTICAL)
+				.findFirst().orElse(null);
+			var updateWrappingWidth = (Runnable) () -> {
+				var sw = scrollBar==null || !scrollBar.isVisible() ? 0 : scrollBar.getWidth();
+				t.setWrappingWidth(s.getWidth()-sw);
+			};
+			if (scrollBar!=null) maintain(scrollBar.visibleProperty(), v -> updateWrappingWidth.run());
+			if (scrollBar!=null) maintain(scrollBar.widthProperty(), v -> updateWrappingWidth.run());
+			maintain(s.widthProperty(), v -> updateWrappingWidth.run());
+		}));
+
 		return s;
 	}
 
@@ -284,7 +301,20 @@ public interface Util {
 		s.setFitToHeight(true);
 		s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
 		s.setHbarPolicy(ScrollBarPolicy.NEVER);
-		t.wrappingWidthProperty().bind(s.widthProperty().subtract(15 + reserve));   // TODO: Scrollbar width hardcoded!
+
+		sync1IfNonNull(s.skinProperty(), consumer(skin -> {
+			ScrollBar scrollBar = (ScrollBar) s.lookupAll("ScrollBar").stream()
+				.filter(it -> it instanceof ScrollBar && ((ScrollBar) it).getOrientation()==Orientation.VERTICAL)
+				.findFirst().orElse(null);
+			var updateWrappingWidth = (Runnable) () -> {
+				var sw = scrollBar==null || !scrollBar.isVisible() ? 0 : scrollBar.getWidth();
+				t.setWrappingWidth(s.getWidth()-sw);
+			};
+			if (scrollBar!=null) maintain(scrollBar.visibleProperty(), v -> updateWrappingWidth.run());
+			if (scrollBar!=null) maintain(scrollBar.widthProperty(), v -> updateWrappingWidth.run());
+			maintain(s.widthProperty(), v -> updateWrappingWidth.run());
+		}));
+
 		return s;
 	}
 

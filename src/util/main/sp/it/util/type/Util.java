@@ -446,7 +446,8 @@ public interface Util {
 		}
 
 		if (t instanceof WildcardType) {
-			Type rawType = ((WildcardType) t).getUpperBounds()[0];
+			var wt = (WildcardType) t;
+			Type rawType = wt.getLowerBounds().length==0 ? wt.getUpperBounds()[0] : wt.getLowerBounds()[0];
 			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
 			if (!isProperty) return getRawType(t);
 		}

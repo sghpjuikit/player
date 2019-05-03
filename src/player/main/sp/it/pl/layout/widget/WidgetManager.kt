@@ -67,6 +67,7 @@ import sp.it.util.ui.anchorPane
 import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.stylesheetToggle
 import sp.it.util.units.seconds
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.lang.ProcessBuilder.Redirect
 import java.net.URLClassLoader
@@ -375,16 +376,22 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
             val arguments = (options+sourceFiles).asArray()
 
             logger.info("Compiling with arguments=${arguments.joinToString(" ")}")
-            val compiler = ToolProvider.getSystemJavaCompiler()
+            val compiler = ToolProvider.getSystemJavaCompiler() ?: run {
+                logger.error { "Compilation failed\nJava system compiler not available" }
+                return Try.error("Compilation failed\nJava system compiler not available")
+            }
 
-            // TODO: capture output to result
-            val success = compiler.run(null, null, null, *arguments)
+            val streamStdOut = ByteArrayOutputStream(1000)
+            val streamStdErr = ByteArrayOutputStream(1000)
+            val success = compiler.run(null, streamStdOut, streamStdErr, *arguments)
             val isSuccess = success==0
+            val textStdOut = streamStdOut.toString(Charsets.UTF_8).prettifyCompilerOutput()
+            val textStdErr = streamStdErr.toString(Charsets.UTF_8).prettifyCompilerOutput()
 
-            if (isSuccess) logger.info { "Compilation succeeded" }
-            else logger.error { "Compilation failed" }
+            if (isSuccess) logger.info { "Compilation succeeded$textStdOut" }
+            else logger.error { "Compilation failed$textStdErr" }
 
-            return if (isSuccess) Try.ok() else Try.error("Widget $widgetName Compilation failed with errors")
+            return if (isSuccess) Try.ok() else Try.error("Widget $widgetName Compilation failed with errors$textStdErr")
         }
 
         /** Compiles specified .kt files into .class files. */
@@ -405,19 +412,20 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
                 logger.info("Compiling with command=${command.joinToString(" ")} ")
 
-                // TODO: capture output to result
-                val success = ProcessBuilder(command)
+                val process = ProcessBuilder(command)
                         .directory(APP.DIR_APP)
-                        .redirectOutput(Redirect.INHERIT)
-                        .redirectError(Redirect.INHERIT)
+                        .redirectOutput(Redirect.PIPE)
+                        .redirectError(Redirect.PIPE)
                         .start()
-                        .waitFor()
+                val success = process.waitFor()
+                val textStdout = process.inputStream.bufferedReader(Charsets.UTF_8).readText().prettifyCompilerOutput()
+                val textStdErr = process.errorStream.bufferedReader(Charsets.UTF_8).readText().prettifyCompilerOutput()
                 val isSuccess = success==0
 
-                if (isSuccess) logger.info { "Compilation succeeded" }
-                else logger.error { "Compilation failed" }
+                if (isSuccess) logger.info { "Compilation succeeded$textStdout" }
+                else logger.error { "Compilation failed$textStdErr" }
 
-                return if (isSuccess) Try.ok() else Try.error("Compilation failed with errors")
+                return if (isSuccess) Try.ok() else Try.error("Compilation failed with errors$textStdErr")
             } catch (e: Exception) {
                 logger.error { "Compilation failed" }
                 return Try.error(e.message ?: "")
@@ -644,6 +652,8 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         private infix fun Collection<File>.modifiedAfter(that: Collection<File>) = (this.lastModifiedMax() ?: 0)>=(that.lastModifiedMax() ?: 0)
 
         private fun File.relativeToApp() = relativeTo(APP.DIR_APP).path
+
+        private fun String.prettifyCompilerOutput() = if (isNullOrBlank()) "" else "\n$this"
 
         private val Os.classpathSeparator
             get() = when (this) {

@@ -22,6 +22,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
@@ -166,6 +167,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 			)
 		);
 		getContent().setMinSize(300,200);
+		getContent().setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 
 		// put some padding of the content from edge
 		// note: The content is user-resizable now, sp we do not use bind, but set maxSize on show

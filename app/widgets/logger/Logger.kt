@@ -47,6 +47,4 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
 
     override fun showText(text: String) = println(text)
 
-
-
 }

@@ -456,6 +456,10 @@
 
 /********************************* ScrollPane *********************************/
 
+.scroll-pane,
+.scroll-pane > * {
+    -fx-cache: false;
+}
 .scroll-pane > .viewport {
     -fx-background-color: null;
 }
@@ -1571,7 +1575,7 @@ Text {
     -fx-padding: 1em;
 
     -fx-border-color: transparent;
-    -fx-border-width: 0.5;
+    -fx-border-width: 1;
 }
 
 .widget-area:active .widget-area-content {
@@ -2350,7 +2354,7 @@ icon-info-icon {
     -fx-border-width: 1;
     /* alternative border style */
     /*-fx-border-color: -skin-def-font-color;
-     -fx-border-width: 0.5; */
+     -fx-border-width: 1; */
     -fx-border-radius: 15;
     -fx-padding: 20;
 }

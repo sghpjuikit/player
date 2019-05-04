@@ -280,16 +280,16 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
                 prefHeight = 30.0
 
                 lay += hBox(5, CENTER) {
-                    lay += bitrateL
-                    lay += sampleRateL
-                    lay += channelsL
-                }
-                lay += hBox(5, CENTER) {
                     lay += currTime
                     lay += Label("/")
                     lay += totalTime
                     lay += Label("/")
                     lay += realTime
+                }
+                lay += hBox(5, CENTER) {
+                    lay += bitrateL
+                    lay += sampleRateL
+                    lay += channelsL
                 }
                 lay += hBox(5, CENTER) {
                     lay += volume

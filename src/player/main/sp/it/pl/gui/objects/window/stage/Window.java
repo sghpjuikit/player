@@ -463,7 +463,7 @@ public class Window extends WindowBase {
 /* ---------- HEADER & BORDER --------------------------------------------------------------------------------------- */
 
 	@FXML private StackPane headerContainer;
-	@FXML private BorderPane header;
+	@FXML private StackPane header;
 	@FXML private Pane header_activator;
 	@FXML private Region lBorder;
 	@FXML private Region rBorder;

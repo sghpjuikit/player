@@ -1,17 +1,17 @@
-package sp.it.pl.layout.area
+package sp.it.pl.layout.widget
 
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Region
 import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetLoader
+import sp.it.pl.layout.container.ContainerUi
 import sp.it.util.functional.asIf
 import sp.it.util.reactive.sync1If
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.pseudoclass
 import sp.it.util.ui.size
 
-abstract class Area<T: Container<*>>: ContainerNode {
+// TODO: remove class
+abstract class Area<T: Container<*>>: ContainerUi {
 
     /** Container this area is associated with. */
     @JvmField val container: T
@@ -30,9 +30,9 @@ abstract class Area<T: Container<*>>: ContainerNode {
         }
         this.index = index
 
-        root.id = "widget-area"
+        root.id = "widget-ui"
         root.layFullArea += contentRoot.apply {
-            id = "widget-area-contentRoot"
+            id = "widget-ui-contentRoot"
             styleClass += STYLECLASS
         }
     }
@@ -59,7 +59,7 @@ abstract class Area<T: Container<*>>: ContainerNode {
     }
 
     companion object {
-        const val STYLECLASS = "widget-area"
+        const val STYLECLASS = "widget-ui"
         @JvmField val PSEUDOCLASS_DRAGGED = pseudoclass("dragged")
     }
 

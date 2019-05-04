@@ -1,6 +1,5 @@
 package sp.it.pl.layout.widget.controller.io
 
-import sp.it.pl.layout.area.IOLayer
 import sp.it.pl.layout.widget.WidgetSource
 import sp.it.pl.main.APP
 import sp.it.util.dev.Idempotent

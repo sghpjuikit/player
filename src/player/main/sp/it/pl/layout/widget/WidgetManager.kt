@@ -11,7 +11,7 @@ import mu.KLogging
 import sp.it.pl.gui.objects.window.stage.Window
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.container.layout.Layout
+import sp.it.pl.layout.container.Layout
 import sp.it.pl.layout.widget.WidgetSource.NONE
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT

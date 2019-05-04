@@ -1,4 +1,4 @@
-package sp.it.pl.layout.area
+package sp.it.pl.layout.container
 
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.NodeOrientation.LEFT_TO_RIGHT
@@ -11,10 +11,7 @@ import javafx.scene.input.TransferMode
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.TilePane
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.layout.area.Area.Companion.PSEUDOCLASS_DRAGGED
-import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.container.bicontainer.BiContainer
-import sp.it.pl.layout.container.freeformcontainer.FreeFormContainer
+import sp.it.pl.layout.widget.Area.Companion.PSEUDOCLASS_DRAGGED
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df
 import sp.it.pl.main.IconFA
@@ -35,7 +32,7 @@ import sp.it.util.ui.layFullArea
 import sp.it.util.ui.removeFromParent
 import sp.it.util.units.millis
 
-class ContainerAreaControls(val area: ContainerNodeBase<*>): AnchorPane() {
+class ContainerUiControls(val area: ContainerUiBase<*>): AnchorPane() {
     @JvmField val icons = TilePane(4.0, 4.0)
     @JvmField val disposer = Disposer()
     @JvmField val a = Anim.anim(250.millis) {
@@ -51,8 +48,8 @@ class ContainerAreaControls(val area: ContainerNodeBase<*>): AnchorPane() {
     private var autoLayoutB: Icon? = null
 
     init {
-        id = "container-area-controls"
-        styleClass += "container-area-controls"
+        id = "container-ui-controls"
+        styleClass += "container-ui-controls"
         lay(0.0, 0.0, null, 0.0) += icons.apply {
             nodeOrientation = LEFT_TO_RIGHT
             alignment = CENTER_RIGHT
@@ -120,7 +117,6 @@ class ContainerAreaControls(val area: ContainerNodeBase<*>): AnchorPane() {
         updateIcons()
     }
 
-    // TODO: finish and merge with WidgetArea
     fun updateIcons() {
         val c = area.container.parent
         if (c is BiContainer) {
@@ -144,7 +140,7 @@ class ContainerAreaControls(val area: ContainerNodeBase<*>): AnchorPane() {
                     }
                 } on disposer
             }
-            autoLayoutB = icon(IconMD.VIEW_DASHBOARD, FreeFormArea.autolayoutTootlip).addExtraIcon().onClickDo {
+            autoLayoutB = icon(IconMD.VIEW_DASHBOARD, FreeFormContainerUi.autolayoutTootlip).addExtraIcon().onClickDo {
                 c.ui.autoLayout(area.container)
             }
         }

@@ -1,11 +1,11 @@
-package sp.it.pl.layout.area
+package sp.it.pl.layout.widget
 
 import javafx.scene.layout.AnchorPane
 import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
 import sp.it.pl.layout.widget.Widget.LoadType.MANUAL
+import sp.it.pl.layout.widget.controller.io.IOLayer
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.DelayAnimator
@@ -31,9 +31,9 @@ import sp.it.util.ui.layFullArea
  *
  * Maintains final 1:1 relationship with the widget, always contains exactly 1 final widget.
  */
-class WidgetArea: Area<Container<*>> {
+class WidgetUi: Area<Container<*>> {
 
-    val controls: AreaControls
+    val controls: WidgetUiControls
     private val content = AnchorPane()
     private val widget: Widget
     private val disposer = Disposer()
@@ -54,10 +54,10 @@ class WidgetArea: Area<Container<*>> {
         this.widget.parentTemp = this.container
         this.widget.areaTemp = this
 
-        controls = AreaControls(this)
+        controls = WidgetUiControls(this)
         contentRoot.layFullArea += content.apply {
-            id += "widget-area-content"
-            styleClass += "widget-area-content"
+            id += "widget-ui-content"
+            styleClass += "widget-ui-content"
         }
         contentRoot.layFullArea += controls.root
 

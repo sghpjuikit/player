@@ -32,9 +32,9 @@ import sp.it.pl.audio.Player;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.window.Resize;
 import sp.it.pl.layout.Component;
-import sp.it.pl.layout.container.layout.Layout;
-import sp.it.pl.layout.container.switchcontainer.SwitchContainer;
-import sp.it.pl.layout.container.switchcontainer.SwitchPane;
+import sp.it.pl.layout.container.Layout;
+import sp.it.pl.layout.container.SwitchContainer;
+import sp.it.pl.layout.container.SwitchContainerUi;
 import sp.it.pl.main.AppProgress;
 import sp.it.pl.main.Df;
 import sp.it.util.access.V;
@@ -408,7 +408,6 @@ public class Window extends WindowBase {
 		layout.load(content);
 		topContainer = (SwitchContainer) l.getChild();
 		topContainer.load();    // if loaded no-op, otherwise initializes
-//        switchPane = new SwitchPane();
 
 		double scaleFactor = 1.25; // to prevent running out of bgr when isMoving gui
 		backImage.translateXProperty().unbind();
@@ -438,7 +437,7 @@ public class Window extends WindowBase {
 	 *
 	 * @return layout aggregator, never null.
 	 */
-	public SwitchPane getSwitchPane() {
+	public SwitchContainerUi getSwitchPane() {
 		return topContainer==null ? null : topContainer.ui;
 	}
 

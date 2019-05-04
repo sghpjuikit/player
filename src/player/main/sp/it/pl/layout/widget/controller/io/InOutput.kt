@@ -1,6 +1,5 @@
 package sp.it.pl.layout.widget.controller.io
 
-import sp.it.pl.layout.area.IOLayer
 import sp.it.util.type.Util.getRawType
 import sp.it.util.type.typeLiteral
 import java.lang.reflect.Type

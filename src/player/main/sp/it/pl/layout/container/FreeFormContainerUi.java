@@ -1,4 +1,4 @@
-package sp.it.pl.layout.area;
+package sp.it.pl.layout.container;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import java.util.HashMap;
@@ -14,9 +14,10 @@ import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.window.Resize;
 import sp.it.pl.gui.objects.window.pane.PaneWindowControls;
 import sp.it.pl.layout.Component;
-import sp.it.pl.layout.container.Container;
-import sp.it.pl.layout.container.freeformcontainer.FreeFormContainer;
+import sp.it.pl.layout.Layouter;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.WidgetUi;
+import sp.it.pl.layout.widget.controller.io.IOLayer;
 import sp.it.pl.main.Df;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLOSE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
@@ -24,7 +25,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DAS
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
+import static sp.it.pl.layout.widget.Area.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.get;
 import static sp.it.pl.main.AppDragKt.installDrag;
@@ -39,7 +40,7 @@ import static sp.it.util.reactive.UtilKt.syncTo;
 import static sp.it.util.ui.Util.setAnchor;
 import static sp.it.util.ui.Util.setAnchors;
 
-public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
+public class FreeFormContainerUi extends ContainerUiBase<FreeFormContainer> {
 
     public static final String autolayoutTootlip = "Auto-layout\n\nResize components to maximize used space.";
     private static final String laybTEXT = "Maximize & align\n\n"
@@ -52,9 +53,9 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
     private boolean resizing = false;
     private boolean any_window_resizing = false;
 
-    public FreeFormArea(FreeFormContainer con) {
+    public FreeFormContainerUi(FreeFormContainer con) {
         super(con);
-        setAnchor(root_, rt, 0d);
+        setAnchor(getRoot(), rt, 0d);
 
         // add new widget on left click
         BooleanProperty isEmptySpace = new SimpleBooleanProperty(false);
@@ -71,7 +72,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
         // drag
         rt.setOnDragDone(e -> rt.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
-        installDrag(root_, EXCHANGE, () -> "Move component here",
+        installDrag(getRoot(), EXCHANGE, () -> "Move component here",
             e -> contains(e.getDragboard(), Df.COMPONENT),
             e -> get(e.getDragboard(), Df.COMPONENT) == container,
             consumer(e -> get(e.getDragboard(), Df.COMPONENT).swapWith(container,addEmptyWindowAt(e.getX(),e.getY()))),
@@ -109,7 +110,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
     }
 
     @Override
-    protected ContainerAreaControls buildControls() {
+    protected ContainerUiControls buildControls() {
         var c = super.buildControls();
 
         c.addExtraIcon(
@@ -141,13 +142,13 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         if (cm instanceof Container) {
             Container c  = (Container) cm;
             n = c.load(w.content);
-            if (c.ui instanceof ContainerNodeBase) {
-                var ui = (ContainerNodeBase<?>) c.ui;
+            if (c.ui instanceof ContainerUiBase) {
+                var ui = (ContainerUiBase<?>) c.ui;
                 if (ui.controls.isSet())
                     ui.controls.get().updateIcons();
             }
         } else if (cm instanceof Widget) {
-            WidgetArea wa = new WidgetArea(container,i,(Widget)cm);
+            WidgetUi wa = new WidgetUi(container,i,(Widget)cm);
             Icon lb = new Icon(VIEW_DASHBOARD, 12, laybTEXT, () -> autoLayout(w));
             wa.getControls().header_buttons.getChildren().add(1,lb);
             n = wa.getRoot();

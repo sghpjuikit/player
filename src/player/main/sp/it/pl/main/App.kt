@@ -37,7 +37,7 @@ import sp.it.pl.gui.pane.ShortcutPane
 import sp.it.pl.gui.pane.initApp
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.container.switchcontainer.SwitchContainer
+import sp.it.pl.layout.container.SwitchContainer
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.layout.widget.WidgetUse.ANY

@@ -1,15 +1,13 @@
 
-package sp.it.pl.layout.container.uncontainer;
+package sp.it.pl.layout.container;
 
 import java.util.Map;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import sp.it.pl.layout.Component;
-import sp.it.pl.layout.area.ContainerNode;
-import sp.it.pl.layout.area.Layouter;
-import sp.it.pl.layout.area.WidgetArea;
-import sp.it.pl.layout.container.Container;
+import sp.it.pl.layout.Layouter;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.WidgetUi;
 import static java.util.Collections.singletonMap;
 import static sp.it.util.ui.Util.setAnchors;
 
@@ -19,7 +17,7 @@ import static sp.it.util.ui.Util.setAnchors;
  * is expected the child will be non-Container component as putting any container
  * within this would turn this into unnecessary intermediary.
  */
-public class UniContainer extends Container<ContainerNode> {
+public class UniContainer extends Container<ContainerUi> {
 
     protected Component child;
     public boolean isStandalone = false;    // !need to be serialized as standalone widgets die with app
@@ -40,10 +38,10 @@ public class UniContainer extends Container<ContainerNode> {
             out = Container.class.cast(child).load(root);
         } else
         if (child instanceof Widget) {
-            if (!(ui instanceof WidgetArea)) {
+            if (!(ui instanceof WidgetUi)) {
                 removeGraphicsFromSceneGraph();
-                ui = new WidgetArea(this,1,(Widget)child);
-	            if (isStandalone) ((WidgetArea) ui).setStandaloneStyle();
+                ui = new WidgetUi(this,1,(Widget)child);
+	            if (isStandalone) ((WidgetUi) ui).setStandaloneStyle();
             }
             out = ui.getRoot();
         } else {

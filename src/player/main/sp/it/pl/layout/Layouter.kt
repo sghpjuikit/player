@@ -1,4 +1,4 @@
-package sp.it.pl.layout.area
+package sp.it.pl.layout
 
 import javafx.animation.FadeTransition
 import javafx.animation.Interpolator.LINEAR
@@ -12,8 +12,9 @@ import javafx.scene.shape.Rectangle
 import sp.it.pl.gui.objects.picker.ContainerPicker
 import sp.it.pl.gui.objects.picker.Picker
 import sp.it.pl.gui.objects.picker.WidgetPicker
+import sp.it.pl.layout.container.BiContainer
 import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.container.bicontainer.BiContainer
+import sp.it.pl.layout.container.ContainerUi
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.Df
@@ -34,7 +35,7 @@ import sp.it.util.ui.layFullArea
  * Shows user component picker to populate container with content (at this index) - it allows creation of layouts. Uses
  * two nested [Picker]s, one for [Container] and the other for widgets.
  */
-class Layouter: ContainerNode {
+class Layouter: ContainerUi {
 
     private val container: Container<*>
     private val index: Int

@@ -27,7 +27,7 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos.APP_CENTER
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.container.layout.Layout
+import sp.it.pl.layout.container.Layout
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.feature.HorizontalDock
 import sp.it.pl.layout.widget.orEmpty

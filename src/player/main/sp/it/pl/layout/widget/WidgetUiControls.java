@@ -1,9 +1,8 @@
-package sp.it.pl.layout.area;
+package sp.it.pl.layout.widget;
 
 import java.util.function.Consumer;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.effect.BoxBlur;
@@ -12,23 +11,21 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
-import sp.it.pl.layout.container.bicontainer.BiContainer;
-import sp.it.pl.layout.container.freeformcontainer.FreeFormContainer;
-import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.container.BiContainer;
+import sp.it.pl.layout.container.BiContainerUi;
+import sp.it.pl.layout.container.FreeFormContainer;
 import sp.it.pl.main.AppAnimator;
 import sp.it.pl.main.Df;
 import sp.it.util.access.ref.SingleR;
 import sp.it.util.animation.Anim;
 import sp.it.util.reactive.Subscribed;
 import sp.it.util.reactive.Subscription;
-import sp.it.util.ui.fxml.ConventionFxmlLoader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
@@ -44,7 +41,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
-import static sp.it.pl.layout.area.Area.PSEUDOCLASS_DRAGGED;
+import static sp.it.pl.layout.widget.Area.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
@@ -54,13 +51,15 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.EventsKt.onEventUp;
 import static sp.it.util.reactive.UtilKt.syncC;
+import static sp.it.util.ui.Util.layStack;
+import static sp.it.util.ui.Util.setAnchor;
 import static sp.it.util.ui.UtilKt.getCentre;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
 /**
  * Controls for a widget area.
  */
-public final class AreaControls {
+public final class WidgetUiControls {
 
     private static final double activatorW = 20;
     private static final double activatorH = 20;
@@ -82,47 +81,42 @@ public final class AreaControls {
         + "non-layout operations.";
     private static final String closebTEXT = "Close widget\n\n"
         + "Closes widget and creates empty place in the container.";
-    private static SingleR<PopOver<Text>, AreaControls> helpP = new SingleR<>(
-    () -> helpPopOver(""),
-    (p, ac) -> {
-        // set text
-        p.contentNode.getValue().setText(ac.getInfo());
-        // for some reason we need to put this every time, which
-        // should not be the case, investigate
-        p.contentNode.getValue().setWrappingWidth(400);
-        // we need to handle hiding this AreaControls when popup
-        // closes and we are outside of the area (not implemented yet)
-        p.addEventHandler(WINDOW_HIDDEN, we -> {
-            if (ac.isShowingWeak) ac.hide();
-        });
-    });
+    private static SingleR<PopOver<Text>,WidgetUiControls> helpP = new SingleR<>(
+        () -> helpPopOver(""),
+        (p, ac) -> {
+            // set text
+            p.contentNode.getValue().setText(ac.getInfo());
+            // for some reason we need to put this every time, which
+            // should not be the case, investigate
+            p.contentNode.getValue().setWrappingWidth(400);
+            // we need to handle hiding this WidgetUiControls when popup
+            // closes and we are outside of the area (not implemented yet)
+            p.addEventHandler(WINDOW_HIDDEN, we -> {
+                if (ac.isShowingWeak) ac.hide();
+            });
+        }
+    );
 
-    @FXML public AnchorPane root = new AnchorPane();
-    @FXML public BorderPane header;
-    @FXML public Label title;
-    public Icon propB;
-    public @FXML TilePane header_buttons;
-    public Icon infoB, absB, lockB;
-
-    private WidgetArea area;
+    private final WidgetUi area;
+    public final AnchorPane root = new AnchorPane();
+    public final Label title = new Label();
+    public final Icon propB;
+    public final TilePane header_buttons = new TilePane(4.0, 4.0);
+    public final Icon infoB, absB, lockB;
 
     private boolean isShowingStrong = false;
     private boolean isShowingWeak = false;
     private Subscribed hiderWeak;
     private final Anim anim;
 
-    public AreaControls(WidgetArea area) {
+    public WidgetUiControls(WidgetUi area) {
         this.area = area;
 
-        new ConventionFxmlLoader(root, this).loadNoEx();
+        root.setId("widget-ui-controls");
+        root.getStyleClass().add("widget-ui-controls");
 
-        root.getStyleClass().add("widget-area-controls");
-
-        // avoid clashing of title and control buttons for small root size
-        header_buttons.maxWidthProperty()
-            .bind(root.widthProperty().subtract(title.widthProperty())
-            .divide(2).subtract(30));
-        header_buttons.setMinWidth(15);
+        setAnchor(root, layStack(title, Pos.CENTER), 0.0);
+        title.getParent().setMouseTransparent(true);
 
         // build header buttons
         Icon closeB = new Icon(TIMES, -1, closebTEXT, this::close).styleclass("header-icon");
@@ -149,9 +143,12 @@ public final class AreaControls {
         infoB = new Icon(INFO, -1, infobTEXT, this::showInfo).styleclass("header-icon"); // consistent with Icon.infoIcon()
 
         // build header
+        header_buttons.setPrefRows(1);
+        header_buttons.setPrefColumns(10);
         header_buttons.setNodeOrientation(LEFT_TO_RIGHT);
         header_buttons.setAlignment(Pos.CENTER_RIGHT);
         header_buttons.getChildren().addAll(infoB, loadB, absB, lockB, propB, actB, closeB);
+        setAnchor(root, header_buttons, 0.0, 0.0, null, null);
 
         // build animations
         BoxBlur blur = new BoxBlur(0, 0, 1);
@@ -247,19 +244,20 @@ public final class AreaControls {
 
     private void toggleAbsSize() {
         if (area.container instanceof BiContainer) {
-            BiContainerArea s = ((BiContainer) area.container).ui;
+            BiContainerUi s = ((BiContainer) area.container).ui;
             s.toggleAbsoluteSizeFor(area.index);
         }
     }
 
-    void updateAbsB() {
-    if (area.container instanceof BiContainer) {
-        boolean l = area.container.properties.getI("abs_size") == area.index;
-        absB.icon(l ? UNLINK : LINK);
-        if (!header_buttons.getChildren().contains(absB))
-        header_buttons.getChildren().add(6, absB);
-    } else
-        header_buttons.getChildren().remove(absB);
+    public void updateAbsB() {
+        if (area.container instanceof BiContainer) {
+            boolean l = area.container.properties.getI("abs_size") == area.index;
+            absB.icon(l ? UNLINK : LINK);
+            if (!header_buttons.getChildren().contains(absB))
+            header_buttons.getChildren().add(6, absB);
+        } else {
+            header_buttons.getChildren().remove(absB);
+        }
     }
 
     private void showWeak() {

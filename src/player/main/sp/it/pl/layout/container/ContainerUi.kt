@@ -1,11 +1,11 @@
-package sp.it.pl.layout.area
+package sp.it.pl.layout.container
 
 import javafx.scene.Parent
 import javafx.scene.layout.Pane
 import sp.it.pl.layout.AltState
 
 /** Container graphics. */
-interface ContainerNode: AltState {
+interface ContainerUi: AltState {
 
     /** Scene graph root of this object. */
     val root: Pane

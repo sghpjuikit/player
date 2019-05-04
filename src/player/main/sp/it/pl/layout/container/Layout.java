@@ -1,12 +1,11 @@
 
-package sp.it.pl.layout.container.layout;
+package sp.it.pl.layout.container;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.Objects;
 import java.util.UUID;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
-import sp.it.pl.layout.container.uncontainer.UniContainer;
 import static sp.it.util.dev.FailKt.noNull;
 
 public final class Layout extends UniContainer {

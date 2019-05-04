@@ -1,4 +1,4 @@
-package sp.it.pl.layout.area;
+package sp.it.pl.layout.container;
 
 import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
@@ -11,9 +11,9 @@ import javafx.scene.layout.AnchorPane;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.layout.AltState;
 import sp.it.pl.layout.Component;
-import sp.it.pl.layout.container.Container;
-import sp.it.pl.layout.container.bicontainer.BiContainer;
+import sp.it.pl.layout.Layouter;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.WidgetUi;
 import sp.it.util.access.V;
 import sp.it.util.collections.map.PropertyMap;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ELLIPSIS_H;
@@ -30,15 +30,15 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.SubscriptionKt.on;
 import static sp.it.util.reactive.UtilKt.attach;
-import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.reactive.UtilKt.sync1IfInScene;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.syncTo;
 import static sp.it.util.ui.Util.setAnchor;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
-public final class BiContainerArea extends ContainerNodeBase<BiContainer> {
+public final class BiContainerUi extends ContainerUiBase<BiContainer> {
 
     private static final PseudoClass COLLAPSED_PC = pseudoclass("collapsed");
     private static final double grabberSize = 20.0;
@@ -48,10 +48,10 @@ public final class BiContainerArea extends ContainerNodeBase<BiContainer> {
     private final SplitPane splitPane = new SplitPane(root_child1,root_child2);
     private final PropertyMap<String> prop;
 
-    public BiContainerArea(BiContainer c) {
+    public BiContainerUi(BiContainer c) {
         super(c);
 
-        setAnchor(root_, splitPane, 0d);
+        setAnchor(getRoot(), splitPane, 0d);
         splitPane.setMinSize(0,0);
         root_child1.setMinSize(0,0);
         root_child2.setMinSize(0,0);
@@ -67,7 +67,7 @@ public final class BiContainerArea extends ContainerNodeBase<BiContainer> {
         setAbsoluteSize(prop.getI("abs_size"));
         setupCollapsed(getCollapsed());
 
-        splitPane.setOnMouseClicked(root_.getOnMouseClicked());
+        splitPane.setOnMouseClicked(getRoot().getOnMouseClicked());
 
         // initialize position
         sync1IfInScene(splitPane, runnable(() -> applyPos()));
@@ -110,7 +110,7 @@ public final class BiContainerArea extends ContainerNodeBase<BiContainer> {
     }
 
     @Override
-    protected ContainerAreaControls buildControls() {
+    protected ContainerUiControls buildControls() {
         var c = super.buildControls();
 
         Icon orientB = new Icon(MAGIC, -1, "Change orientation", this::toggleOrientation).styleclass("header-icon");
@@ -125,8 +125,8 @@ public final class BiContainerArea extends ContainerNodeBase<BiContainer> {
     }
 
     private Layouter layouter1, layouter2;
-    private WidgetArea wa1, wa2;
-    private ContainerNodeBase<?> ca1, ca2;
+    private WidgetUi wa1, wa2;
+    private ContainerUiBase<?> ca1, ca2;
 
     public void setComponent(int i, Component c) {
         if (i!=1 && i!=2) throw new IllegalArgumentException("Only 1 or 2 supported as index.");
@@ -136,14 +136,14 @@ public final class BiContainerArea extends ContainerNodeBase<BiContainer> {
         Node n;
         AltState as;
         if (c instanceof Widget) {
-            var wa = new WidgetArea(container,i,(Widget)c);
+            var wa = new WidgetUi(container,i,(Widget)c);
             if (i==1) wa1 = wa; else wa2 = wa;
             n = wa.getRoot();
             as = wa;
         } else if (c instanceof Container) {
             n = ((Container)c).load(r);
             var caa = ((Container) c).ui;
-            var ca = caa instanceof ContainerNodeBase<?> ? (ContainerNodeBase<?>) caa : null;
+            var ca = caa instanceof ContainerUiBase<?> ? (ContainerUiBase<?>) caa : null;
             if (i==1) ca1 = ca; else ca2 = ca;
             as = (Container) c;
         } else { // ==null

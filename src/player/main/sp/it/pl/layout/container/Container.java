@@ -11,9 +11,6 @@ import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import sp.it.pl.layout.AltState;
 import sp.it.pl.layout.Component;
-import sp.it.pl.layout.area.ContainerNode;
-import sp.it.pl.layout.container.bicontainer.BiContainer;
-import sp.it.pl.layout.container.layout.Layout;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.util.type.ClassName;
 import static java.util.stream.Collectors.toList;
@@ -64,7 +61,7 @@ import static sp.it.util.functional.UtilKt.consumer;
  behavior to work correctly.This is because indexOf() method returns invalid (but still number)
  index if component is not found. Therefore such index must be ignored.
  */
-public abstract class Container<G extends ContainerNode> extends Component implements AltState {
+public abstract class Container<G extends ContainerUi> extends Component implements AltState {
 
     public static Container testControlContainer() {
         BiContainer root = new BiContainer(HORIZONTAL);

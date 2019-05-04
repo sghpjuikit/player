@@ -1,6 +1,5 @@
 package sp.it.pl.layout.widget.controller.io
 
-import sp.it.pl.layout.area.IOLayer
 import sp.it.util.dev.failIf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription

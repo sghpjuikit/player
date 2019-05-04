@@ -1,6 +1,5 @@
 package sp.it.pl.layout.widget.controller.io
 
-import sp.it.pl.layout.area.IOLayer
 import sp.it.util.collections.materialize
 import java.util.Objects
 import java.util.UUID

@@ -1,4 +1,4 @@
-package sp.it.pl.layout.container.switchcontainer;
+package sp.it.pl.layout.container;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,12 +15,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import sp.it.pl.layout.AltState;
 import sp.it.pl.layout.Component;
-import sp.it.pl.layout.area.ContainerNode;
-import sp.it.pl.layout.area.IOLayer;
-import sp.it.pl.layout.area.Layouter;
-import sp.it.pl.layout.area.WidgetArea;
-import sp.it.pl.layout.container.Container;
+import sp.it.pl.layout.Layouter;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.layout.widget.WidgetUi;
+import sp.it.pl.layout.widget.controller.io.IOLayer;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
 import sp.it.util.animation.interpolator.CircularInterpolator;
@@ -59,7 +57,7 @@ import static sp.it.util.ui.Util.setAnchors;
  *
  * @author plutonium_
  */
-public class SwitchPane implements ContainerNode {
+public class SwitchContainerUi implements ContainerUi {
 
     private final AnchorPane root = new AnchorPane();
     private final AnchorPane zoom = new AnchorPane();
@@ -83,7 +81,7 @@ public class SwitchPane implements ContainerNode {
     public final V<Double> snapThresholdAbs = new V<>(25.0);
     public final V<Double> zoomScaleFactor = new V<>(0.7); // 0.2 - 1
 
-    public SwitchPane(SwitchContainer container) {
+    public SwitchContainerUi(SwitchContainer container) {
         this.container = container;
 
         root.setId("switch-pane-root");
@@ -220,7 +218,7 @@ public class SwitchPane implements ContainerNode {
             as = (Container)c;
         } else if (c instanceof Widget) {
             layouters.remove(i);
-            WidgetArea wa = new WidgetArea(container, i, (Widget)c);
+            WidgetUi wa = new WidgetUi(container, i, (Widget)c);
             n = wa.getRoot();
             as = wa;
         } else { // ==null
@@ -550,7 +548,7 @@ public class SwitchPane implements ContainerNode {
         layouts.values().forEach(c -> {
             if (c instanceof Container) ((Container)c).show();
             if (c instanceof Widget) {
-                ContainerNode ct = ((Widget)c).areaTemp;
+                ContainerUi ct = ((Widget)c).areaTemp;
                 if (ct!=null) ct.show();
             }
         });
@@ -562,7 +560,7 @@ public class SwitchPane implements ContainerNode {
         layouts.values().forEach(c -> {
             if (c instanceof Container) ((Container)c).hide();
             if (c instanceof Widget) {
-                ContainerNode ct = ((Widget)c).areaTemp;
+                ContainerUi ct = ((Widget)c).areaTemp;
                 if (ct!=null) ct.hide();
             }
         });

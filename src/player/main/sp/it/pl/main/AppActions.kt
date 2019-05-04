@@ -27,7 +27,7 @@ import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.pane.OverlayPane
 import sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
-import sp.it.pl.layout.area.ContainerNode
+import sp.it.pl.layout.container.ContainerUi
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetLoader.WINDOW_FULLSCREEN
 import sp.it.pl.layout.widget.WidgetUse.NEW
@@ -166,7 +166,7 @@ class AppActions {
                         val parent = this
                         c.controller.getFieldOrThrow("closeOnLaunch").value = true
                         c.controller.getFieldOrThrow("closeOnRightClick").value = true
-                        c.areaTemp = object: ContainerNode {
+                        c.areaTemp = object: ContainerUi {
                             override val root = parent
                             override fun show() {}
                             override fun hide() {}

@@ -2,9 +2,9 @@ package sp.it.pl.gui.objects.picker
 
 import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Orientation.VERTICAL
+import sp.it.pl.layout.container.BiContainer
 import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.container.bicontainer.BiContainer
-import sp.it.pl.layout.container.freeformcontainer.FreeFormContainer
+import sp.it.pl.layout.container.FreeFormContainer
 
 /** Container picker. */
 class ContainerPicker(onContainerSelect: (Container<*>) -> Unit, onWidgetSelect: () -> Unit): Picker<ContainerPicker.CellData>() {

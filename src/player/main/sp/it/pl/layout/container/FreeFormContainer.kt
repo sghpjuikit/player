@@ -1,13 +1,11 @@
-package sp.it.pl.layout.container.freeformcontainer
+package sp.it.pl.layout.container
 
 import javafx.scene.Node
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.area.FreeFormArea
-import sp.it.pl.layout.container.Container
 import sp.it.util.access.v
 import java.util.HashMap
 
-class FreeFormContainer: Container<FreeFormArea>() {
+class FreeFormContainer: Container<FreeFormContainerUi>() {
 
     val showHeaders = v(true)
     private val children = HashMap<Int, Component>()
@@ -35,7 +33,7 @@ class FreeFormContainer: Container<FreeFormArea>() {
     override fun getEmptySpot() = null
 
     override fun load(): Node {
-        if (ui==null) ui = FreeFormArea(this)
+        if (ui==null) ui = FreeFormContainerUi(this)
         ui.load()
         return ui.root
     }

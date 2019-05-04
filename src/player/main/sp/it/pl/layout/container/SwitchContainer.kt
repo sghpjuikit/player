@@ -3,11 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package sp.it.pl.layout.container.switchcontainer
+package sp.it.pl.layout.container
 
 import javafx.scene.Node
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.container.Container
 import sp.it.pl.main.Settings
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.MultiConfigurableBase
@@ -16,7 +15,7 @@ import sp.it.util.conf.cv
 import sp.it.util.reactive.syncFrom
 import java.util.HashMap
 
-class SwitchContainer: Container<SwitchPane>() {
+class SwitchContainer: Container<SwitchContainerUi>() {
 
     private val children = HashMap<Int, Component>()
 
@@ -37,7 +36,7 @@ class SwitchContainer: Container<SwitchPane>() {
 
     override fun load(): Node {
         if (ui==null) {
-            ui = SwitchPane(this).also {
+            ui = SwitchContainerUi(this).also {
                 it.align syncFrom align
                 it.snap syncFrom snap
                 it.switchDistAbs syncFrom minSwitchDistAbs

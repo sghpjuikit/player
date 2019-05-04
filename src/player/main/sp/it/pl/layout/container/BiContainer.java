@@ -1,4 +1,4 @@
-package sp.it.pl.layout.container.bicontainer;
+package sp.it.pl.layout.container;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,14 +7,12 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import sp.it.pl.layout.Component;
-import sp.it.pl.layout.area.BiContainerArea;
-import sp.it.pl.layout.container.Container;
 import static javafx.geometry.Orientation.VERTICAL;
 
 /**
  * Implementation of {@link Container Container} containing two children.
  */
-public class BiContainer extends Container<BiContainerArea> {
+public class BiContainer extends Container<BiContainerUi> {
 
     /** Orientation of this container. */
     public final ObjectProperty<Orientation> orientation = new SimpleObjectProperty<>(VERTICAL);
@@ -28,7 +26,7 @@ public class BiContainer extends Container<BiContainerArea> {
     @Override
     public Node load() {
         // lazy load (needed because of the serialization omitting this field)
-        if (ui == null) ui = new BiContainerArea(this);
+        if (ui == null) ui = new BiContainerUi(this);
 
         ui.setChild1(children.get(1));
         ui.setChild2(children.get(2));

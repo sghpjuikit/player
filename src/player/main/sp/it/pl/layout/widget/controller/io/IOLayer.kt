@@ -1,4 +1,4 @@
-package sp.it.pl.layout.area
+package sp.it.pl.layout.widget.controller.io
 
 import javafx.animation.PathTransition
 import javafx.beans.property.DoubleProperty
@@ -23,12 +23,7 @@ import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.layout.container.switchcontainer.SwitchPane
-import sp.it.pl.layout.widget.controller.io.InOutput
-import sp.it.pl.layout.widget.controller.io.Input
-import sp.it.pl.layout.widget.controller.io.Output
-import sp.it.pl.layout.widget.controller.io.Put
-import sp.it.pl.layout.widget.controller.io.XPut
+import sp.it.pl.layout.container.SwitchContainerUi
 import sp.it.pl.main.*
 import sp.it.util.Util.pyth
 import sp.it.util.access.v
@@ -78,7 +73,7 @@ private typealias Compute<T> = java.util.function.Function<Key<Put<*>, Put<*>>, 
 /**
  * Display for [sp.it.pl.layout.widget.controller.io.XPut] of components, displaying their relations as am editable graph.
  */
-class IOLayer(private val switchPane: SwitchPane): StackPane() {
+class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
     private val inputNodes = HashMap<Input<*>, XNode>()
     private val outputNodes = HashMap<Output<*>, XNode>()
     private val inoutputNodes = HashMap<InOutput<*>, InOutputNode>()
@@ -131,8 +126,8 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
 
     init {
         interact(doLayout = true, noMouse = false, noPick = false)
-        tTranslate = switchPane.translateProperty()
-        tScaleX = switchPane.zoomProperty()
+        tTranslate = switchContainerUi.translateProperty()
+        tScaleX = switchContainerUi.zoomProperty()
         tScaleX attach { requestLayout() } on disposer
         translateXProperty().bind(tTranslate.multiply(tScaleX))
         parentProperty().syncNonNullWhile { it.onEventUp(MOUSE_CLICKED) { selectNode(null) } } on disposer
@@ -322,12 +317,12 @@ class IOLayer(private val switchPane: SwitchPane): StackPane() {
     private fun xNodes(): Sequence<XNode> = (inputNodes.asSequence()+outputNodes.asSequence()+inoutputNodes.asSequence()).map { it.value }
 
     override fun layoutChildren() {
-        val headerOffset = switchPane.root.localToScene(0.0, 0.0).y
+        val headerOffset = switchContainerUi.root.localToScene(0.0, 0.0).y
         val translationOffset = tTranslate.value
 
         xNodes().forEach { it.graphics.isVisible = false }
 
-        switchPane.container.rootParent.allWidgets.filter { it?.controller!=null }.forEach { w ->
+        switchContainerUi.container.rootParent.allWidgets.filter { it?.controller!=null }.forEach { w ->
             val c = w.controller
             val ins = c.io.i.getInputs().mapNotNull { inputNodes[it] }
             val ons = c.io.o.getOutputs().mapNotNull { outputNodes[it] }

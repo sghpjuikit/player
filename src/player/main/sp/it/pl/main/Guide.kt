@@ -22,8 +22,8 @@ import javafx.scene.layout.VBox
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
+import sp.it.pl.layout.container.BiContainer
 import sp.it.pl.layout.container.Container.testControlContainer
-import sp.it.pl.layout.container.bicontainer.BiContainer
 import sp.it.pl.layout.widget.emptyWidgetFactory
 import sp.it.pl.layout.widget.orEmpty
 import sp.it.pl.main.Widgets.PLAYBACK

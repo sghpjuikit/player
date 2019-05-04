@@ -42,6 +42,10 @@ fun WritableValue<Boolean>.toggle() {
     value = !value
 }
 
+fun <T: Enum<T>> WritableValue<T>.toggleEnum() {
+    value = SequentialValue.next(value)
+}
+
 operator fun ObservableNumberValue.plus(other: ObservableNumberValue) = Bindings.add(this, other) as DoubleBinding
 operator fun ObservableNumberValue.plus(other: Double) = Bindings.add(this, other)!!
 operator fun ObservableNumberValue.plus(other: Float) = Bindings.add(this, other) as DoubleBinding

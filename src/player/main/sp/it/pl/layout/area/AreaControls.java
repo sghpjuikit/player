@@ -53,7 +53,7 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.EventsKt.onEventUp;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.UtilKt.getCentre;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
@@ -140,8 +140,8 @@ public final class AreaControls {
         CheckIcon loadB = new CheckIcon();
         loadB.styleclass("header-icon");
         loadB.tooltip("Switch between automatic or manual widget loading.");
-        maintain(area.getWidget().loadType, it -> loadB.selected.setValue(it==AUTOMATIC));
-        maintain(loadB.selected, it -> loadB.icon(it ? UNFOLD : FOLD));
+        syncC(area.getWidget().loadType, it -> loadB.selected.setValue(it==AUTOMATIC));
+        syncC(loadB.selected, it -> loadB.icon(it ? UNFOLD : FOLD));
         loadB.selected.addListener((o,ov,nv) -> area.getWidget().loadType.set(nv ? AUTOMATIC : MANUAL));
         // ^ technically we've got ourselves bidirectional binding and risk stackoverflow. We know
         // the value changes fire only when value is different, so we ara safe

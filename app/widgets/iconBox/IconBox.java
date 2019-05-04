@@ -19,7 +19,7 @@ import sp.it.util.conf.ListConfigurable;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.util.functional.UtilKt.consumer;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 
 @Info(
     author = "Martin Polakovic",
@@ -43,7 +43,7 @@ public class IconBox extends SimpleController implements HorizontalDock {
         Icon.class,
         () -> {
             Icon i = new Icon(BUS);
-            maintain(icon_size, v -> i.size(v.doubleValue()));
+            syncC(icon_size, v -> i.size(v.doubleValue()));
             return i;
         },
         i -> new ListConfigurable<>(

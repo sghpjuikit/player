@@ -30,7 +30,7 @@ class ConverterFX: Converter() {
                             if (nameValue.size==2) {
                                 val name = nameValue[0]
                                 val value = nameValue[1]
-                                c.setField(name, value)
+                                c.getField(name)?.valueS = value
                             } else {
                                 // ignore instead of error
                             }

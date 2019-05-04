@@ -44,7 +44,7 @@ import static sp.it.util.animation.interpolator.EasingMode.EASE_OUT;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.executor.FxTimer.fxTimer;
 import static sp.it.util.functional.UtilKt.runnable;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.setAnchors;
 
 /**
@@ -159,7 +159,7 @@ public class SwitchPane implements ContainerNode {
         double translate = (double)container.properties.computeIfAbsent("translate", key -> ui.getTranslateX());
         ui.setTranslateX(translate);
         // remember latest position for deserialization (we must not rewrite init value above)
-        maintain(ui.translateXProperty(), v -> container.properties.put("translate",v));
+        syncC(ui.translateXProperty(), v -> container.properties.put("translate",v));
 
         // initialize
         addTab(0);

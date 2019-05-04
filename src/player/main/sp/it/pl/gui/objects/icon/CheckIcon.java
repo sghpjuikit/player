@@ -8,7 +8,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import sp.it.util.reactive.Subscription;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
 /**
@@ -38,7 +38,7 @@ public class CheckIcon extends Icon {
 		selected = s==null ? new SimpleBooleanProperty(true) : s;
 
 		styleclass(STYLECLASS);
-		maintain(selected, v -> pseudoClassStateChanged(selectedPC, v));
+		syncC(selected, v -> pseudoClassStateChanged(selectedPC, v));
 
 		setFocusTraversable(true);
 		addEventHandler(MOUSE_CLICKED, e -> {
@@ -57,7 +57,7 @@ public class CheckIcon extends Icon {
 	public CheckIcon icons(GlyphIcons selectedIcon, GlyphIcons unselectedIcon) {
 		getStyleClass().remove(STYLECLASS_DISABLING);
 		if (s!=null) s.unsubscribe();
-		s = maintain(selected, v -> icon(v ? selectedIcon : unselectedIcon));
+		s = syncC(selected, v -> icon(v ? selectedIcon : unselectedIcon));
 		return this;
 	}
 

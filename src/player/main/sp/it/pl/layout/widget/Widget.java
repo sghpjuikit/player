@@ -49,10 +49,10 @@ import sp.it.util.type.Util;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.deepEquals;
+import static kotlin.io.FilesKt.deleteRecursively;
 import static sp.it.pl.layout.widget.EmptyWidgetKt.getEmptyWidgetFactory;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.util.file.Util.deleteFile;
 import static sp.it.util.file.Util.writeFile;
 import static sp.it.util.functional.Util.ISNTØ;
 import static sp.it.util.functional.Util.filter;
@@ -512,7 +512,7 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 
 	public void clearDefaultConfigs() {
 		File configFile = new File(getUserLocation(), "default.properties");
-		deleteFile(configFile);
+		deleteRecursively(configFile);
 	}
 
 	/******************************************************************************/

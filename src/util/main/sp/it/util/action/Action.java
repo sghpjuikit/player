@@ -29,7 +29,7 @@ import static sp.it.util.functional.Util.setRO;
 public class Action extends Config<Action> implements Runnable, Function0<Unit> {
 
 	/** Action that does nothing. Use where null inappropriate. */
-	public static final Action EMPTY = new Action("None", () -> {}, "Action that does nothing", "", "", false, false);
+	public static final Action NONE = new Action("None", () -> {}, "Action that does nothing", "", "", false, false);
 	public static final String CONFIG_GROUP = "Shortcuts";
 
 	private final String name;

@@ -30,7 +30,7 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.SubscriptionKt.on;
 import static sp.it.util.reactive.UtilKt.attach;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.util.reactive.UtilKt.syncTo;
@@ -106,7 +106,7 @@ public final class BiContainerArea extends ContainerNodeBase<BiContainer> {
         });
 
         // maintain collapsed pseudoclass
-        maintain(position, v -> splitPane.pseudoClassStateChanged(COLLAPSED_PC, v<0.01 || v>0.99));
+        syncC(position, v -> splitPane.pseudoClassStateChanged(COLLAPSED_PC, v<0.01 || v>0.99));
     }
 
     @Override
@@ -114,7 +114,7 @@ public final class BiContainerArea extends ContainerNodeBase<BiContainer> {
         var c = super.buildControls();
 
         Icon orientB = new Icon(MAGIC, -1, "Change orientation", this::toggleOrientation).styleclass("header-icon");
-        on(maintain(container.orientation, it -> orientB.icon(it==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H)), c.disposer);
+        on(syncC(container.orientation, it -> orientB.icon(it==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H)), c.disposer);
         c.addExtraIcon(orientB);
 
         return c;

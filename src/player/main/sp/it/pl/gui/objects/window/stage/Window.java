@@ -103,7 +103,7 @@ import static sp.it.util.functional.Util.forEachIRStream;
 import static sp.it.util.functional.Util.forEachIStream;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.getScreen;
 import static sp.it.util.ui.UtilKt.initClip;
@@ -187,7 +187,7 @@ public class Window extends WindowBase {
 		// makes gui consistent & prevents potential bugs
 		//
 		// note the poor impl. only borders must be Regions!
-		maintain(resizable, it -> front.getChildren().stream().filter(c -> c.getClass().equals(Region.class)).forEach(c -> c.setMouseTransparent(!it)));
+		syncC(resizable, it -> front.getChildren().stream().filter(c -> c.getClass().equals(Region.class)).forEach(c -> c.setMouseTransparent(!it)));
 
 		// app dragging
 		header.addEventHandler(DRAG_DETECTED, this::moveStart);
@@ -311,11 +311,11 @@ public class Window extends WindowBase {
 		Icon lockB = new Icon(null, -1, "Lock layout\n\nRestricts certain layout operations to "
 			+ "prevent accidents and configuration getting in the way. Widgets, containers and "
 			+ "layouts can also be locked individually.", () -> APP.ui.toggleLayoutLocked()).styleclass("header-icon");
-		maintain(APP.ui.getLockedLayout(), it -> lockB.icon(it ? LOCK : UNLOCK));
+		syncC(APP.ui.getLockedLayout(), it -> lockB.icon(it ? LOCK : UNLOCK));
 		Icon lmB = new Icon(null, -1, ActionRegistrar.get("Layout zoom overlay in/out")).styleclass("header-icon");
 		Icon ltB = new Icon(CARET_LEFT, -1, ActionRegistrar.get("Layout move left")).styleclass("header-icon");
 		Icon rtB = new Icon(CARET_RIGHT, -1, ActionRegistrar.get("Layout move right")).styleclass("header-icon");
-		maintain(APP.ui.getLayoutMode(), it -> lmB.icon(it ? TH : TH_LARGE));
+		syncC(APP.ui.getLayoutMode(), it -> lmB.icon(it ? TH : TH_LARGE));
 		Icon guideB = new Icon(GRADUATION_CAP, -1, ActionRegistrar.get("Open guide")).styleclass("header-icon");
 		Icon helpB = infoIcon("Available actions:\n"
 			+ "\tHeader icons : Providing custom functionalities. See tooltips.\n"
@@ -341,19 +341,19 @@ public class Window extends WindowBase {
 
 
 		Icon miniB = new Icon(null, -1, "Toggle dock", () -> toggle(APP.windowManager.getDockShow())).styleclass("header-icon");
-		maintain(miniB.hoverProperty(), it -> miniB.icon(it ? ANGLE_DOUBLE_UP : ANGLE_UP));
+		syncC(miniB.hoverProperty(), it -> miniB.icon(it ? ANGLE_DOUBLE_UP : ANGLE_UP));
 		Icon onTopB = new Icon(null, -1, "Always on top\n\nForbid hiding this window behind other application windows", this::toggleAlwaysOnTop).styleclass("header-icon");
-		maintain(alwaysOnTop, it -> onTopB.icon(it ? SQUARE : SQUARE_ALT));
+		syncC(alwaysOnTop, it -> onTopB.icon(it ? SQUARE : SQUARE_ALT));
 		Icon fullsB = new Icon(null, -1, "Fullscreen\n\nExpand window to span whole screen and put it on top", this::toggleFullscreen).scale(1.3).styleclass("header-icon");
-		maintain(fullscreen, it -> fullsB.icon(it ? FULLSCREEN_EXIT : FULLSCREEN));
+		syncC(fullscreen, it -> fullsB.icon(it ? FULLSCREEN_EXIT : FULLSCREEN));
 		Icon minB = new Icon(WINDOW_MINIMIZE, -1, "Minimize application", this::toggleMinimize).styleclass("header-icon");
 		Icon maxB = new Icon(WINDOW_MAXIMIZE, -1, "Maximize\n\nExpand window to span whole screen", this::toggleMaximize).styleclass("header-icon");
 //        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
 		Icon closeB = new Icon(CLOSE, -1, "Close\n\nCloses window. If the window is main, application closes as well.", this::close).styleclass("header-icon");
 		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4)
 			.onClick(() -> APP.windowManager.setAsMain(this));
-		maintain(isMain, v -> mainB.setOpacity(v ? 1.0 : 0.4));
-		maintain(isMain, v -> mainB.tooltip(v
+		syncC(isMain, v -> mainB.setOpacity(v ? 1.0 : 0.4));
+		syncC(isMain, v -> mainB.tooltip(v
 			? "Main window\n\nThis window is main app window\nClosing it will close application."
 			: "Main window\n\nThis window is not main app window\nClosing it will not close application."));
 

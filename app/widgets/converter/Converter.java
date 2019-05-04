@@ -485,9 +485,9 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         public WriteFileAct() {
             super("Write file", Void.class, 1, list("Contents"), (Consumer<Map<String,List<? extends String>>>) null);
             actionImpartial = data -> {
-                String filepath = new File(loc.get(), nam.get()+"."+ext.get()).getPath();
-                String contents = toS(data.get("Contents"),"\n");
-                writeFile(filepath, contents);
+                var file = new File(loc.get(), nam.get()+"."+ext.get());
+                var contents = toS(data.get("Contents"),"\n");
+                writeFile(file, contents);
             };
         }
 

@@ -148,7 +148,7 @@ interface Constraint<in T> {
     }
 
     @Constraint.DeclarationType(IMPLICIT)
-    class DurationNonNegative: Constraint<Duration> {
+    object DurationNonNegative: Constraint<Duration> {
         override fun isValid(value: Duration?): Boolean {
             return value==null || value.greaterThanOrEqualTo(Duration.ZERO)
         }

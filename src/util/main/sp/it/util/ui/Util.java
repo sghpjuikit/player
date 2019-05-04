@@ -2,22 +2,18 @@ package sp.it.util.ui;
 
 import java.util.List;
 import java.util.function.Consumer;
-import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.SnapshotParameters;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView.TableViewSelectionModel;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -36,10 +32,9 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
 import static sp.it.util.async.AsyncKt.runLater;
-import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.UtilKt.consumer;
-import static sp.it.util.reactive.UtilKt.maintain;
 import static sp.it.util.reactive.UtilKt.sync1IfNonNull;
+import static sp.it.util.reactive.UtilKt.syncC;
 
 @SuppressWarnings("unused")
 public interface Util {
@@ -284,9 +279,9 @@ public interface Util {
 				var sw = scrollBar==null || !scrollBar.isVisible() ? 0 : scrollBar.getWidth();
 				t.setWrappingWidth(s.getWidth()-sw);
 			};
-			if (scrollBar!=null) maintain(scrollBar.visibleProperty(), v -> updateWrappingWidth.run());
-			if (scrollBar!=null) maintain(scrollBar.widthProperty(), v -> updateWrappingWidth.run());
-			maintain(s.widthProperty(), v -> updateWrappingWidth.run());
+			if (scrollBar!=null) syncC(scrollBar.visibleProperty(), v -> updateWrappingWidth.run());
+			if (scrollBar!=null) syncC(scrollBar.widthProperty(), v -> updateWrappingWidth.run());
+			syncC(s.widthProperty(), v -> updateWrappingWidth.run());
 		}));
 
 		return s;
@@ -310,9 +305,9 @@ public interface Util {
 				var sw = scrollBar==null || !scrollBar.isVisible() ? 0 : scrollBar.getWidth();
 				t.setWrappingWidth(s.getWidth()-sw);
 			};
-			if (scrollBar!=null) maintain(scrollBar.visibleProperty(), v -> updateWrappingWidth.run());
-			if (scrollBar!=null) maintain(scrollBar.widthProperty(), v -> updateWrappingWidth.run());
-			maintain(s.widthProperty(), v -> updateWrappingWidth.run());
+			if (scrollBar!=null) syncC(scrollBar.visibleProperty(), v -> updateWrappingWidth.run());
+			if (scrollBar!=null) syncC(scrollBar.widthProperty(), v -> updateWrappingWidth.run());
+			syncC(s.widthProperty(), v -> updateWrappingWidth.run());
 		}));
 
 		return s;
@@ -326,13 +321,6 @@ public interface Util {
 				window.removeEventHandler(eType, this);
 			}
 		});
-	}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-	// TODO: make dpi aware
-	static WritableImage makeSnapshot(Node n) {
-		return n.snapshot(new SnapshotParameters(), null);
 	}
 
 /* ---------- TABLE ------------------------------------------------------------------------------------------------- */
@@ -414,23 +402,6 @@ public interface Util {
 		node.addEventFilter(ScrollEvent.ANY, h);
 		return () -> node.removeEventFilter(ScrollEvent.ANY, h);
 
-	}
-
-/* ---------- MENU -------------------------------------------------------------------------------------------------- */
-
-	/**
-	 * Creates menu item.
-	 *
-	 * @param text non null text of the menu item
-	 * @param action non null action taking the action even as a parameter
-	 * @return non null menu item
-	 * @throws java.lang.RuntimeException if any param null
-	 */
-	static MenuItem menuItem(String text, EventHandler<ActionEvent> action) {
-		noNull(action);
-		MenuItem i = new MenuItem(text);
-		i.setOnAction(action);
-		return i;
 	}
 
 /* ---------- FONT -------------------------------------------------------------------------------------------------- */

@@ -65,7 +65,7 @@ import static javafx.beans.binding.Bindings.subtract;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static sp.it.pl.main.AppBuildersKt.resizeButton;
 import static sp.it.util.functional.UtilKt.consumer;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.syncTo;
 import static sp.it.util.ui.MouseDragKt.initMouseDrag;
 import static sp.it.util.ui.UtilKt.initClip;
@@ -122,7 +122,7 @@ public class PopOverSkin implements Skin<PopOver> {
 			p.setAutoHide(!p.isAutoHide());
 
 		});
-		maintain(p.autoHideProperty(), it -> pinB.icon(it ? PIN_OFF : PIN));
+		syncC(p.autoHideProperty(), it -> pinB.icon(it ? PIN_OFF : PIN));
 
 		HBox headerControls = new HBox();
 		headerControls.setSpacing(5);
@@ -148,7 +148,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		content = new BorderPane();
 		content.getStyleClass().add(CONTENT_STYLECLASS);
 		setMinPrefMaxSize(content, Pane.USE_COMPUTED_SIZE, Pane.USE_COMPUTED_SIZE);
-		maintain(p.contentNode, content::setCenter);
+		syncC(p.contentNode, content::setCenter);
 		initClip(content);
 
 		// header
@@ -159,7 +159,7 @@ public class PopOverSkin implements Skin<PopOver> {
 		BorderPane.setAlignment(title, Pos.CENTER_LEFT);
 		BorderPane.setAlignment(headerControls, Pos.CENTER_RIGHT);
 		// header visibility
-		maintain(p.headerVisible, it -> content.setTop(it ? header : null));
+		syncC(p.headerVisible, it -> content.setTop(it ? header : null));
 
 		// footer
 		Icon resizeB = resizeButton();
@@ -180,13 +180,13 @@ public class PopOverSkin implements Skin<PopOver> {
 		updatePath();
 
 		// react on detached state change and initialize
-		maintain(p.detached, d -> {
+		syncC(p.detached, d -> {
 			updatePath();
 			p.pseudoClassStateChanged(DETACHED, d);
 			content.setTop(header); // always show header in detached mode
 		});
 		// maintain focus style
-		maintain(p.focusedProperty(), v -> p.pseudoClassStateChanged(FOCUSED, v));
+		syncC(p.focusedProperty(), v -> p.pseudoClassStateChanged(FOCUSED, v));
 
 		// detaching
 		P dragStartWLocation = new P();

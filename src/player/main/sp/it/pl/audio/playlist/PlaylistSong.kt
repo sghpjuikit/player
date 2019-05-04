@@ -14,7 +14,6 @@ import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.async.runFX
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
-import sp.it.util.file.Util
 import sp.it.util.functional.orNull
 import sp.it.util.identityHashCode
 import sp.it.util.units.toHMSMs
@@ -157,7 +156,7 @@ class PlaylistSong: Song {
 
     private fun setATN(artist: String?, title: String?) {
         this.artist = artist
-        this.title = if (title.isNullOrBlank()) Util.getName(uri) else title
+        this.title = title.takeUnless { it.isNullOrBlank() } ?: uri.path.substringAfterLast(".")
         this.nameP.set("${artist.orEmpty()} - ${title.orEmpty()}")
     }
 

@@ -65,7 +65,7 @@ import static sp.it.util.reactive.UtilKt.attachSize;
 import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.reactive.UtilKt.syncSize;
 import static sp.it.util.ui.Util.layHorizontally;
-import static sp.it.util.ui.Util.menuItem;
+import static sp.it.util.ui.UtilKt.menuItem;
 
 /**
  * Table with a search filter header that supports filtering with provided gui.
@@ -271,9 +271,9 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public final Menu menuAdd = new Menu("", new Icon(PLAYLIST_PLUS).scale(1.3).embedded());
 	public final Menu menuRemove = new Menu("", new Icon(PLAYLIST_MINUS).scale(1.3).embedded());
 	public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
-		menuItem("Select inverse", e -> selectAll()),
-		menuItem("Select all", e -> selectInverse()),
-		menuItem("Select none", e -> selectNone())
+		menuItem("Select inverse", consumer(e -> selectAll())),
+		menuItem("Select all", consumer(e -> selectInverse())),
+		menuItem("Select none", consumer(e -> selectNone()))
 	);
 	public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded());
 	/** Table menubar in the bottom with menus. Feel free to modify. */

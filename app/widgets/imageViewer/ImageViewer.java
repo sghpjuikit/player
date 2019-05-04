@@ -31,7 +31,6 @@ import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature;
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature;
-import sp.it.util.access.PropertiesKt;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
 import sp.it.util.async.executor.EventReducer;
@@ -75,7 +74,7 @@ import static sp.it.util.functional.Util.forEachWithI;
 import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.util.ui.UtilKt.containsMouse;
 import static sp.it.util.ui.UtilKt.pseudoclass;
@@ -211,7 +210,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         FxTimer navHideDelayed = fxTimer(seconds(2.0), 1, runnable(() -> { if (!nextP.isHover() && !prevP.isHover()) navAnim.playClose(); }));
         EventReducer<Object> navInactive = toLast(1000, it -> { if (!nextP.isHover() && !prevP.isHover()) navAnim.playClose(); });
         EventReducer<Object> navActive = toFirstDelayed(400, it -> navAnim.playOpen());
-        maintain(showThumbnails, v -> navAnim.playClose());
+        syncC(showThumbnails, v -> navAnim.playClose());
         root.addEventFilter(MOUSE_EXITED, e -> navInactive.push(e));
         root.addEventFilter(MOUSE_MOVED, e -> {
             if (!showThumbnails.getValue()) {

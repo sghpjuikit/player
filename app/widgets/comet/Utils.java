@@ -124,7 +124,7 @@ import static sp.it.util.functional.Util.set;
 import static sp.it.util.functional.Util.setRO;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.runnable;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.type.Util.getEnumConstants;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
@@ -253,7 +253,7 @@ interface Utils {
 
 		Label nameL = new Label();
 		installFont(nameL, FONT_UI);
-		maintain(p.name,nameL::setText);
+		syncC(p.name,nameL::setText);
 
 		HBox lives = layHorizontally(5, CENTER_LEFT);
 		repeat(p.lives.get(), () -> lives.getChildren().add(createPlayerLiveIcon()));

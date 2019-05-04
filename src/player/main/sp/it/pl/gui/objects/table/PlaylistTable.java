@@ -52,7 +52,7 @@ import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.attach;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.computeFontWidth;
 import static sp.it.util.ui.Util.selectRows;
 import static sp.it.util.ui.UtilKt.pseudoclass;
@@ -131,7 +131,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 				styleRuleAdd(STYLE_CORRUPT, PlaylistSong::isCorruptCached);
 			}
 		});
-		disposer.plusAssign(maintain(getPlaylist().playingI, i -> updateStyleRules()));
+		disposer.plusAssign(syncC(getPlaylist().playingI, i -> updateStyleRules()));
 
 		// resizing
 		setColumnResizePolicySafe(resize -> {
@@ -258,7 +258,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		);
 
 		// scroll to playing item
-		disposer.plusAssign(maintain(scrollToPlaying, v -> {
+		disposer.plusAssign(syncC(scrollToPlaying, v -> {
 			if (v)
 				scrollToCenter(playlist.getPlaying());
 		}));

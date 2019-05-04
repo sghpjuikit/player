@@ -20,6 +20,7 @@ import sp.it.util.async.runLater
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
 import sp.it.util.functional.invoke
+import sp.it.util.functional.kt
 import sp.it.util.functional.net
 import sp.it.util.identityHashCode
 import java.util.IdentityHashMap
@@ -52,7 +53,13 @@ fun <T,O> ObservableValue<T>.map(mapper: (T) -> O) = object: ObservableValue<O> 
 }
 
 /** Sets a block to be fired immediately and on every value change. */
-infix fun <O> ObservableValue<O>.sync(block: (O) -> Unit) = maintain(Consumer { block(it) })
+infix fun <O> ObservableValue<O>.sync(block: (O) -> Unit): Subscription {
+    block(value)
+    return attach { block(value) }
+}
+
+/** Java convenience method equivalent to [sync]. */
+fun <O> ObservableValue<O>.syncC(block: Consumer<in O>) = sync(block.kt)
 
 /** Sets a disposable block to be fired immediately and on every value change. */
 infix fun <O> ObservableValue<O>.syncWhile(block: (O) -> Subscription): Subscription {
@@ -226,14 +233,6 @@ fun <O, R> ObservableValue<O>.syncIntoWhile(extractor: (O) -> ObservableValue<R>
 
 /** Sets block to be resubscribed immediately and on every non null change of the extracted observable of the value until value changes. */
 fun <O: Any?, R: Any> ObservableValue<O>.syncNonNullIntoWhile(extractor: (O) -> ObservableValue<R?>, block: (R) -> Subscription) = syncIntoWhile(extractor) { it?.net(block).orEmpty() }
-
-// TODO: remove
-fun <O> ObservableValue<O>.maintain(u: Consumer<O>): Subscription {
-    val l = ChangeListener<O> { _, _, nv -> u(nv) }
-    u(this.value)
-    this.addListener(l)
-    return Subscription { this.removeListener(l) }
-}
 
 /** [sync1If], that does not run immediately (even if the value passes the condition). */
 inline fun <T> ObservableValue<T>.attach1If(crossinline condition: (T) -> Boolean, crossinline block: (T) -> Unit): Subscription {

@@ -19,7 +19,7 @@ import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import static sp.it.pl.audio.playback.VolumeProperty.linToLog;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.dev.DebugKt.logger;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.syncTo;
 
 public class JavaFxPlayer implements GeneralPlayer.Play {
@@ -79,7 +79,7 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 				player.setAudioSpectrumListener(Player.spectrumListenerDistributor);
 
 				// bind (not read only) values
-				d1 = maintain(state.volume, v -> player.setVolume(linToLog(v.doubleValue())));
+				d1 = syncC(state.volume, v -> player.setVolume(linToLog(v.doubleValue())));
 				d2 = syncTo(state.mute, player.muteProperty());
 				d4 = syncTo(state.rate, player.rateProperty());
 				player.setOnEndOfMedia(Player.onPlaybackEnd);
@@ -92,7 +92,7 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 						if (nv==PLAYING || nv==PAUSED || nv==STOPPED) {
 							// bind (read only) values: new player -> global (manual initialization)
 							d5 = syncTo(player.currentTimeProperty(), state.currentTime);
-							d6 = maintain(player.statusProperty(), s -> {
+							d6 = syncC(player.statusProperty(), s -> {
 								if (!Player.suspension_flag)
 									state.status.setValue(s);
 							});

@@ -208,7 +208,7 @@ import static sp.it.util.functional.Util.minBy;
 import static sp.it.util.functional.Util.repeat;
 import static sp.it.util.functional.Util.set;
 import static sp.it.util.functional.Util.stream;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.computeFontHeight;
 import static sp.it.util.ui.Util.computeFontWidth;
 import static sp.it.util.ui.Util.layAnchor;
@@ -251,8 +251,8 @@ public class Comet extends SimpleController {
 		canvas_bgr.heightProperty().bind(playfield.heightProperty());
 		canvas_bgr.setManaged(false);
 
-		maintain(playfield.widthProperty(), w -> game.field.resize(playfield.getWidth(), playfield.getHeight()));
-		maintain(playfield.heightProperty(), w -> game.field.resize(playfield.getWidth(), playfield.getHeight()));
+		syncC(playfield.widthProperty(), w -> game.field.resize(playfield.getWidth(), playfield.getHeight()));
+		syncC(playfield.heightProperty(), w -> game.field.resize(playfield.getWidth(), playfield.getHeight()));
 
 		// player stats
 		double G = 10; // padding
@@ -282,7 +282,7 @@ public class Comet extends SimpleController {
 				new Icon(MaterialDesignIcon.NUMERIC_6_BOX_OUTLINE,15,"Start 6 player game",() -> game.start(6)),
 				new Icon(MaterialDesignIcon.NUMERIC_7_BOX_OUTLINE,15,"Start 7 player game",() -> game.start(7)),
 				new Icon(MaterialDesignIcon.NUMERIC_8_BOX_OUTLINE,15,"Start 8 player game",() -> game.start(8)),
-				new Icon(null,16){{ maintain(game.paused, it -> icon(it ? MaterialDesignIcon.PLAY : MaterialDesignIcon.PAUSE)); }}.onClick(() -> game.pause(!game.paused.get())),
+				new Icon(null,16){{ syncC(game.paused, it -> icon(it ? MaterialDesignIcon.PLAY : MaterialDesignIcon.PAUSE)); }}.onClick(() -> game.pause(!game.paused.get())),
 				new Icon(FontAwesomeIcon.GEARS,14,"Settings").onClick(e -> APP.windowManager.showSettings(new ListConfigurable<>(Configurable.configsFromFieldsOf(this)),e)),
 				new Icon(FontAwesomeIcon.INFO,14,"How to play").onClick(() -> new HowToPane().show(game))
 			),

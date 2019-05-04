@@ -5,7 +5,7 @@ import sp.it.util.dev.Dependency
 import java.util.UUID
 
 /** Equivalent to [UUID.fromString]. */
-fun uuid(text: String) = UUID.fromString(text)
+fun uuid(text: String) = UUID.fromString(text)!!
 
 /** Converts to javafx [Duration] */
 val java.time.Duration.javafx: Duration get() = toMillis().millis

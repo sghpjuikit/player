@@ -56,7 +56,7 @@ public interface Configurable<T> {
 	/**
 	 * Configurable with no fields.
 	 */
-	Configurable EMPTY_CONFIGURABLE = new Configurable() {
+	Configurable EMPTY = new Configurable() {
 		@Override
 		public Collection<Config> getFields() { return list(); }
 
@@ -123,22 +123,6 @@ public interface Configurable<T> {
 		Config<T> c = getField(name);
 		if (c!=null) return c;
 		else throw new IllegalArgumentException("Config field '" + name + "' not found.");
-	}
-
-	/**
-	 * Safe set method.
-	 * Sets value of config with given name if it exists, parsing the text input.
-	 * <p/>
-	 * Exception-free equivalent to: return getField(name).setValueS(value);
-	 * Use when deserializing.
-	 *
-	 * @param name unique name of the field
-	 * @param v text value to be parsed
-	 */
-	// TODO: remove
-	default void setField(String name, String v) {
-		Config<T> c = getField(name);
-		if (c!=null) c.setValueS(v);
 	}
 
 	static Collection<Config<Object>> configsFromFieldsOf(Object o) {

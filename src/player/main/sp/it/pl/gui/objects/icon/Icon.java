@@ -220,7 +220,7 @@ public class Icon extends StackPane {
 	}
 
 	public Action getOnClickAction() {
-		return click_runnable instanceof Action ? (Action) click_runnable : Action.EMPTY;
+		return click_runnable instanceof Action ? (Action) click_runnable : Action.NONE;
 	}
 
 	private final LazyR<Anim> ra = new LazyR<>(() -> Ahover.apply(this));

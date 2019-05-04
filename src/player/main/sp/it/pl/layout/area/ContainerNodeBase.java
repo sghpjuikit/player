@@ -16,7 +16,7 @@ import sp.it.pl.main.AppAnimator;
 import sp.it.util.access.ref.LazyR;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static sp.it.util.functional.UtilKt.runnable;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
 public abstract class ContainerNodeBase<C extends Container<?>> implements ContainerNode {
@@ -33,8 +33,8 @@ public abstract class ContainerNodeBase<C extends Container<?>> implements Conta
         root_.getStyleClass().add("container-area");
 
 	    // report component graphics changes
-	    maintain(root_.parentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
-	    maintain(root_.layoutBoundsProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
+	    syncC(root_.parentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
+	    syncC(root_.layoutBoundsProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
 
         // switch to container/normal layout mode using right/left click
         root_.setOnMouseClicked(e -> {

@@ -34,7 +34,7 @@ import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.functional.Util.findFirstEmptyKey;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.syncTo;
 import static sp.it.util.ui.Util.setAnchor;
 import static sp.it.util.ui.Util.setAnchors;
@@ -203,17 +203,17 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
         // store for restoration (runLater avoids initialization problems)
         runLater(() -> {
-            maintain(w.x, v -> { if (!resizing) container.properties.put(i+"x", v.doubleValue()/rt.getWidth());});
-            maintain(w.y, v -> { if (!resizing) container.properties.put(i+"y", v.doubleValue()/rt.getHeight());});
-            maintain(w.w, v -> { if (!resizing) container.properties.put(i+"w", (w.x.get()+v.doubleValue())/rt.getWidth());});
-            maintain(w.h, v -> { if (!resizing) container.properties.put(i+"h", (w.y.get()+v.doubleValue())/rt.getHeight());});
-            maintain(APP.ui.getSnapDistance(), it -> w.snapDistance.setValue(it));
+            syncC(w.x, v -> { if (!resizing) container.properties.put(i+"x", v.doubleValue()/rt.getWidth());});
+            syncC(w.y, v -> { if (!resizing) container.properties.put(i+"y", v.doubleValue()/rt.getHeight());});
+            syncC(w.w, v -> { if (!resizing) container.properties.put(i+"w", (w.x.get()+v.doubleValue())/rt.getWidth());});
+            syncC(w.h, v -> { if (!resizing) container.properties.put(i+"h", (w.y.get()+v.doubleValue())/rt.getHeight());});
+            syncC(APP.ui.getSnapDistance(), it -> w.snapDistance.setValue(it));
             syncTo(APP.ui.getSnapping(), w.snappable);
         });
-        maintain(container.lockedUnder, it -> w.resizable.setValue(!it));
-        maintain(container.lockedUnder, it -> w.movable.setValue(!it));
-        maintain(container.getShowHeaders(), it -> w.setHeaderVisible(it));
-        maintain(container.getShowHeaders(), it -> {
+        syncC(container.lockedUnder, it -> w.resizable.setValue(!it));
+        syncC(container.lockedUnder, it -> w.movable.setValue(!it));
+        syncC(container.getShowHeaders(), it -> w.setHeaderVisible(it));
+        syncC(container.getShowHeaders(), it -> {
             if (it) {
                 w.controls.getChildren().addAll(
                     new Icon(VIEW_DASHBOARD, -1, autolayoutTootlip, () -> autoLayout(w)).styleclass("header-icon"),
@@ -224,7 +224,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             }
         });
 
-        if (cm instanceof Widget) maintain(((Widget) cm).custom_name, it -> w.setTitle(it));
+        if (cm instanceof Widget) syncC(((Widget) cm).custom_name, it -> w.setTitle(it));
         else w.setTitle("");
 
 
@@ -234,8 +234,8 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         });
 
         // report component graphics changes
-        maintain(w.root.parentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
-        maintain(w.root.boundsInParentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
+        syncC(w.root.parentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
+        syncC(w.root.boundsInParentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
 
         return w;
     }

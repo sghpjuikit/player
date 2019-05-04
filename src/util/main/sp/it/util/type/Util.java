@@ -468,7 +468,7 @@ public interface Util {
 
 	private static Class<?> getGenericPropertyTypeImpl(Type t) {
 
-		// TODO: handle types defining generic property type indirectly, like: X<T> extends Property<Generic<T>>
+		// TODO: handle types defining generic property type indirectly, like: X extends Property<T>
 		String typename = t.getTypeName();
 		if (typename.contains(VarList.class.getSimpleName())) return ObservableList.class;
 

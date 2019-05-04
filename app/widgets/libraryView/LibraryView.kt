@@ -65,7 +65,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncTo
-import sp.it.util.ui.Util.menuItem
+import sp.it.util.ui.menuItem
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoclass

@@ -2,6 +2,7 @@ package sp.it.pl.gui.objects.grid;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -46,7 +47,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
-import static sp.it.util.Util.getAt;
 import static sp.it.util.Util.isInRangeInc;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.Util.by;
@@ -951,5 +951,13 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
 			getSkinnable().addEventHandler(KEY_PRESSED, filterKeyHandler); // even filter would cause ignoring first key stroke when filter turns visible
 		}
+	}
+
+	private static boolean isInRange(int i, Collection<?> c) {
+		return i>=0 && i<c.size();
+	}
+
+	private static <T> T getAt(int i, List<T> list) {
+		return isInRange(i, list) ? list.get(i) : null;
 	}
 }

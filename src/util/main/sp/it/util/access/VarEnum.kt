@@ -22,7 +22,7 @@ open class VarEnum<T>: V<T>, EnumerableValue<T> {
     companion object {
 
         @Suppress("UNUSED_PARAMETER")
-        private fun <T> valOrFirst(v: T, enumerator: () -> Collection<T>) = v // if (v in enumerator()) v else enumerator().first()   // TODO: enable
+        private fun <T> valOrFirst(v: T, enumerator: () -> Collection<T>) = v
 
     }
 

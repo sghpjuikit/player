@@ -31,7 +31,7 @@ import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static sp.it.util.reactive.UtilKt.doIfImageLoaded;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.sync1IfImageLoaded;
 
 /**
@@ -55,7 +55,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	public GridFileThumbCell(Loader imgLoader) {
 		loader = noNull(imgLoader);
 
-		onDispose.plusAssign(maintain(parentProperty(), p -> parentVolatile = p==null ? null : p.getParent()));
+		onDispose.plusAssign(syncC(parentProperty(), p -> parentVolatile = p==null ? null : p.getParent()));
 	}
 
 	protected String computeName(Item item) {
@@ -217,7 +217,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		root.setPrefSize(-1, -1);
 		root.setMaxSize(-1, -1);
 		Anim a = new Anim(x -> root.setTranslateY(-5*x*x)).dur(millis(200));
-		onDispose.plusAssign(maintain(thumb.getView().hoverProperty(), (nv) -> a.playFromDir(nv)));
+		onDispose.plusAssign(syncC(thumb.getView().hoverProperty(), (nv) -> a.playFromDir(nv)));
 		root.setOnMouseClicked(e -> {
 			if (e.getButton()==PRIMARY && e.getClickCount()==2) {
 				onAction(getItem(), e.isShiftDown());

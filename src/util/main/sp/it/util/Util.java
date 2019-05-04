@@ -5,7 +5,6 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -103,40 +102,6 @@ public interface Util {
 
 	static String removeLastChar(String text) {
 		return text.isEmpty() ? text : text.substring(0, text.length() - 1);
-	}
-
-	static String escapeChar(String text, char escaped, char escape) {
-		if (text==null || text.isEmpty()) return text;
-
-		StringBuilder b = new StringBuilder();
-		for (int i = 0; i<text.length(); i++) {
-			char c = text.charAt(i);
-			if (c==escaped) b.append(escape);
-			b.append(c);
-		}
-		return b.toString();
-	}
-
-	static String unescapeChar(String text, char escaped, char escape) {
-		if (text==null || text.length()<=1) return text;
-
-		StringBuilder b = new StringBuilder();
-		boolean ignore = false;
-		for (int i = 0; i<text.length() - 1; i++) {
-			if (ignore) continue;
-			char c = text.charAt(i);
-			char cNext = text.charAt(i + 1);
-			if (c==escape && cNext==escaped) {
-				b.append(cNext);
-				ignore = true;
-			} else {
-				b.append(c);
-				ignore = false;
-			}
-		}
-		if (!ignore) b.append(text.charAt(text.length() - 1)); // handle last char specially
-
-		return b.toString();
 	}
 
 	static String renameAnime(String s) {
@@ -418,44 +383,6 @@ public interface Util {
 	/** @return true iff number belongs to the interval exclusive, else false */
 	static boolean isInRangeExc(double i, double min, double max) {
 		return i>min && i<max;
-	}
-
-	/** @return true iff number is a valid 0-based index of the collection, else false */
-	static boolean isInRange(int i, Collection<?> c) {
-		return i>=0 && i<c.size();
-	}
-
-	/** @return true iff number is a valid 0-based index of the array, else false */
-	static <T> boolean isInRange(int i, T[] c) {
-		return i>=0 && i<c.length;
-	}
-
-	/** @return element at specified index or null if out of bounds or element null */
-	static <T> T getAt(int i, List<T> list) {
-		return isInRange(i, list) ? list.get(i) : null;
-	}
-
-	/** @return element at specified index or null if out of bounds or element null */
-	static <T> T getAt(int i, T[] array) {
-		return isInRange(i, array) ? array[i] : null;
-	}
-
-	/** Returns sum of squares of all numbers. */
-	static double sqrΣ(double number) {
-		return number*number;
-	}
-
-	/** Returns sum of squares of all numbers. */
-	static double sqrΣ(double number1, double number2) {
-		return number1*number1 + number2*number2;
-	}
-
-	/** Returns sum of squares of all numbers. */
-	static double sqrΣ(double... numbers) {
-		double Σ = 0;
-		for (double x : numbers)
-			Σ += x*x;
-		return Σ;
 	}
 
 	/** Returns {@code sqrt(a^2 + b^2)}. */

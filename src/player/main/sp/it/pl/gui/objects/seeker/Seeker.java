@@ -77,7 +77,7 @@ import static sp.it.util.functional.TryKt.getAny;
 import static sp.it.util.functional.Util.minBy;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.layHeaderRight;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 import static sp.it.util.ui.UtilKt.typeText;
@@ -588,7 +588,7 @@ public final class Seeker extends AnchorPane {
 				p = new PopOver<>(content);
 				p.getSkinn().setContentPadding(new Insets(10));
 				p.arrowLocation.set(ArrowLocation.TOP_CENTER);
-				maintain(isEdited, it -> p.setAutoHide(!it)); // breaks editing >> p.setAutoHide(true);
+				syncC(isEdited, it -> p.setAutoHide(!it)); // breaks editing >> p.setAutoHide(true);
 				p.setHideOnEscape(true);
 				p.setHideOnClick(false); // will emulate on our own
 				p.setAutoFix(false);
@@ -643,7 +643,7 @@ public final class Seeker extends AnchorPane {
 			ta = new TextArea();
 
 			// resize on text change
-			maintain(ta.textProperty(), text -> {
+			syncC(ta.textProperty(), text -> {
 				int len = text==null ? 0 : text.length();
 				double w = 110 + len/3;
 				ta.setPrefWidth(w);
@@ -668,7 +668,7 @@ public final class Seeker extends AnchorPane {
 				 warnB.size(11);
 				 warnB.styleclass(ConfigField.STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
 				 warnB.tooltip(warnTooltip);
-			maintain(ta.textProperty(), text -> {
+			syncC(ta.textProperty(), text -> {
 				Try<String,String> result = validateChapterText(text);
 				warnB.setVisible(result.isError());
 				commitB.setDisable(result.isError());

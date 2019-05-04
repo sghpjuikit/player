@@ -139,7 +139,7 @@ import static sp.it.util.functional.Util.noDups;
 import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.UtilKt.containsMouse;
 import static sp.it.util.ui.UtilKt.createIcon;
 import static sp.it.util.ui.UtilKt.pseudoclass;
@@ -241,7 +241,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
         // style
         onClose.plusAssign(
-            maintain(APP.ui.getFont(), f -> {
+            syncC(APP.ui.getFont(), f -> {
                 grid.getRowConstraints().forEach(it -> it.setPrefHeight(24*f.getSize()/12.0));
             })
         );

@@ -32,7 +32,7 @@ import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.ALL;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.NONE;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.sync1If;
 
 /**
@@ -103,25 +103,25 @@ public class WindowBase {
 		fixJavaFxNonDecoratedMinimization();
 
 		// window properties may change externally so let us take notice
-		maintain(s.xProperty(), v -> {
+		syncC(s.xProperty(), v -> {
 			if (!isFullscreen() && isMaximized()==NONE) {
 				X.setValue(v);
 				updateScreen();
 			}
 		});
-		maintain(s.yProperty(), v -> {
+		syncC(s.yProperty(), v -> {
 			if (!isFullscreen() && isMaximized()==NONE) {
 				Y.setValue(v);
 				updateScreen();
 			}
 		});
-		maintain(s.widthProperty(), v ->  {
+		syncC(s.widthProperty(), v ->  {
 			if (!isFullscreen() && isMaximized()==NONE) {
 				W.setValue(v);
 				updateScreen();
 			}
 		});
-		maintain(s.heightProperty(), v ->  {
+		syncC(s.heightProperty(), v ->  {
 			if (!isFullscreen() && isMaximized()==NONE) {
 				H.setValue(v);
 				updateScreen();

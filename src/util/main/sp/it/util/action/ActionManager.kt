@@ -155,7 +155,7 @@ object ActionRegistrar {
     val hotkeys by lazy { Hotkeys { Platform.runLater(it) } }
 
     private val actions = MapSet<String, Action>(ConcurrentHashMap()) { it.name }.apply {
-        this += Action.EMPTY
+        this += Action.NONE
     }
 
     /**

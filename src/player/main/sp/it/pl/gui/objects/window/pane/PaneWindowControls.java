@@ -24,7 +24,7 @@ import static sp.it.pl.gui.objects.window.Resize.SE;
 import static sp.it.pl.gui.objects.window.Resize.SW;
 import static sp.it.pl.gui.objects.window.Resize.W;
 import static sp.it.pl.main.AppBuildersKt.resizeButton;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.initClip;
 import static sp.it.util.ui.UtilKt.pseudoclass;
@@ -54,7 +54,7 @@ public class PaneWindowControls extends WindowPane {
 		focused.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFocused, nv));
 
 		// disable resizing behavior completely when not resizable
-		maintain(resizable, it ->
+		syncC(resizable, it ->
 			borders.getChildren().stream()
 				.filter(c -> !(c instanceof Pane))
 				.forEach(b -> b.setMouseTransparent(!it))

@@ -81,7 +81,7 @@ import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
-import static sp.it.util.reactive.UtilKt.maintain;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.onItemSyncWhile;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
@@ -1026,7 +1026,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             };
             ConfigField cf = create(Config.forProperty(c.getType(),"", vo.real));
             Util.setField(cf.config, "defaultValue", c.getDefaultValue());
-            maintain(vo.override, it -> cf.getControl().setDisable(!it));
+            syncC(vo.override, it -> cf.getControl().setDisable(!it));
             root.getChildren().addAll(cf.getNode(),bf.getNode());
         }
         @Override

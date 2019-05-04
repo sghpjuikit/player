@@ -20,12 +20,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import sp.it.util.functional.Try;
 import static sp.it.util.Util.filenamizeString;
 import static sp.it.util.dev.DebugKt.logger;
-import static sp.it.util.file.UtilKt.listChildren;
-import static sp.it.util.functional.Try.Java.error;
-import static sp.it.util.functional.Try.Java.ok;
 
 public interface Util {
 
@@ -140,43 +136,11 @@ public interface Util {
 	 * @return name of the file without suffix
 	 * @throws NullPointerException if parameter null
 	 */
-	// TODO: remove
-	static String getName(File f) {
+	private static String getName(File f) {
 		String n = f.getName();
 		if (n.isEmpty()) return f.toString();
 		int i = n.lastIndexOf('.');
 		return i==-1 ? n : n.substring(0, i);
-	}
-
-	/**
-	 * Returns name of the file without suffix denoted by this URI. This is just
-	 * the last name in the pathname's name sequence.
-	 * <p/>
-	 * If the URI denotes a directory its name will be returned. If the uri does not denote
-	 * a file its path will still be parsed and last name in the pathname's
-	 * sequence will be attempted to be returned. Therefore if the URI denotes
-	 * file accessed by http protocol the returned string will be the name of
-	 * the file without suffix - consistent with file based URIs.
-	 * However that does not have to be true for all schemes and URIs.
-	 * <p/>
-	 * For file based URIs, this method is equivalent to
-	 * {@link #getName(java.io.File)}.
-	 * <p/>
-	 * If the path part of the URI is empty or null empty string will be returned.
-	 *
-	 * @return name of the file without suffix
-	 * @throws NullPointerException if parameter null
-	 * @throws IllegalArgumentException if uri param scheme not file - if uri does not represent a file
-	 */
-	// TODO: remove
-	static String getName(URI u) {
-		String p = u.getPath();
-		if (p==null || p.isEmpty()) return "";   // badly damaged http URL could get here
-		int i = p.lastIndexOf('/');
-		if (i==-1 || p.length()<2) return p;     // another exceptional state check
-		p = p.substring(i + 1);       // remove leading '/' character
-		i = p.lastIndexOf('.');     // remove extension
-		return (i==-1) ? p : p.substring(0, i);
 	}
 
 	// TODO: make robust and public
@@ -192,16 +156,11 @@ public interface Util {
 	/**
 	 * Writes a textual file with specified content, name and location.
 	 *
-	 * @param filepath file to create. If exists, it will be overwritten. Do not use .txt extension as it can cause
-	 * problems with newline characters.
+	 * @param file file to create. If exists, it will be overwritten.
 	 * @param content Text that will be written to the file.
 	 * @return true if no IOException occurs else false
 	 * @throws RuntimeException when param is directory
 	 */
-	static boolean writeFile(String filepath, String content) {
-		return writeFile(new File(filepath), content);
-	}
-
 	static boolean writeFile(File file, String content) {
 		if (file.isDirectory()) throw new RuntimeException("File must not be directory.");
 
@@ -244,43 +203,6 @@ public interface Util {
 			if (!noSuchFile) logger(Util.class).error("Problem reading file {}. File was not read.", f, e);
 			return Stream.empty();
 		}
-	}
-
-	/**
-	 * Deletes the file/directory permanently.<br/>
-	 * If the file denotes a directory, it will be deleted including its content.
-	 * <p/>
-	 * The file will not be recycled, but deleted permanently, which is not what is usually desired when deletion is
-	 * invoked directly by a user. See {@link sp.it.util.system.EnvironmentKt#recycle(java.io.File)}.
-	 *
-	 * @param f nonnull file
-	 * @return success of true if file was deleted, of false if did not exist or error if error occurs during deletion
-	 * @throws java.lang.RuntimeException if parameter null
-	 */
-	static Try<Boolean,Exception> deleteFile(File f) {
-		if (f.isDirectory()) {
-			deleteDirContent(f);
-		}
-
-		try {
-			Files.delete(f.toPath());
-			return ok(true);
-		} catch (NoSuchFileException e) {
-			return ok(false);
-		} catch (IOException | SecurityException e) {
-			logger(Util.class).error("Could not delete file {}", f, e);
-			return error(e);
-		}
-	}
-
-	/**
-	 * Deletes content of the directory, but not directory itself. Does nothing when not a directory.
-	 *
-	 * @param dir nonnull file
-	 * @throws java.lang.RuntimeException if parameter null
-	 */
-	static void deleteDirContent(File dir) {
-		listChildren(dir).forEach(Util::deleteFile);
 	}
 
 	/**
@@ -342,6 +264,7 @@ public interface Util {
 
 			// backup old file
 			Util.renameAsOld(new File(target, name));
+
 			// copy file
 			Files.copy(f.toPath(), nf.toPath(), options);
 		} catch (IOException e) {
@@ -389,13 +312,13 @@ public interface Util {
 
 	/**
 	 * Renames file by suffixing it with a number, utilizing
-	 * {@link #getFirstAvailableOld(java.io.File, java.lang.String, java.lang.String, int)}
+	 * {@link #findFirstNonExistent(java.io.File, java.lang.String, java.lang.String, int)}
 	 */
 	static void renameAsOld(File f) {
 		if (f!=null && f.exists()) {
 			// remove name
 			String suffix = getSuffix(f.toURI());
-			f.renameTo(getFirstAvailableOld(f.getParentFile(), getName(f), suffix, 1));
+			f.renameTo(findFirstNonExistent(f.getParentFile(), getName(f), suffix, 1));
 		}
 	}
 
@@ -405,9 +328,9 @@ public interface Util {
 	 * <p/>
 	 * Useful to avoid rewriting files on file move/copy.
 	 */
-	static File getFirstAvailableOld(File location, String name, String suffix, int i) {
+	static File findFirstNonExistent(File location, String name, String suffix, int i) {
 		File f = new File(location, name + "-" + i + "." + suffix);
-		if (f.exists()) return getFirstAvailableOld(location, name, suffix, i + 1);
+		if (f.exists()) return findFirstNonExistent(location, name, suffix, i + 1);
 		else return f;
 	}
 

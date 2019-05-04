@@ -38,12 +38,19 @@ operator fun IntegerProperty.setValue(thisRef: Any, property: KProperty<*>, valu
 operator fun ObservableBooleanValue.getValue(thisRef: Any, property: KProperty<*>) = get()
 operator fun BooleanProperty.setValue(thisRef: Any, property: KProperty<*>, value: Boolean) = set(value)
 
+/** Sets value to negated value of current value. */
 fun WritableValue<Boolean>.toggle() {
     value = !value
 }
 
-fun <T: Enum<T>> WritableValue<T>.toggleEnum() {
-    value = SequentialValue.next(value)
+/** Sets value to the enum value following the current value based on declaration order. Loop back to 1st value. */
+fun <T: Enum<T>> WritableValue<T>.toggleNext() {
+    value = Values.next(value)
+}
+
+/** Sets value to the enum value preceding the current value based on declaration order. Loop back to last value. */
+fun <T: Enum<T>> WritableValue<T>.togglePrevious() {
+    value = Values.previous(value)
 }
 
 operator fun ObservableNumberValue.plus(other: ObservableNumberValue) = Bindings.add(this, other) as DoubleBinding
@@ -88,11 +95,13 @@ operator fun Int.div(other: ObservableNumberValue) = Bindings.divide(this, other
 operator fun ObservableValue<Boolean>.not() = v(!this@not.value).apply {
     this@not sync { value = !it }
 }
+
 @Experimental("untested")
 operator fun ObservableValue<Boolean>.plus(other: ObservableValue<Boolean>) = v(this@plus.value || other.value).apply {
     this@plus sync { value = it || other.value }
     other sync { value = this@plus.value || it }
 }
+
 @Experimental("untested")
 operator fun ObservableValue<Boolean>.times(other: ObservableValue<Boolean>) = v(this@times.value && other.value).apply {
     this@times sync { value = it && other.value }

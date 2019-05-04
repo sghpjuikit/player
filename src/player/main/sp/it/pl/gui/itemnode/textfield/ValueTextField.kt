@@ -1,10 +1,10 @@
 package sp.it.pl.gui.itemnode.textfield
 
+import javafx.beans.value.WritableValue
 import javafx.scene.control.TextField
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import sp.it.pl.gui.objects.textfield.DecoratedTextField
-import sp.it.util.access.AccessibleValue
 import sp.it.util.functional.invoke
 import sp.it.util.reactive.onEventDown
 import java.util.function.BiConsumer
@@ -18,7 +18,7 @@ import java.util.function.BiConsumer
  *
  * @param <T> type of the value
  */
-abstract class ValueTextField<T>: DecoratedTextField, AccessibleValue<T> {
+abstract class ValueTextField<T>: DecoratedTextField, WritableValue<T> {
 
     constructor(textValueConverter: (T) -> String): super() {
         this.textValueConverter = textValueConverter

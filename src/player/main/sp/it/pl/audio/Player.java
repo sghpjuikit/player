@@ -30,6 +30,7 @@ import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.SongReadingKt;
 import sp.it.pl.layout.widget.controller.io.InOutput;
 import sp.it.pl.main.AppProgress;
+import sp.it.util.access.Values;
 import sp.it.util.action.IsAction;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.FxTimer;
@@ -605,12 +606,12 @@ public class Player {
 
 	@IsAction(name = "Toggle looping", desc = "Switch between playlist looping mode.", keys = "ALT+L")
 	public static void toggleLoopMode() {
-		setLoopMode(getLoopMode().next());
+		setLoopMode(Values.next(getLoopMode()));
 	}
 
 	public static void toggleLoopMode(MouseEvent e) {
-		if (e.getButton()==PRIMARY) setLoopMode(getLoopMode().next());
-		if (e.getButton()==SECONDARY) setLoopMode(getLoopMode().previous());
+		if (e.getButton()==PRIMARY) setLoopMode(Values.next(getLoopMode()));
+		if (e.getButton()==SECONDARY) setLoopMode(Values.previous(getLoopMode()));
 	}
 
 	public static void setLoopMode(LoopMode mode) {

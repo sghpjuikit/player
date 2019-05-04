@@ -18,6 +18,7 @@ import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions
 import sp.it.pl.main.Settings
+import sp.it.util.access.Values
 import sp.it.util.action.IsAction
 import sp.it.util.collections.project
 import sp.it.util.collections.setTo
@@ -224,7 +225,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     fun toggleMaximize() = APP.windowManager.getActive().orNull()?.toggleMaximize()
 
     @IsAction(name = "Loop maximized state", desc = "Switch to different maximized window states.", keys = "F3")
-    fun toggleMaximizedState() = APP.windowManager.getActive().orNull()?.let { it.isMaximized = it.isMaximized.next() }
+    fun toggleMaximizedState() = APP.windowManager.getActive().orNull()?.let { it.isMaximized = Values.next(it.isMaximized) }
 
     @IsAction(name = "Fullscreen", desc = "Switch fullscreen mode.", keys = "F12")
     fun toggleFullscreen() = APP.windowManager.getActive().orNull()?.toggleFullscreen()

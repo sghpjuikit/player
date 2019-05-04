@@ -31,6 +31,7 @@ import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature;
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature;
+import sp.it.util.access.PropertiesKt;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
 import sp.it.util.async.executor.EventReducer;
@@ -62,6 +63,7 @@ import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.showAppProgress;
+import static sp.it.util.access.PropertiesKt.toggle;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.executor.EventReducer.toFirstDelayed;
 import static sp.it.util.async.executor.EventReducer.toLast;
@@ -228,14 +230,14 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         root.getChildren().add(thumb_root);
         root.setOnMouseClicked( e -> {
             if (e.getButton()==SECONDARY && showThumbnails.getValue()) {
-                showThumbnails.setCycledValue();
+                toggle(showThumbnails);
                 e.consume();
             }
             if (e.getButton()==PRIMARY) {
                 if (e.getY()>0.8*root.getHeight() && e.getX()>0.7*root.getWidth()) {
-                    theater_mode.setCycledValue();
+                    toggle(theater_mode);
                 } else {
-                    showThumbnails.setCycledValue();
+                    toggle(showThumbnails);
                 }
                 e.consume();
             }
@@ -243,7 +245,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         // prevent scrollpane from preventing show thumbnails change
         thumb_root.setOnMouseClicked(e -> {
             //if (e.getButton()==PRIMARY) {
-                showThumbnails.setCycledValue();
+                toggle(showThumbnails);
                 e.consume();
             //}
         });

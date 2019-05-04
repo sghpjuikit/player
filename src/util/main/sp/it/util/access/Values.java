@@ -3,21 +3,7 @@ package sp.it.util.access;
 import java.util.List;
 import static sp.it.util.type.Util.getEnumConstants;
 
-/**
- * Value that is part of a sequence.
- * <p/>
- * The sequence is normally deterministic, but is not limited to be. It can also
- * be random, or influenced externally.
- *
- * @param <V> type of value.
- */
-public interface SequentialValue<V> {
-
-	/** @return next sequence value. */
-	V next();
-
-	/** @return previous sequence value. */
-	V previous();
+public interface Values {
 
 	static int next(int v) { return v + 1; }
 
@@ -66,7 +52,7 @@ public interface SequentialValue<V> {
 	 * @return next cyclical enum constant according to its ordinal number.
 	 */
 	static <E extends Enum> E next(E val) {
-		E values[] = getEnumConstants(val.getClass());
+		E[] values = getEnumConstants(val.getClass());
 		int index = (val.ordinal() + 1)%values.length;
 		return values[index];
 	}
@@ -78,7 +64,7 @@ public interface SequentialValue<V> {
 	 * @return previous cyclical enum constant according to its ordinal number.
 	 */
 	static <E extends Enum> E previous(E val) {
-		E values[] = getEnumConstants(val.getClass());
+		E[] values = getEnumConstants(val.getClass());
 		int ord = val.ordinal();
 		int index = ord==0 ? values.length - 1 : ord - 1;
 		return values[index];
@@ -115,7 +101,7 @@ public interface SequentialValue<V> {
 	/** @return previous modular element in the list or null if empty */
 	static <T> T previous(List<T> list, T element) {
 		if (list.isEmpty()) return null;
-		if (element==null) return list.isEmpty() ? null : list.get(0);
+		if (element==null) return list.get(0);
 		int index = list.indexOf(element);
 		return list.get(index<0 ? 0 : decrIndex(list, index));
 	}
@@ -123,7 +109,7 @@ public interface SequentialValue<V> {
 	/** @return next modular element in the array or null if empty */
 	static <T> T next(T[] list, T element) {
 		if (list.length==0) return null;
-		if (element==null) return list.length<1 ? null : list[0];
+		if (element==null) return list[0];
 		int index = -1;
 		for (int i = 0; i<list.length; i++)
 			if (element.equals(list[i])) {

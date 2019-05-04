@@ -52,6 +52,8 @@ import sp.it.pl.web.WebSearchUriBuilder
 import sp.it.pl.web.WikipediaQBuilder
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.minus
+import sp.it.util.access.toggleNext
+import sp.it.util.access.togglePrevious
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.animPar
 import sp.it.util.async.NEW
@@ -177,8 +179,8 @@ class GameView(widget: Widget): SimpleController(widget) {
                         if (preserveAspectRatio) nh = nw/cellSizeRatio.get().ratio
                         applyCellSize(nw, nh)
                     } else {
-                        if (isInc) cellSize.setPreviousValue()
-                        else cellSize.setNextValue()
+                        if (isInc) cellSize.togglePrevious()
+                        else cellSize.toggleNext()
                     }
                 }
             }

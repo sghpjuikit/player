@@ -1,5 +1,6 @@
 package sp.it.util.conf
 
+import sp.it.util.access.toggle
 import sp.it.util.action.Action
 import sp.it.util.action.ActionRegistrar
 import sp.it.util.action.IsAction
@@ -77,11 +78,13 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
         configs += config
 
         // generate boolean toggle actions
+        @Suppress("UNCHECKED_CAST")
         config.takeIf { it.type.isSubclassOf<Boolean>() && it.isEditable.isByUser }
+                ?.let { it as Config<Boolean> }
                 ?.let {
                     val name = "${it.guiName} - toggle"
                     val description = "Toggles value ${it.name} between true/false"
-                    val r = { if (it.isEditableByUserRightNow()) it.setNextValue() }
+                    val r = { if (it.isEditableByUserRightNow()) it.toggle() }
                     val a = Action(name, r, description, it.group, "", false, false)
                     rawSet(a)
                     ActionRegistrar.getActions() += a

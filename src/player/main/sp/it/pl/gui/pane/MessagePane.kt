@@ -8,7 +8,7 @@ import javafx.scene.text.TextAlignment
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.IconFA
-import sp.it.util.access.toggleEnum
+import sp.it.util.access.toggleNext
 import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.sync
 import sp.it.util.ui.Util.layScrollVTextCenter
@@ -46,7 +46,7 @@ class MessagePane: OverlayPane<String>() {
                 lay+= Icon(IconFA.ANGLE_RIGHT, -1.0, "Next message").onClickDo { visitRight() }
                 lay += Icon(null, -1.0, "Toggle text alignment").apply {
                     text.textAlignmentProperty() sync {
-                        val glyph = when (it) {
+                        val glyph = when (it!!) {
                             TextAlignment.CENTER -> IconFA.ALIGN_CENTER
                             TextAlignment.JUSTIFY -> IconFA.ALIGN_JUSTIFY
                             TextAlignment.RIGHT -> IconFA.ALIGN_RIGHT
@@ -55,7 +55,7 @@ class MessagePane: OverlayPane<String>() {
                         icon(glyph)
                     }
                     onClickDo {
-                        text.textAlignmentProperty().toggleEnum()
+                        text.textAlignmentProperty().toggleNext()
                     }
                 }
                 lay += supplyIf(display.value!=Display.WINDOW) {

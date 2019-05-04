@@ -2,8 +2,9 @@ package sp.it.util.access;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import javafx.beans.value.WritableValue;
 
-public class FAccessor<T> implements AccessibleValue<T> {
+public class FAccessor<T> implements WritableValue<T> {
 
 	private final Consumer<T> setter;
 	private final Supplier<T> getter;

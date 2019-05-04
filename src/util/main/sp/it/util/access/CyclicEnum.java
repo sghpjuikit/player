@@ -1,12 +1,12 @@
 package sp.it.util.access;
 
 /**
- * Extends behavior for {@link Enum} types to include {@link SequentialValue
+ * Extends behavior for {@link Enum} types to include {@link Values
  *
  * @param <E> {@link Enum} type. It must be the same type as the extending enum. For example: {@code enum MyEnum
  * implements CyclicEnum<MyEnum>}
  */
-public interface CyclicEnum<E extends Enum<E>> extends SequentialValue<E> {
+public interface CyclicEnum<E extends Enum<E>> {
 
 	/**
 	 * Returns cyclically next enum constant value from list of all values.
@@ -16,9 +16,8 @@ public interface CyclicEnum<E extends Enum<E>> extends SequentialValue<E> {
 	 * @return next cyclical enum constant according to its ordinal number.
 	 */
 	@SuppressWarnings("unchecked")
-	@Override
 	default E next() {
-		return SequentialValue.next((E) this);
+		return Values.next((E) this);
 	}
 
 	/**
@@ -29,9 +28,8 @@ public interface CyclicEnum<E extends Enum<E>> extends SequentialValue<E> {
 	 * @return previous cyclical enum constant according to its ordinal number.
 	 */
 	@SuppressWarnings("unchecked")
-	@Override
 	default E previous() {
-		return SequentialValue.previous((E) this);
+		return Values.previous((E) this);
 	}
 
 }

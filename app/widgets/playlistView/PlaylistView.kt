@@ -26,6 +26,7 @@ import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.PLAYLIST
 import sp.it.pl.main.scaleEM
 import sp.it.util.access.Vo
+import sp.it.util.access.toggle
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Config
@@ -120,7 +121,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
         playVisible sync {
             table.filterPane.button?.apply {
                 icon(if (it) IconFA.FILTER else IconMD.FILTER_OUTLINE)
-                onClickDo { playVisible.setCycledValue() }
+                onClickDo { playVisible.toggle() }
                 tooltip(
                         if (it) "Disable filter for playback. Causes the playback to ignore the filter."
                         else "Enable filter for playback. Causes the playback to play only displayed items."

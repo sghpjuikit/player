@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.util.access.CyclicEnum;
-import sp.it.util.access.SequentialValue;
+import sp.it.util.access.Values;
 import static sp.it.util.dev.FailKt.noNull;
 
 /**
@@ -61,12 +61,12 @@ public class PlayingSequence {
                         (size, index, current_item, playlist) -> {
                             if (size==0) return null;
                             if (current_item==null) return playlist.get(0);
-                            else return playlist.get(SequentialValue.decrIndex(size, index));
+                            else return playlist.get(Values.decrIndex(size, index));
                         },
                         (size, index, current_item, playlist) -> {
                             if (size==0) return null;
                             if (current_item==null) return playlist.get(0);
-                            else return playlist.get(SequentialValue.incrIndex(size, index));
+                            else return playlist.get(Values.incrIndex(size, index));
                         });
             }
         },
@@ -87,12 +87,12 @@ public class PlayingSequence {
                         (size, index, current_item, playlist) -> {
                             if (size==0 || index==0) return null;
                             if (current_item==null) return playlist.get(0);
-                            return playlist.get(SequentialValue.decrIndex(size, index));
+                            return playlist.get(Values.decrIndex(size, index));
                         },
                         (size, index, current_item, playlist) -> {
                             if (size==0 || index==size - 1) return null;
                             if (current_item==null) return playlist.get(0);
-                            return playlist.get(SequentialValue.incrIndex(size, index));
+                            return playlist.get(Values.incrIndex(size, index));
                         });
             }
         },

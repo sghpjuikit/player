@@ -336,9 +336,9 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 		properties.putAll(w.properties);
 
 		Util.setField(this, "id", w.id); // (nasty cheat) not sure if this 100% required
-		preferred.setVof(w.preferred);
-		forbid_use.setVof(w.forbid_use);
-		custom_name.setVof(w.custom_name);
+		preferred.setValue(w.preferred.getValue());
+		forbid_use.setValue(w.forbid_use.getValue());
+		custom_name.setValue(w.custom_name.getValue());
 		loadType.set(w.loadType.get());
 		locked.set(w.locked.get());
 

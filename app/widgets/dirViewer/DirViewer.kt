@@ -35,6 +35,8 @@ import sp.it.pl.main.showAppProgress
 import sp.it.util.Sort.ASCENDING
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
+import sp.it.util.access.toggleNext
+import sp.it.util.access.togglePrevious
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.future.Fut.Companion.fut
@@ -198,8 +200,8 @@ class DirViewer(widget: Widget): SimpleController(widget) {
                     if (preserveAspectRatio) nh = nw/cellSizeRatio.value.ratio
                     applyCellSize(nw, nh)
                 } else {
-                    if (isInc) cellSize.setPreviousValue()
-                    else cellSize.setNextValue()
+                    if (isInc) cellSize.togglePrevious()
+                    else cellSize.toggleNext()
                 }
             }
         }

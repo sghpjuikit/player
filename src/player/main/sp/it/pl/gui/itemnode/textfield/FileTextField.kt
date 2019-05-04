@@ -6,6 +6,7 @@ import javafx.scene.input.DragEvent.DRAG_OVER
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
+import sp.it.util.access.toggleNext
 import sp.it.util.access.v
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
@@ -25,7 +26,7 @@ class FileTextField(constraint: FileActor): ValueTextField<File>({ APP.converter
 
         if (constraint==FileActor.ANY) {
             val b2 = right.value as ArrowDialogButton
-            val b1 = Icon(null, 7.0).onClickDo { type.setNextValue() }.tooltip("Switch mode between file and directory")
+            val b1 = Icon(null, 7.0).onClickDo { type.toggleNext() }.tooltip("Switch mode between file and directory")
 
             right.value = layHorizontally(5.0, CENTER_RIGHT, b1, b2)
 

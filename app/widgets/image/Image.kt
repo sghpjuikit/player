@@ -15,6 +15,7 @@ import sp.it.pl.main.getImageFileOrUrl
 import sp.it.pl.main.hasImageFileOrUrl
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.scaleEM
+import sp.it.util.access.toggleNext
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
@@ -65,7 +66,7 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
                 { e -> e.dragboard.getImageFileOrUrl() ui { inputImg.value = it } }
         )
         root.onEventDown(KEY_PRESSED, ENTER) { img?.let { APP.actions.openImageFullscreen(it) } }
-        root.onEventDown(KEY_PRESSED, SPACE) { fitFrom.setNextValue() }
+        root.onEventDown(KEY_PRESSED, SPACE) { fitFrom.toggleNext() }
 
         inputImg.value = img
     }

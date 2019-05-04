@@ -93,8 +93,9 @@ import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.getAnyFut;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.util.access.SequentialValue.next;
-import static sp.it.util.access.SequentialValue.previous;
+import static sp.it.util.access.PropertiesKt.toggle;
+import static sp.it.util.access.Values.next;
+import static sp.it.util.access.Values.previous;
 import static sp.it.util.animation.Anim.animPar;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.Util.filter;
@@ -339,7 +340,7 @@ public class Window extends WindowBase {
 		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
 
 
-		Icon miniB = new Icon(null, -1, "Toggle dock", () -> APP.windowManager.getDockShow().setCycledValue()).styleclass("header-icon");
+		Icon miniB = new Icon(null, -1, "Toggle dock", () -> toggle(APP.windowManager.getDockShow())).styleclass("header-icon");
 		maintain(miniB.hoverProperty(), it -> miniB.icon(it ? ANGLE_DOUBLE_UP : ANGLE_UP));
 		Icon onTopB = new Icon(null, -1, "Always on top\n\nForbid hiding this window behind other application windows", this::toggleAlwaysOnTop).styleclass("header-icon");
 		maintain(alwaysOnTop, it -> onTopB.icon(it ? SQUARE : SQUARE_ALT));

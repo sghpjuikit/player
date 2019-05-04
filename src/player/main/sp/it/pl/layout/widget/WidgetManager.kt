@@ -20,7 +20,7 @@ import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
-import sp.it.util.access.SequentialValue
+import sp.it.util.access.Values
 import sp.it.util.async.FX
 import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.executor.EventReducer
@@ -532,7 +532,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         fun selectNextWidget(root: Container<*>) {
             val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
             if (all.size<=1) return
-            val i = SequentialValue.incrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
+            val i = Values.incrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
             all.getOrNull(i)?.focus()
         }
 
@@ -540,7 +540,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         fun selectPreviousWidget(root: Container<*>) {
             val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
             if (all.size<=1) return
-            val iNew = SequentialValue.decrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
+            val iNew = Values.decrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
             all.getOrNull(iNew)?.focus()
         }
 

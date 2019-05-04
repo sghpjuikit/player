@@ -25,7 +25,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.util.access.SequentialValue.next;
+import static sp.it.util.access.Values.next;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.SubscriptionKt.on;

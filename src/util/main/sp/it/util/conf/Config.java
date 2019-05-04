@@ -15,7 +15,6 @@ import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import org.slf4j.Logger;
-import sp.it.util.access.AccessibleValue;
 import sp.it.util.access.EnumerableValue;
 import sp.it.util.access.TypedValue;
 import sp.it.util.access.V;
@@ -67,7 +66,7 @@ import static sp.it.util.type.Util.unPrimitivize;
  *
  * @param <T> type of value of this config
  */
-public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, ConverterString<T>, TypedValue<T>, EnumerableValue<T> {
+public abstract class Config<T> implements WritableValue<T>, Configurable<T>, ConverterString<T>, TypedValue<T>, EnumerableValue<T> {
 
 	private static final Logger LOGGER = logger(Config.class);
 
@@ -738,16 +737,6 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 		@Override
 		public void setValue(ObservableList<T> val) {}
 
-		@Override
-		public ObservableList<T> next() {
-			return getValue();
-		}
-
-		@Override
-		public ObservableList<T> previous() {
-			return getValue();
-		}
-
 		//************************* string converting
 
 		@Override
@@ -920,7 +909,7 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
 	 * Use when wrapping the value is not desired, rather it is defined by a means
 	 * of accessing it.
 	 */
-	public static class AccessorConfig<T> extends ConfigBase<T> implements AccessibleValue<T> {
+	public static class AccessorConfig<T> extends ConfigBase<T> implements WritableValue<T> {
 
 		private final Consumer<T> setter;
 		private final Supplier<T> getter;

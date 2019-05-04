@@ -77,6 +77,7 @@ import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
 import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 import java.nio.file.WatchEvent.Kind
 import java.util.Optional
+import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
 import javax.tools.ToolProvider
 import kotlin.math.ceil
@@ -417,17 +418,20 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
                         .redirectOutput(Redirect.PIPE)
                         .redirectError(Redirect.PIPE)
                         .start()
-                val success = process.waitFor()
+
+                process.waitFor(1, TimeUnit.MINUTES)
+
+                val success = process.exitValue()
                 val textStdout = process.inputStream.bufferedReader(Charsets.UTF_8).readText().prettifyCompilerOutput()
                 val textStdErr = process.errorStream.bufferedReader(Charsets.UTF_8).readText().prettifyCompilerOutput()
                 val isSuccess = success==0
 
                 if (isSuccess) logger.info { "Compilation succeeded$textStdout" }
-                else logger.error { "Compilation failed$textStdErr" }
+                else logger.error { "Compilation failed$textStdout$textStdErr" }
 
                 return if (isSuccess) Try.ok() else Try.error("Compilation failed with errors$textStdErr")
             } catch (e: Exception) {
-                logger.error { "Compilation failed" }
+                logger.error(e) { "Compilation failed" }
                 return Try.error(e.message ?: "")
             }
         }

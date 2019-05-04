@@ -38,6 +38,7 @@ import sp.it.util.math.P
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
 import sp.it.util.system.getWallpaperFile
@@ -80,21 +81,23 @@ abstract class OverlayPane<in T>: StackPane() {
 
     /** Graphical content or null if none. Setting the same content has no effect. */
     var content: Pane? = null
-        set(c) {
-            if (c===field) return
+        set(nv) {
+            val ov = field
+            if (nv===ov) return
             resizing?.unsubscribe()
 
-            if (c==null) {
+            if (ov!=null) ov.styleClass -= CONTENT_STYLECLASS
+            if (nv!=null) nv.styleClass += CONTENT_STYLECLASS
+
+            if (nv==null) {
                 children.clear()
-                field!!.styleClass -= CONTENT_STYLECLASS
             } else {
-                children setTo listOf(c, layStack(resizeB, Pos.BOTTOM_RIGHT))
+                children setTo listOf(nv, layStack(resizeB, Pos.BOTTOM_RIGHT))
                 resizeB.parent.isManaged = false
-                resizeB.parent.isMouseTransparent = true
-                c.styleClass += CONTENT_STYLECLASS
-                resizing = c.paddingProperty() syncTo (resizeB.parent as StackPane).paddingProperty()
+                resizeB.parent.isPickOnBounds = false
+                resizing = nv.paddingProperty() syncTo (resizeB.parent as StackPane).paddingProperty()
             }
-            field = c
+            field = nv
         }
 
     init {
@@ -125,12 +128,12 @@ abstract class OverlayPane<in T>: StackPane() {
 
     private lateinit var displayUsedForShow: ScreenGetter // prevents inconsistency in start() and stop(), see use
     private val animation by lazy { anim(APP.animationFps) { animDo(it) }.dur(200.millis).intpl { it*it } } // lowering fps can help on hd screens & low-end hardware
-    private var stg: Stage? = null
     private val blurBack = BoxBlur(0.0, 0.0, 3)  // we need best possible quality
     private val blurFront = BoxBlur(0.0, 0.0, 1) // we do not need quality, hence iterations==1
     private var opacityNode: Node? = null
     private var blurFrontNode: Node? = null
     private var blurBackNode: Node? = null
+    protected var stage: Stage? = null
 
 
     /** Show this pane with given value. */
@@ -243,7 +246,7 @@ abstract class OverlayPane<in T>: StackPane() {
                 }
                 val root = stackPane(stackPane(bgr, contentImg))
 
-                op.stg = createFMNTStage(screen, false).apply {
+                op.stage = createFMNTStage(screen, false).apply {
                     scene = Scene(root)
                 }
 
@@ -263,8 +266,8 @@ abstract class OverlayPane<in T>: StackPane() {
                 op.blurFrontNode!!.effect = op.blurFront
 
                 op.animation.applyAt(0.0)
-                op.stg!!.show()
-                op.stg!!.requestFocus()
+                op.stage!!.show()
+                op.stage!!.requestFocus()
 
                 // start showing
                 // the preparation may cause an animation lag, hence delay a bit
@@ -279,7 +282,7 @@ abstract class OverlayPane<in T>: StackPane() {
     fun ScreenGetter.animDo(op: OverlayPane<*>, x: Double) {
         if (opacityNode!=null) { // bug fix, not 100% sure why it is necessary
             if (this!=Display.WINDOW && (op.displayBgr.get()==ScreenBgrGetter.SCREEN_BGR || op.displayBgr.get()==ScreenBgrGetter.NONE)) {
-                op.stg!!.opacity = x
+                op.stage!!.opacity = x
                 op.opacityNode!!.opacity = 1-x*0.5
                 op.opacity = 1.0
                 op.blurBack.height = 15.0*x*x
@@ -314,7 +317,7 @@ abstract class OverlayPane<in T>: StackPane() {
         if (this==Display.WINDOW) {
             op.setVisible(false)
         } else {
-            op.stg!!.close()
+            op.stage!!.close()
         }
     }
 
@@ -364,23 +367,25 @@ private class PolarResize {
     fun install(dragActivator: Node?, eventEmitter: Node, resizable: Pane?): Subscription {
         if (resizable==null) return Subscription()
 
-        resizable.setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE)
-
         return Subscription(
-                resizable.onEventDown(MOUSE_PRESSED) {
-                    if (dragActivator!=null) {
-                        // drag by a resizable Node
-                        if (dragActivator.containsMouse(it)) {
-                            isActive = true
-                            offset = resizable.size-resizable.screenToLocal(it)
+                when {
+                    dragActivator!=null -> {
+                        dragActivator.onEventUp(MOUSE_PRESSED) {
+                            // drag by a resizable Node
+                            if (dragActivator.containsMouse(it)) {
+                                isActive = true
+                                offset = resizable.size-resizable.screenToLocal(it)
+                            }
                         }
-                    } else {
-                        // drag by corner
-                        val cornerSize = 30.0
-                        val n = it.source as Pane
-                        if (it.x>=n.width-cornerSize && it.y>=n.height-cornerSize) {
-                            isActive = true
-                            offset = resizable.size-resizable.screenToLocal(it)
+                    } else -> {
+                        resizable.onEventUp(MOUSE_PRESSED) {
+                            // drag by corner
+                            val cornerSize = 30.0
+                            val n = it.source as Pane
+                            if (it.x>=n.width-cornerSize && it.y>=n.height-cornerSize) {
+                                isActive = true
+                                offset = resizable.size-resizable.screenToLocal(it)
+                            }
                         }
                     }
                 },
@@ -388,6 +393,7 @@ private class PolarResize {
                 eventEmitter.onEventDown(MOUSE_DRAGGED) {
                     if (isActive) {
                         val n = it.source as Pane
+                        resizable.setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE)
                         resizable.setPrefSize(
                                 2*(it.x+offset.x-n.layoutBounds.width/2),
                                 2*(it.y+offset.y-n.layoutBounds.height/2)

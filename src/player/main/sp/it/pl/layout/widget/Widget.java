@@ -219,6 +219,7 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 			}
 		}
 
+		root.getProperties().put("widget", this);
 		return root;
 	}
 

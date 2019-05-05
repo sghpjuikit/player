@@ -757,6 +757,6 @@ sealed class WidgetUse(val widgetFinder: WidgetSource) {
     object NO_LAYOUT: NewAnd(WidgetSource.OPEN_STANDALONE, WidgetLoader.POPUP)
 
     open class NewAnd(widgetFinder: WidgetSource, val layouter: (Widget) -> Unit): WidgetUse(widgetFinder) {
-        operator fun invoke(layouter: (Widget) -> Unit) = NewAnd(WidgetSource.OPEN, layouter)
+        operator fun invoke(layouter: (Widget) -> Unit) = NewAnd(widgetFinder, layouter)
     }
 }

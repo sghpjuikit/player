@@ -29,8 +29,10 @@ import sp.it.pl.gui.objects.popover.ScreenPos.APP_CENTER
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Layout
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
+import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.HorizontalDock
-import sp.it.pl.layout.widget.orEmpty
+import sp.it.pl.layout.widget.widgetThisIsRootOf
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Settings
@@ -41,6 +43,7 @@ import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.collections.setTo
+import sp.it.util.collections.setToOne
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.IsConfigurable
@@ -74,6 +77,7 @@ import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.size
+import sp.it.util.ui.stackPane
 import sp.it.util.units.millis
 import sp.it.util.units.minus
 import java.io.File
@@ -257,7 +261,9 @@ class WindowManager {
                 setSize(Screen.getPrimary().bounds.width, 40.0)
                 updateSizeAndPos()
             }
+            val contentWidgetRoot = stackPane()
             val content = borderPane {
+                center = contentWidgetRoot
                 right = hBox(8.0) {
                     alignment = CENTER_RIGHT
                     isFillHeight = false
@@ -271,13 +277,13 @@ class WindowManager {
             }
             mw.setContent(content)
             mw.onClose += dockWidget sync {
-                val newW = APP.widgetManager.factories.getComponentFactoryByGuiName(it).orEmpty().create()
-                content.properties["widget"]?.asIf<Widget>()?.close()
-                content.properties["widget"] = newW
-                content.center = newW.load()
+                contentWidgetRoot.children.firstOrNull()?.widgetThisIsRootOf()?.close()
+                contentWidgetRoot.children setToOne APP.widgetManager.widgets.find(it, NEW(CUSTOM)).orNull()
+                        ?.apply { APP.widgetManager.widgets.initAsStandalone(this) }
+                        ?.load()
             }
             mw.onClose += {
-                content.properties["widget"]?.asIf<Widget>()?.close()
+                contentWidgetRoot.children.firstOrNull()?.widgetThisIsRootOf()?.close()
             }
 
             // show and apply state

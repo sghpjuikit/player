@@ -32,6 +32,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -128,7 +129,7 @@ public interface Util {
 		var parent = o instanceof Node ? ((Node) o).getParent() : null;
 		if (parent instanceof StackPane) {
 			action.accept(paneProperty(parent, child, Pos.class, "stackpane-alignment", StackPane::getAlignment, StackPane::setAlignment), "L: Alignment", Pos.class);
-			action.accept(paneProperty(parent, child, Insets.class, "stackpane-alignment", StackPane::getMargin, StackPane::setMargin), "L: Margin", Insets.class);
+			action.accept(paneProperty(parent, child, Insets.class, "stackpane-margin", StackPane::getMargin, StackPane::setMargin), "L: Margin", Insets.class);
 		}
 		if (parent instanceof AnchorPane) {
 			action.accept(paneProperty(parent, child, Double.class, "pane-top-anchor", AnchorPane::getTopAnchor, AnchorPane::setTopAnchor), "L: Anchor (top)", Double.class);
@@ -143,6 +144,9 @@ public interface Util {
 		if (parent instanceof HBox) {
 			action.accept(paneProperty(parent, child, Priority.class, "hbox-vgrow", HBox::getHgrow, HBox::setHgrow), "L: HGrow", Priority.class);
 			action.accept(paneProperty(parent, child, Insets.class, "hbox-margin", HBox::getMargin, HBox::setMargin), "L: Margin", Insets.class);
+		}
+		if (parent instanceof FlowPane) {
+			action.accept(paneProperty(parent, child, Insets.class, "flowpane-margin", FlowPane::getMargin, FlowPane::setMargin), "L: Margin", Insets.class);
 		}
 		if (parent instanceof BorderPane) {
 			action.accept(paneProperty(parent, child, Pos.class, "borderpane-alignment", BorderPane::getAlignment, BorderPane::setAlignment), "L: Alignment", Pos.class);

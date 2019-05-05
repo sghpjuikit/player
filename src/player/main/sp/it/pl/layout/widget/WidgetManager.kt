@@ -4,6 +4,7 @@ import javafx.collections.FXCollections.observableArrayList
 import javafx.scene.Scene
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.stage.Screen
 import javafx.stage.WindowEvent.WINDOW_HIDING
@@ -53,6 +54,7 @@ import sp.it.util.file.seqChildren
 import sp.it.util.file.toURLOrNull
 import sp.it.util.functional.Try
 import sp.it.util.functional.asArray
+import sp.it.util.functional.asIf
 import sp.it.util.functional.ifFalse
 import sp.it.util.functional.ifNull
 import sp.it.util.functional.invoke
@@ -208,16 +210,20 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
                 .toList()    // avoids possible concurrent modification
                 .forEach { widgetOld ->
                     val wasFocused = widgetOld.focused.value
-                    val i = widgetOld.indexInParent()
-                    if (i!=null) {
-                        val widgetNew = widgetFactory.create()
-                        widgetNew.setStateFrom(widgetOld)
-                        val c = widgetOld.parent
-                        c.removeChild(i)
-                        c.addChild(i, widgetNew)
+                    val widgetNew = widgetFactory.create()
+                    widgetNew.setStateFrom(widgetOld)
+                    val p = widgetOld.parent
+                    if (p!=null) {
+                        val i = widgetOld.indexInParent()
+                        p.removeChild(i)
+                        p.addChild(i, widgetNew)
                         if (wasFocused) widgetNew.focus()
                     } else {
-                        // TODO: implement
+                        val parent = widgetOld.graphics.parent
+                        val i = parent.childrenUnmodifiable.indexOf(widgetOld.graphics)
+                        widgetOld.close()
+                        parent?.asIf<Pane>()?.let { it.children.add(i, widgetNew.load()) }
+                        if (wasFocused) widgetNew.focus()
                     }
                 }
     }

@@ -100,9 +100,6 @@ class WindowManager {
     @IsConfig(name = "Opacity", info = "Window opacity.")
     val windowOpacity by cv(1.0).between(0.0, 1.0)
 
-    @IsConfig(name = "Borderless", info = "Hides window borders.")
-    val windowBorderless by cv(true)
-
     @IsConfig(name = "Headerless", info = "Hides window header.")
     val windowHeaderless by cv(false)
 
@@ -201,7 +198,6 @@ class WindowManager {
 
         w.initialize()
 
-        windowBorderless syncTo w.isBorderless on w.onClose
         windowHeaderless syncTo w.isHeaderVisible on w.onClose
         w.stage.title = APP.name
         w.stage.icons setTo windowIcons
@@ -289,7 +285,6 @@ class WindowManager {
             // show and apply state
             mw.show()
             mw.isHeaderAllowed.set(false)
-            mw.isBorderless.set(true)
             mw.update()
             mw.back.style = "-fx-background-size: cover;" // disallow bgr stretching
             mw.content.style = "-fx-background-color: -skin-pane-color;" // imitate widget area bgr

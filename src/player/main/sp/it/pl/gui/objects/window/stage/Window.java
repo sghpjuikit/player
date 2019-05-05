@@ -129,7 +129,6 @@ public class Window extends WindowBase {
 	/** Scene root. Assigned {@link #scWindow} styleclass. */
 	@FXML public StackPane root = new StackPane();
 	@FXML public StackPane back, backImage;
-	@FXML public AnchorPane bordersVisual;
 	@FXML public AnchorPane front, content;
 	@FXML HBox rightHeaderBox;
 
@@ -465,28 +464,21 @@ public class Window extends WindowBase {
 	@FXML private StackPane headerContainer;
 	@FXML private StackPane header;
 	@FXML private Pane header_activator;
-	@FXML private Region lBorder;
-	@FXML private Region rBorder;
 	@FXML private Label titleL;
 	@FXML private HBox leftHeaderBox;
 	private boolean _headerVisible = true;
 
-	/** Whether window borders are displayed (when {@link #isFullscreen()} is true, they never are). Default true. */
-	public final V<Boolean> isBorderless = new V<>(false).initAttachC(v -> applyHeaderVisible(_headerVisible));
 	/** Whether header can be ever visible. Default true. */
 	public final V<Boolean> isHeaderAllowed = new V<>(true).initAttachC(v -> applyHeaderVisible(_headerVisible));
 	/** Visibility of the window header, including its buttons for control of the window (close, etc). Default true. */
 	public final V<Boolean> isHeaderVisible = new V<>(true).initAttachC(v -> applyHeaderVisible(v && !isFullscreen()));
 
 	private void applyHeaderVisible(boolean headerOn) {
-		boolean bOn = !isBorderless.get() && !isFullscreen();
 		boolean hOn = headerOn && isHeaderAllowed.get();
 
-		bordersVisual.setVisible(bOn);
-		content.setPadding(bOn ? new Insets(0.0, 5.0, 5.0, 5.0) : Insets.EMPTY);
-		headerContainer.setMinHeight(hOn ? USE_COMPUTED_SIZE : bOn ? 5 : 0);
-		headerContainer.setPrefHeight(hOn ? USE_COMPUTED_SIZE : bOn ? 5 : 0);
-		headerContainer.setMaxHeight(hOn ? USE_COMPUTED_SIZE : bOn ? 5 : 0);
+		headerContainer.setMinHeight(hOn ? USE_COMPUTED_SIZE : 0);
+		headerContainer.setPrefHeight(hOn ? USE_COMPUTED_SIZE : 0);
+		headerContainer.setMaxHeight(hOn ? USE_COMPUTED_SIZE : 0);
 
 		if (hOn != _headerVisible) {
 			_headerVisible = headerOn;

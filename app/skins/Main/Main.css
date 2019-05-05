@@ -1544,15 +1544,6 @@ Text {
     -fx-background-color: -skin-pane-color;
 }
 
-/*
- * Left, right, bottom borders of the window. There is no top border as there is
- * a header instead. When header collapses it turns into top border.
- * Skinning both header and border similarly is recommended
- */
-.w-border {
-    -fx-background-color: -skin-pane-color;
-}
-
 /************************************ COMPONENT ***********************************************************************/
 
 /*

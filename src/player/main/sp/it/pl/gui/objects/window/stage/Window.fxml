@@ -16,11 +16,6 @@
         <StackPane fx:id="backImage" styleClass="bgr-image" />
     </StackPane>
     <AnchorPane fx:id="front">
-        <AnchorPane fx:id="bordersVisual" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-            <Region fx:id="lBorder" mouseTransparent="true" prefWidth="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="30.0" />
-            <Region fx:id="rBorder" mouseTransparent="true" prefWidth="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0" />
-            <Region mouseTransparent="true" prefHeight="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0" />
-        </AnchorPane>
         <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
                 <StackPane fx:id="headerContainer">

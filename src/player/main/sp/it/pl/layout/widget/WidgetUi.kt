@@ -56,7 +56,7 @@ class WidgetUi: Area<Container<*>> {
 
         controls = WidgetUiControls(this)
         contentRoot.layFullArea += content.apply {
-            id += "widget-ui-content"
+            id = "widget-ui-content"
             styleClass += "widget-ui-content"
         }
         contentRoot.layFullArea += controls.root

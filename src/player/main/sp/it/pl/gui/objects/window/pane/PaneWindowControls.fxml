@@ -4,32 +4,26 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.Cursor?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<fx:root id="AnchorPane" fx:id="root" prefHeight="111.0" prefWidth="111.0" snapToPixel="false" styleClass="window"
+<fx:root id="AnchorPane" fx:id="root" prefHeight="111.0" prefWidth="111.0" snapToPixel="false"
          type="AnchorPane" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
     <padding>
         <Insets/>
     </padding>
     <AnchorPane fx:id="borders" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-        <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <VBox fx:id="contentRoot" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
                 <StackPane fx:id="header">
                     <styleClass>
                         <String fx:value="header"/>
                     </styleClass>
-                    <HBox fx:id="controls" alignment="CENTER_RIGHT" fillHeight="false" pickOnBounds="false" spacing="5.0"
-                          StackPane.alignment="CENTER_RIGHT">
-                    </HBox>
-                    <HBox fx:id="leftHeaderBox" alignment="CENTER_LEFT" fillHeight="false" pickOnBounds="false"
-                          spacing="5.0" StackPane.alignment="CENTER_LEFT">
-                        <ImageView fx:id="iconI" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true"
-                                   preserveRatio="true" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0"/>
+                    <HBox fx:id="controls" alignment="CENTER_RIGHT" fillHeight="false" pickOnBounds="false" spacing="5.0" StackPane.alignment="CENTER_RIGHT"/>
+                    <HBox fx:id="leftHeaderBox" alignment="CENTER_LEFT" fillHeight="false" pickOnBounds="false" spacing="5.0" StackPane.alignment="CENTER_LEFT">
                         <Label fx:id="titleL" BorderPane.alignment="CENTER">
                             <BorderPane.margin>
                                 <Insets left="10.0"/>
@@ -37,7 +31,7 @@
                         </Label>
                     </HBox>
                 </StackPane>
-                <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0" styleClass="content" VBox.vgrow="ALWAYS"/>
+                <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0"  VBox.vgrow="ALWAYS"/>
             </children>
         </VBox>
         <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"

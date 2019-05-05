@@ -6,13 +6,13 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import sp.it.pl.gui.objects.window.Resize;
 import sp.it.util.ui.fxml.ConventionFxmlLoader;
 import static sp.it.pl.gui.objects.window.Resize.N;
@@ -38,9 +38,15 @@ public class PaneWindowControls extends WindowPane {
 	/** Pseudoclass active when this window is focused. Applied on root as '.window'. */
 	public static final PseudoClass pcFocused = pseudoclass("focused");
 
-	@FXML public AnchorPane borders;
+	@FXML private AnchorPane borders;
 	@FXML public AnchorPane content;
 	@FXML public HBox controls;
+	@FXML private StackPane header;
+	@FXML private Label titleL;
+	@FXML private VBox contentRoot;
+	@FXML private HBox leftHeaderBox;
+	private boolean headerVisible = true;
+	private boolean headerAllowed = true;
 
 	public PaneWindowControls(AnchorPane owner) {
 		super(owner);
@@ -74,15 +80,6 @@ public class PaneWindowControls extends WindowPane {
 		setAnchors(n, 0d);
 	}
 
-	/***************************    HEADER & BORDER    ****************************/
-	@FXML public StackPane header;
-	@FXML private ImageView iconI;
-	@FXML private Label titleL;
-	@FXML
-	private HBox leftHeaderBox;
-	private boolean headerVisible = true;
-	private boolean headerAllowed = true;
-
 	/**
 	 * Sets visibility of the window header, including its buttons for control
 	 * of the window (close, etc).
@@ -98,22 +95,17 @@ public class PaneWindowControls extends WindowPane {
 		return headerVisible;
 	}
 
-	private void showHeader(boolean val) {
-		header.setVisible(val);
-		if (val) {
-			AnchorPane.setTopAnchor(content, 25d);
-			setBorderless(!val);
-		} else {
-			AnchorPane.setTopAnchor(content, 0d);
-		}
+	private void showHeader(boolean v) {
+		if (v && !contentRoot.getChildren().contains(header)) contentRoot.getChildren().add(0, header);
+		if (!v && contentRoot.getChildren().contains(header)) contentRoot.getChildren().remove(header);
 	}
 
 	/**
 	 * Set false to permanently hide header.
 	 */
 	public void setHeaderAllowed(boolean val) {
-		setHeaderVisible(val);
 		headerAllowed = val;
+		setHeaderVisible(val);
 	}
 
 	/**
@@ -128,16 +120,6 @@ public class PaneWindowControls extends WindowPane {
 	 */
 	public void setTitlePosition(Pos align) {
 		BorderPane.setAlignment(titleL, align);
-	}
-
-	public boolean isBorderless() {
-		return AnchorPane.getBottomAnchor(content)==0;
-	}
-
-	public void setBorderless(boolean v) {
-		if (v) setAnchors(content, 0d);
-		else setAnchors(content, 25d, 5d, 5d, 5d);
-		borders.setVisible(!v);
 	}
 
 	@FXML

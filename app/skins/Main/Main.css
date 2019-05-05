@@ -1614,9 +1614,11 @@ Text {
     -fx-background-color: -skin-pane-color-dragged;
 }
 
-.freeflowcontainer-window {}
-.freeflowcontainer-window >.content {
-    -fx-padding: 2.5;
+.container-ui:layout-mode .freeflowcontainer-window .header {
+    -fx-background-insets: 1 0 0 0;
+}
+.freeflowcontainer-window .widget-ui:layout-mode {
+    -fx-background-insets: 0 1 1 1;
 }
 
 /**********************************************************************************************************************/

@@ -1,9 +1,13 @@
 package sp.it.pl.gui.pane
 
+import javafx.beans.value.WritableValue
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.geometry.VPos
+import javafx.scene.layout.Priority.ALWAYS
+import javafx.scene.layout.Priority.NEVER
 import javafx.scene.text.TextAlignment
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.icon.Icon
@@ -13,15 +17,18 @@ import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.sync
 import sp.it.util.ui.Util.layScrollVTextCenter
 import sp.it.util.ui.hBox
+import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.vBox
 
 class MessagePane: OverlayPane<String>() {
 
     private val text: Text
     private val history = ArrayList<String>()
     private var historyAt = -1
+    private lateinit var historyAtText: WritableValue<String>
 
     init {
         text = Text().apply {
@@ -39,35 +46,45 @@ class MessagePane: OverlayPane<String>() {
                 prefWidth = 400.0
                 maxWidth = 400.0
             }
-            lay(TOP_RIGHT) += hBox(5.0, TOP_RIGHT) {
+            lay(TOP_RIGHT) += vBox(0.0, CENTER_RIGHT) {
                 isPickOnBounds = false
+                isFillWidth = false
 
-                lay+= Icon(IconFA.ANGLE_LEFT, -1.0, "Previous message").onClickDo { visitLeft() }
-                lay+= Icon(IconFA.ANGLE_RIGHT, -1.0, "Next message").onClickDo { visitRight() }
-                lay += Icon(null, -1.0, "Toggle text alignment").apply {
-                    text.textAlignmentProperty() sync {
-                        val glyph = when (it!!) {
-                            TextAlignment.CENTER -> IconFA.ALIGN_CENTER
-                            TextAlignment.JUSTIFY -> IconFA.ALIGN_JUSTIFY
-                            TextAlignment.RIGHT -> IconFA.ALIGN_RIGHT
-                            TextAlignment.LEFT -> IconFA.ALIGN_LEFT
+                lay(NEVER) += hBox(5.0, CENTER_RIGHT) {
+                    isPickOnBounds = false
+                    isFillHeight = false
+
+                    lay += Icon(IconFA.ANGLE_LEFT, -1.0, "Previous message").onClickDo { visitLeft() }
+                    lay += label("0/0") {
+                        historyAtText = textProperty()
+                    }
+                    lay += Icon(IconFA.ANGLE_RIGHT, -1.0, "Next message").onClickDo { visitRight() }
+                    lay += Icon(null, -1.0, "Toggle text alignment").apply {
+                        text.textAlignmentProperty() sync {
+                            val glyph = when (it!!) {
+                                TextAlignment.CENTER -> IconFA.ALIGN_CENTER
+                                TextAlignment.JUSTIFY -> IconFA.ALIGN_JUSTIFY
+                                TextAlignment.RIGHT -> IconFA.ALIGN_RIGHT
+                                TextAlignment.LEFT -> IconFA.ALIGN_LEFT
+                            }
+                            icon(glyph)
                         }
-                        icon(glyph)
-                    }
-                    onClickDo {
-                        text.textAlignmentProperty().toggleNext()
-                    }
-                }
-                lay += supplyIf(display.value!=Display.WINDOW) {
-                    Icon(IconFA.SQUARE, -1.0, "Always on top\n\nForbid hiding this window behind other application windows").apply{
                         onClickDo {
-                            stage?.let {
-                                it.isAlwaysOnTop = !it.isAlwaysOnTop
-                                icon(if (it.isAlwaysOnTop) IconFA.SQUARE else IconFA.SQUARE_ALT)
+                            text.textAlignmentProperty().toggleNext()
+                        }
+                    }
+                    lay += supplyIf(display.value!=Display.WINDOW) {
+                        Icon(IconFA.SQUARE, -1.0, "Always on top\n\nForbid hiding this window behind other application windows").apply{
+                            onClickDo {
+                                stage?.let {
+                                    it.isAlwaysOnTop = !it.isAlwaysOnTop
+                                    icon(if (it.isAlwaysOnTop) IconFA.SQUARE else IconFA.SQUARE_ALT)
+                                }
                             }
                         }
                     }
                 }
+                lay(ALWAYS) += stackPane()
             }
         }
         makeResizableByUser()
@@ -82,6 +99,7 @@ class MessagePane: OverlayPane<String>() {
     private fun visit(at: Int) {
         historyAt = at
         text.text = history[historyAt]
+        historyAtText.value = "${historyAt+1}/${history.size}"
     }
 
     private fun visitLeft() = visit(historyAt.coerceAtLeast(1)-1)

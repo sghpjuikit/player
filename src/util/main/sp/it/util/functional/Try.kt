@@ -35,12 +35,6 @@ sealed class Try<out R,out E> {
     }
 
     /** @return the value if ok or the value computed with specified supplier if error */
-    inline fun getOrSupply(or: () -> @UV R): R = when (this) {
-        is Ok<R> -> value
-        is Error<E> -> or()
-    }
-
-    /** @return the value if ok or the value computed with specified supplier if error */
     inline fun getOrSupply(or: (E) -> @UV R): R = when (this) {
         is Ok<R> -> value
         is Error<E> -> or(value)

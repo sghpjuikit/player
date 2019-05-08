@@ -155,9 +155,16 @@ class MapSet<K: Any, E: Any>: MutableSet<E> {
         return modified
     }
 
-    /** [add] with [MutableMap.put] semantics, i.e., addOrReplace.  */
-    infix fun put(element: E) {
-        m[keyMapper(element)] = element
+    /**
+     * [add] with [MutableMap.put] semantics, i.e., addOrReplace.
+     *
+     * @return true iff the key was not already present in the map
+     */
+    infix fun put(element: E): Boolean {
+        val k = keyMapper(element)
+        val e = !m.containsKey(k)
+        m[k] = element
+        return e
     }
 
     /** [addAll] with [MutableMap.putAll] semantics, i.e., addOrReplace.  */

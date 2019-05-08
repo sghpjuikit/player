@@ -114,7 +114,7 @@ class Fut<T>(private var f: CompletableFuture<T>) {
             is ResultFail -> Try.error(error)
         }
 
-        fun or(block: () -> @UnsafeVariance T): T = if (this is ResultOk<T>) this.value else block.invoke()
+        fun or(block: (Exception) -> @UnsafeVariance T) = toTry().getOrSupply(block)
 
     }
 

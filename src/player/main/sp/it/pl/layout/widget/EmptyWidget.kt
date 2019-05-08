@@ -4,7 +4,7 @@ import javafx.scene.layout.Pane
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.main.APP
 import sp.it.util.conf.Config
-import sp.it.util.file.childOf
+import sp.it.util.file.div
 
 /** Empty widget. Useful for certain layout operations and as a fill in for null. */
 @Widget.Info(
@@ -29,4 +29,4 @@ class EmptyWidget(widget: Widget): Controller(widget) {
 
 }
 
-val emptyWidgetFactory = WidgetFactory(EmptyWidget::class, APP.DIR_WIDGETS.childOf("Empty"))
+val emptyWidgetFactory = WidgetFactory(EmptyWidget::class, APP.DIR_WIDGETS/"Empty", null)

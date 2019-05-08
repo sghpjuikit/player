@@ -82,6 +82,7 @@ import sp.it.util.file.div
 import sp.it.util.file.hasExtension
 import sp.it.util.file.type.MimeTypes
 import sp.it.util.functional.Try
+import sp.it.util.functional.invoke
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Handler1
@@ -450,8 +451,25 @@ class App: Application(), Configurable<Any> {
 
     private fun Search.initForApp() {
         sources += { configuration.fields.asSequence().map { Entry.of(it) } }
-        sources += { widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map { Entry.of(it) } }
+        sources += {
+            widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map {
+                Entry.SimpleEntry(
+                        "Open widget ${it.nameGui()}",
+                        "Open widget ${it.nameGui()}\n\nOpens the widget in new window.",
+                        { APP.windowManager.launchComponent(it.create()) }
+                )
+            }
+        }
         sources += { ui.skins.asSequence().map { Entry.of({ "Open skin: ${it.name}" }, graphicsΛ = { Icon(IconMA.BRUSH) }) { ui.skin.value = it.name } } }
+        sources += {
+            widgetManager.factories.getFactories().filter { it.isUsableByUser() && it.externalWidgetData!=null}.map {
+                Entry.SimpleEntry(
+                        "Recompile widget ${it.nameGui()}",
+                        "Recompile widget ${it.nameGui()} and reload all of its instances upon success",
+                        { it.externalWidgetData!!.scheduleCompilation() }
+                )
+            }
+        }
     }
 
     private fun AppInstanceComm.initForApp() {

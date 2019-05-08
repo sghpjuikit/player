@@ -101,7 +101,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
     /** All widget factories by their name. */
     private val factoriesW = MapSet<String, WidgetFactory<*>> { it.name() }
     /** All widget directories by their name. */
-    private val monitors = MapSet<String, WidgetDir> { it.widgetName }
+    private val monitors = MapSet<String, WidgetMonitor> { it.widgetName }
     /** Separates entries of a java classpath argument, passed to JVM. */
     private var classpathSeparator = Os.current.classpathSeparator
     private var initialized = false
@@ -122,11 +122,11 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         // external factories
         val dirW = APP.DIR_WIDGETS
         if (!isValidatedDirectory(dirW)) {
-            logger.error { "External widgets registration failed." }
+            logger.error { "External widgets registration failed: $dirW is not a valid directory." }
         } else {
             dirW.listChildren().filter { it.isDirectory }.forEach { widgetDir ->
                 val name = widgetDir.nameWithoutExtension.capitalize()
-                monitors.computeIfAbsent(name) { WidgetDir(name, widgetDir) }.registerExternalFactory()
+                monitors.computeIfAbsent(name) { WidgetMonitor(name, widgetDir) }.updateFactory()
             }
 
             FileMonitor.monitorDirectory(dirW, true) { type, f ->
@@ -136,7 +136,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
                         val name = f.nameWithoutExtension.capitalize()
                         if (type===ENTRY_CREATE) {
                             if (f.isDirectory) {
-                                monitors.computeIfAbsent(name) { WidgetDir(name, f) }.registerExternalFactory()
+                                monitors.computeIfAbsent(name) { WidgetMonitor(name, f) }.updateFactory()
                             }
                         } else if (type===ENTRY_DELETE) {
                             monitors[name]?.dispose()
@@ -163,8 +163,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
                 }
                 if (type===ENTRY_DELETE) {
                     factoriesC.asSequence()
-                            .filterIsInstance<DeserializingFactory>()
-                            .filter { it.launcher==fxwl }
+                            .filter { it is DeserializingFactory && it.launcher==fxwl }
                             .materialize()
                             .forEach { unregisterFactory(it) }
                 }
@@ -175,11 +174,11 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         initialized = true
     }
 
-    private fun registerFactory(factory: ComponentFactory<*>) {
+    private fun registerFactory(factory: ComponentFactory<*>): Boolean {
         logger.info { "Registering $factory" }
 
         if (factory is WidgetFactory<*>) factoriesW put factory
-        factoriesC put factory
+        return factoriesC put factory
     }
 
     private fun unregisterFactory(factory: ComponentFactory<*>) {
@@ -189,49 +188,10 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         factoriesC -= factory
     }
 
-    private fun createFactory(controllerType: Class<*>?, dir: File) {
-        if (controllerType==null) {
-            logger.warn { "Widget class $controllerType is null" }
-            return
-        }
-        if (!controllerType.isSubclassOf<Controller>()) {
-            logger.warn { "Widget class $controllerType in $dir does not implement Controller" }
-            return
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        val widgetType = (controllerType as Class<Controller>).kotlin
-        val widgetFactory = WidgetFactory(widgetType, dir)
-        registerFactory(widgetFactory)
-
-        logger.info("Reloading all open widgets of {}", widgetFactory)
-        widgets.findAll(OPEN).asSequence()
-                .filter { it.name==widgetFactory.name() } // can not rely on type since we just reloaded the class!
-                .toList()    // avoids possible concurrent modification
-                .forEach { widgetOld ->
-                    val wasFocused = widgetOld.focused.value
-                    val widgetNew = widgetFactory.create()
-                    widgetNew.setStateFrom(widgetOld)
-                    val p = widgetOld.parent
-                    if (p!=null) {
-                        val i = widgetOld.indexInParent()
-                        p.removeChild(i)
-                        p.addChild(i, widgetNew)
-                        if (wasFocused) widgetNew.focus()
-                    } else {
-                        val parent = widgetOld.graphics.parent
-                        val i = parent.childrenUnmodifiable.indexOf(widgetOld.graphics)
-                        widgetOld.close()
-                        parent?.asIf<Pane>()?.let { it.children.add(i, widgetNew.load()) }
-                        if (wasFocused) widgetNew.focus()
-                    }
-                }
-    }
-
-    private inner class WidgetDir constructor(val widgetName: String, val widgetDir: File) {
+    private inner class WidgetMonitor constructor(val widgetName: String, val widgetDir: File): ExternalWidgetFactoryData {
         val skinFile = widgetDir/"skin.css"
         val compileDir = widgetDir/"out"
-        val scheduleCompilation = EventReducer.toLast<Void>(500.0) { compileFx() }
+        override val scheduleCompilation = EventReducer.toLast<Void>(500.0) { compileFx() }
 
         /** @return primary source file (either Kotlin or Java) or null if none exists */
         fun findSrcFile() = null
@@ -305,7 +265,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         }
 
         @Suppress("ConstantConditionIf")
-        fun registerExternalFactory() {
+        fun updateFactory() {
             val srcFile = findSrcFile()
             val srcFiles = findSrcFiles().toList()
             val srcFilesKt = srcFiles.filter { it hasExtension "kt" }
@@ -324,10 +284,27 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
             if (classFileAvailable) {
                 val controllerType = loadClass(widgetDir.nameWithoutExtension, classFile, compileDir, findLibFiles())
-                createFactory(controllerType, widgetDir)
+                registerFactory(controllerType)
             } else if (srcFileAvailable) {
                 compileFx()
             }
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        private fun registerFactory(controllerType: Class<*>?) {
+            if (controllerType==null) {
+                logger.warn { "Widget class $controllerType is null" }
+                return
+            }
+            if (!controllerType.isSubclassOf<Controller>()) {
+                logger.warn { "Widget class $controllerType in $widgetDir does not implement Controller" }
+                return
+            }
+
+            val widgetType = (controllerType as Class<Controller>).kotlin
+            val widgetFactory = WidgetFactory(widgetType, widgetDir, this)
+            val isNew = registerFactory(widgetFactory)
+            if (!isNew) widgetFactory.reloadAllOpen()
         }
 
         private fun compileFx() {
@@ -343,30 +320,29 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
             }.onDone(FX) {
                 reportDone(it)
                 factories.factoriesInCompilation -= widgetName
-                val result = it.or { Try.error("Widget $widgetName Compilation failed due to unspecified error") }
-                if (result.isOk) registerExternalFactory()
-                result.ifError { userErrorLogger(it) }
+                it.toTry()
+                        .ifError { logger.error(it) { "Widget $widgetName failed to compile" } }
+                        .getOrSupply { Try.error(it.message ?: "Unspecified error") }
+                        .ifOk { updateFactory() }
+                        .ifError { userErrorLogger("Widget $widgetName failed to compile. Reason: $it") }
             }
         }
 
         private fun compile(): Try<Nothing?, String> {
             logger.info { "Widget=$widgetName compiling..." }
 
-            val errorText = "Widget $widgetName failed to compile. Reason:"
-
-            if (compileDir.exists()) compileDir.deleteRecursively().ifFalse { return Try.error("$errorText Failed to delete $compileDir") }
-            compileDir.mkdirs().ifFalse { return Try.error("$errorText Failed to create $compileDir") }
+            if (compileDir.exists()) compileDir.deleteRecursively().ifFalse { return Try.error("Failed to delete $compileDir") }
+            compileDir.mkdirs().ifFalse { return Try.error("Failed to create $compileDir") }
 
             val srcFiles = findSrcFiles().toList()
             val hasKotlin = srcFiles.any { it hasExtension "kt" }
             val hasJava = srcFiles.any { it hasExtension "java" }
-            val result = when {
+            return when {
                 hasJava && hasKotlin -> Try.error("Mixed Java-Kotlin code not supported")
                 hasKotlin -> compileKotlin(srcFiles.asSequence())
                 hasJava -> compileJava(srcFiles.asSequence())
                 else -> Try.error("No source files available")
             }
-            return result.mapError { "$errorText  $it" }
         }
 
         /** Compiles specified .java files into .class files. */
@@ -385,7 +361,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
             logger.info("Compiling with arguments=${arguments.joinToString(" ")}")
             val compiler = ToolProvider.getSystemJavaCompiler() ?: run {
                 logger.error { "Compilation failed\nJava system compiler not available" }
-                return Try.error("Compilation failed\nJava system compiler not available")
+                return Try.error("Java system compiler not available")
             }
 
             val streamStdOut = ByteArrayOutputStream(1000)
@@ -395,10 +371,13 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
             val textStdOut = streamStdOut.toString(Charsets.UTF_8).prettifyCompilerOutput()
             val textStdErr = streamStdErr.toString(Charsets.UTF_8).prettifyCompilerOutput()
 
-            if (isSuccess) logger.info { "Compilation succeeded$textStdOut" }
-            else logger.error { "Compilation failed$textStdErr" }
-
-            return if (isSuccess) Try.ok() else Try.error("Widget $widgetName Compilation failed with errors$textStdErr")
+            return if (isSuccess) {
+                logger.info { "Compilation succeeded$textStdOut" }
+                Try.ok()
+            } else {
+                logger.error { "Compilation failed$textStdErr" }
+                Try.error(textStdErr)
+            }
         }
 
         /** Compiles specified .kt files into .class files. */
@@ -432,10 +411,13 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
                 val textStdErr = process.errorStream.bufferedReader(Charsets.UTF_8).readText().prettifyCompilerOutput()
                 val isSuccess = success==0
 
-                if (isSuccess) logger.info { "Compilation succeeded$textStdout" }
-                else logger.error { "Compilation failed$textStdout$textStdErr" }
-
-                return if (isSuccess) Try.ok() else Try.error("Compilation failed with errors$textStdErr")
+                return if (isSuccess) {
+                    logger.info { "Compilation succeeded$textStdout" }
+                    Try.ok()
+                } else {
+                    logger.error { "Compilation failed$textStdout$textStdErr" }
+                    Try.error(textStdErr)
+                }
             } catch (e: Exception) {
                 logger.error(e) { "Compilation failed" }
                 return Try.error(e.message ?: "")
@@ -561,6 +543,8 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         /** Factories that are waiting to be compiled or are being compiled. */
         val factoriesInCompilation = observableArrayList<String>()!!
 
+        fun recompile(factory: WidgetFactory<*>) = monitors[factory.name()]?.scheduleCompilation()
+
         /** @return all features implemented by at least one widget */
         fun getFeatures(): Sequence<Feature> = getFactories().flatMap { it.getFeatures().asSequence() }.distinct()
 
@@ -629,6 +613,8 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
     companion object: KLogging() {
 
+        fun WidgetFactory<*>.scheduleCompilation() = APP.widgetManager.monitors[nameGui()]!!.scheduleCompilation()
+
         /** @return new instance of a class represented by specified class file using one shot class loader or null if error */
         private fun loadClass(widgetName: String, classFile: File, compileDir: File, libFiles: Sequence<File>): Class<*>? {
             val className = "$widgetName.${classFile.nameWithoutExtension}"
@@ -682,6 +668,35 @@ fun WidgetFactory<*>?.orEmpty(): WidgetFactory<*> = this ?: emptyWidgetFactory
 
 /** @return this factory or [emptyWidgetFactory] if null */
 fun ComponentFactory<*>?.orEmpty(): ComponentFactory<*> = this ?: emptyWidgetFactory
+
+fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
+    WidgetManager.logger.info("Reloading all open widgets of {}", widgetFactory)
+    APP.widgetManager.widgets.findAll(OPEN).asSequence()
+            .filter { it.factory.name()==widgetFactory.name() } // can not rely on factory or factory.controllerType due to recompilation
+            .materialize()
+            .forEach { widgetOld ->
+                val wasFocused = widgetOld.focused.value
+                val widgetNew = widgetFactory.create()
+                widgetNew.setStateFrom(widgetOld)
+                val p = widgetOld.parent
+                if (p!=null) {
+                    val i = widgetOld.indexInParent()
+                    p.removeChild(i)
+                    p.addChild(i, widgetNew)
+                    if (wasFocused) widgetNew.focus()
+                } else {
+                    val parent = widgetOld.graphics.parent
+                    val i = parent.childrenUnmodifiable.indexOf(widgetOld.graphics)
+                    widgetOld.close()
+                    parent?.asIf<Pane>()?.let { it.children.add(i, widgetNew.load()) }
+                    if (wasFocused) widgetNew.focus()
+                }
+            }
+}
+
+interface ExternalWidgetFactoryData {
+    val scheduleCompilation: EventReducer<Void>
+}
 
 /** Source for widgets when looking for a widget. */
 enum class WidgetSource {

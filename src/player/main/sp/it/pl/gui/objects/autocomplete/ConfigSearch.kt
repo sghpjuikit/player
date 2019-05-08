@@ -25,8 +25,6 @@ import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
 import sp.it.pl.gui.itemnode.ConfigField
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
-import sp.it.pl.layout.widget.ComponentFactory
-import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.scaleEM
 import sp.it.util.access.minus
@@ -229,13 +227,6 @@ class ConfigSearch: AutoCompletion<Entry> {
 
             fun of(config: Config<*>) = ConfigEntry(config)
 
-            fun of(f: ComponentFactory<*>): Entry {
-                return SimpleEntry(
-                        "Open widget ${f.nameGui()}",
-                        "Open widget ${f.nameGui()}\n\nOpens the widget in new window.",
-                        { APP.windowManager.launchComponent(f.create()) }
-                )
-            }
         }
     }
 

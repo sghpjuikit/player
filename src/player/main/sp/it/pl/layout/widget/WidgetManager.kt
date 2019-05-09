@@ -331,8 +331,9 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         private fun compile(): Try<Nothing?, String> {
             logger.info { "Widget=$widgetName compiling..." }
 
-            if (compileDir.exists()) compileDir.deleteRecursively().ifFalse { return Try.error("Failed to delete $compileDir") }
-            compileDir.mkdirs().ifFalse { return Try.error("Failed to create $compileDir") }
+            // TODO: enable. For some reason the delete-create fails sometimes (even though compilation can proceed fine without it), investigate & fix
+            if (compileDir.exists()) compileDir.deleteRecursively()//.ifFalse { return Try.error("Failed to delete $compileDir") }
+            compileDir.mkdirs()//.ifFalse { return Try.error("Failed to create $compileDir") }
 
             val srcFiles = findSrcFiles().toList()
             val hasKotlin = srcFiles.any { it hasExtension "kt" }

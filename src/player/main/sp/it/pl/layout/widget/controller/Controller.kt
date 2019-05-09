@@ -6,15 +6,13 @@ import javafx.scene.layout.Pane
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.io.IO
 import sp.it.pl.layout.widget.feature.Feature
-import sp.it.pl.main.APP
+import sp.it.pl.layout.widget.isCompiling
 import sp.it.pl.main.appProgressIndicator
 import sp.it.util.Locatable
-import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.interpolator.ElasticInterpolator
 import sp.it.util.conf.CachedConfigurable
 import sp.it.util.reactive.on
-import sp.it.util.reactive.onChange
 import sp.it.util.reactive.sync
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
@@ -93,11 +91,7 @@ class LoadErrorController(widget: Widget): SimpleController(widget) {
 }
 
 private fun SimpleController.compileInfoUi(): Node {
-    fun isCompiling() = widget.name in APP.widgetManager.factories.factoriesInCompilation
-    val isCompiling = v(isCompiling()).apply {
-        APP.widgetManager.factories.factoriesInCompilation.onChange { value = isCompiling() } on onClose
-    }
-
+    val isCompiling = widget.factory.isCompiling(onClose)
     return hBox(10, CENTER) {
         lay += label("Compiling...").apply {
             val a = anim { setScaleXY(it*it) }.delay(500.millis).dur(500.millis).intpl(ElasticInterpolator()).applyNow()

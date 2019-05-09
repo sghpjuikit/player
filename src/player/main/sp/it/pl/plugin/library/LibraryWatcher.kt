@@ -13,7 +13,6 @@ import sp.it.pl.service.notif.Notifier
 import sp.it.util.action.IsAction
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.runGet
-import sp.it.util.async.runFX
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
 import sp.it.util.conf.EditMode.NONE
@@ -24,8 +23,9 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.only
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.file.FileMonitor
-import sp.it.util.file.FileMonitor.monitorDirectory
+import sp.it.util.file.FileMonitor.Companion.monitorDirectory
 import sp.it.util.file.isAnyChildOf
+import sp.it.util.functional.invoke
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onItemAdded
@@ -60,26 +60,26 @@ class LibraryWatcher: PluginBase("Song Library", false) {
     val dirMonitoringEnabled by cv(false).readOnlyUnless(dirMonitoringSupported)
 
     private val dirMonitors = HashMap<File, FileMonitor>()
-    private val dirMonitoring = when {
-        dirMonitoringSupported -> Subscribed {
-            Subscription(
+    private val dirMonitoring = Subscribed {
+        when {
+            dirMonitoringSupported -> Subscription(
                     dirMonitoringEnabled sync { sourceDirsChangeHandler.subscribe(it) },
-                    Subscription { sourceDirsChangeHandler.subscribe(false) }
+                    Subscription { sourceDirsChangeHandler.unsubscribe() }
             )
+            else -> Subscription()
         }
-        else -> Subscribed { Subscription { } }
     }
     private val toBeAdded = HashSet<File>()
     private val toBeRemoved = HashSet<File>()
     private val update = EventReducer.toLast<Void>(2000.0) { updateLibraryFromEvents() }
 
     override fun onStart() {
-        dirMonitoring.subscribe(true)
+        dirMonitoring.subscribe()
         if (updateOnStart.value) updateLibrary()
     }
 
     override fun onStop() {
-        dirMonitoring.subscribe(false)
+        dirMonitoring.unsubscribe()
         dirMonitors.values.forEach { it.stop() }
         dirMonitors.clear()
         updateLibraryFromEvents()
@@ -104,13 +104,13 @@ class LibraryWatcher: PluginBase("Song Library", false) {
         if (needsMonitoring) {
             dirMonitors[dir] = monitorDirectory(dir, true) { type, file ->
                 when (type) {
-                    ENTRY_CREATE -> runFX {
+                    ENTRY_CREATE -> {
                         toBeAdded += file
-                        update.push(null)
+                        update()
                     }
-                    ENTRY_DELETE -> runFX {
+                    ENTRY_DELETE -> {
                         toBeRemoved += file
-                        update.push(null)
+                        update()
                     }
                 }
             }

@@ -1,5 +1,6 @@
 package sp.it.pl.layout.widget
 
+import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.observableArrayList
 import javafx.scene.Scene
 import javafx.scene.input.KeyCode.ESCAPE
@@ -22,6 +23,7 @@ import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.util.access.Values
+import sp.it.util.access.v
 import sp.it.util.async.FX
 import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.executor.EventReducer
@@ -55,11 +57,13 @@ import sp.it.util.file.toURLOrNull
 import sp.it.util.functional.Try
 import sp.it.util.functional.asArray
 import sp.it.util.functional.asIf
-import sp.it.util.functional.ifFalse
 import sp.it.util.functional.ifNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
+import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.on
+import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
 import sp.it.util.system.Os
@@ -138,7 +142,8 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
                             if (f.isDirectory) {
                                 monitors.computeIfAbsent(name) { WidgetMonitor(name, f) }.updateFactory()
                             }
-                        } else if (type===ENTRY_DELETE) {
+                        }
+                        if (type===ENTRY_DELETE) {
                             monitors[name]?.dispose()
                         }
                     }
@@ -152,18 +157,15 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         if (!isValidatedDirectory(dirL)) {
             logger.error { "External .fxwl widgets registration failed." }
         } else {
-            dirL.listChildren()
-                    .filter { it hasExtension "fxwl" }
-                    .filter { it.useLines { it.take(1).any { it.startsWith("<Widget") } } }
-                    .forEach { fxwl -> factoriesC.computeIfAbsent(fxwl.nameWithoutExtension.capitalize()) { DeserializingFactory(fxwl) } }
+            dirL.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
 
-            FileMonitor.monitorDirsFiles(dirL, { it hasExtension "fxwl" }) { type, fxwl ->
+            FileMonitor.monitorDirectory(dirL, true, { it hasExtension "fxwl" }) { type, f ->
                 if (type===ENTRY_CREATE) {
-                    registerFactory(DeserializingFactory(fxwl))
+                    registerFactory(DeserializingFactory(f))
                 }
                 if (type===ENTRY_DELETE) {
                     factoriesC.asSequence()
-                            .filter { it is DeserializingFactory && it.launcher==fxwl }
+                            .filter { it is DeserializingFactory && it.launcher==f }
                             .materialize()
                             .forEach { unregisterFactory(it) }
                 }
@@ -669,6 +671,13 @@ fun WidgetFactory<*>?.orEmpty(): WidgetFactory<*> = this ?: emptyWidgetFactory
 
 /** @return this factory or [emptyWidgetFactory] if null */
 fun ComponentFactory<*>?.orEmpty(): ComponentFactory<*> = this ?: emptyWidgetFactory
+
+fun WidgetFactory<*>.isCompiling(disposer: Disposer): ObservableValue<Boolean> {
+    fun isCompiling() = name() in APP.widgetManager.factories.factoriesInCompilation
+    return v(isCompiling()).apply {
+        APP.widgetManager.factories.factoriesInCompilation.onChange { value = isCompiling() } on disposer
+    }
+}
 
 fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
     WidgetManager.logger.info("Reloading all open widgets of {}", widgetFactory)

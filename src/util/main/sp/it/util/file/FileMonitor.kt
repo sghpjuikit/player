@@ -159,9 +159,6 @@ class FileMonitor {
                     reg(fm.monitoredFileDir)
 
                     threadFactory("FileMonitor-${monitoredDir.path}", true).newThread {
-                        // The check requires I/O so lets do that on bgr thread as well
-                        // if (!toMonitor.isDirectory()) throw new IllegalArgumentException("File not a directory or does not exist.");
-
                         var valid: Boolean
                         var watchKey: WatchKey
                         do {

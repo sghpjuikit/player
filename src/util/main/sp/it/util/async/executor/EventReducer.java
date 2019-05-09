@@ -24,54 +24,64 @@ import static sp.it.util.functional.UtilKt.runnable;
  * succession. Even if the succession has only 1 event, there will still be delay between consuming
  * it and firing it as a reduced event.
  */
-public abstract class EventReducer<E> {
-	protected Consumer<? super E> action;
-	protected double inter_period;
-	protected final Ƒ2<E,E,E> r;
-	protected E e;
+@FunctionalInterface
+public interface EventReducer<E> {
 
-	private EventReducer(double inter_period, Ƒ2<E,E,E> reduction, Consumer<? super E> handler) {
-		this.inter_period = inter_period;
-		action = handler;
-		r = reduction;
+	void push(E event);
+
+	@NotNull static <E> EventReducer<E> thatConsumes(Consumer<? super E> handler) {
+		return handler::accept;
 	}
 
-	public void push(E event) {
-		e = r==null || e==null ? event : r.apply(e, event);
-		handle();
-	}
-
-	protected abstract void handle();
-
-	@NotNull public static <E> EventReducer<E> toFirst(double inter_period, Consumer<? super E> handler) {
+	@NotNull static <E> EventReducer<E> toFirst(double inter_period, Consumer<? super E> handler) {
 		return new HandlerFirst<>(inter_period, handler);
 	}
 
-	@NotNull public static <E> EventReducer<E> toFirstDelayed(double inter_period, Consumer<? super E> handler) {
+	@NotNull static <E> EventReducer<E> toFirstDelayed(double inter_period, Consumer<? super E> handler) {
 		return new HandlerFirstDelayed<>(inter_period, handler);
 	}
 
-	@NotNull public static <E> HandlerLast<E> toLast(double inter_period, Consumer<? super E> handler) {
+	@NotNull static <E> HandlerLast<E> toLast(double inter_period, Consumer<? super E> handler) {
 		return new HandlerLast<>(inter_period, null, handler);
 	}
 
-	@NotNull public static <E> HandlerLast<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<? super E> handler) {
+	@NotNull static <E> HandlerLast<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<? super E> handler) {
 		return new HandlerLast<>(inter_period, reduction, handler);
 	}
 
-	@NotNull public static <E> EventReducer<E> toEvery(double inter_period, Consumer<? super E> handler) {
+	@NotNull static <E> EventReducer<E> toEvery(double inter_period, Consumer<? super E> handler) {
 		return new HandlerEvery<>(inter_period, (a, b) -> b, handler);
 	}
 
-	@NotNull public static <E> EventReducer<E> toEvery(double inter_period, Ƒ2<E,E,E> reduction, Consumer<? super E> handler) {
+	@NotNull static <E> EventReducer<E> toEvery(double inter_period, Ƒ2<E,E,E> reduction, Consumer<? super E> handler) {
 		return new HandlerEvery<>(inter_period, reduction, handler);
 	}
 
-	@NotNull public static <E> EventReducer<E> toFirstOfAtLeast(double inter_period, double atLeast, Consumer<? super E> handler) {
+	@NotNull static <E> EventReducer<E> toFirstOfAtLeast(double inter_period, double atLeast, Consumer<? super E> handler) {
 		return new HandlerFirstOfAtLeast<>(inter_period, atLeast, handler);
 	}
 
-	public static class HandlerLast<E> extends EventReducer<E> {
+	abstract class EventReducerBase<E> implements EventReducer<E> {
+		protected Consumer<? super E> action;
+		protected double inter_period;
+		protected final Ƒ2<E,E,E> r;
+		protected E e;
+
+		private EventReducerBase(double inter_period, Ƒ2<E,E,E> reduction, Consumer<? super E> handler) {
+			this.inter_period = inter_period;
+			action = handler;
+			r = reduction;
+		}
+
+		public void push(E event) {
+			e = r==null || e==null ? event : r.apply(e, event);
+			handle();
+		}
+
+		protected abstract void handle();
+	}
+
+	class HandlerLast<E> extends EventReducerBase<E> {
 		private final FxTimer t;
 
 		public HandlerLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<? super E> handler) {
@@ -90,7 +100,7 @@ public abstract class EventReducer<E> {
 
 	}
 
-	private static class HandlerEvery<E> extends EventReducer<E> {
+	class HandlerEvery<E> extends EventReducerBase<E> {
 		private FxTimer t;
 		private long last = 0;
 		boolean fired = false;
@@ -121,7 +131,7 @@ public abstract class EventReducer<E> {
 
 	}
 
-	private static class HandlerFirst<E> extends EventReducer<E> {
+	class HandlerFirst<E> extends EventReducerBase<E> {
 		private long last = 0;
 
 		public HandlerFirst(double inter_period, Consumer<? super E> handler) {
@@ -138,7 +148,7 @@ public abstract class EventReducer<E> {
 
 	}
 
-	private static class HandlerFirstDelayed<E> extends EventReducer<E> {
+	class HandlerFirstDelayed<E> extends EventReducerBase<E> {
 
 		private long last = 0;
 		private final FxTimer t;
@@ -160,7 +170,7 @@ public abstract class EventReducer<E> {
 
 	}
 
-	private static class HandlerFirstOfAtLeast<E> extends EventReducer<E> {
+	class HandlerFirstOfAtLeast<E> extends EventReducerBase<E> {
 		private long first = 0;
 		private long last = 0;
 		private final double atLeast;

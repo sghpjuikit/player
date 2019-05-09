@@ -672,7 +672,7 @@ fun ComponentFactory<*>?.orEmpty(): ComponentFactory<*> = this ?: emptyWidgetFac
 fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
     WidgetManager.logger.info("Reloading all open widgets of {}", widgetFactory)
     APP.widgetManager.widgets.findAll(OPEN).asSequence()
-            .filter { it.factory.name()==widgetFactory.name() } // can not rely on factory or factory.controllerType due to recompilation
+            .filter { it.name==widgetFactory.name() }   // it.factory must not be used due to temporary factories in unrecognized widgets
             .materialize()
             .forEach { widgetOld ->
                 val wasFocused = widgetOld.focused.value

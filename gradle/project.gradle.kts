@@ -297,6 +297,7 @@ application {
             "-mx"+("player.memoryMax".prjProp ?: "3g"),
             "-XX:MinHeapFreeRatio=5",
             "-XX:MaxHeapFreeRatio=10",
+            "-XX:+UseStringDeduplication",
             "-XX:+UseCompressedOops",
             *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty(),
             "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",

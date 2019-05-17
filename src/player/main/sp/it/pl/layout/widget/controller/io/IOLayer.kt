@@ -148,7 +148,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             animPos2 = if(aDir) it else mapTo01(it, 0.25, 0.65)
             animPos3 = if(aDir) it else mapTo01(it, 0.8, 1.0)
 
-            paneLinks.opacity = animPos1
+            paneNodes.opacity = animPos1
             links.forEach { _, _, link ->
                 link.showClip1.setScaleXY(animPos2)
                 link.showClip2.setScaleXY(animPos2)

@@ -12,8 +12,6 @@ import javafx.scene.layout.Region
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.text.TextAlignment
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.animation.Anim.Companion.animPar
-import sp.it.util.animation.Anim.Companion.animSeq
 import sp.it.util.collections.setTo
 import sp.it.util.functional.supplyIf
 import sp.it.util.math.max
@@ -28,9 +26,7 @@ import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.text
-import sp.it.util.units.div
 import sp.it.util.units.millis
-import sp.it.util.units.times
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -122,14 +118,6 @@ open class Picker<E> {
             properties[KEY_EMPTY_CELL] = null
             isManaged = false
         }
-
-        // animate & show
-        animPar(tiles.children) { i, n ->
-            animSeq(
-                    anim(750.millis*i/tiles.children.size) { n.opacity = it }.intpl { 0.0 },
-                    anim(500.millis) { n.opacity = it }.intpl { sqrt(it) }
-            )
-        }.play()
     }
 
     @Suppress("UNCHECKED_CAST")

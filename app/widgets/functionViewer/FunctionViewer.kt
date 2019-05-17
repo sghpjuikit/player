@@ -59,6 +59,7 @@ private typealias Num = Double
 )
 class FunctionViewer(widget: Widget): SimpleController(widget) {
     private val function = v(StrExF.fromString("x").orThrow).apply { attach { plotAnimated(it) } }
+    private var functionPlotted = function.value as Fun
     private val functionConfigField = ConfigField.create(Config.forProperty(StrExF::class.java, "Function", function))
     private val xMin = v(-1.0).apply { attach { plot() } }
     private val xMax = v(1.0).apply { attach { plot() } }
@@ -140,9 +141,12 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
     override fun focus() = functionConfigField.focus()
 
-    fun plot(f: Fun = function.value) = plot.plot(f)
+    fun plot(f: Fun = functionPlotted) {
+        functionPlotted = f
+        plot.plot(f)
+    }
 
-    fun plotAnimated(f: Fun = function.value) = plotAnimation.playOpenDoClose { plot(f) }
+    fun plotAnimated(f: Fun = functionPlotted) = plotAnimation.playOpenDoClose { plot(f) }
 
     inner class Plot: Pane() {
         val animation = v(1.0)
@@ -170,7 +174,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
             lay += coordRoot
             lay += pathRoot
 
-            layoutBoundsProperty() sync { this.plot(function.value) }
+            layoutBoundsProperty() sync { plot(functionPlotted) }
         }
 
         fun plot(function: Fun) {

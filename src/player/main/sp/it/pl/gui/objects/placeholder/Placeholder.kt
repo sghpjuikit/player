@@ -43,7 +43,9 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
         icon.styleclass(STYLECLASS_ICON)
         icon.icon(actionIcon)
         icon.onClick(action)
+        icon.isMouseTransparent = true
         icon.isFocusTraversable = true
+        hoverProperty() sync { icon.select(it) }
 
         onEventDown(MOUSE_CLICKED, PRIMARY) { action() }
         onEventDown(KEY_PRESSED, ENTER) { action() }

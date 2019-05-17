@@ -181,7 +181,7 @@ object AppAnimator: AnimationBuilder() {
         val scaleI = CircularInterpolator(EasingMode.EASE_OUT)
         return anim(300.millis) {
             n.isMouseTransparent = it!=1.0
-            n.opacity = it*it
+            n.opacity = 1-(1-it)*(1-it)
             n.setScaleXYByTo(scaleI.interpolate(0.0, 1.0, it), -50.0, 0.0)
         }.apply {
             playAgainIfFinished = false

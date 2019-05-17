@@ -38,8 +38,8 @@ class WidgetUi: Area<Container<*>> {
     private val widget: Widget
     private val disposer = Disposer()
     private val passiveLoadPane = SingleR<Placeholder, Widget>(
-            { Placeholder(IconOC.UNFOLD, "") { loadWidget(true) } },
-            { ph, w -> ph.desc.text = "Unfold ${w.custom_name.value} (Left Click)" }
+            { Placeholder(IconOC.UNFOLD, "") { loadWidget(true) }.apply { styleClass += "widget-ui-load-placeholder" } },
+            { ph, w -> ph.desc.text = "Unfold ${w.custom_name.value} (LMB)" }
     )
 
     /**

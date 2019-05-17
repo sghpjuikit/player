@@ -2421,7 +2421,12 @@ icon-info-icon {
  */
 .placeholder-pane {}
 .placeholder-pane:hover {
-    -fx-background-color: rgba(0,0,0,0.5); 
+    -fx-background-color: rgba(10,15,35,0.9);
+    -fx-border-insets: 2em;
+    -fx-border-color: rgba(255,255,255, 0.2);
+    -fx-border-style: segments(10, 15, 15, 15);
+    -fx-border-radius: 0;
+    -fx-border-width: 2;
 }
 
 /*
@@ -2430,6 +2435,14 @@ icon-info-icon {
  */
 .placeholder-pane-icon {
     -glyph-size: 2em; /* 24 */
+}
+
+/*
+ * Placeholder for manual loading of widget in .widget-ui
+ * inherits: .placeholder-pane
+ */
+.widget-ui-load-placeholder:hover {
+    -fx-background-color: transparent;
 }
 
 /******************** DRAG PANE *********************

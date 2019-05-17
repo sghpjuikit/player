@@ -668,6 +668,7 @@ operator fun P.minus(p: Point2D): P = P(x-p.x, y-p.y)
 operator fun P.plus(p: Point2D): P = P(x+p.x, y+p.y)
 
 fun Point2D.toP() = P(x, y)
+fun P.toPoint2D() = Point2D(x, y)
 
 fun Node.screenToLocal(e: MouseEvent) = screenToLocal(e.screenX, e.screenY)!!
 fun Node.sceneToLocal(e: MouseEvent) = sceneToLocal(e.sceneX, e.sceneY)!!

@@ -15,7 +15,6 @@ import sp.it.pl.main.IconOC
 import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
-import sp.it.util.access.ref.SingleR
 import sp.it.util.access.toggle
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
@@ -37,10 +36,7 @@ class WidgetUi: Area<Container<*>> {
     private val content = AnchorPane()
     private val widget: Widget
     private val disposer = Disposer()
-    private val passiveLoadPane = SingleR<Placeholder, Widget>(
-            { Placeholder(IconOC.UNFOLD, "") { loadWidget(true) }.apply { styleClass += "widget-ui-load-placeholder" } },
-            { ph, w -> ph.desc.text = "Unfold ${w.custom_name.value} (LMB)" }
-    )
+    private var manualLoadPane: Placeholder? = null
 
     /**
      * Creates area for the container and its child widget at specified child position.
@@ -83,6 +79,9 @@ class WidgetUi: Area<Container<*>> {
 
         when {
             widget.isLoaded || forceLoading || widget.loadType.value==AUTOMATIC -> {
+                manualLoadPane?.hide()
+                manualLoadPane = null
+
                 // load widget
                 animation.openAndDo(contentRoot, null)
                 content.children.clear()
@@ -109,7 +108,8 @@ class WidgetUi: Area<Container<*>> {
                     widget.lockedUnder.initLocked(container)
                     widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
 
-                    passiveLoadPane.getM(widget).showFor(content)
+                    manualLoadPane = buildManualLoadPane()
+                    manualLoadPane?.showFor(content)
                 }
             }
         }
@@ -128,6 +128,11 @@ class WidgetUi: Area<Container<*>> {
     fun setStandaloneStyle() {
         contentRoot.styleClass.clear()
         content.styleClass.clear()
+    }
+
+    private fun buildManualLoadPane() = Placeholder(IconOC.UNFOLD, "") { loadWidget(true) }.apply {
+        styleClass += "widget-ui-load-placeholder"
+        desc.text = "Unfold ${widget.custom_name.value} (LMB)"
     }
 
     override fun close() = disposer()

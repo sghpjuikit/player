@@ -132,6 +132,8 @@ open class Picker<E> {
             val width = root.width-padding.left-padding.right
             val height = root.height-padding.top-padding.bottom
 
+            if (cells.isEmpty()) return
+
             val elements = cells.size
             val cellMinWidth = 1.0 max cells.first().minWidth
             val cellMinHeight = 1.0 max cells.first().minHeight

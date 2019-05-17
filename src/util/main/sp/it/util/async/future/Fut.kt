@@ -52,7 +52,7 @@ class Fut<T>(private var f: CompletableFuture<T>) {
 
     /** Sets [block] to be invoked when this future finishes regardless of success. Returns this. */
     fun onDone(executor: Executor = defaultExecutor, block: (Result<T>) -> Unit) = apply {
-        f.handleAsync({ _, _ -> block(getDone()) }, executor.kt)
+        f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor.kt)
     }
 
     /** @return whether this future completed regardless of success */

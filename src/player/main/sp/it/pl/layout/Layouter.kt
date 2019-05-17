@@ -1,14 +1,9 @@
 package sp.it.pl.layout
 
-import javafx.animation.FadeTransition
-import javafx.animation.Interpolator.LINEAR
-import javafx.animation.ScaleTransition
 import javafx.event.EventHandler
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.layout.AnchorPane
-import javafx.scene.shape.Rectangle
 import sp.it.pl.gui.objects.picker.ContainerPicker
 import sp.it.pl.gui.objects.picker.Picker
 import sp.it.pl.gui.objects.picker.WidgetPicker
@@ -22,12 +17,8 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
-import sp.it.pl.main.nodeAnimation
-import sp.it.util.animation.interpolator.CircularInterpolator
-import sp.it.util.animation.interpolator.EasingMode.EASE_OUT
-import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
-import sp.it.util.reactive.sync
 import sp.it.util.ui.layFullArea
 
 /**
@@ -42,12 +33,11 @@ class Layouter: ContainerUi {
     private val index: Int
 
     override val root = AnchorPane()
-    private var wasSelected = false
-    private var isCancelPlaying = false
-    private val cp: ContainerPicker
-    private val a1: FadeTransition
-    private val a2: ScaleTransition
     var onCancel: () -> Unit = {}
+    private var isCancelPlaying = false
+    private var wasSelected = false
+    private val cp: ContainerPicker
+    private var isCpShown = false
 
     constructor(container: Container<*>, index: Int) {
         this.container = container
@@ -55,6 +45,7 @@ class Layouter: ContainerUi {
         this.cp = ContainerPicker({ showContainer(it) }, { showWidgetArea(it) }).apply {
             onSelect = {
                 wasSelected = true
+                isCpShown = false
                 AppAnimator.closeAndDo(root) { it.onSelect() }
             }
             onCancel = {
@@ -63,21 +54,14 @@ class Layouter: ContainerUi {
                     hide()
             }
             consumeCancelEvent = false
-            APP.widgetManager.widgets.separateWidgets sync {
-                buildContent()
-            }
+            buildContent()
         }
+        APP.widgetManager.widgets.separateWidgets attach { cp.buildContent() }   // TODO: memory leak
 
         root.layFullArea += cp.root
 
-        val dur = nodeAnimation(Rectangle()).cycleDuration
-        a1 = FadeTransition(dur, cp.root)
-        a1.interpolator = LINEAR
-        a2 = ScaleTransition(dur, cp.root)
-        a2.interpolator = CircularInterpolator(EASE_OUT)
-        cp.root.opacity = 0.0
-        cp.root.scaleX = 0.0
-        cp.root.scaleY = 0.0
+        AppAnimator.applyAt(cp.root, 0.0)
+
         installDrag(
                 root, IconFA.EXCHANGE, "Switch components",
                 { e -> Df.COMPONENT in e.dragboard },
@@ -85,59 +69,47 @@ class Layouter: ContainerUi {
                 { e -> e.dragboard[Df.COMPONENT].swapWith(container, index) }
         )
 
-        weakMode = false
-    }
-
-    private var weakModeSubscription: Subscription? = null
-    private var weakMode: Boolean
-        set(value) {
-            field = value
-            if (root.onMouseExited==null)
-                root.onMouseExited = EventHandler {
-                    if (!isCancelPlaying) {
-                        cp.onCancel()
-                        it.consume()
-                    }
-                }
-
-            weakModeSubscription?.unsubscribe()
-            weakModeSubscription = root.onEventDown(if (value) MOUSE_ENTERED else MOUSE_CLICKED, PRIMARY, false) {
-                if (cp.root.opacity==0.0 && !container.lockedUnder.value) {
-                    show()
-                    it.consume()
-                }
+        // show cp on mouse click
+        root.onEventDown(MOUSE_CLICKED, PRIMARY, false) {
+            if (!container.lockedUnder.value) {
+                show()
+                it.consume()
             }
         }
+
+        // hide cp on mouse exit
+        cp.root.onMouseExited = EventHandler {
+            if (!isCancelPlaying && !wasSelected) {
+                cp.onCancel()
+                it.consume()
+            }
+        }
+    }
 
     override fun show() = showControls(true)
 
     override fun hide() = showControls(false)
 
-    private fun showControls(value: Boolean) {
-        val isWidgetSelectionActive = root.children.size!=1
-        if (value && isWidgetSelectionActive) return
+    fun close(onClosed: () -> Unit = {}) = showControls(false, onClosed)
 
-        a1.stop()
-        a2.stop()
+    private fun showControls(value: Boolean, onClosed: () -> Unit = {}) {
+        if (isCpShown==value) return
+        val isWpShown = root.children.size!=1
+        if (isWpShown) return
+
+        isCpShown = value
         if (value) {
-            a1.onFinished = null
-            a1.toValue = 1.0
-            a2.toX = 1.0
-            a2.toY = 1.0
-            wasSelected = false
+            AppAnimator.openAndDo(cp.root, null)
         } else {
             val wasCancelPlaying = isCancelPlaying
-            a1.onFinished = EventHandler {
+            AppAnimator.closeAndDo(cp.root) {
                 isCancelPlaying = false
-                if (wasCancelPlaying && !wasSelected) onCancel()
+                if (wasCancelPlaying && !wasSelected)
+                    onCancel()
+                onClosed()
             }
-            a1.toValue = 0.0
-            a2.toX = 0.0
-            a2.toY = 0.0
             isCancelPlaying = true
         }
-        a1.play()
-        a2.play()
     }
 
     private fun showContainer(c: Container<*>) {
@@ -150,7 +122,6 @@ class Layouter: ContainerUi {
         wp.onSelect = { factory ->
             AppAnimator.closeAndDo(wp.root) {
                 root.children -= wp.root
-                root.onMouseExited = null
                 container.addChild(index, factory.create())
                 if (APP.ui.isLayoutMode) container.show()
                 APP.actionStream("New widget")
@@ -162,9 +133,8 @@ class Layouter: ContainerUi {
                 showControls(true)
             }
         }
-        wp.consumeCancelEvent = true // we need right click to not close container
-        wp.root.onEventDown(MOUSE_CLICKED) { it.consume() } // also left click to not open container chooser
         wp.buildContent()
+        wp.consumeCancelEvent = true // we need right click to not close container
 
         root.layFullArea += wp.root
         AppAnimator.openAndDo(wp.root, null)

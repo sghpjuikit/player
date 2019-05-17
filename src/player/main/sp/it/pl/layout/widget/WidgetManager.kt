@@ -21,15 +21,13 @@ import sp.it.pl.layout.widget.WidgetSource.OPEN_STANDALONE
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
-import sp.it.pl.main.AppProgress
+import sp.it.pl.main.thenWithAppProgress
 import sp.it.util.access.Values
 import sp.it.util.access.v
 import sp.it.util.async.FX
 import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.executor.EventReducer
-import sp.it.util.async.future.Fut.Result
-import sp.it.util.async.runFX
-import sp.it.util.async.runOn
+import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.threadFactory
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.materialize
@@ -313,14 +311,9 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
             failIfNotFxThread()
 
             factories.factoriesInCompilation += widgetName
-            lateinit var reportDone: (Result<*>) -> Unit
-            runOn(compilerThread) {
-                runFX {
-                    reportDone = AppProgress.start("Compiling $widgetName")
-                }
+            fut().thenWithAppProgress(compilerThread, "Compiling $widgetName") {
                 compile()
             }.onDone(FX) {
-                reportDone(it)
                 factories.factoriesInCompilation -= widgetName
                 it.toTry()
                         .ifError { logger.error(it) { "Widget $widgetName failed to compile" } }
@@ -564,7 +557,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         fun getFactories(): Sequence<WidgetFactory<*>> = factoriesW.streamV().asSequence()
 
         /** @return all component factories (including widget factories) */
-        fun getComponentFactories(): Sequence<ComponentFactory<*>> = (APP.widgetManager.factoriesC.asSequence()+getFactories()).distinct()
+        fun getComponentFactories(): Sequence<ComponentFactory<*>> = (factoriesC.asSequence()+getFactories()).distinct()
 
 //        /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
         inline fun <reified FEATURE> getFactoriesWith(): Sequence<FactoryRef<FEATURE>> = getFactoriesWith(FEATURE::class.java).asSequence()

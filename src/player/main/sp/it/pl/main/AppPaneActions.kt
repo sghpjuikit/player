@@ -428,7 +428,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                                     APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
                                 }
                             }
-                        }.showProgress(actionPane.actionProgress)
+                        }.withProgress(actionPane.actionProgress)
                     }.apply {
                         disableProperty() syncFrom executed
                     }

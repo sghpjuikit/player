@@ -5,7 +5,7 @@ import sp.it.pl.gui.objects.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
-import sp.it.pl.main.showAppProgress
+import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.util.access.v
 import sp.it.util.async.NEW
@@ -76,7 +76,7 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
             }.ui {
                 searchSourceDirs = it
             }
-            .showAppProgress("$name: Searching for Directories")
+            .withAppProgress("$name: Searching for Directories")
     }
 
     private fun writeCache(files: List<File>) {

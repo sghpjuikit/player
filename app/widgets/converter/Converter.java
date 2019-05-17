@@ -69,7 +69,7 @@ import static sp.it.pl.main.AppDragKt.getAny;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.main.AppProgressKt.showAppProgress;
+import static sp.it.pl.main.AppProgressKt.withAppProgress;
 import static sp.it.util.Util.capitalizeStrong;
 import static sp.it.util.Util.filenamizeString;
 import static sp.it.util.async.future.Fut.fut;
@@ -214,7 +214,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         acts.accumulate(new Act<>("Edit song tags", Song.class, 100, () -> map(Metadata.Field.FIELDS, f -> f.name()), data -> {
             List<Song> songs = source.stream().filter(Song.class::isInstance).map(Song.class::cast).collect(toList());
             if (songs.isEmpty()) return;
-            showAppProgress(
+            withAppProgress(
                 fut()
                    .useBy(Player.IO_THREAD, it -> {
                         for (int i=0; i<songs.size(); i++) {

@@ -10,7 +10,7 @@ import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.APP
-import sp.it.pl.main.showAppProgress
+import sp.it.pl.main.withAppProgress
 import sp.it.util.access.v
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
@@ -56,7 +56,7 @@ class SongDb {
                 .ifError { logger.error(it) { "Unable to read moods from file" } }
                 .orNull() ?: setOf()
 
-        runNew { updateInMemoryDbFromPersisted() }.showAppProgress("Loading song database")
+        runNew { updateInMemoryDbFromPersisted() }.withAppProgress("Loading song database")
     }
 
     fun stop() {
@@ -134,7 +134,7 @@ class SongDb {
         runNew {
             val metadatas = songs.asSequence().map { it.read() }.filter { !it.isEmpty() }.toList()
             Player.refreshSongsWith(metadatas)
-        }.showAppProgress("Refreshing library from disk")
+        }.withAppProgress("Refreshing library from disk")
     }
 
     @ThreadSafe

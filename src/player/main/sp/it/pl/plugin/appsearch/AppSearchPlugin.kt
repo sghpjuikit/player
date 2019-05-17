@@ -5,7 +5,7 @@ import sp.it.pl.gui.objects.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMA
-import sp.it.pl.main.showAppProgress
+import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
@@ -53,7 +53,7 @@ class AppSearchPlugin: PluginBase("App Search", false) {
         }.ui {
             searchSourceApps = it
         }
-        .showAppProgress("$name: Searching for applications")
+        .withAppProgress("$name: Searching for applications")
     }
 
     private fun findApps(dir: File): Sequence<File> {

@@ -47,7 +47,7 @@ import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.configure
 import sp.it.pl.main.isImage
 import sp.it.pl.main.scaleEM
-import sp.it.pl.main.showAppProgress
+import sp.it.pl.main.withAppProgress
 import sp.it.pl.web.WebSearchUriBuilder
 import sp.it.pl.web.WikipediaQBuilder
 import sp.it.util.access.fieldvalue.CachingFile
@@ -204,7 +204,7 @@ class GameView(widget: Widget): SimpleController(widget) {
                     .materialize()
         }.ui {
             grid.itemsRaw setTo it
-        }.showAppProgress("Loading game list")
+        }.withAppProgress("Loading game list")
     }
 
     fun viewGame(game: File) {

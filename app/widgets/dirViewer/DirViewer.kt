@@ -31,7 +31,7 @@ import sp.it.pl.main.FileFlatter
 import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.scaleEM
-import sp.it.pl.main.showAppProgress
+import sp.it.pl.main.withAppProgress
 import sp.it.util.Sort.ASCENDING
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
@@ -265,7 +265,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
                     if (dir.lastScrollPosition>=0) grid.implGetSkin().position = dir.lastScrollPosition
                     grid.requestFocus()
                 }
-                .showAppProgress(
+                .withAppProgress(
                         widget.custom_name.value+": Fetching view"
                 )
     }

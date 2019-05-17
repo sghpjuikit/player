@@ -7,7 +7,7 @@ import sp.it.pl.audio.tagging.addToLibTask
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.main.APP
 import sp.it.pl.main.findAudio
-import sp.it.pl.main.showAppProgress
+import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.service.notif.Notifier
 import sp.it.util.action.IsAction
@@ -135,7 +135,7 @@ class LibraryWatcher: PluginBase("Song Library", false) {
         runNew {
             Song.addToLibTask(toAdd.map { SimpleSong(it) }).runGet()
             APP.db.removeSongs(toRem.map { SimpleSong(it) })
-        }.showAppProgress("Updating song library from detected changes")
+        }.withAppProgress("Updating song library from detected changes")
     }
 
     @IsAction(name = "Update", desc = "Remove non-existent songs and add new songs from location")
@@ -145,7 +145,7 @@ class LibraryWatcher: PluginBase("Song Library", false) {
             val songs = findAudio(dirs).map { SimpleSong(it) }.toList()
             Song.addToLibTask(songs).runGet()
             Song.removeMissingFromLibTask().run()
-        }.showAppProgress("Updating song library from disk")
+        }.withAppProgress("Updating song library from disk")
     }
 
     companion object: KLogging() {

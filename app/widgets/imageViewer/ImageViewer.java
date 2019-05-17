@@ -61,7 +61,7 @@ import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.main.AppProgressKt.showAppProgress;
+import static sp.it.pl.main.AppProgressKt.withAppProgress;
 import static sp.it.util.access.PropertiesKt.toggle;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.executor.EventReducer.toFirstDelayed;
@@ -278,7 +278,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
                     if (!songs.isEmpty()) inputLocationOf.setValue(songs.get(0));
                 } else
                 if (hasImageFileOrUrl(e.getDragboard())) {
-                    showAppProgress(
+                    withAppProgress(
                         hasImageFilesOrUrl(e.getDragboard()).useBy(FX, this::showImages),
                         widget.custom_name.getValue() + "Loading images"
                     );

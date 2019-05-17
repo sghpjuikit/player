@@ -73,7 +73,7 @@ import static sp.it.pl.gui.pane.GroupApply.NONE;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.main.AppProgressKt.showProgress;
+import static sp.it.pl.main.AppProgressKt.withProgress;
 import static sp.it.util.animation.Anim.animPar;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runFX;
@@ -355,7 +355,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		} else {
 			setDataInfo(null, false);
 			// obtain data & invoke again
-			data = showProgress(
+			data = withProgress(
 				((Fut) data).useBy(FX, this::setData),
 				dataProgress
 			);

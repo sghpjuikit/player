@@ -16,6 +16,8 @@ import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.objects.spinner.Spinner
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.animation.interpolator.CircularInterpolator
+import sp.it.util.animation.interpolator.EasingMode
 import sp.it.util.animation.interpolator.ElasticInterpolator
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
@@ -23,6 +25,7 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.ValueConfig
 import sp.it.util.reactive.attachChanges
 import sp.it.util.ui.setScaleXY
+import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.text
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
@@ -149,10 +152,13 @@ fun configureString(title: String, inputName: String, action: (String) -> Unit) 
             .configure(title) { action(it.value) }
 }
 
-fun nodeAnimation(n: Node) = anim(300.millis) { n.opacity = it*it }.apply { playAgainIfFinished = false }
-
-open class AnimationBuilder {
+abstract class AnimationBuilder {
     protected open val key = "ANIMATION_OPEN_CLOSE"
+
+    open fun applyAt(n: Node, position: Double) {
+        val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
+        a.applyAt(position)
+    }
 
     open fun closeAndDo(n: Node, action: (() -> Unit)?) {
         val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
@@ -166,10 +172,22 @@ open class AnimationBuilder {
         a.playOpenDo(action)
     }
 
-    protected open fun buildAnimation(n: Node) = nodeAnimation(n)
+    protected abstract fun buildAnimation(n: Node): Anim
+
 }
 
-object AppAnimator: AnimationBuilder()
+object AppAnimator: AnimationBuilder() {
+    public override fun buildAnimation(n: Node): Anim {
+        val scaleI = CircularInterpolator(EasingMode.EASE_OUT)
+        return anim(300.millis) {
+            n.isMouseTransparent = it!=1.0
+            n.opacity = it*it
+            n.setScaleXYByTo(scaleI.interpolate(0.0, 1.0, it), -50.0, 0.0)
+        }.apply {
+            playAgainIfFinished = false
+        }
+    }
+}
 
 class DelayAnimator: AnimationBuilder() {
     override val key = "ANIMATION_OPEN_CLOSE_DELAYED"
@@ -188,5 +206,5 @@ class DelayAnimator: AnimationBuilder() {
         animDelayResetter.push(null)
     }
 
-    override fun buildAnimation(n: Node) = super.buildAnimation(n).delay((animDelay.get()*300.0).millis)
+    override fun buildAnimation(n: Node) = AppAnimator.buildAnimation(n).delay((animDelay.get()*300.0).millis)
 }

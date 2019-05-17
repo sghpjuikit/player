@@ -27,6 +27,7 @@ import sp.it.util.animation.interpolator.CircularInterpolator
 import sp.it.util.animation.interpolator.EasingMode.EASE_OUT
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.sync
 import sp.it.util.ui.layFullArea
 
 /**
@@ -51,7 +52,7 @@ class Layouter: ContainerUi {
     constructor(container: Container<*>, index: Int) {
         this.container = container
         this.index = index
-        this.cp = ContainerPicker({ showContainer(it) }, { showWidgetArea() }).apply {
+        this.cp = ContainerPicker({ showContainer(it) }, { showWidgetArea(it) }).apply {
             onSelect = {
                 wasSelected = true
                 AppAnimator.closeAndDo(root) { it.onSelect() }
@@ -62,7 +63,9 @@ class Layouter: ContainerUi {
                     hide()
             }
             consumeCancelEvent = false
-            buildContent()
+            APP.widgetManager.widgets.separateWidgets sync {
+                buildContent()
+            }
         }
 
         root.layFullArea += cp.root
@@ -142,8 +145,8 @@ class Layouter: ContainerUi {
         if (c is BiContainer) APP.actionStream("Divide layout")
     }
 
-    private fun showWidgetArea() {
-        val wp = WidgetPicker()
+    private fun showWidgetArea(mode: WidgetPicker.Mode) {
+        val wp = WidgetPicker(mode)
         wp.onSelect = { factory ->
             AppAnimator.closeAndDo(wp.root) {
                 root.children -= wp.root

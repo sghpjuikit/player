@@ -433,6 +433,9 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         @IsConfig(name = "Recompile all widgets", info = "Re-compiles every widget. Useful when auto-compilation is disabled or unsupported.")
         val recompile by cr { monitors.forEach { it.scheduleCompilation() } }
 
+        @IsConfig(name = "Separate widgets & templates in UI", info = "Show widgets and templates (exported layouts) as separate categoriesin UI picker")
+        val separateWidgets by cv(true)
+
         /** Widgets that are not part of layout. */
         private val standaloneWidgets: MutableList<Widget> = ArrayList()
 

@@ -1,8 +1,12 @@
 package sp.it.pl.layout.container;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.DoubleProperty;
@@ -11,7 +15,6 @@ import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import sp.it.pl.layout.AltState;
 import sp.it.pl.layout.Component;
@@ -26,9 +29,12 @@ import sp.it.util.async.executor.FxTimer;
 import static java.lang.Double.NaN;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
+import static java.lang.Math.abs;
 import static java.lang.Math.signum;
+import static java.util.function.Predicate.not;
 import static javafx.animation.Animation.INDEFINITE;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
@@ -44,6 +50,8 @@ import static sp.it.util.async.executor.FxTimer.fxTimer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.setAnchors;
+import static sp.it.util.ui.UtilKt.initClip;
+import static sp.it.util.ui.UtilKt.removeFromParent;
 
 /**
  * Pane with switchable content.
@@ -97,35 +105,33 @@ public class SwitchContainerUi implements ContainerUi {
         root.getChildren().add(widget_io);
         setAnchors(widget_io, 0d);
 
-        // Clip mask.
-        // Hides content 'outside' of this pane
-        Rectangle mask = new Rectangle();
-        root.setClip(mask);
-        mask.widthProperty().bind(root.widthProperty());
-        mask.heightProperty().bind(root.heightProperty());
+        initClip(root);
 
         // always zoom x:y == 1:1, to zoom change x, y will simply follow
         zoom.scaleYProperty().bind(zoom.scaleXProperty());
 
         // prevent problematic events
-        // technically we only need to consume MOUSE_PRESSED and ContextMenuEvent.ANY
         root.addEventFilter(Event.ANY, e -> {
-            if (uiDragActive) e.consume();
-            else if (e.getEventType().equals(MOUSE_PRESSED) && ((MouseEvent)e).getButton()==SECONDARY) e.consume();
+            if (uiDragActive) {
+                if (e.getEventType()==MOUSE_PRESSED || e.getEventType()==MOUSE_RELEASED || e.getEventType()==MOUSE_CLICKED)
+                    e.consume();
+            } else {
+                // technically we only need to consume MOUSE_PRESSED and ContextMenuEvent.ANY
+                if (e.getEventType()==MOUSE_PRESSED && ((MouseEvent) e).getButton()==SECONDARY)
+                    e.consume();
+            }
         });
 
         root.addEventFilter(MOUSE_DRAGGED, e -> {
             if (e.getButton()==SECONDARY) {
-                ui.setMouseTransparent(true);
                 dragUiStart(e);
                 dragUi(e);
             }
         });
 
-        root.addEventFilter(MOUSE_RELEASED, e-> {
+        root.addEventFilter(MOUSE_RELEASED, e -> {
             if (e.getButton()==SECONDARY) {
                 dragUiEnd(e);
-                ui.setMouseTransparent(false);
             }
         });
 
@@ -133,7 +139,7 @@ public class SwitchContainerUi implements ContainerUi {
         // capture mouse release/click events so lets end the drag right there
         root.addEventFilter(MOUSE_EXITED, this::dragUiEnd);
 
-        root.addEventHandler(SCROLL, e-> {
+        root.addEventHandler(SCROLL, e -> {
             if (APP.ui.isLayoutMode()) {
                 double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/10d;
                        i = clip(0.2d,i,1d);
@@ -181,14 +187,13 @@ public class SwitchContainerUi implements ContainerUi {
         	return;
         } else if (c==null) {
             removeTab(i);
+            updateEmptyTabs();
         } else {
             removeTab(i);
             layouts.put(i, c);
             changed = true;
             loadTab(i);
-            // left & right
-            addTab(i+1);
-            addTab(i-1);
+            updateEmptyTabs();
         }
     }
 
@@ -239,12 +244,31 @@ public class SwitchContainerUi implements ContainerUi {
             // remove from tabs
             tabs.remove(i);
         }
-
-        if (currTab()==i) addTab(i);
     }
 
     void removeAllTabs() {
         layouts.keySet().forEach(this::removeTab);
+    }
+
+    private void updateEmptyTabs() {
+        var i = currTab();
+        var isClose = (Predicate<Integer>) it -> abs(currTabAsDouble()-it)<0.8;
+
+        var toAdd = Stream.of(i-1, i, i+1);
+        var toRem = new ArrayList<>(layouters.keySet()).stream();
+
+        toAdd.filter(isClose).forEach(it -> addTab(it));
+        toRem.filter(not(isClose)).forEach(it -> {
+            var l = layouters.get(it);
+            if (l!=null) l.close(runnable(() -> {
+                if (!isClose.test(it)) {
+                    var tab = tabs.remove(it);
+                    if (tab!=null) removeFromParent(tab);
+                    var lay = layouters.remove(it);
+                    if (lay!=null) removeFromParent(lay.getRoot());
+                }
+            }));
+        });
     }
 
 /****************************  DRAG ANIMATIONS   ******************************/
@@ -292,14 +316,7 @@ public class SwitchContainerUi implements ContainerUi {
             uiDrag.setToX(x + traveled * dragInertia.get());
             uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
             // snap at the end of animation
-            uiDrag.setOnFinished( a -> {
-                int i = snapTabs();
-                // setParentRec layouts to left & right
-                // otherwise the layouts are added only if we activate the snapping
-                // which for non-discrete mode is a problem
-                addTab(i-1);
-                addTab(i+1);
-            });
+            uiDrag.setOnFinished(a -> updateEmptyTabs());
             uiDrag.play();
         }
         // reset
@@ -416,7 +433,11 @@ public class SwitchContainerUi implements ContainerUi {
      * of the view space on the layout screen.
      */
     public final int currTab() {
-        return (int) Math.rint(-1*ui.getTranslateX()/tabWidth());
+        return (int) Math.rint(currTabAsDouble());
+    }
+
+    public final double currTabAsDouble() {
+        return -1*ui.getTranslateX()/tabWidth();
     }
 
     // get current ui width
@@ -449,7 +470,7 @@ public class SwitchContainerUi implements ContainerUi {
         int currentT = (int) Math.rint(-1*ui.getTranslateX()/tabWidth());
         int toT = currentT + byT;
         uiDrag.stop();
-        uiDrag.setOnFinished( a -> addTab(toT));
+        uiDrag.setOnFinished(a -> addTab(toT));
         uiDrag.setToX(-getTabX(toT));
         uiDrag.play();
     }
@@ -460,13 +481,14 @@ public class SwitchContainerUi implements ContainerUi {
 
 /*********************************** ZOOMING **********************************/
 
-    private final ScaleTransition z = new ScaleTransition(Duration.ZERO,zoom);
-    private final TranslateTransition zt = new TranslateTransition(Duration.ZERO,ui);
+    private final ScaleTransition z1 = new ScaleTransition(Duration.ZERO, zoom);
+    private final TranslateTransition z2 = new TranslateTransition(Duration.ZERO, ui);
+    private final FadeTransition z3 = new FadeTransition(Duration.ZERO, zoom);
 
     /** Animates zoom on when true, or off when false. */
     public void zoom(boolean v) {
-        z.setInterpolator(new CircularInterpolator(EASE_OUT));
-        zt.setInterpolator(new CircularInterpolator(EASE_OUT));
+        z1.setInterpolator(new CircularInterpolator(EASE_OUT));
+        z2.setInterpolator(new CircularInterpolator(EASE_OUT));
         zoomNoAcc(v ? zoomScaleFactor.get() : 1);
     }
 
@@ -497,14 +519,18 @@ public class SwitchContainerUi implements ContainerUi {
         // the 'proper' value by setting zoom to 1 - effectively disallowing zooming more than once
         // if (d!=1) zoomScaleFactor.set(d);
         // play
-        z.stop();
-        z.setDuration(APP.ui.getDurationLM());
-        z.setToX(d);
-        z.play();
-        zt.stop();
-        zt.setDuration(z.getDuration());
-        zt.setByX(tox/5);
-        zt.play();
+        z1.stop();
+        z1.setDuration(APP.ui.getDurationLM());
+        z1.setToX(d);
+        z1.play();
+        z2.stop();
+        z2.setDuration(z1.getDuration());
+        z2.setByX(tox/5);
+        z2.play();
+        z3.stop();
+        z3.setDuration(z1.getDuration());
+        z3.setToValue(0.2+0.8*d);
+        z3.play();
         byx = 0;
         tox = 0;
         APP.actionStream.invoke("Zoom mode");
@@ -512,7 +538,7 @@ public class SwitchContainerUi implements ContainerUi {
     private void zoomNoAcc(double d) {
         if (d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");
         // calculate amount
-        double missed = Double.compare(NaN, z.getToX())==0 ? 0 : z.getToX() - zoom.getScaleX();
+        double missed = Double.compare(NaN, z1.getToX())==0 ? 0 : z1.getToX() - zoom.getScaleX();
                missed = signum(missed)==signum(d) ? missed : 0;
         d += missed;
         d = max(0.2,min(d,1));

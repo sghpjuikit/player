@@ -66,6 +66,7 @@ import sp.it.util.JavaLegacy
 import sp.it.util.functional.asIf
 import sp.it.util.functional.traverse
 import sp.it.util.math.P
+import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventUp
@@ -496,8 +497,8 @@ fun Node.setScaleXYByTo(percent: Double, pxFrom: Double, pxTo: Double) {
     val b = boundsInLocal
     val by = (percent*pxTo+(1.0-percent)*pxFrom)
     if (b.width>0.0 && b.height>0.0) {
-        scaleX = 1+by/b.width
-        scaleY = 1+by/b.height
+        scaleX = 1+by/b.width max 0.0
+        scaleY = 1+by/b.height max 0.0
     } else {
         scaleX = 1.0
         scaleY = 1.0

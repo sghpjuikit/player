@@ -22,7 +22,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -84,9 +83,9 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
-import static javafx.scene.paint.Color.BLACK;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.Resize.NONE;
+import static sp.it.pl.gui.objects.window.stage.WindowUtilKt.installStartLayoutPlaceholder;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppDragKt.contains;
@@ -147,11 +146,7 @@ public class Window extends WindowBase {
 		getStage().setScene(new Scene(root));
 		getStage().getScene().setFill(Color.rgb(0, 0, 0, 0.01));
 
-		// clip the content to its bounds to prevent leaking out
-		Rectangle mask = new Rectangle(1, 1, BLACK);
-		mask.widthProperty().bind(content.widthProperty());
-		mask.heightProperty().bind(content.heightProperty());
-		content.setClip(mask);
+		initClip(content);
 
 		// normally we would bind bgr size, but we will bind it more dynamically later
 		// bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
@@ -365,6 +360,8 @@ public class Window extends WindowBase {
 		ProgressIndicator x = appProgressIndicator();
 		x.progressProperty().bind(AppProgress.INSTANCE.getProgress());
 		leftHeaderBox.getChildren().add(x);
+
+		installStartLayoutPlaceholder(this);
 	}
 
 /* ---------- CONTENT ----------------------------------------------------------------------------------------------- */
@@ -441,7 +438,7 @@ public class Window extends WindowBase {
 	}
 
 	public SwitchContainer getTopContainer() {
-		return (SwitchContainer) layout.getChild();
+		return layout==null ? null : (SwitchContainer) layout.getChild();
 	}
 
 	/**

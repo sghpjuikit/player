@@ -3,7 +3,7 @@ package sp.it.pl.layout
 import javafx.event.EventHandler
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import javafx.scene.layout.AnchorPane
+import javafx.scene.layout.StackPane
 import sp.it.pl.gui.objects.picker.ContainerPicker
 import sp.it.pl.gui.objects.picker.Picker
 import sp.it.pl.gui.objects.picker.WidgetPicker
@@ -19,7 +19,7 @@ import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
-import sp.it.util.ui.layFullArea
+import sp.it.util.ui.lay
 
 /**
  * Container graphics for container null child.
@@ -32,7 +32,7 @@ class Layouter: ContainerUi {
     private val container: Container<*>
     private val index: Int
 
-    override val root = AnchorPane()
+    override val root = StackPane()
     var onCancel: () -> Unit = {}
     private var isCancelPlaying = false
     private var wasSelected = false
@@ -58,7 +58,7 @@ class Layouter: ContainerUi {
         }
         APP.widgetManager.widgets.separateWidgets attach { cp.buildContent() }   // TODO: memory leak
 
-        root.layFullArea += cp.root
+        root.lay += cp.root
 
         AppAnimator.applyAt(cp.root, 0.0)
 
@@ -136,7 +136,7 @@ class Layouter: ContainerUi {
         wp.buildContent()
         wp.consumeCancelEvent = true // we need right click to not close container
 
-        root.layFullArea += wp.root
+        root.lay += wp.root
         AppAnimator.openAndDo(wp.root, null)
     }
 

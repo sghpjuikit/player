@@ -49,6 +49,7 @@ import sp.it.util.dev.Blocks
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.stackTraceAsString
 import sp.it.util.functional.asIf
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.net
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
@@ -382,7 +383,7 @@ class AppActions {
                     "\nTag:"+
                     if (af.tag==null) " <none>" else af.tag.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" }
                 }
-                .getOrSupply { e -> "\n"+e.stackTraceAsString() }
+                .getOrSupply { "\n${it.stackTraceAsString()}" }
         val text = title+content
         runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
     }

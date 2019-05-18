@@ -28,6 +28,13 @@ sealed class Try<out R,out E> {
             is Error<E> -> fail { "Can not get result of an Error Try" }
         }
 
+    // TODO: remove
+    /** @return the value if ok or the specified value if error */
+    fun getOr(or: @UV R): R = when (this) {
+        is Ok<R> -> value
+        is Error<E> -> or
+    }
+
     /** Invoke the specified action if success */
     inline fun ifOk(action: (R) -> Unit) = apply { if (this is Ok<R>) action(value) }
 
@@ -67,6 +74,24 @@ sealed class Try<out R,out E> {
     fun <S, F> map(mapperOk: (R) -> S, mapperError: (E) -> F): Try<S, F> = when (this) {
         is Ok<R> -> ok(mapperOk(value))
         is Error<E> -> error(mapperError(value))
+    }
+
+    // TODO: remove
+    fun and(and: Try<*, @UV E>): Try<R, E> = when (this) {
+        is Ok<R> -> when (and) {
+            is Ok<*> -> this
+            is Error<E> -> and
+        }
+        is Error<E> -> this
+    }
+
+    // TODO: remove
+    fun and(and: (R) -> Try<*, @UV E>): Try<R, E> = when (this) {
+        is Ok<R> -> when(val c = and(value)) {
+            is Ok<*> -> this
+            is Error<E> -> c
+        }
+        is Error<E> -> this
     }
 
     class Ok<R>(val value: R): Try<R, Nothing>() {
@@ -178,11 +203,6 @@ fun <T, R: T, E: T> Try<R,E>.getAny(): T = when(this) {
 fun <R, E, R1: R, R2: R> Try<R1,E>.getOr(or: @UV R2): R = when (this) {
     is Try.Ok<R1> -> value
     is Try.Error<E> -> or
-}
-/** @return the value if ok or the value computed with specified supplier if error */
-inline fun <R, E, R1: R, R2: R> Try<R1,E>.getOrSupply(or: () -> @UV R2): R = when (this) {
-    is Try.Ok<R1> -> value
-    is Try.Error<E> -> or()
 }
 
 /** @return the value if ok or the value computed with specified supplier if error */

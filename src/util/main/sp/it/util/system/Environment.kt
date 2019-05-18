@@ -242,7 +242,7 @@ fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg 
         this.extensionFilters += extensions
     }
     val fs = c.showOpenMultipleDialog(w)
-    return if (fs!=null && !fs.isEmpty()) Try.ok(fs) else Try.error()
+    return if (fs!=null && fs.isNotEmpty()) Try.ok(fs) else Try.error()
 }
 
 fun saveFile(title: String, initial: File? = null, initialName: String, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void?> {

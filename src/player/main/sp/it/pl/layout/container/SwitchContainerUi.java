@@ -16,6 +16,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.layout.AltState;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.Layouter;
@@ -25,7 +26,9 @@ import sp.it.pl.layout.widget.controller.io.IOLayer;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
 import sp.it.util.animation.interpolator.CircularInterpolator;
+import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.FxTimer;
+import sp.it.util.reactive.Subscribed;
 import static java.lang.Double.NaN;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
@@ -47,7 +50,10 @@ import static sp.it.util.animation.interpolator.EasingMode.EASE_IN;
 import static sp.it.util.animation.interpolator.EasingMode.EASE_OUT;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.executor.FxTimer.fxTimer;
+import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.attach;
+import static sp.it.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.initClip;
@@ -60,11 +66,9 @@ import static sp.it.util.ui.UtilKt.removeFromParent;
  * its entire space and providing mechanism for content switching. It can be
  * compared to virtual desktops.
  * <p/>
- * The content switches by invoking drag event using the right (secondary) mouse
- * button.
- *
- * @author plutonium_
+ * The content switches by invoking drag event using the right (secondary) mouse button.
  */
+@SuppressWarnings("WeakerAccess")
 public class SwitchContainerUi implements ContainerUi {
 
     private final AnchorPane root = new AnchorPane();
@@ -88,6 +92,10 @@ public class SwitchContainerUi implements ContainerUi {
     public final V<Double> snapThresholdRel = new V<>(0.05); // 0 - 0.5
     public final V<Double> snapThresholdAbs = new V<>(25.0);
     public final V<Double> zoomScaleFactor = new V<>(0.7); // 0.2 - 1
+
+    @SuppressWarnings("unused")
+    private double byx = 0;
+    private double tox = 0;
 
     public SwitchContainerUi(SwitchContainer container) {
         this.container = container;
@@ -155,22 +163,37 @@ public class SwitchContainerUi implements ContainerUi {
         uiDrag = new XTransition(millis(400),ui);
         uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
 
-        // bind widths for automatic dynamic resizing (works perfectly)
-        ui.widthProperty().addListener(o -> ui.setTranslateX(-getTabX(currTab())));
+        sync1IfInScene(root, runnable(() -> {
+            // restore last position
+            ui.setTranslateX(container.properties.getOrPut(Double.class, "translate", 0.0));
 
+            // store latest position for deserialization
+            syncC(ui.translateXProperty(), v -> container.properties.put("translate", v));
 
-        // Maintain container properties
-        double translate = (double)container.properties.computeIfAbsent("translate", key -> ui.getTranslateX());
-        ui.setTranslateX(translate);
-        // remember latest position for deserialization (we must not rewrite init value above)
-        syncC(ui.translateXProperty(), v -> container.properties.put("translate",v));
+            // maintain position during resize
+            // 1 `{}` // does not maintain position:
+            // 2 `ui.widthProperty().addListener(o -> ui.setTranslateX(-getTabX(currTab())));`  // this forces integer position during resize:
+            // 3 The below works by referencing position before resize to compute proper value
+            var uiI = new V<>(-currTabAsDouble());
+            var uiIObserver = EventReducer.toLast(200, it -> {
+                uiI.setValue(-currTabAsDouble());
+                if (align.getValue()) alignTabs();
+                else snapTabs();
+            });
+            var uiTObserver = new Subscribed(it -> attach(ui.translateXProperty(), consumer(v -> uiI.setValue(-currTabAsDouble()))));
+            uiTObserver.subscribe(true);
+            ui.widthProperty().addListener(o -> {
+                uiIObserver.push(null);
+                uiDrag.stop();
+                uiTObserver.subscribe(false);
+                ui.setTranslateX(uiI.getValue()*uiWidth());
+                uiTObserver.subscribe(true);
+            });
 
-        // initialize
-        updateEmptyTabs();
+            // initialize
+            updateEmptyTabs();
+        }));
     }
-
-	double byx = 0;
-    double tox = 0;
 
     @Override
     public void close() {
@@ -179,19 +202,18 @@ public class SwitchContainerUi implements ContainerUi {
 
     /********************************    TABS   ***********************************/
 
-    public final Map<Integer,TabPane> tabs = new HashMap<>();
-    boolean changed = false;
+    private final Map<Integer,TabPane> tabs = new HashMap<>();
 
+    @SuppressWarnings("StatementWithEmptyBody")
     public void addTab(int i, Component c) {
         if (c==layouts.get(i)) {
-        	return;
+
         } else if (c==null) {
             removeTab(i);
             updateEmptyTabs();
         } else {
             removeTab(i);
             layouts.put(i, c);
-            changed = true;
             loadTab(i);
             updateEmptyTabs();
         }
@@ -235,7 +257,7 @@ public class SwitchContainerUi implements ContainerUi {
         tab.getChildren().setAll(n);
     }
 
-    void removeTab(int i) {
+    public void removeTab(int i) {
         if (tabs.containsKey(i)) {
             // detach from scene graph
             ui.getChildren().remove(tabs.get(i));
@@ -246,7 +268,7 @@ public class SwitchContainerUi implements ContainerUi {
         }
     }
 
-    void removeAllTabs() {
+    public void removeAllTabs() {
         layouts.keySet().forEach(this::removeTab);
     }
 
@@ -414,22 +436,19 @@ public class SwitchContainerUi implements ContainerUi {
      * Executes {@link #alignTabs()} if the position of the tabs fulfills snap requirements.
      * <p/>
      * Use to align tabs while adhering to user settings.
-     *
-     * @return index of current tab after aligning
      */
-    public int snapTabs() {
-        int i = currTab();
-        if (!snap.get()) return i;
+    public void snapTabs() {
+        if (!snap.get()) return;
 
-        double is = ui.getTranslateX();
-        double should_be = -getTabX(currTab());
-        double dist = Math.abs(is-should_be);
-        double threshold1 = ui.getWidth()* snapThresholdRel.get();
-        double threshold2 = snapThresholdAbs.get();
-
+        var is = ui.getTranslateX();
+        var should_be = -getTabX(currTab());
+        var dist = Math.abs(is-should_be);
+        var threshold1 = ui.getWidth()* snapThresholdRel.get();
+        var threshold2 = snapThresholdAbs.get();
         var needsAlign = dist < Math.max(threshold1, threshold2);
-        if (!needsAlign) updateEmptyTabs();
-        return needsAlign ? alignTabs() : i;
+
+        if (needsAlign) alignTabs();
+        else updateEmptyTabs();
     }
 
     /**
@@ -566,6 +585,7 @@ public class SwitchContainerUi implements ContainerUi {
         return layouts.get(currTab());
     }
 
+    @NotNull
     @Override
     public Pane getRoot() {
         return root;

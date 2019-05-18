@@ -57,6 +57,12 @@ fun <T> Lazy<T>.orNull() = if (isInitialized()) value else null
 /** @return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
 fun <T> Optional<T>.orNull(): T? = orElse(null)
 
+/** @return ok with the value of this optional or error if this is empty optional */
+fun <T: Any> Optional<T>.toTry(): Try<T,Nothing?> = map { Try.ok(it) }.orNull() ?: Try.error()
+
+/** Equivalent to [Optional.ofNullable]. */
+fun <T: Any> T?.toOptional(): Optional<T> = Optional.ofNullable(this)
+
 /** @return this result represented as a [Try] */
 fun <T> Result<T>.toTry(): Try<T, Throwable> = fold({ Try.ok(it) }, { Try.error(it) })
 

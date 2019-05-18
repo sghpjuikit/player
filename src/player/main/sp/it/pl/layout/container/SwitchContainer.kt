@@ -82,7 +82,7 @@ class SwitchContainer: Container<SwitchContainerUi>() {
         @IsConfig(name = "Snap distance (S)", info = "Required distance from edge at"
                 +" which tabs align. Tab snap activates if"
                 +" at least one condition is fulfilled min distance or min fraction.")
-        private val snapThresholdAbs by cv(25.0)
+        private val snapThresholdAbs by cv(40.0)
 
         @IsConfig(name = "Zoom", info = "Zoom factor")
         private val zoom by cv(0.7).between(0.2, 1.0)

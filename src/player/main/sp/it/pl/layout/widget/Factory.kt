@@ -2,6 +2,7 @@ package sp.it.pl.layout.widget
 
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.controller.Controller
+import sp.it.pl.layout.widget.controller.NoFactoryController
 import sp.it.pl.main.APP
 import sp.it.util.file.div
 import sp.it.util.file.nameOrRoot
@@ -17,7 +18,7 @@ interface ComponentFactory<out T: Component>: ComponentInfo {
 
 /** Component factory that creates widgets. */
 @Widget.Info
-class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
+open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
 
     val controllerType: Class<C>
     val location: File
@@ -80,6 +81,17 @@ class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
 
 }
 
+/** Component factory that creates component programmatically using a supplier. */
+class TemplateFactory<C: Component>(private val name: String, private val supplier: () -> C): ComponentFactory<C> {
+
+    override fun nameGui() = name
+
+    override fun create() = supplier()
+
+    override fun toString() = "${javaClass.simpleName} $name"
+
+}
+
 /** Component factory that creates component by deserializing it from file. */
 class DeserializingFactory: ComponentFactory<Component> {
     val launcher: File
@@ -98,6 +110,17 @@ class DeserializingFactory: ComponentFactory<Component> {
 
 }
 
+class NoFactoryFactory(val name: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.DIR_WIDGETS/name, null) {
+    override fun name() = name
+
+    override fun nameGui() = name
+
+    override fun create(): Widget = Widget(name, this)
+
+    fun createController(widget: Widget) = NoFactoryController(widget)
+
+    override fun toString() = "${javaClass.simpleName} $name"
+}
 
 /** Marks [Controller]/[Widget] as unfit for production use. */
 annotation class ExperimentalController(

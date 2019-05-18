@@ -28,7 +28,6 @@ import sp.it.pl.layout.container.ContainerUi;
 import sp.it.pl.layout.widget.controller.Controller;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.LoadErrorController;
-import sp.it.pl.layout.widget.controller.NoFactoryController;
 import sp.it.pl.layout.widget.controller.io.IOLayer;
 import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
@@ -49,7 +48,6 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.deepEquals;
 import static kotlin.io.FilesKt.deleteRecursively;
-import static sp.it.pl.layout.widget.EmptyWidgetKt.getEmptyWidgetFactory;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.file.Util.writeFile;
@@ -431,13 +429,13 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 
 		Util.setField(this, "isDeserialized", true);
 
-		// try to assign factory (it must exist) or fallback to empty widget
 		if (factory==null) {
-			Util.setField(this, "factory", APP.widgetManager.factories.getFactory(name));
-		}
-		if (factory==null) {
-			Util.setField(this, "factory", getEmptyWidgetFactory());    // TODO: Use NoFactoryFactory or something
-			controller = new NoFactoryController(this);
+			var f = firstNotNull(
+				() -> APP.widgetManager.factories.getFactory(name),
+				() -> new NoFactoryFactory(name)
+			);
+			Util.setField(this, "factory", f);
+			if (f instanceof NoFactoryFactory) controller = ((NoFactoryFactory) f).createController(this);
 		}
 
 		if (configs==null) configs = new HashMap<>();

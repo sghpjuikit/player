@@ -1,7 +1,6 @@
 package sp.it.pl.gui.objects.picker
 
 import sp.it.pl.layout.widget.ComponentFactory
-import sp.it.pl.layout.widget.DeserializingFactory
 import sp.it.pl.layout.widget.WidgetFactory
 import sp.it.pl.main.APP
 import sp.it.pl.main.isUsableByUser
@@ -15,7 +14,7 @@ class WidgetPicker(private val mode: Mode): Picker<ComponentFactory<*>>() {
         itemSupply = {
             val factories = when(mode) {
                 Mode.WIDGET -> APP.widgetManager.factories.getFactories()
-                Mode.LAYOUTS -> APP.widgetManager.factories.getComponentFactories().filterIsInstance<DeserializingFactory>()
+                Mode.LAYOUTS -> APP.widgetManager.factories.getComponentFactories().filter { it !is WidgetFactory<*> }
                 Mode.ALL -> APP.widgetManager.factories.getComponentFactories()
             }
             factories.filter { it.isUsableByUser() }

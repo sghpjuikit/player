@@ -58,7 +58,10 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNull
 import sp.it.util.functional.invoke
+import sp.it.util.functional.or
 import sp.it.util.functional.orNull
+import sp.it.util.functional.toOptional
+import sp.it.util.functional.toTry
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
@@ -119,8 +122,8 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
             logger.error { "Kotlin compiler is missing. Please install kotlinc in ${APP.DIR_APP/"kotlinc"}" }
 
         // internal factories
-        factoriesW += emptyWidgetFactory
-        factoriesC += emptyWidgetFactory
+        registerFactory(emptyWidgetFactory)
+        registerFactory(initialTemplateFactory)
 
         // external factories
         val dirW = APP.DIR_WIDGETS
@@ -304,8 +307,8 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
             val widgetType = (controllerType as Class<Controller>).kotlin
             val widgetFactory = WidgetFactory(widgetType, widgetDir, this)
-            val isNew = registerFactory(widgetFactory)
-            if (!isNew) widgetFactory.reloadAllOpen()
+            registerFactory(widgetFactory)
+            if (initialized) widgetFactory.reloadAllOpen()
         }
 
         private fun compileFx() {
@@ -434,7 +437,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         @IsConfig(name = "Recompile all widgets", info = "Re-compiles every widget. Useful when auto-compilation is disabled or unsupported.")
         val recompile by cr { monitors.forEach { it.scheduleCompilation() } }
 
-        @IsConfig(name = "Separate widgets & templates in UI", info = "Show widgets and templates (exported layouts) as separate categoriesin UI picker")
+        @IsConfig(name = "Separate widgets & templates in UI", info = "Show widgets and templates (exported layouts) as separate categories in UI picker")
         val separateWidgets by cv(true)
 
         /** Widgets that are not part of layout. */
@@ -552,10 +555,10 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         fun getFactory(name: String): WidgetFactory<*>? = factoriesW[name]
 
         /** @return widget factory with the specified [WidgetFactory.nameGui] or null if none */
-        fun getFactoryByGuiName(guiName: String): WidgetFactory<*>? = factoriesW.find { it.nameGui()==guiName }
+        fun getFactoryByGuiName(guiName: String): Try<WidgetFactory<*>, String> = factoriesW.find { it.nameGui()==guiName }.toOptional().toTry().mapError { guiName }
 
         /** @return component factory with the specified [ComponentFactory.nameGui] or null if none */
-        fun getComponentFactoryByGuiName(guiName: String): ComponentFactory<*>? = getFactoryByGuiName(guiName) ?: factoriesC[guiName]
+        fun getComponentFactoryByGuiName(guiName: String): Try<ComponentFactory<*>, String> = getFactoryByGuiName(guiName).or { factoriesC[guiName].toOptional().toTry() }
 
         /** @return all widget factories */
         fun getFactories(): Sequence<WidgetFactory<*>> = factoriesW.streamV().asSequence()
@@ -663,14 +666,10 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 /** Reified version of [WidgetInfo.hasFeature] */
 inline fun <reified F> WidgetInfo.hasFeature() = hasFeature(F::class)
 
-/** @return this factory or [emptyWidgetFactory] if null */
-fun WidgetFactory<*>?.orEmpty(): WidgetFactory<*> = this ?: emptyWidgetFactory
-
-/** @return this factory or [emptyWidgetFactory] if null */
-fun ComponentFactory<*>?.orEmpty(): ComponentFactory<*> = this ?: emptyWidgetFactory
+fun Try<ComponentFactory<*>,String>.orNone(): ComponentFactory<*> = getOrSupply { NoFactoryFactory(it) }
 
 fun WidgetFactory<*>.isCompiling(disposer: Disposer): ObservableValue<Boolean> {
-    fun isCompiling() = name() in APP.widgetManager.factories.factoriesInCompilation
+    fun isCompiling() = APP.widgetManager.factories.factoriesInCompilation.any { it==name() || it==nameGui() }
     return v(isCompiling()).apply {
         APP.widgetManager.factories.factoriesInCompilation.onChange { value = isCompiling() } on disposer
     }
@@ -679,7 +678,7 @@ fun WidgetFactory<*>.isCompiling(disposer: Disposer): ObservableValue<Boolean> {
 fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
     WidgetManager.logger.info("Reloading all open widgets of {}", widgetFactory)
     APP.widgetManager.widgets.findAll(OPEN).asSequence()
-            .filter { it.name==widgetFactory.name() }   // it.factory must not be used due to temporary factories in unrecognized widgets
+            .filter { it.name==widgetFactory.name() || it.name==widgetFactory.nameGui() }   // it.factory must not be used due to temporary factories in unrecognized widgets
             .materialize()
             .forEach { widgetOld ->
                 val wasFocused = widgetOld.focused.value

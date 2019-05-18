@@ -317,7 +317,7 @@ class App: Application(), Configurable<Any> {
 
             Player.initialize()
 
-            normalLoad = normalLoad && fetchArguments().none { it.endsWith(".fxwl") || widgetManager.factories.getComponentFactoryByGuiName(it)!=null }
+            normalLoad = normalLoad && fetchArguments().none { it.endsWith(".fxwl") || widgetManager.factories.getComponentFactoryByGuiName(it).isOk }
 
             windowManager.deserialize(normalLoad)
         }.ifError {

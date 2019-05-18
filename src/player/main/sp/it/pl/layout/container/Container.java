@@ -1,7 +1,6 @@
 package sp.it.pl.layout.container;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,16 +13,9 @@ import sp.it.pl.layout.Component;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.util.type.ClassName;
 import static java.util.stream.Collectors.toList;
-import static javafx.geometry.Orientation.HORIZONTAL;
-import static javafx.geometry.Orientation.VERTICAL;
 import static org.slf4j.LoggerFactory.getLogger;
-import static sp.it.pl.layout.widget.EmptyWidgetKt.getEmptyWidgetFactory;
-import static sp.it.pl.main.AppDragKt.getText;
-import static sp.it.pl.main.AppDragKt.hasText;
-import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.stream;
-import static sp.it.util.functional.UtilKt.consumer;
 
 /**
  * Component able to store other Components.
@@ -62,57 +54,6 @@ import static sp.it.util.functional.UtilKt.consumer;
  index if component is not found. Therefore such index must be ignored.
  */
 public abstract class Container<G extends ContainerUi> extends Component implements AltState {
-
-    public static Container testControlContainer() {
-        BiContainer root = new BiContainer(HORIZONTAL);
-
-        BiContainer c11 = new BiContainer(VERTICAL);
-        BiContainer c12 = new BiContainer(VERTICAL);
-        root.addChild(1, c11);
-        root.addChild(2, c12);
-
-        BiContainer c21 = new BiContainer(HORIZONTAL);
-        BiContainer c22 = new BiContainer(HORIZONTAL);
-        c12.addChild(1, c21);
-        c12.addChild(2, c22);
-
-        c11.addChild(1, getEmptyWidgetFactory().create());
-        c11.addChild(2, getEmptyWidgetFactory().create());
-        c21.addChild(1, getEmptyWidgetFactory().create());
-        c21.addChild(2, getEmptyWidgetFactory().create());
-        c22.addChild(1, getEmptyWidgetFactory().create());
-        c22.addChild(2, getEmptyWidgetFactory().create());
-
-        return root;
-    }
-
-    public static Container testDragContainer() {
-        Widget w = getEmptyWidgetFactory().create();
-        BiContainer root = new BiContainer(HORIZONTAL);
-        root.addChild(1,w);
-
-        root.load();
-        installDrag(
-            root.getRoot(),
-            MaterialDesignIcon.DICE_2,
-            "Accepts text containing digit '2' and does nothing"
-              + "\n\t• Release mouse to drop drag and execute action"
-              + "\n\t• Continue moving to try elsewhere",
-            e -> hasText(e.getDragboard()) && getText(e.getDragboard()).contains("2"),
-            consumer(e -> {})
-        );
-        installDrag(
-            w.load(),
-            MaterialDesignIcon.DICE_2,
-            "Accepts text containing digit '2' and does nothing"
-              + "\n\t• Release mouse to drop drag and execute action"
-              + "\n\t• Continue moving to try elsewhere",
-            e -> hasText(e.getDragboard()) && getText(e.getDragboard()).contains("2"),
-            consumer(e -> {})
-        );
-
-        return root;
-    }
 
     @XStreamOmitField protected AnchorPane root;
     @XStreamOmitField private Container parent;

@@ -2,6 +2,7 @@ package sp.it.pl.gui.objects.picker
 
 import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Orientation.VERTICAL
+import sp.it.pl.gui.objects.picker.ContainerPicker.CellData
 import sp.it.pl.gui.objects.picker.WidgetPicker.Mode.ALL
 import sp.it.pl.gui.objects.picker.WidgetPicker.Mode.LAYOUTS
 import sp.it.pl.gui.objects.picker.WidgetPicker.Mode.WIDGET
@@ -11,7 +12,7 @@ import sp.it.pl.layout.container.FreeFormContainer
 import sp.it.pl.main.APP
 
 /** Container picker. */
-class ContainerPicker(onContainerSelect: (Container<*>) -> Unit, onWidgetSelect: (WidgetPicker.Mode) -> Unit): Picker<ContainerPicker.CellData>() {
+class ContainerPicker(onContainerSelect: (Container<*>) -> Unit, onWidgetSelect: (WidgetPicker.Mode) -> Unit): Picker<CellData>() {
     init {
         itemSupply = {
             sequenceOf(

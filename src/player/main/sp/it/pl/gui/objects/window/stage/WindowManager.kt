@@ -458,7 +458,7 @@ class WindowManager {
     fun launchComponent(launcher: File) = instantiateComponent(launcher)
             ?.apply(::launchComponent)
 
-    fun launchComponent(name: String) = APP.widgetManager.factories.getComponentFactoryByGuiName(name)?.create()
+    fun launchComponent(name: String) = APP.widgetManager.factories.getComponentFactoryByGuiName(name).orNull()?.create()
             ?.apply(::launchComponent)
 
     fun launchComponent(w: Component) {
@@ -472,7 +472,7 @@ class WindowManager {
     fun instantiateComponent(launcher: File): Component? {
         if (!launcher.exists()) return null
         val isLauncherEmpty = launcher.useLines { it.count()==0 }
-        val wf = if (isLauncherEmpty) APP.widgetManager.factories.getComponentFactoryByGuiName(launcher.nameWithoutExtension) else null
+        val wf = if (isLauncherEmpty) APP.widgetManager.factories.getComponentFactoryByGuiName(launcher.nameWithoutExtension).orNull() else null
         return null
                 ?: wf?.create()
                 ?: APP.serializerXml.fromXML(Component::class.java, launcher).getOr(null)

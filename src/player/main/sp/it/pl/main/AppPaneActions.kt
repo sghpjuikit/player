@@ -410,7 +410,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                         }.ui { result ->
                             if (result!=null) {
                                 if (conf.editInTagger.value) {
-                                    val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER)?.create()
+                                    val tagger = APP.widgetManager.factories.getFactoryByGuiName(Widgets.SONG_TAGGER).orNull()?.create()
                                     val songs = if (conf.editOnlyAdded.value) result.converted else result.all
                                     if (tagger!=null) {
                                         anim(500.millis) {

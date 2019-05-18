@@ -51,6 +51,7 @@ import sp.it.util.dev.stackTraceAsString
 import sp.it.util.functional.asIf
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.net
+import sp.it.util.functional.orNull
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1If
@@ -153,7 +154,7 @@ class AppActions {
         val f = File(APP.DIR_LAYOUTS, "AppMainLauncher.fxwl")
         val c = null
                 ?: APP.windowManager.instantiateComponent(f)
-                ?: APP.widgetManager.factories.getFactoryByGuiName(Widgets.APP_LAUNCHER)?.create()
+                ?: APP.widgetManager.factories.getFactoryByGuiName(Widgets.APP_LAUNCHER).orNull()?.create()
 
         if (c!=null) {
             val op = object: OverlayPane<Void>() {

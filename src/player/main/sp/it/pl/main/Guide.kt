@@ -3,7 +3,6 @@ package sp.it.pl.main
 import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.HORIZONTAL
-import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
 import javafx.scene.control.TextArea
@@ -23,11 +22,9 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.layout.container.BiContainer
-import sp.it.pl.layout.container.Container.testControlContainer
 import sp.it.pl.layout.widget.emptyWidgetFactory
-import sp.it.pl.layout.widget.orEmpty
-import sp.it.pl.main.Widgets.PLAYBACK
-import sp.it.pl.main.Widgets.PLAYLIST
+import sp.it.pl.layout.widget.initialTemplateFactory
+import sp.it.pl.layout.widget.testControlContainer
 import sp.it.util.access.v
 import sp.it.util.action.ActionManager
 import sp.it.util.action.ActionRegistrar
@@ -236,17 +233,11 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGI
                 "Hi, this is guide for this application. It will show you around. "+"\n\nBut first let's play some music.",
                 {
                     layH(Icon(IconFA.MUSIC, ICON_SIZE, null) { _ ->
-                        // find spot
-                        val la = APP.windowManager.getActiveOrNew().switchPane.container
-                        // prepare container
-                        val bc = BiContainer(VERTICAL)
-                        la.addChild(la.emptySpot, bc)
-                        // load widgets
-                        bc.addChild(1, APP.widgetManager.factories.getFactoryByGuiName(PLAYLIST).orEmpty().create())
-                        bc.addChild(2, APP.widgetManager.factories.getFactoryByGuiName(PLAYBACK).orEmpty().create())
-                        // go to layout
-                        la.ui.alignTab(bc)
-                        // go to next guide
+                        val c = APP.windowManager.getActiveOrNew().switchPane.container
+                        val w = initialTemplateFactory.create()
+                        c.addChild(c.emptySpot, w)
+                        c.ui.alignTab(w)
+
                         proceedIfActive()
                     })
                 }

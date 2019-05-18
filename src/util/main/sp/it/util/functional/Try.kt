@@ -28,18 +28,6 @@ sealed class Try<out R,out E> {
             is Error<E> -> fail { "Can not get result of an Error Try" }
         }
 
-    /** @return the value if ok or the specified value if error */
-    fun getOr(or: @UV R): R = when (this) {
-        is Ok<R> -> value
-        is Error<E> -> or
-    }
-
-    /** @return the value if ok or the value computed with specified supplier if error */
-    inline fun getOrSupply(or: (E) -> @UV R): R = when (this) {
-        is Ok<R> -> value
-        is Error<E> -> or(value)
-    }
-
     /** Invoke the specified action if success */
     inline fun ifOk(action: (R) -> Unit) = apply { if (this is Ok<R>) action(value) }
 
@@ -79,35 +67,6 @@ sealed class Try<out R,out E> {
     fun <S, F> map(mapperOk: (R) -> S, mapperError: (E) -> F): Try<S, F> = when (this) {
         is Ok<R> -> ok(mapperOk(value))
         is Error<E> -> error(mapperError(value))
-    }
-
-    fun and(and: Try<@UV R, @UV E>): Try<R, E> = when (this) {
-        is Ok<R> -> when (and) {
-            is Ok<R> -> this
-            is Error<E> -> and
-        }
-        is Error<E> -> this
-    }
-
-    fun and(and: (R) -> Boolean, errorSupplier: (R) -> @UV E): Try<R, E> = when (this) {
-        is Ok<R> -> if (and(value)) this else error(errorSupplier(value))
-        is Error<E> -> this
-    }
-
-    fun and(and: (R) -> Try<*, @UV E>): Try<R, E> = when (this) {
-        is Ok<R> -> when(val c = and(value)) {
-            is Ok<*> -> this
-            is Error<E> -> c
-        }
-        is Error<E> -> this
-    }
-
-    fun or(or: Try<@UV R, @UV E>): Try<R, E> = when (this) {
-        is Ok<R> -> this
-        is Error<E> -> when(or) {
-            is Ok<R> -> or
-            else -> this
-        }
     }
 
     class Ok<R>(val value: R): Try<R, Nothing>() {
@@ -204,7 +163,7 @@ sealed class Try<out R,out E> {
  *
  * @return the specified block's return value or any caught exception.
  */
-fun <R> runTry(block: () -> R): Try<R, Throwable> = try {
+inline fun <R> runTry(block: () -> R): Try<R, Throwable> = try {
     Try.ok(block())
 } catch (e: Throwable) {
     Try.error(e)
@@ -216,18 +175,78 @@ fun <T, R: T, E: T> Try<R,E>.getAny(): T = when(this) {
     is Try.Error<E> -> value
 }
 /** @return the value if ok or the specified value if error */
-fun <R, E, R1: R, R2: R> Try<R,E>.getOr(or: @UV R2): R = when (this) {
-    is Try.Ok<R> -> value
+fun <R, E, R1: R, R2: R> Try<R1,E>.getOr(or: @UV R2): R = when (this) {
+    is Try.Ok<R1> -> value
     is Try.Error<E> -> or
 }
 /** @return the value if ok or the value computed with specified supplier if error */
-fun <R, E, R1: R, R2: R> Try<R,E>.getOrSupply(or: () -> @UV R2): R = when (this) {
-    is Try.Ok<R> -> value
+inline fun <R, E, R1: R, R2: R> Try<R1,E>.getOrSupply(or: () -> @UV R2): R = when (this) {
+    is Try.Ok<R1> -> value
     is Try.Error<E> -> or()
 }
 
 /** @return the value if ok or the value computed with specified supplier if error */
-fun <R, E, R1: R, R2: R> Try<R,E>.getOrSupply(or: (E) -> @UV R2): R = when (this) {
-    is Try.Ok<R> -> value
+inline fun <R, E, R1: R, R2: R> Try<R1,E>.getOrSupply(or: (E) -> @UV R2): R = when (this) {
+    is Try.Ok<R1> -> value
     is Try.Error<E> -> or(value)
+}
+
+/**
+ * Applies short-circuit boolean && operation.
+ * Returns Ok if both Try are Ok, otherwise first Error, in order: this, the specified Try.
+ * Hence, the specified Try is only considered if this is Ok. Note how its OK parameter is never used.
+ *
+ * @return this if error or if both ok otherwise the specified Try (which will be known to be Error at that point)
+ */
+fun <R,E, E1: E, E2: E> Try<R,E1>.and(and: Try<*, @UV E2>): Try<R, E> = when (this) {
+    is Try.Ok<R> -> when (and) {
+        is Try.Ok<*> -> this
+        is Try.Error<E2> -> and
+    }
+    is Try.Error<E1> -> this
+}
+
+/**
+ * Applies short-circuit boolean && operation.
+ * Returns Ok if both this and the predicate result are Ok/true, otherwise first Error, in order: this, the specified supplier.
+ * Hence, the specified predicate is only invoked if this is Ok and the error supplier only if the test returns false.
+ *
+ * @return this if error or if both this and the predicate are ok/true otherwise the supplied error
+ */
+inline fun <R,E, E1: E, E2: E> Try<R,E1>.and(and: (R) -> Boolean, errorSupplier: (R) -> @UV E2): Try<R, E> = when (this) {
+    is Try.Ok<R> -> if (and(value)) this else Try.error(errorSupplier(value))
+    is Try.Error<E1> -> this
+}
+
+/** Lazy version of [Try.and]. */
+inline fun <R,E, E1: E, E2: E> Try<R,E1>.and(and: (R) -> Try<*, @UV E2>): Try<R, E> = when (this) {
+    is Try.Ok<R> -> when(val c = and(value)) {
+        is Try.Ok<*> -> this
+        is Try.Error<E2> -> c
+    }
+    is Try.Error<E1> -> this
+}
+
+/**
+ * Applies short-circuit boolean || operation.
+ * Returns Error if both Try are Error, otherwise first Ok, in order: this, the specified Try.
+ * Hence, the specified Try is only considered if this is Error. Note how its ERROR parameter is never used.
+ *
+ * @return this if ok or if both ok otherwise the specified Try (which will be known to be Ok at that point)
+ */
+fun <R, E, R1: R, R2: R> Try<R1,E>.or(or: Try<@UV R2, *>): Try<R, E> = when (this) {
+    is Try.Ok<R1> -> this
+    is Try.Error<E> -> when(or) {
+        is Try.Ok<R2> -> or
+        else -> this
+    }
+}
+
+/** Lazy version of [Try.or]. */
+inline fun <R, E, R1: R, R2: R> Try<R1,E>.or(or: (E) -> Try<@UV R2, *>): Try<R, E> = when (this) {
+    is Try.Ok<R1> -> this
+    is Try.Error<E> -> when(val c = or(value)) {
+        is Try.Ok<R2> -> c
+        else -> this
+    }
 }

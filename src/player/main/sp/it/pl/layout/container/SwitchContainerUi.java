@@ -166,7 +166,7 @@ public class SwitchContainerUi implements ContainerUi {
         syncC(ui.translateXProperty(), v -> container.properties.put("translate",v));
 
         // initialize
-        addTab(0);
+        updateEmptyTabs();
     }
 
 	double byx = 0;
@@ -294,6 +294,7 @@ public class SwitchContainerUi implements ContainerUi {
         measurePulse.start();
         e.consume();
     }
+
     private void dragUiEnd(MouseEvent e) {
         if (!uiDragActive) return;
         // stop drag
@@ -316,7 +317,7 @@ public class SwitchContainerUi implements ContainerUi {
             uiDrag.setToX(x + traveled * dragInertia.get());
             uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
             // snap at the end of animation
-            uiDrag.setOnFinished(a -> updateEmptyTabs());
+            uiDrag.setOnFinished(a -> snapTabs());
             uiDrag.play();
         }
         // reset
@@ -325,6 +326,7 @@ public class SwitchContainerUi implements ContainerUi {
         // prevent from propagating the event - disable app behavior while ui drag
         e.consume();
     }
+
     private void dragUi(MouseEvent e) {
         if (!uiDragActive) return;
         // drag
@@ -382,7 +384,7 @@ public class SwitchContainerUi implements ContainerUi {
      */
     public int alignTab(int i) {
         uiDrag.stop();
-        uiDrag.setOnFinished(a -> addTab(i));
+        uiDrag.setOnFinished(a -> updateEmptyTabs());
         uiDrag.setToX(-getTabX(i));
         uiDrag.play();
         return i;
@@ -425,7 +427,9 @@ public class SwitchContainerUi implements ContainerUi {
         double threshold1 = ui.getWidth()* snapThresholdRel.get();
         double threshold2 = snapThresholdAbs.get();
 
-        return dist < Math.max(threshold1, threshold2) ? alignTabs() : i;
+        var needsAlign = dist < Math.max(threshold1, threshold2);
+        if (!needsAlign) updateEmptyTabs();
+        return needsAlign ? alignTabs() : i;
     }
 
     /**
@@ -470,7 +474,7 @@ public class SwitchContainerUi implements ContainerUi {
         int currentT = (int) Math.rint(-1*ui.getTranslateX()/tabWidth());
         int toT = currentT + byT;
         uiDrag.stop();
-        uiDrag.setOnFinished(a -> addTab(toT));
+        uiDrag.setOnFinished(a -> updateEmptyTabs());
         uiDrag.setToX(-getTabX(toT));
         uiDrag.play();
     }

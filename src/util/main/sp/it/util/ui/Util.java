@@ -265,7 +265,6 @@ public interface Util {
 
 	static ScrollPane layScrollVText(Text t) {
 		ScrollPane s = new ScrollPane(t);
-		s.setOnScroll(Event::consume);
 		s.setPannable(false);
 		s.setFitToWidth(false);
 		s.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
@@ -290,7 +289,6 @@ public interface Util {
 	static ScrollPane layScrollVTextCenter(Text t) {
 		double reserve = 5;
 		ScrollPane s = new ScrollPane(new StackPane(t));
-		s.setOnScroll(Event::consume);
 		s.setPannable(false);
 		s.setFitToWidth(true);
 		s.setFitToHeight(true);

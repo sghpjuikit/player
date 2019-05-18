@@ -456,9 +456,7 @@ public class SwitchContainerUi implements ContainerUi {
 
     // get current X position of the tab with the specified index
     private double getTabX(int i) {
-        if (i==0) return 0;
-        if (tabs.containsKey(i)) return tabs.get(i).getLayoutX();
-        return tabWidth()*i;
+        return i==0 ? 0 : tabWidth()*i;
     }
 
     // align to next tab

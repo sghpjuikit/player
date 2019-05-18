@@ -3,13 +3,14 @@ package sp.it.pl.gui.objects.placeholder
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Pos
 import javafx.scene.Node
-import javafx.scene.control.Label
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
+import javafx.scene.text.TextAlignment
+import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Subscription
@@ -26,19 +27,20 @@ import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.size
 
 /**
- * Placeholder pane. Can invoke action and display its icon and name.
+ * Placeholder pane. Can invoke action and display its icon and multi-line information text.
  *
  * Useful mostly instead of empty content like "click to add items" or to signal interactive ui element.
  */
 open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () -> Unit): StackPane() {
 
     @JvmField val icon = Icon()
-    @JvmField val desc = Label()
+    @JvmField val info = Text()
     private var s: Subscription? = null
 
     init {
         styleClass += STYLECLASS
-        desc.text = actionName
+        info.text = actionName
+        info.textAlignment = TextAlignment.CENTER
 
         icon.styleclass(STYLECLASS_ICON)
         icon.icon(actionIcon)
@@ -54,7 +56,7 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
                 pseudoClassChanged("hover", true)
         }
 
-        lay += layHeaderBottom(8.0, Pos.CENTER, icon, desc)
+        lay += layHeaderBottom(8.0, Pos.CENTER, icon, info)
         isVisible = false
     }
 

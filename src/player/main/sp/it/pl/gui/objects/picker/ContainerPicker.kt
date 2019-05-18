@@ -22,12 +22,12 @@ class ContainerPicker(onContainerSelect: (Container<*>) -> Unit, onWidgetSelect:
             ) + (
                 if (APP.widgetManager.widgets.separateWidgets.value) {
                     sequenceOf(
-                        CellData("Template", "Choose previously exported part of a layout.") { onWidgetSelect(LAYOUTS) },
-                        CellData("Widget", "Choose a widget using a widget chooser.") { onWidgetSelect(WIDGET) }
+                        CellData(choiceTemplate, "Choose previously exported part of a layout.") { onWidgetSelect(LAYOUTS) },
+                        CellData(choiceWidget, "Choose a widget using a widget chooser.") { onWidgetSelect(WIDGET) }
                     )
                 } else {
                     sequenceOf(
-                        CellData("Widget", "Choose a widget using a widget chooser.") { onWidgetSelect(ALL) }
+                        CellData(choiceWidget, "Choose a widget using a widget chooser.") { onWidgetSelect(ALL) }
                     )
                 }
             )
@@ -37,4 +37,11 @@ class ContainerPicker(onContainerSelect: (Container<*>) -> Unit, onWidgetSelect:
     }
 
     class CellData(val text: String, val info: String, val onSelect: () -> Unit)
+
+    companion object {
+        const val choiceWidget = "Widget"
+        const val choiceTemplate = "Template"
+        val choiceForTemplate: String
+            get() = if (APP.widgetManager.widgets.separateWidgets.value) choiceTemplate else choiceWidget
+    }
 }

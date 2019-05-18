@@ -166,7 +166,7 @@ public class Window extends WindowBase {
 		// drag&drop
 		installDrag(
 			root, GAVEL,
-			"Display possible actions\n\nMoving the drag elsewhere may offer other actions",
+			"Display possible actions\n\nMoving the drag elsewhere may offer other options",
 			e -> !contains(e.getDragboard(), Df.WIDGET_OUTPUT),
 			consumer(e -> APP.actionPane.show(getAnyFut(e.getDragboard())))
 		);

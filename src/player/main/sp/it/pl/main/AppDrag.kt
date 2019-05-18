@@ -222,20 +222,20 @@ private fun futUrl(url: String): Fut<File?> = runNew {
 }
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
-fun installDrag(node: Node, icon: GlyphIcons, description: String, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
-        installDrag(node, icon, description, condition, { false }, action)
+fun installDrag(node: Node, icon: GlyphIcons, info: String, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
+        installDrag(node, icon, info, condition, { false }, action)
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
-fun installDrag(node: Node, icon: GlyphIcons, description: String, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
-        installDrag(node, icon, Supplier { description }, condition, exc, action)
+fun installDrag(node: Node, icon: GlyphIcons, info: String, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
+        installDrag(node, icon, Supplier { info }, condition, exc, action)
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
-fun installDrag(node: Node, icon: GlyphIcons, description: Supplier<out String>, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
-        installDrag(node, icon, description, condition, { false }, action)
+fun installDrag(node: Node, icon: GlyphIcons, info: Supplier<out String>, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
+        installDrag(node, icon, info, condition, { false }, action)
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
 @JvmOverloads
-fun installDrag(node: Node, icon: GlyphIcons, description: Supplier<out String>, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit, area: ((DragEvent) -> Bounds)? = null) {
+fun installDrag(node: Node, icon: GlyphIcons, info: Supplier<out String>, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit, area: ((DragEvent) -> Bounds)? = null) {
     // accept drag if desired
     node.addEventHandler(DragEvent.DRAG_OVER, handlerAccepting(condition, exc))
     // handle drag & clear data
@@ -248,5 +248,5 @@ fun installDrag(node: Node, icon: GlyphIcons, description: Supplier<out String>,
         }
     }
     // show hint
-    DragPane.install(node, icon, description, Predicate { condition(it) }, Predicate { exc(it) }, if (area==null) null else Functors.Ƒ1 { area(it) })
+    DragPane.install(node, icon, info, Predicate { condition(it) }, Predicate { exc(it) }, if (area==null) null else Functors.Ƒ1 { area(it) })
 }

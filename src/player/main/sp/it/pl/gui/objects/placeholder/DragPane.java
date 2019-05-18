@@ -43,16 +43,16 @@ public class DragPane extends Placeholder {
 	public static final SingleR<DragPane,Data> PANE = new SingleR<>(DragPane::new,
 			(p, data) -> {
 				p.icon.icon(data.icon==null ? DEFAULT_ICON : data.icon);
-				p.desc.setText(data.name.get());
+				p.info.setText(data.info.get());
 			}
 	);
 
-	public static void install(Node r, GlyphIcons icon, String name, Predicate<? super DragEvent> cond) {
-		DragPane.install(r, icon, () -> name, cond);
+	public static void install(Node r, GlyphIcons icon, String info, Predicate<? super DragEvent> cond) {
+		DragPane.install(r, icon, () -> info, cond);
 	}
 
-	public static void install(Node r, GlyphIcons icon, Supplier<? extends String> name, Predicate<? super DragEvent> cond) {
-		install(r, icon, name, cond, e -> false, null);
+	public static void install(Node r, GlyphIcons icon, Supplier<? extends String> info, Predicate<? super DragEvent> cond) {
+		install(r, icon, info, cond, e -> false, null);
 	}
 
 	/**
@@ -62,7 +62,7 @@ public class DragPane extends Placeholder {
 	 *
 	 * @param node drag accepting node. The node should be the accepting object for the drag event.
 	 * @param icon icon symbolizing the action that will take place when drag is dropped
-	 * @param name description of the action that will take place when drag is dropped. The text is supplied when the
+	 * @param info description of the action that will take place when drag is dropped. The text is supplied when the
 	 * drag enters the node. Normally, just pass in {@code () -> "text" }, but you can derive the text from a state of
 	 * the node or however you wish, e.g. when the action can be different under some circumstances.
 	 * @param cond predicate filtering the drag events. The highlighting will show if the drag event tests true.
@@ -101,8 +101,8 @@ public class DragPane extends Placeholder {
 	 * may be used to calculate size and position of the highlight. The result can be a portion of the node's area and
 	 * even react on mouse drag moving across the node.
 	 */
-	public static void install(Node node, GlyphIcons icon, Supplier<? extends String> name, Predicate<? super DragEvent> cond, Predicate<? super DragEvent> except, Ƒ1<DragEvent,Bounds> area) {
-		Data d = new Data(name, icon, cond);
+	public static void install(Node node, GlyphIcons icon, Supplier<? extends String> info, Predicate<? super DragEvent> cond, Predicate<? super DragEvent> except, Ƒ1<DragEvent,Bounds> area) {
+		Data d = new Data(info, icon, cond);
 		node.getProperties().put(INSTALLED, d);
 		node.addEventHandler(DragEvent.DRAG_OVER, e -> {
 			if (!node.getProperties().containsKey(ACTIVE)) { // guarantees cond executes only once
@@ -160,18 +160,18 @@ public class DragPane extends Placeholder {
 	}
 
 	public static class Data {
-		private final Supplier<? extends String> name;
+		private final Supplier<? extends String> info;
 		private final GlyphIcons icon;
 		private final Predicate<? super DragEvent> cond;
 
-		public Data(Supplier<? extends String> name, GlyphIcons icon) {
-			this.name = name;
+		public Data(Supplier<? extends String> info, GlyphIcons icon) {
+			this.info = info;
 			this.icon = icon;
 			this.cond = IS;
 		}
 
-		public Data(Supplier<? extends String> name, GlyphIcons icon, Predicate<? super DragEvent> cond) {
-			this.name = name;
+		public Data(Supplier<? extends String> info, GlyphIcons icon, Predicate<? super DragEvent> cond) {
+			this.info = info;
 			this.icon = icon;
 			this.cond = cond;
 		}

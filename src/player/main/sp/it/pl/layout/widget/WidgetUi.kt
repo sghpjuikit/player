@@ -132,7 +132,7 @@ class WidgetUi: Area<Container<*>> {
 
     private fun buildManualLoadPane() = Placeholder(IconOC.UNFOLD, "") { loadWidget(true) }.apply {
         styleClass += "widget-ui-load-placeholder"
-        desc.text = "Unfold ${widget.custom_name.value} (LMB)"
+        info.text = "Unfold ${widget.custom_name.value} (LMB)"
     }
 
     override fun close() = disposer()

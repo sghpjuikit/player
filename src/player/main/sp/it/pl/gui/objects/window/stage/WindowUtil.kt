@@ -2,7 +2,9 @@ package sp.it.pl.gui.objects.window.stage
 
 import javafx.scene.input.MouseButton
 import javafx.scene.robot.Robot
+import sp.it.pl.gui.objects.picker.ContainerPicker
 import sp.it.pl.gui.objects.placeholder.Placeholder
+import sp.it.pl.layout.widget.initialTemplateFactory
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.IconFA
 import sp.it.util.async.runFX
@@ -16,14 +18,16 @@ fun Window.installStartLayoutPlaceholder() {
 
     fun showStartLayoutPlaceholder() {
         var action = {}
-        val p = Placeholder(IconFA.FOLDER, "Start with a simple click") { action() }
+        val p = Placeholder(IconFA.FOLDER, "Start with a simple click\n\nIf you are 1st timer, choose ${ContainerPicker.choiceForTemplate} > ${initialTemplateFactory.nameGui()}") { action() }
         action = {
-            AppAnimator.closeAndDo(p) {
-                runFX(500.millis) {
-                    p.hide()
-                    Robot().apply {
-                        mouseMove(root.localToScreen(root.layoutBounds).centre.toPoint2D())
-                        mouseClick(MouseButton.PRIMARY)
+            runFX(300.millis) {
+                AppAnimator.closeAndDo(p) {
+                    runFX(500.millis) {
+                        p.hide()
+                        Robot().apply {
+                            mouseMove(root.localToScreen(root.layoutBounds).centre.toPoint2D())
+                            mouseClick(MouseButton.PRIMARY)
+                        }
                     }
                 }
             }

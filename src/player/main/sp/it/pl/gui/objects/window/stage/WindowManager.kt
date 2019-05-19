@@ -365,13 +365,10 @@ class WindowManager {
     fun deserialize(loadNormally: Boolean) {
         val ws = mutableSetOf<Window>()
         if (loadNormally) {
-            canBeMainTemp = true
-
             val dir = File(APP.DIR_LAYOUTS, "current")
             if (isValidatedDirectory(dir)) {
                 val fs = dir.seqChildren().filter { it.path.endsWith(".ws") }.toList()
                 ws += fs.mapNotNull { APP.serializerXml.fromXML(WindowState::class.java, it).orNull()?.toWindow() }
-                canBeMainTemp = false
                 logger.info { "Restored ${fs.size}/${ws.size} windows." }
             } else {
                 logger.error { "Restoring windows/layouts failed: $dir not accessible." }
@@ -379,7 +376,6 @@ class WindowManager {
             }
         }
 
-        // show windows
         if (ws.isEmpty()) {
             if (loadNormally)
                 createWindow(true)
@@ -479,8 +475,6 @@ class WindowManager {
                 ?: APP.serializerXml.fromXML(Component::class.java, launcher).getOr(null)
     }
 
-    companion object: KLogging() {
-        @Volatile var canBeMainTemp = false // TODO: make private & best remove altogether
-    }
+    companion object: KLogging()
 
 }

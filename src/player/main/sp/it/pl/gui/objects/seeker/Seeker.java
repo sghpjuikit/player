@@ -210,9 +210,10 @@ public final class Seeker extends AnchorPane {
 	private void setSeekerValue(double value) {
 //		 seeker.setValue(value);    // This triggers expensive layout
 
+		var v = clip(0, value, 1);
 		var skin = seeker.getSkin();
 		var thumb = skin==null ? null : Util.<StackPane>getFieldValue(skin, "thumb");
-		if (thumb!=null) thumb.setTranslateX(seeker.getLayoutBounds().getWidth()*value-thumb.getLayoutBounds().getWidth()/2.0);
+		if (thumb!=null) thumb.setTranslateX(seeker.getLayoutBounds().getWidth()*v-thumb.getLayoutBounds().getWidth()/2.0);
 	}
 
 	@Override

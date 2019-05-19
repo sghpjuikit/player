@@ -10,11 +10,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.scene.paint.Color;
 import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.exceptions.CannotWriteException;
 import org.jaudiotagger.audio.mp3.MP3File;
 import org.jaudiotagger.tag.FieldDataInvalidException;
 import org.jaudiotagger.tag.FieldKey;
@@ -786,36 +786,34 @@ public class MetadataWriter extends Song {
 
 		try {
 			audioFile.commit();
+			return true;
 		} catch (Exception ex) {
 			if (isPlayingSame()) {
-				LOGGER.debug("File being played, will attempt to suspend playback");
-				Player.suspend(); // asynchronous, we don't know how long it will take
-				// so we sleep the thread and try tagging again, twice once quickly, once longer
-				for (int i = 1; i<=3; i += 2) {
-					int tosleep = i*i*250;
-					LOGGER.debug("Attempt {}, sleeping for {}", 1 + i/2, tosleep);
-					try {
-						Thread.sleep(tosleep);
-						audioFile.commit();
-						break;
-					} catch (CannotWriteException|InterruptedException e) {
-						if (i<3) {
-							LOGGER.info("Can not write file tag (attempt {}): {} {}", 1 + i/2, audioFile.getFile().getPath());
-						} else {
-							LOGGER.error("Can not write file tag (attempt {}): {} {}", 1 + i/2, audioFile.getFile().getPath(), e);
-							Player.activate();
+				LOGGER.info("File being played, will attempt to suspend playback");
+				Player.suspend(); // may be asynchronous
+
+				var success = Stream.of(0, 250, 1000)
+					.map(toSleep -> {
+						try {
+							Thread.sleep(toSleep);
+							audioFile.commit();
+							return true;
+						} catch (Exception e) {
+							if (toSleep!=1000) LOGGER.info("Can not write audio tag after={}ms file={}", toSleep, audioFile.getFile().getPath());
+							else LOGGER.error("Can not write audio tag after={}ms file={}", toSleep, audioFile.getFile().getPath(), e);
 							return false;
 						}
-					}
-				}
+					})
+					.filter(it -> it).findFirst()
+					.orElse(false);
+
 				Player.activate();
+				return success;
 			} else {
 				LOGGER.error("Can not write file tag: {}", audioFile.getFile().getPath(), ex);
 				return false;
 			}
 		}
-
-		return true;
 	}
 
 	/**

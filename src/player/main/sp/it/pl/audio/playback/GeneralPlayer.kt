@@ -205,7 +205,7 @@ class GeneralPlayer {
         fun createPlayback(song: Song, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit)
 
         /** Stops playback if any and disposes of the player resources. */
-        fun disposePlayback()
+        fun disposePlayback()   // TODO: JavaFXPLayer has async implementation, but lcPlayer has blocking implementation, fix and document
 
         fun dispose()
     }

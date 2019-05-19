@@ -38,11 +38,12 @@ import static sp.it.util.ui.Util.setAnchor;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
-public final class BiContainerUi extends ContainerUiBase<BiContainer> {
+public final class BiContainerUi extends ContainerUi<BiContainer> {
 
     private static final PseudoClass COLLAPSED_PC = pseudoclass("collapsed");
     private static final double grabberSize = 20.0;
 
+    private final BiContainer container;
     private final AnchorPane root_child1 = new AnchorPane();
     private final AnchorPane root_child2 = new AnchorPane();
     private final SplitPane splitPane = new SplitPane(root_child1,root_child2);
@@ -50,13 +51,14 @@ public final class BiContainerUi extends ContainerUiBase<BiContainer> {
 
     public BiContainerUi(BiContainer c) {
         super(c);
+        this.container = getContainer();
 
         setAnchor(getRoot(), splitPane, 0d);
         splitPane.setMinSize(0,0);
         root_child1.setMinSize(0,0);
         root_child2.setMinSize(0,0);
 
-        prop = c.properties;
+        prop = container.properties;
 
         // setParentRec properties
         prop.getOrPut(Double.class, "pos", 0.5d);
@@ -114,7 +116,7 @@ public final class BiContainerUi extends ContainerUiBase<BiContainer> {
         var c = super.buildControls();
 
         Icon orientB = new Icon(MAGIC, -1, "Change orientation", this::toggleOrientation).styleclass("header-icon");
-        on(syncC(container.orientation, it -> orientB.icon(it==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H)), c.disposer);
+        on(syncC(container.orientation, it -> orientB.icon(it==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H)), c.getDisposer());
         c.addExtraIcon(orientB);
 
         return c;
@@ -126,7 +128,7 @@ public final class BiContainerUi extends ContainerUiBase<BiContainer> {
 
     private Layouter layouter1, layouter2;
     private WidgetUi wa1, wa2;
-    private ContainerUiBase<?> ca1, ca2;
+    private ContainerUi<?> ca1, ca2;
 
     public void setComponent(int i, Component c) {
         if (i!=1 && i!=2) throw new IllegalArgumentException("Only 1 or 2 supported as index.");
@@ -143,7 +145,7 @@ public final class BiContainerUi extends ContainerUiBase<BiContainer> {
         } else if (c instanceof Container) {
             n = ((Container)c).load(r);
             var caa = ((Container) c).ui;
-            var ca = caa instanceof ContainerUiBase<?> ? (ContainerUiBase<?>) caa : null;
+            var ca = caa instanceof ContainerUi<?> ? (ContainerUi<?>) caa : null;
             if (i==1) ca1 = ca; else ca2 = ca;
             as = (Container) c;
         } else { // ==null
@@ -193,8 +195,8 @@ public final class BiContainerUi extends ContainerUiBase<BiContainer> {
         prop.put("abs_size", i);
         if (wa1!=null) wa1.getControls().updateAbsB();
         if (wa2!=null) wa2.getControls().updateAbsB();
-        if (ca1!=null && ca1.controls.isSet()) ca1.controls.get().updateIcons();
-        if (ca2!=null && ca2.controls.isSet()) ca2.controls.get().updateIcons();
+        if (ca1!=null && ca1.getControls().isSet()) ca1.getControls().get().updateIcons();
+        if (ca2!=null && ca2.getControls().isSet()) ca2.getControls().get().updateIcons();
     }
 
     public int getAbsoluteSize() {

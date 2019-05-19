@@ -9,7 +9,7 @@ import sp.it.pl.gui.objects.picker.Picker
 import sp.it.pl.gui.objects.picker.WidgetPicker
 import sp.it.pl.layout.container.BiContainer
 import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.container.ContainerUi
+import sp.it.pl.layout.container.ComponentUi
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.Df
@@ -27,7 +27,7 @@ import sp.it.util.ui.lay
  * Shows user component picker to populate container with content (at this index) - it allows creation of layouts. Uses
  * two nested [Picker]s, one for [Container] and the other for widgets.
  */
-class Layouter: ContainerUi {
+class Layouter: ComponentUi {
 
     private val container: Container<*>
     private val index: Int

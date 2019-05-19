@@ -7,7 +7,6 @@ import javafx.scene.input.DragEvent.DRAG_DONE
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import javafx.scene.input.TransferMode
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.TilePane
 import sp.it.pl.gui.objects.icon.Icon
@@ -20,53 +19,56 @@ import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.infoIcon
 import sp.it.pl.main.installDrag
-import sp.it.pl.main.set
 import sp.it.util.access.toggle
-import sp.it.util.animation.Anim
+import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.SHORTCUT
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
+import sp.it.util.text.getNamePretty
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.removeFromParent
 import sp.it.util.units.millis
 
-class ContainerUiControls(val area: ContainerUiBase<*>): AnchorPane() {
-    @JvmField val icons = TilePane(4.0, 4.0)
-    @JvmField val disposer = Disposer()
-    @JvmField val a = Anim.anim(250.millis) {
-        opacity = it
-        isMouseTransparent = it==0.0
+class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControlsBase() {
+    val root = AnchorPane()
+    val icons = TilePane(4.0, 4.0)
+    val disposer = Disposer()
+    val a = anim(250.millis) {
+        root.opacity = it
+        root.isMouseTransparent = it==0.0
         area.root.children.forEach { c ->
-            if (c!==this)
+            if (c!==root)
                 c.opacity = 1-0.8*it
         }
     }
     private var absB: Icon? = null
-    private var dragB: Icon? = null
     private var autoLayoutB: Icon? = null
 
     init {
-        id = "container-ui-controls"
-        styleClass += "container-ui-controls"
-        lay(0.0, 0.0, null, 0.0) += icons.apply {
+        root.id = "container-ui-controls"
+        root.styleClass += "container-ui-controls"
+        root.lay(0.0, 0.0, null, 0.0) += icons.apply {
             nodeOrientation = LEFT_TO_RIGHT
             alignment = CENTER_RIGHT
             prefColumns = 10
             prefHeight = 25.0
 
-            lay += infoIcon(
-                    "Container controls."+
-                    "\nActions:"+
-                    "\n\tLeft click: visit children"+
-                    "\n\tRight click: visit parent container"+
-                    "\n\tMouse drag: switch with other component"
+            lay += infoIcon(""
+                    + "Controls for managing container."
+                    + "\n"
+                    + "\nAvailable actions:"
+                    + "\n\tLeft click : Go to child"
+                    + "\n\tRight click : Go to parent"
+                    + "\n\tDrag : Drags widget to other area"
+                    + "\n\tDrag + ${SHORTCUT.getNamePretty()} : Detach widget"
             ).styleclass("header-icon")
 
             lay += icon(null, "Lock container's layout").onClickDo {
                 area.container.locked.toggle()
-                APP.actionStream.invoke("Widget layout lock")
+                APP.actionStream("Widget layout lock")
             }.apply {
                 area.container.locked sync { icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
             }
@@ -77,7 +79,7 @@ class ContainerUiControls(val area: ContainerUiBase<*>): AnchorPane() {
 
             lay += icon(IconFA.TIMES, "Close widget").onClickDo {
                 area.container.close()
-                APP.actionStream.invoke("Close widget")
+                APP.actionStream("Close widget")
             }
         }
 
@@ -85,29 +87,23 @@ class ContainerUiControls(val area: ContainerUiBase<*>): AnchorPane() {
         disposer += { a.stop() }
         disposer += { a.applyAt(0.0) }
 
-        area.root.layFullArea += this
-        disposer += { removeFromParent() }
+        area.root.layFullArea += root
+        disposer += { root.removeFromParent() }
 
         // component switching on drag
         installDrag(
-                this, IconFA.EXCHANGE, "Switch components",
+                root, IconFA.EXCHANGE, "Switch components",
                 { e -> Df.COMPONENT in e.dragboard },
                 { e -> e.dragboard[Df.COMPONENT]===area.container },
                 { e -> e.dragboard[Df.COMPONENT].swapWith(area.container.parent, area.container.indexInParent()!!) }
         )
-        onEventDown(DRAG_DETECTED) {
-            if (it.button==PRIMARY) {
-                startDragAndDrop(*TransferMode.ANY)[Df.COMPONENT] = area.container
-                pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true)
-                it.consume()
-            }
-        }
-        onEventDown(DRAG_DONE) {
-            pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false)
+        root.onEventDown(DRAG_DETECTED) { onDragDetected(it, root) }
+        root.onEventDown(DRAG_DONE) {
+            root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false)
         }
 
         // switch to container/normal layout mode using right/left click
-        onEventDown(MOUSE_CLICKED) {
+        root.onEventDown(MOUSE_CLICKED) {
             if (area.isContainerMode && it.button==PRIMARY) {
                 area.setContainerMode(false)
                 it.consume()
@@ -128,19 +124,9 @@ class ContainerUiControls(val area: ContainerUiBase<*>): AnchorPane() {
             absB.remExtraIcon()
         }
 
-        dragB.remExtraIcon()
         autoLayoutB.remExtraIcon()
         if (c is FreeFormContainer) {
-            dragB = icon(IconFA.MAIL_REPLY, "Move container by dragging").addExtraIcon().apply {
-                onEventDown(DRAG_DETECTED) {
-                    if (it.button==PRIMARY) {
-                        startDragAndDrop(*TransferMode.ANY)[Df.COMPONENT] = area.container
-                        pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true)
-                        it.consume()
-                    }
-                } on disposer
-            }
-            autoLayoutB = icon(IconMD.VIEW_DASHBOARD, FreeFormContainerUi.autolayoutTootlip).addExtraIcon().onClickDo {
+            autoLayoutB = icon(IconMD.VIEW_DASHBOARD, FreeFormContainerUi.autoLayoutTooltipText).addExtraIcon().onClickDo {
                 c.ui.autoLayout(area.container)
             }
         }

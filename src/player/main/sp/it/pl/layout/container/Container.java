@@ -53,7 +53,7 @@ import static sp.it.util.functional.Util.stream;
  behavior to work correctly.This is because indexOf() method returns invalid (but still number)
  index if component is not found. Therefore such index must be ignored.
  */
-public abstract class Container<G extends ContainerUi> extends Component implements AltState {
+public abstract class Container<G extends ComponentUi> extends Component implements AltState {
 
     @XStreamOmitField protected AnchorPane root;
     @XStreamOmitField private Container parent;

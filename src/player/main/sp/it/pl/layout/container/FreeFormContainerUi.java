@@ -10,6 +10,7 @@ import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.window.Resize;
 import sp.it.pl.gui.objects.window.pane.PaneWindowControls;
@@ -40,28 +41,32 @@ import static sp.it.util.reactive.UtilKt.syncTo;
 import static sp.it.util.ui.Util.setAnchor;
 import static sp.it.util.ui.Util.setAnchors;
 
-public class FreeFormContainerUi extends ContainerUiBase<FreeFormContainer> {
+@SuppressWarnings("WeakerAccess")
+public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
 
-    public static final String autolayoutTootlip = "Auto-layout\n\nResize components to maximize used space.";
-    private static final String laybTEXT = "Maximize & align\n\n"
+    public static final String autoLayoutTooltipText = "Auto-layout\n\nResize components to maximize used space.";
+    private static final String layoutButtonTooltipText = "Maximize & align\n\n"
         + "Sets best size and position for the widget. Maximizes widget size "
         + "and tries to align it with other widgets so it does not cover other "
         + "widgets.";
 
+    private final FreeFormContainer container;
     private final AnchorPane rt = new AnchorPane();
     private final Map<Integer,PaneWindowControls> windows = new HashMap<>();
     private boolean resizing = false;
     private boolean any_window_resizing = false;
 
-    public FreeFormContainerUi(FreeFormContainer con) {
-        super(con);
+    public FreeFormContainerUi(FreeFormContainer c) {
+        super(c);
+        container = getContainer();
+
         setAnchor(getRoot(), rt, 0d);
 
         // add new widget on left click
         BooleanProperty isEmptySpace = new SimpleBooleanProperty(false);
         rt.setOnMousePressed(e -> isEmptySpace.set(isEmptySpace(e)));
         rt.setOnMouseClicked(e -> {
-            if (!isContainerMode && (APP.ui.isLayoutMode() || !container.lockedUnder.get())) {
+            if (!isContainerMode() && (APP.ui.isLayoutMode() || !container.lockedUnder.get())) {
                 isEmptySpace.set(isEmptySpace.get() && isEmptySpace(e));
                 if (e.getButton()==PRIMARY && isEmptySpace.get() && !any_window_resizing) {
                     addEmptyWindowAt(e.getX(),e.getY());
@@ -75,7 +80,7 @@ public class FreeFormContainerUi extends ContainerUiBase<FreeFormContainer> {
         installDrag(getRoot(), EXCHANGE, () -> "Move component here",
             e -> contains(e.getDragboard(), Df.COMPONENT),
             e -> get(e.getDragboard(), Df.COMPONENT) == container,
-            consumer(e -> get(e.getDragboard(), Df.COMPONENT).swapWith(container,addEmptyWindowAt(e.getX(),e.getY()))),
+            consumer(e -> get(e.getDragboard(), Df.COMPONENT).swapWith(container, addEmptyWindowAt(e.getX(),e.getY()))),
             e -> bestRecBounds(e.getX(),e.getY(),null) // alternatively: e -> bestRecBounds(e.getX(),e.getY(),DragUtilKt.get(e, Df.COMPONENT).getWindow()))
         );
 
@@ -109,12 +114,13 @@ public class FreeFormContainerUi extends ContainerUiBase<FreeFormContainer> {
         });
     }
 
+    @NotNull
     @Override
     protected ContainerUiControls buildControls() {
         var c = super.buildControls();
 
         c.addExtraIcon(
-            new Icon(VIEW_DASHBOARD, -1, autolayoutTootlip, this::autoLayoutAll).styleclass("header-icon")
+            new Icon(VIEW_DASHBOARD, -1, autoLayoutTooltipText, this::autoLayoutAll).styleclass("header-icon")
         );
 
         c.addExtraIcon(
@@ -142,14 +148,14 @@ public class FreeFormContainerUi extends ContainerUiBase<FreeFormContainer> {
         if (cm instanceof Container) {
             Container c  = (Container) cm;
             n = c.load(w.content);
-            if (c.ui instanceof ContainerUiBase) {
-                var ui = (ContainerUiBase<?>) c.ui;
-                if (ui.controls.isSet())
-                    ui.controls.get().updateIcons();
+            if (c.ui instanceof ContainerUi) {
+                var ui = (ContainerUi<?>) c.ui;
+                if (ui.getControls().isSet())
+                    ui.getControls().get().updateIcons();
             }
         } else if (cm instanceof Widget) {
             WidgetUi wa = new WidgetUi(container,i,(Widget)cm);
-            Icon lb = new Icon(VIEW_DASHBOARD, 12, laybTEXT, () -> autoLayout(w));
+            Icon lb = new Icon(VIEW_DASHBOARD, 12, layoutButtonTooltipText, () -> autoLayout(w));
             wa.getControls().header_buttons.getChildren().add(1,lb);
             n = wa.getRoot();
         } else {
@@ -217,7 +223,7 @@ public class FreeFormContainerUi extends ContainerUiBase<FreeFormContainer> {
         syncC(container.getShowHeaders(), it -> {
             if (it) {
                 w.controls.getChildren().addAll(
-                    new Icon(VIEW_DASHBOARD, -1, autolayoutTootlip, () -> autoLayout(w)).styleclass("header-icon"),
+                    new Icon(VIEW_DASHBOARD, -1, autoLayoutTooltipText, () -> autoLayout(w)).styleclass("header-icon"),
                     new Icon(CLOSE, -1, "Close this component", () -> { container.removeChild(i); closeWindow(i); }).styleclass("header-icon")
                 );
             } else {
@@ -274,6 +280,7 @@ public class FreeFormContainerUi extends ContainerUiBase<FreeFormContainer> {
 
         return new TupleM4(b.a/rt.getWidth(),b.c/rt.getHeight(), (b.b-b.a)/rt.getWidth(),(b.d-b.c)/rt.getHeight());
     }
+
     Bounds bestRecBounds(double x, double y, PaneWindowControls newW) {
         TupleM4 b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
 
@@ -339,7 +346,9 @@ public class FreeFormContainerUi extends ContainerUiBase<FreeFormContainer> {
     }
 
     public void autoLayout(Component c) {
-        autoLayout(getWindow(c.indexInParent(), c));
+        var i = c.indexInParent();
+        var w = i==null ? null : getWindow(i, c);
+        if (w!=null) autoLayout(w);
     }
 
     public void autoLayout(PaneWindowControls w) {

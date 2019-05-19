@@ -729,7 +729,7 @@ sealed class WidgetLoader: (Widget) -> Unit {
     /** Loads the widget in a layout of a new window. */
     object WINDOW: WidgetLoader() {
         override fun invoke(w: Widget) = invoke(w as Component).toUnit()
-        fun invoke(w: Component): Window = APP.windowManager.showWindow(w)
+        operator fun invoke(w: Component): Window = APP.windowManager.showWindow(w)
     }
     /** Loads the widget as a standalone widget in a simplified layout of a new always on top fullscreen window. */
     object WINDOW_FULLSCREEN {

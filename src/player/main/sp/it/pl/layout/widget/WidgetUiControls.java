@@ -6,22 +6,20 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.effect.BoxBlur;
-import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.layout.container.BiContainer;
 import sp.it.pl.layout.container.BiContainerUi;
-import sp.it.pl.layout.container.FreeFormContainer;
+import sp.it.pl.layout.container.ComponentUiControlsBase;
 import sp.it.pl.main.AppAnimator;
-import sp.it.pl.main.Df;
 import sp.it.util.access.ref.SingleR;
 import sp.it.util.animation.Anim;
 import sp.it.util.reactive.Subscribed;
@@ -36,21 +34,21 @@ import static de.jensd.fx.glyphs.octicons.OctIcon.FOLD;
 import static de.jensd.fx.glyphs.octicons.OctIcon.UNFOLD;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.DragEvent.DRAG_DONE;
-import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
-import static sp.it.pl.layout.widget.WidgetUi.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
+import static sp.it.pl.layout.widget.WidgetUi.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;
-import static sp.it.pl.main.AppDragKt.set;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.EventsKt.getSHORTCUT;
 import static sp.it.util.reactive.EventsKt.onEventUp;
 import static sp.it.util.reactive.UtilKt.syncC;
+import static sp.it.util.text.UtilKt.getNamePretty;
 import static sp.it.util.ui.Util.layStack;
 import static sp.it.util.ui.Util.setAnchor;
 import static sp.it.util.ui.UtilKt.getCentre;
@@ -59,7 +57,7 @@ import static sp.it.util.ui.UtilKt.pseudoclass;
 /**
  * Controls for a widget area.
  */
-public final class WidgetUiControls {
+public final class WidgetUiControls extends ComponentUiControlsBase {
 
     private static final double activatorW = 20;
     private static final double activatorH = 20;
@@ -210,20 +208,14 @@ public final class WidgetUiControls {
         });
 
         // dragging
-        root.setOnDragDetected(e -> {
-            if (e.getButton()==PRIMARY) {
-                if (e.isShortcutDown()) {
-                    area.detach();
-                    e.consume();
-                } else if (!(area.container instanceof FreeFormContainer)) {
-                    Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                    set(db, Df.COMPONENT, area.getWidget());
-                    root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, true);
-                    e.consume();
-                }
-            }
-        });
+        root.setOnDragDetected(e -> onDragDetected(e, root));
         root.setOnDragDone(e -> root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false));
+    }
+
+    @NotNull
+    @Override
+    public WidgetUi getArea() {
+        return area;
     }
 
     void toggleLocked() {
@@ -301,25 +293,15 @@ public final class WidgetUiControls {
     public String getInfo() {
         Widget w = area.getWidget();
         return ""
-            + "Controls for managing user interface (ui). UI is comprised of "
-            + "widgets, containers and layouts. Widgets provide the functionality "
-            + "and behavior and can be configured. Containers are invisible "
-            + "boxes to lay out widgets. Containers contain widgets, but also "
-            + "other containers - creating a nested hierarchy. Layouts are "
-            + "containers at the top of the hierarchy.\n"
+            + "Controls for managing widget."
             + "\n"
-            + "Available actions:\n"
-            + "    Right click : Go to parent container\n"
-            + "    Left click : Go to child containers/widgets\n"
-            + "    Close : Closes the widget\n"
-            + "    Detach : Opens the widget in new window\n"
-            + "    Change : Opens widget chooser to pick new widget\n"
-            + "    Settings : Opens settings for the widget if available\n"
-            + "    Refresh : Refreshes the widget\n"
-            + "    Lock : Forbids entering layout mode on mouse hover\n"
-            + "    Press ALT : Toggles layout mode\n"
-            + "    Drag & Drop header : Drags widget to other area\n"
-            + (w==null ? "" : "\n\n" + w.getInfo().toStr());
+            + "\nAvailable actions:"
+            + "\n\tLeft click : Go to child"
+            + "\n\tRight click : Go to parent"
+            + "\n\tDrag : Drags widget to other area"
+            + "\n\tDrag + " + getNamePretty(getSHORTCUT()) + " : Detach widget"
+            + "\n"
+            + "\n"+w.getInfo().toStr();
     }
 
 }

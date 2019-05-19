@@ -17,7 +17,7 @@ import static sp.it.util.ui.Util.setAnchors;
  * is expected the child will be non-Container component as putting any container
  * within this would turn this into unnecessary intermediary.
  */
-public class UniContainer extends Container<ContainerUi> {
+public class UniContainer extends Container<ComponentUi> {
 
     protected Component child;
     public boolean isStandalone = false;    // !need to be serialized as standalone widgets die with app

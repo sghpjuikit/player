@@ -38,7 +38,7 @@ private val prettyKeys = mapOf(
         "CTRL" to "\u2303",
         "OPTION" to "\u2325",
         "ALT" to "\u2325",
-        "ALT_GRAPH" to "\u2325",
+        "ALT GRAPH" to "\u2325",
         "APPLE" to "\uF8FF ",
         "COMMAND" to "\u2318",
         "SPACE" to "\u2423",

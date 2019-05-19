@@ -1,26 +1,78 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package sp.it.pl.layout.container
 
-import javafx.scene.input.MouseButton.SECONDARY
+import javafx.scene.Parent
+import javafx.scene.input.MouseButton
 import javafx.scene.layout.AnchorPane
+import javafx.scene.layout.Pane
+import javafx.scene.layout.Region
+import sp.it.pl.layout.AltState
+import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.WidgetLoader
 import sp.it.pl.layout.widget.controller.io.IOLayer
 import sp.it.pl.main.AppAnimator
 import sp.it.util.access.ref.LazyR
+import sp.it.util.async.runLater
+import sp.it.util.dev.failCase
+import sp.it.util.functional.asIf
+import sp.it.util.functional.orNull
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.sync1If
 import sp.it.util.ui.pseudoClassChanged
+import sp.it.util.ui.size
 
-abstract class ContainerUiBase<C: Container<*>>: ContainerUi {
+/** Ui allowing user to manage [sp.it.pl.layout.Component] instances. */
+interface ComponentUi: AltState {
+
+    /** Scene graph root of this object. */
+    val root: Pane
+
+    @JvmDefault
+    fun getParent(): Parent = root.parent
+
+    @JvmDefault
+    fun close() {}
+
+}
+
+abstract class ComponentUiBase: ComponentUi {
+
+    abstract fun getActiveComponent(): Component
+
+    /** Detaches the widget into standalone content in new window. */
+    fun detach() {
+        fun Component.size() = when (this) {
+            is Widget -> load().asIf<Region>()?.size ?: root.size
+            is Container<*> -> root.size
+            else -> failCase(this)
+        }
+
+        val c = getActiveComponent()
+        val sizeOld = c.size()
+
+        c.parent.addChild(c.indexInParent(), null)
+        WidgetLoader.WINDOW(c)
+
+        val w = c.window.orNull()!!.stage
+        w.showingProperty().sync1If({ it }) {
+            runLater {
+                val sizeNew = c.size()
+                val sizeDiff = sizeOld-sizeNew
+                w.size = w.size+sizeDiff
+            }
+        }
+    }
+
+}
+
+/** Ui allowing user to manage [Container] instances. */
+abstract class ContainerUi<C: Container<*>>: ComponentUiBase {
 
     final override val root: AnchorPane
-    @JvmField val container: C
-    @JvmField var controls = LazyR<ContainerUiControls> { buildControls() }
-    @JvmField var isLayoutMode = false
-    @JvmField var isContainerMode = false
+    val container: C
+    var controls = LazyR<ContainerUiControls> { buildControls() }
+    var isLayoutMode = false
+    var isContainerMode = false
 
     constructor(container: C) {
         this.container = container
@@ -33,7 +85,7 @@ abstract class ContainerUiBase<C: Container<*>>: ContainerUi {
 
         // switch to container/normal layout mode using right/left click
         root.setOnMouseClicked {
-            if (isLayoutMode && !isContainerMode && it.button==SECONDARY) {
+            if (isLayoutMode && !isContainerMode && it.button==MouseButton.SECONDARY) {
                 if (container.children.isEmpty()) {
                     AppAnimator.closeAndDo(root) { container.close() }
                 } else {
@@ -45,6 +97,8 @@ abstract class ContainerUiBase<C: Container<*>>: ContainerUi {
     }
 
     protected open fun buildControls() = ContainerUiControls(this)
+
+    override fun getActiveComponent() = container
 
     override fun show() {
         isLayoutMode = true
@@ -72,7 +126,7 @@ abstract class ContainerUiBase<C: Container<*>>: ContainerUi {
         if (isContainerMode==b) return
 
         isContainerMode = b
-        controls.get().toFront()
+        controls.get().root.toFront()
         controls.get().a.playFromDir(b)
         if (!b) {
             controls.get().a.setOnFinished {
@@ -81,8 +135,5 @@ abstract class ContainerUiBase<C: Container<*>>: ContainerUi {
             }
         }
     }
-
-    // TODO: implement & use & merge with Area.detach
-    private fun detach() {}
 
 }

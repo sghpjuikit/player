@@ -1,10 +1,9 @@
 package sp.it.pl.layout.widget
 
 import javafx.scene.layout.AnchorPane
-import javafx.scene.layout.Region
 import sp.it.pl.gui.objects.placeholder.Placeholder
+import sp.it.pl.layout.container.ComponentUiBase
 import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.container.ContainerUi
 import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
 import sp.it.pl.layout.widget.Widget.LoadType.MANUAL
 import sp.it.pl.layout.widget.controller.io.IOLayer
@@ -18,22 +17,19 @@ import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
 import sp.it.util.access.toggle
-import sp.it.util.functional.asIf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.sync1If
 import sp.it.util.reactive.syncTo
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.pseudoclass
-import sp.it.util.ui.size
 
 /**
  * UI allowing user to manage [Widget] instances. Manages widget's lifecycle and user's interaction with the widget.
  *
  * Maintains final 1:1 relationship with the widget, always contains exactly 1 final widget.
  */
-class WidgetUi: ContainerUi {
+class WidgetUi: ComponentUiBase {
     /** Container this area is associated with. */
     @JvmField val container: Container<*>
     /** Index of the child in the [container] */
@@ -133,32 +129,17 @@ class WidgetUi: ContainerUi {
         }
     }
 
-    fun getContent() = content
-
     fun isUnderLock(): Boolean = widget.lockedUnder.value
 
     fun toggleLocked() = widget.locked.toggle()
 
+    fun getContent() = content
+
+    override fun getActiveComponent() = widget
+
     override fun show() = controls.show()
 
     override fun hide() = controls.hide()
-
-    /** Detaches the widget into standalone content in new window. */
-    fun detach() {
-        val sizeArea = root.size
-        val sizeOld = widget.load().asIf<Region>()?.size ?: sizeArea
-        widget.parent.addChild(widget.indexInParent(), null)
-
-        WidgetLoader.WINDOW(widget)
-
-        val w = widget.graphics.scene.window
-        w.showingProperty().sync1If({ it }) {
-            val wSize = w.size
-            val sizeNew = widget.load().asIf<Region>()?.size ?: sizeArea
-            val sizeDiff = sizeOld-sizeNew
-            w.size = wSize+sizeDiff
-        }
-    }
 
     fun setStandaloneStyle() {
         contentRoot.styleClass.clear()

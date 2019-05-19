@@ -280,7 +280,7 @@ class App: Application(), Configurable<Any> {
         appCommunicator.initForApp()
 
         // start parts that can be started from non application fx thread
-        ActionManager.onActionRunPost += { APP.actionStream.invoke(it.name) }
+        ActionManager.onActionRunPost += { APP.actionStream(it.name) }
         ActionManager.startActionListening()
         appCommunicator.start()
     }

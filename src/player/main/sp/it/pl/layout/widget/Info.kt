@@ -68,7 +68,7 @@ interface WidgetInfo: ComponentInfo {
 
     override fun toStr(): String {
         val fs = getFeatures()
-        return "Component: Widget\nName: ${nameGui()}\n"+
+        return "Component: Widget ${nameGui()}\n"+
                 (if (description().isEmpty()) "" else "Info: ${description()}\n")+
                 (if (notes().isEmpty()) "" else "${notes()}\n")+
                 (if (howto().isEmpty()) "" else "${howto()}\n")+

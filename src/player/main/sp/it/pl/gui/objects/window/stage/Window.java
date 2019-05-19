@@ -65,6 +65,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_M
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
+import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCode.DOWN;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.LEFT;
@@ -103,6 +104,7 @@ import static sp.it.util.functional.Util.forEachIStream;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.syncC;
+import static sp.it.util.text.UtilKt.getNamePretty;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.getScreen;
 import static sp.it.util.ui.UtilKt.initClip;
@@ -311,17 +313,16 @@ public class Window extends WindowBase {
 		Icon rtB = new Icon(CARET_RIGHT, -1, ActionRegistrar.get("Layout move right")).styleclass("header-icon");
 		syncC(APP.ui.getLayoutMode(), it -> lmB.icon(it ? TH : TH_LARGE));
 		Icon guideB = new Icon(GRADUATION_CAP, -1, ActionRegistrar.get("Open guide")).styleclass("header-icon");
-		Icon helpB = infoIcon("Available actions:\n"
-			+ "\tHeader icons : Providing custom functionalities. See tooltips.\n"
-			+ "\tHeader buttons : Providing window control. See tooltips.\n"
-			+ "\tMouse drag : Move window. Windows snap to screen or to other windows.\n"
-			+ "\tMouse drag to screen edge : Activates one of 7 maximized modes.\n"
-			+ "\tMouse drag edge : Resize window.\n"
-			+ "\tDouble left click : Toggle maximized mode on/off.\n"
-			+ "\tDouble right click : Toggle hide header on/off.\n"
-			+ "\tPress ALT : Show hidden header temporarily.\n"
-			+ "\tPress ALT : Activate layout mode.\n"
-			+ "\tContent right drag : drag tabs."
+		Icon helpB = infoIcon("Available actions:"
+			+ "\n\tHeader icons : Providing custom functionalities. See tooltips."
+			+ "\n\tHeader buttons : Providing window control. See tooltips."
+			+ "\n\tMouse drag : Move window. Windows snap to screen or to other windows."
+			+ "\n\tMouse drag to screen edge : Activates one of 7 maximized modes."
+			+ "\n\tMouse drag edge : Resize window."
+			+ "\n\tDouble header left click : Toggle maximized mode on/off."
+			+ "\n\tDouble header right click : Toggle hide header on/off."
+			+ "\n\t" + getNamePretty(ALT_GRAPH) + " : Toggle layout mode"
+			+ "\n\tContent right drag : drag tabs."
 		).styleclass("header-icon");
 		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4).onClick(e -> AppProgress.INSTANCE.showTasks((Node) e.getTarget())).tooltip("Progress & Tasks");
 

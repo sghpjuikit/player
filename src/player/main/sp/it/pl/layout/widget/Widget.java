@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.Container;
-import sp.it.pl.layout.container.ContainerUi;
+import sp.it.pl.layout.container.ComponentUi;
 import sp.it.pl.layout.widget.controller.Controller;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.LoadErrorController;
@@ -113,7 +113,7 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 	 * <p/>
 	 * This field allows widget to control its lifecycle and context from its controller.
 	 */
-	@XStreamOmitField public ContainerUi areaTemp;
+	@XStreamOmitField public ComponentUi areaTemp;
 
 	/** Whether this widget will be preferred over other widgets in widget lookup. */
 	@IsConfig(name = "Is preferred", info = "Prefer this widget among all widgets of its type. If there is a request "

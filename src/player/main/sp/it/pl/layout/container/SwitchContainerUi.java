@@ -69,7 +69,7 @@ import static sp.it.util.ui.UtilKt.removeFromParent;
  * The content switches by invoking drag event using the right (secondary) mouse button.
  */
 @SuppressWarnings("WeakerAccess")
-public class SwitchContainerUi implements ContainerUi {
+public class SwitchContainerUi implements ComponentUi {
 
     private final AnchorPane root = new AnchorPane();
     private final AnchorPane zoom = new AnchorPane();
@@ -596,7 +596,7 @@ public class SwitchContainerUi implements ContainerUi {
         layouts.values().forEach(c -> {
             if (c instanceof Container) ((Container)c).show();
             if (c instanceof Widget) {
-                ContainerUi ct = ((Widget)c).areaTemp;
+                ComponentUi ct = ((Widget)c).areaTemp;
                 if (ct!=null) ct.show();
             }
         });
@@ -608,7 +608,7 @@ public class SwitchContainerUi implements ContainerUi {
         layouts.values().forEach(c -> {
             if (c instanceof Container) ((Container)c).hide();
             if (c instanceof Widget) {
-                ContainerUi ct = ((Widget)c).areaTemp;
+                ComponentUi ct = ((Widget)c).areaTemp;
                 if (ct!=null) ct.hide();
             }
         });

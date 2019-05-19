@@ -41,7 +41,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
-import static sp.it.pl.layout.widget.Area.PSEUDOCLASS_DRAGGED;
+import static sp.it.pl.layout.widget.WidgetUi.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
 import static sp.it.pl.main.AppBuildersKt.helpPopOver;

@@ -1,8 +1,10 @@
 package sp.it.pl.layout.widget
 
 import javafx.scene.layout.AnchorPane
+import javafx.scene.layout.Region
 import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.layout.container.Container
+import sp.it.pl.layout.container.ContainerUi
 import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
 import sp.it.pl.layout.widget.Widget.LoadType.MANUAL
 import sp.it.pl.layout.widget.controller.io.IOLayer
@@ -16,25 +18,32 @@ import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
 import sp.it.util.access.toggle
+import sp.it.util.functional.asIf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.sync1If
 import sp.it.util.reactive.syncTo
 import sp.it.util.ui.layFullArea
+import sp.it.util.ui.pseudoclass
+import sp.it.util.ui.size
 
 /**
- * UI allowing user to manage [Widget] instances.
- *
- * Manages widget's lifecycle, provides user interface for interacting (configuration, etc.) with the
- * widget and is a sole entry point for widget loading.
+ * UI allowing user to manage [Widget] instances. Manages widget's lifecycle and user's interaction with the widget.
  *
  * Maintains final 1:1 relationship with the widget, always contains exactly 1 final widget.
  */
-class WidgetUi: Area<Container<*>> {
+class WidgetUi: ContainerUi {
+    /** Container this area is associated with. */
+    @JvmField val container: Container<*>
+    /** Index of the child in the [container] */
+    @JvmField val index: Int
+    @JvmField val contentRoot = AnchorPane()
+    override val root = AnchorPane()
 
     val controls: WidgetUiControls
+    val widget: Widget
     private val content = AnchorPane()
-    private val widget: Widget
     private val disposer = Disposer()
     private var manualLoadPane: Placeholder? = null
 
@@ -45,16 +54,27 @@ class WidgetUi: Area<Container<*>> {
      * @param index index of the widget within the container
      * @param widget widget that will be managed and displayed
      */
-    constructor(container: Container<*>, index: Int, widget: Widget): super(container, index) {
+    constructor(container: Container<*>, index: Int, widget: Widget) {
+        this.container = container.apply {
+            properties.getOrPut(Double::class.javaObjectType, "padding", 0.0)
+        }
+        this.index = index
         this.widget = widget
         this.widget.parentTemp = this.container
         this.widget.areaTemp = this
 
-        controls = WidgetUiControls(this)
-        contentRoot.layFullArea += content.apply {
-            id = "widget-ui-content"
-            styleClass += "widget-ui-content"
+        root.id = "widget-ui"
+        root.layFullArea += contentRoot.apply {
+            id = "widget-ui-contentRoot"
+            styleClass += STYLECLASS
+
+            layFullArea += content.apply {
+                id = "widget-ui-content"
+                styleClass += "widget-ui-content"
+            }
         }
+
+        controls = WidgetUiControls(this)
         contentRoot.layFullArea += controls.root
 
         installDrag(
@@ -71,8 +91,6 @@ class WidgetUi: Area<Container<*>> {
         loadWidget()
         if (APP.ui.isLayoutMode) show() else hide()
     }
-
-    override fun getWidget() = widget
 
     private fun loadWidget(forceLoading: Boolean = false) {
         disposer()
@@ -125,6 +143,23 @@ class WidgetUi: Area<Container<*>> {
 
     override fun hide() = controls.hide()
 
+    /** Detaches the widget into standalone content in new window. */
+    fun detach() {
+        val sizeArea = root.size
+        val sizeOld = widget.load().asIf<Region>()?.size ?: sizeArea
+        widget.parent.addChild(widget.indexInParent(), null)
+
+        WidgetLoader.WINDOW(widget)
+
+        val w = widget.graphics.scene.window
+        w.showingProperty().sync1If({ it }) {
+            val wSize = w.size
+            val sizeNew = widget.load().asIf<Region>()?.size ?: sizeArea
+            val sizeDiff = sizeOld-sizeNew
+            w.size = wSize+sizeDiff
+        }
+    }
+
     fun setStandaloneStyle() {
         contentRoot.styleClass.clear()
         content.styleClass.clear()
@@ -139,5 +174,7 @@ class WidgetUi: Area<Container<*>> {
 
     companion object {
         private val animation = DelayAnimator()
+        const val STYLECLASS = "widget-ui"
+        @JvmField val PSEUDOCLASS_DRAGGED = pseudoclass("dragged")
     }
 }

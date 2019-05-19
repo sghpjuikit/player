@@ -4,7 +4,7 @@ import javafx.scene.Parent
 import javafx.scene.layout.Pane
 import sp.it.pl.layout.AltState
 
-/** Container graphics. */
+/** Ui allowing user to manage [sp.it.pl.layout.Component] instances. */
 interface ContainerUi: AltState {
 
     /** Scene graph root of this object. */

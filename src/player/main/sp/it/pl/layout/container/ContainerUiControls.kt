@@ -11,7 +11,7 @@ import javafx.scene.input.TransferMode
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.TilePane
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.layout.widget.Area.Companion.PSEUDOCLASS_DRAGGED
+import sp.it.pl.layout.widget.WidgetUi.Companion.PSEUDOCLASS_DRAGGED
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df
 import sp.it.pl.main.IconFA

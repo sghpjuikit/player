@@ -25,7 +25,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DAS
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.layout.widget.Area.PSEUDOCLASS_DRAGGED;
+import static sp.it.pl.layout.widget.WidgetUi.PSEUDOCLASS_DRAGGED;
 import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.get;
 import static sp.it.pl.main.AppDragKt.installDrag;

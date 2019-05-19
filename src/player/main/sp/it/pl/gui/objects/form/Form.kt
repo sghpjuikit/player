@@ -12,6 +12,7 @@ import sp.it.pl.gui.pane.ConfigPane
 import sp.it.util.access.v
 import sp.it.util.conf.Configurable
 import sp.it.util.functional.Try
+import sp.it.util.functional.and
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
 import sp.it.util.ui.fxml.ConventionFxmlLoader
@@ -47,13 +48,13 @@ class Form<T>: AnchorPane {
 
         ConventionFxmlLoader(this).loadNoEx<Any>()
 
-        anchorOk = AnchorPane.getBottomAnchor(fieldsPane)
+        anchorOk = getBottomAnchor(fieldsPane)
         fieldsPane.lay += fields
         okPane.lay += okB
         showOkButton(hasAction.value)
 
         fields.configure(configurable)
-        val observer = Consumer<Try<T, String>> { validate() }
+        val observer = Consumer<Any> { validate() }
         fields.getConfigFields().forEach { it.observer = observer }
 
         okB.styleclass("form-ok-button")
@@ -75,9 +76,7 @@ class Form<T>: AnchorPane {
     fun focusFirstConfigField() = fields.focusFirstConfigField()
 
     private fun validate(): Try<*, *> {
-        val validation: Try<*, *> = fields.getConfigFields().asSequence()
-                .map { it.value }
-                .reduce { v1, v2 -> v1.and(v2) } ?: Try.ok()
+        val validation: Try<*, *> = fields.getConfigFields().asSequence().map { it.value }.reduce { a, b -> a and b } ?: Try.ok()
         showWarnButton(validation)
         return validation
     }
@@ -98,7 +97,7 @@ class Form<T>: AnchorPane {
         val isOkVisible = buttonPane.isVisible
         val isWarnVisible = buttonPane.bottom!=null
         val a = (if (isOkVisible) anchorOk else 0.0)+if (isWarnVisible) anchorWarn else 0.0
-        AnchorPane.setBottomAnchor(fieldsPane, a)
+        setBottomAnchor(fieldsPane, a)
     }
 
     companion object {

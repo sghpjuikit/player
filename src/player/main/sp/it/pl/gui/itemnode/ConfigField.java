@@ -47,6 +47,7 @@ import sp.it.util.conf.Config.ReadOnlyPropertyConfig;
 import sp.it.util.conf.Configurable;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.functional.Try;
+import sp.it.util.functional.TryKt;
 import sp.it.util.reactive.Subscription;
 import sp.it.util.text.Password;
 import sp.it.util.type.Util;
@@ -76,6 +77,7 @@ import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.conf.ConfigurationUtilKt.isEditableByUserRightNow;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.TryKt.getAny;
+import static sp.it.util.functional.TryKt.getOr;
 import static sp.it.util.functional.Util.equalsAny;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.stream;
@@ -307,7 +309,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     @SuppressWarnings("unchecked")
     public Try<T,String> getValid() {
-        value = get().and(v -> config.getConstraints().stream().map(c -> c.validate(v)).reduce(ok(),Try::and));
+        value = TryKt.and(get(), v -> config.getConstraints().stream().map(c -> c.validate(v)).reduce(ok(),TryKt::and));
         if (observer!=null) observer.accept(value);
         return value;
     }
@@ -339,7 +341,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     protected void apply(boolean user) {
         if (inconsistentState) return;
-        getValid().ifOk(v -> {
+        getValid().ifOkUse(v -> {
             boolean needsapply = !Objects.equals(v, config.getValue());
             if (!needsapply) return;
             inconsistentState = true;
@@ -426,7 +428,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             // applying value
             n.textProperty().addListener((o,ov,nv)-> {
                 Try<T,String> t = getValid();
-                boolean applicable = t.map(v -> !Objects.equals(config.getValue(), v)).getOr(false);
+                boolean applicable = getOr(t.map(v -> !Objects.equals(config.getValue(), v)), false);
                 showOkButton(!applyOnChange && applicable && t.isOk());
                 showWarnButton(t);
                 if (applyOnChange) apply(false);
@@ -472,7 +474,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         @Override
         protected void apply(boolean user) {
             if (inconsistentState) return;
-            getValid().ifOk(v -> {
+            getValid().ifOkUse(v -> {
                 boolean applicable = !Objects.equals(config.getValue(), v);
                 if (!applicable) return;
 
@@ -614,7 +616,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         private String computeLabelText() {
-            return getValid().map(Object::toString).getOr("");
+            return getOr(getValid().map(Object::toString), "");
         }
     }
     private static class ShortcutCF extends ConfigField<Action> {
@@ -837,7 +839,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             editor.setValue(config.getValue());
         }
         @Override protected void apply(boolean user) {
-            getValid().ifOk(v -> {
+            getValid().ifOkUse(v -> {
                 config.setValue(v);
                 refreshItem();
                 if (onChange != null) onChange.run();

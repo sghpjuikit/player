@@ -17,6 +17,7 @@ import sp.it.util.parsing.StringParseStrategy.To;
 import static sp.it.util.functional.Try.Java.error;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.Util.firstNotNull;
+import static sp.it.util.functional.UtilKt.orNull;
 import static sp.it.util.parsing.Parsers.getMethodStatic;
 import static sp.it.util.parsing.Parsers.getValueOfStatic;
 import static sp.it.util.parsing.Parsers.noExWrap;
@@ -123,7 +124,7 @@ public class ConverterDefault extends Converter {
     @Override
     public <T> String toS(T o) {
         if (o==null) return stringNull;
-        String s = ((Function<T,Try<String,String>>) getParserToS(o.getClass())).apply(o).getOr(null);
+        String s = orNull(((Function<T,Try<String,String>>) getParserToS(o.getClass())).apply(o));
         return firstNotNull(s, stringNull);
     }
 

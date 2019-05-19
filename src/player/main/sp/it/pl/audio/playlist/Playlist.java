@@ -690,7 +690,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 				PlayerConfiguration.Companion.getBrowse(),
 				APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
 				audioExtensionFilter()
-		).ifOk(files -> {
+		).ifOkUse(files -> {
 					PlayerConfiguration.Companion.setBrowse(files.get(0).getParentFile());
 					List<URI> queue = new ArrayList<>();
 					files.forEach(f -> queue.add(f.toURI()));
@@ -716,7 +716,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 						DIRECTORY,
 						PlayerConfiguration.Companion.getBrowse(),
 						APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner())
-		).ifOk(dir -> {
+		).ifOkUse(dir -> {
 					PlayerConfiguration.Companion.setBrowse(dir);
 					List<URI> queue = new ArrayList<>();
 					getFilesR(dir, Integer.MAX_VALUE, f -> isAudio(f)).forEach(f -> queue.add(f.toURI()));

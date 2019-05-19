@@ -59,6 +59,7 @@ import static sp.it.util.Util.clip;
 import static sp.it.util.Util.emptyOr;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.split;
+import static sp.it.util.functional.UtilKt.orNull;
 
 /**
  * Manages writing Metadata objects back into files. Handles all tag related data
@@ -737,10 +738,10 @@ public class MetadataWriter extends Song {
 		if (field==Metadata.Field.PUBLISHER) { setPublisher(data); return; }
 		if (field==Metadata.Field.TRACK) { setTrack(data); return; }
 		if (field==Metadata.Field.TRACKS_TOTAL) { setTracksTotal(data); return; }
-		if (field==Metadata.Field.TRACK_INFO) { NofX.fromString(data).ifOk(this::setTracksInfo); return; }
+		if (field==Metadata.Field.TRACK_INFO) { NofX.fromString(data).ifOkUse(this::setTracksInfo); return; }
 		if (field==Metadata.Field.DISC) { setDisc(data); return; }
 		if (field==Metadata.Field.DISCS_TOTAL) { setDiscsTotal(data); return; }
-		if (field==Metadata.Field.DISCS_INFO) { NofX.fromString(data).ifOk(this::setDiscsInfo); return; }
+		if (field==Metadata.Field.DISCS_INFO) { NofX.fromString(data).ifOkUse(this::setDiscsInfo); return; }
 		if (field==Metadata.Field.GENRE) { setGenre(data); return; }
 		if (field==Metadata.Field.YEAR) { setYear(data); return; }
 		if (field==Metadata.Field.COVER) return;
@@ -854,7 +855,7 @@ public class MetadataWriter extends Song {
 		} else {
 			file = i.getFile();
 			Optional.ofNullable(file)
-				.map(f -> readAudioFile(f).getOr(null))
+				.map(f -> orNull(readAudioFile(f)))
 				.ifPresentOrElse(
 					f -> {
 						audioFile = f;

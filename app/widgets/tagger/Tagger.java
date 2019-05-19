@@ -138,6 +138,7 @@ import static sp.it.util.file.Util.getSuffix;
 import static sp.it.util.functional.Util.noDups;
 import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.functional.UtilKt.orNull;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.UtilKt.containsMouse;
@@ -813,7 +814,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         }
         public void histogramEnd(Collection<AudioFileFormat> formats) {
             if (f==CUSTOM1) {
-                Color c = APP.converter.general.ofS(Color.class,histogramS).getOr(null);
+                Color c = orNull(APP.converter.general.ofS(Color.class,histogramS));
                 colorFPicker.setValue(c==null ? EMPTY_COLOR : c);
                 colorF.setText("");
             }

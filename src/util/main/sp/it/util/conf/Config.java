@@ -43,6 +43,7 @@ import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.setRO;
 import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.functional.UtilKt.orNull;
 import static sp.it.util.type.Util.getEnumConstants;
 import static sp.it.util.type.Util.getValueFromFieldMethodHandle;
 import static sp.it.util.type.Util.isEnum;
@@ -664,7 +665,7 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 		 */
 		@Override
 		public void setValueS(String s) {
-			ofS(s).ifOk(getProperty().real::setValue);
+			ofS(s).ifOkUse(getProperty().real::setValue);
 		}
 
 		/**
@@ -770,7 +771,7 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 						List<Config> configs = list(a.toConfigurable.apply(t).getFields());
 						List<String> values = split(s, ";");
 						if (configs.size()==values.size())
-							forEachBoth(configs, values, (c, v) -> c.setValue(c.ofS(v).getOr(null))); // TODO: wtf
+							forEachBoth(configs, values, (c, v) -> c.setValue(orNull(c.ofS(v)))); // TODO: wtf
 
 						return (T) (a.itemType.isAssignableFrom(configs.get(0).getType()) ? configs.get(0).getValue() : t);
 					})

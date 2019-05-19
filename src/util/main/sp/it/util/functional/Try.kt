@@ -28,13 +28,6 @@ sealed class Try<out R,out E> {
             is Error<E> -> fail { "Can not get result of an Error Try" }
         }
 
-    // TODO: remove
-    /** @return the value if ok or the specified value if error */
-    fun getOr(or: @UV R): R = when (this) {
-        is Ok<R> -> value
-        is Error<E> -> or
-    }
-
     /** Invoke the specified action if success */
     inline fun ifOk(action: (R) -> Unit) = apply { if (this is Ok<R>) action(value) }
 
@@ -50,13 +43,7 @@ sealed class Try<out R,out E> {
     }
 
     /** Legacy version of [ifOk] for Java taking a [Consumer]. */
-    fun ifOk(action: Consumer<in R>) = ifOk(action.kt)
-
-    /** Legacy version of [ifOk] for Java taking a [Consumer]. */
     fun ifOkUse(action: Consumer<in R>) = ifOk(action.kt)
-
-    /** Legacy version of [ifError] for Java taking a [Consumer]. */
-    fun ifError(action: Consumer<in E>) = ifError(action.kt)
 
     /** Legacy version of [ifError] for Java taking a [Consumer]. */
     fun ifErrorUse(action: Consumer<in E>) = ifError(action.kt)
@@ -74,24 +61,6 @@ sealed class Try<out R,out E> {
     fun <S, F> map(mapperOk: (R) -> S, mapperError: (E) -> F): Try<S, F> = when (this) {
         is Ok<R> -> ok(mapperOk(value))
         is Error<E> -> error(mapperError(value))
-    }
-
-    // TODO: remove
-    fun and(and: Try<*, @UV E>): Try<R, E> = when (this) {
-        is Ok<R> -> when (and) {
-            is Ok<*> -> this
-            is Error<E> -> and
-        }
-        is Error<E> -> this
-    }
-
-    // TODO: remove
-    fun and(and: (R) -> Try<*, @UV E>): Try<R, E> = when (this) {
-        is Ok<R> -> when(val c = and(value)) {
-            is Ok<*> -> this
-            is Error<E> -> c
-        }
-        is Error<E> -> this
     }
 
     class Ok<R>(val value: R): Try<R, Nothing>() {
@@ -218,7 +187,7 @@ inline fun <R, E, R1: R, R2: R> Try<R1,E>.getOrSupply(or: (E) -> @UV R2): R = wh
  *
  * @return this if error or if both ok otherwise the specified Try (which will be known to be Error at that point)
  */
-fun <R,E, E1: E, E2: E> Try<R,E1>.and(and: Try<*, @UV E2>): Try<R, E> = when (this) {
+infix fun <R,E, E1: E, E2: E> Try<R,E1>.and(and: Try<*, @UV E2>): Try<R, E> = when (this) {
     is Try.Ok<R> -> when (and) {
         is Try.Ok<*> -> this
         is Try.Error<E2> -> and
@@ -238,7 +207,7 @@ inline fun <R,E, E1: E, E2: E> Try<R,E1>.and(and: (R) -> Boolean, errorSupplier:
     is Try.Error<E1> -> this
 }
 
-/** Lazy version of [Try.and]. */
+/** Lazy [Try.and]. */
 inline fun <R,E, E1: E, E2: E> Try<R,E1>.and(and: (R) -> Try<*, @UV E2>): Try<R, E> = when (this) {
     is Try.Ok<R> -> when(val c = and(value)) {
         is Try.Ok<*> -> this
@@ -254,7 +223,7 @@ inline fun <R,E, E1: E, E2: E> Try<R,E1>.and(and: (R) -> Try<*, @UV E2>): Try<R,
  *
  * @return this if ok or if both ok otherwise the specified Try (which will be known to be Ok at that point)
  */
-fun <R, E, R1: R, R2: R> Try<R1,E>.or(or: Try<@UV R2, *>): Try<R, E> = when (this) {
+infix fun <R, E, R1: R, R2: R> Try<R1,E>.or(or: Try<@UV R2, *>): Try<R, E> = when (this) {
     is Try.Ok<R1> -> this
     is Try.Error<E> -> when(or) {
         is Try.Ok<R2> -> or
@@ -262,7 +231,7 @@ fun <R, E, R1: R, R2: R> Try<R1,E>.or(or: Try<@UV R2, *>): Try<R, E> = when (thi
     }
 }
 
-/** Lazy version of [Try.or]. */
+/** Lazy [Try.or]. */
 inline fun <R, E, R1: R, R2: R> Try<R1,E>.or(or: (E) -> Try<@UV R2, *>): Try<R, E> = when (this) {
     is Try.Ok<R1> -> this
     is Try.Error<E> -> when(val c = or(value)) {

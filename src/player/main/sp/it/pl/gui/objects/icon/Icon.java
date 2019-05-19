@@ -53,6 +53,7 @@ import sp.it.util.animation.Anim;
 import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.TryKt;
 import sp.it.util.text.UtilKt;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static java.lang.Math.signum;
@@ -65,6 +66,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.animation.Anim.mapTo01;
+import static sp.it.util.functional.TryKt.getOr;
 import static sp.it.util.functional.Util.setRO;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.type.Util.getEnumConstants;
@@ -601,7 +603,7 @@ public class Icon extends StackPane {
 	}
 
 	public Number convert(String sizeString) {
-		return APP.converter.general.ofS(Double.class, sizeString).getOr(DEFAULT_ICON_SIZE);
+		return getOr(APP.converter.general.ofS(Double.class, sizeString), DEFAULT_ICON_SIZE);
 	}
 
 }

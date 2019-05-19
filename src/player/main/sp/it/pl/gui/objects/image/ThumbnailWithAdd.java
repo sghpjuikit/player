@@ -64,7 +64,7 @@ public class ThumbnailWithAdd extends Thumbnail {
 		root.addEventHandler(MOUSE_CLICKED, e -> {
 			if (e.getButton()==PRIMARY) {
 				chooseFile("Select image to add to tag", FILE, APP.DIR_APP, root.getScene().getWindow())
-						.ifOk(file -> {
+						.ifOkUse(file -> {
 							if (onFileDropped!=null)
 								onFileDropped.accept(fut(file));
 						});

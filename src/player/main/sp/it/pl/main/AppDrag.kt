@@ -3,9 +3,12 @@ package sp.it.pl.main
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Bounds
 import javafx.scene.Node
+import javafx.scene.Scene
 import javafx.scene.image.Image
 import javafx.scene.input.DragEvent
+import javafx.scene.input.DragEvent.DRAG_DROPPED
 import javafx.scene.input.Dragboard
+import javafx.stage.Window
 import mu.KotlinLogging
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
@@ -15,12 +18,17 @@ import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut
+import sp.it.util.async.onlyIfMatches
+import sp.it.util.async.runLater
 import sp.it.util.async.runNew
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.file.Util
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Util.listRO
+import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.onItemSyncWhile
+import sp.it.util.reactive.syncNonNullIntoWhile
 import sp.it.util.ui.drag.DataFormat
 import sp.it.util.ui.drag.contains
 import sp.it.util.ui.drag.get
@@ -28,13 +36,23 @@ import sp.it.util.ui.drag.handlerAccepting
 import java.io.File
 import java.io.IOException
 import java.net.URI
+import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Predicate
 import java.util.function.Supplier
 import javafx.scene.input.DataFormat as DataFormatFX
 
 private val logger = KotlinLogging.logger {}
 private val dirTmp = File(System.getProperty("java.io.tmpdir"))
-private var dragData: Any? = null   // TODO: avoid memory leak
+private var dragData: Any? = null
+private var dragDataId = AtomicLong(0).apply {
+    Window.getWindows().onItemSyncWhile {
+        it.sceneProperty().syncNonNullIntoWhile(Scene::rootProperty) {
+            it.onEventUp(DRAG_DROPPED) {
+                runLater(onlyIfMatches(this) { dragData = null })
+            }
+        }
+    }
+}
 
 object Df {
     /** See [DataFormatFX.PLAIN_TEXT] */
@@ -72,6 +90,7 @@ operator fun <T: Any> Dragboard.get(format: DataFormatAppOnly<T>): T {
 /** Equivalent to [Dragboard.setContent], but see [DataFormatAppOnly]. */
 operator fun <T: Any> Dragboard.set(format: DataFormatAppOnly<out T>, data: T) {
     dragData = data
+    dragDataId.incrementAndGet()
     setContent(mapOf(format.format to ""))
 }
 
@@ -239,11 +258,10 @@ fun installDrag(node: Node, icon: GlyphIcons, info: Supplier<out String>, condit
     // accept drag if desired
     node.addEventHandler(DragEvent.DRAG_OVER, handlerAccepting(condition, exc))
     // handle drag & clear data
-    node.addEventHandler(DragEvent.DRAG_DROPPED) { e ->
+    node.addEventHandler(DRAG_DROPPED) { e ->
         if (condition(e)) {
             action(e)
             e.isDropCompleted = true
-            dragData = null
             e.consume()
         }
     }

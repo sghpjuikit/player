@@ -172,7 +172,7 @@ public class FileInfo extends SimpleController implements SongReader {
         cover.getPane().setDisable(true);
         cover.setBackgroundVisible(false);
         cover.setBorderToImage(false);
-        cover.onFileDropped = fut_file -> {
+        cover.onFileDropped = consumer(fut_file -> {
         	if (data.isFileBased()) {
 	            APP.actionPane.show(File.class, fut_file, true,
 	                new SlowAction<>("Copy and set as album cover",
@@ -204,7 +204,7 @@ public class FileInfo extends SimpleController implements SongReader {
 	                )
 	            );
 	        }
-        };
+        });
 
         layout.setMinContentSize(200,120);
         layout.setGap(5);

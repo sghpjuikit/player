@@ -223,8 +223,8 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
         CoverV = new ThumbnailWithAdd(FontAwesomeIcon.PLUS,"Add to Tag");
         CoverV.getPane().setPrefSize(200, 200);
-        CoverV.onFileDropped = f -> f.useBy(FX, this::addImg);
-        CoverV.onHighlight = v -> noCoverL.setVisible(!v);
+        CoverV.onFileDropped = consumer(f -> f.useBy(FX, this::addImg));
+        CoverV.onHighlight = consumer(v -> noCoverL.setVisible(!v));
         coverContainer.setCenter(CoverV.getPane());
 
         progressI = appProgressIndicator();

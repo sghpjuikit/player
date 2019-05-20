@@ -7,8 +7,8 @@ import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
+import kotlin.jvm.functions.Function1;
 import sp.it.util.access.ref.SingleR;
-import sp.it.util.functional.Functors.Ƒ1;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLIPBOARD;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.DragEvent.DRAG_EXITED_TARGET;
@@ -30,8 +30,7 @@ import static sp.it.util.functional.UtilKt.runnable;
  * drag (e.g. only text) should be expressed as a {@link Predicate} and used when installing this pane. Otherwise it
  * will be shown for drag of any content and confuse user.
  * <p/>
- * See {@link #install(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, java.lang.String,
- * java.util.function.Predicate)}
+ * See {@link #install(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, String, kotlin.jvm.functions.Function1)}
  */
 public class DragPane extends Placeholder {
 
@@ -47,11 +46,11 @@ public class DragPane extends Placeholder {
 			}
 	);
 
-	public static void install(Node r, GlyphIcons icon, String info, Predicate<? super DragEvent> cond) {
+	public static void install(Node r, GlyphIcons icon, String info, Function1<? super DragEvent, Boolean> cond) {
 		DragPane.install(r, icon, () -> info, cond);
 	}
 
-	public static void install(Node r, GlyphIcons icon, Supplier<? extends String> info, Predicate<? super DragEvent> cond) {
+	public static void install(Node r, GlyphIcons icon, Supplier<? extends String> info, Function1<? super DragEvent, Boolean> cond) {
 		install(r, icon, info, cond, e -> false, null);
 	}
 
@@ -101,21 +100,21 @@ public class DragPane extends Placeholder {
 	 * may be used to calculate size and position of the highlight. The result can be a portion of the node's area and
 	 * even react on mouse drag moving across the node.
 	 */
-	public static void install(Node node, GlyphIcons icon, Supplier<? extends String> info, Predicate<? super DragEvent> cond, Predicate<? super DragEvent> except, Ƒ1<DragEvent,Bounds> area) {
+	public static void install(Node node, GlyphIcons icon, Supplier<? extends String> info, Function1<? super DragEvent, Boolean> cond, Function1<? super DragEvent, Boolean> except, Function1<? super DragEvent, ? extends Bounds> area) {
 		Data d = new Data(info, icon, cond);
 		node.getProperties().put(INSTALLED, d);
 		node.addEventHandler(DragEvent.DRAG_OVER, e -> {
 			if (!node.getProperties().containsKey(ACTIVE)) { // guarantees cond executes only once
-				if (d.cond.test(e)) {
+				if (d.cond.invoke(e)) {
 					PANE.get().hide();
 
-					if (except==null || !except.test(e)) { // null is equivalent to e -> false
+					if (except==null || !except.invoke(e)) { // null is equivalent to e -> false
 						node.getProperties().put(ACTIVE, ACTIVE);
 						Pane p = node instanceof Pane ? (Pane) node : node.getParent()==null ? null : (Pane) node.getParent();
 						Pane dp = PANE.getM(d);
 						if (p!=null && !p.getChildren().contains(dp)) {
 							p.getChildren().add(dp);
-							Bounds b = area==null ? node.getLayoutBounds() : area.apply(e);
+							Bounds b = area==null ? node.getLayoutBounds() : area.invoke(e);
 							double w = b.getWidth();
 							double h = b.getHeight();
 							dp.setMaxSize(w, h);
@@ -132,7 +131,7 @@ public class DragPane extends Placeholder {
 
 			if (area!=null && node.getProperties().containsKey(ACTIVE)) {
 				DragPane dp = PANE.getM(d);
-				Bounds b = area.apply(e);
+				Bounds b = area.invoke(e);
 				double w = b.getWidth();
 				double h = b.getHeight();
 				dp.setMaxSize(w, h);
@@ -162,7 +161,7 @@ public class DragPane extends Placeholder {
 	public static class Data {
 		private final Supplier<? extends String> info;
 		private final GlyphIcons icon;
-		private final Predicate<? super DragEvent> cond;
+		private final Function1<? super DragEvent, Boolean> cond;
 
 		public Data(Supplier<? extends String> info, GlyphIcons icon) {
 			this.info = info;
@@ -170,7 +169,7 @@ public class DragPane extends Placeholder {
 			this.cond = IS;
 		}
 
-		public Data(Supplier<? extends String> info, GlyphIcons icon, Predicate<? super DragEvent> cond) {
+		public Data(Supplier<? extends String> info, GlyphIcons icon, Function1<? super DragEvent, Boolean> cond) {
 			this.info = info;
 			this.icon = icon;
 			this.cond = cond;

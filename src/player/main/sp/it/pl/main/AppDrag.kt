@@ -7,6 +7,7 @@ import javafx.scene.Scene
 import javafx.scene.image.Image
 import javafx.scene.input.DragEvent
 import javafx.scene.input.DragEvent.DRAG_DROPPED
+import javafx.scene.input.DragEvent.DRAG_OVER
 import javafx.scene.input.Dragboard
 import javafx.stage.Window
 import mu.KotlinLogging
@@ -24,7 +25,6 @@ import sp.it.util.async.runNew
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.file.Util
-import sp.it.util.functional.Functors
 import sp.it.util.functional.Util.listRO
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemSyncWhile
@@ -37,7 +37,6 @@ import java.io.File
 import java.io.IOException
 import java.net.URI
 import java.util.concurrent.atomic.AtomicLong
-import java.util.function.Predicate
 import java.util.function.Supplier
 import javafx.scene.input.DataFormat as DataFormatFX
 
@@ -255,9 +254,7 @@ fun installDrag(node: Node, icon: GlyphIcons, info: Supplier<out String>, condit
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
 @JvmOverloads
 fun installDrag(node: Node, icon: GlyphIcons, info: Supplier<out String>, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit, area: ((DragEvent) -> Bounds)? = null) {
-    // accept drag if desired
-    node.addEventHandler(DragEvent.DRAG_OVER, handlerAccepting(condition, exc))
-    // handle drag & clear data
+    node.addEventHandler(DRAG_OVER, handlerAccepting(condition, exc))
     node.addEventHandler(DRAG_DROPPED) { e ->
         if (condition(e)) {
             action(e)
@@ -265,6 +262,5 @@ fun installDrag(node: Node, icon: GlyphIcons, info: Supplier<out String>, condit
             e.consume()
         }
     }
-    // show hint
-    DragPane.install(node, icon, info, Predicate { condition(it) }, Predicate { exc(it) }, if (area==null) null else Functors.Ƒ1 { area(it) })
+    DragPane.install(node, icon, info, condition, exc, area)
 }

@@ -47,7 +47,7 @@ val audioExtensions = setOf(
 fun File.isAudio() = extension.toLowerCase() in audioExtensions
 
 /** See [audioExtensionsJaudiotagger]. */
-fun String.isAudio() = toLowerCase() in audioExtensions
+fun String.isAudio() = substringAfterLast(".").toLowerCase() in audioExtensions
 
 /** [FileChooser.ExtensionFilter] for [audioExtensions]. */
 fun audioExtensionFilter() = FileChooser.ExtensionFilter("Audio files", audioExtensions.map { "*.$it" })
@@ -126,7 +126,7 @@ val imageExtensionsRead = imageExtensions12Monkey + setOf("kra")
 fun File.isImage() = extension.toLowerCase() in imageExtensionsRead
 
 /** See [imageExtensionsRead]. */
-fun String.isImage() = toLowerCase() in imageExtensionsRead
+fun String.isImage() = substringAfterLast(".").toLowerCase() in imageExtensionsRead
 
 /** Lowercase image (write) file extensions supported by this application. */
 val imageExtensionsWrite = setOf(

@@ -4,6 +4,9 @@ import javafx.util.Duration
 import sp.it.util.dev.Dependency
 import java.util.UUID
 
+/** Equivalent to [UUID.randomUUID]. */
+fun uuid() = UUID.randomUUID()!!
+
 /** Equivalent to [UUID.fromString]. */
 fun uuid(text: String) = UUID.fromString(text)!!
 

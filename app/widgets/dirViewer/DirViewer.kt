@@ -358,7 +358,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
             root install appTooltipForData { thumb.representant }
         }
 
-        override fun computeTask(r: Runnable) = onlyIfMatches(r, visitId)
+        override fun computeTask(r: Runnable) = onlyIfMatches(visitId, r)
 
         override fun onAction(i: Item, edit: Boolean) = doubleClickItem(i, edit)
 

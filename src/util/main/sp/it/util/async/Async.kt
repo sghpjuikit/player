@@ -159,7 +159,15 @@ fun runPeriodic(period: Duration, block: () -> Unit): Subscription {
     return Subscription { t.stop() }
 }
 
-fun onlyIfMatches(r: Runnable, counter: AtomicLong): Runnable {
+fun onlyIfMatches(counter: AtomicLong, r: () -> Unit): () -> Unit {
+    val c = counter.get()
+    return {
+        if (c==counter.get())
+            r()
+    }
+}
+
+fun onlyIfMatches(counter: AtomicLong, r: Runnable): Runnable {
     val c = counter.get()
     return Runnable {
         if (c==counter.get())

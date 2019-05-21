@@ -48,7 +48,10 @@ infix fun <T> MutableCollection<T>.setTo(elements: Sequence<T>) = this setTo ele
 infix fun <T> MutableCollection<T>.setTo(elements: Array<T>) = this setTo elements.toList()
 
 /** Removes all elements and adds specified element to this collection. Atomic for [ObservableList]. */
-infix fun <T> MutableCollection<T>.setToOne(element: T) = this setTo listOf(element)
+infix fun <T> MutableCollection<T>.setToOne(element: T) {
+    if (size!=1 || first()!=element)
+        this setTo listOf(element)
+}
 
 /** @return read only observable list that maintains the elements from this list mapped using the specified mapper */
 fun <T,R> ObservableList<T>.project(mapper: (T) -> R): ObservableListRO<R> {

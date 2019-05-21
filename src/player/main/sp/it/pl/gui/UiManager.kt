@@ -68,7 +68,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
         val window = n?.scene
         if (n!=null)
             APP.widgetManager.widgets.findAll(OPEN)
-                .filter { it.areaTemp?.root?.isAnyParentOf(n) ?: false }
+                .filter { it.uiTemp?.root?.isAnyParentOf(n) ?: false }
                 .findAny()
                 .ifPresent { fw ->
                     APP.widgetManager.widgets.findAll(OPEN)

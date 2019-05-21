@@ -50,6 +50,8 @@ import static sp.it.util.animation.interpolator.EasingMode.EASE_IN;
 import static sp.it.util.animation.interpolator.EasingMode.EASE_OUT;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.executor.FxTimer.fxTimer;
+import static sp.it.util.collections.UtilKt.setToOne;
+import static sp.it.util.functional.Util.firstNotNull;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.attach;
@@ -196,7 +198,7 @@ public class SwitchContainerUi implements ComponentUi {
     }
 
     @Override
-    public void close() {
+    public void dispose() {
         widget_io.dispose();
     }
 
@@ -231,65 +233,73 @@ public class SwitchContainerUi implements ComponentUi {
      */
     public void loadTab(int i) {
         Node n;
+        AltState as;
         Component c = layouts.get(i);
         TabPane tab = tabs.computeIfAbsent(i, index -> {
             TabPane t = new TabPane(i);
             ui.getChildren().add(t);
             return t;
         });
-
-        AltState as;
         if (c instanceof Container) {
-            layouters.remove(i);
-            n = ((Container)c).load(tab);
-            as = (Container)c;
+            if (tab.ui!=null) tab.ui.dispose();
+            tab.ui = null;
+
+            n = ((Container) c).load(tab);
+            as = (Container) c;
         } else if (c instanceof Widget) {
-            layouters.remove(i);
-            WidgetUi wa = new WidgetUi(container, i, (Widget)c);
-            n = wa.getRoot();
-            as = wa;
-        } else { // ==null
-            Layouter l = layouters.computeIfAbsent(i, index -> new Layouter(container,index));
-            n = l.getRoot();
-            as = l;
+            tab.ui = firstNotNull(
+                () -> tab.ui instanceof WidgetUi && ((WidgetUi) tab.ui).getWidget()==c ? tab.ui : null,
+                () -> {
+                    if (tab.ui!=null) tab.ui.dispose();
+                    return new WidgetUi(container, i, (Widget) c);
+                }
+            );
+            n = tab.ui.getRoot();
+            as = tab.ui;
+        } else {
+            tab.ui = firstNotNull(
+                () -> tab.ui instanceof Layouter ? tab.ui : null,
+                () -> {
+                    if (tab.ui!=null) tab.ui.dispose();
+                    return new Layouter(container, i);
+                }
+            );
+            n = tab.ui.getRoot();
+            as = tab.ui;
         }
+        setToOne(tab.getChildren(), n);
         if (APP.ui.isLayoutMode()) as.show();
-        tab.getChildren().setAll(n);
     }
 
     public void removeTab(int i) {
-        if (tabs.containsKey(i)) {
-            // detach from scene graph
-            ui.getChildren().remove(tabs.get(i));
-            // remove layout
+        var tab = tabs.remove(i);
+        if (tab!=null) {
+            removeFromParent(tab);
+            if (tab.ui!=null) tab.ui.dispose();
             layouts.remove(i);
-            // remove from tabs
-            tabs.remove(i);
         }
     }
 
     public void removeAllTabs() {
-        layouts.keySet().forEach(this::removeTab);
+        new ArrayList<>(tabs.keySet()).forEach(this::removeTab);
     }
 
     private void updateEmptyTabs() {
         var i = currTab();
-        var isClose = (Predicate<Integer>) it -> abs(currTabAsDouble()-it)<0.8;
+        var isClose = (Predicate<Integer>) it -> container.getChildren().get(i)==null && abs(currTabAsDouble()-it)<0.8;
 
         var toAdd = Stream.of(i-1, i, i+1);
-        var toRem = new ArrayList<>(layouters.keySet()).stream();
+        var toRem = new ArrayList<>(tabs.keySet()).stream();
 
         toAdd.filter(isClose).forEach(it -> addTab(it));
         toRem.filter(not(isClose)).forEach(it -> {
-            var l = layouters.get(it);
-            if (l!=null) l.close(runnable(() -> {
-                if (!isClose.test(it)) {
-                    var tab = tabs.remove(it);
-                    if (tab!=null) removeFromParent(tab);
-                    var lay = layouters.remove(it);
-                    if (lay!=null) removeFromParent(lay.getRoot());
-                }
-            }));
+            var t = tabs.get(it);
+            var l = t==null || !(t.ui instanceof Layouter) ? null : (Layouter) t.ui;
+            if (l!=null)
+                l.hideAnd(runnable(() -> {
+                    if (!isClose.test(it))
+                        removeTab(it);
+                }));
         });
     }
 
@@ -571,7 +581,6 @@ public class SwitchContainerUi implements ComponentUi {
 
     public final SwitchContainer container;
     private final Map<Integer,Component> layouts = new HashMap<>();
-    private final Map<Integer,Layouter> layouters = new HashMap<>();
 
     public Map<Integer,Component> getComponents() {
         return layouts;
@@ -593,30 +602,19 @@ public class SwitchContainerUi implements ComponentUi {
 
     @Override
     public void show() {
-        layouts.values().forEach(c -> {
-            if (c instanceof Container) ((Container)c).show();
-            if (c instanceof Widget) {
-                ComponentUi ct = ((Widget)c).areaTemp;
-                if (ct!=null) ct.show();
-            }
-        });
-        layouters.forEach((i,l) -> l.show());
+        layouts.values().forEach(c -> { if (c instanceof Container) ((Container) c).show(); });
+        tabs.forEach((i,t) -> { if (t.ui!=null) t.ui.show(); });
     }
 
     @Override
     public void hide() {
-        layouts.values().forEach(c -> {
-            if (c instanceof Container) ((Container)c).hide();
-            if (c instanceof Widget) {
-                ComponentUi ct = ((Widget)c).areaTemp;
-                if (ct!=null) ct.hide();
-            }
-        });
-        layouters.forEach((i,l) -> l.hide());
+        layouts.values().forEach(c -> { if (c instanceof Container) ((Container) c).hide(); });
+        tabs.forEach((i,t) -> { if (t.ui!=null) t.ui.hide(); });
     }
 
     private class TabPane extends AnchorPane {
         final int index;
+        ComponentUi ui;
 
         TabPane(int index) {
             this.index = index;

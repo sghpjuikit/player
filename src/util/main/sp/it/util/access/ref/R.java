@@ -1,7 +1,7 @@
 package sp.it.util.access.ref;
 
+import java.util.Optional;
 import java.util.function.BinaryOperator;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 /**
@@ -13,31 +13,12 @@ public class R<V> {
 
 	protected V v;
 
-	public R() {}
-
 	public R(V value) {
 		set(value);
 	}
 
 	public V get() {
 		return v;
-	}
-
-	public V get(V or) {
-		return v;
-	}
-
-	public V get(Supplier<V> or) {
-		return v;
-	}
-
-	public boolean isØ() {
-		return v==null;
-	}
-
-	/** Sets value to null. */
-	public void setØ() {
-		set(null);
 	}
 
 	public void set(V val) {
@@ -51,4 +32,9 @@ public class R<V> {
 	public void setOf(V v2, BinaryOperator<V> op) {
 		set(op.apply(get(), v2));
 	}
+
+	public Optional<V> toOptional() {
+		return Optional.ofNullable(v);
+	}
+
 }

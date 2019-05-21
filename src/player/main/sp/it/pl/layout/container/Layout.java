@@ -72,9 +72,6 @@ public final class Layout extends UniContainer {
     }
 
     /**
-     * Loads or reloads layout. Its effectively equivalent to loading the root
- Container of this layout and assigning it to the parent node of this layout.
- Use to setParentRec layout or to update up to date.
      * @param parentPane root node to load the layout into.
      * @return root node of the this layout
      */
@@ -82,7 +79,6 @@ public final class Layout extends UniContainer {
     public Node load(AnchorPane parentPane) {
         noNull(parentPane);
 
-        // load
         Node n = super.load(parentPane);
         setParentRec();
         return n;
@@ -112,7 +108,7 @@ public final class Layout extends UniContainer {
 
     public static Layout openStandalone(AnchorPane root) {
         Layout l = new Layout();
-        l.isStandalone = true;
+        l.setStandalone(true);
         l.load(root);
         return l;
     }

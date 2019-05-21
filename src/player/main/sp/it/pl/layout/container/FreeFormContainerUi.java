@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.window.Resize;
 import sp.it.pl.gui.objects.window.pane.PaneWindowControls;
+import sp.it.pl.layout.AltState;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.Layouter;
 import sp.it.pl.layout.widget.Widget;
@@ -34,12 +35,12 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.access.PropertiesKt.toggle;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.functional.Util.findFirstEmptyKey;
+import static sp.it.util.functional.Util.firstNotNull;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.syncTo;
 import static sp.it.util.ui.Util.setAnchor;
-import static sp.it.util.ui.Util.setAnchors;
 
 @SuppressWarnings("WeakerAccess")
 public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
@@ -52,7 +53,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
 
     private final FreeFormContainer container;
     private final AnchorPane rt = new AnchorPane();
-    private final Map<Integer,PaneWindowControls> windows = new HashMap<>();
+    private final Map<Integer,FfWindow> windows = new HashMap<>();
     private boolean resizing = false;
     private boolean any_window_resizing = false;
 
@@ -140,38 +141,57 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         container.getChildren().forEach(this::loadWindow);
     }
 
-    public void loadWindow(int i, Component cm) {
-        PaneWindowControls w = getWindow(i, cm);
+    public void loadWindow(int i, Component c) {
+        FfWindow w = getWindow(i, c);
 
+        var r = w.content;
         Node n;
-        Layouter l = null;
-        if (cm instanceof Container) {
-            Container c  = (Container) cm;
-            n = c.load(w.content);
-            if (c.ui instanceof ContainerUi) {
-                var ui = (ContainerUi<?>) c.ui;
-                if (ui.getControls().isSet())
-                    ui.getControls().get().updateIcons();
-            }
-        } else if (cm instanceof Widget) {
-            WidgetUi wa = new WidgetUi(container,i,(Widget)cm);
-            Icon lb = new Icon(VIEW_DASHBOARD, 12, layoutButtonTooltipText, () -> autoLayout(w));
-            wa.getControls().header_buttons.getChildren().add(1,lb);
-            n = wa.getRoot();
+        AltState as;
+        if (c instanceof Container) {
+            if (w.ui!=null) w.ui.dispose();
+            w.ui = null;
+
+            n = ((Container) c).load(r);
+            as = (Container) c;
+
+            if (((Container) c).ui instanceof ContainerUi)
+                ((ContainerUi<?>) ((Container) c).ui).getControls().ifSet(it -> it.updateIcons());
+        } else if (c instanceof Widget) {
+            w.ui = firstNotNull(
+                () -> w.ui instanceof WidgetUi && ((WidgetUi) w.ui).getWidget()==c ? w.ui : null,
+                () -> {
+                    if (w.ui!=null) w.ui.dispose();
+
+                    var wa = new WidgetUi(container, i, (Widget) c);
+                    Icon lb = new Icon(VIEW_DASHBOARD, 12, layoutButtonTooltipText, () -> autoLayout(w));
+                    wa.getControls().header_buttons.getChildren().add(1,lb);
+
+                    return wa;
+                }
+            );
+            n = w.ui.getRoot();
+            as = w.ui;
         } else {
-            l = new Layouter(container, i);
-            l.setOnCancel(runnable(() -> container.removeChild(i)));
-            n = l.getRoot();
+            w.ui = firstNotNull(
+                () -> w.ui instanceof Layouter ? w.ui : null,
+                () -> {
+                    if (w.ui!=null) w.ui.dispose();
+                    var l = new Layouter(container, i, w.borders);
+                    l.setOnCancel(runnable(() -> container.removeChild(i)));
+                    return l;
+                }
+            );
+            n = w.ui.getRoot();
+            as = w.ui;
         }
 
         w.moveOnDragOf(w.root);
-        w.content.getChildren().setAll(n);
-        setAnchors(n, 0d);
-        if (l!=null) l.show();
+        w.setContent(n);
+        if (as!=null) as.show();
     }
 
     public void closeWindow(int i) {
-        PaneWindowControls w = windows.get(i);
+        FfWindow w = windows.get(i);
         if (w!=null) {
             w.close();
             windows.remove(i);
@@ -182,8 +202,8 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         }
     }
 
-    private PaneWindowControls getWindow(int i, Component cm) {
-        PaneWindowControls w = windows.get(i);
+    private FfWindow getWindow(int i, Component cm) {
+        FfWindow w = windows.get(i);
         if (w==null) {
             w = buildWindow(i, cm);
             windows.put(i, w);
@@ -191,8 +211,8 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         return w;
     }
 
-    private PaneWindowControls buildWindow(int i, Component cm) {
-        PaneWindowControls w = new PaneWindowControls(rt);
+    private FfWindow buildWindow(int i, Component cm) {
+        FfWindow w = new FfWindow(rt);
         w.root.getStyleClass().add("freeflowcontainer-window");
         w.offscreenFixOn.set(false);
 
@@ -234,24 +254,28 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         if (cm instanceof Widget) syncC(((Widget) cm).custom_name, it -> w.setTitle(it));
         else w.setTitle("");
 
-
-        w.resizing.addListener((o,ov,nv) -> {
-            if (nv!=Resize.NONE) any_window_resizing = true;
-            else runFX(millis(100.0), () -> any_window_resizing = false);
+        syncC(w.resizing, it -> {
+            if (it==Resize.NONE) runFX(millis(100.0), () -> any_window_resizing = false);
+            else any_window_resizing = true;
         });
+
+        // prevent layouter closing when resize/move
+        syncC(w.resizing, it -> Layouter.Companion.suppressHidingFor(w.borders, it!=Resize.NONE));
+        syncC(w.moving, it -> Layouter.Companion.suppressHidingFor(w.borders, it));
 
         // report component graphics changes
         syncC(w.root.parentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
         syncC(w.root.boundsInParentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
 
+
         return w;
     }
 
     /** Optimal size/position strategy returning greatest empty square. */
-    TupleM4 bestRec(double x, double y, PaneWindowControls new_w) {
+    TupleM4 bestRec(double x, double y, FfWindow new_w) {
         TupleM4 b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
 
-        for (PaneWindowControls w : windows.values()) {
+        for (FfWindow w : windows.values()) {
             if (w==new_w) continue;   // ignore self
             double wl = w.x.get()+w.w.get();
             if (wl<x && wl>b.a) b.a = wl;
@@ -265,7 +289,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
 
         b.a = 0d;
         b.b = rt.getWidth();
-        for (PaneWindowControls w : windows.values()) {
+        for (FfWindow w : windows.values()) {
             if (w==new_w) continue;   // ignore self
             double wl = w.x.get()+w.w.get();
             double wr = w.x.get();
@@ -281,10 +305,10 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         return new TupleM4(b.a/rt.getWidth(),b.c/rt.getHeight(), (b.b-b.a)/rt.getWidth(),(b.d-b.c)/rt.getHeight());
     }
 
-    Bounds bestRecBounds(double x, double y, PaneWindowControls newW) {
+    Bounds bestRecBounds(double x, double y, FfWindow newW) {
         TupleM4 b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
 
-        for (PaneWindowControls w : windows.values()) {
+        for (FfWindow w : windows.values()) {
             if (w==newW) continue;   // ignore self
             double wl = w.x.get()+w.w.get();
             if (wl<x && wl>b.a) b.a = wl;
@@ -298,7 +322,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
 
         b.a = 0d;
         b.b = rt.getWidth();
-        for (PaneWindowControls w : windows.values()) {
+        for (FfWindow w : windows.values()) {
             if (w==newW) continue;   // ignore self
             double wl = w.x.get()+w.w.get();
             double wr = w.x.get();
@@ -321,7 +345,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
     }
 
     /** Initializes position & size for i-th window, ignoring self w if passed as param. */
-    private void storeBestRec(int i, double x, double y, PaneWindowControls w) {
+    private void storeBestRec(int i, double x, double y, FfWindow w) {
         TupleM4 bestPos = bestRec(x, y, w);
         // add empty window at index
         // the method call eventually invokes load() method below, with
@@ -351,7 +375,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         if (w!=null) autoLayout(w);
     }
 
-    public void autoLayout(PaneWindowControls w) {
+    public void autoLayout(FfWindow w) {
         TupleM4 p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
         w.x.set(p.a*rt.getWidth());
         w.y.set(p.b*rt.getHeight());
@@ -375,5 +399,14 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
             this.c = c;
             this.d = d;
         }
+    }
+
+    private static class FfWindow extends PaneWindowControls {
+        ComponentUi ui;
+
+        public FfWindow(AnchorPane owner) {
+            super(owner);
+        }
+
     }
 }

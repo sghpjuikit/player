@@ -24,6 +24,7 @@ import static sp.it.pl.gui.objects.window.Resize.SE;
 import static sp.it.pl.gui.objects.window.Resize.SW;
 import static sp.it.pl.gui.objects.window.Resize.W;
 import static sp.it.pl.main.AppBuildersKt.resizeButton;
+import static sp.it.util.collections.UtilKt.setToOne;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.initClip;
@@ -38,7 +39,7 @@ public class PaneWindowControls extends WindowPane {
 	/** Pseudoclass active when this window is focused. Applied on root as '.window'. */
 	public static final PseudoClass pcFocused = pseudoclass("focused");
 
-	@FXML private AnchorPane borders;
+	@FXML public AnchorPane borders;
 	@FXML public AnchorPane content;
 	@FXML public HBox controls;
 	@FXML private StackPane header;
@@ -51,7 +52,9 @@ public class PaneWindowControls extends WindowPane {
 	public PaneWindowControls(AnchorPane owner) {
 		super(owner);
 
-		new ConventionFxmlLoader(root, this).loadNoEx();
+		var fl = new ConventionFxmlLoader(root, this);
+		fl.setConvention(PaneWindowControls.class, root, this);
+		fl.loadNoEx();
 		initClip(content);
 
 		// maintain custom pseudoclasses for .window styleclass
@@ -68,15 +71,14 @@ public class PaneWindowControls extends WindowPane {
 
 		var resizeB = resizeButton();
 		resizeB.setOnMouseDragged(this::border_onDragged);
-		resizeB.setOnMousePressed(this::border_onDragStart);
+		resizeB.setOnMousePressed(this::button_onDragStart);
 		resizeB.setOnMouseReleased(this::border_onDragEnd);
 		borders.getChildren().add(resizeB);
 		setAnchors(resizeB, null, 0.0, 0.0, null);
 	}
 
 	public void setContent(Node n) {
-		content.getChildren().clear();
-		content.getChildren().add(n);
+		setToOne(content.getChildren(), n);
 		setAnchors(n, 0d);
 	}
 
@@ -122,9 +124,15 @@ public class PaneWindowControls extends WindowPane {
 		BorderPane.setAlignment(titleL, align);
 	}
 
+	private void button_onDragStart(MouseEvent e) {
+		if (resizable.get()) {
+			_resizing.set(SE);
+			e.consume();
+		}
+	}
+
 	@FXML
 	private void border_onDragStart(MouseEvent e) {
-		// start resize if allowed
 		if (resizable.get()) {
 			Point2D b = root.getParent().screenToLocal(new Point2D(e.getScreenX(), e.getScreenY()));
 			double X = b.getX() - x.get();
@@ -152,7 +160,6 @@ public class PaneWindowControls extends WindowPane {
 
 	@FXML
 	private void border_onDragEnd(MouseEvent e) {
-		// end resizing if active
 		if (_resizing.get()!=NONE) {
 			_resizing.set(NONE);
 			e.consume();

@@ -30,17 +30,15 @@ class SwitchContainer: Container<SwitchContainerUi>() {
             .first { !children.containsKey(it) }
 
     override fun load(): Node {
-        if (ui==null) {
-            ui = SwitchContainerUi(this).also {
-                it.align syncFrom align
-                it.snap syncFrom snap
-                it.switchDistAbs syncFrom minSwitchDistAbs
-                it.switchDistRel syncFrom minSwitchDistRel
-                it.snapThresholdAbs syncFrom snapThresholdAbs
-                it.snapThresholdRel syncFrom snapThresholdRel
-                it.dragInertia syncFrom dragInertia
-                it.zoomScaleFactor syncFrom zoom
-            }
+        ui = ui ?: SwitchContainerUi(this).also {
+            it.align syncFrom align
+            it.snap syncFrom snap
+            it.switchDistAbs syncFrom minSwitchDistAbs
+            it.switchDistRel syncFrom minSwitchDistRel
+            it.snapThresholdAbs syncFrom snapThresholdAbs
+            it.snapThresholdRel syncFrom snapThresholdRel
+            it.dragInertia syncFrom dragInertia
+            it.zoomScaleFactor syncFrom zoom
         }
         children.forEach { (i, c) -> ui.addTab(i, c) }
         return ui.root

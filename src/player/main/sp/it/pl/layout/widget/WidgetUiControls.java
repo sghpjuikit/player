@@ -6,27 +6,23 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.effect.BoxBlur;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
 import org.jetbrains.annotations.NotNull;
-import sp.it.pl.gui.objects.Text;
+import sp.it.pl.core.CoreMouse;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.layout.container.BiContainer;
 import sp.it.pl.layout.container.BiContainerUi;
 import sp.it.pl.layout.container.ComponentUiControlsBase;
 import sp.it.pl.main.AppAnimator;
-import sp.it.util.access.ref.SingleR;
 import sp.it.util.animation.Anim;
 import sp.it.util.reactive.Subscribed;
 import sp.it.util.reactive.Subscription;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LINK;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TIMES;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLINK;
@@ -37,11 +33,10 @@ import static javafx.scene.input.DragEvent.DRAG_DONE;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
-import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.layout.widget.Widget.LoadType.MANUAL;
 import static sp.it.pl.layout.widget.WidgetUi.PSEUDOCLASS_DRAGGED;
-import static sp.it.pl.main.AppBuildersKt.helpPopOver;
+import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
@@ -53,6 +48,7 @@ import static sp.it.util.ui.Util.layStack;
 import static sp.it.util.ui.Util.setAnchor;
 import static sp.it.util.ui.UtilKt.getCentre;
 import static sp.it.util.ui.UtilKt.pseudoclass;
+import static sp.it.util.ui.UtilKt.toP;
 
 /**
  * Controls for a widget area.
@@ -61,9 +57,6 @@ public final class WidgetUiControls extends ComponentUiControlsBase {
 
     private static final double activatorW = 20;
     private static final double activatorH = 20;
-    private static final String infobTEXT = "Help\n\n"
-        + "Displays information about the widget, e.g., name, purpose or "
-        + "how to use it.";
     private static final String absbTEXT = "Absolute size\n\n"
         + "Prevents widget from resizing proportionally to parent container's "
         + "size. Instead, the widget will keep the same size, if possible.";
@@ -79,21 +72,6 @@ public final class WidgetUiControls extends ComponentUiControlsBase {
         + "non-layout operations.";
     private static final String closebTEXT = "Close widget\n\n"
         + "Closes widget and creates empty place in the container.";
-    private static SingleR<PopOver<Text>,WidgetUiControls> helpP = new SingleR<>(
-        () -> helpPopOver(""),
-        (p, ac) -> {
-            // set text
-            p.contentNode.getValue().setText(ac.getInfo());
-            // for some reason we need to put this every time, which
-            // should not be the case, investigate
-            p.contentNode.getValue().setWrappingWidth(400);
-            // we need to handle hiding this WidgetUiControls when popup
-            // closes and we are outside of the area (not implemented yet)
-            p.addEventHandler(WINDOW_HIDDEN, we -> {
-                if (ac.isShowingWeak) ac.hide();
-            });
-        }
-    );
 
     private final WidgetUi area;
     public final AnchorPane root = new AnchorPane();
@@ -102,10 +80,10 @@ public final class WidgetUiControls extends ComponentUiControlsBase {
     public final TilePane header_buttons = new TilePane(4.0, 4.0);
     public final Icon infoB, absB, lockB;
 
+    private final Anim anim;
     private boolean isShowingStrong = false;
     private boolean isShowingWeak = false;
     private Subscribed hiderWeak;
-    private final Anim anim;
 
     public WidgetUiControls(WidgetUi area) {
         this.area = area;
@@ -135,10 +113,8 @@ public final class WidgetUiControls extends ComponentUiControlsBase {
         syncC(area.getWidget().loadType, it -> loadB.selected.setValue(it==AUTOMATIC));
         syncC(loadB.selected, it -> loadB.icon(it ? UNFOLD : FOLD));
         loadB.selected.addListener((o,ov,nv) -> area.getWidget().loadType.set(nv ? AUTOMATIC : MANUAL));
-        // ^ technically we've got ourselves bidirectional binding and risk stackoverflow. We know
-        // the value changes fire only when value is different, so we ara safe
 
-        infoB = new Icon(INFO, -1, infobTEXT, this::showInfo).styleclass("header-icon"); // consistent with Icon.infoIcon()
+        infoB = infoIcon(() -> getInfo()).styleclass("header-icon");
 
         // build header
         header_buttons.setPrefRows(1);
@@ -185,25 +161,12 @@ public final class WidgetUiControls extends ComponentUiControlsBase {
         p.addEventFilter(MOUSE_EXITED, e -> inside.set(false));
 
         hiderWeak = new Subscribed(feature -> {
-            var eh = consumer((MouseEvent e) -> {
-                if (
-                    isShowingWeak &&    // ignore when not showing
-                    !isShowingStrong &&     // ignore in strong mode
-                    (helpP.isØ() || !helpP.get().isShowing()) &&    // keep visible when popup is shown
-                    !root.getPseudoClassStates().contains(PSEUDOCLASS_DRAGGED) &&   // keep visible when dragging
-                    (
-                        !root.localToScene(root.getLayoutBounds()).contains(e.getSceneX(), e.getSceneY()) ||
-                        header_buttons.getChildren().stream().allMatch(it -> getCentre(it.localToScene(it.getLayoutBounds())).distance(e.getSceneX(), e.getSceneY())>100)
-                    )
-                ) {
-                    hideWeak();
-                }
-            });
+            var eh = consumer((Object e) -> tryHide());
             return Subscription.Companion.invoke(
                 onEventUp(root, MOUSE_MOVED, eh),
                 onEventUp(root, MOUSE_EXITED, eh),
                 onEventUp(p, MOUSE_EXITED, eh),
-                onEventUp(root, DRAG_DONE, consumer(e -> eh.invoke(new MouseEvent(MOUSE_MOVED, e.getX(), e.getY(), e.getScreenX(), e.getScreenY(), MouseButton.NONE, 0 , false, false, false, false, false, false, false, false, false, true, null))))
+                onEventUp(root, DRAG_DONE, consumer(e -> eh.invoke(null)))
             );
         });
 
@@ -218,19 +181,15 @@ public final class WidgetUiControls extends ComponentUiControlsBase {
         return area;
     }
 
-    void toggleLocked() {
+    private void toggleLocked() {
         area.toggleLocked();
     }
 
-    void settings() {
+    private void settings() {
         APP.windowManager.showSettings(area.getWidget(), propB);
     }
 
-    void showInfo() {
-        helpP.getM(this).showInCenterOf(infoB);
-    }
-
-    void close() {
+    private void close() {
         AppAnimator.INSTANCE.closeAndDo(area.contentRoot, runnable(() -> area.container.removeChild(area.index)));
     }
 
@@ -264,9 +223,21 @@ public final class WidgetUiControls extends ComponentUiControlsBase {
         hiderWeak.subscribe(false);
         isShowingWeak = false;
         anim.playClose();
+    }
 
-        // hide help popup if open
-        if (!helpP.isØ() && helpP.get().isShowing()) helpP.get().hide();
+    private void tryHide() {
+        var cmp = CoreMouse.INSTANCE.getMousePosition();
+        if (
+            isShowingWeak &&    // ignore when not showing
+            !isShowingStrong &&     // ignore in strong mode
+            !root.getPseudoClassStates().contains(PSEUDOCLASS_DRAGGED) &&   // keep visible when dragging
+            (
+                !root.localToScreen(root.getLayoutBounds()).contains(cmp) ||
+                header_buttons.getChildren().stream().allMatch(it -> getCentre(it.localToScreen(it.getLayoutBounds())).distance(toP(cmp))>100)
+            )
+        ) {
+            hideWeak();
+        }
     }
 
     public void show() {

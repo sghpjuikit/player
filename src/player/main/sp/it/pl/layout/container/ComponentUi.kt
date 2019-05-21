@@ -1,6 +1,5 @@
 package sp.it.pl.layout.container
 
-import javafx.scene.Parent
 import javafx.scene.input.MouseButton
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Pane
@@ -27,17 +26,13 @@ interface ComponentUi: AltState {
     /** Scene graph root of this object. */
     val root: Pane
 
+    /** Dispose of this ui with the intention of never being used again. */
     @JvmDefault
-    fun getParent(): Parent = root.parent
-
-    @JvmDefault
-    fun close() {}
+    fun dispose() {}
 
 }
 
-abstract class ComponentUiBase: ComponentUi {
-
-    abstract fun getActiveComponent(): Component
+abstract class ComponentUiBase<C: Component>(val component: C): ComponentUi {
 
     /** Detaches the widget into standalone content in new window. */
     fun detach() {
@@ -47,7 +42,7 @@ abstract class ComponentUiBase: ComponentUi {
             else -> failCase(this)
         }
 
-        val c = getActiveComponent()
+        val c = component
         val sizeOld = c.size()
 
         c.parent.addChild(c.indexInParent(), null)
@@ -66,7 +61,7 @@ abstract class ComponentUiBase: ComponentUi {
 }
 
 /** Ui allowing user to manage [Container] instances. */
-abstract class ContainerUi<C: Container<*>>: ComponentUiBase {
+abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
 
     final override val root: AnchorPane
     val container: C
@@ -74,7 +69,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase {
     var isLayoutMode = false
     var isContainerMode = false
 
-    constructor(container: C) {
+    constructor(container: C): super(container) {
         this.container = container
         this.root = AnchorPane()
         root.styleClass += "container-ui"
@@ -98,15 +93,13 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase {
 
     protected open fun buildControls() = ContainerUiControls(this)
 
-    override fun getActiveComponent() = container
-
     override fun show() {
         isLayoutMode = true
         root.pseudoClassChanged("layout-mode", true)
 
         container.children.values.forEach {
             if (it is Container<*>) it.show()
-            if (it is Widget) it.areaTemp?.show()
+            if (it is Widget) it.uiTemp?.show()
         }
     }
 
@@ -118,7 +111,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase {
 
         container.children.values.forEach {
             if (it is Container<*>) it.hide()
-            if (it is Widget) it.areaTemp?.hide()
+            if (it is Widget) it.uiTemp?.hide()
         }
     }
 

@@ -141,7 +141,7 @@ public class AppLauncher extends SimpleController {
         });
         grid.setOnMouseClicked(e -> {
             if (e.getButton()==SECONDARY && closeOnRightClick.get())
-                widget.areaTemp.close();
+                widget.uiTemp.dispose();  // TODO: this is for overlayPane interop, move out of here and use hide() instead of dispose()
         });
 
         installDrag(
@@ -181,7 +181,7 @@ public class AppLauncher extends SimpleController {
 
     private void doubleClickItem(Item i) {
         if (closeOnLaunch.get()) {
-            widget.areaTemp.close();
+            widget.uiTemp.dispose();
             runFX(millis(250), () -> open(i.value));
         } else {
             open(i.value);

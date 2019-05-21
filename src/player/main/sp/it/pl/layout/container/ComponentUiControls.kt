@@ -11,7 +11,7 @@ import sp.it.pl.main.set
 interface ComponentUiControls
 
 abstract class ComponentUiControlsBase: ComponentUiControls {
-    abstract val area: ComponentUiBase
+    abstract val area: ComponentUiBase<*>
 
     protected fun onDragDetected(e: MouseEvent, root: Node) {
         if (e.button==MouseButton.PRIMARY) {
@@ -19,9 +19,9 @@ abstract class ComponentUiControlsBase: ComponentUiControls {
                 area.detach()
                 e.consume()
             } else {
-                if (area.getActiveComponent().parent !is FreeFormContainer) {
+                if (area.component.parent !is FreeFormContainer) {
                     val db = root.startDragAndDrop(*TransferMode.ANY)
-                    db[Df.COMPONENT] = area.getActiveComponent()
+                    db[Df.COMPONENT] = area.component
                     root.pseudoClassStateChanged(WidgetUi.PSEUDOCLASS_DRAGGED, true)
                     e.consume()
                 }

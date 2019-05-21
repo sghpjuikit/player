@@ -17,9 +17,10 @@ object CoreMouse: Core {
     private var observeSpeed = false
     private val positionSubscribers = HashSet<(Point2D) -> Unit>()
     private val velocitySubscribers = HashSet<(Double) -> Unit>()
+    private val robot = Robot()
 
     /** @return mouse position in screen coordinates */
-    val mousePosition: Point2D get() = Robot().mousePosition
+    val mousePosition: Point2D get() = robot.mousePosition
 
     /** Observe mouse position in screen coordinates. */
     fun observeMousePosition(action: (Point2D) -> Unit): Subscription {

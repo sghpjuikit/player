@@ -21,24 +21,26 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncTo
+import sp.it.util.type.nullify
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.pseudoclass
+import sp.it.util.ui.removeFromParent
 
 /**
  * UI allowing user to manage [Widget] instances. Manages widget's lifecycle and user's interaction with the widget.
  *
  * Maintains final 1:1 relationship with the widget, always contains exactly 1 final widget.
  */
-class WidgetUi: ComponentUiBase {
-    /** Container this area is associated with. */
+class WidgetUi: ComponentUiBase<Widget> {
+    /** Container this ui is associated with. */
     @JvmField val container: Container<*>
     /** Index of the child in the [container] */
     @JvmField val index: Int
-    @JvmField val contentRoot = AnchorPane()
-    override val root = AnchorPane()
-
-    val controls: WidgetUiControls
+    /** Widget this ui is associated with. Equivalent to [component]. */
     val widget: Widget
+    override val root = AnchorPane()
+    @JvmField val contentRoot = AnchorPane()
+    val controls: WidgetUiControls
     private val content = AnchorPane()
     private val disposer = Disposer()
     private var manualLoadPane: Placeholder? = null
@@ -50,14 +52,14 @@ class WidgetUi: ComponentUiBase {
      * @param index index of the widget within the container
      * @param widget widget that will be managed and displayed
      */
-    constructor(container: Container<*>, index: Int, widget: Widget) {
+    constructor(container: Container<*>, index: Int, widget: Widget): super(widget) {
         this.container = container.apply {
             properties.getOrPut(Double::class.javaObjectType, "padding", 0.0)
         }
         this.index = index
         this.widget = widget
         this.widget.parentTemp = this.container
-        this.widget.areaTemp = this
+        this.widget.uiTemp = this
 
         root.id = "widget-ui"
         root.layFullArea += contentRoot.apply {
@@ -135,8 +137,6 @@ class WidgetUi: ComponentUiBase {
 
     fun getContent() = content
 
-    override fun getActiveComponent() = widget
-
     override fun show() = controls.show()
 
     override fun hide() = controls.hide()
@@ -151,7 +151,11 @@ class WidgetUi: ComponentUiBase {
         info.text = "Unfold ${widget.custom_name.value} (LMB)"
     }
 
-    override fun close() = disposer()
+    override fun dispose() {
+        disposer()
+        controls.root.removeFromParent()
+        nullify(::controls)
+    }
 
     companion object {
         private val animation = DelayAnimator()

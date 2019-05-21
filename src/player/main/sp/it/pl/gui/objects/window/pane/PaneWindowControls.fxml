@@ -31,7 +31,7 @@
                         </Label>
                     </HBox>
                 </StackPane>
-                <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0"  VBox.vgrow="ALWAYS"/>
+                <AnchorPane id="content" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0"  VBox.vgrow="ALWAYS"/>
             </children>
         </VBox>
         <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart"

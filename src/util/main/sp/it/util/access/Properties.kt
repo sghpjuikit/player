@@ -18,10 +18,18 @@ import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import sp.it.util.dev.Experimental
 import sp.it.util.reactive.sync
+import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty0
+
+val <T> KProperty0<T>.value: T
+    get() = get()
+var <T> KMutableProperty0<T>.value: T
+    get() = get()
+    set(value) = set(value)
 
 operator fun <T> ObservableValue<T>.getValue(thisRef: Any, property: KProperty<*>): T = value
-operator fun <T> Property<T?>.setValue(thisRef: Any, property: KProperty<*>, value: T?) = setValue(value)
+operator fun <T> Property<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) = setValue(value)
 
 operator fun ObservableDoubleValue.getValue(thisRef: Any, property: KProperty<*>) = get()
 operator fun DoubleProperty.setValue(thisRef: Any, property: KProperty<*>, value: Double) = set(value)

@@ -1,18 +1,18 @@
 package sp.it.util.access.ref;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import sp.it.util.functional.Functors;
 import static sp.it.util.dev.FailKt.noNull;
 
 /**
- * Lazy reference.
+ * Nullable lazy value.
  *
  * @param <V> type of instance
- * <p>
- * Created by Plutonium_ on 3/12/2016.
  */
-public class LazyR<V> extends R<V> {
+public class LazyR<V> {
 
+	protected V v;
 	protected Supplier<V> builder;
 	protected boolean isSet = false;
 
@@ -21,35 +21,18 @@ public class LazyR<V> extends R<V> {
 	 * more than once.
 	 */
 	public LazyR(Supplier<V> builder) {
-		noNull(builder);
-		this.builder = builder;
+		this.builder = noNull(builder);
 	}
 
-	@Override
 	public V get() {
-		if (!isSet) {
-			set(builder.get());
-			builder = null;
-		}
+		if (!isSet) set(builder.get());
 		return v;
 	}
 
-	@Override
-	public void set(V val) {
+	protected void set(V val) {
 		isSet = true;
-		super.set(val);
-	}
-
-	@Override
-	public V get(V or) {
-		if (!isSet) set(or);
-		return v;
-	}
-
-	@Override
-	public V get(Supplier<V> or) {
-		if (!isSet) set(or.get());
-		return v;
+		builder = null;
+		v = val;
 	}
 
 	public <M> V get(M m, Functors.Ƒ1<M,V> or) {
@@ -57,8 +40,23 @@ public class LazyR<V> extends R<V> {
 		return v;
 	}
 
+	public V getOr(V or) {
+		if (!isSet) set(or);
+		return v;
+	}
+
+	public V getOr(Supplier<V> or) {
+		if (!isSet) set(or.get());
+		return v;
+	}
+
 	public boolean isSet() {
 		return isSet;
+	}
+
+	public void ifSet(Consumer<? super V> block) {
+		if (isSet)
+			block.accept(v);
 	}
 
 }

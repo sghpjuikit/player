@@ -168,11 +168,11 @@ class AppActions {
                         val parent = this
                         c.controller.getFieldOrThrow("closeOnLaunch").value = true
                         c.controller.getFieldOrThrow("closeOnRightClick").value = true
-                        c.areaTemp = object: ComponentUi {
+                        c.uiTemp = object: ComponentUi {
                             override val root = parent
                             override fun show() {}
                             override fun hide() {}
-                            override fun close() = root.hide()
+                            override fun dispose() = root.hide()    // TODO: make sure there is no leak, + turn this into WidgetLoader
                         }
                     }
                     super.show()

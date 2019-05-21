@@ -17,6 +17,7 @@ import sp.it.util.functional.supplyIf
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.sync
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.pane
@@ -94,7 +95,8 @@ open class Picker<E> {
         root.apply {
             setMinPrefMaxSize(USE_COMPUTED_SIZE)
             isPannable = false  // forbid mouse panning (can cause unwanted horizontal scrolling)
-            isFitToWidth = true // make content horizontally resize with scroll pane
+            isFitToWidth = true // auto-resize content horizontally
+            heightProperty() sync { tiles.requestLayout() } // auto-resize content horizontally
             hbarPolicy = NEVER
             onEventDown(MOUSE_CLICKED, SECONDARY, false) {
                 onCancel()

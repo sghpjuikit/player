@@ -113,7 +113,7 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 	 * <p/>
 	 * This field allows widget to control its lifecycle and context from its controller.
 	 */
-	@XStreamOmitField public ComponentUi areaTemp;
+	@XStreamOmitField public ComponentUi uiTemp;
 
 	/** Whether this widget will be preferred over other widgets in widget lookup. */
 	@IsConfig(name = "Is preferred", info = "Prefer this widget among all widgets of its type. If there is a request "

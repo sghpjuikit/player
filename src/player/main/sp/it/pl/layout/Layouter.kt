@@ -1,15 +1,17 @@
 package sp.it.pl.layout
 
-import javafx.event.EventHandler
+import javafx.scene.Node
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.scene.input.MouseEvent.MOUSE_EXITED
+import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import sp.it.pl.gui.objects.picker.ContainerPicker
 import sp.it.pl.gui.objects.picker.Picker
 import sp.it.pl.gui.objects.picker.WidgetPicker
 import sp.it.pl.layout.container.BiContainer
-import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.container.ComponentUi
+import sp.it.pl.layout.container.Container
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.Df
@@ -17,8 +19,11 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
+import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
+import sp.it.util.ui.containsMouse
 import sp.it.util.ui.lay
 
 /**
@@ -34,12 +39,13 @@ class Layouter: ComponentUi {
 
     override val root = StackPane()
     var onCancel: () -> Unit = {}
-    private var isCancelPlaying = false
     private var wasSelected = false
     private val cp: ContainerPicker
     private var isCpShown = false
+    private val disposer = Disposer()
 
-    constructor(container: Container<*>, index: Int) {
+    @JvmOverloads
+    constructor(container: Container<*>, index: Int, exitRoot: Pane? = null) {
         this.container = container
         this.index = index
         this.cp = ContainerPicker({ showContainer(it) }, { showWidgetArea(it) }).apply {
@@ -49,14 +55,13 @@ class Layouter: ComponentUi {
                 AppAnimator.closeAndDo(root) { it.onSelect() }
             }
             onCancel = {
-                isCancelPlaying = true
                 if (!APP.ui.isLayoutMode)
                     hide()
             }
             consumeCancelEvent = false
             buildContent()
         }
-        APP.widgetManager.widgets.separateWidgets attach { cp.buildContent() }   // TODO: memory leak
+        APP.widgetManager.widgets.separateWidgets attach { cp.buildContent() } on disposer
 
         root.lay += cp.root
 
@@ -77,9 +82,10 @@ class Layouter: ComponentUi {
             }
         }
 
-        // hide cp on mouse exit
-        cp.root.onMouseExited = EventHandler {
-            if (!isCancelPlaying && !wasSelected) {
+        // hide cp on mouse exit (test mouse position to prevent hovering potential controls on top invoking this)
+        val er = exitRoot ?: cp.root
+        er.onEventDown(MOUSE_EXITED) {
+            if (!wasSelected && !isSuppressedHiding(er)) {
                 cp.onCancel()
                 it.consume()
             }
@@ -90,7 +96,9 @@ class Layouter: ComponentUi {
 
     override fun hide() = showControls(false)
 
-    fun close(onClosed: () -> Unit = {}) = showControls(false, onClosed)
+    override fun dispose() = disposer()
+
+    fun hideAnd(onHidden: () -> Unit) = showControls(false) { onHidden() }
 
     private fun showControls(value: Boolean, onClosed: () -> Unit = {}) {
         if (isCpShown==value) return
@@ -101,14 +109,10 @@ class Layouter: ComponentUi {
         if (value) {
             AppAnimator.openAndDo(cp.root, null)
         } else {
-            val wasCancelPlaying = isCancelPlaying
             AppAnimator.closeAndDo(cp.root) {
-                isCancelPlaying = false
-                if (wasCancelPlaying && !wasSelected)
-                    onCancel()
+                if (!wasSelected) onCancel()
                 onClosed()
             }
-            isCancelPlaying = true
         }
     }
 
@@ -120,6 +124,7 @@ class Layouter: ComponentUi {
     private fun showWidgetArea(mode: WidgetPicker.Mode) {
         val wp = WidgetPicker(mode)
         wp.onSelect = { factory ->
+            wasSelected = false
             AppAnimator.closeAndDo(wp.root) {
                 root.children -= wp.root
                 container.addChild(index, factory.create())
@@ -128,9 +133,11 @@ class Layouter: ComponentUi {
             }
         }
         wp.onCancel = {
+            wasSelected = false
             AppAnimator.closeAndDo(wp.root) {
                 root.children -= wp.root
-                showControls(true)
+                if (root.containsMouse())
+                    showControls(true)
             }
         }
         wp.buildContent()
@@ -140,4 +147,14 @@ class Layouter: ComponentUi {
         AppAnimator.openAndDo(wp.root, null)
     }
 
+    companion object {
+        private const val SUPPRESS_HIDING_KEY = "suppress"
+
+        fun suppressHidingFor(node: Node, suppress: Boolean) {
+            if (suppress) node.properties[SUPPRESS_HIDING_KEY]=null
+            else node.properties.remove(SUPPRESS_HIDING_KEY)
+        }
+
+        private fun isSuppressedHiding(node: Node) = node.properties.containsKey(SUPPRESS_HIDING_KEY)
+    }
 }

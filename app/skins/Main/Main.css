@@ -17,7 +17,7 @@
     /* default color for panels such as header or widget area or other areas. */
     -skin-pane-color: rgba(100,130,180,0.1);
     /* Darker version of pane color. By default used for :dragged pseudoclass */
-    -skin-pane-color-dragged: rgba(0,0,0,0.3);
+    -skin-pane-color-dragged: rgba(10,15,25,0.8);
     /* Default bgr color for tooltips and popups. */
     -skin-popup-def-bgr-color: rgba(15,25,45,0.95);
     -skin-value-font-color: rgb(75, 175, 105);
@@ -2413,21 +2413,12 @@ icon-info-icon {
 }
 
 /******************** PLACEHOLDER PANE *********************
- * Pane with a placeholder, mostly showed instead of content when there is none (e.g. click to 
- * add items).
+ * Pane with a placeholder, mostly showed instead of content when there is none (e.g. click to add items).
  * Normally it highlights on hover/mouse over to signal possible interaction.
  *
  * inherits: .stack-pane
  */
 .placeholder-pane {}
-.placeholder-pane:hover {
-    -fx-background-color: rgba(10,15,35,0.9);
-    -fx-border-insets: 2em;
-    -fx-border-color: rgba(255,255,255, 0.2);
-    -fx-border-style: segments(10, 15, 15, 15);
-    -fx-border-radius: 0;
-    -fx-border-width: 2;
-}
 
 /*
  * Icon denoting an action that will take place after drag is dropped
@@ -2441,9 +2432,7 @@ icon-info-icon {
  * Placeholder for manual loading of widget in .widget-ui
  * inherits: .placeholder-pane
  */
-.widget-ui-load-placeholder:hover {
-    -fx-background-color: transparent;
-}
+.widget-ui-load-placeholder {}
 
 /******************** DRAG PANE *********************
  * Drag highlighting pane, visible when drag enters node and hidden when it exists.
@@ -2452,7 +2441,14 @@ icon-info-icon {
  * inherits: .placeholder-pane
  */
 .drag-pane {
-    -fx-background-color: rgba(0,0,0,0.5); 
+    -fx-background-color: -skin-pane-color-dragged;
+}
+.drag-pane:hover {
+    -fx-border-insets: 1.5em;
+    -fx-border-color: rgba(255,255,255, 0.2);
+    -fx-border-style: segments(10, 15, 15, 15);
+    -fx-border-radius: 0;
+    -fx-border-width: 2;
 }
 
 /*

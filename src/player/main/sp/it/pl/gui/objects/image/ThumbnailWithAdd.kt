@@ -64,11 +64,9 @@ class ThumbnailWithAdd @JvmOverloads constructor(dragIcon: GlyphIcons = DETAILS,
     }
 
     private fun highlight(v: Boolean) {
-        if (v) {
-            DragPane.PANE.getM(dragData).showFor(root)
-        } else {
-            if (DragPane.PANE.isSet) DragPane.PANE.get().hide()
-        }
+        if (v) DragPane.PANE.getM(dragData).showFor(root)
+        else DragPane.PANE.ifSet { it.hide() }
+
         onHighlight(v)
     }
 

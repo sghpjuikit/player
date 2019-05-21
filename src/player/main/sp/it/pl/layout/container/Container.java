@@ -287,25 +287,21 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
         // free resources of all guis, we need to do this because we do not
         // close the sub containers, they cant even override this method to
         // implement their own implementation because it will not be invoked
-        getAllContainers(false).forEach(Container::closeGraphics);
+        getAllContainers(false).forEach(Container::disposeGraphics);
     }
 
-    protected void removeGraphicsFromSceneGraph() {
-        // to do: make sure the layout branch under this container does not
-        // cause a memory leak
+    private void removeGraphicsFromSceneGraph() {
         if (ui!=null) root.getChildren().remove(ui.getRoot());
     }
 
-    protected void closeGraphics() {
-        if (ui!=null) ui.close();
+	private void disposeGraphics() {
+        if (ui!=null) ui.dispose();
     }
 
     /**
      * Set the root of this container. The container is attached to the scene
      * graph through this root. The root is parent node of all the nodes of
      * this container (including its children).
-     *
-     * @param rootPane
      */
     public void setRoot(AnchorPane rootPane) {
         root = rootPane;

@@ -45,6 +45,7 @@ open class ImprovedScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar)
         val a = anim(350.millis) { node.opacity = 0.6+0.4*it*it }.applyNow()
         onDispose += a::stop
         onDispose += skinnable.parentProperty() syncNonNullWhile {
+            a.applyAt(if (it.isHover) 1.0 else 0.0)
             val s1 = it.onHoverOrDragStart { a.playOpen() }
             val s2 = it.onHoverOrDragEnd { a.playClose() }
             s1+s2

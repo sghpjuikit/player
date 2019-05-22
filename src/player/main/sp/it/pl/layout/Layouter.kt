@@ -30,7 +30,7 @@ import sp.it.util.ui.lay
  * Container graphics for container null child.
  *
  * Shows user component picker to populate container with content (at this index) - it allows creation of layouts. Uses
- * two nested [Picker]s, one for [Container] and the other for widgets.
+ * two nested [Picker]s, one for [Container] and the other for widgets/templates.
  */
 class Layouter: ComponentUi {
 
@@ -82,7 +82,7 @@ class Layouter: ComponentUi {
             }
         }
 
-        // hide cp on mouse exit (test mouse position to prevent hovering potential controls on top invoking this)
+        // hide cp on mouse exit
         val er = exitRoot ?: cp.root
         er.onEventDown(MOUSE_EXITED) {
             if (!wasSelected && !isSuppressedHiding(er)) {

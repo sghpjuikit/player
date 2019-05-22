@@ -74,7 +74,7 @@ import static sp.it.util.Util.capitalizeStrong;
 import static sp.it.util.Util.filenamizeString;
 import static sp.it.util.async.future.Fut.fut;
 import static sp.it.util.dev.DebugKt.logger;
-import static sp.it.util.file.Util.writeFile;
+import static sp.it.util.file.UtilKt.writeTextTry;
 import static sp.it.util.functional.Util.equalBy;
 import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.findFirstInt;
@@ -486,8 +486,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             super("Write file", Void.class, 1, list("Contents"), (Consumer<Map<String,List<? extends String>>>) null);
             actionImpartial = data -> {
                 var file = new File(loc.get(), nam.get()+"."+ext.get());
-                var contents = toS(data.get("Contents"),"\n");
-                writeFile(file, contents);
+                var text = toS(data.get("Contents"),"\n");
+                writeTextTry(file, text);
             };
         }
 

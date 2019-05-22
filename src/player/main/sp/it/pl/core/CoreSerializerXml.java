@@ -10,8 +10,8 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import javafx.beans.Observable;
 import sp.it.pl.audio.playlist.Playlist;
 import sp.it.pl.audio.playlist.PlaylistSong;
@@ -33,12 +33,12 @@ import sp.it.util.serialize.xstream.ObjectPropertyConverter;
 import sp.it.util.serialize.xstream.ObservableListConverter;
 import sp.it.util.serialize.xstream.StringPropertyConverter;
 import sp.it.util.serialize.xstream.VConverter;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static sp.it.util.dev.DebugKt.logger;
-import static sp.it.util.file.Util.readFileLines;
+import static sp.it.util.file.UtilKt.readTextTry;
 import static sp.it.util.functional.Try.Java.error;
 import static sp.it.util.functional.Try.Java.ok;
+import static sp.it.util.functional.TryKt.getOr;
 
 public final class CoreSerializerXml implements Core {
 
@@ -107,15 +107,15 @@ public final class CoreSerializerXml implements Core {
 
 		// pre-processing
 		String varDefinition = "#def ";
-		List<String> lines = readFileLines(file).collect(toList());
-		Map<String,String> variables = lines.stream()
+		var lines = getOr(readTextTry(file), "").split("\n");
+		Map<String,String> variables = Stream.of(lines)
 				.filter(l -> l.startsWith(varDefinition))
 				.map(l -> l.substring(varDefinition.length()))
 				.collect(toMap(
 						l -> l.substring(0, l.indexOf(" ")),
 						l -> l.substring(l.indexOf(" ") + 1)
 				));
-		String text = lines.stream()
+		String text = Stream.of(lines)
 				.filter(l -> !l.startsWith(varDefinition))
 				.collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
 				.toString();

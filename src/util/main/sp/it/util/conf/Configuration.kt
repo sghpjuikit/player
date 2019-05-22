@@ -77,8 +77,12 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
     fun <C> collect(config: Config<C>) {
         configs += config
 
-        // generate boolean toggle actions
-        @Suppress("UNCHECKED_CAST")
+        // TODO disabled due to:
+        // 1 implemented only for boolean, while it should be for any enumerable config
+        // 2 unsolved ui (settings) spam, this creates lots of configs and they should be inline
+        // 3 the generated actions must be unregistered if config is dropped
+        @Suppress("UNCHECKED_CAST", "ConstantConditionIf")
+        if (false)
         config.takeIf { it.type.isSubclassOf<Boolean>() && it.isEditable.isByUser }
                 ?.let { it as Config<Boolean> }
                 ?.let {
@@ -91,8 +95,6 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
                     configs += a
                 }
 
-        // generate enumerable loopNext actions
-        // TODO
 
         if (config is Action) {
             ActionRegistrar.getActions() += config

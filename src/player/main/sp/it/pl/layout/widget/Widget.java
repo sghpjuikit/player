@@ -23,8 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.layout.Component;
-import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.container.ComponentUi;
+import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.controller.Controller;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.LoadErrorController;
@@ -50,7 +50,7 @@ import static java.util.Objects.deepEquals;
 import static kotlin.io.FilesKt.deleteRecursively;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.util.file.Util.writeFile;
+import static sp.it.util.file.UtilKt.writeTextTry;
 import static sp.it.util.functional.Util.ISNTØ;
 import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.firstNotNull;
@@ -316,8 +316,8 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 	/** Creates a launcher for this widget with default (no predefined) settings. */
 	public void exportFxwlDefault(File dir) {
 		File f = new File(dir, name + ".fxwl");
-		boolean ok = writeFile(f, name);
-		if (!ok) LOGGER.error("Unable to export widget launcher for {} into {}", name, f);
+		writeTextTry(f, name)
+			.ifErrorUse(e -> LOGGER.error("Unable to export widget launcher for {} into {}", name, f, e));
 	}
 
 	/**

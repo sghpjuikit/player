@@ -21,6 +21,7 @@ import sp.it.util.ui.IconExtractor;
 import sp.it.util.ui.image.Image2PassLoader;
 import sp.it.util.ui.image.ImageSize;
 import static java.util.stream.Collectors.toList;
+import static kotlin.streams.jdk8.StreamsKt.asStream;
 import static sp.it.pl.audio.tagging.SongReadingKt.read;
 import static sp.it.pl.main.AppFileKt.getImageExtensionsRead;
 import static sp.it.pl.main.AppFileKt.isAudio;
@@ -130,7 +131,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	protected Stream<File> childrenFiles() {
-		return listChildren(value).map(CachingFile::new);
+		return asStream(listChildren(value)).map(CachingFile::new);
 	}
 
 	protected boolean filterChildFile(File f) {

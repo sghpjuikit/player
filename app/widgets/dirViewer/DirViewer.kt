@@ -95,6 +95,7 @@ import sp.it.util.validation.Constraint.FileActor
 import java.io.File
 import java.util.Stack
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.streams.asStream
 
 @Widget.Info(
         author = "Martin Polakovic",
@@ -382,7 +383,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
             coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value)
         }
 
-        override fun childrenFiles() = fileFlatter.value.flatten(filesMaterialized).map { CachingFile(it) as File }
+        override fun childrenFiles() = fileFlatter.value.flatten(filesMaterialized).map { CachingFile(it) as File }.asStream()
 
         override fun getCoverFile() = when (children.size) {
             1 -> children.first().value.parentDir?.let { getImageT(it, "cover") }

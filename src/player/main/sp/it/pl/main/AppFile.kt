@@ -1,6 +1,5 @@
 package sp.it.pl.main
 
-import javafx.embed.swing.SwingFXUtils
 import javafx.scene.image.Image
 import javafx.stage.FileChooser
 import mu.KotlinLogging
@@ -14,13 +13,13 @@ import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.type.MimeTypes
 import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Functors
+import sp.it.util.functional.Try
 import sp.it.util.system.Os
+import sp.it.util.ui.image.toBuffered
 import java.io.File
 import java.io.IOException
-import java.util.stream.Stream
 import javax.imageio.ImageIO
 import kotlin.streams.asSequence
-import kotlin.streams.asStream
 
 private val logger = KotlinLogging.logger { }
 
@@ -141,18 +140,22 @@ fun File.isImageWrite() = extension.toLowerCase() in imageExtensionsWrite
 /** [FileChooser.ExtensionFilter] for [imageExtensionsWrite]. */
 fun imageWriteExtensionFilter() = FileChooser.ExtensionFilter("Image files", imageExtensionsWrite.map { "*.$it" })
 
-// TODO: document failure, return Try
 /** Saves specified image to a specified file. */
-fun writeImage(img: Image, file: File) {
-    if (!file.isImageWrite()) {
+fun writeImage(img: Image, file: File): Try<Nothing?, Exception> {
+    return if (!file.isImageWrite()) {
         logger.error { "Could not save image to file=$file. Format=${file.extension} not supported." }
-        return
-    }
-
-    try {
-        ImageIO.write(SwingFXUtils.fromFXImage(img, null), file.extension, file)
+        Try.error(UnsupportedOperationException("Format=${file.extension} not supported"))
+    } else try {
+        val i = img.toBuffered()
+        if (i==null)
+            Try.error(UnsupportedOperationException("Format=${file.extension} not supported"))
+        else {
+            ImageIO.write(i, file.extension, file)
+            Try.ok()
+        }
     } catch (e: IOException) {
         logger.error(e) { "Could not save image to file=$file" }
+        Try.error(e)
     }
 }
 
@@ -207,18 +210,17 @@ class FileFilterValue(initialValue: String = FileFilters.filterPrimary.name, enu
     fun getValueAsFilter() = filter
 }
 
-enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>) {
-    NONE({ it.stream().distinct() }),
+enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Sequence<File>) {
+    NONE({ it.asSequence().distinct() }),
     DIRS({
         it.asSequence().distinct()
                 .flatMap { sequenceOf(it).filter { it.isFile }+it.walk().filter { it.isDirectory } }
-                .asStream()
     }),
-    TOP_LVL({ it.stream().distinct().flatMap { it.listChildren() } }),
+    TOP_LVL({ it.asSequence().distinct().flatMap { it.listChildren() } }),
     TOP_LVL_AND_DIRS({
-        it.stream().distinct()
+        it.asSequence().distinct()
                 .flatMap { it.listChildren() }
-                .flatMap { (sequenceOf(it).filter { it.isFile }+it.walk().filter { it.isDirectory }).asStream() }
+                .flatMap { (sequenceOf(it).filter { it.isFile }+it.walk().filter { it.isDirectory }) }
     }),
     TOP_LVL_AND_DIRS_AND_WITH_COVER({
 
@@ -258,9 +260,9 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Stream<File>
             }
         }
 
-        it.asSequence().distinct().flatMap { it.walkDirsAndWithCover() }.asStream()
+        it.asSequence().distinct().flatMap { it.walkDirsAndWithCover() }
     }),
-    ALL({ it.asSequence().distinct().flatMap { it.asFileTree() }.asStream() });
+    ALL({ it.asSequence().distinct().flatMap { it.asFileTree() } });
 }
 
 class FastFile(path: String, private val isDir: Boolean, private val isFil: Boolean): File(path) {

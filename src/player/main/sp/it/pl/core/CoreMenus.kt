@@ -197,9 +197,11 @@ object CoreMenus: Core {
                 if (selected.image!=null)
                     menu("Cover") {
                         item("Save image as ...") {
-                            saveFile("Save image as...", APP.DIR_APP, selected.iFile?.name ?: "new_image",
-                                    contextMenu.ownerWindow, imageWriteExtensionFilter())
-                                    .ifOk { writeImage(selected.image, it) }
+                            saveFile("Save image as...", APP.DIR_APP, selected.iFile?.name ?: "new_image", contextMenu.ownerWindow, imageWriteExtensionFilter()).ifOk {
+                                writeImage(selected.image, it).ifError { e ->
+                                    APP.messagePane.show("Saving image $it failed\n\nReason: ${e.message}")
+                                }
+                            }
                         }
                         item("Copy to clipboard") { copyToSysClipboard(DataFormat.IMAGE, selected.image) }
                     }

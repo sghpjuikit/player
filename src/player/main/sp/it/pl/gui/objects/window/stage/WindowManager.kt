@@ -54,7 +54,7 @@ import sp.it.util.conf.valuesIn
 import sp.it.util.dev.fail
 import sp.it.util.file.Util.isValidatedDirectory
 import sp.it.util.file.div
-import sp.it.util.file.seqChildren
+import sp.it.util.file.listChildren
 import sp.it.util.functional.asIf
 import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
@@ -342,7 +342,7 @@ class WindowManager {
             return
         }
 
-        val filesOld = dir.seqChildren().toSet()
+        val filesOld = dir.listChildren().toSet()
         val ws = windows.filter { it!==dockWindow }
         logger.info { "Serializing ${ws.size} application windows" }
 
@@ -367,7 +367,7 @@ class WindowManager {
         if (loadNormally) {
             val dir = File(APP.DIR_LAYOUTS, "current")
             if (isValidatedDirectory(dir)) {
-                val fs = dir.seqChildren().filter { it.path.endsWith(".ws") }.toList()
+                val fs = dir.listChildren().filter { it.path.endsWith(".ws") }.toList()
                 ws += fs.mapNotNull { APP.serializerXml.fromXML(WindowState::class.java, it).orNull()?.toWindow() }
                 logger.info { "Restored ${fs.size}/${ws.size} windows." }
             } else {

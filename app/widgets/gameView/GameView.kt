@@ -56,6 +56,7 @@ import sp.it.util.access.toggleNext
 import sp.it.util.access.togglePrevious
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.animPar
+import sp.it.util.async.FX
 import sp.it.util.async.NEW
 import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.runNew
@@ -69,16 +70,16 @@ import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.only
-import sp.it.util.dev.fail
+import sp.it.util.dev.failIf
 import sp.it.util.file.FileType
 import sp.it.util.file.Properties
 import sp.it.util.file.Util
 import sp.it.util.file.div
 import sp.it.util.file.listChildren
 import sp.it.util.file.parentDirOrRoot
-import sp.it.util.file.seqChildren
+import sp.it.util.file.readTextTry
+import sp.it.util.functional.getOr
 import sp.it.util.functional.net
-import sp.it.util.functional.runTry
 import sp.it.util.math.max
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
@@ -117,7 +118,6 @@ import java.io.File
 import java.lang.Math.rint
 import java.net.URI
 import java.util.HashMap
-import kotlin.streams.asSequence
 
 @Widget.Info(
         name = "GameView",
@@ -196,7 +196,7 @@ class GameView(widget: Widget): SimpleController(widget) {
         runOn(NEW) {
             files.asSequence()
                     .distinct()
-                    .flatMap { it.listChildren().asSequence() }
+                    .flatMap { it.listChildren() }
                     .map { CachingFile(it) }
                     .filter { it.isDirectory && !it.isHidden }
                     .sortedBy { it.name }
@@ -342,14 +342,16 @@ class GameView(widget: Widget): SimpleController(widget) {
                                             object: ConfigurableBase<Any?>() {
                                                 @IsConfig(name = "File") var file by c(game.location/"exe").only(FILE)
                                             }.configure("Set up launcher") {
-                                                runTry {
-                                                    if (!it.file.exists()) fail { "Target file does not exist." }
-                                                    val targetDir = it.file.parentDirOrRoot.absolutePath.substringAfter(game.location.absolutePath+File.separator)
-                                                    val targetName = it.file.name
-                                                    val link = game.location/"play.bat"
+                                                val targetDir = it.file.parentDirOrRoot.absolutePath.substringAfter(game.location.absolutePath+File.separator)
+                                                val targetName = it.file.name
+                                                val link = game.location/"play.bat"
+                                                runNew {
+                                                    failIf(!it.file.exists()) { "Target file does not exist." }
                                                     link.writeText("""@echo off${'\n'}start "" /d "$targetDir" "$targetName"""")
-                                                }.ifError {
-                                                    APP.messagePane.show("Error:\n${it.message}")
+                                                }.onDone(FX) {
+                                                    it.toTry().ifError {
+                                                        APP.messagePane.show("can ot set up launcher $link\\nReason:\n$it")
+                                                    }
                                                 }
                                             }
                                         } else {
@@ -398,7 +400,7 @@ class GameView(widget: Widget): SimpleController(widget) {
                 object {
                     val title = g.name
                     val location = FastFile(g.location.path, true, false)
-                    val info = g.infoFile.readFileContent()
+                    val info = g.infoFile.readTextTry().getOr("")
                     val coverImage = g.cover.getImage(cover.calculateImageLoadSize())
                     val triggerLoading = g.settings
                 }
@@ -422,9 +424,7 @@ class GameView(widget: Widget): SimpleController(widget) {
         private const val CELL_TEXT_HEIGHT = 20.0
         private const val ICON_SIZE = 40.0
 
-        private fun File.readFileContent() = Util.readFileLines(this).asSequence().joinToString("\n")
-
-        private fun File.findImage(imageName: String) = seqChildren().find {
+        private fun File.findImage(imageName: String) = listChildren().find {
             val filename = it.name
             val i = filename.lastIndexOf('.')
             if (i==-1) {

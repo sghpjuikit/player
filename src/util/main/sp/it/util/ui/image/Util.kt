@@ -52,13 +52,8 @@ private fun ImageBf.toScaledDown(W: Int, H: Int): ImageBf {
 private fun imgImplHasThumbnail(reader: ImageReader, index: Int, f: File): Boolean {
     return try {
         reader.readerSupportsThumbnails() && reader.hasThumbnails(index) // throws exception -> no thumb
-    } catch (e: IOException) {
-        logger.warn(e) { "Can't find image thumbnails $f" }
-        false
     } catch (e: Exception) {
-        // TODO: remove, should not longer happen
-        // The TwelveMonkeys library seems to have a few bugs, throwing all kinds of exceptions,
-        // including NullPointerException
+        // Catching IOException should be enough, but TwelveMonkeys library can screw up rarely
         logger.warn(e) { "Can't find image thumbnails $f" }
         false
     }

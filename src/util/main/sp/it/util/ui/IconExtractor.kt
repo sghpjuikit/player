@@ -7,6 +7,7 @@ import sp.it.util.file.div
 import sp.it.util.file.nameWithoutExtensionOrRoot
 import sp.it.util.file.type.MimeExt.Companion.exe
 import sp.it.util.file.type.MimeExt.Companion.lnk
+import sp.it.util.file.writeTextTry
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runIf
 import sp.it.util.system.Os
@@ -14,7 +15,6 @@ import sp.it.util.ui.image.toFX
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
-import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.Icon
 import javax.swing.filechooser.FileSystemView
@@ -46,13 +46,8 @@ object IconExtractor {
 
         return mapOfFileExtToSmallIcon.computeIfAbsent(key) {
             val iconFile = file.takeIf { it.exists() } ?: runIf(!isExe) {
-                try {
-                    val f = dirTmp/"file_type_icons.$it"
-                    if (!f.exists()) f.writeText("")
-                    f
-                } catch (ignored: IOException) {
-                    null
-                }
+                val f = dirTmp/"file_type_icons.$it"
+                f.takeIf { it.exists() || it.writeTextTry("").isOk }
             }
             iconFile?.getSwingIconFromFileSystem()?.toImage()
         }

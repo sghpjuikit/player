@@ -17,7 +17,7 @@ import sp.it.util.conf.cList
 import sp.it.util.conf.cr
 import sp.it.util.conf.only
 import sp.it.util.dev.failIfFxThread
-import sp.it.util.file.Util.writeFile
+import sp.it.util.file.writeTextTry
 import sp.it.util.system.browse
 import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
@@ -65,7 +65,7 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
     }
 
     private fun updateCache() {
-        runFX { searchDirs.materialize() }
+        runFX { searchDirs.materialize()}
             .then(NEW) { dirs ->
                 val id = cacheUpdate.getAndIncrement()
                 dirs.asSequence()
@@ -82,8 +82,8 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
     private fun writeCache(files: List<File>) {
         failIfFxThread()
 
-        val lines = files.asSequence().map { it.absolutePath }.joinToString("\n")
-        writeFile(cacheFile, lines)
+        val text = files.asSequence().map { it.absolutePath }.joinToString("\n")
+        cacheFile.writeTextTry(text)
     }
 
     private fun File.toOpenDirEntry() = ConfigSearch.Entry.of(

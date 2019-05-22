@@ -2,13 +2,13 @@ package sp.it.util.file
 
 import mu.KotlinLogging
 import sp.it.util.functional.Try
+import sp.it.util.functional.runTry
 import java.io.File
 import java.io.FileFilter
 import java.io.FilenameFilter
 import java.net.MalformedURLException
 import java.net.URI
-import java.util.stream.Stream
-import kotlin.streams.asStream
+import java.nio.charset.Charset
 
 private val logger = KotlinLogging.logger { }
 
@@ -66,19 +66,15 @@ infix fun File.isAnyParentOf(child: File) = generateSequence(child) { it.parentD
  * @return child files of the directory or empty if parameter null, not a directory or I/O error occurs
  */
 @Suppress("DEPRECATION")
-fun File.listChildren(): Stream<File> = listFiles()?.asSequence()?.asStream() ?: Stream.empty()
+fun File.listChildren(): Sequence<File> = listFiles()?.asSequence().orEmpty()
 
 /** @see File.listChildren */
 @Suppress("DEPRECATION")
-fun File.listChildren(filter: FileFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
+fun File.listChildren(filter: FileFilter): Sequence<File> = listFiles(filter)?.asSequence().orEmpty()
 
 /** @see File.listChildren */
 @Suppress("DEPRECATION")
-fun File.listChildren(filter: FilenameFilter): Stream<File> = listFiles(filter)?.asSequence()?.asStream() ?: Stream.empty()
-
-/** @see File.listChildren */
-@Suppress("DEPRECATION")
-fun File.seqChildren(): Sequence<File> = listFiles()?.asSequence() ?: emptySequence()
+fun File.listChildren(filter: FilenameFilter): Sequence<File> = listFiles(filter)?.asSequence().orEmpty()
 
 /**
  * Safe version of [File.getParentFile].
@@ -114,3 +110,23 @@ fun File.toURLOrNull() =
         } catch (e: MalformedURLException) {
             null
         }
+
+/**
+ * Error-safe [File.writeText]. Error can be:
+ * * [java.io.FileNotFoundException] when file is a directory or can not be created or opened
+ * * [SecurityException] when security manager exists and file write is not permitted
+ * * [java.io.IOException] when error occurs while writing to the file output stream
+ */
+@JvmOverloads
+fun File.writeTextTry(text: String, charset: Charset = Charsets.UTF_8) = runTry { writeText(text, charset) }
+
+
+/**
+ * Error-safe [File.readText]. Error can be:
+ * * [java.io.FileNotFoundException] when file is a directory or can not be read or opened
+ * * [SecurityException] when security manager exists and file read is not permitted
+ * * [java.io.IOException] when error occurs while reading from the file input stream
+ * * [OutOfMemoryError] when file is too big
+ */
+@JvmOverloads
+fun File.readTextTry(charset: Charset = Charsets.UTF_8) = runTry { readText(charset) }

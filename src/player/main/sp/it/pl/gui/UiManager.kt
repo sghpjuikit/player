@@ -37,11 +37,11 @@ import sp.it.util.file.FileMonitor
 import sp.it.util.file.Util
 import sp.it.util.file.div
 import sp.it.util.file.isAnyParentOf
-import sp.it.util.file.seqChildren
+import sp.it.util.file.listChildren
+import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Util.set
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
-import sp.it.util.functional.runTry
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onItemAdded
@@ -125,15 +125,12 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val ratingSkin by cvn<KClass<out Skin<Rating>>>(null).valuesIn(APP.instances).uiConverter {
         it?.simpleName ?: "<none> (App skin decides)"
     } sync {
-        runTry {
-            val f = APP.DIR_TEMP/"user-rating-skin.css"
-            additionalStylesheets -= f
-            it?.let {
-                f.writeText(""".rating { -fx-skin: "${it.jvmName}"; }""", Charsets.UTF_8)
-                additionalStylesheets += f
-            }
-        }.ifError {
-            logger.error(it) { "Failed to apply rating skin=$it" }
+        val f = APP.DIR_TEMP/"user-rating-skin.css"
+        additionalStylesheets -= f
+        it?.let {
+            f.writeTextTry(""".rating { -fx-skin: "${it.jvmName}"; }""", Charsets.UTF_8)
+                    .ifError { logger.error(it) { "Failed to apply rating skin=$it" } }
+            additionalStylesheets += f
         }
     }
 
@@ -273,7 +270,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
             return set()
         }
 
-        return skinDir.seqChildren()
+        return skinDir.listChildren()
                 .filter { it.isDirectory }
                 .mapNotNull {
                     val name = it.name

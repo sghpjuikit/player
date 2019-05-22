@@ -168,7 +168,6 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		});
 	}
 
-	// TODO: remove
 	private <O> void attach(ObservableValue<O> value, Consumer<? super O> action) {
 		SubscriptionKt.on(UtilKt.attach(value, consumer(action)), onDispose);
 	}

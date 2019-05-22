@@ -1,20 +1,15 @@
 package sp.it.util.file;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -141,68 +136,6 @@ public interface Util {
 		if (n.isEmpty()) return f.toString();
 		int i = n.lastIndexOf('.');
 		return i==-1 ? n : n.substring(0, i);
-	}
-
-	// TODO: make robust and public
-	private static void createFileIfNotExists(File file) {
-		try {
-			file.getParentFile().mkdirs();
-			file.createNewFile();
-		} catch (IOException e) {
-			logger(Util.class).error("Creating file failed: {}", file, e);
-		}
-	}
-
-	/**
-	 * Writes a textual file with specified content, name and location.
-	 *
-	 * @param file file to create. If exists, it will be overwritten.
-	 * @param content Text that will be written to the file.
-	 * @return true if no IOException occurs else false
-	 * @throws RuntimeException when param is directory
-	 */
-	static boolean writeFile(File file, String content) {
-		if (file.isDirectory()) throw new RuntimeException("File must not be directory.");
-
-		createFileIfNotExists(file);
-
-		try (
-				Writer writerF = new FileWriter(file);
-				Writer writer = new BufferedWriter(writerF)
-		) {
-			writer.write(content);
-			return true;
-		} catch (IOException e) {
-			logger(Util.class).error("Could not save file: {}", file, e);
-			return false;
-		}
-	}
-
-	/**
-	 * Reads file as a text file and returns all its content as list of all lines,
-	 * with newlines removed. Joining the lines with '\n' will build the original
-	 * content.
-	 *
-	 * @return List of lines or empty list (if empty or on error). Never null.
-	 */
-	static List<String> readFileLines(String filePath) {
-		try {
-			return Files.readAllLines(Paths.get(filePath));
-		} catch (IOException e) {
-			boolean noSuchFile = e instanceof NoSuchFileException || e.getCause() instanceof NoSuchFileException;
-			if (!noSuchFile) logger(Util.class).error("Problem reading file {}. File was not read.", filePath, e);
-			return new ArrayList<>();
-		}
-	}
-
-	static Stream<String> readFileLines(File f) {
-		try {
-			return Files.lines(f.toPath());
-		} catch (IOException e) {
-			boolean noSuchFile = e instanceof NoSuchFileException || e.getCause() instanceof NoSuchFileException;
-			if (!noSuchFile) logger(Util.class).error("Problem reading file {}. File was not read.", f, e);
-			return Stream.empty();
-		}
 	}
 
 	/**

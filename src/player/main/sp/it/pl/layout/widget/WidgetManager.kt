@@ -50,7 +50,6 @@ import sp.it.util.file.isAnyChildOf
 import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.isParentOf
 import sp.it.util.file.listChildren
-import sp.it.util.file.seqChildren
 import sp.it.util.file.toURLOrNull
 import sp.it.util.functional.Try
 import sp.it.util.functional.asArray
@@ -202,7 +201,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
                 ?: widgetDir.childOf("$widgetName.kt").takeIf { it.exists() }
                 ?: widgetDir.childOf("$widgetName.java").takeIf { it.exists() }
 
-        fun findSrcFiles() = widgetDir.seqChildren().filter { it.hasExtension("java", "kt") }
+        fun findSrcFiles() = widgetDir.listChildren().filter { it.hasExtension("java", "kt") }
 
         fun findClassFile() = compileDir/widgetName.decapitalize()/"$widgetName.class"
 
@@ -212,9 +211,9 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
         private fun computeClassPathElements() = getAppJarFile()+(findAppLibFiles()+compileDir+findLibFiles()).map { it.relativeToApp() }
 
-        private fun findLibFiles() = widgetDir.seqChildren().filterSourceJars()
+        private fun findLibFiles() = widgetDir.listChildren().filterSourceJars()
 
-        private fun findAppLibFiles() = APP.DIR_APP.childOf("lib").seqChildren().filterSourceJars()
+        private fun findAppLibFiles() = APP.DIR_APP.childOf("lib").listChildren().filterSourceJars()
 
         private fun getAppJarFile(): Sequence<String> {
             val mainJarFile = APP.DIR_APP/"PlayerFX.jar"
@@ -598,7 +597,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
                 return
             }
 
-            layoutsAvailable setTo dir.seqChildren().filter { it hasExtension "l" }.map { it.nameWithoutExtension }
+            layoutsAvailable setTo dir.listChildren().filter { it hasExtension "l" }.map { it.nameWithoutExtension }
         }
     }
 

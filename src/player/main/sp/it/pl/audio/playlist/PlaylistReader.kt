@@ -34,7 +34,7 @@ fun readPlaylist(file: File): List<Song> {
 
     file.useLines(encoding) { lines ->
         return lines
-            .filter { !it.startsWith("#") && !it.isEmpty() }
+            .filter { !it.startsWith("#") && it.isNotEmpty() }
             .flatMap {
                 null
                     ?: it.toURIOrNull()?.net { sequenceOf(SimpleSong(it)) }

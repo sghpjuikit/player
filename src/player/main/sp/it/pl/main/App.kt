@@ -108,6 +108,7 @@ import kotlin.jvm.JvmField as F
 lateinit var APP: App
 
 fun main(args: Array<String>) {
+
     // Relocate temp & home under working directory
     // It is our principle to leave no trace of ever running on the system
     // User can also better see what the application is doing
@@ -135,6 +136,7 @@ class App: Application(), Configurable<Any> {
     var isInitialized: Try<Unit, Throwable> = Try.error(Exception("Initialization has not run yet"))
         private set
 
+    // independent of app configuration
     /** Name of this application. */
     @F val name = "PlayerFX"
     /** Application code encoding. Useful for compilation during runtime. */
@@ -164,12 +166,31 @@ class App: Application(), Configurable<Any> {
     /** File for application configuration. */
     @F val FILE_SETTINGS = DIR_USERDATA.childOf("application.properties")
 
+    /** Various actions for the application */
+    val actions = AppActions()
+    /** Global event bus. Usage: simply push an event or observe. Use of event constants and === is advised. */
+    val actionStream = Handler1<Any>()
+    /** Allows sending and receiving [java.lang.String] messages to and from other instances of this application. */
+    val appCommunicator = AppInstanceComm()
+    /** Observable [System.out]. */
+    val systemout = SystemOutListener()
+    /** Called just after this application is started (successfully) and fully initialized. Runs at most once. */
+    val onStarted = Handler0()
+    /** Called just before this application is stopped when it is fully still running. Runs at most once. */
+    val onStopping = Handler0()
+    /** Application argument handler. */
+    val parameterProcessor = AppArgProcessor().initForApp()
+
+    init {
+        parameterProcessor.process(fetchArguments())
+    }
+
     // cores (always active, mostly singletons)
+    @F val configuration = MainConfiguration.apply { rawAdd(FILE_SETTINGS) }
     @F val logging = CoreLogging(DIR_RESOURCES.childOf("log_configuration.xml"), DIR_LOG)
     @F val env = CoreEnv.apply { init() }
     @F val imageIo = CoreImageIO(DIR_TEMP.childOf("imageio"))
     @F val converter = CoreConverter().apply { init() }
-    @F val configuration = MainConfiguration.apply { rawAdd(FILE_SETTINGS) }
     @F val serializerXml = CoreSerializerXml()
     @F val serializer = CoreSerializer
     @F val instances = CoreInstances
@@ -209,30 +230,15 @@ class App: Application(), Configurable<Any> {
     @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
     val actionSettingsSave by cr { configuration.save(name, FILE_SETTINGS) }
 
-    // app stuff
-    /** Application argument handler. */
-    @F val parameterProcessor = AppParameterProcessor()
-    /** Various actions for the application */
-    @F val actions = AppActions()
-    /** Global event bus. Usage: simply push an event or observe. Use of event constants and === is advised. */
-    @F val actionStream = Handler1<Any>()
-    /** Allows sending and receiving [java.lang.String] messages to and from other instances of this application. */
-    @F val appCommunicator = AppInstanceComm()
-    /** Observable [System.out]. */
-    @F val systemout = SystemOutListener()
-    /** Called just after this application is started (successfully) and fully initialized. Runs at most once. */
-    val onStarted = Handler0()
-    /** Called just before this application is stopped when it is fully still running. Runs at most once. */
-    val onStopping = Handler0()
-
     // ui
     @F val ui = UiManager(DIR_SKINS)
-    @F val actionPane = ActionPane("View.Action Chooser", className, instanceName, instanceInfo).initApp()
-    @F val shortcutPane = ShortcutPane("View.Shortcut Viewer").initApp()
-    @F val messagePane = MessagePane().initApp()
-    @F val infoPane = InfoPane("View.System").initApp()
-    @F val guide = Guide(actionStream)
-    @F val search = Search()
+    // TODO: panes - move to ui, make lazy/one-shot, retain configuration
+    val actionPane = ActionPane("View.Action Chooser", className, instanceName, instanceInfo).initApp()
+    val shortcutPane = ShortcutPane("View.Shortcut Viewer").initApp()
+    val messagePane = MessagePane().initApp()
+    val infoPane = InfoPane("View.System").initApp()
+    val guide = Guide(actionStream)
+    val search = Search()
 
     /** Manages persistence and in-memory storage. */
     @F val db = SongDb()
@@ -249,6 +255,7 @@ class App: Application(), Configurable<Any> {
         logging.init()
 
         logger.info { "JVM Args: ${fetchVMArguments()}" }
+        logger.info { "App Args: ${fetchArguments()}" }
 
         // Forbid multiple application instances, instead notify the 1st instance of 2nd (this one)
         // trying to run and this instance's run parameters and close prematurely
@@ -332,7 +339,6 @@ class App: Application(), Configurable<Any> {
             )
         }.ifOk {
             if (normalLoad) Player.loadLastState() // initialize non critical parts
-            parameterProcessor.process(fetchArguments()) // process app parameters passed when app started
             runLater { onStarted() }
         }
     }
@@ -416,28 +422,18 @@ class App: Application(), Configurable<Any> {
             .map { Image(it) }
             .toList()
 
-    private fun AppParameterProcessor.initForApp() {
-        addFileProcessor(
-                { it.isAudio() },
+    private fun AppArgProcessor.initForApp() = apply {
+        this += FileArgProcessor({ it.isAudio() }, false)
                 { fs -> widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addFiles(fs) } }
-        )
-        addFileProcessor(
-                { it.isValidSkinFile() },
+        this += FileArgProcessor({ it.isValidSkinFile() }, false)
                 { ui.setSkin(it[0]) }
-        )
-        addFileProcessor(
-                { it.isImage() },
+        this += FileArgProcessor({ it.isImage() }, false)
                 // { fs -> widgetManager.use(ImageDisplayFeature::class.java, NO_LAYOUT) { it.showImages(fs) } }
                 { fs -> fs.firstOrNull()?.let { actions.openImageFullscreen(it) } } // More convenient for user, add option to call one or the other
-        )
-        addFileProcessor(
-                { it hasExtension "fxwl" },
+        this += FileArgProcessor({ it hasExtension "fxwl" }, false)
                 { it.forEach { windowManager.launchComponent(it) } }
-        )
-        addStringProcessor(
-                { s -> widgetManager.factories.getFactories().any { it.nameGui()==s || it.name()==s } },
+        this += StringArgProcessor({ s -> widgetManager.factories.getFactories().any { it.nameGui()==s || it.name()==s } }, false)
                 { it.forEach { windowManager.launchComponent(it) } }
-        )
     }
 
     private fun PluginManager.initForApp() {

@@ -564,7 +564,7 @@ public class SwitchContainerUi implements ComponentUi {
         z3.play();
         byx = 0;
         tox = 0;
-        APP.actionStream.invoke("Zoom mode");
+        APP.getActionStream().invoke("Zoom mode");
     }
     private void zoomNoAcc(double d) {
         if (d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");

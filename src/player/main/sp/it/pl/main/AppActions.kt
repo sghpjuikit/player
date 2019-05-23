@@ -283,7 +283,7 @@ class AppActions {
         }
     }
 
-    @IsAction(name = "Run app command", desc = "Runs app command. Equivalent of launching this application with the command as a parameter.")
+    @IsAction(name = "Run as app argument", desc = "Equivalent of launching this application with the command as a parameter.")
     fun runAppCommand() {
         configureString("Run app command", "Command") {
             APP.parameterProcessor.process(listOf(it))

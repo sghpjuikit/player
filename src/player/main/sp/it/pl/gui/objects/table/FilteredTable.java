@@ -408,7 +408,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 		@Override
 		public void doSearch(String query) {
-			APP.actionStream.invoke("Table search");
+			APP.getActionStream().invoke("Table search");
 			Function1<? super T,Boolean> matcher = field.searchMatch(itemS -> isMatchNth(itemS, query));
 			for (int i = 0; i<getItems().size(); i++) {
 				T item = getItems().get(i);

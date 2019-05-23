@@ -170,7 +170,7 @@ public class Window extends WindowBase {
 			root, GAVEL,
 			"Display possible actions\n\nMoving the drag elsewhere may offer other options",
 			e -> !contains(e.getDragboard(), Df.WIDGET_OUTPUT),
-			consumer(e -> APP.actionPane.show(getAnyFut(e.getDragboard())))
+			consumer(e -> APP.getActionPane().show(getAnyFut(e.getDragboard())))
 		);
 
 		// maintain custom pseudoclasses for .window styleclass

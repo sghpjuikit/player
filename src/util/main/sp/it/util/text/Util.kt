@@ -2,6 +2,8 @@ package sp.it.util.text
 
 import javafx.scene.input.KeyCode
 import sp.it.util.action.Action
+import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 
 /** @return plural of this word if count is more than 1 or this word otherwise */
 fun String.plural(count: Int = 2) = org.atteo.evo.inflector.English.plural(this, count)!!
@@ -25,9 +27,12 @@ fun keys(keys: String) = keys.splitToSequence("+").map(::key).joinToString(" + "
 fun KeyCode.getNamePretty() = key(getName())
 
 /** @return pretty text representing the keys, intended for UI */
-fun Action.getKeysPretty() = keys.let { if (it.isBlank()) it else keys(keys) }!!
+fun Action.getKeysPretty() = keys!!.let { if (it.isBlank()) it else keys(keys) }
 
-private fun key(key: String) = prettyKeys.getOrDefault(key.trim().toUpperCase(), key)
+private fun key(key: String): String = null
+        ?: prettyKeys[key.trim().toUpperCase()]
+        ?: runTry { KeyCode.valueOf(key.trim().toUpperCase()).char }.orNull()
+        ?: key
 
 private val prettyKeys = mapOf(
         "ESCAPE" to "\u238B",

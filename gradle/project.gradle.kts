@@ -66,7 +66,7 @@ allprojects {
         )
         kotlinOptions.javaParameters = true
         kotlinOptions.jdkHome = dirJdk.path
-        kotlinOptions.jvmTarget = "12"
+        kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
     repositories {
@@ -86,7 +86,7 @@ allprojects {
         }
 
         "JavaFX" group {
-            val version = "12"
+            val version = "11.0.2"
             val os = org.gradle.internal.os.OperatingSystem.current()
             val classifier = when {
                 os.isLinux -> "linux"

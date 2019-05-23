@@ -27,12 +27,12 @@ rootProject.apply {
     include(":widgets")
     project(":widgets").apply {
         name = "widgets"
-        projectDir = file("app")
+        projectDir = file("app/widgets")
 
-        file("app/widgets").listFiles().forEach {
+        projectDir.listFiles().forEach {
             include(":widgets:${it.name}")
             project(":widgets:${it.name}").apply {
-                name = "player-widgets-${it.name}"
+                name = "widget-${it.name}"
                 projectDir = it
                 buildFileName = "../../../gradle/widgets.gradle.kts"
             }

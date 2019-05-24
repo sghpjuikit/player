@@ -17,6 +17,7 @@ import sp.it.util.async.runFX
 import sp.it.util.async.runNew
 import sp.it.util.async.runOn
 import sp.it.util.collections.mapset.MapSet
+import sp.it.util.collections.setTo
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.file.div
 import sp.it.util.functional.ifNotNull
@@ -25,6 +26,7 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.units.uuid
 import java.net.URI
+import java.util.Collections.synchronizedMap
 import java.util.Comparator
 import java.util.concurrent.ConcurrentHashMap
 
@@ -37,7 +39,7 @@ class SongDb {
     /** All library songs. Use output for reading/observing. Using input does not change db and has little use. */
     val songs = InOutput<List<Metadata>>(uuid("396d2407-7040-401e-8f85-56bc71288818"), "Song library").appWide()
     /** All library songs by [Song.id]. This is in memory db and should be used as read-only. */
-    @ThreadSafe val songsById = MapSet(ConcurrentHashMap<String, Metadata>(2000, 1f, 3), { it.id })
+    @ThreadSafe val songsById = MapSet(synchronizedMap(HashMap<String, Metadata>(2000)), { it.id })
     /** Map of unique values per field gathered from [songsById] */
     @ThreadSafe val itemUniqueValuesByField = ConcurrentHashMap<Metadata.Field<*>, Set<String>>()
 
@@ -55,7 +57,6 @@ class SongDb {
         moods = runTry { (APP.DIR_RESOURCES/"moods.txt").useLines { it.toSet() } }
                 .ifError { logger.error(it) { "Unable to read moods from file" } }
                 .orNull() ?: setOf()
-
         runNew { updateInMemoryDbFromPersisted() }.withAppProgress("Loading song database")
     }
 
@@ -107,10 +108,11 @@ class SongDb {
     }
 
     private fun setInMemoryDB(l: List<Metadata>) {
-        songsById.clear()
-        songsById += l
+        songsById setTo l
         updateSongValues()
-        runFX { songs.i.value = l }
+        runFX {
+            songs.i.value = l
+        }
     }
 
     private fun updateSongValues() {

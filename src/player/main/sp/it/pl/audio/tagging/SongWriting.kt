@@ -3,13 +3,14 @@ package sp.it.pl.audio.tagging
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.PlayerConfiguration
 import sp.it.pl.audio.Song
+import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.main.APP
 import sp.it.pl.service.notif.Notifier
 import sp.it.util.async.runFX
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfFxThread
 
-// TODO: use Fut
+// TODO: use Fut & Try
 
 @ThreadSafe
 fun Song.write(setter: (MetadataWriter) -> Unit) = listOf(this).write(setter)
@@ -65,5 +66,5 @@ fun Song.rate(rating: Double?) {
     if (PlayerConfiguration.readOnly) return
 
     write { it.setRatingPercent(rating ?: -1.0) }
-    APP.services.use<Notifier> { it.showTextNotification("Song rating changed to: $rating", "Update") }
+    APP.services.use<Notifier> { it.showNotification(Rating(initialRating = rating), "Song rating changed ") }
 }

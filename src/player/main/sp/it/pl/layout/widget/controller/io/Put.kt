@@ -21,7 +21,7 @@ open class Put<T>: XPut<T> {
     var value: T
         get() = `val`
         set(v) {
-            if (value!=v) {
+            if (value!==v) {
                 `val` = v
                 monitors.forEach { it(v) }
             }

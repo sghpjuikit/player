@@ -132,7 +132,6 @@ import static sp.it.pl.main.AppFileKt.isImageJaudiotagger;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.startsWithNoCase;
 import static sp.it.util.async.AsyncKt.FX;
-import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.AsyncKt.runNew;
 import static sp.it.util.file.Util.getSuffix;
 import static sp.it.util.functional.Util.noDups;
@@ -512,11 +511,9 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
                 // if ((boolean)custom5F.getUserData())      w.setCustom5(custom5F.getText());
             }),
             consumer(items -> {
-                runFX(() -> {
-                    writing = false;
-                    populate(items);
-                    APP.services.use(Notifier.class, s -> s.showTextNotification("Tagging complete", Widgets.SONG_TAGGER));
-                });
+                writing = false;
+                populate(items);
+                APP.services.use(Notifier.class, s -> s.showTextNotification("Tagging complete", Widgets.SONG_TAGGER));
             })
         );
 

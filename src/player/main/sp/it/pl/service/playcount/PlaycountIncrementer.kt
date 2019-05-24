@@ -5,49 +5,45 @@ import sp.it.pl.audio.Player
 import sp.it.pl.audio.playback.PlayTimeHandler
 import sp.it.pl.audio.playback.PlayTimeHandler.Companion.at
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.read
 import sp.it.pl.audio.tagging.write
-import sp.it.pl.audio.tagging.writeNoRefresh
 import sp.it.pl.main.APP
-import sp.it.pl.main.Widgets
 import sp.it.pl.service.ServiceBase
 import sp.it.pl.service.notif.Notifier
-import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.NEVER
+import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.MANUAL
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_END
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_PERCENT
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_START
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_AND_PERCENT
 import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_OR_PERCENT
-import sp.it.pl.service.tray.TrayService
 import sp.it.util.action.IsAction
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
+import sp.it.util.conf.readOnlyUnless
 import sp.it.util.functional.Util.max
 import sp.it.util.functional.Util.min
-import sp.it.util.math.Portion
 import sp.it.util.reactive.Disposer
-import java.awt.TrayIcon.MessageType.INFO
+import sp.it.util.reactive.map
+import sp.it.util.units.times
 import java.util.ArrayList
 
 /** Playcount incrementing service. */
 class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
 
     @IsConfig(name = "Incrementing strategy", info = "Playcount strategy for incrementing playback.")
-    val whenStrategy by cv(ON_PERCENT) attach { apply() }
+    val whenStrategy by cv(ON_TIME) attach { applyStrategy() }
     @IsConfig(name = "Increment at percent", info = "Percent at which playcount is incremented.")
-    val whenPercent by cv(0.4).between(0.0, 1.0) attach { apply() }
+    val whenPercent by cv(0.4).between(0.0, 1.0).readOnlyUnless(whenStrategy.map { it.needsPercent() }) attach { applyStrategy() }
     @IsConfig(name = "Increment at time", info = "Time at which playcount is incremented.")
-    val whenTime by cv(seconds(5.0)) attach { apply() }
-    @IsConfig(name = "Show notification", info = "Shows notification when playcount is incremented.")
-    val showNotification by cv(false)
-    @IsConfig(name = "Show tray bubble", info = "Shows tray bubble notification when playcount is incremented.")
-    val showBubble by cv(false)
-    @IsConfig(name = "Delay writing", info = "Delays writing playcount to tag for more seamless "
-            +"playback experience. In addition, reduces multiple consecutive increments in a row "
-            +"to a single operation. The writing happens when different song starts playing "
-            +"(but the data in the application may update visually even later).")
+    val whenTime by cv(seconds(5.0)).readOnlyUnless(whenStrategy.map { it.needsTime() }) attach { applyStrategy() }
+    @IsConfig(name = "Show notification (schedule)", info = "Shows notification when playcount incrementing is scheduled.")
+    val showNotificationSchedule by cv(false)
+    @IsConfig(name = "Show notification (update)", info = "Shows notification when playcount is incremented.")
+    val showNotificationUpdate by cv(false)
+    @IsConfig(name = "Delay writing", info = "Delays editing tag until different song starts playing." +
+            "\n\n* May improve playback experience." +
+            "\n\n* Reduces consecutive updates to a single update.")
     val delay by cv(true)
 
     private val queue = ArrayList<Metadata>()
@@ -57,7 +53,7 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
     private val onStop = Disposer()
 
     override fun start() {
-        apply()
+        applyStrategy()
         onStop += Player.playingSong.onChange { ov, _ -> if (!ov.isEmpty()) incrementQueued(ov) }
         running = true
     }
@@ -66,65 +62,56 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
 
     override fun stop() {
         running = false
-        apply()
+        applyStrategy()
         onStop()
         queue.distinctBy { it.uri }.forEach { incrementQueued(it) }
     }
 
     override fun isSupported() = true
 
-    /**
-     * Increments playcount of currently playing song. According to settings now or schedules it for
-     * later. Also throws notifications if set.
-     */
-    @IsAction(name = "Increment playcount", desc = "Rises the number of times the song has been played by one and updates the song tag.")
+    /** Manually increments playcount of currently playing song. According to [delay] now or schedules it for later. */
+    @IsAction(name = "Increment playcount", desc = "Manually increments number of times the song has been played by one.")
     fun increment() {
         val m = Player.playingSong.value
         if (!m.isEmpty() && m.isFileBased()) {
             if (delay.value) {
                 queue += m
-                if (showNotification.value)
+                if (showNotificationSchedule.value)
                     APP.services.use<Notifier> { it.showTextNotification("Song playcount incrementing scheduled", "Playcount") }
-                if (showBubble.value)
-                    APP.services.use<TrayService> { it.showNotification(Widgets.SONG_TAGGER, "Playcount incremented scheduled", INFO) }
             } else {
                 val pc = 1+m.getPlaycountOr0()
-                m.write({ it.setPlaycount(pc) }) { ok ->
-                    if (ok) {
-                        if (showNotification.value)
-                            APP.services.use<Notifier> { it.showTextNotification("Song playcount incremented to: $pc", "Playcount") }
-                        if (showBubble.value)
-                            APP.services.use<TrayService> { it.showNotification(Widgets.SONG_TAGGER, "Playcount incremented to: $pc", INFO) }
-                    }
+                m.write({ it.setPlaycount(pc) }) {
+                    if (it.isOk && showNotificationUpdate.value)
+                        APP.services.use<Notifier> { it.showTextNotification("Song playcount incremented by 1 to: $pc", "Playcount") }
                 }
             }
         }
     }
 
-    private fun apply() {
+    private fun applyStrategy() {
         removeOld()
         if (!running) return
 
         when (whenStrategy.value) {
             ON_PERCENT -> {
-                incHandler = at(Portion(whenPercent.value), incrementer)
+                incHandler = at({ total -> total*whenPercent.value}, incrementer)
                 Player.onPlaybackAt.add(incHandler)
             }
             ON_TIME -> {
-                incHandler = at(whenTime.value, incrementer)
+                incHandler = at({ total -> min(whenTime.value, total*0.8) }, incrementer)
                 Player.onPlaybackAt.add(incHandler)
             }
             ON_TIME_AND_PERCENT -> {
-                incHandler = at({ total -> max(whenTime.value, total.multiply(whenPercent.value)) }, incrementer)
+                incHandler = at({ total -> max(whenTime.value, total*whenPercent.value) }, incrementer)
                 Player.onPlaybackAt.add(incHandler)
             }
             ON_TIME_OR_PERCENT -> {
-                incHandler = at({ total -> min(whenTime.value, total.multiply(whenPercent.value)) }, incrementer)
+                incHandler = at({ total -> min(whenTime.value, total*whenPercent.value) }, incrementer)
                 Player.onPlaybackAt.add(incHandler)
             }
             ON_START -> Player.onPlaybackStart += incrementer
             ON_END -> Player.onPlaybackEnd += incrementer
-            NEVER -> {}
+            MANUAL -> {}
         }
     }
 
@@ -135,18 +122,18 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
     }
 
     private fun incrementQueued(m: Metadata) {
-        val queuedTimes = queue.count { it.same(m) }
-        if (queuedTimes>0) {
+        val by = queue.count { it.same(m) }
+        if (by>0) {
             queue.removeIf { it.same(m) }
-            val p = queuedTimes+m.getPlaycountOr0()
-            Player.IO_THREAD.execute {
-                m.writeNoRefresh { it.setPlaycount(p) }
-                Player.refreshItemWith(m.read(), true)
+            val pc = by+m.getPlaycountOr0()
+            m.write({ it.setPlaycount(pc) }) {
+                if (it.isOk && showNotificationUpdate.value)
+                    APP.services.use<Notifier> { it.showTextNotification("Song playcount incremented by: $by to: $pc", "Playcount") }
             }
         }
     }
 
-    /** Strategy for incrementing playcount. */
+    /** Strategy for auto-incrementing playcount. */
     enum class PlaycountIncStrategy {
         /** Increment when song starts playing. */
         ON_START,
@@ -161,7 +148,11 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
         /** Increment when song is playing for specified time and portion of its time. */
         ON_TIME_AND_PERCENT,
         /** Never increment. */
-        NEVER
+        MANUAL;
+
+        fun needsTime() = this==ON_TIME || this==ON_TIME_OR_PERCENT || this==ON_TIME_AND_PERCENT
+
+        fun needsPercent() = this==ON_PERCENT || this==ON_TIME_OR_PERCENT || this==ON_TIME_AND_PERCENT
     }
 
 }

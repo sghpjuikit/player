@@ -35,7 +35,6 @@ import sp.it.util.action.IsAction;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.FxTimer;
 import sp.it.util.collections.mapset.MapSet;
-import sp.it.util.math.Portion;
 import sp.it.util.reactive.Handler0;
 import sp.it.util.reactive.Subscription;
 import static java.lang.Double.max;
@@ -47,8 +46,8 @@ import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.playback.PlayTimeHandler.at;
-import static sp.it.pl.audio.tagging.SongWritingKt.rate;
 import static sp.it.pl.audio.tagging.SongWritingKt.write;
+import static sp.it.pl.audio.tagging.SongWritingKt.writeRating;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runFX;
@@ -95,7 +94,7 @@ public class Player {
 		});
 
 		player.getRealTime().initialize();
-		onPlaybackAt.add(at(new Portion(1), f(() -> onPlaybackAt.forEach(h -> h.restart(Player.playingSong.getValue().getLength()))))); // TODO: fix possible StackOverflowError
+		onPlaybackAt.add(at(total -> total, f(() -> onPlaybackAt.forEach(h -> h.restart(Player.playingSong.getValue().getLength()))))); // TODO: fix possible StackOverflowError
 		onPlaybackEnd.add(f(() -> {
 			switch (state.playback.loopMode.get()) {
 				case OFF: stop();
@@ -637,7 +636,7 @@ public class Player {
 	 */
 	public static void ratePlaying(double rating) {
 		if (PlaylistManager.active==null) return;
-		rate(Player.playingSong.getValue(), rating);
+		writeRating(Player.playingSong.getValue(), rating);
 	}
 
 	/** Rate playing song 0/5. */

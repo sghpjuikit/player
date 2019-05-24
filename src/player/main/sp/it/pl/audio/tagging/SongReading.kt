@@ -6,6 +6,7 @@ import mu.KotlinLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.main.APP
+import sp.it.util.dev.Blocks
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
@@ -22,6 +23,7 @@ private val logger = KotlinLogging.logger { }
  * @return metadata for specified song or [Metadata.EMPTY] if error occurs
  * @throws RuntimeException if called on fx thread
  */
+@Blocks
 fun Song.read(): Metadata {
     failIfFxThread()
 

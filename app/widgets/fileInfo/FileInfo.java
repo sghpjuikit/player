@@ -71,7 +71,7 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TITLE;
 import static sp.it.pl.audio.tagging.Metadata.Field.TRACKS_TOTAL;
 import static sp.it.pl.audio.tagging.Metadata.Field.TRACK_INFO;
 import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
-import static sp.it.pl.audio.tagging.SongWritingKt.rate;
+import static sp.it.pl.audio.tagging.SongWritingKt.writeRating;
 import static sp.it.pl.audio.tagging.SongWritingKt.writeNoRefresh;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
@@ -224,7 +224,7 @@ public class FileInfo extends SimpleController implements SongReader {
         onClose.plusAssign(syncTo(APP.ui.getMaxRating(),rater.icons));
         onClose.plusAssign(syncTo(APP.ui.getPartialRating(), rater.partialRating));
         rater.editable.set(true);
-        rater.onRatingEdited = consumer(it -> rate(data, it));
+        rater.onRatingEdited = consumer(it -> writeRating(data, it));
 
         // drag & drop
         installDrag(

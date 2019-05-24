@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.scene.paint.Color;
@@ -38,7 +37,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Song;
+import sp.it.util.dev.Blocks;
 import sp.it.util.dev.SwitchException;
+import sp.it.util.functional.Try;
 import sp.it.util.units.NofX;
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.joining;
@@ -57,6 +58,9 @@ import static sp.it.pl.audio.tagging.Metadata.TAG_ID_TAGS;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
 import static sp.it.util.Util.emptyOr;
+import static sp.it.util.dev.FailKt.failIfFxThread;
+import static sp.it.util.functional.Try.Java.error;
+import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.UtilKt.orNull;
@@ -769,49 +773,56 @@ public class MetadataWriter extends Song {
 	/**
 	 * Writes all changes to tag.
 	 * <p/>
-	 * Must never execute on main thread. This method is blocking due to I/O
-	 * and possibly sleeping the thread.
+	 * Must never execute on main thread.
+	 * This method is blocking due to I/O and may block for a long time.
 	 *
-	 * @return true if data were written to tag or false if tag didnt change, either because there was nothing to change
-	 * or writing failed.
+	 * @return ok containing whether the tag changed or error containing the exception
 	 */
-	boolean write() {
-		if (!hasFields()) return false;
+	@Blocks
+	Try<Boolean, Exception> write() {
+		failIfFxThread();
+
+		if (!hasFields()) {
+			return ok(false);
+		}
+
 		LOGGER.debug("Writing {} tag fields to: {}", fields_changed, file);
 
 		if (hasCorruptedTag) {
 			LOGGER.warn("Can not write to tag, because it could not be read: {} ", file);
-			return false;
+			return error(new Exception("Tag of " + file + "could not be read"));
 		}
 
 		try {
 			audioFile.commit();
-			return true;
+			return ok(true);
 		} catch (Exception ex) {
 			if (isPlayingSame()) {
 				LOGGER.info("File being played, will attempt to suspend playback");
 				Player.suspend(); // may be asynchronous
 
-				var success = Stream.of(0, 250, 1000)
-					.map(toSleep -> {
-						try {
-							Thread.sleep(toSleep);
-							audioFile.commit();
-							return true;
-						} catch (Exception e) {
-							if (toSleep!=1000) LOGGER.info("Can not write audio tag after={}ms file={}", toSleep, audioFile.getFile().getPath());
-							else LOGGER.error("Can not write audio tag after={}ms file={}", toSleep, audioFile.getFile().getPath(), e);
-							return false;
+				var r = (Try<Boolean, Exception>) null;
+				for (int toSleep: list(0, 250, 1000)) {
+					try {
+						Thread.sleep(toSleep);
+						audioFile.commit();
+						r = ok(true);
+						break;
+					} catch (Exception e) {
+						if (toSleep!=1000) {
+							LOGGER.info("Can not write audio tag after={}ms file={}", toSleep, audioFile.getFile().getPath());
+							r = error(e);
+						} else {
+							LOGGER.error("Can not write audio tag after={}ms file={}", toSleep, audioFile.getFile().getPath(), e);
 						}
-					})
-					.filter(it -> it).findFirst()
-					.orElse(false);
+					}
+				}
 
 				Player.activate();
-				return success;
+				return r;
 			} else {
 				LOGGER.error("Can not write file tag: {}", audioFile.getFile().getPath(), ex);
-				return false;
+				return error(ex);
 			}
 		}
 	}

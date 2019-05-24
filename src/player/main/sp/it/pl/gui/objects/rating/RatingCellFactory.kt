@@ -6,7 +6,7 @@ import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.util.Callback
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.rate
+import sp.it.pl.audio.tagging.writeRating
 import sp.it.pl.main.APP
 import sp.it.util.reactive.syncFrom
 
@@ -23,7 +23,7 @@ object RatingCellFactory: Callback<TableColumn<Metadata, Double?>, TableCell<Met
             r.partialRating syncFrom APP.ui.partialRating
             r.editable.value = true
             if (c.userData==Metadata.Field.RATING)
-                r.onRatingEdited = { c.tableView.items[index].rate(it) }
+                r.onRatingEdited = { c.tableView.items[index].writeRating(it) }
         }
 
         override fun updateItem(item: Double?, empty: Boolean) {

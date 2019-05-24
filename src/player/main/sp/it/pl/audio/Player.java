@@ -60,6 +60,7 @@ import static sp.it.util.async.future.Fut.fut;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Functors.Ƒ.f;
+import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
@@ -378,11 +379,14 @@ public class Player {
 
 		// always on br thread
 		IO_THREAD.execute(() -> {
+			var msInDb = filter(ms, APP.db::exists);
+			if (msInDb.isEmpty()) return;
+
 			// metadata map hashed with resource identity : O(n^2) -> O(n)
-			MapSet<URI,Metadata> mm = new MapSet<>(Metadata::getUri, ms);
+			var mm = new MapSet<>(Metadata::getUri, msInDb);
 
 			// update library
-			APP.db.addSongs(ms);
+			APP.db.addSongs(mm);
 
 			runFX(() -> {
 				// update all playlist songs referring to this updated metadata

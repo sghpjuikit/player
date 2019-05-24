@@ -16,7 +16,6 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.main.APP
 import sp.it.pl.main.infoIcon
-import sp.it.util.conf.MultiConfigurable
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
 import sp.it.util.system.copyToSysClipboard
@@ -31,7 +30,7 @@ import sp.it.util.ui.vBox
 import sp.it.util.units.javafx
 import sp.it.util.units.toHMSMs
 
-class InfoPane(override val configurableDiscriminant: String): OverlayPane<Void>(), MultiConfigurable {
+class InfoPane: OverlayPane<Void>() {
 
     private val g = GridPane()
 

@@ -439,7 +439,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
                     }
                     2 -> {
                         output?.value?.let {
-                            APP.actionPane.show(it)
+                            APP.ui.actionPane.orBuild.show(it)
                         }
                     }
                 }

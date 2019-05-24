@@ -48,7 +48,8 @@ import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncBi
+import sp.it.util.reactive.syncBiFrom
+import sp.it.util.reactive.syncBiTo
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.EM
 import sp.it.util.ui.hBox
@@ -134,7 +135,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
         volume.max = ps.volume.max
         volume.blockIncrement = VolumeProperty.STEP
         volume.value = ps.volume.get()
-        volume.valueProperty() syncBi ps.volume on onClose
+        volume.valueProperty() syncBiFrom ps.volume on onClose
 
         ps.duration sync { totalTime.text = it.toHMSMs() } on onClose
         ps.currentTime sync { timeChanged(ps) } on onClose

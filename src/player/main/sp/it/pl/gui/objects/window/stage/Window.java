@@ -103,6 +103,7 @@ import static sp.it.util.functional.Util.forEachIRStream;
 import static sp.it.util.functional.Util.forEachIStream;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.reactive.SubscriptionKt.on;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.text.UtilKt.getNamePretty;
 import static sp.it.util.ui.Util.setAnchors;
@@ -170,7 +171,7 @@ public class Window extends WindowBase {
 			root, GAVEL,
 			"Display possible actions\n\nMoving the drag elsewhere may offer other options",
 			e -> !contains(e.getDragboard(), Df.WIDGET_OUTPUT),
-			consumer(e -> APP.getActionPane().show(getAnyFut(e.getDragboard())))
+			consumer(e -> APP.ui.getActionPane().getOrBuild().show(getAnyFut(e.getDragboard())))
 		);
 
 		// maintain custom pseudoclasses for .window styleclass
@@ -307,11 +308,11 @@ public class Window extends WindowBase {
 		Icon lockB = new Icon(null, -1, "Lock layout\n\nRestricts certain layout operations to "
 			+ "prevent accidents and configuration getting in the way. Widgets, containers and "
 			+ "layouts can also be locked individually.", () -> APP.ui.toggleLayoutLocked()).styleclass("header-icon");
-		syncC(APP.ui.getLockedLayout(), it -> lockB.icon(it ? LOCK : UNLOCK));
+		on(syncC(APP.ui.getLockedLayout(), it -> lockB.icon(it ? LOCK : UNLOCK)), onClose);
 		Icon lmB = new Icon(null, -1, ActionRegistrar.get("Layout zoom overlay in/out")).styleclass("header-icon");
 		Icon ltB = new Icon(CARET_LEFT, -1, ActionRegistrar.get("Layout move left")).styleclass("header-icon");
 		Icon rtB = new Icon(CARET_RIGHT, -1, ActionRegistrar.get("Layout move right")).styleclass("header-icon");
-		syncC(APP.ui.getLayoutMode(), it -> lmB.icon(it ? TH : TH_LARGE));
+		on(syncC(APP.ui.getLayoutMode(), it -> lmB.icon(it ? TH : TH_LARGE)), onClose);
 		Icon guideB = new Icon(GRADUATION_CAP, -1, ActionRegistrar.get("Open guide")).styleclass("header-icon");
 		Icon helpB = infoIcon("Available actions:"
 			+ "\n\tHeader icons : Providing custom functionalities. See tooltips."

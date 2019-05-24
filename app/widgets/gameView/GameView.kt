@@ -73,7 +73,6 @@ import sp.it.util.conf.only
 import sp.it.util.dev.failIf
 import sp.it.util.file.FileType
 import sp.it.util.file.Properties
-import sp.it.util.file.Util
 import sp.it.util.file.div
 import sp.it.util.file.listChildren
 import sp.it.util.file.parentDirOrRoot
@@ -268,13 +267,13 @@ class GameView(widget: Widget): SimpleController(widget) {
         fun play() {
             val file = exeFile()
             if (file==null) {
-                APP.messagePane.show("No launcher is set up.")
+                APP.ui.messagePane.orBuild.show("No launcher is set up.")
             } else {
                 val arguments = settings["arguments"]
                         ?.let { it.replace(", ", ",").split(",").filter { it.isNotBlank() }.map { "-$it" } }
                         .orEmpty()
                 file.runAsProgram(*arguments.toTypedArray()) ui {
-                    it.ifError { APP.messagePane.show("Unable to launch program $file. Reason: ${it.message}") }
+                    it.ifError { APP.ui.messagePane.orBuild.show("Unable to launch program $file. Reason: ${it.message}") }
                 }
             }
         }
@@ -350,7 +349,7 @@ class GameView(widget: Widget): SimpleController(widget) {
                                                     link.writeText("""@echo off${'\n'}start "" /d "$targetDir" "$targetName"""")
                                                 }.onDone(FX) {
                                                     it.toTry().ifError {
-                                                        APP.messagePane.show("can ot set up launcher $link\\nReason:\n$it")
+                                                        APP.ui.messagePane.orBuild.show("can ot set up launcher $link\\nReason:\n$it")
                                                     }
                                                 }
                                             }

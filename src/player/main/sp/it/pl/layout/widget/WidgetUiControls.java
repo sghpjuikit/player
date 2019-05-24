@@ -96,7 +96,7 @@ public final class WidgetUiControls extends ComponentUiControlsBase {
 
         // build header buttons
         Icon closeB = new Icon(TIMES, -1, closebTEXT, this::close).styleclass("header-icon");
-        Icon actB = new Icon(GAVEL, -1, actbTEXT, () -> APP.getActionPane().show(Widget.class, area.getWidget())).styleclass("header-icon");
+        Icon actB = new Icon(GAVEL, -1, actbTEXT, () -> APP.ui.getActionPane().getOrBuild().show(area.getWidget())).styleclass("header-icon");
         propB = new Icon(COGS, -1, propbTEXT, this::settings).styleclass("header-icon");
         lockB = new Icon(null, -1, lockbTEXT, () -> {
             toggleLocked();

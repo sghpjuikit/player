@@ -40,7 +40,6 @@ import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.functional.orNull
-import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
@@ -54,7 +53,7 @@ import sp.it.util.units.seconds
 import sp.it.util.units.times
 import java.util.ArrayList
 
-class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGINS}.Guide") {
+class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.Plugin.name}.Guide") {
 
     @IsConfig(name = "Hint", editable = EditMode.APP)
     private var at by c(-1)
@@ -296,11 +295,6 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGI
                 +"\n\nSee the corner of this hint? Click the help button. It looks like:",
                 { layH(Icon(IconFA.INFO, ICON_SIZE)) }
         )
-        val hider = { close() }
-        val shower = {
-            open()
-            runFX(1000.millis) { goToNext() }.toUnit()
-        }
         val h07_uiShortcuts = hint("Shortcuts",
                 {
                     ("Shortcuts are keys and key combinations that invoke some action."
@@ -309,15 +303,7 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.PLUGI
                     +"\n\nTo see all the available shortcuts, simply press "
                     +ActionRegistrar["Show shortcuts"].keys.pretty()+".")
                 },
-                null,
-                {
-                    APP.shortcutPane.onShown += hider
-                    APP.shortcutPane.onHidden += shower
-                },
-                {
-                    APP.shortcutPane.onShown -= hider
-                    APP.shortcutPane.onHidden -= shower
-                }
+                null
         )
         val h07_moduleAll = hint("Modules",
                 "The application consists of:\n"

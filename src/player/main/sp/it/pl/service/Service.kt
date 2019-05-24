@@ -15,7 +15,7 @@ interface Service: Configurable<Any>, MultiConfigurable {
 
     val name: String
 
-    override val configurableDiscriminant get() = "${Settings.SERVICES}.$name"
+    override val configurableDiscriminant get() = "${Settings.Service.name}.$name"
 
     @Idempotent
     fun start()

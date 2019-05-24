@@ -189,8 +189,16 @@ infix fun <T> ObservableList<T>.attachSize(block: (Int) -> Unit): Subscription {
     return Subscription { removeListener(l) }
 }
 
-/** Binds the two properties bi-directionally. */
-infix fun <O> Property<O>.syncBi(w: Property<O>): Subscription {
+/** Binds the two properties bi-directionally using this value as the initial value. */
+infix fun <O> Property<O>.syncBiTo(w: Property<O>): Subscription {
+    w.value = value
+    bindBidirectional(w)
+    return Subscription { unbindBidirectional(w) }
+}
+
+/** Binds the two properties bi-directionally using the specified value as the initial value. */
+infix fun <O> Property<O>.syncBiFrom(w: Property<O>): Subscription {
+    value = w.value
     bindBidirectional(w)
     return Subscription { unbindBidirectional(w) }
 }

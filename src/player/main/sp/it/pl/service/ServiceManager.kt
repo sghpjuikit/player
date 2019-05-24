@@ -1,6 +1,5 @@
 package sp.it.pl.service
 
-import sp.it.pl.main.APP
 import sp.it.util.collections.map.ClassMap
 import sp.it.util.reactive.Subscription
 import java.lang.reflect.InvocationTargetException
@@ -75,14 +74,5 @@ class ServiceManager {
         } catch (e: NoSuchMethodException) {
             throw RuntimeException("Could not instantiate service $type", e)
         }
-    }
-}
-
-
-fun Service.runWhenReady(block: () -> Unit) {
-    if (APP.isInitialized.isOk) {
-        block()
-    } else {
-        APP.onStarted += { runWhenReady(block) }
     }
 }

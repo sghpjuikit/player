@@ -28,7 +28,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import kotlin.Unit;
-import org.jetbrains.annotations.NotNull;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
@@ -39,8 +38,6 @@ import sp.it.util.animation.Anim;
 import sp.it.util.animation.interpolator.ElasticInterpolator;
 import sp.it.util.async.future.Fut;
 import sp.it.util.collections.map.ClassListMap;
-import sp.it.util.conf.IsConfig;
-import sp.it.util.conf.MultiConfigurable;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.functional.Try;
@@ -93,27 +90,21 @@ import static sp.it.util.ui.Util.layVertically;
 import static sp.it.util.ui.UtilKt.setScaleXY;
 
 /** Action chooser pane. Displays icons representing certain actions. */
-public class ActionPane extends OverlayPane<Object> implements MultiConfigurable {
+public class ActionPane extends OverlayPane<Object> {
 
+	public static final String CLOSE_ON_DONE_NAME = "Close when action ends";
+	public static final String CLOSE_ON_DONE_INFO = "Closes the chooser when action finishes running.";
 	private static final String ROOT_STYLECLASS = "action-pane";
 	private static final String ICON_STYLECLASS = "action-pane-action-icon";
-	private static final String COD_TITLE = "Close when action ends";
-	private static final String COD_INFO = "Closes the chooser when action finishes running.";
 
-	private final String configurableDiscriminant;
-
-	@IsConfig(name = COD_TITLE, info = COD_INFO)
 	public final V<Boolean> closeOnDone = new V<>(true);
-
-	private final ClassName className;
-	private final InstanceName instanceName;
-	private final InstanceInfo instanceInfo;
-
+	public final ClassName className;
+	public final InstanceName instanceName;
+	public final InstanceInfo instanceInfo;
 	private boolean showIcons = true;
 	private Supplier<? extends Node> insteadIcons = null;
 
-	public ActionPane(String configurableDiscriminant, ClassName className, InstanceName instanceName, InstanceInfo instanceInfo) {
-		this.configurableDiscriminant = configurableDiscriminant;
+	public ActionPane(ClassName className, InstanceName instanceName, InstanceInfo instanceInfo) {
 		this.className = className;
 		this.instanceName = instanceName;
 		this.instanceInfo = instanceInfo;
@@ -183,12 +174,6 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 		makeResizableByUser();
 	}
 
-	@NotNull
-	@Override
-	public String getConfigurableDiscriminant() {
-		return configurableDiscriminant;
-	}
-
 	/* ---------- PRE-CONFIGURED ACTIONS --------------------------------------------------------------------------------- */
 
 	public final ClassListMap<ActionData<?,?>> actions = new ClassListMap<>(null);
@@ -212,7 +197,7 @@ public class ActionPane extends OverlayPane<Object> implements MultiConfigurable
 	);
 	private final Icon hideI = new CheckIcon(closeOnDone)
 									.icons(CLOSE_CIRCLE_OUTLINE, CHECKBOX_BLANK_CIRCLE_OUTLINE)
-									.tooltip(COD_TITLE+"\n\n"+COD_INFO);
+									.tooltip(CLOSE_ON_DONE_NAME +"\n\n"+ CLOSE_ON_DONE_INFO);
 	private final ProgressIndicator dataProgress = appProgressIndicator();
 	public final ProgressIndicator actionProgress = appProgressIndicator();
 	private final HBox controls = layHorizontally(5,CENTER_RIGHT, actionProgress, dataProgress,hideI,helpI);

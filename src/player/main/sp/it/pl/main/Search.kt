@@ -15,7 +15,7 @@ class Search {
     val sources = HashSet<() -> Sequence<ConfigSearch.Entry>>()
     val history = ConfigSearch.History()
 
-    fun build(onAutoCompleted: (ConfigSearch.Entry) -> Unit = {}): Node {
+    fun buildUi(onAutoCompleted: (ConfigSearch.Entry) -> Unit = {}): Node {
         val tf = DecoratedTextField().apply {
             val clearB = Icon().also {
                 it.styleClass += "search-clear-button"
@@ -40,6 +40,8 @@ class Search {
             this.hideOnSuggestion.value = true
             this.onAutoCompleted += onAutoCompleted
         }
+
         return tf
     }
+
 }

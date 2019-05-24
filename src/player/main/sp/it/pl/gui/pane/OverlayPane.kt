@@ -20,8 +20,6 @@ import javafx.scene.layout.StackPane
 import javafx.stage.Screen
 import javafx.stage.Stage
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.pane.OverlayPane.Companion.globalDisplay
-import sp.it.pl.gui.pane.OverlayPane.Companion.globalDisplayBgr
 import sp.it.pl.main.APP
 import sp.it.pl.main.resizeButton
 import sp.it.util.access.v
@@ -29,17 +27,14 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.runFX
 import sp.it.util.async.runNew
 import sp.it.util.collections.setTo
-import sp.it.util.conf.IsConfig
-import sp.it.util.conf.MultiConfigurableBase
-import sp.it.util.conf.cv
 import sp.it.util.dev.fail
+import sp.it.util.functional.asIf
 import sp.it.util.functional.orNull
 import sp.it.util.math.P
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
-import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
 import sp.it.util.system.getWallpaperFile
 import sp.it.util.ui.Util.createFMNTStage
@@ -54,6 +49,7 @@ import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.makeScreenShot
 import sp.it.util.ui.minus
 import sp.it.util.ui.pane
+import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.screenToLocal
 import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
@@ -318,24 +314,18 @@ abstract class OverlayPane<in T>: StackPane() {
             op.setVisible(false)
         } else {
             op.stage!!.close()
+            op.stage?.scene?.root?.asIf<Pane>()?.children?.clear()
+            op.stage?.scene = null
+            op.stage = null
+            op.removeFromParent()
         }
     }
 
-    companion object: MultiConfigurableBase("View") {
+    companion object {
         private const val IS_SHOWN = "visible"
         private const val ROOT_STYLECLASS = "overlay-pane"
         private const val CONTENT_STYLECLASS = "overlay-pane-content"
-
-        @IsConfig(name = "Display method", group = "View", info = "Area of content. Screen provides more space than window, but can get in the way of other apps.")
-        val globalDisplay by cv(Display.SCREEN_OF_MOUSE)
-        @IsConfig(name = "Display background", group = "View", info = "Content background")
-        val globalDisplayBgr by cv(ScreenBgrGetter.SCREEN_BGR)
     }
-}
-
-fun <T, P: OverlayPane<T>> P.initApp() = apply {
-    display syncFrom globalDisplay
-    displayBgr syncFrom globalDisplayBgr
 }
 
 enum class ScreenBgrGetter {
@@ -403,4 +393,5 @@ private class PolarResize {
                 }
         )
     }
+
 }

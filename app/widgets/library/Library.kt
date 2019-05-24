@@ -225,14 +225,14 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
     private fun addDirectory() {
         chooseFile("Add folder to library", DIRECTORY, lastAddDirLocation, root.scene.window).ifOk {
-            APP.actionPane.show(it)
+            APP.ui.actionPane.orBuild.show(it)
             lastAddDirLocation = it.parentDir
         }
     }
 
     private fun addFiles() {
         chooseFiles("Add files to library", lastAddFilesLocation, root.scene.window, audioExtensionFilter()).ifOk {
-            APP.actionPane.show(it)
+            APP.ui.actionPane.orBuild.show(it)
             lastAddFilesLocation = getCommonRoot(it)
         }
     }

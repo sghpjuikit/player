@@ -174,7 +174,7 @@ public class FileInfo extends SimpleController implements SongReader {
         cover.setBorderToImage(false);
         cover.onFileDropped = consumer(fut_file -> {
         	if (data.isFileBased()) {
-	            APP.getActionPane().show(File.class, fut_file, true,
+	            APP.ui.getActionPane().getOrBuild().show(File.class, fut_file, true,
 	                new SlowAction<>("Copy and set as album cover",
 	                        "Sets image as cover. Copies file to destination and renames it "
 	                      + "to 'cover' so it is recognized as album cover. Any previous cover file "

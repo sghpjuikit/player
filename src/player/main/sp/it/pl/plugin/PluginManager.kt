@@ -11,11 +11,3 @@ class PluginManager {
     private fun installPlugins(plugin: Plugin) = APP.configuration.installActions(plugin)
 
 }
-
-fun Plugin.runWhenReady(block: () -> Unit) {
-    if (APP.isInitialized.isOk) {
-        block()
-    } else {
-        APP.onStarted += { runWhenReady(block) }
-    }
-}

@@ -14,10 +14,14 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.text.Font
 import mu.KLogging
 import sp.it.pl.gui.objects.rating.Rating
+import sp.it.pl.gui.pane.InfoPane
+import sp.it.pl.gui.pane.MessagePane
+import sp.it.pl.gui.pane.OverlayPane
+import sp.it.pl.gui.pane.ScreenBgrGetter
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions
-import sp.it.pl.main.Settings
+import sp.it.pl.main.initActionPane
 import sp.it.util.access.Values
 import sp.it.util.action.IsAction
 import sp.it.util.collections.project
@@ -42,13 +46,16 @@ import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Util.set
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
-import sp.it.util.reactive.attach
+import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncNonNullIntoWhile
+import sp.it.util.reactive.syncTo
 import sp.it.util.ui.isAnyParentOf
 import sp.it.util.ui.setFontAsStyle
 import sp.it.util.units.millis
@@ -56,10 +63,29 @@ import java.io.File
 import java.net.MalformedURLException
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
+import kotlin.streams.asSequence
 import javafx.stage.Window as WindowFX
+import sp.it.pl.gui.pane.ActionPane as PaneA
+import sp.it.pl.gui.pane.ShortcutPane as PaneS
+import sp.it.pl.main.Settings.Ui as SU
 
-@IsConfigurable(Settings.UI)
+@IsConfigurable(SU.name)
 class UiManager(val skinDir: File): Configurable<Any> {
+
+    @IsConfig(name = "Display method", group = SU.View.name, info = "Area of content. Screen provides more space than window, but can get in the way of other apps.")
+    val viewDisplay by cv(OverlayPane.Display.SCREEN_OF_MOUSE)
+    @IsConfig(name = "Display background", group = SU.View.name, info = "Content background")
+    val viewDisplayBgr by cv(ScreenBgrGetter.SCREEN_BGR)
+    @IsConfig(name = PaneA.CLOSE_ON_DONE_NAME, info = PaneA.CLOSE_ON_DONE_INFO, group = SU.View.Action.name)
+    val viewCloseOnDone by cv(true)
+    @IsConfig(name = PaneS.HIDE_EMPTY_NAME, info = PaneS.HIDE_EMPTY_INFO, group = SU.View.Shortcut.name)
+    val viewHideEmptyShortcuts by cv(true)
+
+    val messagePane = LazyOverlayPane { MessagePane().initApp() }
+    val actionPane = LazyOverlayPane { PaneA(APP.className, APP.instanceName, APP.instanceInfo).initApp().initActionPane() }
+    val shortcutPane = LazyOverlayPane { PaneS().initApp() }
+    val infoPane = LazyOverlayPane { InfoPane().initApp() }
+
     val skins = observableSet<SkinCss>(hashSetOf())!!
     val additionalStylesheets = observableArrayList<File>()!!
 
@@ -68,14 +94,14 @@ class UiManager(val skinDir: File): Configurable<Any> {
         val window = n?.scene
         if (n!=null)
             APP.widgetManager.widgets.findAll(OPEN)
-                .filter { it.uiTemp?.root?.isAnyParentOf(n) ?: false }
-                .findAny()
-                .ifPresent { fw ->
-                    APP.widgetManager.widgets.findAll(OPEN)
-                            .filter { w -> w!==fw && w.window.orNull()?.stage?.scene?.net { it===window } ?: false }
-                            .forEach { w -> w.focused.value = false }
-                    fw.focused.value = true
-                }
+                    .filter { it.uiTemp?.root?.isAnyParentOf(n) ?: false }
+                    .findAny()
+                    .ifPresent { fw ->
+                        APP.widgetManager.widgets.findAll(OPEN)
+                                .filter { w -> w!==fw && w.window.orNull()?.stage?.scene?.net { it===window } ?: false }
+                                .forEach { w -> w.focused.value = false }
+                        fw.focused.value = true
+                    }
     }
 
     init {
@@ -105,20 +131,20 @@ class UiManager(val skinDir: File): Configurable<Any> {
     @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
     val snapDistance by cv(12.0)
     @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
-    val lockedLayout by cv(false) { SimpleBooleanProperty(it).apply { attach { APP.actionStream("Layout lock") } } }
+    val lockedLayout by cv(false) { SimpleBooleanProperty(it) }.attach { APP.actionStream("Layout lock"); println("lock") }
 
-    @IsConfig(name = "Table orientation", group = Settings.Ui.TABLE, info = "Orientation of the table.")
+    @IsConfig(name = "Table orientation", group = SU.Table.name, info = "Orientation of the table.")
     val tableOrient by cv(NodeOrientation.INHERIT)
-    @IsConfig(name = "Zeropad numbers", group = Settings.Ui.TABLE, info = "Adds 0s for number length consistency.")
+    @IsConfig(name = "Zeropad numbers", group = SU.Table.name, info = "Adds 0s for number length consistency.")
     val tableZeropad by cv(false)
-    @IsConfig(name = "Search show original index", group = Settings.Ui.TABLE, info = "Show unfiltered table item index when filter applied.")
+    @IsConfig(name = "Search show original index", group = SU.Table.name, info = "Show unfiltered table item index when filter applied.")
     val tableOrigIndex by cv(false)
-    @IsConfig(name = "Show table header", group = Settings.Ui.TABLE, info = "Show table header with columns.")
+    @IsConfig(name = "Show table header", group = SU.Table.name, info = "Show table header with columns.")
     val tableShowHeader by cv(true)
-    @IsConfig(name = "Show table controls", group = Settings.Ui.TABLE, info = "Show table controls at the bottom of the table. Displays menu bar and table content information")
+    @IsConfig(name = "Show table controls", group = SU.Table.name, info = "Show table controls at the bottom of the table. Displays menu bar and table content information")
     val tableShowFooter by cv(true)
 
-    @IsConfig(name = "Thumbnail anim duration", group = "${Settings.UI}.Images", info = "Preferred hover scale animation duration for thumbnails.")
+    @IsConfig(name = "Thumbnail anim duration", group = SU.Image.name, info = "Preferred hover scale animation duration for thumbnails.")
     val thumbnailAnimDur by cv(100.millis)
 
     @IsConfig(name = "Rating skin", info = "Rating ui component skin")
@@ -167,9 +193,9 @@ class UiManager(val skinDir: File): Configurable<Any> {
     fun focusClickedWidget(e: MouseEvent) {
         val n = e.target as? Node
         if (n!=null)
-            APP.widgetManager.widgets.findAll(OPEN)
-                .filter { !it.focused.value && it.isLoaded && it.load().isAnyParentOf(n) }
-                .findAny().ifPresent { it.focus() }
+            APP.widgetManager.widgets.findAll(OPEN).asSequence()
+                    .find { !it.focused.value && it.isLoaded && it.load().isAnyParentOf(n) }
+                    ?.focus()
     }
 
     /** Toggles lock to prevent user accidental layout change.  */
@@ -191,8 +217,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     fun minimizeFocusTrue() {
         val anyM = APP.windowManager.windows.any { it.isMinimized }
         val anyF = APP.windowManager.windows.any { it.focused.value }
-        if (!anyM && anyF) {}
-        else APP.windowManager.windows.forEach { it.isMinimized = false; it.focus() }
+        if (anyM || !anyF) APP.windowManager.windows.forEach { it.isMinimized = false; it.focus() }
     }
 
     @IsAction(name = "Show/Hide application", desc = "Equal to switching minimized mode.", keys = "CTRL+ALT+W", global = true)
@@ -332,7 +357,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
                 val s2 = skin sync { root.applySkinGui(it) }
                 val s1 = font sync { root.applyFontGui(it) }
                 val s3 = additionalStylesheets.onChange { root.applySkinGui(skin.value) }
-                s1 + s2 +s3
+                s1+s2+s3
             }
         }
         Tooltip.getWindows().onItemAdded { (it as? Tooltip)?.font = font.value }
@@ -373,4 +398,42 @@ class UiManager(val skinDir: File): Configurable<Any> {
 
     }
 
+}
+
+class LazyOverlayPane<OT, T: OverlayPane<OT>>(private val builder: () -> T) {
+    private var pane: T? = null
+    val orBuild: T
+        get() {
+            pane = pane ?: builder()
+            return pane!!
+        }
+    val orNull: T?
+        get() = pane
+
+    fun hide() = pane?.hide() ?: Unit
+}
+
+fun <T, P: OverlayPane<T>> P.initApp() = apply {
+    val d = Disposer()
+    APP.ui.viewDisplay syncTo display on d
+    display sync { if (it is OverlayPane.Display) APP.ui.viewDisplay.value = it } on d
+    displayBgr syncBiFrom APP.ui.viewDisplayBgr on d
+    onHidden += d
+}
+
+fun PaneA.initApp() = apply {
+    val d = Disposer()
+    (this as OverlayPane<*>).initApp()
+    closeOnDone syncBiFrom APP.ui.viewCloseOnDone on d
+    onHidden += d
+}
+
+fun PaneS.initApp() = apply {
+    val d = Disposer()
+    (this as OverlayPane<*>).initApp()
+    hideEmptyShortcuts syncBiFrom APP.ui.viewHideEmptyShortcuts on d
+    onHidden += d
+    onHidden += {
+        APP.actionStream("Shortcuts")
+    }
 }

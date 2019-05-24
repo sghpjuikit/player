@@ -62,14 +62,14 @@ object CoreMenus: Core {
         menuItemBuilders.apply {
             addNull {
                 menu("Inspect in") {
-                    item("Object viewer") { APP.actionPane.show(selected) }
+                    item("Object viewer") { APP.ui.actionPane.orBuild.show(selected) }
                     separator()
                     widgetItems<Opener> { it.open(selected) }
                 }
             }
             add<Any> {
                 menu("Inspect in") {
-                    item("Object viewer") { APP.actionPane.show(selected) }
+                    item("Object viewer") { APP.ui.actionPane.orBuild.show(selected) }
                     separator()
                     widgetItems<Opener> { it.open(selected) }
                 }
@@ -114,7 +114,7 @@ object CoreMenus: Core {
                             logger.warn(e) { "File copy failed" }
                             it.onError.value
                         }.ifFalse {
-                            APP.messagePane.show("File $selected copy failed")
+                            APP.ui.messagePane.orBuild.show("File $selected copy failed")
                         }
                     }
                 }
@@ -199,7 +199,7 @@ object CoreMenus: Core {
                         item("Save image as ...") {
                             saveFile("Save image as...", APP.DIR_APP, selected.iFile?.name ?: "new_image", contextMenu.ownerWindow, imageWriteExtensionFilter()).ifOk {
                                 writeImage(selected.image, it).ifError { e ->
-                                    APP.messagePane.show("Saving image $it failed\n\nReason: ${e.message}")
+                                    APP.ui.messagePane.orBuild.show("Saving image $it failed\n\nReason: ${e.message}")
                                 }
                             }
                         }

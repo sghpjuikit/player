@@ -147,7 +147,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     IconMD.MUSIC_NOTE,
                     {
                         chooseFiles("Open audio...", APP.DIR_HOME, ap.scene?.window, audioExtensionFilter())
-                                .map { runLater { APP.actionPane.show(it) } }   // may auto-close on finish, delay show()
+                                .map { runLater { APP.ui.actionPane.orBuild.show(it) } }   // may auto-close on finish, delay show()
                     }
             )
     )
@@ -159,7 +159,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                     "as if it were a standalone application.",
                     IconMD.EXPORT,
                     { w ->
-                        saveFile("Export to...", APP.DIR_LAYOUTS, w.exportName, APP.actionPane.scene.window, ExtensionFilter("Component", "*.fxwl"))
+                        saveFile("Export to...", APP.DIR_LAYOUTS, w.exportName, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
                                 .ifOk { w.exportFxwl(it) }
                     }
             )

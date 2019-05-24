@@ -25,16 +25,13 @@ import sp.it.pl.core.CoreMouse
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerXml
 import sp.it.pl.gui.UiManager
+import sp.it.pl.gui.initApp
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.search.SearchAutoCancelable
 import sp.it.pl.gui.objects.window.stage.WindowManager
-import sp.it.pl.gui.pane.ActionPane
-import sp.it.pl.gui.pane.InfoPane
 import sp.it.pl.gui.pane.MessagePane
-import sp.it.pl.gui.pane.ShortcutPane
-import sp.it.pl.gui.pane.initApp
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.container.SwitchContainer
@@ -85,7 +82,7 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.getOr
 import sp.it.util.functional.invoke
 import sp.it.util.functional.runTry
-import sp.it.util.reactive.Handler0
+import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
 import sp.it.util.stacktraceAsString
 import sp.it.util.system.SystemOutListener
@@ -175,9 +172,9 @@ class App: Application(), Configurable<Any> {
     /** Observable [System.out]. */
     val systemout = SystemOutListener()
     /** Called just after this application is started (successfully) and fully initialized. Runs at most once. */
-    val onStarted = Handler0()
+    val onStarted = Disposer()
     /** Called just before this application is stopped when it is fully still running. Runs at most once. */
-    val onStopping = Handler0()
+    val onStopping = Disposer()
     /** Application argument handler. */
     val parameterProcessor = AppArgProcessor().initForApp()
 
@@ -230,20 +227,16 @@ class App: Application(), Configurable<Any> {
     @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
     val actionSettingsSave by cr { configuration.save(name, FILE_SETTINGS) }
 
-    // ui
+    /** Manages ui. */
     @F val ui = UiManager(DIR_SKINS)
-    // TODO: panes - move to ui, make lazy/one-shot, retain configuration
-    val actionPane = ActionPane("View.Action Chooser", className, instanceName, instanceInfo).initApp()
-    val shortcutPane = ShortcutPane("View.Shortcut Viewer").initApp()
-    val messagePane = MessagePane().initApp()
-    val infoPane = InfoPane("View.System").initApp()
-    val guide = Guide(actionStream)
-    val search = Search()
-
+    /** Guide containing tips and useful information. */
+    @F val guide = Guide(actionStream)
+    /** Application search */
+    @F val search = Search()
     /** Manages persistence and in-memory storage. */
     @F val db = SongDb()
     /** Manages widgets. */
-    @F val widgetManager = WidgetManager(messagePane::show)
+    @F val widgetManager = WidgetManager({ ui.messagePane.orBuild.show(it) })
     /** Manages windows. */
     @F val windowManager = WindowManager()
     /** Manages services. */
@@ -319,7 +312,6 @@ class App: Application(), Configurable<Any> {
                     services.getAllServices().toList()
             )
 
-            actionPane.initActionPane()
             widgetManager.init()
             db.init()
 
@@ -332,10 +324,9 @@ class App: Application(), Configurable<Any> {
             logger.error(it) { "Application failed to start" }
             logger.info { "Application closing prematurely" }
 
-            messagePane.onHidden += { close() }
-            messagePane.show(
+            MessagePane().initApp().apply { onHidden += { close() } }.show(
                     "Application did not start successfully and will close. Please fill an issue at $uriGithub "+
-                            "providing the logs in $DIR_LOG. The exact problem was:\n ${it.stacktraceAsString}"
+                    "providing the logs in $DIR_LOG. The exact problem was:\n ${it.stacktraceAsString}"
             )
         }.ifOk {
             if (normalLoad) Player.loadLastState() // initialize non critical parts

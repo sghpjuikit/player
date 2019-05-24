@@ -38,3 +38,12 @@ fun File.isValidWidgetFile(): Boolean {
 
 /** @return value scaled by font size, i.e., value multiplied by the [Number.EM] of current application font. */
 fun Number.scaleEM() = toDouble()*APP.ui.font.value.size.EM
+
+/** Runs the specified block immediately or when application is [initialized](App.onStarted). */
+fun App.run1AppReady(block: () -> Unit) {
+    if (isInitialized.isOk) {
+        block()
+    } else {
+        onStarted += { run1AppReady(block) }
+    }
+}

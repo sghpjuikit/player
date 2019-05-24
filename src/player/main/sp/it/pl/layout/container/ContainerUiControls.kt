@@ -74,7 +74,7 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
             }
 
             lay += icon(IconFA.GAVEL, "Actions\n\nDisplay additional action for this container.").onClickDo {
-                APP.actionPane.show(Container::class.java, area.container)
+                APP.ui.actionPane.orBuild.show(area.container)
             }
 
             lay += icon(IconFA.TIMES, "Close widget").onClickDo {

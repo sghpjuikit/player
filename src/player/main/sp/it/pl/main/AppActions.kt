@@ -185,6 +185,7 @@ class AppActions {
                 }
             }
             op.display.value = SCREEN_OF_MOUSE
+            op.displayBgr.value = APP.ui.viewDisplayBgr.value
             op.show(null)
             op.makeResizableByUser()
             c.load().apply {
@@ -202,23 +203,22 @@ class AppActions {
 
     @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
     fun openActions() {
-        APP.actionPane.show(APP)
+        APP.ui.actionPane.orBuild.show(APP)
     }
 
     @IsAction(name = "Open...", desc = "Display all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
     fun openOpen() {
-        APP.actionPane.show(AppOpen)
+        APP.ui.actionPane.orBuild.show(AppOpen)
     }
 
     @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "COMMA")
     fun showShortcuts() {
-        APP.shortcutPane.show(ActionRegistrar.getActions())
+        APP.ui.shortcutPane.orBuild.show(ActionRegistrar.getActions())
     }
 
     @IsAction(name = "Show system info", desc = "Display system information.")
     fun showSysInfo() {
-        APP.actionPane.hide()
-        APP.infoPane.show(null)
+        APP.ui.infoPane.orBuild.show(null)
     }
 
     @IsAction(name = "Show overlay", desc = "Display screen overlay.")
@@ -269,8 +269,7 @@ class AppActions {
 
     fun showSearch(pos: ScreenPos) {
         val p = PopOver<Node>()
-        val search = APP.search.build { p.hide() }
-        p.contentNode.value = search
+        p.contentNode.value = APP.search.buildUi { p.hide() }
         p.title.set("Search for an action or option")
         p.isAutoHide = true
         p.show(pos)
@@ -402,7 +401,7 @@ class AppActions {
         when {
             fs.isEmpty() -> {}
             fs.size==1 -> fs.firstOrNull()?.browse()
-            else -> APP.actionPane.show(MultipleFiles(fs))
+            else -> APP.ui.actionPane.orBuild.show(MultipleFiles(fs))
         }
     }
 

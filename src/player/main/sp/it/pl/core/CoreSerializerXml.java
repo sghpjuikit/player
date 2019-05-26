@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Stream;
 import javafx.beans.Observable;
+import javafx.geometry.Orientation;
 import sp.it.pl.audio.playlist.Playlist;
 import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.layout.Component;
@@ -77,6 +78,8 @@ public final class CoreSerializerXml implements Core {
 		x.alias("SwitchContainer", SwitchContainer.class);
 		x.alias("Layout", Layout.class);
 		x.alias("Widget", Widget.class);
+		x.alias("Loading", Widget.LoadType.class);
+		x.alias("Orientation", Orientation.class);
 		x.useAttributeFor(Component.class, "id");
 		x.useAttributeFor(Widget.class, "name");
 	}

@@ -88,10 +88,10 @@ fun loadImagePsd(file: File, inS: InputStream, width: Double, height: Double, hi
 
 fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean) = loadImagePsd(file, ImageIO.createImageInputStream(file), width, height, highQuality)
 
-private fun loadImagePsd(file: File, imageInputStream: ImageInputStream, width: Double, height: Double, highQuality: Boolean): ImageFx? {
+private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width: Double, height: Double, highQuality: Boolean): ImageFx? {
     failIfFxThread()
 
-    imageInputStream.use { input ->
+    return imageInputStream?.use { input ->
         val readers = ImageIO.getImageReaders(input)
         if (!readers.hasNext()) return null
 
@@ -154,7 +154,7 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream, width: 
         if (scale)
             i = i?.toScaledDown(w, h)
 
-        return i?.toFX()
+        i?.toFX()
     }
 }
 

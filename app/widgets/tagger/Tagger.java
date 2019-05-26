@@ -402,9 +402,10 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         metadatas.clear();
         if (set.isEmpty()) {
             showProgressReading();
-            populate(metadatas);
+            populate(new ArrayList<>(metadatas));
+        } else {
+            add(set, true);
         }
-        else add(set, true);
     }
 
     private void add(Collection<? extends Song> added, boolean readAll) {
@@ -436,7 +437,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
                 metadatas.clear();
                 metadatas.addAll(unique);
-                populate(metadatas);
+                populate(new ArrayList<>(metadatas));
             }
         });
         runNew(task);
@@ -447,7 +448,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         // show progress, hide when populate ends - in populate()
         showProgressReading();
         metadatas.removeIf(m -> rem.stream().anyMatch(i -> i.same(m)));
-        populate(metadatas);
+        populate(new ArrayList<>(metadatas));
     }
 
     /**

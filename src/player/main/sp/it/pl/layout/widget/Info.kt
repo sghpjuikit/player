@@ -8,6 +8,9 @@ import kotlin.reflect.full.findAnnotation
 
 interface ComponentInfo {
 
+    // TODO: rename nameGu() to name() and name() to id() and remove finding factories by name
+    //       this needs to finally get cleaned up, its a giant mess causing trouble everywhere
+
     /** @return name of the widget as displayed in ui */
     fun nameGui(): String
 

@@ -314,8 +314,7 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 	}
 
 	/** Creates a launcher for this widget with default (no predefined) settings. */
-	public void exportFxwlDefault(File dir) {
-		File f = new File(dir, name + ".fxwl");
+	public void exportFxwlDefault(File f) {
 		writeTextTry(f, name)
 			.ifErrorUse(e -> LOGGER.error("Unable to export widget launcher for {} into {}", name, f, e));
 	}

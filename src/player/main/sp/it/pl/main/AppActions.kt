@@ -149,6 +149,7 @@ class AppActions {
         if (!groupsView.items.isEmpty()) groupsView.selectionModel.select(0)
     }
 
+    // TODO: make into a plugin
     @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
     fun openLauncher() {
         val f = File(APP.DIR_LAYOUTS, "AppMainLauncher.fxwl")

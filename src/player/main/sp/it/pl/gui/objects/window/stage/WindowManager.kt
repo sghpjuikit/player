@@ -55,6 +55,7 @@ import sp.it.util.dev.fail
 import sp.it.util.file.Util.isValidatedDirectory
 import sp.it.util.file.div
 import sp.it.util.file.listChildren
+import sp.it.util.file.readTextTry
 import sp.it.util.functional.asIf
 import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
@@ -108,7 +109,7 @@ class WindowManager {
     private var dockHiddenWindows = ArrayList<Window>()
     private val dockToggleWindows = v(true).apply {
         attach {
-            if (APP.normalLoad) {
+            if (APP.loadStateful) {
                 if (it) {
                     dockHiddenWindows.forEach { it.show() }
                 } else {
@@ -235,7 +236,7 @@ class WindowManager {
     }
 
     private fun showDockImpl(enable: Boolean) {
-        if (!APP.normalLoad) return
+        if (!APP.loadStateful) return
         if (!APP.isInitialized.isOk) {
             APP.onStarted += { showDockImpl(enable) }
             return
@@ -362,9 +363,9 @@ class WindowManager {
         (if (isError) filesNew else filesOld).forEach { it.delete() }
     }
 
-    fun deserialize(loadNormally: Boolean) {
+    fun deserialize() {
         val ws = mutableSetOf<Window>()
-        if (loadNormally) {
+        if (APP.loadStateful) {
             val dir = File(APP.DIR_LAYOUTS, "current")
             if (isValidatedDirectory(dir)) {
                 val fs = dir.listChildren().filter { it.path.endsWith(".ws") }.toList()
@@ -377,7 +378,7 @@ class WindowManager {
         }
 
         if (ws.isEmpty()) {
-            if (loadNormally)
+            if (APP.loadStateful)
                 createWindow(true)
         } else {
             ws.forEach { w -> addEventHandler1Time<WindowEvent>(w.s, WINDOW_SHOWING) { w.update() } }
@@ -452,27 +453,24 @@ class WindowManager {
         return p
     }
 
-    fun launchComponent(launcher: File) = instantiateComponent(launcher)
-            ?.apply(::launchComponent)
+    fun launchComponent(launcher: File) = instantiateComponent(launcher)?.apply(::launchComponent)
 
-    fun launchComponent(name: String) = APP.widgetManager.factories.getComponentFactoryByGuiName(name).orNull()?.create()
-            ?.apply(::launchComponent)
-
-    fun launchComponent(w: Component) {
-        if (windows.isEmpty()) {
-            getActiveOrNew().setContent(w)
-        } else {
-            showWindow(w)
-        }
+    fun launchComponent(c: Component) {
+        if (windows.isEmpty()) getActiveOrNew().setContent(c)
+        else showWindow(c)
     }
 
     fun instantiateComponent(launcher: File): Component? {
         if (!launcher.exists()) return null
-        val isLauncherEmpty = launcher.useLines { it.count()==0 }
-        val wf = if (isLauncherEmpty) APP.widgetManager.factories.getComponentFactoryByGuiName(launcher.nameWithoutExtension).orNull() else null
-        return null
-                ?: wf?.create()
-                ?: APP.serializerXml.fromXML(Component::class.java, launcher).getOr(null)
+        val isLauncherEmpty = launcher.useLines { it.count()==1 }
+        return if (isLauncherEmpty) {
+            val name = launcher.readTextTry().getOr("")
+            val f = null
+                    ?: APP.widgetManager.factories.getComponentFactoryByGuiName(name).orNull()
+                    ?: APP.widgetManager.factories.getFactory(name)
+            f?.create()
+        } else
+            APP.serializerXml.fromXML(Component::class.java, launcher).orNull()
     }
 
     companion object: KLogging()

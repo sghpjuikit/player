@@ -28,21 +28,16 @@ import sp.it.pl.gui.UiManager
 import sp.it.pl.gui.initApp
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.image.Thumbnail
-import sp.it.pl.gui.objects.search.SearchAutoCancelable
 import sp.it.pl.gui.objects.window.stage.WindowManager
 import sp.it.pl.gui.pane.MessagePane
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.container.SwitchContainer
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetManager
-import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.layout.widget.controller.io.Input
 import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.Feature
-import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.plugin.Plugin
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.appsearch.AppSearchPlugin
@@ -58,7 +53,6 @@ import sp.it.pl.service.playcount.PlaycountIncrementer
 import sp.it.pl.service.tray.TrayService
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
-import sp.it.util.action.Action
 import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
 import sp.it.util.async.runLater
@@ -76,7 +70,6 @@ import sp.it.util.file.FileType
 import sp.it.util.file.Util.isValidatedDirectory
 import sp.it.util.file.childOf
 import sp.it.util.file.div
-import sp.it.util.file.hasExtension
 import sp.it.util.file.type.MimeTypes
 import sp.it.util.functional.Try
 import sp.it.util.functional.getOr
@@ -129,6 +122,10 @@ class App: Application(), Configurable<Any> {
         APP = this.takeUnless { ::APP.isInitialized } ?: fail { "Multiple application instances disallowed" }
     }
 
+    /** Whether application should close and delegate arguments if there is already running instance. */
+    var loadSingleton = true
+    /** Whether application starts with a state. If false, state is not restored on start or stored on close. */
+    var loadStateful = true
     private var closedPrematurely = false
     var isInitialized: Try<Unit, Throwable> = Try.error(Exception("Initialization has not run yet"))
         private set
@@ -136,6 +133,8 @@ class App: Application(), Configurable<Any> {
     // independent of app configuration
     /** Name of this application. */
     @F val name = "PlayerFX"
+    /** Version of this application. */
+    @F val version = "0.7"
     /** Application code encoding. Useful for compilation during runtime. */
     @F val encoding = StandardCharsets.UTF_8!!
     /** Uri for github website for project of this application. */
@@ -157,9 +156,9 @@ class App: Application(), Configurable<Any> {
     /** Directory containing library database. */
     @F val DIR_LIBRARY = DIR_USERDATA.childOf("library").initForApp()
     /** Directory containing persisted user ui. */
-    @F val DIR_LAYOUTS = DIR_APP.childOf("templates").initForApp()
+    @F val DIR_LAYOUTS_INIT = DIR_APP.childOf("templates").initForApp()
     /** Directory containing initial templates - persisted user ui bundled with the application. */
-    @F val DIR_LAYOUTS_INIT = DIR_USERDATA.childOf("layouts").initForApp()
+    @F val DIR_LAYOUTS = DIR_USERDATA.childOf("layouts").initForApp()
     /** Directory for application logging. */
     @F val DIR_LOG = DIR_USERDATA.childOf("log").initForApp()
     /** File for application configuration. */
@@ -178,9 +177,10 @@ class App: Application(), Configurable<Any> {
     /** Called just before this application is stopped when it is fully still running. Runs at most once. */
     val onStopping = Disposer()
     /** Application argument handler. */
-    val parameterProcessor = AppArgProcessor().initForApp()
+    val parameterProcessor = AppCli()
 
     init {
+//        parameterProcessor.process(listOf("--version"))
         parameterProcessor.process(fetchArguments())
     }
 
@@ -217,9 +217,6 @@ class App: Application(), Configurable<Any> {
     @C(name = "Animation FPS", info = "Update frequency in Hz for performance-heavy animations.")
     var animationFps by c(60.0).between(10.0, 60.0)
 
-    @C(name = "Normal mode", info = "Whether application loads into previous/default state or no state at all.")
-    var normalLoad by c(true)
-
     @C(name = "Developer mode", info = "Unlock developer features.")
     var developerMode by c(false)
 
@@ -252,13 +249,16 @@ class App: Application(), Configurable<Any> {
         logger.info { "JVM Args: ${fetchVMArguments()}" }
         logger.info { "App Args: ${fetchArguments()}" }
 
-        // Forbid multiple application instances, instead notify the 1st instance of 2nd (this one)
-        // trying to run and this instance's run parameters and close prematurely
         if (getInstances()>1) {
-            logger.info { "App will close prematurely: Multiple app instances detected" }
-            appCommunicator.fireNewInstanceEvent(fetchArguments())
-            closedPrematurely = true
-            return
+            logger.info { "Multiple app instances detected" }
+            if (loadSingleton) {
+                logger.info { "App will close and delegate parameters to already running instance" }
+                appCommunicator.fireNewInstanceEvent(fetchArguments())
+                closedPrematurely = true
+                return
+            } else {
+                loadStateful = false
+            }
         }
 
         classFields.initApp()
@@ -276,7 +276,6 @@ class App: Application(), Configurable<Any> {
         functors.init()
 
         // init app stuff
-        parameterProcessor.initForApp()
         search.initForApp()
         plugins.initForApp()
         appCommunicator.initForApp()
@@ -302,10 +301,6 @@ class App: Application(), Configurable<Any> {
             // install actions
             configuration.gatherActions(Player::class.java, null)
             configuration.gatherActions(PlaylistManager::class.java, null)
-            configuration.gatherActions(Thumbnail::class.java, null)
-            configuration.gatherActions(SearchAutoCancelable::class.java, null)
-            configuration.gatherActions(SwitchContainer::class.java, null)
-            configuration.gatherActions(Action::class.java, null)
             configuration.installActions(
                     this,
                     ui,
@@ -316,12 +311,8 @@ class App: Application(), Configurable<Any> {
 
             widgetManager.init()
             db.init()
-
             Player.initialize()
-
-            normalLoad = normalLoad && fetchArguments().none { it.endsWith(".fxwl") || widgetManager.factories.getComponentFactoryByGuiName(it).isOk }
-
-            windowManager.deserialize(normalLoad)
+            windowManager.deserialize()
         }.ifError {
             logger.error(it) { "Application failed to start" }
             logger.info { "Application closing prematurely" }
@@ -331,7 +322,7 @@ class App: Application(), Configurable<Any> {
                     "providing the logs in $DIR_LOG. The exact problem was:\n ${it.stacktraceAsString}"
             )
         }.ifOk {
-            if (normalLoad) Player.loadLastState() // initialize non critical parts
+            if (loadStateful) Player.loadLastState()
             runLater { onStarted() }
         }
     }
@@ -339,9 +330,9 @@ class App: Application(), Configurable<Any> {
     /** Starts this application normally if not yet started that way, otherwise has no effect. */
     @IsAction(name = "Start app normally", desc = "Loads last application state if not yet loaded.")
     fun startNormally() {
-        if (!normalLoad) {
-            normalLoad = true
-            windowManager.deserialize(true)
+        if (!loadStateful) {
+            loadStateful = true
+            windowManager.deserialize()
             Player.loadLastState()
         }
     }
@@ -373,8 +364,8 @@ class App: Application(), Configurable<Any> {
 
     private fun store() {
         if (isInitialized.isOk) {
-            if (normalLoad) Player.state.serialize()
-            if (normalLoad) windowManager.serialize()
+            if (loadStateful) Player.state.serialize()
+            if (loadStateful) windowManager.serialize()
             configuration.save(name, FILE_SETTINGS)
             services.getAllServices()
                     .filter { it.isRunning() }
@@ -388,13 +379,6 @@ class App: Application(), Configurable<Any> {
         logger.info { "Closing application" }
 
         Platform.exit()
-    }
-
-    /** Close this app abnormally, so next time this app does not start normally. Invokes [close] and then [stop]. */
-    @IsAction(name = "Close app abnormally", desc = "Next start up will not restore current state, but it can be done manually later.")
-    fun closeAbnormally() {
-        normalLoad = false
-        close()
     }
 
     /** @return arguments supplied to this application when it was launched */
@@ -414,20 +398,6 @@ class App: Application(), Configurable<Any> {
             .map { File("resources/icons/icon$it.png").toURI().toString() }
             .map { Image(it) }
             .toList()
-
-    private fun AppArgProcessor.initForApp() = apply {
-        this += FileArgProcessor({ it.isAudio() }, false)
-                { fs -> widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addFiles(fs) } }
-        this += FileArgProcessor({ it.isValidSkinFile() }, false)
-                { ui.setSkin(it[0]) }
-        this += FileArgProcessor({ it.isImage() }, false)
-                // { fs -> widgetManager.use(ImageDisplayFeature::class.java, NO_LAYOUT) { it.showImages(fs) } }
-                { fs -> fs.firstOrNull()?.let { actions.openImageFullscreen(it) } } // More convenient for user, add option to call one or the other
-        this += FileArgProcessor({ it hasExtension "fxwl" }, false)
-                { it.forEach { windowManager.launchComponent(it) } }
-        this += StringArgProcessor({ s -> widgetManager.factories.getFactories().any { it.nameGui()==s || it.name()==s } }, false)
-                { it.forEach { windowManager.launchComponent(it) } }
-    }
 
     private fun PluginManager.initForApp() {
         installPlugins(

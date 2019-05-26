@@ -45,7 +45,6 @@ import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
 import sp.it.util.conf.readOnlyIf
 import sp.it.util.conf.readOnlyUnless
-import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.Util.getCommonRoot
@@ -91,18 +90,6 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             )
     )
     ap.register<App>(
-            FastAction(
-                    "Export widgets",
-                    "Creates launcher file in the destination directory for every widget.\n"+
-                            "Launcher file is a file that when opened by this application opens the widget. "+
-                            "If application was not running before, it will not load normally, but will only "+
-                            "open the widget.\n"+"Essentially, this exports the widgets as 'standalone' applications.",
-                    IconMD.EXPORT,
-                    { app ->
-                        chooseFile("Export to...", FileType.DIRECTORY, app.DIR_LAYOUTS, ap.scene.window)
-                                .ifOk { dir -> app.widgetManager.factories.getFactories().forEach { it.create().exportFxwlDefault(dir) } }
-                    }
-            ),
             FastAction(IconMD.KEYBOARD_VARIANT, ActionRegistrar["Show shortcuts"]),
             FastAction(IconMD.INFORMATION_OUTLINE, ActionRegistrar["Show system info"]),
             FastAction(IconFA.GITHUB, ActionRegistrar["Open on Github"]),
@@ -154,7 +141,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
     ap.register<Component>(
             FastAction(
                     "Export",
-                    "Creates a launcher for this component. \n"+
+                    "Creates a launcher for this component with its current settings. \n"+
                     "Opening the launcher with this application will open this component with current settings "+
                     "as if it were a standalone application.",
                     IconMD.EXPORT,
@@ -166,6 +153,17 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
     )
     ap.register<Widget>(
             FastAction(
+                    "Export default",
+                    "Creates a launcher for this component with no settings. \n"+
+                    "Opening the launcher with this application will open this component with no settings "+
+                    "as if it were a standalone application. ",
+                    IconMD.EXPORT,
+                    { w ->
+                        saveFile("Export to...", APP.DIR_LAYOUTS, w.exportName, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
+                                .ifOk { w.exportFxwlDefault(it) }
+                    }
+            ),
+            FastAction(
                     "Use as default",
                     "Uses settings of this widget as default settings when creating widgets of this type. This " +
                     "overrides the default settings of the widget set by the developer. For using multiple widget " +
@@ -175,8 +173,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             ),
             FastAction(
                     "Clear default",
-                    "Removes overridden default settings for this widget. New widgets will start with settings set " +
-                    "by the developer.",
+                    "Removes any overridden default settings for this widget type. New widgets will start with no settings.",
                     IconMD.SETTINGS_BOX,
                     { it.clearDefaultConfigs() }
             )

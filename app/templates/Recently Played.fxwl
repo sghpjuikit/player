@@ -1,0 +1,45 @@
+<Widget id="21dab3b5-a97d-4500-a7fd-1b72469ab245" name="Library">
+  <properties serialization="custom">
+    <unserializable-parents/>
+    <map>
+      <default>
+        <loadFactor>0.75</loadFactor>
+        <threshold>12</threshold>
+      </default>
+      <int>16</int>
+      <int>3</int>
+      <string>configs</string>
+      <map>
+        <entry>
+          <string>tablezeropad</string>
+          <string>false</string>
+        </entry>
+        <entry>
+          <string>tableorigindex</string>
+          <string>false</string>
+        </entry>
+        <entry>
+          <string>tableshowheader</string>
+          <string>true</string>
+        </entry>
+        <entry>
+          <string>tableshowfooter</string>
+          <string>true</string>
+        </entry>
+        <entry>
+          <string>tableorient</string>
+          <string>INHERIT</string>
+        </entry>
+      </map>
+      <string>ioTo display</string>
+      <string>Song library,396d2407-7040-401e-8f85-56bc71288818</string>
+      <string>columns</string>
+      <string>Artist,5,true,266.0;First played,2,true,202.0;Category,38,false,60.0;Playcount,29,false,60.0;Discs info,8,true,117.0;Rating,31,false,60.0;Album,4,true,286.0;Filesize,38,false,60.0;Discs total,38,false,60.0;Channels,38,false,60.0;Format,38,false,60.0;Disc,38,false,60.0;Encoder,38,false,60.0;Added to library,10,false,209.0;Lyrics,38,false,60.0;Album artist,38,false,60.0;Rating raw,38,false,60.0;Tags,38,false,60.0;Path,38,false,160.0;Comment,38,false,60.0;Composer,38,false,60.0;#,0,true,55.54545211791992;Tracks total,38,false,60.0;Sample rate,38,false,60.0;Color,38,false,60.0;Title,3,true,358.0;Filename,38,false,60.0;Encoding,38,false,60.0;Publisher,38,false,60.0;Bitrate,38,false,60.0;Custom4,38,false,60.0;Custom3,38,false,60.0;Custom2,38,false,60.0;Custom1,38,false,60.0;Mood,38,false,60.0;Year,38,false,60.0;Length,6,true,92.0;Custom5,38,false,60.0;Last played,1,true,208.0;Track info,7,true,116.0;Genre,38,false,60.0;Track,38,false,60.0+Last played,DESCENDING</string>
+    </map>
+  </properties>
+  <loadType propertyClass="Loading">AUTOMATIC</loadType>
+  <locked class="javafx.beans.property.SimpleBooleanProperty">false</locked>
+  <preferred propertyClass="boolean">false</preferred>
+  <forbid__use propertyClass="boolean">false</forbid__use>
+  <custom__name propertyClass="string">Library</custom__name>
+</Widget>

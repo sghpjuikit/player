@@ -155,9 +155,11 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
         // external factories for .fxwl widgets - serialized widgets
         val dirL = APP.DIR_LAYOUTS
+        val dirLinit = APP.DIR_LAYOUTS_INIT
         if (!isValidatedDirectory(dirL)) {
             logger.error { "External .fxwl widgets registration failed." }
         } else {
+            dirLinit.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
             dirL.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
 
             FileMonitor.monitorDirectory(dirL, true, { it hasExtension "fxwl" }) { type, f ->

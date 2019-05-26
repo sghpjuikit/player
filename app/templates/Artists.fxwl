@@ -1,0 +1,53 @@
+<Widget id="1b59148b-d3dc-41c9-b8ea-584901c53dcd" name="LibraryView">
+  <properties serialization="custom">
+    <unserializable-parents/>
+    <map>
+      <default>
+        <loadFactor>0.75</loadFactor>
+        <threshold>12</threshold>
+      </default>
+      <int>16</int>
+      <int>3</int>
+      <string>configs</string>
+      <map>
+        <entry>
+          <string>fieldfilter</string>
+          <string>Artist</string>
+        </entry>
+        <entry>
+          <string>tablezeropad</string>
+          <string>false</string>
+        </entry>
+        <entry>
+          <string>tableorigindex</string>
+          <string>false</string>
+        </entry>
+        <entry>
+          <string>tableshowheader</string>
+          <string>true</string>
+        </entry>
+        <entry>
+          <string>sellast</string>
+          <string>&lt;any&gt;</string>
+        </entry>
+        <entry>
+          <string>tableshowfooter</string>
+          <string>true</string>
+        </entry>
+        <entry>
+          <string>tableorient</string>
+          <string>INHERIT</string>
+        </entry>
+      </map>
+      <string>ioTo display</string>
+      <string>Song library,396d2407-7040-401e-8f85-56bc71288818</string>
+      <string>columns</string>
+      <string>#,0,true,46.09090805053711;Year,21,false,70.0;Length,5,true,70.0;W rating,21,false,70.0;Size,6,true,115.0;Artist,1,true,569.6090919494629;Items,2,true,70.0;Avg rating,4,true,98.0;Albums,3,true,70.0+Artist,DESCENDING</string>
+    </map>
+  </properties>
+  <loadType propertyClass="Loading">AUTOMATIC</loadType>
+  <locked class="javafx.beans.property.SimpleBooleanProperty">false</locked>
+  <preferred propertyClass="boolean">false</preferred>
+  <forbid__use propertyClass="boolean">false</forbid__use>
+  <custom__name propertyClass="string">LibraryView</custom__name>
+</Widget>

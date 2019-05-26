@@ -156,8 +156,10 @@ class App: Application(), Configurable<Any> {
     @F val DIR_USERDATA = DIR_APP.childOf("user").initForApp()
     /** Directory containing library database. */
     @F val DIR_LIBRARY = DIR_USERDATA.childOf("library").initForApp()
-    /** Directory containing user gui state. */
-    @F val DIR_LAYOUTS = DIR_USERDATA.childOf("layouts").initForApp()
+    /** Directory containing persisted user ui. */
+    @F val DIR_LAYOUTS = DIR_APP.childOf("templates").initForApp()
+    /** Directory containing initial templates - persisted user ui bundled with the application. */
+    @F val DIR_LAYOUTS_INIT = DIR_USERDATA.childOf("layouts").initForApp()
     /** Directory for application logging. */
     @F val DIR_LOG = DIR_USERDATA.childOf("log").initForApp()
     /** File for application configuration. */

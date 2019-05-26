@@ -33,7 +33,7 @@ class AppCli {
 
 }
 
-class Cli: CliktCommand(name = "PlayerFx", invokeWithoutSubcommand = true) {
+private class Cli: CliktCommand(name = "PlayerFx", invokeWithoutSubcommand = true) {
     val version = versionOption("Application version=${APP.version}")
     val stateless by option(help = "Whether application starts with a state. If true, state is not restored on start or stored on close")
             .flag("stateless-off", default = false)

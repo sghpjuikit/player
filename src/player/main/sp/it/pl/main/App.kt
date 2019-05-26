@@ -41,16 +41,14 @@ import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.plugin.Plugin
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.appsearch.AppSearchPlugin
+import sp.it.pl.plugin.database.SongDb
 import sp.it.pl.plugin.dirsearch.DirSearchPlugin
 import sp.it.pl.plugin.library.LibraryWatcher
+import sp.it.pl.plugin.notif.Notifier
+import sp.it.pl.plugin.playcount.PlaycountIncrementer
 import sp.it.pl.plugin.screenrotator.ScreenRotator
+import sp.it.pl.plugin.tray.TrayPlugin
 import sp.it.pl.plugin.waifu2k.Waifu2kPlugin
-import sp.it.pl.service.Service
-import sp.it.pl.service.ServiceManager
-import sp.it.pl.service.database.SongDb
-import sp.it.pl.service.notif.Notifier
-import sp.it.pl.service.playcount.PlaycountIncrementer
-import sp.it.pl.service.tray.TrayService
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.ActionManager
@@ -180,7 +178,6 @@ class App: Application(), Configurable<Any> {
     val parameterProcessor = AppCli()
 
     init {
-//        parameterProcessor.process(listOf("--version"))
         parameterProcessor.process(fetchArguments())
     }
 
@@ -238,9 +235,7 @@ class App: Application(), Configurable<Any> {
     @F val widgetManager = WidgetManager({ ui.messagePane.orBuild.show(it) })
     /** Manages windows. */
     @F val windowManager = WindowManager()
-    /** Manages services. */
-    @F val services = ServiceManager()
-    /** Manages services. */
+    /** Manages plugins. */
     @F val plugins = PluginManager()
 
     override fun init() {
@@ -277,7 +272,6 @@ class App: Application(), Configurable<Any> {
 
         // init app stuff
         search.initForApp()
-        plugins.initForApp()
         appCommunicator.initForApp()
 
         // start parts that can be started from non application fx thread
@@ -294,9 +288,7 @@ class App: Application(), Configurable<Any> {
         }
 
         isInitialized = runTry {
-            services += TrayService()
-            services += Notifier()
-            services += PlaycountIncrementer()
+            plugins.initForApp()
 
             // install actions
             configuration.gatherActions(Player::class.java, null)
@@ -305,8 +297,7 @@ class App: Application(), Configurable<Any> {
                     this,
                     ui,
                     actions,
-                    windowManager,
-                    services.getAllServices().toList()
+                    windowManager
             )
 
             widgetManager.init()
@@ -367,9 +358,7 @@ class App: Application(), Configurable<Any> {
             if (loadStateful) Player.state.serialize()
             if (loadStateful) windowManager.serialize()
             configuration.save(name, FILE_SETTINGS)
-            services.getAllServices()
-                    .filter { it.isRunning() }
-                    .forEach { it.stop() }
+            plugins.getAll().forEach { if (it.isRunning()) it.stop() }
         }
     }
 
@@ -401,6 +390,9 @@ class App: Application(), Configurable<Any> {
 
     private fun PluginManager.initForApp() {
         installPlugins(
+                TrayPlugin(),
+                Notifier(),
+                PlaycountIncrementer(),
                 LibraryWatcher(),
                 AppSearchPlugin(),
                 DirSearchPlugin(),
@@ -461,7 +453,6 @@ class App: Application(), Configurable<Any> {
         add(PlaylistSong::class.java, "Playlist Song")
         add(Metadata::class.java, "Library Song")
         add(MetadataGroup::class.java, "Song Group")
-        add(Service::class.java, "Service")
         add(Plugin::class.java, "Plugin")
         add(Widget::class.java, "Widget")
         add(Container::class.java, "Container")
@@ -480,7 +471,6 @@ class App: Application(), Configurable<Any> {
         add(PlaylistSong::class.java) { it.getTitle() }
         add(Metadata::class.java) { it.getTitleOrEmpty() }
         add(MetadataGroup::class.java) { it.getValueS("<none>") }
-        add(Service::class.java) { it.name }
         add(Plugin::class.java) { it.name }
         add(Component::class.java) { it.exportName }
         add(Feature::class.java) { "Feature" }

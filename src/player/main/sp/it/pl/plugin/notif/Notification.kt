@@ -1,4 +1,4 @@
-package sp.it.pl.service.notif
+package sp.it.pl.plugin.notif
 
 import javafx.scene.Node
 import javafx.scene.input.MouseButton.PRIMARY

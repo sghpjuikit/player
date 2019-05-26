@@ -9,7 +9,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.findAudio
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
-import sp.it.pl.service.notif.Notifier
+import sp.it.pl.plugin.notif.Notifier
 import sp.it.util.action.IsAction
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.runGet
@@ -123,7 +123,7 @@ class LibraryWatcher: PluginBase("Song Library", false) {
         toBeAdded.clear()
         toBeRemoved.clear()
 
-        APP.services.use<Notifier> {
+        APP.plugins.use<Notifier> {
             it.showTextNotification(
                     "Some song files in library changed"+
                             "\n\tAdded: ${toAdd.size of "file"}"+

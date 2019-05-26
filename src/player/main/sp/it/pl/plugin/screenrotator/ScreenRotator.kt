@@ -57,6 +57,8 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
     @IsConfig(name = "Open help", info = "Open technical usage help")
     private val openHelpDo by cr { openHelp() }
 
+    override fun isSupported() = Os.WINDOWS.isCurrent
+
     override fun onStart() = APP.configuration.collect(actions)
 
     override fun onStop() = APP.configuration.drop(actions)

@@ -1,4 +1,4 @@
-package sp.it.pl.service.tray
+package sp.it.pl.plugin.tray
 
 import javafx.scene.control.ContextMenu
 import javafx.scene.input.MouseButton.BACK
@@ -14,7 +14,7 @@ import mu.KLogging
 import sp.it.pl.audio.Player
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.main.APP
-import sp.it.pl.service.ServiceBase
+import sp.it.pl.plugin.PluginBase
 import sp.it.util.async.runAwt
 import sp.it.util.async.runFX
 import sp.it.util.conf.EditMode
@@ -38,7 +38,7 @@ import java.io.File
 import java.io.IOException
 
 /** Provides tray facilities, such as tray icon, tray tooltip, tray click actions or tray bubble notification. */
-class TrayService: ServiceBase("Tray", true) {
+class TrayPlugin: PluginBase("Tray", true) {
 
     private var tooltipText = APP.name
     @IsConfig(name = "Show tooltip", info = "Enables tooltip displayed when mouse hovers tray icon.")

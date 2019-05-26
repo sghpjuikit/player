@@ -1,4 +1,4 @@
-package sp.it.pl.service.database
+package sp.it.pl.plugin.database
 
 import mu.KLogging
 import sp.it.pl.audio.MetadatasDB

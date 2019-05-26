@@ -49,7 +49,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.isValidSkinFile
 import sp.it.pl.main.isValidWidgetFile
-import sp.it.pl.service.Service
+import sp.it.pl.plugin.Plugin
 import sp.it.util.HierarchicalBase
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.toggle
@@ -143,7 +143,7 @@ fun treeApp(): TreeItem<Any> {
                             tree("Open", { seqOf(ANY, OPEN_LAYOUT, OPEN_STANDALONE) }),
                             tree("Features", { APP.widgetManager.factories.getFeatures().sortedBy { it.name } })
                     ),
-                    tree("Services", { APP.services.getAllServices().sortedBy { it.name } })
+                    tree("Plugins", { APP.plugins.getAll().sortedBy { it.name } })
             ),
             tree("UI",
                     tree("Windows", FilteredList(Stage.getWindows()) { it !is Tooltip && it !is ContextMenu }),
@@ -239,7 +239,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
     private fun computeText(o: Any?): String = when {
         o==null -> "<none>"
         o is Component -> o.name
-        o is Service -> o.name
+        o is Plugin -> o.name
         o is WidgetFactory<*> -> o.nameGui()
         o::class.java.isEnum -> enumToHuman(o.toString())
         o is File -> o.nameOrRoot

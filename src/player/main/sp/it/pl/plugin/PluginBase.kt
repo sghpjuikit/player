@@ -16,14 +16,22 @@ abstract class PluginBase(override val name: String, isEnabledByDefault: Boolean
     private var isRunning = false
 
     private fun enable(isToBeRunning: Boolean) {
-        val preInitOk = isToBeRunning && sequenceOf(location, userLocation)
-                .all { isValidatedDirectory(it) }
-                .ifFalse { APP.ui.messagePane.orBuild.show("Directory $location or $userLocation can not be used.") }
-        val v = isToBeRunning && preInitOk
-        val action = if (v) "starting" else "stopping"
+        val wasRunning = isRunning()
+        if (wasRunning==isToBeRunning) return
 
-        logger.info { "Plugin $name $action..." }
-        activate(v)
+        if (isToBeRunning && isSupported()) {
+            logger.info { "Plugin $name starting..." }
+
+            val canBeRunning = isSupported() && sequenceOf(location, userLocation).all { isValidatedDirectory(it) }
+                    .ifFalse { APP.ui.messagePane.orBuild.show("Directory $location or $userLocation can not be used.") }
+
+            if (canBeRunning) start()
+            else logger.error { "Plugin $name could not start..." }
+        }
+        if (!isToBeRunning) {
+            logger.info { "Plugin $name stopping..." }
+            stop()
+        }
     }
 
     @Idempotent
@@ -39,9 +47,9 @@ abstract class PluginBase(override val name: String, isEnabledByDefault: Boolean
         if (wasRunning) onStop()
     }
 
-    internal abstract fun onStart()
+    open fun onStart() = Unit
 
-    internal abstract fun onStop()
+    open fun onStop() = Unit
 
     override fun isRunning() = isRunning
 

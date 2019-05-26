@@ -1,4 +1,4 @@
-package sp.it.pl.service.playcount
+package sp.it.pl.plugin.playcount
 
 import javafx.util.Duration.seconds
 import sp.it.pl.audio.Player
@@ -7,15 +7,15 @@ import sp.it.pl.audio.playback.PlayTimeHandler.Companion.at
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.write
 import sp.it.pl.main.APP
-import sp.it.pl.service.ServiceBase
-import sp.it.pl.service.notif.Notifier
-import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.MANUAL
-import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_END
-import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_PERCENT
-import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_START
-import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME
-import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_AND_PERCENT
-import sp.it.pl.service.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_OR_PERCENT
+import sp.it.pl.plugin.PluginBase
+import sp.it.pl.plugin.notif.Notifier
+import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.MANUAL
+import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_END
+import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_PERCENT
+import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_START
+import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME
+import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_AND_PERCENT
+import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_OR_PERCENT
 import sp.it.util.action.IsAction
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.between
@@ -29,7 +29,7 @@ import sp.it.util.units.times
 import java.util.ArrayList
 
 /** Playcount incrementing service. */
-class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
+class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
 
     @IsConfig(name = "Incrementing strategy", info = "Playcount strategy for incrementing playback.")
     val whenStrategy by cv(ON_TIME) attach { applyStrategy() }
@@ -77,12 +77,12 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
             if (delay.value) {
                 queue += m
                 if (showNotificationSchedule.value)
-                    APP.services.use<Notifier> { it.showTextNotification("Song playcount incrementing scheduled", "Playcount") }
+                    APP.plugins.use<Notifier> { it.showTextNotification("Song playcount incrementing scheduled", "Playcount") }
             } else {
                 val pc = 1+m.getPlaycountOr0()
                 m.write({ it.setPlaycount(pc) }) {
                     if (it.isOk && showNotificationUpdate.value)
-                        APP.services.use<Notifier> { it.showTextNotification("Song playcount incremented by 1 to: $pc", "Playcount") }
+                        APP.plugins.use<Notifier> { it.showTextNotification("Song playcount incremented by 1 to: $pc", "Playcount") }
                 }
             }
         }
@@ -128,7 +128,7 @@ class PlaycountIncrementer: ServiceBase("Playcount Incrementer", false) {
             val pc = by+m.getPlaycountOr0()
             m.write({ it.setPlaycount(pc) }) {
                 if (it.isOk && showNotificationUpdate.value)
-                    APP.services.use<Notifier> { it.showTextNotification("Song playcount incremented by: $by to: $pc", "Playcount") }
+                    APP.plugins.use<Notifier> { it.showTextNotification("Song playcount incremented by: $by to: $pc", "Playcount") }
             }
         }
     }

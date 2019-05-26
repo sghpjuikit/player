@@ -42,9 +42,6 @@ object Settings {
             const val name = "${Ui.name}.Dock"
         }
     }
-    object Service {
-        const val name = "Services"
-    }
     object Plugin {
         const val name = "Plugins"
     }

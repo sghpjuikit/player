@@ -1,4 +1,4 @@
-package sp.it.pl.service.notif
+package sp.it.pl.plugin.notif
 
 import javafx.scene.Node
 import javafx.scene.layout.Pane
@@ -17,7 +17,7 @@ import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.hasFeature
 import sp.it.pl.main.APP
-import sp.it.pl.service.ServiceBase
+import sp.it.pl.plugin.PluginBase
 import sp.it.util.access.VarAction
 import sp.it.util.action.IsAction
 import sp.it.util.conf.EditMode
@@ -32,7 +32,7 @@ import sp.it.util.ui.stackPane
 import sp.it.util.units.millis
 
 /** Provides notification functionality. */
-class Notifier: ServiceBase("Notifications", true) {
+class Notifier: PluginBase("Notifications", true) {
     @IsConfig(name = "On playback status change")
     var showStatusNotification by c(true)
     @IsConfig(name = "On playing song change")

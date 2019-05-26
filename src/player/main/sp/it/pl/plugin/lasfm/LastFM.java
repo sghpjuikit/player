@@ -1,4 +1,4 @@
-package sp.it.pl.service.lasfm;
+package sp.it.pl.plugin.lasfm;
 
 import de.umass.lastfm.Authenticator;
 import de.umass.lastfm.Caller;
@@ -29,7 +29,7 @@ import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.functional.UtilKt.consumer;
 
 @Experimental(reason = "Work in progress")
-@IsConfigurable("Services.LastFM")
+@IsConfigurable("Plugins.LastFM")
 public class LastFM {
 
 	private static String username;

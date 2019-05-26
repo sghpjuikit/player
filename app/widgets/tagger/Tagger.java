@@ -68,7 +68,7 @@ import sp.it.pl.layout.widget.feature.SongReader;
 import sp.it.pl.layout.widget.feature.SongWriter;
 import sp.it.pl.main.AppProgress;
 import sp.it.pl.main.Widgets;
-import sp.it.pl.service.notif.Notifier;
+import sp.it.pl.plugin.notif.Notifier;
 import sp.it.util.access.V;
 import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.conf.IsConfig;
@@ -514,7 +514,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
             consumer(items -> {
                 writing = false;
                 populate(items);
-                APP.services.use(Notifier.class, s -> s.showTextNotification("Tagging complete", Widgets.SONG_TAGGER));
+                APP.plugins.use(Notifier.class, s -> s.showTextNotification("Tagging complete", Widgets.SONG_TAGGER));
             })
         );
 

@@ -10,6 +10,7 @@ import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cvn
 import sp.it.util.conf.only
 import sp.it.util.reactive.attach
+import sp.it.util.system.Os
 import sp.it.util.system.runAsProgram
 import sp.it.util.validation.Constraint.FileActor.FILE
 import java.io.File
@@ -27,6 +28,8 @@ class Waifu2kPlugin: PluginBase("Waifu2k", false) {
                 false
         )
     }
+
+    override fun isSupported() = Os.WINDOWS.isCurrent
 
     override fun onStart() = APP.configuration.collect(action)
 
@@ -53,4 +56,5 @@ class Waifu2kPlugin: PluginBase("Waifu2k", false) {
             }
         }
     }
+
 }

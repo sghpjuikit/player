@@ -8,7 +8,7 @@ import sp.it.util.conf.MultiConfigurable
 import sp.it.util.dev.Idempotent
 import sp.it.util.file.div
 
-/** Plugin is like Service, but with no API to consume so developer never uses it directly. */
+/** Plugin is configurable start/stoppable component. */
 interface Plugin: Configurable<Any>, MultiConfigurable, Locatable {
 
     val name: String
@@ -25,5 +25,7 @@ interface Plugin: Configurable<Any>, MultiConfigurable, Locatable {
     fun isRunning(): Boolean
 
     fun activate(active: Boolean) = if (active) start() else stop()
+
+    fun isSupported() = true
 
 }

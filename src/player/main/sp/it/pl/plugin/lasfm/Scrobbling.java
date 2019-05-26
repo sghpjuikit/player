@@ -1,4 +1,4 @@
-package sp.it.pl.service.lasfm;
+package sp.it.pl.plugin.lasfm;
 
 import de.umass.lastfm.Session;
 import de.umass.lastfm.Track;

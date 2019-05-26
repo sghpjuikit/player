@@ -310,7 +310,7 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.Plugi
                 +"\n\t• Core"
                 +"\n\t• Behavior"
                 +"\n\t\t• Widgets"
-                +"\n\t\t• Services"
+                +"\n\t\t• Plugins"
                 +"\n\t• UI (user interface) layout"
                 +"\n\t\t• Windows"
                 +"\n\t\t• Components"

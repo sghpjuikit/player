@@ -2,9 +2,10 @@ package sp.it.pl.gui.nodeinfo
 
 import javafx.scene.control.Labeled
 import javafx.scene.control.TableView
-import sp.it.util.reactive.Disposer
-import sp.it.util.reactive.on
+import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onChange
+import sp.it.util.reactive.plus
+import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.text.pluralUnit
 import kotlin.properties.Delegates.observable
 
@@ -16,7 +17,7 @@ import kotlin.properties.Delegates.observable
 class TableInfo<E>: NodeInfo<TableView<E>> {
 
     private var updateText = {}
-    private val listMonitorDisposer = Disposer()
+    private var listMonitorDisposer: Subscription? = null
     /** The graphical text element */
     val node: Labeled
     /**
@@ -43,19 +44,21 @@ class TableInfo<E>: NodeInfo<TableView<E>> {
 
     override fun bind(bindable: TableView<E>) {
         unbind()
+        listMonitorDisposer = bindable.itemsProperty().syncNonNullWhile {
+            val listAll = it
+            val listSelected = bindable.selectionModel.selectedItems
+            updateText = { updateText(bindable.items, listSelected) }
 
-        val listAll = bindable.items
-        val listSelected = bindable.selectionModel.selectedItems
-        updateText = { updateText(listAll, listSelected) }
-
-        updateText()
-        listAll.onChange(updateText) on listMonitorDisposer
-        listSelected.onChange(updateText) on listMonitorDisposer
-        listMonitorDisposer += { updateText = {} }
+            updateText()
+            val s1 = listAll.onChange(updateText)
+            val s2 = listSelected.onChange(updateText)
+            s1+s2
+        }
     }
 
     override fun unbind() {
-        listMonitorDisposer()
+        listMonitorDisposer?.unsubscribe()
+        updateText = {}
     }
 
     /**
@@ -73,11 +76,10 @@ class TableInfo<E>: NodeInfo<TableView<E>> {
     companion object {
 
         /** Default text factory. Provides texts like 'All: 1 item' or 'Selected: 89 items'. */
-        @JvmField
         val DEFAULT_TEXT_FACTORY: (Boolean, List<*>) -> String = { isSelectionEmpty, list ->
             val prefix = if (isSelectionEmpty) "All: " else "Selected: "
             val size = list.size
-            "$prefix " + "item".pluralUnit(size)
+            "$prefix "+"item".pluralUnit(size)
         }
 
     }

@@ -453,24 +453,28 @@ class WindowManager {
         return p
     }
 
-    fun launchComponent(launcher: File) = instantiateComponent(launcher)?.apply(::launchComponent)
+    fun launchComponent(name: String): Component? = instantiateComponent(name)?.apply(::launchComponent)
+
+    fun launchComponent(launcher: File): Component? = instantiateComponent(launcher)?.apply(::launchComponent)
 
     fun launchComponent(c: Component) {
         if (windows.isEmpty()) getActiveOrNew().setContent(c)
         else showWindow(c)
     }
 
+    fun instantiateComponent(name: String): Component? {
+        val f = null
+                ?: APP.widgetManager.factories.getComponentFactoryByGuiName(name).orNull()
+                ?: APP.widgetManager.factories.getFactory(name)
+        return f?.create()
+    }
+
     fun instantiateComponent(launcher: File): Component? {
         if (!launcher.exists()) return null
         val isLauncherEmpty = launcher.useLines { it.count()==1 }
-        return if (isLauncherEmpty) {
-            val name = launcher.readTextTry().getOr("")
-            val f = null
-                    ?: APP.widgetManager.factories.getComponentFactoryByGuiName(name).orNull()
-                    ?: APP.widgetManager.factories.getFactory(name)
-            f?.create()
-        } else
-            APP.serializerXml.fromXML(Component::class.java, launcher).orNull()
+
+        return if (isLauncherEmpty) instantiateComponent(launcher.readTextTry().getOr(""))
+        else APP.serializerXml.fromXML(Component::class.java, launcher).orNull()
     }
 
     companion object: KLogging()

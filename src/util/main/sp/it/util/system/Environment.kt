@@ -51,15 +51,15 @@ fun copyToSysClipboard(df: DataFormat, o: Any?) = o?.let { Clipboard.getSystemCl
  * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
  */
 @JvmOverloads
-fun File.runAsProgram(vararg arguments: String, then: (Process) -> Unit = {}): Fut<Try<Process, Exception>> {
+fun File.runAsProgram(vararg arguments: String, then: (ProcessBuilder) -> Unit = {}): Fut<Try<Process, Exception>> {
     return runNew {
         val commandRaw = listOf(absoluteFile.path, *arguments)
         val command = runAsProgramArgsTransformer(commandRaw)
         try {
             val process = ProcessBuilder(command)
                     .directory(parentDirOrRoot)
-                    .start()
                     .apply(then)
+                    .start()
 
             Try.ok(process)
         } catch (e: IOException) {

@@ -15,6 +15,7 @@ import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.dev.fail
+import sp.it.util.functional.orNull
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
@@ -131,7 +132,7 @@ object ActionManager {
      * Does nothing if not supported.
      */
     private fun startGlobalListening() {
-        hotkeys.start()
+        hotkeys.value.start()
     }
 
     /**
@@ -142,7 +143,7 @@ object ActionManager {
      * because bgr listening thread will not close.
      */
     private fun stopGlobalListening() {
-        hotkeys.stop()
+        hotkeys.orNull()?.stop()
     }
 
     /** Invokes immediately before [Action.run]. */
@@ -152,7 +153,7 @@ object ActionManager {
 }
 
 object ActionRegistrar {
-    val hotkeys by lazy { Hotkeys { Platform.runLater(it) } }
+    val hotkeys = lazy { Hotkeys { Platform.runLater(it) } }
 
     private val actions = MapSet<String, Action>(ConcurrentHashMap()) { it.name }.apply {
         this += Action.NONE

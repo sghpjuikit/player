@@ -18,6 +18,7 @@ import static kotlin.text.StringsKt.replace;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.functional.Util.setRO;
+import static sp.it.util.functional.UtilKt.orNull;
 
 /**
  * Behavior with a name and possible shortcut.
@@ -262,11 +263,12 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 
 	private void registerGlobal() {
 		if (!ActionManager.INSTANCE.isActionListening()) return; // make sure there is no illegal state
-		ActionRegistrar.INSTANCE.getHotkeys().register(this, getKeys());
+		ActionRegistrar.INSTANCE.getHotkeys().getValue().register(this, getKeys());
 	}
 
 	private void unregisterGlobal() {
-		ActionRegistrar.INSTANCE.getHotkeys().unregister(this);
+		var ar = orNull(ActionRegistrar.INSTANCE.getHotkeys());
+		if (ar!=null) ar.unregister(this);
 	}
 
 	private KeyCombination getKeysForLocalRegistering() {

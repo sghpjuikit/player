@@ -109,7 +109,7 @@ class WindowManager {
     private var dockHiddenWindows = ArrayList<Window>()
     private val dockToggleWindows = v(true).apply {
         attach {
-            if (APP.loadStateful) {
+            if (APP.isStateful) {
                 if (it) {
                     dockHiddenWindows.forEach { it.show() }
                 } else {
@@ -236,7 +236,7 @@ class WindowManager {
     }
 
     private fun showDockImpl(enable: Boolean) {
-        if (!APP.loadStateful) return
+        if (!APP.isStateful) return
         if (!APP.isInitialized.isOk) {
             APP.onStarted += { showDockImpl(enable) }
             return
@@ -365,7 +365,7 @@ class WindowManager {
 
     fun deserialize() {
         val ws = mutableSetOf<Window>()
-        if (APP.loadStateful) {
+        if (APP.isStateful) {
             val dir = File(APP.DIR_LAYOUTS, "current")
             if (isValidatedDirectory(dir)) {
                 val fs = dir.listChildren().filter { it.path.endsWith(".ws") }.toList()
@@ -378,7 +378,7 @@ class WindowManager {
         }
 
         if (ws.isEmpty()) {
-            if (APP.loadStateful)
+            if (APP.isStateful)
                 createWindow(true)
         } else {
             ws.forEach { w -> addEventHandler1Time<WindowEvent>(w.s, WINDOW_SHOWING) { w.update() } }

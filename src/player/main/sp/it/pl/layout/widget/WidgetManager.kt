@@ -21,6 +21,7 @@ import sp.it.pl.layout.widget.WidgetSource.OPEN_STANDALONE
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
+import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.thenWithAppProgress
 import sp.it.util.access.Values
 import sp.it.util.access.v
@@ -91,6 +92,7 @@ import kotlin.math.ceil
 import kotlin.streams.asSequence
 import kotlin.streams.asStream
 import kotlin.streams.toList
+import kotlin.text.Charsets.UTF_8
 
 /** Handles operations with Widgets. */
 class WidgetManager(private val userErrorLogger: (String) -> Unit) {
@@ -314,6 +316,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
         private fun compileFx() {
             failIfNotFxThread()
+            if (APP.rank==SLAVE) return
 
             factories.factoriesInCompilation += widgetName
             fut().thenWithAppProgress(compilerThread, "Compiling $widgetName") {
@@ -369,8 +372,8 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
             val streamStdErr = ByteArrayOutputStream(1000)
             val success = compiler.run(null, streamStdOut, streamStdErr, *arguments)
             val isSuccess = success==0
-            val textStdOut = streamStdOut.toString(Charsets.UTF_8).prettifyCompilerOutput()
-            val textStdErr = streamStdErr.toString(Charsets.UTF_8).prettifyCompilerOutput()
+            val textStdOut = streamStdOut.toString(UTF_8).prettifyCompilerOutput()
+            val textStdErr = streamStdErr.toString(UTF_8).prettifyCompilerOutput()
 
             return if (isSuccess) {
                 logger.info { "Compilation succeeded$textStdOut" }
@@ -408,8 +411,8 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
                 process.waitFor(1, TimeUnit.MINUTES)
 
                 val success = process.exitValue()
-                val textStdout = process.inputStream.bufferedReader(Charsets.UTF_8).readText().prettifyCompilerOutput()
-                val textStdErr = process.errorStream.bufferedReader(Charsets.UTF_8).readText().prettifyCompilerOutput()
+                val textStdout = process.inputStream.bufferedReader(UTF_8).readText().prettifyCompilerOutput()
+                val textStdErr = process.errorStream.bufferedReader(UTF_8).readText().prettifyCompilerOutput()
                 val isSuccess = success==0
 
                 return if (isSuccess) {

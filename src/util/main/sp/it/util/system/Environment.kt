@@ -53,17 +53,13 @@ fun copyToSysClipboard(df: DataFormat, o: Any?) = o?.let { Clipboard.getSystemCl
 @JvmOverloads
 fun File.runAsProgram(vararg arguments: String, then: (ProcessBuilder) -> Unit = {}): Fut<Try<Process, Exception>> {
     return runNew {
-        val commandRaw = listOf(absoluteFile.path, *arguments)
+        val commandRaw = listOf(absolutePath, *arguments)
         val command = runAsProgramArgsTransformer(commandRaw)
         try {
-            val process = ProcessBuilder(command)
-                    .directory(parentDirOrRoot)
-                    .apply(then)
-                    .start()
-
+            val process = ProcessBuilder(command).directory(parentDirOrRoot).apply(then).start()
             Try.ok(process)
         } catch (e: IOException) {
-            logger.error(e) { "Failed to launch program" }
+            logger.error(e) { "Failed to launch program $absolutePath" }
             Try.error(e)
         }
     }

@@ -10,11 +10,13 @@ import sp.it.util.file.div
 import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDir
 import sp.it.util.functional.net
+import sp.it.util.functional.runTry
 import java.io.File
 import java.io.IOException
 import java.net.URI
 import java.net.URISyntaxException
 import java.nio.charset.Charset
+import kotlin.text.Charsets.UTF_8
 
 private const val EXTM3U = "#EXTM3U"
 private const val EXTINF = "#EXTINF"
@@ -28,13 +30,12 @@ fun readPlaylist(file: File): List<Song> {
     val location = file.parentDir ?: fail { "File=$file is not a playlist file" }
     val encoding = when {
         file hasExtension "m3u" -> Charset.defaultCharset()
-        file hasExtension "m3u8" -> Charsets.UTF_8
+        file hasExtension "m3u8" -> UTF_8
         else -> fail { "File=$file is not a supported playlist file" }
     }
 
-    file.useLines(encoding) { lines ->
-        return lines
-            .filter { !it.startsWith("#") && it.isNotEmpty() }
+    return file.useLines(encoding) {
+        it.filter { !it.startsWith("#") && it.isNotEmpty() }
             .flatMap {
                 null
                     ?: it.toURIOrNull()?.net { sequenceOf(SimpleSong(it)) }
@@ -54,10 +55,14 @@ fun writePlaylist(playlist: List<Song>, name: String, dir: File) {
     failIfFxThread()
 
     val file = dir/"$name.m3u8"
-    file.bufferedWriter(Charsets.UTF_8).use { writer ->
-        playlist.forEach {
-            writer.appendln(it.uri.toString())
+    runTry {
+        file.bufferedWriter(UTF_8).use { w ->
+            playlist.forEach {
+                w.appendln(it.uri.toString())
+            }
         }
+    }.ifError {
+        logger.error(it) { "Failed to write playlist file=$file" }
     }
 }
 

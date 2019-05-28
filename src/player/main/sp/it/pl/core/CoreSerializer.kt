@@ -2,10 +2,11 @@ package sp.it.pl.core
 
 import mu.KotlinLogging
 import sp.it.pl.main.APP
+import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.util.async.threadFactory
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
-import sp.it.util.file.childOf
+import sp.it.util.file.div
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.ObjectInputStream
@@ -43,7 +44,7 @@ object CoreSerializer: Core {
      */
     @Blocks
     inline fun <reified T: Serializable> readSingleStorage(): T? {
-        val f = APP.DIR_LIBRARY.childOf(T::class.simpleName ?: T::class.jvmName)
+        val f = APP.DIR_LIBRARY/(T::class.simpleName ?: T::class.jvmName)
 
         if (!f.exists()) return null
 
@@ -63,11 +64,12 @@ object CoreSerializer: Core {
      * Serializes single instance of this type from file.
      * * there can only be one object of the erased type of this type (e.g. List<A> and List<B> produce same type)
      * * any previously stored object is overwritten
-     *
      */
     @Blocks
     inline fun <reified T: Serializable> writeSingleStorage(o: T) {
-        val f = APP.DIR_LIBRARY.childOf(T::class.simpleName ?: T::class.jvmName)
+        if (APP.rank==SLAVE) return
+
+        val f = APP.DIR_LIBRARY/(T::class.simpleName ?: T::class.jvmName)
         try {
             FileOutputStream(f).use {
                 ObjectOutputStream(it).use {

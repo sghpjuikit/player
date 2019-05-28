@@ -39,8 +39,6 @@ class CoreConverter: Core {
         general.init()
     }
 
-    override fun dispose() {}
-
     @Suppress("RemoveExplicitTypeArguments")
     private fun ConverterDefault.init() = apply {
 

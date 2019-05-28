@@ -38,6 +38,8 @@ import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.layout.widget.controller.io.Input
 import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.Feature
+import sp.it.pl.main.App.Rank.MASTER
+import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.plugin.Plugin
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.appsearch.AppSearchPlugin
@@ -76,6 +78,7 @@ import sp.it.util.functional.runTry
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
 import sp.it.util.stacktraceAsString
+import sp.it.util.system.Os
 import sp.it.util.system.SystemOutListener
 import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceInfo
@@ -88,14 +91,17 @@ import java.io.File
 import java.lang.management.ManagementFactory
 import java.net.URI
 import java.net.URLConnection
-import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
+import kotlin.system.exitProcess
+import kotlin.text.Charsets.UTF_8
 import sp.it.util.conf.IsConfig as C
 import kotlin.jvm.JvmField as F
 
 lateinit var APP: App
+private lateinit var rawArgs: Array<String>
 
 fun main(args: Array<String>) {
+    rawArgs = args
 
     // Relocate temp & home under working directory
     // It is our principle to leave no trace of ever running on the system
@@ -120,21 +126,12 @@ class App: Application(), Configurable<Any> {
         APP = this.takeUnless { ::APP.isInitialized } ?: fail { "Multiple application instances disallowed" }
     }
 
-    /** Whether application should close and delegate arguments if there is already running instance. */
-    var loadSingleton = true
-    /** Whether application starts with a state. If false, state is not restored on start or stored on close. */
-    var loadStateful = true
-    private var closedPrematurely = false
-    var isInitialized: Try<Unit, Throwable> = Try.error(Exception("Initialization has not run yet"))
-        private set
-
-    // independent of app configuration
     /** Name of this application. */
     @F val name = "PlayerFX"
     /** Version of this application. */
     @F val version = "0.7"
     /** Application code encoding. Useful for compilation during runtime. */
-    @F val encoding = StandardCharsets.UTF_8!!
+    @F val encoding = UTF_8
     /** Uri for github website for project of this application. */
     @F val uriGithub = URI.create("https://www.github.com/sghpjuikit/player/")!!
     /** Absolute file of location of this app. Working directory of the project. new File("").getAbsoluteFile(). */
@@ -162,6 +159,21 @@ class App: Application(), Configurable<Any> {
     /** File for application configuration. */
     @F val FILE_SETTINGS = DIR_USERDATA.childOf("application.properties")
 
+    /** Rank this application instance started with. [MASTER] if started as the first instance, [SLAVE] otherwise. */
+    val rankAtStart: Rank = if (getInstances()>1) SLAVE else MASTER
+    /**
+     * Rank of this application instance.
+     * [MASTER] instance is the one that singleton [SLAVE]s delegate to.
+     * [SLAVE] instance is partly read-only, mostly to avoid concurrent io.
+     */
+    val rank = rankAtStart
+    /** Whether application should close and delegate arguments if there is already running instance. */
+    var isSingleton = true
+    /** Whether application starts with a state. If false, state is not restored on start or stored on close. */
+    var isStateful = true
+    /** Whether application is initialized. Starts as error and transitions to ok in [App.start] if no error occurs. */
+    var isInitialized: Try<Unit, Throwable> = Try.error(Exception("Initialization has not run yet"))
+        private set
     /** Various actions for the application */
     val actions = AppActions()
     /** Global event bus. Usage: simply push an event or observe. Use of event constants and === is advised. */
@@ -179,6 +191,17 @@ class App: Application(), Configurable<Any> {
 
     init {
         parameterProcessor.process(fetchArguments())
+
+        if (rankAtStart==SLAVE) {
+            logger.info { "Multiple app instances detected" }
+            if (isSingleton) {
+                logger.info { "App will close and delegate parameters to already running instance" }
+                appCommunicator.fireNewInstanceEvent(fetchArguments())
+                exitProcess(0)
+            } else {
+                isStateful = false
+            }
+        }
     }
 
     // cores (always active, mostly singletons)
@@ -244,24 +267,11 @@ class App: Application(), Configurable<Any> {
         logger.info { "JVM Args: ${fetchVMArguments()}" }
         logger.info { "App Args: ${fetchArguments()}" }
 
-        if (getInstances()>1) {
-            logger.info { "Multiple app instances detected" }
-            if (loadSingleton) {
-                logger.info { "App will close and delegate parameters to already running instance" }
-                appCommunicator.fireNewInstanceEvent(fetchArguments())
-                closedPrematurely = true
-                return
-            } else {
-                loadStateful = false
-            }
-        }
-
+        // init cores
         classFields.initApp()
         className.initApp()
         instanceName.initApp()
         instanceInfo.initApp()
-
-        // init cores
         serializer.init()
         serializerXml.init()
         imageIo.init()
@@ -276,21 +286,13 @@ class App: Application(), Configurable<Any> {
 
         // start parts that can be started from non application fx thread
         ActionManager.onActionRunPost += { APP.actionStream(it.name) }
-        ActionManager.startActionListening()
-        appCommunicator.start()
+        ActionManager.startActionListening(rankAtStart==SLAVE)
+        if (rankAtStart==MASTER) appCommunicator.start()
     }
 
     override fun start(primaryStage: Stage) {
-        if (closedPrematurely) {
-            logger.info { "Application closing prematurely" }
-            close()
-            return
-        }
-
         isInitialized = runTry {
             plugins.initForApp()
-
-            // install actions
             configuration.gatherActions(Player::class.java, null)
             configuration.gatherActions(PlaylistManager::class.java, null)
             configuration.installActions(
@@ -305,24 +307,29 @@ class App: Application(), Configurable<Any> {
             Player.initialize()
             windowManager.deserialize()
         }.ifError {
-            logger.error(it) { "Application failed to start" }
-            logger.info { "Application closing prematurely" }
+            runLater {
+                logger.error(it) { "Application failed to start" }
+                logger.info { "Application closing prematurely" }
 
-            MessagePane().initApp().apply { onHidden += { close() } }.show(
-                    "Application did not start successfully and will close. Please fill an issue at $uriGithub "+
-                    "providing the logs in $DIR_LOG. The exact problem was:\n ${it.stacktraceAsString}"
-            )
+                MessagePane().initApp().apply { onHidden += { close() } }.show(
+                        "Application did not start successfully and will close." +
+                        "\nPlease fill an issue at $uriGithub providing the logs in $DIR_LOG." +
+                        "\nThe exact problem was:\n ${it.stacktraceAsString}"
+                )
+            }
         }.ifOk {
-            if (loadStateful) Player.loadLastState()
-            runLater { onStarted() }
+            runLater {
+                if (isStateful) Player.loadLastState()
+                onStarted()
+            }
         }
     }
 
     /** Starts this application normally if not yet started that way, otherwise has no effect. */
     @IsAction(name = "Start app normally", desc = "Loads last application state if not yet loaded.")
     fun startNormally() {
-        if (!loadStateful) {
-            loadStateful = true
+        if (!isStateful) {
+            isStateful = true
             windowManager.deserialize()
             Player.loadLastState()
         }
@@ -355,10 +362,10 @@ class App: Application(), Configurable<Any> {
 
     private fun store() {
         if (isInitialized.isOk) {
-            if (loadStateful) Player.state.serialize()
-            if (loadStateful) windowManager.serialize()
-            configuration.save(name, FILE_SETTINGS)
-            plugins.getAll().forEach { if (it.isRunning()) it.stop() }
+            if (rank==MASTER && isStateful) Player.state.serialize()
+            if (rank==MASTER && isStateful) windowManager.serialize()
+            if (rank==MASTER) configuration.save(name, FILE_SETTINGS)
+            plugins.getAll().forEach { if (it.isRunning()) it.stop() }  // TODO: implement Plugin.store() and avoid stop() here
         }
     }
 
@@ -370,14 +377,14 @@ class App: Application(), Configurable<Any> {
         Platform.exit()
     }
 
-    /** @return arguments supplied to this application when it was launched */
-    fun fetchArguments(): List<String> = parameters?.let { it.raw+it.unnamed+it.named.values }.orEmpty()
+    /** @return arguments supplied to this application's main method when it was launched */
+    fun fetchArguments(): List<String> = rawArgs.toList()
 
     /** @return JVM arguments supplied to JVM this application is running in */
     fun fetchVMArguments(): List<String> = ManagementFactory.getRuntimeMXBean().inputArguments
 
     /** @return number of instances of this application (including this one) running at this moment */
-    fun getInstances(): Int = VirtualMachine.list().count { it.displayName().contains(App::class.java.packageName) }
+    fun getInstances(): Int = VirtualMachine.list().count { App::class.java.packageName in it.displayName() }
 
     /** @return image of the icon of the application */
     fun getIcon(): Image = Image(File("icon512.png").toURI().toString())
@@ -402,7 +409,14 @@ class App: Application(), Configurable<Any> {
     }
 
     private fun Search.initForApp() {
-        sources += { configuration.fields.asSequence().map { Entry.of(it) } }
+        sources += {
+            configuration.fields.asSequence().map { Entry.of(it) }
+        }
+        sources += {
+            ui.skins.asSequence().map {
+                Entry.of({ "Open skin: ${it.name}" }, graphicsΛ = { Icon(IconMA.BRUSH) }) { ui.skin.value = it.name }
+            }
+        }
         sources += {
             widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map {
                 Entry.SimpleEntry(
@@ -412,7 +426,21 @@ class App: Application(), Configurable<Any> {
                 )
             }
         }
-        sources += { ui.skins.asSequence().map { Entry.of({ "Open skin: ${it.name}" }, graphicsΛ = { Icon(IconMA.BRUSH) }) { ui.skin.value = it.name } } }
+        sources += {
+            widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map { c ->
+                Entry.SimpleEntry(
+                        "Open widget ${c.nameGui()} (in new process)",
+                        "Open widget ${c.nameGui()}\n\nOpens the widget in new process.",
+                        {
+                            val f = APP.DIR_APP/(if (Os.WINDOWS.isCurrent) "PlayerFX.exe" else "PlayerFX.sh")
+                            f.runAsAppProgram(
+                                    "Launching component ${c.nameGui()} in new process",
+                                    "--singleton=false", "--stateless=true", "open-component", "\"${c.nameGui()}\""
+                            )
+                        }
+                )
+            }
+        }
         sources += {
             widgetManager.factories.getFactories().filter { it.isUsableByUser() && it.externalWidgetData!=null}.map {
                 Entry.SimpleEntry(
@@ -521,6 +549,10 @@ class App: Application(), Configurable<Any> {
             map["Name"] = f.name
             map["Description"] = f.description
         }
+    }
+
+    enum class Rank {
+        MASTER, SLAVE
     }
 
     companion object: KLogging() {

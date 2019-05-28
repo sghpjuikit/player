@@ -84,9 +84,6 @@ public final class CoreSerializerXml implements Core {
 		x.useAttributeFor(Widget.class, "name");
 	}
 
-	@Override
-	public void dispose() {}
-
 	@Blocks
 	public Try<Void,SerializationException> toXML(Object o, File file) {
 		try (

@@ -85,12 +85,13 @@ object ActionManager {
      * Must not be ran more than once.
      * Does nothing if not supported.
      *
+     * @param ignoreGlobal disables global shortcut listening (global shortcuts will become dysfunctional - no-op)
      * @throws IllegalStateException if ran more than once without calling [stopActionListening] in between
      */
-    fun startActionListening() {
+    fun startActionListening(ignoreGlobal: Boolean = false) {
         if (isActionListening) throw IllegalStateException("Action listening already running")
         startLocalListening()
-        if (globalShortcutsEnabled.get()) startGlobalListening()
+        if (globalShortcutsEnabled.value && !ignoreGlobal) startGlobalListening()
         isActionListening = true
     }
 

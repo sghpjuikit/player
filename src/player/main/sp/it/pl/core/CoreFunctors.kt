@@ -225,6 +225,4 @@ object CoreFunctors: Core {
         }
     }
 
-    override fun dispose() {}
-
 }

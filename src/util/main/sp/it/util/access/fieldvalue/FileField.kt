@@ -19,7 +19,7 @@ import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileTime
 import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.format.DateTimeFormatterBuilder
 import java.time.format.DateTimeParseException
@@ -27,6 +27,7 @@ import java.time.format.SignStyle
 import java.time.temporal.ChronoField
 import java.util.zip.ZipFile
 import kotlin.reflect.KClass
+import kotlin.text.Charsets.UTF_8
 import kotlin.jvm.JvmField as F
 
 private val logger = KotlinLogging.logger { }
@@ -114,7 +115,7 @@ private fun File.readBasicFileAttributes(): BasicFileAttributes? =
 
 private fun Long.toFileTime() = FileTime.fromMillis(this)
 
-private fun LocalDateTime.toFileTime() = toInstant(ZoneOffset.UTC).toEpochMilli().toFileTime()
+private fun LocalDateTime.toFileTime() = toInstant(UTC).toEpochMilli().toFileTime()
 
 private fun File.readXmpTimeCreated(): FileTime? =
         try {
@@ -140,9 +141,7 @@ private fun File.readXmpTimeCreated(): FileTime? =
 
 private fun File.readKritaTimeCreated(): FileTime? =
         try {
-            ZipFile(this)
-                    .let { it.getInputStream(it.getEntry("documentinfo.xml")) }
-                    .reader(Charsets.UTF_8).useLines {
+            ZipFile(this).let { it.getInputStream(it.getEntry("documentinfo.xml")) }.reader(UTF_8).useLines {
                 it.find { it.contains("creation-date") }
                         ?.substringAfter(">")?.substringBefore("</")
                         ?.takeUnless { it.isBlank() }

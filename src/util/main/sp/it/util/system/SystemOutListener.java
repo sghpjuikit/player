@@ -2,11 +2,11 @@ package sp.it.util.system;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import sp.it.util.reactive.Subscription;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static sp.it.util.async.AsyncKt.runFX;
 
 /**
@@ -73,7 +73,7 @@ public class SystemOutListener extends PrintStream {
             // for (int i=0 ; i<len ; i++) write(b[off + i]);
             sout.write(b, off, len);
             if (!listeners.isEmpty()) {
-                String s = new String(b, off, len, StandardCharsets.UTF_8);
+                String s = new String(b, off, len, UTF_8);
                 runFX(() -> listeners.forEach(l -> l.accept(s)));
             }
         }

@@ -19,6 +19,7 @@ import sp.it.util.ui.image.toBuffered
 import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
+import kotlin.text.Charsets.UTF_16LE
 import kotlin.streams.asSequence
 
 private val logger = KotlinLogging.logger { }
@@ -238,7 +239,7 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Sequence<Fil
 
                 val dirs = try {
                     Runtime.getRuntime().exec(cmdDirs)
-                            .inputStream.bufferedReader(Charsets.UTF_16LE)
+                            .inputStream.bufferedReader(UTF_16LE)
                             .useLines { it.map { FastFile(it, true, false) }.toList() }
                 } catch (e: Throwable) {
                     logger.error(e) { "Failed to read files in $this using command $cmdDirs" }
@@ -246,7 +247,7 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Sequence<Fil
                 }
                 val files = try {
                     Runtime.getRuntime().exec(cmdFiles)
-                            .inputStream.bufferedReader(Charsets.UTF_16LE)
+                            .inputStream.bufferedReader(UTF_16LE)
                             .useLines { it.map { FastFile(it, false, true) }.toList() }
                 } catch (e: Throwable) {
                     logger.error(e) { "Failed to read files in $this using command $cmdFiles" }
@@ -278,7 +279,7 @@ private fun File.asFileTree(): Sequence<File> =
                     val cmdFiles = """cmd /U /c dir /s /b /a-d "${dir.absolutePath}" 2>nul"""
                     try {
                         val files = Runtime.getRuntime().exec(cmdFiles)
-                                .inputStream.bufferedReader(Charsets.UTF_16LE)
+                                .inputStream.bufferedReader(UTF_16LE)
                                 .useLines { it.map { FastFile(it, false, true) }.toList() }
                         files.asSequence()
                     } catch (e: Throwable) {

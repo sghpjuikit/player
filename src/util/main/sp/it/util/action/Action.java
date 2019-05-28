@@ -13,6 +13,8 @@ import sp.it.util.conf.Config;
 import sp.it.util.conf.EditMode;
 import sp.it.util.validation.Constraint;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
+import static kotlin.text.StringsKt.contains;
+import static kotlin.text.StringsKt.replace;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.functional.Util.setRO;
@@ -271,10 +273,10 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 		// fix local shortcut problem - keyCodes not registering, needs raw characters instead
 		// TODO resolve or include all characters' conversions
 		String s = getKeys();
-		if (s.contains("Back_Slash"))
-			return KeyCombination.keyCombination(s.replace("Back_Slash", "\\"));
-		else if (s.contains("Back_Quote"))
-			return KeyCombination.keyCombination(s.replace("Back_Quote", "`"));
+		if (contains(s, "BACK_SLASH", true))
+			return KeyCombination.keyCombination(replace(s, "BACK_SLASH", "\\", true));
+		else if (contains(s, "BACK_QUOTE", true))
+			return KeyCombination.keyCombination(replace(s, "BACK_QUOTE", "`", true));
 		else
 			return keys;
 	}

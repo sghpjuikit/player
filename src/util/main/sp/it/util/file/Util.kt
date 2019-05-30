@@ -2,6 +2,8 @@ package sp.it.util.file
 
 import mu.KotlinLogging
 import sp.it.util.functional.Try
+import sp.it.util.functional.and
+import sp.it.util.functional.andAlso
 import sp.it.util.functional.runTry
 import java.io.File
 import java.io.FileFilter
@@ -9,6 +11,7 @@ import java.io.FilenameFilter
 import java.net.MalformedURLException
 import java.net.URI
 import java.nio.charset.Charset
+import java.nio.file.Files
 
 private val logger = KotlinLogging.logger { }
 
@@ -130,3 +133,47 @@ fun File.writeTextTry(text: String, charset: Charset = Charsets.UTF_8) = runTry 
  */
 @JvmOverloads
 fun File.readTextTry(charset: Charset = Charsets.UTF_8) = runTry { readText(charset) }
+
+/**
+ *  Invokes the specified block that saves the file with safe temporary file saving semantics:
+ *  - 1 remove temporary file if exists
+ *  - 2 rename existing file to temporary file
+ *  - 3 invoke block to save the file
+ *  - if 3 succeeds remove the temporary file
+ *  - if 3 fails rename the temporary file to original file
+ *
+ *  Calling this method concurrently (on the same file) will result in unpredictable behavior.
+ *
+ *  @return ok if all steps succeed, error otherwise
+ */
+fun <OK> File.writeSafely(block: (File) -> Try<OK, Throwable>): Try<OK, Throwable> {
+    val f = absoluteFile
+    val fTmp = f.resolveSibling("$name.tmp")
+
+    return runTry {
+        Files.deleteIfExists(fTmp.toPath())
+    }.mapError {
+        Exception("Safe writing of $f failed. Data was not saved as deleting the previous temporary backup file='$fTmp' failed", it)
+    }.and {
+        if (!f.exists() || f.renameTo(fTmp)) Try.ok()
+        else Try.error(Exception("Safe writing of $f failed. Data was not saved as renaming previous file to temporary backup file=`$fTmp` failed"))
+    }.andAlso {
+        block(
+            f
+        ).mapError {
+            Exception("Safe writing of $f failed. Data was not saved as ${it.message}", it)
+        }.and {
+            runTry {
+                Files.deleteIfExists(fTmp.toPath())
+            }.mapError {
+                Exception("Safe writing of $f failed. Data was saved, but deleting temporary backup file '$fTmp' failed", it)
+            }
+        }.ifError {
+            runTry {
+                Files.deleteIfExists(f.toPath())
+            }.ifOk {
+                fTmp.renameTo(f)
+            }
+        }
+    }
+}

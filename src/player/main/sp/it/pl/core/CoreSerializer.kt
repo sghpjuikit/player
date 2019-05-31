@@ -74,7 +74,6 @@ object CoreSerializer: Core {
             runTry {
                 ObjectOutputStream(it.outputStream()).use {
                     it.writeObject(o)
-                    null
                 }
             }
         }.ifError {

@@ -7,8 +7,10 @@ import sp.it.util.async.threadFactory
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.file.div
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import sp.it.util.file.writeSafely
+import sp.it.util.functional.Try
+import sp.it.util.functional.getOrSupply
+import sp.it.util.functional.runTry
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
@@ -48,15 +50,13 @@ object CoreSerializer: Core {
 
         if (!f.exists()) return null
 
-        try {
-            FileInputStream(f).use {
-                ObjectInputStream(it).use {
-                    return it.readObject() as T
-                }
+        return runTry {
+            ObjectInputStream(f.inputStream()).use {
+                it.readObject() as T
             }
-        } catch (e: Exception) {
-            logger.error(e) { "Failed to deserialize file=$f to type=${T::class}" }
-            return null
+        }.getOrSupply {
+            logger.error(it) { "Failed to deserialize file=$f to type=${T::class}" }
+            null
         }
     }
 
@@ -66,19 +66,18 @@ object CoreSerializer: Core {
      * * any previously stored object is overwritten
      */
     @Blocks
-    inline fun <reified T: Serializable> writeSingleStorage(o: T) {
-        if (APP.rank==SLAVE) return
+    inline fun <reified T: Serializable> writeSingleStorage(o: T): Try<Nothing?, Throwable> {
+        if (APP.rank==SLAVE) return Try.ok()
 
         val f = APP.DIR_LIBRARY/(T::class.simpleName ?: T::class.jvmName)
-        try {
-            FileOutputStream(f).use {
-                ObjectOutputStream(it).use {
+        return f.writeSafely {
+            runTry {
+                ObjectOutputStream(it.outputStream()).use {
                     it.writeObject(o)
                 }
             }
-        } catch (e: Exception) {
-            logger.error(e) { "Failed to serialize object=${o::class} to file=$f" }
-            throw e
+        }.ifError {
+            logger.error(it) { "Failed to serialize object=${o::class} to file=$f" }
         }
     }
 

@@ -13,7 +13,7 @@ import kotlin.UnsafeVariance as UV
  * @param <R> success return value
  * @param <E> error return value
  */
-sealed class Try<out R,out E> {
+sealed class Try<out R, out E> {
 
     /** @return true iff this is [Ok] */
     abstract val isOk: Boolean
@@ -164,30 +164,32 @@ inline fun <R> runTry(block: () -> R): Try<R, Throwable> = try {
 }
 
 /** @return the success value if success or the error value if error */
-fun <T, R: T, E: T> Try<R,E>.getAny(): T = when(this) {
+fun <T, R: T, E: T> Try<R, E>.getAny(): T = when (this) {
     is Try.Ok<R> -> value
     is Try.Error<E> -> value
 }
+
 /** @return the value if ok or the specified value if error */
-fun <R, E, R1: R, R2: R> Try<R1,E>.getOr(or: @UV R2): R = when (this) {
+fun <R, E, R1: R, R2: R> Try<R1, E>.getOr(or: @UV R2): R = when (this) {
     is Try.Ok<R1> -> value
     is Try.Error<E> -> or
 }
 
 /** @return the value if ok or the value computed with specified supplier if error */
-inline fun <R, E, R1: R, R2: R> Try<R1,E>.getOrSupply(or: (E) -> @UV R2): R = when (this) {
+inline fun <R, E, R1: R, R2: R> Try<R1, E>.getOrSupply(or: (E) -> @UV R2): R = when (this) {
     is Try.Ok<R1> -> value
     is Try.Error<E> -> or(value)
 }
 
 /**
  * Applies short-circuit boolean && operation.
- * Returns Ok if both Try are Ok, otherwise first Error, in order: this, the specified Try.
+ * Returns Ok if both Try are Ok, otherwise Error.
  * Hence, the specified Try is only considered if this is Ok. Note how its OK parameter is never used.
+ * This operation is not commutative, these: a [Try.and] b, b [Try.and] a are not same, however these are: a [Try.and] b, b [Try.andAlso] a.
  *
  * @return this if error or if both ok otherwise the specified Try (which will be known to be Error at that point)
  */
-infix fun <R,E, E1: E, E2: E> Try<R,E1>.and(and: Try<*, @UV E2>): Try<R, E> = when (this) {
+infix fun <R, E, E1: E, E2: E> Try<R, E1>.and(and: Try<*, @UV E2>): Try<R, E> = when (this) {
     is Try.Ok<R> -> when (and) {
         is Try.Ok<*> -> this
         is Try.Error<E2> -> and
@@ -195,21 +197,9 @@ infix fun <R,E, E1: E, E2: E> Try<R,E1>.and(and: Try<*, @UV E2>): Try<R, E> = wh
     is Try.Error<E1> -> this
 }
 
-/**
- * Applies short-circuit boolean && operation.
- * Returns Ok if both this and the predicate result are Ok/true, otherwise first Error, in order: this, the specified supplier.
- * Hence, the specified predicate is only invoked if this is Ok and the error supplier only if the test returns false.
- *
- * @return this if error or if both this and the predicate are ok/true otherwise the supplied error
- */
-inline fun <R,E, E1: E, E2: E> Try<R,E1>.and(and: (R) -> Boolean, errorSupplier: (R) -> @UV E2): Try<R, E> = when (this) {
-    is Try.Ok<R> -> if (and(value)) this else Try.error(errorSupplier(value))
-    is Try.Error<E1> -> this
-}
-
 /** Lazy [Try.and]. */
-inline fun <R,E, E1: E, E2: E> Try<R,E1>.and(and: (R) -> Try<*, @UV E2>): Try<R, E> = when (this) {
-    is Try.Ok<R> -> when(val c = and(value)) {
+inline fun <R, E, E1: E, E2: E> Try<R, E1>.and(and: (R) -> Try<*, @UV E2>): Try<R, E> = when (this) {
+    is Try.Ok<R> -> when (val c = and(value)) {
         is Try.Ok<*> -> this
         is Try.Error<E2> -> c
     }
@@ -217,25 +207,64 @@ inline fun <R,E, E1: E, E2: E> Try<R,E1>.and(and: (R) -> Try<*, @UV E2>): Try<R,
 }
 
 /**
+ * Applies short-circuit boolean && operation.
+ * Returns Ok if both Try are Ok, otherwise Error.
+ * Hence, the specified predicate is only invoked if this is Ok. Note how this' OK parameter is never used.
+ * This operation is not commutative, these: a [Try.andAlso] b, b [Try.andAlso] a are not same, however these are: a [Try.andAlso] b, b [Try.and] a.
+ *
+ * @return this if error otherwise the specified Try
+ */
+fun <E, R1, R2, E1: E, E2: E> Try<R1, E1>.andAlso(and: Try<R2, @UV E2>): Try<R2, E> = when (this) {
+    is Try.Ok<R1> -> and
+    is Try.Error<E1> -> this
+}
+
+/** Lazy [Try.andAlso]. */
+inline fun <E, R1, R2, E1: E, E2: E> Try<R1, E1>.andAlso(and: (R1) -> Try<R2, @UV E2>): Try<R2, E> = when (this) {
+    is Try.Ok<R1> -> and(value)
+    is Try.Error<E1> -> this
+}
+
+/**
  * Applies short-circuit boolean || operation.
- * Returns Error if both Try are Error, otherwise first Ok, in order: this, the specified Try.
+ * Returns Error if both Try are Error, otherwise Ok.
  * Hence, the specified Try is only considered if this is Error. Note how its ERROR parameter is never used.
+ * This operation is not commutative, these: a [Try.or] b, b [Try.or] a are not same, however these are: a [Try.or] b, b [Try.orAlso] a.
  *
  * @return this if ok or if both ok otherwise the specified Try (which will be known to be Ok at that point)
  */
-infix fun <R, E, R1: R, R2: R> Try<R1,E>.or(or: Try<@UV R2, *>): Try<R, E> = when (this) {
+infix fun <R, E, R1: R, R2: R> Try<R1, E>.or(or: Try<@UV R2, *>): Try<R, E> = when (this) {
     is Try.Ok<R1> -> this
-    is Try.Error<E> -> when(or) {
+    is Try.Error<E> -> when (or) {
         is Try.Ok<R2> -> or
         else -> this
     }
 }
 
 /** Lazy [Try.or]. */
-inline fun <R, E, R1: R, R2: R> Try<R1,E>.or(or: (E) -> Try<@UV R2, *>): Try<R, E> = when (this) {
+inline fun <R, E, R1: R, R2: R> Try<R1, E>.or(or: (E) -> Try<@UV R2, *>): Try<R, E> = when (this) {
     is Try.Ok<R1> -> this
-    is Try.Error<E> -> when(val c = or(value)) {
+    is Try.Error<E> -> when (val c = or(value)) {
         is Try.Ok<R2> -> c
         else -> this
     }
+}
+
+/**
+ * Applies short-circuit boolean || operation.
+ * Returns Error if both Try are Error, otherwise Ok.
+ * The specified Try is only considered if this is Error. Note how this' ERROR parameter is never used.
+ * This operation is not commutative, these: a [Try.orAlso] b, b [Try.orAlso] a are not same, however these are: a [Try.orAlso] b, b [Try.or] a.
+ *
+ * @return this if ok otherwise the specified Try
+ */
+fun <R, E, R1: R, R2: R, E1: E, E2: E> Try<R1, E1>.orAlso(or: Try<R2, E2>): Try<R, E2> = when (this) {
+    is Try.Ok<R1> -> this
+    is Try.Error<E1> -> or
+}
+
+/** Lazy [Try.orAlso]. */
+inline fun <R, E, R1: R, R2: R, E1: E, E2: E> Try<R1, E1>.orAlso(or: (E) -> Try<R2, E2>): Try<R, E2> = when (this) {
+    is Try.Ok<R1> -> this
+    is Try.Error<E1> -> or(value)
 }

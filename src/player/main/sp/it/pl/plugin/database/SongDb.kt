@@ -83,7 +83,6 @@ class SongDb {
             val ms = MetadatasDB(songsById.backingMap())
             items.forEach { ms[it.id] = it }
             writeSingleStorage(ms)
-
             updateInMemoryDbFromPersisted()
         }
     }

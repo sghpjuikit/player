@@ -11,6 +11,7 @@ import javafx.stage.Window
 import mu.KotlinLogging
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runNew
+import sp.it.util.dev.Blocks
 import sp.it.util.file.FileType
 import sp.it.util.file.find1stExistingParentDir
 import sp.it.util.file.parentDirOrRoot
@@ -175,7 +176,7 @@ fun File.open() {
             // will be set to the working directory of this application, which is not illegal, but definitely dangerous
             // Hence, we execute files on our own
             isExecutable() -> runAsProgram()
-            else ->  {
+            else -> {
                 if (Desktop.Action.OPEN.isSupportedOrWarn()) {
                     try {
                         Desktop.getDesktop().open(this)
@@ -288,9 +289,13 @@ private fun File.openWindowsExplorerAndSelect() =
             false
         }
 
-/** @return true if the file is an executable file */
-private fun File.isExecutable(): Boolean =
-        when (Os.current) {
-            Os.WINDOWS -> path.endsWith(".exe", true) || path.endsWith(".bat", true)
-            else -> path.endsWith(".sh")
-        }
+/**
+ * This is best estimate only, and only checks file extension.
+ *
+ * @return true if the file is an executable file
+ */
+@Blocks(false)
+fun File.isExecutable(): Boolean = when (Os.current) {
+    Os.WINDOWS -> path.endsWith(".exe", true) || path.endsWith(".bat", true)
+    else -> path.endsWith(".sh")
+}

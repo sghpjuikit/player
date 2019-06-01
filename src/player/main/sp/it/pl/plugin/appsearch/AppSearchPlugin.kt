@@ -14,8 +14,7 @@ import sp.it.util.conf.cList
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.only
-import sp.it.util.file.hasExtension
-import sp.it.util.file.nameWithoutExtensionOrRoot
+import sp.it.util.system.isExecutable
 import sp.it.util.system.runAsProgram
 import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
@@ -60,11 +59,11 @@ class AppSearchPlugin: PluginBase("App Search", false) {
         return dir.walkTopDown()
                 .onFail { file, e -> logger.warn(e) { "Ignoring file=$file. No read/access permission" } }
                 .maxDepth(searchDepth.value)
-                .filter { it hasExtension "exe" }
+                .filter { it.isExecutable() }
     }
 
     private fun File.toRunApplicationEntry() = ConfigSearch.Entry.of(
-            { "Run app: $nameWithoutExtensionOrRoot" },
+            { "Run app: $absolutePath" },
             { "Runs application: $absolutePath" },
             { "Run app: $absolutePath" },
             { Icon(IconMA.APPS) },

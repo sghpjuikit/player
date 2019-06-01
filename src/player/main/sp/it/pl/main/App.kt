@@ -421,7 +421,7 @@ class App: Application(), Configurable<Any> {
             widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map {
                 Entry.SimpleEntry(
                         "Open widget ${it.nameGui()}",
-                        "Open widget ${it.nameGui()}\n\nOpens the widget in new window.",
+                        { "Open widget ${it.nameGui()}\n\nOpens the widget in new window." },
                         { APP.windowManager.launchComponent(it.create()) }
                 )
             }
@@ -430,7 +430,7 @@ class App: Application(), Configurable<Any> {
             widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map { c ->
                 Entry.SimpleEntry(
                         "Open widget ${c.nameGui()} (in new process)",
-                        "Open widget ${c.nameGui()}\n\nOpens the widget in new process.",
+                        { "Open widget ${c.nameGui()}\n\nOpens the widget in new process." },
                         {
                             val f = APP.DIR_APP/(if (Os.WINDOWS.isCurrent) "PlayerFX.exe" else "PlayerFX.sh")
                             f.runAsAppProgram(
@@ -445,7 +445,7 @@ class App: Application(), Configurable<Any> {
             widgetManager.factories.getFactories().filter { it.isUsableByUser() && it.externalWidgetData!=null}.map {
                 Entry.SimpleEntry(
                         "Recompile widget ${it.nameGui()}",
-                        "Recompile widget ${it.nameGui()} and reload all of its instances upon success",
+                        { "Recompile widget ${it.nameGui()} and reload all of its instances upon success" },
                         { it.externalWidgetData!!.scheduleCompilation() }
                 )
             }

@@ -190,14 +190,15 @@ class ConfigSearch: AutoCompletion<Entry> {
             override fun run() = runΛ()
         }
 
-        class SimpleEntry constructor(override val name: String, override val info: String, private val runΛ: () -> Unit): Entry {
+        class SimpleEntry constructor(override val name: String, infoΛ: () -> String, private val runΛ: () -> Unit): Entry {
             override fun run() = runΛ()
+            override val info = infoΛ()
         }
 
         class ConfigEntry constructor(private val config: Config<*>): Entry {
-            override val name = "${config.group}.${config.guiName}"
+            override val name = "${if (config is Runnable) "Run " else ""}${config.group}.${config.guiName}"
             override val searchText = if (config is Action) name+config.keys else name
-            override val info = "$name\n\n${config.info}"
+            override val info by lazy { "$name\n\n${config.info}" }
             override val graphics by lazy {
                 when {
                     config is Action && config.hasKeysAssigned() -> {
@@ -205,7 +206,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                             textAlignment = TextAlignment.RIGHT
                         }
                     }
-                    config.type.isSubclassOf<Boolean>() || config.isTypeEnumerable -> ConfigField.create(config).getControl()
+                    config.type.isSubclassOf<Boolean>() || config.isTypeEnumerable -> ConfigField.create(config).control
                     else -> null
                 }
             }

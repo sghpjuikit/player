@@ -85,6 +85,7 @@ public final class CoreSerializerXml implements Core {
 		x.useAttributeFor(Widget.class, "name");
 	}
 
+	@SuppressWarnings({"unchecked", "PlaceholderCountMatchesArgumentCount"})
 	@Blocks
 	public Try<Void,Throwable> toXML(Object o, File file) {
 		return writeSafely(file, f -> {

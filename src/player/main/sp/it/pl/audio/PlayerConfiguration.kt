@@ -39,7 +39,12 @@ class PlayerConfiguration {
         @IsConfig(name = "Last playlist export location")
         var lastSavePlaylistLocation by c(APP.DIR_USERDATA).only(DIRECTORY)
 
-        @IsConfig(name = "No song modification", info = "Disallow all song modifications by this application")
+        @IsConfig(
+                name = "No song modification",
+                info = "Disallow all song modifications by this application." +
+                       "\n\nWhen true, app will be unable to change any song metadata" +
+                       "\n\nAfter setting this to false, it is recommended to run `Update library` action"
+        )
         var readOnly by c(true)
 
     }

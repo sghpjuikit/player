@@ -272,7 +272,6 @@ public class Window extends WindowBase {
 		});
 
 		List<Maximized> maximizedValues = list(Maximized.LEFT, Maximized.NONE, Maximized.RIGHT);
-		ActionManager.INSTANCE.getKeyManageWindow();
 		root.addEventFilter(KeyEvent.ANY, e -> {
 			// layout mode
 			if (e.getCode().equals(ActionManager.INSTANCE.getKeyManageLayout())) {

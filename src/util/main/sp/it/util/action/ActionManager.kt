@@ -2,8 +2,6 @@ package sp.it.util.action
 
 import javafx.application.Platform
 import javafx.scene.input.KeyCode.ALT_GRAPH
-import javafx.scene.input.KeyCode.SHIFT
-import javafx.scene.input.KeyCode.WINDOWS
 import javafx.stage.Stage
 import sp.it.util.access.v
 import sp.it.util.action.ActionRegistrar.hotkeys
@@ -21,7 +19,6 @@ import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.syncNonNullWhile
-import sp.it.util.text.getNamePretty
 import java.util.concurrent.ConcurrentHashMap
 
 @IsConfigurable(Action.CONFIG_GROUP)
@@ -29,9 +26,6 @@ object ActionManager {
 
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", editable = NONE)
     val keyManageLayout by c(ALT_GRAPH)
-
-    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", editable = NONE)
-    val keyManageWindow by c(WINDOWS.getNamePretty() + " + " + SHIFT.getNamePretty())
 
     // @IsConfig(name = "Media shortcuts supported", editable = NONE, info = "Whether media shortcuts are supported on this system")
     // private val isMediaShortcutsSupported by c(true)

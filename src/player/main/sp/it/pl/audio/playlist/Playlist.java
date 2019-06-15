@@ -13,8 +13,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
-import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -57,9 +57,8 @@ import static sp.it.util.system.EnvironmentKt.chooseFiles;
 public class Playlist extends SimpleListProperty<PlaylistSong> {
 
 	public final UUID id;
-	private final ReadOnlyIntegerWrapper playingIWrapper = new ReadOnlyIntegerWrapper(-1);
-	public final ReadOnlyIntegerProperty playingI = playingIWrapper.getReadOnlyProperty();
-	private PlaylistSong playing = null;
+	private final ReadOnlyObjectWrapper<PlaylistSong> playingSongWrapper = new ReadOnlyObjectWrapper<>(null);
+	public final ReadOnlyObjectProperty<PlaylistSong> playingSong = playingSongWrapper.getReadOnlyProperty();
 
 	public Playlist() {
 		this(UUID.randomUUID());
@@ -72,12 +71,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 
 	public void updatePlayingItem(int i) {
 		boolean exists = i>=0 && i<size();
-		updatePlayingItem(exists ? i : -1, exists ? get(i) : null);
-	}
-
-	private void updatePlayingItem(int i, PlaylistSong song) {
-		playing = song;
-		playingIWrapper.set(i);
+		playingSongWrapper.set(exists ? get(i) : null);
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -116,7 +110,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * @return true if song is played.
 	 */
 	public boolean isPlaying(PlaylistSong song) {
-		return playing==song;
+		return playingSongWrapper.get()==song;
 	}
 
 	/**
@@ -135,11 +129,11 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 
 	/** @return index of playing song or -1 if no song is playing */
 	public int indexOfPlaying() {
-		return playing==null ? -1 : indexOf(playing);
+		return playingSongWrapper.get()==null ? -1 : indexOf(playingSongWrapper.get());
 	}
 
 	public PlaylistSong getPlaying() {
-		return playing;
+		return playingSongWrapper.get();
 	}
 
 	/** @return true when playlist contains songs same as the parameter */
@@ -428,7 +422,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 							Player.stop();
 							unplayable1st = null;
 						} else {
-							updatePlayingItem(indexOf(song), song);
+							playingSongWrapper.set(song);
 							if (unplayable1st==null) unplayable1st = song;  // remember 1st unplayable
 							// try to play next song, note we dont use the supplier as a fallback 2nd time
 							// we use linear 'next time' supplier instead, to make sure we check every
@@ -443,8 +437,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 					runFX(() -> {
 						unplayable1st = null;
 						PlaylistManager.active = this.id;
-						PlaylistManager.playlists.stream().filter(p -> p!=this).forEach(p -> p.updatePlayingItem(-1));
-						updatePlayingItem(indexOf(song), song);
+						PlaylistManager.playlists.forEach(p -> p.playingSongWrapper.set(p==this ? song : null));
 						Player.play(song);
 					});
 				}

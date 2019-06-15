@@ -131,7 +131,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 				styleRuleAdd(STYLE_CORRUPT, PlaylistSong::isCorruptCached);
 			}
 		});
-		disposer.plusAssign(syncC(getPlaylist().playingI, i -> updateStyleRules()));
+		disposer.plusAssign(syncC(getPlaylist().playingSong, s -> updateStyleRules()));
 
 		// resizing
 		setColumnResizePolicySafe(resize -> {
@@ -262,7 +262,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			if (v)
 				scrollToCenter(playlist.getPlaying());
 		}));
-		disposer.plusAssign(attach(playlist.playingI, i -> {
+		disposer.plusAssign(attach(playlist.playingSong, s -> {
 			if (scrollToPlaying.getValue())
 				scrollToCenter(playlist.getPlaying());
 			return Unit.INSTANCE;

@@ -61,7 +61,7 @@ class PlaylistDB: Serializable {
 
     constructor(p: Playlist) {
         this.id = p.id.toString()
-        this.playing = p.playingI.get()
+        this.playing = p.indexOfPlaying()
         this.items = p.map { PlaylistItemDB(it) }
     }
 

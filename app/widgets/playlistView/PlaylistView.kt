@@ -112,7 +112,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
         root.prefSize = 450.scaleEM() x 600.scaleEM()
         root.consumeScrolling()
 
-        playlist.playingI sync { outputPlaying.value = playlist.playing } on onClose
+        playlist.playingSong sync { outputPlaying.value = it } on onClose
         Player.onSongRefresh { ms ->
             outputPlaying.value?.let { ms.ifHasK(it.uri, Consumer { outputPlaying.value = it.toPlaylist() }) }
             outputSelected.value?.let { ms.ifHasK(it.uri, Consumer { outputSelected.value = it.toPlaylist() }) }

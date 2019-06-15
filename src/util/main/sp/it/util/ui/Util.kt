@@ -814,8 +814,7 @@ fun Node.onHoverOrDragStart(onStart: () -> Unit): Subscription {
 
     return Subscription(
             onEventUp(MOUSE_ENTERED) {
-                if (properties["isHoverOrDrag"]!=true)
-                    onStart()
+                onStart()
             },
             onEventUp(DRAG_DETECTED) {
                 properties["isHoverOrDrag"] = true
@@ -831,8 +830,7 @@ fun Node.onHoverOrDragStart(onStart: () -> Unit): Subscription {
  */
 fun Node.onHoverOrDragEnd(onEnd: () -> Unit): Subscription = Subscription(
         onEventUp(MOUSE_EXITED) {
-            if (properties["isHoverOrDrag"]!=true)
-                onEnd()
+            onEnd()
         },
         onEventUp(MOUSE_DRAG_RELEASED) {
             properties["isHoverOrDrag"] = false

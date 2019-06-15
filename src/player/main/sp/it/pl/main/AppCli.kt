@@ -94,19 +94,19 @@ private class Cli: CliktCommand(
         subcommands(
                 object: CliktCommand(
                         name = "open-files",
-                        help = """Open the specified files by this application.
-
-                                  ```
-                                  - if `user-action-only` is present, an ui choice will be displayed. Otherwise:
-                                  - if no files is specified"
-                                    -  if `stateless=false`, application will close
-                                    -  if `stateless=true`, application will stay open
-                                  - if all files are audio files, they will be played in a new playlist
-                                  - if all files are image files, they will be displayed
-                                  - if all files are .fxwl files, they will be opened as per `open-component-file` command
-                                  - otherwise `user-action-only` will be considered true
-                                  ```
-                                """
+                        help = """
+                            ```
+                            Open the specified files by this application.
+                            - if `user-action-only` is present, an ui choice will be displayed. Otherwise:
+                            - if no files is specified"
+                              -  if `stateless=false`, application will close
+                              -  if `stateless=true`, application will stay open
+                            - if all files are audio files, they will be played in a new playlist
+                            - if all files are image files, they will be displayed
+                            - if all files are .fxwl files, they will be opened as per `open-component-file` command
+                            - otherwise `user-action-only` will be considered true
+                            ```
+                        """
                 ) {
                     val userActionOnly by option(help = "").flag(default = false)
                     val files by argument(help = "0-N absolute paths to a file.").file().multiple().validate {
@@ -154,12 +154,12 @@ private class Cli: CliktCommand(
                         help = "Open the specified application component (widget or template)."
                 ) {
                     val file by argument(
-                        help = """Absolute path to the .fxwl file of the component.
-
-                              ```
-                              The file content is either serialized component or single line with the component's name
-                              ```
-                            """
+                        help = """
+                            ```
+                            Absolute path to the .fxwl file of the component.
+                            The file content is either serialized component or single line with the component's name
+                            ```
+                        """
                     ).file(folderOkay = false, readable = true).validate {
                         it.requireAbsolute()
                     }

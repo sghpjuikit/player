@@ -303,6 +303,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
 
         // stop effect: disable & visually differentiate bindable nodes
         eFrom.i.pseudoClassChanged("highlighted", false)
+        eTo?.i?.pseudoClassChanged("highlighted", false)
         outputNodes.forEach { (_, node) -> node.onEditActive(false, true) }
         inputNodes.forEach { (_, node) -> node.onEditActive(false, true) }
         links.forEach { _, link -> link.onEditActive(false) }

@@ -22,7 +22,7 @@ import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.Duration.ZERO
 import mu.KLogging
-import sp.it.pl.gui.objects.form.Form
+import sp.it.pl.gui.objects.form.Form.Companion.form
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos.APP_CENTER
@@ -419,7 +419,7 @@ class WindowManager {
     fun showSettings(c: Configurable<*>, e: MouseEvent) = showSettings(c, e.source as Node)
 
     fun <T> showSettings(c: Configurable<T>, n: Node) {
-        val form = Form.form(c).apply {
+        val form = form(c).apply {
             prefSize = 400.scaleEM() x 400.scaleEM()
         }
         PopOver(form).apply {

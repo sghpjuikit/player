@@ -37,11 +37,11 @@ class Form<T>: AnchorPane {
     private val anchorOk: Double
     private val anchorWarn = 20.0
     /** Configurable object. */
-    @JvmField val configurable: Configurable<T>
+    val configurable: Configurable<T>
     /** Invoked when user submits the editing. Default does nothing. */
-    @JvmField val onOK: (Configurable<T>) -> Unit
+    val onOK: (Configurable<T>) -> Unit
     /** Denotes whether there is an action that user can execute. */
-    @JvmField val hasAction = v(false)
+    val hasAction = v(false)
 
     private constructor(c: Configurable<T>, on_OK: ((Configurable<T>) -> Unit)?): super() {
         configurable = c
@@ -103,7 +103,7 @@ class Form<T>: AnchorPane {
     private fun updateAnchor() {
         val isOkVisible = buttonPane.isVisible
         val isWarnVisible = buttonPane.bottom!=null
-        val a = (if (isOkVisible) anchorOk else 0.0)+if (isWarnVisible) anchorWarn else 0.0
+        val a = (if (isOkVisible) anchorOk else 0.0)+if (isWarnVisible) 20.0 else 0.0
         setBottomAnchor(fieldsPane, a)
     }
 

@@ -571,7 +571,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
         @Override
         public In getVal() {
-            return new In(configFieldA.getVal(), configFieldB.getVal());
+            return new In(configFieldA.getConfigValue(), configFieldB.getConfigValue());
         }
 
         @Override
@@ -601,7 +601,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         }
 
         public Stream<In> values() {
-            return ins.getConfigFields().stream().map(c -> new In(c.config.getName(),c.getVal()));
+            return ins.getConfigFields().stream().map(c -> new In(c.config.getName(),c.getConfigValue()));
         }
 
     }

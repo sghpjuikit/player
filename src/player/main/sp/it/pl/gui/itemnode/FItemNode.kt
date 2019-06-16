@@ -2,8 +2,8 @@ package sp.it.pl.gui.itemnode
 
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.ComboBox
-import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority.ALWAYS
+import javafx.scene.layout.Priority.SOMETIMES
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox
 import sp.it.util.access.vn
 import sp.it.util.collections.list.PrefList
@@ -16,6 +16,7 @@ import sp.it.util.functional.Functors.Ƒ1
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
 import sp.it.util.ui.hBox
+import sp.it.util.ui.lay
 import java.util.ArrayList
 import java.util.function.Consumer
 import java.util.function.Supplier
@@ -27,8 +28,8 @@ import java.util.function.Supplier
  * @param <O> type of function output
  */
 class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): ValueNode<Ƒ1<in I, out O>?>(null) {
-    private val root = hBox(5, CENTER_LEFT)
-    private val paramB = hBox(5, CENTER_LEFT)
+    private val root = hBox(5, CENTER_LEFT).apply { id = "fItemNodeRoot" }
+    private val paramB = hBox(5, CENTER_LEFT).apply { id = "fItemNodeParamsRoot" }
     private val configs = ArrayList<ConfigField<*>>()
     private val fCB: ComboBox<PƑ<in I, out O>>
     private var inconsistentState = false
@@ -43,18 +44,18 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): Value
         fCB.valueProperty() sync { function ->
             configs.clear()
             paramB.children.clear()
-            function.parameters.forEach { p ->
+            function.parameters.forEachIndexed { i, p ->
                 val editor = p.toConfig { generateValue() }.toConfigField()
                 configs += editor
-                paramB.children += editor.getNode()
+                paramB.lay(if (i==0) ALWAYS else SOMETIMES) += editor.getNode(false)
             }
-            if (configs.isNotEmpty()) HBox.setHgrow(configs[configs.size-1].getNode(), ALWAYS)
             generateValue()
         }
         inconsistentState = false
         generateValue()
 
-        root.children += listOf(fCB, paramB)
+        root.lay += fCB
+        root.lay(ALWAYS) += paramB
     }
 
     override fun getVal() = super.getVal()!!
@@ -62,7 +63,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): Value
     override fun getNode() = root
 
     override fun focus() {
-        configs.firstOrNull()?.focus()
+        configs.firstOrNull()?.focusEditor()
     }
 
     fun getTypeIn(): Class<*> = fCB.value?.`in` ?: Void::class.java
@@ -72,7 +73,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): Value
     private fun generateValue() {
         if (inconsistentState) return
         val functionRaw = fCB.value
-        val parameters = configs.map { it.getVal() }
+        val parameters = configs.map { it.getConfigValue() }
         val function = functionRaw.toƑ1(parameters)
         changeValue(function)
     }

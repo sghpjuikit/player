@@ -102,7 +102,7 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
     @Suppress("UNCHECKED_CAST")
     fun getConfigFields(): List<ConfigField<T>> = fields as List<ConfigField<T>>
 
-    fun getConfigValues(): List<T> = getConfigFields().map { it.getVal() }
+    fun getConfigValues(): List<T> = getConfigFields().map { it.getConfigValue() }
 
-    fun focusFirstConfigField() = fields.firstOrNull()?.focus()
+    fun focusFirstConfigField() = fields.firstOrNull()?.focusEditor()
 }

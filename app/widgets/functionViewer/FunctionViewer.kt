@@ -139,7 +139,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
         }
     }
 
-    override fun focus() = functionConfigField.focus()
+    override fun focus() = functionConfigField.focusEditor()
 
     fun plot(f: Fun = functionPlotted) {
         functionPlotted = f

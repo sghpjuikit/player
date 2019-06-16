@@ -206,7 +206,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                             textAlignment = TextAlignment.RIGHT
                         }
                     }
-                    config.type.isSubclassOf<Boolean>() || config.isTypeEnumerable -> ConfigField.create(config).control
+                    config.type.isSubclassOf<Boolean>() || config.isTypeEnumerable -> ConfigField.create(config).editor
                     else -> null
                 }
             }

@@ -101,7 +101,7 @@ open class EnumerableCF<T>: ConfigField<T> {
         // TODO: update warn icon since remove operation may render value illegal
     }
 
-    override fun getControl() = n
+    override fun getEditor() = n
 }
 
 private class KeyCodeCF: EnumerableCF<KeyCode> {

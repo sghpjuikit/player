@@ -1,7 +1,6 @@
 package sp.it.pl.gui.itemnode
 
 import javafx.scene.Node
-import sp.it.util.conf.Config
 import sp.it.util.functional.invoke
 import java.util.function.Consumer
 
@@ -37,11 +36,4 @@ abstract class ValueNode<T: Any?>(initialValue: T): ValueNodeBase<T>(initialValu
         value = nv
         onItemChange(nv)
     }
-}
-
-/** Item node which holds the value in a [Config]. */
-abstract class ConfigNode<T: Any?>(@JvmField val config: Config<T>): ItemNode<T>() {
-
-    override fun getVal(): T = config.value
-
 }

@@ -95,7 +95,7 @@ import static sp.it.util.ui.Util.layHorizontally;
  * type of configuration into consideration. For example
  * for boolean CheckBox control will be used, for enum ComboBox etc...
  */
-abstract public class ConfigField<T> extends ConfigNode<T> {
+abstract public class ConfigField<T> {
 
     private static final Tooltip okTooltip = appTooltip("Apply value");
     private static final Tooltip warnTooltip = appTooltip("Erroneous value");
@@ -176,7 +176,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-
+    public final Config<T> config;
     public boolean applyOnChange = true;
     protected boolean inconsistentState = false;
     public Try<T,String> value = ok(null);
@@ -186,7 +186,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     private Anim defBA;
 
     protected ConfigField(Config<T> config) {
-        super(config);
+        this.config = config;
     }
 
     /**
@@ -197,6 +197,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      */
     public boolean hasUnappliedValue() {
         return !Objects.equals(config.getValue(), getValid());
+    }
+
+    public T getConfigValue() {
+        return config.getValue();
     }
 
     /**
@@ -218,14 +222,21 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         return l;
     }
 
+    public final HBox getNode() {
+        return getNode(true);
+    }
+
     /**
      * Use to get the control node for setting and displaying the value to
      * attach it to a scene graph.
      *
+     * @param managedControl default true, set false to avoid controls affecting size measurement (particularly helpful
+     * with text fields, which can 'expand' layout beyond expected width due to
+     * {@link javafx.scene.control.TextField#prefColumnCountProperty()}. I.e., use true to expand and false to shrink.
+     *
      * @return setter control for this field
      */
-    @Override
-    public final HBox getNode() {
+    public final HBox getNode(boolean managedControl) {
         if (root==null) {
             root = new HBox(configRootSpacing);
             root.getStyleClass().add("config-field");
@@ -279,7 +290,18 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                     }));
             });
 
-            var config = getControl();
+            var isRetarded = getEditor() instanceof TextField;
+            var config = !isRetarded
+                ? getEditor()
+                : new StackPane(getEditor()) {
+                        {
+                            getEditor().setManaged(managedControl);
+                        }
+                        @Override
+                        protected void layoutChildren() {
+                            getChildren().get(0).resizeRelocate(0, 0, getWidth(), getHeight());
+                        }
+                    };
             root.getChildren().add(0, config);
             root.setPadding(paddingNoDefB);
             HBox.setHgrow(config, ALWAYS);
@@ -294,15 +316,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      *
      * @return setter control for this field
      */
-    public abstract Node getControl();
+    public abstract Node getEditor();
+
+    public void focusEditor() {
+        getEditor().requestFocus();
+    }
 
     protected String getTooltipText() {
         return config.getInfo();
-    }
-
-    @Override
-    public void focus() {
-        getControl().requestFocus();
     }
 
     protected abstract Try<T,String> get();
@@ -366,7 +387,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Node getControl() {
+        public Node getEditor() {
             return editor;
         }
 
@@ -449,12 +470,12 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Control getControl() {
+        public Control getEditor() {
             return n;
         }
 
         @Override
-        public void focus() {
+        public void focusEditor() {
             n.requestFocus();
             n.selectAll();
         }
@@ -520,7 +541,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public CheckIcon getControl() {
+        public CheckIcon getEditor() {
             return graphics;
         }
 
@@ -594,7 +615,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Node getControl() {
+        public Node getEditor() {
             return box;
         }
 
@@ -687,7 +708,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Node getControl() {
+        public Node getEditor() {
             return group;
         }
 
@@ -746,7 +767,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             editor.valueProperty().addListener((o,ov,nv) -> apply(false));
         }
 
-        @Override public Control getControl() {
+        @Override public Control getEditor() {
             return editor;
         }
         @Override public Try<Color,String> get() {
@@ -766,7 +787,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             editor.setOnValueChange((ov, nv) -> apply(false));
         }
 
-        @Override public Control getControl() {
+        @Override public Control getEditor() {
             return editor;
         }
         @Override public Try<Font,String> get() {
@@ -802,7 +823,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Control getControl() {
+        public Control getEditor() {
             return editor;
         }
 
@@ -829,7 +850,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             editor.setOnValueChange((ov, nv) -> apply(false));
         }
 
-        @Override public Control getControl() {
+        @Override public Control getEditor() {
             return editor;
         }
         @Override public Try<Effect,String> get() {
@@ -855,7 +876,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Node getControl() {
+        public Node getEditor() {
             return configPane;
         }
 
@@ -922,7 +943,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Node getControl() {
+        public Node getEditor() {
             return chain.getNode();
         }
 
@@ -954,7 +975,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             public T getVal() {
                 // TODO: use Type instead of Class for Config.type or add list type support to Config
                 Class<? extends T> oType = pane.getConfigFields().get(0).config.getType();
-                if (type==oType) return pane.getConfigFields().get(0).getVal();
+                if (type==oType) return pane.getConfigFields().get(0).getConfigValue();
                 else return value;
             }
 
@@ -997,7 +1018,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
 
         @Override
-        public Node getControl() {
+        public Node getEditor() {
             return graphics;
         }
 
@@ -1028,11 +1049,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             };
             ConfigField cf = create(Config.forProperty(c.getType(),"", vo.real));
             Util.setField(cf.config, "defaultValue", c.getDefaultValue());
-            syncC(vo.override, it -> cf.getControl().setDisable(!it));
+            syncC(vo.override, it -> cf.getEditor().setDisable(!it));
             root.getChildren().addAll(cf.getNode(),bf.getNode());
         }
         @Override
-        public Node getControl() {
+        public Node getEditor() {
             return root;
         }
 
@@ -1060,14 +1081,14 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
     static void disableIfReadOnly(ConfigField<?> control, Config<?> config) {
     	if (!config.isEditable().isByUser()) {
-    		control.getControl().setDisable(true);
+    		control.getEditor().setDisable(true);
 	    } else {
 	        config.getConstraints().stream()
 	            .filter(Constraint.ReadOnlyIf.class::isInstance)
 	            .map(Constraint.ReadOnlyIf.class::cast)
 		        .map(ReadOnlyIf::getCondition)
                 .reduce(Bindings::and)
-                .ifPresent(control.getControl().disableProperty()::bind);
+                .ifPresent(control.getEditor().disableProperty()::bind);
 	    }
     }
 }

@@ -2,6 +2,7 @@ package sp.it.pl.gui.objects.form
 
 import javafx.fxml.FXML
 import javafx.scene.control.Label
+import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.AnchorPane
@@ -17,6 +18,7 @@ import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
 import sp.it.util.ui.fxml.ConventionFxmlLoader
 import sp.it.util.ui.lay
+import sp.it.util.ui.scrollPane
 import java.util.function.Consumer
 
 /**
@@ -49,7 +51,12 @@ class Form<T>: AnchorPane {
         ConventionFxmlLoader(this).loadNoEx<Any>()
 
         anchorOk = getBottomAnchor(fieldsPane)
-        fieldsPane.lay += fields
+        fieldsPane.lay += scrollPane {
+            content = fields
+            isFitToWidth = true
+            vbarPolicy = AS_NEEDED
+            hbarPolicy = AS_NEEDED
+        }
         okPane.lay += okB
         showOkButton(hasAction.value)
 

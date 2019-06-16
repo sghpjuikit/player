@@ -2050,12 +2050,41 @@ Text {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
 
+/************************************ FORM ***************************************************************************
+ * Form containing configuration of an object, also referred to as property sheet or settings.
+ */
+
 /*
  * inherits: .icon
  */
 .form-ok-button {
     -glyph-name: "OctIcon.CHECK";
     -glyph-size: 2em; /* 24 */
+}
+
+/*
+ * Layout for .config-field. Inherently LEFT aligned.
+ * inherits: VBox
+ */
+.form-config-pane {
+    -fx-spacing: 0.25em;
+    -fx-padding: 0 2em 0 2em;
+}
+
+/*
+ * Config name label in .form-config-pane
+ * inherits: .label
+ */
+.form-config-pane-config-name {
+    -fx-padding: 0.5em 0 0 0;
+}
+
+/*
+ * Config description text in .form-config-pane
+ * inherits: Text
+ */
+.form-config-pane-config-description {
+    -fx-opacity: 0.4;
 }
 
 /************************************ SEARCH ***************************************************************************

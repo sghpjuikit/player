@@ -1,35 +1,35 @@
 package sp.it.pl.gui.pane
 
 import javafx.geometry.Insets
-import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
-import javafx.geometry.Pos.CENTER_RIGHT
-import javafx.scene.control.Label
-import javafx.scene.layout.Priority.ALWAYS
+import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
-import javafx.scene.text.TextAlignment
+import javafx.scene.text.TextAlignment.LEFT
 import sp.it.pl.gui.itemnode.ConfigField
+import sp.it.pl.gui.objects.Text
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.util.action.Action
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
-import sp.it.util.functional.supplyIf
-import sp.it.util.ui.Util.computeFontWidth
-import sp.it.util.ui.hBox
-import sp.it.util.ui.lay
+import sp.it.util.functional.asIf
+import sp.it.util.math.max
+import sp.it.util.math.min
+import sp.it.util.ui.label
 
 class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
     private var fields: List<ConfigField<*>> = listOf()
-    private val labels = ArrayList<Label>()
     private var needsLabel: Boolean = true
+    private var inLayout = false
     var onChange: Runnable? = null
     val configOrder = compareBy<Config<*>> { 0 }
             .thenBy { it.group.toLowerCase() }
             .thenBy { if (it.type==Action::javaClass) 1.0 else -1.0 }
             .thenBy { it.guiName.toLowerCase() }
 
-    constructor(): super(5.0)
+    constructor(): super(5.0) {
+        styleClass += "form-config-pane"
+    }
 
     constructor(configs: Configurable<T>): this() {
         configure(configs)
@@ -46,40 +46,58 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
                 }
                 .toList()
 
-        alignment = CENTER
-        labels.clear()
-        children setTo fields.map {
-            hBox(20, CENTER_LEFT) {
-                lay += supplyIf(needsLabel) {
-                    it.createLabel().apply {
-                        labels += this
-                        alignment = CENTER_RIGHT
-                        textAlignment = TextAlignment.RIGHT
-                        padding = Insets(0.0, 0.0, 0.0, 5.0)
-                    }
-                }
+        alignment = CENTER_LEFT
+        children setTo fields.asSequence().flatMap {
+            sequenceOf(
+                    when {
+                        needsLabel -> label(it.config.name).apply {
+                            alignment = CENTER_LEFT
+                            textAlignment = LEFT
+                            styleClass += "form-config-pane-config-name"
+                        }
+                        else -> null
+                    },
+                    when {
+                        it.config.info.isEmpty() || it.config.guiName==it.config.info -> null
+                        else -> Text(it.config.info).apply {
+                            isManaged = false
+                            textAlignment = LEFT
+                            styleClass += "form-config-pane-config-description"
+                        }
+                    },
+                    it.getNode()
+            )
+        }.filterNotNull()
+    }
 
-                lay(ALWAYS) += it.getNode()
-            }
+    // overridden because we have un-managed nodes description nodes would cause wrong width
+    override fun layoutChildren() {
+        val contentLeft = padding.left
+        val contentWidth = if (width>0) width-padding.left-padding.right else 200.0
+        children.asSequence().fold(0.0) { h, n ->
+            if (n is Text) n.wrappingWidth = contentWidth
+            val p = n.asIf<Region>()?.padding ?: Insets.EMPTY
+            n.relocate(contentLeft, h + p.top + spacing)
+            n.resize(contentWidth, n.prefHeight(-1.0))
+            h+p.top+n.prefHeight(-1.0)+p.bottom + spacing
         }
     }
 
-    private var inLayout = false
+    override fun computeMinHeight(width: Double) = insets.top+insets.bottom
 
-    @Suppress("SENSELESS_COMPARISON")
-    override fun requestLayout() {
-        if (!inLayout && labels!=null) {
-            inLayout = true
-            setTightLabelWidth()
-            inLayout = false
+    // overridden because un-managed description nodes would not partake in height calculation
+    override fun computePrefHeight(width: Double): Double {
+        var minY = 0.0
+        var maxY = 0.0
+        children.forEach { n ->
+            val y = n.layoutBounds.minY+n.layoutY
+            minY = minY min y
+            maxY = maxY max (y+n.prefHeight(-1.0).coerceIn(n.minHeight(-1.0), n.maxHeight(-1.0)))
         }
-        super.requestLayout()
+        return maxY-minY
     }
 
-    private fun setTightLabelWidth() {
-        val labelWidth = labels.asSequence().map {  it.snappedLeftInset() + computeFontWidth(it.font, it.text) + it.snappedRightInset() }.max() ?: 0.0
-        labels.forEach { it.prefWidth = labelWidth }
-    }
+    override fun computeMaxHeight(width: Double) = Double.MAX_VALUE
 
     @Suppress("UNCHECKED_CAST")
     fun getConfigFields(): List<ConfigField<T>> = fields as List<ConfigField<T>>

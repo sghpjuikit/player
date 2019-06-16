@@ -13,7 +13,8 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
-import javafx.scene.input.TransferMode
+import javafx.scene.input.TransferMode.COPY
+import javafx.scene.input.TransferMode.LINK
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
@@ -188,9 +189,9 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
     private fun addInput(i: Input<*>) {
         allInputs += i
         inputNodes.computeIfAbsent(i) {
-            val iNode = InputNode(i)
+            val n = InputNode(i)
             i.getSources().forEach { o -> links.computeIfAbsent(Key(i, o), Compute { IOLink(i, o) }) }
-            iNode
+            n
         }
         requestLayout()
     }
@@ -203,10 +204,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
 
     private fun addOutput(o: Output<*>) {
         allOutputs += o
-        outputNodes.computeIfAbsent(o) {
-            val on = OutputNode(o)
-            on
-        }
+        outputNodes.computeIfAbsent(o) { OutputNode(o) }
         requestLayout()
     }
 
@@ -219,11 +217,11 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
     private fun addInOutput(io: InOutput<*>) {
         allInoutputs += io
         inoutputNodes.computeIfAbsent(io) {
-            val ion = InOutputNode(io)
-            inputNodes[io.i] = ion
-            outputNodes[io.o] = ion
+            val n = InOutputNode(io)
+            inputNodes[io.i] = n
+            outputNodes[io.o] = n
             io.i.getSources().forEach { o -> links.computeIfAbsent(Key(io.i, o), Compute { IOLink(io.i, o) }) }
-            ion
+            n
         }
         requestLayout()
     }
@@ -247,7 +245,6 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
 
     private fun editBegin(eFrom: XNode?) {
         if (eFrom==null) return
-
         selectNode(null)
 
         val e = EditIOLink(eFrom)
@@ -472,6 +469,39 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             label.updatePosition()
         }
 
+        protected fun installDragFrom() {
+            i.onEventUp(DRAG_DETECTED) {
+                if (selected) i.startDragAndDrop(if (it.isShortcutDown) LINK else COPY)[Df.WIDGET_OUTPUT] = output!!
+                else editBegin(this)
+                it.consume()
+            }
+        }
+
+        protected fun installDragTo() {
+            i.onEventUp(DRAG_ENTERED) { i.pseudoClassChanged("drag-over", true) }
+            i.onEventUp(DRAG_EXITED) { i.pseudoClassChanged("drag-over", false) }
+            installDrag(
+                    i, IconFA.CLIPBOARD, "",
+                    { if (it.transferMode==LINK) Df.WIDGET_OUTPUT in it.dragboard else true},
+                    {
+                        if (Df.WIDGET_OUTPUT in it.dragboard) {
+                            val o = it.dragboard[Df.WIDGET_OUTPUT]
+                            if (it.transferMode==LINK) {
+                                if (input!!.isAssignable(o))
+                                    input.bindAny(o)
+                            } else {
+                                if (input!!.isAssignable(o.value))
+                                    input.valueAny = o.value
+                            }
+                        } else {
+                            val o = it.dragboard.getAny()
+                            if (input!!.isAssignable(o))
+                                input.valueAny = o
+                        }
+                    }
+            )
+        }
+
         inner class XLabel {
             var x = 0.0
             var y = 0.0
@@ -495,55 +525,20 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
 
     private inner class InputNode(xPut: Input<*>): XNode(xPut, "inode") {
         init {
-            i.onEventUp(DRAG_ENTERED) { i.pseudoClassChanged("drag-over", true) }
-            i.onEventUp(DRAG_EXITED) { i.pseudoClassChanged("drag-over", false) }
-            installDrag(
-                    i, IconFA.CLIPBOARD, "",
-                    { true },
-                    {
-                        if (Df.WIDGET_OUTPUT in it.dragboard) {
-                            val o = it.dragboard[Df.WIDGET_OUTPUT]
-                            if (input!!.isAssignable(o))
-                                input.bindAny(o)
-                        } else {
-                            val o = it.dragboard.getAny()
-                            if (input!!.isAssignable(o))
-                                input.valueAny = o
-                        }
-                    }
-            )
+            installDragTo()
         }
     }
 
     private inner class OutputNode(xPut: Output<*>): XNode(xPut, "onode") {
         init {
-            i.onEventUp(DRAG_DETECTED) {
-                if (selected) i.startDragAndDrop(TransferMode.LINK)[Df.WIDGET_OUTPUT] = output!!
-                else editBegin(this)
-                it.consume()
-            }
+            installDragFrom()
         }
     }
 
     private inner class InOutputNode(xPut: InOutput<*>): XNode(xPut, "ionode") {
         init {
-            i.onEventUp(DRAG_ENTERED) { i.pseudoClassChanged("drag-over", true) }
-            i.onEventUp(DRAG_EXITED) { i.pseudoClassChanged("drag-over", false) }
-            i.onEventUp(DRAG_DETECTED) {
-                if (selected) i.startDragAndDrop(TransferMode.LINK)[Df.WIDGET_OUTPUT] = output!!
-                else editBegin(this)
-                it.consume()
-            }
-            installDrag(
-                    i, IconFA.CLIPBOARD, "",
-                    { e -> Df.WIDGET_OUTPUT in e.dragboard },
-                    { e ->
-                        val o = e.dragboard[Df.WIDGET_OUTPUT]
-                        if (o!==output) {
-                            input!!.bindAny(o)
-                        }
-                    }
-            )
+            installDragFrom()
+            installDragTo()
         }
     }
 

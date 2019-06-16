@@ -37,6 +37,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Settings
 import sp.it.pl.main.Widgets.PLAYBACK
+import sp.it.pl.main.scaleEM
 import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
@@ -80,6 +81,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.minus
 import java.io.File
@@ -417,7 +419,9 @@ class WindowManager {
     fun showSettings(c: Configurable<*>, e: MouseEvent) = showSettings(c, e.source as Node)
 
     fun <T> showSettings(c: Configurable<T>, n: Node) {
-        val form = Form.form(c)
+        val form = Form.form(c).apply {
+            prefSize = 400.scaleEM() x 400.scaleEM()
+        }
         PopOver(form).apply {
             title.value = if (c is Component) "${c.name} Settings" else "Settings"
             arrowSize.value = 0.0 // auto-fix breaks the arrow position, turn off - sux

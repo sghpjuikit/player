@@ -51,6 +51,7 @@ import sp.it.pl.main.withAppProgress
 import sp.it.pl.web.WebSearchUriBuilder
 import sp.it.pl.web.WikipediaQBuilder
 import sp.it.util.access.fieldvalue.CachingFile
+import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.minus
 import sp.it.util.access.toggleNext
 import sp.it.util.access.togglePrevious
@@ -157,6 +158,8 @@ class GameView(widget: Widget): SimpleController(widget) {
         files.onChange { placeholder.show(root, files.isEmpty()) } on onClose
 
         root.lay += grid.apply {
+            search.field = FileField.PATH
+            primaryFilterField = FileField.NAME_FULL
             cellFactory = Callback { Cell() }
             onEventDown(KEY_PRESSED, ENTER) {
                 val si = grid.selectedItem.value

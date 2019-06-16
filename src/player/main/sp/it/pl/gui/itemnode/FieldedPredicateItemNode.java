@@ -68,6 +68,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 
 	private Supplier<PredicateData<F>> prefTypeSupplier;
 	private boolean inconsistentState = false;
+	private boolean empty = true;
 
 	@SuppressWarnings("unchecked")
 	public FieldedPredicateItemNode(Callback<Class,PrefList<PƑ<Object,Boolean>>> predicatePool, Callback<Class,PƑ<Object,Boolean>> prefPredicatePool) {
@@ -117,6 +118,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 				.orElse(null);
 
 		typeCB.setValue(v);
+		empty = true;   // we can do this since we know we are in 'default' state
 	}
 
 	/**
@@ -128,8 +130,6 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	public void focus() {
 		if (config!=null) config.focus();
 	}
-
-	private boolean empty = true;
 
 	public boolean isEmpty() {
 		return empty;
@@ -147,7 +147,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	@SuppressWarnings("unchecked")
 	private void generatePredicate() {
 		if (inconsistentState) return;
-		empty = false;
+		empty = config==null;
 
 		if (config==null) {
 			changeValue((Predicate<V>) IS);

@@ -119,15 +119,6 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
         } on onClose
 
         playVisible sync {
-            table.filterPane.button?.apply {
-                icon(if (it) IconFA.FILTER else IconMD.FILTER_OUTLINE)
-                onClickDo { playVisible.toggle() }
-                tooltip(
-                        if (it) "Disable filter for playback. Causes the playback to ignore the filter."
-                        else "Enable filter for playback. Causes the playback to play only displayed items."
-                )
-                isDisable = false // needed
-            }
             playlist.setTransformation(
                     if (it) unOp { table.items.materialize() }
                     else unOp { it.asSequence().sortedWith(table.itemsComparator.value).toList() }
@@ -145,6 +136,16 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
         table.scrollToPlaying syncFrom scrollToPlaying on onClose
         table.defaultColumnInfo   // trigger menu initialization
         table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo
+        table.filterPane.buttonAdjuster.value = { i ->
+            i.onClickDo { playVisible.toggle() }
+            playVisible sync {
+                i.icon(if (it) IconFA.FILTER else IconMD.FILTER_OUTLINE)
+                i.tooltip(
+                        if (it) "Disable filter for playback. Causes the playback to ignore the filter."
+                        else "Enable filter for playback. Causes the playback to play only displayed items."
+                )
+            }
+        }
         onClose += table::dispose
         onClose += table.selectionModel.selectedItemProperty() attach {
             if (!table.movingItems)

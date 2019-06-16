@@ -66,8 +66,7 @@ public class FChainItemNode extends ChainValueNode<Ƒ1<? super Object, ? extends
 		chainedFactory = () -> new FItemNode<>(() -> fp.apply(getTypeOut()));
 		isHomogeneous = (i, f) -> {
 			// Link is homogeneous if removing the function poses no problem.
-			// For function f this is when previous function return type is same as next function
-			// input type (whis is same as f's return type).
+			// For function f this is when previous function output type is same as next function input type
 
 			// Identity function always produces homogeneous link.
 			// Workaround for identity function erasing its own return type to Object.class

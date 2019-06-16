@@ -98,6 +98,7 @@ public class GridView<T, F> extends Control {
 
 	public final V<T> selectedItem = new V<>(null);
 
+	/** Initial filter criteria for the filter, used when filter is opened or additional filter added */
 	public ObjectField<F,?> primaryFilterField;
 	public final Search search = new Search();
 
@@ -133,7 +134,6 @@ public class GridView<T, F> extends Control {
 		itemsPredicate = itemsFiltered.predicateProperty();
 		itemsComparator = itemsSorted.comparatorProperty();
 
-
 		// search
 		search.installOn(this);
 		addEventFilter(Event.ANY, e -> {
@@ -145,9 +145,6 @@ public class GridView<T, F> extends Control {
 				search.updateSearchStyles();
 		}));
 		setOnScroll(Event::consume);
-
-
-		setSkin(createDefaultSkin());
 
 		getStyleClass().add(STYLE_CLASS);
 	}

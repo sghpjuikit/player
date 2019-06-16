@@ -1,5 +1,6 @@
 package sp.it.pl.gui.itemnode
 
+import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.ComboBox
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority.ALWAYS
@@ -26,14 +27,15 @@ import java.util.function.Supplier
  * @param <O> type of function output
  */
 class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): ValueNode<Ƒ1<in I, out O>?>(null) {
-    private val root = hBox(5)
-    private val paramB = hBox(5)
+    private val root = hBox(5, CENTER_LEFT)
+    private val paramB = hBox(5, CENTER_LEFT)
     private val configs = ArrayList<ConfigField<*>>()
     private val fCB: ComboBox<PƑ<in I, out O>>
     private var inconsistentState = false
 
     init {
         val functions = functionPool.get()
+
         inconsistentState = true
         fCB = ImprovedComboBox { it.name }
         fCB.items setTo functions.asSequence().sortedBy { it.name }
@@ -46,7 +48,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): Value
                 configs += editor
                 paramB.children += editor.getNode()
             }
-            if (!configs.isEmpty()) HBox.setHgrow(configs[configs.size-1].getNode(), ALWAYS)
+            if (configs.isNotEmpty()) HBox.setHgrow(configs[configs.size-1].getNode(), ALWAYS)
             generateValue()
         }
         inconsistentState = false

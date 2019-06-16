@@ -30,7 +30,6 @@ import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Functors
-import sp.it.util.functional.Util.IS
 import sp.it.util.functional.Util.ISØ
 import sp.it.util.text.StringSplitParser
 import sp.it.util.text.Strings
@@ -87,8 +86,8 @@ object CoreFunctors: Core {
             add("As String", Any::class.java, String::class.java) { Objects.toString(it) }
             add("As Boolean", String::class.java, B) { java.lang.Boolean.parseBoolean(it) }
 
-            add("Is true", B, B, IS)
-            //  add("Is false", BOOL, BOOL, ISNT);
+            add("Is true", B, B) { it }
+            add("Is false", B, B) { !it }
             add("Negate", B, B) { b -> !b }
             add("And", B, B, { a, b -> java.lang.Boolean.logicalAnd(a, b) }, B, true)
             add("Or", B, B, { a, b -> java.lang.Boolean.logicalOr(a, b) }, B, true)

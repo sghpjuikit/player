@@ -72,6 +72,7 @@ import static sp.it.util.ui.UtilKt.menuItem;
  */
 public class FilteredTable<T> extends FieldedTable<T> {
 
+	/** Initial filter criteria for the filter, used when filter is opened or additional filter added */
 	public ObjectField<T,?> primaryFilterField;
 	private final ObservableList<T> allItems;
 	private final FilteredList<T> filteredItems;
@@ -250,7 +251,6 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			}
 
 			super.set(v);
-			if (!v) filterPane.clear();
 
 			Node sn = filterPane.getNode();
 			if (v) {
@@ -259,6 +259,10 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			} else {
 				root.getChildren().remove(sn);
 			}
+
+			if (v) filterPane.growTo1();
+			else filterPane.shrinkTo(0);
+
 			filterPane.getNode().setVisible(v);
 
 			// focus filter to allow user use filter asap
@@ -327,8 +331,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 				g.setData(THIS.getData());
 				return g;
 			});
+			maxChainLength.setValue(3);
 			setPrefTypeSupplier(FilteredTable.this::getPrimaryFilterPredicate);
-			growTo1();
 			onItemChange = filterList::setPredicate;
 			setData(getFilterPredicates(filterType));
 		}

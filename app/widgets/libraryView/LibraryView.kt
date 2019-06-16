@@ -279,9 +279,11 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         table.filterPane.inconsistent_state = true
         table.filterPane.setPrefTypeSupplier { PredicateData.ofField(VALUE) }
         table.filterPane.data = MgField.FIELDS.map { PredicateData(it.toString(f), it.getType(f), it as ObjectField<MetadataGroup, Any>) }
-        table.filterPane.shrinkTo(0)
-        table.filterPane.growTo1()
-        table.filterPane.clear()
+        if (table.filterVisible.value) {
+            table.filterPane.shrinkTo(0)
+            table.filterPane.growTo1()
+            table.filterPane.clear()
+        }
         if (refreshItems) setItems(inputItems.value)
     }
 

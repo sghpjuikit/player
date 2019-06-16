@@ -1,18 +1,21 @@
 package sp.it.pl.gui.itemnode;
 
-import de.jensd.fx.glyphs.GlyphIcons;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.util.reactive.Handler1;
@@ -97,7 +100,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 
 	public Link addChained(int i, C chained) {
 		if (chain.size()<maxChainLength.get()) {
-			Link c = new Link(chained);
+			Link c = new Link(i, chained);
 			chain.add(i, c);
 			generateValue();
 			return c;
@@ -186,37 +189,25 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 				.filter(ISNTØ);
 	}
 
-	/**
-	 * Sets button in the top left corner - instead of remove button of the
-	 * first element of the chain (which is more or less disabled by default).
-	 *
-	 * @param icon icon to set, null to revert to default state
-	 * @param t tooltip
-	 * @param action on click action
-	 */
-	public void setButton(GlyphIcons icon, Tooltip t, Runnable action) {
-		Link c = chain.get(0);
-		Icon i = c.rem;
-		i.icon(icon==null ? MINUS : icon);
-		i.setOnMouseClicked(icon==null ? e -> c.onRem() : e -> { action.run(); e.consume(); });
-		i.tooltip(icon==null ? addTooltip : t);
-		c.rem_alt = true;
-		c.updateIcons();
-	}
-
-	public Icon getButton() {
-		return chain.get(0).rem;
-	}
+	/** Adjusts remove button of the first element of the chain (which is disabled by default). */
+	public final ObjectProperty<Function1<Icon,Unit>> buttonAdjuster = new SimpleObjectProperty<>(null) {{
+		addListener((o,ov,nv) -> {
+			var icon = chain.isEmpty() ? null : chain.get(0).rem;
+			if (nv!=null && icon!=null) nv.invoke(icon);
+		});
+	}};
 
 	public class Link extends HBox {
 		private final CheckIcon onB = new CheckIcon(true);
 		private final Icon rem = new Icon(MINUS, 13);
 		private final Icon add = new Icon(PLUS, 13);
-		public final Property<Boolean> on = onB.selected;
+		private final int initialIndex;
+		private boolean wasAdjusted = false;
 		public final C chained;
-		private boolean rem_alt = false; // alternative icon, never disable
+		public final Property<Boolean> on = onB.selected;
 
-		Link(C c) {
+		Link(int initialIndex, C c) {
+			this.initialIndex = initialIndex;
 			chained = c;
 			chained.onItemChange = f -> generateValue();
 			setSpacing(5);
@@ -236,16 +227,23 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 
 		/** @return position index within the chain from 0 to chain.size() */
 		public final int getIndex() {
-			return chain.indexOf(this);
+			var i =  chain.indexOf(this);
+			return i==-1 ? initialIndex : i;
 		}
 
 		public void updateIcons() {
-			int l = chain.size();
+			int i = getIndex();
 			boolean h = isHomogeneous();
 
-			rem.setDisable(h && !rem_alt && l<=1);
-			add.setDisable(h && l>=maxChainLength.get());
-			this.setDisable(!h);
+			rem.setDisable(h && i==0);
+			add.setDisable(h && i>=maxChainLength.get()-1);
+			setDisable(!h);
+
+			if (i==0 && buttonAdjuster.get()!=null) {
+				rem.setDisable(false);
+				if (!wasAdjusted) buttonAdjuster.get().invoke(rem);
+				wasAdjusted = true;
+			}
 		}
 
 		public void onRem() {

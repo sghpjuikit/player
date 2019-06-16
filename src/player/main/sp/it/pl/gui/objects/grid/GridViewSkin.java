@@ -87,7 +87,6 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			}
 
 			super.set(v);
-			if (!v) filter.clear();
 
 			Node sn = filter.getNode();
 			if (v) {
@@ -97,6 +96,9 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			}
 			filterPane.setMaxHeight(v ? -1 : 0);
 			filter.getNode().setVisible(v);
+
+			if (v) filter.growTo1();
+			else filter.shrinkTo(0);
 
 			// focus filter to allow user use filter asap
 			if (v) runLater(filter::focus);
@@ -920,7 +922,6 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			});
 			setPrefTypeSupplier(GridViewSkin.this::getPrimaryFilterPredicate);
 			setData(getFilterPredicates(filterType));
-			growTo1();
 			onItemChange = predicate -> filterList.setPredicate(item -> predicate.test(getSkinnable().filterByMapper.apply(item)));
 
 			EventHandler<KeyEvent> filterKeyHandler = e -> {

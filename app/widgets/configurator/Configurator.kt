@@ -35,6 +35,7 @@ import sp.it.util.reactive.propagateESCAPE
 import sp.it.util.ui.expandToRootAndSelect
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
+import sp.it.util.ui.layFullArea
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
 import java.util.ArrayList
@@ -76,7 +77,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
 
         fxmlLoaderForController(this).loadNoEx<Any>()
 
-        configsRootPane.children += configsPane
+        configsRootPane.layFullArea += configsPane
 
         root.lay(TOP_LEFT) += hBox(10, TOP_RIGHT) {
             isPickOnBounds = false

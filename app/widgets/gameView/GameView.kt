@@ -75,7 +75,7 @@ import sp.it.util.dev.failIf
 import sp.it.util.file.FileType
 import sp.it.util.file.Properties
 import sp.it.util.file.div
-import sp.it.util.file.listChildren
+import sp.it.util.file.children
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.getOr
@@ -198,7 +198,7 @@ class GameView(widget: Widget): SimpleController(widget) {
         runOn(NEW) {
             files.asSequence()
                     .distinct()
-                    .flatMap { it.listChildren() }
+                    .flatMap { it.children() }
                     .map { CachingFile(it) }
                     .filter { it.isDirectory && !it.isHidden }
                     .sortedBy { it.name }
@@ -426,7 +426,7 @@ class GameView(widget: Widget): SimpleController(widget) {
         private const val CELL_TEXT_HEIGHT = 20.0
         private const val ICON_SIZE = 40.0
 
-        private fun File.findImage(imageName: String) = listChildren().find {
+        private fun File.findImage(imageName: String) = children().find {
             val filename = it.name
             val i = filename.lastIndexOf('.')
             if (i==-1) {

@@ -44,13 +44,13 @@ import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileMonitor
 import sp.it.util.file.Util.isValidatedDirectory
-import sp.it.util.file.childOf
+import sp.it.util.file.child
+import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
 import sp.it.util.file.isAnyChildOf
 import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.isParentOf
-import sp.it.util.file.listChildren
 import sp.it.util.file.toURLOrNull
 import sp.it.util.functional.Try
 import sp.it.util.functional.asArray
@@ -131,7 +131,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
         if (!isValidatedDirectory(dirW)) {
             logger.error { "External widgets registration failed: $dirW is not a valid directory." }
         } else {
-            dirW.listChildren().filter { it.isDirectory }.forEach { widgetDir ->
+            dirW.children().filter { it.isDirectory }.forEach { widgetDir ->
                 val name = widgetDir.nameWithoutExtension.capitalize()
                 monitors.computeIfAbsent(name) { WidgetMonitor(name, widgetDir) }.updateFactory()
             }
@@ -202,10 +202,10 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
         /** @return primary source file (either Kotlin or Java) or null if none exists */
         fun findSrcFile() = null
-                ?: widgetDir.childOf("$widgetName.kt").takeIf { it.exists() }
-                ?: widgetDir.childOf("$widgetName.java").takeIf { it.exists() }
+                ?: widgetDir.child("$widgetName.kt").takeIf { it.exists() }
+                ?: widgetDir.child("$widgetName.java").takeIf { it.exists() }
 
-        fun findSrcFiles() = widgetDir.listChildren().filter { it.hasExtension("java", "kt") }
+        fun findSrcFiles() = widgetDir.children().filter { it.hasExtension("java", "kt") }
 
         fun findClassFile() = compileDir/widgetName.decapitalize()/"$widgetName.class"
 
@@ -215,9 +215,9 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
         private fun computeClassPathElements() = getAppJarFile()+(findAppLibFiles()+compileDir+findLibFiles()).map { it.relativeToApp() }
 
-        private fun findLibFiles() = widgetDir.listChildren().filterSourceJars()
+        private fun findLibFiles() = widgetDir.children().filterSourceJars()
 
-        private fun findAppLibFiles() = APP.DIR_APP.childOf("lib").listChildren().filterSourceJars()
+        private fun findAppLibFiles() = APP.DIR_APP.child("lib").children().filterSourceJars()
 
         private fun getAppJarFile(): Sequence<String> {
             val mainJarFile = APP.DIR_APP/"PlayerFX.jar"
@@ -394,7 +394,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
                 val command = listOf(
                         compilerFile.absolutePath,
                         "-d", compileDir.relativeToApp(),
-                        "-jdk-home", APP.DIR_APP.childOf("java").relativeToApp(),
+                        "-jdk-home", APP.DIR_APP.child("java").relativeToApp(),
                         "-jvm-target", "12",
                         "-cp", computeClassPath(),
                         kotlinSrcFiles.joinToString(" ") { it.relativeToApp() }
@@ -602,7 +602,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
                 return
             }
 
-            layoutsAvailable setTo dir.listChildren().filter { it hasExtension "l" }.map { it.nameWithoutExtension }
+            layoutsAvailable setTo dir.children().filter { it hasExtension "l" }.map { it.nameWithoutExtension }
         }
     }
 

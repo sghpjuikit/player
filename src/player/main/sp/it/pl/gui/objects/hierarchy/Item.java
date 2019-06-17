@@ -16,6 +16,7 @@ import sp.it.util.HierarchicalBase;
 import sp.it.util.JavaLegacy;
 import sp.it.util.access.fieldvalue.CachingFile;
 import sp.it.util.file.FileType;
+import sp.it.util.file.UtilKt;
 import sp.it.util.functional.Try;
 import sp.it.util.ui.IconExtractor;
 import sp.it.util.ui.image.Image2PassLoader;
@@ -31,7 +32,6 @@ import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.file.FileType.DIRECTORY;
 import static sp.it.util.file.FileType.FILE;
 import static sp.it.util.file.UtilKt.getNameWithoutExtensionOrRoot;
-import static sp.it.util.file.UtilKt.listChildren;
 import static sp.it.util.functional.Try.Java.error;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.Util.list;
@@ -131,7 +131,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	protected Stream<File> childrenFiles() {
-		return asStream(listChildren(value)).map(CachingFile::new);
+		return asStream(UtilKt.children(value)).map(CachingFile::new);
 	}
 
 	protected boolean filterChildFile(File f) {

@@ -54,8 +54,8 @@ import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.valuesIn
 import sp.it.util.dev.fail
 import sp.it.util.file.Util.isValidatedDirectory
+import sp.it.util.file.children
 import sp.it.util.file.div
-import sp.it.util.file.listChildren
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.asIf
 import sp.it.util.functional.getOr
@@ -345,7 +345,7 @@ class WindowManager {
             return
         }
 
-        val filesOld = dir.listChildren().toSet()
+        val filesOld = dir.children().toSet()
         val ws = windows.filter { it!==dockWindow }
         logger.info { "Serializing ${ws.size} application windows" }
 
@@ -370,7 +370,7 @@ class WindowManager {
         if (APP.isStateful) {
             val dir = File(APP.DIR_LAYOUTS, "current")
             if (isValidatedDirectory(dir)) {
-                val fs = dir.listChildren().filter { it.path.endsWith(".ws") }.toList()
+                val fs = dir.children().filter { it.path.endsWith(".ws") }.toList()
                 ws += fs.mapNotNull { APP.serializerXml.fromXML(WindowState::class.java, it).orNull()?.toWindow() }
                 logger.info { "Restored ${fs.size}/${ws.size} windows." }
             } else {

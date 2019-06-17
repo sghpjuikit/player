@@ -8,7 +8,6 @@ import sp.it.util.dev.fail
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
-import sp.it.util.file.parentDir
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import java.io.File
@@ -27,7 +26,7 @@ private val logger = KotlinLogging.logger { }
 fun readPlaylist(file: File): List<Song> {
     failIfFxThread()
 
-    val location = file.parentDir ?: fail { "File=$file is not a playlist file" }
+    val location = file.parentFile ?: fail { "File=$file is not a playlist file" }
     val encoding = when {
         file hasExtension "m3u" -> Charset.defaultCharset()
         file hasExtension "m3u8" -> UTF_8

@@ -58,7 +58,6 @@ import sp.it.util.file.FileSort.DIR_FIRST
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.Util.getCommonRoot
-import sp.it.util.file.parentDir
 import sp.it.util.functional.Util.max
 import sp.it.util.functional.nullsLast
 import sp.it.util.functional.toUnit
@@ -292,7 +291,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
             var f = lastVisited
             while (f!=null && topItem.children().none { it.value==f }) {
                 path.push(f)
-                f = f.parentDir
+                f = f.parentFile
             }
             val tmpF = f
             val success = topItem.children().any { it.value!=null && it.value==tmpF }
@@ -386,7 +385,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
         override fun childrenFiles() = fileFlatter.value.flatten(filesMaterialized).map { CachingFile(it) as File }.asStream()
 
         override fun getCoverFile() = when (children.size) {
-            1 -> children.first().value.parentDir?.let { getImageT(it, "cover") }
+            1 -> children.first().value.parentFile?.let { getImageT(it, "cover") }
             else -> null
         }
 

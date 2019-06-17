@@ -1,6 +1,14 @@
 // Gradle settings file for multi-project build. Convention. Executed during the initialization phase.
 // Defines all projects and build script classpath.
 
+// TODO: remove when kotlin eap no longer used
+pluginManagement {
+        repositories {
+            maven("https://plugins.gradle.org/m2/")
+            maven("http://dl.bintray.com/kotlin/kotlin-eap")
+        }
+}
+
 rootProject.apply {
     projectDir = file(".")
     buildFileName = "gradle/project.gradle.kts"

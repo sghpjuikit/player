@@ -2,6 +2,7 @@ package sp.it.util.functional
 
 import javafx.util.Callback
 import sp.it.util.async.executor.EventReducer
+import sp.it.util.dev.Experimental
 import java.util.Comparator
 import java.util.Optional
 import java.util.concurrent.Executor
@@ -16,8 +17,11 @@ import java.util.stream.Stream
 import kotlin.streams.toList
 
 val Executor.kt: (Runnable) -> Unit get() = this::execute
+
 val Runnable.kt: () -> Unit get() = this::run
+
 val <T> Consumer<T>.kt: (T) -> Unit get() = this::accept
+
 val <T> Supplier<T>.kt: () -> T get() = this::get
 
 operator fun <T> Consumer<T>.invoke(t: T) = accept(t)
@@ -43,7 +47,11 @@ operator fun EventReducer<Void>.invoke() = push(null)
 /** @return [Unit] effectively ignoring this value */
 fun Any.toUnit() = Unit
 
+/** @return result of function composition `this * then` */
 infix fun <A, B, C> ((A) -> B).compose(then: (B) -> C): (A) -> C = { then(this(it)) }
+
+/** @return partially applied this with the 1st parameter fixed to the specified value */
+fun <A, B, C> ((A, B) -> C).invoke(a: A): (B) -> C = { this(a, it) }
 
 /** @return kotlin consumer that invokes java consumer */
 fun <T> consumer(consumer: Consumer<T>): (T) -> Unit = { consumer(it) }
@@ -217,6 +225,12 @@ fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyI
  *
  */
 inline fun <T, R: Any> T.net(block: (T) -> R): R = let(block)
+
+@Experimental("in trial period")
+inline infix fun <T, R> T.let_(block: (T) -> R): R = let(block)
+
+@Experimental("in trial period")
+inline infix fun <T> T.apply_(block: T.() -> Unit): T = apply(block)
 
 /** @return this as specified type if this is of the type or null otherwise */
 inline fun <reified T: Any> Any?.asIf(): T? = if (this is T) this else null

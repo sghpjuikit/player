@@ -22,7 +22,9 @@ import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions
 import sp.it.pl.main.initActionPane
+import sp.it.pl.main.initApp
 import sp.it.util.access.Values
+import sp.it.util.access.toggle
 import sp.it.util.action.IsAction
 import sp.it.util.collections.project
 import sp.it.util.collections.setTo
@@ -39,23 +41,19 @@ import sp.it.util.conf.values
 import sp.it.util.conf.valuesIn
 import sp.it.util.file.FileMonitor
 import sp.it.util.file.Util
+import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.isAnyParentOf
-import sp.it.util.file.listChildren
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Util.set
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
-import sp.it.util.reactive.Disposer
-import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncNonNullIntoWhile
-import sp.it.util.reactive.syncTo
 import sp.it.util.ui.isAnyParentOf
 import sp.it.util.ui.setFontAsStyle
 import sp.it.util.units.millis
@@ -86,7 +84,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
     val shortcutPane = LazyOverlayPane { PaneS().initApp() }
     val infoPane = LazyOverlayPane { InfoPane().initApp() }
 
-    val skins = observableSet<SkinCss>(hashSetOf())!!
+    val skins = observableSet<SkinCss>()!!
     val additionalStylesheets = observableArrayList<File>()!!
 
     val layoutMode: BooleanProperty = SimpleBooleanProperty(false)
@@ -200,7 +198,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
 
     /** Toggles lock to prevent user accidental layout change.  */
     @IsAction(name = "Toggle layout lock", desc = "Lock/unlock layout.", keys = "F4")
-    fun toggleLayoutLocked() = lockedLayout.set(!lockedLayout.value)
+    fun toggleLayoutLocked() = lockedLayout.toggle()
 
     /** Loads/refreshes active layout.  */
     @IsAction(name = "Reload layout", desc = "Reload layout.", keys = "F6")
@@ -295,7 +293,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
             return set()
         }
 
-        return skinDir.listChildren()
+        return skinDir.children()
                 .filter { it.isDirectory }
                 .mapNotNull {
                     val name = it.name
@@ -411,29 +409,4 @@ class LazyOverlayPane<OT, T: OverlayPane<OT>>(private val builder: () -> T) {
         get() = pane
 
     fun hide() = pane?.hide() ?: Unit
-}
-
-fun <T, P: OverlayPane<T>> P.initApp() = apply {
-    val d = Disposer()
-    APP.ui.viewDisplay syncTo display on d
-    display sync { if (it is OverlayPane.Display) APP.ui.viewDisplay.value = it } on d
-    displayBgr syncBiFrom APP.ui.viewDisplayBgr on d
-    onHidden += d
-}
-
-fun PaneA.initApp() = apply {
-    val d = Disposer()
-    (this as OverlayPane<*>).initApp()
-    closeOnDone syncBiFrom APP.ui.viewCloseOnDone on d
-    onHidden += d
-}
-
-fun PaneS.initApp() = apply {
-    val d = Disposer()
-    (this as OverlayPane<*>).initApp()
-    hideEmptyShortcuts syncBiFrom APP.ui.viewHideEmptyShortcuts on d
-    onHidden += d
-    onHidden += {
-        APP.actionStream("Shortcuts")
-    }
 }

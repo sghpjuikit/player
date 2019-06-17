@@ -110,7 +110,7 @@ class FileMonitor {
          * @param action handles the event on fx application thread
          * @return directory monitor
          */
-        fun monitorFile(monitoredFile: File, action: (Kind<Path>) -> Unit) = monitorDirectory(monitoredFile.parentDir!!, false, { monitoredFile==it }, { type, _ -> action(type) })
+        fun monitorFile(monitoredFile: File, action: (Kind<Path>) -> Unit) = monitorDirectory(monitoredFile.parentFile!!, false, { monitoredFile==it }, { type, _ -> action(type) })
 
         /**
          * Creates and starts directory monitoring for specified directory reporting events for any 1st

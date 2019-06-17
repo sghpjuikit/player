@@ -7,13 +7,8 @@ import javafx.application.Platform
 import javafx.scene.image.Image
 import javafx.stage.Stage
 import mu.KLogging
-import org.atteo.evo.inflector.English.plural
 import sp.it.pl.audio.Player
-import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
-import sp.it.pl.audio.playlist.PlaylistSong
-import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.core.CoreConverter
 import sp.it.pl.core.CoreEnv
 import sp.it.pl.core.CoreFunctors
@@ -25,22 +20,13 @@ import sp.it.pl.core.CoreMouse
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerXml
 import sp.it.pl.gui.UiManager
-import sp.it.pl.gui.initApp
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.window.stage.WindowManager
 import sp.it.pl.gui.pane.MessagePane
-import sp.it.pl.layout.Component
-import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetManager
-import sp.it.pl.layout.widget.controller.io.InOutput
-import sp.it.pl.layout.widget.controller.io.Input
-import sp.it.pl.layout.widget.controller.io.Output
-import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
-import sp.it.pl.plugin.Plugin
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.appsearch.AppSearchPlugin
 import sp.it.pl.plugin.database.SongDb
@@ -51,8 +37,6 @@ import sp.it.pl.plugin.playcount.PlaycountIncrementer
 import sp.it.pl.plugin.screenrotator.ScreenRotator
 import sp.it.pl.plugin.tray.TrayPlugin
 import sp.it.pl.plugin.waifu2k.Waifu2kPlugin
-import sp.it.util.access.fieldvalue.ColumnField
-import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
 import sp.it.util.async.runLater
@@ -66,13 +50,12 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.dev.fail
-import sp.it.util.file.FileType
 import sp.it.util.file.Util.isValidatedDirectory
-import sp.it.util.file.childOf
+import sp.it.util.file.child
 import sp.it.util.file.div
 import sp.it.util.file.type.MimeTypes
 import sp.it.util.functional.Try
-import sp.it.util.functional.getOr
+import sp.it.util.functional.apply_
 import sp.it.util.functional.invoke
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Disposer
@@ -84,20 +67,17 @@ import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceInfo
 import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
-import sp.it.util.type.Util.getGenericPropertyType
-import sp.it.util.ui.image.getImageDim
-import sp.it.util.units.FileSize
 import java.io.File
 import java.lang.management.ManagementFactory
 import java.net.URI
 import java.net.URLConnection
-import java.util.function.Consumer
 import kotlin.system.exitProcess
 import kotlin.text.Charsets.UTF_8
 import sp.it.util.conf.IsConfig as C
 import kotlin.jvm.JvmField as F
 
 lateinit var APP: App
+private val verify = File::verify
 private lateinit var rawArgs: Array<String>
 
 fun main(args: Array<String>) {
@@ -122,6 +102,7 @@ fun main(args: Array<String>) {
 @IsConfigurable("General")
 class App: Application(), Configurable<Any> {
 
+
     init {
         APP = this.takeUnless { ::APP.isInitialized } ?: fail { "Multiple application instances disallowed" }
     }
@@ -133,31 +114,31 @@ class App: Application(), Configurable<Any> {
     /** Application code encoding. Useful for compilation during runtime. */
     @F val encoding = UTF_8
     /** Uri for github website for project of this application. */
-    @F val uriGithub = URI.create("https://www.github.com/sghpjuikit/player/")!!
+    @F val uriGithub = URI.create("https://www.github.com/sghpjuikit/player/")
     /** Absolute file of location of this app. Working directory of the project. new File("").getAbsoluteFile(). */
-    @F val DIR_APP = File("").absoluteFile!!
+    @F val DIR_APP = File("").absoluteFile
     /** Temporary directory of the os. */
-    @F val DIR_TEMP = File(System.getProperty("java.io.tmpdir")).initForApp()
+    @F val DIR_TEMP = File(System.getProperty("java.io.tmpdir")) apply_ verify
     /** Home directory of the os. */
-    @F val DIR_HOME = File(System.getProperty("user.home")).initForApp()
+    @F val DIR_HOME = File(System.getProperty("user.home")) apply_ verify
     /** Directory containing widgets - source files, class files and widget's resources. */
-    @F val DIR_WIDGETS = DIR_APP.childOf("widgets").initForApp()
+    @F val DIR_WIDGETS = DIR_APP/"widgets" apply_ verify
     /** Directory containing application resources. */
-    @F val DIR_RESOURCES = DIR_APP.childOf("resources").initForApp()
+    @F val DIR_RESOURCES = DIR_APP/"resources" apply_ verify
     /** Directory containing skins. */
-    @F val DIR_SKINS = DIR_APP.childOf("skins").initForApp()
+    @F val DIR_SKINS = DIR_APP/"skins" apply_ verify
     /** Directory containing user data created by application usage, such as customizations, song library, etc. */
-    @F val DIR_USERDATA = DIR_APP.childOf("user").initForApp()
+    @F val DIR_USERDATA = DIR_APP/"user" apply_ verify
     /** Directory containing library database. */
-    @F val DIR_LIBRARY = DIR_USERDATA.childOf("library").initForApp()
+    @F val DIR_LIBRARY = DIR_USERDATA/"library" apply_ verify
     /** Directory containing persisted user ui. */
-    @F val DIR_LAYOUTS_INIT = DIR_APP.childOf("templates").initForApp()
+    @F val DIR_LAYOUTS_INIT = DIR_APP/"templates" apply_ verify
     /** Directory containing initial templates - persisted user ui bundled with the application. */
-    @F val DIR_LAYOUTS = DIR_USERDATA.childOf("layouts").initForApp()
+    @F val DIR_LAYOUTS = DIR_USERDATA/"layouts" apply_ verify
     /** Directory for application logging. */
-    @F val DIR_LOG = DIR_USERDATA.childOf("log").initForApp()
+    @F val DIR_LOG = DIR_USERDATA/"log" apply_ verify
     /** File for application configuration. */
-    @F val FILE_SETTINGS = DIR_USERDATA.childOf("application.properties")
+    @F val FILE_SETTINGS = DIR_USERDATA/"application.properties"
 
     /** Rank this application instance started with. [MASTER] if started as the first instance, [SLAVE] otherwise. */
     val rankAtStart: Rank = if (getInstances()>1) SLAVE else MASTER
@@ -206,9 +187,9 @@ class App: Application(), Configurable<Any> {
 
     // cores (always active, mostly singletons)
     @F val configuration = MainConfiguration.apply { rawAdd(FILE_SETTINGS) }
-    @F val logging = CoreLogging(DIR_RESOURCES.childOf("log_configuration.xml"), DIR_LOG)
+    @F val logging = CoreLogging(DIR_RESOURCES.child("log_configuration.xml"), DIR_LOG)
     @F val env = CoreEnv.apply { init() }
-    @F val imageIo = CoreImageIO(DIR_TEMP.childOf("imageio"))
+    @F val imageIo = CoreImageIO(DIR_TEMP.child("imageio"))
     @F val converter = CoreConverter().apply { init() }
     @F val serializerXml = CoreSerializerXml()
     @F val serializer = CoreSerializer
@@ -282,7 +263,7 @@ class App: Application(), Configurable<Any> {
 
         // init app stuff
         search.initForApp()
-        appCommunicator.initForApp()
+        appCommunicator.initApp()
 
         // start parts that can be started from non application fx thread
         ActionManager.onActionRunPost += { APP.actionStream(it.name) }
@@ -449,105 +430,6 @@ class App: Application(), Configurable<Any> {
                         { it.externalWidgetData!!.scheduleCompilation() }
                 )
             }
-        }
-    }
-
-    private fun AppInstanceComm.initForApp() {
-        onNewInstanceHandlers += Consumer { parameterProcessor.process(it) }
-    }
-
-    private fun File.initForApp() = apply {
-        if (!isAbsolute)
-            fail { "File $this is not absolute" }
-
-        if (!isValidatedDirectory(this))
-            fail { "File $this is not accessible" }
-    }
-
-    private fun ObjectFieldMap.initApp() {
-        add(PlaylistSong::class.java, PlaylistSong.Field.FIELDS)
-        add(Metadata::class.java, Metadata.Field.FIELDS)
-        add(MetadataGroup::class.java, MetadataGroup.Field.FIELDS)
-        add(Any::class.java, ColumnField.FIELDS)
-        add(File::class.java, FileField.FIELDS)
-    }
-
-    private fun ClassName.initApp() {
-        addNoLookup(Void::class.java, "Nothing")
-        add(String::class.java, "Text")
-        add(File::class.java, "File")
-        add(App::class.java, "Application")
-        add(Song::class.java, "Song")
-        add(PlaylistSong::class.java, "Playlist Song")
-        add(Metadata::class.java, "Library Song")
-        add(MetadataGroup::class.java, "Song Group")
-        add(Plugin::class.java, "Plugin")
-        add(Widget::class.java, "Widget")
-        add(Container::class.java, "Container")
-        add(Input::class.java, "Input")
-        add(Output::class.java, "Output")
-        add(InOutput::class.java, "In-Output")
-        add(Feature::class.java, "Feature")
-        add(List::class.java, "List")
-    }
-
-    private fun InstanceName.initApp() {
-        add(Void::class.java) { "<none>" }
-        add(File::class.java) { it.path }
-        add(App::class.java) { "This application" }
-        add(Song::class.java) { it.getPathAsString() }
-        add(PlaylistSong::class.java) { it.getTitle() }
-        add(Metadata::class.java) { it.getTitleOrEmpty() }
-        add(MetadataGroup::class.java) { it.getValueS("<none>") }
-        add(Plugin::class.java) { it.name }
-        add(Component::class.java) { it.exportName }
-        add(Feature::class.java) { "Feature" }
-        add(Input::class.java) { it.name }
-        add(Output::class.java) { it.name }
-        add(InOutput::class.java) { it.o.name }
-        add(Collection::class.java) {
-            val eType = getGenericPropertyType(it.javaClass)
-            val eName = if (eType==it.javaClass || eType==null || eType==Any::class.java) "Item" else className[eType]
-            it.size.toString()+" "+plural(eName, it.size)
-        }
-    }
-
-    private fun InstanceInfo.initApp() {
-        add(Void::class.java) { _, _ -> }
-        add(String::class.java) { s, map -> map["Length"] = Integer.toString(s?.length ?: 0) }
-        add(File::class.java) { f, map ->
-            val type = FileType.of(f)
-            map["File type"] = type.name
-
-            if (type==FileType.FILE) {
-                val fs = FileSize(f)
-                map["Size"] = ""+fs+(if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else "")
-                map["Format"] = f.name.substringAfterLast('.', "<none>")
-            }
-
-            map[FileField.TIME_CREATED.name()] = FileField.TIME_CREATED.getOfS(f, "n/a")
-            map[FileField.TIME_MODIFIED.name()] = FileField.TIME_MODIFIED.getOfS(f, "n/a")
-
-            if (f.isImage()) {
-                val res = getImageDim(f).map { "${it.width} x ${it.height}" }.getOr("n/a")
-                map["Resolution"] = res
-            }
-        }
-        add(App::class.java) { v, map -> map["Name"] = v.name }
-        add(Component::class.java) { v, map -> map["Name"] = v.exportName }
-        add(Metadata::class.java) { m, map ->
-            Metadata.Field.FIELDS.asSequence()
-                    .filter { it.isTypeStringRepresentable() && !it.isFieldEmpty(m) }
-                    .forEach { map[it.name()] = it.getOfS(m, "<none>") }
-        }
-        add(PlaylistSong::class.java) { p, map ->
-            PlaylistSong.Field.FIELDS.asSequence()
-                    .filter { it.isTypeStringRepresentable() }
-                    .forEach { map[it.name()] = it.getOfS(p, "<none>") }
-        }
-        add(Feature::class.java) { f, map ->
-            map["Name"] = f.name
-            map["Description"] = f.description
         }
     }
 

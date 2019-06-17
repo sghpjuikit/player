@@ -7,8 +7,8 @@ import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.util.access.VarEnum
 import sp.it.util.file.Util
 import sp.it.util.file.Util.getFilesR
-import sp.it.util.file.childOf
-import sp.it.util.file.listChildren
+import sp.it.util.file.children
+import sp.it.util.file.div
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.type.MimeTypes
 import sp.it.util.file.type.mimeType
@@ -19,8 +19,8 @@ import sp.it.util.ui.image.toBuffered
 import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
-import kotlin.text.Charsets.UTF_16LE
 import kotlin.streams.asSequence
+import kotlin.text.Charsets.UTF_16LE
 
 private val logger = KotlinLogging.logger { }
 
@@ -217,10 +217,10 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Sequence<Fil
         it.asSequence().distinct()
                 .flatMap { sequenceOf(it).filter { it.isFile }+it.walk().filter { it.isDirectory } }
     }),
-    TOP_LVL({ it.asSequence().distinct().flatMap { it.listChildren() } }),
+    TOP_LVL({ it.asSequence().distinct().flatMap { it.children() } }),
     TOP_LVL_AND_DIRS({
         it.asSequence().distinct()
-                .flatMap { it.listChildren() }
+                .flatMap { it.children() }
                 .flatMap { (sequenceOf(it).filter { it.isFile }+it.walk().filter { it.isDirectory }) }
     }),
     TOP_LVL_AND_DIRS_AND_WITH_COVER({
@@ -228,7 +228,7 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Sequence<Fil
         fun File.hasCover(cache: HashSet<FastFile>): Boolean {
             val p = parentDirOrRoot
             val n = nameWithoutExtension
-            return imageExtensionsRead.any { cache.contains(p.childOf("$n.$it")) }
+            return imageExtensionsRead.any { cache.contains(p/"$n.$it") }
         }
 
         fun File.walkDirsAndWithCover(): Sequence<File> {

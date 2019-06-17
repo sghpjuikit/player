@@ -69,7 +69,7 @@ import static sp.it.util.async.executor.EventReducer.toLast;
 import static sp.it.util.async.executor.FxTimer.fxTimer;
 import static sp.it.util.file.Util.getCommonRoot;
 import static sp.it.util.file.Util.getFilesR;
-import static sp.it.util.file.UtilKt.childOf;
+import static sp.it.util.file.UtilKt.child;
 import static sp.it.util.functional.Util.forEachWithI;
 import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.UtilKt.consumer;
@@ -162,7 +162,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
     public ImageViewer(Widget widget) {
         super(widget);
         root.setPrefSize(scaleEM(400), scaleEM(400));
-        root.getStylesheets().add(childOf(getLocation(), "skin.css").toURI().toASCIIString());
+        root.getStylesheets().add(child(getLocation(), "skin.css").toURI().toASCIIString());
 
         fxmlLoaderForController(this).loadNoEx();
 

@@ -62,9 +62,8 @@ import sp.it.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.util.dev.fail
 import sp.it.util.file.FileType
 import sp.it.util.file.hasExtension
-import sp.it.util.file.listChildren
+import sp.it.util.file.children
 import sp.it.util.file.nameOrRoot
-import sp.it.util.file.parentDir
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
@@ -272,9 +271,9 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
 
             val type = if (treeItem.isLeaf) FileType.FILE else FileType.of(p)
 
-            if (type==FileType.DIRECTORY && APP.DIR_SKINS==p.parentDir || p.isValidSkinFile())
+            if (type==FileType.DIRECTORY && APP.DIR_SKINS==p.parentFile || p.isValidSkinFile())
                 createIcon(IconFA.PAINT_BRUSH, 8.0)
-            if (type==FileType.DIRECTORY && APP.DIR_WIDGETS==p.parentDir || p.isValidWidgetFile())
+            if (type==FileType.DIRECTORY && APP.DIR_WIDGETS==p.parentFile || p.isValidWidgetFile())
                 createIcon(IconFA.GE, 8.0)
 
             if (type==FileType.FILE) createIcon(IconFA.FILE, 8.0)
@@ -422,7 +421,7 @@ class FileTreeItem: SimpleTreeItem<File> {
     private fun buildChildren(i: TreeItem<File>): List<TreeItem<File>> {
         val dirs = ArrayList<FileTreeItem>()
         val files = ArrayList<FileTreeItem>()
-        i.value.listChildren().forEach {
+        i.value.children().forEach {
             val isFile = it.isFile
             (if (isFile) files else dirs) += FileTreeItem(it, isFile)
         }

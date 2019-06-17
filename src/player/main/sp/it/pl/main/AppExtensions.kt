@@ -9,7 +9,6 @@ import sp.it.util.async.runNew
 import sp.it.util.file.Util.isValidFile
 import sp.it.util.file.div
 import sp.it.util.file.nameWithoutExtensionOrRoot
-import sp.it.util.file.parentDir
 import sp.it.util.system.runAsProgram
 import sp.it.util.ui.EM
 import java.io.File
@@ -42,7 +41,7 @@ fun File.isValidSkinFile(): Boolean {
 }
 
 fun File.isValidWidgetFile(): Boolean {
-    return isValidFile(this) && path.endsWith(".fxml") && parentDir?.parentDir==APP.DIR_WIDGETS
+    return isValidFile(this) && path.endsWith(".fxml") && parentFile?.parentFile==APP.DIR_WIDGETS
 }
 
 /** @return value scaled by font size, i.e., value multiplied by the [Number.EM] of current application font. */

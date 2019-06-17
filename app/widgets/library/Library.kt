@@ -49,7 +49,6 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.only
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.Util.getCommonRoot
-import sp.it.util.file.parentDir
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
@@ -226,7 +225,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
     private fun addDirectory() {
         chooseFile("Add folder to library", DIRECTORY, lastAddDirLocation, root.scene.window).ifOk {
             APP.ui.actionPane.orBuild.show(it)
-            lastAddDirLocation = it.parentDir
+            lastAddDirLocation = it.parentFile
         }
     }
 

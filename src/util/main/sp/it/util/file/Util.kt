@@ -15,9 +15,7 @@ import java.nio.file.Files
 
 private val logger = KotlinLogging.logger { }
 
-/**
- * @return File.getName], but partition name for root directories, never empty string
- */
+/** @return File.getName], but partition name for root directories, never empty string */
 val File.nameOrRoot: String
     get() = name.takeUnless { it.isEmpty() } ?: toString()
 
@@ -34,68 +32,52 @@ val File.nameWithoutExtensionOrRoot: String get() = nameWithoutExtension.takeUnl
 @Blocks
 fun File.find1stExistingParentFile(): Try<File, Nothing?> = when {
     exists() -> Try.ok(this)
-    else -> parentDir?.find1stExistingParentFile() ?: Try.error()
+    else -> parentFile?.find1stExistingParentFile() ?: Try.error()
 }
 
 /** @return first existing directory in this file's hierarchy or error if no parent exists */
 @Blocks
 fun File.find1stExistingParentDir(): Try<File, Nothing?> = when {
     exists() && isDirectory -> Try.ok(this)
-    else -> parentDir?.find1stExistingParentDir() ?: Try.error()
+    else -> parentFile?.find1stExistingParentDir() ?: Try.error()
 }
 
-/** Equivalent to [File.childOf]. Allows for intuitive `File(...)/"..."/"..."` notation for resolving Files. */
-operator fun File.div(childName: String) = childOf(childName)
+/** Equivalent to [File.child]. Allows for intuitive `File(...)/"..."/"..."` notation for resolving Files. */
+operator fun File.div(childName: String) = child(childName)
 
-/** @return child of this file, equivalent to `File(this, childName)`. */
-fun File.childOf(childName: String) = File(this, childName)
+/** @return child of this file, equivalent to `File(this, childName)` */
+fun File.child(childName: String): File = File(this, childName)
 
-fun File.childOf(vararg childNames: String) = childNames.fold(this, File::childOf)
-
-@Blocks
 infix fun File.isChildOf(parent: File) = parent.isParentOf(this)
 
-@Blocks
 infix fun File.isAnyChildOf(parent: File) = parent.isAnyParentOf(this)
 
-@Blocks
-infix fun File.isParentOf(child: File) = child.parentDir==this
+infix fun File.isParentOf(child: File) = child.parentFile==this
 
-@Blocks
-infix fun File.isAnyParentOf(child: File) = generateSequence(child) { it.parentDir }.any { isParentOf(it) }
+infix fun File.isAnyParentOf(child: File) = generateSequence(child) { it.parentFile }.any { isParentOf(it) }
 
 /**
  * Safe version of [File.listFiles]
  *
- * Normally, the method in File returns null if parameter is not a directory, but also when I/O
+ * Normally, that method returns null if parameter is not a directory, but also when I/O
  * error occurs. For example when parameter refers to a directory on a non existent partition,
- * e.g., residing on hdd that has been disconnected temporarily. Returning null instead of
- * collection is never a good idea anyway!
+ * e.g., residing on hdd that has been disconnected temporarily.
  *
- * @return child files of the directory or empty if parameter null, not a directory or I/O error occurs
+ * @return child files of the directory or empty if parameter not a directory or I/O error occurs
  */
-@Suppress("DEPRECATION")
-fun File.listChildren(): Sequence<File> = listFiles()?.asSequence().orEmpty()
+@Blocks
+fun File.children(): Sequence<File> = listFiles()?.asSequence().orEmpty()
 
-/** @see File.listChildren */
-@Suppress("DEPRECATION")
-fun File.listChildren(filter: FileFilter): Sequence<File> = listFiles(filter)?.asSequence().orEmpty()
+/** @see File.children */
+@Blocks
+fun File.children(filter: FileFilter): Sequence<File> = listFiles(filter)?.asSequence().orEmpty()
 
-/** @see File.listChildren */
-@Suppress("DEPRECATION")
-fun File.listChildren(filter: FilenameFilter): Sequence<File> = listFiles(filter)?.asSequence().orEmpty()
-
-/**
- * Safe version of [File.getParentFile].
- *
- * @return parent file or null if is root
- */
-@Suppress("DEPRECATION")
-val File.parentDir: File?
-    get() = parentFile
+/** @see File.children */
+@Blocks
+fun File.children(filter: FilenameFilter): Sequence<File> = listFiles(filter)?.asSequence().orEmpty()
 
 /** @return [File.getParentFile] or self if there is no parent */
-val File.parentDirOrRoot get() = parentDir ?: this
+val File.parentDirOrRoot get() = parentFile ?: this
 
 /** @return true if the file path ends with '.' followed by the specified [suffix] */
 infix fun File.hasExtension(suffix: String) = path.endsWith(".$suffix", true)
@@ -129,7 +111,6 @@ fun File.toURLOrNull() =
 @Blocks
 @JvmOverloads
 fun File.writeTextTry(text: String, charset: Charset = Charsets.UTF_8) = runTry { writeText(text, charset) }
-
 
 /**
  * Error-safe [File.readText]. Error can be:

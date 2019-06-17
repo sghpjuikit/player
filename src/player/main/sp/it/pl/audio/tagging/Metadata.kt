@@ -35,7 +35,7 @@ import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
-import sp.it.util.file.listChildren
+import sp.it.util.file.children
 import sp.it.util.file.nameWithoutExtensionOrRoot
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.functional.orNull
@@ -57,7 +57,6 @@ import java.util.HashSet
 import java.util.Objects
 import kotlin.collections.set
 import kotlin.reflect.KClass
-import kotlin.streams.toList
 import kotlin.jvm.JvmField as F
 
 /**
@@ -619,7 +618,7 @@ class Metadata: Song, Serializable {
     /** @return the cover image file on a file system or null if this song is not file based */
     private fun readCoverFromDir(): Cover? {
         return getFile()?.let { file ->
-            val fs = file.parentDirOrRoot.listChildren().toList()
+            val fs = file.parentDirOrRoot.children().toList()
             return sequenceOf(getFilename().takeIf { it.isNotBlank() }, title, album, "cover", "folder")
                     .filterNotNull()
                     .flatMap { filename -> fs.asSequence().filter { it.nameWithoutExtensionOrRoot.equals(filename, true) } }

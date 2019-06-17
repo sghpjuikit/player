@@ -1,0 +1,5 @@
+<root>
+    <item name='java.net.URI java.net.URI create(java.lang.String)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+</root>

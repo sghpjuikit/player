@@ -1,0 +1,5 @@
+<root>
+    <item name='java.util.Optional T get()'>
+        <annotation name='java.lang.Deprecated'/>
+    </item>
+</root>

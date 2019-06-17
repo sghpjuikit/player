@@ -25,6 +25,8 @@ Optional, but recommended:
 5) If you ever want to compile the project with IDEA itself (usually not needed), 
    you need to add the command line parameters specified in [gradle/project.gradle.kts](gradle/project.gradle.kts)
    in the IDEA settings for the Kotlin Compiler, Java Compiler & JVM
+6) Optionally enable external annotations and use those provided in [idea/annotations](idea/annotations)   
+   This will provide project specific deprecations and null type-safety for numerous JDK APIs
    
 #### Properties
 

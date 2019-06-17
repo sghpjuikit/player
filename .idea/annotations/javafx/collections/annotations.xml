@@ -1,0 +1,95 @@
+<root>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableFloatArray observableFloatArray()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableFloatArray observableFloatArray(float...)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableFloatArray observableFloatArray(javafx.collections.ObservableFloatArray)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableIntegerArray observableIntegerArray()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableIntegerArray observableIntegerArray(int...)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableIntegerArray observableIntegerArray(javafx.collections.ObservableIntegerArray)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; checkedObservableList(javafx.collections.ObservableList&lt;E&gt;, java.lang.Class&lt;E&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; concat(javafx.collections.ObservableList&lt;E&gt;...)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; emptyObservableList()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; observableArrayList()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; observableArrayList(E...)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; observableArrayList(javafx.util.Callback&lt;E,javafx.beans.Observable[]&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; observableList(java.util.List&lt;E&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; observableList(java.util.List&lt;E&gt;, javafx.util.Callback&lt;E,javafx.beans.Observable[]&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; singletonObservableList(E)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; synchronizedObservableList(javafx.collections.ObservableList&lt;E&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; unmodifiableObservableList(javafx.collections.ObservableList&lt;E&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableMap&lt;K,V&gt; checkedObservableMap(javafx.collections.ObservableMap&lt;K,V&gt;, java.lang.Class&lt;K&gt;, java.lang.Class&lt;V&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableMap&lt;K,V&gt; emptyObservableMap()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableMap&lt;K,V&gt; observableHashMap()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableMap&lt;K,V&gt; observableMap(java.util.Map&lt;K,V&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableMap&lt;K,V&gt; synchronizedObservableMap(javafx.collections.ObservableMap&lt;K,V&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableMap&lt;K,V&gt; unmodifiableObservableMap(javafx.collections.ObservableMap&lt;K,V&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableSet&lt;E&gt; checkedObservableSet(javafx.collections.ObservableSet&lt;E&gt;, java.lang.Class&lt;E&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableSet&lt;E&gt; emptyObservableSet()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableSet&lt;E&gt; observableSet(E...)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableSet&lt;E&gt; observableSet(java.util.Set&lt;E&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableSet&lt;E&gt; synchronizedObservableSet(javafx.collections.ObservableSet&lt;E&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableSet&lt;E&gt; unmodifiableObservableSet(javafx.collections.ObservableSet&lt;E&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.collections.ObservableList boolean setAll(E...)'>
+        <annotation name='java.lang.Deprecated'/>
+    </item>
+    <item name='javafx.collections.ObservableList boolean setAll(java.util.Collection&lt;? extends E&gt;)'>
+        <annotation name='java.lang.Deprecated'/>
+    </item>
+</root>

@@ -635,7 +635,7 @@ open class PopOver<N: Node>(): PopupControl() {
 
     private fun installMoveWithWindow(owner: Window) {
         if (scene.properties.containsKey(KEY_MOVE_WITH_OWNER_WINDOW)) fail { "'Move with window' already installed" }
-        scene.properties.put(KEY_MOVE_WITH_OWNER_WINDOW, KEY_MOVE_WITH_OWNER_WINDOW)
+        scene.properties[KEY_MOVE_WITH_OWNER_WINDOW] = KEY_MOVE_WITH_OWNER_WINDOW
 
         ownerMNode = null
         ownerMWindow = owner
@@ -653,7 +653,7 @@ open class PopOver<N: Node>(): PopupControl() {
 
     private fun installMoveWithNode(owner: Node) {
         if (scene.properties.containsKey(KEY_MOVE_WITH_OWNER_NODE)) fail { "'Move with node' already installed" }
-        scene.properties.put(KEY_MOVE_WITH_OWNER_NODE, KEY_MOVE_WITH_OWNER_NODE)
+        scene.properties[KEY_MOVE_WITH_OWNER_NODE] = KEY_MOVE_WITH_OWNER_NODE
 
         ownerMNode = owner
         ownerMWindow = owner.scene.window

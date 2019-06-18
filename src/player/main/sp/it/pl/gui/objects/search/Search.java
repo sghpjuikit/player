@@ -17,7 +17,6 @@ import static javafx.scene.input.KeyCode.TAB;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static javafx.util.Duration.millis;
-import static sp.it.util.Util.removeLastChar;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
 /**
@@ -74,13 +73,16 @@ public abstract class Search {
 		if (pressedKeyCode.isNavigationKey() || pressedKeyCode.isFunctionKey() || e.isAltDown() || e.isShortcutDown()) return;
 		if (!isActive() && (e.isShiftDown() || pressedKeyCode==SPACE)) return;
 
-		KeyCode k = pressedKeyCode;
-		String letter = e.getCharacter();
+		var letter = e.getCharacter();
 		if (!letter.isEmpty()) {
 			// update scroll text
-			long now = System.currentTimeMillis();
-			boolean append = searchTime==-1 || now - searchTime<searchTimeMax.toMillis();
-			String query = k==BACK_SPACE ? removeLastChar(searchQuery.get()) : append ? searchQuery.get() + letter : letter;
+			var now = System.currentTimeMillis();
+			var append = searchTime==-1 || now - searchTime<searchTimeMax.toMillis();
+			var query = pressedKeyCode==BACK_SPACE
+				? removeLastChar(searchQuery.get())
+				: append
+					? searchQuery.get() + letter
+					: letter;
 			selectionIndex = 0;
 			search(query, now);
 			e.consume();
@@ -147,5 +149,9 @@ public abstract class Search {
 		searchQuery.set("");
 		searchIndex = 0;
 		selectionIndex = 0;
+	}
+
+	private static String removeLastChar(String text) {
+		return text.isEmpty() ? text : text.substring(0, text.length() - 1);
 	}
 }

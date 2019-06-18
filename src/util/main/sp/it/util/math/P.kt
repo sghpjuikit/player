@@ -1,6 +1,6 @@
 package sp.it.util.math
 
-import java.lang.Math.sqrt
+import kotlin.math.sqrt
 
 /** Mutable point. */
 data class P @JvmOverloads constructor(var x: Double = 0.0, var y: Double = 0.0) {

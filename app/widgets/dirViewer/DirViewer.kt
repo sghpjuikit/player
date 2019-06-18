@@ -248,9 +248,9 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     }
 
     private fun visit(dir: Item) {
-        if (item!=null) item!!.lastScrollPosition = grid.implGetSkin().position
+        item?.lastScrollPosition = grid.implGetSkin().position
         if (item===dir) return
-        if (item!=null && item!!.isHChildOf(dir)) item!!.disposeChildren()
+        item?.takeIf { it.isHChildOf(dir) }?.disposeChildren()
         visitId.incrementAndGet()
 
         item = dir

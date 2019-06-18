@@ -53,7 +53,7 @@ import sp.it.util.ui.scrollPane
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.vBox
 import sp.it.util.units.millis
-import java.util.UUID
+import sp.it.util.units.uuid
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 
@@ -89,7 +89,7 @@ object AppProgress {
         fun Task<*>.toApp() = AppTask(title, messageProperty(), { cancel() })
         fun Task<*>.doOn(vararg state: State, block: (State) -> Unit) = stateProperty().sync1If({ it in state }, block)
 
-        when (task.state!!) {
+        when (task.state) {
             State.READY -> {
                 task.doOn(State.SCHEDULED) {
                     start(task)
@@ -116,7 +116,7 @@ object AppProgress {
     }
 
     private fun start(task: AppTask): ScheduleAppTaskHandle {
-        val id = UUID.randomUUID().toString()+task.name
+        val id = uuid().toString()+task.name
         runFX {
             tasks += task
         }

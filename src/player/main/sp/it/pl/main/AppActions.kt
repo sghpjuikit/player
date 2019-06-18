@@ -49,6 +49,7 @@ import sp.it.util.dev.Blocks
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.stackTraceAsString
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
@@ -314,7 +315,7 @@ class AppActions {
     @JvmOverloads
     fun openImageFullscreen(image: File, screen: Screen = getScreenForMouse()) {
         APP.widgetManager.widgets.use<ImageDisplayFeature>(NEW(WINDOW_FULLSCREEN(screen))) { f ->
-            val w = f.asIf<Controller>()!!.widget
+            val w = f.asIs<Controller>().widget
             val window = w.graphics.scene.window
             val root = window.scene.root
 

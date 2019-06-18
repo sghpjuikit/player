@@ -73,6 +73,7 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.ui.image.FitFrom
 import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
@@ -262,7 +263,7 @@ fun bgr(color: Color) = Background(BackgroundFill(color, CornerRadii.EMPTY, Inse
 fun border(color: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(BorderStroke(color, BorderStrokeStyle.SOLID, radius, BorderWidths.DEFAULT))
 
 /** @return [PseudoClass.getPseudoClass] */
-fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)!!
+fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)
 
 inline fun pane(block: Pane.() -> Unit = {}) = Pane().apply(block)
 inline fun pane(vararg children: Node, block: Pane.() -> Unit = {}) = Pane(*children).apply(block)
@@ -659,9 +660,9 @@ val Rectangle2D.centreX get() = minX+width/2
 /** Rectangle-relative y position of the centre of this rectangle */
 val Rectangle2D.centreY get() = minY+height/2
 
-operator fun Point2D.minus(p: Point2D): Point2D = subtract(p)!!
-operator fun Point2D.plus(p: Point2D): Point2D = add(p)!!
-operator fun Point2D.times(p: Double): Point2D = multiply(p)!!
+operator fun Point2D.minus(p: Point2D): Point2D = subtract(p)
+operator fun Point2D.plus(p: Point2D): Point2D = add(p)
+operator fun Point2D.times(p: Double): Point2D = multiply(p)
 operator fun Point2D.div(p: Double): Point2D = Point2D(x/p, y/p)
 
 operator fun P.minus(p: Point2D): P = P(x-p.x, y-p.y)
@@ -740,12 +741,12 @@ fun typeText(text: String, padLength: Char? = null): (Double) -> String {
             }
         }
         return { it: Double ->
-            val i = Math.floor(length*it).toInt()
+            val i = floor(length*it).toInt()
             sbOriginal.substring(0, i) + sbInterpolated.substring(i)
         }
     } else {
         return {
-            val i = Math.floor(length*it).toInt()
+            val i = floor(length*it).toInt()
             sbOriginal.substring(0, i)
         }
     }

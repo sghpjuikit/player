@@ -495,11 +495,11 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         public Node getNode() {
             return layVertically(5,TOP_CENTER,
                 layHorizontally(5,CENTER_LEFT,
-                    ConfigField.create(Config.forProperty(String.class, "File name", nam)).getNode(),
+                    ConfigField.create(Config.forProperty(String.class, "File name", nam)).buildNode(),
                     new Label("."),
-                    ConfigField.create(Config.forProperty(String.class, "Extension", ext)).getNode()
+                    ConfigField.create(Config.forProperty(String.class, "Extension", ext)).buildNode()
                 ),
-                ConfigField.create(Config.forProperty(File.class, "Location", loc)).getNode()
+                ConfigField.create(Config.forProperty(File.class, "Location", loc)).buildNode()
             );
         }
     }
@@ -532,12 +532,12 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
         @Override
         public Node getNode() {
-            Node n = ConfigField.create(Config.forProperty(File.class, "Location", loc)).getNode();
+            Node n = ConfigField.create(Config.forProperty(File.class, "Location", loc)).buildNode();
             use_loc.syncC(v -> n.setDisable(!v));
             return layVertically(5,TOP_CENTER,
                 layHorizontally(5,CENTER_LEFT,
                     new Label("In directory"),
-                    ConfigField.create(Config.forProperty(Boolean.class, "In directory", use_loc)).getNode()
+                    ConfigField.create(Config.forProperty(Boolean.class, "In directory", use_loc)).buildNode()
                 ),
                 n
             );
@@ -566,7 +566,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in),tas);
             configFieldA = ConfigField.create(Config.forProperty(String.class, "", name));
             configFieldB = ConfigField.create(Config.forProperty(EditArea.class, "", input));
-            root = new HBox(5, configFieldA.getNode(), configFieldB.getNode());
+            root = new HBox(5, configFieldA.buildNode(), configFieldB.buildNode());
         }
 
         @Override

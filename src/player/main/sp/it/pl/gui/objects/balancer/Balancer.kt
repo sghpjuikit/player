@@ -14,7 +14,7 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
-import java.lang.Math.abs
+import kotlin.math.abs
 
 class Balancer: Control {
 

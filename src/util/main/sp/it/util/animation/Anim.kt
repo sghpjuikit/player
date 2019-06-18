@@ -15,10 +15,10 @@ import sp.it.util.functional.invoke
 import sp.it.util.units.divMillis
 import sp.it.util.units.minus
 import sp.it.util.units.times
-import java.lang.Math.abs
-import java.lang.Math.sqrt
 import java.util.function.DoubleConsumer
 import java.util.stream.Stream
+import kotlin.math.abs
+import kotlin.math.sqrt
 import kotlin.jvm.JvmOverloads as O
 import kotlin.jvm.JvmStatic as S
 

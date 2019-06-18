@@ -188,11 +188,11 @@ Configurable icon bar/dock. User can add/remove custom icons executing some pred
 ##### FunctionViewer
 Plots custom mathematical function in a graph
 ##### Spectrum
-Displays the audio spectrum of the playing song (doesnt work for flac and ogg). Looks nothing like the low-fps sample from Oracle. Uses Canvas and smooth 60FPS animation. Looks very cool. Yet its only 58 lines!! Not really useful aside being a fancy visualisation though.
+Displays the audio spectrum of the playing song (doesn't work for flac and ogg). Looks nothing like the low-fps sample from Oracle. Uses Canvas and smooth 60FPS animation. Looks very cool. Yet its only 58 lines! Not really useful aside being a fancy visualisation though.
 ##### WebReader
 In-app web browser. Experimental and not very useful. Image drag & drop has terrible performance for some reason.
 ##### Layouts
-Layout manager. Saved layout browser. Currently outdated and argely useless. Planned for complete rewrite.
+Layout manager. Saved layout browser. Currently outdated and largely useless. Planned for complete rewrite.
 ##### Comet
 Loose java port of the game Comet from 90s. Something between Crimsonland and Geometry Wars.<br>
 You fly a rocket and shoot UFOs and asteroids to clear missions with increasing difficulty. 

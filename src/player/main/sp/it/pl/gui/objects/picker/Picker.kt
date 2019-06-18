@@ -18,6 +18,7 @@ import sp.it.util.math.max
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
+import sp.it.util.ui.Util.getVScrollBar
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.pane
@@ -149,7 +150,8 @@ open class Picker<E> {
             val gapSumY = (rows-1)*gap
             val cellHeight = if (height<rows*cellMinHeight) cellMinHeight else (height-gapSumY)/rows-1.0/rows
 
-            val w = if (rows*(cellHeight+gap)-gap>height) width-15 else width // TODO: take care of scrollbar better
+            val scrollBarWidth = getVScrollBar(root)?.takeIf { it.isVisible }?.width ?: 0.0
+            val w = if (rows*(cellHeight+gap)-gap>height) width-scrollBarWidth else width
             val gapSumX = (columns-1)*gap
             val cellWidth = (w-gapSumX)/columns
 
@@ -165,7 +167,7 @@ open class Picker<E> {
             }
 
             val needsEmptyCell = cells.isEmpty() || cells.size!=columns*rows
-            val emptyCell = children.find { it.properties.containsKey(KEY_EMPTY_CELL) }!!
+            val emptyCell = children.first { it.properties.containsKey(KEY_EMPTY_CELL) }
             if (needsEmptyCell) {
                 val i = cells.size
                 val x = padding.left+i%columns*(cellWidth+gap)

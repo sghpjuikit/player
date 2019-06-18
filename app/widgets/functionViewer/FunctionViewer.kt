@@ -26,6 +26,7 @@ import sp.it.util.conf.Config
 import sp.it.util.functional.net
 import sp.it.util.math.P
 import sp.it.util.math.StrExF
+import sp.it.util.math.max
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
@@ -43,7 +44,7 @@ import sp.it.util.ui.size
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.millis
-import java.lang.Math.max
+import kotlin.math.pow
 import kotlin.math.roundToInt
 
 private typealias Fun = (Double) -> Double
@@ -182,7 +183,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
             // draw function
             val paths = ArrayList<Path>()
-            val xInc = (xMax.value-xMin.value)/max(1.0, width)
+            val xInc = (xMax.value-xMin.value)/(1.0 max width)
             var x = xMin.value+xInc
             var previousValue: P? = null
             var path: Path? = null
@@ -248,17 +249,17 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
     companion object {
 
         fun ConfigField<*>.toHBox() = hBox(5, CENTER) {
-            lay += createLabel().apply { alignment = CENTER_RIGHT; prefWidth = 100.0 }
-            lay += getNode()
+            lay += buildLabel().apply { alignment = CENTER_RIGHT; prefWidth = 100.0 }
+            lay += buildNode()
         }
 
-        fun V<Double>.toConfigField(name: String) = ConfigField.create(Config.forProperty(Num::class.java, name, this))!!
+        fun V<Double>.toConfigField(name: String) = ConfigField.create(Config.forProperty(Num::class.java, name, this))
 
         val Double.precise: Double get() = roundToInt().toDouble()
 
         fun P.invertY() = apply { y = 1-y }
 
-        infix fun Int.pow(power: Int) = Math.pow(this.toDouble(), power.toDouble())
+        infix fun Int.pow(power: Int) = toDouble().pow(power)
 
         fun Num.digits(): Int {
             when {

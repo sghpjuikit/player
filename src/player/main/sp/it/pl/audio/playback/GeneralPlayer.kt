@@ -18,14 +18,14 @@ import sp.it.util.async.runFX
 import sp.it.util.async.runOn
 import sp.it.util.reactive.attach1IfNonNull
 import sp.it.util.units.millis
-import java.lang.Math.pow
+import kotlin.math.pow
 
 /** Audio player which abstracts away from the implementation. */
 class GeneralPlayer {
 
     private val state: PlayerState
     private var p: Play? = null
-    private val _pInfo = ReadOnlyObjectWrapper<String>("<none>")
+    private val _pInfo = ReadOnlyObjectWrapper("<none>")
     val pInfo = _pInfo.readOnlyProperty!!
     private var i: Song? = null
     val realTime: RealTimeProperty    // TODO: move to state
@@ -159,10 +159,10 @@ class GeneralPlayer {
                     if (volumeAnim!=null) volumeAnim!!.pause()
                 }
                 seekDone = false
-                anim(150.millis) { state.playback.volume.set(currentVolume*pow(1-it, 2.0)) }
+                anim(150.millis) { state.playback.volume.value = currentVolume*(1.0-it).pow(2) }
                         .then {
                             doSeek(duration)
-                            volumeAnim = anim(150.millis) { state.playback.volume.set(lastValidVolume*pow(it, 2.0)) }
+                            volumeAnim = anim(150.millis) { state.playback.volume.value = lastValidVolume*it.pow(2) }
                                     .then { seekDone = true }
                                     .apply { playOpen() }
                         }

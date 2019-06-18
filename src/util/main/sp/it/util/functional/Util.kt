@@ -226,14 +226,19 @@ fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyI
  */
 inline fun <T, R: Any> T.net(block: (T) -> R): R = let(block)
 
+@Suppress("FunctionName")
 @Experimental("in trial period")
 inline infix fun <T, R> T.let_(block: (T) -> R): R = let(block)
 
+@Suppress("FunctionName")
 @Experimental("in trial period")
 inline infix fun <T> T.apply_(block: T.() -> Unit): T = apply(block)
 
-/** @return this as specified type if this is of the type or null otherwise */
-inline fun <reified T: Any> Any?.asIf(): T? = if (this is T) this else null
+/** @return this as instance of the specified type (equivalent to this as T) */
+inline fun <reified T: Any> Any?.asIs(): T = this as T
+
+/** @return this as instance of the specified type (equivalent to this as? T) */
+inline fun <reified T: Any> Any?.asIf(): T? = this as? T
 
 /** Invokes the block if this is the specified type. */
 inline fun <reified T> Any?.ifIs(block: (T) -> Unit) = apply { if (this is T) block(this) }

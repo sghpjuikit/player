@@ -32,6 +32,9 @@
     <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; observableArrayList(E...)'>
         <annotation name='org.jetbrains.annotations.NotNull'/>
     </item>
+    <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; observableArrayList(java.util.Collection&lt;? extends E&gt;)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
     <item name='javafx.collections.FXCollections javafx.collections.ObservableList&lt;E&gt; observableArrayList(javafx.util.Callback&lt;E,javafx.beans.Observable[]&gt;)'>
         <annotation name='org.jetbrains.annotations.NotNull'/>
     </item>

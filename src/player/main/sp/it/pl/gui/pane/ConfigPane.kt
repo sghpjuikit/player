@@ -65,7 +65,7 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
                             styleClass += "form-config-pane-config-description"
                         }
                     },
-                    it.getNode()
+                    it.buildNode()
             )
         }.filterNotNull()
     }

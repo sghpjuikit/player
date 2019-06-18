@@ -1,20 +1,21 @@
 package sp.it.util.units
 
-import javafx.util.Duration
 import sp.it.util.dev.Dependency
+import java.time.Duration
 import java.util.UUID
+import javafx.util.Duration as Dur
 
 /** Equivalent to [UUID.randomUUID]. */
-fun uuid() = UUID.randomUUID()!!
+fun uuid() = UUID.randomUUID()
 
 /** Equivalent to [UUID.fromString]. */
-fun uuid(text: String) = UUID.fromString(text)!!
+fun uuid(text: String) = UUID.fromString(text)
 
-/** Converts to javafx [Duration] */
-val java.time.Duration.javafx: Duration get() = toMillis().millis
+/** Converts to javafx [Dur] */
+val Duration.javafx: Dur get() = toMillis().millis
 
 /**
- * Prints out the value of Duration - string representation of the duration in the format h:m:s - 00:00:00.
+ * Prints out the string representation of the duration in the format h:m:s - 00:00:00.
  * If padZero is true, any single digit value is padded with '0'.
  * Leading units that are 0 are left out.
  * Example:
@@ -26,7 +27,7 @@ val java.time.Duration.javafx: Duration get() = toMillis().millis
  */
 @Dependency("sp.it.util.units.Util.durationOfHMSMs")
 @JvmOverloads
-fun Duration.toHMSMs(include_zeros: Boolean = true): String {
+fun Dur.toHMSMs(include_zeros: Boolean = true): String {
     val secondsTotal = toMillis()/1000
     val seconds = secondsTotal.toInt()%60
     val minutes = ((secondsTotal-seconds)/60).toInt()%60
@@ -49,25 +50,25 @@ fun Duration.toHMSMs(include_zeros: Boolean = true): String {
 }
 
 /** Returns duration with this number of milliseconds. */
-val Number.millis: Duration get() = Duration.millis(toDouble())!!
+val Number.millis: Dur get() = Dur.millis(toDouble())
 /** Returns duration with this number of seconds. */
-val Number.seconds: Duration get() = Duration.seconds(toDouble())!!
+val Number.seconds: Dur get() = Dur.seconds(toDouble())
 /** Returns duration with this number of minutes. */
-val Number.minutes: Duration get() = Duration.minutes(toDouble())!!
+val Number.minutes: Dur get() = Dur.minutes(toDouble())
 /** Returns duration with this number of hours. */
-val Number.hours: Duration get() = Duration.hours(toDouble())!!
+val Number.hours: Dur get() = Dur.hours(toDouble())
 
-/** @return [Duration.minus]. */
-operator fun Duration.minus(d: Duration) = subtract(d)!!
-/** @return [Duration.plus]. */
-operator fun Duration.plus(d: Duration) = add(d)!!
+/** @return [Dur.minus]. */
+operator fun Dur.minus(d: Dur) = subtract(d)
+/** @return [Dur.plus]. */
+operator fun Dur.plus(d: Dur) = add(d)
 
 /** @return duration specified times shorter than this duration. */
-operator fun Duration.div(times: Number) = Duration(toMillis()/times.toDouble())
+operator fun Dur.div(times: Number) = Dur(toMillis()/times.toDouble())
 /** @return duration specified times longer than this duration. */
-operator fun Duration.times(times: Number) = Duration(toMillis()*times.toDouble())
+operator fun Dur.times(times: Number) = Dur(toMillis()*times.toDouble())
 
 /** @return how many times is this duration longer than the specified duration, i.e., division of duration's millis */
-infix fun Duration.divMillis(d: Duration) = toMillis()/d.toMillis()
+infix fun Dur.divMillis(d: Dur) = toMillis()/d.toMillis()
 /** @return multiplication of duration's millis */
-infix fun Duration.timesMillis(d: Duration) = toMillis()*d.toMillis()
+infix fun Dur.timesMillis(d: Dur) = toMillis()*d.toMillis()

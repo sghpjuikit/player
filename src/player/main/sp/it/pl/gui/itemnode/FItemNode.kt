@@ -47,7 +47,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): Value
             function.parameters.forEachIndexed { i, p ->
                 val editor = p.toConfig { generateValue() }.toConfigField()
                 configs += editor
-                paramB.lay(if (i==0) ALWAYS else SOMETIMES) += editor.getNode(false)
+                paramB.lay(if (i==0) ALWAYS else SOMETIMES) += editor.buildNode(false)
             }
             generateValue()
         }

@@ -36,14 +36,14 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
-import java.lang.Math.PI
-import java.lang.Math.cos
-import java.lang.Math.min
-import java.lang.Math.sin
-import java.lang.Math.sqrt
 import java.util.HashMap
 import java.util.Random
 import java.util.stream.IntStream
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.sin
+import kotlin.math.sqrt
 import kotlin.streams.asSequence
 
 @Widget.Info(
@@ -135,13 +135,12 @@ class Voronoi(widget: Widget): SimpleController(widget) {
 
         fun draw() {
             inputOutputMap.clear()
-            val W = width
-            val H = height
-
+            val w = width
+            val h = height
             val opacityMin = 0.1
             val opacityMax = 0.5
             val distMin = 0.0
-            val distMax = 0.2*pyth(W, H)
+            val distMax = 0.2*pyth(w, h)
             val distDiff = distMax-distMin
             val distances = cells.associateWith {
                 val dist = mousePos?.distance(it.x, it.y) ?: distMax
@@ -152,7 +151,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
             gc.setEffect(null)
             gc.fill = Color.AQUA
             gc.stroke = Color.AQUA
-            gc.clearRect(0.0, 0.0, W, H)
+            gc.clearRect(0.0, 0.0, w, h)
             gc.globalAlpha = 0.5
 
             val cords = cells.map {
@@ -161,7 +160,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                 }
             }
             val diagram = VoronoiDiagramBuilder().apply {
-                setClipEnvelope(Envelope(0.0, W, 0.0, H))
+                setClipEnvelope(Envelope(0.0, w, 0.0, h))
                 setSites(cords)
             }
 
@@ -394,7 +393,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
             this += elements
         }
 
-        fun dc(x: Double, y: Double) = java.lang.Double.compare(x, y)
+        fun dc(x: Double, y: Double) = x.compareTo(y)
 
         fun randBoolean(): Boolean = rand.nextBoolean()
 

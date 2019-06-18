@@ -245,7 +245,7 @@ class WindowManager {
         }
 
         if (enable) {
-            if (dockWindow!=null && dockWindow!!.isShowing) return
+            if (dockWindow?.isShowing==true) return
 
             val mw = dockWindow ?: create(createStageOwner(), UNDECORATED, false).apply {
                 dockWindow = this

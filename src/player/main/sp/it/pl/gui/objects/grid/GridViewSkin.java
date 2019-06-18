@@ -47,7 +47,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
-import static sp.it.util.Util.isInRangeInc;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.repeat;
@@ -296,7 +295,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		int itemCount = grid.getItemsShown().size();
 		int iMin = 0;
 		int iMax = itemCount - 1;
-		if (itemCount==0 || i==selectedCI || !isInRangeInc(i, iMin, iMax)) return;
+		if (itemCount==0 || i==selectedCI || i<iMin || i>iMax) return;
 
 		int rows = flow.computeRowCount();
 		int cols = flow.computeMaxCellsInRow();

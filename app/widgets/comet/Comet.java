@@ -273,7 +273,7 @@ public class Comet extends SimpleController {
 		// layout
 		root.getChildren().add(layAnchor(
 			layHorizontally(20,CENTER_LEFT,
-				ConfigField.createForProperty(GameMode.class, "Mode", mode).getNode().getChildren().get(0),
+				ConfigField.createForProperty(GameMode.class, "Mode", mode).buildNode().getChildren().get(0),
 				new Icon(MaterialDesignIcon.NUMERIC_1_BOX_OUTLINE,15,"Start 1 player game",() -> game.start(1)),
 				new Icon(MaterialDesignIcon.NUMERIC_2_BOX_OUTLINE,15,"Start 2 player game",() -> game.start(2)),
 				new Icon(MaterialDesignIcon.NUMERIC_3_BOX_OUTLINE,15,"Start 3 player game",() -> game.start(3)),

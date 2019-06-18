@@ -402,8 +402,9 @@ class LazyOverlayPane<OT, T: OverlayPane<OT>>(private val builder: () -> T) {
     private var pane: T? = null
     val orBuild: T
         get() {
-            pane = pane ?: builder()
-            return pane!!
+            val p = pane ?: builder()
+            pane = p
+            return p
         }
     val orNull: T?
         get() = pane

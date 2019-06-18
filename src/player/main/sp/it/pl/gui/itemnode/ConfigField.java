@@ -28,6 +28,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.gui.itemnode.ChainValueNode.ListConfigField;
 import sp.it.pl.gui.itemnode.textfield.EffectTextField;
 import sp.it.pl.gui.itemnode.textfield.FileTextField;
@@ -83,8 +84,8 @@ import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
-import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.onItemSyncWhile;
+import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
 
@@ -145,7 +146,7 @@ abstract public class ConfigField<T> {
 
     /** @return config field best suited for the specified config */
     @SuppressWarnings("unchecked")
-    public static <T> ConfigField<T> create(Config<T> config) {
+    public static <T> @NotNull ConfigField<T> create(Config<T> config) {
         Config c = config;
         ConfigField cf;
         if (c instanceof OverridablePropertyConfig) cf = new OverriddenCF((OverridablePropertyConfig) c);
@@ -181,7 +182,6 @@ abstract public class ConfigField<T> {
     protected boolean inconsistentState = false;
     public Try<T,String> value = ok(null);
     public Consumer<? super Try<T,String>> observer;
-    private HBox root;
     private Icon defB;
     private Anim defBA;
 
@@ -208,7 +208,7 @@ abstract public class ConfigField<T> {
      *
      * @return label describing this field
      */
-    public Label createLabel() {
+    public Label buildLabel() {
         Label l = new Label(config.getGuiName());
 
         String tooltip_text = getTooltipText();
@@ -222,8 +222,8 @@ abstract public class ConfigField<T> {
         return l;
     }
 
-    public final HBox getNode() {
-        return getNode(true);
+    public final HBox buildNode() {
+        return buildNode(true);
     }
 
     /**
@@ -236,77 +236,76 @@ abstract public class ConfigField<T> {
      *
      * @return setter control for this field
      */
-    public final HBox getNode(boolean managedControl) {
-        if (root==null) {
-            root = new HBox(configRootSpacing);
-            root.getStyleClass().add("config-field");
-            root.setMinSize(0,20);   // min height actually required to get consistent look
-            root.setPrefSize(-1,-1); // support variable content height
-            root.setMaxSize(-1,-1);  // support variable content height
-            root.setAlignment(CENTER_LEFT);
-            root.setPadding(new Insets(0, 15, 0, 0)); // space for defB (11+5)(defB.width+box.spacing)
+    public final HBox buildNode(boolean managedControl) {
+        HBox root = new HBox(configRootSpacing);
+        root.getStyleClass().add("config-field");
+        root.setMinSize(0,20);   // min height actually required to get consistent look
+        root.setPrefSize(-1,-1); // support variable content height
+        root.setMaxSize(-1,-1);  // support variable content height
+        root.setAlignment(CENTER_LEFT);
+        root.setPadding(new Insets(0, 15, 0, 0)); // space for defB (11+5)(defB.width+box.spacing)
 
-            root.addEventFilter(MOUSE_ENTERED, e -> {
-                if (!isEditableByUserRightNow(config)) return;
-                runFX(millis(270), () -> {
-                    if (root.isHover()) {
-                        if (defB==null && isEditableByUserRightNow(config)) {
-                            defB = new Icon(null, -1, null, this::setNapplyDefault);
-                            defB.tooltip(defTooltip);
-                            defB.styleclass("config-field-default-button");
-                            defB.setManaged(false);
-                            defB.setOpacity(0);
+        root.addEventFilter(MOUSE_ENTERED, e -> {
+            if (!isEditableByUserRightNow(config)) return;
+            runFX(millis(270), () -> {
+                if (root.isHover()) {
+                    if (defB==null && isEditableByUserRightNow(config)) {
+                        defB = new Icon(null, -1, null, this::setNapplyDefault);
+                        defB.tooltip(defTooltip);
+                        defB.styleclass("config-field-default-button");
+                        defB.setManaged(false);
+                        defB.setOpacity(0);
 
-                            var defBRoot = new StackPane(defB) {
-                                @Override
-                                protected void layoutChildren() {
-                                    defB.relocate(
-                                        getWidth()/2d-defB.getLayoutBounds().getWidth()/2,
-                                        getHeight()/2d-defB.getLayoutBounds().getHeight()/2
-                                    );
-                                }
-                            };
-                            defBRoot.setPrefSize(defBLayoutSize, defBLayoutSize);
-                            root.getChildren().add(defBRoot);
-                            root.setPadding(paddingWithDefB);
+                        var defBRoot = new StackPane(defB) {
+                            @Override
+                            protected void layoutChildren() {
+                                defB.relocate(
+                                    getWidth()/2d-defB.getLayoutBounds().getWidth()/2,
+                                    getHeight()/2d-defB.getLayoutBounds().getHeight()/2
+                                );
+                            }
+                        };
+                        defBRoot.setPrefSize(defBLayoutSize, defBLayoutSize);
+                        root.getChildren().add(defBRoot);
+                        root.setPadding(paddingWithDefB);
 
-                            defBA = Anim.anim(millis(450), consumer(it -> {
-                                if (defB!=null)
-                                    defB.setOpacity(it*it);
-                            }));
-                        }
-                        if (defBA!=null)
-                            defBA.playOpenDo(null);
+                        defBA = Anim.anim(millis(450), consumer(it -> {
+                            if (defB!=null)
+                                defB.setOpacity(it*it);
+                        }));
                     }
-                });
+                    if (defBA!=null)
+                        defBA.playOpenDo(null);
+                }
             });
-            root.addEventFilter(MOUSE_EXITED, e -> {
-                if (defBA!=null)
-                    defBA.playCloseDo(runnable(() -> {
-                        root.getChildren().remove(defB.getParent());
-                        defB = null;
-                        defBA = null;
-                        root.setPadding(paddingNoDefB);
-                    }));
-            });
+        });
+        root.addEventFilter(MOUSE_EXITED, e -> {
+            if (defBA!=null)
+                defBA.playCloseDo(runnable(() -> {
+                    root.getChildren().remove(defB.getParent());
+                    defB = null;
+                    defBA = null;
+                    root.setPadding(paddingNoDefB);
+                }));
+        });
 
-            var isRetarded = getEditor() instanceof TextField;
-            var config = !isRetarded
-                ? getEditor()
-                : new StackPane(getEditor()) {
-                        {
-                            getEditor().setManaged(managedControl);
-                        }
-                        @Override
-                        protected void layoutChildren() {
-                            getChildren().get(0).resizeRelocate(0, 0, getWidth(), getHeight());
-                        }
-                    };
-            root.getChildren().add(0, config);
-            root.setPadding(paddingNoDefB);
-            HBox.setHgrow(config, ALWAYS);
-            HBox.setHgrow(config.getParent(), ALWAYS);
-        }
+        var isHardToAutoResize = getEditor() instanceof TextField;
+        var config = !isHardToAutoResize
+            ? getEditor()
+            : new StackPane(getEditor()) {
+                    {
+                        getEditor().setManaged(managedControl);
+                    }
+                    @Override
+                    protected void layoutChildren() {
+                        getChildren().get(0).resizeRelocate(0, 0, getWidth(), getHeight());
+                    }
+                };
+        root.getChildren().add(0, config);
+        root.setPadding(paddingNoDefB);
+        HBox.setHgrow(config, ALWAYS);
+        HBox.setHgrow(config.getParent(), ALWAYS);
+
         return root;
     }
 
@@ -1050,7 +1049,7 @@ abstract public class ConfigField<T> {
             ConfigField cf = create(Config.forProperty(c.getType(),"", vo.real));
             Util.setField(cf.config, "defaultValue", c.getDefaultValue());
             syncC(vo.override, it -> cf.getEditor().setDisable(!it));
-            root.getChildren().addAll(cf.getNode(),bf.getNode());
+            root.getChildren().addAll(cf.buildNode(),bf.buildNode());
         }
         @Override
         public Node getEditor() {

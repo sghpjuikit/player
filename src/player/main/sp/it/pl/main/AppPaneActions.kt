@@ -53,6 +53,7 @@ import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
@@ -416,12 +417,12 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                                         }.apply {
                                             playAgainIfFinished = false
                                         }.playCloseDoOpen {
-                                            content.children[1].asIf<Pane>()!!.lay += tagger.load()
+                                            content.children[1].asIs<Pane>().lay += tagger.load()
                                             (tagger.controller as SongReader).read(songs)
                                         }
                                     }
                                 }
-                                if (conf.enqueue.value && !result.all.isEmpty()) {
+                                if (conf.enqueue.value && result.all.isNotEmpty()) {
                                     APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(result.all) }
                                 }
                             }

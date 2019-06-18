@@ -24,6 +24,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.jetbrains.annotations.Nullable;
 import sp.it.util.JavaLegacy;
 import sp.it.util.access.V;
 import sp.it.util.reactive.Subscription;
@@ -271,9 +272,7 @@ public interface Util {
 		s.setHbarPolicy(ScrollBarPolicy.NEVER);
 
 		sync1IfNonNull(s.skinProperty(), consumer(skin -> {
-			ScrollBar scrollBar = (ScrollBar) s.lookupAll("ScrollBar").stream()
-				.filter(it -> it instanceof ScrollBar && ((ScrollBar) it).getOrientation()==Orientation.VERTICAL)
-				.findFirst().orElse(null);
+			ScrollBar scrollBar = getVScrollBar(s);
 			var updateWrappingWidth = (Runnable) () -> {
 				var sw = scrollBar==null || !scrollBar.isVisible() ? 0 : scrollBar.getWidth();
 				t.setWrappingWidth(s.getWidth()-sw);
@@ -296,9 +295,7 @@ public interface Util {
 		s.setHbarPolicy(ScrollBarPolicy.NEVER);
 
 		sync1IfNonNull(s.skinProperty(), consumer(skin -> {
-			ScrollBar scrollBar = (ScrollBar) s.lookupAll("ScrollBar").stream()
-				.filter(it -> it instanceof ScrollBar && ((ScrollBar) it).getOrientation()==Orientation.VERTICAL)
-				.findFirst().orElse(null);
+			ScrollBar scrollBar = getVScrollBar(s);
 			var updateWrappingWidth = (Runnable) () -> {
 				var sw = scrollBar==null || !scrollBar.isVisible() ? 0 : scrollBar.getWidth();
 				t.setWrappingWidth(s.getWidth()-sw);
@@ -319,6 +316,12 @@ public interface Util {
 				window.removeEventHandler(eType, this);
 			}
 		});
+	}
+
+	static @Nullable ScrollBar getVScrollBar(ScrollPane scrollPane) {
+		return (ScrollBar) scrollPane.lookupAll("ScrollBar").stream()
+			.filter(it -> it instanceof ScrollBar && ((ScrollBar) it).getOrientation()==Orientation.VERTICAL)
+			.findFirst().orElse(null);
 	}
 
 /* ---------- TABLE ------------------------------------------------------------------------------------------------- */

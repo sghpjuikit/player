@@ -68,42 +68,6 @@ public interface Util {
 		return true;
 	}
 
-	static boolean equalsNoCase(String text, String phrase) {
-		return text.equalsIgnoreCase(phrase);
-	}
-
-	static boolean equalsNoCase(String text, String phrase, boolean ignore) {
-		return !ignore ? text.equals(phrase) : equalsNoCase(text, phrase);
-	}
-
-	static boolean startsWithNoCase(String text, String phrase) {
-		return text.toLowerCase().startsWith(phrase.toLowerCase());
-	}
-
-	static boolean startsWithNoCase(String text, String phrase, boolean ignore) {
-		return !ignore ? text.startsWith(phrase) : startsWithNoCase(text, phrase);
-	}
-
-	static boolean endsWithNoCase(String text, String phrase) {
-		return text.toLowerCase().startsWith(phrase.toLowerCase());
-	}
-
-	static boolean endsWithNoCase(String text, String phrase, boolean ignore) {
-		return !ignore ? text.endsWith(phrase) : endsWithNoCase(text, phrase);
-	}
-
-	static boolean containsNoCase(String text, String phrase) {
-		return text.toLowerCase().contains(phrase.toLowerCase());
-	}
-
-	static boolean containsNoCase(String text, String phrase, boolean ignore) {
-		return !ignore ? text.contains(phrase) : containsNoCase(text, phrase);
-	}
-
-	static String removeLastChar(String text) {
-		return text.isEmpty() ? text : text.substring(0, text.length() - 1);
-	}
-
 	static String renameAnime(String s) {
 		// remove the super annoying '_'
 		s = s.replaceAll("_", " ");
@@ -333,56 +297,6 @@ public interface Util {
 	/** @return {@code max(min,min(i,max))} */
 	static double clip(double min, double i, double max) {
 		return max(min, min(i, max));
-	}
-
-	/** @return true iff number belongs to the interval inclusive, else false */
-	static boolean isInRangeInc(short i, short min, short max) {
-		return i>=min && i<=max;
-	}
-
-	/** @return true iff number belongs to the interval inclusive, else false */
-	static boolean isInRangeInc(int i, int min, int max) {
-		return i>=min && i<=max;
-	}
-
-	/** @return true iff number belongs to the interval inclusive, else false */
-	static boolean isInRangeInc(long i, long min, long max) {
-		return i>=min && i<=max;
-	}
-
-	/** @return true iff number belongs to the interval inclusive, else false */
-	static boolean isInRangeInc(float i, float min, float max) {
-		return i>=min && i<=max;
-	}
-
-	/** @return true iff number belongs to the interval inclusive, else false */
-	static boolean isInRangeInc(double i, double min, double max) {
-		return i>=min && i<=max;
-	}
-
-	/** @return true iff number belongs to the interval exclusive, else false */
-	static boolean isInRangeExc(short i, short min, short max) {
-		return i>min && i<max;
-	}
-
-	/** @return true iff number belongs to the interval exclusive, else false */
-	static boolean isInRangeExc(int i, int min, int max) {
-		return i>min && i<max;
-	}
-
-	/** @return true iff number belongs to the interval exclusive, else false */
-	static boolean isInRangeExc(long i, long min, long max) {
-		return i>min && i<max;
-	}
-
-	/** @return true iff number belongs to the interval exclusive, else false */
-	static boolean isInRangeExc(float i, float min, float max) {
-		return i>min && i<max;
-	}
-
-	/** @return true iff number belongs to the interval exclusive, else false */
-	static boolean isInRangeExc(double i, double min, double max) {
-		return i>min && i<max;
 	}
 
 	/** Returns {@code sqrt(a^2 + b^2)}. */

@@ -23,7 +23,7 @@ import sp.it.util.reactive.syncWhile
 import sp.it.util.ui.createIcon
 import sp.it.util.ui.hBox
 import sp.it.util.ui.pseudoClassChanged
-import java.lang.Math.ceil
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 /** Skin for [Rating] displaying the value as horizontal sequence of icons. Editable. */

@@ -1,0 +1,14 @@
+<root>
+    <item name='org.atteo.evo.inflector.English java.lang.String getPlural(java.lang.String)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='org.atteo.evo.inflector.English java.lang.String getPlural(java.lang.String, int)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='org.atteo.evo.inflector.English java.lang.String plural(java.lang.String)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='org.atteo.evo.inflector.English java.lang.String plural(java.lang.String, int)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+</root>

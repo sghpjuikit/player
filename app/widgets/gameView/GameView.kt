@@ -74,8 +74,8 @@ import sp.it.util.conf.only
 import sp.it.util.dev.failIf
 import sp.it.util.file.FileType
 import sp.it.util.file.Properties
-import sp.it.util.file.div
 import sp.it.util.file.children
+import sp.it.util.file.div
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.getOr
@@ -115,9 +115,9 @@ import sp.it.util.units.times
 import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 import sp.it.util.validation.Constraint.FileActor.FILE
 import java.io.File
-import java.lang.Math.rint
 import java.net.URI
 import java.util.HashMap
+import kotlin.math.round
 
 @Widget.Info(
         name = "GameView",
@@ -176,8 +176,8 @@ class GameView(widget: Widget): SimpleController(widget) {
                         val scaleUnit = 1.2
                         val w = grid.cellWidth
                         val h = grid.cellHeight
-                        val nw = 50.0 max rint(if (isInc) w*scaleUnit else w/scaleUnit)
-                        var nh = 50.0 max rint(if (isInc) h*scaleUnit else h/scaleUnit)
+                        val nw = 50.0 max round(if (isInc) w*scaleUnit else w/scaleUnit)
+                        var nh = 50.0 max round(if (isInc) h*scaleUnit else h/scaleUnit)
                         if (preserveAspectRatio) nh = nw/cellSizeRatio.get().ratio
                         applyCellSize(nw, nh)
                     } else {
@@ -440,7 +440,7 @@ class GameView(widget: Widget): SimpleController(widget) {
 
         object SteamQBuilder: WebSearchUriBuilder {
             override val name = "Steam"
-            override fun uri(q: String) = URI.create("https://store.steampowered.com/search/?term=$q")!!
+            override fun uri(q: String) = URI.create("https://store.steampowered.com/search/?term=$q")
         }
 
     }

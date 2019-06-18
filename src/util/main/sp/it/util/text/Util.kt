@@ -6,7 +6,7 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 
 /** @return plural of this word if count is more than 1 or this word otherwise */
-fun String.plural(count: Int = 2) = org.atteo.evo.inflector.English.plural(this, count)!!
+fun String.plural(count: Int = 2) = org.atteo.evo.inflector.English.plural(this, count)
 
 /** @return text in format 'x units', where x is the specified count amd units [String.plural] of this string */
 fun String.pluralUnit(count: Int = 2) = "$count " + plural(count)
@@ -21,13 +21,13 @@ fun String.isPalindromeOrEmpty(): Boolean {
 }
 
 /** @return pretty text representing the keys, intended for UI */
-fun keys(keys: String) = keys.splitToSequence("+").map(::key).joinToString(" + ")
+fun keys(keys: String): String = keys.splitToSequence("+").map(::key).joinToString(" + ")
 
 /** @return pretty text representing the key, intended for UI */
-fun KeyCode.getNamePretty() = key(getName())
+fun KeyCode.getNamePretty(): String = key(getName())
 
 /** @return pretty text representing the keys, intended for UI */
-fun Action.getKeysPretty() = keys!!.let { if (it.isBlank()) it else keys(keys) }
+fun Action.getKeysPretty(): String = keys.let { if (it.isBlank()) it else keys(keys) }
 
 private fun key(key: String): String = null
         ?: prettyKeys[key.trim().toUpperCase()]

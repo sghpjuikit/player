@@ -53,7 +53,6 @@ import sp.it.util.animation.Anim;
 import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.Ƒ1;
-import sp.it.util.functional.TryKt;
 import sp.it.util.text.UtilKt;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static java.lang.Math.signum;
@@ -273,7 +272,7 @@ public class Icon extends StackPane {
 		return (Tooltip) getProperties().get("javafx.scene.control.Tooltip");
 	}
 
-	public final Icon tooltip(String text) {
+	public final @NotNull Icon tooltip(String text) {
 		boolean willBeEmpty = text==null || text.isEmpty();
 		if (!willBeEmpty) {
 			Tooltip old = getTooltip();
@@ -287,7 +286,7 @@ public class Icon extends StackPane {
 		return this;
 	}
 
-	public final Icon tooltip(Tooltip t) {
+	public final @NotNull Icon tooltip(Tooltip t) {
 		Tooltip old = getTooltip();
 		if (t!=null && (old!=t || old.getProperties().containsKey("was_setup"))) {
 			t.setWrapText(true);
@@ -340,7 +339,7 @@ public class Icon extends StackPane {
 
 	/** Sets css style class. Returns this icon (fluent API). */
 	// TODO: remove method
-	public final Icon styleclass(String s) {
+	public final @NotNull Icon styleclass(String s) {
 		getStyleClass().add(s);
 		updateIcon();
 		updateSize();
@@ -348,7 +347,7 @@ public class Icon extends StackPane {
 		return this;
 	}
 
-	public final Icon embedded() {
+	public final @NotNull Icon embedded() {
 		return styleclass("embedded-icon");
 	}
 
@@ -359,7 +358,7 @@ public class Icon extends StackPane {
 	 *
 	 * @return this
 	 */
-	public final Icon onClick(EventHandler<MouseEvent> action) {
+	public final @NotNull Icon onClick(EventHandler<MouseEvent> action) {
 		setOnMouseClicked(action==null ? null : e -> {
 			if (e.getButton()==PRIMARY) {
 				action.handle(e);
@@ -380,7 +379,7 @@ public class Icon extends StackPane {
 	 * @param action to execute on left mouse click or null to set no action
 	 * @return this
 	 */
-	public final Icon onClick(Runnable action) {
+	public final @NotNull Icon onClick(Runnable action) {
 		if (click_runnable!=null && getTooltip()!=null) Tooltip.uninstall(this, getTooltip());
 
 		if (action instanceof Action) {
@@ -401,7 +400,7 @@ public class Icon extends StackPane {
 	}
 
 	/** Kotlin version of {@link #onClick(javafx.event.EventHandler)}. */
-	public final Icon onClickDo(Function1<MouseEvent,Unit> action) {
+	public final @NotNull Icon onClickDo(Function1<MouseEvent,Unit> action) {
 		return onClick(action==null ? null : action::invoke);
 	}
 

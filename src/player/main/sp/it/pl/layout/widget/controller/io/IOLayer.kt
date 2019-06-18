@@ -37,7 +37,7 @@ import sp.it.util.collections.map.Map2D.Key
 import sp.it.util.dev.failCase
 import sp.it.util.functional.Util.forEachCartesianHalfNoSelf
 import sp.it.util.functional.Util.min
-import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -55,18 +55,19 @@ import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.text
 import sp.it.util.units.millis
-import java.lang.Math.abs
-import java.lang.Math.atan2
-import java.lang.Math.cos
-import java.lang.Math.max
-import java.lang.Math.signum
-import java.lang.Math.sin
-import java.lang.Math.sqrt
 import java.lang.reflect.ParameterizedType
 import java.util.HashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.sign
+import kotlin.math.sin
+import kotlin.math.sqrt
+import kotlin.math.withSign
 import kotlin.properties.Delegates.observable
 
 private typealias Compute<T> = java.util.function.Function<Key<Put<*>, Put<*>>, T>
@@ -617,8 +618,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
         fun lay(inX: Double, inY: Double, outX: Double, outY: Double) {
             layInit(inX, inY, outX, outY)
 
-            val dx = signum(outX-inX)
-            val dy = signum(outY-inY)
+            val dx = (outX-inX).sign
+            val dy = (outY-inY).sign
             val inX_ = inX+linkGap*dx
             val inY_ = inY+linkGap*dy
             elements += MoveTo(inX+loX(dx, dy), inY+loY(dx, dy))
@@ -649,8 +650,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
                 elements += LineTo(outX, outY)
             } else {
                 val dXy = min(abs(dx), abs(dy))
-                val x = inX+signum(dx)*dXy
-                val y = inY+signum(dy)*dXy
+                val x = inX+dXy.withSign(dx)
+                val y = inY+dXy.withSign(dy)
                 elements += LineTo(x, y)
                 layTo(x, y, outX, outY)
             }
@@ -675,13 +676,13 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             }
             val a1 = PathTransition(1500.millis, this, pRunner).apply {
                 rate = -1.0
-                setOnFinished { this@IOLayer.children -= pRunner }
+                onFinished = EventHandler { this@IOLayer.children -= pRunner }
             }
             val ea1 = anim(300.millis) { eRunner.setScaleXY(sqrt(it)) }.delay(0.millis)
             val ea2 = PathTransition(1500.millis, this, eRunner).apply {
                 rate = -1.0
                 delay = 150.millis
-                setOnFinished { dataArrived(toX, toY) }
+                onFinished = EventHandler { dataArrived(toX, toY) }
             }
             val ea3 = anim(300.millis) { eRunner.setScaleXY(1-sqrt(it)) }.delay(1500.millis).then { effectClip.children -= eRunner }
 
@@ -749,7 +750,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
                 val c = getRawType(t)
                 when {
                     Collection::class.isSuperclassOf(c) -> {
-                        val elementType = getRawType(t.asIf<ParameterizedType>()!!.actualTypeArguments[0])
+                        val elementType = getRawType(t.asIs<ParameterizedType>().actualTypeArguments[0])
                         val elementTypeName = APP.className[elementType].plural()
                         "List of $elementTypeName"
                     }
@@ -778,7 +779,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
                 relocate(x-radius, y-radius)
 
                 anim(300.millis) {
-                    setScaleXY(4*kotlin.math.sqrt(it))
+                    setScaleXY(4*sqrt(it))
                     opacity = 1-it*it
                 }.then {
                     children -= this

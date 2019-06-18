@@ -43,13 +43,12 @@ import sp.it.util.access.toggle
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
-import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncBiFrom
-import sp.it.util.reactive.syncBiTo
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.EM
 import sp.it.util.ui.hBox
@@ -251,7 +250,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
     }
 
     companion object {
-        fun GlyphIcons.icon(size: Double, block: (MouseEvent) -> Unit) = Icon(this, size).onClickDo(block)!!
+        fun GlyphIcons.icon(size: Double, block: (MouseEvent) -> Unit) = Icon(this, size).onClickDo(block)
     }
 
     interface Layout {
@@ -299,10 +298,10 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
         }
 
         override fun add(_f2: Node, _f3: Node, _f4: Node, _muteB: Node, _seeker: Node) {
-            f1.parent.asIf<Pane>()!!.children.add(1, _f2)
-            f1.parent.asIf<Pane>()!!.children.add(2, _f3)
-            f1.parent.asIf<Pane>()!!.children.add(3, _f4)
-            volume.parent.asIf<Pane>()!!.children.add(0, muteB)
+            f1.parent.asIs<Pane>().children.add(1, _f2)
+            f1.parent.asIs<Pane>().children.add(2, _f3)
+            f1.parent.asIs<Pane>().children.add(3, _f4)
+            volume.parent.asIs<Pane>().children.add(0, muteB)
             lay(null, 0.0, 0.0, 0.0) += seeker
         }
 

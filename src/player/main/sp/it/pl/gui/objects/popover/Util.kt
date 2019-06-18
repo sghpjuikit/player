@@ -90,29 +90,29 @@ enum class ScreenPos {
 
     private fun <N: Node> computeX(popup: PopOver<N>): Double {
         val width = popup.skinn.node.width
-        val screen = if (isAppCentric()) null else getScreenForMouse().bounds
+        val screen by lazy { getScreenForMouse().bounds }
         val window = APP.windowManager.getFocused().orNull()?.stage
         return when (this) {
             APP_TOP_LEFT, APP_BOTTOM_LEFT -> window?.x ?: SCREEN_BOTTOM_LEFT.computeX(popup)
             APP_TOP_RIGHT, APP_BOTTOM_RIGHT -> window?.let { it.x+it.width-width } ?: SCREEN_BOTTOM_RIGHT.computeX(popup)
             APP_CENTER -> window?.let { it.centreX-width/2 } ?: SCREEN_CENTER.computeX(popup)
-            SCREEN_TOP_LEFT, SCREEN_BOTTOM_LEFT -> screen!!.minX+GAP
-            SCREEN_TOP_RIGHT, SCREEN_BOTTOM_RIGHT -> screen!!.maxX-width-GAP
-            SCREEN_CENTER -> screen!!.centreX-width/2
+            SCREEN_TOP_LEFT, SCREEN_BOTTOM_LEFT -> screen.minX+GAP
+            SCREEN_TOP_RIGHT, SCREEN_BOTTOM_RIGHT -> screen.maxX-width-GAP
+            SCREEN_CENTER -> screen.centreX-width/2
         }
     }
 
     private fun <N: Node> computeY(popup: PopOver<N>): Double {
         val height = popup.skinn.node.height
-        val screen = if (isAppCentric()) null else getScreenForMouse().bounds
+        val screen by lazy { getScreenForMouse().bounds }
         val window = APP.windowManager.getFocused().orNull()
         return when (this) {
             APP_BOTTOM_LEFT, APP_BOTTOM_RIGHT -> window?.let { it.y+it.height-height } ?: SCREEN_BOTTOM_RIGHT.computeY(popup)
             APP_TOP_LEFT, APP_TOP_RIGHT -> window?.y ?: SCREEN_TOP_RIGHT.computeY(popup)
             APP_CENTER -> window?.let { it.centreY-height/2 } ?: SCREEN_CENTER.computeY(popup)
-            SCREEN_BOTTOM_LEFT, SCREEN_BOTTOM_RIGHT -> screen!!.maxY-height-GAP
-            SCREEN_TOP_LEFT, SCREEN_TOP_RIGHT -> screen!!.minY+GAP
-            SCREEN_CENTER -> screen!!.centreY-height/2
+            SCREEN_BOTTOM_LEFT, SCREEN_BOTTOM_RIGHT -> screen.maxY-height-GAP
+            SCREEN_TOP_LEFT, SCREEN_TOP_RIGHT -> screen.minY+GAP
+            SCREEN_CENTER -> screen.centreY-height/2
         }
     }
 }

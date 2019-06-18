@@ -45,6 +45,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import kotlin.text.StringsKt;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.AudioFileFormat;
 import sp.it.pl.audio.tagging.Metadata;
@@ -90,6 +91,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.GridPane.REMAINING;
 import static javafx.scene.layout.Region.USE_PREF_SIZE;
+import static kotlin.text.StringsKt.contains;
 import static org.atteo.evo.inflector.English.plural;
 import static sp.it.pl.audio.tagging.Metadata.Field.ADDED_TO_LIBRARY;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
@@ -721,7 +723,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
                AutoCompletion.Companion.autoComplete(
                    (TextField) c,
                    text -> APP.db.getItemUniqueValuesByField().get(f).stream()
-                          .filter(a -> startsWithNoCase(a, text))
+                          .filter(a -> StringsKt.contains(a, text, true))
                           .sorted()
                           .collect(toList())
                );

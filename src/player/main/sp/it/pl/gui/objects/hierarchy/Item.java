@@ -181,7 +181,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		if (file==null) {
 			if (valType==DIRECTORY) {
 				if (getCoverStrategy().useComposedDirCover) {
-					var subcovers = children.stream()
+					var subcovers = new ArrayList<>(children).stream()
 						.filter(it -> it.valType==FILE)
 						.map(it -> it.getCoverFile())
 						.filter(it -> it!=null)

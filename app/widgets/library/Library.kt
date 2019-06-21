@@ -153,14 +153,14 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
         }
 
         // column resizing
-        table.setColumnResizePolicy {
+        table.columnResizePolicy = Callback {
             UNCONSTRAINED_RESIZE_POLICY(it).apply {
                 table.getColumn(ColumnField.INDEX).orNull()?.prefWidth = table.computeIndexColumnWidth()
             }
         }
 
         // row behavior
-        table.setRowFactory { t ->
+        table.rowFactory = Callback { t ->
             ImprovedTableRow<Metadata>().apply {
                 onLeftDoubleClick { r, _ -> PlaylistManager.use { it.setNplayFrom(table.items, r.index) } }
                 onRightSingleClick { r, e ->

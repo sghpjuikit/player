@@ -170,21 +170,19 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                         } as CellFactory<Any?>
                         else -> CellFactory {
                             table.buildDefaultCell(mgf as ObjectField<in MetadataGroup, Any?>).apply {
-                               alignment = if (mgf.getType(mf)==String::class.java) CENTER_LEFT else CENTER_RIGHT
+                                alignment = if (mgf.getType(mf)==String::class.java) CENTER_LEFT else CENTER_RIGHT
                             }
                         }
                     }
                 }
             } else {
-                TableColumn<MetadataGroup, Any>(f.toString()).apply {
+                TableColumn<MetadataGroup, Any>(f.name()).apply {
                     cellValueFactory = Callback { it.value?.let { PojoV(f.getOf(it)) } }
                     cellFactory = Callback { table.buildDefaultCell(f) }
                 }
             }
         }
-
-        // rows
-        table.setRowFactory { t ->
+        table.rowFactory = Callback { t ->
             ImprovedTableRow<MetadataGroup>().apply {
                 styleRuleAdd(pcPlaying) { it.isPlaying() }
                 onLeftDoubleClick { _, _ -> playSelected() }
@@ -233,7 +231,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         }
 
         // resizing
-        table.setColumnResizePolicy { resize ->
+        table.columnResizePolicy = Callback { resize ->
             UNCONSTRAINED_RESIZE_POLICY(resize).apply {
                 val t = table
                 // resize index column

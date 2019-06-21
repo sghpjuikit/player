@@ -8,7 +8,7 @@ import kotlin.text.Charsets.UTF_8
 
 // Note: the plugins block is evaluated before the script itself, so no variables can be used
 plugins {
-    kotlin("jvm") version "1.3.40-eap-105"
+    kotlin("jvm") version "1.3.40"
     application
     id("com.github.ben-manes.versions") version "0.20.0"
     id("de.undercouch.download") version "3.4.3"
@@ -22,8 +22,8 @@ val kotlinVersion: String by extra {
             .resolvedConfiguration.firstLevelModuleDependencies
             .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
+val javaVersion = JavaVersion.current()
 val javaSupportedVersions = arrayOf(JavaVersion.VERSION_11, JavaVersion.VERSION_12).also {
-    val javaVersion = JavaVersion.current()
     if (javaVersion !in it) {
         println(""+
                 "Java version $javaVersion can't be used.\n"+
@@ -72,7 +72,6 @@ allprojects {
         jcenter()
         mavenCentral()
         maven("https://jitpack.io")
-        maven("http://dl.bintray.com/kotlin/kotlin-eap")    // TODO: remove when kotlin eap no longer used
     }
 
     dependencies {
@@ -219,9 +218,9 @@ tasks {
         val fileKotlinVersion = dirKotlinc/"build.txt"
         val nameKotlinc = when {
             !useExperimentalKotlinc -> "kotlin-compiler-$kotlinVersion.zip"
-            os.isLinux -> "experimental-kotlin-compiler-linux-x64.zip"
-            os.isMacOsX -> "experimental-kotlin-compiler-macos-x64.zip"
-            os.isWindows -> "experimental-kotlin-compiler-windows-x64.zip"
+            os.isLinux -> "kotlin-native-linux-1.3.tar.gz\n"
+            os.isMacOsX -> "kotlin-native-macos-1.3.tar.gz"
+            os.isWindows -> "kotlin-native-windows-1.3.zip"
             else -> failIO { "Unable to determine kotlinc version due to unfamiliar system=$os" }
         }
         val fileKotlinc = dirKotlinc/"bin"/"kotlinc"
@@ -243,6 +242,8 @@ tasks {
             if (!dirKotlinc.exists()) {
                 dirKotlinc.mkdir().orFailIO { "Failed to create directory=$dirKotlinc" }
             }
+
+            println("Downloading...")
         }
         doLast {
             copy {

@@ -84,9 +84,17 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	public final Menu columnVisibleMenu = new Menu("Columns");
 	public final ContextMenu columnMenu = new ContextMenu(columnVisibleMenu);
 
+	@SuppressWarnings("unchecked")
 	public FieldedTable(Class<T> type) {
 		super();
 		this.type = type;
+
+		setColumnFactory(f -> {
+			TableColumn<T,Object> c = new TableColumn<>(f.name());
+			c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV(f.getOf(cf.getValue())));
+			c.setCellFactory(col -> buildDefaultCell(f));
+			return c;
+		});
 
 		// install comparator updating part I
 		getSortOrder().addListener((ListChangeListener<Object>) this::updateComparator);

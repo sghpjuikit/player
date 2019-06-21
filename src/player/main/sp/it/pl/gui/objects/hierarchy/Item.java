@@ -196,7 +196,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					var i = 0;
 					for (Image img: subcovers) {
 						var bi = img==null ? null : toBuffered(img);
-						imgFinGraphics.drawImage(bi, w/2*(i%2), h/2*((i+1)%2), null);
+						imgFinGraphics.drawImage(bi, w/2*(i%2), h/2*(i/2), null);
 						if (bi!=null) bi.flush();
 						JavaLegacy.destroyImage(img);
 						i++;

@@ -1704,14 +1704,14 @@ Text {
  * inherits: .value-text-field
  */
 .mood-text-field {
-    -fx-pref-column-count: 20
+    -fx-pref-column-count: 10;
 }
 
 /**
  * inherits: .value-text-field
  */
 .file-text-field {
-    -fx-pref-column-count: 40
+    -fx-pref-column-count: 10;
 }
 
 /**
@@ -1723,7 +1723,7 @@ Text {
  * inherits: .value-text-field
  */
 .font-text-field {
-    -fx-pref-column-count: 30
+    -fx-pref-column-count: 10;
 }
 
 /******************************** ITEM PICKER **************************************************************************
@@ -1941,7 +1941,7 @@ Text {
 .combobox-field-config:hover > .list-cell,
 .combobox-field-config:focused > .list-cell,
 .combobox-field-config:focused:hover > .list-cell {
-    -fx-pref-column-count: 40;
+    -fx-pref-column-count: 10;
     -fx-text-fill: -skin-value-font-color;
     -fx-prompt-text-fill: -skin-prompt-font-color;
 }

@@ -93,12 +93,15 @@ val imageExtensionsJaudiotagger = setOf(
 fun File.isImageJaudiotagger() = extension.toLowerCase() in imageExtensionsJaudiotagger
 
 /** Lowercase image file extensions supported by 23monkey library. */
-val imageExtensions12Monkey = setOf(
+val imageExtensions12Monkey: Set<String> = linkedSetOf(
+        // jdk image io
+        "png",
+        "gif",
         // 12monkey
         "bmp",
         "jpg", "jpe", "jpeg", "jp2", "j2k", "jpf", "jpx", "jpm", "mj2",
-        "pnm", "pbm", "pgm", "ppm",
         "psd",
+        "pnm", "pbm", "pgm", "ppm",
         "hdr",
         "iff",
         "tiff",
@@ -110,10 +113,7 @@ val imageExtensions12Monkey = setOf(
         "ico", "cur",
         "Thumbs.db",
         "svg",
-        "wmf",
-        // jdk image io
-        "png",
-        "gif"
+        "wmf"
 )
 
 /** See [imageExtensions12Monkey]. */

@@ -9,8 +9,8 @@ infix operator fun Boolean.plus(that: Boolean) = this || that
 /** Equivalent to [Boolean.and] */
 infix operator fun Boolean.times(that: Boolean) = this && that
 
-/** Equivalent to [Double.coerceAtLeast] */
-infix fun Double.max(number: Double) = this.coerceAtLeast(number)
+/** Equivalent to [coerceAtLeast] */
+infix fun <T : Comparable<T>> T.max(that: T) = this.coerceAtLeast(that)
 
-/** Equivalent to [Double.coerceAtMost] */
-infix fun Double.min(number: Double) = this.coerceAtMost(number)
+/** Equivalent to [coerceAtMost] */
+infix fun <T : Comparable<T>> T.min(that: T) = this.coerceAtMost(that)

@@ -58,7 +58,6 @@ import sp.it.util.file.FileSort.DIR_FIRST
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.Util.getCommonRoot
-import sp.it.util.functional.Util.max
 import sp.it.util.functional.nullsLast
 import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
@@ -73,7 +72,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
-import sp.it.util.reactive.syncTo
+import sp.it.util.reactive.syncFrom
 import sp.it.util.system.chooseFile
 import sp.it.util.system.edit
 import sp.it.util.system.open
@@ -95,7 +94,7 @@ import sp.it.util.validation.Constraint.FileActor
 import java.io.File
 import java.util.Stack
 import java.util.concurrent.atomic.AtomicLong
-import kotlin.streams.asStream
+import kotlin.math.round
 
 @Widget.Info(
         author = "Martin Polakovic",
@@ -197,8 +196,8 @@ class DirViewer(widget: Widget): SimpleController(widget) {
                     val scaleUnit = 1.2
                     val w = grid.cellWidth
                     val h = grid.cellHeight
-                    val nw = max(50.0, Math.rint(if (isInc) w*scaleUnit else w/scaleUnit))
-                    var nh = max(50.0, Math.rint(if (isInc) h*scaleUnit else h/scaleUnit))
+                    val nw = 50.0 max round(if (isInc) w*scaleUnit else w/scaleUnit)
+                    var nh = 50.0 max round(if (isInc) h*scaleUnit else h/scaleUnit)
                     if (preserveAspectRatio) nh = nw/cellSizeRatio.value.ratio
                     applyCellSize(nw, nh)
                 } else {
@@ -356,7 +355,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
         override fun computeGraphics() {
             super.computeGraphics()
-            fitFrom syncTo thumb.fitFrom on disposer
+            thumb.fitFrom syncFrom fitFrom on disposer
             root install appTooltipForData { thumb.representant }
         }
 
@@ -384,12 +383,9 @@ class DirViewer(widget: Widget): SimpleController(widget) {
             coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value)
         }
 
-        override fun childrenFiles() = fileFlatter.value.flatten(filesMaterialized).map { CachingFile(it) as File }.asStream()
+        override fun childrenFiles() = fileFlatter.value.flatten(filesMaterialized).map { CachingFile(it) }
 
-        override fun getCoverFile() = when (children.size) {
-            1 -> children.first().value.parentFile?.let { getImageT(it, "cover") }
-            else -> null
-        }
+        override fun getCoverFile() = children().firstOrNull()?.value?.parentFile?.let { getImageT(it, "cover") }
 
     }
 

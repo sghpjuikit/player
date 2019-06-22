@@ -319,7 +319,7 @@ public class Thumbnail {
 			maxImgH.set(i.getHeight());
 		}
 
-		root.layout();
+		root.requestLayout();
 
 		// animation
 		if (i!=null) {

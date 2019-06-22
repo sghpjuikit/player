@@ -775,6 +775,7 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 
 						return (T) (a.itemType.isAssignableFrom(configs.get(0).getType()) ? configs.get(0).getValue() : t);
 					})
+					.filter(a.nullElements==Elements.NOT_NULL ? (it -> it!=null) : (it -> true))
 					.forEach(l::add);
 
 			return ok(l);

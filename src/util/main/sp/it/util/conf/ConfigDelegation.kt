@@ -37,7 +37,7 @@ fun <T: Any> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(
 fun <T: Any, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueSupplier)
 fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
 fun <T: () -> Unit> cr(action: T): ConfR<T> = ConfR(action)
-inline fun <reified T: Any> cList(): ConfL<T> = ConfL(T::class.java)
+inline fun <reified T: Any> cList(): ConfL<T> = ConfL(T::class.java, null is T)
 
 /** Adds the specified constraint for this [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
@@ -229,7 +229,7 @@ class ConfR<T: () -> Unit>(private val action: T): Conf<T>() {
     }
 }
 
-class ConfL<T: Any?>(val type: Class<T>): Conf<T>() {
+class ConfL<T: Any?>(val type: Class<T>, val isNullable: Boolean): Conf<T>() {
     operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any, ObservableList<T>> {
         property.makeAccessible()
         val info = property.obtainConfigMetadata()
@@ -239,7 +239,7 @@ class ConfL<T: Any?>(val type: Class<T>): Conf<T>() {
         val isFinal = property !is KMutableProperty
         failIf(!isFinal) { "Property must be immutable" }
 
-        val list = Config.VarList<T>(type, Config.VarList.Elements.NOT_NULL)
+        val list = Config.VarList<T>(type, if (isNullable) Config.VarList.Elements.NULLABLE else Config.VarList.Elements.NOT_NULL)
         val c = Config.ListConfig(property.name, info, list, group, constraints)
         obtainConfigValueStore(ref).initialize(c)
 

@@ -86,7 +86,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.onHoverOrDragEnd
 import sp.it.util.ui.onHoverOrDragStart
 import sp.it.util.ui.prefSize
-import sp.it.util.ui.setScaleXY
+import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.minutes
@@ -402,7 +402,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
                 val cs = mutableListOf<Label>()
                 values.forEach { value ->
                     cs += label(converter(value)) {
-                        val a = anim(150.millis) { setScaleXY(it) }.intpl { 1+0.1*it*it }
+                        val a = anim(150.millis) { setScaleXYByTo(it, 0.0, 5.0) }.intpl { it*it }
                         onHoverOrDragStart { a.playOpen() }
                         onHoverOrDragEnd { a.playClose() }
                         onEventDown(MOUSE_CLICKED) { onClick(value) }

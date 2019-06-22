@@ -63,6 +63,7 @@ import sp.it.util.functional.nullsLast
 import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
 import sp.it.util.inSort
+import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attach1IfNonNull
@@ -130,9 +131,10 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone)
 
     private val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio+CELL_TEXT_HEIGHT, 5.0, 5.0)
+    private val threadCount = Runtime.getRuntime().availableProcessors()/2 max 1
     private val executorIO = oneTPExecutor()
-    private val executorThumbs = burstTPExecutor(8, 1.minutes, threadFactory("dirView-img-thumb", true))
-    private val executorImage = burstTPExecutor(8, 1.minutes, threadFactory("dirView-img-full", true))
+    private val executorThumbs = burstTPExecutor(threadCount, 1.minutes, threadFactory("dirView-img-thumb", true))
+    private val executorImage = burstTPExecutor(threadCount, 1.minutes, threadFactory("dirView-img-full", true))
     private val imageLoader = Loader(executorThumbs, executorImage)
     private val visitId = AtomicLong(0)
     private val placeholder = Placeholder(FOLDER_PLUS, "Click to explore directory") {

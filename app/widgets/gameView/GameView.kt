@@ -140,10 +140,11 @@ class GameView(widget: Widget): SimpleController(widget) {
     @IsConfig(name = "Location", info = "Location of the library.")
     val files by cList<File>().only(DIRECTORY)
 
+    val threadCount = Runtime.getRuntime().availableProcessors()/2 max 1
     val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio+CELL_TEXT_HEIGHT, 10.0, 10.0)
     val imageLoader = GridFileThumbCell.Loader(
-            burstTPExecutor(8, 1.minutes, threadFactory("gameView-img-thumb", true)),
-            burstTPExecutor(8, 1.minutes, threadFactory("gameView-img-full", true))
+            burstTPExecutor(threadCount, 1.minutes, threadFactory("gameView-img-thumb", true)),
+            burstTPExecutor(threadCount, 1.minutes, threadFactory("gameView-img-full", true))
     )
     val placeholder = Placeholder(IconMD.FOLDER_PLUS, "Click to add directory to library") {
         chooseFile("Choose directory", FileType.DIRECTORY, APP.DIR_HOME, root.scene.window)

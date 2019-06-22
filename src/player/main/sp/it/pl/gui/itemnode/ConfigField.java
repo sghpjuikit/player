@@ -62,6 +62,7 @@ import static java.nio.charset.StandardCharsets.UTF_16;
 import static java.nio.charset.StandardCharsets.UTF_16BE;
 import static java.nio.charset.StandardCharsets.UTF_16LE;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.DELETE;
@@ -75,6 +76,7 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.util.async.AsyncKt.runFX;
+import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.conf.ConfigurationUtilKt.isEditableByUserRightNow;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.TryKt.getAny;
@@ -891,53 +893,66 @@ abstract public class ConfigField<T> {
 
         private final ListConfig<T> lc;
         private final ListConfigField<T,ConfigurableField> chain;
-        private boolean isSyntheticEvent = false;
+        private boolean isSyntheticLinkEvent = false;
+        private boolean isSyntheticListEvent = false;
+        private boolean isSyntheticSetEvent = false;
+        private boolean isSyntheticAddEvent = false;
         private ListConfigField<T,ConfigurableField>.Link syntheticEventLink = null;
+        private final boolean isNullable;
 
         @SuppressWarnings("unchecked")
         public ObservableListCF(Config<ObservableList<T>> c) {
             super(c);
             lc = (ListConfig) c;
             var list = lc.a.list;
-            var isNullable = c.getConstraints().stream().anyMatch(HasNonNullElements.class::isInstance);
+            isNullable = c.getConstraints().stream().noneMatch(HasNonNullElements.class::isInstance);
 
             // create chain
             chain = new ListConfigField<>(0, () -> new ConfigurableField(lc.a.itemType, lc.a.factory.get()));
 
             // bind list to the chain
             chain.onUserItemAdded.add(consumer(v -> {
-                if (isNullable || v.chained.value!=null)
-                    list.add(v.chained.value);
+                if (!isSyntheticSetEvent)
+                    if (isNullable || v.chained.getVal()!=null) {
+                        isSyntheticAddEvent = true;
+                        list.add(v.chained.getVal());
+                        isSyntheticAddEvent = false;
+                    }
             }));
             chain.onUserItemRemoved.add(consumer(v ->
-                list.remove(v.chained.value)
+                list.remove(v.chained.getVal())
             ));
             chain.onUserItemEnabled.add(consumer(v -> {
-                isSyntheticEvent=true;
+                isSyntheticLinkEvent = true;
                 syntheticEventLink = v;
-                if (isNullable || v.chained.value!=null)
-                    list.add(v.chained.value);
+                if (isNullable || v.chained.getVal()!=null)
+                    list.add(v.chained.getVal());
                 syntheticEventLink = null;
-                isSyntheticEvent=false;
+                isSyntheticLinkEvent =false;
             }));
             chain.onUserItemDisabled.add(consumer(v -> {
-                isSyntheticEvent=true;
-                if (isNullable || v.chained.value!=null)
-                    list.remove(v.chained.value);
-                isSyntheticEvent=false;
+                isSyntheticLinkEvent =true;
+                if (isNullable || v.chained.getVal()!=null)
+                    list.remove(v.chained.getVal());
+                isSyntheticLinkEvent =false;
             }));
-            chain.onItemChange = it -> {};
-            onItemSyncWhile(list, v -> {
-                    var link = isSyntheticEvent
-                        ? syntheticEventLink
-                        : chain.addChained(new ConfigurableField(lc.a.itemType, v));
+            onItemSyncWhile(
+                list,
+                v -> {
+                    isSyntheticListEvent = true;
+                    var link = isSyntheticLinkEvent
+                            ? syntheticEventLink
+                            : chain.addChained(new ConfigurableField(lc.a.itemType, v));
+                    isSyntheticListEvent = false;
                     return link==null
                         ? Subscription.Companion.invoke()
                         : Subscription.Companion.invoke(runnable(() -> {
                             if (link.on.getValue())
                                 link.onRem();
                         }));
-            });
+                }
+            );
+
             chain.growTo1();
         }
 
@@ -961,7 +976,16 @@ abstract public class ConfigField<T> {
             public ConfigurableField(Class<T> type, T value) {
                 super(value);
                 this.type = type;
-                pane.setOnChange(() -> {});
+                pane.setOnChange(() -> {
+                    if (isAddableType() && !isSyntheticListEvent && !isSyntheticAddEvent) {
+                        isSyntheticSetEvent = true;
+                        setTo(
+                            lc.a.list,
+                            chain.chain.stream().map(v -> v.chained.getVal()).filter(it -> isNullable || it!=null).collect(toList())
+                        );
+                        isSyntheticSetEvent = false;
+                    }
+                });
                 pane.configure(lc.toConfigurable.apply(this.value));
             }
 
@@ -970,11 +994,19 @@ abstract public class ConfigField<T> {
                 return pane;
             }
 
+            // TODO: improve, as is it can return wrong value
+            public boolean isAddableType() {
+                if (Configurable.class.isAssignableFrom(type)) return false;
+                var configs = pane.getConfigFields();
+                if (configs.size()!=1) return false;
+                var config1Type = configs.get(0).config.getType();
+                if (config1Type!=type) return false;
+                return true;
+            }
+
             @Override
             public T getVal() {
-                // TODO: use Type instead of Class for Config.type or add list type support to Config
-                Class<? extends T> oType = pane.getConfigFields().get(0).config.getType();
-                if (type==oType) return pane.getConfigFields().get(0).getConfigValue();
+                if (isAddableType()) return pane.getConfigFields().get(0).getConfigValue();
                 else return value;
             }
 

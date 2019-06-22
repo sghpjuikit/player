@@ -58,7 +58,7 @@ public interface Util {
 	 * Javafx properties are obtained from public nameProperty() methods using reflection.
 	 */
 	@SuppressWarnings({"UnnecessaryLocalVariable", "ConstantConditions", "SpellCheckingInspection"})
-	static void forEachJavaFXProperty(Object o, TriConsumer<Observable,String,Class> action) {
+	static void forEachJavaFXProperty(Object o, TriConsumer<Observable,String,Type> action) {
 		// Standard JavaFX Properties
 		for (Method method : o.getClass().getMethods()) {
 			String methodName = method.getName();
@@ -80,7 +80,7 @@ public interface Util {
 							observable = rop.getReadOnlyProperty();
 						}
 
-						Class<?> propertyType = getGenericPropertyType(method.getGenericReturnType());
+						Type propertyType = getGenericPropertyType(method.getGenericReturnType());
 						if (observable!=null && propertyName!=null && propertyType!=null) {
 							action.accept(observable, propertyName, propertyType);
 						} else {
@@ -110,7 +110,7 @@ public interface Util {
 							observable = rop.getReadOnlyProperty();
 						}
 
-						Class<?> propertyType = getGenericPropertyType(field.getGenericType());
+						Type propertyType = getGenericPropertyType(field.getGenericType());
 						if (observable!=null && propertyName!=null && propertyType!=null) {
 							action.accept(observable, propertyName, propertyType);
 						} else {
@@ -437,7 +437,8 @@ public interface Util {
 	 *
 	 * @return exact generic type of {@link javafx.beans.property.Property} represented by the specified type
 	 */
-	static Class getGenericPropertyType(Type t) {
+	// TODO: remove? use getGenericPropertyType where possible
+	static Class getRawGenericPropertyType(Type t) {
 		if (t instanceof Class<?>) {
 			boolean isProperty = ObservableValue.class.isAssignableFrom((Class<?>) t);
 			if (!isProperty) return unPrimitivize((Class<?>) t);
@@ -456,7 +457,7 @@ public interface Util {
 			if (!isProperty) return getRawType(t);
 		}
 
-		Class<?> gpt = getGenericPropertyTypeImpl(t);
+		Class<?> gpt = getRawGenericPropertyTypeImpl(t);
 
 		// Workaround for number properties returning Number.class, due to implementing Property<Number>.
 		if (gpt==Number.class) {
@@ -470,7 +471,7 @@ public interface Util {
 		return gpt;
 	}
 
-	private static Class<?> getGenericPropertyTypeImpl(Type t) {
+	private static Class<?> getRawGenericPropertyTypeImpl(Type t) {
 
 		// TODO: handle types defining generic property type indirectly, like: X extends Property<T>
 		String typename = t.getTypeName();
@@ -485,6 +486,71 @@ public interface Util {
 			// recursively traverse class hierarchy until we find ParameterizedType and return result if not null.
 			Type supertype = ((Class) t).getGenericSuperclass();
 			Class output = null;
+			if (supertype!=null && supertype!=Object.class)
+				output = getRawGenericPropertyTypeImpl(supertype);
+			if (output!=null) return output;
+
+			// else try interfaces
+			Type[] superinterfaces = ((Class) t).getGenericInterfaces();
+			for (Type superinterface : superinterfaces) {
+				if (superinterface instanceof ParameterizedType) {
+					output = getRawGenericPropertyTypeImpl(superinterface);
+					if (output!=null) return output;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	static Type getGenericPropertyType(Type t) {
+		if (t instanceof Class<?>) {
+			boolean isProperty = ObservableValue.class.isAssignableFrom((Class<?>) t);
+			if (!isProperty) return unPrimitivize((Class<?>) t);
+		}
+
+		if (t instanceof ParameterizedType) {
+			Type rawType = ((ParameterizedType) t).getRawType();
+			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
+			if (!isProperty) return t;
+		}
+
+		if (t instanceof WildcardType) {
+			var wt = (WildcardType) t;
+			Type rawType = wt.getLowerBounds().length==0 ? wt.getUpperBounds()[0] : wt.getLowerBounds()[0];
+			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
+			if (!isProperty) return t;
+		}
+
+		Type gpt = getGenericPropertyTypeImpl(t);
+
+		// Workaround for number properties returning Number.class, due to implementing Property<Number>.
+		if (gpt==Number.class) {
+			String typename = t.getTypeName();
+			if (typename.contains("Double")) return Double.class;
+			if (typename.contains("Integer")) return Integer.class;
+			if (typename.contains("Float")) return Float.class;
+			if (typename.contains("Long")) return Double.class;
+		}
+
+		return gpt;
+	}
+
+	private static Type getGenericPropertyTypeImpl(Type t) {
+
+		// TODO: handle types defining generic property type indirectly, like: X extends Property<T>
+		String typename = t.getTypeName();
+		if (typename.contains(VarList.class.getSimpleName())) return ObservableList.class;
+
+		if (t instanceof ParameterizedType) {
+			Type[] genericTypes = ((ParameterizedType) t).getActualTypeArguments();
+			return genericTypes.length==0 ? null : genericTypes[0];
+		}
+
+		if (t instanceof Class) {
+			// recursively traverse class hierarchy until we find ParameterizedType and return result if not null.
+			Type supertype = ((Class) t).getGenericSuperclass();
+			Type output = null;
 			if (supertype!=null && supertype!=Object.class)
 				output = getGenericPropertyTypeImpl(supertype);
 			if (output!=null) return output;

@@ -16,7 +16,7 @@ import sp.it.util.functional.asIf
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
 import sp.it.util.type.InstanceMap
-import sp.it.util.type.Util.getGenericPropertyType
+import sp.it.util.type.Util.getRawGenericPropertyType
 import sp.it.util.validation.Constraint
 import java.io.File
 import kotlin.properties.ReadOnlyProperty
@@ -37,7 +37,7 @@ fun <T: Any> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(
 fun <T: Any, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueSupplier)
 fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
 fun <T: () -> Unit> cr(action: T): ConfR<T> = ConfR(action)
-inline fun <reified T: Any> cList(): ConfL<T> = ConfL(T::class.java, null is T)
+inline fun <reified T: Any?> cList(): ConfL<T> = ConfL(T::class.java, null is T)
 
 /** Adds the specified constraint for this [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
@@ -300,7 +300,7 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyPrope
     override operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any?, W> {
         property.makeAccessible()
         val info = property.obtainConfigMetadata()
-        val type = getGenericPropertyType(property.returnType.javaType) as Class<T>
+        val type = getRawGenericPropertyType(property.returnType.javaType) as Class<T>
         val group = info.computeConfigGroup(ref)
         addAnnotationConstraints(type, property)
 
@@ -343,7 +343,7 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyP
     override operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any?, W> {
         property.makeAccessible()
         val info = property.obtainConfigMetadata()
-        val type = getGenericPropertyType(property.returnType.javaType) as Class<T>
+        val type = getRawGenericPropertyType(property.returnType.javaType) as Class<T>
         val group = info.computeConfigGroup(ref)
         addAnnotationConstraints(type, property)
 

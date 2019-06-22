@@ -1,6 +1,8 @@
 package sp.it.util.conf;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -45,6 +47,7 @@ import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.orNull;
 import static sp.it.util.type.Util.getEnumConstants;
+import static sp.it.util.type.Util.getRawType;
 import static sp.it.util.type.Util.getValueFromFieldMethodHandle;
 import static sp.it.util.type.Util.isEnum;
 import static sp.it.util.type.Util.unPrimitivize;
@@ -278,14 +281,24 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 	 * </ul>
 	 */
 	@SuppressWarnings({"unchecked", "Convert2Diamond"})
-	public static <T> Config<T> forValue(Class<?> type, String name, Object value) {
+	public static <T> Config<T> forValue(Type type, String name, Object value) {
 		return firstNotNull(
-			() -> forPropertyImpl((Class) type, name, value),
+			() -> forPropertyImpl((Class) getRawType(type), name, value),
 			() -> {
-				if (value instanceof ObservableList)
-					return new ListConfig<T>(name, new VarList<T>((Class) Object.class, Elements.NULLABLE, (ObservableList) value));
-				else
-					return forProperty(type, name, new V<>(value));
+				if (value instanceof ObservableList) {
+					Class<T> itemType = firstNotNull(() -> {
+						if (type instanceof ParameterizedType) {
+							Type[] genericTypes = ((ParameterizedType) type).getActualTypeArguments();
+							var gt = genericTypes.length==0 ? null : getRawType(genericTypes[0]);
+							return gt==null ? (Class) Object.class : gt;
+						} else {
+							return (Class) Object.class;
+						}
+					});
+					return new ListConfig<T>(name, new VarList<T>(itemType, Elements.NULLABLE, (ObservableList) value));
+				} else {
+					return forProperty(getRawType(type), name, new V<>(value));
+				}
 			}
 		);
 	}

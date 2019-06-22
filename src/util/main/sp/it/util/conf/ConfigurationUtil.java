@@ -31,7 +31,7 @@ import static sp.it.util.dev.FailKt.failIfNotFinal;
 import static sp.it.util.functional.Util.ISNTØ;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.type.Util.getAllFields;
-import static sp.it.util.type.Util.getGenericPropertyType;
+import static sp.it.util.type.Util.getRawGenericPropertyType;
 import static sp.it.util.type.Util.unPrimitivize;
 
 public class ConfigurationUtil {
@@ -114,25 +114,25 @@ public class ConfigurationUtil {
 			failIfNotFinal(f);
 			f.setAccessible(true);
 			if (VarList.class.isAssignableFrom(f.getType())) {
-				Class<T> property_type = getGenericPropertyType(f.getGenericType());
+				Class<T> property_type = getRawGenericPropertyType(f.getGenericType());
 				Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
 				return new ListConfig<>(name, annotation, (VarList) f.get(instance), group, constraints);
 			}
 			if (Vo.class.isAssignableFrom(f.getType())) {
 				Vo<T> property = (Vo) f.get(instance);
-				Class<T> property_type = getGenericPropertyType(f.getGenericType());
+				Class<T> property_type = getRawGenericPropertyType(f.getGenericType());
 				Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
 				return new OverridablePropertyConfig<>(property_type, name, annotation, constraints, property, group);
 			}
 			if (WritableValue.class.isAssignableFrom(f.getType())) {
 				WritableValue<T> property = (WritableValue) f.get(instance);
-				Class<T> property_type = getGenericPropertyType(f.getGenericType());
+				Class<T> property_type = getRawGenericPropertyType(f.getGenericType());
 				Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
 				return new PropertyConfig<T>(property_type, name, annotation, constraints, property, group);
 			}
 			if (ReadOnlyProperty.class.isAssignableFrom(f.getType())) {
 				ReadOnlyProperty<T> property = (ReadOnlyProperty) f.get(instance);
-				Class<T> property_type = getGenericPropertyType(f.getGenericType());
+				Class<T> property_type = getRawGenericPropertyType(f.getGenericType());
 				Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
 				return new ReadOnlyPropertyConfig<T>(property_type, name, annotation, constraints, property, group);
 			}

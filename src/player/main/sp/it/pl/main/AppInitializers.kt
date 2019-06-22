@@ -90,7 +90,7 @@ fun InstanceName.initApp() {
     add(Output::class.java) { it.name }
     add(InOutput::class.java) { it.o.name }
     add(Collection::class.java) {
-        val eType = sp.it.util.type.Util.getGenericPropertyType(it.javaClass)
+        val eType = sp.it.util.type.Util.getRawGenericPropertyType(it.javaClass)
         val eName = if (eType==it.javaClass || eType==null || eType==Any::class.java) "Item" else APP.className[eType]
         it.size.toString()+" "+English.plural(eName, it.size)
     }

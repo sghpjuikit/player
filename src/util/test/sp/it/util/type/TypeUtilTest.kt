@@ -11,14 +11,14 @@ import javafx.scene.Node
 import javafx.scene.input.DragEvent
 import javafx.scene.layout.Pane
 import sp.it.util.conf.Config.VarList
-import sp.it.util.type.Util.getGenericPropertyType
+import sp.it.util.type.Util.getRawGenericPropertyType
 import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaType
 
 class TypeUtilTest: FreeSpec({
 	"Method" - {
 
-		::getGenericPropertyType.name {
+		::getRawGenericPropertyType.name {
 
 			val o1 = Pane()
 			val o2 = object: Any() {
@@ -51,7 +51,7 @@ class TypeUtilTest: FreeSpec({
 					rowProp<List<*>>(o2::f3),
 					rowProp<List<*>>(o2::f4)
 			) { property, type ->
-				getGenericPropertyType(property) shouldBe type
+				getRawGenericPropertyType(property) shouldBe type
 			}
 		}
 

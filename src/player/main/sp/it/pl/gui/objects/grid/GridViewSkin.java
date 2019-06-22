@@ -40,6 +40,8 @@ import sp.it.util.reactive.UtilKt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.IntStream.rangeClosed;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
@@ -47,9 +49,10 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
+import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.Util.by;
-import static sp.it.util.functional.Util.repeat;
+import static sp.it.util.functional.Util.firstNotNull;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
@@ -111,20 +114,20 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		this.grid = control;
 		this.flow = new Flow<>(this);
 
-		attach(grid.cellFactoryProperty(), e -> flow.changeItems());
-		attach(grid.cellHeightProperty(), e -> flow.changeItems());
-		attach(grid.cellWidthProperty(), e -> flow.changeItems());
-		attach(grid.horizontalCellSpacingProperty(), e -> flow.changeItems());
-		attach(grid.verticalCellSpacingProperty(), e -> flow.changeItems());
-		attach(grid.widthProperty(), e -> flow.changeItemsLazy());
-		attach(grid.heightProperty(), e -> flow.changeItemsLazy());
+		attach(grid.cellFactoryProperty(), e -> flow.rebuildCells());
+		attach(grid.cellHeightProperty(), e -> flow.rebuildCells());
+		attach(grid.cellWidthProperty(), e -> flow.rebuildCells());
+		attach(grid.horizontalCellSpacingProperty(), e -> flow.rebuildCells());
+		attach(grid.verticalCellSpacingProperty(), e -> flow.rebuildCells());
+		attach(grid.widthProperty(), e -> flow.rebuildCells());
+		attach(grid.heightProperty(), e -> flow.rebuildCells());
 		attach(grid.parentProperty(), p -> {
-			if (p!=null) flow.changeItemsLazy();
+			if (p!=null) flow.rebuildCells();
 		});
 		attach(grid.focusedProperty(), v -> {
 			if (v) flow.requestFocus();
 		});
-		SubscriptionKt.on(onChange(grid.getItemsShown(), runnable(() -> flow.changeItemsLazy())), onDispose);
+		SubscriptionKt.on(onChange(grid.getItemsShown(), runnable(() -> flow.rebuildCells())), onDispose);
 
 		root = layHeaderTop(0, Pos.TOP_RIGHT, filterPane, flow.root);
 		filter = new Filter(grid.type, grid.itemsFiltered);
@@ -352,6 +355,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		private final Scrolled root;
 		private double viewStart = 0;
 		private boolean needsRebuildCells = true;
+		private double scrollSpeedMultiplier = 3;
 
 		public Flow(GridViewSkin<T,F> skin) {
 			this.skin = skin;
@@ -371,8 +375,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			setClip(clipMask);
 
 			// scrolling
-			double scrollSpeedMultiplier = 3;
-			addEventFilter(SCROLL, e -> {
+			addEventHandler(SCROLL, e -> {
 				scrollBy(-e.getDeltaY()*scrollSpeedMultiplier);
 				e.consume();
 			});
@@ -387,14 +390,6 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 		public double getPosition() {
 			return viewStart;
-		}
-
-		void changeItems() {
-			buildCells();
-		}
-
-		void changeItemsLazy() {
-			buildCellsLazy();
 		}
 
 		public GridCell<T,F> getVisibleCellAtIndex(int i) {
@@ -427,15 +422,11 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			});
 			cell.pseudoClassStateChanged(Search.PC_SEARCH_MATCH, false);
 			cell.pseudoClassStateChanged(Search.PC_SEARCH_MATCH_NOT, false);
+			cell.setManaged(false);
 			return cell;
 		}
 
-		protected void buildCells() {
-			needsRebuildCells = true;
-			layout();
-		}
-
-		protected void buildCellsLazy() {
+		void rebuildCells() {
 			needsRebuildCells = true;
 			requestLayout();
 		}
@@ -457,9 +448,6 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 			List<T> items = getSkinnable().getItemsShown();
 			int itemsAllCount = items.size();
-			int indexStart = computeMinVisibleCellIndex();
-			int indexEnd = min(itemsAllCount - 1, computeMaxVisibleCellIndex());
-			int itemsVisibleCount = indexEnd - indexStart + 1;
 			double virtualHeight = computeRowHeight()*computeRowCount();
 			double viewHeight = getHeight();
 			double scrollableHeight = virtualHeight - viewHeight;
@@ -476,65 +464,91 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			// update cells
 			if (needsRebuildCells) {
 				needsRebuildCells = false;
+				int indexStart = computeMinVisibleCellIndex();
+				int indexEnd = min(itemsAllCount - 1, computeMaxVisibleCellIndex());
+				int itemCount = indexEnd - indexStart + 1;
 
 				if (itemsAllCount==0) {
 					visibleCells.forEach(cachedCells::addLast);
 					visibleCells.clear();
+					cachedCells.forEach(cell -> cell.update(-1, null, false));
 				} else {
 					failIf(indexStart>indexEnd);
+					failIf(indexStart<0);
+					failIf(indexEnd<0);
 					failIf(itemsAllCount<=indexStart);
 					failIf(itemsAllCount<=indexEnd);
 
-					// If the cell count decreased, put the removed cells to cache
-					for (int i = visibleCells.size() - 1; i >= itemsVisibleCount; i--) {
-						GridCell<T,F> cell = visibleCells.remove(i);
-						cell.setItem(null);
-						cell.updateIndex(-1);
-						cell.updateSelected(false);
-						cachedCells.addLast(cell);
-					}
-					failIf(visibleCells.size()>itemsVisibleCount);
+					var visibleCellOld = visibleCells.stream().collect(toMap(c -> c.getIndex(), c -> c));
+					var visibleCellsNew = rangeClosed(indexStart, indexEnd).mapToObj(i ->
+						firstNotNull(
+							// reuse visible cells to prevent needlessly update their content
+							() -> {
+								var c = visibleCellOld.remove(i);
+								if (c!=null) failIf(c.getIndex()!=i);
+								return c;
+							},
+							// reuse cached cells to prevent needlessly creating cells
+							() -> {
+								var c = cachedCells.removeLast();
+								if (c!=null) c.updateIndex(i);
+//								return c;
+								return null;
+							},
+							// reuse cached cells to prevent needlessly creating cells
+							() -> {
+								var c = createCell();
+								c.updateIndex(i);
+								return c;
+							}
+						)
+					).collect(toList());
+					setTo(visibleCells, visibleCellsNew);
+					failIf(visibleCells.size()!=itemCount);
 
-					// If the cell count increased, populate cells with new ones
-					repeat(itemsVisibleCount - visibleCells.size(), () -> visibleCells.add(cachedCells.isEmpty() ? createCell() : cachedCells.removeLast()));
-					failIf(visibleCells.size()!=itemsVisibleCount);
+					visibleCellOld.values().forEach(cell -> {
+						cell.update(-1, null, false);
+						cachedCells.addLast(cell);
+					});
 				}
 			}
 
 			int itemCount = visibleCells.size();
-			if (itemCount==0) return;
+			if (itemCount>0) {
+				// update cells
+				double cellWidth = getSkinnable().getCellWidth();
+				double cellHeight = getSkinnable().getCellHeight();
+				int columns = computeMaxCellsInRow();
+				double vGap = getSkinnable().getVerticalCellSpacing();
+				double hGap = (w - columns*cellWidth)/(columns + 1);
+				double cellGapHeight = cellHeight + vGap;
+				double cellGapWidth = cellWidth + hGap;
+				double viewStartY = viewStart;
+				int viewStartRI = computeMinVisibleRowIndex();
+				int rowCount = computeVisibleRowCount();
+				int i = 0;
+				for (int rowI = viewStartRI; rowI<viewStartRI + rowCount; rowI++) {
+					double rowStartY = rowI*cellGapHeight;
+					double xPos = 0;
+					double yPos = rowStartY - viewStartY;
+					for (int cellI = rowI*columns; cellI<(rowI + 1)*columns; cellI++, i++) {
+						if (i>=itemCount) break;	// last row may not be full
 
-			// update cells
-			double cellWidth = getSkinnable().getCellWidth();
-			double cellHeight = getSkinnable().getCellHeight();
-			int columns = computeMaxCellsInRow();
-			double vGap = getSkinnable().getVerticalCellSpacing();
-			double hGap = (w - columns*cellWidth)/(columns + 1);
-			double cellGapHeight = cellHeight + vGap;
-			double cellGapWidth = cellWidth + hGap;
-			double viewStartY = viewStart;
-			int viewStartRI = computeMinVisibleRowIndex();
-			int rowCount = computeVisibleRowCount();
-			int i = 0;
-			for (int rowI = viewStartRI; rowI<viewStartRI + rowCount; rowI++) {
-				double rowStartY = rowI*cellGapHeight;
-				double xPos = 0;
-				double yPos = rowStartY - viewStartY;
-				for (int cellI = rowI*columns; cellI<(rowI + 1)*columns; cellI++, i++) {
-//					if (i>=itemCount) break;	// last row may not be full
-					GridCell<T,F> cell = getAt(i, visibleCells);
-					if (cell!=null) {
+						var cell = getAt(i, visibleCells);
+						var item = getAt(cellI, items);
+						failIf(cell==null);
+						failIf(cell.getIndex()!=cellI);
+						failIf(item==null);
+
 						cell.resizeRelocate(snapPositionX(xPos + hGap), snapPositionY(yPos + vGap), snapSpaceX(cellWidth), snapSpaceX(cellHeight));
-						cell.updateIndex(cellI);
-						cell.update(getAt(cellI, items), cellI==skin.selectedCI);
+						cell.update(cellI, item, cellI==skin.selectedCI);
+
+						xPos += cellGapWidth;
 					}
-					xPos += cellGapWidth;
 				}
 			}
-
-			if (wasFocused) {
-				requestLayout();
-			}
+			if (wasFocused)
+				requestFocus();
 		}
 
 		void dispose() {
@@ -616,7 +630,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			double newY = clip(minY, to, maxY);
 			if (viewStart!=newY) {
 				viewStart = newY;
-				buildCells();
+				rebuildCells();
 			}
 		}
 

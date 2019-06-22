@@ -26,7 +26,8 @@ public class GridCell<T, F> extends IndexedCell<T> {
 		super.updateIndex(i);
 	}
 
-	void update(T item, boolean isSelected) {
+	void update(int i, T item, boolean isSelected) {
+		updateIndex(i);
 		updateItem(item, item==null);
 		updateSelected(isSelected);
 	}

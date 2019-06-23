@@ -157,7 +157,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			getColumn(LENGTH).ifPresent(c -> {
 				double maxLength = getItems().stream().mapToDouble(PlaylistSong::getTimeMs).max().orElse(6000);
 				String maxLengthText = toHMSMs(new Duration(maxLength));
-				double width = computeFontWidth(APP.ui.getFont().getValue(), maxLengthText) + 5;
+				double width = computeFontWidth(APP.ui.getFont().getValue(), maxLengthText) + 7;
 				c.setPrefWidth(width);
 			});
 

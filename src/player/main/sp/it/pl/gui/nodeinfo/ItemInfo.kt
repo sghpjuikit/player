@@ -5,14 +5,13 @@ import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.HBox
-import sp.it.pl.audio.Player
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY
 import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.layout.widget.feature.SongReader
-import sp.it.util.async.runOn
+import sp.it.util.async.runIO
 import sp.it.util.identityHashCode
 import sp.it.util.ui.fxml.ConventionFxmlLoader
 import sp.it.util.ui.setAnchors
@@ -65,7 +64,7 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), Son
 
     private fun Thumbnail.loadCoverOf(data: Metadata) {
         val id = data.identityHashCode()
-        runOn(Player.IO_THREAD) {
+        runIO {
             data.getCover(ANY).image
         } ui {
             if (dataId==id) loadImage(it)

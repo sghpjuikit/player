@@ -28,21 +28,30 @@ import java.nio.file.WatchService
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Predicate
 
-/*
- * Relatively simple to monitor a file? Think again.
- * 1) Dir only!
- * [WatchService] allows us to only monitor a directory. We then must simply ignore other
- * events of files other than the one we monitor. This is really bad if we want to monitor
- * multiple files in a single directory independently.
+/**
+ *
+ * Directory/File monitor. Supports filtering events, recursive monitoring and also attempts to reduce duplicate events.
+ * The exact implementation may differ based on the type of desired monitoring and OS support. There are no guarantees
+ * about the exact event timing or delays, event deduplication, performance or even event capture as [WatchService] is
+ * known to fail to observe events in some scenarios.
+ *
+ * It is not simple to monitor files (in a cross platform way):
+ *
+ * - target
+ * [WatchService] allows us to only monitor a directory.
+ *
  * Solvable using a predicate parameter to filter out unwanted events.
- * 2) Modification events.
- * Events can fire multiple times when application use safe-rewrite saving or in various other scenarios! E.g.
- * editing and saving .java file in Netbeans fires 3 events at about 8-13 ms time gap (tested on SSD).
+ * - Modification events.
+ *
+ * Events can fire multiple times when application uses safe-rewrite saving or in various other scenarios. OSes also
+ * behave differently and some fire MODIFY on CREATE too.
  * Solvable using event reducer & checking modification times
- * 3) Nested events
+ * - Recursive monitoring
+ *
  * CREATE and DELETE events are fired for files and directories up to level 2 (children of
  * children of the monitored directory, e.g.,  mon_dir/lvl1/file.txt). MODIFIED events will
  * be thrown for any direct child.
+ *
  * Furthermore, recursive monitoring is only supported on Windows, this is a platform limitation.
  */
 class FileMonitor {
@@ -70,10 +79,11 @@ class FileMonitor {
         val t = fxTimer(timeEvict.millis, -1) {
             val timeMs = System.currentTimeMillis()
             val files = eventAccumulations.keys.materialize()
-            val events = files.asSequence()
-                    .filter { timeMs-eventAccumulations[it]!!.timeMs>timeEvict }
-                    .map { eventAccumulations.remove(it)!! }
-                    .toList()
+            val events = files.mapNotNull { f ->
+                eventAccumulations[f]
+                        ?.takeIf { timeMs-it.timeMs>timeEvict }
+                        ?.let { eventAccumulations.remove(f) }
+            }
             events.forEach { it.emit() }
         }
         runFX { t.start() }

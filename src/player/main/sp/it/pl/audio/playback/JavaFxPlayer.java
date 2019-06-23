@@ -18,6 +18,7 @@ import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import static sp.it.pl.audio.playback.VolumeProperty.linToLog;
 import static sp.it.util.async.AsyncKt.runFX;
+import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.syncTo;
@@ -54,7 +55,7 @@ public class JavaFxPlayer implements GeneralPlayer.Play {
 
 	@Override
 	public void createPlayback(Song song, PlaybackState state, Function0<Unit> onOK, Function1<? super Boolean, Unit> onFail) {
-		Player.IO_THREAD.execute(() -> {
+		runIO(() -> {
 			Media media;
 			try {
 				// TODO: Media creation throws MediaException (FileNotFoundException) for files containing some special chars (unicode?)

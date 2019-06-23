@@ -61,8 +61,8 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.util.dev.fail
 import sp.it.util.file.FileType
-import sp.it.util.file.hasExtension
 import sp.it.util.file.children
+import sp.it.util.file.hasExtension
 import sp.it.util.file.nameOrRoot
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.Disposer

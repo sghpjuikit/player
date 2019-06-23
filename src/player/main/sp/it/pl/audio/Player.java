@@ -6,9 +6,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import javafx.scene.input.MouseEvent;
@@ -39,7 +36,6 @@ import sp.it.util.reactive.Handler0;
 import sp.it.util.reactive.Subscription;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
@@ -50,9 +46,10 @@ import static sp.it.pl.audio.tagging.SongWritingKt.write;
 import static sp.it.pl.audio.tagging.SongWritingKt.writeRating;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.FX;
+import static sp.it.util.async.AsyncKt.IO;
 import static sp.it.util.async.AsyncKt.runFX;
+import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.async.AsyncKt.runNew;
-import static sp.it.util.async.AsyncKt.threadFactory;
 import static sp.it.util.async.executor.EventReducer.toLast;
 import static sp.it.util.async.executor.FxTimer.fxTimer;
 import static sp.it.util.async.future.Fut.fut;
@@ -70,7 +67,6 @@ public class Player {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Player.class);
 
-	public static final ExecutorService IO_THREAD = new ThreadPoolExecutor(0, 8, 10, MINUTES, new LinkedBlockingQueue<>(), threadFactory("io-thread", true));
 	public static final PlayerState state = PlayerState.deserialize();
 	public static final CurrentItem playingSong = new CurrentItem();
 	public static final GeneralPlayer player = new GeneralPlayer(state);
@@ -259,7 +255,7 @@ public class Player {
 		// load metadata, type indicates UPDATE vs CHANGE
 		private void load(boolean changeType, Song song) {
 			fut(song)
-				.then(Player.IO_THREAD, SongReadingKt::read)
+				.then(IO, SongReadingKt::read)
 				.useBy(FX, m -> setValue(changeType, m.isEmpty() ? song.toMeta() : m));
 		}
 
@@ -269,7 +265,7 @@ public class Player {
 			PlaylistSong next = PlaylistManager.use(Playlist::getNextPlaying, null);
 			if (next!=null) {
 				fut(next)
-					.then(Player.IO_THREAD, SongReadingKt::read)
+					.then(IO, SongReadingKt::read)
 					.useBy(FX, m -> valNext = m);
 			}
 		}
@@ -377,7 +373,7 @@ public class Player {
 		if (ms.isEmpty()) return;
 
 		// always on br thread
-		IO_THREAD.execute(() -> {
+		runIO(() -> {
 			var msInDb = filter(ms, APP.db::exists);
 			if (msInDb.isEmpty()) return;
 

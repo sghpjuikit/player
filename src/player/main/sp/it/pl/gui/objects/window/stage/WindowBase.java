@@ -32,8 +32,8 @@ import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.ALL;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.NONE;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.sync1If;
+import static sp.it.util.reactive.UtilKt.syncC;
 
 /**
  * Customized Stage, window of the application.

@@ -14,8 +14,8 @@ import sp.it.pl.main.withAppProgress
 import sp.it.util.access.v
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
+import sp.it.util.async.runIO
 import sp.it.util.async.runNew
-import sp.it.util.async.runOn
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.setTo
 import sp.it.util.dev.ThreadSafe
@@ -148,7 +148,7 @@ class SongDb {
         APP.db.songsById[song.id]
                 .ifNotNull { action(it) }
                 .ifNull {
-                    runOn(Player.IO_THREAD) {
+                    runIO {
                         song.read()
                     } ui {
                         action(it)

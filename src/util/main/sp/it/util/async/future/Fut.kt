@@ -29,7 +29,6 @@ import java.util.function.Consumer
 class Fut<T>(private var f: CompletableFuture<T>) {
 
     /** @return future that waits for this to complete normally, invokes the specified block and returns its result */
-    @JvmOverloads
     fun <R> then(executor: Executor = defaultExecutor, block: (T) -> R) = Fut<R>(f.thenApplyAsync(block.logging(), executor.kt))
 
     /** [use] which sleeps the specified duration on [NEW]. */
@@ -42,8 +41,7 @@ class Fut<T>(private var f: CompletableFuture<T>) {
     fun use(executor: Executor = defaultExecutor, block: (T) -> Unit) = then(executor) { block(it); it }
 
     /** Legacy version of [use] for Java taking a [Consumer]. */
-    @JvmOverloads
-    fun useBy(executor: Executor = defaultExecutor, block: Consumer<in T>) = then(executor) { block(it); it }
+    fun useBy(executor: Executor = defaultExecutor, block: Consumer<in T>) = then(executor) { block.invoke(it); it }
 
     /** Sets [block] to be invoked when this future finishes with success. Returns this. */
     fun onOk(executor: Executor = defaultExecutor, block: (T) -> Unit) = onDone(executor) { it.toTry().ifOk(block) }

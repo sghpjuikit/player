@@ -72,6 +72,8 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withAppProgress;
 import static sp.it.util.Util.capitalizeStrong;
 import static sp.it.util.Util.filenamizeString;
+import static sp.it.util.async.AsyncKt.IO;
+import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.async.future.Fut.fut;
 import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.file.UtilKt.writeTextTry;
@@ -215,15 +217,15 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             List<Song> songs = source.stream().filter(Song.class::isInstance).map(Song.class::cast).collect(toList());
             if (songs.isEmpty()) return;
             withAppProgress(
-                fut()
-                   .useBy(Player.IO_THREAD, it -> {
-                        for (int i=0; i<songs.size(); i++) {
-                            int j = i;
-                            writeNoRefresh(songs.get(i), consumer(w -> data.forEach((field, values) -> w.setFieldS(Metadata.Field.valueOf(field), values.get(j)))));
-                        }
+                runIO(() -> {
+                    for (int i=0; i<songs.size(); i++) {
+                        int j = i;
+                        writeNoRefresh(songs.get(i), consumer(w -> data.forEach((field, values) -> w.setFieldS(Metadata.Field.valueOf(field), values.get(j)))));
+                    }
 
-                        Player.refreshSongsWith(stream(songs).map(SongReadingKt::read).filter(m -> !m.isEmpty()).collect(toList()));
-                   }),
+                    Player.refreshSongsWith(stream(songs).map(SongReadingKt::read).filter(m -> !m.isEmpty()).collect(toList()));
+                    return null;
+                }),
                 widget.custom_name.getValue() + "Editing song tags"
             );
         }));
@@ -511,7 +513,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             super("Create directories", Void.class, 1, list("Names (Paths)"), (Consumer<Map<String,List<? extends String>>>) null);
             actionImpartial = data ->
                 fut(data.get("Names (Paths)"))
-                   .useBy(names -> {
+                   .useBy(IO, names -> {
                        File dir = loc.get();
                        names.forEach((String name) -> {
                            try {

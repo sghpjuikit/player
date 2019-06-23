@@ -56,9 +56,8 @@ import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.oneTPExecutor;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.async.AsyncKt.runLater;
+import static sp.it.util.async.AsyncKt.runNew;
 import static sp.it.util.async.AsyncKt.sleep;
-import static sp.it.util.async.future.Fut.fut;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.forEachWithI;
@@ -145,35 +144,34 @@ public class AlbumView extends SimpleController {
 	/** Populates metadata groups to table from metadata list. */
 	private void setItems(List<Metadata> list) {
 		if (list==null) return;
-		fut(ALBUM)
-			.useBy(f -> {
-				List<MetadataGroup> mgs = MetadataGroup.groupsOf(f,list).collect(toList());
-				List<Metadata> fl = filterList(list,true);
-				runLater(() -> {
-					if (!mgs.isEmpty()) {
-						selectionStore();
+		runNew(() -> {
+			List<MetadataGroup> mgs = MetadataGroup.groupsOf(ALBUM, list).collect(toList());
+			List<Metadata> fl = filterList(list,true);
+			runFX(() -> {
+				if (!mgs.isEmpty()) {
+					selectionStore();
 
-						Map<String,Album> m = stream(view.getItemsRaw()).collect(toMap(a -> a.name, a -> a));
-						List<Album> as = stream(mgs).map(Album::new)
-								.peek(a -> {
-									Album tmp = m.get(a.name);
-									if (tmp!=null) {
-										a.cover_file = tmp.cover_file;
-										a.cover = tmp.cover;
-										a.cover_loadedFull = tmp.cover_loadedFull;
-										a.coverFile_loaded = tmp.coverFile_loaded;
-										a.cover_loadedThumb = tmp.cover_loadedThumb;
-									}
-								})
-								.sorted(by(a -> a.name))
-								.collect(toList());
+					Map<String,Album> m = stream(view.getItemsRaw()).collect(toMap(a -> a.name, a -> a));
+					List<Album> as = stream(mgs).map(Album::new)
+							.peek(a -> {
+								Album tmp = m.get(a.name);
+								if (tmp!=null) {
+									a.cover_file = tmp.cover_file;
+									a.cover = tmp.cover;
+									a.cover_loadedFull = tmp.cover_loadedFull;
+									a.coverFile_loaded = tmp.coverFile_loaded;
+									a.cover_loadedThumb = tmp.cover_loadedThumb;
+								}
+							})
+							.sorted(by(a -> a.name))
+							.collect(toList());
 
-						view.getItemsRaw().setAll(as);
-						selectionReStore();
-						out_sel_met.setValue(fl);
-					}
-				});
+					view.getItemsRaw().setAll(as);
+					selectionReStore();
+					out_sel_met.setValue(fl);
+				}
 			});
+		});
 	}
 
 	private List<Metadata> filterList(List<Metadata> list, boolean orAll) {

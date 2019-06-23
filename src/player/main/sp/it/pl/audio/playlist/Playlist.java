@@ -44,6 +44,7 @@ import static sp.it.pl.main.AppFileKt.audioExtensionFilter;
 import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.runFX;
+import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.file.FileType.DIRECTORY;
 import static sp.it.util.file.Util.getFilesR;
@@ -325,7 +326,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 */
 	public void updateItem(Song song) {
 		stream().filter(song::same).forEach(PlaylistSong::update);
-		// THIS NEEDS TO FIRE DURATION UPDATE
+		// TODO: this needs to fire duration update
 	}
 
 	/**
@@ -339,13 +340,13 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	public void updateItems(Collection<PlaylistSong> songs) {
 		if (songs.isEmpty()) return;
 		List<PlaylistSong> l = new ArrayList<>(songs);
-		Player.IO_THREAD.execute(() -> {
+		runIO(() -> {
 			for (PlaylistSong i : l) {
 				if (Thread.interrupted()) return;
 				if (!i.isUpdated()) i.update();
 			}
 		});
-		// THIS NEEDS TO FIRE DURATION UPDATE
+		// TODO: this needs to fire duration update
 	}
 
 	/**
@@ -412,7 +413,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 */
 	public void playItem(PlaylistSong song, UnaryOperator<PlaylistSong> altSupplier) {
 		if (song!=null && transform().contains(song)) {
-			Player.IO_THREAD.execute(() -> {
+			runIO(() -> {
 				// we cant play song -> we try to play next one and eventually get here again => need defend against case where no song is playable
 				boolean unplayable = song.isCorrupt();  // potentially blocking
 				if (unplayable) {

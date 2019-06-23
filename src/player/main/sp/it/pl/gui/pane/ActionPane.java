@@ -73,6 +73,7 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withProgress;
 import static sp.it.util.animation.Anim.animPar;
 import static sp.it.util.async.AsyncKt.FX;
+import static sp.it.util.async.AsyncKt.NEW;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.async.future.Fut.fut;
@@ -476,7 +477,7 @@ public class ActionPane extends OverlayPane<Object> {
 			fut(data)
 				.useBy(FX, it -> actionProgress.setProgress(-1))
 				// run action and obtain output
-				.useBy(action::invoke)
+				.useBy(NEW, action::invoke)
 				// 1) the actions may invoke some action on FX thread, so we give it some by waiting a bit
 				// 2) very short actions 'pretend' to run for a while
 				.thenWait(millis(150))

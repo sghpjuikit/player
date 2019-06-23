@@ -7,6 +7,7 @@ import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.main.APP
 import sp.it.pl.plugin.notif.Notifier
 import sp.it.util.async.runFX
+import sp.it.util.async.runIO
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfFxThread
@@ -28,11 +29,13 @@ fun Song.write(setter: (MetadataWriter) -> Unit) = listOf(this).write(setter, {}
 fun Collection<Song>.write(setter: (MetadataWriter) -> Unit, action: (List<Metadata>) -> Unit) {
     if (PlayerConfiguration.readOnly) return
 
-    Player.IO_THREAD.execute {
+    runIO {
         writeNoRefresh(setter)
-        val ms = asSequence().map { it.read() }.filter { !it.isEmpty() }.toList()
-        Player.refreshSongsWith(ms)
-        runFX { action(ms) }
+        val songs = asSequence().map { it.read() }.filter { !it.isEmpty() }.toList()
+        Player.refreshSongsWith(songs)
+        songs
+    } ui {
+        action(it)
     }
 }
 
@@ -45,15 +48,17 @@ fun Song.write(setter: (MetadataWriter) -> Unit, action: (Try<Boolean, Exception
     if (PlayerConfiguration.readOnly) return
 
     if (isFileBased()) {
-        Player.IO_THREAD.execute {
+        runIO {
             val w = MetadataWriter()
             w.reset(this)
             setter(w)
-            val b = w.write()
+            val success = w.write()
 
             val m = read()
             if (!m.isEmpty()) Player.refreshItemWith(m)
-            runFX { action(b) }
+            success
+        } ui {
+            action(it)
         }
     } else {
         runFX { action(Try.error(Exception("Song is not a file: $uri"))) }

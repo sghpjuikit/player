@@ -23,7 +23,6 @@ import sp.it.util.Sort;
 import sp.it.util.access.V;
 import sp.it.util.access.VarEnum;
 import sp.it.util.access.fieldvalue.FileField;
-import sp.it.util.async.AsyncKt;
 import sp.it.util.async.executor.FxTimer;
 import sp.it.util.conf.Config.VarList;
 import sp.it.util.conf.Config.VarList.Elements;
@@ -31,7 +30,6 @@ import sp.it.util.conf.IsConfig;
 import sp.it.util.dev.Dependency;
 import sp.it.util.file.FileSort;
 import sp.it.util.file.FileType;
-import sp.it.util.math.UtilKt;
 import sp.it.util.ui.Resolution;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static java.util.stream.Collectors.toList;
@@ -49,10 +47,9 @@ import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Sort.ASCENDING;
 import static sp.it.util.async.AsyncKt.FX;
-import static sp.it.util.async.AsyncKt.IO;
 import static sp.it.util.async.AsyncKt.oneTPExecutor;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.async.AsyncKt.runOn;
+import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.async.executor.FxTimer.fxTimer;
 import static sp.it.util.file.FileSort.DIR_FIRST;
 import static sp.it.util.file.FileType.FILE;
@@ -169,15 +166,15 @@ public class AppLauncher extends SimpleController {
     private void visit() {
         if (!initialized) return;
         Item item = new TopItem();
-//        item.lastScrollPosition = grid.implGetSkin().getFlow().getPosition(); // can cause null here
 	    visitId.incrementAndGet();
-        runOn(IO, () -> item.children().stream().sorted(buildSortComparator()).collect(toList()))
-                .useBy(FX, cells -> {
-                    grid.getItemsRaw().setAll(cells);
+        runIO(() ->
+            item.children().stream().sorted(buildSortComparator()).collect(toList())
+        ).useBy(FX, cells -> {
+            grid.getItemsRaw().setAll(cells);
 
-                    grid.implGetSkin().setPosition(max(item.lastScrollPosition, 0.0));
-                    grid.requestFocus();    // fixes focus problem
-                });
+            grid.implGetSkin().setPosition(max(item.lastScrollPosition, 0.0));
+            grid.requestFocus();    // fixes focus problem
+        });
     }
 
     private void doubleClickItem(Item i) {

@@ -155,6 +155,12 @@ fun <T> runLater(block: () -> T) = runOn(FX_LATER, block)
 /** Legacy version of [runLater] for Java taking a [Runnable]. */
 fun runLater(block: Runnable) = runLater(block.kt)
 
+/** Calls [runOn] using [IO] and the specified block. */
+fun <T> runIO(block: () -> T) = runOn(IO, block)
+
+/** Legacy version of [runIO] for Java taking a [Runnable]. */
+fun runIO(block: Runnable) = runIO(block.kt)
+
 /** Executes the specified block periodically with given time period (1st call is already delayed). */
 fun runPeriodic(period: Duration, block: () -> Unit): Subscription {
     val t = fxTimer(period, Animation.INDEFINITE, block)

@@ -42,7 +42,7 @@ import sp.it.util.async.IO
 import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.onlyIfMatches
-import sp.it.util.async.runOn
+import sp.it.util.async.runIO
 import sp.it.util.async.threadFactory
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
@@ -296,7 +296,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
             // Visit the branch
             if (success) {
-                runOn(IO) {
+                runIO {
                     var item: Item? = topItem
                     while (!path.isEmpty()) {
                         val tmp = path.pop()

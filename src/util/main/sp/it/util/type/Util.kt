@@ -1,9 +1,13 @@
 package sp.it.util.type
 
 import sp.it.util.dev.Experimental
+import sp.it.util.dev.fail
+import java.lang.reflect.Array
 import java.lang.reflect.Field
+import java.lang.reflect.GenericArrayType
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
+import java.lang.reflect.TypeVariable
 import java.lang.reflect.WildcardType
 import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.Level
@@ -68,6 +72,27 @@ inline fun <reified T: Any> classLiteral() = T::class
 /** @return type representing the generic type argument of this method */
 inline fun <reified T> typeLiteral() = object: TypeToken<T>() {}.type
 
+/** @return class representing this type, i.e., type stripped of its generic type parameters */
+fun Type.toRaw(): Class<*> = let { type ->
+    when (type) {
+        is Class<*> -> type
+        is ParameterizedType -> {
+            val rawType = type.rawType
+            if (rawType is Class<*>) rawType else fail { "Unable to determine raw type of parameterized type=$type, it's rawType=$rawType is not instance of ${Class::class.java}" }
+        }
+        is GenericArrayType -> {
+            val componentType = type.genericComponentType
+            Array.newInstance(componentType.toRaw(), 0).javaClass
+        }
+        is WildcardType -> {
+            if (type.lowerBounds.isEmpty()) type.upperBounds[0].toRaw()
+            else type.lowerBounds[0].toRaw()
+        }
+        is TypeVariable<*> -> type.bounds[0].toRaw()
+        else -> fail { "Unable to determine raw type of type=$type, unsupported kind" }
+    }
+}
+
 /**
  * Flattens a type to individual type fragments represented by jvm classes, removing variance (wildcards) and nullability.
  *
@@ -86,7 +111,7 @@ inline fun <reified T> typeLiteral() = object: TypeToken<T>() {}.type
  */
 fun Type.flattenToRawTypes(): Sequence<Class<*>> = when {
     this is WildcardType -> (if (lowerBounds.isNullOrEmpty()) upperBounds else lowerBounds).asSequence().flatMap { it.flattenToRawTypes() }
-    this is ParameterizedType -> sequenceOf(Util.getRawType(this)!!)+actualTypeArguments.asSequence().flatMap { it.flattenToRawTypes() }
+    this is ParameterizedType -> sequenceOf(toRaw())+actualTypeArguments.asSequence().flatMap { it.flattenToRawTypes() }
     this is Class<*> -> sequenceOf(this)
     else -> throw Exception(toString())
 }

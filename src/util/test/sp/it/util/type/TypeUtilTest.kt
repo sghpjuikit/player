@@ -12,6 +12,8 @@ import javafx.scene.input.DragEvent
 import javafx.scene.layout.Pane
 import sp.it.util.conf.Config.VarList
 import sp.it.util.type.Util.getRawGenericPropertyType
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
 import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaType
 
@@ -52,6 +54,32 @@ class TypeUtilTest: FreeSpec({
 					rowProp<List<*>>(o2::f4)
 			) { property, type ->
 				getRawGenericPropertyType(property) shouldBe type
+			}
+		}
+
+		Type::toRaw.name {
+			class X
+			val o = object: Any() {
+				val a: X = X()
+				val b: Array<X> = arrayOf()
+				val x: MutableList<X> = mutableListOf()
+				val y: MutableList<X> = mutableListOf()
+				val z: MutableList<X> = mutableListOf()
+			}
+
+			forall(
+					row(o::a, X::class),
+					row(o::b, Array<X>::class)
+			) { property, type ->
+				property.returnType.javaType.toRaw() shouldBe type.java
+			}
+
+			forall(
+					row(o::x, X::class),
+					row(o::y, X::class),
+					row(o::z, X::class)
+			) { property, type ->
+				(property.returnType.javaType as ParameterizedType).actualTypeArguments[0].toRaw() shouldBe type.java
 			}
 		}
 

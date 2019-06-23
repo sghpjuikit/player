@@ -1,6 +1,6 @@
 package sp.it.pl.layout.widget.controller.io
 
-import sp.it.util.type.Util.getRawType
+import sp.it.util.type.toRaw
 import sp.it.util.type.typeLiteral
 import java.lang.reflect.Type
 import java.util.UUID
@@ -13,9 +13,9 @@ class InOutput<T>: XPut<T?> {
     // private due to use of reified generics
     @Suppress("UNCHECKED_CAST")
     private constructor(id: UUID, name: String, type: Type) {
-        this.o = Output(id, name, getRawType(type) as Class<T?>)
+        this.o = Output(id, name, type.toRaw() as Class<T?>)
         this.o.typeRaw = type
-        this.i = object: Input<T>(name, getRawType(type) as Class<T?>, null, { o.value = it }) {
+        this.i = object: Input<T>(name, type.toRaw() as Class<T?>, null, { o.value = it }) {
             override fun isAssignable(output: Output<*>) = output!==o && super.isAssignable(output)
         }
         this.i.typeRaw = type

@@ -2,10 +2,8 @@ package sp.it.util.type;
 
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -45,6 +43,7 @@ import sp.it.util.functional.TriConsumer;
 import static kotlin.text.StringsKt.substringBeforeLast;
 import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.functional.Util.list;
+import static sp.it.util.type.UtilKt.toRaw;
 
 /**
  * Reflection utility methods.
@@ -182,52 +181,6 @@ public interface Util {
 				setter.accept(child, v);
 			}
 		};
-	}
-
-/* ---------- REFLECTION - INSTANTIATION ---------------------------------------------------------------------------- */
-
-	static <T> T instantiateOrThrow(Class<T> type) {
-		boolean isSingleton = isSingleton(type);
-		return isSingleton ? instantiateAsSingleton(type) : instantiateWithDefConstructor(type);
-	}
-
-	static boolean isSingleton(Class<?> type) {
-		String fieldName = "INSTANCE";
-		try {
-			Field f = type.getDeclaredField(fieldName);
-			return Modifier.isStatic(f.getModifiers());
-		} catch (NoSuchFieldException e) {
-			return false;
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	static <T> T instantiateAsSingleton(Class<T> type) {
-		String fieldName = "INSTANCE";
-		try {
-			Field f = type.getDeclaredField(fieldName);
-			Class<?> fType = f.getType();
-
-			if (!Modifier.isStatic(f.getModifiers())) throw new NoSuchFieldException(fieldName + " field must be static=" + fType);
-			if (fType!=type) throw new NoSuchFieldException(fieldName + " field has wrong type=" + fType);
-
-			try {
-				return (T) f.get(null);
-			} catch (IllegalAccessException e) {
-				throw new NoSuchFieldException("Field " + f + " is not accessible");
-			}
-
-		} catch(NoSuchFieldException e) {
-			throw new RuntimeException("Could not instantiate class=" + type + " as singleton.", e);
-		}
-	}
-
-	static <T> T instantiateWithDefConstructor(Class<T> type) {
-		try {
-			return type.getConstructor().newInstance();
-		} catch (NoSuchMethodException | InstantiationException | InvocationTargetException | IllegalAccessException e) {
-			throw new RuntimeException("Could not instantiate class=" + type + " using default constructor. Undeclared or inaccessible.", e);
-		}
 	}
 
 /* ---------- REFLECTION - FIELD ------------------------------------------------------------------------------------ */
@@ -447,14 +400,14 @@ public interface Util {
 		if (t instanceof ParameterizedType) {
 			Type rawType = ((ParameterizedType) t).getRawType();
 			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
-			if (!isProperty) return getRawType(t);
+			if (!isProperty) return toRaw(t);
 		}
 
 		if (t instanceof WildcardType) {
 			var wt = (WildcardType) t;
 			Type rawType = wt.getLowerBounds().length==0 ? wt.getUpperBounds()[0] : wt.getLowerBounds()[0];
 			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
-			if (!isProperty) return getRawType(t);
+			if (!isProperty) return toRaw(t);
 		}
 
 		Class<?> gpt = getRawGenericPropertyTypeImpl(t);
@@ -479,7 +432,7 @@ public interface Util {
 
 		if (t instanceof ParameterizedType) {
 			Type[] genericTypes = ((ParameterizedType) t).getActualTypeArguments();
-			return genericTypes.length==0 ? null : getRawType(genericTypes[0]);
+			return genericTypes.length==0 ? null : toRaw(genericTypes[0]);
 		}
 
 		if (t instanceof Class) {
@@ -566,22 +519,6 @@ public interface Util {
 		}
 
 		return null;
-	}
-
-	static Class<?> getRawType(Type type) {
-		if (type instanceof Class<?>) {
-			return (Class<?>) type;
-		} else if (type instanceof ParameterizedType) {
-			Type rawType = ((ParameterizedType) type).getRawType();
-			return rawType instanceof Class<?> ? (Class<?>) rawType : null;
-		} else if (type instanceof GenericArrayType) {
-			Type componentType = ((GenericArrayType)type).getGenericComponentType();
-			return Array.newInstance(getRawType(componentType), 0).getClass();
-		} else if (type instanceof WildcardType) {
-			return getRawType(((WildcardType) type).getUpperBounds()[0]);
-		} else {
-			return null;
-		}
 	}
 
 	/**

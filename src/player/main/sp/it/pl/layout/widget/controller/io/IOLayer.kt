@@ -58,8 +58,8 @@ import sp.it.util.reactive.onItemSync
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.text.plural
-import sp.it.util.type.Util.getRawType
 import sp.it.util.type.isSuperclassOf
+import sp.it.util.type.toRaw
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.text
@@ -755,10 +755,10 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
         private fun <T> Put<T>.typeAsStr(): String {
             val t = typeRaw
             return if (t!=null) {
-                val c = getRawType(t)
+                val c = t.toRaw()
                 when {
                     Collection::class.isSuperclassOf(c) -> {
-                        val elementType = getRawType(t.asIs<ParameterizedType>().actualTypeArguments[0])
+                        val elementType = t.asIs<ParameterizedType>().actualTypeArguments[0].toRaw()
                         val elementTypeName = APP.className[elementType].plural()
                         "List of $elementTypeName"
                     }

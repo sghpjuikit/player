@@ -136,7 +136,7 @@ class AppActions {
             }
             selectionModel.selectionMode = SINGLE
             selectionModel.selectedItemProperty() sync {
-                iconsView.itemsRaw setTo it?.net { getEnumConstants<GlyphIcons>(it).toList() }.orEmpty()
+                iconsView.itemsRaw setTo it?.net { getEnumConstants<GlyphIcons>(it) }.orEmpty()
             }
             items setTo Icon.GLYPH_TYPES
         }

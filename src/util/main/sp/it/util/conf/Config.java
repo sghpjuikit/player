@@ -47,10 +47,10 @@ import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.orNull;
 import static sp.it.util.type.Util.getEnumConstants;
-import static sp.it.util.type.Util.getRawType;
 import static sp.it.util.type.Util.getValueFromFieldMethodHandle;
 import static sp.it.util.type.Util.isEnum;
 import static sp.it.util.type.Util.unPrimitivize;
+import static sp.it.util.type.UtilKt.toRaw;
 
 /**
  * Object representation of a configurable value.
@@ -283,21 +283,21 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 	@SuppressWarnings({"unchecked", "Convert2Diamond"})
 	public static <T> Config<T> forValue(Type type, String name, Object value) {
 		return firstNotNull(
-			() -> forPropertyImpl((Class) getRawType(type), name, value),
+			() -> forPropertyImpl((Class) toRaw(type), name, value),
 			() -> {
 				if (value instanceof ObservableList) {
 					Class<T> itemType = firstNotNull(() -> {
 						if (type instanceof ParameterizedType) {
 							Type[] genericTypes = ((ParameterizedType) type).getActualTypeArguments();
-							var gt = genericTypes.length==0 ? null : getRawType(genericTypes[0]);
-							return gt==null ? (Class) Object.class : gt;
+							var gt = genericTypes.length==0 ? null : toRaw(genericTypes[0]);
+							return gt==null ? Object.class : gt;
 						} else {
 							return (Class) Object.class;
 						}
 					});
 					return new ListConfig<T>(name, new VarList<T>(itemType, Elements.NULLABLE, (ObservableList) value));
 				} else {
-					return forProperty(getRawType(type), name, new V<>(value));
+					return forProperty(toRaw(type), name, new V<>(value));
 				}
 			}
 		);

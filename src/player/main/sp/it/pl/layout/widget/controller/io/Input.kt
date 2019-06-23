@@ -6,8 +6,8 @@ import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf
 import sp.it.util.functional.asIf
 import sp.it.util.reactive.Subscription
-import sp.it.util.type.Util
 import sp.it.util.type.isSubclassOf
+import sp.it.util.type.toRaw
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.HashMap
@@ -129,6 +129,6 @@ open class Input<T>: Put<T?> {
     override fun toString() = "$name, $type"
 
     companion object {
-        private fun Type?.listType() = Util.getRawType(this.asIf<ParameterizedType>()!!.actualTypeArguments[0])
+        private fun Type?.listType() = this.asIf<ParameterizedType>()!!.actualTypeArguments[0].toRaw()
     }
 }

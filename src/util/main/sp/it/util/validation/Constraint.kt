@@ -11,17 +11,17 @@ import javafx.collections.FXCollections.singletonObservableList
 import javafx.util.Duration
 import sp.it.util.collections.map.ClassListMap
 import sp.it.util.collections.map.ClassMap
-import sp.it.util.dev.failIf
+import sp.it.util.dev.fail
 import sp.it.util.dev.failIfNot
 import sp.it.util.functional.Try
 import sp.it.util.text.Password
 import sp.it.util.type.Util.getGenericInterface
-import sp.it.util.type.Util.instantiateOrThrow
 import sp.it.util.validation.Constraint.Declaration.EXPLICIT
 import sp.it.util.validation.Constraint.Declaration.IMPLICIT
 import java.io.File
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.reflect.KClass
+import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.findAnnotation
 
 interface Constraint<in T> {
@@ -228,7 +228,7 @@ class Constraints {
                 register<Constraint.Length> { Constraint.StringLength(it.min, it.max) }
                 register<Constraint.NonNullElements> { Constraint.HasNonNullElements }
                 register<Constraint.NonNull> { Constraint.ObjectNonNull }
-                register<Constraint.ConstraintBy> { instantiateOrThrow(it.value.java) }
+                register<Constraint.ConstraintBy> { it.value.instantiate() }
                 registerByType<Duration, Constraint.DurationNonNegative>()
             }
         }
@@ -237,7 +237,7 @@ class Constraints {
         private inline fun <reified CA: Annotation> register(noinline constraintFactory: (CA) -> Constraint<*>) {
             val type = CA::class.java
 
-            failIf(CA::class.findAnnotation<Constraint.IsConstraint>()==null) {
+            CA::class.findAnnotation<Constraint.IsConstraint>() ?: fail {
                 "${Constraint::class} must be annotated by ${Constraint.IsConstraint::class}"
             }
 
@@ -247,7 +247,7 @@ class Constraints {
         private inline fun <reified T, reified C: Constraint<T>> registerByType() {
             C::class.findAnnotation<Constraint.DeclarationType>()?.let {
                 if (it.value==IMPLICIT) {
-                    IMPLICIT_CONSTRAINTS.accumulate(T::class.java, instantiateOrThrow(C::class.java))
+                    IMPLICIT_CONSTRAINTS.accumulate(T::class.java, C::class.instantiate())
                 }
             }
         }
@@ -256,6 +256,8 @@ class Constraints {
         @JvmStatic fun <X> toConstraint(a: Annotation): Constraint<X> {
             return MAPPER[a.annotationClass.java]!!.invoke(a) as Constraint<X>
         }
+
+        private fun <T: Any> KClass<T>.instantiate(): T = objectInstance ?: createInstance()
 
     }
 }

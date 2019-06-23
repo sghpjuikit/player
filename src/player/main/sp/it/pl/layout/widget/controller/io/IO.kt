@@ -3,9 +3,9 @@ package sp.it.pl.layout.widget.controller.io
 import sp.it.util.dev.failIf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
-import sp.it.util.type.Util.getRawType
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.isSuperclassOf
+import sp.it.util.type.toRaw
 import sp.it.util.type.typeLiteral
 import java.lang.reflect.Type
 import java.util.HashMap
@@ -37,7 +37,7 @@ class IO(private val id: UUID) {
         fun <T> create(name: String, type: Type, initialValue: T? = null, action: (T?) -> Unit): Input<T?> {
             failIf(mi[name]!=null) { "Input $name already exists" }
 
-            val i: Input<T?> = Input(name, getRawType(type) as Class<T?>, initialValue, action)
+            val i: Input<T?> = Input(name, type.toRaw() as Class<T?>, initialValue, action)
             i.typeRaw = type
             mi[name] = i
             return i
@@ -76,7 +76,7 @@ class IO(private val id: UUID) {
         fun <T> create(name: String, type: Type, value: T?): Output<T?> {
             failIf(mo[name]!=null) { "Output $name already exists" }
 
-            val o = Output<T?>(id, name, getRawType(type) as Class<T?>)
+            val o = Output<T?>(id, name, type.toRaw() as Class<T?>)
             o.typeRaw = type
             o.value = value
             mo[name] = o

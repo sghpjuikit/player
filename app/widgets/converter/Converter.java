@@ -83,13 +83,13 @@ import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.mapSlice;
-import static sp.it.util.functional.Util.max;
-import static sp.it.util.functional.Util.min;
 import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.Util.streamBi;
 import static sp.it.util.functional.Util.toS;
 import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.math.UtilKt.max;
+import static sp.it.util.math.UtilKt.min;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
 import static sp.it.util.ui.Util.layVertically;
@@ -329,10 +329,10 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                         String[] areaLines = textArea.getText().split("\\n");
                         String[] pastedLines = pasted_text.split("\\n");
                         String text;
-                        int min = min(areaLines.length,pastedLines.length);
-                        int max = max(areaLines.length,pastedLines.length);
+                        int min = min(areaLines.length, pastedLines.length);
+                        int max = max(areaLines.length, pastedLines.length);
                         if (min==max) {
-                            text = streamBi(areaLines,pastedLines, (a,p) -> a+p).collect(joining("\n"));
+                            text = streamBi(areaLines, pastedLines, (a,p) -> a+p).collect(joining("\n"));
                         } else {
                             // not implemented
                             text = "";

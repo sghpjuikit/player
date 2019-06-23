@@ -2,9 +2,9 @@ package sp.it.pl.gui.objects.rating
 
 import javafx.geometry.Pos
 import javafx.scene.control.Control
-import sp.it.util.Util.clip
 import sp.it.util.access.V
 import sp.it.util.access.v
+import sp.it.util.math.clip
 
 /** A control for allowing users to provide a rating as 0-1 double. */
 class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double? = null): Control() {
@@ -12,7 +12,7 @@ class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double
     /** Rating value in 0-1. Value will clipped to range. Default 0. */
     @JvmField val rating = object: V<Double?>(initialRating) {
         override fun set(nv: Double?) {
-            super.set(nv?.let { clip(0.0, it, 1.0) })
+            super.set(nv?.let { it.clip(0.0, 1.0) })
         }
     }
 

@@ -25,7 +25,14 @@ import javafx.scene.shape.Path
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.layout.container.SwitchContainerUi
-import sp.it.pl.main.*
+import sp.it.pl.main.APP
+import sp.it.pl.main.Df
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.contains
+import sp.it.pl.main.get
+import sp.it.pl.main.getAny
+import sp.it.pl.main.installDrag
+import sp.it.pl.main.set
 import sp.it.util.Util.pyth
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
@@ -36,8 +43,10 @@ import sp.it.util.collections.map.Map2D
 import sp.it.util.collections.map.Map2D.Key
 import sp.it.util.dev.failCase
 import sp.it.util.functional.Util.forEachCartesianHalfNoSelf
-import sp.it.util.functional.Util.min
 import sp.it.util.functional.asIs
+import sp.it.util.math.clip
+import sp.it.util.math.max
+import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -63,7 +72,6 @@ import kotlin.collections.set
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
-import kotlin.math.max
 import kotlin.math.sign
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -93,7 +101,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             when {
                 dist>100 -> {}
                 else -> {
-                    val f = (100.0-(dist.coerceIn(0.0, 100.0)))/10.0
+                    val f = (100.0-dist.clip(0.0, 100.0))/10.0
                     l1.text.layoutX += f*cos(dir)
                     l1.text.layoutY += f*sin(dir)
                     l2.text.layoutX -= f*cos(dir)
@@ -356,7 +364,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             n.graphics.isVisible = true
             n.graphics.autosize()
             n.updatePosition(ioOffsetX, ioOffsetY)
-            ioOffsetX += max(n.graphics.layoutBounds.width, ioMinWidthX)+ioGapX
+            ioOffsetX += (n.graphics.layoutBounds.width max ioMinWidthX)+ioGapX
             ioOffsetY += ioOffsetYShift
         }
 
@@ -649,7 +657,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             if (dx==0.0 || dy==0.0) {
                 elements += LineTo(outX, outY)
             } else {
-                val dXy = min(abs(dx), abs(dy))
+                val dXy = abs(dx) min abs(dy)
                 val x = inX+dXy.withSign(dx)
                 val y = inY+dXy.withSign(dy)
                 elements += LineTo(x, y)
@@ -662,7 +670,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
         private fun loY(x: Double, y: Double) = linkEndOffset*sin(atan2(y, x))
 
         fun dataSend() {
-            val lengthNormalized = max(1.0, length/100.0)
+            val lengthNormalized = 1.0 max length/100.0
 
             val pRunner = Circle(3.0).apply {
                 styleClass += "iolink-effect-dot"

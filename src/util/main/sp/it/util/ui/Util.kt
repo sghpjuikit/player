@@ -67,6 +67,7 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.traverse
 import sp.it.util.math.P
 import sp.it.util.math.max
+import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventUp
@@ -74,8 +75,6 @@ import sp.it.util.reactive.sync
 import sp.it.util.ui.image.FitFrom
 import kotlin.math.abs
 import kotlin.math.floor
-import kotlin.math.max
-import kotlin.math.min
 
 /* ---------- COLOR ------------------------------------------------------------------------------------------------- */
 
@@ -792,7 +791,7 @@ fun <T> TreeView<T>.scrollToCenter(i: Int) {
     } else {
         val rows = height/fixedCellSize
         index -= (rows/2).toInt()
-        index = min(items-rows.toInt()+1, max(0, index))
+        index = 0 max index min items-rows.toInt()+1
         scrollTo(index)
     }
 }

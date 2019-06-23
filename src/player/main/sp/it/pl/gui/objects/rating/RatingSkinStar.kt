@@ -12,8 +12,8 @@ import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.layout.HBox
 import javafx.scene.shape.Rectangle
 import sp.it.pl.main.IconFA
-import sp.it.util.Util.clip
 import sp.it.util.collections.setTo
+import sp.it.util.math.clip
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -96,7 +96,7 @@ class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
         val x = when {
             -gap>b.x -> ratingOld ?: 0.0
             b.x>w+gap -> ratingOld ?: 0.0
-            else -> clip(0.0, b.x/w, 1.0)
+            else -> (b.x/w).clip(0.0, 1.0)
         }
 
         return if (skinnable.partialRating.value) {

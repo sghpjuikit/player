@@ -12,6 +12,7 @@ import sp.it.pl.main.APP
 import sp.it.util.async.runFX
 import sp.it.util.dev.fail
 import sp.it.util.file.div
+import sp.it.util.math.clip
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
@@ -57,7 +58,7 @@ class VlcPlayer: GeneralPlayer.Play {
             // doesn't work correctly (wrong time)
             // player?.controls()?.setTime(duration.toMillis().toLong())
 
-            it.controls().setPosition((duration.toMillis().toFloat()/it.status().length().toFloat()).coerceIn(0f..1f))
+            it.controls().setPosition((duration.toMillis().toFloat()/it.status().length().toFloat()).clip(0f, 1f))
         }
     }
 

@@ -1,7 +1,7 @@
 package sp.it.util.units
 
-import java.lang.Integer.max
-import java.lang.Integer.min
+import sp.it.util.math.max
+import sp.it.util.math.min
 import java.time.Year
 
 /**
@@ -24,8 +24,8 @@ class RangeYear {
         if (year==null) {
             hasUnspecified = true
         } else {
-            min = min(min, year)
-            max = max(max, year)
+            min = min min year
+            max = max max year
         }
     }
 

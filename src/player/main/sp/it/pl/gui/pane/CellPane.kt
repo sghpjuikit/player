@@ -2,7 +2,7 @@ package sp.it.pl.gui.pane
 
 import javafx.scene.layout.Pane
 import sp.it.util.async.runLater
-import java.lang.Integer.max
+import sp.it.util.math.max
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -32,7 +32,7 @@ class CellPane: Pane {
         if (elements==0) return
         val w = width
         val c = floor((w+cellG)/(cellW+cellG)).toInt()
-        val columns = max(1, c)
+        val columns = 1 max c
         val gapX = cellG+(w+cellG-columns*(cellW+cellG))/columns
         val gapY = cellG
 

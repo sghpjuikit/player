@@ -411,7 +411,7 @@ class WindowManager {
             } else {
                 initialSize
             }
-            setSize(newSize clipMax scrSize)
+            setSize(newSize min scrSize)
             setXYToCenter(screen)
         }
     }

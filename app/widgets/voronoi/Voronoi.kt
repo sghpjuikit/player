@@ -21,13 +21,14 @@ import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.scaleEM
-import sp.it.util.Util.clip
 import sp.it.util.Util.pyth
 import sp.it.util.access.V
 import sp.it.util.animation.Loop
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
 import sp.it.util.functional.runTry
+import sp.it.util.math.clip
+import sp.it.util.math.min
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
@@ -41,7 +42,6 @@ import java.util.Random
 import java.util.stream.IntStream
 import kotlin.math.PI
 import kotlin.math.cos
-import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.streams.asSequence
@@ -143,9 +143,9 @@ class Voronoi(widget: Widget): SimpleController(widget) {
             val distMax = 0.2*pyth(w, h)
             val distDiff = distMax-distMin
             val distances = cells.associateWith {
-                val dist = mousePos?.distance(it.x, it.y) ?: distMax
-                val distNormalized = 1-(clip(distMin, dist, distMax)-distMin)/distDiff
-                clip(opacityMin, distNormalized, opacityMax)
+                val dist = (mousePos?.distance(it.x, it.y) ?: distMax).clip(distMin, distMax)
+                val distNormalized = (1-(dist-distMin)/distDiff).clip(opacityMin, opacityMax)
+                distNormalized
             }
 
             gc.setEffect(null)
@@ -220,7 +220,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
             generateSequence { Cell.random(it.width, it.height, 0.5) }.take(it.count)
         }),
         CIRCLES({
-            val wh = min(it.width, it.height)
+            val wh = it.width min it.height
             val cells = ArrayList<Cell>()
 
             cells += generateSequence(0.0) { it+2*PI/11 }.take(11)

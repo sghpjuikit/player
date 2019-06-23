@@ -14,6 +14,8 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.IconFA
 import sp.it.util.access.toggleNext
 import sp.it.util.functional.supplyIf
+import sp.it.util.math.max
+import sp.it.util.math.min
 import sp.it.util.reactive.sync
 import sp.it.util.ui.Util.layScrollVTextCenter
 import sp.it.util.ui.hBox
@@ -102,8 +104,8 @@ class MessagePane: OverlayPane<String>() {
         historyAtText.value = "${historyAt+1}/${history.size}"
     }
 
-    private fun visitLeft() = visit(historyAt.coerceAtLeast(1)-1)
+    private fun visitLeft() = visit(historyAt.max(1)-1)
 
-    private fun visitRight() = visit(historyAt.coerceAtMost(history.size-2)+1)
+    private fun visitRight() = visit(historyAt.min(history.size-2)+1)
 
 }

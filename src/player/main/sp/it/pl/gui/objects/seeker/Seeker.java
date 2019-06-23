@@ -1,7 +1,9 @@
 package sp.it.pl.gui.objects.seeker;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -36,6 +38,7 @@ import sp.it.util.animation.Loop;
 import sp.it.util.animation.interpolator.CircularInterpolator;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.FxTimer;
+import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.functional.Try;
 import sp.it.util.reactive.Subscription;
 import sp.it.util.type.Util;
@@ -74,7 +77,6 @@ import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.executor.FxTimer.fxTimer;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.TryKt.getAny;
-import static sp.it.util.functional.Util.minBy;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.syncC;
@@ -730,4 +732,16 @@ public final class Seeker extends AnchorPane {
 
 	}
 
+	private static <V, C extends Comparable<? super C>> Optional<V> minBy(Collection<V> c, C atMost, Ƒ1<? super V,C> by) {
+		V minV = null;
+		C minC = atMost;
+		for (V v : c) {
+			C vc = by.apply(v);
+			if (minC==null || vc.compareTo(minC)<0) {
+				minV = v;
+				minC = vc;
+			}
+		}
+		return Optional.ofNullable(minV);
+	}
 }

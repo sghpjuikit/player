@@ -12,8 +12,8 @@ import org.jaudiotagger.tag.TagException
 import org.jaudiotagger.tag.id3.AbstractID3Tag
 import org.jaudiotagger.tag.images.Artwork
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag
-import sp.it.util.Util.clip
 import sp.it.util.functional.Try
+import sp.it.util.math.clip
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
@@ -32,7 +32,7 @@ val Tag.ratingMax: Int
 val Tag.ratingMin: Int get() = 0
 
 /** @return specified value clipped within minimal-maximal rating value range*/
-fun Tag.clipRating(v: Double): Double = clip(ratingMin.toDouble(), v, ratingMax.toDouble())
+fun Tag.clipRating(v: Double): Double = v.clip(ratingMin.toDouble(), ratingMax.toDouble())
 
 /** @return audio file or error if fails */
 fun File.readAudioFile(): Try<AudioFile, Exception> {

@@ -71,10 +71,10 @@ data class P @JvmOverloads constructor(var x: Double = 0.0, var y: Double = 0.0)
         y /= n
     }
 
-    infix fun clipMin(minimum: P) = P(x.coerceAtLeast(minimum.x), y.coerceAtLeast(minimum.y))
+    infix fun max(that: P) = P(x max that.x, y max that.y)
 
-    infix fun clipMax(maximum: P) = P(x.coerceAtMost(maximum.x), y.coerceAtMost(maximum.y))
+    infix fun min(that: P) = P(x min that.x, y min that.y)
 
-    fun clip(minimum: P, maximum: P) = P(x.coerceIn(minimum.x, maximum.x), y.coerceIn(minimum.y, maximum.y))
+    fun clip(minimum: P, maximum: P) = P(x.clip(minimum.x, maximum.x), y.clip(minimum.y, maximum.y))
 
 }

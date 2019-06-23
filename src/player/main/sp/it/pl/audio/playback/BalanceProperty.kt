@@ -3,7 +3,7 @@ package sp.it.pl.audio.playback
 import javafx.beans.property.SimpleDoubleProperty
 import sp.it.pl.audio.playback.BalanceProperty.Companion.MAX
 import sp.it.pl.audio.playback.BalanceProperty.Companion.MIN
-import sp.it.util.Util.clip
+import sp.it.util.math.clip
 
 /** Double property for playback left-right volume balance. Value is always within valid range [MIN]-[MAX]. */
 class BalanceProperty: SimpleDoubleProperty {
@@ -15,11 +15,11 @@ class BalanceProperty: SimpleDoubleProperty {
     /** Maximum volume value: [MAX] */
     val max get() = MAX
 
-    constructor(v: Double): super(clip(MIN, v, MAX))
+    constructor(v: Double): super(v.clip(MIN, MAX))
 
     /** Sets the value. Value outside of minimal-maximal value range will be clipped. */
     override fun set(v: Double) {
-        super.set(clip(MIN, v, MAX))
+        super.set(v.clip(MIN, MAX))
     }
 
     /** Increment value by [STEP]. */

@@ -21,8 +21,8 @@ import sp.it.util.conf.IsConfig
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.conf.readOnlyUnless
-import sp.it.util.functional.Util.max
-import sp.it.util.functional.Util.min
+import sp.it.util.math.max
+import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.map
 import sp.it.util.units.times
@@ -98,15 +98,15 @@ class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
                 Player.onPlaybackAt.add(incHandler)
             }
             ON_TIME -> {
-                incHandler = at({ total -> min(whenTime.value, total*0.8) }, incrementer)
+                incHandler = at({ total -> whenTime.value min total*0.8 }, incrementer)
                 Player.onPlaybackAt.add(incHandler)
             }
             ON_TIME_AND_PERCENT -> {
-                incHandler = at({ total -> max(whenTime.value, total*whenPercent.value) }, incrementer)
+                incHandler = at({ total -> whenTime.value max total*whenPercent.value }, incrementer)
                 Player.onPlaybackAt.add(incHandler)
             }
             ON_TIME_OR_PERCENT -> {
-                incHandler = at({ total -> min(whenTime.value, total*whenPercent.value) }, incrementer)
+                incHandler = at({ total -> whenTime.value min total*whenPercent.value }, incrementer)
                 Player.onPlaybackAt.add(incHandler)
             }
             ON_START -> Player.onPlaybackStart += incrementer

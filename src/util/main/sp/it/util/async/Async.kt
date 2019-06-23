@@ -10,6 +10,7 @@ import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.dev.fail
 import sp.it.util.functional.invoke
 import sp.it.util.functional.kt
+import sp.it.util.math.max
 import sp.it.util.reactive.Subscription
 import sp.it.util.units.millis
 import sp.it.util.units.minutes
@@ -90,7 +91,7 @@ class FxExecutor: Executor {
                 val time = System.currentTimeMillis().toDouble()
                 runFX {
                     val diff = System.currentTimeMillis()-time
-                    val duration = (delay.toMillis()-diff).coerceAtLeast(0.0)
+                    val duration = 0.0 max delay.toMillis()-diff
                     fxTimer(duration.millis, 1, it.kt).start()
                 }
             }

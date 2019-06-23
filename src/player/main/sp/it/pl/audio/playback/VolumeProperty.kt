@@ -7,7 +7,7 @@ package sp.it.pl.audio.playback
 import javafx.beans.property.SimpleDoubleProperty
 import sp.it.pl.audio.playback.VolumeProperty.Companion.MAX
 import sp.it.pl.audio.playback.VolumeProperty.Companion.MIN
-import sp.it.util.Util.clip
+import sp.it.util.math.clip
 
 /** Double property for playback volume. Value is always within valid range [MIN]-[MAX]. */
 class VolumeProperty: SimpleDoubleProperty {
@@ -19,11 +19,11 @@ class VolumeProperty: SimpleDoubleProperty {
     /** Maximum volume value: [MAX] */
     val max get() = MAX
 
-    constructor(v: Double): super(clip(MIN, v, MAX))
+    constructor(v: Double): super(v.clip(MIN, MAX))
 
     /** Sets the value. Value outside of minimal-maximal value range will be clipped. */
     override fun set(v: Double) {
-        super.set(clip(MIN, v, MAX))
+        super.set(v.clip(MIN, MAX))
     }
 
     /** Increment value by [STEP]. */

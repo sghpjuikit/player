@@ -13,6 +13,7 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
 import sp.it.util.functional.asIf
+import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.ui.label
@@ -92,7 +93,7 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
         children.forEach { n ->
             val y = n.layoutBounds.minY+n.layoutY
             minY = minY min y
-            maxY = maxY max (y+n.prefHeight(-1.0).coerceIn(n.minHeight(-1.0), n.maxHeight(-1.0)))
+            maxY = maxY max (y+n.prefHeight(-1.0).clip(n.minHeight(-1.0), n.maxHeight(-1.0)))
         }
         return maxY-minY
     }

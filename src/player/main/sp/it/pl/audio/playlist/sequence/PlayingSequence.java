@@ -3,7 +3,6 @@ package sp.it.pl.audio.playlist.sequence;
 import java.util.ArrayList;
 import java.util.List;
 import sp.it.pl.audio.playlist.PlaylistSong;
-import sp.it.util.access.CyclicEnum;
 import sp.it.util.access.Values;
 import static sp.it.util.dev.FailKt.noNull;
 
@@ -53,7 +52,7 @@ public class PlayingSequence {
     }
 
     /** Playback looping mode. */
-    public enum LoopMode implements CyclicEnum<LoopMode> {
+    public enum LoopMode {
         PLAYLIST {
             @Override
             public ItemSelector<PlaylistSong> selector() {

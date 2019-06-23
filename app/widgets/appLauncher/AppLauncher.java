@@ -197,7 +197,7 @@ public class AppLauncher extends SimpleController {
     }
 
     private Comparator<Item> buildSortComparator() {
-        Sort sortHetero = sort_file.get().sort, // sorts Files to files and directories
+        Sort sortHetero = sort_file.get().getSort(), // sorts Files to files and directories
              sortHomo = sort.get(); // sorts each group separately
         FileField<?> field = sortBy.get(); // pre-compute once for consistency and performance
         Comparator<Item> cmpHetero = sortHetero.of(by(i -> i.valType)),

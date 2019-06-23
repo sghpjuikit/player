@@ -151,7 +151,7 @@ object CoreFunctors: Core {
             add("MimeType", File::class.java, MimeType::class.java) { it.mimeType() }
             add("MimeGroup", File::class.java, String::class.java) { it.mimeType().group }
             add("Shortcut of", File::class.java, File::class.java) { WindowsShortcut.targetedFile(it).orElse(null) }
-            add("Type", File::class.java, FileType::class.java) { FileType.of(it) }
+            add("Type", File::class.java, FileType::class.java) { FileType(it) }
             add("Exists", File::class.java, B) { it.exists() }
             add("Anime", File::class.java, S) { renameAnime(it.nameWithoutExtensionOrRoot) }
 

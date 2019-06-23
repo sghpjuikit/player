@@ -52,7 +52,7 @@ class FileField<T: Any>: ObjectFieldBase<File, T> {
         @F val TIME_ACCESSED = FileField("Time Accessed", "Time Accessed", FileTime::class) { if (it is CachingFile) it.timeAccessed else it.readTimeAccessed() }
         @F val TIME_MODIFIED = FileField("Time Modified", "Time Modified", LocalDateTime::class) { if (it is CachingFile) it.timeModified else it.readTimeModified() }
         @F val TIME_CREATED = FileField("Time Created", "Time Created", FileTime::class) { if (it is CachingFile) it.timeCreated else it.readTimeCreated() }
-        @F val TYPE = FileField("Type", "Type", FileType::class) { FileType.of(it) }
+        @F val TYPE = FileField("Type", "Type", FileType::class) { FileType(it) }
         @F val MIME = FileField("Mime Type", "Mime Type", MimeType::class) { it.mimeType() }
         @F val MIME_GROUP = FileField("Mime Group", "Mime Group", String::class) { it.mimeType().group }
 

@@ -269,7 +269,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
             if (p hasExtension "css")
                 createIcon(IconFA.CSS3, 8.0)
 
-            val type = if (treeItem.isLeaf) FileType.FILE else FileType.of(p)
+            val type = if (treeItem.isLeaf) FileType.FILE else FileType(p)
 
             if (type==FileType.DIRECTORY && APP.DIR_SKINS==p.parentFile || p.isValidSkinFile())
                 createIcon(IconFA.PAINT_BRUSH, 8.0)

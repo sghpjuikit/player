@@ -100,7 +100,7 @@ fun InstanceInfo.initApp() {
     add(Void::class.java) { _, _ -> }
     add(String::class.java) { s, map -> map["Length"] = (s?.length ?: 0).toString() }
     add(File::class.java) { f, map ->
-        val type = FileType.of(f)
+        val type = FileType(f)
         map["File type"] = type.name
 
         if (type==FileType.FILE) {

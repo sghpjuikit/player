@@ -1,6 +1,5 @@
 package sp.it.util.type
 
-import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
 import java.lang.reflect.Array
 import java.lang.reflect.Field
@@ -117,7 +116,6 @@ fun Type.flattenToRawTypes(): Sequence<Class<*>> = when {
 }
 
 /** Set specified property of this object to null. Use for disposal of read-only properties and avoiding memory leaks. */
-@Experimental("Uses reflection and its usefulness must be thoroughly evaluated")
 infix fun Any.nullify(property: KProperty<*>) {
     property.javaField?.isAccessible = true
     property.javaField?.set(this, null)

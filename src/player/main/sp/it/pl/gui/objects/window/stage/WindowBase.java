@@ -19,7 +19,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import kotlin.Unit;
 import sp.it.pl.gui.objects.window.Resize;
-import sp.it.util.access.CyclicEnum;
 import sp.it.util.dev.Dependency;
 import sp.it.util.math.P;
 import sp.it.util.system.Os;
@@ -757,7 +756,7 @@ public class WindowBase {
 	}
 
 	/** State of window maximization. */
-	public enum Maximized implements CyclicEnum<Maximized> {
+	public enum Maximized {
 		ALL,
 		LEFT,
 		RIGHT,

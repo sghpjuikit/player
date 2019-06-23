@@ -6,7 +6,7 @@ import sp.it.util.dev.Dependency
 import sp.it.util.functional.Functors.Ƒ1
 import sp.it.util.functional.Try
 
-/** Function created from string expression. */
+/** Mathematical `Double -> Double` Function created from string expression. */
 class StrExF(s: String): Ƒ1<Double, Double> {
     private val expression: String
     private val e: Expression

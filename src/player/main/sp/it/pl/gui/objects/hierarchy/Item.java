@@ -123,7 +123,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		asStream(childrenFiles()).forEach(f -> {
 			if (!disposed) {
 				all.add(f.getPath().toLowerCase());
-				FileType type = FileType.of(f);
+				FileType type = FileType.Companion.invoke(f);
 				if (type==DIRECTORY) {
 					dirs.add(createItem(this, f, type));
 				} else {

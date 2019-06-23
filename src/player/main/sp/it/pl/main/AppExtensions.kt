@@ -14,6 +14,7 @@ import sp.it.util.ui.EM
 import java.io.File
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
+import kotlin.math.ceil
 
 private val logger = KotlinLogging.logger {}
 
@@ -44,8 +45,8 @@ fun File.isValidWidgetFile(): Boolean {
     return isValidFile(this) && path.endsWith(".fxml") && parentFile?.parentFile==APP.DIR_WIDGETS
 }
 
-/** @return value scaled by font size, i.e., value multiplied by the [Number.EM] of current application font. */
-fun Number.scaleEM() = toDouble()*APP.ui.font.value.size.EM
+/** @return value scaled by current application font size (in [EM] units) and ceil-ed to nearest integer */
+fun Number.scaleEM() = ceil(toDouble()*APP.ui.font.value.size.EM)
 
 /** Runs the specified block immediately or when application is [initialized](App.onStarted). */
 fun App.run1AppReady(block: () -> Unit) {

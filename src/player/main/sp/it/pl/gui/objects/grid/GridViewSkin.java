@@ -492,8 +492,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 							() -> {
 								var c = cachedCells.removeLast();
 								if (c!=null) c.updateIndex(i);
-//								return c;
-								return null;
+								return c;
 							},
 							// reuse cached cells to prevent needlessly creating cells
 							() -> {

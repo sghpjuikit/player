@@ -273,7 +273,7 @@ public class AlbumView extends SimpleController {
 			File file = getCoverFile();
 			if (file!=null) {
 				if (full) {
-					// Normally, we would use: boolean was_loaded = cover_loadedFull;
+					// Normally, we would use: boolean was_loaded = coverLoadedFull;
 					// but that would cause animation to be played again, which we do not want
 					boolean was_loaded = cover_loadedThumb || cover_loadedFull;
 					if (!cover_loadedFull) {

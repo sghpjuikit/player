@@ -7,17 +7,22 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Stream;
+import java.util.concurrent.atomic.AtomicReference;
 import javafx.scene.image.Image;
+import kotlin.sequences.Sequence;
+import kotlin.sequences.SequencesKt;
 import sp.it.pl.audio.SimpleSong;
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
 import sp.it.util.HierarchicalBase;
 import sp.it.util.JavaLegacy;
 import sp.it.util.access.fieldvalue.CachingFile;
+import sp.it.util.async.AsyncKt;
+import sp.it.util.async.future.Fut;
+import sp.it.util.dev.ThreadSafe;
 import sp.it.util.file.FileType;
 import sp.it.util.file.UtilKt;
 import sp.it.util.functional.Try;
+import sp.it.util.functional.Util;
 import sp.it.util.ui.IconExtractor;
 import sp.it.util.ui.image.Image2PassLoader;
 import sp.it.util.ui.image.ImageSize;
@@ -27,6 +32,7 @@ import static sp.it.pl.audio.tagging.SongReadingKt.read;
 import static sp.it.pl.main.AppFileKt.getImageExtensionsRead;
 import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppFileKt.isImage;
+import static sp.it.util.async.AsyncKt.*;
 import static sp.it.util.dev.FailKt.failIfFxThread;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.file.FileType.DIRECTORY;
@@ -35,6 +41,7 @@ import static sp.it.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static sp.it.util.functional.Try.Java.error;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.Util.list;
+import static sp.it.util.functional.Util.stream;
 import static sp.it.util.ui.image.UtilKt.toBuffered;
 import static sp.it.util.ui.image.UtilKt.toFX;
 
@@ -47,22 +54,22 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	private static final String COVER_STRATEGY_KEY = "coverStrategy";
 
 	public final FileType valType;
-	public Set<Item> children;              // filtered files
-	public Set<String> all_children;        // all files, cache, use instead File.exists to reduce I/O
-	public final AtomicBoolean cover_loadedThumb = new AtomicBoolean(false);
-	public final AtomicBoolean cover_loadedFull = new AtomicBoolean(false);
-	public volatile Image cover;            // cover cache
-	public volatile File cover_file;        // cover file cache
-	public volatile boolean coverFile_loaded;
+	/** Children representing filtered files. Must not be accessed outside fx application thread. */
+	protected volatile List<Item> children = null;
+	/** All children files. Super set of {@link #children}. Must not be accessed outside fx application thread. */
+	protected volatile Set<String> all_children = null;        // all files, cache, use instead File.exists to reduce I/O
+	private final AtomicReference<Fut<Try<LoadResult,Void>>> coverLoading = new AtomicReference<>(null);
+	public volatile Image cover = null;           // cover cache
+	public volatile File coverFile = null;        // cover file cache
+	private volatile boolean coverFile_loaded = false;
 	private volatile boolean disposed = false;
-	public double loadProgress; // 0-1
-	public double lastScrollPosition; // 0-1
+	public double loadProgress = 0;         // 0-1
+	public double lastScrollPosition = -1;  // 0-1
 	private HashMap<String, Object> properties = new HashMap<>();
 
 	public Item(Item parent, File value, FileType valueType) {
 		super(value, parent);
 		this.valType = valueType;
-		init();
 	}
 
 	public List<Item> children() {
@@ -70,18 +77,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return children==null ? list() : list(children);
 	}
 
-	private void init() {
-		children = null;
-		all_children = null;
-		cover = null;
-		cover_file = null;
-		coverFile_loaded = false;
-		cover_loadedThumb.set(false);
-		cover_loadedFull.set(false);
-		loadProgress = 0;
-		lastScrollPosition = -1;
-	}
-
+	/** Dispose of this as to never be used again. */
 	public void dispose() {
 		failIfNotFxThread();
 
@@ -91,16 +87,32 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		children = null;
 		all_children = null;
 		cover = null;
+		coverLoading.set(null);
 		disposed = true;
 	}
 
-	public void disposeChildren() {
+	/** Dispose of this as to be fully usable, but children will be {@link #disposeContent()}. */
+	public void disposeChildrenContent() {
+		failIfNotFxThread();
+
+		if (children!=null) children.forEach(Item::disposeContent);
+	}
+
+	/** Dispose of this as to be usable again. Children will be {@link #dispose()}. */
+	public void disposeContent() {
 		failIfNotFxThread();
 
 		if (children!=null) children.forEach(Item::dispose);
 		if (children!=null) children.clear();
+		children = null;
 		if (all_children!=null) all_children.clear();
-		init();
+		all_children = null;
+		cover = null;
+		coverFile = null;
+		coverFile_loaded = false;
+		loadProgress = 0;
+		lastScrollPosition = -1;
+		coverLoading.set(null);
 	}
 
 	private void buildChildren() {
@@ -109,7 +121,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		var all = new HashSet<String>();
 		var dirs = new ArrayList<Item>();
 		var files = new ArrayList<Item>();
-		childrenFiles().forEach(f -> {
+		asStream(childrenFiles()).forEach(f -> {
 			if (!disposed) {
 				all.add(f.getPath().toLowerCase());
 				FileType type = FileType.of(f);
@@ -122,7 +134,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		});
 
 		if (!disposed) {
-			var cs = new HashSet<Item>(dirs.size() + files.size());
+			var cs = new ArrayList<Item>(dirs.size() + files.size());
 			cs.addAll(dirs);
 			cs.addAll(files);
 			children = cs;
@@ -130,8 +142,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		}
 	}
 
-	protected Stream<File> childrenFiles() {
-		return asStream(UtilKt.children(value)).map(CachingFile::new);
+	protected Sequence<File> childrenFiles() {
+		return SequencesKt.map(UtilKt.children(value), CachingFile::new);
 	}
 
 	protected boolean filterChildFile(File f) {
@@ -173,103 +185,98 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return null;
 	}
 
-	public Try<LoadResult,Void> loadCover(boolean full, ImageSize size) {
+	@ThreadSafe
+	public boolean isLoadedCover() {
+		var f = coverLoading.get();
+		return f!=null && f.isDone();
+	}
+
+	public Try<LoadResult,Void> loadCover(ImageSize size) {
 		failIfFxThread();
 		if (disposed) return error();
 
-		File file = getCoverFile();
-		if (file==null) {
-			if (valType==DIRECTORY) {
-				if (getCoverStrategy().useComposedDirCover) {
-					var subcovers = new ArrayList<>(children).stream()
-						.filter(it -> it.valType==FILE)
-						.map(it -> it.getCoverFile())
-						.filter(it -> it!=null)
-						.limit(4)
-						.map(it -> Image2PassLoader.INSTANCE.getLq().invoke(it, size.div(2)))
-						.filter(it -> it!=null)
-						.collect(toList());
-					var w = (int) size.width;
-					var h = (int) size.height;
-					var imgFin = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-					var imgFinGraphics = imgFin.getGraphics();
-					var i = 0;
-					for (Image img: subcovers) {
-						var bi = img==null ? null : toBuffered(img);
-						imgFinGraphics.drawImage(bi, w/2*(i%2), h/2*(i/2), null);
-						if (bi!=null) bi.flush();
-						JavaLegacy.destroyImage(img);
-						i++;
-					}
+		if (coverLoading.get()!=null)
+			return coverLoading.get().getDone().toTry().getOrThrow();
 
-					var coverToBe = toFX(imgFin);
-					cover = coverToBe;
-					cover_loadedFull.set(true);
-					cover_loadedThumb.set(true);
-					return ok(new LoadResult(null, coverToBe));
-				}
-			} else if (valType==FILE) {
-				if (value.getPath().endsWith(".exe") || value.getPath().endsWith(".lnk")) {
-					var coverToBe = IconExtractor.getFileIcon(value);
-					cover = coverToBe;
-					cover_loadedFull.set(true);
-					cover_loadedThumb.set(true);
-					if (coverToBe!=null) return ok(new LoadResult(null, coverToBe));
-				}
-				if (isAudio(value)) {
-					var c = read(new SimpleSong(value)).getCover(CoverSource.ANY);
-					var coverToBe = c.isEmpty() ? null : c.getImage(size);
-					cover = coverToBe;
-					cover_loadedFull.set(true);
-					cover_loadedThumb.set(true);
-					if (coverToBe!=null) return ok(new LoadResult(null, coverToBe));
-				}
-			}
-		} else {
-			if (full) {
-				if (!cover_loadedFull.get()) {
-					var coverToBe = Image2PassLoader.INSTANCE.getHq().invoke(file, size);
-					cover = coverToBe;
-					cover_loadedFull.set(true);
-					if (coverToBe!=null) return ok(new LoadResult(file, coverToBe));
+		Fut<Try<LoadResult,Void>> f = Fut.fut().then(IO, k -> {
+			File file = getCoverFile();
+			if (file==null) {
+				if (valType==DIRECTORY) {
+					if (getCoverStrategy().useComposedDirCover) {
+						var subCovers = (children==null ? Util.<Item>stream() : stream(children))
+							.filter(it -> it.valType==FILE)
+							.map(it -> it.getCoverFile())
+							.filter(it -> it!=null)
+							.limit(4)
+							.map(it -> Image2PassLoader.INSTANCE.getLq().invoke(it, size.div(2)))
+							.filter(it -> it!=null)
+							.collect(toList());
+						var w = (int) size.width;
+						var h = (int) size.height;
+						var imgFin = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+						var imgFinGraphics = imgFin.getGraphics();
+						var i = 0;
+						for (Image img: subCovers) {
+							var bi = img==null ? null : toBuffered(img);
+							imgFinGraphics.drawImage(bi, w/2*(i%2), h/2*(i/2), null);
+							if (bi!=null) bi.flush();
+							JavaLegacy.destroyImage(img);
+							i++;
+						}
+
+						var coverToBe = toFX(imgFin);
+						cover = coverToBe;
+						return ok(new LoadResult(null, coverToBe));
+					}
+				} else if (valType==FILE) {
+					if (value.getPath().endsWith(".exe") || value.getPath().endsWith(".lnk")) {
+						var coverToBe = IconExtractor.getFileIcon(value);
+						cover = coverToBe;
+						if (coverToBe!=null) return ok(new LoadResult(null, coverToBe));
+					}
+					if (isAudio(value)) {
+						var c = read(new SimpleSong(value)).getCover(CoverSource.ANY);
+						var coverToBe = c.isEmpty() ? null : c.getImage(size);
+						cover = coverToBe;
+						if (coverToBe!=null) return ok(new LoadResult(null, coverToBe));
+					}
 				}
 			} else {
-				if (!cover_loadedThumb.get()) {
-					var coverToBe = Image2PassLoader.INSTANCE.getLq().invoke(file, size);
-					cover = coverToBe;
-					cover_loadedThumb.set(true);
-					if (coverToBe!=null) return ok(new LoadResult(file, coverToBe));
-				}
+				var coverToBe = Image2PassLoader.INSTANCE.getLq().invoke(file, size);
+				cover = coverToBe;
+				if (coverToBe!=null) return ok(new LoadResult(file, coverToBe));
 			}
-		}
 
-		if (full) cover_loadedFull.set(true);
-		if (!full) cover_loadedThumb.set(true);
-		return error();
+			return error();
+		});
+
+		coverLoading.set(f);
+		return f.getDone().toTry().getOrThrow();
 	}
 
 	// guaranteed to execute only once
 	protected File getCoverFile() {
+		failIfFxThread();
 		if (disposed) return null;
 
-		if (coverFile_loaded) return cover_file;
+		if (coverFile_loaded) return coverFile;
 		coverFile_loaded = true;
 
 		if (valType==DIRECTORY) {
-			if (all_children==null) buildChildren();
-			cover_file = getImageT(value, "cover");
+			if (children==null) buildChildren();
+			coverFile = getImageT(value, "cover");
 		} else {
-			if (cover_file==null && isImage(value)) {
-				cover_file = value;
+			if (coverFile==null && isImage(value)) {
+				coverFile = value;
 			}
-			if (cover_file==null && getCoverStrategy().useParentCoverIfNone) {
+			if (coverFile==null && getCoverStrategy().useParentCoverIfNone) {
 				File i = getImage(value.getParentFile(), getNameWithoutExtensionOrRoot(value));
-				if (i==null && parent!=null) cover_file = parent.getCoverFile();
-				else cover_file = i;
+				if (i==null && parent!=null) coverFile = parent.getCoverFile();
+				else coverFile = i;
 			}
 		}
 
-		return cover_file;
+		return coverFile;
 	}
 
 	@Override

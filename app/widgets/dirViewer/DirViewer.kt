@@ -38,11 +38,11 @@ import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.toggleNext
 import sp.it.util.access.togglePrevious
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.async.IO
 import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.future.Fut.Companion.fut
-import sp.it.util.async.oneTPExecutor
 import sp.it.util.async.onlyIfMatches
-import sp.it.util.async.runFX
+import sp.it.util.async.runOn
 import sp.it.util.async.threadFactory
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
@@ -130,11 +130,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone)
 
     private val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio+CELL_TEXT_HEIGHT, 5.0, 5.0)
-    private val threadCount = Runtime.getRuntime().availableProcessors()/2 max 1
-    private val executorIO = oneTPExecutor()
-    private val executorThumbs = burstTPExecutor(threadCount, 1.minutes, threadFactory("dirView-img-thumb", true))
-    private val executorImage = burstTPExecutor(threadCount, 1.minutes, threadFactory("dirView-img-full", true))
-    private val imageLoader = Loader(executorThumbs, executorImage)
+    private val imageLoader = Loader(burstTPExecutor(Runtime.getRuntime().availableProcessors()/2 max 1, 1.minutes, threadFactory("dirView-img-loader", true)))
     private val visitId = AtomicLong(0)
     private val placeholder = Placeholder(FOLDER_PLUS, "Click to explore directory") {
         chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, root.scene.window).ifOk { files setToOne it }
@@ -243,7 +239,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
     private fun visitUp() {
         item?.parent?.let {
-            item?.disposeChildren()
+            item?.disposeChildrenContent()
             visit(it)
         }
     }
@@ -251,19 +247,17 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     private fun visit(dir: Item) {
         item?.lastScrollPosition = grid.implGetSkin().position
         if (item===dir) return
-        item?.takeIf { it.isHChildOf(dir) }?.disposeChildren()
+        item?.takeIf { it.isHChildOf(dir) }?.disposeChildrenContent()
         visitId.incrementAndGet()
 
         item = dir
         navigation.values setTo dir.traverse { it.parent }.toList().asReversed()
         lastVisited = dir.value
-        fut(dir)
-                .then(executorIO) {
+        fut(dir).then(IO) {
                     it.children().sortedWith(buildSortComparator())
                 }.ui {
-                    grid.itemsRaw.setAll(it)
-
-                    if (dir.lastScrollPosition>=0) grid.implGetSkin().position = dir.lastScrollPosition
+                    grid.itemsRaw setTo it
+                    grid.implGetSkin().position = dir.lastScrollPosition max 0.0
                     grid.requestFocus()
                 }
                 .withAppProgress(
@@ -302,16 +296,15 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
             // Visit the branch
             if (success) {
-                executorIO.execute {
+                runOn(IO) {
                     var item: Item? = topItem
                     while (!path.isEmpty()) {
                         val tmp = path.pop()
                         item = item?.children()?.find { tmp==it.value }
                     }
-                    item = item ?: topItem
-                    runFX {
-                        visit(item)
-                    }
+                    item ?: topItem
+                } ui {
+                    visit(it)
                 }
             } else {
                 visit(topItem)
@@ -336,7 +329,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     }
 
     private fun applySort() {
-        fut(grid.itemsRaw.materialize()).then(executorIO) {
+        fut(grid.itemsRaw.materialize()).then(IO) {
             it.sortedWith(buildSortComparator())
         } ui {
             grid.itemsRaw.setAll(it)

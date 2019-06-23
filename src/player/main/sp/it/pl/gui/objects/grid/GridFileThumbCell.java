@@ -1,6 +1,7 @@
 package sp.it.pl.gui.objects.grid;
 
 import java.io.File;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -25,14 +26,13 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.oneTPExecutor;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.async.AsyncKt.sleep;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static sp.it.util.reactive.UtilKt.doIfImageLoaded;
-import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.sync1IfImageLoaded;
+import static sp.it.util.reactive.UtilKt.syncC;
 
 /**
  * GridCell implementation for file using {@link sp.it.pl.gui.objects.hierarchy.Item}
@@ -96,46 +96,29 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	@Override
 	protected void updateItem(Item item, boolean empty) {
 		if (disposed) return;
-		if (item==getItem()) return;
+		if (item==getItem()) {
+			if (!empty) setCoverNow(item);
+			return;
+		}
 		super.updateItem(item, empty);
 		itemVolatile = item;
 
 		if (imgLoadAnimation!=null) {
 			imgLoadAnimation.stop();
 			imgLoadAnimationItem = item;
-			imgLoadAnimation.applyAt(item.loadProgress);
+			imgLoadAnimation.applyAt(item==null ? 0 : item.loadProgress);
 		}
 
-		if (empty || item==null) {
-			// empty cell has no graphics
-			// we do not clear the content of the graphics however
-			setGraphic(null);
+		if (empty) {
+			setGraphic(null);   // do not discard contents of the graphics
 		} else {
-			if (root==null) {
-				// we create graphics only once and only when first requested
-				computeGraphics();
-				// we set graphics only once (when creating it)
-				setGraphic(root);
-			}
-			// if cell was previously empty, we set graphics back
-			// this improves performance compared to setting it every time
-			if (getGraphic()!=root) setGraphic(root);
+			if (root==null) computeGraphics();  // create graphics lazily and only once
+			if (getGraphic()!=root) setGraphic(root);   // set graphics only when necessary
+		}
 
-			// set name
-			name.setText(computeName(item));
-			// set cover
-			// The item caches the cover Image, so it is only loaded once. That is a heavy op.
-			// This method can be called very frequently and:
-			//     - block ui thread when scrolling
-			//     - reduce ui performance when resizing
-			// Solved by delaying the image loading & drawing, which reduces subsequent
-			// invokes into single update (last).
-//			boolean loaded = item.cover_loadedFull.get();	// TODO: do this properly
-
-			boolean loaded = item.cover_loadedThumb.get();
-			if (loaded) setCoverNow(item);
-			else setCoverLater(item);
-
+		if (getGraphic()!=null) {
+			name.setText(item==null ? null : computeName(item));
+			setCoverNow(item);
 		}
 	}
 
@@ -168,9 +151,9 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 			doIfImageLoaded(thumb.getView(), img -> {
 				imgLoadAnimation.stop();
 				imgLoadAnimationItem = getItem();
-				if (img==null) {
+				if (img==null)
 					imgLoadAnimation.applyAt(0);
-				} else
+				else
 					imgLoadAnimation.playOpenFrom(imgLoadAnimationItem.loadProgress);
 			})
 		);
@@ -231,7 +214,6 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	 * @return size of an image to be loaded for the thumbnail
 	 */
 	protected ImageSize computeThumbSize(Item item) {
-		// return thumb.calculateImageLoadSize(); // has potential to cause problems and is less performable than below:
 		return new ImageSize(gridView.get().getCellWidth(), gridView.get().getCellHeight()-computeCellTextHeight());
 	}
 
@@ -250,7 +232,21 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	 */
 	@ThreadSafe
 	protected boolean isInvalidVisibility() {
-	    return parentVolatile==null || indexVolatile==-1;
+	    return parentVolatile==null;
+	}
+
+	/**
+	 * @implSpec must be thread safe
+	 * @return true if the index of this cell is not the same as the index specified
+	 */
+	@ThreadSafe
+	protected boolean isInvalidIndex(int i) {
+		return indexVolatile!=i;
+	}
+
+	@ThreadSafe
+	private boolean isInvalid(Item item, int i) {
+		return isInvalidItem(item) || isInvalidIndex(i) || isInvalidVisibility();
 	}
 
 	/**
@@ -264,100 +260,68 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	 */
 	private void setCoverNow(Item item) {
 		failIfNotFxThread();
+		var i = indexVolatile;
 
-		if (isInvalidItem(item) || isInvalidVisibility()) return;
-
-		if (item.cover_loadedThumb.get()) {
-			setCoverPost(item, item.cover_file, item.cover, null);
+		if (item.isLoadedCover()) {
+			if (thumb.getImage()!=item.cover) {
+				setCoverPost(item, i, item.coverFile, item.cover, null);
+			}
 		} else {
+			thumb.loadImage((File) null); // prevent displaying old content before cover loads
+
 			ImageSize size = computeThumbSize(item);
 			failIf(size.width<=0 || size.height<=0);
 
-			// load thumbnail
 			if (loader.executorThumbs!=null)
 				loader.executorThumbs.execute(computeTask(() -> {
+					if (isInvalid(item, i)) return;
+
 					RunnableLocked then = new RunnableLocked();
 					loader.loadSynchronizerThumb.execute(then);
 
-						if (isInvalidItem(item) || isInvalidVisibility()) {
-							then.runNothing();
-							return;
-						}
-
-					item.loadCover(false, size)
-						.ifOkUse(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))        // load immediately
-//						.ifOkUse(result -> setCoverPost(item, result.file, result.cover, then))                        // load after all previous
+					item.loadCover(size)
+						.ifOkUse(result -> then.run(() -> setCoverPost(item, i, result.file, result.cover, then)))        // load immediately
+//						.ifOkUse(result -> setCoverPost(item, i, result.file, result.cover, then))                        // load after all previous
 						.ifErrorUse(e -> then.runNothing());
 				}
 			));
-
-			// load high quality thumbnail
-			if (loader.executorImage!=null && loader.twoPass.get())
-				loader.executorImage.execute(computeTask(() -> {
-						RunnableLocked then = new RunnableLocked();
-						loader.loadSynchronizerFull.execute(then);
-
-						if (isInvalidItem(item) || isInvalidVisibility())  {
-							then.runNothing();
-							return;
-						}
-
-						item.loadCover(true, size)
-							.ifOkUse(result -> then.run(() -> setCoverPost(item, result.file, result.cover, then)))    // load after all previous
-//							.ifOkUse(result -> setCoverPost(item, result.file, result.cover, then))                    // load immediately
-							.ifErrorUse(e -> then.runNothing());
-					}
-				));
 		}
 	}
 
-	private void setCoverLater(Item item) {
-		failIfNotFxThread();
-		if (disposed) return;
-
-		thumb.loadImage((File) null); // prevent displaying old content before cover loads
-		setCoverNow(item);
-	}
-
-	private void setCoverPost(Item item, File imgFile, Image img, RunnableLocked then) {
+	@ThreadSafe
+	private void setCoverPost(Item item, int i, File imgFile, Image img, RunnableLocked then) {
 		runFX(() -> {
-			if (disposed) return;
-
-			if (isInvalidItem(item) || isInvalidVisibility() || img==null) {
-				if (then!=null) then.finish();
+			if (disposed || isInvalid(item, i) || img==null) {
+				if (then!=null) then.runNothing();
 				return;
 			}
 
-			thumb.loadImage(img, imgFile);
-			if (then!=null)
-				sync1IfImageLoaded(img, then::finish);
+			sync1IfImageLoaded(img, () -> {
+				thumb.loadImage(img, imgFile);
+				if (then!=null) then.finish();
+			});
 		});
 	}
 
 	public static class Loader {
 		public final ExecutorService executorThumbs;
-		public final ExecutorService executorImage;
 		public final AtomicBoolean twoPass = new AtomicBoolean(false);
 		public final ExecutorService loadSynchronizerThumb = oneTPExecutor();
-		public final ExecutorService loadSynchronizerFull = oneTPExecutor();
 
-		public Loader(ExecutorService executorThumbs, ExecutorService executorImage) {
+		public Loader(ExecutorService executorThumbs) {
 			this.executorThumbs = executorThumbs;
-			this.executorImage = executorImage;
 		}
 
 		public void shutdown() {
 			if (executorThumbs!=null) executorThumbs.shutdownNow();
-			if (executorImage!=null) executorImage.shutdownNow();
 			loadSynchronizerThumb.shutdownNow();
-			loadSynchronizerFull.shutdownNow();
 		}
 	}
 
 	public static class RunnableLocked implements Runnable {
 		private final AtomicReference<Runnable> action = new AtomicReference<>(null);
-		private final AtomicBoolean waitPre = new AtomicBoolean(true);
-		private final AtomicBoolean waitPost = new AtomicBoolean(true);
+		private final CountDownLatch waitPre = new CountDownLatch(1);
+		private final CountDownLatch waitPost = new CountDownLatch(1);
 
 		public void runNothing() {
 			run(null);
@@ -366,19 +330,19 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 
 		public void run(Runnable r) {
 			action.set(r);
-			waitPre.set(false);
+			waitPre.countDown();
 		}
 
 		public void finish() {
-			waitPost.set(false);
+			waitPost.countDown();
 		}
 
 		@Override
 		public void run() {
-			while(waitPre.get()) sleep(2);
+			try { waitPre.await(); } catch (InterruptedException e) {}
 			Runnable r = action.get();
 			if (r!=null) r.run();
-			while(waitPost.get()) sleep(2);
+			try { waitPost.await(); } catch (InterruptedException e) {}
 		}
 	}
 

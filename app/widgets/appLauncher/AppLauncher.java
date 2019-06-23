@@ -6,9 +6,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Stream;
+import kotlin.sequences.Sequence;
 import sp.it.pl.gui.objects.grid.GridFileThumbCell;
 import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader;
 import sp.it.pl.gui.objects.grid.GridView;
@@ -24,6 +23,7 @@ import sp.it.util.Sort;
 import sp.it.util.access.V;
 import sp.it.util.access.VarEnum;
 import sp.it.util.access.fieldvalue.FileField;
+import sp.it.util.async.AsyncKt;
 import sp.it.util.async.executor.FxTimer;
 import sp.it.util.conf.Config.VarList;
 import sp.it.util.conf.Config.VarList.Elements;
@@ -31,12 +31,14 @@ import sp.it.util.conf.IsConfig;
 import sp.it.util.dev.Dependency;
 import sp.it.util.file.FileSort;
 import sp.it.util.file.FileType;
+import sp.it.util.math.UtilKt;
 import sp.it.util.ui.Resolution;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.util.Duration.millis;
+import static kotlin.streams.jdk8.StreamsKt.asSequence;
 import static sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL;
 import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.KEY_PRESS;
 import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
@@ -47,6 +49,7 @@ import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Sort.ASCENDING;
 import static sp.it.util.async.AsyncKt.FX;
+import static sp.it.util.async.AsyncKt.IO;
 import static sp.it.util.async.AsyncKt.oneTPExecutor;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.AsyncKt.runOn;
@@ -57,6 +60,7 @@ import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.math.UtilKt.max;
 import static sp.it.util.reactive.UtilKt.attach1IfNonNull;
 import static sp.it.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.util.system.EnvironmentKt.chooseFile;
@@ -85,9 +89,7 @@ public class AppLauncher extends SimpleController {
     final V<Resolution> cellSizeRatio = new V<>(Resolution.R_4x5).initAttachC(v -> applyCellSize());
 
     private final GridView<Item, File> grid = new GridView<>(File.class, v -> v.value, cellSize.get().width,cellSize.get().width*cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT,5,5);
-    private final ExecutorService executorIO = oneTPExecutor();
-    private final ExecutorService executorThumbs = oneTPExecutor();
-    private final Loader imageLoader = new Loader(executorThumbs, null);
+    private final Loader imageLoader = new Loader(oneTPExecutor());
     boolean initialized = false;
     private volatile boolean isResizing = false;
 	private final AtomicLong visitId = new AtomicLong(0);
@@ -169,12 +171,11 @@ public class AppLauncher extends SimpleController {
         Item item = new TopItem();
 //        item.lastScrollPosition = grid.implGetSkin().getFlow().getPosition(); // can cause null here
 	    visitId.incrementAndGet();
-        runOn(executorIO, () -> item.children().stream().sorted(buildSortComparator()).collect(toList()))
+        runOn(IO, () -> item.children().stream().sorted(buildSortComparator()).collect(toList()))
                 .useBy(FX, cells -> {
                     grid.getItemsRaw().setAll(cells);
-                    if (item.lastScrollPosition>=0)
-                        grid.implGetSkin().setPosition(item.lastScrollPosition);
 
+                    grid.implGetSkin().setPosition(max(item.lastScrollPosition, 0.0));
                     grid.requestFocus();    // fixes focus problem
                 });
     }
@@ -248,12 +249,12 @@ public class AppLauncher extends SimpleController {
             super(null,null,null);
         }
 
-        @Override
-        protected Stream<File> childrenFiles() {
-            return filesMaterialized.stream().distinct();
-        }
+	    @Override
+	    protected Sequence<File> childrenFiles() {
+		    return asSequence(filesMaterialized.stream().distinct());
+	    }
 
-        @Override
+	    @Override
         protected File getCoverFile() {
             return null;
         }

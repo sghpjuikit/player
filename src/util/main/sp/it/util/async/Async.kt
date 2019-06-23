@@ -12,6 +12,7 @@ import sp.it.util.functional.invoke
 import sp.it.util.functional.kt
 import sp.it.util.reactive.Subscription
 import sp.it.util.units.millis
+import sp.it.util.units.minutes
 import java.awt.EventQueue
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
@@ -33,6 +34,7 @@ operator fun Executor.invoke(block: () -> Unit) = execute(block)
 @JvmField val FX_LATER = FxLaterExecutor()
 @JvmField val NEW = NewThreadExecutor()
 @JvmField val CURR = Executor { it() }
+@JvmField val IO: Executor = burstTPExecutor(64, 1.minutes, threadFactory("io", true))
 
 /**
  * Executes the specified block immediately on a new daemon thread.

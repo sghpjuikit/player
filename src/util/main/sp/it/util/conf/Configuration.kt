@@ -7,14 +7,15 @@ import sp.it.util.action.IsAction
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.ConfigurationUtil.configsOf
 import sp.it.util.dev.failIf
-import sp.it.util.file.Properties
-import sp.it.util.file.Properties.Property
+import sp.it.util.file.Property
+import sp.it.util.file.readProperties
+import sp.it.util.file.writeProperties
 import sp.it.util.functional.compose
+import sp.it.util.functional.orNull
 import sp.it.util.type.isSubclassOf
 import java.io.File
 import java.lang.invoke.MethodHandles
 import java.lang.reflect.Modifier.isStatic
-import java.time.LocalDateTime
 import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Stream
@@ -54,13 +55,13 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
 
     fun rawAdd(properties: Map<String, String>) = this.properties.putAll(properties)
 
-    fun rawAdd(file: File) = Properties.load(file).forEach { name, value -> rawAdd(name, value) }
+    fun rawAdd(file: File) = file.readProperties().orNull().orEmpty().forEach { (name, value) -> rawAdd(name, value) }
 
     fun rawRemProperty(key: String) = properties.remove(key)
 
-    fun rawRemProperties(properties: Map<String, String>) = properties.forEach { name, _ -> rawRemProperty(name) }
+    fun rawRemProperties(properties: Map<String, String>) = properties.forEach { (name, _) -> rawRemProperty(name) }
 
-    fun rawRem(file: File) = Properties.load(file).forEach { name, _ -> rawRemProperty(name) }
+    fun rawRem(file: File) = file.readProperties().orNull().orEmpty().forEach { (name, _) -> rawRemProperty(name) }
 
     fun <C> collect(c: Configurable<C>) = collect(c.fields)
 
@@ -168,29 +169,12 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
      * Loops through Configuration fields and stores them all into file.
      */
     fun save(title: String, file: File) {
-        val comment = " $title property file\n"+
-                " Last auto-modified: ${LocalDateTime.now()}\n"+
-                "\n"+
-                " Properties are in the format: {property path}.{property name}{separator}{property value}\n"+
-                " \t{property path}  must be lowercase with '.' as path separator, e.g.: this.is.a.path\n"+
-                " \t{property name}  must be lowercase and contain no spaces (use underscores '_' instead)\n"+
-                " \t{separator}      must be ' = ' string\n"+
-                " \t{property value} can be any string (even empty)\n"+
-                " Properties must be separated by (any) combination of '\\n', '\\r' characters\n"+
-                "\n"+
-                " Ignored lines:\n"+
-                " \tcomment lines (start with '#' or '!')\n"+
-                " \tempty lines\n"+
-                "\n"+
-                " Some properties may be read-only or have additional value constraints. Such properties will ignore "+
-                "custom or unfit values"
-
-        val propsRaw = properties.asSequence().associateBy({ it.key }, { Property("", it.value) })
+        val propsRaw = properties.mapValues { Property(it.key, it.value, "") }
         val propsCfg = configs.asSequence()
                 .filter { it.type!=Void::class.java }
-                .associateBy(configToRawKeyMapper, { Property(it.info, it.valueS) })
+                .associate { c -> configToRawKeyMapper(c).let { it to Property(it, c.valueS, c.info) } }
 
-        Properties.saveP(file, comment, propsRaw+propsCfg)
+        file.writeProperties(title, (propsRaw+propsCfg).values)
     }
 
     /**
@@ -204,7 +188,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
      * If field of given name does not exist it will be ignored as well.
      */
     fun rawSet() {
-        properties.forEach { key, value ->
+        properties.forEach { (key, value) ->
             val c = configs[namePostMapper(key)]
             if (c!=null && c.isEditable.isByApp && !c.isReadOnlyRightNow())
                 c.valueS = value

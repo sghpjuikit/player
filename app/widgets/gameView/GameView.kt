@@ -74,13 +74,14 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.only
 import sp.it.util.dev.failIf
 import sp.it.util.file.FileType
-import sp.it.util.file.Properties
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.readProperties
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.getOr
 import sp.it.util.functional.net
+import sp.it.util.functional.orNull
 import sp.it.util.math.max
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
@@ -117,7 +118,6 @@ import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 import sp.it.util.validation.Constraint.FileActor.FILE
 import java.io.File
 import java.net.URI
-import java.util.HashMap
 import kotlin.math.round
 
 @Widget.Info(
@@ -254,10 +254,7 @@ class GameView(widget: Widget): SimpleController(widget) {
         val infoFile = location/"play-howto.md"
         /** Cover. */
         val cover by lazy { FileCover(location.findImage("cover_big") ?: location.findImage("cover"), "") }
-        val settings: Map<String, String> by lazy {
-            val f = location/"game.properties"
-            if (f.exists()) Properties.load(f) else HashMap()
-        }
+        val settings: Map<String, String> by lazy { (location/"game.properties").readProperties().orNull().orEmpty() }
 
         fun exeFile(): File? = null
                 ?: (location/"play.lnk").takeIf { it.exists() }

@@ -40,7 +40,6 @@ import sp.it.util.conf.Configuration;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.IsConfig;
 import sp.it.util.dev.Dependency;
-import sp.it.util.file.Properties;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.reactive.Disposer;
 import sp.it.util.type.Util;
@@ -50,6 +49,7 @@ import static java.util.Objects.deepEquals;
 import static kotlin.io.FilesKt.deleteRecursively;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.util.file.PropertiesKt.readProperties;
 import static sp.it.util.file.UtilKt.writeTextTry;
 import static sp.it.util.functional.Util.ISNTØ;
 import static sp.it.util.functional.Util.filter;
@@ -502,8 +502,8 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 	private void restoreDefaultConfigs() {
 		File configFile = new File(getUserLocation(), "default.properties");
 		if (configFile.exists()) {
-			Map<String,String> deserialized_configs = (Map) properties.computeIfAbsent("configs", key -> new HashMap<>());
-			Properties.load(configFile).forEach(deserialized_configs::putIfAbsent);
+			var configsRaw = (Map<String,String>) properties.computeIfAbsent("configs", key -> new HashMap<>());
+			readProperties(configFile).ifOkUse(it -> it.forEach(configsRaw::putIfAbsent));
 		}
 	}
 

@@ -83,7 +83,6 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
             isPickOnBounds = false
 
             lay += Icon(IconFA.RECYCLE, 13.0, "Set all to default").onClickDo { defaults() }
-            lay += Icon(IconFA.REFRESH, 13.0, "Refresh all").onClickDo { refresh() }
             lay += Icon().blank()
             lay += Icon(IconFA.HOME, 13.0, "App settings").onClickDo { configure(appConfigurable) }
             lay += Icon().blank()

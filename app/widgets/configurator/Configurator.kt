@@ -101,7 +101,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
     fun apply() = configsPane.getConfigFields().forEach { it.apply() }
 
     /** Set default app settings. */
-    fun defaults() = configsPane.getConfigFields().forEach { it.setNapplyDefault() }
+    fun defaults() = configs.forEach { it.value = it.defaultValue }
 
     fun refresh() {
         if (showsAppSettings) configure(appConfigurable)

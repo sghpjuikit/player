@@ -51,7 +51,7 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
         children setTo fields.asSequence().flatMap {
             sequenceOf(
                     when {
-                        needsLabel -> label(it.config.name).apply {
+                        needsLabel -> label(it.config.guiName).apply {
                             alignment = CENTER_LEFT
                             textAlignment = LEFT
                             styleClass += "form-config-pane-config-name"

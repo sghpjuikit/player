@@ -24,14 +24,15 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
 
     @JvmField val root = StackPane()
     @JvmField val onClose = Disposer()
-    private val configs = HashMap<String, Config<*>>()
+    private val configs = HashMap<String, Config<Any?>>()
     override val configurableDiscriminant = null as String?
     override val configurableValueStore: ConfigValueSource by lazy {
         object: ConfigValueSource {
 
+            @Suppress("UNCHECKED_CAST")
             override fun register(config: Config<*>) {
                 val key = Widget.configToRawKeyMapper(config)
-                configs[key] = config
+                configs[key] = config as Config<Any?>
             }
 
             @Suppress("UNCHECKED_CAST")
@@ -55,8 +56,9 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
         io.dispose()
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun getFieldsMap(): Map<String, Config<Any>> = configs as Map<String, Config<Any>>
+    override fun getField(name: String) = configs.values.find { it.name==name }
+
+    override fun getFields() = configs.values
 
     /** Invoke [bind][Input.bind] on this input and the specified output if this widget [has never been serialized][Widget.isDeserialized]. */
     fun <T> Input<T>.bindIf1stLoad(output: Output<out T>) = if (widget.isDeserialized) Subscription() else bind(output)

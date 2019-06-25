@@ -27,9 +27,8 @@ class EmptyWidget(widget: Widget): Controller(widget) {
     override fun loadFirstTime() = root
     override fun focus() {}
     override fun close() {}
-    override fun getField(n: String) = null
+    override fun getField(name: String) = null
     override fun getFields() = emptyList<Config<Any>>()
-    override fun getFieldsMap() = emptyMap<String, Config<Any>>()
 
 }
 

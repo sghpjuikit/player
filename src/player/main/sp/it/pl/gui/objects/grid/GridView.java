@@ -33,13 +33,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.css.CssMetaData;
@@ -50,6 +50,7 @@ import javafx.css.StyleableProperty;
 import javafx.event.Event;
 import javafx.scene.control.Control;
 import javafx.util.Callback;
+import org.jetbrains.annotations.Nullable;
 import sp.it.pl.gui.objects.search.SearchAutoCancelable;
 import sp.it.util.access.V;
 import sp.it.util.access.fieldvalue.ObjectField;
@@ -58,9 +59,9 @@ import sp.it.util.functional.Functors.Ƒ1;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.collections.FXCollections.observableSet;
 import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.KEY_PRESS;
 import static sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK;
-import static sp.it.util.functional.Util.set;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onChange;
@@ -96,7 +97,7 @@ public class GridView<T, F> extends Control {
 	public final ObjectProperty<Predicate<? super T>> itemsPredicate;
 	public final ObjectProperty<Comparator<? super T>> itemsComparator;
 
-	public final V<T> selectedItem = new V<>(null);
+	public final V<@Nullable T> selectedItem = new V<>(null);
 
 	/** Initial filter criteria for the filter, used when filter is opened or additional filter added */
 	public ObjectField<F,?> primaryFilterField;
@@ -177,7 +178,7 @@ public class GridView<T, F> extends Control {
 	 * <p/>
 	 * Removing all elements from this sets will cause this grid ignore selection
 	 */
-	public final Set<SelectionOn> selectOn = set(MOUSE_CLICK, KEY_PRESS);
+	public final ObservableSet<SelectionOn> selectOn = observableSet(MOUSE_CLICK, KEY_PRESS);
 
 	/**
 	 * Returns selected items.

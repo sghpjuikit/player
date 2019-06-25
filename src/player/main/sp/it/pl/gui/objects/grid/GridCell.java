@@ -5,9 +5,8 @@ import javafx.scene.control.Skin;
 import sp.it.util.access.V;
 
 /**
- * A cell of {@link GridView}. It contains single item in the {@link sp.it.pl.gui.objects.grid.GridView#getItemsShown()} list.
- *
- * @see GridView
+ * A cell of {@link GridView}.
+ * It contains single item in the {@link sp.it.pl.gui.objects.grid.GridView#getItemsShown()} list.
  */
 public class GridCell<T, F> extends IndexedCell<T> {
 

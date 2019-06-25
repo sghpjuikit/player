@@ -64,8 +64,8 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
     /** Invoke [bind][Input.bind] on this input and the specified output if [isBound(widget.id)][Input.isBound] is false. */
     fun <T> Input<T>.bindDefault(output: Output<out T>) = if (isBound(widget.id)) Subscription() else bind(output)
 
-    /** Invoke [bind][Input.bindDefault] on this input and the specified output if both [Input.isBound] is and [Widget.isDeserialized] is false. */
-    fun <T> Input<T>.bindDefaultIf1stLoad(output: Output<out T>) = if (widget.isDeserialized) Subscription() else bindIf1stLoad(output)
+    /** Invoke [bind][Input.bindDefault] on this input and the specified output if both [Input.isBound(widget.id)][Input.isBound] and [Widget.isDeserialized] is false. */
+    fun <T> Input<T>.bindDefaultIf1stLoad(output: Output<out T>) = if (isBound(widget.id)) Subscription() else bindIf1stLoad(output)
 
 }
 

@@ -59,6 +59,7 @@ import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.Util.getCommonRoot
 import sp.it.util.functional.nullsLast
+import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
 import sp.it.util.inSort
@@ -68,6 +69,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.attach1IfNonNull
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
+import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
@@ -118,9 +120,9 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     private val fileFlatter by cv(FileFlatter.TOP_LVL)
 
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-    private val cellSize by cv(NORMAL)
+    private val cellSize by cv(NORMAL) attach { applyCellSize() }
     @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-    private val cellSizeRatio by cv(Resolution.R_1x1)
+    private val cellSizeRatio by cv(Resolution.R_1x1) attach { applyCellSize() }
     @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
     private val fitFrom by cv(FitFrom.OUTSIDE)
 
@@ -132,17 +134,19 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     private val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio+CELL_TEXT_HEIGHT, 5.0, 5.0)
     private val imageLoader = Loader(burstTPExecutor(Runtime.getRuntime().availableProcessors()/2 max 1, 1.minutes, threadFactory("dirView-img-loader", true)))
     private val visitId = AtomicLong(0)
-    private val placeholder = Placeholder(FOLDER_PLUS, "Click to explore directory") {
-        chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, root.scene.window).ifOk { files setToOne it }
+    private val placeholder = lazy {
+        Placeholder(FOLDER_PLUS, "Click to explore directory") {
+            chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, root.scene.window).ifOk { files setToOne it }
+        }
     }
     @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
     private val filter by cv(FileFilters.filterPrimary.name) { FileFilters.toEnumerableValue(it) }
     @IsConfig(name = "Sort", info = "Sorting effect.")
-    private val sort by cv(ASCENDING)
+    private val sort by cv(ASCENDING) attach { applySort() }
     @IsConfig(name = "Sort first", info = "Group directories and files - files first, last or no separation.")
-    private val sortFile by cv(DIR_FIRST)
+    private val sortFile by cv(DIR_FIRST) attach { applySort() }
     @IsConfig(name = "Sort seconds", info = "Sorting criteria.")
-    private val sortBy by cv<FileField<*>>(FileField.NAME).values(FileField.FIELDS)
+    private val sortBy by cv<FileField<*>>(FileField.NAME).values(FileField.FIELDS) attach { applySort() }
     @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
     private var lastVisited by cn<File>(null).only(FileActor.DIRECTORY)
 
@@ -172,8 +176,6 @@ class DirViewer(widget: Widget): SimpleController(widget) {
         grid.primaryFilterField = FileField.NAME_FULL
         grid.cellFactory = Callback { Cell() }
         root.lay += layHeaderTop(0.0, Pos.CENTER_LEFT, navigationPane, grid)
-
-        placeholder.show(root, files.isEmpty())
 
         grid.onEventDown(KEY_PRESSED, ENTER) {
             val si = grid.selectedItem.value
@@ -215,12 +217,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
         coverLoadingUseComposedDirCover.attach { revisitCurrent() }
         coverUseParentCoverIfNone.attach { revisitCurrent() }
-        sort.attach { applySort() }
-        sortFile.attach { applySort() }
-        sortBy.attach { applySort() }
         fileFlatter attach { revisitCurrent() }
-        cellSize attach { applyCellSize() }
-        cellSizeRatio attach { applyCellSize() }
         filter attach { revisitCurrent() }
         navigationVisible sync {
             if (it) navigationPane.children.add(0, navigation)
@@ -228,7 +225,10 @@ class DirViewer(widget: Widget): SimpleController(widget) {
         }
         files.onChange { filesMaterialized = files.materialize() }
         files.onChange { revisitTop() }
-        files.onChange { placeholder.show(root, files.isEmpty()) }
+        files.onChangeAndNow {
+            if (files.isEmpty()) placeholder.value.show(root, true)
+            else placeholder.orNull()?.hide()
+        }
         onClose += { disposeItems() }
         onClose += { imageLoader.shutdown() }
 
@@ -253,16 +253,15 @@ class DirViewer(widget: Widget): SimpleController(widget) {
         item = dir
         navigation.values setTo dir.traverse { it.parent }.toList().asReversed()
         lastVisited = dir.value
-        fut(dir).then(IO) {
-                    it.children().sortedWith(buildSortComparator())
-                }.ui {
-                    grid.itemsRaw setTo it
-                    grid.implGetSkin().position = dir.lastScrollPosition max 0.0
-                    grid.requestFocus()
-                }
-                .withAppProgress(
-                        widget.custom_name.value+": Fetching view"
-                )
+        runIO {
+            dir.children().sortedWith(buildSortComparator())
+        }.withAppProgress(
+                widget.custom_name.value+": Fetching view"
+        ) ui {
+            grid.itemsRaw setTo it
+            grid.implGetSkin().position = dir.lastScrollPosition max 0.0
+            grid.requestFocus()
+        }
     }
 
     override fun focus() = grid.skinProperty().attach1IfNonNull { grid.implGetSkin().requestFocus() }.toUnit()
@@ -332,7 +331,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
         fut(grid.itemsRaw.materialize()).then(IO) {
             it.sortedWith(buildSortComparator())
         } ui {
-            grid.itemsRaw.setAll(it)
+            grid.itemsRaw setTo it
         }
     }
 

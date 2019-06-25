@@ -331,6 +331,12 @@ fun Observable.onChange(block: () -> Unit): Subscription {
     return Subscription { removeListener(l) }
 }
 
+/** [Observable.onChange] that also invokes the block immediately. */
+fun Observable.onChangeAndNow(block: () -> Unit): Subscription {
+    block()
+    return onChange(block)
+}
+
 /** Call specified block every time an item is added to this list passing it as argument */
 fun <T> ObservableList<T>.onItemAdded(block: (T) -> Unit): Subscription {
     val l = ListChangeListener<T> {

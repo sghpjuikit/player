@@ -14,6 +14,7 @@ import java.util.function.Function;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.functional.Try;
 import static sp.it.util.functional.Try.Java.ok;
+import static sp.it.util.functional.TryKt.runTry;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.Util.stream;
@@ -160,7 +161,12 @@ public interface Parsers {
         Set<Class<?>> ecs = new HashSet<>();
         if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
         if (m!=null) ecs.addAll(list(m.getExceptionTypes()));
-        return i -> Try.Java.tryS(() -> f.apply(i), ecs).mapError(e -> e.getMessage()!=null ? e.getMessage() : "Unknown error");
+        return i -> runTry(() -> f.apply(i))
+            .ifErrorUse(e -> {
+                if (ecs.stream().noneMatch(ec -> ec.isInstance(e)))
+                    throw new RuntimeException("Unhandled exception thrown in Try operation", e);
+            })
+            .mapError(e -> e.getMessage()!=null ? e.getMessage() : "Unknown error");
     }
 
     private static <R> Try<R,String> errorOf(Throwable e) {

@@ -4,7 +4,6 @@ package sp.it.util.functional
 
 import sp.it.util.dev.fail
 import java.util.function.Consumer
-import java.util.function.Supplier
 import kotlin.UnsafeVariance as UV
 
 /**
@@ -99,67 +98,20 @@ sealed class Try<out R, out E> {
         /** Legacy version of [Try.error] for Java to avoid cast. */
         @JvmStatic fun <R, E> error(value: E) = Error(value) as Try<R, E>
 
-        /** Legacy version of [runTry] for Java, catching only specified exceptions types. */
-        @JvmStatic fun tryR(f: Runnable, ecs: Iterable<Class<*>>): Try<Nothing?, Throwable> {
-            try {
-                f.run()
-                return Try.ok()
-            } catch (e: Exception) {
-                for (ec in ecs)
-                    if (ec.isInstance(e))
-                        return error(e)
-                throw RuntimeException("Unhandled exception thrown in Try operation", e)
-            }
-        }
-
-        /** Legacy version of [runTry] for Java, catching only specified exceptions types. */
-        @JvmStatic fun tryR(f: Runnable, vararg ecs: Class<*>): Try<Nothing?, Throwable> {
-            try {
-                f.run()
-                return Try.ok()
-            } catch (e: Throwable) {
-                for (ec in ecs)
-                    if (ec.isInstance(e))
-                        return Try.error(e)
-                throw RuntimeException("Unhandled exception thrown in Try operation", e)
-            }
-        }
-
-        /** Legacy version of [runTry] for Java, catching only specified exceptions types. */
-        @JvmStatic fun <O> tryS(f: Supplier<out O>, ecs: Iterable<Class<*>>): Try<O, Throwable> {
-            try {
-                return Try.ok(f.get())
-            } catch (e: Exception) {
-                for (ec in ecs)
-                    if (ec.isInstance(e))
-                        return Try.error(e)
-                throw RuntimeException("Unhandled exception thrown in Try operation", e)
-            }
-        }
-
-        /** Legacy version of [runTry] for Java, catching only specified exceptions types. */
-        @JvmStatic fun <O> tryS(f: Supplier<out O>, vararg ecs: Class<*>): Try<O, Throwable> {
-            try {
-                return Try.ok(f.get())
-            } catch (e: Throwable) {
-                for (ec in ecs)
-                    if (ec.isInstance(e))
-                        return Try.error(e)
-                throw RuntimeException("Unhandled exception thrown in Try operation", e)
-            }
-        }
-
     }
 }
 
 /**
- * Same as [kotlin.runCatching], runs the specified block, catches all exceptions and wraps the result.
+ * Similar to [kotlin.runCatching]: runs the specified block, catches all non fatal exceptions and wraps the result.
+ *
+ * Fatal exceptions are rethrown. They are: [VirtualMachineError], [ThreadDeath], [InterruptedException], [LinkageError].
  *
  * @return the specified block's return value or any caught exception.
  */
 inline fun <R> runTry(block: () -> R): Try<R, Throwable> = try {
     Try.ok(block())
 } catch (e: Throwable) {
+    if (e is VirtualMachineError || e is ThreadDeath || e is InterruptedException || e is LinkageError) throw e
     Try.error(e)
 }
 

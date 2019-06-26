@@ -125,7 +125,7 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is Set<*> -> STreeItem<Any?>("Set of " + APP.className.get(o.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
    is Map<*, *> -> STreeItem<Any?>("Map of " + APP.className.get(o.values.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
    is Map.Entry<*, *> -> STreeItem<Any?>(o.key.toString(), { sequenceOf(o.value) })
-   else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.hChildren.asSequence() }, { true }) else SimpleTreeItem(o)
+   else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().asSequence() }, { true }) else SimpleTreeItem(o)
 }.let { it as TreeItem<T> }
 
 fun <T> tree(v: T, vararg children: Any): TreeItem<Any> = SimpleTreeItem(v as Any, children.asSequence())
@@ -306,7 +306,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
                   }
                }
             }
-            else -> Unit
+            else -> {
+            }
          }
       }
    }
@@ -396,9 +397,8 @@ open class STreeItem<T> constructor(v: T, private val childrenLazy: () -> Sequen
    }
 }
 
-class NodeTreeItem(value: Node): OTreeItem<Node>(
-   value, (value as? Parent)?.childrenUnmodifiable ?: emptyObservableList()
-)
+class NodeTreeItem(value: Node): OTreeItem<Node>(value, (value as? Parent)?.childrenUnmodifiable
+   ?: emptyObservableList())
 
 class WidgetItem(v: Widget): STreeItem<Any>(v, { seqOf(v.uiTemp?.root).filterNotNull() }, { false })
 

@@ -196,7 +196,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       }
    }
 
-   override fun getFields(): Collection<Config<Any>> {
+   override fun getFields(): Collection<Config<Any?>> {
       widget.properties["columns"] = table.columnState.toString()
       return super.getFields()
    }

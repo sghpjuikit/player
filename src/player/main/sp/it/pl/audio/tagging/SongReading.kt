@@ -1,6 +1,7 @@
 package sp.it.pl.audio.tagging
 
 import javafx.concurrent.Task
+import javafx.event.EventHandler
 import javafx.scene.media.Media
 import mu.KotlinLogging
 import sp.it.pl.audio.Song
@@ -226,9 +227,9 @@ fun Song.Companion.removeMissingFromLibTask() = object: Task<Unit>() {
 
 // TODO: remove
 fun <T> Task<T>.setOnDone(onEnd: BiConsumer<Boolean, T>) {
-   onSucceeded = { onEnd.accept(true, value) }
-   onFailed = { onEnd.accept(false, value) }
-   onCancelled = { onEnd.accept(false, value) }
+   onSucceeded = EventHandler { onEnd.accept(true, value) }
+   onFailed = EventHandler { onEnd.accept(false, value) }
+   onCancelled = EventHandler { onEnd.accept(false, value) }
 }
 
 private operator fun StringBuilder.plusAssign(text: String) = append(text).toUnit()

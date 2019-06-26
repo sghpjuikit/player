@@ -1,6 +1,7 @@
 package sp.it.pl.main
 
 import de.jensd.fx.glyphs.GlyphIcons
+import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Side
 import javafx.scene.Cursor
@@ -106,7 +107,7 @@ fun appTooltip(text: String = "") = Tooltip(text).apply {
 fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
    val text = text()
    graphic = text
-   onShowing = {
+   onShowing = EventHandler {
       computeDataInfo(data()) ui { text.text = it }
    }
 }

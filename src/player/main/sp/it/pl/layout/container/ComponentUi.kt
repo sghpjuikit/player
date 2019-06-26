@@ -1,5 +1,6 @@
 package sp.it.pl.layout.container
 
+import javafx.event.EventHandler
 import javafx.scene.input.MouseButton
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Pane
@@ -79,7 +80,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
       root.layoutBoundsProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
 
       // switch to container/normal layout mode using right/left click
-       root.onMouseClicked = {
+       root.onMouseClicked = EventHandler {
            if (isLayoutMode && !isContainerMode && it.button==MouseButton.SECONDARY) {
                if (container.children.isEmpty()) {
                    AppAnimator.closeAndDo(root) { container.close() }
@@ -122,7 +123,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
       controls.get().root.toFront()
       controls.get().a.playFromDir(b)
       if (!b) {
-          controls.get().a.onFinished = {
+          controls.get().a.onFinished = EventHandler {
               controls.get().disposer.invoke()
               controls = LazyR { buildControls() }
           }

@@ -503,13 +503,13 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.Plugi
                   }
                }.withText("Start"),
                Icon(IconMD.DICE_2, ICON_SIZE).apply {
-                  onDragDetected = {
+                  onDragDetected = EventHandler {
                      startDragAndDrop(COPY).setContent(mapOf(DataFormat.PLAIN_TEXT to "2"))
                      it.consume()
                   }
                }.withText("Drag '2'"),
                Icon(IconMD.DICE_3, ICON_SIZE).apply {
-                  onDragDetected = {
+                  onDragDetected = EventHandler {
                      startDragAndDrop(COPY).setContent(mapOf(DataFormat.PLAIN_TEXT to "3"))
                      it.consume()
                   }

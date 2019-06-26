@@ -58,7 +58,7 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
 
    override fun getField(name: String) = configs.values.find { it.name==name }
 
-   override fun getFields() = configs.values
+   override fun getFields(): Collection<Config<Any?>> = configs.values
 
    /** Invoke [bind][Input.bind] on this input and the specified output if this widget [has never been serialized][Widget.isDeserialized]. */
    fun <T> Input<T>.bindIf1stLoad(output: Output<out T>) = if (widget.isDeserialized) Subscription() else bind(output)

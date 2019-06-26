@@ -256,7 +256,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       applyData(false)
    }
 
-   override fun getFields(): Collection<Config<Any>> {
+   override fun getFields(): Collection<Config<Any?>> {
       widget.properties["columns"] = table.columnState.toString()
       return super.getFields()
    }

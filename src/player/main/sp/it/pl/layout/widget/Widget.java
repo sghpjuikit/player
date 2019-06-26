@@ -33,7 +33,6 @@ import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.util.Locatable;
 import sp.it.util.access.V;
-import sp.it.util.conf.CachedCompositeConfigurable;
 import sp.it.util.conf.Config;
 import sp.it.util.conf.Configurable;
 import sp.it.util.conf.Configuration;
@@ -54,7 +53,6 @@ import static sp.it.util.file.UtilKt.writeTextTry;
 import static sp.it.util.functional.Util.ISNTØ;
 import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.firstNotNull;
-import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.set;
 import static sp.it.util.functional.Util.split;
@@ -75,7 +73,7 @@ import static sp.it.util.ui.UtilKt.removeFromParent;
  * standalone object if implementation allows). The type of widget influences
  * the lifecycle.
  */
-public final class Widget extends Component implements CachedCompositeConfigurable<Object>, Locatable {
+public final class Widget extends Component implements Configurable<Object>, Locatable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
 	private static final Set<String> ignoredConfigs = set("Is preferred", "Is ignored", "Custom name"); // avoids data duplication
@@ -370,20 +368,31 @@ public final class Widget extends Component implements CachedCompositeConfigurab
 
 /******************************************************************************/
 
-	/**
-	 * Returns singleton list containing the controller of this widget
-	 * <p/>
-	 * {@inheritDoc}
-	 */
 	@Override
-	public Collection<Configurable<Object>> getSubConfigurable() {
-		return controller==null ? listRO() : listRO(controller);
+	public Config<Object> getField(String n) {
+		return configs.computeIfAbsent(n, this::getFieldImpl);
 	}
 
 	@Override
-	public Map<String,Config<Object>> getFieldsMap() {
-		return configs;
+	public Collection<Config<Object>> getFields() {
+		getFieldsImpl().forEach(c -> configs.putIfAbsent(c.getName(), c));
+		return configs.values();
 	}
+
+	private Collection<Config<Object>> getFieldsImpl() {
+		var c = new ArrayList<>(Configurable.super.getFields());
+		if (controller!=null) c.addAll(controller.getFields());
+		return c;
+	}
+
+	private Config<Object> getFieldImpl(String name) {
+		return firstNotNull(
+			() -> Configurable.super.getField(name),
+			() -> controller==null ? null : controller.getField(name)
+		);
+	}
+
+/******************************************************************************/
 
 	@Override
 	public String toString() {

@@ -22,7 +22,7 @@ import java.util.stream.Stream
 import kotlin.streams.asSequence
 
 /** Persistable [Configurable]. */
-open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${it.name}" } ): Configurable<Any?> {
+open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${it.name}" }): Configurable<Any?> {
 
     private val methodLookup = MethodHandles.lookup()
     private val namePostMapper: (String) -> String = { s -> s.replace(' ', '_').toLowerCase() }
@@ -70,9 +70,9 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
     fun <C> collect(vararg cs: Configurable<C>): Unit = cs.forEach { collect(it) }
 
     fun collectStatic(vararg notAnnotatedClasses: Class<*>): Unit = notAnnotatedClasses.asSequence().distinct()
-            .forEach {
-                collect(configsOf(it, null, true, false))
-            }
+        .forEach {
+            collect(configsOf(it, null, true, false))
+        }
 
 
     fun <C> collect(config: Config<C>) {
@@ -84,7 +84,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
         // 3 the generated actions must be unregistered if config is dropped
         @Suppress("UNCHECKED_CAST", "ConstantConditionIf")
         if (false)
-        config.takeIf { it.type.isSubclassOf<Boolean>() && it.isEditable.isByUser }
+            config.takeIf { it.type.isSubclassOf<Boolean>() && it.isEditable.isByUser }
                 ?.let { it as Config<Boolean> }
                 ?.let {
                     val name = "${it.guiName} - toggle"
@@ -125,25 +125,25 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
     fun <T: Any> gatherActions(type: Class<T>, instance: T?) {
         val useStatic = instance!=null
         type.declaredMethods.asSequence()
-                .filter { isStatic(it.modifiers) xor useStatic && it.isAnnotationPresent(IsAction::class.java) }
-                .map {
-                    failIf(it.parameters.isNotEmpty()) { "Action method=$it must have 0 parameters" }
+            .filter { isStatic(it.modifiers) xor useStatic && it.isAnnotationPresent(IsAction::class.java) }
+            .map {
+                failIf(it.parameters.isNotEmpty()) { "Action method=$it must have 0 parameters" }
 
-                    val a = it.getAnnotation(IsAction::class.java)
-                    val group = instance?.let { computeConfigGroup(it) } ?: obtainConfigGroup(null, type)
-                    val r = Runnable {
-                        try {
-                            it.isAccessible = true
-                            it.invoke(instance)
-                        } catch (e: IllegalAccessException) {
-                            throw RuntimeException("Failed to run action=${a.name}", e)
-                        } catch (e: Throwable) {
-                            throw RuntimeException("Failed to run action=${a.name}", e)
-                        }
+                val a = it.getAnnotation(IsAction::class.java)
+                val group = instance?.let { computeConfigGroup(it) } ?: obtainConfigGroup(null, type)
+                val r = Runnable {
+                    try {
+                        it.isAccessible = true
+                        it.invoke(instance)
+                    } catch (e: IllegalAccessException) {
+                        throw RuntimeException("Failed to run action=${a.name}", e)
+                    } catch (e: Throwable) {
+                        throw RuntimeException("Failed to run action=${a.name}", e)
                     }
-                    Action(a, group, r)
                 }
-                .forEach { collect(it) }
+                Action(a, group, r)
+            }
+            .forEach { collect(it) }
     }
 
     fun <T> drop(config: Config<T>) {
@@ -171,10 +171,10 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
     fun save(title: String, file: File) {
         val propsRaw = properties.mapValues { Property(it.key, it.value, "") }
         val propsCfg = configs.asSequence()
-                .filter { it.type!=Void::class.java }
-                .associate { c -> configToRawKeyMapper(c).let { it to Property(it, c.valueS, c.info) } }
+            .filter { it.type!=Void::class.java }
+            .associate { c -> configToRawKeyMapper(c).let { it to Property(it, c.valueS, c.info) } }
 
-        file.writeProperties(title, (propsRaw+propsCfg).values)
+        file.writeProperties(title, (propsRaw + propsCfg).values)
     }
 
     /**

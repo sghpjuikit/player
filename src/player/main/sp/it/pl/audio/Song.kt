@@ -51,7 +51,7 @@ abstract class Song {
         val p = uri.path
         if (p==null || p.isEmpty()) return ""
         val i = p.lastIndexOf('/')
-        return if (i==-1 || p.length<2) p else p.substring(i+1)
+        return if (i==-1 || p.length<2) p else p.substring(i + 1)
     }
 
     /** @return the suffix of the resource of this song or empty string if none, e.g.: mp3 */

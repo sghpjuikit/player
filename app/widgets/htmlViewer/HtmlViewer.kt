@@ -18,14 +18,14 @@ import sp.it.util.ui.x
 import sp.it.util.units.seconds
 
 @Widget.Info(
-        name = "HtmlEditor",
-        author = "Martin Polakovic",
-        howto = "",
-        description = "Very simple html text editor.",
-        notes = "",
-        version = "0.5.0",
-        year = "2016",
-        group = Widget.Group.OTHER
+    name = "HtmlEditor",
+    author = "Martin Polakovic",
+    howto = "",
+    description = "Very simple html text editor.",
+    notes = "",
+    version = "0.5.0",
+    year = "2016",
+    group = Widget.Group.OTHER
 )
 @ExperimentalController("Needs better skin and transparent background setting")
 class HtmlViewer(widget: Widget): SimpleController(widget) {

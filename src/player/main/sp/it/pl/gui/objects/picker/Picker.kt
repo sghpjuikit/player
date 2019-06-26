@@ -79,9 +79,9 @@ open class Picker<E> {
                 }
 
                 val anim = anim(300.millis) {
-                    content.opacity = 1-it*it
+                    content.opacity = 1 - it*it
                     contentInfo.opacity = it
-                    contentInfo.setScaleXY(0.7+0.3*it*it)
+                    contentInfo.setScaleXY(0.7 + 0.3*it*it)
                 }
 
                 anim.applyNow()
@@ -109,12 +109,12 @@ open class Picker<E> {
 
     fun buildContent() {
         tiles.children setTo itemSupply()
-                .sortedBy(textConverter)
-                .map { item ->
-                    cellFactory(item).apply {
-                        onEventDown(MOUSE_CLICKED, PRIMARY) { onSelect(item) }
-                    }
+            .sortedBy(textConverter)
+            .map { item ->
+                cellFactory(item).apply {
+                    onEventDown(MOUSE_CLICKED, PRIMARY) { onSelect(item) }
                 }
+            }
         tiles.children += pane {
             styleClass += CELL_STYLE_CLASS
             pseudoClassChanged("empty", true)
@@ -132,8 +132,8 @@ open class Picker<E> {
             val cells = getCells()
             val padding = root.padding
             val gap = 1.0
-            val width = root.width-padding.left-padding.right
-            val height = root.height-padding.top-padding.bottom
+            val width = root.width - padding.left - padding.right
+            val height = root.height - padding.top - padding.bottom
 
             if (cells.isEmpty()) return
 
@@ -147,22 +147,22 @@ open class Picker<E> {
 
             val rows = ceil(elements.toDouble()/columns).toInt()
 
-            val gapSumY = (rows-1)*gap
-            val cellHeight = if (height<rows*cellMinHeight) cellMinHeight else (height-gapSumY)/rows-1.0/rows
+            val gapSumY = (rows - 1)*gap
+            val cellHeight = if (height<rows*cellMinHeight) cellMinHeight else (height - gapSumY)/rows - 1.0/rows
 
             val scrollBarWidth = getVScrollBar(root)?.takeIf { it.isVisible }?.width ?: 0.0
-            val w = if (rows*(cellHeight+gap)-gap>height) width-scrollBarWidth else width
-            val gapSumX = (columns-1)*gap
-            val cellWidth = (w-gapSumX)/columns
+            val w = if (rows*(cellHeight + gap) - gap>height) width - scrollBarWidth else width
+            val gapSumX = (columns - 1)*gap
+            val cellWidth = (w - gapSumX)/columns
 
             cells.forEachIndexed { i, n ->
-                val x = padding.left+i%columns*(cellWidth+gap)
-                val y = padding.top+i/columns*(cellHeight+gap)
+                val x = padding.left + i%columns*(cellWidth + gap)
+                val y = padding.top + i/columns*(cellHeight + gap)
                 n.resizeRelocate(
-                        x.snapX,
-                        y.snapY,
-                        (x+cellWidth).snapX-x.snapX,
-                        (y+cellHeight).snapY-y.snapY
+                    x.snapX,
+                    y.snapY,
+                    (x + cellWidth).snapX - x.snapX,
+                    (y + cellHeight).snapY - y.snapY
                 )
             }
 
@@ -170,21 +170,21 @@ open class Picker<E> {
             val emptyCell = children.first { it.properties.containsKey(KEY_EMPTY_CELL) }
             if (needsEmptyCell) {
                 val i = cells.size
-                val x = padding.left+i%columns*(cellWidth+gap)
-                val y = padding.top+i/columns*(cellHeight+gap)
+                val x = padding.left + i%columns*(cellWidth + gap)
+                val y = padding.top + i/columns*(cellHeight + gap)
                 emptyCell.resizeRelocate(
-                        x.snapX,
-                        y.snapY,
-                        (root.width-padding.right).snapX-x.snapX,
-                        (y+cellHeight).snapY-y.snapY
+                    x.snapX,
+                    y.snapY,
+                    (root.width - padding.right).snapX - x.snapX,
+                    (y + cellHeight).snapY - y.snapY
                 )
             } else {
                 emptyCell.resizeRelocate(0.0, 0.0, 0.0, 0.0)
             }
         }
 
-        private val Double.snapX: Double get() = this//snapPositionX(this)
-        private val Double.snapY: Double get() = this//snapPositionY(this)
+        private val Double.snapX: Double get() = this //snapPositionX(this)
+        private val Double.snapY: Double get() = this //snapPositionY(this)
     }
 
     companion object {

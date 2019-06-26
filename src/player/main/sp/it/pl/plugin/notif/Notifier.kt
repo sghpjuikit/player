@@ -55,40 +55,40 @@ class Notifier: PluginBase("Notifications", true) {
     val onClickR by cv("Notification hide") { VarAction(it) }
     @IsConfig(name = "Playback change graphics")
     val graphics by cv("Normal").valuesIn {
-            APP.widgetManager.factories.getFactories()
-                    .filter { it.hasFeature<SongReader>() }
-                    .map { it.nameGui() }
-                    .plus("Normal")
-                    .plus("Normal - no cover")
-        } sync {
-            when (it) {
-                "Normal" -> {
+        APP.widgetManager.factories.getFactories()
+            .filter { it.hasFeature<SongReader>() }
+            .map { it.nameGui() }
+            .plus("Normal")
+            .plus("Normal - no cover")
+    } sync {
+        when (it) {
+            "Normal" -> {
+                val ii = ItemInfo(true)
+                songNotificationInfo = ii
+                songNotificationGui = ii
+                (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
+            }
+            "Normal - no cover" -> {
+                val ii = ItemInfo(false)
+                songNotificationInfo = ii
+                songNotificationGui = ii
+                (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
+            }
+            else -> APP.widgetManager.widgets.find(it, NEW(CUSTOM)).ifPresentOrElse(
+                { wf ->
+                    songNotificationGui = wf.load()
+                    songNotificationInfo = wf.controller as SongReader
+                    (songNotificationGui as Pane).setPrefSize(900.0, 500.0)
+                },
+                {
                     val ii = ItemInfo(true)
                     songNotificationInfo = ii
                     songNotificationGui = ii
                     (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
                 }
-                "Normal - no cover" -> {
-                    val ii = ItemInfo(false)
-                    songNotificationInfo = ii
-                    songNotificationGui = ii
-                    (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
-                }
-                else -> APP.widgetManager.widgets.find(it, NEW(CUSTOM)).ifPresentOrElse(
-                        { wf ->
-                            songNotificationGui = wf.load()
-                            songNotificationInfo = wf.controller as SongReader
-                            (songNotificationGui as Pane).setPrefSize(900.0, 500.0)
-                        },
-                        {
-                            val ii = ItemInfo(true)
-                            songNotificationInfo = ii
-                            songNotificationGui = ii
-                            (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
-                        }
-                )
-            }
+            )
         }
+    }
     private val onStop = Disposer()
     private var running = false
     private var n: Notification? = null

@@ -76,10 +76,10 @@ class WidgetUi: ComponentUiBase<Widget> {
         contentRoot.layFullArea += controls.root
 
         installDrag(
-                root, IconFA.EXCHANGE, "Switch components",
-                { e -> Df.COMPONENT in e.dragboard },
-                { e -> e.dragboard[Df.COMPONENT].let { it==this.container || it==widget } },
-                { e -> e.dragboard[Df.COMPONENT].swapWith(this.container, this.index) }
+            root, IconFA.EXCHANGE, "Switch components",
+            { e -> Df.COMPONENT in e.dragboard },
+            { e -> e.dragboard[Df.COMPONENT].let { it==this.container || it==widget } },
+            { e -> e.dragboard[Df.COMPONENT].swapWith(this.container, this.index) }
         )
 
         // report component graphics changes

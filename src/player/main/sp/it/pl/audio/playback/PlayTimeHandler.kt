@@ -29,7 +29,8 @@ class PlayTimeHandler {
          * @param whenCalculator calculates when the event should fire. The function receives total song length and returns time at which the action executes
          * @param action action to execute
          */
-        @JvmStatic fun at(whenCalculator: (Duration) -> Duration, action: () -> Unit) = PlayTimeHandler(whenCalculator, action)
+        @JvmStatic
+        fun at(whenCalculator: (Duration) -> Duration, action: () -> Unit) = PlayTimeHandler(whenCalculator, action)
 
     }
 

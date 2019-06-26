@@ -67,7 +67,8 @@ class VlcPlayer: GeneralPlayer.Play {
     }
 
     override fun createPlayback(song: Song, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit) {
-        val pf = playerFactory ?: MediaPlayerFactory(discoverVlc(APP.DIR_APP/"vlc"), "--quiet", "--intf=dummy", "--novideo", "--no-metadata-network-access")
+        val pf = playerFactory
+            ?: MediaPlayerFactory(discoverVlc(APP.DIR_APP/"vlc"), "--quiet", "--intf=dummy", "--novideo", "--no-metadata-network-access")
         playerFactory = pf
 
         if (PlayerConfiguration.playerVlcLocation.value==null) {
@@ -92,8 +93,7 @@ class VlcPlayer: GeneralPlayer.Play {
         if (Player.startTime!=null) {
             when (state.status.value) {
                 PLAYING -> play()
-                PAUSED -> {}
-                else -> {}
+                else -> Unit
             }
         }
 
@@ -168,36 +168,36 @@ class VlcPlayer: GeneralPlayer.Play {
     companion object: KLogging() {
 
         private fun discoverVlc(location: File) = NativeDiscovery(
-                WindowsNativeDiscoveryStrategy().customize(location),
-                LinuxNativeDiscoveryStrategy().customize(location),
-                OsxNativeDiscoveryStrategy().customize(location),
-                WindowsNativeDiscoveryStrategy().wrap(),
-                LinuxNativeDiscoveryStrategy().wrap(),
-                OsxNativeDiscoveryStrategy().wrap()
+            WindowsNativeDiscoveryStrategy().customize(location),
+            LinuxNativeDiscoveryStrategy().customize(location),
+            OsxNativeDiscoveryStrategy().customize(location),
+            WindowsNativeDiscoveryStrategy().wrap(),
+            LinuxNativeDiscoveryStrategy().wrap(),
+            OsxNativeDiscoveryStrategy().wrap()
         )
 
         private fun NativeDiscoveryStrategy.wrap() = NativeDiscoveryStrategyWrapper(this)
 
         @Suppress("SpellCheckingInspection")
         private fun NativeDiscoveryStrategy.customize(location: File) = object: BaseNativeDiscoveryStrategy(
-                when (this@customize) {
-                    is WindowsNativeDiscoveryStrategy -> arrayOf("libvlc\\.dll", "libvlccore\\.dll")
-                    is LinuxNativeDiscoveryStrategy -> arrayOf("libvlc\\.so(?:\\.\\d)*", "libvlccore\\.so(?:\\.\\d)*")
-                    is OsxNativeDiscoveryStrategy -> arrayOf("libvlc\\.dylib", "libvlccore\\.dylib")
-                    else -> fail { "Invalid discovery strategy" }
-                },
-                when (this@customize) {
-                    is WindowsNativeDiscoveryStrategy -> arrayOf("%s\\plugins", "%s\\vlc\\plugins")
-                    is LinuxNativeDiscoveryStrategy -> arrayOf("%s/plugins", "%s/vlc/plugins")
-                    is OsxNativeDiscoveryStrategy -> arrayOf("%s/../plugins")
-                    else -> fail { "Invalid discovery strategy" }
-                }
+            when (this@customize) {
+                is WindowsNativeDiscoveryStrategy -> arrayOf("libvlc\\.dll", "libvlccore\\.dll")
+                is LinuxNativeDiscoveryStrategy -> arrayOf("libvlc\\.so(?:\\.\\d)*", "libvlccore\\.so(?:\\.\\d)*")
+                is OsxNativeDiscoveryStrategy -> arrayOf("libvlc\\.dylib", "libvlccore\\.dylib")
+                else -> fail { "Invalid discovery strategy" }
+            },
+            when (this@customize) {
+                is WindowsNativeDiscoveryStrategy -> arrayOf("%s\\plugins", "%s\\vlc\\plugins")
+                is LinuxNativeDiscoveryStrategy -> arrayOf("%s/plugins", "%s/vlc/plugins")
+                is OsxNativeDiscoveryStrategy -> arrayOf("%s/../plugins")
+                else -> fail { "Invalid discovery strategy" }
+            }
         ) {
             override fun supported() = this@customize.supported()
             override fun setPluginPath(pluginPath: String?) = this@customize.onSetPluginPath(pluginPath)
             override fun discoveryDirectories() = mutableListOf(location.absolutePath)
             override fun onFound(path: String?): Boolean {
-                PlayerConfiguration.playerVlcLocation.value = "Custom: "+location.absolutePath
+                PlayerConfiguration.playerVlcLocation.value = "Custom: " + location.absolutePath
                 return super.onFound(path)
             }
         }

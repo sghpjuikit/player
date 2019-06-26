@@ -157,8 +157,8 @@ fun Node.containsMouse() = containsScreen(Robot().mousePosition)
 fun Node.pickTopMostAt(sceneX: Double, sceneY: Double, test: (Node) -> Boolean = { true }): Node? {
     // Groups need to be handled specially - they need to be transparent
     fun Node.isIn(sceneX: Double, sceneY: Double, test: (Node) -> Boolean) =
-            if (parent is Group) test(this) && localToScene(layoutBounds).contains(sceneX, sceneY)
-            else test(this) && sceneToLocal(sceneX, sceneY, true)?.let { it in this } ?: false
+        if (parent is Group) test(this) && localToScene(layoutBounds).contains(sceneX, sceneY)
+        else test(this) && sceneToLocal(sceneX, sceneY, true)?.let { it in this } ?: false
 
     return if (isIn(sceneX, sceneY, test)) {
         if (this is Parent) {
@@ -300,10 +300,13 @@ inline fun <T> listViewCellFactory(crossinline cellFactory: ListCell<T>.(T, Bool
 interface Lay {
     /** Lays the specified child onto this */
     operator fun plusAssign(child: Node)
+
     /** Lays the specified children onto this */
-    operator fun plusAssign(children: Collection<Node>) = children.forEach { this+=it }
+    operator fun plusAssign(children: Collection<Node>) = children.forEach { this += it }
+
     /** Lays the specified children onto this */
-    operator fun plusAssign(children: Sequence<Node>) = children.forEach { this+=it }
+    operator fun plusAssign(children: Sequence<Node>) = children.forEach { this += it }
+
     /**
      * Lays the child produced by the specified block onto this if block is not null. Allows conditional content using
      * [sp.it.util.functional.supplyIf] and [sp.it.util.functional.supplyUnless].
@@ -495,10 +498,10 @@ fun Node.setScaleXY(x: Double, y: Double = x) {
 
 fun Node.setScaleXYByTo(percent: Double, pxFrom: Double, pxTo: Double) {
     val b = boundsInLocal
-    val by = (percent*pxTo+(1.0-percent)*pxFrom)
+    val by = (percent*pxTo + (1.0 - percent)*pxFrom)
     if (b.width>0.0 && b.height>0.0) {
-        scaleX = 1+by/b.width max 0.0
-        scaleY = 1+by/b.height max 0.0
+        scaleX = 1 + by/b.width max 0.0
+        scaleY = 1 + by/b.height max 0.0
     } else {
         scaleX = 1.0
         scaleY = 1.0
@@ -515,8 +518,8 @@ fun Node.initClip(padding: Insets = Insets.EMPTY) {
     layoutBoundsProperty() sync {
         clip.x = padding.left
         clip.y = padding.top
-        clip.width = it.width-padding.left-padding.right
-        clip.height = it.height-padding.top-padding.bottom
+        clip.width = it.width - padding.left - padding.right
+        clip.height = it.height - padding.top - padding.bottom
     }
 
     setClip(clip)
@@ -534,12 +537,12 @@ fun ImageView.applyViewPort(i: Image?, fit: FitFrom) {
                 when {
                     ratioTHUMB<ratioIMG -> {
                         val uiImgWidth = i.height*ratioTHUMB
-                        val x = abs(i.width-uiImgWidth)/2.0
+                        val x = abs(i.width - uiImgWidth)/2.0
                         viewport = Rectangle2D(x, 0.0, uiImgWidth, i.height)
                     }
                     ratioTHUMB>ratioIMG -> {
                         val uiImgHeight = i.width/ratioTHUMB
-                        val y = abs(i.height-uiImgHeight)/2
+                        val y = abs(i.height - uiImgHeight)/2
                         viewport = Rectangle2D(0.0, y, i.width, uiImgHeight)
                     }
                     ratioTHUMB==ratioIMG -> viewport = null
@@ -615,17 +618,23 @@ val Region.size
 /** Min size represented as point */
 var Region.minSize: P
     get() = P(minWidth, minHeight)
-    set(v) { setMinSize(v.x, v.y) }
+    set(v) {
+        setMinSize(v.x, v.y)
+    }
 
 /** Pref size represented as point */
 var Region.prefSize: P
     get() = P(prefWidth, prefHeight)
-    set(v) { setPrefSize(v.x, v.y) }
+    set(v) {
+        setPrefSize(v.x, v.y)
+    }
 
 /** Max size represented as point */
 var Region.maxSize: P
     get() = P(maxWidth, maxHeight)
-    set(v) { setMaxSize(v.x, v.y) }
+    set(v) {
+        setMaxSize(v.x, v.y)
+    }
 
 /** Position using [javafx.stage.Window.x] and [javafx.stage.Window.y] */
 val Window.xy get() = P(x, y)
@@ -642,10 +651,10 @@ var Window.size: P
 val Window.centre get() = P(centreX, centreY)
 
 /** Window-relative x position of the centre of this window */
-val Window.centreX get() = x+width/2
+val Window.centreX get() = x + width/2
 
 /** Window-relative y position of the centre of this window */
-val Window.centreY get() = y+height/2
+val Window.centreY get() = y + height/2
 
 /** Size of the bounds represented as point */
 val Rectangle2D.size get() = P(width, height)
@@ -654,18 +663,18 @@ val Rectangle2D.size get() = P(width, height)
 val Rectangle2D.centre get() = P(centreX, centreY)
 
 /** Rectangle-relative x position of the centre of this rectangle */
-val Rectangle2D.centreX get() = minX+width/2
+val Rectangle2D.centreX get() = minX + width/2
 
 /** Rectangle-relative y position of the centre of this rectangle */
-val Rectangle2D.centreY get() = minY+height/2
+val Rectangle2D.centreY get() = minY + height/2
 
 operator fun Point2D.minus(p: Point2D): Point2D = subtract(p)
 operator fun Point2D.plus(p: Point2D): Point2D = add(p)
 operator fun Point2D.times(p: Double): Point2D = multiply(p)
 operator fun Point2D.div(p: Double): Point2D = Point2D(x/p, y/p)
 
-operator fun P.minus(p: Point2D): P = P(x-p.x, y-p.y)
-operator fun P.plus(p: Point2D): P = P(x+p.x, y+p.y)
+operator fun P.minus(p: Point2D): P = P(x - p.x, y - p.y)
+operator fun P.plus(p: Point2D): P = P(x + p.x, y + p.y)
 
 fun Point2D.toP() = P(x, y)
 fun P.toPoint2D() = Point2D(x, y)
@@ -682,13 +691,13 @@ fun TextArea.setTextAlignment(alignment: TextAlignment) {
     pseudoClassChanged("align-center", false)
     pseudoClassChanged("align-justify", false)
     pseudoClassChanged(
-            when (alignment) {
-                TextAlignment.LEFT -> "align-left"
-                TextAlignment.RIGHT -> "align-right"
-                TextAlignment.CENTER -> "align-center"
-                TextAlignment.JUSTIFY -> "align-justify"
-            },
-            true
+        when (alignment) {
+            TextAlignment.LEFT -> "align-left"
+            TextAlignment.RIGHT -> "align-right"
+            TextAlignment.CENTER -> "align-center"
+            TextAlignment.JUSTIFY -> "align-justify"
+        },
+        true
     )
 }
 
@@ -707,10 +716,12 @@ fun Parent.setFontAsStyle(font: Font) {
     val styleS = if (style==FontPosture.ITALIC) "italic" else "normal"
     val weightS = if (weight==FontWeight.BOLD) "bold" else "normal"
     setStyle(
-            "-fx-font-family: \"${font.family}\";"+
-            "-fx-font-style: $styleS;"+
-            "-fx-font-weight: $weightS;"+
-            "-fx-font-size: ${font.size};"
+        """
+        -fx-font-family: "${font.family}";
+        -fx-font-style: $styleS;
+        -fx-font-weight: $weightS;
+        -fx-font-size: ${font.size};
+        """.trimIndent()
     )
 }
 
@@ -791,7 +802,7 @@ fun <T> TreeView<T>.scrollToCenter(i: Int) {
     } else {
         val rows = height/fixedCellSize
         index -= (rows/2).toInt()
-        index = 0 max index min items-rows.toInt()+1
+        index = 0 max index min items - rows.toInt() + 1
         scrollTo(index)
     }
 }
@@ -813,14 +824,14 @@ fun Node.onHoverOrDragStart(onStart: () -> Unit): Subscription {
     if (isHover) onStart()
 
     return Subscription(
-            onEventUp(MOUSE_ENTERED) {
+        onEventUp(MOUSE_ENTERED) {
+            onStart()
+        },
+        onEventUp(DRAG_DETECTED) {
+            properties["isHoverOrDrag"] = true
+            if (!isHover)
                 onStart()
-            },
-            onEventUp(DRAG_DETECTED) {
-                properties["isHoverOrDrag"] = true
-                if (!isHover)
-                    onStart()
-            }
+        }
     )
 }
 
@@ -829,19 +840,19 @@ fun Node.onHoverOrDragStart(onStart: () -> Unit): Subscription {
  * More reliable than [MouseEvent.MOUSE_EXITED]. Use in combination with [Node.onHoverOrDragStart].
  */
 fun Node.onHoverOrDragEnd(onEnd: () -> Unit): Subscription = Subscription(
-        onEventUp(MOUSE_EXITED) {
+    onEventUp(MOUSE_EXITED) {
+        onEnd()
+    },
+    onEventUp(MOUSE_DRAG_RELEASED) {
+        properties["isHoverOrDrag"] = false
+        if (!isHover)
             onEnd()
-        },
-        onEventUp(MOUSE_DRAG_RELEASED) {
-            properties["isHoverOrDrag"] = false
-            if (!isHover)
-                onEnd()
-        },
-        onEventUp(MOUSE_RELEASED) {
-            properties["isHoverOrDrag"] = false
-            if (!isHover)
-                onEnd()
-        }
+    },
+    onEventUp(MOUSE_RELEASED) {
+        properties["isHoverOrDrag"] = false
+        if (!isHover)
+            onEnd()
+    }
 )
 
 /* ---------- SCREEN ------------------------------------------------------------------------------------------------ */
@@ -850,7 +861,7 @@ fun Node.onHoverOrDragEnd(onEnd: () -> Unit): Subscription = Subscription(
 fun P.getScreen() = getScreen(x, y)
 
 /** @return screen containing the given coordinates */
-fun getScreen(x: Double, y: Double) = Screen.getScreens().find { it.bounds.intersects(x, y, 1.0, 1.0) } ?: Screen.getPrimary()!!
+fun getScreen(x: Double, y: Double) = Screen.getScreens().find { it.bounds.contains(x, y) } ?: Screen.getPrimary()!!
 
 /** @return screen containing the given coordinates */
 fun getScreenForMouse() = Robot().mousePosition.toP().getScreen()

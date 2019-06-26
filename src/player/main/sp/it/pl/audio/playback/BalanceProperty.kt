@@ -24,18 +24,18 @@ class BalanceProperty: SimpleDoubleProperty {
 
     /** Increment value by [STEP]. */
     fun leftByStep() {
-        set(get()+STEP)
+        set(get() + STEP)
     }
 
     /** Decrement value by [STEP]. */
     fun rightByStep() {
-        set(get()-STEP)
+        set(get() - STEP)
     }
 
     companion object {
         const val MIN = -1.0
         const val MAX = 1.0
-        const val AVG = (MAX+MIN)/2
+        const val AVG = (MAX + MIN)/2
         const val STEP = 0.2
     }
 

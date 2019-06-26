@@ -96,12 +96,12 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
         val labels = xNodes().mapNotNull { it.label.takeIf { it.isVisible() } }.toList()
 
         forEachCartesianHalfNoSelf(labels) { l1, l2 ->
-            val dir = atan2(l1.text.layoutY-l2.text.layoutY, l1.text.layoutX-l2.text.layoutX)
-            val dist = pyth(l1.text.layoutX-l2.text.layoutX, l1.text.layoutY-l2.text.layoutY)
+            val dir = atan2(l1.text.layoutY - l2.text.layoutY, l1.text.layoutX - l2.text.layoutX)
+            val dist = pyth(l1.text.layoutX - l2.text.layoutX, l1.text.layoutY - l2.text.layoutY)
             when {
-                dist>100 -> {}
+                dist>100 -> Unit
                 else -> {
-                    val f = (100.0-dist.clip(0.0, 100.0))/10.0
+                    val f = (100.0 - dist.clip(0.0, 100.0))/10.0
                     l1.text.layoutX += f*cos(dir)
                     l1.text.layoutY += f*sin(dir)
                     l2.text.layoutX -= f*cos(dir)
@@ -110,13 +110,13 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             }
         }
         labels.forEach {
-            val dist = pyth(it.x-it.text.layoutX, it.y-it.text.layoutY)
-            val dir = atan2(it.y-it.text.layoutY, it.x-it.text.layoutX)
+            val dist = pyth(it.x - it.text.layoutX, it.y - it.text.layoutY)
+            val dir = atan2(it.y - it.text.layoutY, it.x - it.text.layoutX)
             val f = dist/10.0
             it.text.layoutX += f*cos(dir)
             it.text.layoutY += f*sin(dir)
-            it.byX = it.x-it.text.layoutX
-            it.byY = it.y-it.text.layoutY
+            it.byX = it.x - it.text.layoutX
+            it.byY = it.y - it.text.layoutY
         }
     })
 
@@ -154,9 +154,9 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
         val av = anim(900.millis) {
             isVisible = it!=0.0
             isMouseTransparent = it!=1.0
-            animPos1 = if(aDir) it else mapTo01(it, 0.0, 0.2)
-            animPos2 = if(aDir) it else mapTo01(it, 0.25, 0.65)
-            animPos3 = if(aDir) it else mapTo01(it, 0.8, 1.0)
+            animPos1 = if (aDir) it else mapTo01(it, 0.0, 0.2)
+            animPos2 = if (aDir) it else mapTo01(it, 0.25, 0.65)
+            animPos3 = if (aDir) it else mapTo01(it, 0.8, 1.0)
 
             paneNodes.opacity = animPos1
             links.forEach { _, _, link ->
@@ -276,8 +276,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
         e.link.lay(eFrom.x, eFrom.y, m.x, m.y)
 
         val n = inputNodes.values.asSequence()
-                .filter { pyth(it.x-m.x, it.y-m.y)<8 }
-                .find { it.input!!.isAssignable(eFrom.output!!) }
+            .filter { pyth(it.x - m.x, it.y - m.y)<8 }
+            .find { it.input!!.isAssignable(eFrom.output!!) }
 
         if (editTo!==n) {
             editTo?.i?.pseudoClassChanged("highlighted", false)
@@ -321,7 +321,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
         selected?.select(true)
     }
 
-    private fun xNodes(): Sequence<XNode> = (inputNodes.asSequence()+outputNodes.asSequence()+inoutputNodes.asSequence()).map { it.value }
+    private fun xNodes(): Sequence<XNode> = (inputNodes.asSequence() + outputNodes.asSequence() + inoutputNodes.asSequence()).map { it.value }
 
     override fun layoutChildren() {
         val headerOffset = switchContainerUi.root.localToScene(0.0, 0.0).y
@@ -335,22 +335,22 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             val ons = c.io.o.getOutputs().mapNotNull { outputNodes[it] }
 
             val b = w.uiTemp.root.let { it.localToScene(it.layoutBounds) }
-            val baseX = b.minX/tScaleX.value.toDouble()-translationOffset
-            val baseY = b.minY-headerOffset
+            val baseX = b.minX/tScaleX.value.toDouble() - translationOffset
+            val baseY = b.minY - headerOffset
             val ww = b.width/tScaleX.value.toDouble()
             val wh = b.height
-            val ihx = wh/(ins.size+1)
-            val ohx = wh/(ons.size+1)
+            val ihx = wh/(ins.size + 1)
+            val ohx = wh/(ons.size + 1)
 
             ins.forEachIndexed { i, n ->
                 n.graphics.isVisible = true
                 n.graphics.autosize()
-                n.updatePosition(calcScaleX(baseX+padding), calcScaleY(baseY+ihx*(i+1)))
+                n.updatePosition(calcScaleX(baseX + padding), calcScaleY(baseY + ihx*(i + 1)))
             }
             ons.forEachIndexed { i, n ->
                 n.graphics.isVisible = true
                 n.graphics.autosize()
-                n.updatePosition(calcScaleX(baseX+ww-padding), calcScaleY(baseY+ohx*(i+1)))
+                n.updatePosition(calcScaleX(baseX + ww - padding), calcScaleY(baseY + ohx*(i + 1)))
             }
         }
 
@@ -358,13 +358,13 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
         val ioGapX = 10.0
         var ioOffsetX = 0.0
         val ioOffsetYShift = -10.0
-        var ioOffsetY = height-150.0
+        var ioOffsetY = height - 150.0
         val ions = inoutputNodes.values.asSequence().sortedBy { it.inoutput!!.o.id.ownerId }.toList()
         for (n in ions) {
             n.graphics.isVisible = true
             n.graphics.autosize()
             n.updatePosition(ioOffsetX, ioOffsetY)
-            ioOffsetX += (n.graphics.layoutBounds.width max ioMinWidthX)+ioGapX
+            ioOffsetX += (n.graphics.layoutBounds.width max ioMinWidthX) + ioGapX
             ioOffsetY += ioOffsetYShift
         }
 
@@ -401,8 +401,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
         val i = Icon()
         val graphics = HBox(0.0, i)
         val label = XLabel()
-        var x by observable(0.0) { _, _, nv -> label.y = nv+15 }
-        var y by observable(0.0) { _, _, nv -> label.x = nv+15 }
+        var x by observable(0.0) { _, _, nv -> label.y = nv + 15 }
+        var y by observable(0.0) { _, _, nv -> label.x = nv + 15 }
         var selected = false
         val disposer = Disposer()
 
@@ -433,15 +433,15 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
 
             i.styleclass(iconStyleclass)
             i.onEventDown(MOUSE_CLICKED) {
-                when(it.clickCount) {
+                when (it.clickCount) {
                     1 -> {
-                        when(it.button) {
+                        when (it.button) {
                             PRIMARY -> selectNode(this)
                             SECONDARY -> {
                                 contextMenuInstance.setItemsFor(xPut)
                                 contextMenuInstance.show(i, it)
                             }
-                            else -> {}
+                            else -> Unit
                         }
                     }
                     2 -> {
@@ -455,7 +455,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
 
             val a = anim(250.millis) {
                 label.text.opacity = it
-                label.text.setScaleXY(0.8+0.2*it)
+                label.text.setScaleXY(0.8 + 0.2*it)
             }
             val valuePut = if (xPut is Input<*>) input else output
             valuePut!!.sync { a.playCloseDoOpen { label.text.text = valuePut.xPutToStr() } } on disposer
@@ -474,7 +474,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
         fun updatePosition(toX: Double, toY: Double) {
             x = toX
             y = toY
-            graphics.relocate(x-graphics.layoutBounds.width/2.0, y-graphics.layoutBounds.height/2.0)
+            graphics.relocate(x - graphics.layoutBounds.width/2.0, y - graphics.layoutBounds.height/2.0)
             label.updatePosition()
         }
 
@@ -490,24 +490,24 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             i.onEventUp(DRAG_ENTERED) { i.pseudoClassChanged("drag-over", true) }
             i.onEventUp(DRAG_EXITED) { i.pseudoClassChanged("drag-over", false) }
             installDrag(
-                    i, IconFA.CLIPBOARD, "",
-                    { if (it.transferMode==LINK) Df.WIDGET_OUTPUT in it.dragboard else true},
-                    {
-                        if (Df.WIDGET_OUTPUT in it.dragboard) {
-                            val o = it.dragboard[Df.WIDGET_OUTPUT]
-                            if (it.transferMode==LINK) {
-                                if (input!!.isAssignable(o))
-                                    input.bindAny(o)
-                            } else {
-                                if (input!!.isAssignable(o.value))
-                                    input.valueAny = o.value
-                            }
-                        } else {
-                            val o = it.dragboard.getAny()
+                i, IconFA.CLIPBOARD, "",
+                { if (it.transferMode==LINK) Df.WIDGET_OUTPUT in it.dragboard else true },
+                {
+                    if (Df.WIDGET_OUTPUT in it.dragboard) {
+                        val o = it.dragboard[Df.WIDGET_OUTPUT]
+                        if (it.transferMode==LINK) {
                             if (input!!.isAssignable(o))
-                                input.valueAny = o
+                                input.bindAny(o)
+                        } else {
+                            if (input!!.isAssignable(o.value))
+                                input.valueAny = o.value
                         }
+                    } else {
+                        val o = it.dragboard.getAny()
+                        if (input!!.isAssignable(o))
+                            input.valueAny = o
                     }
+                }
             )
         }
 
@@ -526,8 +526,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             fun updatePosition() {
                 x = this@XNode.x
                 y = this@XNode.y
-                text.layoutX = this@XNode.x-byX
-                text.layoutY = this@XNode.y-byY
+                text.layoutX = this@XNode.x - byX
+                text.layoutY = this@XNode.y - byY
             }
         }
     }
@@ -608,32 +608,32 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
 
         fun layInputs(inX: Double, inY: Double, outX: Double, outY: Double) {
             layInit(inX, inY, outX, outY)
-            elements += MoveTo(inX+loX(1.0, 1.0), inY-loY(1.0, 1.0))
-            elements += LineTo(inX+linkGap, inY-linkGap)
-            elements += LineTo(outX+linkGap, outY+linkGap)
-            elements += LineTo(outX+loX(1.0, 1.0), outY+loY(1.0, 1.0))
+            elements += MoveTo(inX + loX(1.0, 1.0), inY - loY(1.0, 1.0))
+            elements += LineTo(inX + linkGap, inY - linkGap)
+            elements += LineTo(outX + linkGap, outY + linkGap)
+            elements += LineTo(outX + loX(1.0, 1.0), outY + loY(1.0, 1.0))
         }
 
         fun layOutputs(inX: Double, inY: Double, outX: Double, outY: Double) {
             layInit(inX, inY, outX, outY)
-            elements += MoveTo(inX-loX(1.0, 1.0), inY+loY(1.0, 1.0))
-            elements += LineTo(inX-linkGap, inY+linkGap)
-            elements += LineTo(outX-linkGap, outY-linkGap)
-            elements += LineTo(outX-loX(1.0, 1.0), outY-loY(1.0, 1.0))
+            elements += MoveTo(inX - loX(1.0, 1.0), inY + loY(1.0, 1.0))
+            elements += LineTo(inX - linkGap, inY + linkGap)
+            elements += LineTo(outX - linkGap, outY - linkGap)
+            elements += LineTo(outX - loX(1.0, 1.0), outY - loY(1.0, 1.0))
         }
 
         @Suppress("LocalVariableName", "CanBeVal")
         fun lay(inX: Double, inY: Double, outX: Double, outY: Double) {
             layInit(inX, inY, outX, outY)
 
-            val dx = (outX-inX).sign
-            val dy = (outY-inY).sign
-            val inX_ = inX+linkGap*dx
-            val inY_ = inY+linkGap*dy
-            elements += MoveTo(inX+loX(dx, dy), inY+loY(dx, dy))
+            val dx = (outX - inX).sign
+            val dy = (outY - inY).sign
+            val inX_ = inX + linkGap*dx
+            val inY_ = inY + linkGap*dy
+            elements += MoveTo(inX + loX(dx, dy), inY + loY(dx, dy))
             elements += LineTo(inX_, inY_)
-            layTo(inX_, inY_, outX-linkGap*dx, outY-linkGap*dy)
-            elements += LineTo(outX-loX(dx, dy), outY-loY(dx, dy))
+            layTo(inX_, inY_, outX - linkGap*dx, outY - linkGap*dy)
+            elements += LineTo(outX - loX(dx, dy), outY - loY(dx, dy))
         }
 
         fun layInit(inX: Double, inY: Double, outX: Double, outY: Double) {
@@ -641,7 +641,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             startY = outY
             toX = inX
             toY = inY
-            length = pyth(inX-outX, inY-outY)
+            length = pyth(inX - outX, inY - outY)
             showClip1.radius = length
             showClip1.centerX = inX
             showClip1.centerY = inY
@@ -652,14 +652,14 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
         }
 
         private fun layTo(inX: Double, inY: Double, outX: Double, outY: Double) {
-            val dx = outX-inX
-            val dy = outY-inY
+            val dx = outX - inX
+            val dy = outY - inY
             if (dx==0.0 || dy==0.0) {
                 elements += LineTo(outX, outY)
             } else {
                 val dXy = abs(dx) min abs(dy)
-                val x = inX+dXy.withSign(dx)
-                val y = inY+dXy.withSign(dy)
+                val x = inX + dXy.withSign(dx)
+                val y = inY + dXy.withSign(dy)
                 elements += LineTo(x, y)
                 layTo(x, y, outX, outY)
             }
@@ -692,7 +692,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
                 delay = 150.millis
                 onFinished = EventHandler { dataArrived(toX, toY) }
             }
-            val ea3 = anim(300.millis) { eRunner.setScaleXY(1-sqrt(it)) }.delay(1500.millis).then { effectClip.children -= eRunner }
+            val ea3 = anim(300.millis) { eRunner.setScaleXY(1 - sqrt(it)) }.delay(1500.millis).then { effectClip.children -= eRunner }
 
             a1.playFrom(a1.duration)
             ea1.play()
@@ -702,7 +702,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
 
     }
 
-    private inner class EditIOLink(node: XNode)  {
+    private inner class EditIOLink(node: XNode) {
         val link = IOLink(node.input, node.output)
         val isValueOnly = v(false)
 
@@ -784,11 +784,11 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             children += Circle(5.0).apply {
                 styleClass += "iolink-effect-receive"
                 isManaged = false
-                relocate(x-radius, y-radius)
+                relocate(x - radius, y - radius)
 
                 anim(300.millis) {
                     setScaleXY(4*sqrt(it))
-                    opacity = 1-it*it
+                    opacity = 1 - it*it
                 }.then {
                     children -= this
                 }.play()

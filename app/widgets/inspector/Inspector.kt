@@ -55,21 +55,21 @@ import java.io.File
 import javafx.stage.Window as WindowFX
 
 @Widget.Info(
-        author = "Martin Polakovic",
-        name = Widgets.INSPECTOR,
-        description = "Inspects hierarchy of all application information. Includes windows, widgets, "+
-                "file system and more. Allows editing if possible.",
-        howto = ""
-                +"Available actions:\n"
-                +"    Right click: Open context menu\n"
-                +"    Double click file: Open file in native application\n"
-                +"    Double click skin file: Apply skin on application\n"
-                +"    Double click widget file: Open widget\n"
-                +"    Drag & drop file: Explore file\n"
-                +"    Drag & drop files: Explore files' first common parent directory\n",
-        version = "1.0.0",
-        year = "2015",
-        group = Widget.Group.APP
+    author = "Martin Polakovic",
+    name = Widgets.INSPECTOR,
+    description = "Inspects hierarchy of all application information. Includes windows, widgets, " +
+        "file system and more. Allows editing if possible.",
+    howto = ""
+        + "Available actions:\n"
+        + "    Right click: Open context menu\n"
+        + "    Double click file: Open file in native application\n"
+        + "    Double click skin file: Apply skin on application\n"
+        + "    Double click widget file: Open widget\n"
+        + "    Drag & drop file: Explore file\n"
+        + "    Drag & drop files: Explore files' first common parent directory\n",
+    version = "1.0.0",
+    year = "2015",
+    group = Widget.Group.APP
 )
 class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, Opener {
     private val outputSelected = io.o.create<Any>("Selected", null)
@@ -89,7 +89,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
                 wRoot.pickTopMostVisible(it)?.takeIf { !it.isAnyChildOf(root) }?.let { exploreNode(it) }
                 it.consume()
             }
-            d1+d2
+            d1 + d2
         } + {
             selected = selected?.highlight(false)
             highlighted?.highlight(true)    // restore highlighted node after selecting
@@ -136,11 +136,11 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
         }
 
         installDrag(
-                root,
-                IconFA.LIST_ALT,
-                "Inspect",
-                { true },
-                { e -> open(e.dragboard.getAny()) }
+            root,
+            IconFA.LIST_ALT,
+            "Inspect",
+            { true },
+            { e -> open(e.dragboard.getAny()) }
         )
 
         onClose += { tree.selectionModel.clearSelection() }
@@ -157,8 +157,8 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
 
     fun exploreNode(node: Node) {
         val nodeRoot = tree.root.children[1].children[0].children
-                .find { it.value===node.scene?.window }
-                ?.net { it.children[0].children[0] }
+            .find { it.value===node.scene?.window }
+            ?.net { it.children[0].children[0] }
         nodeRoot?.findAnyChild(node, Node::isAnyChildOf)?.expandToRootAndSelect(tree)
     }
 

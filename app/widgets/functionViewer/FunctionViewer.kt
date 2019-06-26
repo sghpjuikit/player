@@ -51,12 +51,12 @@ private typealias Fun = (Double) -> Double
 private typealias Num = Double
 
 @Widget.Info(
-        author = "Martin Polakovic",
-        name = "Function Viewer",
-        description = "Plots functions",
-        version = "1.0.0",
-        year = "2015",
-        group = DEVELOPMENT
+    author = "Martin Polakovic",
+    name = "Function Viewer",
+    description = "Plots functions",
+    version = "1.0.0",
+    year = "2015",
+    group = DEVELOPMENT
 )
 class FunctionViewer(widget: Widget): SimpleController(widget) {
     private val function = v(StrExF.fromString("x").orThrow).apply { attach { plotAnimated(it) } }
@@ -67,7 +67,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
     private val yMin = v(-1.0).apply { attach { plot() } }
     private val yMax = v(1.0).apply { attach { plot() } }
     private val plot = Plot()
-    private val plotAnimation = anim(700.millis) { plot.animation.value = 1.0-it*it*it*it }
+    private val plotAnimation = anim(700.millis) { plot.animation.value = 1.0 - it*it*it*it }
     private var updateCoord: (P) -> Unit = {}
 
     init {
@@ -77,20 +77,20 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
             val size = root.size
             val posUi = P(it.x, it.y)
             val posRel = (posUi/size).invertY()
-            val range = P(xMax.value-xMin.value, yMax.value-yMin.value)
-            val pos = P(xMin.value, yMin.value)+range*posRel
+            val range = P(xMax.value - xMin.value, yMax.value - yMin.value)
+            val pos = P(xMin.value, yMin.value) + range*posRel
             updateCoord(pos)
         }
         root.onEventDown(SCROLL) {
             val scale = 1.2
             val isInc = it.deltaY<0 || it.deltaX>0
-            val rangeOld = P(xMax.value-xMin.value, yMax.value-yMin.value)
+            val rangeOld = P(xMax.value - xMin.value, yMax.value - yMin.value)
             val rangeNew = if (isInc) rangeOld*scale else rangeOld/scale
-            val rangeDiff = rangeNew-rangeOld
+            val rangeDiff = rangeNew - rangeOld
             val size = root.size
             val posUi = P(it.x, it.y)
             val posRelMin = (posUi/size).invertY()
-            val posRelMax = P(1.0, 1.0)-posRelMin
+            val posRelMax = P(1.0, 1.0) - posRelMin
             plot.ignorePlotting = true
             xMin.value -= rangeDiff.x*posRelMin.x
             xMax.value += rangeDiff.x*posRelMax.x
@@ -102,23 +102,23 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
             it.consume()
         }
         root.initMouseDrag(
-                mutableListOf<Num>(),
-                {
-                    it.data setTo listOf(xMin.value, xMax.value, yMin.value, yMax.value)
-                },
-                {
-                    val size = root.size
-                    val diffRel = (it.diff/size) //.invertY()
-                    val range = P(it.data[1]-it.data[0], it.data[3]-it.data[2])
-                    val diff = diffRel*range
-                    plot.ignorePlotting = true
-                    xMin.value = it.data[0]-diff.x
-                    xMax.value = it.data[1]-diff.x
-                    yMin.value = it.data[2]+diff.y
-                    yMax.value = it.data[3]+diff.y
-                    plot.ignorePlotting = false
-                    plot()
-                }
+            mutableListOf<Num>(),
+            {
+                it.data setTo listOf(xMin.value, xMax.value, yMin.value, yMax.value)
+            },
+            {
+                val size = root.size
+                val diffRel = (it.diff/size) //.invertY()
+                val range = P(it.data[1] - it.data[0], it.data[3] - it.data[2])
+                val diff = diffRel*range
+                plot.ignorePlotting = true
+                xMin.value = it.data[0] - diff.x
+                xMax.value = it.data[1] - diff.x
+                yMin.value = it.data[2] + diff.y
+                yMax.value = it.data[3] + diff.y
+                plot.ignorePlotting = false
+                plot()
+            }
         )
 
         root.setMinPrefMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
@@ -183,8 +183,8 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
             // draw function
             val paths = ArrayList<Path>()
-            val xInc = (xMax.value-xMin.value)/(1.0 max width)
-            var x = xMin.value+xInc
+            val xInc = (xMax.value - xMin.value)/(1.0 max width)
+            var x = xMin.value + xInc
             var previousValue: P? = null
             var path: Path? = null
             while (x<xMax.value) {
@@ -236,13 +236,13 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
                 }
             }
 
-            @Suppress("UNUSED_VARIABLE") val unit = 10 pow ((xMax.value-xMin.value).digits())
-            @Suppress("UNUSED_VARIABLE") val range = P(xMax.value-xMin.value, yMax.value-yMin.value)
+            @Suppress("UNUSED_VARIABLE") val unit = 10 pow ((xMax.value - xMin.value).digits())
+            @Suppress("UNUSED_VARIABLE") val range = P(xMax.value - xMin.value, yMax.value - yMin.value)
         }
 
-        private fun mapX(x: Num) = (x-xMin.value)/(xMax.value-xMin.value)*width
+        private fun mapX(x: Num) = (x - xMin.value)/(xMax.value - xMin.value)*width
 
-        private fun mapY(y: Num) = (1-(y-yMin.value)/(yMax.value-yMin.value))*height
+        private fun mapY(y: Num) = (1 - (y - yMin.value)/(yMax.value - yMin.value))*height
 
     }
 
@@ -257,7 +257,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
         val Double.precise: Double get() = roundToInt().toDouble()
 
-        fun P.invertY() = apply { y = 1-y }
+        fun P.invertY() = apply { y = 1 - y }
 
         infix fun Int.pow(power: Int) = toDouble().pow(power)
 

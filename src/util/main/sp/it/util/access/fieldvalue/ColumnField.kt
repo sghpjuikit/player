@@ -5,7 +5,7 @@ import kotlin.reflect.KClass
 
 class ColumnField: ObjectFieldBase<Any, Int> {
 
-    internal constructor(type: KClass<Int>, extractor: (Any) -> Int?, name: String, description: String): super (type, extractor, name, description) {
+    internal constructor(type: KClass<Int>, extractor: (Any) -> Int?, name: String, description: String): super(type, extractor, name, description) {
         FIELDS_IMPL += this
     }
 
@@ -17,7 +17,7 @@ class ColumnField: ObjectFieldBase<Any, Int> {
         @JvmField val FIELDS: Set<ColumnField> = FIELDS_IMPL
         @JvmField val INDEX = ColumnField(Int::class, { null }, "#", "Index of the item in the list")
 
-        fun valueOf(s: String) = when(s) {
+        fun valueOf(s: String) = when (s) {
             INDEX.name() -> INDEX
             else -> failCase(s)
         }

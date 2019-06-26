@@ -18,17 +18,17 @@ class PlaybackState {
     @JvmField val mute = v(false)
     @JvmField val rate = v(1.0)
     val remainingTime: Duration
-        get() = duration.value-currentTime.value
+        get() = duration.value - currentTime.value
 
     override fun toString() =
-            ("Total Time: "+duration.value+", "
-            +"Current Time: "+currentTime.value+", "
-            +"Real Time: "+realTime.value+", "
-            +"Volume: "+volume+", "
-            +"Rate: "+rate+", "
-            +"Mute: "+mute+", "
-            +"Playback Status: "+status.value+", "
-            +"Loop Mode: "+loopMode.value)
+        ("Total Time: " + duration.value + ", "
+            + "Current Time: " + currentTime.value + ", "
+            + "Real Time: " + realTime.value + ", "
+            + "Volume: " + volume + ", "
+            + "Rate: " + rate + ", "
+            + "Mute: " + mute + ", "
+            + "Playback Status: " + status.value + ", "
+            + "Loop Mode: " + loopMode.value)
 
     companion object {
         fun default(): PlaybackState = PlaybackState()

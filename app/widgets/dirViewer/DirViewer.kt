@@ -99,12 +99,12 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.round
 
 @Widget.Info(
-        author = "Martin Polakovic",
-        name = "Dir Viewer",
-        description = "Displays directory hierarchy and files as thumbnails in a vertically scrollable grid. "+"Intended as simple library",
-        version = "0.7.0",
-        year = "2015",
-        group = OTHER
+    author = "Martin Polakovic",
+    name = "Dir Viewer",
+    description = "Displays directory hierarchy and files as thumbnails in a vertically scrollable grid. " + "Intended as simple library",
+    version = "0.7.0",
+    year = "2015",
+    group = OTHER
 )
 class DirViewer(widget: Widget): SimpleController(widget) {
 
@@ -131,7 +131,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     @IsConfig(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
     private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone)
 
-    private val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio+CELL_TEXT_HEIGHT, 5.0, 5.0)
+    private val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio + CELL_TEXT_HEIGHT, 5.0, 5.0)
     private val imageLoader = Loader(burstTPExecutor(Runtime.getRuntime().availableProcessors()/2 max 1, 1.minutes, threadFactory("dirView-img-loader", true)))
     private val visitId = AtomicLong(0)
     private val placeholder = lazy {
@@ -156,17 +156,17 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     private val navigationVisible by cv(true)
     private val navigationPane = StackPane()
     private val navigation = Breadcrumbs<Item>(
-            {
-                when (it) {
-                    is TopItem -> when (files.size) {
-                        0 -> "No location"
-                        1 -> files[0].absolutePath
-                        else -> "Location".pluralUnit(files.size)
-                    }
-                    else -> it.value.name
+        {
+            when (it) {
+                is TopItem -> when (files.size) {
+                    0 -> "No location"
+                    1 -> files[0].absolutePath
+                    else -> "Location".pluralUnit(files.size)
                 }
-            },
-            { visit(it) }
+                else -> it.value.name
+            }
+        },
+        { visit(it) }
     )
 
     init {
@@ -207,12 +207,12 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
         // drag & drop
         installDrag(
-                root, FOLDER_PLUS, "Explore directory",
-                { e -> e.dragboard.hasFiles() },
-                { e ->
-                    val fs = e.dragboard.files
-                    files setTo if (fs.all { it.isDirectory }) fs else listOf(getCommonRoot(fs)!!)
-                }
+            root, FOLDER_PLUS, "Explore directory",
+            { e -> e.dragboard.hasFiles() },
+            { e ->
+                val fs = e.dragboard.files
+                files setTo if (fs.all { it.isDirectory }) fs else listOf(getCommonRoot(fs)!!)
+            }
         )
 
         coverLoadingUseComposedDirCover.attach { revisitCurrent() }
@@ -256,7 +256,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
         runIO {
             dir.children().sortedWith(buildSortComparator())
         }.withAppProgress(
-                widget.custom_name.value+": Fetching view"
+            widget.custom_name.value + ": Fetching view"
         ) ui {
             grid.itemsRaw setTo it
             grid.implGetSkin().position = dir.lastScrollPosition max 0.0
@@ -323,7 +323,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     }
 
     private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
-        grid.setCellSize(width, height+CELL_TEXT_HEIGHT)
+        grid.setCellSize(width, height + CELL_TEXT_HEIGHT)
         revisitCurrent()
     }
 
@@ -336,9 +336,9 @@ class DirViewer(widget: Widget): SimpleController(widget) {
     }
 
     private fun buildSortComparator() = compareBy<Item> { 0 }
-            .thenBy { it.valType }.inSort(sortFile.value.sort)
-            .thenBy(sortBy.value.comparator<File> { it.inSort(sort.value).nullsLast() }) { it.value }
-            .thenBy { it.value.path }
+        .thenBy { it.valType }.inSort(sortFile.value.sort)
+        .thenBy(sortBy.value.comparator<File> { it.inSort(sort.value).nullsLast() }) { it.value }
+        .thenBy { it.value.path }
 
     private inner class Cell: GridFileThumbCell(imageLoader) {
         private val disposer = Disposer()
@@ -399,7 +399,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
                     }
                     cs += label(">")
                 }
-                if (!cs.isEmpty()) cs.removeAt(cs.size-1)
+                if (!cs.isEmpty()) cs.removeAt(cs.size - 1)
 
                 children setTo cs
             }

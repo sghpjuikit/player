@@ -93,10 +93,10 @@ class TrayPlugin: PluginBase("Tray", true) {
         runAwt {
             tray = SystemTray.getSystemTray().apply {
                 val image = loadBufferedImage(trayIconImage)
-                        .ifError { logger.warn { "Failed to load tray icon" } }
-                        .orNull()
-                        ?.getScaledInstance(trayIconSize.width, -1, Image.SCALE_SMOOTH)
-                        ?: createImageBlack(ImageSize(trayIconSize.size))
+                    .ifError { logger.warn { "Failed to load tray icon" } }
+                    .orNull()
+                    ?.getScaledInstance(trayIconSize.width, -1, Image.SCALE_SMOOTH)
+                    ?: createImageBlack(ImageSize(trayIconSize.size))
                 val trayIconTmp = TrayIcon(image).apply {
                     toolTip = tooltipText
                     addMouseListener(object: MouseAdapter() {
@@ -110,10 +110,10 @@ class TrayPlugin: PluginBase("Tray", true) {
                                 else -> NONE
                             }
                             val me = MouseEvent(
-                                    MOUSE_CLICKED, -1.0, -1.0,
-                                    e.xOnScreen.toDouble(), e.yOnScreen.toDouble(), b, e.clickCount,
-                                    e.isShiftDown, e.isControlDown, e.isAltDown, e.isMetaDown,
-                                    b==PRIMARY, false, b==SECONDARY, false, true, true, null
+                                MOUSE_CLICKED, -1.0, -1.0,
+                                e.xOnScreen.toDouble(), e.yOnScreen.toDouble(), b, e.clickCount,
+                                e.isShiftDown, e.isControlDown, e.isAltDown, e.isMetaDown,
+                                b==PRIMARY, false, b==SECONDARY, false, true, true, null
                             )
 
                             // show menu on right click
@@ -123,11 +123,11 @@ class TrayPlugin: PluginBase("Tray", true) {
                                     cmOwner.show()
                                     cmOwner.requestFocus()
                                     cm.items += contextMenuItemsBuilder()
-                                    cm.show(cmOwner, me.screenX, me.screenY-40)
+                                    cm.show(cmOwner, me.screenX, me.screenY - 40)
                                 }
                                 FORWARD -> PlaylistManager.use { it.playNextItem() }
                                 BACK -> PlaylistManager.use { it.playPreviousItem() }
-                                else -> {}
+                                else -> Unit
                             }
                         }
                     })
@@ -205,11 +205,11 @@ class TrayPlugin: PluginBase("Tray", true) {
         trayIconImage = img ?: trayIconImageDefault
         return if (trayIcon!=null) {
             loadBufferedImage(trayIconImage)
-                    .ifOk {
-                        trayIcon?.image?.flush()
-                        trayIcon?.image = it
-                    }
-                    .map { null }
+                .ifOk {
+                    trayIcon?.image?.flush()
+                    trayIcon?.image = it
+                }
+                .map { null }
         } else {
             Try.ok()
         }

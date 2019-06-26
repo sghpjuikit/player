@@ -29,7 +29,7 @@ import java.util.function.Consumer
 private typealias DisposeOn = (Subscription) -> Unit
 
 @Experimental("Questionable API, can not be unsubscribed.")
-fun <T,O> ObservableValue<T>.map(mapper: (T) -> O) = object: ObservableValue<O> {
+fun <T, O> ObservableValue<T>.map(mapper: (T) -> O) = object: ObservableValue<O> {
     private val listeners1 by lazy { HashSet<ChangeListener<in O>>(2) }
     private val listeners2 by lazy { HashSet<InvalidationListener>(2) }
     private var mv: O = mapper(this@map.value)
@@ -45,10 +45,23 @@ fun <T,O> ObservableValue<T>.map(mapper: (T) -> O) = object: ObservableValue<O> 
             }
         }
     }
-    override fun addListener(listener: ChangeListener<in O>) { listeners1 += listener }
-    override fun removeListener(listener: ChangeListener<in O>) { listeners1 -= listener }
-    override fun addListener(listener: InvalidationListener) { listeners2 += listener }
-    override fun removeListener(listener: InvalidationListener) { listeners2 += listener }
+
+    override fun addListener(listener: ChangeListener<in O>) {
+        listeners1 += listener
+    }
+
+    override fun removeListener(listener: ChangeListener<in O>) {
+        listeners1 -= listener
+    }
+
+    override fun addListener(listener: InvalidationListener) {
+        listeners2 += listener
+    }
+
+    override fun removeListener(listener: InvalidationListener) {
+        listeners2 += listener
+    }
+
     override fun getValue() = mv
 }
 
@@ -68,7 +81,7 @@ infix fun <O> ObservableValue<O>.syncWhile(block: (O) -> Subscription): Subscrip
         inner.unsubscribe()
         inner = block(it)
     }
-    return outer+inner
+    return outer + inner
 }
 
 /** Sets a disposable block to be fired immediately and on every non null value change. */
@@ -106,6 +119,7 @@ infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>): Subscription 
     this.addListener(l)
     return Subscription { this.removeListener(l) }
 }
+
 /** Sets the mapped value the specified observable to the this property on every value change. */
 infix fun <O> WritableValue<O>.attachFrom(o: ObservableValue<out O>): Subscription = o attachTo this
 
@@ -217,7 +231,7 @@ fun <O, R> ObservableValue<O>.syncInto(extractor: (O) -> ObservableValue<R>, blo
         if (it==null) block(null)
         else extractor(it) sync { block(it) } on inner
     }
-    return outer+inner
+    return outer + inner
 }
 
 /** Sets block to be resubscribed immediately and on every change of the extracted observable of the value of this observable until value changes. */
@@ -236,7 +250,7 @@ fun <O, R> ObservableValue<O>.syncIntoWhile(extractor: (O) -> ObservableValue<R>
             }
         }
     }
-    return outer+inner+superInner
+    return outer + inner + superInner
 }
 
 /** Sets block to be resubscribed immediately and on every non null change of the extracted observable of the value until value changes. */
@@ -360,8 +374,8 @@ fun <T> ObservableSet<T>.onItemAdded(block: (T) -> Unit): Subscription {
 }
 
 /** Call specified block every time an item is added to this map passing it as argument */
-fun <K,V> ObservableMap<K,V>.onItemAdded(block: (K,V) -> Unit): Subscription {
-    val l = MapChangeListener<K,V> {
+fun <K, V> ObservableMap<K, V>.onItemAdded(block: (K, V) -> Unit): Subscription {
+    val l = MapChangeListener<K, V> {
         if (it.wasAdded()) block(it.key, it.valueAdded)
     }
     addListener(l)
@@ -382,7 +396,7 @@ fun <T> ObservableList<T>.onItemRemoved(block: (T) -> Unit): Subscription {
 }
 
 /** Call specified block every time an item is removed from this set passing it as argument */
-fun <K,V> ObservableMap<K,V>.onItemRemoved(block: (K,V) -> Unit): Subscription {
+fun <K, V> ObservableMap<K, V>.onItemRemoved(block: (K, V) -> Unit): Subscription {
     val l = MapChangeListener<K, V> {
         if (it.wasRemoved()) block(it.key, it.valueRemoved)
     }
@@ -412,7 +426,7 @@ fun <T> ObservableSet<T>.onItemSync(block: (T) -> Unit): Subscription {
 }
 
 /** Call specified block for every current and future item of this set. */
-fun <K,V> ObservableMap<K,V>.onItemSync(block: (K,V) -> Unit): Subscription {
+fun <K, V> ObservableMap<K, V>.onItemSync(block: (K, V) -> Unit): Subscription {
     forEach(block)
     return onItemAdded(block)
 }

@@ -59,7 +59,7 @@ class Spinner: ProgressIndicator {
                 maxSize = USE_PREF_SIZE x USE_PREF_SIZE
             }
 
-            inner.rotateProperty() sync { outer.rotate = 360.0-it.toDouble() } on onDispose
+            inner.rotateProperty() sync { outer.rotate = 360.0 - it.toDouble() } on onDispose
             children += stackPane(inner, outer)
 
             spinner.indeterminateProperty() attach { update() } on onDispose

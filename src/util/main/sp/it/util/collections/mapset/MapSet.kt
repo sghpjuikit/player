@@ -63,7 +63,7 @@ class MapSet<K: Any, E: Any>: MutableSet<E> {
 
     fun backingMap(): Map<K, E> = m
 
-    override val size get() =  m.size
+    override val size get() = m.size
 
     override fun isEmpty() = m.isEmpty()
 

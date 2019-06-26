@@ -41,6 +41,7 @@ inline fun <reified T: Any?> cList(): ConfL<T> = ConfL(T::class.java, null is T)
 
 /** Adds the specified constraint for this [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
+
 fun <T: String, C: Conf<T>> C.nonEmpty() = but(Constraint.StringNonEmpty())
 fun <T: Number, C: Conf<T>> C.min(min: T) = but(Constraint.NumberMinMax(min.toDouble(), Double.MAX_VALUE))
 fun <T: Number, C: Conf<T>> C.max(max: T) = but(Constraint.NumberMinMax(Double.MIN_VALUE, max.toDouble()))
@@ -129,10 +130,12 @@ interface MultiConfigurable {
     val configurableDiscriminant: String?
     /** Group (shared prefix path) shared by all configs of this configurable. Usually same for all instances. */
     @JvmDefault
-    val configurableGroup get() = computeConfigGroup(this)
+    val configurableGroup
+        get() = computeConfigGroup(this)
     /** Config register and value provider. By default common value store. */
     @JvmDefault
-    val configurableValueStore: ConfigValueSource get() = configuration
+    val configurableValueStore: ConfigValueSource
+        get() = configuration
 }
 
 /** Implementation of [MultiConfigurable] with the [MultiConfigurable.configurableDiscriminant] supplied at creation time. */
@@ -217,8 +220,8 @@ class ConfR<T: () -> Unit>(private val action: T): Conf<T>() {
         failIf(!isFinal) { "Property must be immutable" }
 
         fun String.orNull() = takeIf { it.isNotBlank() }
-        val name = infoExt?.name?.orNull() ?:  info?.name?.orNull() ?: property.name
-        val desc = infoExt?.desc?.orNull() ?:  info?.info?.orNull()
+        val name = infoExt?.name?.orNull() ?: info?.name?.orNull() ?: property.name
+        val desc = infoExt?.desc?.orNull() ?: info?.info?.orNull()
         val keys = infoExt?.keys ?: ""
         val isGlobal = infoExt?.global ?: false
         val isContinuous = infoExt?.repeat ?: false
@@ -288,13 +291,13 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyPrope
     /** Invokes [attach] with the specified block on the observable value that will be created and returns this. */
     infix fun attach(block: (T) -> Unit) = apply {
         val s = v
-        v = { s(it).apply { asIf<ObservableValue<T>>()?.attach(block)  } }
+        v = { s(it).apply { asIf<ObservableValue<T>>()?.attach(block) } }
     }
 
     /** Invokes [sync] with the specified block on the observable value that will be created and returns this. */
     infix fun sync(block: (T) -> Unit) = apply {
         val s = v
-        v = { s(it).apply { asIf<ObservableValue<T>>()?.sync(block)  } }
+        v = { s(it).apply { asIf<ObservableValue<T>>()?.sync(block) } }
     }
 
     override operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any?, W> {
@@ -331,13 +334,13 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyP
     /** Invokes [attach] with the specified block on the observable value that will be created and returns this. */
     infix fun attach(block: (T) -> Unit) = apply {
         val s = v
-        v = { s(it).apply { attach(block)  } }
+        v = { s(it).apply { attach(block) } }
     }
 
     /** Invokes [sync] with the specified block on the observable value that will be created and returns this. */
     infix fun sync(block: (T) -> Unit) = apply {
         val s = v
-        v = { s(it).apply { sync(block)  } }
+        v = { s(it).apply { sync(block) } }
     }
 
     override operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any?, W> {

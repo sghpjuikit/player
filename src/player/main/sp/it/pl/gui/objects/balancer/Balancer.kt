@@ -32,8 +32,8 @@ class Balancer: Control {
             if (to>max.value) to = max.value
             if (to<min.value) to = min.value
             if (abs(to)<0.2) to = 0.0
-            if (to-min.value<0.2) to = min.value
-            if (max.value-to<0.2) to = max.value
+            if (to - min.value<0.2) to = min.value
+            if (max.value - to<0.2) to = max.value
 
             super.set(to)
         }
@@ -48,9 +48,9 @@ class Balancer: Control {
         this.balance.value = balance
     }
 
-    fun incToRight() = balance.set(balance.value+step.value)
+    fun incToRight() = balance.set(balance.value + step.value)
 
-    fun incToLeft() = balance.set(balance.value-step.value)
+    fun incToLeft() = balance.set(balance.value - step.value)
 
     override fun createDefaultSkin() = BalancerSkin(this)
 
@@ -73,8 +73,8 @@ class BalancerSkin(b: Balancer): SkinBase<Balancer>(b) {
             minProperty() syncFrom b.min on disposer
             maxProperty() syncFrom b.max on disposer
             valueProperty() syncFrom b.balance on disposer
-            syncTo(b.min, b.max) { min, max -> majorTickUnit = (max.toDouble()-min.toDouble())/2.0 } on disposer
-            majorTickUnit = (b.max.value-b.min.value)/2.0
+            syncTo(b.min, b.max) { min, max -> majorTickUnit = (max.toDouble() - min.toDouble())/2.0 } on disposer
+            majorTickUnit = (b.max.value - b.min.value)/2.0
             minorTickCount = 1
             isSnapToTicks = true
             prefWidth = 100.0

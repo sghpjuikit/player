@@ -12,7 +12,6 @@ import sp.it.pl.audio.playlist.PlaylistSong.Field
 import sp.it.pl.audio.playlist.writePlaylist
 import sp.it.pl.gui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.gui.objects.table.PlaylistTable
-import sp.it.pl.gui.objects.table.TableColumnInfo
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
@@ -57,32 +56,33 @@ import java.util.UUID
 import java.util.function.Consumer
 import java.util.function.UnaryOperator
 import kotlin.streams.asSequence
+import sp.it.pl.gui.objects.table.TableColumnInfo as ColumnState
 
 @Widget.Info(
-        author = "Martin Polakovic",
-        name = PLAYLIST,
-        description = "Provides list of items to play. Highlights playing and unplayable "+"items.",
-        howto = ""
-                +"Available actions:\n"
-                +"    Song left click : Selects item\n"
-                +"    Song right click : Opens context menu\n"
-                +"    Song double click : Plays item\n"
-                +"    Song drag : Activates Drag&Drop\n"
-                +"    Song drag + CTRL : Moves item within playlist\n"
-                +"    Type : search & filter\n"
-                +"    Press ENTER : Plays item\n"
-                +"    Press ESC : Clear selection & filter\n"
-                +"    Scroll : Scroll table vertically\n"
-                +"    Scroll + SHIFT : Scroll table horizontally\n"
-                +"    Column drag : swap columns\n"
-                +"    Column right click: show column menu\n"
-                +"    Click column : Sort - ascending | descending | none\n"
-                +"    Click column + SHIFT : Sorts by multiple columns\n"
-                +"    Menu bar : Opens additional actions\n",
-        notes = "Plans: multiple playlists through tabs",
-        version = "0.9.0",
-        year = "2015",
-        group = Group.PLAYLIST
+    author = "Martin Polakovic",
+    name = PLAYLIST,
+    description = "Provides list of items to play. Highlights playing and unplayable " + "items.",
+    howto = ""
+        + "Available actions:\n"
+        + "    Song left click : Selects item\n"
+        + "    Song right click : Opens context menu\n"
+        + "    Song double click : Plays item\n"
+        + "    Song drag : Activates Drag&Drop\n"
+        + "    Song drag + CTRL : Moves item within playlist\n"
+        + "    Type : search & filter\n"
+        + "    Press ENTER : Plays item\n"
+        + "    Press ESC : Clear selection & filter\n"
+        + "    Scroll : Scroll table vertically\n"
+        + "    Scroll + SHIFT : Scroll table horizontally\n"
+        + "    Column drag : swap columns\n"
+        + "    Column right click: show column menu\n"
+        + "    Click column : Sort - ascending | descending | none\n"
+        + "    Click column + SHIFT : Sorts by multiple columns\n"
+        + "    Menu bar : Opens additional actions\n",
+    notes = "Plans: multiple playlists through tabs",
+    version = "0.9.0",
+    year = "2015",
+    group = Group.PLAYLIST
 )
 class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
@@ -120,14 +120,16 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
         playVisible sync {
             playlist.setTransformation(
-                    if (it) unOp { table.items.materialize() }
-                    else unOp { it.asSequence().sortedWith(table.itemsComparator.value).toList() }
+                if (it) unOp { table.items.materialize() }
+                else unOp { it.asSequence().sortedWith(table.itemsComparator.value).toList() }
             )
         } on onClose
 
         table.search.setColumn(Field.NAME)
         table.selectionModel.selectionMode = MULTIPLE
-        table.items_info.textFactory = { all, list -> DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumByDouble { it.timeMs }.millis.toHMSMs() }
+        table.items_info.textFactory = { all, list ->
+            DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumByDouble { it.timeMs }.millis.toHMSMs()
+        }
         table.nodeOrientationProperty() syncFrom tableOrient on onClose
         table.zeropadIndex syncFrom tableZeropad on onClose
         table.showOriginalIndex syncFrom tableOrigIndex on onClose
@@ -135,14 +137,14 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
         table.footerVisible syncFrom tableShowFooter on onClose
         table.scrollToPlaying syncFrom scrollToPlaying on onClose
         table.defaultColumnInfo   // trigger menu initialization
-        table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo
+        table.columnState = widget.properties.getS("columns")?.net(ColumnState::fromString) ?: table.defaultColumnInfo
         table.filterPane.buttonAdjuster.value = { i ->
             i.onClickDo { playVisible.toggle() }
             playVisible sync {
                 i.icon(if (it) IconFA.FILTER else IconMD.FILTER_OUTLINE)
                 i.tooltip(
-                        if (it) "Disable filter for playback. Causes the playback to ignore the filter."
-                        else "Enable filter for playback. Causes the playback to play only displayed items."
+                    if (it) "Disable filter for playback. Causes the playback to ignore the filter."
+                    else "Enable filter for playback. Causes the playback to play only displayed items."
                 )
             }
         }
@@ -180,11 +182,11 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
             item("Edit selected") { APP.widgetManager.widgets.use<SongReader>(NO_LAYOUT) { it.read(table.selectedItems) } }
             item("Save playlist") {
                 saveFile(
-                        "Save playlist as...",
-                        lastSavePlaylistLocation ?: PlayerConfiguration.lastSavePlaylistLocation,
-                        "Playlist",
-                        root.scene.window,
-                        FileChooser.ExtensionFilter("m3u8", "m3u8")
+                    "Save playlist as...",
+                    lastSavePlaylistLocation ?: PlayerConfiguration.lastSavePlaylistLocation,
+                    "Playlist",
+                    root.scene.window,
+                    FileChooser.ExtensionFilter("m3u8", "m3u8")
                 ).ifOk { file ->
                     lastSavePlaylistLocation = file.parentDirOrRoot
                     PlayerConfiguration.lastSavePlaylistLocation = file.parentDirOrRoot
@@ -202,10 +204,10 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
     override fun getPlaylist() = playlist
 
     private fun computeInitialPlaylist(id: UUID) = null
-            ?: PlaylistManager.playlists[id]
-            ?: getUnusedPlaylist(id).apply {
-                PlaylistManager.playlists.put(this)
-            }
+        ?: PlaylistManager.playlists[id]
+        ?: getUnusedPlaylist(id).apply {
+            PlaylistManager.playlists.put(this)
+        }
 
     companion object {
 
@@ -216,13 +218,13 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
         private fun getUnusedPlaylist(id: UUID): Playlist {
             val danglingPlaylists = ArrayList(PlaylistManager.playlists)
             APP.widgetManager.widgets.findAll(OPEN.widgetFinder).asSequence()
-                    .filter { it.info.hasFeature(PlaylistFeature::class.java) }
-                    .mapNotNull { (it.controller as PlaylistFeature?)?.playlist }
-                    .forEach { danglingPlaylists.removeIf { playlist -> playlist.id==it.id } }
+                .filter { it.info.hasFeature(PlaylistFeature::class.java) }
+                .mapNotNull { (it.controller as PlaylistFeature?)?.playlist }
+                .forEach { danglingPlaylists.removeIf { playlist -> playlist.id==it.id } }
 
             val danglingPlaylist: Playlist? = null
-                    ?: danglingPlaylists.find { it.id==PlaylistManager.active }
-                    ?: danglingPlaylists.firstOrNull()
+                ?: danglingPlaylists.find { it.id==PlaylistManager.active }
+                ?: danglingPlaylists.firstOrNull()
 
             if (danglingPlaylist!=null) {
                 PlaylistManager.playlists.remove(danglingPlaylist)

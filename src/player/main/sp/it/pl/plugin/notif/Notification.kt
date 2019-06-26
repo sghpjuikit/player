@@ -30,7 +30,9 @@ class Notification: PopOver<Node>() {
     /** Time this notification will remain visible. Default 5 seconds. */
     var duration: Duration
         get() = closer.period
-        set(duration) { closer.period = duration }
+        set(duration) {
+            closer.period = duration
+        }
 
     init {
         detached.value = false

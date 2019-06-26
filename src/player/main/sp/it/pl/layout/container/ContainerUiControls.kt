@@ -41,7 +41,7 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
         root.isMouseTransparent = it==0.0
         area.root.children.forEach { c ->
             if (c!==root)
-                c.opacity = 1-0.8*it
+                c.opacity = 1 - 0.8*it
         }
     }
     private var absB: Icon? = null
@@ -57,13 +57,13 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
             prefHeight = 25.0
 
             lay += infoIcon(""
-                    + "Controls for managing container."
-                    + "\n"
-                    + "\nAvailable actions:"
-                    + "\n\tLeft click : Go to child"
-                    + "\n\tRight click : Go to parent"
-                    + "\n\tDrag : Drags widget to other area"
-                    + "\n\tDrag + ${SHORTCUT.getNamePretty()} : Detach widget"
+                + "Controls for managing container."
+                + "\n"
+                + "\nAvailable actions:"
+                + "\n\tLeft click : Go to child"
+                + "\n\tRight click : Go to parent"
+                + "\n\tDrag : Drags widget to other area"
+                + "\n\tDrag + ${SHORTCUT.getNamePretty()} : Detach widget"
             ).styleclass("header-icon")
 
             lay += icon(null, "Lock container's layout").onClickDo {
@@ -92,10 +92,10 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
 
         // component switching on drag
         installDrag(
-                root, IconFA.EXCHANGE, "Switch components",
-                { e -> Df.COMPONENT in e.dragboard },
-                { e -> e.dragboard[Df.COMPONENT]===area.container },
-                { e -> e.dragboard[Df.COMPONENT].swapWith(area.container.parent, area.container.indexInParent()!!) }
+            root, IconFA.EXCHANGE, "Switch components",
+            { e -> Df.COMPONENT in e.dragboard },
+            { e -> e.dragboard[Df.COMPONENT]===area.container },
+            { e -> e.dragboard[Df.COMPONENT].swapWith(area.container.parent, area.container.indexInParent()!!) }
         )
         root.onEventDown(DRAG_DETECTED) { onDragDetected(it, root) }
         root.onEventDown(DRAG_DONE) {

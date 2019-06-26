@@ -81,7 +81,7 @@ class MetadataGroup {
         fun getType(field: Metadata.Field<*>): Class<out T> = if (this===VALUE) field.type as Class<out T> else type
 
         override fun toS(o: T?, substitute: String): String {
-            return when(this) {
+            return when (this) {
                 VALUE -> if (o==null || ""==o) "<none>" else o.toString()
                 ITEMS, ALBUMS, LENGTH, SIZE, AVG_RATING, W_RATING -> o!!.toString()
                 YEAR -> {
@@ -94,7 +94,7 @@ class MetadataGroup {
 
         @Suppress("UNCHECKED_CAST")
         override fun toS(v: MetadataGroup, o: T?, substitute: String): String {
-            return when(this) {
+            return when (this) {
                 VALUE -> if (v.isAll) "<any>" else (v.field as Metadata.Field<Any>).toS(o, "<none>")
                 LENGTH -> (o as Duration).toHMSMs()
                 else -> toS(o, substitute)
@@ -142,8 +142,8 @@ class MetadataGroup {
         @JvmStatic fun groupsOf(f: Metadata.Field<*>, ms: Collection<Metadata>): Stream<MetadataGroup> {
             val getGroupedOf = f.getGroupedOf()
             return ms.asSequence().groupBy { getGroupedOf(it) }
-                    .entries.stream()
-                    .map { (key, value) -> MetadataGroup(f, false, key, value) }
+                .entries.stream()
+                .map { (key, value) -> MetadataGroup(f, false, key, value) }
         }
 
         @JvmStatic

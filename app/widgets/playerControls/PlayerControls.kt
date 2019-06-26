@@ -61,26 +61,26 @@ import sp.it.util.units.toHMSMs
 import java.io.File
 
 @Widget.Info(
-        name = PLAYBACK,
-        author = "Martin Polakovic",
-        howto = "Playback actions:\n"
-                +"    Control Playback\n"
-                +"    Drop audio files : Adds or plays the files\n"
-                +"    Left click : Seek - move playback to seeked position\n"
-                +"    Mouse drag : Seek (on release)\n"
-                +"    Right click : Cancel seek\n"
-                +"    Add button left click : Opens file chooser and plays files\n"
-                +"    Add button right click: Opens directory chooser and plays files\n"
-                +"    Drop audio files : Adds or plays the files\n"
-                +"\nChapter actions:\n"
-                +"    Right click : Create chapter\n"
-                +"    Right click chapter : Open chapter\n"
-                +"    Mouse hover chapter (optional) : Open chapter\n",
-        description = "Playback control widget.",
-        notes = "",
-        version = "1.0.0",
-        year = "2014",
-        group = Widget.Group.PLAYBACK
+    name = PLAYBACK,
+    author = "Martin Polakovic",
+    howto = "Playback actions:\n"
+        + "    Control Playback\n"
+        + "    Drop audio files : Adds or plays the files\n"
+        + "    Left click : Seek - move playback to seeked position\n"
+        + "    Mouse drag : Seek (on release)\n"
+        + "    Right click : Cancel seek\n"
+        + "    Add button left click : Opens file chooser and plays files\n"
+        + "    Add button right click: Opens directory chooser and plays files\n"
+        + "    Drop audio files : Adds or plays the files\n"
+        + "\nChapter actions:\n"
+        + "    Right click : Create chapter\n"
+        + "    Right click chapter : Open chapter\n"
+        + "    Mouse hover chapter (optional) : Open chapter\n",
+    description = "Playback control widget.",
+    notes = "",
+    version = "1.0.0",
+    year = "2014",
+    group = Widget.Group.PLAYBACK
 )
 class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature, HorizontalDock {
 
@@ -148,11 +148,11 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
         currTime.onEventDown(MOUSE_CLICKED, PRIMARY) { elapsedTime.toggle() }
 
         installDrag(
-                root,
-                IconMD.PLAYLIST_PLUS,
-                "Add to active playlist",
-                { e -> e.dragboard.hasAudio() },
-                { e -> PlaylistManager.use { it.addItems(e.dragboard.getAudio()) } }
+            root,
+            IconMD.PLAYLIST_PLUS,
+            "Add to active playlist",
+            { e -> e.dragboard.hasAudio() },
+            { e -> PlaylistManager.use { it.addItems(e.dragboard.getAudio()) } }
         )
 
         root.heightProperty().map { it.toDouble()<100.0.scaleEM() } sync {
@@ -175,7 +175,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
     private fun playingItemChanged(song: Metadata) {
         titleL.text = song.getTitle() ?: "<no title>"
         artistL.text = song.getArtist() ?: "<no artist>"
-        bitrateL.text = song.getFieldS(BITRATE,  "<no bitrate>")
+        bitrateL.text = song.getFieldS(BITRATE, "<no bitrate>")
         sampleRateL.text = song.getSampleRate() ?: "<no sample rate>"
         channelsL.text = song.getChannels() ?: "<no channels>"
         seeker.reloadChapters(song)
@@ -239,7 +239,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
         } else {
             val remainingTimeS = playback.remainingTime.toSeconds()
             if (remainingTimeS!=lastRemainingTimeS)
-                currTime.text = "- "+playback.remainingTime.toHMSMs()
+                currTime.text = "- " + playback.remainingTime.toHMSMs()
             lastRemainingTimeS = remainingTimeS
         }
 
@@ -318,14 +318,14 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
             var left = snappedLeftInset()
             sequenceOf(f2, f3, f4).forEach {
                 layoutInArea(it, left, 0.0, it.layoutBounds.width, height, 0.0, HPos.CENTER, VPos.CENTER)
-                left += it.layoutBounds.width+gap
+                left += it.layoutBounds.width + gap
             }
 
             var right = snappedRightInset()
-            layoutInArea(muteB, width-right-muteB.width, 0.0, muteB.layoutBounds.width, height, 0.0, HPos.CENTER, VPos.CENTER)
-            right += muteB.layoutBounds.width+gap
+            layoutInArea(muteB, width - right - muteB.width, 0.0, muteB.layoutBounds.width, height, 0.0, HPos.CENTER, VPos.CENTER)
+            right += muteB.layoutBounds.width + gap
 
-            layoutInArea(seeker, left, 0.0, width-left-right, height, 0.0, HPos.CENTER, VPos.CENTER)
+            layoutInArea(seeker, left, 0.0, width - left - right, height, 0.0, HPos.CENTER, VPos.CENTER)
         }
 
     }

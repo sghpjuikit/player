@@ -20,34 +20,34 @@ import kotlin.annotation.AnnotationTarget.PROPERTY
 @Retention(RUNTIME)
 @Target(FUNCTION, PROPERTY)
 annotation class IsAction(
-        /**
-         * Name of the action. An identifier. Should be unique within the application.
-         * Default "".
-         */
-        val name: String = "",
-        /**
-         * Description of the action. Can be used to provide information about what
-         * does the action do. useful for filling in graphical user interface like
-         * tooltips.
-         * Default "".
-         */
-        val desc: String = "",
-        /**
-         * Key combination for shortcut of the action.
-         * Default "".
-         * For example: "CTRL+SHIFT+A", "A", "F7", "9", "ALT+T"
-         */
-        val keys: String = "",
-        /**
-         * Global action has broader activation limit. For example global shortcut
-         * doesn't require application to be focused. This value denotes the global
-         * attribute for the resulting action
-         * Default false.
-         */
-        val global: Boolean = false,
-        /**
-         * Denotes whether this action is called once or constantly on stimulus such as key press. Default false.
-         * Default false.
-         */
-        val repeat: Boolean = false
+    /**
+     * Name of the action. An identifier. Should be unique within the application.
+     * Default "".
+     */
+    val name: String = "",
+    /**
+     * Description of the action. Can be used to provide information about what
+     * does the action do. useful for filling in graphical user interface like
+     * tooltips.
+     * Default "".
+     */
+    val desc: String = "",
+    /**
+     * Key combination for shortcut of the action.
+     * Default "".
+     * For example: "CTRL+SHIFT+A", "A", "F7", "9", "ALT+T"
+     */
+    val keys: String = "",
+    /**
+     * Global action has broader activation limit. For example global shortcut
+     * doesn't require application to be focused. This value denotes the global
+     * attribute for the resulting action
+     * Default false.
+     */
+    val global: Boolean = false,
+    /**
+     * Denotes whether this action is called once or constantly on stimulus such as key press. Default false.
+     * Default false.
+     */
+    val repeat: Boolean = false
 )

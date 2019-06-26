@@ -19,13 +19,13 @@ class Waifu2kPlugin: PluginBase("Waifu2k", false) {
 
     private val action by lazy {
         Action(
-                "Upscale image (waifu2k)...",
-                { openUpscaleImage() },
-                "Upscale specified image with a neural network algorithm",
-                configurableGroup,
-                "",
-                true,
-                false
+            "Upscale image (waifu2k)...",
+            { openUpscaleImage() },
+            "Upscale specified image with a neural network algorithm",
+            configurableGroup,
+            "",
+            true,
+            false
         )
     }
 
@@ -46,10 +46,10 @@ class Waifu2kPlugin: PluginBase("Waifu2k", false) {
             runNew {
                 val program = it.waiffuDir.value!!
                 program.runAsProgram(
-                        "-i \""+it.source.value!!.absolutePath+"\"",
-                        "-o \""+it.destination.value!!.absolutePath+"\"",
-                        "-m scale",
-                        "-s 2.0"
+                    "-i \"" + it.source.value!!.absolutePath + "\"",
+                    "-o \"" + it.destination.value!!.absolutePath + "\"",
+                    "-m scale",
+                    "-s 2.0"
                 ).onError {
                     it.printStackTrace()
                 }

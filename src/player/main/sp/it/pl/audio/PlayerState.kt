@@ -34,8 +34,8 @@ class PlayerState {
         playlistId = PlaylistManager.active
 
         val activePlaylists = APP.widgetManager.widgets.findAll(OPEN).asSequence()
-                .mapNotNull { (it.controller as? PlaylistFeature)?.playlist?.id }
-                .toSet()
+            .mapNotNull { (it.controller as? PlaylistFeature)?.playlist?.id }
+            .toSet()
         playlists setTo PlaylistManager.playlists
         playlists.removeIf { it.id !in activePlaylists }
 
@@ -49,11 +49,11 @@ class PlayerState {
         @Blocks
         @JvmStatic
         fun deserialize() = CoreSerializer.readSingleStorage<PlayerStateDB>()
-                .let { it?.toDomain() ?: PlayerState() }
-                .also {
-                    PlaylistManager.playlists += it.playlists
-                    PlaylistManager.active = it.playlistId
-                }
+            .let { it?.toDomain() ?: PlayerState() }
+            .also {
+                PlaylistManager.playlists += it.playlists
+                PlaylistManager.active = it.playlistId
+            }
 
     }
 

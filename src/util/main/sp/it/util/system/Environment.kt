@@ -102,26 +102,26 @@ fun URI.browse() {
     logger.info { "Browsing uri=$this" }
     runNew {
         toFileOrNull()
-                .ifNotNull {
-                    if (Os.WINDOWS.isCurrent) {
-                        it.openWindowsExplorerAndSelect()
+            .ifNotNull {
+                if (Os.WINDOWS.isCurrent) {
+                    it.openWindowsExplorerAndSelect()
+                } else {
+                    // Would be nice if this was widely supported, but it isn't
+                    if (Desktop.Action.BROWSE_FILE_DIR.isSupportedOrWarn()) {
+                        Desktop.getDesktop().browseFileDirectory(it)
                     } else {
-                        // Would be nice if this was widely supported, but it isn't
-                        if (Desktop.Action.BROWSE_FILE_DIR.isSupportedOrWarn()) {
-                            Desktop.getDesktop().browseFileDirectory(it)
-                        } else {
-                            it.parentDirOrRoot.open()
-                        }
+                        it.parentDirOrRoot.open()
                     }
                 }
-                .ifNull {
-                    try {
-                        if (Desktop.Action.BROWSE.isSupportedOrWarn())
-                            Desktop.getDesktop().browse(this)
-                    } catch (e: IOException) {
-                        logger.error(e) { "Browsing uri=$this failed" }
-                    }
+            }
+            .ifNull {
+                try {
+                    if (Desktop.Action.BROWSE.isSupportedOrWarn())
+                        Desktop.getDesktop().browse(this)
+                } catch (e: IOException) {
+                    logger.error(e) { "Browsing uri=$this failed" }
                 }
+            }
     }
 }
 
@@ -256,38 +256,38 @@ fun saveFile(title: String, initial: File? = null, initialName: String, w: Windo
 
 /** @return file representing the current desktop wallpaper or null if not supported */
 fun Screen.getWallpaperFile(): File? =
-        if (Os.WINDOWS.isCurrent) {
-            val path = Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, "Control Panel\\Desktop", "Wallpaper")
-            val isMultiWallpaper = path.endsWith("TranscodedWallpaper")
-            if (isMultiWallpaper) {
-                val pathPrefix = path.substringBeforeLast("Wallpaper")
-                val index = (ordinal-1).toString().padStart(3, '0')
-                File("${pathPrefix}_$index")
-                        .takeIf { it.exists() }
-                        ?: File(path)
-            } else {
-                File(path)
-            }
+    if (Os.WINDOWS.isCurrent) {
+        val path = Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, "Control Panel\\Desktop", "Wallpaper")
+        val isMultiWallpaper = path.endsWith("TranscodedWallpaper")
+        if (isMultiWallpaper) {
+            val pathPrefix = path.substringBeforeLast("Wallpaper")
+            val index = (ordinal - 1).toString().padStart(3, '0')
+            File("${pathPrefix}_$index")
+                .takeIf { it.exists() }
+                ?: File(path)
         } else {
-            null
+            File(path)
         }
+    } else {
+        null
+    }
 
 private fun Desktop.Action.isSupportedOrWarn() =
-        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(this)) {
-            true
-        } else {
-            logger.warn { "Unsupported operation=$this" }
-            false
-        }
+    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(this)) {
+        true
+    } else {
+        logger.warn { "Unsupported operation=$this" }
+        false
+    }
 
 private fun File.openWindowsExplorerAndSelect() =
-        try {
-            Runtime.getRuntime().exec(arrayOf("explorer.exe", "/select,", "\"$path\""))
-            true
-        } catch (e: IOException) {
-            logger.error(e) { "Failed to open explorer.exe and select file=$this" }
-            false
-        }
+    try {
+        Runtime.getRuntime().exec(arrayOf("explorer.exe", "/select,", "\"$path\""))
+        true
+    } catch (e: IOException) {
+        logger.error(e) { "Failed to open explorer.exe and select file=$this" }
+        false
+    }
 
 /**
  * This is best estimate only, and only checks file extension.

@@ -19,11 +19,11 @@ fun Instant.toLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(this, ZON
 
 /** @return local date time from epoch millis or null if parameter exceeds the maximum or minimum [java.time.Instant] */
 fun Long.localDateTimeFromMillis(): LocalDateTime? =
-        try {
-            Instant.ofEpochMilli(this).toLocalDateTime()
-        } catch (e: DateTimeException) {
-            null
-        }
+    try {
+        Instant.ofEpochMilli(this).toLocalDateTime()
+    } catch (e: DateTimeException) {
+        null
+    }
 
 /** @return string of printed stacktrace of this throwable */
 val Throwable.stacktraceAsString: String

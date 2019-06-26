@@ -31,21 +31,21 @@ class CellPane: Pane {
         val elements = children.size
         if (elements==0) return
         val w = width
-        val c = floor((w+cellG)/(cellW+cellG)).toInt()
+        val c = floor((w + cellG)/(cellW + cellG)).toInt()
         val columns = 1 max c
-        val gapX = cellG+(w+cellG-columns*(cellW+cellG))/columns
+        val gapX = cellG + (w + cellG - columns*(cellW + cellG))/columns
         val gapY = cellG
 
         children.forEachIndexed { i, n ->
-            val x = i%columns*(cellW+gapX)
-            val y = i/columns*(cellH+gapY)
+            val x = i%columns*(cellW + gapX)
+            val y = i/columns*(cellH + gapY)
             n.relocate(x, y)
             n.resize(cellW, cellH)
         }
 
         val rows = ceil(elements.toDouble()/columns).toInt()
 
-        runLater { prefHeight = rows*(cellH+gapY) }
+        runLater { prefHeight = rows*(cellH + gapY) }
     }
 
 }

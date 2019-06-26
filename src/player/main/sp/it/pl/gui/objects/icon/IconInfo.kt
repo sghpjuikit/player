@@ -22,8 +22,8 @@ class IconInfo(icon: GlyphIcons?, iconSize: Double): VBox(5.0) {
     init {
         alignment = CENTER
         graphics = Icon(icon, iconSize)
-                .onClickDo { copyToSysClipboard(glyph?.name() ?: "") }
-                .styleclass("icon-info-icon")
+            .onClickDo { copyToSysClipboard(glyph?.name() ?: "") }
+            .styleclass("icon-info-icon")
         lay(ALWAYS) += stackPane(graphics)
         lay += nameLabel
     }

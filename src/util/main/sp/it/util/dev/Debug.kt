@@ -29,7 +29,7 @@ fun <T> ObservableValue<T>.printOnChange(name: String = "") = attach { println("
 fun <T> printExecutionTime(block: () -> T): T {
     val time = System.currentTimeMillis()
     val t = block()
-    println(System.currentTimeMillis()-time)
+    println(System.currentTimeMillis() - time)
     return t
 }
 

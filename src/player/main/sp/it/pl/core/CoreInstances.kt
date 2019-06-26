@@ -18,15 +18,15 @@ object CoreInstances: InstanceMap(), Core {
     @Suppress("RemoveExplicitTypeArguments")
     override fun init() {
         addInstances<SearchUriBuilder>(
-                DuckDuckGoQBuilder,
-                DuckDuckGoImageQBuilder,
-                WikipediaQBuilder,
-                BingImageSearchQBuilder,
-                GoogleImageQBuilder
+            DuckDuckGoQBuilder,
+            DuckDuckGoImageQBuilder,
+            WikipediaQBuilder,
+            BingImageSearchQBuilder,
+            GoogleImageQBuilder
         )
         addInstances<KClass<out Skin<Rating>>>(
-                RatingSkinStar::class,
-                RatingSkinNumber::class
+            RatingSkinStar::class,
+            RatingSkinNumber::class
         )
     }
 

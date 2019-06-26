@@ -86,17 +86,17 @@ class FxExecutor: Executor {
      * * more than zero, blocked is invoked after the delay
      */
     operator fun invoke(delay: Duration) = when {
-            delay < ZERO -> fail()
-            delay > ZERO -> Executor {
-                val time = System.currentTimeMillis().toDouble()
-                runFX {
-                    val diff = System.currentTimeMillis()-time
-                    val duration = 0.0 max delay.toMillis()-diff
-                    fxTimer(duration.millis, 1, it.kt).start()
-                }
+        delay<ZERO -> fail()
+        delay>ZERO -> Executor {
+            val time = System.currentTimeMillis().toDouble()
+            runFX {
+                val diff = System.currentTimeMillis() - time
+                val duration = 0.0 max delay.toMillis() - diff
+                fxTimer(duration.millis, 1, it.kt).start()
             }
-            else -> this
         }
+        else -> this
+    }
 }
 
 /** Executes the specified block on fx thread using [Platform.runLater]. */
@@ -189,7 +189,7 @@ fun oneTPExecutor() = Executors.newSingleThreadExecutor(threadFactory(true))!!
 
 /** @return single thread executor keeping the thread alive for specified time and using specified thread factory */
 fun oneCachedTPExecutor(keepAliveTime: Duration, threadFactory: ThreadFactory) =
-        ThreadPoolExecutor(0, 1, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue<Runnable>(), threadFactory)
+    ThreadPoolExecutor(0, 1, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue<Runnable>(), threadFactory)
 
 /**
  * Resolves: https://stackoverflow.com/questions/19528304/how-to-get-the-threadpoolexecutor-to-increase-threads-to-max-before-queueing/19528305#19528305

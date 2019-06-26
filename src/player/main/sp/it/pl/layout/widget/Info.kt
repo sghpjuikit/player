@@ -52,10 +52,9 @@ interface WidgetInfo: ComponentInfo {
 
     /** @return all features the widget's controller implements */
     fun getFeatures() = type().interfaces.asSequence()
-            .map { it.kotlin.findAnnotation<Feature>() }
-            .filterNotNull()
-            .distinct()
-            .toList()
+        .mapNotNull { it.kotlin.findAnnotation<Feature>() }
+        .distinct()
+        .toList()
 
     /** @return true iff widget's controller implements given feature */
     fun hasFeature(feature: Feature) = hasFeature(feature.type)
@@ -71,11 +70,11 @@ interface WidgetInfo: ComponentInfo {
 
     override fun toStr(): String {
         val fs = getFeatures()
-        return "Component: Widget ${nameGui()}\n"+
-                (if (description().isEmpty()) "" else "Info: ${description()}\n")+
-                (if (notes().isEmpty()) "" else "${notes()}\n")+
-                (if (howto().isEmpty()) "" else "${howto()}\n")+
-                "Features: "+(if (fs.isEmpty()) "none" else toS(fs) { f -> "\n\t${f.name} - ${f.description}" })
+        return "Component: Widget ${nameGui()}\n" +
+            (if (description().isEmpty()) "" else "Info: ${description()}\n") +
+            (if (notes().isEmpty()) "" else "${notes()}\n") +
+            (if (howto().isEmpty()) "" else "${howto()}\n") +
+            "Features: " + (if (fs.isEmpty()) "none" else toS(fs) { f -> "\n\t${f.name} - ${f.description}" })
     }
 
 }

@@ -24,10 +24,10 @@ fun <T> Set<T>.materialize() = toList()
 /** @return the most specific common supertype of all elements */
 fun <E: Any> Collection<E?>.getElementType(): Class<*> {
     return asSequence().filterNotNull()
-            .map { it::class as KClass<*> }.distinct()
-            .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }
-            ?.java
-            ?: Void::class.java
+        .map { it::class as KClass<*> }.distinct()
+        .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }
+        ?.java
+        ?: Void::class.java
 }
 
 /** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */
@@ -54,7 +54,7 @@ infix fun <T> MutableCollection<T>.setToOne(element: T) {
 }
 
 /** @return read only observable list that maintains the elements from this list mapped using the specified mapper */
-fun <T,R> ObservableList<T>.project(mapper: (T) -> R): ObservableListRO<R> {
+fun <T, R> ObservableList<T>.project(mapper: (T) -> R): ObservableListRO<R> {
     val outBacking = observableArrayList<R>()
     outBacking setTo map(mapper)
     onChange { outBacking setTo map(mapper) }
@@ -62,7 +62,7 @@ fun <T,R> ObservableList<T>.project(mapper: (T) -> R): ObservableListRO<R> {
 }
 
 /** @return read only observable set that maintains the elements from this set mapped using the specified mapper */
-fun <T,R> ObservableSet<T>.project(mapper: (T) -> R): ObservableSetRO<R> {
+fun <T, R> ObservableSet<T>.project(mapper: (T) -> R): ObservableSetRO<R> {
     val outBacking = observableSet<R>()
     outBacking setTo map(mapper)
     onChange { outBacking setTo map(mapper) }

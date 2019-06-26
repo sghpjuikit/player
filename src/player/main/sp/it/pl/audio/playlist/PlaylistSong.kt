@@ -191,7 +191,7 @@ class PlaylistSong: Song {
         override fun isTypeNumberNoNegative(): Boolean = true
 
         override fun toS(o: T?, substitute: String): String {
-            return when(this) {
+            return when (this) {
                 NAME, TITLE, ARTIST -> if (""==o) substitute else o.toString()
                 PATH, FORMAT -> o.toString()
                 LENGTH -> (o as Duration).toHMSMs()

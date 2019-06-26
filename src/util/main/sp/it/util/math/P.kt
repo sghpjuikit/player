@@ -13,16 +13,16 @@ data class P @JvmOverloads constructor(var x: Double = 0.0, var y: Double = 0.0)
     fun distance(p: P) = distance(p.x, p.y)
 
     @JvmOverloads
-    fun distance(x: Double = 0.0, y: Double = 0.0) = sqrt((x-this.x)*(x-this.x)+(y-this.y)*(y-this.y))
+    fun distance(x: Double = 0.0, y: Double = 0.0) = sqrt((x - this.x)*(x - this.x) + (y - this.y)*(y - this.y))
 
-    operator fun plus(p: P) = P(x+p.x, y+p.y)
+    operator fun plus(p: P) = P(x + p.x, y + p.y)
 
     operator fun plusAssign(p: P) {
         x += p.x
         y += p.y
     }
 
-    operator fun minus(p: P) = P(x-p.x, y-p.y)
+    operator fun minus(p: P) = P(x - p.x, y - p.y)
 
     operator fun minusAssign(bounds: P) {
         x -= bounds.x
@@ -43,14 +43,14 @@ data class P @JvmOverloads constructor(var x: Double = 0.0, var y: Double = 0.0)
         y /= bounds.y
     }
 
-    operator fun plus(n: Double) = P(x+n, y+n)
+    operator fun plus(n: Double) = P(x + n, y + n)
 
     operator fun plusAssign(n: Double) {
         x += n
         y += n
     }
 
-    operator fun minus(n: Double) = P(x-n, y-n)
+    operator fun minus(n: Double) = P(x - n, y - n)
 
     operator fun minusAssign(n: Double) {
         x -= n

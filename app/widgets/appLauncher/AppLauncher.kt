@@ -69,12 +69,12 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 
 @Widget.Info(
-        author = "Martin Polakovic",
-        name = Widgets.APP_LAUNCHER,
-        description = "Application menu and launcher",
-        version = "0.8.0",
-        year = "2016",
-        group = OTHER
+    author = "Martin Polakovic",
+    name = Widgets.APP_LAUNCHER,
+    description = "Application menu and launcher",
+    version = "0.8.0",
+    year = "2016",
+    group = OTHER
 )
 @ExperimentalController(reason = "DirView widget could be improved to be fulfill this widget's purpose. Also needs better UX.")
 class AppLauncher(widget: Widget): SimpleController(widget) {
@@ -90,7 +90,7 @@ class AppLauncher(widget: Widget): SimpleController(widget) {
     @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
     private val fitFrom by cv(FitFrom.OUTSIDE)
 
-    private val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio+CELL_TEXT_HEIGHT, 5.0, 5.0)
+    private val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio + CELL_TEXT_HEIGHT, 5.0, 5.0)
     private val imageLoader = Loader(oneTPExecutor())
     private val visitId = AtomicLong(0)
 
@@ -131,9 +131,9 @@ class AppLauncher(widget: Widget): SimpleController(widget) {
         }
 
         installDrag(
-                root, IconFA.PLUS_SQUARE_ALT, "Add launcher",
-                { e -> e.dragboard.hasFiles() },
-                { e -> files += e.dragboard.files }
+            root, IconFA.PLUS_SQUARE_ALT, "Add launcher",
+            { e -> e.dragboard.hasFiles() },
+            { e -> files += e.dragboard.files }
         )
 
         files.onChange { filesMaterialized = files.materialize() }
@@ -156,7 +156,7 @@ class AppLauncher(widget: Widget): SimpleController(widget) {
         runIO {
             i.children().sortedWith(buildSortComparator())
         }.withAppProgress(
-                widget.custom_name.value+": Fetching view"
+            widget.custom_name.value + ": Fetching view"
         ) ui {
             grid.itemsRaw setTo it
             grid.implGetSkin().position = i.lastScrollPosition max 0.0
@@ -179,7 +179,7 @@ class AppLauncher(widget: Widget): SimpleController(widget) {
     }
 
     private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
-        grid.setCellSize(width, height+CELL_TEXT_HEIGHT)
+        grid.setCellSize(width, height + CELL_TEXT_HEIGHT)
         visit()
     }
 
@@ -192,8 +192,8 @@ class AppLauncher(widget: Widget): SimpleController(widget) {
     }
 
     private fun buildSortComparator() = compareBy<Item> { 0 }
-            .thenBy { it.valType }.inSort(sortFile.value.sort)
-            .thenBy(sortBy.value.comparator<File> { it.inSort(sort.value).nullsLast() }) { it.value }
+        .thenBy { it.valType }.inSort(sortFile.value.sort)
+        .thenBy(sortBy.value.comparator<File> { it.inSort(sort.value).nullsLast() }) { it.value }
 
     private inner class Cell: GridFileThumbCell(imageLoader) {
 
@@ -206,14 +206,14 @@ class AppLauncher(widget: Widget): SimpleController(widget) {
     private open class FItem(parent: Item?, value: File?, type: FileType?): Item(parent, value, type) {
 
         override fun createItem(parent: Item, value: File, type: FileType) = null
-                ?: value.getPortableAppExe(type)?.net { FItem(parent, it, FILE) }
-                ?: FItem(parent, value, type)
+            ?: value.getPortableAppExe(type)?.net { FItem(parent, it, FILE) }
+            ?: FItem(parent, value, type)
 
     }
 
     private inner class TopItem: FItem(null, null, null) {
 
-        override fun childrenFiles() = (filesMaterialized.asSequence()+startMenuPrograms()).distinct()
+        override fun childrenFiles() = (filesMaterialized.asSequence() + startMenuPrograms()).distinct()
 
         override fun getCoverFile() = null
 
@@ -227,8 +227,8 @@ class AppLauncher(widget: Widget): SimpleController(widget) {
 
         fun startMenuPrograms(): Sequence<File> = when (Os.current) {
             Os.WINDOWS -> windowsAppData().walk()
-                    .filter { '.' in it.name && !it.name.contains("uninstall", true) }
-                    .map { CachingFile(it) }
+                .filter { '.' in it.name && !it.name.contains("uninstall", true) }
+                .map { CachingFile(it) }
             else -> sequenceOf()
         }
 

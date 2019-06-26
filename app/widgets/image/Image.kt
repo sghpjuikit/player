@@ -32,13 +32,13 @@ import sp.it.util.validation.Constraint.FileActor.FILE
 import java.io.File
 
 @Widget.Info(
-        author = "Martin Polakovic",
-        name = "Image",
-        description = "Shows a static image",
-        howto = "Available actions:\n    Drag & drop image : Set custom image",
-        version = "1.0.0",
-        year = "2015",
-        group = OTHER
+    author = "Martin Polakovic",
+    name = "Image",
+    description = "Shows a static image",
+    howto = "Available actions:\n    Drag & drop image : Set custom image",
+    version = "1.0.0",
+    year = "2015",
+    group = OTHER
 )
 class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
 
@@ -60,10 +60,10 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
         root.lay += thumb.pane
 
         installDrag(
-                root, IconMD.DETAILS, "Display",
-                { e -> e.dragboard.hasImageFileOrUrl() },
-                { e -> img!=null && img==e.dragboard.getImageFile() },
-                { e -> e.dragboard.getImageFileOrUrl() ui { inputImg.value = it } }
+            root, IconMD.DETAILS, "Display",
+            { e -> e.dragboard.hasImageFileOrUrl() },
+            { e -> img!=null && img==e.dragboard.getImageFile() },
+            { e -> e.dragboard.getImageFileOrUrl() ui { inputImg.value = it } }
         )
         root.onEventDown(KEY_PRESSED, ENTER) { img?.let { APP.actions.openImageFullscreen(it) } }
         root.onEventDown(KEY_PRESSED, SPACE) { fitFrom.toggleNext() }

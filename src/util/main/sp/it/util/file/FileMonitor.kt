@@ -81,8 +81,8 @@ class FileMonitor {
             val files = eventAccumulations.keys.materialize()
             val events = files.mapNotNull { f ->
                 eventAccumulations[f]
-                        ?.takeIf { timeMs-it.timeMs>timeEvict }
-                        ?.let { eventAccumulations.remove(f) }
+                    ?.takeIf { timeMs - it.timeMs>timeEvict }
+                    ?.let { eventAccumulations.remove(f) }
             }
             events.forEach { it.emit() }
         }

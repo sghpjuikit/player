@@ -270,6 +270,7 @@ open class PopOver<N: Node>(): PopupControl() {
                         val hwnd = WinDef.HWND(Pointer(hwndLong))
                         return hwnd
                     }
+
                     val hwnd = hwnd()
                     val SWP_NOSIZE = 0x0001
                     val SWP_NOMOVE = 0x0002
@@ -412,7 +413,7 @@ open class PopOver<N: Node>(): PopupControl() {
      */
     override fun show(owner: Node, x: Double, y: Double) {
         showThis(owner, owner.scene.window)
-        position { owner.localToScreen(x, y).toP()+owner.layoutBounds.size/2.0 }
+        position { owner.localToScreen(x, y).toP() + owner.layoutBounds.size/2.0 }
     }
 
     /** Show popup. Equivalent to: show(owner, 0, 0). */
@@ -485,48 +486,48 @@ open class PopOver<N: Node>(): PopupControl() {
         val bounds = this@PopOver.skin.node.layoutBounds
         return when (arrowLocation.value) {
             TOP_CENTER, TOP_LEFT, TOP_RIGHT -> P(
-                    computeXOffset(),
-                    0.0
+                computeXOffset(),
+                0.0
             )
             LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM -> P(
-                    +bounds.minX+arrowSize.value,
-                    +bounds.minY-computeYOffset()
+                +bounds.minX + arrowSize.value,
+                +bounds.minY - computeYOffset()
             )
             BOTTOM_CENTER, BOTTOM_LEFT, BOTTOM_RIGHT -> P(
-                    +bounds.minX-computeXOffset(),
-                    -bounds.minY-bounds.maxY-1.0
+                +bounds.minX - computeXOffset(),
+                -bounds.minY - bounds.maxY - 1.0
             )
             RIGHT_TOP, RIGHT_BOTTOM, RIGHT_CENTER -> P(
-                    -bounds.minX-bounds.maxX-1.0,
-                    +bounds.minY-computeYOffset()
+                -bounds.minX - bounds.maxX - 1.0,
+                +bounds.minY - computeYOffset()
             )
         }
     }
 
-    fun computeArrowMarginX(): Double = when(arrowLocation.value) {
+    fun computeArrowMarginX(): Double = when (arrowLocation.value) {
         LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM -> -arrowSize.value
         RIGHT_TOP, RIGHT_CENTER, RIGHT_BOTTOM -> arrowSize.value
         else -> 0.0
     }
 
-    fun computeArrowMarginY(): Double = when(arrowLocation.value) {
+    fun computeArrowMarginY(): Double = when (arrowLocation.value) {
         TOP_LEFT, TOP_CENTER, TOP_RIGHT -> -arrowSize.value
         BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT -> arrowSize.value
         else -> 0.0
     }
 
     private fun computeXOffset(): Double = when (arrowLocation.value) {
-        TOP_LEFT, BOTTOM_LEFT -> arrowIndent.value+arrowSize.value
+        TOP_LEFT, BOTTOM_LEFT -> arrowIndent.value + arrowSize.value
         TOP_CENTER, BOTTOM_CENTER -> -this@PopOver.skin.node.layoutBounds.width/2
-    //				return getContentNode().prefWidth(-1)/2 + arrowSize.value + arrowIndent.value;
-        TOP_RIGHT, BOTTOM_RIGHT -> contentNode.value.prefWidth(-1.0)-arrowIndent.value-arrowSize.value
+        //				return getContentNode().prefWidth(-1)/2 + arrowSize.value + arrowIndent.value;
+        TOP_RIGHT, BOTTOM_RIGHT -> contentNode.value.prefWidth(-1.0) - arrowIndent.value - arrowSize.value
         else -> 0.0
     }
 
     private fun computeYOffset(): Double = when (arrowLocation.value) {
-        LEFT_TOP, RIGHT_TOP -> arrowIndent.value+arrowSize.value
-        LEFT_CENTER, RIGHT_CENTER -> contentNode.value.prefHeight(-1.0)/2+arrowSize.value+arrowIndent.value
-        LEFT_BOTTOM, RIGHT_BOTTOM -> contentNode.value.prefHeight(-1.0)-arrowIndent.value-arrowSize.value
+        LEFT_TOP, RIGHT_TOP -> arrowIndent.value + arrowSize.value
+        LEFT_CENTER, RIGHT_CENTER -> contentNode.value.prefHeight(-1.0)/2 + arrowSize.value + arrowIndent.value
+        LEFT_BOTTOM, RIGHT_BOTTOM -> contentNode.value.prefHeight(-1.0) - arrowIndent.value - arrowSize.value
         else -> 0.0
     }
 
@@ -589,19 +590,19 @@ open class PopOver<N: Node>(): PopupControl() {
     // listeners for relocating
     private val xListener = ChangeListener<Number> { _, _, _ ->
         if (ownerMNode!=null)
-            x = deltaThisX+ownerMNode!!.localToScreen(0.0, 0.0).x-deltaX
+            x = deltaThisX + ownerMNode!!.localToScreen(0.0, 0.0).x - deltaX
     }
     private val yListener = ChangeListener<Number> { _, _, _ ->
         if (ownerMNode!=null)
-            y = deltaThisY+ownerMNode!!.localToScreen(0.0, 0.0).y-deltaY
+            y = deltaThisY + ownerMNode!!.localToScreen(0.0, 0.0).y - deltaY
     }
     private val winXListener = ChangeListener<Number> { _, _, _ ->
         if (ownerMWindow!=null)
-            x = deltaThisX+ownerMWindow!!.x-deltaX
+            x = deltaThisX + ownerMWindow!!.x - deltaX
     }
     private val winYListener = ChangeListener<Number> { _, _, _ ->
         if (ownerMWindow!=null)
-            y = deltaThisY+ownerMWindow!!.y-deltaY
+            y = deltaThisY + ownerMWindow!!.y - deltaY
     }
     private val winHideListener = EventHandler<WindowEvent> { visibilityListener.changed(null, null, null) }
 

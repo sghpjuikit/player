@@ -102,7 +102,7 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
             var unit: Long = 1
             val b = maxOf(v.indexOf("B"), v.indexOf("b"))
             if (b>0) {
-                val prefix = v.substring(b-1, b)
+                val prefix = v.substring(b - 1, b)
                 var skip = 0
                 when {
                     "k".equals(prefix, true) -> {
@@ -130,7 +130,7 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
                         skip++
                     }
                 }
-                v = v.substring(0, b-skip).trim()
+                v = v.substring(0, b - skip).trim()
             }
             return try {
                 Try.ok(FileSize((unit*v.toDouble()).toLong()))

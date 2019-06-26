@@ -65,14 +65,14 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
     }
 
     private fun updateCache() {
-        runFX { searchDirs.materialize()}
+        runFX { searchDirs.materialize() }
             .then(NEW) { dirs ->
                 val id = cacheUpdate.getAndIncrement()
                 dirs.asSequence()
-                        .distinct()
-                        .flatMap { findDirectories(it, id) }
-                        .toList()
-                        .also { writeCache(it) }
+                    .distinct()
+                    .flatMap { findDirectories(it, id) }
+                    .toList()
+                    .also { writeCache(it) }
             }.ui {
                 searchSourceDirs = it
             }
@@ -87,18 +87,18 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
     }
 
     private fun File.toOpenDirEntry() = ConfigSearch.Entry.of(
-            { "Open directory: $absolutePath" },
-            { "Opens directory: $absolutePath" },
-            { "Open directory: $absolutePath" },
-            { Icon(IconFA.FOLDER) },
-            { browse() }
+        { "Open directory: $absolutePath" },
+        { "Opens directory: $absolutePath" },
+        { "Open directory: $absolutePath" },
+        { Icon(IconFA.FOLDER) },
+        { browse() }
     )
 
     private fun findDirectories(rootDir: File, id: Long) =
-            rootDir.walkTopDown()
-                    .onEnter { file -> cacheUpdate.get()==id && file.isDirectory }
-                    .onFail { file, e -> logger.warn(e) { "Couldn't not properly read/access file=$file" } }
-                    .maxDepth(searchDepth.value)
+        rootDir.walkTopDown()
+            .onEnter { file -> cacheUpdate.get()==id && file.isDirectory }
+            .onFail { file, e -> logger.warn(e) { "Couldn't not properly read/access file=$file" } }
+            .maxDepth(searchDepth.value)
 
     companion object: KLogging()
 

@@ -86,9 +86,9 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
         if (it.clickCount==2 && it.button==PRIMARY && isCollapsed) {
             val so = splitPane.orientation
             val isGrabber = so==VERTICAL && collapsed==-1 && it.y<grabberSize ||
-                    so==VERTICAL && collapsed==1 && it.y>splitPane.height-grabberSize ||
-                    so==HORIZONTAL && collapsed==-1 && it.x<grabberSize ||
-                    so==HORIZONTAL && collapsed==1 && it.x>splitPane.width-grabberSize
+                so==VERTICAL && collapsed==1 && it.y>splitPane.height - grabberSize ||
+                so==HORIZONTAL && collapsed==-1 && it.x<grabberSize ||
+                so==HORIZONTAL && collapsed==1 && it.x>splitPane.width - grabberSize
 
             if (isGrabber)
                 collapsed = 0
@@ -98,9 +98,9 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
         if (isCollapsed) {
             val so = splitPane.orientation
             val isGrabber = so==VERTICAL && collapsed==-1 && it.y<grabberSize ||
-                    so==VERTICAL && collapsed==1 && it.y>splitPane.height-grabberSize ||
-                    so==HORIZONTAL && collapsed==-1 && it.x<grabberSize ||
-                    so==HORIZONTAL && collapsed==1 && it.x>splitPane.width-grabberSize
+                so==VERTICAL && collapsed==1 && it.y>splitPane.height - grabberSize ||
+                so==HORIZONTAL && collapsed==-1 && it.x<grabberSize ||
+                so==HORIZONTAL && collapsed==1 && it.x>splitPane.width - grabberSize
 
             if (isGrabber)
                 collapsed = 0
@@ -182,7 +182,7 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
     }
 
     fun setComponent(i: Int, c: Component?) {
-        failIf (i!=1 && i!=2) { "Index must be 1 or 2" }
+        failIf(i!=1 && i!=2) { "Index must be 1 or 2" }
 
         fun <T> T.closeUi(ui: KProperty0<ComponentUi?>) = apply { if (ui.value is Layouter || ui.value is WidgetUi) ui.value?.dispose() }
         fun <T: AltState> T.showIfLM() = apply { if (APP.ui.isLayoutMode) show() }
@@ -213,7 +213,7 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
 
     /** Toggle fixed size between child1/child2/off. */
     fun toggleAbsoluteSize() {
-        absoluteSize = absoluteSize.let { if (it==2) 0 else it+1 }
+        absoluteSize = absoluteSize.let { if (it==2) 0 else it + 1 }
     }
 
     /** Toggle fixed size for specified children between true/false. */

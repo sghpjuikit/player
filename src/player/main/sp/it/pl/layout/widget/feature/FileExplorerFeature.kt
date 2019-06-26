@@ -4,9 +4,9 @@ import sp.it.util.file.Util.getCommonFile
 import java.io.File
 
 @Feature(
-        name = "File explorer",
-        description = "File system viewer capable of browsing files",
-        type = FileExplorerFeature::class
+    name = "File explorer",
+    description = "File system viewer capable of browsing files",
+    type = FileExplorerFeature::class
 )
 interface FileExplorerFeature {
 

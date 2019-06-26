@@ -60,10 +60,10 @@ class ContextMenuGenerator {
         val itemsNType = valueMulti.asIf<Collection<*>>()?.getElementType()
         val itemsN = itemsNType?.net { mMany.getElementsOfSuperV(it) } ?: listOf()
 
-        return (items1.asSequence()+itemsN.asSequence())
-                .map { it(contextMenu, value) }
-                .flatMap { sequenceOf(menuSeparator())+it }
-                .drop(1)
+        return (items1.asSequence() + itemsN.asSequence())
+            .map { it(contextMenu, value) }
+            .flatMap { sequenceOf(menuSeparator()) + it }
+            .drop(1)
     }
 
     /** Allows DSL for [ContextMenuGenerator]. */
@@ -82,12 +82,12 @@ class ContextMenuGenerator {
 }
 
 fun ContextMenuGenerator.Builder<*>.item(text: String, handler: (ActionEvent) -> Unit) =
-        item(menuItem(text, handler))
+    item(menuItem(text, handler))
 
 fun ContextMenuGenerator.Builder<*>.menu(text: String, graphics: Node? = null, items: Menu.() -> Unit) =
-        item(Menu(text, graphics).apply(items))
+    item(Menu(text, graphics).apply(items))
 
 fun ContextMenuGenerator.Builder<*>.menu(text: String, items: Sequence<MenuItem> = sequenceOf()) =
-        item(Menu(text, null, *items.asArray()))
+    item(Menu(text, null, *items.asArray()))
 
 fun ContextMenuGenerator.Builder<*>.separator() = item(menuSeparator())

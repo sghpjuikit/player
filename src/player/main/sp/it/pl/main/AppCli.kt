@@ -62,23 +62,23 @@ class AppCli {
 }
 
 private class Cli: CliktCommand(
-        name = APP.name,
-        invokeWithoutSubcommand = true,
-        help = "${APP.name} application command-line interface"
+    name = APP.name,
+    invokeWithoutSubcommand = true,
+    help = "${APP.name} application command-line interface"
 
 ) {
     val version = versionOption("Application version=${APP.version}")
     val stateless by option(help = "Whether application starts with a state. If true, state is not restored on start or stored on close")
-            .convert { it.toBoolean() }.default(false)
+        .convert { it.toBoolean() }.default(false)
     val singleton by option(help = "Whether application should close and delegate arguments if there is already running instance")
-            .convert { it.toBoolean() }.default(true)
+        .convert { it.toBoolean() }.default(true)
 
     init {
         context {
             helpFormatter = CliktHelpFormatter(
-                    showDefaultValues = true,
-                    requiredOptionMarker = "*",
-                    showRequiredTag = true
+                showDefaultValues = true,
+                requiredOptionMarker = "*",
+                showRequiredTag = true
             )
         }
     }
@@ -92,9 +92,9 @@ private class Cli: CliktCommand(
 
     init {
         subcommands(
-                object: CliktCommand(
-                        name = "open-files",
-                        help = """
+            object: CliktCommand(
+                name = "open-files",
+                help = """
                             ```
                             Open the specified files by this application.
                             - if `user-action-only` is present, an ui choice will be displayed. Otherwise:
@@ -107,65 +107,65 @@ private class Cli: CliktCommand(
                             - otherwise `user-action-only` will be considered true
                             ```
                         """
-                ) {
-                    val userActionOnly by option(help = "").flag(default = false)
-                    val files by argument(help = "0-N absolute paths to a file.").file().multiple().validate {
-                        it.forEach { it.requireAbsolute() }
-                    }
+            ) {
+                val userActionOnly by option(help = "").flag(default = false)
+                val files by argument(help = "0-N absolute paths to a file.").file().multiple().validate {
+                    it.forEach { it.requireAbsolute() }
+                }
 
-                    override fun run() = APP.run1AppReady {
-                        when {
-                            userActionOnly -> {
-                                APP.ui.actionPane.orBuild.show(files)
-                            }
-                            files.isEmpty() -> {
-                                if (!APP.isInitialized.isOk && !APP.isStateful)
-                                    exitProcess(0)
-                            }
-                            files.all { it.isAudio() } -> {
-                                APP.widgetManager.widgets.use<PlaylistFeature>(NEW) {
-                                    it.playlist.addFiles(files)
-                                    it.playlist.playFirstItem()
-                                }
-                            }
-                            files.all { it.isImage() } -> {
-                                if (files.size==1) APP.actions.openImageFullscreen(files.first())
-                                else APP.widgetManager.widgets.use<ImageDisplayFeature>(NEW) { it.showImages(files) }
-                            }
-                            files.all { it hasExtension "fxwl" } -> {
-                                files.forEach { APP.windowManager.launchComponent(it) }
-                            }
-                            else -> {
-                                APP.ui.actionPane.orBuild.show(files)
+                override fun run() = APP.run1AppReady {
+                    when {
+                        userActionOnly -> {
+                            APP.ui.actionPane.orBuild.show(files)
+                        }
+                        files.isEmpty() -> {
+                            if (!APP.isInitialized.isOk && !APP.isStateful)
+                                exitProcess(0)
+                        }
+                        files.all { it.isAudio() } -> {
+                            APP.widgetManager.widgets.use<PlaylistFeature>(NEW) {
+                                it.playlist.addFiles(files)
+                                it.playlist.playFirstItem()
                             }
                         }
+                        files.all { it.isImage() } -> {
+                            if (files.size==1) APP.actions.openImageFullscreen(files.first())
+                            else APP.widgetManager.widgets.use<ImageDisplayFeature>(NEW) { it.showImages(files) }
+                        }
+                        files.all { it hasExtension "fxwl" } -> {
+                            files.forEach { APP.windowManager.launchComponent(it) }
+                        }
+                        else -> {
+                            APP.ui.actionPane.orBuild.show(files)
+                        }
                     }
-                },
-                object: CliktCommand(
-                        name = "open-component",
-                        help = "Open the specified application component (widget or template)."
-                ) {
-                    val name by argument(help = "Name of the component.")
+                }
+            },
+            object: CliktCommand(
+                name = "open-component",
+                help = "Open the specified application component (widget or template)."
+            ) {
+                val name by argument(help = "Name of the component.")
 
-                    override fun run() = APP.run1AppReady { APP.windowManager.launchComponent(name) }
-                },
-                object: CliktCommand(
-                        name = "open-component-file",
-                        help = "Open the specified application component (widget or template)."
-                ) {
-                    val file by argument(
-                        help = """
+                override fun run() = APP.run1AppReady { APP.windowManager.launchComponent(name) }
+            },
+            object: CliktCommand(
+                name = "open-component-file",
+                help = "Open the specified application component (widget or template)."
+            ) {
+                val file by argument(
+                    help = """
                             ```
                             Absolute path to the .fxwl file of the component.
                             The file content is either serialized component or single line with the component's name
                             ```
                         """
-                    ).file(folderOkay = false, readable = true).validate {
-                        it.requireAbsolute()
-                    }
-
-                    override fun run() = APP.run1AppReady { APP.windowManager.launchComponent(file) }
+                ).file(folderOkay = false, readable = true).validate {
+                    it.requireAbsolute()
                 }
+
+                override fun run() = APP.run1AppReady { APP.windowManager.launchComponent(file) }
+            }
         )
     }
 }
@@ -173,5 +173,5 @@ private class Cli: CliktCommand(
 private fun File.requireAbsolute() = require(isAbsolute) { "File must be absolute" }
 
 private fun String.toURIFlexible(): File? = null
-        ?: runTry { URI.create("file:///"+URLEncoder.encode(this, UTF_8).replace("+", "%20")).toFileOrNull()?.takeIf { it.isAbsolute } }.orNull()
-        ?: runTry { URI.create(URLEncoder.encode(this, UTF_8).replace("+", "%20")).toFileOrNull()?.takeIf { it.isAbsolute } }.orNull()
+    ?: runTry { URI.create("file:///" + URLEncoder.encode(this, UTF_8).replace("+", "%20")).toFileOrNull()?.takeIf { it.isAbsolute } }.orNull()
+    ?: runTry { URI.create(URLEncoder.encode(this, UTF_8).replace("+", "%20")).toFileOrNull()?.takeIf { it.isAbsolute } }.orNull()

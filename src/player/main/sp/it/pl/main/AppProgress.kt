@@ -102,21 +102,21 @@ object AppProgress {
                 }
                 task.doOn(State.SUCCEEDED, State.CANCELLED, State.FAILED) {
                     t.reportDone(
-                            when (it) {
-                                State.SUCCEEDED -> ResultOk(null)
-                                State.CANCELLED -> ResultInterrupted(InterruptedException("Cancelled"))
-                                State.FAILED -> ResultFail(task.exception)
-                                else -> failCase(it)
-                            }
+                        when (it) {
+                            State.SUCCEEDED -> ResultOk(null)
+                            State.CANCELLED -> ResultInterrupted(InterruptedException("Cancelled"))
+                            State.FAILED -> ResultFail(task.exception)
+                            else -> failCase(it)
+                        }
                     )
                 }
             }
-            State.SUCCEEDED, State.CANCELLED, State.FAILED -> {}
+            State.SUCCEEDED, State.CANCELLED, State.FAILED -> Unit
         }
     }
 
     private fun start(task: AppTask): ScheduleAppTaskHandle {
-        val id = uuid().toString()+task.name
+        val id = uuid().toString() + task.name
         runFX {
             tasks += task
         }
@@ -134,6 +134,7 @@ object AppProgress {
                     progress.value = if (tasksActive.isEmpty()) 1.0 else -1.0
                 }
             }
+
             override fun reportDone(result: Result<*>) {
                 failIf(!runInvoked) { "Task can only be finished if it was activated" }
                 failIf(doneInvoked) { "Task can only be finished once" }
@@ -173,6 +174,7 @@ object AppProgress {
                                 }
                                 lay += Icon().apply {
                                     isMouseTransparent = true
+
                                     fun updateIcon() {
                                         icon(when (state.value) {
                                             SCHEDULED -> IconMD.ROTATE_RIGHT
@@ -182,9 +184,10 @@ object AppProgress {
                                             DONE_CANCEL -> IconFA.BAN
                                         })
                                     }
+
                                     val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(ElasticInterpolator())
                                     updateIcon()
-                                    state attach  { a.playCloseDoOpen(::updateIcon) }
+                                    state attach { a.playCloseDoOpen(::updateIcon) }
                                 }
                             }
                         }
@@ -197,7 +200,7 @@ object AppProgress {
                                     }
                                     lay += Icon(IconFA.BAN).apply {
                                         isVisible = cancel!=null
-                                        if (cancel!=null) state.sync1If({ it!=ACTIVE }) { isVisible = false}
+                                        if (cancel!=null) state.sync1If({ it!=ACTIVE }) { isVisible = false }
                                         onClickDo { cancel?.invoke() }
                                     }
                                 }
@@ -240,7 +243,7 @@ private class AppTask(val name: String, val message: ReadOnlyProperty<String>?, 
 
     fun updateTimeActive() {
         if (state.value==ACTIVE)
-            timeActive.value = (System.currentTimeMillis()-timeStart).millis
+            timeActive.value = (System.currentTimeMillis() - timeStart).millis
     }
 
     fun activate() {
@@ -287,7 +290,7 @@ fun <T> Fut<T>.withAppProgress(name: String) = apply {
  * Calls [AppProgress.schedule] immediately, [ScheduleAppTaskHandle.reportActive] when the block starts executing and
  * [StartAppTaskHandle.reportDone] when block finishes executing.
  */
-fun <T, R> Fut<T>.thenWithAppProgress(executor: Executor, name: String, block:  (T) -> R): Fut<R> = run {
+fun <T, R> Fut<T>.thenWithAppProgress(executor: Executor, name: String, block: (T) -> R): Fut<R> = run {
     lateinit var t: ScheduleAppTaskHandle
     FX {
         t = AppProgress.schedule(name)

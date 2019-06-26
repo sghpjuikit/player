@@ -42,7 +42,7 @@ open class InstanceMap {
         val isNullable = null is T
         return if (isNullable) {
             val out = observableArrayList<T>(listOf())
-            list.addListener { out setTo (list+(null as T)) }
+            list.addListener { out setTo (list + (null as T)) }
             ObservableListRO(out)
         } else {
             list

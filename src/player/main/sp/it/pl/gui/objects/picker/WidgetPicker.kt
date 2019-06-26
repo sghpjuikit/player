@@ -12,7 +12,7 @@ class WidgetPicker(private val mode: Mode): Picker<ComponentFactory<*>>() {
 
     init {
         itemSupply = {
-            val factories = when(mode) {
+            val factories = when (mode) {
                 Mode.WIDGET -> APP.widgetManager.factories.getFactories()
                 Mode.LAYOUTS -> APP.widgetManager.factories.getComponentFactories().filter { it !is WidgetFactory<*> }
                 Mode.ALL -> APP.widgetManager.factories.getComponentFactories()

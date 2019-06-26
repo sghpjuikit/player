@@ -47,26 +47,26 @@ import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
 @Retention(RUNTIME)
 @Target(FIELD, PROPERTY, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER, LOCAL_VARIABLE)
 annotation class IsConfig(
-        /**
-         * @return human readable name of the field. Default value is "". If not provided, the name will match the name of
-         * the annotated field.
-         */
-        val name: String = "",
-        /**
-         * @return human readable description of the field. Mostly used for tooltips within graphical user interface.
-         * Default is "".
-         */
-        val info: String = "",
-        /**
-         * @return category of the field belongs to. Use for aggregation of the configuration fields. Default value is "".
-         * The default value will be set from category or name of the class containing the field. See [ ].
-         */
-        val group: String = "",
-        /**
-         * @return the intended editability of the configuration field by the user. Should be adhered to by the graphical
-         * user interface for example by not displaying this config. Default true.
-         */
-        val editable: EditMode = EditMode.USER
+    /**
+     * @return human readable name of the field. Default value is "". If not provided, the name will match the name of
+     * the annotated field.
+     */
+    val name: String = "",
+    /**
+     * @return human readable description of the field. Mostly used for tooltips within graphical user interface.
+     * Default is "".
+     */
+    val info: String = "",
+    /**
+     * @return category of the field belongs to. Use for aggregation of the configuration fields. Default value is "".
+     * The default value will be set from category or name of the class containing the field. See [ ].
+     */
+    val group: String = "",
+    /**
+     * @return the intended editability of the configuration field by the user. Should be adhered to by the graphical
+     * user interface for example by not displaying this config. Default true.
+     */
+    val editable: EditMode = EditMode.USER
 )
 
 enum class EditMode {

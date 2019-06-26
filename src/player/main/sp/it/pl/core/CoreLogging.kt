@@ -42,12 +42,12 @@ class CoreLogging(val loggingConfigurationFile: File, val loggingOutputDir: File
         LogManager.getLogManager().reset()
 
         val logger = (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) ?: null)
-                as? ch.qos.logback.classic.Logger
+            as? ch.qos.logback.classic.Logger
         val filter = logger
-                ?.getAppender(appenderName)
-                ?.copyOfAttachedFiltersList
-                ?.firstOrNull()
-                as? ch.qos.logback.classic.filter.ThresholdFilter
+            ?.getAppender(appenderName)
+            ?.copyOfAttachedFiltersList
+            ?.firstOrNull()
+            as? ch.qos.logback.classic.filter.ThresholdFilter
         filter?.setLevel(level.toString())
     }
 

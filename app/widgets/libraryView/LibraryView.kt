@@ -32,7 +32,6 @@ import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.rating.RatingCellFactory
 import sp.it.pl.gui.objects.table.FilteredTable
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV
-import sp.it.pl.gui.objects.table.TableColumnInfo
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
@@ -74,30 +73,31 @@ import kotlin.streams.asSequence
 import kotlin.streams.toList
 import sp.it.pl.audio.tagging.Metadata.Field as MField
 import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
+import sp.it.pl.gui.objects.table.TableColumnInfo as ColumnState
 
 private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, TableCell<MetadataGroup, T>>
 
 @Suppress("UNCHECKED_CAST")
 @Info(
-        author = "Martin Polakovic",
-        name = Widgets.SONG_GROUP_TABLE,
-        description = "Provides database filtering.",
-        howto = "Available actions:\n"+
-        "    Song left click : Selects item\n"+
-        "    Song right click : Opens context menu\n"+
-        "    Song double click : Plays item\n"+
-        "    Type : search & filter\n"+
-        "    Press ENTER : Plays item\n"+
-        "    Press ESC : Clear selection & filter\n"+
-        "    Scroll : Scroll table vertically\n"+
-        "    Scroll + SHIFT : Scroll table horizontally\n"+
-        "    Column drag : swap columns\n"+
-        "    Column right click: show column menu\n"+
-        "    Click column : Sort - ascending | descending | none\n"+
+    author = "Martin Polakovic",
+    name = Widgets.SONG_GROUP_TABLE,
+    description = "Provides database filtering.",
+    howto = "Available actions:\n" +
+        "    Song left click : Selects item\n" +
+        "    Song right click : Opens context menu\n" +
+        "    Song double click : Plays item\n" +
+        "    Type : search & filter\n" +
+        "    Press ENTER : Plays item\n" +
+        "    Press ESC : Clear selection & filter\n" +
+        "    Scroll : Scroll table vertically\n" +
+        "    Scroll + SHIFT : Scroll table horizontally\n" +
+        "    Column drag : swap columns\n" +
+        "    Column right click: show column menu\n" +
+        "    Click column : Sort - ascending | descending | none\n" +
         "    Click column + SHIFT : Sorts by multiple columns\n",
-        version = "0.9.0",
-        year = "2015",
-        group = LIBRARY
+    version = "0.9.0",
+    year = "2015",
+    group = LIBRARY
 )
 class LibraryView(widget: Widget): SimpleController(widget) {
 
@@ -199,7 +199,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         Player.playingSong.onUpdate { table.updateStyleRules() } on onClose
 
         table.defaultColumnInfo   // trigger menu initialization
-        table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo
+        table.columnState = widget.properties.getS("columns")?.net(ColumnState::fromString) ?: table.defaultColumnInfo
 
         // column context menu - add group by menu
         val fieldMenu = Menu("Group by")
@@ -207,18 +207,18 @@ class LibraryView(widget: Widget): SimpleController(widget) {
         table.columnMenu.onEventDown(WINDOW_HIDDEN) { fieldMenu.items.clear() }
         table.columnMenu.onEventDown(WINDOW_SHOWING) {
             fieldMenu.items setTo buildSingleSelectionMenu(
-                    list(MField.FIELDS), fieldFilter.value,
-                    { it.name() },
-                    { fieldFilter.setValue(it) }
+                list(MField.FIELDS), fieldFilter.value,
+                { it.name() },
+                { fieldFilter.setValue(it) }
             )
         }
 
 
         // add menu items
         table.menuRemove.items.addAll(
-                menuItem("Remove selected groups from library") { APP.db.removeSongs(ungroup(table.selectedItems)) },
-                menuItem("Remove playing group from library") {  APP.db.removeSongs(ungroup(table.items.filter { it.isPlaying() })) },
-                menuItem("Remove all groups from library") { APP.db.removeSongs(ungroup(table.items)) }
+            menuItem("Remove selected groups from library") { APP.db.removeSongs(ungroup(table.selectedItems)) },
+            menuItem("Remove playing group from library") { APP.db.removeSongs(ungroup(table.items.filter { it.isPlaying() })) },
+            menuItem("Remove all groups from library") { APP.db.removeSongs(ungroup(table.items)) }
         )
 
         table.onEventDown(KEY_PRESSED, ENTER) { playSelected() }
@@ -240,7 +240,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                 t.getColumn(VALUE).ifPresent { c ->
                     val sumW = t.columns.asSequence().filter { it.isVisible }.sumByDouble { it.width }
                     val sbW = t.vScrollbarWidth
-                    c.setPrefWidth(t.width-(sbW+sumW-c.width))
+                    c.setPrefWidth(t.width - (sbW + sumW - c.width))
                 }
             }
         }

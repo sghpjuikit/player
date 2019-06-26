@@ -21,23 +21,23 @@ class Output<T>: Put<T?> {
     /** Calls [sp.it.pl.layout.widget.controller.io.Input.unbind] on all inputs bound to this output. */
     fun unbindAll() {
         IOLayer.allLinks.keys.asSequence()
-                .filter { it.key1()==this || it.key2()==this }
-                .flatMap {
-                    sequenceOf(it.key1(), it.key2()).mapNotNull {
-                        when (it) {
-                            is Input<*> -> it
-                            is InOutput<*> -> it.i
-                            else -> null
-                        }
+            .filter { it.key1()==this || it.key2()==this }
+            .flatMap {
+                sequenceOf(it.key1(), it.key2()).mapNotNull {
+                    when (it) {
+                        is Input<*> -> it
+                        is InOutput<*> -> it.i
+                        else -> null
                     }
                 }
-                .materialize()
-                .forEach { it.unbind(this) }
+            }
+            .materialize()
+            .forEach { it.unbind(this) }
     }
 
     override fun equals(other: Any?) = this===other || other is Output<*> && id==other.id
 
-    override fun hashCode() = 5*89+Objects.hashCode(this.id)
+    override fun hashCode() = 5*89 + Objects.hashCode(this.id)
 
     data class Id(@JvmField val ownerId: UUID, @JvmField val name: String) {
 
@@ -48,7 +48,7 @@ class Output<T>: Put<T?> {
             @JvmStatic fun fromString(s: String): Id {
                 val i = s.lastIndexOf(",")
                 val n = s.substring(0, i)
-                val u = UUID.fromString(s.substring(i+1, s.length))
+                val u = UUID.fromString(s.substring(i + 1, s.length))
                 return Id(u, n)
             }
 

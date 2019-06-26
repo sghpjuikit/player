@@ -18,30 +18,39 @@ object Actions {
 
 object Settings {
     const val UI = "Ui"
+
     object Ui {
         const val name = "Ui"
+
         object View {
             const val name = "${Ui.name}.View"
+
             object Action {
                 const val name = "${View.name}.Action Viewer"
             }
+
             object Shortcut {
                 const val name = "${View.name}.Shortcut Viewer"
             }
         }
+
         object Image {
             const val name = "${Ui.name}.Images"
         }
+
         object Table {
             const val name = "${Ui.name}.Table"
         }
+
         object Window {
             const val name = "${Ui.name}.Window"
         }
+
         object Dock {
             const val name = "${Ui.name}.Dock"
         }
     }
+
     object Plugin {
         const val name = "Plugins"
     }

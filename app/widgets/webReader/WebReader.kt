@@ -32,12 +32,12 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
 
 @Widget.Info(
-        name = "WebReader",
-        author = "Martin Polakovic",
-        description = "Very simple web browser widget.",
-        version = "0.8.0",
-        year = "2015",
-        group = OTHER
+    name = "WebReader",
+    author = "Martin Polakovic",
+    description = "Very simple web browser widget.",
+    version = "0.8.0",
+    year = "2015",
+    group = OTHER
 )
 @ExperimentalController("Insufficient features and of questionable use")
 class WebReader(widget: Widget): SimpleController(widget) {

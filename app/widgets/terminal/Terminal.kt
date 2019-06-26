@@ -32,12 +32,12 @@ import sp.it.util.validation.Constraint.FileActor.FILE
 import java.io.File
 
 @Widget.Info(
-        author = "Martin Polakovic",
-        name = "Terminal",
-        description = "Terminal for working with shell.",
-        version = "1.0.0",
-        year = "2015",
-        group = Widget.Group.DEVELOPMENT
+    author = "Martin Polakovic",
+    name = "Terminal",
+    description = "Terminal for working with shell.",
+    version = "1.0.0",
+    year = "2015",
+    group = Widget.Group.DEVELOPMENT
 )
 class Terminal(widget: Widget): SimpleController(widget) {
 
@@ -52,7 +52,7 @@ class Terminal(widget: Widget): SimpleController(widget) {
         when (Os.current) {
             Os.WINDOWS -> tConfig.windowsTerminalStarter = it?.absolutePath ?: "cmd.exe"
             Os.UNIX -> tConfig.unixTerminalStarter = it?.absolutePath ?: "/bin/bash -i"
-            else -> {}
+            else -> Unit
         }
     }
 

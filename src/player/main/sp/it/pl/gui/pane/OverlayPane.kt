@@ -120,7 +120,7 @@ abstract class OverlayPane<in T>: StackPane() {
         }
     }
 
-/* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
+    /* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
 
     private lateinit var displayUsedForShow: ScreenGetter // prevents inconsistency in start() and stop(), see use
     private val animation by lazy { anim(APP.animationFps) { animDo(it) }.dur(200.millis).intpl { it*it } } // lowering fps can help on hd screens & low-end hardware
@@ -190,7 +190,8 @@ abstract class OverlayPane<in T>: StackPane() {
         override fun computeScreen(): Screen = when (this) {
             WINDOW -> fail()
             SCREEN_PRIMARY -> Screen.getPrimary()
-            SCREEN_OF_WINDOW -> APP.windowManager.getActive().orNull()?.centre?.getScreen() ?: SCREEN_OF_MOUSE.computeScreen()
+            SCREEN_OF_WINDOW -> APP.windowManager.getActive().orNull()?.centre?.getScreen()
+                ?: SCREEN_OF_MOUSE.computeScreen()
             SCREEN_OF_MOUSE -> getScreenForMouse()
         }
     }
@@ -198,36 +199,36 @@ abstract class OverlayPane<in T>: StackPane() {
     fun ScreenGetter.animStart(op: OverlayPane<*>) {
         if (this==Display.WINDOW) {
             APP.windowManager.getActive().ifPresentOrElse(
-                    { window ->
-                        // display overlay pane
-                        val root = window.root
-                        if (op !in root.children) {
-                            root.children += op
-                            setAnchors(op, 0.0)
-                            op.toFront()
-                        }
-                        op.isVisible = true
-                        op.requestFocus()     // 'bug fix' - we need focus or key events wont work
-
-                        // blur can reduce animation performance
-                        // - apply blur only on the content, it is generally smaller than this entire pane
-                        // - decrease blur iteration count (we don not need super blur quality here)
-                        // - decrease blur amount
-
-                        op.opacityNode = window.content
-                        op.blurBackNode = window.root
-                        if (!op.children.isEmpty()) op.blurFrontNode = op.children[0]
-                        op.blurBackNode!!.effect = op.blurBack
-                        op.blurFrontNode!!.effect = op.blurFront
-
-                        // start showing
-                        op.animation.playOpenDo(null)
-                        op.onShown()
-                    },
-                    {
-                        op.displayUsedForShow = Display.SCREEN_OF_MOUSE
-                        Display.SCREEN_OF_MOUSE.animStart(op)
+                { window ->
+                    // display overlay pane
+                    val root = window.root
+                    if (op !in root.children) {
+                        root.children += op
+                        setAnchors(op, 0.0)
+                        op.toFront()
                     }
+                    op.isVisible = true
+                    op.requestFocus()     // 'bug fix' - we need focus or key events wont work
+
+                    // blur can reduce animation performance
+                    // - apply blur only on the content, it is generally smaller than this entire pane
+                    // - decrease blur iteration count (we don not need super blur quality here)
+                    // - decrease blur amount
+
+                    op.opacityNode = window.content
+                    op.blurBackNode = window.root
+                    if (!op.children.isEmpty()) op.blurFrontNode = op.children[0]
+                    op.blurBackNode!!.effect = op.blurBack
+                    op.blurFrontNode!!.effect = op.blurFront
+
+                    // start showing
+                    op.animation.playOpenDo(null)
+                    op.onShown()
+                },
+                {
+                    op.displayUsedForShow = Display.SCREEN_OF_MOUSE
+                    Display.SCREEN_OF_MOUSE.animStart(op)
+                }
             )
         } else {
             val screen = computeScreen()
@@ -279,25 +280,25 @@ abstract class OverlayPane<in T>: StackPane() {
         if (opacityNode!=null) { // bug fix, not 100% sure why it is necessary
             if (this!=Display.WINDOW && (op.displayBgr.get()==ScreenBgrGetter.SCREEN_BGR || op.displayBgr.get()==ScreenBgrGetter.NONE)) {
                 op.stage!!.opacity = x
-                op.opacityNode!!.opacity = 1-x*0.5
+                op.opacityNode!!.opacity = 1 - x*0.5
                 op.opacity = 1.0
                 op.blurBack.height = 15.0*x*x
                 op.blurBack.width = 15.0*x*x
                 // improves performance a lot with little demerit
                 // op.blurFront.height = 20*(1-x*x)
                 // op.blurFront.width = 20*(1-x*x)
-                op.scaleX = 1+0.2*(1-x)
-                op.scaleY = 1+0.2*(1-x)
+                op.scaleX = 1 + 0.2*(1 - x)
+                op.scaleY = 1 + 0.2*(1 - x)
             } else {
-                op.opacityNode!!.opacity = 1-x*0.5
+                op.opacityNode!!.opacity = 1 - x*0.5
                 op.opacity = x
                 op.blurBack.height = 15.0*x*x
                 op.blurBack.width = 15.0*x*x
                 // improves performance a lot with little demerit
                 // op.blurFront.height = 20*(1-x*x)
                 // op.blurFront.width = 20*(1-x*x)
-                op.scaleX = 1+2*(1-x)
-                op.scaleY = 1+2*(1-x)
+                op.scaleX = 1 + 2*(1 - x)
+                op.scaleY = 1 + 2*(1 - x)
             }
         }
     }
@@ -358,39 +359,40 @@ private class PolarResize {
         if (resizable==null) return Subscription()
 
         return Subscription(
-                when {
-                    dragActivator!=null -> {
-                        dragActivator.onEventUp(MOUSE_PRESSED) {
-                            // drag by a resizable Node
-                            if (dragActivator.containsMouse(it)) {
-                                isActive = true
-                                offset = resizable.size-resizable.screenToLocal(it)
-                            }
+            when {
+                dragActivator!=null -> {
+                    dragActivator.onEventUp(MOUSE_PRESSED) {
+                        // drag by a resizable Node
+                        if (dragActivator.containsMouse(it)) {
+                            isActive = true
+                            offset = resizable.size - resizable.screenToLocal(it)
                         }
-                    } else -> {
-                        resizable.onEventUp(MOUSE_PRESSED) {
-                            // drag by corner
-                            val cornerSize = 30.0
-                            val n = it.source as Pane
-                            if (it.x>=n.width-cornerSize && it.y>=n.height-cornerSize) {
-                                isActive = true
-                                offset = resizable.size-resizable.screenToLocal(it)
-                            }
-                        }
-                    }
-                },
-                eventEmitter.onEventDown(MOUSE_RELEASED) { isActive = false },
-                eventEmitter.onEventDown(MOUSE_DRAGGED) {
-                    if (isActive) {
-                        val n = it.source as Pane
-                        resizable.setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE)
-                        resizable.setPrefSize(
-                                2*(it.x+offset.x-n.layoutBounds.width/2),
-                                2*(it.y+offset.y-n.layoutBounds.height/2)
-                        )
-                        it.consume()
                     }
                 }
+                else -> {
+                    resizable.onEventUp(MOUSE_PRESSED) {
+                        // drag by corner
+                        val cornerSize = 30.0
+                        val n = it.source as Pane
+                        if (it.x>=n.width - cornerSize && it.y>=n.height - cornerSize) {
+                            isActive = true
+                            offset = resizable.size - resizable.screenToLocal(it)
+                        }
+                    }
+                }
+            },
+            eventEmitter.onEventDown(MOUSE_RELEASED) { isActive = false },
+            eventEmitter.onEventDown(MOUSE_DRAGGED) {
+                if (isActive) {
+                    val n = it.source as Pane
+                    resizable.setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE)
+                    resizable.setPrefSize(
+                        2*(it.x + offset.x - n.layoutBounds.width/2),
+                        2*(it.y + offset.y - n.layoutBounds.height/2)
+                    )
+                    it.consume()
+                }
+            }
         )
     }
 

@@ -42,7 +42,7 @@ interface Constraint<in T> {
     }
 
 
-/* ---------- ANNOTATIONS ------------------------------------------------------------------------------------------- */
+    /* ---------- ANNOTATIONS ------------------------------------------------------------------------------------------- */
 
     @MustBeDocumented
     @Retention(RUNTIME)
@@ -103,7 +103,7 @@ interface Constraint<in T> {
     @IsConstraint(Collection::class)
     annotation class NonNullElements
 
-/* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
+    /* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
 
     /** Denotes type of [java.io.File]. For example to decide between file and directory chooser. */
     enum class FileActor constructor(private val condition: (File) -> Boolean, private val message: String): Constraint<File?> {
@@ -181,26 +181,26 @@ interface Constraint<in T> {
 
     class ReadOnlyIf(val condition: ObservableBooleanValue): Constraint<Any> {
         constructor(condition: ObservableValue<Boolean>, unless: Boolean): this(
-                object: BooleanBinding() {
-                    init {
-                        super.bind(condition)
-                    }
-
-                    override fun dispose() = super.unbind(condition)
-                    override fun computeValue() = if (unless) !condition.value else condition.value
-                    override fun getDependencies() = singletonObservableList(condition)
+            object: BooleanBinding() {
+                init {
+                    super.bind(condition)
                 }
+
+                override fun dispose() = super.unbind(condition)
+                override fun computeValue() = if (unless) !condition.value else condition.value
+                override fun getDependencies() = singletonObservableList(condition)
+            }
         )
 
         constructor(condition: Boolean): this(
-                object: ObservableBooleanValue {
-                    override fun removeListener(listener: ChangeListener<in Boolean>) {}
-                    override fun removeListener(listener: InvalidationListener) {}
-                    override fun addListener(listener: ChangeListener<in Boolean>) {}
-                    override fun addListener(listener: InvalidationListener) {}
-                    override fun getValue() = condition
-                    override fun get() = condition
-                }
+            object: ObservableBooleanValue {
+                override fun removeListener(listener: ChangeListener<in Boolean>) {}
+                override fun removeListener(listener: InvalidationListener) {}
+                override fun addListener(listener: ChangeListener<in Boolean>) {}
+                override fun addListener(listener: InvalidationListener) {}
+                override fun getValue() = condition
+                override fun get() = condition
+            }
         )
 
         override fun isValid(value: Any?) = true

@@ -142,7 +142,7 @@ abstract class ActionData<C, T> {
 /** Action that executes synchronously - simply consumes the input. */
 abstract class FastActionBase<C, T>: ActionData<C, T> {
     protected constructor(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, constriction: Test<T>, action: Act<T>):
-            super(name, description, icon, groupApply, constriction, false, action)
+        super(name, description, icon, groupApply, constriction, false, action)
 }
 
 /** FastAction that consumes simple input - its type is the same as type of the action. */
@@ -152,7 +152,7 @@ class FastAction<T>: FastActionBase<T, T> {
 
     constructor(name: String, description: String, icon: GlyphIcons, constriction: Test<T>, action: Act<T>): super(name, description, icon, NONE, constriction, action)
 
-    constructor(icon: GlyphIcons, action: Action): super(action.name, action.info+if (action.hasKeysAssigned()) "\n\nShortcut keys: ${action.keys}" else "", icon, NONE, IS, { action.run() })
+    constructor(icon: GlyphIcons, action: Action): super(action.name, action.info + if (action.hasKeysAssigned()) "\n\nShortcut keys: ${action.keys}" else "", icon, NONE, IS, { action.run() })
 
 }
 
@@ -168,7 +168,7 @@ class FastColAction<T>: FastActionBase<T, Collection<T>> {
 /** Action that executes asynchronously - receives a future, processes the data and returns it. */
 abstract class SlowActionBase<C, T>: ActionData<C, T> {
     protected constructor(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, constriction: Test<T>, action: Act<T>):
-            super(name, description, icon, groupApply, constriction, true, action)
+        super(name, description, icon, groupApply, constriction, true, action)
 }
 
 /** SlowAction that processes simple input - its type is the same as type of the action. */

@@ -386,8 +386,8 @@ class Metadata: Song, Serializable {
             val r = loadAsInt(this, FieldKey.RATING)
             rating = when {
                 r==null -> null
-            // sometimes we get unintelligible values for some reason (don't ask me),
-            // Mp3Tagger app can recognize them somehow the values appear consistent so lets use them
+                // sometimes we get unintelligible values for some reason (don't ask me),
+                // Mp3Tagger app can recognize them somehow the values appear consistent so lets use them
                 r==12592 -> 100
                 r==14384 -> 80
                 r==13872 -> 60
@@ -448,9 +448,9 @@ class Metadata: Song, Serializable {
 
     /** @return comprehensive information about all string representable tag fields of this */
     fun getInfo(): String = Field.FIELDS.asSequence()
-            .filter { it.isTypeStringRepresentable() }
-            .map { "${it.name()}: ${getField(it)}" }
-            .joinToString("\n")
+        .filter { it.isTypeStringRepresentable() }
+        .map { "${it.name()}: ${getField(it)}" }
+        .joinToString("\n")
 
     override fun getPathAsString(): String = if (isEmpty()) "" else super.getPathAsString()
 
@@ -601,9 +601,9 @@ class Metadata: Song, Serializable {
             Cover.CoverSource.TAG -> readCoverFromTag() ?: Cover.EMPTY
             Cover.CoverSource.DIRECTORY -> readCoverFromDir() ?: Cover.EMPTY
             Cover.CoverSource.ANY -> sequenceOf(CoverSource.TAG, CoverSource.DIRECTORY)
-                    .mapNotNull { getCover(it) }
-                    .firstOrNull { !it.isEmpty }
-                    ?: Cover.EMPTY
+                .mapNotNull { getCover(it) }
+                .firstOrNull { !it.isEmpty }
+                ?: Cover.EMPTY
         }
     }
 
@@ -620,10 +620,10 @@ class Metadata: Song, Serializable {
         return getFile()?.let { file ->
             val fs = file.parentDirOrRoot.children().toList()
             return sequenceOf(getFilename().takeIf { it.isNotBlank() }, title, album, "cover", "folder")
-                    .filterNotNull()
-                    .flatMap { filename -> fs.asSequence().filter { it.nameWithoutExtensionOrRoot.equals(filename, true) } }
-                    .find { it.isImage() }
-                    ?.let { FileCover(it, "") }
+                .filterNotNull()
+                .flatMap { filename -> fs.asSequence().filter { it.nameWithoutExtensionOrRoot.equals(filename, true) } }
+                .find { it.isImage() }
+                ?.let { FileCover(it, "") }
         }
     }
 
@@ -636,15 +636,15 @@ class Metadata: Song, Serializable {
      * @return ordered list of chapters parsed from tag data
      */
     fun getChapters(): Chapters =
-            custom2?.let {
-                it.split(SEPARATOR_CHAPTER)
-                        .asSequence()
-                        .filter { !it.isEmpty() }
-                        .mapNotNull { chapter(it) orNull { logger.error { it } } }
-                        .sorted()
-                        .toList()
-                        .let { Chapters(it) }
-            } ?: Chapters()
+        custom2?.let {
+            it.split(SEPARATOR_CHAPTER)
+                .asSequence()
+                .filter { !it.isEmpty() }
+                .mapNotNull { chapter(it) orNull { logger.error { it } } }
+                .sorted()
+                .toList()
+                .let { Chapters(it) }
+        } ?: Chapters()
 
     fun containsChapterAt(at: Duration): Boolean = getChapters().chapters.any { it.time==at }
 
@@ -667,10 +667,10 @@ class Metadata: Song, Serializable {
     fun getFulltext() = FIELDS_FULLTEXT.asSequence().map { it.getOf(this) }.filterNotNull().toStrings()
 
     /** @return index of the first same song as this in the active playlist or -1 if not on playlist */
-    fun getPlaylistIndex(): Int? = PlaylistManager.use({ it.indexOfSame(this)+1 }, null)
+    fun getPlaylistIndex(): Int? = PlaylistManager.use({ it.indexOfSame(this) + 1 }, null)
 
     /** @return index info of the first same song as this in the active playlist or null if not on playlist, e.g.: "15/30" */
-    fun getPlaylistIndexInfo(): NofX = PlaylistManager.use({ NofX(it.indexOfSame(this)+1, it.size) }, NofX(-1, -1))
+    fun getPlaylistIndexInfo(): NofX = PlaylistManager.use({ NofX(it.indexOfSame(this) + 1, it.size) }, NofX(-1, -1))
 
     override fun toMeta() = this
 
@@ -694,7 +694,7 @@ class Metadata: Song, Serializable {
 
     override fun equals(other: Any?) = this===other || other is Metadata && id==other.id
 
-    override fun hashCode() = 79*7+Objects.hashCode(this.id)
+    override fun hashCode() = 79*7 + Objects.hashCode(this.id)
 
     /**
      * Compares by attributes in the exact order:
@@ -756,17 +756,17 @@ class Metadata: Song, Serializable {
         private fun String?.orNull() = takeUnless { it.isNullOrBlank() }
 
         private fun Metadata.loadAsString(tag: Tag, f: FieldKey): String? =
-                try {
-                    tag.getFirst(f)
-                            .also { if (it==null) logger.warn { "Jaudiotagger returned null for $f of $id" } }
-                            .takeIf { it.isNotBlank() }
-                } catch (e: UnsupportedOperationException) {
-                    logger.warn { "Jaudiotagger failed to read $f of $id - field not supported" }
-                    null
-                } catch (e: KeyNotFoundException) {
-                    logger.warn(e) { "Jaudiotagger failed to read $f of $id" }
-                    null
-                }
+            try {
+                tag.getFirst(f)
+                    .also { if (it==null) logger.warn { "Jaudiotagger returned null for $f of $id" } }
+                    .takeIf { it.isNotBlank() }
+            } catch (e: UnsupportedOperationException) {
+                logger.warn { "Jaudiotagger failed to read $f of $id - field not supported" }
+                null
+            } catch (e: KeyNotFoundException) {
+                logger.warn(e) { "Jaudiotagger failed to read $f of $id" }
+                null
+            }
 
         private fun Metadata.loadAsInt(tag: Tag, field: FieldKey): Int? = loadAsString(tag, field)?.toIntOrNull()
 
@@ -787,9 +787,9 @@ class Metadata: Song, Serializable {
 
         @Suppress("UNCHECKED_CAST")
         private val FIELDS_FULLTEXT: List<Field<String>> = Field.FIELDS.asSequence()
-                .filter { String::class.java==it.type }
-                .map { it as Field<String> }
-                .toList()
+            .filter { String::class.java==it.type }
+            .map { it as Field<String> }
+            .toList()
     }
 
     class Field<T: Any>: ObjectFieldBase<Metadata, T> {
@@ -805,14 +805,14 @@ class Metadata: Song, Serializable {
         override fun searchSupported(): Boolean = super.searchSupported() || this==FULLTEXT
 
         override fun searchMatch(matcher: (String) -> Boolean): (Metadata) -> Boolean =
-                when (this) {
-                    CHAPTERS -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
-                    FULLTEXT -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
-                    else -> super.searchMatch(matcher)
-                }
+            when (this) {
+                CHAPTERS -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
+                FULLTEXT -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
+                else -> super.searchMatch(matcher)
+            }
 
         fun getGroupedOf(): (Metadata) -> Any? = when (this) {
-            FILESIZE -> { m -> GROUPS_FILESIZE[64-java.lang.Long.numberOfLeadingZeros(m.fileSizeInB-1)] }
+            FILESIZE -> { m -> GROUPS_FILESIZE[64 - java.lang.Long.numberOfLeadingZeros(m.fileSizeInB - 1)] }
             RATING -> { m -> if (m.rating==null) -1.0 else GROUPS_RATING[(m.getRatingPercent()!!*100/5).toInt()] }
             else -> { m -> getOf(m) }
         }
@@ -823,7 +823,7 @@ class Metadata: Song, Serializable {
 
         override fun toS(o: T?, substitute: String): String {
             if (o==null || ""==o) return substitute
-            return when(this) {
+            return when (this) {
                 RATING_RAW -> o.toString()
                 RATING -> String.format("%.2f", o as Double)
                 LENGTH -> (o as Duration).toHMSMs()
@@ -894,22 +894,22 @@ class Metadata: Song, Serializable {
             @F val ADDED_TO_LIBRARY = field({ it.getTimeLibraryAdded() }, "Added to library", "Marks time the song was added to the library.")
 
             private inline fun <reified T: Any> field(noinline extractor: (Metadata) -> T?, name: String, description: String) =
-                    Field(T::class, extractor, name, description).apply {
-                        FIELDS_IMPL += this
-                        FIELD_NAMES_IMPL += name
-                        FIELDS_BY_NAME[name] = this
-                    }
+                Field(T::class, extractor, name, description).apply {
+                    FIELDS_IMPL += this
+                    FIELD_NAMES_IMPL += name
+                    FIELDS_BY_NAME[name] = this
+                }
 
             private val AUTO_COMPLETABLE = setOf<Field<*>>(
-                    ENCODER, ALBUM, ALBUM_ARTIST, COMPOSER, PUBLISHER, GENRE, CATEGORY, MOOD
+                ENCODER, ALBUM, ALBUM_ARTIST, COMPOSER, PUBLISHER, GENRE, CATEGORY, MOOD
             )
             private val VISIBLE = setOf<Field<*>>(
-                    TITLE, ALBUM, ARTIST, LENGTH, TRACK_INFO, DISCS_INFO, RATING, PLAYCOUNT
+                TITLE, ALBUM, ARTIST, LENGTH, TRACK_INFO, DISCS_INFO, RATING, PLAYCOUNT
             )
             private val NOT_STRING_REPRESENTABLE = setOf<Field<*>>(
-                    COVER, // can not be converted to string
-                    CHAPTERS, // raw string form unsuitable for viewing
-                    FULLTEXT // purely for search purposes
+                COVER, // can not be converted to string
+                CHAPTERS, // raw string form unsuitable for viewing
+                FULLTEXT // purely for search purposes
             )
             private val GROUPS_FILESIZE = Array(65) {
                 when (it) {

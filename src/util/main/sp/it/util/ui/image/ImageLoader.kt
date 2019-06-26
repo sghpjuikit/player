@@ -23,7 +23,9 @@ interface ImageLoader {
      * @throws IllegalArgumentException when on fx thread
      */
     operator fun invoke(file: File?, size: ImageSize) = if (file==null) null else invoke(Params(file, size, file.mimeType()))
+
     operator fun invoke(file: File?) = invoke(file, ImageSize(0.0, 0.0))
+
     operator fun invoke(p: Params): Image?
 
     data class Params(val file: File, val size: ImageSize, val mime: MimeType)
@@ -43,8 +45,8 @@ object ImageStandardLoader: ImageLoader {
             "application/x-kra" -> {
                 try {
                     ZipFile(p.file)
-                            .let { it.getInputStream(it.getEntry("mergedimage.png")) }
-                            ?.let { loadImagePsd(p.file, it, p.size.width, p.size.height, false) }
+                        .let { it.getInputStream(it.getEntry("mergedimage.png")) }
+                        ?.let { loadImagePsd(p.file, it, p.size.width, p.size.height, false) }
                 } catch (e: IOException) {
                     logger.error(e) { "Unable to load image from ${p.file}" }
                     null

@@ -35,10 +35,10 @@ object ActionManager {
 
     /**
      * Whether global shortcuts are supported by the active platform.
-     * If not, global shortcuts will run as local and [startGlobalListening] 
+     * If not, global shortcuts will run as local and [startGlobalListening]
      * and [stopGlobalListening] will have no effect.
      *
-     * @return true iff global shortcuts are supported at running platform 
+     * @return true iff global shortcuts are supported at running platform
      */
     @IsConfig(name = "Global shortcuts supported", editable = NONE, info = "Whether global shortcuts are supported on this system")
     val isGlobalShortcutsSupported by c(true)
@@ -156,7 +156,7 @@ object ActionRegistrar {
 
     /**
      * Returns the MutableCollection of all actions mapped by their name.
-     * 
+     *
      * @return all actions
      */
     fun getActions(): MutableCollection<Action> = actions

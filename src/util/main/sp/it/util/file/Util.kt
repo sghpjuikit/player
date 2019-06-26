@@ -88,19 +88,19 @@ fun File.hasExtension(vararg suffixes: String) = suffixes.any { this hasExtensio
 /** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown */
 @Suppress("DEPRECATION")
 fun URI.toFileOrNull() =
-        try {
-            File(this)
-        } catch (e: IllegalArgumentException) {
-            null
-        }
+    try {
+        File(this)
+    } catch (e: IllegalArgumentException) {
+        null
+    }
 
 /** @return file denoting the resource of this uri or null if [MalformedURLException] is thrown */
 fun File.toURLOrNull() =
-        try {
-            toURI().toURL()
-        } catch (e: MalformedURLException) {
-            null
-        }
+    try {
+        toURI().toURL()
+    } catch (e: MalformedURLException) {
+        null
+    }
 
 /**
  * Error-safe [File.writeText]. Error can be:

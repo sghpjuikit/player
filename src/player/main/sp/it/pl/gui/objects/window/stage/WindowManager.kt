@@ -279,8 +279,8 @@ class WindowManager {
             mw.onClose += dockWidget sync {
                 contentWidgetRoot.children.firstOrNull()?.widgetThisIsRootOf()?.close()
                 contentWidgetRoot.children setToOne APP.widgetManager.widgets.find(it, NEW(CUSTOM)).orNull()
-                        ?.apply { APP.widgetManager.widgets.initAsStandalone(this) }
-                        ?.load()
+                    ?.apply { APP.widgetManager.widgets.initAsStandalone(this) }
+                    ?.load()
             }
             mw.onClose += {
                 contentWidgetRoot.children.firstOrNull()?.widgetThisIsRootOf()?.close()
@@ -301,10 +301,10 @@ class WindowManager {
             val hider = fxTimer(ZERO, 1) {
                 if (mw.y==0.0) {
                     var d = showAnim.currentTime
-                    if (d==ZERO) d = 300.millis-d
+                    if (d==ZERO) d = 300.millis - d
                     showAnim.stop()
                     showAnim.rate = 1.0
-                    showAnim.playFrom(300.millis-d)
+                    showAnim.playFrom(300.millis - d)
                     showAnim.onFinished = EventHandler { content.isMouseTransparent = true }
                 }
             }
@@ -321,7 +321,7 @@ class WindowManager {
             val shower = fxTimer(ZERO, 1) {
                 if (mw.y!=0.0 && mwRoot.isHover) {
                     var d = showAnim.currentTime
-                    if (d==ZERO) d = 300.millis-d
+                    if (d==ZERO) d = 300.millis - d
                     showAnim.stop()
                     showAnim.rate = -1.0
                     showAnim.playFrom(d)
@@ -405,8 +405,8 @@ class WindowManager {
                 val sizePref = c.load().asIf<Region>()?.prefSize ?: P(0.0, 0.0)
                 val sizeDiff = sizePref - sizeOld
                 P(
-                        if (sizePref.x>0) stage.size.x+sizeDiff.x else initialSize.x,
-                        if (sizePref.y>0) stage.size.y+sizeDiff.y else initialSize.y
+                    if (sizePref.x>0) stage.size.x + sizeDiff.x else initialSize.x,
+                    if (sizePref.y>0) stage.size.y + sizeDiff.y else initialSize.y
                 )
             } else {
                 initialSize
@@ -468,8 +468,8 @@ class WindowManager {
 
     fun instantiateComponent(name: String): Component? {
         val f = null
-                ?: APP.widgetManager.factories.getComponentFactoryByGuiName(name).orNull()
-                ?: APP.widgetManager.factories.getFactory(name)
+            ?: APP.widgetManager.factories.getComponentFactoryByGuiName(name).orNull()
+            ?: APP.widgetManager.factories.getFactory(name)
         return f?.create()
     }
 

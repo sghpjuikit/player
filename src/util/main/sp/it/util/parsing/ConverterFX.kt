@@ -24,17 +24,17 @@ class ConverterFX: Converter() {
                 val v = (valueType.getConstructor().newInstance() as T)!!
                 val c = v.toConfigurable()
                 values.asSequence()
-                        .drop(1)
-                        .forEach {
-                            val nameValue = it.split(delimiterName).toTypedArray()
-                            if (nameValue.size==2) {
-                                val name = nameValue[0]
-                                val value = nameValue[1]
-                                c.getField(name)?.valueS = value
-                            } else {
-                                // ignore instead of error
-                            }
+                    .drop(1)
+                    .forEach {
+                        val nameValue = it.split(delimiterName).toTypedArray()
+                        if (nameValue.size==2) {
+                            val name = nameValue[0]
+                            val value = nameValue[1]
+                            c.getField(name)?.valueS = value
+                        } else {
+                            // ignore instead of error
                         }
+                    }
                 Try.ok(v)
             } else {
                 val message = "$valueType is not $type"
@@ -48,12 +48,12 @@ class ConverterFX: Converter() {
     }
 
     override fun <T: Any?> toS(o: T): String = o
-            ?.net {
-                val v = it as Any
-                val values = v.toConfigurable().fields.joinToString(delimiterVal) { it.name+delimiterName+it.valueS }
-                v::class.java.name+delimiterVal+values
-            }
-            ?: Parsers.DEFAULT.stringNull
+        ?.net {
+            val v = it as Any
+            val values = v.toConfigurable().fields.joinToString(delimiterVal) { it.name + delimiterName + it.valueS }
+            v::class.java.name + delimiterVal + values
+        }
+        ?: Parsers.DEFAULT.stringNull
 
     private fun Any.toConfigurable() = Configurable.configsFromFxPropertiesOf(this)
 

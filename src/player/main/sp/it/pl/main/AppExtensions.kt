@@ -84,7 +84,7 @@ fun File.runAsAppProgram(actionName: String, vararg arguments: String, then: (Pr
             runNew(StreamGobbler(p.errorStream) { stderr = it.wrap() })
             val success = p.waitFor()
             if (success!=0)
-                doOnError(null, stdout+stderr)  // TODO: handle with timer (report optionally both p.start failure and p.exit failure)
+                doOnError(null, stdout + stderr)  // TODO: handle with timer (report optionally both p.start failure and p.exit failure)
         }
     }
 }

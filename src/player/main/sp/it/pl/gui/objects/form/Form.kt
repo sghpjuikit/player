@@ -83,7 +83,8 @@ class Form<T>: AnchorPane {
     fun focusFirstConfigField() = fields.focusFirstConfigField()
 
     private fun validate(): Try<*, *> {
-        val validation: Try<*, *> = fields.getConfigFields().asSequence().map { it.value }.reduce { a, b -> a and b } ?: Try.ok()
+        val values = fields.getConfigFields().asSequence().map { it.value }
+        val validation: Try<*, *> = values.reduce { a, b -> a and b } ?: Try.ok()
         showWarnButton(validation)
         return validation
     }
@@ -103,7 +104,7 @@ class Form<T>: AnchorPane {
     private fun updateAnchor() {
         val isOkVisible = buttonPane.isVisible
         val isWarnVisible = buttonPane.bottom!=null
-        val a = (if (isOkVisible) anchorOk else 0.0)+if (isWarnVisible) 20.0 else 0.0
+        val a = (if (isOkVisible) anchorOk else 0.0) + if (isWarnVisible) 20.0 else 0.0
         setBottomAnchor(fieldsPane, a)
     }
 

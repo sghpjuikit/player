@@ -121,14 +121,14 @@ import java.net.URI
 import kotlin.math.round
 
 @Widget.Info(
-        name = "GameView",
-        author = "Martin Polakovic",
-        howto = "",
-        description = "Game library.",
-        notes = "",
-        version = "0.9.0",
-        year = "2016",
-        group = Widget.Group.OTHER
+    name = "GameView",
+    author = "Martin Polakovic",
+    howto = "",
+    description = "Game library.",
+    notes = "",
+    version = "0.9.0",
+    year = "2016",
+    group = Widget.Group.OTHER
 )
 class GameView(widget: Widget): SimpleController(widget) {
 
@@ -141,11 +141,11 @@ class GameView(widget: Widget): SimpleController(widget) {
     @IsConfig(name = "Location", info = "Location of the library.")
     val files by cList<File>().only(DIRECTORY)
 
-    val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio+CELL_TEXT_HEIGHT, 10.0, 10.0)
+    val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio + CELL_TEXT_HEIGHT, 10.0, 10.0)
     val imageLoader = Loader(burstTPExecutor(Runtime.getRuntime().availableProcessors()/2 max 1, 1.minutes, threadFactory("gameView-img-loader", true)))
     val placeholder = Placeholder(IconMD.FOLDER_PLUS, "Click to add directory to library") {
         chooseFile("Choose directory", FileType.DIRECTORY, APP.DIR_HOME, root.scene.window)
-                .ifOk { files += it }
+            .ifOk { files += it }
     }
 
     init {
@@ -195,13 +195,13 @@ class GameView(widget: Widget): SimpleController(widget) {
     private fun viewGames() {
         runOn(NEW) {
             files.asSequence()
-                    .distinct()
-                    .flatMap { it.children() }
-                    .map { CachingFile(it) }
-                    .filter { it.isDirectory && !it.isHidden }
-                    .sortedBy { it.name }
-                    .map { FItem(null, it, FileType.DIRECTORY) }
-                    .materialize()
+                .distinct()
+                .flatMap { it.children() }
+                .map { CachingFile(it) }
+                .filter { it.isDirectory && !it.isHidden }
+                .sortedBy { it.name }
+                .map { FItem(null, it, FileType.DIRECTORY) }
+                .materialize()
         }.ui {
             grid.itemsRaw setTo it
         }.withAppProgress("Loading game list")
@@ -218,7 +218,7 @@ class GameView(widget: Widget): SimpleController(widget) {
     }
 
     private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
-        grid.setCellSize(width, height+CELL_TEXT_HEIGHT)
+        grid.setCellSize(width, height + CELL_TEXT_HEIGHT)
         grid.itemsRaw setTo grid.itemsRaw.map { FItem(null, it.value, it.valType) }
     }
 
@@ -257,10 +257,10 @@ class GameView(widget: Widget): SimpleController(widget) {
         val settings: Map<String, String> by lazy { (location/"game.properties").readProperties().orNull().orEmpty() }
 
         fun exeFile(): File? = null
-                ?: (location/"play.lnk").takeIf { it.exists() }
-                ?: (location/"play.bat").takeIf { it.exists() }
-                ?: settings["pathAbs"]?.net { File(it) }
-                ?: settings["path"]?.net { location/it }
+            ?: (location/"play.lnk").takeIf { it.exists() }
+            ?: (location/"play.bat").takeIf { it.exists() }
+            ?: settings["pathAbs"]?.net { File(it) }
+            ?: settings["path"]?.net { location/it }
 
         fun play() {
             val file = exeFile()
@@ -268,8 +268,8 @@ class GameView(widget: Widget): SimpleController(widget) {
                 APP.ui.messagePane.orBuild.show("No launcher is set up.")
             } else {
                 val arguments = settings["arguments"]
-                        ?.let { it.replace(", ", ",").split(",").filter { it.isNotBlank() }.map { "-$it" } }
-                        .orEmpty()
+                    ?.let { it.replace(", ", ",").split(",").filter { it.isNotBlank() }.map { "-$it" } }
+                    .orEmpty()
                 file.runAsProgram(*arguments.toTypedArray()) ui {
                     it.ifError { APP.ui.messagePane.orBuild.show("Unable to launch program $file. Reason: ${it.message}") }
                 }
@@ -318,7 +318,7 @@ class GameView(widget: Widget): SimpleController(widget) {
 
                                     lay += infoT.apply {
                                         textAlignment = JUSTIFY
-                                        wrappingWidthProperty() syncFrom widthProperty()-200
+                                        wrappingWidthProperty() syncFrom widthProperty() - 200
                                     }
                                     lay += fileTree
 
@@ -339,7 +339,7 @@ class GameView(widget: Widget): SimpleController(widget) {
                                             object: ConfigurableBase<Any?>() {
                                                 @IsConfig(name = "File") var file by c(game.location/"exe").only(FILE)
                                             }.configure("Set up launcher") {
-                                                val targetDir = it.file.parentDirOrRoot.absolutePath.substringAfter(game.location.absolutePath+File.separator)
+                                                val targetDir = it.file.parentDirOrRoot.absolutePath.substringAfter(game.location.absolutePath + File.separator)
                                                 val targetName = it.file.name
                                                 val link = game.location/"play.bat"
                                                 runNew {

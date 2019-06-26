@@ -17,7 +17,7 @@ interface Core {
      *  Implementation must not assume this method is called once.
      */
     @JvmDefault
-    fun init() {}
+    fun init() = Unit
 
     /**
      *  Disposes this core.
@@ -25,6 +25,6 @@ interface Core {
      *  Implementation must not assume this method is called once or that [init] was called prior to this.
      */
     @JvmDefault
-    fun dispose() {}
+    fun dispose() = Unit
 
 }

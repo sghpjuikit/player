@@ -24,9 +24,9 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
     private var inLayout = false
     var onChange: Runnable? = null
     val configOrder = compareBy<Config<*>> { 0 }
-            .thenBy { it.group.toLowerCase() }
-            .thenBy { if (it.type==Action::javaClass) 1.0 else -1.0 }
-            .thenBy { it.guiName.toLowerCase() }
+        .thenBy { it.group.toLowerCase() }
+        .thenBy { if (it.type==Action::javaClass) 1.0 else -1.0 }
+        .thenBy { it.guiName.toLowerCase() }
 
     constructor(): super(5.0) {
         styleClass += "form-config-pane"
@@ -39,34 +39,34 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
     override fun configure(configurable: Configurable<*>?) {
         needsLabel = configurable !is Config<*>
         fields = configurable?.fields.orEmpty().asSequence()
-                .sortedWith(configOrder)
-                .map {
-                    ConfigField.create(it).apply {
-                        onChange = this@ConfigPane.onChange
-                    }
+            .sortedWith(configOrder)
+            .map {
+                ConfigField.create(it).apply {
+                    onChange = this@ConfigPane.onChange
                 }
-                .toList()
+            }
+            .toList()
 
         alignment = CENTER_LEFT
         children setTo fields.asSequence().flatMap {
             sequenceOf(
-                    when {
-                        needsLabel -> label(it.config.guiName).apply {
-                            alignment = CENTER_LEFT
-                            textAlignment = LEFT
-                            styleClass += "form-config-pane-config-name"
-                        }
-                        else -> null
-                    },
-                    when {
-                        it.config.info.isEmpty() || it.config.guiName==it.config.info -> null
-                        else -> Text(it.config.info).apply {
-                            isManaged = false
-                            textAlignment = LEFT
-                            styleClass += "form-config-pane-config-description"
-                        }
-                    },
-                    it.buildNode()
+                when {
+                    needsLabel -> label(it.config.guiName).apply {
+                        alignment = CENTER_LEFT
+                        textAlignment = LEFT
+                        styleClass += "form-config-pane-config-name"
+                    }
+                    else -> null
+                },
+                when {
+                    it.config.info.isEmpty() || it.config.guiName==it.config.info -> null
+                    else -> Text(it.config.info).apply {
+                        isManaged = false
+                        textAlignment = LEFT
+                        styleClass += "form-config-pane-config-description"
+                    }
+                },
+                it.buildNode()
             )
         }.filterNotNull()
     }
@@ -74,28 +74,28 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
     // overridden because we have un-managed nodes description nodes would cause wrong width
     override fun layoutChildren() {
         val contentLeft = padding.left
-        val contentWidth = if (width>0) width-padding.left-padding.right else 200.0
+        val contentWidth = if (width>0) width - padding.left - padding.right else 200.0
         children.asSequence().fold(0.0) { h, n ->
             if (n is Text) n.wrappingWidth = contentWidth
             val p = n.asIf<Region>()?.padding ?: Insets.EMPTY
             n.relocate(contentLeft, h + p.top + spacing)
             n.resize(contentWidth, n.prefHeight(-1.0))
-            h+p.top+n.prefHeight(-1.0)+p.bottom + spacing
+            h + p.top + n.prefHeight(-1.0) + p.bottom + spacing
         }
     }
 
-    override fun computeMinHeight(width: Double) = insets.top+insets.bottom
+    override fun computeMinHeight(width: Double) = insets.top + insets.bottom
 
     // overridden because un-managed description nodes would not partake in height calculation
     override fun computePrefHeight(width: Double): Double {
         var minY = 0.0
         var maxY = 0.0
         children.forEach { n ->
-            val y = n.layoutBounds.minY+n.layoutY
+            val y = n.layoutBounds.minY + n.layoutY
             minY = minY min y
-            maxY = maxY max (y+n.prefHeight(-1.0).clip(n.minHeight(-1.0), n.maxHeight(-1.0)))
+            maxY = maxY max (y + n.prefHeight(-1.0).clip(n.minHeight(-1.0), n.maxHeight(-1.0)))
         }
-        return maxY-minY
+        return maxY - minY
     }
 
     override fun computeMaxHeight(width: Double) = Double.MAX_VALUE

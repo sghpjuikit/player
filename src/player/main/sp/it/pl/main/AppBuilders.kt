@@ -67,15 +67,15 @@ fun infoIcon(tooltipText: String) = infoIcon { tooltipText }
 
 /** @return standardized icon that opens a help popup with the specified text (lazy)  */
 fun infoIcon(tooltipText: () -> String): Icon = Icon(IconFA.INFO)
-        .tooltip("Help")
-        .onClick { e ->
-            APP.actionStream("Info popup")
-            helpPopOver(tooltipText()).apply {
-                contentNode.value.wrappingWidth = 400.scaleEM()
-                skinn.setTitleAsOnlyHeaderContent(false)
-                showInCenterOf(e.source as Node)
-            }
+    .tooltip("Help")
+    .onClick { e ->
+        APP.actionStream("Info popup")
+        helpPopOver(tooltipText()).apply {
+            contentNode.value.wrappingWidth = 400.scaleEM()
+            skinn.setTitleAsOnlyHeaderContent(false)
+            showInCenterOf(e.source as Node)
         }
+    }
 
 /** @return standardized icon associated with a form that invokes an action */
 fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25.0).onClick(action).withText(text, Side.RIGHT)
@@ -115,12 +115,12 @@ fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)
     val dName = APP.instanceName.get(it)
     val dKind = APP.className.get(it?.javaClass ?: Void::class.java)
     val dInfo = APP.instanceInfo.get(it)
-            .entries.asSequence()
-            .map { "${it.key}: ${it.value}" }
-            .sorted()
-            .joinToString("\n")
-            .takeUnless { it.isEmpty() }
-            ?.let { "\n$it" } ?: ""
+        .entries.asSequence()
+        .map { "${it.key}: ${it.value}" }
+        .sorted()
+        .joinToString("\n")
+        .takeUnless { it.isEmpty() }
+        ?.let { "\n$it" } ?: ""
 
     "Data: $dName\nType: $dKind$dInfo"
 }
@@ -133,7 +133,7 @@ fun resizeButton(): Icon = Icon(IconMD.RESIZE_BOTTOM_RIGHT).apply {
 
 fun Font.rowHeight(): Double {
     var h = (size*1.5).toLong()  // decimal number helps pixel alignment
-    h = if (h%2==0L) h else h+1   // even number helps layout symmetry
+    h = if (h%2==0L) h else h + 1   // even number helps layout symmetry
     return h.toDouble()
 }
 
@@ -151,8 +151,8 @@ fun <T, C: Configurable<T>> C.configure(title: String, action: (C) -> Unit) {
 
 fun configureString(title: String, inputName: String, action: (String) -> Unit) {
     ValueConfig(String::class.java, inputName, "")
-            .constraints(Constraint.StringNonEmpty())
-            .configure(title) { action(it.value) }
+        .constraints(Constraint.StringNonEmpty())
+        .configure(title) { action(it.value) }
 }
 
 abstract class AnimationBuilder {
@@ -184,7 +184,7 @@ object AppAnimator: AnimationBuilder() {
         val scaleI = CircularInterpolator(EasingMode.EASE_OUT)
         return anim(300.millis) {
             n.isMouseTransparent = it!=1.0
-            n.opacity = 1-(1-it)*(1-it)
+            n.opacity = 1 - (1 - it)*(1 - it)
             n.setScaleXYByTo(scaleI.interpolate(0.0, 1.0, it), -50.0, 0.0)
         }.apply {
             playAgainIfFinished = false

@@ -25,7 +25,6 @@ import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.rating.RatingCellFactory
 import sp.it.pl.gui.objects.table.FilteredTable
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV
-import sp.it.pl.gui.objects.table.TableColumnInfo
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
@@ -69,28 +68,29 @@ import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import sp.it.util.validation.Constraint.FileActor
+import sp.it.pl.gui.objects.table.TableColumnInfo as ColumnState
 
 @Info(
-        author = "Martin Polakovic",
-        name = Widgets.SONG_TABLE,
-        description = "Provides access to database.",
-        howto = "Available actions:\n"+
-                "    Song left click : Selects item\n"+
-                "    Song right click : Opens context menu\n"+
-                "    Song double click : Plays item\n"+
-                "    Type : search & filter\n"+
-                "    Press ENTER : Plays item\n"+
-                "    Press ESC : Clear selection & filter\n"+
-                "    Scroll : Scroll table vertically\n"+
-                "    Scroll + SHIFT : Scroll table horizontally\n"+
-                "    Column drag : swap columns\n"+
-                "    Column right click: show column menu\n"+
-                "    Click column : Sort - ascending | descending | none\n"+
-                "    Click column + SHIFT : Sorts by multiple columns\n"+
-                "    Menu bar : Opens additional actions\n",
-        version = "1.0.0",
-        year = "2015",
-        group = LIBRARY
+    author = "Martin Polakovic",
+    name = Widgets.SONG_TABLE,
+    description = "Provides access to database.",
+    howto = "Available actions:\n" +
+        "    Song left click : Selects item\n" +
+        "    Song right click : Opens context menu\n" +
+        "    Song double click : Plays item\n" +
+        "    Type : search & filter\n" +
+        "    Press ENTER : Plays item\n" +
+        "    Press ESC : Clear selection & filter\n" +
+        "    Scroll : Scroll table vertically\n" +
+        "    Scroll + SHIFT : Scroll table horizontally\n" +
+        "    Column drag : swap columns\n" +
+        "    Column right click: show column menu\n" +
+        "    Click column : Sort - ascending | descending | none\n" +
+        "    Click column + SHIFT : Sorts by multiple columns\n" +
+        "    Menu bar : Opens additional actions\n",
+    version = "1.0.0",
+    year = "2015",
+    group = LIBRARY
 )
 class Library(widget: Widget): SimpleController(widget), SongReader {
 
@@ -126,7 +126,9 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
         table.showOriginalIndex syncFrom tableOrigIndex on onClose
         table.headerVisible syncFrom tableShowHeader on onClose
         table.footerVisible syncFrom tableShowFooter on onClose
-        table.items_info.textFactory = { all, list -> DEFAULT_TEXT_FACTORY(all, list)+" - "+list.sumByDouble { it.getLengthInMs() }.millis.toHMSMs() }
+        table.items_info.textFactory = { all, list ->
+            DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumByDouble { it.getLengthInMs() }.millis.toHMSMs()
+        }
 
         // add more menu items
         table.menuAdd.apply {
@@ -144,7 +146,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
         table.setColumnFactory { field ->
             TableColumn<Metadata, Any?>(field.name()).apply {
                 @Suppress("UNCHECKED_CAST")
-                cellFactory = when(field) {
+                cellFactory = when (field) {
                     RATING -> RatingCellFactory as Callback<TableColumn<Metadata, Any?>, TableCell<Metadata, Any?>>
                     else -> Callback { table.buildDefaultCell(field) }
                 }
@@ -177,7 +179,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
         Player.playingSong.onUpdate { table.updateStyleRules() } on onClose
 
         table.defaultColumnInfo   // trigger menu initialization
-        table.columnState = widget.properties.getS("columns")?.net { TableColumnInfo.fromString(it) } ?: table.defaultColumnInfo
+        table.columnState = widget.properties.getS("columns")?.net(ColumnState::fromString) ?: table.defaultColumnInfo
 
         table.onEventDown(KEY_PRESSED, ENTER, false) {
             if (!table.selectionModel.isEmpty) {

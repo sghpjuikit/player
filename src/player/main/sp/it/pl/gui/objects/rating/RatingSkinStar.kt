@@ -95,7 +95,7 @@ class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
         val gap = 2.0
         val x = when {
             -gap>b.x -> ratingOld ?: 0.0
-            b.x>w+gap -> ratingOld ?: 0.0
+            b.x>w + gap -> ratingOld ?: 0.0
             else -> (b.x/w).clip(0.0, 1.0)
         }
 
@@ -108,7 +108,9 @@ class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
     }
 
     private fun updateClip(v: Double? = skinnable.rating.value) {
-        foregroundMask.width = foregroundIcons.boundsInParent.minX.roundToInt()-1.0+(v ?: 0.0)*(foregroundIcons.layoutBounds.width+1.0)
+        val l = foregroundIcons.boundsInParent.minX.roundToInt() - 1.0
+        val w = (v ?: 0.0)*(foregroundIcons.layoutBounds.width + 1.0)
+        foregroundMask.width = l + w
         foregroundMask.height = skinnable.height
     }
 

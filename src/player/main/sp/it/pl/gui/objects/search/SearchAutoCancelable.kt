@@ -16,7 +16,7 @@ abstract class SearchAutoCancelable: Search() {
     @JvmField protected var searchTime: Long = -1
     @JvmField protected val searchAutoCanceller = fxTimer(3.seconds, 1) { cancel() }
 
-    public override fun isMatch(text: String, query: String): Boolean =  matcher.value.predicate(text, query)
+    public override fun isMatch(text: String, query: String): Boolean = matcher.value.predicate(text, query)
 
     enum class Match constructor(val predicate: (String, String) -> Boolean) {
         CONTAINS({ text, s -> text.contains(s, isIgnoreCase) }),

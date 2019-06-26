@@ -30,8 +30,8 @@ val Duration.javafx: Dur get() = toMillis().millis
 fun Dur.toHMSMs(include_zeros: Boolean = true): String {
     val secondsTotal = toMillis()/1000
     val seconds = secondsTotal.toInt()%60
-    val minutes = ((secondsTotal-seconds)/60).toInt()%60
-    val hours = (secondsTotal-seconds.toDouble()-(60*minutes).toDouble()).toInt()/3600
+    val minutes = ((secondsTotal - seconds)/60).toInt()%60
+    val hours = (secondsTotal - seconds.toDouble() - (60*minutes).toDouble()).toInt()/3600
     return if (include_zeros) {
         when {
             hours>99 -> String.format("%d:%02d:%02d", hours, minutes, seconds)
@@ -60,15 +60,18 @@ val Number.hours: Dur get() = Dur.hours(toDouble())
 
 /** @return [Dur.minus]. */
 operator fun Dur.minus(d: Dur) = subtract(d)
+
 /** @return [Dur.plus]. */
 operator fun Dur.plus(d: Dur) = add(d)
 
 /** @return duration specified times shorter than this duration. */
 operator fun Dur.div(times: Number) = Dur(toMillis()/times.toDouble())
+
 /** @return duration specified times longer than this duration. */
 operator fun Dur.times(times: Number) = Dur(toMillis()*times.toDouble())
 
 /** @return how many times is this duration longer than the specified duration, i.e., division of duration's millis */
 infix fun Dur.divMillis(d: Dur) = toMillis()/d.toMillis()
+
 /** @return multiplication of duration's millis */
 infix fun Dur.timesMillis(d: Dur) = toMillis()*d.toMillis()

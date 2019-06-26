@@ -21,7 +21,7 @@ class Chapter: Comparable<Chapter> {
     /** @return true iff both chapters text and their time */
     override fun equals(other: Any?) = this===other || other is Chapter && time==other.time
 
-    override fun hashCode() = 19*3+Objects.hashCode(time)
+    override fun hashCode() = 19*3 + Objects.hashCode(time)
 
     /** @return result of comparison by time */
     override fun compareTo(other: Chapter) = time.compareTo(other.time)
@@ -42,7 +42,7 @@ class Chapter: Comparable<Chapter> {
                 Try.error("Not parsable chapter string: '$text' - must contain $separator")
             } else {
                 val cTime = text.substring(0, i).toDoubleOrNull()?.computeTimeFromMs() ?: Duration(0.0)
-                val cText = text.substring(i+1, text.length)
+                val cText = text.substring(i + 1, text.length)
                 Try.ok(Chapter(cTime, cText))
             }
         }

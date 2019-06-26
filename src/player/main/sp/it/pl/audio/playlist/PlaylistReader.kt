@@ -39,11 +39,11 @@ fun readPlaylist(file: File): List<Song> {
                 null
                     ?: it.toURIOrNull()?.net { sequenceOf(SimpleSong(it)) }
                     ?: File(it).absoluteTo(location)
-                            ?.net {
-                                if (it.isPlaylistFile()) readPlaylist(it).asSequence()
-                                else sequenceOf(SimpleSong(it))
-                            }
-                            ?: sequenceOf()
+                        ?.net {
+                            if (it.isPlaylistFile()) readPlaylist(it).asSequence()
+                            else sequenceOf(SimpleSong(it))
+                        }
+                    ?: sequenceOf()
             }
             .toList()
     }

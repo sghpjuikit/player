@@ -169,10 +169,10 @@ fun Song.Companion.addToLibTask(songs: Collection<Song>) = object: Task<AddSongs
 }
 
 class AddSongsToLibResult(
-        val all: List<Song>,
-        val processed: List<Song>,
-        val converted: List<Metadata>,
-        val skipped: List<Song>
+    val all: List<Song>,
+    val processed: List<Song>,
+    val converted: List<Metadata>,
+    val skipped: List<Song>
 )
 
 // TODO: return proper Result object

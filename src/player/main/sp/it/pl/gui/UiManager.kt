@@ -92,14 +92,14 @@ class UiManager(val skinDir: File): Configurable<Any> {
         val window = n?.scene
         if (n!=null)
             APP.widgetManager.widgets.findAll(OPEN)
-                    .filter { it.uiTemp?.root?.isAnyParentOf(n) ?: false }
-                    .findAny()
-                    .ifPresent { fw ->
-                        APP.widgetManager.widgets.findAll(OPEN)
-                                .filter { w -> w!==fw && w.window.orNull()?.stage?.scene?.net { it===window } ?: false }
-                                .forEach { w -> w.focused.value = false }
-                        fw.focused.value = true
-                    }
+                .filter { it.uiTemp?.root?.isAnyParentOf(n) ?: false }
+                .findAny()
+                .ifPresent { fw ->
+                    APP.widgetManager.widgets.findAll(OPEN)
+                        .filter { w -> w!==fw && w.window.orNull()?.stage?.scene?.net { it===window } ?: false }
+                        .forEach { w -> w.focused.value = false }
+                    fw.focused.value = true
+                }
     }
 
     init {
@@ -153,7 +153,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
         additionalStylesheets -= f
         it?.let {
             f.writeTextTry(""".rating { -fx-skin: "${it.jvmName}"; }""", Charsets.UTF_8)
-                    .ifError { logger.error(it) { "Failed to apply rating skin=$it" } }
+                .ifError { logger.error(it) { "Failed to apply rating skin=$it" } }
             additionalStylesheets += f
         }
     }
@@ -192,8 +192,8 @@ class UiManager(val skinDir: File): Configurable<Any> {
         val n = e.target as? Node
         if (n!=null)
             APP.widgetManager.widgets.findAll(OPEN).asSequence()
-                    .find { !it.focused.value && it.isLoaded && it.load().isAnyParentOf(n) }
-                    ?.focus()
+                .find { !it.focused.value && it.isLoaded && it.load().isAnyParentOf(n) }
+                ?.focus()
     }
 
     /** Toggles lock to prevent user accidental layout change.  */
@@ -289,23 +289,23 @@ class UiManager(val skinDir: File): Configurable<Any> {
      */
     fun findSkins(): Set<SkinCss> {
         if (!Util.isValidatedDirectory(skinDir)) {
-            logger.error("Skin lookup failed."+skinDir.path+" could not be accessed.")
+            logger.error("Skin lookup failed." + skinDir.path + " could not be accessed.")
             return set()
         }
 
         return skinDir.children()
-                .filter { it.isDirectory }
-                .mapNotNull {
-                    val name = it.name
-                    val css = File(it, "$name.css")
-                    if (Util.isValidFile(css)) {
-                        logger.info("Registering skin: $name")
-                        SkinCss(css)
-                    } else {
-                        null
-                    }
+            .filter { it.isDirectory }
+            .mapNotNull {
+                val name = it.name
+                val css = File(it, "$name.css")
+                if (Util.isValidFile(css)) {
+                    logger.info("Registering skin: $name")
+                    SkinCss(css)
+                } else {
+                    null
                 }
-                .toSet()
+            }
+            .toSet()
     }
 
     private fun registerSkin(s: SkinCss): SkinCss {
@@ -325,8 +325,8 @@ class UiManager(val skinDir: File): Configurable<Any> {
         logger.info("Setting skin file={}", cssFile)
 
         val s = skins.stream()
-                .filter { (_, file) -> file==cssFile }.findAny()
-                .orElseGet { registerSkin(SkinCss(cssFile)) }
+            .filter { (_, file) -> file==cssFile }.findAny()
+            .orElseGet { registerSkin(SkinCss(cssFile)) }
         setSkin(s)
     }
 
@@ -355,7 +355,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
                 val s2 = skin sync { root.applySkinGui(it) }
                 val s1 = font sync { root.applyFontGui(it) }
                 val s3 = additionalStylesheets.onChange { root.applySkinGui(skin.value) }
-                s1+s2+s3
+                s1 + s2 + s3
             }
         }
         Tooltip.getWindows().onItemAdded { (it as? Tooltip)?.font = font.value }

@@ -92,7 +92,7 @@ fun InstanceName.initApp() {
     add(Collection::class.java) {
         val eType = sp.it.util.type.Util.getRawGenericPropertyType(it.javaClass)
         val eName = if (eType==it.javaClass || eType==null || eType==Any::class.java) "Item" else APP.className[eType]
-        it.size.toString()+" "+English.plural(eName, it.size)
+        it.size.toString() + " " + English.plural(eName, it.size)
     }
 }
 
@@ -105,7 +105,7 @@ fun InstanceInfo.initApp() {
 
         if (type==FileType.FILE) {
             val fs = FileSize(f)
-            map["Size"] = ""+fs+(if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else "")
+            map["Size"] = "" + fs + (if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else "")
             map["Format"] = f.name.substringAfterLast('.', "<none>")
         }
 
@@ -121,13 +121,13 @@ fun InstanceInfo.initApp() {
     add(Component::class.java) { v, map -> map["Name"] = v.exportName }
     add(Metadata::class.java) { m, map ->
         Metadata.Field.FIELDS.asSequence()
-                .filter { it.isTypeStringRepresentable() && !it.isFieldEmpty(m) }
-                .forEach { map[it.name()] = it.getOfS(m, "<none>") }
+            .filter { it.isTypeStringRepresentable() && !it.isFieldEmpty(m) }
+            .forEach { map[it.name()] = it.getOfS(m, "<none>") }
     }
     add(PlaylistSong::class.java) { p, map ->
         PlaylistSong.Field.FIELDS.asSequence()
-                .filter { it.isTypeStringRepresentable() }
-                .forEach { map[it.name()] = it.getOfS(p, "<none>") }
+            .filter { it.isTypeStringRepresentable() }
+            .forEach { map[it.name()] = it.getOfS(p, "<none>") }
     }
     add(Feature::class.java) { f, map ->
         map["Name"] = f.name

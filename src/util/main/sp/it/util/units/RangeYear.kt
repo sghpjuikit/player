@@ -52,15 +52,15 @@ class RangeYear {
     fun hasUnSpecific() = hasUnspecified
 
     override fun toString() =
-            when {
-                isEmpty() -> "<none>"
-                hasSpecific() -> {
-                    when (min==max) {
-                        true -> (if (hasUnspecified) "? " else "")+max
-                        false -> min.toString()+(if (hasUnspecified) " ? " else " - ")+max
-                    }
+        when {
+            isEmpty() -> "<none>"
+            hasSpecific() -> {
+                when (min==max) {
+                    true -> (if (hasUnspecified) "? " else "") + max
+                    false -> min.toString() + (if (hasUnspecified) " ? " else " - ") + max
                 }
-                else -> ""
             }
+            else -> ""
+        }
 
 }

@@ -24,7 +24,7 @@ class RealTimeProperty {
     }
 
     fun initialize() {
-        currentTime attach { realTime.value = realSeek+currentTime.get()-currentSeek }
+        currentTime attach { realTime.value = realSeek + currentTime.get() - currentSeek }
     }
 
     fun syncRealTimeOnPlay() {

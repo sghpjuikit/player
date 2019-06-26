@@ -47,19 +47,19 @@ class ConfigSearch: AutoCompletion<Entry> {
     private var ignoreEvent = false
 
     constructor(textField: TextField, history: History = History(), entries: () -> Sequence<Entry>): super(
-            textField,
-            { text ->
-                if (text.isEmpty())
-                    listOf()
-                else {
-                    val phrases = text.split(" ").toList()
-                    entries()
-                            .filter { phrases.all { phrase -> it.searchText.contains(phrase, true) } }
-                            .sortedBy { it.name }
-                            .toList()
-                }
-            },
-            defaultStringConverter()
+        textField,
+        { text ->
+            if (text.isEmpty())
+                listOf()
+            else {
+                val phrases = text.split(" ").toList()
+                entries()
+                    .filter { phrases.all { phrase -> it.searchText.contains(phrase, true) } }
+                    .sortedBy { it.name }
+                    .toList()
+            }
+        },
+        defaultStringConverter()
     ) {
         this.textField = textField
         this.textField.prefWidth = 550.0.scaleEM() // affects the popup width
@@ -83,7 +83,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                                 when (it.code) {
                                     UP -> history.up(this@ConfigSearch)
                                     DOWN -> history.down(this@ConfigSearch)
-                                    else -> {}
+                                    else -> Unit
                                 }
                                 it.consume()
                             } else if (it.code==BACK_SPACE) {
@@ -109,7 +109,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                                 when (it.code) {
                                     UP -> history.up(this@ConfigSearch)
                                     DOWN -> history.down(this@ConfigSearch)
-                                    else -> {}
+                                    else -> Unit
                                 }
                                 it.consume()
                             } else if (it.isControlDown && it.code==A) {
@@ -134,7 +134,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                                 if (!it.isShiftDown) textField.deselect()
                                 it.consume()
                             }
-                            // TODO: else if (!e.getCode().isNavigationKey()) {}
+                        // TODO: else if (!e.getCode().isNavigationKey()) {}
                         ignoreEvent = false
                     }
                 }
@@ -155,13 +155,13 @@ class ConfigSearch: AutoCompletion<Entry> {
 
         fun up(search: ConfigSearch) {
             if (history.isEmpty()) return
-            historyIndex = if (historyIndex==0) history.size-1 else historyIndex-1
+            historyIndex = if (historyIndex==0) history.size - 1 else historyIndex - 1
             search.completionTargetTyped.text = history[historyIndex]
         }
 
         fun down(search: ConfigSearch) {
             if (history.isEmpty()) return
-            historyIndex = if (historyIndex==history.size-1) 0 else historyIndex+1
+            historyIndex = if (historyIndex==history.size - 1) 0 else historyIndex + 1
             search.completionTargetTyped.text = history[historyIndex]
         }
 
@@ -170,7 +170,7 @@ class ConfigSearch: AutoCompletion<Entry> {
             val isDiff = history.isEmpty() || !history.last().equals(curr, ignoreCase = true)
             if (isDiff) {
                 history += curr
-                historyIndex = history.size-1
+                historyIndex = history.size - 1
             }
         }
     }
@@ -197,7 +197,7 @@ class ConfigSearch: AutoCompletion<Entry> {
 
         class ConfigEntry constructor(private val config: Config<*>): Entry {
             override val name = "${if (config is Runnable) "Run " else ""}${config.group}.${config.guiName}"
-            override val searchText = if (config is Action) name+config.keys else name
+            override val searchText = if (config is Action) name + config.keys else name
             override val info by lazy { "$name\n\n${config.info}" }
             override val graphics by lazy {
                 when {
@@ -244,9 +244,9 @@ class ConfigSearch: AutoCompletion<Entry> {
             text.textAlignment = TextAlignment.LEFT
             text.textOverrun = OverrunStyle.CENTER_ELLIPSIS
             text.setMinPrefMaxSize(USE_COMPUTED_SIZE)
-            text.prefWidthProperty() syncFrom root.widthProperty()-configNodeRoot.widthProperty()-10
+            text.prefWidthProperty() syncFrom root.widthProperty() - configNodeRoot.widthProperty() - 10
             text.minWidth = 200.0
-            text.maxWidthProperty() syncFrom root.widthProperty()-100
+            text.maxWidthProperty() syncFrom root.widthProperty() - 100
             text.padding = Insets(5.0, 0.0, 0.0, 10.0)
             root install rootTooltip
         }

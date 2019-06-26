@@ -42,8 +42,9 @@ class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
     @IsConfig(name = "Show notification (update)", info = "Shows notification when playcount is incremented.")
     val showNotificationUpdate by cv(false)
     @IsConfig(name = "Delay writing", info = "Delays editing tag until different song starts playing." +
-            "\n\n* May improve playback experience." +
-            "\n\n* Reduces consecutive updates to a single update.")
+        "\n\n* May improve playback experience." +
+        "\n\n* Reduces consecutive updates to a single update."
+    )
     val delay by cv(true)
 
     private val queue = ArrayList<Metadata>()
@@ -79,7 +80,7 @@ class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
                 if (showNotificationSchedule.value)
                     APP.plugins.use<Notifier> { it.showTextNotification("Song playcount incrementing scheduled", "Playcount") }
             } else {
-                val pc = 1+m.getPlaycountOr0()
+                val pc = 1 + m.getPlaycountOr0()
                 m.write({ it.setPlaycount(pc) }) {
                     if (it.isOk && showNotificationUpdate.value)
                         APP.plugins.use<Notifier> { it.showTextNotification("Song playcount incremented by 1 to: $pc", "Playcount") }
@@ -94,7 +95,7 @@ class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
 
         when (whenStrategy.value) {
             ON_PERCENT -> {
-                incHandler = at({ total -> total*whenPercent.value}, incrementer)
+                incHandler = at({ total -> total*whenPercent.value }, incrementer)
                 Player.onPlaybackAt.add(incHandler)
             }
             ON_TIME -> {
@@ -111,7 +112,7 @@ class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
             }
             ON_START -> Player.onPlaybackStart += incrementer
             ON_END -> Player.onPlaybackEnd += incrementer
-            MANUAL -> {}
+            MANUAL -> Unit
         }
     }
 
@@ -125,7 +126,7 @@ class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
         val by = queue.count { it.same(m) }
         if (by>0) {
             queue.removeIf { it.same(m) }
-            val pc = by+m.getPlaycountOr0()
+            val pc = by + m.getPlaycountOr0()
             m.write({ it.setPlaycount(pc) }) {
                 if (it.isOk && showNotificationUpdate.value)
                     APP.plugins.use<Notifier> { it.showTextNotification("Song playcount incremented by: $by to: $pc", "Playcount") }

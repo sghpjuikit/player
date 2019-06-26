@@ -40,8 +40,8 @@ class ShortcutPane: OverlayPane<Collection<Action>>() {
 
             lay += hBox(5, CENTER_RIGHT) {
                 lay += CheckIcon(hideEmptyShortcuts)
-                        .icons(IconMD.CHECKBOX_BLANK_CIRCLE_OUTLINE, IconMD.CLOSE_CIRCLE_OUTLINE)
-                        .tooltip("$HIDE_EMPTY_NAME\n\n$HIDE_EMPTY_INFO")
+                    .icons(IconMD.CHECKBOX_BLANK_CIRCLE_OUTLINE, IconMD.CLOSE_CIRCLE_OUTLINE)
+                    .tooltip("$HIDE_EMPTY_NAME\n\n$HIDE_EMPTY_INFO")
                 lay += infoIcon("Shortcut viewer\n\nDisplays available shortcuts. Optionally also those that have not been assigned yet.")
             }
             lay(ALWAYS) += stackPane {
@@ -74,28 +74,28 @@ class ShortcutPane: OverlayPane<Collection<Action>>() {
 
         var i = -1
         actions.asSequence()
-                .filter { !hideEmptyShortcuts.value || it.hasKeysAssigned() }
-                .groupBy { it.group }
-                .entries.asSequence()
-                .sortedBy { it.key }
-                .onEach { it.value.sortedBy { it.name } }
-                .forEach { (key, value) ->
-                    // group title row
-                    i++
-                    val group = label(key) {
-                        styleClass += STYLECLASS_GROUP
-                    }
-                    g.add(layVertically(0.0, CENTER, label(), group), 2, i)
-                    GridPane.setValignment(group.parent, VPos.CENTER)
-                    GridPane.setHalignment(group.parent, HPos.LEFT)
-
-                    // shortcut rows
-                    for (a in value) {
-                        i++
-                        g.add(label(a.keys), 0, i)
-                        g.add(label(a.name), 2, i)
-                    }
+            .filter { !hideEmptyShortcuts.value || it.hasKeysAssigned() }
+            .groupBy { it.group }
+            .entries.asSequence()
+            .sortedBy { it.key }
+            .onEach { it.value.sortedBy { it.name } }
+            .forEach { (key, value) ->
+                // group title row
+                i++
+                val group = label(key) {
+                    styleClass += STYLECLASS_GROUP
                 }
+                g.add(layVertically(0.0, CENTER, label(), group), 2, i)
+                GridPane.setValignment(group.parent, VPos.CENTER)
+                GridPane.setHalignment(group.parent, HPos.LEFT)
+
+                // shortcut rows
+                for (a in value) {
+                    i++
+                    g.add(label(a.keys), 0, i)
+                    g.add(label(a.name), 2, i)
+                }
+            }
     }
 
     companion object {

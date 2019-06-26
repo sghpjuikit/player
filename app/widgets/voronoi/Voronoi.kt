@@ -47,13 +47,13 @@ import kotlin.math.sqrt
 import kotlin.streams.asSequence
 
 @Widget.Info(
-        author = "Martin Polakovic",
-        name = "Voronoi",
-        description = "Playground to experiment and visualize voronoi diagrams",
-        howto = "To configure the visualization edit the source code.",
-        version = "1.0.0",
-        year = "2016",
-        group = Widget.Group.VISUALISATION
+    author = "Martin Polakovic",
+    name = "Voronoi",
+    description = "Playground to experiment and visualize voronoi diagrams",
+    howto = "To configure the visualization edit the source code.",
+    version = "1.0.0",
+    year = "2016",
+    group = Widget.Group.VISUALISATION
 )
 @ExperimentalController("Only interesting as a demo.")
 class Voronoi(widget: Widget): SimpleController(widget) {
@@ -141,10 +141,10 @@ class Voronoi(widget: Widget): SimpleController(widget) {
             val opacityMax = 0.5
             val distMin = 0.0
             val distMax = 0.2*pyth(w, h)
-            val distDiff = distMax-distMin
+            val distDiff = distMax - distMin
             val distances = cells.associateWith {
                 val dist = (mousePos?.distance(it.x, it.y) ?: distMax).clip(distMin, distMax)
-                val distNormalized = (1-(dist-distMin)/distDiff).clip(opacityMin, opacityMax)
+                val distNormalized = (1 - (dist - distMin)/distDiff).clip(opacityMin, opacityMax)
                 distNormalized
             }
 
@@ -174,28 +174,28 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                 logger.warn(it) { "Computation of Voronoi diagram failed" }
             }.ifOk { g ->
                 IntStream.range(0, g.numGeometries).asSequence()
-                        .map { g.getGeometryN(it) }
-                        .forEach { polygon ->
+                    .map { g.getGeometryN(it) }
+                    .forEach { polygon ->
 
-                            val cell = inputOutputMap[polygon.userData as Coordinate]!!
-                            val cs = polygon.coordinates
-                            val xs = DoubleArray(cs.size)
-                            val ys = DoubleArray(cs.size)
-                            for (j in cs.indices) {
-                                xs[j] = cs[j].x
-                                ys[j] = cs[j].y
-                            }
-
-                            val isSelected = selectedCell?.let { cell.x==it.x && cell.y==it.y } ?: false
-                            val isDragged = draggedCell==null
-                            if (isSelected) {
-                                gc.globalAlpha = if (isDragged) 0.1 else 0.15
-                                gc.fillPolygon(xs, ys, polygon.numPoints)
-                            }
-
-                            gc.globalAlpha = distances[cell] ?: opacityMin
-                            strokePolygon(gc, polygon)
+                        val cell = inputOutputMap[polygon.userData as Coordinate]!!
+                        val cs = polygon.coordinates
+                        val xs = DoubleArray(cs.size)
+                        val ys = DoubleArray(cs.size)
+                        for (j in cs.indices) {
+                            xs[j] = cs[j].x
+                            ys[j] = cs[j].y
                         }
+
+                        val isSelected = selectedCell?.let { cell.x==it.x && cell.y==it.y } ?: false
+                        val isDragged = draggedCell==null
+                        if (isSelected) {
+                            gc.globalAlpha = if (isDragged) 0.1 else 0.15
+                            gc.fillPolygon(xs, ys, polygon.numPoints)
+                        }
+
+                        gc.globalAlpha = distances[cell] ?: opacityMin
+                        strokePolygon(gc, polygon)
+                    }
             }
             gc.restore()
 
@@ -203,16 +203,16 @@ class Voronoi(widget: Widget): SimpleController(widget) {
             gc.save()
             val r = 2.0
             val rd = 4.0
-            cells.forEach { gc.fillOval(it.x-r, it.y-r, 2*r, 2*r) }
-            selectedCell?.let { gc.fillOval(it.x-rd, it.y-rd, 2*rd, 2*rd) }
+            cells.forEach { gc.fillOval(it.x - r, it.y - r, 2*r, 2*r) }
+            selectedCell?.let { gc.fillOval(it.x - rd, it.y - rd, 2*rd, 2*rd) }
             gc.restore()
         }
     }
 
     data class CellGeneratorSeed(
-            val width: Double,
-            val height: Double,
-            val count: Int
+        val width: Double,
+        val height: Double,
+        val count: Int
     )
 
     enum class CellGenerator(val generator: (CellGeneratorSeed) -> Sequence<Cell>) {
@@ -223,76 +223,76 @@ class Voronoi(widget: Widget): SimpleController(widget) {
             val wh = it.width min it.height
             val cells = ArrayList<Cell>()
 
-            cells += generateSequence(0.0) { it+2*PI/11 }.take(11)
-                    .map { a ->
-                        object: Cell(0.0, 0.0) {
-                            var angle = a
+            cells += generateSequence(0.0) { it + 2*PI/11 }.take(11)
+                .map { a ->
+                    object: Cell(0.0, 0.0) {
+                        var angle = a
 
-                            init {
-                                moving = { _, _ ->
-                                    angle += 0.001
-                                    x = wh/2+wh/20*cos(angle)
-                                    y = wh/2+wh/20*sin(angle)
-                                    x += randOf(-1, 1)*randMN(0.0005, 0.00051)
-                                    y += randOf(-1, 1)*randMN(0.0005, 0.00051)
-                                }
+                        init {
+                            moving = { _, _ ->
+                                angle += 0.001
+                                x = wh/2 + wh/20*cos(angle)
+                                y = wh/2 + wh/20*sin(angle)
+                                x += randOf(-1, 1)*randMN(0.0005, 0.00051)
+                                y += randOf(-1, 1)*randMN(0.0005, 0.00051)
                             }
                         }
                     }
-            cells += generateSequence(0.0) { it+2*PI/3 }.take(3)
-                    .map { a ->
-                        object: Cell(0.0, 0.0) {
-                            var angle = a
+                }
+            cells += generateSequence(0.0) { it + 2*PI/3 }.take(3)
+                .map { a ->
+                    object: Cell(0.0, 0.0) {
+                        var angle = a
 
-                            init {
-                                moving = { _, _ ->
-                                    angle -= 0.002
-                                    x = wh/2+wh/10*cos(angle)
-                                    y = wh/2+wh/10*sin(angle)
-                                    x += randOf(-1, 1)*randMN(0.0005, 0.00051)
-                                    y += randOf(-1, 1)*randMN(0.0005, 0.00051)
-                                }
+                        init {
+                            moving = { _, _ ->
+                                angle -= 0.002
+                                x = wh/2 + wh/10*cos(angle)
+                                y = wh/2 + wh/10*sin(angle)
+                                x += randOf(-1, 1)*randMN(0.0005, 0.00051)
+                                y += randOf(-1, 1)*randMN(0.0005, 0.00051)
                             }
                         }
                     }
+                }
 
-            cells += generateSequence(0.0) { a -> a+2*PI/it.count }.take(it.count)
-                    .map { a ->
-                        object: Cell(0.0, 0.0) {
-                            var angle = a
+            cells += generateSequence(0.0) { a -> a + 2*PI/it.count }.take(it.count)
+                .map { a ->
+                    object: Cell(0.0, 0.0) {
+                        var angle = a
 
-                            init {
-                                moving = { _, _ ->
-                                    angle -= 0.002
-                                    x = wh-wh/6+wh/8*cos(angle)
-                                    y = wh/6+wh/8*sin(angle)
-                                    x += randOf(-1, 1)*randMN(0.0005, 0.00051)
-                                    y += randOf(-1, 1)*randMN(0.0005, 0.00051)
-                                }
+                        init {
+                            moving = { _, _ ->
+                                angle -= 0.002
+                                x = wh - wh/6 + wh/8*cos(angle)
+                                y = wh/6 + wh/8*sin(angle)
+                                x += randOf(-1, 1)*randMN(0.0005, 0.00051)
+                                y += randOf(-1, 1)*randMN(0.0005, 0.00051)
                             }
                         }
                     }
-            cells += generateSequence(0.0) { a -> a+2*PI/it.count }.take(it.count)
-                    .map { a ->
-                        object: Cell(0.0, 0.0) {
-                            var angle = a
+                }
+            cells += generateSequence(0.0) { a -> a + 2*PI/it.count }.take(it.count)
+                .map { a ->
+                    object: Cell(0.0, 0.0) {
+                        var angle = a
 
-                            init {
-                                moving = { _, _ ->
-                                    angle -= 0.002
-                                    x = wh/2+wh/4*cos(angle)
-                                    y = wh/2+wh/4*sin(angle)
-                                    x += randOf(-1, 1)*randMN(0.0005, 0.00051)
-                                    y += randOf(-1, 1)*randMN(0.0005, 0.00051)
-                                }
+                        init {
+                            moving = { _, _ ->
+                                angle -= 0.002
+                                x = wh/2 + wh/4*cos(angle)
+                                y = wh/2 + wh/4*sin(angle)
+                                x += randOf(-1, 1)*randMN(0.0005, 0.00051)
+                                y += randOf(-1, 1)*randMN(0.0005, 0.00051)
                             }
                         }
                     }
+                }
 
             cells.forEach {
                 it.moving = it.moving ?: { w, h ->
-                    val x = it.x+it.dx
-                    val y = it.y+it.dy
+                    val x = it.x + it.dx
+                    val y = it.y + it.dy
                     when {
                         x<0 -> {
                             it.dx = -it.dx
@@ -300,7 +300,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                         }
                         x>w -> {
                             it.dx = -it.dx
-                            it.x = 2*w-x
+                            it.x = 2*w - x
                         }
                         else -> it.x = x
                     }
@@ -311,7 +311,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                         }
                         y>h -> {
                             it.dy = -it.dy
-                            it.y = 2*h-y
+                            it.y = 2*h - y
                         }
                         else -> it.y = y
                     }
@@ -322,13 +322,13 @@ class Voronoi(widget: Widget): SimpleController(widget) {
         }),
         HORIZONTAL_LINE({
             IntStream.range(0, it.count).asSequence()
-                    .map { i -> Cell(it.width*0.1+it.width*0.8/it.count*i, it.height/2.0) }
+                .map { i -> Cell(it.width*0.1 + it.width*0.8/it.count*i, it.height/2.0) }
         })
     }
 
     open class P(var x: Double, var y: Double) {
         fun distance(p: P): Double = distance(p.x, p.y)
-        fun distance(x: Double, y: Double): Double = sqrt((x-this.x)*(x-this.x)+(y-this.y)*(y-this.y))
+        fun distance(x: Double, y: Double): Double = sqrt((x - this.x)*(x - this.x) + (y - this.y)*(y - this.y))
     }
 
     class Line(var x1: Double, var y1: Double, var x2: Double, var y2: Double) {
@@ -337,7 +337,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
             if (this===other) return true
             if (other !is Line) return false
             return (dc(other.x1, x1)==0 && dc(other.x2, x2)==0 && dc(other.y1, y1)==0 && dc(other.y2, y2)==0) ||
-                    (dc(other.x1, x2)==0 && dc(other.x2, x1)==0 && dc(other.y1, y2)==0 && dc(other.y2, y1)==0)
+                (dc(other.x1, x2)==0 && dc(other.x2, x1)==0 && dc(other.y1, y2)==0 && dc(other.y2, y1)==0)
         }
 
         override fun hashCode(): Int {
@@ -347,20 +347,20 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                 temp = java.lang.Double.doubleToLongBits(x1)
                 result = (temp xor temp.ushr(32)).toInt()
                 temp = java.lang.Double.doubleToLongBits(y1)
-                result = 31*result+(temp xor temp.ushr(32)).toInt()
+                result = 31*result + (temp xor temp.ushr(32)).toInt()
                 temp = java.lang.Double.doubleToLongBits(x2)
-                result = 31*result+(temp xor temp.ushr(32)).toInt()
+                result = 31*result + (temp xor temp.ushr(32)).toInt()
                 temp = java.lang.Double.doubleToLongBits(y2)
-                result = 31*result+(temp xor temp.ushr(32)).toInt()
+                result = 31*result + (temp xor temp.ushr(32)).toInt()
             } else {
                 temp = java.lang.Double.doubleToLongBits(x2)
                 result = (temp xor temp.ushr(32)).toInt()
                 temp = java.lang.Double.doubleToLongBits(y2)
-                result = 31*result+(temp xor temp.ushr(32)).toInt()
+                result = 31*result + (temp xor temp.ushr(32)).toInt()
                 temp = java.lang.Double.doubleToLongBits(x1)
-                result = 31*result+(temp xor temp.ushr(32)).toInt()
+                result = 31*result + (temp xor temp.ushr(32)).toInt()
                 temp = java.lang.Double.doubleToLongBits(y1)
-                result = 31*result+(temp xor temp.ushr(32)).toInt()
+                result = 31*result + (temp xor temp.ushr(32)).toInt()
             }
             return result
         }
@@ -379,8 +379,8 @@ class Voronoi(widget: Widget): SimpleController(widget) {
         companion object {
             fun random(width: Double, height: Double, speed: Double): Cell {
                 return Cell(rand0N(width), rand0N(height)).apply {
-                    dx = rand0N(speed)-speed/2
-                    dy = rand0N(speed)-speed/2
+                    dx = rand0N(speed) - speed/2
+                    dy = rand0N(speed) - speed/2
                 }
             }
         }
@@ -399,15 +399,15 @@ class Voronoi(widget: Widget): SimpleController(widget) {
 
         fun rand0N(n: Double): Double = rand.nextDouble()*n
 
-        fun randMN(m: Double, n: Double): Double = m+rand0N(n-m)
+        fun randMN(m: Double, n: Double): Double = m + rand0N(n - m)
 
         fun <T> randOf(a: T, b: T): T = if (randBoolean()) a else b
 
         fun strokePolygon(gc: GraphicsContext, polygon: Geometry) {
             val cs = polygon.coordinates
-            for (j in 0 until cs.size-1)
-                gc.strokeLine(cs[j].x, cs[j].y, cs[j+1].x, cs[j+1].y)
-            gc.strokeLine(cs[0].x, cs[0].y, cs[cs.size-1].x, cs[cs.size-1].y)
+            for (j in 0 until cs.size - 1)
+                gc.strokeLine(cs[j].x, cs[j].y, cs[j + 1].x, cs[j + 1].y)
+            gc.strokeLine(cs[0].x, cs[0].y, cs[cs.size - 1].x, cs[cs.size - 1].y)
         }
     }
 

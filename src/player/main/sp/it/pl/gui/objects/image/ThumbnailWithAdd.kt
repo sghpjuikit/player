@@ -50,16 +50,16 @@ class ThumbnailWithAdd @JvmOverloads constructor(dragIcon: GlyphIcons = DETAILS,
 
         // drag&drop
         installDrag(
-                root, dragIcon, dragDescription,
-                { e -> e.dragboard.hasImageFileOrUrl() },
-                { e ->
-                    // Fut<File> fi = getImage(e);
-                    // File i = fi.isDone() ? fi.getDone() : null;
-                    // boolean same = i!=null && i.equals(except.get());
-                    val i = e.dragboard.getImageFile()
-                    i!=null && i==file  // image of this file is already displayed
-                },
-                { e -> onFileDropped(e.dragboard.getImageFileOrUrl()) }
+            root, dragIcon, dragDescription,
+            { e -> e.dragboard.hasImageFileOrUrl() },
+            { e ->
+                // Fut<File> fi = getImage(e);
+                // File i = fi.isDone() ? fi.getDone() : null;
+                // boolean same = i!=null && i.equals(except.get());
+                val i = e.dragboard.getImageFile()
+                i!=null && i==file  // image of this file is already displayed
+            },
+            { e -> onFileDropped(e.dragboard.getImageFileOrUrl()) }
         )
     }
 

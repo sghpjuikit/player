@@ -46,11 +46,11 @@ enum class NodePos {
         val w = popup.contentNode.value.layoutBounds.width
         val x = n.localToScreen(0.0, 0.0).x
         return when (this) {
-            CENTER, DOWN_CENTER, UP_CENTER -> x+n.layoutBounds.width/2-w/2
-            LEFT_CENTER, LEFT_UP, LEFT_DOWN -> x-w
-            RIGHT_CENTER, RIGHT_UP, RIGHT_DOWN -> x+n.layoutBounds.width
+            CENTER, DOWN_CENTER, UP_CENTER -> x + n.layoutBounds.width/2 - w/2
+            LEFT_CENTER, LEFT_UP, LEFT_DOWN -> x - w
+            RIGHT_CENTER, RIGHT_UP, RIGHT_DOWN -> x + n.layoutBounds.width
             UP_LEFT, DOWN_LEFT -> x
-            UP_RIGHT, DOWN_RIGHT -> x+n.layoutBounds.width-w
+            UP_RIGHT, DOWN_RIGHT -> x + n.layoutBounds.width - w
         }
     }
 
@@ -58,11 +58,11 @@ enum class NodePos {
         val h = popup.contentNode.value.layoutBounds.height
         val y = n.localToScreen(0.0, 0.0).y
         return when (this) {
-            UP_RIGHT, UP_CENTER, UP_LEFT -> y-h
-            DOWN_CENTER, DOWN_LEFT, DOWN_RIGHT -> y+n.layoutBounds.height
+            UP_RIGHT, UP_CENTER, UP_LEFT -> y - h
+            DOWN_CENTER, DOWN_LEFT, DOWN_RIGHT -> y + n.layoutBounds.height
             LEFT_UP, RIGHT_UP -> y
-            CENTER, LEFT_CENTER, RIGHT_CENTER -> y+n.layoutBounds.height/2-h/2
-            LEFT_DOWN, RIGHT_DOWN -> y+n.layoutBounds.height-h
+            CENTER, LEFT_CENTER, RIGHT_CENTER -> y + n.layoutBounds.height/2 - h/2
+            LEFT_DOWN, RIGHT_DOWN -> y + n.layoutBounds.height - h
         }
     }
 }
@@ -84,7 +84,7 @@ enum class ScreenPos {
 
     fun toScreenCentric(): ScreenPos = enumValues<ScreenPos>()[ordinal%5]
 
-    fun toAppCentric(): ScreenPos = enumValues<ScreenPos>()[5+ordinal%5]
+    fun toAppCentric(): ScreenPos = enumValues<ScreenPos>()[5 + ordinal%5]
 
     fun <N: Node> computeXY(popup: PopOver<N>) = P(computeX(popup), computeY(popup))
 
@@ -94,11 +94,11 @@ enum class ScreenPos {
         val window = APP.windowManager.getFocused().orNull()?.stage
         return when (this) {
             APP_TOP_LEFT, APP_BOTTOM_LEFT -> window?.x ?: SCREEN_BOTTOM_LEFT.computeX(popup)
-            APP_TOP_RIGHT, APP_BOTTOM_RIGHT -> window?.let { it.x+it.width-width } ?: SCREEN_BOTTOM_RIGHT.computeX(popup)
-            APP_CENTER -> window?.let { it.centreX-width/2 } ?: SCREEN_CENTER.computeX(popup)
-            SCREEN_TOP_LEFT, SCREEN_BOTTOM_LEFT -> screen.minX+GAP
-            SCREEN_TOP_RIGHT, SCREEN_BOTTOM_RIGHT -> screen.maxX-width-GAP
-            SCREEN_CENTER -> screen.centreX-width/2
+            APP_TOP_RIGHT, APP_BOTTOM_RIGHT -> window?.let { it.x + it.width - width } ?: SCREEN_BOTTOM_RIGHT.computeX(popup)
+            APP_CENTER -> window?.let { it.centreX - width/2 } ?: SCREEN_CENTER.computeX(popup)
+            SCREEN_TOP_LEFT, SCREEN_BOTTOM_LEFT -> screen.minX + GAP
+            SCREEN_TOP_RIGHT, SCREEN_BOTTOM_RIGHT -> screen.maxX - width - GAP
+            SCREEN_CENTER -> screen.centreX - width/2
         }
     }
 
@@ -107,12 +107,12 @@ enum class ScreenPos {
         val screen by lazy { getScreenForMouse().bounds }
         val window = APP.windowManager.getFocused().orNull()
         return when (this) {
-            APP_BOTTOM_LEFT, APP_BOTTOM_RIGHT -> window?.let { it.y+it.height-height } ?: SCREEN_BOTTOM_RIGHT.computeY(popup)
+            APP_BOTTOM_LEFT, APP_BOTTOM_RIGHT -> window?.let { it.y + it.height - height } ?: SCREEN_BOTTOM_RIGHT.computeY(popup)
             APP_TOP_LEFT, APP_TOP_RIGHT -> window?.y ?: SCREEN_TOP_RIGHT.computeY(popup)
-            APP_CENTER -> window?.let { it.centreY-height/2 } ?: SCREEN_CENTER.computeY(popup)
-            SCREEN_BOTTOM_LEFT, SCREEN_BOTTOM_RIGHT -> screen.maxY-height-GAP
-            SCREEN_TOP_LEFT, SCREEN_TOP_RIGHT -> screen.minY+GAP
-            SCREEN_CENTER -> screen.centreY-height/2
+            APP_CENTER -> window?.let { it.centreY - height/2 } ?: SCREEN_CENTER.computeY(popup)
+            SCREEN_BOTTOM_LEFT, SCREEN_BOTTOM_RIGHT -> screen.maxY - height - GAP
+            SCREEN_TOP_LEFT, SCREEN_TOP_RIGHT -> screen.minY + GAP
+            SCREEN_CENTER -> screen.centreY - height/2
         }
     }
 }
@@ -152,7 +152,7 @@ enum class ScreenUse {
             ScreenPos.SCREEN_CENTER -> {
                 val top = ss.asSequence().map { it.bounds }.minBy { it.minY } ?: psb
                 val bottom = ss.asSequence().map { it.bounds }.maxBy { it.maxY } ?: psb
-                Rectangle2D(left.minX, top.minY, right.maxX-left.minX, bottom.maxY-top.minY)
+                Rectangle2D(left.minX, top.minY, right.maxX - left.minX, bottom.maxY - top.minY)
             }
             else -> null
         }

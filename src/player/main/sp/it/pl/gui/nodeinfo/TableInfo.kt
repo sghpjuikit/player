@@ -52,7 +52,7 @@ class TableInfo<E>: NodeInfo<TableView<E>> {
             updateText()
             val s1 = listAll.onChange(updateText)
             val s2 = listSelected.onChange(updateText)
-            s1+s2
+            s1 + s2
         }
     }
 
@@ -79,7 +79,7 @@ class TableInfo<E>: NodeInfo<TableView<E>> {
         val DEFAULT_TEXT_FACTORY: (Boolean, List<*>) -> String = { isSelectionEmpty, list ->
             val prefix = if (isSelectionEmpty) "All: " else "Selected: "
             val size = list.size
-            "$prefix "+"item".pluralUnit(size)
+            "$prefix " + "item".pluralUnit(size)
         }
 
     }

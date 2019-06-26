@@ -98,7 +98,7 @@ class AppActions {
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
     fun openIconViewer() {
         val iconSize = 120.0
-        val iconsView = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize+30, 5.0, 5.0).apply {
+        val iconsView = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize + 30, 5.0, 5.0).apply {
             search.field = StringGetter.of { value, _ -> value.name() }
             selectOn setTo listOf(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS)
             cellFactory = Callback {
@@ -115,7 +115,8 @@ class AppActions {
                         if (empty || item==null) {
                             graphic = null
                         } else {
-                            val iconInfo = graphic as? IconInfo ?: IconInfo(null, iconSize).apply { isMouseTransparent = true }
+                            val iconInfo = graphic as? IconInfo
+                                ?: IconInfo(null, iconSize).apply { isMouseTransparent = true }
                             iconInfo.setGlyph(if (empty) null else icon)
                             graphic = iconInfo
                         }
@@ -156,8 +157,8 @@ class AppActions {
     fun openLauncher() {
         val f = File(APP.DIR_LAYOUTS, "AppMainLauncher.fxwl")
         val c = null
-                ?: APP.windowManager.instantiateComponent(f)
-                ?: APP.widgetManager.factories.getFactoryByGuiName(Widgets.APP_LAUNCHER).orNull()?.create()
+            ?: APP.windowManager.instantiateComponent(f)
+            ?: APP.widgetManager.factories.getFactoryByGuiName(Widgets.APP_LAUNCHER).orNull()?.create()
 
         if (c!=null) {
             val op = object: OverlayPane<Void>() {
@@ -341,20 +342,20 @@ class AppActions {
     fun printAllImageFileMetadata(file: File) {
         failIfFxThread()
 
-        val title = "Metadata of "+file.path
+        val title = "Metadata of " + file.path
         val text = try {
             val sb = StringBuilder()
             ImageMetadataReader.readMetadata(file)
-                    .directories
-                    .forEach {
-                        sb.append("\nName: ").append(it.name)
-                        it.tags.forEach { tag -> sb.append("\n\t").append(tag.toString()) }
-                    }
-            title+sb.toString()
+                .directories
+                .forEach {
+                    sb.append("\nName: ").append(it.name)
+                    it.tags.forEach { tag -> sb.append("\n\t").append(tag.toString()) }
+                }
+            title + sb.toString()
         } catch (e: IOException) {
-            "$title\n$"+e.stackTraceAsString()
+            "$title\n$" + e.stackTraceAsString()
         } catch (e: ImageProcessingException) {
-            "$title\n$"+e.stackTraceAsString()
+            "$title\n$" + e.stackTraceAsString()
         }
         runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
     }
@@ -381,14 +382,14 @@ class AppActions {
 
         val title = "Metadata of ${file.path}"
         val content = file.readAudioFile()
-                .map { af ->
-                    "\nHeader:\n"+
-                    af.audioHeader.toString().split("\n").joinToString("\n\t")+
-                    "\nTag:"+
+            .map { af ->
+                "\nHeader:\n" +
+                    af.audioHeader.toString().split("\n").joinToString("\n\t") +
+                    "\nTag:" +
                     if (af.tag==null) " <none>" else af.tag.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" }
-                }
-                .getOrSupply { "\n${it.stackTraceAsString()}" }
-        val text = title+content
+            }
+            .getOrSupply { "\n${it.stackTraceAsString()}" }
+        val text = title + content
         runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
     }
 
@@ -403,7 +404,7 @@ class AppActions {
     fun browseMultipleFiles(files: Sequence<File>) {
         val fs = files.asSequence().toSet()
         when {
-            fs.isEmpty() -> {}
+            fs.isEmpty() -> Unit
             fs.size==1 -> fs.firstOrNull()?.browse()
             else -> APP.ui.actionPane.orBuild.show(MultipleFiles(fs))
         }

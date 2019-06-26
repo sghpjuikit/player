@@ -66,7 +66,7 @@ fun <T> Lazy<T>.orNull() = if (isInitialized()) value else null
 fun <T> Optional<T>.orNull(): T? = orElse(null)
 
 /** @return ok with the value of this optional or error if this is empty optional */
-fun <T: Any> Optional<T>.toTry(): Try<T,Nothing?> = map { Try.ok(it) }.orNull() ?: Try.error()
+fun <T: Any> Optional<T>.toTry(): Try<T, Nothing?> = map { Try.ok(it) }.orNull() ?: Try.error()
 
 /** Equivalent to [Optional.ofNullable]. */
 fun <T: Any> T?.toOptional(): Optional<T> = Optional.ofNullable(this)

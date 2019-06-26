@@ -277,10 +277,10 @@ class App: Application(), Configurable<Any> {
             configuration.gatherActions(Player::class.java, null)
             configuration.gatherActions(PlaylistManager::class.java, null)
             configuration.installActions(
-                    this,
-                    ui,
-                    actions,
-                    windowManager
+                this,
+                ui,
+                actions,
+                windowManager
             )
 
             widgetManager.init()
@@ -293,7 +293,7 @@ class App: Application(), Configurable<Any> {
                 logger.info { "Application closing prematurely" }
 
                 MessagePane().initApp().apply { onHidden += { close() } }.show(
-                        "Application did not start successfully and will close." +
+                    "Application did not start successfully and will close." +
                         "\nPlease fill an issue at $uriGithub providing the logs in $DIR_LOG." +
                         "\nThe exact problem was:\n ${it.stacktraceAsString}"
                 )
@@ -372,20 +372,20 @@ class App: Application(), Configurable<Any> {
 
     /** @return images of the icon of the application in all possible sizes */
     fun getIcons(): List<Image> = sequenceOf(16, 24, 32, 48, 128, 256, 512)
-            .map { File("resources/icons/icon$it.png").toURI().toString() }
-            .map { Image(it) }
-            .toList()
+        .map { File("resources/icons/icon$it.png").toURI().toString() }
+        .map { Image(it) }
+        .toList()
 
     private fun PluginManager.initForApp() {
         installPlugins(
-                TrayPlugin(),
-                Notifier(),
-                PlaycountIncrementer(),
-                LibraryWatcher(),
-                AppSearchPlugin(),
-                DirSearchPlugin(),
-                ScreenRotator(),
-                Waifu2kPlugin()
+            TrayPlugin(),
+            Notifier(),
+            PlaycountIncrementer(),
+            LibraryWatcher(),
+            AppSearchPlugin(),
+            DirSearchPlugin(),
+            ScreenRotator(),
+            Waifu2kPlugin()
         )
     }
 
@@ -401,33 +401,33 @@ class App: Application(), Configurable<Any> {
         sources += {
             widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map {
                 Entry.SimpleEntry(
-                        "Open widget ${it.nameGui()}",
-                        { "Open widget ${it.nameGui()}\n\nOpens the widget in new window." },
-                        { APP.windowManager.launchComponent(it.create()) }
+                    "Open widget ${it.nameGui()}",
+                    { "Open widget ${it.nameGui()}\n\nOpens the widget in new window." },
+                    { APP.windowManager.launchComponent(it.create()) }
                 )
             }
         }
         sources += {
             widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map { c ->
                 Entry.SimpleEntry(
-                        "Open widget ${c.nameGui()} (in new process)",
-                        { "Open widget ${c.nameGui()}\n\nOpens the widget in new process." },
-                        {
-                            val f = APP.DIR_APP/(if (Os.WINDOWS.isCurrent) "PlayerFX.exe" else "PlayerFX.sh")
-                            f.runAsAppProgram(
-                                    "Launching component ${c.nameGui()} in new process",
-                                    "--singleton=false", "--stateless=true", "open-component", "\"${c.nameGui()}\""
-                            )
-                        }
+                    "Open widget ${c.nameGui()} (in new process)",
+                    { "Open widget ${c.nameGui()}\n\nOpens the widget in new process." },
+                    {
+                        val f = APP.DIR_APP/(if (Os.WINDOWS.isCurrent) "PlayerFX.exe" else "PlayerFX.sh")
+                        f.runAsAppProgram(
+                            "Launching component ${c.nameGui()} in new process",
+                            "--singleton=false", "--stateless=true", "open-component", "\"${c.nameGui()}\""
+                        )
+                    }
                 )
             }
         }
         sources += {
-            widgetManager.factories.getFactories().filter { it.isUsableByUser() && it.externalWidgetData!=null}.map {
+            widgetManager.factories.getFactories().filter { it.isUsableByUser() && it.externalWidgetData!=null }.map {
                 Entry.SimpleEntry(
-                        "Recompile widget ${it.nameGui()}",
-                        { "Recompile widget ${it.nameGui()} and reload all of its instances upon success" },
-                        { it.externalWidgetData!!.scheduleCompilation() }
+                    "Recompile widget ${it.nameGui()}",
+                    { "Recompile widget ${it.nameGui()} and reload all of its instances upon success" },
+                    { it.externalWidgetData!!.scheduleCompilation() }
                 )
             }
         }

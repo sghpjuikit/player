@@ -143,7 +143,7 @@ class IO(private val id: UUID) {
 
     companion object {
 
-        private fun <T,R> Input<T?>.bindMapped(output: Output<out R?>, mapper: (R) -> T?): Subscription {
+        private fun <T, R> Input<T?>.bindMapped(output: Output<out R?>, mapper: (R) -> T?): Subscription {
             return output.sync { value = if (it==null) null else mapper(it) }
         }
 

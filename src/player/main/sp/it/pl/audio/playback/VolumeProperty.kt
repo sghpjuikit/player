@@ -27,10 +27,10 @@ class VolumeProperty: SimpleDoubleProperty {
     }
 
     /** Increment value by [STEP]. */
-    fun incByStep() = set(get()+STEP)
+    fun incByStep() = set(get() + STEP)
 
     /** Decrement value by [STEP]. */
-    fun decByStep() = set(get()-STEP)
+    fun decByStep() = set(get() - STEP)
 
     companion object {
         const val MIN = 0.0

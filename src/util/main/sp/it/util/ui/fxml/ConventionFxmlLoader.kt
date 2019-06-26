@@ -48,7 +48,7 @@ class ConventionFxmlLoader: FXMLLoader {
      * @param controller the controller
      */
     fun setConvention(c: Class<*>, root: Any, controller: Any = root) {
-        location = c.getResource(c.simpleName+".fxml")
+        location = c.getResource(c.simpleName + ".fxml")
         setRoot(root)
         setController(controller)
     }

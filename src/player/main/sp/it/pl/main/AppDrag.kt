@@ -140,10 +140,10 @@ fun Dragboard.hasText(): Boolean = hasString() || hasRtf()
 fun Dragboard.setSongsAndFiles(items: List<Song>) {
     this[Df.SONGS] = items
     this.setContent(
-            mapOf(
-                    Df.SONGS.format to "",
-                    Df.FILES.format to items.mapNotNull { it.getFile() }
-            )
+        mapOf(
+            Df.SONGS.format to "",
+            Df.FILES.format to items.mapNotNull { it.getFile() }
+        )
     )
 }
 
@@ -241,15 +241,15 @@ private fun futUrl(url: String): Fut<File?> = runNew {
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
 fun installDrag(node: Node, icon: GlyphIcons, info: String, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
-        installDrag(node, icon, info, condition, { false }, action)
+    installDrag(node, icon, info, condition, { false }, action)
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
 fun installDrag(node: Node, icon: GlyphIcons, info: String, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
-        installDrag(node, icon, Supplier { info }, condition, exc, action)
+    installDrag(node, icon, Supplier { info }, condition, exc, action)
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
 fun installDrag(node: Node, icon: GlyphIcons, info: Supplier<out String>, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
-        installDrag(node, icon, info, condition, { false }, action)
+    installDrag(node, icon, info, condition, { false }, action)
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
 @JvmOverloads

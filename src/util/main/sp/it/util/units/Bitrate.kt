@@ -4,7 +4,10 @@ import sp.it.util.dev.Dependency
 import sp.it.util.functional.Try
 
 /** Media bit rate with kb/s unit. Supports variable and unknown value. */
-data class Bitrate(/** Value in kb/s, 0 if unknown, and negative if variable. */ val value: Int): Comparable<Bitrate> {
+data class Bitrate(
+    /** Value in kb/s, 0 if unknown, and negative if variable. */
+    val value: Int
+): Comparable<Bitrate> {
 
     /** @return true iff the value is unknown */
     fun isUnknown() = value==VALUE_NA
@@ -40,7 +43,7 @@ data class Bitrate(/** Value in kb/s, 0 if unknown, and negative if variable. */
                 var v = s
                 v = v.trim()
                 if (v.startsWith(VALUE_S_VARIABLE)) v = v.substringAfter(VALUE_S_VARIABLE)
-                if (v.endsWith(UNIT)) v = v.substring(0, v.length-UNIT.length)
+                if (v.endsWith(UNIT)) v = v.substring(0, v.length - UNIT.length)
                 v = v.trim()
 
                 Try.ok(if (v.isEmpty()) Bitrate(VALUE_NA) else Bitrate(v.toInt()))

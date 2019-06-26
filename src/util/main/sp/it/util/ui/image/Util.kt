@@ -123,7 +123,7 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width:
             ?: run {
                 val iW = reader.getWidth(ii)
                 val iH = reader.getHeight(ii)
-                if (w>iW || h > iH) {
+                if (w>iW || h>iH) {
                     w = iW
                     h = iH
                 }
@@ -202,7 +202,7 @@ fun getImageDim(f: File): Try<Dimension, Nothing?> {
                 return Try.ok(Dimension(width, height))
             }
         } catch (e: IOException) {
-            logger.warn(e) {"Problem finding out image size $f" }
+            logger.warn(e) { "Problem finding out image size $f" }
             return Try.error()
         } catch (e: NullPointerException) {
             // The TwelveMonkeys library seems to have a bug

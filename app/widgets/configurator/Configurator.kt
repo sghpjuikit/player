@@ -42,17 +42,17 @@ import java.util.ArrayList
 
 @Suppress("MemberVisibilityCanBePrivate")
 @Widget.Info(
-        author = "Martin Polakovic",
-        name = "Settings",
-        description = "Provides access to application settings",
-        howto = "Available actions:\n"
-                +"    Select category\n"
-                +"    Change setting value: Automatically takes change\n"
-                +"    Default : Set default value for this setting\n",
-        notes = "To do: generate active widget settings",
-        version = "0.9.0",
-        year = "2016",
-        group = Widget.Group.APP
+    author = "Martin Polakovic",
+    name = "Settings",
+    description = "Provides access to application settings",
+    howto = "Available actions:\n"
+        + "    Select category\n"
+        + "    Change setting value: Automatically takes change\n"
+        + "    Default : Set default value for this setting\n",
+    notes = "To do: generate active widget settings",
+    version = "0.9.0",
+    year = "2016",
+    group = Widget.Group.APP
 )
 class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature {
 

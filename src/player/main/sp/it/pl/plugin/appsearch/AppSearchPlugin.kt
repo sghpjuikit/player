@@ -46,28 +46,28 @@ class AppSearchPlugin: PluginBase("App Search", false) {
         val dirs = searchDirs.materialize()
         runNew {
             dirs.asSequence()
-                    .distinct()
-                    .flatMap { findApps(it) }
-                    .toList()
+                .distinct()
+                .flatMap { findApps(it) }
+                .toList()
         }.ui {
             searchSourceApps = it
         }
-        .withAppProgress("$name: Searching for applications")
+            .withAppProgress("$name: Searching for applications")
     }
 
     private fun findApps(dir: File): Sequence<File> {
         return dir.walkTopDown()
-                .onFail { file, e -> logger.warn(e) { "Ignoring file=$file. No read/access permission" } }
-                .maxDepth(searchDepth.value)
-                .filter { it.isExecutable() }
+            .onFail { file, e -> logger.warn(e) { "Ignoring file=$file. No read/access permission" } }
+            .maxDepth(searchDepth.value)
+            .filter { it.isExecutable() }
     }
 
     private fun File.toRunApplicationEntry() = ConfigSearch.Entry.of(
-            { "Run app: $absolutePath" },
-            { "Runs application: $absolutePath" },
-            { "Run app: $absolutePath" },
-            { Icon(IconMA.APPS) },
-            { runAsProgram() }
+        { "Run app: $absolutePath" },
+        { "Runs application: $absolutePath" },
+        { "Run app: $absolutePath" },
+        { Icon(IconMA.APPS) },
+        { runAsProgram() }
     )
 
     companion object: KLogging()

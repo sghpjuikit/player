@@ -15,7 +15,7 @@ data class NofX(val n: Int, val of: Int): Comparable<NofX> {
     @Dependency("fromString")
     override fun toString() = toString("/")
 
-    fun toString(separator: String) = (if (n==-1) "?" else "$n")+separator+(if (of==-1) "?" else "$of")
+    fun toString(separator: String) = (if (n==-1) "?" else "$n") + separator + (if (of==-1) "?" else "$of")
 
     companion object {
         @Dependency("toString")

@@ -18,15 +18,15 @@ object MimeTypes {
 
     init {
         MimeTypes::class.java.getResourceAsStream("mime.types")
-                .reader().buffered()
-                .useLines {
-                    it.filter { it.isNotBlank() && !it.startsWith("#") }
+            .reader().buffered()
+            .useLines {
+                it.filter { it.isNotBlank() && !it.startsWith("#") }
                     .forEach {
                         val halves = it.toLowerCase().split("\\s".toRegex(), 2).toTypedArray()
                         val mime = MimeType(halves[0], *halves[1].trim().split("\\s".toRegex()).toTypedArray())
                         register(mime)
                     }
-        }
+            }
     }
 
     fun register(mimeType: MimeType) {

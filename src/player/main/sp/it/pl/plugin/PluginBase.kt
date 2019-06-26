@@ -23,7 +23,7 @@ abstract class PluginBase(override val name: String, isEnabledByDefault: Boolean
             logger.info { "Plugin $name starting..." }
 
             val canBeRunning = isSupported() && sequenceOf(location, userLocation).all { isValidatedDirectory(it) }
-                    .ifFalse { APP.ui.messagePane.orBuild.show("Directory $location or $userLocation can not be used.") }
+                .ifFalse { APP.ui.messagePane.orBuild.show("Directory $location or $userLocation can not be used.") }
 
             if (canBeRunning) start()
             else logger.error { "Plugin $name could not start..." }

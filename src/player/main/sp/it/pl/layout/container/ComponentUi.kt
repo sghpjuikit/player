@@ -28,7 +28,7 @@ interface ComponentUi: AltState {
 
     /** Dispose of this ui with the intention of never being used again. */
     @JvmDefault
-    fun dispose() {}
+    fun dispose() = Unit
 
 }
 
@@ -52,8 +52,8 @@ abstract class ComponentUiBase<C: Component>(val component: C): ComponentUi {
         w.showingProperty().sync1If({ it }) {
             runLater {
                 val sizeNew = c.size()
-                val sizeDiff = sizeOld-sizeNew
-                w.size = w.size+sizeDiff
+                val sizeDiff = sizeOld - sizeNew
+                w.size = w.size + sizeDiff
             }
         }
     }

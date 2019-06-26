@@ -76,8 +76,8 @@ class EffectTextField: ValueTextField<Effect> {
             contentNode.value = Picker<EffectType>().apply {
                 root.setPrefSize(300.0, 500.0)
                 itemSupply = limitedToType
-                        ?.net { { sequenceOf(EffectType(limitedToType.kotlin), EffectType(null)) } }
-                        ?: { EFFECT_TYPES.asSequence() }
+                    ?.net { { sequenceOf(EffectType(limitedToType.kotlin), EffectType(null)) } }
+                    ?: { EFFECT_TYPES.asSequence() }
                 textConverter = { it.name() }
                 onCancel = { hide() }
                 onSelect = {
@@ -102,24 +102,24 @@ class EffectTextField: ValueTextField<Effect> {
         private val typeTooltip = appTooltip("Choose type of effect")
         private val propTooltip = appTooltip("Configure effect")
         @JvmField val EFFECT_TYPES = listOf(
-                EffectType(Blend::class),
-                EffectType(Bloom::class),
-                EffectType(BoxBlur::class),
-                EffectType(ColorAdjust::class),
-                EffectType(ColorInput::class),
-                EffectType(DisplacementMap::class),
-                EffectType(DropShadow::class),
-                EffectType(GaussianBlur::class),
-                EffectType(Glow::class),
-                EffectType(ImageInput::class),
-                EffectType(InnerShadow::class),
-                EffectType(Lighting::class),
-                EffectType(MotionBlur::class),
-                EffectType(PerspectiveTransform::class),
-                EffectType(Reflection::class),
-                EffectType(SepiaTone::class),
-                EffectType(Shadow::class),
-                EffectType(null)
+            EffectType(Blend::class),
+            EffectType(Bloom::class),
+            EffectType(BoxBlur::class),
+            EffectType(ColorAdjust::class),
+            EffectType(ColorInput::class),
+            EffectType(DisplacementMap::class),
+            EffectType(DropShadow::class),
+            EffectType(GaussianBlur::class),
+            EffectType(Glow::class),
+            EffectType(ImageInput::class),
+            EffectType(InnerShadow::class),
+            EffectType(Lighting::class),
+            EffectType(MotionBlur::class),
+            EffectType(PerspectiveTransform::class),
+            EffectType(Reflection::class),
+            EffectType(SepiaTone::class),
+            EffectType(Shadow::class),
+            EffectType(null)
         )
     }
 

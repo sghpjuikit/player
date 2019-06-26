@@ -76,7 +76,7 @@ class MessagePane: OverlayPane<String>() {
                         }
                     }
                     lay += supplyIf(display.value!=Display.WINDOW) {
-                        Icon(IconFA.SQUARE, -1.0, "Always on top\n\nForbid hiding this window behind other application windows").apply{
+                        Icon(IconFA.SQUARE, -1.0, "Always on top\n\nForbid hiding this window behind other application windows").apply {
                             onClickDo {
                                 stage?.let {
                                     it.isAlwaysOnTop = !it.isAlwaysOnTop
@@ -101,11 +101,11 @@ class MessagePane: OverlayPane<String>() {
     private fun visit(at: Int) {
         historyAt = at
         text.text = history[historyAt]
-        historyAtText.value = "${historyAt+1}/${history.size}"
+        historyAtText.value = "${historyAt + 1}/${history.size}"
     }
 
-    private fun visitLeft() = visit(historyAt.max(1)-1)
+    private fun visitLeft() = visit(historyAt.max(1) - 1)
 
-    private fun visitRight() = visit(historyAt.min(history.size-2)+1)
+    private fun visitRight() = visit(historyAt.min(history.size - 2) + 1)
 
 }

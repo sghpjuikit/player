@@ -97,11 +97,11 @@ open class Anim: Transition {
 
     /** Sets animation interpolator and returns this (fluent style). */
     fun intpl(interpolator: IF) = intpl(
-            object: Interpolator() {
-                override fun curve(t: Double): Double {
-                    return interpolator(t)
-                }
+        object: Interpolator() {
+            override fun curve(t: Double): Double {
+                return interpolator(t)
             }
+        }
     )
 
     /** Sets [onFinished] returns this (fluent style). */
@@ -141,7 +141,7 @@ open class Anim: Transition {
     fun playClose() {
         val p = if (!playAgainIfFinished && currentTime.toMillis()==0.0) 1.0 else currentTime divMillis cycleDuration
         stop()
-        playCloseFrom(1-p)
+        playCloseFrom(1 - p)
     }
 
     fun playOpenFrom(position: Double) {
@@ -151,7 +151,7 @@ open class Anim: Transition {
 
     fun playCloseFrom(position: Double) {
         rate = -1.0
-        super.playFrom(cycleDuration-cycleDuration*position)
+        super.playFrom(cycleDuration - cycleDuration*position)
     }
 
     fun playCloseDo(block: Block?) {
@@ -238,48 +238,48 @@ open class Anim: Transition {
                 val ranges = ArrayList<Range>()
                 var p1 = 0.0
                 for (subrange in subranges) {
-                    ranges += Range(p1, p1+subrange.fraction, subrange.interpolator)
+                    ranges += Range(p1, p1 + subrange.fraction, subrange.interpolator)
                     p1 += subrange.fraction
                 }
 
                 return { at ->
                     ranges.find { at>=it.start && at<=it.end }
-                            ?.let { it.interpolator((at-it.start)/(it.end-it.start)) }
-                            ?: throw RuntimeException("Combined interpolator out of value at: $at")
+                        ?.let { it.interpolator((at - it.start)/(it.end - it.start)) }
+                        ?: throw RuntimeException("Combined interpolator out of value at: $at")
                 }
             }
 
             /** Returns reverse interpolator, which produces 1-interpolated_value. */
-            @S fun reverse(i: IF): IF = { 1-i(it) }
+            @S fun reverse(i: IF): IF = { 1 - i(it) }
 
             /** Returns reverse interpolator, which produces 1-interpolated_value. */
-            @S fun reverse(i: Interpolator): IF = { 1-i.interpolate(0.0, 1.0, it) }
+            @S fun reverse(i: Interpolator): IF = { 1 - i.interpolate(0.0, 1.0, it) }
 
             @S fun isAround(proximity: Double, vararg points: Double): IF = { at ->
-                points.find { at>it-proximity && at<it+proximity }
-                        ?.let { 0.0 }
-                        ?: 1.0
+                points.find { at>it - proximity && at<it + proximity }
+                    ?.let { 0.0 }
+                    ?: 1.0
             }
 
             @S fun isAroundMin1(proximity: Double, vararg points: Double): IF = { at ->
-                if (at<points[0]-proximity) 0.0
-                else points.find { it>it-proximity && it<it+proximity }
-                        ?.let { 0.0 }
-                        ?: 1.0
+                if (at<points[0] - proximity) 0.0
+                else points.find { it>it - proximity && it<it + proximity }
+                    ?.let { 0.0 }
+                    ?: 1.0
             }
 
             @S fun isAroundMin2(proximity: Double, vararg points: Double): IF = { at ->
-                if (at<points[0]-proximity) 0.0
-                else points.find { it>it-proximity && it<it+proximity }
-                        ?.let { abs((at-it+proximity)/(proximity*2)-0.5) }
-                        ?: 1.0
+                if (at<points[0] - proximity) 0.0
+                else points.find { it>it - proximity && it<it + proximity }
+                    ?.let { abs((at - it + proximity)/(proximity*2) - 0.5) }
+                    ?: 1.0
             }
 
             @S fun isAroundMin3(proximity: Double, vararg points: Double): IF = { at ->
-                if (at<points[0]-proximity) 0.0
-                else points.find { it>it-proximity && it<it+proximity }
-                        ?.let { sqrt(abs((at-it+proximity)/(proximity*2)-0.5)) }
-                        ?: 1.0
+                if (at<points[0] - proximity) 0.0
+                else points.find { it>it - proximity && it<it + proximity }
+                    ?.let { sqrt(abs((at - it + proximity)/(proximity*2) - 0.5)) }
+                    ?: 1.0
             }
         }
     }
@@ -314,19 +314,19 @@ open class Anim: Transition {
         @S fun mapTo01(x: Double, from: Double, to: Double): Double = when {
             x<=from -> 0.0
             x>=to -> 1.0
-            else -> (x-from)/(to-from)
+            else -> (x - from)/(to - from)
         }
 
         @S fun map01To010(x: Double, right: Double): Double {
-            val left = 1-right
+            val left = 1 - right
             return when {
                 x<=left -> mapTo01(x, 0.0, left)
-                x>=right -> 1-mapTo01(x, right, 1.0)
+                x>=right -> 1 - mapTo01(x, right, 1.0)
                 else -> 1.0
             }
         }
 
-        @S fun mapConcave(x: Double): Double = 1-abs(2*(x*x-0.5))
+        @S fun mapConcave(x: Double): Double = 1 - abs(2*(x*x - 0.5))
 
     }
 }

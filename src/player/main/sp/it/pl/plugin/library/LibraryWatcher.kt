@@ -45,8 +45,8 @@ class LibraryWatcher: PluginBase("Song Library", false) {
     private val sourceDirsChangeHandler = Subscribed {
         sourceDirs.forEach { handleLocationAdded(it) }
         Subscription(
-                sourceDirs.onItemAdded { handleLocationAdded(it) },
-                sourceDirs.onItemRemoved { handleLocationRemoved(it) }
+            sourceDirs.onItemAdded { handleLocationAdded(it) },
+            sourceDirs.onItemRemoved { handleLocationRemoved(it) }
         )
     }
 
@@ -63,8 +63,8 @@ class LibraryWatcher: PluginBase("Song Library", false) {
     private val dirMonitoring = Subscribed {
         when {
             dirMonitoringSupported -> Subscription(
-                    dirMonitoringEnabled sync { sourceDirsChangeHandler.subscribe(it) },
-                    Subscription { sourceDirsChangeHandler.unsubscribe() }
+                dirMonitoringEnabled sync { sourceDirsChangeHandler.subscribe(it) },
+                Subscription { sourceDirsChangeHandler.unsubscribe() }
             )
             else -> Subscription()
         }
@@ -125,10 +125,8 @@ class LibraryWatcher: PluginBase("Song Library", false) {
 
         APP.plugins.use<Notifier> {
             it.showTextNotification(
-                    "Some song files in library changed"+
-                            "\n\tAdded: ${toAdd.size of "file"}"+
-                            "\n\tRemoved: ${toRem.size of "file"}",
-                    "Library file change"
+                "Some song files in library changed\n\tAdded: ${toAdd.size of "file"}\n\tRemoved: ${toRem.size of "file"}",
+                "Library file change"
             )
         }
 

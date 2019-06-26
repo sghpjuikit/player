@@ -28,12 +28,12 @@ class Disposer: () -> Unit, (Subscription) -> Unit {
     }
 
     operator fun plusAssign(disposers: Iterable<() -> Unit>) {
-        disposers.forEach{ this += it }
+        disposers.forEach { this += it }
     }
 
     @JvmName("plusAssignSubs")
     operator fun plusAssign(disposers: Iterable<Subscription>) {
-        disposers.forEach{ this += it }
+        disposers.forEach { this += it }
     }
 
 }

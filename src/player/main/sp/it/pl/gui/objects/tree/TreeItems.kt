@@ -93,6 +93,7 @@ private const val SELECTION_DISTURBED_KEY = "tree_selection_disturbed"
 private const val SELECTION_DISTURBED_STACK_KEY = "tree_selection_disturbed_child"
 private val SELECTION_DISTURBED_CLEAR = EventType<TreeSelectionClearEvent>("tree_selection_disturbed_clear")
 private val SELECTION_DISTURBED_RESTORE = EventType<TreeSelectionRestoreEvent>("tree_selection_disturbed_restore")
+
 private class TreeSelectionClearEvent(target: EventTarget, val removed: TreeItem<*>): Event(null, target, SELECTION_DISTURBED_CLEAR)
 private class TreeSelectionRestoreEvent(target: EventTarget): Event(null, target, SELECTION_DISTURBED_RESTORE)
 
@@ -113,17 +114,17 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
     is Image -> tree("Image", tree("Url", o.url.orNone()), "Width${o.width}", "Height${o.height}")
     is Thumbnail.ContextMenuData -> tree("Thumbnail", tree("Data", o.representant.orNone()), tree("Image", o.image.orNone()), tree("Image file", o.iFile.orNone()))
     is Scene -> tree("Scene", o.root)
-    is WindowFX -> STreeItem(o, { seqOf(o.scene)+seqOf(o.asWindowOrNull()?.layout).filterNotNull() })
+    is WindowFX -> STreeItem(o, { seqOf(o.scene) + seqOf(o.asWindowOrNull()?.layout).filterNotNull() })
     is Window -> tree(o.stage)
     is PopOver<*> -> STreeItem(o, { seqOf(o.scene.root) })
     is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
     is Song -> STreeItem(o.uri, { seqOf() }, { true })
     is MetadataGroup -> STreeItem<Any?>("Library songs", { o.grouped.asSequence() }, { o.grouped.isEmpty() })
     is PlaylistSongGroup -> STreeItem<Any?>("Playlist songs", { o.songs.asSequence() }, { o.songs.isEmpty() })
-    is List<*> -> STreeItem<Any?>("List of "+APP.className.get(o.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
-    is Set<*> -> STreeItem<Any?>("Set of "+APP.className.get(o.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
-    is Map<*,*> -> STreeItem<Any?>("Map of "+APP.className.get(o.values.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
-    is Map.Entry<*,*> -> STreeItem<Any?>(o.key.toString(), { sequenceOf(o.value) })
+    is List<*> -> STreeItem<Any?>("List of " + APP.className.get(o.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
+    is Set<*> -> STreeItem<Any?>("Set of " + APP.className.get(o.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
+    is Map<*, *> -> STreeItem<Any?>("Map of " + APP.className.get(o.values.getElementType()).plural(), { o.asSequence() }, { o.isEmpty() })
+    is Map.Entry<*, *> -> STreeItem<Any?>(o.key.toString(), { sequenceOf(o.value) })
     else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().asSequence() }, { true }) else SimpleTreeItem(o)
 }.let { it as TreeItem<T> }
 
@@ -135,22 +136,22 @@ fun tree(v: Any, cs: () -> Sequence<Any>): TreeItem<Any> = STreeItem(v, cs)
 
 fun treeApp(): TreeItem<Any> {
     return tree("App",
-            tree("Behavior",
-                    tree("Widgets",
-                            tree("Categories", Widget.Group.values().asList()),
-                            tree("Types", { APP.widgetManager.factories.getFactories().sortedBy { it.nameGui() } }),
-                            tree("Open", { seqOf(ANY, OPEN_LAYOUT, OPEN_STANDALONE) }),
-                            tree("Features", { APP.widgetManager.factories.getFeatures().sortedBy { it.name } })
-                    ),
-                    tree("Plugins", { APP.plugins.getAll().sortedBy { it.name } })
+        tree("Behavior",
+            tree("Widgets",
+                tree("Categories", Widget.Group.values().asList()),
+                tree("Types", { APP.widgetManager.factories.getFactories().sortedBy { it.nameGui() } }),
+                tree("Open", { seqOf(ANY, OPEN_LAYOUT, OPEN_STANDALONE) }),
+                tree("Features", { APP.widgetManager.factories.getFeatures().sortedBy { it.name } })
             ),
-            tree("UI",
-                    tree("Windows", FilteredList(Stage.getWindows()) { it !is Tooltip && it !is ContextMenu }),
-                    tree("Layouts", { APP.widgetManager.layouts.findAllActive().sortedBy { it.name } })
-            ),
-            tree("Location", APP.DIR_APP),
-            tree("File system", File.listRoots().map { FileTreeItem(it) }),
-            tree(Name.treeOfPaths("Settings", APP.configuration.fields.map { it.group }))
+            tree("Plugins", { APP.plugins.getAll().sortedBy { it.name } })
+        ),
+        tree("UI",
+            tree("Windows", FilteredList(Stage.getWindows()) { it !is Tooltip && it !is ContextMenu }),
+            tree("Layouts", { APP.widgetManager.layouts.findAllActive().sortedBy { it.name } })
+        ),
+        tree("Location", APP.DIR_APP),
+        tree("File system", File.listRoots().map { FileTreeItem(it) }),
+        tree(Name.treeOfPaths("Settings", APP.configuration.fields.map { it.group }))
     )
 }
 
@@ -162,9 +163,9 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
     onEventDown(DRAG_DETECTED, PRIMARY, false) { e ->
         if (!selectionModel.isEmpty) {
             val items = selectionModel.selectedItems.asSequence()
-                    .map { it.value }
-                    .filterIsInstance<File>()
-                    .toList()
+                .map { it.value }
+                .filterIsInstance<File>()
+                .toList()
             val mode = if (e.isShiftDown) TransferMode.MOVE else TransferMode.COPY
             startDragAndDrop(mode).setContent(mapOf(DataFormat.FILES to items))
             e.consume()
@@ -175,44 +176,44 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
     @Suppress("UNCHECKED_CAST")
     rootProperty() syncNonNullWhile { root ->
         Subscription(
-                root.onEventDown(SELECTION_DISTURBED_CLEAR) {
-                    val childStack = properties.computeIfAbsent(SELECTION_DISTURBED_STACK_KEY) { Stack<Unit>() } as Stack<Unit>
-                    childStack.push(Unit)
+            root.onEventDown(SELECTION_DISTURBED_CLEAR) {
+                val childStack = properties.computeIfAbsent(SELECTION_DISTURBED_STACK_KEY) { Stack<Unit>() } as Stack<Unit>
+                childStack.push(Unit)
 
-                    if (childStack.size==1) {
-                        properties[SELECTION_DISTURBED_KEY] = when {
-                            selectionModel.isEmpty -> null
-                            else -> {
-                                val removed = it.removed as TreeItem<T>
-                                val removedI = getRow(removed)
-                                val remainingSelection = selectionModel.selectedIndices.filter { it!=removedI && !removed.isAnyParentOf(getTreeItem(it)) }
-                                when {
-                                    !remainingSelection.isEmpty() -> remainingSelection
-                                    else -> {
-                                        val i = null
-                                                ?: removed.previousSibling()?.let { getRow(it) }    // try preceding
-                                                ?: (removedI+1).takeIf { it<expandedItemCount }?.let { it-1 }    // try following
+                if (childStack.size==1) {
+                    properties[SELECTION_DISTURBED_KEY] = when {
+                        selectionModel.isEmpty -> null
+                        else -> {
+                            val removed = it.removed as TreeItem<T>
+                            val removedI = getRow(removed)
+                            val remainingSelection = selectionModel.selectedIndices.filter { it!=removedI && !removed.isAnyParentOf(getTreeItem(it)) }
+                            when {
+                                !remainingSelection.isEmpty() -> remainingSelection
+                                else -> {
+                                    val i = null
+                                        ?: removed.previousSibling()?.let { getRow(it) }    // try preceding
+                                        ?: (removedI + 1).takeIf { it<expandedItemCount }?.let { it - 1 }    // try following
 
-                                        i?.let { listOf(it) }
-                                        if (i!=null) listOf(i) else null
-                                    }
+                                    i?.let { listOf(it) }
+                                    if (i!=null) listOf(i) else null
                                 }
                             }
                         }
-                        selectionModel.clearSelection()
                     }
-                },
-                root.onEventDown(SELECTION_DISTURBED_RESTORE) {
-                    val childStack = properties[SELECTION_DISTURBED_STACK_KEY] as Stack<Unit>
-                    childStack.pop()
-
-                    if (properties[SELECTION_DISTURBED_KEY]!=null && childStack.isEmpty()) {
-                        selectionModel.clearSelection()
-                        val s = properties[SELECTION_DISTURBED_KEY] as List<Int>
-                        selectionModel.selectIndices(s[0], *IntArray(s.size-1) { s[it+1] })
-                        properties -= SELECTION_DISTURBED_KEY
-                    }
+                    selectionModel.clearSelection()
                 }
+            },
+            root.onEventDown(SELECTION_DISTURBED_RESTORE) {
+                val childStack = properties[SELECTION_DISTURBED_STACK_KEY] as Stack<Unit>
+                childStack.pop()
+
+                if (properties[SELECTION_DISTURBED_KEY]!=null && childStack.isEmpty()) {
+                    selectionModel.clearSelection()
+                    val s = properties[SELECTION_DISTURBED_KEY] as List<Int>
+                    selectionModel.selectIndices(s[0], *IntArray(s.size - 1) { s[it + 1] })
+                    properties -= SELECTION_DISTURBED_KEY
+                }
+            }
         )
     }
 
@@ -242,7 +243,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
         o is WidgetFactory<*> -> o.nameGui()
         o::class.java.isEnum -> enumToHuman(o.toString())
         o is File -> o.nameOrRoot
-        o is Node -> o.id?.trim().orEmpty()+":"+APP.className.getOf(o)+(if (o.parent==null && o===o.scene?.root) " (root)" else "")
+        o is Node -> o.id?.trim().orEmpty() + ":" + APP.className.getOf(o) + (if (o.parent==null && o===o.scene?.root) " (root)" else "")
         o is Tooltip -> "Tooltip"
         o is PopOver<*> -> "Popup " + PopOver.active_popups.indexOf(o)
         o is PopupWindow -> "Popup (generic)"
@@ -251,7 +252,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
             if (w==null) {
                 "Window (generic)"
             } else {
-                var n = "Window "+APP.windowManager.windows.indexOf(w)
+                var n = "Window " + APP.windowManager.windows.indexOf(w)
                 if (w===APP.windowManager.getMain().orNull()) n += " (main)"
                 if (w===APP.windowManager.dockWindow) n += " (dock)"
                 n
@@ -305,7 +306,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
                         }
                     }
                 }
-                else -> {}
+                else -> Unit
             }
         }
     }
@@ -361,6 +362,7 @@ open class OTreeItem<T> constructor(v: T, private val childrenO: ObservableList<
             }
         }
     }
+
     override fun dispose() {
         childrenDisposer()
         nullify(::childrenO)
@@ -394,11 +396,13 @@ open class STreeItem<T> constructor(v: T, private val childrenLazy: () -> Sequen
     }
 }
 
-class NodeTreeItem(value: Node): OTreeItem<Node>(value, (value as? Parent)?.childrenUnmodifiable ?: emptyObservableList())
+class NodeTreeItem(value: Node): OTreeItem<Node>(
+    value, (value as? Parent)?.childrenUnmodifiable ?: emptyObservableList()
+)
 
 class WidgetItem(v: Widget): STreeItem<Any>(v, { seqOf(v.uiTemp?.root).filterNotNull() }, { false })
 
-class LayoutItem(v: Component): STreeItem<Component>(v, { if (v is Container<*>) v.children.values.asSequence() else seqOf()})
+class LayoutItem(v: Component): STreeItem<Component>(v, { if (v is Container<*>) v.children.values.asSequence() else seqOf() })
 
 class FileTreeItem: SimpleTreeItem<File> {
     private val isLeaf: Boolean

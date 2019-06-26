@@ -68,36 +68,36 @@ class CoreConverter: Core {
         addT<StrExF>(toS, { StrExF.fromString(it).orMessage() })
         addT<NofX>(toS, { NofX.fromString(it).orMessage() })
         addT<Font>(
-                { String.format("%s, %s", it.name, it.size) },
-                tryF({
-                    val i = it.indexOf(',')
-                    val name = it.substring(0, i)
-                    val style = if (it.toLowerCase().contains("italic")) FontPosture.ITALIC else FontPosture.REGULAR
-                    val weight = if (it.toLowerCase().contains("bold")) FontWeight.BOLD else FontWeight.NORMAL
-                    val size = it.substring(i+2).toDouble()
-                    Font.font(name, weight, style, size)
-                }, nfe, obe)
+            { String.format("%s, %s", it.name, it.size) },
+            tryF({
+                val i = it.indexOf(',')
+                val name = it.substring(0, i)
+                val style = if (it.toLowerCase().contains("italic")) FontPosture.ITALIC else FontPosture.REGULAR
+                val weight = if (it.toLowerCase().contains("bold")) FontWeight.BOLD else FontWeight.NORMAL
+                val size = it.substring(i + 2).toDouble()
+                Font.font(name, weight, style, size)
+            }, nfe, obe)
         )
         addT<GlyphIcons>(
-                { "${it.fontFamily}.${it.name()}" },
-                { Icon.GLYPHS[it]?.let { Try.ok(it) } ?: Try.error("No such icon=$it") }
+            { "${it.fontFamily}.${it.name()}" },
+            { Icon.GLYPHS[it]?.let { Try.ok(it) } ?: Try.error("No such icon=$it") }
         )
         addT<Effect>({ Parsers.FX.toS(it) }, { Parsers.FX.ofS<Effect>(it) })
         addT<Class<*>>({ it.name }, tryF({ Class.forName(it) }, Throwable::class))
         addP<Functors.PƑ<*, *>>(
-                { "${it.name},${it.`in`},${it.out}" },
-                {
-                    val data = Util.split(it, ",")
-                    if (data.size!=3) {
-                        null
-                    } else {
-                        val name = data[0]
-                        val typeIn = ofS<Class<*>>(data[1]).getOr(null)
-                        val typeOut = ofS<Class<*>>(data[2]).getOr(null)
-                        if (name==null || typeIn==null || typeOut==null) null
-                        else Functors.pool.getPF(name, typeIn, typeOut)
-                    }
+            { "${it.name},${it.`in`},${it.out}" },
+            {
+                val data = Util.split(it, ",")
+                if (data.size!=3) {
+                    null
+                } else {
+                    val name = data[0]
+                    val typeIn = ofS<Class<*>>(data[1]).getOr(null)
+                    val typeOut = ofS<Class<*>>(data[2]).getOr(null)
+                    if (name==null || typeIn==null || typeOut==null) null
+                    else Functors.pool.getPF(name, typeIn, typeOut)
                 }
+            }
         )
         addT<SkinCss>({ it.file.absolutePath }, { Try.ok(SkinCss(File(it))) })
 

@@ -123,9 +123,7 @@ class NoFactoryFactory(val name: String): WidgetFactory<NoFactoryController>(NoF
 }
 
 /** Marks [Controller]/[Widget] as unfit for production use. */
-annotation class ExperimentalController(
-        val reason: String
-)
+annotation class ExperimentalController(val reason: String)
 
 /** @see ExperimentalController */
 fun ComponentFactory<*>.isExperimental() = this is WidgetFactory<*> && controllerType.isAnnotationPresent(ExperimentalController::class.java)

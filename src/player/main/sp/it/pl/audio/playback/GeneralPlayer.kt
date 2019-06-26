@@ -70,35 +70,35 @@ class GeneralPlayer {
                 } else {
                     runFX {
                         player.createPlayback(
-                                song,
-                                state.playback,
-                                {
-                                    realTime.realSeek = state.playback.realTime.get()
-                                    realTime.currentSeek = ZERO
-                                    player.play()
+                            song,
+                            state.playback,
+                            {
+                                realTime.realSeek = state.playback.realTime.get()
+                                realTime.currentSeek = ZERO
+                                player.play()
 
-                                    realTime.syncRealTimeOnPlay()
-                                    // throw song change event
-                                    Player.playingSong.songChanged(song)
-                                    Player.suspension_flag = false
-                                    // fire other events (may rely on the above)
-                                    Player.onPlaybackStart()
-                                    if (Player.post_activating_1st || !Player.post_activating)
-                                    // bug fix, not updated playlist songs can get here, but should not!
-                                        if (song.timeMs>0)
-                                            Player.onPlaybackAt.forEach { t -> t.restart(song.time) }
-                                    Player.post_activating = false
-                                    Player.post_activating_1st = false
-                                },
-                                { unableToPlayAny ->
-                                    logger.info { "Player=$p can not play song=$song" }
-                                    if (unableToPlayAny) {
-                                        stop()
-                                        // TODO: notify user
-                                    } else {
-                                        onUnableToPlay(song)
-                                    }
+                                realTime.syncRealTimeOnPlay()
+                                // throw song change event
+                                Player.playingSong.songChanged(song)
+                                Player.suspension_flag = false
+                                // fire other events (may rely on the above)
+                                Player.onPlaybackStart()
+                                if (Player.post_activating_1st || !Player.post_activating)
+                                // bug fix, not updated playlist songs can get here, but should not!
+                                    if (song.timeMs>0)
+                                        Player.onPlaybackAt.forEach { t -> t.restart(song.time) }
+                                Player.post_activating = false
+                                Player.post_activating_1st = false
+                            },
+                            { unableToPlayAny ->
+                                logger.info { "Player=$p can not play song=$song" }
+                                if (unableToPlayAny) {
+                                    stop()
+                                    // TODO: notify user
+                                } else {
+                                    onUnableToPlay(song)
                                 }
+                            }
                         )
                     }
                 }
@@ -159,14 +159,14 @@ class GeneralPlayer {
                     if (volumeAnim!=null) volumeAnim!!.pause()
                 }
                 seekDone = false
-                anim(150.millis) { state.playback.volume.value = currentVolume*(1.0-it).pow(2) }
-                        .then {
-                            doSeek(duration)
-                            volumeAnim = anim(150.millis) { state.playback.volume.value = lastValidVolume*it.pow(2) }
-                                    .then { seekDone = true }
-                                    .apply { playOpen() }
-                        }
-                        .playOpen()
+                anim(150.millis) { state.playback.volume.value = currentVolume*(1.0 - it).pow(2) }
+                    .then {
+                        doSeek(duration)
+                        volumeAnim = anim(150.millis) { state.playback.volume.value = lastValidVolume*it.pow(2) }
+                            .then { seekDone = true }
+                            .apply { playOpen() }
+                    }
+                    .playOpen()
             }
         }
     }

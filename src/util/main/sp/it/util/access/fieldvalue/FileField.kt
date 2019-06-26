@@ -91,89 +91,89 @@ private fun File.readTimeAccessed(): FileTime? = readBasicFileAttributes()?.last
 private fun File.readTimeModified(): LocalDateTime? = lastModified().localDateTimeFromMillis()
 
 private fun File.readTimeCreated(): FileTime? =
-        when (this.mimeType().name) {
-            "application/x-kra" -> readKritaTimeCreated() ?: readTimeMinOfCreatedAndModified()
-            else -> when {
-                // poor but fast way of avoiding xmp reading for directories
-                name.contains(".") -> readXmpTimeCreated() ?: readTimeMinOfCreatedAndModified()
-                else -> readTimeMinOfCreatedAndModified()
-            }
+    when (this.mimeType().name) {
+        "application/x-kra" -> readKritaTimeCreated() ?: readTimeMinOfCreatedAndModified()
+        else -> when {
+            // poor but fast way of avoiding xmp reading for directories
+            name.contains(".") -> readXmpTimeCreated() ?: readTimeMinOfCreatedAndModified()
+            else -> readTimeMinOfCreatedAndModified()
         }
+    }
 
 private fun File.readTimeMinOfCreatedAndModified(): FileTime? = readBasicFileAttributes()
-        ?.run {
-            minOf(creationTime(), lastModifiedTime())
-        }
+    ?.run {
+        minOf(creationTime(), lastModifiedTime())
+    }
 
 private fun File.readBasicFileAttributes(): BasicFileAttributes? =
-        try {
-            Files.readAttributes(toPath(), BasicFileAttributes::class.java)
-        } catch (e: IOException) {
-            logger.error(e) { "Unable to read basic file attributes for $this" }
-            null
-        }
+    try {
+        Files.readAttributes(toPath(), BasicFileAttributes::class.java)
+    } catch (e: IOException) {
+        logger.error(e) { "Unable to read basic file attributes for $this" }
+        null
+    }
 
 private fun Long.toFileTime() = FileTime.fromMillis(this)
 
 private fun LocalDateTime.toFileTime() = toInstant(UTC).toEpochMilli().toFileTime()
 
 private fun File.readXmpTimeCreated(): FileTime? =
-        try {
-            ImageMetadataReader.readMetadata(this).getFirstDirectoryOfType(XmpDirectory::class.java)
-                    ?.xmpMeta?.getPropertyDate(Schema.XMP_PROPERTIES, "CreateDate")
-                    ?.calendar?.timeInMillis?.toFileTime()
-        } catch (e: IOException) {
-            logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
-            null
-        } catch (e: ImageProcessingException) {
-            // 12Monkey bug: exception type !tell us when we are dealing with an error and when an unsupported file type
-            when {
-                e.message=="File format is not supported" -> {}
-                e.message=="File format could not be determined" -> {}
-                else -> logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
-            }
-            null
-        } catch (e: Exception) {
-            // 12Monkey bug: java.lang.NegativeArraySizeException
-            logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
-            null
+    try {
+        ImageMetadataReader.readMetadata(this).getFirstDirectoryOfType(XmpDirectory::class.java)
+            ?.xmpMeta?.getPropertyDate(Schema.XMP_PROPERTIES, "CreateDate")
+            ?.calendar?.timeInMillis?.toFileTime()
+    } catch (e: IOException) {
+        logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
+        null
+    } catch (e: ImageProcessingException) {
+        // 12Monkey bug: exception type !tell us when we are dealing with an error and when an unsupported file type
+        when {
+            e.message=="File format is not supported" -> Unit
+            e.message=="File format could not be determined" -> Unit
+            else -> logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
         }
+        null
+    } catch (e: Exception) {
+        // 12Monkey bug: java.lang.NegativeArraySizeException
+        logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
+        null
+    }
 
 private fun File.readKritaTimeCreated(): FileTime? =
-        try {
-            ZipFile(this).let { it.getInputStream(it.getEntry("documentinfo.xml")) }.reader(UTF_8).useLines {
-                it.find { it.contains("creation-date") }
-                        ?.substringAfter(">")?.substringBefore("</")
-                        ?.takeUnless { it.isBlank() }
-                        ?.parseKritaDateCreated()?.toFileTime()
-            }
-        } catch (e: IOException) {
-            logger.error(e) { "Unable to read Krita file creation date for $this" }
-            null
+    try {
+        ZipFile(this).let { it.getInputStream(it.getEntry("documentinfo.xml")) }.reader(UTF_8).useLines {
+            it.find { it.contains("creation-date") }
+                ?.substringAfter(">")?.substringBefore("</")
+                ?.takeUnless { it.isBlank() }
+                ?.parseKritaDateCreated()?.toFileTime()
         }
+    } catch (e: IOException) {
+        logger.error(e) { "Unable to read Krita file creation date for $this" }
+        null
+    }
 
 private fun String.parseKritaDateCreated(): LocalDateTime? =
-        try {
-            LocalDateTime.parse(this, KRITA_CREATION_DATE_PARSER)
-        } catch (e: DateTimeParseException) {
-            logger.error(e) { "Unable to read Krita file creation date for $this" }
-            null
-        }
+    try {
+        LocalDateTime.parse(this, KRITA_CREATION_DATE_PARSER)
+    } catch (e: DateTimeParseException) {
+        logger.error(e) { "Unable to read Krita file creation date for $this" }
+        null
+    }
 
 private val KRITA_CREATION_DATE_PARSER = DateTimeFormatterBuilder()
-        .parseCaseInsensitive()
-        .append(ISO_LOCAL_DATE)
-        .appendLiteral('T')
-        .append(
-                DateTimeFormatterBuilder()
-                        .appendValue(ChronoField.HOUR_OF_DAY, 1, 2, SignStyle.NORMAL)
-                        .appendLiteral(':')
-                        .appendValue(ChronoField.MINUTE_OF_HOUR, 1, 2, SignStyle.NORMAL)
-                        .optionalStart()
-                        .appendLiteral(':')
-                        .appendValue(ChronoField.SECOND_OF_MINUTE, 1, 2, SignStyle.NORMAL)
-                        .optionalStart()
-                        .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
-                        .toFormatter()
-        )
-        .toFormatter()
+    .parseCaseInsensitive()
+    .append(ISO_LOCAL_DATE)
+    .appendLiteral('T')
+    .append(
+        DateTimeFormatterBuilder()
+            .appendValue(ChronoField.HOUR_OF_DAY, 1, 2, SignStyle.NORMAL)
+            .appendLiteral(':')
+            .appendValue(ChronoField.MINUTE_OF_HOUR, 1, 2, SignStyle.NORMAL)
+            .optionalStart()
+            .appendLiteral(':')
+            .appendValue(ChronoField.SECOND_OF_MINUTE, 1, 2, SignStyle.NORMAL)
+            .optionalStart()
+            .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
+            .toFormatter()
+    )
+    .toFormatter()

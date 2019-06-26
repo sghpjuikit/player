@@ -56,7 +56,8 @@ open class Input<T>: Put<T?> {
                         if (typeRaw.listType().isInstance(v))
                             valueAny = v
                     }
-                    output.type==List::class.java -> {}
+                    output.type==List::class.java -> {
+                    }
                     else -> {
                         if (type.isInstance(v))
                             valueAny = v
@@ -98,11 +99,12 @@ open class Input<T>: Put<T?> {
         val outputs = getSources().mapTo(HashSet()) { o -> o.id to allWidgets.find { o in it.controller.io.o.getOutputs() }?.factory }
         outputs.forEach { (id, factory) ->
             allWidgets.asSequence()
-                    .filter { it.factory==factory }
-                    .map { it.controller.io.o.getOutputs().find { it.id.name==id.name }!! }
-                    .forEach { (this as Input<Any?>).bind(it as Output<Any?>) }
+                .filter { it.factory==factory }
+                .map { it.controller.io.o.getOutputs().find { it.id.name==id.name }!! }
+                .forEach { (this as Input<Any?>).bind(it as Output<Any?>) }
         }
     }
+
     /**
      * @param exceptOwner id of outputs to be not considered as bindings even if this is bound to any of them
      * @return true iff at least one [Output] is bound to this input using [bind]. ]

@@ -110,7 +110,7 @@ fun Type.toRaw(): Class<*> = let { type ->
  */
 fun Type.flattenToRawTypes(): Sequence<Class<*>> = when {
     this is WildcardType -> (if (lowerBounds.isNullOrEmpty()) upperBounds else lowerBounds).asSequence().flatMap { it.flattenToRawTypes() }
-    this is ParameterizedType -> sequenceOf(toRaw())+actualTypeArguments.asSequence().flatMap { it.flattenToRawTypes() }
+    this is ParameterizedType -> sequenceOf(toRaw()) + actualTypeArguments.asSequence().flatMap { it.flattenToRawTypes() }
     this is Class<*> -> sequenceOf(this)
     else -> throw Exception(toString())
 }

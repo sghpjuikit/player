@@ -17,12 +17,12 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
 
 @Widget.Info(
-        author = "Martin Polakovic",
-        name = Widgets.LOGGER,
-        description = "Displays console output by listening to System.out, which contains application logging.",
-        version = "1.0.0",
-        year = "2015",
-        group = Widget.Group.DEVELOPMENT
+    author = "Martin Polakovic",
+    name = Widgets.LOGGER,
+    description = "Displays console output by listening to System.out, which contains application logging.",
+    version = "1.0.0",
+    year = "2015",
+    group = Widget.Group.DEVELOPMENT
 )
 class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
 

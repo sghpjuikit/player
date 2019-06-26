@@ -55,8 +55,8 @@ class SongDb {
         if (running) return
         running = true
         moods = runTry { (APP.DIR_RESOURCES/"moods.txt").useLines { it.toSet() } }
-                .ifError { logger.error(it) { "Unable to read moods from file" } }
-                .orNull() ?: setOf()
+            .ifError { logger.error(it) { "Unable to read moods from file" } }
+            .orNull() ?: setOf()
         runNew { updateInMemoryDbFromPersisted() }.withAppProgress("Loading song database")
     }
 
@@ -117,13 +117,13 @@ class SongDb {
     private fun updateSongValues() {
         itemUniqueValuesByField.clear()
         Metadata.Field.FIELDS.asSequence()
-                .filter { it.isAutoCompletable() }
-                .forEach { f ->
-                    itemUniqueValuesByField[f] = songsById.asSequence()
-                            .map { it.getFieldS(f, "") }
-                            .filter { it.isNotBlank() }
-                            .toSet()
-                }
+            .filter { it.isAutoCompletable() }
+            .forEach { f ->
+                itemUniqueValuesByField[f] = songsById.asSequence()
+                    .map { it.getFieldS(f, "") }
+                    .filter { it.isNotBlank() }
+                    .toSet()
+            }
         itemUniqueValuesByField[Metadata.Field.MOOD] = moods
     }
 
@@ -146,14 +146,14 @@ class SongDb {
         }
 
         APP.db.songsById[song.id]
-                .ifNotNull { action(it) }
-                .ifNull {
-                    runIO {
-                        song.read()
-                    } ui {
-                        action(it)
-                    }
+            .ifNotNull { action(it) }
+            .ifNull {
+                runIO {
+                    song.read()
+                } ui {
+                    action(it)
                 }
+            }
     }
 
     @ThreadSafe

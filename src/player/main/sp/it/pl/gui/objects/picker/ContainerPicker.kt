@@ -16,9 +16,9 @@ class ContainerPicker(onContainerSelect: (Container<*>) -> Unit, onWidgetSelect:
     init {
         itemSupply = {
             sequenceOf(
-                    CellData("Split Vertically", "Splits space to left and right layout.") { onContainerSelect(BiContainer(HORIZONTAL)) },
-                    CellData("Split Horizontally", "Splits space to top and bottom layout.") { onContainerSelect(BiContainer(VERTICAL)) },
-                    CellData("FreeForm", "Free form layout. Components behave like windows.") { onContainerSelect(FreeFormContainer()) }
+                CellData("Split Vertically", "Splits space to left and right layout.") { onContainerSelect(BiContainer(HORIZONTAL)) },
+                CellData("Split Horizontally", "Splits space to top and bottom layout.") { onContainerSelect(BiContainer(VERTICAL)) },
+                CellData("FreeForm", "Free form layout. Components behave like windows.") { onContainerSelect(FreeFormContainer()) }
             ) + (
                 if (APP.widgetManager.widgets.separateWidgets.value) {
                     sequenceOf(
@@ -30,7 +30,7 @@ class ContainerPicker(onContainerSelect: (Container<*>) -> Unit, onWidgetSelect:
                         CellData(choiceWidget, "Choose a widget using a widget chooser.") { onWidgetSelect(ALL) }
                     )
                 }
-            )
+                )
         }
         textConverter = { it.text }
         infoConverter = { it.info }

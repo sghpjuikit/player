@@ -23,7 +23,7 @@ class RatingSkinNumber(r: Rating): SkinBase<Rating>(r) {
     }
 
     private fun update() {
-        val v = skinnable.rating.value?.let { if(skinnable.partialRating.value) it.toInt().toDouble() else it }
+        val v = skinnable.rating.value?.let { if (skinnable.partialRating.value) it.toInt().toDouble() else it }
         label.text = "%.2f".format(v)
     }
 

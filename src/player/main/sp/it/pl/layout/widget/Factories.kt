@@ -12,12 +12,12 @@ import sp.it.util.file.div
 
 /** Empty widget. Useful for certain layout operations and as a fill in for null. */
 @Widget.Info(
-        author = "Martin Polakovic",
-        name = "Empty",
-        description = "Empty widget with no content or functionality.",
-        version = "1.0",
-        year = "2014",
-        group = Widget.Group.OTHER
+    author = "Martin Polakovic",
+    name = "Empty",
+    description = "Empty widget with no content or functionality.",
+    version = "1.0",
+    year = "2014",
+    group = Widget.Group.OTHER
 )
 @ExperimentalController("Has no use for user")
 class EmptyWidget(widget: Widget): Controller(widget) {

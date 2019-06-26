@@ -39,8 +39,8 @@ class MouseDrag<T> {
         }
         node.onEventDown(MOUSE_DRAGGED) { e ->
             if (isDragging) {
-                diff.x = e.screenX-start.x
-                diff.y = e.screenY-start.y
+                diff.x = e.screenX - start.x
+                diff.y = e.screenY - start.y
                 onDrag(this)
             }
             e.consume()

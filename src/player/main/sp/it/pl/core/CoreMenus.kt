@@ -76,19 +76,19 @@ object CoreMenus: Core {
                 if (APP.developerMode)
                     menu("Public methods") {
                         items(selected::class.java.methods.asSequence()
-                                .filter { Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) }
-                                .sortedBy { it.name }
-                                .filter { it.parameterCount==0 && (it.returnType==Void::class.javaObjectType || it.returnType==Void::class.javaPrimitiveType || it.returnType==Unit::class.java) },
-                                { it.name },
-                                {
-                                    try {
-                                        it(selected)
-                                    } catch (e: IllegalAccessException) {
-                                        logger.error(e) { "Could not invoke method $it on object $selected" }
-                                    } catch (e: InvocationTargetException) {
-                                        logger.error(e) { "Could not invoke method $it on object $selected" }
-                                    }
-                                })
+                            .filter { Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) }
+                            .sortedBy { it.name }
+                            .filter { it.parameterCount==0 && (it.returnType==Void::class.javaObjectType || it.returnType==Void::class.javaPrimitiveType || it.returnType==Unit::class.java) },
+                            { it.name },
+                            {
+                                try {
+                                    it(selected)
+                                } catch (e: IllegalAccessException) {
+                                    logger.error(e) { "Could not invoke method $it on object $selected" }
+                                } catch (e: InvocationTargetException) {
+                                    logger.error(e) { "Could not invoke method $it on object $selected" }
+                                }
+                            })
                     }
             }
             add<File> {
@@ -168,8 +168,8 @@ object CoreMenus: Core {
                 if (selected.field==Metadata.Field.ALBUM)
                     menu("Search cover in") {
                         items(APP.instances.getInstances<SearchUriBuilder>().asSequence(),
-                                { "in ${it.name}" },
-                                { it(selected.getValueS("<none>")).browse() })
+                            { "in ${it.name}" },
+                            { it(selected.getValueS("<none>")).browse() })
                     }
             }
             add<PlaylistSongGroup> {
@@ -189,15 +189,16 @@ object CoreMenus: Core {
                 item("Explore directory") { APP.actions.browseMultipleFiles(selected.songs.asSequence().mapNotNull { it.getFile() }) }
                 menu("Search album cover") {
                     items(APP.instances.getInstances<SearchUriBuilder>().asSequence(),
-                            { "in ${it.name}" },
-                            { APP.db.songToMeta(selected.songs[0]) { i -> it(i.getAlbumOrEmpty()).browse() } })
+                        { "in ${it.name}" },
+                        { APP.db.songToMeta(selected.songs[0]) { i -> it(i.getAlbumOrEmpty()).browse() } })
                 }
             }
             add<Thumbnail.ContextMenuData> {
                 if (selected.image!=null)
                     menu("Cover") {
                         item("Save image as ...") {
-                            saveFile("Save image as...", APP.DIR_APP, selected.iFile?.name ?: "new_image", contextMenu.ownerWindow, imageWriteExtensionFilter()).ifOk {
+                            saveFile("Save image as...", APP.DIR_APP, selected.iFile?.name
+                                ?: "new_image", contextMenu.ownerWindow, imageWriteExtensionFilter()).ifOk {
                                 writeImage(selected.image, it).ifError { e ->
                                     APP.ui.messagePane.orBuild.show("Saving image $it failed\n\nReason: ${e.message}")
                                 }
@@ -240,20 +241,20 @@ object CoreMenus: Core {
     }
 
     private inline fun <reified W> Menu.widgetItems(noinline action: (W) -> Unit) = items(
-            source = APP.widgetManager.factories.getFactoriesWith<W>(),
-            text = { it.nameGui() },
-            action = { it.use(NO_LAYOUT) { action(it) } }
+        source = APP.widgetManager.factories.getFactoriesWith<W>(),
+        text = { it.nameGui() },
+        action = { it.use(NO_LAYOUT) { action(it) } }
     )
 
     private fun ContextMenuGenerator.Builder<*>.menuFor(contextMenu: ContextMenu, value: Any?) = menuFor(
-            contextMenu = contextMenu,
-            menuName = APP.className.get(value?.javaClass ?: Void::class.java),
-            value = value
+        contextMenu = contextMenu,
+        menuName = APP.className.get(value?.javaClass ?: Void::class.java),
+        value = value
     )
 
     private fun ContextMenuGenerator.Builder<*>.menuFor(contextMenu: ContextMenu, menuName: String, value: Any?) = menu(
-            text = menuName,
-            items = menuItemBuilders[contextMenu, value]
+        text = menuName,
+        items = menuItemBuilders[contextMenu, value]
     )
 
 }

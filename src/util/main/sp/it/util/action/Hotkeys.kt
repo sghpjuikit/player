@@ -1,6 +1,14 @@
 package sp.it.util.action
 
 import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCode.ALT
+import javafx.scene.input.KeyCode.ALT_GRAPH
+import javafx.scene.input.KeyCode.COMMAND
+import javafx.scene.input.KeyCode.CONTROL
+import javafx.scene.input.KeyCode.META
+import javafx.scene.input.KeyCode.SHIFT
+import javafx.scene.input.KeyCode.WINDOWS
+import javafx.scene.input.KeyCode.values
 import mu.KLogging
 import org.jnativehook.GlobalScreen
 import org.jnativehook.NativeHookException
@@ -105,13 +113,13 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
 
     fun register(action: Action, keys: String) {
         val keyString = keys.substringAfterLast('+').trim().toLowerCase().replace('_', ' ')
-        val key = KeyCode.values().find { it.getName().equals(keyString, true) } ?: fail { "No KeyCode for ${action.keys}" }
+        val key = values().find { it.getName().equals(keyString, true) } ?: fail { "No KeyCode for ${action.keys}" }
         register(
-                action,
-                key,
-                *sequenceOf(KeyCode.ALT, KeyCode.ALT_GRAPH, KeyCode.SHIFT, KeyCode.CONTROL, KeyCode.WINDOWS, KeyCode.COMMAND, KeyCode.META)
-                        .filter { k -> keys.contains(k.name, true) || (k==KeyCode.CONTROL && keys.contains("CTRL", true)) }
-                        .toList().toTypedArray()
+            action,
+            key,
+            *sequenceOf(ALT, ALT_GRAPH, SHIFT, CONTROL, WINDOWS, COMMAND, META)
+                .filter { keys.contains(it.name, true) || (it==CONTROL && keys.contains("CTRL", true)) }
+                .toList().toTypedArray()
         )
     }
 
@@ -139,13 +147,13 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
                     if (this in modifiers)
                         m += mask
                 }
-                KeyCode.SHIFT toMask NativeInputEvent.SHIFT_L_MASK
-                KeyCode.CONTROL toMask NativeInputEvent.CTRL_L_MASK
-                KeyCode.ALT toMask NativeInputEvent.ALT_L_MASK
-                KeyCode.COMMAND toMask NativeInputEvent.META_R_MASK
-                KeyCode.ALT_GRAPH toMask NativeInputEvent.ALT_R_MASK
-                KeyCode.WINDOWS toMask NativeInputEvent.META_L_MASK
-                KeyCode.META toMask NativeInputEvent.META_L_MASK
+                SHIFT toMask NativeInputEvent.SHIFT_L_MASK
+                CONTROL toMask NativeInputEvent.CTRL_L_MASK
+                ALT toMask NativeInputEvent.ALT_L_MASK
+                COMMAND toMask NativeInputEvent.META_R_MASK
+                ALT_GRAPH toMask NativeInputEvent.ALT_R_MASK
+                WINDOWS toMask NativeInputEvent.META_L_MASK
+                META toMask NativeInputEvent.META_L_MASK
                 m
             }
         }

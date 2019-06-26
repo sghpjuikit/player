@@ -32,7 +32,7 @@ fun File.readProperties(): Try<Map<String, String>, Throwable> {
     return runTry {
         useLines(UTF_8) {
             it.filterNot { it.isEmpty() || it.startsWith('#') || it.startsWith('!') || '=' !in it }
-                    .associate { it.substringBefore("=") to it.substringAfter('=') }
+                .associate { it.substringBefore("=") to it.substringAfter('=') }
         }
     }.ifError {
         logger.error(it) { "Failed to read properties file= $this" }

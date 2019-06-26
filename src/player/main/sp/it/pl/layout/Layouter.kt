@@ -68,10 +68,10 @@ class Layouter: ComponentUi {
         AppAnimator.applyAt(cp.root, 0.0)
 
         installDrag(
-                root, IconFA.EXCHANGE, "Switch components",
-                { e -> Df.COMPONENT in e.dragboard },
-                { e -> e.dragboard[Df.COMPONENT]===container },
-                { e -> e.dragboard[Df.COMPONENT].swapWith(container, index) }
+            root, IconFA.EXCHANGE, "Switch components",
+            { e -> Df.COMPONENT in e.dragboard },
+            { e -> e.dragboard[Df.COMPONENT]===container },
+            { e -> e.dragboard[Df.COMPONENT].swapWith(container, index) }
         )
 
         // show cp on mouse click
@@ -151,7 +151,7 @@ class Layouter: ComponentUi {
         private const val SUPPRESS_HIDING_KEY = "suppress"
 
         fun suppressHidingFor(node: Node, suppress: Boolean) {
-            if (suppress) node.properties[SUPPRESS_HIDING_KEY]=null
+            if (suppress) node.properties[SUPPRESS_HIDING_KEY] = null
             else node.properties.remove(SUPPRESS_HIDING_KEY)
         }
 

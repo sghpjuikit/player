@@ -23,191 +23,191 @@ import kotlin.math.pow
 /** Audio player which abstracts away from the implementation. */
 class GeneralPlayer {
 
-    private val state: PlayerState
-    private var p: Play? = null
-    private val _pInfo = ReadOnlyObjectWrapper("<none>")
-    val pInfo = _pInfo.readOnlyProperty!!
-    private var i: Song? = null
-    val realTime: RealTimeProperty    // TODO: move to state
-    private var seekDone = true
-    private var lastValidVolume = -1.0
-    private var volumeAnim: Anim? = null
+   private val state: PlayerState
+   private var p: Play? = null
+   private val _pInfo = ReadOnlyObjectWrapper("<none>")
+   val pInfo = _pInfo.readOnlyProperty!!
+   private var i: Song? = null
+   val realTime: RealTimeProperty    // TODO: move to state
+   private var seekDone = true
+   private var lastValidVolume = -1.0
+   private var volumeAnim: Anim? = null
 
-    constructor(state: PlayerState) {
-        this.state = state
-        this.realTime = RealTimeProperty(state.playback.duration, state.playback.currentTime)
-    }
+   constructor(state: PlayerState) {
+      this.state = state
+      this.realTime = RealTimeProperty(state.playback.duration, state.playback.currentTime)
+   }
 
-    @Synchronized fun play(song: PlaylistSong) {
-        // Do not recreate player if same song plays again
-        // 1) improves performance
-        // 2) avoids firing some playback events
-        if (p!=null && song.same(i)) {
-            seek(ZERO)
-            return
-        }
+   @Synchronized fun play(song: PlaylistSong) {
+      // Do not recreate player if same song plays again
+      // 1) improves performance
+      // 2) avoids firing some playback events
+      if (p!=null && song.same(i)) {
+         seek(ZERO)
+         return
+      }
 
-        i = song
-        p?.disposePlayback()
-        p = p ?: computePlayer()
+      i = song
+      p?.disposePlayback()
+      p = p ?: computePlayer()
 
-        _pInfo.value = when (p) {
-            null -> "<none>"
-            is VlcPlayer -> "VlcPlayer"
-            is JavaFxPlayer -> "JavaFX"
-            else -> "Unknown"
-        }
+      _pInfo.value = when (p) {
+         null -> "<none>"
+         is VlcPlayer -> "VlcPlayer"
+         is JavaFxPlayer -> "JavaFX"
+         else -> "Unknown"
+      }
 
-        val onUnableToPlay = { _: PlaylistSong -> runFX { PlaylistManager.use { it.playNextItem() } } }
-        val player = p
-        if (player==null) {
-            logger.info { "Player=$player can not play song=$song{}" }
-            onUnableToPlay(song)
-        } else {
-            runIO {
-                if (song.isCorrupt()) {
-                    onUnableToPlay(song)
-                } else {
-                    runFX {
-                        player.createPlayback(
-                            song,
-                            state.playback,
-                            {
-                                realTime.realSeek = state.playback.realTime.get()
-                                realTime.currentSeek = ZERO
-                                player.play()
+      val onUnableToPlay = { _: PlaylistSong -> runFX { PlaylistManager.use { it.playNextItem() } } }
+      val player = p
+      if (player==null) {
+         logger.info { "Player=$player can not play song=$song{}" }
+         onUnableToPlay(song)
+      } else {
+         runIO {
+            if (song.isCorrupt()) {
+               onUnableToPlay(song)
+            } else {
+               runFX {
+                  player.createPlayback(
+                     song,
+                     state.playback,
+                     {
+                        realTime.realSeek = state.playback.realTime.get()
+                        realTime.currentSeek = ZERO
+                        player.play()
 
-                                realTime.syncRealTimeOnPlay()
-                                // throw song change event
-                                Player.playingSong.songChanged(song)
-                                Player.suspension_flag = false
-                                // fire other events (may rely on the above)
-                                Player.onPlaybackStart()
-                                if (Player.post_activating_1st || !Player.post_activating)
-                                // bug fix, not updated playlist songs can get here, but should not!
-                                    if (song.timeMs>0)
-                                        Player.onPlaybackAt.forEach { t -> t.restart(song.time) }
-                                Player.post_activating = false
-                                Player.post_activating_1st = false
-                            },
-                            { unableToPlayAny ->
-                                logger.info { "Player=$p can not play song=$song" }
-                                if (unableToPlayAny) {
-                                    stop()
-                                    // TODO: notify user
-                                } else {
-                                    onUnableToPlay(song)
-                                }
-                            }
-                        )
-                    }
-                }
+                        realTime.syncRealTimeOnPlay()
+                        // throw song change event
+                        Player.playingSong.songChanged(song)
+                        Player.suspension_flag = false
+                        // fire other events (may rely on the above)
+                        Player.onPlaybackStart()
+                        if (Player.post_activating_1st || !Player.post_activating)
+                        // bug fix, not updated playlist songs can get here, but should not!
+                           if (song.timeMs>0)
+                              Player.onPlaybackAt.forEach { t -> t.restart(song.time) }
+                        Player.post_activating = false
+                        Player.post_activating_1st = false
+                     },
+                     { unableToPlayAny ->
+                        logger.info { "Player=$p can not play song=$song" }
+                        if (unableToPlayAny) {
+                           stop()
+                           // TODO: notify user
+                        } else {
+                           onUnableToPlay(song)
+                        }
+                     }
+                  )
+               }
             }
-        }
-    }
+         }
+      }
+   }
 
-    private fun computePlayer(): Play = VlcPlayer()
+   private fun computePlayer(): Play = VlcPlayer()
 
-    fun resume() {
-        p?.let {
-            it.resume()
-            Player.onPlaybackAt.forEach { it.unpause() }
-        }
-    }
+   fun resume() {
+      p?.let {
+         it.resume()
+         Player.onPlaybackAt.forEach { it.unpause() }
+      }
+   }
 
-    fun pause() {
-        p?.let {
-            it.pause()
-            Player.onPlaybackAt.forEach { it.pause() }
-        }
-    }
+   fun pause() {
+      p?.let {
+         it.pause()
+         Player.onPlaybackAt.forEach { it.pause() }
+      }
+   }
 
-    fun pauseResume() {
-        p?.let {
-            if (state.playback.status.get()==PLAYING) pause()
-            else resume()
-        }
-    }
+   fun pauseResume() {
+      p?.let {
+         if (state.playback.status.get()==PLAYING) pause()
+         else resume()
+      }
+   }
 
-    fun stop() {
-        p?.let {
-            it.stop()
-            runFX {
-                Player.playingSong.songChanged(Metadata.EMPTY)
-                realTime.syncRealTimeOnStop()
-                Player.onPlaybackAt.forEach { it.stop() }
-                PlaylistManager.playlists.forEach { it.updatePlayingItem(-1) }
-                PlaylistManager.active = null
+   fun stop() {
+      p?.let {
+         it.stop()
+         runFX {
+            Player.playingSong.songChanged(Metadata.EMPTY)
+            realTime.syncRealTimeOnStop()
+            Player.onPlaybackAt.forEach { it.stop() }
+            PlaylistManager.playlists.forEach { it.updatePlayingItem(-1) }
+            PlaylistManager.active = null
+         }
+      }
+   }
+
+   fun seek(duration: Duration) {
+      p?.let {
+         val s = state.playback.status.get()
+
+         if (s==STOPPED) pause()
+
+         doSeek(duration)
+
+         // TODO: enable volume fading on seek
+         if (false) {
+            val currentVolume = state.playback.volume.get()
+            if (seekDone)
+               lastValidVolume = currentVolume
+            else {
+               if (volumeAnim!=null) volumeAnim!!.pause()
             }
-        }
-    }
+            seekDone = false
+            anim(150.millis) { state.playback.volume.value = currentVolume*(1.0 - it).pow(2) }
+               .then {
+                  doSeek(duration)
+                  volumeAnim = anim(150.millis) { state.playback.volume.value = lastValidVolume*it.pow(2) }
+                     .then { seekDone = true }
+                     .apply { playOpen() }
+               }
+               .playOpen()
+         }
+      }
+   }
 
-    fun seek(duration: Duration) {
-        p?.let {
-            val s = state.playback.status.get()
+   private fun doSeek(duration: Duration) {
+      realTime.syncRealTimeOnPreSeek()
+      state.playback.currentTime.value = duration // allow next doSeek() target correct value even if this has not finished
+      state.playback.currentTime.attach1IfNonNull { Player.onSeekDone.run() }
+      p?.seek(duration)
+      realTime.syncRealTimeOnPostSeek(duration)
+   }
 
-            if (s==STOPPED) pause()
+   fun disposePlayback() {
+      p?.disposePlayback()
+      p = null
+   }
 
-            doSeek(duration)
+   fun dispose() {
+      p?.dispose()
+      p = null
+   }
 
-            // TODO: enable volume fading on seek
-            if (false) {
-                val currentVolume = state.playback.volume.get()
-                if (seekDone)
-                    lastValidVolume = currentVolume
-                else {
-                    if (volumeAnim!=null) volumeAnim!!.pause()
-                }
-                seekDone = false
-                anim(150.millis) { state.playback.volume.value = currentVolume*(1.0 - it).pow(2) }
-                    .then {
-                        doSeek(duration)
-                        volumeAnim = anim(150.millis) { state.playback.volume.value = lastValidVolume*it.pow(2) }
-                            .then { seekDone = true }
-                            .apply { playOpen() }
-                    }
-                    .playOpen()
-            }
-        }
-    }
+   companion object: KLogging()
 
-    private fun doSeek(duration: Duration) {
-        realTime.syncRealTimeOnPreSeek()
-        state.playback.currentTime.value = duration // allow next doSeek() target correct value even if this has not finished
-        state.playback.currentTime.attach1IfNonNull { Player.onSeekDone.run() }
-        p?.seek(duration)
-        realTime.syncRealTimeOnPostSeek(duration)
-    }
+   interface Play {
+      fun play()
 
-    fun disposePlayback() {
-        p?.disposePlayback()
-        p = null
-    }
+      fun pause()
 
-    fun dispose() {
-        p?.dispose()
-        p = null
-    }
+      fun resume()
 
-    companion object: KLogging()
+      fun seek(duration: Duration)
 
-    interface Play {
-        fun play()
+      fun stop()
 
-        fun pause()
+      fun createPlayback(song: Song, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit)
 
-        fun resume()
+      /** Stops playback if any and disposes of the player resources. */
+      fun disposePlayback()   // TODO: JavaFXPLayer has async implementation, but lcPlayer has blocking implementation, fix and document
 
-        fun seek(duration: Duration)
-
-        fun stop()
-
-        fun createPlayback(song: Song, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit)
-
-        /** Stops playback if any and disposes of the player resources. */
-        fun disposePlayback()   // TODO: JavaFXPLayer has async implementation, but lcPlayer has blocking implementation, fix and document
-
-        fun dispose()
-    }
+      fun dispose()
+   }
 
 }

@@ -6,12 +6,12 @@ import java.net.URI
 /** Simplest [Song] implementation. Wraps [java.net.URI]. */
 class SimpleSong(resource: URI): Song() {
 
-    override val uri: URI = resource
+   override val uri: URI = resource
 
-    constructor(resource: File): this(resource.toURI())
+   constructor(resource: File): this(resource.toURI())
 
-    override fun toSimple() = this
+   override fun toSimple() = this
 
-    override fun toString() = "$javaClass[$uri]"
+   override fun toString() = "$javaClass[$uri]"
 
 }

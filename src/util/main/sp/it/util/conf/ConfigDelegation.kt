@@ -115,251 +115,251 @@ inline fun <reified T: Any?, C: Conf<T>> C.valuesIn(instanceSource: InstanceMap)
 
 /** Singleton configuration used by delegated configurable properties. */
 private val configuration = object: ConfigValueSource {
-    override fun register(config: Config<*>) {
-        MainConfiguration.collect(config)
-    }
+   override fun register(config: Config<*>) {
+      MainConfiguration.collect(config)
+   }
 
-    override fun initialize(config: Config<*>) {
-        MainConfiguration.rawSet(config)
-    }
+   override fun initialize(config: Config<*>) {
+      MainConfiguration.rawSet(config)
+   }
 }
 
 /** Contract to specify per-instance configurable group (discriminant) for delegated config properties. */
 interface MultiConfigurable {
-    /** Group suffix shared by all configs of this configurable. Usually unique for every instances. */
-    val configurableDiscriminant: String?
-    /** Group (shared prefix path) shared by all configs of this configurable. Usually same for all instances. */
-    @JvmDefault
-    val configurableGroup
-        get() = computeConfigGroup(this)
-    /** Config register and value provider. By default common value store. */
-    @JvmDefault
-    val configurableValueStore: ConfigValueSource
-        get() = configuration
+   /** Group suffix shared by all configs of this configurable. Usually unique for every instances. */
+   val configurableDiscriminant: String?
+   /** Group (shared prefix path) shared by all configs of this configurable. Usually same for all instances. */
+   @JvmDefault
+   val configurableGroup
+      get() = computeConfigGroup(this)
+   /** Config register and value provider. By default common value store. */
+   @JvmDefault
+   val configurableValueStore: ConfigValueSource
+      get() = configuration
 }
 
 /** Implementation of [MultiConfigurable] with the [MultiConfigurable.configurableDiscriminant] supplied at creation time. */
 open class MultiConfigurableBase(override val configurableDiscriminant: String): MultiConfigurable
 
 interface ConfigValueSource {
-    fun register(config: Config<*>)
-    fun initialize(config: Config<*>)
+   fun register(config: Config<*>)
+   fun initialize(config: Config<*>)
 
-    companion object {
+   companion object {
 
-        fun empty() = object: ConfigValueSource {
-            override fun initialize(config: Config<*>) {}
-            override fun register(config: Config<*>) {}
-        }
+      fun empty() = object: ConfigValueSource {
+         override fun initialize(config: Config<*>) {}
+         override fun register(config: Config<*>) {}
+      }
 
-        fun <T> simple() = SimpleConfigValueStore<T>()
+      fun <T> simple() = SimpleConfigValueStore<T>()
 
-        open class SimpleConfigValueStore<T>: ConfigValueSource, Configurable<T> {
-            private val configs = ArrayList<Config<T>>()
+      open class SimpleConfigValueStore<T>: ConfigValueSource, Configurable<T> {
+         private val configs = ArrayList<Config<T>>()
 
-            override fun getField(name: String): Config<T>? = configs.find { it.name==name }
+         override fun getField(name: String): Config<T>? = configs.find { it.name==name }
 
-            override fun getFields() = configs
+         override fun getFields() = configs
 
-            override fun initialize(config: Config<*>) {}
+         override fun initialize(config: Config<*>) {}
 
-            override fun register(config: Config<*>) {
-                @Suppress("UNCHECKED_CAST")
-                configs += config as Config<T>
-            }
-        }
-    }
+         override fun register(config: Config<*>) {
+            @Suppress("UNCHECKED_CAST")
+            configs += config as Config<T>
+         }
+      }
+   }
 }
 
 
 interface Delegator<REF: Any?, D: Any> {
-    operator fun provideDelegate(ref: REF, property: KProperty<*>): D
+   operator fun provideDelegate(ref: REF, property: KProperty<*>): D
 }
 
 fun <REF: Any, DP: Any> Delegator<REF, DP>.forInstance(instance: REF): Delegator<Nothing?, DP> = object: Delegator<Nothing?, DP> {
-    override fun provideDelegate(ref: Nothing?, property: KProperty<*>): DP = this@forInstance.provideDelegate(instance, property)
+   override fun provideDelegate(ref: Nothing?, property: KProperty<*>): DP = this@forInstance.provideDelegate(instance, property)
 }
 
 abstract class Conf<T: Any?> {
-    protected var refSubstitute: Any? = null
-    val constraints = HashSet<Constraint<T>>()
+   protected var refSubstitute: Any? = null
+   val constraints = HashSet<Constraint<T>>()
 
-    protected fun addAnnotationConstraints(type: Class<T>, property: KProperty<*>) {
-        constraints += obtainConfigConstraints(type, property.annotations)
-    }
+   protected fun addAnnotationConstraints(type: Class<T>, property: KProperty<*>) {
+      constraints += obtainConfigConstraints(type, property.annotations)
+   }
 
-    protected fun KProperty<*>.obtainConfigMetadata() = findAnnotation<IsConfig>() ?: fail { "${IsConfig::class} annotation required for $this" }
+   protected fun KProperty<*>.obtainConfigMetadata() = findAnnotation<IsConfig>() ?: fail { "${IsConfig::class} annotation required for $this" }
 
-    protected fun validateValue(v: T) {
-        constraints.forEach { it.validate(v).ifError { failIf(true) { "Value $v doesn't conform to: $it" } } }
-    }
+   protected fun validateValue(v: T) {
+      constraints.forEach { it.validate(v).ifError { failIf(true) { "Value $v doesn't conform to: $it" } } }
+   }
 
-    protected fun KProperty<*>.makeAccessible() = apply {
-        isAccessible = true
-        javaField?.isAccessible = true
-    }
+   protected fun KProperty<*>.makeAccessible() = apply {
+      isAccessible = true
+      javaField?.isAccessible = true
+   }
 
-    fun obtainConfigValueStore(ref: Any?): ConfigValueSource = when (ref) {
-        is MultiConfigurable -> ref.configurableValueStore
-        else -> configuration
-    }
+   fun obtainConfigValueStore(ref: Any?): ConfigValueSource = when (ref) {
+      is MultiConfigurable -> ref.configurableValueStore
+      else -> configuration
+   }
 
-    protected fun <CFGT, CFG: Config<CFGT>> CFG.registerConfig(ref: Any?) = apply {
-        obtainConfigValueStore(ref).register(this)
-    }
+   protected fun <CFGT, CFG: Config<CFGT>> CFG.registerConfig(ref: Any?) = apply {
+      obtainConfigValueStore(ref).register(this)
+   }
 }
 
 class ConfR<T: () -> Unit>(private val action: T): Conf<T>() {
-    operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any, T> {
-        property.makeAccessible()
-        val info = property.findAnnotation<IsConfig>()
-        val infoExt = property.findAnnotation<IsAction>()
-        val group = info.computeConfigGroup(ref)
+   operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any, T> {
+      property.makeAccessible()
+      val info = property.findAnnotation<IsConfig>()
+      val infoExt = property.findAnnotation<IsAction>()
+      val group = info.computeConfigGroup(ref)
 
-        val isFinal = property !is KMutableProperty
-        failIf(!isFinal) { "Property must be immutable" }
+      val isFinal = property !is KMutableProperty
+      failIf(!isFinal) { "Property must be immutable" }
 
-        fun String.orNull() = takeIf { it.isNotBlank() }
-        val name = infoExt?.name?.orNull() ?: info?.name?.orNull() ?: property.name
-        val desc = infoExt?.desc?.orNull() ?: info?.info?.orNull()
-        val keys = infoExt?.keys ?: ""
-        val isGlobal = infoExt?.global ?: false
-        val isContinuous = infoExt?.repeat ?: false
+      fun String.orNull() = takeIf { it.isNotBlank() }
+      val name = infoExt?.name?.orNull() ?: info?.name?.orNull() ?: property.name
+      val desc = infoExt?.desc?.orNull() ?: info?.info?.orNull()
+      val keys = infoExt?.keys ?: ""
+      val isGlobal = infoExt?.global ?: false
+      val isContinuous = infoExt?.repeat ?: false
 
-        return object: Action(name, Runnable { action() }, desc, group, keys, isGlobal, isContinuous), ReadOnlyProperty<Any, T> {
-            override fun getValue(thisRef: Any, property: KProperty<*>) = action
-        }.registerConfig(ref)
-    }
+      return object: Action(name, Runnable { action() }, desc, group, keys, isGlobal, isContinuous), ReadOnlyProperty<Any, T> {
+         override fun getValue(thisRef: Any, property: KProperty<*>) = action
+      }.registerConfig(ref)
+   }
 }
 
 class ConfL<T: Any?>(val type: Class<T>, val isNullable: Boolean): Conf<T>() {
-    operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any, ObservableList<T>> {
-        property.makeAccessible()
-        val info = property.obtainConfigMetadata()
-        val group = info.computeConfigGroup(ref)
-        addAnnotationConstraints(type, property)
+   operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any, ObservableList<T>> {
+      property.makeAccessible()
+      val info = property.obtainConfigMetadata()
+      val group = info.computeConfigGroup(ref)
+      addAnnotationConstraints(type, property)
 
-        val isFinal = property !is KMutableProperty
-        failIf(!isFinal) { "Property must be immutable" }
+      val isFinal = property !is KMutableProperty
+      failIf(!isFinal) { "Property must be immutable" }
 
-        val list = Config.VarList<T>(type, if (isNullable) Config.VarList.Elements.NULLABLE else Config.VarList.Elements.NOT_NULL)
-        val c = Config.ListConfig(property.name, info, list, group, constraints)
-        obtainConfigValueStore(ref).initialize(c)
+      val list = Config.VarList<T>(type, if (isNullable) Config.VarList.Elements.NULLABLE else Config.VarList.Elements.NOT_NULL)
+      val c = Config.ListConfig(property.name, info, list, group, constraints)
+      obtainConfigValueStore(ref).initialize(c)
 
-        return object: Config.ListConfig<T>(property.name, info, list, group, constraints), ReadOnlyProperty<Any, ObservableList<T>> {
-            override fun getValue(thisRef: Any, property: KProperty<*>) = list.list
-        }.registerConfig(ref)
-    }
+      return object: Config.ListConfig<T>(property.name, info, list, group, constraints), ReadOnlyProperty<Any, ObservableList<T>> {
+         override fun getValue(thisRef: Any, property: KProperty<*>) = list.list
+      }.registerConfig(ref)
+   }
 }
 
 @Suppress("UNCHECKED_CAST")
 class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
 
-    operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadWriteProperty<Any, T> {
-        property.makeAccessible()
-        val info = property.obtainConfigMetadata()
-        val type = property.returnType.javaType as Class<T>
-        val group = info.computeConfigGroup(ref)
-        addAnnotationConstraints(type, property)
+   operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadWriteProperty<Any, T> {
+      property.makeAccessible()
+      val info = property.obtainConfigMetadata()
+      val type = property.returnType.javaType as Class<T>
+      val group = info.computeConfigGroup(ref)
+      addAnnotationConstraints(type, property)
 
-        val isFinal = property !is KMutableProperty
-        failIf(isFinal xor (info.editable===EditMode.NONE)) { "Property mutability does not correspond to specified editability=${info.editable}" }
+      val isFinal = property !is KMutableProperty
+      failIf(isFinal xor (info.editable===EditMode.NONE)) { "Property mutability does not correspond to specified editability=${info.editable}" }
 
-        val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
-        obtainConfigValueStore(ref).initialize(c)
-        validateValue(c.value)
+      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
+      obtainConfigValueStore(ref).initialize(c)
+      validateValue(c.value)
 
-        return object: Config.PropertyConfig<T>(type, property.name, info, constraints, vn(c.value), initialValue, group), ReadOnlyProperty<Any, T>, ReadWriteProperty<Any, T> {
-            override fun getValue(thisRef: Any, property: KProperty<*>) = getValue()
-            override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
-                setValue(value)
-            }
-        }.registerConfig(ref)
-    }
+      return object: Config.PropertyConfig<T>(type, property.name, info, constraints, vn(c.value), initialValue, group), ReadOnlyProperty<Any, T>, ReadWriteProperty<Any, T> {
+         override fun getValue(thisRef: Any, property: KProperty<*>) = getValue()
+         override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
+            setValue(value)
+         }
+      }.registerConfig(ref)
+   }
 }
 
 @Suppress("UNCHECKED_CAST")
 class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyProperty<Any?, W>> {
-    private val initialValue: T
-    private var v: (T) -> W
+   private val initialValue: T
+   private var v: (T) -> W
 
-    constructor(initialValue: T, valueSupplier: (T) -> W): super() {
-        this.initialValue = initialValue
-        this.v = valueSupplier
-    }
+   constructor(initialValue: T, valueSupplier: (T) -> W): super() {
+      this.initialValue = initialValue
+      this.v = valueSupplier
+   }
 
-    /** Invokes [attach] with the specified block on the observable value that will be created and returns this. */
-    infix fun attach(block: (T) -> Unit) = apply {
-        val s = v
-        v = { s(it).apply { asIf<ObservableValue<T>>()?.attach(block) } }
-    }
+   /** Invokes [attach] with the specified block on the observable value that will be created and returns this. */
+   infix fun attach(block: (T) -> Unit) = apply {
+      val s = v
+      v = { s(it).apply { asIf<ObservableValue<T>>()?.attach(block) } }
+   }
 
-    /** Invokes [sync] with the specified block on the observable value that will be created and returns this. */
-    infix fun sync(block: (T) -> Unit) = apply {
-        val s = v
-        v = { s(it).apply { asIf<ObservableValue<T>>()?.sync(block) } }
-    }
+   /** Invokes [sync] with the specified block on the observable value that will be created and returns this. */
+   infix fun sync(block: (T) -> Unit) = apply {
+      val s = v
+      v = { s(it).apply { asIf<ObservableValue<T>>()?.sync(block) } }
+   }
 
-    override operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any?, W> {
-        property.makeAccessible()
-        val info = property.obtainConfigMetadata()
-        val type = getRawGenericPropertyType(property.returnType.javaType) as Class<T>
-        val group = info.computeConfigGroup(ref)
-        addAnnotationConstraints(type, property)
+   override operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any?, W> {
+      property.makeAccessible()
+      val info = property.obtainConfigMetadata()
+      val type = getRawGenericPropertyType(property.returnType.javaType) as Class<T>
+      val group = info.computeConfigGroup(ref)
+      addAnnotationConstraints(type, property)
 
-        val isFinal = property !is KMutableProperty
-        failIf(!isFinal) { "Property must be immutable" }
+      val isFinal = property !is KMutableProperty
+      failIf(!isFinal) { "Property must be immutable" }
 
-        val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
-        obtainConfigValueStore(ref).initialize(c)
-        validateValue(c.value)
+      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
+      obtainConfigValueStore(ref).initialize(c)
+      validateValue(c.value)
 
-        return object: Config.PropertyConfig<T>(type, property.name, info, constraints, v(c.value), initialValue, group), ReadOnlyProperty<Any?, W> {
-            override fun getValue(thisRef: Any?, property: KProperty<*>): W = this.property as W
-        }.registerConfig(ref)
-    }
+      return object: Config.PropertyConfig<T>(type, property.name, info, constraints, v(c.value), initialValue, group), ReadOnlyProperty<Any?, W> {
+         override fun getValue(thisRef: Any?, property: KProperty<*>): W = this.property as W
+      }.registerConfig(ref)
+   }
 
 }
 
 @Suppress("UNCHECKED_CAST")
 class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyProperty<Any?, W>> {
-    private val initialValue: T
-    private var v: (T) -> W
+   private val initialValue: T
+   private var v: (T) -> W
 
-    constructor(initialValue: T, valueSupplier: (T) -> W): super() {
-        this.initialValue = initialValue
-        this.v = valueSupplier
-    }
+   constructor(initialValue: T, valueSupplier: (T) -> W): super() {
+      this.initialValue = initialValue
+      this.v = valueSupplier
+   }
 
-    /** Invokes [attach] with the specified block on the observable value that will be created and returns this. */
-    infix fun attach(block: (T) -> Unit) = apply {
-        val s = v
-        v = { s(it).apply { attach(block) } }
-    }
+   /** Invokes [attach] with the specified block on the observable value that will be created and returns this. */
+   infix fun attach(block: (T) -> Unit) = apply {
+      val s = v
+      v = { s(it).apply { attach(block) } }
+   }
 
-    /** Invokes [sync] with the specified block on the observable value that will be created and returns this. */
-    infix fun sync(block: (T) -> Unit) = apply {
-        val s = v
-        v = { s(it).apply { sync(block) } }
-    }
+   /** Invokes [sync] with the specified block on the observable value that will be created and returns this. */
+   infix fun sync(block: (T) -> Unit) = apply {
+      val s = v
+      v = { s(it).apply { sync(block) } }
+   }
 
-    override operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any?, W> {
-        property.makeAccessible()
-        val info = property.obtainConfigMetadata()
-        val type = getRawGenericPropertyType(property.returnType.javaType) as Class<T>
-        val group = info.computeConfigGroup(ref)
-        addAnnotationConstraints(type, property)
+   override operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any?, W> {
+      property.makeAccessible()
+      val info = property.obtainConfigMetadata()
+      val type = getRawGenericPropertyType(property.returnType.javaType) as Class<T>
+      val group = info.computeConfigGroup(ref)
+      addAnnotationConstraints(type, property)
 
-        val isFinal = property !is KMutableProperty
-        failIf(!isFinal) { "Property must be immutable" }
-        failIf(info.editable!==EditMode.NONE) { "Property mutability requires usage of ${EditMode.NONE}" }
+      val isFinal = property !is KMutableProperty
+      failIf(!isFinal) { "Property must be immutable" }
+      failIf(info.editable!==EditMode.NONE) { "Property mutability requires usage of ${EditMode.NONE}" }
 
-        val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
-        validateValue(c.value)
+      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
+      validateValue(c.value)
 
-        return object: Config.ReadOnlyPropertyConfig<T>(type, property.name, info, constraints, v(c.value), group), ReadOnlyProperty<Any?, W> {
-            override fun getValue(thisRef: Any?, property: KProperty<*>): W = this.property as W
-        }.registerConfig(ref)
-    }
+      return object: Config.ReadOnlyPropertyConfig<T>(type, property.name, info, constraints, v(c.value), group), ReadOnlyProperty<Any?, W> {
+         override fun getValue(thisRef: Any?, property: KProperty<*>): W = this.property as W
+      }.registerConfig(ref)
+   }
 
 }

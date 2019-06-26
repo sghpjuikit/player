@@ -28,46 +28,46 @@ import java.io.File
  */
 class ThumbnailWithAdd @JvmOverloads constructor(dragIcon: GlyphIcons = DETAILS, dragDescription: String = "Set Image"): Thumbnail() {
 
-    /** Action for when image file is dropped or received from file chooser. Default does nothing. */
-    @JvmField var onFileDropped: (Fut<File?>) -> Unit = {}
-    /** Action for when image is highlighted. Default does nothing. */
-    @JvmField var onHighlight: (Boolean) -> Unit = {}
-    private val dragData = DragPane.Data({ dragDescription }, dragIcon)
+   /** Action for when image file is dropped or received from file chooser. Default does nothing. */
+   @JvmField var onFileDropped: (Fut<File?>) -> Unit = {}
+   /** Action for when image is highlighted. Default does nothing. */
+   @JvmField var onHighlight: (Boolean) -> Unit = {}
+   private val dragData = DragPane.Data({ dragDescription }, dragIcon)
 
-    init {
-        // highlight on hover | drag
-        root.onEventDown(MOUSE_EXITED) { highlight(false) }
-        root.onEventDown(MOUSE_ENTERED) { highlight(true) }
-        root.onEventDown(DRAG_OVER) { if (it.dragboard.hasImageFileOrUrl()) onHighlight(true) }
-        root.onEventDown(DRAG_EXITED) { onHighlight(false) }
+   init {
+      // highlight on hover | drag
+      root.onEventDown(MOUSE_EXITED) { highlight(false) }
+      root.onEventDown(MOUSE_ENTERED) { highlight(true) }
+      root.onEventDown(DRAG_OVER) { if (it.dragboard.hasImageFileOrUrl()) onHighlight(true) }
+      root.onEventDown(DRAG_EXITED) { onHighlight(false) }
 
-        // add image on click
-        root.onEventDown(MOUSE_CLICKED, PRIMARY) {
-            chooseFile("Select image to add to tag", FILE, APP.DIR_APP, root.scene.window).ifOk {
-                onFileDropped(fut(it))
-            }
-        }
+      // add image on click
+      root.onEventDown(MOUSE_CLICKED, PRIMARY) {
+         chooseFile("Select image to add to tag", FILE, APP.DIR_APP, root.scene.window).ifOk {
+            onFileDropped(fut(it))
+         }
+      }
 
-        // drag&drop
-        installDrag(
-            root, dragIcon, dragDescription,
-            { e -> e.dragboard.hasImageFileOrUrl() },
-            { e ->
-                // Fut<File> fi = getImage(e);
-                // File i = fi.isDone() ? fi.getDone() : null;
-                // boolean same = i!=null && i.equals(except.get());
-                val i = e.dragboard.getImageFile()
-                i!=null && i==file  // image of this file is already displayed
-            },
-            { e -> onFileDropped(e.dragboard.getImageFileOrUrl()) }
-        )
-    }
+      // drag&drop
+      installDrag(
+         root, dragIcon, dragDescription,
+         { e -> e.dragboard.hasImageFileOrUrl() },
+         { e ->
+            // Fut<File> fi = getImage(e);
+            // File i = fi.isDone() ? fi.getDone() : null;
+            // boolean same = i!=null && i.equals(except.get());
+            val i = e.dragboard.getImageFile()
+            i!=null && i==file  // image of this file is already displayed
+         },
+         { e -> onFileDropped(e.dragboard.getImageFileOrUrl()) }
+      )
+   }
 
-    private fun highlight(v: Boolean) {
-        if (v) DragPane.PANE.getM(dragData).showFor(root)
-        else DragPane.PANE.ifSet { it.hide() }
+   private fun highlight(v: Boolean) {
+      if (v) DragPane.PANE.getM(dragData).showFor(root)
+      else DragPane.PANE.ifSet { it.hide() }
 
-        onHighlight(v)
-    }
+      onHighlight(v)
+   }
 
 }

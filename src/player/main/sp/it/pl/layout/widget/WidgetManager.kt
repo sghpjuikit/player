@@ -97,573 +97,573 @@ import kotlin.text.Charsets.UTF_8
 /** Handles operations with Widgets. */
 class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
-    /** Public API for layout management. */
-    @JvmField val layouts = Layouts()
-    /** Public API for factory management. */
-    @JvmField val factories = Factories()
-    /** Public API for widget management. */
-    @JvmField val widgets = Widgets()
-    /** All component factories by their name. */
-    private val factoriesC = MapSet<String, ComponentFactory<*>> { it.nameGui() }
-    /** All widget factories by their name. */
-    private val factoriesW = MapSet<String, WidgetFactory<*>> { it.name() }
-    /** All widget directories by their name. */
-    private val monitors = MapSet<String, WidgetMonitor> { it.widgetName }
-    /** Separates entries of a java classpath argument, passed to JVM. */
-    private var classpathSeparator = Os.current.classpathSeparator
-    private var initialized = false
-    private val compilerThread by lazy { burstTPExecutor(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt(), 30.seconds, threadFactory("widgetCompiler", true)) }
+   /** Public API for layout management. */
+   @JvmField val layouts = Layouts()
+   /** Public API for factory management. */
+   @JvmField val factories = Factories()
+   /** Public API for widget management. */
+   @JvmField val widgets = Widgets()
+   /** All component factories by their name. */
+   private val factoriesC = MapSet<String, ComponentFactory<*>> { it.nameGui() }
+   /** All widget factories by their name. */
+   private val factoriesW = MapSet<String, WidgetFactory<*>> { it.name() }
+   /** All widget directories by their name. */
+   private val monitors = MapSet<String, WidgetMonitor> { it.widgetName }
+   /** Separates entries of a java classpath argument, passed to JVM. */
+   private var classpathSeparator = Os.current.classpathSeparator
+   private var initialized = false
+   private val compilerThread by lazy { burstTPExecutor(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt(), 30.seconds, threadFactory("widgetCompiler", true)) }
 
-    fun init() {
-        if (initialized) return
+   fun init() {
+      if (initialized) return
 
-        if (!(APP.DIR_APP/"java"/"bin").exists())
-            logger.error { "Java development kit is missing. Please install JDK in ${APP.DIR_APP/"java"}" }
-        if (!(APP.DIR_APP/"kotlinc"/"bin").exists())
-            logger.error { "Kotlin compiler is missing. Please install kotlinc in ${APP.DIR_APP/"kotlinc"}" }
+      if (!(APP.DIR_APP/"java"/"bin").exists())
+         logger.error { "Java development kit is missing. Please install JDK in ${APP.DIR_APP/"java"}" }
+      if (!(APP.DIR_APP/"kotlinc"/"bin").exists())
+         logger.error { "Kotlin compiler is missing. Please install kotlinc in ${APP.DIR_APP/"kotlinc"}" }
 
-        // internal factories
-        registerFactory(emptyWidgetFactory)
-        registerFactory(initialTemplateFactory)
+      // internal factories
+      registerFactory(emptyWidgetFactory)
+      registerFactory(initialTemplateFactory)
 
-        // external factories
-        val dirW = APP.DIR_WIDGETS
-        if (!isValidatedDirectory(dirW)) {
-            logger.error { "External widgets registration failed: $dirW is not a valid directory." }
-        } else {
-            dirW.children().filter { it.isDirectory }.forEach { widgetDir ->
-                val name = widgetDir.nameWithoutExtension.capitalize()
-                monitors.computeIfAbsent(name) { WidgetMonitor(name, widgetDir) }.updateFactory()
+      // external factories
+      val dirW = APP.DIR_WIDGETS
+      if (!isValidatedDirectory(dirW)) {
+         logger.error { "External widgets registration failed: $dirW is not a valid directory." }
+      } else {
+         dirW.children().filter { it.isDirectory }.forEach { widgetDir ->
+            val name = widgetDir.nameWithoutExtension.capitalize()
+            monitors.computeIfAbsent(name) { WidgetMonitor(name, widgetDir) }.updateFactory()
+         }
+
+         FileMonitor.monitorDirectory(dirW, true) { type, f ->
+            when {
+               dirW==f -> Unit
+               dirW isParentOf f -> {
+                  val name = f.nameWithoutExtension.capitalize()
+                  if (type===ENTRY_CREATE) {
+                     if (f.isDirectory) {
+                        monitors.computeIfAbsent(name) { WidgetMonitor(name, f) }.updateFactory()
+                     }
+                  }
+                  if (type===ENTRY_DELETE) {
+                     monitors[name]?.dispose()
+                  }
+               }
+               else -> monitors.find { it.widgetDir isAnyParentOf f }?.handleResourceChange(type, f)
             }
+         }
+      }
 
-            FileMonitor.monitorDirectory(dirW, true) { type, f ->
-                when {
-                    dirW==f -> Unit
-                    dirW isParentOf f -> {
-                        val name = f.nameWithoutExtension.capitalize()
-                        if (type===ENTRY_CREATE) {
-                            if (f.isDirectory) {
-                                monitors.computeIfAbsent(name) { WidgetMonitor(name, f) }.updateFactory()
-                            }
+      // external factories for .fxwl widgets - serialized widgets
+      val dirL = APP.DIR_LAYOUTS
+      val dirLinit = APP.DIR_LAYOUTS_INIT
+      if (!isValidatedDirectory(dirL)) {
+         logger.error { "External .fxwl widgets registration failed." }
+      } else {
+         dirLinit.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
+         dirL.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
+
+         FileMonitor.monitorDirectory(dirL, true, { it hasExtension "fxwl" }) { type, f ->
+            if (type===ENTRY_CREATE) {
+               registerFactory(DeserializingFactory(f))
+            }
+            if (type===ENTRY_DELETE) {
+               factoriesC.asSequence()
+                  .filter { it is DeserializingFactory && it.launcher==f }
+                  .materialize()
+                  .forEach { unregisterFactory(it) }
+            }
+         }
+      }
+
+      factoriesC.forEach { logger.info { "Registered widget=${it.nameGui()}" } }
+      initialized = true
+   }
+
+   private fun registerFactory(factory: ComponentFactory<*>): Boolean {
+      logger.info { "Registering $factory" }
+
+      if (factory is WidgetFactory<*>) factoriesW put factory
+      return factoriesC put factory
+   }
+
+   private fun unregisterFactory(factory: ComponentFactory<*>) {
+      logger.info { "Unregistering $factory" }
+
+      if (factory is WidgetFactory<*>) factoriesW -= factory
+      factoriesC -= factory
+   }
+
+   private inner class WidgetMonitor constructor(val widgetName: String, val widgetDir: File): ExternalWidgetFactoryData {
+      val skinFile = widgetDir/"skin.css"
+      val compileDir = widgetDir/"out"
+      override val scheduleCompilation = EventReducer.toLast<Void>(500.0) { compileFx() }
+
+      /** @return primary source file (either Kotlin or Java) or null if none exists */
+      fun findSrcFile() = null
+         ?: widgetDir.child("$widgetName.kt").takeIf { it.exists() }
+         ?: widgetDir.child("$widgetName.java").takeIf { it.exists() }
+
+      fun findSrcFiles() = widgetDir.children().filter { it.hasExtension("java", "kt") }
+
+      fun findClassFile() = compileDir/widgetName.decapitalize()/"$widgetName.class"
+
+      fun findClassFiles() = compileDir.walk().filter { it hasExtension "class" }
+
+      fun computeClassPath(): String = computeClassPathElements().joinToString(classpathSeparator)
+
+      private fun computeClassPathElements() = getAppJarFile() + (findAppLibFiles() + compileDir + findLibFiles()).map { it.relativeToApp() }
+
+      private fun findLibFiles() = widgetDir.children().filterSourceJars()
+
+      private fun findAppLibFiles() = APP.DIR_APP.child("lib").children().filterSourceJars()
+
+      private fun getAppJarFile(): Sequence<String> {
+         val mainJarFile = APP.DIR_APP/"PlayerFX.jar"
+         return if (mainJarFile.exists()) {
+            sequenceOf(mainJarFile.relativeToApp())
+         } else {
+            System.getProperty("java.class.path")
+               .splitToSequence(classpathSeparator)
+               .filter { it.contains("build\\classes") || it.contains("build\\kotlin-classes") }
+         }
+      }
+
+      private fun Sequence<File>.filterSourceJars() = this
+         .filter { it hasExtension "jar" }
+         .filter { !it.path.endsWith("sources.jar") }
+         .filter { !it.path.endsWith("javadoc.jar") }
+
+
+      fun handleResourceChange(type: Kind<Path>, file: File) {
+         if (type===ENTRY_CREATE || type===ENTRY_MODIFY) {
+            when {
+               file==skinFile -> {
+                  logger.info { "Widget=$widgetName skin file=${file.name}} changed $type" }
+                  widgets.findAll(OPEN)
+                     .filter { it.name==widgetName }
+                     .forEach {
+                        val root = it.root
+                        val skinUrl = skinFile.toURLOrNull()?.toExternalForm()
+                        if (skinUrl!=null) {
+                           root?.stylesheetToggle(skinUrl, false)
+                           root?.stylesheetToggle(skinUrl, true)
                         }
-                        if (type===ENTRY_DELETE) {
-                            monitors[name]?.dispose()
-                        }
-                    }
-                    else -> monitors.find { it.widgetDir isAnyParentOf f }?.handleResourceChange(type, f)
-                }
+                     }
+               }
+               file==compileDir || file.isAnyChildOf(compileDir) -> Unit
+               file hasExtension "class" -> Unit
+               else -> {
+                  logger.info { "Widget=$widgetName source file=${file.name} changed $type" }
+                  if (widgets.autoRecompile.value && widgets.autoRecompileSupported)
+                     scheduleCompilation()
+               }
             }
-        }
+         }
+      }
 
-        // external factories for .fxwl widgets - serialized widgets
-        val dirL = APP.DIR_LAYOUTS
-        val dirLinit = APP.DIR_LAYOUTS_INIT
-        if (!isValidatedDirectory(dirL)) {
-            logger.error { "External .fxwl widgets registration failed." }
-        } else {
-            dirLinit.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
-            dirL.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
+      @Idempotent
+      fun dispose() {
+         factories.factoriesInCompilation -= widgetName
+         factoriesW.removeKey(widgetName)
+         factoriesC.removeKey(widgetName)
+         monitors.removeKey(widgetName)
+      }
 
-            FileMonitor.monitorDirectory(dirL, true, { it hasExtension "fxwl" }) { type, f ->
-                if (type===ENTRY_CREATE) {
-                    registerFactory(DeserializingFactory(f))
-                }
-                if (type===ENTRY_DELETE) {
-                    factoriesC.asSequence()
-                        .filter { it is DeserializingFactory && it.launcher==f }
-                        .materialize()
-                        .forEach { unregisterFactory(it) }
-                }
-            }
-        }
+      @Suppress("ConstantConditionIf")
+      fun updateFactory() {
+         val srcFile = findSrcFile()
+         val srcFiles = findSrcFiles().toList()
+         val srcFilesKt = srcFiles.filter { it hasExtension "kt" }
+         val srcFilesJava = srcFiles.filter { it hasExtension "java" }
+         val classFile = findClassFile()
+         val classFiles = findClassFiles().toList()
+         val classFilesKt = classFiles.filter { cf -> srcFilesKt.any { sf -> sf.nameWithoutExtension==cf.nameWithoutExtension } }
+         val classFilesJava = classFiles.filter { cf -> srcFilesJava.any { sf -> sf.nameWithoutExtension==cf.nameWithoutExtension } }
 
-        factoriesC.forEach { logger.info { "Registered widget=${it.nameGui()}" } }
-        initialized = true
-    }
+         val srcFileAvailable = srcFile!=null
+         val classFileAvailableKt = classFilesKt modifiedAfter srcFilesKt
+         val classFileAvailableJava = classFilesJava modifiedAfter srcFilesJava
+         val classFileAvailable = classFile.exists() && classFileAvailableKt && classFileAvailableJava
 
-    private fun registerFactory(factory: ComponentFactory<*>): Boolean {
-        logger.info { "Registering $factory" }
+         logger.info { "Widget=$widgetName factory update, source files available=$srcFileAvailable class files available=$classFileAvailable" }
 
-        if (factory is WidgetFactory<*>) factoriesW put factory
-        return factoriesC put factory
-    }
+         if (classFileAvailable) {
+            val controllerType = loadClass(widgetDir.nameWithoutExtension, classFile, compileDir, findLibFiles())
+            registerFactory(controllerType)
+         } else if (srcFileAvailable) {
+            compileFx()
+         }
+      }
 
-    private fun unregisterFactory(factory: ComponentFactory<*>) {
-        logger.info { "Unregistering $factory" }
+      @Suppress("UNCHECKED_CAST")
+      private fun registerFactory(controllerType: Class<*>?) {
+         if (controllerType==null) {
+            logger.warn { "Widget class $controllerType is null" }
+            return
+         }
+         if (!controllerType.isSubclassOf<Controller>()) {
+            logger.warn { "Widget class $controllerType in $widgetDir does not implement Controller" }
+            return
+         }
 
-        if (factory is WidgetFactory<*>) factoriesW -= factory
-        factoriesC -= factory
-    }
+         val widgetType = (controllerType as Class<Controller>).kotlin
+         val widgetFactory = WidgetFactory(widgetType, widgetDir, this)
+         registerFactory(widgetFactory)
+         if (initialized) widgetFactory.reloadAllOpen()
+      }
 
-    private inner class WidgetMonitor constructor(val widgetName: String, val widgetDir: File): ExternalWidgetFactoryData {
-        val skinFile = widgetDir/"skin.css"
-        val compileDir = widgetDir/"out"
-        override val scheduleCompilation = EventReducer.toLast<Void>(500.0) { compileFx() }
+      private fun compileFx() {
+         failIfNotFxThread()
+         if (APP.rank==SLAVE) return
 
-        /** @return primary source file (either Kotlin or Java) or null if none exists */
-        fun findSrcFile() = null
-            ?: widgetDir.child("$widgetName.kt").takeIf { it.exists() }
-            ?: widgetDir.child("$widgetName.java").takeIf { it.exists() }
-
-        fun findSrcFiles() = widgetDir.children().filter { it.hasExtension("java", "kt") }
-
-        fun findClassFile() = compileDir/widgetName.decapitalize()/"$widgetName.class"
-
-        fun findClassFiles() = compileDir.walk().filter { it hasExtension "class" }
-
-        fun computeClassPath(): String = computeClassPathElements().joinToString(classpathSeparator)
-
-        private fun computeClassPathElements() = getAppJarFile() + (findAppLibFiles() + compileDir + findLibFiles()).map { it.relativeToApp() }
-
-        private fun findLibFiles() = widgetDir.children().filterSourceJars()
-
-        private fun findAppLibFiles() = APP.DIR_APP.child("lib").children().filterSourceJars()
-
-        private fun getAppJarFile(): Sequence<String> {
-            val mainJarFile = APP.DIR_APP/"PlayerFX.jar"
-            return if (mainJarFile.exists()) {
-                sequenceOf(mainJarFile.relativeToApp())
-            } else {
-                System.getProperty("java.class.path")
-                    .splitToSequence(classpathSeparator)
-                    .filter { it.contains("build\\classes") || it.contains("build\\kotlin-classes") }
-            }
-        }
-
-        private fun Sequence<File>.filterSourceJars() = this
-            .filter { it hasExtension "jar" }
-            .filter { !it.path.endsWith("sources.jar") }
-            .filter { !it.path.endsWith("javadoc.jar") }
-
-
-        fun handleResourceChange(type: Kind<Path>, file: File) {
-            if (type===ENTRY_CREATE || type===ENTRY_MODIFY) {
-                when {
-                    file==skinFile -> {
-                        logger.info { "Widget=$widgetName skin file=${file.name}} changed $type" }
-                        widgets.findAll(OPEN)
-                            .filter { it.name==widgetName }
-                            .forEach {
-                                val root = it.root
-                                val skinUrl = skinFile.toURLOrNull()?.toExternalForm()
-                                if (skinUrl!=null) {
-                                    root?.stylesheetToggle(skinUrl, false)
-                                    root?.stylesheetToggle(skinUrl, true)
-                                }
-                            }
-                    }
-                    file==compileDir || file.isAnyChildOf(compileDir) -> Unit
-                    file hasExtension "class" -> Unit
-                    else -> {
-                        logger.info { "Widget=$widgetName source file=${file.name} changed $type" }
-                        if (widgets.autoRecompile.value && widgets.autoRecompileSupported)
-                            scheduleCompilation()
-                    }
-                }
-            }
-        }
-
-        @Idempotent
-        fun dispose() {
+         factories.factoriesInCompilation += widgetName
+         fut().thenWithAppProgress(compilerThread, "Compiling $widgetName") {
+            compile()
+         }.onDone(FX) {
             factories.factoriesInCompilation -= widgetName
-            factoriesW.removeKey(widgetName)
-            factoriesC.removeKey(widgetName)
-            monitors.removeKey(widgetName)
-        }
+            it.toTry()
+               .ifError { logger.error(it) { "Widget $widgetName failed to compile" } }
+               .getOrSupply { Try.error(it.message ?: "Unspecified error") }
+               .ifOk { updateFactory() }
+               .ifError { userErrorLogger("Widget $widgetName failed to compile. Reason: $it") }
+         }
+      }
 
-        @Suppress("ConstantConditionIf")
-        fun updateFactory() {
-            val srcFile = findSrcFile()
-            val srcFiles = findSrcFiles().toList()
-            val srcFilesKt = srcFiles.filter { it hasExtension "kt" }
-            val srcFilesJava = srcFiles.filter { it hasExtension "java" }
-            val classFile = findClassFile()
-            val classFiles = findClassFiles().toList()
-            val classFilesKt = classFiles.filter { cf -> srcFilesKt.any { sf -> sf.nameWithoutExtension==cf.nameWithoutExtension } }
-            val classFilesJava = classFiles.filter { cf -> srcFilesJava.any { sf -> sf.nameWithoutExtension==cf.nameWithoutExtension } }
+      private fun compile(): Try<Nothing?, String> {
+         logger.info { "Widget=$widgetName compiling..." }
 
-            val srcFileAvailable = srcFile!=null
-            val classFileAvailableKt = classFilesKt modifiedAfter srcFilesKt
-            val classFileAvailableJava = classFilesJava modifiedAfter srcFilesJava
-            val classFileAvailable = classFile.exists() && classFileAvailableKt && classFileAvailableJava
+         // TODO: enable. For some reason the delete-create fails sometimes (even though compilation can proceed fine without it), investigate & fix
+         if (compileDir.exists()) compileDir.deleteRecursively() //.ifFalse { return Try.error("Failed to delete $compileDir") }
+         compileDir.mkdirs() //.ifFalse { return Try.error("Failed to create $compileDir") }
 
-            logger.info { "Widget=$widgetName factory update, source files available=$srcFileAvailable class files available=$classFileAvailable" }
+         val srcFiles = findSrcFiles().toList()
+         val hasKotlin = srcFiles.any { it hasExtension "kt" }
+         val hasJava = srcFiles.any { it hasExtension "java" }
+         return when {
+            hasJava && hasKotlin -> Try.error("Mixed Java-Kotlin code not supported")
+            hasKotlin -> compileKotlin(srcFiles.asSequence())
+            hasJava -> compileJava(srcFiles.asSequence())
+            else -> Try.error("No source files available")
+         }
+      }
 
-            if (classFileAvailable) {
-                val controllerType = loadClass(widgetDir.nameWithoutExtension, classFile, compileDir, findLibFiles())
-                registerFactory(controllerType)
-            } else if (srcFileAvailable) {
-                compileFx()
+      /** Compiles specified .java files into .class files. */
+      private fun compileJava(javaSrcFiles: Sequence<File>): Try<Nothing?, String> {
+         val options = sequenceOf(
+            "-encoding", APP.encoding.name(),
+            "-d", compileDir.relativeToApp(),
+            "-Xlint",
+            "-Xlint:-path",
+            "-Xlint:-processing",
+            "-cp", computeClassPath()
+         )
+         val sourceFiles = javaSrcFiles.map { it.path }
+         val arguments = (options + sourceFiles).asArray()
+
+         logger.info("Compiling with arguments=${arguments.joinToString(" ")}")
+         val compiler = ToolProvider.getSystemJavaCompiler() ?: run {
+            logger.error { "Compilation failed\nJava system compiler not available" }
+            return Try.error("Java system compiler not available")
+         }
+
+         val streamStdOut = ByteArrayOutputStream(1000)
+         val streamStdErr = ByteArrayOutputStream(1000)
+         val success = compiler.run(null, streamStdOut, streamStdErr, *arguments)
+         val isSuccess = success==0
+         val textStdOut = streamStdOut.toString(UTF_8).prettifyCompilerOutput()
+         val textStdErr = streamStdErr.toString(UTF_8).prettifyCompilerOutput()
+
+         return if (isSuccess) {
+            logger.info { "Compilation succeeded$textStdOut" }
+            Try.ok()
+         } else {
+            logger.error { "Compilation failed$textStdErr" }
+            Try.error(textStdErr)
+         }
+      }
+
+      /** Compiles specified .kt files into .class files. */
+      private fun compileKotlin(kotlinSrcFiles: Sequence<File>): Try<Nothing?, String> {
+         try {
+            val compilerFile = when (Os.current) {
+               Os.UNIX -> APP.DIR_APP/"kotlinc"/"bin"/"kotlinc"
+               else -> APP.DIR_APP/"kotlinc"/"bin"/"kotlinc.bat"
             }
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        private fun registerFactory(controllerType: Class<*>?) {
-            if (controllerType==null) {
-                logger.warn { "Widget class $controllerType is null" }
-                return
-            }
-            if (!controllerType.isSubclassOf<Controller>()) {
-                logger.warn { "Widget class $controllerType in $widgetDir does not implement Controller" }
-                return
-            }
-
-            val widgetType = (controllerType as Class<Controller>).kotlin
-            val widgetFactory = WidgetFactory(widgetType, widgetDir, this)
-            registerFactory(widgetFactory)
-            if (initialized) widgetFactory.reloadAllOpen()
-        }
-
-        private fun compileFx() {
-            failIfNotFxThread()
-            if (APP.rank==SLAVE) return
-
-            factories.factoriesInCompilation += widgetName
-            fut().thenWithAppProgress(compilerThread, "Compiling $widgetName") {
-                compile()
-            }.onDone(FX) {
-                factories.factoriesInCompilation -= widgetName
-                it.toTry()
-                    .ifError { logger.error(it) { "Widget $widgetName failed to compile" } }
-                    .getOrSupply { Try.error(it.message ?: "Unspecified error") }
-                    .ifOk { updateFactory() }
-                    .ifError { userErrorLogger("Widget $widgetName failed to compile. Reason: $it") }
-            }
-        }
-
-        private fun compile(): Try<Nothing?, String> {
-            logger.info { "Widget=$widgetName compiling..." }
-
-            // TODO: enable. For some reason the delete-create fails sometimes (even though compilation can proceed fine without it), investigate & fix
-            if (compileDir.exists()) compileDir.deleteRecursively() //.ifFalse { return Try.error("Failed to delete $compileDir") }
-            compileDir.mkdirs() //.ifFalse { return Try.error("Failed to create $compileDir") }
-
-            val srcFiles = findSrcFiles().toList()
-            val hasKotlin = srcFiles.any { it hasExtension "kt" }
-            val hasJava = srcFiles.any { it hasExtension "java" }
-            return when {
-                hasJava && hasKotlin -> Try.error("Mixed Java-Kotlin code not supported")
-                hasKotlin -> compileKotlin(srcFiles.asSequence())
-                hasJava -> compileJava(srcFiles.asSequence())
-                else -> Try.error("No source files available")
-            }
-        }
-
-        /** Compiles specified .java files into .class files. */
-        private fun compileJava(javaSrcFiles: Sequence<File>): Try<Nothing?, String> {
-            val options = sequenceOf(
-                "-encoding", APP.encoding.name(),
-                "-d", compileDir.relativeToApp(),
-                "-Xlint",
-                "-Xlint:-path",
-                "-Xlint:-processing",
-                "-cp", computeClassPath()
+            val command = listOf(
+               compilerFile.absolutePath,
+               "-d", compileDir.relativeToApp(),
+               "-jdk-home", APP.DIR_APP.child("java").relativeToApp(),
+               "-jvm-target", "12",
+               "-cp", computeClassPath(),
+               kotlinSrcFiles.joinToString(" ") { it.relativeToApp() }
             )
-            val sourceFiles = javaSrcFiles.map { it.path }
-            val arguments = (options + sourceFiles).asArray()
 
-            logger.info("Compiling with arguments=${arguments.joinToString(" ")}")
-            val compiler = ToolProvider.getSystemJavaCompiler() ?: run {
-                logger.error { "Compilation failed\nJava system compiler not available" }
-                return Try.error("Java system compiler not available")
-            }
+            logger.info("Compiling with command=${command.joinToString(" ")} ")
 
-            val streamStdOut = ByteArrayOutputStream(1000)
-            val streamStdErr = ByteArrayOutputStream(1000)
-            val success = compiler.run(null, streamStdOut, streamStdErr, *arguments)
+            val process = ProcessBuilder(command)
+               .directory(APP.DIR_APP)
+               .redirectOutput(Redirect.PIPE)
+               .redirectError(Redirect.PIPE)
+               .start()
+
+            process.waitFor(1, TimeUnit.MINUTES)
+
+            val success = process.exitValue()
+            val textStdout = process.inputStream.bufferedReader(UTF_8).readText().prettifyCompilerOutput()
+            val textStdErr = process.errorStream.bufferedReader(UTF_8).readText().prettifyCompilerOutput()
             val isSuccess = success==0
-            val textStdOut = streamStdOut.toString(UTF_8).prettifyCompilerOutput()
-            val textStdErr = streamStdErr.toString(UTF_8).prettifyCompilerOutput()
 
             return if (isSuccess) {
-                logger.info { "Compilation succeeded$textStdOut" }
-                Try.ok()
+               logger.info { "Compilation succeeded$textStdout" }
+               Try.ok()
             } else {
-                logger.error { "Compilation failed$textStdErr" }
-                Try.error(textStdErr)
+               logger.error { "Compilation failed$textStdout$textStdErr" }
+               Try.error(textStdErr)
             }
-        }
+         } catch (e: Exception) {
+            logger.error(e) { "Compilation failed" }
+            return Try.error(e.message ?: "")
+         }
+      }
+   }
 
-        /** Compiles specified .kt files into .class files. */
-        private fun compileKotlin(kotlinSrcFiles: Sequence<File>): Try<Nothing?, String> {
-            try {
-                val compilerFile = when (Os.current) {
-                    Os.UNIX -> APP.DIR_APP/"kotlinc"/"bin"/"kotlinc"
-                    else -> APP.DIR_APP/"kotlinc"/"bin"/"kotlinc.bat"
-                }
-                val command = listOf(
-                    compilerFile.absolutePath,
-                    "-d", compileDir.relativeToApp(),
-                    "-jdk-home", APP.DIR_APP.child("java").relativeToApp(),
-                    "-jvm-target", "12",
-                    "-cp", computeClassPath(),
-                    kotlinSrcFiles.joinToString(" ") { it.relativeToApp() }
-                )
+   @IsConfigurable("Widgets")
+   inner class Widgets {
 
-                logger.info("Compiling with command=${command.joinToString(" ")} ")
+      @IsConfig(name = "Auto-compilation supported", info = "On some system, this feature may be unsupported", editable = EditMode.NONE)
+      val autoRecompileSupported by c(Os.WINDOWS.isCurrent)
 
-                val process = ProcessBuilder(command)
-                    .directory(APP.DIR_APP)
-                    .redirectOutput(Redirect.PIPE)
-                    .redirectError(Redirect.PIPE)
-                    .start()
+      @IsConfig(name = "Auto-compilation", info = "Automatic compilation and reloading of widgets when their source code changes")
+      val autoRecompile by cv(true).readOnlyUnless(autoRecompileSupported)
 
-                process.waitFor(1, TimeUnit.MINUTES)
+      @IsConfig(name = "Recompile all widgets", info = "Re-compiles every widget. Useful when auto-compilation is disabled or unsupported.")
+      val recompile by cr { monitors.forEach { it.scheduleCompilation() } }
 
-                val success = process.exitValue()
-                val textStdout = process.inputStream.bufferedReader(UTF_8).readText().prettifyCompilerOutput()
-                val textStdErr = process.errorStream.bufferedReader(UTF_8).readText().prettifyCompilerOutput()
-                val isSuccess = success==0
+      @IsConfig(name = "Separate widgets & templates in UI", info = "Show widgets and templates (exported layouts) as separate categories in UI picker")
+      val separateWidgets by cv(true)
 
-                return if (isSuccess) {
-                    logger.info { "Compilation succeeded$textStdout" }
-                    Try.ok()
-                } else {
-                    logger.error { "Compilation failed$textStdout$textStdErr" }
-                    Try.error(textStdErr)
-                }
-            } catch (e: Exception) {
-                logger.error(e) { "Compilation failed" }
-                return Try.error(e.message ?: "")
-            }
-        }
-    }
+      /** Widgets that are not part of layout. */
+      private val standaloneWidgets: MutableList<Widget> = ArrayList()
 
-    @IsConfigurable("Widgets")
-    inner class Widgets {
+      fun initAsStandalone(widget: Widget) {
+         standaloneWidgets += widget
+         widget.onClose += { standaloneWidgets -= widget }
+      }
 
-        @IsConfig(name = "Auto-compilation supported", info = "On some system, this feature may be unsupported", editable = EditMode.NONE)
-        val autoRecompileSupported by c(Os.WINDOWS.isCurrent)
+      fun findAll(source: WidgetSource): Stream<Widget> = when (source) {
+         NONE -> Stream.empty()
+         OPEN_LAYOUT -> layouts.findAllActive().asStream().flatMap { it.allWidgets }
+         OPEN_STANDALONE -> standaloneWidgets.stream()
+         OPEN -> Stream.concat(findAll(OPEN_STANDALONE), findAll(OPEN_LAYOUT))
+      }
 
-        @IsConfig(name = "Auto-compilation", info = "Automatic compilation and reloading of widgets when their source code changes")
-        val autoRecompile by cv(true).readOnlyUnless(autoRecompileSupported)
+      /**
+       * Returns widget fulfilling condition. Any widget can be returned (if it fulfills the condition), but:
+       * * if there exists preferred widget it will always be returned first
+       * * if no widget is available it will be attempted to be created if allowed
+       * * if created, preferred factory will be used first
+       * * if all methods fail, null is returned
+       *
+       * @param filter condition the widget must fulfill
+       * @param source where and how the widget will be found/constructed
+       * @return optional of widget fulfilling condition or empty if not available
+       */
+      fun find(filter: (WidgetInfo) -> Boolean, source: WidgetUse): Optional<Widget> {
 
-        @IsConfig(name = "Recompile all widgets", info = "Re-compiles every widget. Useful when auto-compilation is disabled or unsupported.")
-        val recompile by cr { monitors.forEach { it.scheduleCompilation() } }
+         val preferred by lazy {
+            factories.getFactories()
+               .filter(filter)
+               .filter { !it.isIgnored }
+               .filter { it.isPreferred }
+               .firstOrNull()?.nameGui()
+         }
 
-        @IsConfig(name = "Separate widgets & templates in UI", info = "Show widgets and templates (exported layouts) as separate categories in UI picker")
-        val separateWidgets by cv(true)
+         val widgets = widgets.findAll(source.widgetFinder)
+            .filter { filter(it.info) }
+            .filter { !it.forbid_use.value }
+            .filter { if (preferred==null) true else it.info.nameGui()==preferred }
+            .toList()
 
-        /** Widgets that are not part of layout. */
-        private val standaloneWidgets: MutableList<Widget> = ArrayList()
-
-        fun initAsStandalone(widget: Widget) {
-            standaloneWidgets += widget
-            widget.onClose += { standaloneWidgets -= widget }
-        }
-
-        fun findAll(source: WidgetSource): Stream<Widget> = when (source) {
-            NONE -> Stream.empty()
-            OPEN_LAYOUT -> layouts.findAllActive().asStream().flatMap { it.allWidgets }
-            OPEN_STANDALONE -> standaloneWidgets.stream()
-            OPEN -> Stream.concat(findAll(OPEN_STANDALONE), findAll(OPEN_LAYOUT))
-        }
-
-        /**
-         * Returns widget fulfilling condition. Any widget can be returned (if it fulfills the condition), but:
-         * * if there exists preferred widget it will always be returned first
-         * * if no widget is available it will be attempted to be created if allowed
-         * * if created, preferred factory will be used first
-         * * if all methods fail, null is returned
-         *
-         * @param filter condition the widget must fulfill
-         * @param source where and how the widget will be found/constructed
-         * @return optional of widget fulfilling condition or empty if not available
-         */
-        fun find(filter: (WidgetInfo) -> Boolean, source: WidgetUse): Optional<Widget> {
-
-            val preferred by lazy {
-                factories.getFactories()
-                    .filter(filter)
-                    .filter { !it.isIgnored }
-                    .filter { it.isPreferred }
-                    .firstOrNull()?.nameGui()
+         val out: Widget? = null
+            ?: widgets.find { it.preferred.value }
+            ?: widgets.firstOrNull()
+            ?: run {
+               if (source is WidgetUse.NewAnd) {
+                  factories.getFactories()
+                     .filter(filter)
+                     .filter { !it.isIgnored }
+                     .filter { if (preferred==null) true else it.nameGui()==preferred }
+                     .firstOrNull()
+                     ?.create()?.also(source.layouter)
+               } else {
+                  null
+               }
             }
 
-            val widgets = widgets.findAll(source.widgetFinder)
-                .filter { filter(it.info) }
-                .filter { !it.forbid_use.value }
-                .filter { if (preferred==null) true else it.info.nameGui()==preferred }
-                .toList()
+         return Optional.ofNullable(out)
+      }
 
-            val out: Widget? = null
-                ?: widgets.find { it.preferred.value }
-                ?: widgets.firstOrNull()
-                ?: run {
-                    if (source is WidgetUse.NewAnd) {
-                        factories.getFactories()
-                            .filter(filter)
-                            .filter { !it.isIgnored }
-                            .filter { if (preferred==null) true else it.nameGui()==preferred }
-                            .firstOrNull()
-                            ?.create()?.also(source.layouter)
-                    } else {
-                        null
-                    }
-                }
+      /** Equivalent to: `find({ it.name()==name || it.nameGui()==name }, source, ignore)` */
+      fun find(name: String, source: WidgetUse): Optional<Widget> =
+         find({ it.name()==name || it.nameGui()==name }, source)
 
-            return Optional.ofNullable(out)
-        }
+      /**
+       * Roughly equivalent to: `find({ it.hasFeature(feature) }, source, ignore)`, but with type safety.
+       * Controller is returned only if the widget is/has been loaded without any errors.
+       */
+      fun <F> use(feature: Class<F>, source: WidgetUse, action: (F) -> Unit) =
+         find({ it.hasFeature(feature) }, source).filterIsControllerInstance(feature).ifPresent(action)
 
-        /** Equivalent to: `find({ it.name()==name || it.nameGui()==name }, source, ignore)` */
-        fun find(name: String, source: WidgetUse): Optional<Widget> =
-            find({ it.name()==name || it.nameGui()==name }, source)
+      /** Equivalent to: `use(T::class.java, source, action)` */
+      inline fun <reified T> use(source: WidgetUse, noinline action: (T) -> Unit) =
+         use(T::class.java, source, action)
 
-        /**
-         * Roughly equivalent to: `find({ it.hasFeature(feature) }, source, ignore)`, but with type safety.
-         * Controller is returned only if the widget is/has been loaded without any errors.
-         */
-        fun <F> use(feature: Class<F>, source: WidgetUse, action: (F) -> Unit) =
-            find({ it.hasFeature(feature) }, source).filterIsControllerInstance(feature).ifPresent(action)
+      /** Equivalent to: `find(cond, source).ifPresent(action)` */
+      fun use(cond: (WidgetInfo) -> Boolean, source: WidgetUse, action: (Widget) -> Unit) =
+         find(cond, source).ifPresent(action)
 
-        /** Equivalent to: `use(T::class.java, source, action)` */
-        inline fun <reified T> use(source: WidgetUse, noinline action: (T) -> Unit) =
-            use(T::class.java, source, action)
+      fun use(name: String, source: WidgetUse, action: (Widget) -> Unit) =
+         find(name, source).ifPresent(action)
 
-        /** Equivalent to: `find(cond, source).ifPresent(action)` */
-        fun use(cond: (WidgetInfo) -> Boolean, source: WidgetUse, action: (Widget) -> Unit) =
-            find(cond, source).ifPresent(action)
+      /** Select next widget or the first if no selected among the widgets in the specified window. */
+      fun selectNextWidget(root: Container<*>) {
+         val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
+         if (all.size<=1) return
+         val i = Values.incrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
+         all.getOrNull(i)?.focus()
+      }
 
-        fun use(name: String, source: WidgetUse, action: (Widget) -> Unit) =
-            find(name, source).ifPresent(action)
+      /** Select previous widget or the first if no selected among the widgets in the specified window. */
+      fun selectPreviousWidget(root: Container<*>) {
+         val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
+         if (all.size<=1) return
+         val iNew = Values.decrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
+         all.getOrNull(iNew)?.focus()
+      }
 
-        /** Select next widget or the first if no selected among the widgets in the specified window. */
-        fun selectNextWidget(root: Container<*>) {
-            val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
-            if (all.size<=1) return
-            val i = Values.incrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
-            all.getOrNull(i)?.focus()
-        }
+   }
 
-        /** Select previous widget or the first if no selected among the widgets in the specified window. */
-        fun selectPreviousWidget(root: Container<*>) {
-            val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
-            if (all.size<=1) return
-            val iNew = Values.decrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
-            all.getOrNull(iNew)?.focus()
-        }
+   inner class Factories {
 
-    }
+      /** Factories that are waiting to be compiled or are being compiled. */
+      val factoriesInCompilation = observableArrayList<String>()!!
 
-    inner class Factories {
+      fun recompile(factory: WidgetFactory<*>) = monitors[factory.name()]?.scheduleCompilation()
 
-        /** Factories that are waiting to be compiled or are being compiled. */
-        val factoriesInCompilation = observableArrayList<String>()!!
+      /** @return all features implemented by at least one widget */
+      fun getFeatures(): Sequence<Feature> = getFactories().flatMap { it.getFeatures().asSequence() }.distinct()
 
-        fun recompile(factory: WidgetFactory<*>) = monitors[factory.name()]?.scheduleCompilation()
+      /** @return widget factory with the specified [WidgetFactory.name] or null if none */
+      fun getFactory(name: String): WidgetFactory<*>? = factoriesW[name]
 
-        /** @return all features implemented by at least one widget */
-        fun getFeatures(): Sequence<Feature> = getFactories().flatMap { it.getFeatures().asSequence() }.distinct()
+      /** @return widget factory with the specified [WidgetFactory.nameGui] or null if none */
+      fun getFactoryByGuiName(guiName: String): Try<WidgetFactory<*>, String> = factoriesW.find { it.nameGui()==guiName }.toOptional().toTry().mapError { guiName }
 
-        /** @return widget factory with the specified [WidgetFactory.name] or null if none */
-        fun getFactory(name: String): WidgetFactory<*>? = factoriesW[name]
+      /** @return component factory with the specified [ComponentFactory.nameGui] or null if none */
+      fun getComponentFactoryByGuiName(guiName: String): Try<ComponentFactory<*>, String> = getFactoryByGuiName(guiName).or { factoriesC[guiName].toOptional().toTry() }
 
-        /** @return widget factory with the specified [WidgetFactory.nameGui] or null if none */
-        fun getFactoryByGuiName(guiName: String): Try<WidgetFactory<*>, String> = factoriesW.find { it.nameGui()==guiName }.toOptional().toTry().mapError { guiName }
+      /** @return all widget factories */
+      fun getFactories(): Sequence<WidgetFactory<*>> = factoriesW.streamV().asSequence()
 
-        /** @return component factory with the specified [ComponentFactory.nameGui] or null if none */
-        fun getComponentFactoryByGuiName(guiName: String): Try<ComponentFactory<*>, String> = getFactoryByGuiName(guiName).or { factoriesC[guiName].toOptional().toTry() }
+      /** @return all component factories (including widget factories) */
+      fun getComponentFactories(): Sequence<ComponentFactory<*>> = (factoriesC.asSequence() + getFactories()).distinct()
 
-        /** @return all widget factories */
-        fun getFactories(): Sequence<WidgetFactory<*>> = factoriesW.streamV().asSequence()
+      //        /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
+      inline fun <reified FEATURE> getFactoriesWith(): Sequence<FactoryRef<FEATURE>> = getFactoriesWith(FEATURE::class.java).asSequence()
 
-        /** @return all component factories (including widget factories) */
-        fun getComponentFactories(): Sequence<ComponentFactory<*>> = (factoriesC.asSequence() + getFactories()).distinct()
+      //        /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
+      fun <FEATURE> getFactoriesWith(feature: Class<FEATURE>) =
+         factoriesW.streamV().filter { it.hasFeature(feature) }.map { FactoryRef<FEATURE>(it) }!!
+   }
 
-        //        /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
-        inline fun <reified FEATURE> getFactoriesWith(): Sequence<FactoryRef<FEATURE>> = getFactoriesWith(FEATURE::class.java).asSequence()
+   inner class Layouts {
 
-        //        /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
-        fun <FEATURE> getFactoriesWith(feature: Class<FEATURE>) =
-            factoriesW.streamV().filter { it.hasFeature(feature) }.map { FactoryRef<FEATURE>(it) }!!
-    }
+      private val layoutsAvailable = ArrayList<String>()
 
-    inner class Layouts {
+      /** @return layout of focused window or null if no window focused */
+      fun findActive(): Layout? = APP.windowManager.getFocused().orNull()?.layout
 
-        private val layoutsAvailable = ArrayList<String>()
+      /** @return all Layouts in the application */
+      fun findAllActive(): Sequence<Layout> = APP.windowManager.windows.asSequence().mapNotNull { it.layout }
 
-        /** @return layout of focused window or null if no window focused */
-        fun findActive(): Layout? = APP.windowManager.getFocused().orNull()?.layout
+      /** @return all names of all layouts available to the application, including serialized layouts in files. */
+      fun getAllNames(): Sequence<String> {
+         findPersisted()
+         return (findAllActive().map { it.name } + layoutsAvailable.asSequence()).distinct()
+      }
 
-        /** @return all Layouts in the application */
-        fun findAllActive(): Sequence<Layout> = APP.windowManager.windows.asSequence().mapNotNull { it.layout }
+      /** @return layouts found in layout folder and sets them as available layouts */
+      fun findPersisted() {
+         val dir = APP.DIR_LAYOUTS
+         if (!isValidatedDirectory(dir)) {
+            logger.error { "Layout directory=$dir not accessible" }
+            return
+         }
 
-        /** @return all names of all layouts available to the application, including serialized layouts in files. */
-        fun getAllNames(): Sequence<String> {
-            findPersisted()
-            return (findAllActive().map { it.name } + layoutsAvailable.asSequence()).distinct()
-        }
+         layoutsAvailable setTo dir.children().filter { it hasExtension "l" }.map { it.nameWithoutExtension }
+      }
+   }
 
-        /** @return layouts found in layout folder and sets them as available layouts */
-        fun findPersisted() {
-            val dir = APP.DIR_LAYOUTS
-            if (!isValidatedDirectory(dir)) {
-                logger.error { "Layout directory=$dir not accessible" }
-                return
-            }
+   /** Reified reference to a factory of widget with a feature, enabling convenient use of its feature */
+   inner class FactoryRef<out FEATURE>(private val factory: WidgetFactory<*>) {
+      fun nameGui() = factory.nameGui()
 
-            layoutsAvailable setTo dir.children().filter { it hasExtension "l" }.map { it.nameWithoutExtension }
-        }
-    }
+      @Suppress("UNCHECKED_CAST")
+      fun use(source: WidgetUse, action: (FEATURE) -> Unit) = widgets
+         .find(nameGui(), source)
+         .filterIsControllerInstance(factory.controllerType)
+         .map { it as FEATURE }  // if controller is factory.controllerType then it is also FEATURE
+         .ifPresent(action)
+   }
 
-    /** Reified reference to a factory of widget with a feature, enabling convenient use of its feature */
-    inner class FactoryRef<out FEATURE>(private val factory: WidgetFactory<*>) {
-        fun nameGui() = factory.nameGui()
+   companion object: KLogging() {
 
-        @Suppress("UNCHECKED_CAST")
-        fun use(source: WidgetUse, action: (FEATURE) -> Unit) = widgets
-            .find(nameGui(), source)
-            .filterIsControllerInstance(factory.controllerType)
-            .map { it as FEATURE }  // if controller is factory.controllerType then it is also FEATURE
-            .ifPresent(action)
-    }
+      fun WidgetFactory<*>.scheduleCompilation() = APP.widgetManager.monitors[nameGui()]!!.scheduleCompilation()
 
-    companion object: KLogging() {
+      /** @return new instance of a class represented by specified class file using one shot class loader or null if error */
+      private fun loadClass(widgetName: String, classFile: File, compileDir: File, libFiles: Sequence<File>): Class<*>? {
+         val className = "$widgetName.${classFile.nameWithoutExtension}"
 
-        fun WidgetFactory<*>.scheduleCompilation() = APP.widgetManager.monitors[nameGui()]!!.scheduleCompilation()
+         return try {
+            createControllerClassLoader(compileDir, libFiles)
+               .ifNull { logger.info { "Class loading failed for $classFile" } }
+               ?.loadClass(className)
+         } catch (e: ClassNotFoundException) {
+            logger.info(e) { "Class loading failed for $classFile" }
+            null
+         }
+      }
 
-        /** @return new instance of a class represented by specified class file using one shot class loader or null if error */
-        private fun loadClass(widgetName: String, classFile: File, compileDir: File, libFiles: Sequence<File>): Class<*>? {
-            val className = "$widgetName.${classFile.nameWithoutExtension}"
+      /** @return new class loader using specified files to load classes and resources from or null if error */
+      private fun createControllerClassLoader(compileDir: File, libFiles: Sequence<File>): ClassLoader? {
+         return (libFiles + compileDir)
+            .map { it.toURLOrNull().ifNull { logger.error { "Failed to construct class loader due to invalid URL of file=$it" } } }
+            .asArray()
+            .takeIf { it.all { it!=null } }
+            ?.let { URLClassLoader(it) }
+      }
 
-            return try {
-                createControllerClassLoader(compileDir, libFiles)
-                    .ifNull { logger.info { "Class loading failed for $classFile" } }
-                    ?.loadClass(className)
-            } catch (e: ClassNotFoundException) {
-                logger.info(e) { "Class loading failed for $classFile" }
-                null
-            }
-        }
+      private fun <R> Optional<Widget>.filterIsControllerInstance(type: Class<R>): Optional<R> =
+         map { it.controller }.filter(type::isInstance).map { type.cast(it) }
 
-        /** @return new class loader using specified files to load classes and resources from or null if error */
-        private fun createControllerClassLoader(compileDir: File, libFiles: Sequence<File>): ClassLoader? {
-            return (libFiles + compileDir)
-                .map { it.toURLOrNull().ifNull { logger.error { "Failed to construct class loader due to invalid URL of file=$it" } } }
-                .asArray()
-                .takeIf { it.all { it!=null } }
-                ?.let { URLClassLoader(it) }
-        }
+      private fun Collection<File>.lastModifiedMax() = asSequence().map { it.lastModified() }.max()
 
-        private fun <R> Optional<Widget>.filterIsControllerInstance(type: Class<R>): Optional<R> =
-            map { it.controller }.filter(type::isInstance).map { type.cast(it) }
+      private fun Collection<File>.lastModifiedMin() = asSequence().map { it.lastModified() }.min()
 
-        private fun Collection<File>.lastModifiedMax() = asSequence().map { it.lastModified() }.max()
+      private infix fun Collection<File>.modifiedAfter(that: Collection<File>) = (this.lastModifiedMax() ?: 0)>=(that.lastModifiedMax() ?: 0)
 
-        private fun Collection<File>.lastModifiedMin() = asSequence().map { it.lastModified() }.min()
+      private fun File.relativeToApp() = relativeTo(APP.DIR_APP).path
 
-        private infix fun Collection<File>.modifiedAfter(that: Collection<File>) = (this.lastModifiedMax() ?: 0)>=(that.lastModifiedMax() ?: 0)
+      private fun String.prettifyCompilerOutput() = if (isNullOrBlank()) "" else "\n$this"
 
-        private fun File.relativeToApp() = relativeTo(APP.DIR_APP).path
-
-        private fun String.prettifyCompilerOutput() = if (isNullOrBlank()) "" else "\n$this"
-
-        private val Os.classpathSeparator
-            get() = when (this) {
-                Os.WINDOWS -> ";"
-                else -> ":"
-            }
-    }
+      private val Os.classpathSeparator
+         get() = when (this) {
+            Os.WINDOWS -> ";"
+            else -> ":"
+         }
+   }
 
 }
 
@@ -673,129 +673,129 @@ inline fun <reified F> WidgetInfo.hasFeature() = hasFeature(F::class)
 fun Try<ComponentFactory<*>, String>.orNone(): ComponentFactory<*> = getOrSupply { NoFactoryFactory(it) }
 
 fun WidgetFactory<*>.isCompiling(disposer: Disposer): ObservableValue<Boolean> {
-    fun isCompiling() = APP.widgetManager.factories.factoriesInCompilation.any { it==name() || it==nameGui() }
-    return v(isCompiling()).apply {
-        APP.widgetManager.factories.factoriesInCompilation.onChange { value = isCompiling() } on disposer
-    }
+   fun isCompiling() = APP.widgetManager.factories.factoriesInCompilation.any { it==name() || it==nameGui() }
+   return v(isCompiling()).apply {
+      APP.widgetManager.factories.factoriesInCompilation.onChange { value = isCompiling() } on disposer
+   }
 }
 
 fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
-    WidgetManager.logger.info("Reloading all open widgets of {}", widgetFactory)
-    APP.widgetManager.widgets.findAll(OPEN).asSequence()
-        .filter { it.name==widgetFactory.name() || it.name==widgetFactory.nameGui() }   // it.factory must not be used due to temporary factories in unrecognized widgets
-        .materialize()
-        .forEach { widgetOld ->
-            val wasFocused = widgetOld.focused.value
-            val widgetNew = widgetFactory.create()
-            widgetNew.setStateFrom(widgetOld)
-            val p = widgetOld.parent
-            if (p!=null) {
-                val i = widgetOld.indexInParent()
-                p.removeChild(i)
-                p.addChild(i, widgetNew)
-                if (wasFocused) widgetNew.focus()
-            } else {
-                val parent = widgetOld.graphics.parent
-                val i = parent.childrenUnmodifiable.indexOf(widgetOld.graphics)
-                widgetOld.close()
-                parent?.asIf<Pane>()?.let { it.children.add(i, widgetNew.load()) }
-                if (wasFocused) widgetNew.focus()
-            }
-        }
+   WidgetManager.logger.info("Reloading all open widgets of {}", widgetFactory)
+   APP.widgetManager.widgets.findAll(OPEN).asSequence()
+      .filter { it.name==widgetFactory.name() || it.name==widgetFactory.nameGui() }   // it.factory must not be used due to temporary factories in unrecognized widgets
+      .materialize()
+      .forEach { widgetOld ->
+         val wasFocused = widgetOld.focused.value
+         val widgetNew = widgetFactory.create()
+         widgetNew.setStateFrom(widgetOld)
+         val p = widgetOld.parent
+         if (p!=null) {
+            val i = widgetOld.indexInParent()
+            p.removeChild(i)
+            p.addChild(i, widgetNew)
+            if (wasFocused) widgetNew.focus()
+         } else {
+            val parent = widgetOld.graphics.parent
+            val i = parent.childrenUnmodifiable.indexOf(widgetOld.graphics)
+            widgetOld.close()
+            parent?.asIf<Pane>()?.let { it.children.add(i, widgetNew.load()) }
+            if (wasFocused) widgetNew.focus()
+         }
+      }
 }
 
 interface ExternalWidgetFactoryData {
-    val scheduleCompilation: EventReducer<Void>
+   val scheduleCompilation: EventReducer<Void>
 }
 
 /** Source for widgets when looking for a widget. */
 enum class WidgetSource {
-    /** None. No widget will be found. */
-    NONE,
-    /** All open widgets. [OPEN_LAYOUT] + [OPEN_STANDALONE]. */
-    OPEN,
-    /** All open widgets within any layout of any window. */
-    OPEN_LAYOUT,
-    /** All open standalone widgets - widgets not part of the layout, such as in popups. */
-    OPEN_STANDALONE
+   /** None. No widget will be found. */
+   NONE,
+   /** All open widgets. [OPEN_LAYOUT] + [OPEN_STANDALONE]. */
+   OPEN,
+   /** All open widgets within any layout of any window. */
+   OPEN_LAYOUT,
+   /** All open standalone widgets - widgets not part of the layout, such as in popups. */
+   OPEN_STANDALONE
 }
 
 /** Strategy for opening a new widget in ui. */
 @Suppress("ClassName")
 sealed class WidgetLoader: (Widget) -> Unit {
-    /**
-     * Does not load widget and leaves it upon the consumer to load and manage it appropriately.
-     * Note that widget loaded as standalone should first invoke [WidgetManager.Widgets.initAsStandalone].
-     */
-    object CUSTOM: WidgetLoader() {
-        override fun invoke(w: Widget) {}
-    }
+   /**
+    * Does not load widget and leaves it upon the consumer to load and manage it appropriately.
+    * Note that widget loaded as standalone should first invoke [WidgetManager.Widgets.initAsStandalone].
+    */
+   object CUSTOM: WidgetLoader() {
+      override fun invoke(w: Widget) {}
+   }
 
-    /** Loads the widget in a layout of a new window. */
-    object WINDOW: WidgetLoader() {
-        override fun invoke(w: Widget) = invoke(w as Component).toUnit()
-        operator fun invoke(w: Component): Window = APP.windowManager.showWindow(w)
-    }
+   /** Loads the widget in a layout of a new window. */
+   object WINDOW: WidgetLoader() {
+      override fun invoke(w: Widget) = invoke(w as Component).toUnit()
+      operator fun invoke(w: Component): Window = APP.windowManager.showWindow(w)
+   }
 
-    /** Loads the widget as a standalone widget in a simplified layout of a new always on top fullscreen window. */
-    object WINDOW_FULLSCREEN {
-        operator fun invoke(screen: Screen): (Widget) -> Unit = { w ->
-            APP.widgetManager.widgets.initAsStandalone(w)
+   /** Loads the widget as a standalone widget in a simplified layout of a new always on top fullscreen window. */
+   object WINDOW_FULLSCREEN {
+      operator fun invoke(screen: Screen): (Widget) -> Unit = { w ->
+         APP.widgetManager.widgets.initAsStandalone(w)
 
-            val root = anchorPane()
-            val window = Util.createFMNTStage(screen, false).apply {
-                scene = Scene(root)
-                onEventUp(WINDOW_HIDING) { w.rootParent.close() }
-            }
+         val root = anchorPane()
+         val window = Util.createFMNTStage(screen, false).apply {
+            scene = Scene(root)
+            onEventUp(WINDOW_HIDING) { w.rootParent.close() }
+         }
 
-            root.onEventUp(KEY_PRESSED, ESCAPE) { window.hide() }
+         root.onEventUp(KEY_PRESSED, ESCAPE) { window.hide() }
 
-            w.load().apply {
-                minPrefMaxWidth = Region.USE_COMPUTED_SIZE
-            }
-            window.show()
-            Layout.openStandalone(root).apply {
-                child = w
-            }
+         w.load().apply {
+            minPrefMaxWidth = Region.USE_COMPUTED_SIZE
+         }
+         window.show()
+         Layout.openStandalone(root).apply {
+            child = w
+         }
 
-            window.showingProperty().sync1If({ it }) {
-                w.focus()
-            }
-        }
-    }
+         window.showingProperty().sync1If({ it }) {
+            w.focus()
+         }
+      }
+   }
 
-    /** Loads the widget as a standalone widget in a simplified layout of a new popup. */
-    object POPUP: WidgetLoader() {
-        override fun invoke(w: Widget) {
-            APP.widgetManager.widgets.initAsStandalone(w)
-            APP.windowManager.showFloating(w)
-        }
-    }
+   /** Loads the widget as a standalone widget in a simplified layout of a new popup. */
+   object POPUP: WidgetLoader() {
+      override fun invoke(w: Widget) {
+         APP.widgetManager.widgets.initAsStandalone(w)
+         APP.windowManager.showFloating(w)
+      }
+   }
 
 }
 
 /** Strategy for using a widget. This can be an existing widget or even one to be created on demand. */
 @Suppress("ClassName")
 sealed class WidgetUse(val widgetFinder: WidgetSource) {
-    /** Use open widget as per [WidgetSource.OPEN_LAYOUT] or do nothing if none available. */
-    object OPEN_LAYOUT: WidgetUse(WidgetSource.OPEN_LAYOUT)
+   /** Use open widget as per [WidgetSource.OPEN_LAYOUT] or do nothing if none available. */
+   object OPEN_LAYOUT: WidgetUse(WidgetSource.OPEN_LAYOUT)
 
-    /** Use open widget as per [WidgetSource.OPEN_STANDALONE] or do nothing if none available. */
-    object OPEN_STANDALONE: WidgetUse(WidgetSource.OPEN_STANDALONE)
+   /** Use open widget as per [WidgetSource.OPEN_STANDALONE] or do nothing if none available. */
+   object OPEN_STANDALONE: WidgetUse(WidgetSource.OPEN_STANDALONE)
 
-    /** Use open widget as per [WidgetSource.OPEN] or do nothing if none available. */
-    object OPEN: WidgetUse(WidgetSource.OPEN)
+   /** Use open widget as per [WidgetSource.OPEN] or do nothing if none available. */
+   object OPEN: WidgetUse(WidgetSource.OPEN)
 
-    /** Use newly created widget. */
-    object NEW: NewAnd(NONE, WidgetLoader.POPUP)
+   /** Use newly created widget. */
+   object NEW: NewAnd(NONE, WidgetLoader.POPUP)
 
-    /** Use open widget as per [WidgetSource.OPEN] or use newly created widget. */
-    object ANY: NewAnd(WidgetSource.OPEN, WidgetLoader.POPUP)
+   /** Use open widget as per [WidgetSource.OPEN] or use newly created widget. */
+   object ANY: NewAnd(WidgetSource.OPEN, WidgetLoader.POPUP)
 
-    /** Use open widget as per [WidgetSource.OPEN_STANDALONE] or use newly created widget. */
-    object NO_LAYOUT: NewAnd(WidgetSource.OPEN_STANDALONE, WidgetLoader.POPUP)
+   /** Use open widget as per [WidgetSource.OPEN_STANDALONE] or use newly created widget. */
+   object NO_LAYOUT: NewAnd(WidgetSource.OPEN_STANDALONE, WidgetLoader.POPUP)
 
-    open class NewAnd(widgetFinder: WidgetSource, val layouter: (Widget) -> Unit): WidgetUse(widgetFinder) {
-        operator fun invoke(layouter: (Widget) -> Unit) = NewAnd(widgetFinder, layouter)
-    }
+   open class NewAnd(widgetFinder: WidgetSource, val layouter: (Widget) -> Unit): WidgetUse(widgetFinder) {
+      operator fun invoke(layouter: (Widget) -> Unit) = NewAnd(widgetFinder, layouter)
+   }
 }

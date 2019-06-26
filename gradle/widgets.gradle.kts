@@ -1,21 +1,21 @@
 plugins {
-    kotlin("jvm")
+   kotlin("jvm")
 }
 
 sourceSets {
-    main {
-        java.srcDir(".")
-        java.exclude("**.class")
-        resources.setSrcDirs(listOf())
-    }
-    test {
-        java.setSrcDirs(listOf())
-        resources.setSrcDirs(listOf())
-    }
+   main {
+      java.srcDir(".")
+      java.exclude("**.class")
+      resources.setSrcDirs(listOf())
+   }
+   test {
+      java.setSrcDirs(listOf())
+      resources.setSrcDirs(listOf())
+   }
 }
 
 dependencies {
-    compileOnly(rootProject)
-    compileOnly(project(":util"))
-    compileOnly(files(projectDir.listFiles().filter { it.path.endsWith(".jar") }))
+   compileOnly(rootProject)
+   compileOnly(project(":util"))
+   compileOnly(files(projectDir.listFiles().filter { it.path.endsWith(".jar") }))
 }

@@ -35,11 +35,11 @@ inline fun <reified T> Class<*>.isSubclassOf() = isSubclassOf(T::class.java)
 
 /** @return the most specific common supertype of the specified types */
 infix fun KClass<*>.union(type: KClass<*>): KClass<*> = when {
-    this==Any::class || type==Any::class -> Any::class
-    this==type -> this
-    this.isSuperclassOf(type) -> this
-    type.isSubclassOf(type) -> type
-    else -> Any::class
+   this==Any::class || type==Any::class -> Any::class
+   this==type -> this
+   this.isSuperclassOf(type) -> this
+   type.isSubclassOf(type) -> type
+   else -> Any::class
 }
 
 inline fun <reified T: Annotation> Class<*>.findAnnotation(): T? = getAnnotation(T::class.java)
@@ -48,20 +48,20 @@ inline fun <reified T: Annotation> Field.findAnnotation(): T? = getAnnotation(T:
 
 /** Set [java.util.logging.Logger] of specified package to specified level. Helpful for stubborn libraries. */
 fun setLoggingLevelForPackage(logPackage: Package, logLevel: Level) {
-    java.util.logging.Logger.getLogger(logPackage.name).apply {
-        level = logLevel
-        useParentHandlers = false
-    }
+   java.util.logging.Logger.getLogger(logPackage.name).apply {
+      level = logLevel
+      useParentHandlers = false
+   }
 }
 
 /** @return thread-safe [ReadWriteProperty] backed by [AtomicReference] */
 fun <T> atomic(initialValue: T) = object: ReadWriteProperty<Any?, T> {
 
-    private val ref = AtomicReference<T>(initialValue)
+   private val ref = AtomicReference<T>(initialValue)
 
-    override fun getValue(thisRef: Any?, property: KProperty<*>) = ref.get()
+   override fun getValue(thisRef: Any?, property: KProperty<*>) = ref.get()
 
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) = ref.set(value)
+   override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) = ref.set(value)
 
 }
 
@@ -73,23 +73,23 @@ inline fun <reified T> typeLiteral() = object: TypeToken<T>() {}.type
 
 /** @return class representing this type, i.e., type stripped of its generic type parameters */
 fun Type.toRaw(): Class<*> = let { type ->
-    when (type) {
-        is Class<*> -> type
-        is ParameterizedType -> {
-            val rawType = type.rawType
-            if (rawType is Class<*>) rawType else fail { "Unable to determine raw type of parameterized type=$type, it's rawType=$rawType is not instance of ${Class::class.java}" }
-        }
-        is GenericArrayType -> {
-            val componentType = type.genericComponentType
-            Array.newInstance(componentType.toRaw(), 0).javaClass
-        }
-        is WildcardType -> {
-            if (type.lowerBounds.isEmpty()) type.upperBounds[0].toRaw()
-            else type.lowerBounds[0].toRaw()
-        }
-        is TypeVariable<*> -> type.bounds[0].toRaw()
-        else -> fail { "Unable to determine raw type of type=$type, unsupported kind" }
-    }
+   when (type) {
+      is Class<*> -> type
+      is ParameterizedType -> {
+         val rawType = type.rawType
+         if (rawType is Class<*>) rawType else fail { "Unable to determine raw type of parameterized type=$type, it's rawType=$rawType is not instance of ${Class::class.java}" }
+      }
+      is GenericArrayType -> {
+         val componentType = type.genericComponentType
+         Array.newInstance(componentType.toRaw(), 0).javaClass
+      }
+      is WildcardType -> {
+         if (type.lowerBounds.isEmpty()) type.upperBounds[0].toRaw()
+         else type.lowerBounds[0].toRaw()
+      }
+      is TypeVariable<*> -> type.bounds[0].toRaw()
+      else -> fail { "Unable to determine raw type of type=$type, unsupported kind" }
+   }
 }
 
 /**
@@ -109,14 +109,14 @@ fun Type.toRaw(): Class<*> = let { type ->
  * @return sequence of classes representing the specified type and its generic type arguments
  */
 fun Type.flattenToRawTypes(): Sequence<Class<*>> = when {
-    this is WildcardType -> (if (lowerBounds.isNullOrEmpty()) upperBounds else lowerBounds).asSequence().flatMap { it.flattenToRawTypes() }
-    this is ParameterizedType -> sequenceOf(toRaw()) + actualTypeArguments.asSequence().flatMap { it.flattenToRawTypes() }
-    this is Class<*> -> sequenceOf(this)
-    else -> throw Exception(toString())
+   this is WildcardType -> (if (lowerBounds.isNullOrEmpty()) upperBounds else lowerBounds).asSequence().flatMap { it.flattenToRawTypes() }
+   this is ParameterizedType -> sequenceOf(toRaw()) + actualTypeArguments.asSequence().flatMap { it.flattenToRawTypes() }
+   this is Class<*> -> sequenceOf(this)
+   else -> throw Exception(toString())
 }
 
 /** Set specified property of this object to null. Use for disposal of read-only properties and avoiding memory leaks. */
 infix fun Any.nullify(property: KProperty<*>) {
-    property.javaField?.isAccessible = true
-    property.javaField?.set(this, null)
+   property.javaField?.isAccessible = true
+   property.javaField?.set(this, null)
 }

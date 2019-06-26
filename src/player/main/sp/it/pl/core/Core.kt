@@ -11,20 +11,20 @@ package sp.it.pl.core
  */
 interface Core {
 
-    /**
-     *  Initializes this core.
-     *
-     *  Implementation must not assume this method is called once.
-     */
-    @JvmDefault
-    fun init() = Unit
+   /**
+    *  Initializes this core.
+    *
+    *  Implementation must not assume this method is called once.
+    */
+   @JvmDefault
+   fun init() = Unit
 
-    /**
-     *  Disposes this core.
-     *
-     *  Implementation must not assume this method is called once or that [init] was called prior to this.
-     */
-    @JvmDefault
-    fun dispose() = Unit
+   /**
+    *  Disposes this core.
+    *
+    *  Implementation must not assume this method is called once or that [init] was called prior to this.
+    */
+   @JvmDefault
+   fun dispose() = Unit
 
 }

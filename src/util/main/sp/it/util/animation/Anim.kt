@@ -44,289 +44,289 @@ private typealias Block = () -> Unit
  */
 open class Anim: Transition {
 
-    /** The side effect of the animation called in each loop. */
-    val applier: DoubleConsumer
-    /** Position of the animation after the interpolation transformation. May be outside of 0-1 range. */
-    val position: DoubleProperty = SimpleDoubleProperty(0.0)
-    /**
-     * Whether animation should start from beginning/end if it is at the end/beginning. Default true.
-     *
-     * Affects families of methods [playFromDir], [playOpen], [playClose].
-     *
-     * Set to false if animation should not play if it already finished. For example [playClose] will play
-     * animation from current position back to 0, but if the position already is 0, false will cause nothing to
-     * happen, while true will play the animation again from 1 to 0.
-     */
-    var playAgainIfFinished = true
+   /** The side effect of the animation called in each loop. */
+   val applier: DoubleConsumer
+   /** Position of the animation after the interpolation transformation. May be outside of 0-1 range. */
+   val position: DoubleProperty = SimpleDoubleProperty(0.0)
+   /**
+    * Whether animation should start from beginning/end if it is at the end/beginning. Default true.
+    *
+    * Affects families of methods [playFromDir], [playOpen], [playClose].
+    *
+    * Set to false if animation should not play if it already finished. For example [playClose] will play
+    * animation from current position back to 0, but if the position already is 0, false will cause nothing to
+    * happen, while true will play the animation again from 1 to 0.
+    */
+   var playAgainIfFinished = true
 
-    /** Creates animation with specified frame rate and side effect called at every frame. */
-    constructor(targetFPS: Double, sideEffect: DoubleConsumer): super(targetFPS) {
-        this.applier = sideEffect
-    }
+   /** Creates animation with specified frame rate and side effect called at every frame. */
+   constructor(targetFPS: Double, sideEffect: DoubleConsumer): super(targetFPS) {
+      this.applier = sideEffect
+   }
 
-    /** Creates animation with default frame rate and specified side effect called at every frame. */
-    constructor(sideEffect: DoubleConsumer) {
-        this.applier = sideEffect
-    }
+   /** Creates animation with default frame rate and specified side effect called at every frame. */
+   constructor(sideEffect: DoubleConsumer) {
+      this.applier = sideEffect
+   }
 
-    /** Creates animation with default frame rate and specified duration and side effect called at every frame. */
-    constructor(length: Duration, sideEffect: DoubleConsumer): this(sideEffect) {
-        cycleDuration = length
-    }
+   /** Creates animation with default frame rate and specified duration and side effect called at every frame. */
+   constructor(length: Duration, sideEffect: DoubleConsumer): this(sideEffect) {
+      cycleDuration = length
+   }
 
-    /**
-     *  Applies the [applier] at specified position (no interpolation is applied) and returns this (fluent style).
-     *  Useful prior to animation start to avoid glitches at 0.0 or other key points.
-     */
-    fun applyAt(position: Double) = apply { applier(position) }
+   /**
+    *  Applies the [applier] at specified position (no interpolation is applied) and returns this (fluent style).
+    *  Useful prior to animation start to avoid glitches at 0.0 or other key points.
+    */
+   fun applyAt(position: Double) = apply { applier(position) }
 
-    /**
-     *  Applies the [applier] at current [position] and returns this (fluent style).
-     *  Useful prior to animation start to avoid glitches at 0.0 or other key points.
-     */
-    fun applyNow() = applyAt(position.value)
+   /**
+    *  Applies the [applier] at current [position] and returns this (fluent style).
+    *  Useful prior to animation start to avoid glitches at 0.0 or other key points.
+    */
+   fun applyNow() = applyAt(position.value)
 
-    /** Sets animation duration and returns this (fluent style). */
-    fun dur(duration: Duration) = apply { cycleDuration = duration }
+   /** Sets animation duration and returns this (fluent style). */
+   fun dur(duration: Duration) = apply { cycleDuration = duration }
 
-    /** Sets animation delay and returns this (fluent style). */
-    fun delay(delay: Duration) = apply { this.delay = delay }
+   /** Sets animation delay and returns this (fluent style). */
+   fun delay(delay: Duration) = apply { this.delay = delay }
 
-    /** Sets animation interpolator and returns this (fluent style). */
-    fun intpl(interpolator: Interpolator) = apply { this.interpolator = interpolator }
+   /** Sets animation interpolator and returns this (fluent style). */
+   fun intpl(interpolator: Interpolator) = apply { this.interpolator = interpolator }
 
-    /** Sets animation interpolator and returns this (fluent style). */
-    fun intpl(interpolator: IF) = intpl(
-        object: Interpolator() {
-            override fun curve(t: Double): Double {
-                return interpolator(t)
-            }
-        }
-    )
+   /** Sets animation interpolator and returns this (fluent style). */
+   fun intpl(interpolator: IF) = intpl(
+      object: Interpolator() {
+         override fun curve(t: Double): Double {
+            return interpolator(t)
+         }
+      }
+   )
 
-    /** Sets [onFinished] returns this (fluent style). */
-    fun then(block: Block?) = apply {
-        onFinished = block?.let { EventHandler { block() } }
-    }
+   /** Sets [onFinished] returns this (fluent style). */
+   fun then(block: Block?) = apply {
+      onFinished = block?.let { EventHandler { block() } }
+   }
 
-    override fun interpolate(at: Double) {
-        position.value = at
-        applier(at)
-    }
+   override fun interpolate(at: Double) {
+      position.value = at
+      applier(at)
+   }
 
-    /** @return true if not stopped or paused. */
-    fun isRunning(): Boolean = currentTime!=Duration.ZERO && currentTime.lessThan(totalDuration)
+   /** @return true if not stopped or paused. */
+   fun isRunning(): Boolean = currentTime!=Duration.ZERO && currentTime.lessThan(totalDuration)
 
-    /** Equivalent to if (forward) [playOpen] else [playClose] */
-    fun playFromDir(forward: Boolean) = if (forward) playOpen() else playClose()
+   /** Equivalent to if (forward) [playOpen] else [playClose] */
+   fun playFromDir(forward: Boolean) = if (forward) playOpen() else playClose()
 
-    /**
-     * Plays this animation onward from beginning if stopped else from its current position.
-     *
-     * Useful for animations that are used to both 'open' and 'close', i.e.,
-     * are used to play with rate 1 and rate -1 to reverse-play their effect.
-     */
-    fun playOpen() {
-        val p = if (!playAgainIfFinished && currentTime==cycleDuration) 0.0 else currentTime divMillis cycleDuration
-        stop()
-        playOpenFrom(p)
-    }
+   /**
+    * Plays this animation onward from beginning if stopped else from its current position.
+    *
+    * Useful for animations that are used to both 'open' and 'close', i.e.,
+    * are used to play with rate 1 and rate -1 to reverse-play their effect.
+    */
+   fun playOpen() {
+      val p = if (!playAgainIfFinished && currentTime==cycleDuration) 0.0 else currentTime divMillis cycleDuration
+      stop()
+      playOpenFrom(p)
+   }
 
-    /**
-     * Plays this animation backward from end if stopped else from its current position.
-     *
-     * Useful for animations that are used to both 'open' and 'close', i.e.,
-     * are used to play with rate 1 and rate -1 to reverse-play their effect.
-     */
-    fun playClose() {
-        val p = if (!playAgainIfFinished && currentTime.toMillis()==0.0) 1.0 else currentTime divMillis cycleDuration
-        stop()
-        playCloseFrom(1 - p)
-    }
+   /**
+    * Plays this animation backward from end if stopped else from its current position.
+    *
+    * Useful for animations that are used to both 'open' and 'close', i.e.,
+    * are used to play with rate 1 and rate -1 to reverse-play their effect.
+    */
+   fun playClose() {
+      val p = if (!playAgainIfFinished && currentTime.toMillis()==0.0) 1.0 else currentTime divMillis cycleDuration
+      stop()
+      playCloseFrom(1 - p)
+   }
 
-    fun playOpenFrom(position: Double) {
-        rate = 1.0
-        super.playFrom(cycleDuration*position)
-    }
+   fun playOpenFrom(position: Double) {
+      rate = 1.0
+      super.playFrom(cycleDuration*position)
+   }
 
-    fun playCloseFrom(position: Double) {
-        rate = -1.0
-        super.playFrom(cycleDuration - cycleDuration*position)
-    }
+   fun playCloseFrom(position: Double) {
+      rate = -1.0
+      super.playFrom(cycleDuration - cycleDuration*position)
+   }
 
-    fun playCloseDo(block: Block?) {
-        onFinished = block?.let {
-            EventHandler {
-                onFinished = null
-                it()
-            }
-        }
-        playClose()
-    }
-
-    fun playOpenDo(block: Block?) {
-        onFinished = block?.let {
-            EventHandler {
-                onFinished = null
-                it()
-            }
-        }
-        playOpen()
-    }
-
-    fun playOpenDoClose(blockMiddle: Block?) {
-        playOpenDo {
-            blockMiddle?.invoke()
+   fun playCloseDo(block: Block?) {
+      onFinished = block?.let {
+         EventHandler {
             onFinished = null
-            playClose()
-        }
-    }
+            it()
+         }
+      }
+      playClose()
+   }
 
-    fun playCloseDoOpen(blockMiddle: Block?) {
-        playCloseDo {
-            blockMiddle?.invoke()
+   fun playOpenDo(block: Block?) {
+      onFinished = block?.let {
+         EventHandler {
             onFinished = null
-            playOpen()
-        }
-    }
+            it()
+         }
+      }
+      playOpen()
+   }
 
-    fun playOpenDoCloseDo(blockMiddle: Block?, blockEnd: Block) {
-        playOpenDo {
-            blockMiddle?.invoke()
-            playCloseDo(blockEnd)
-        }
-    }
+   fun playOpenDoClose(blockMiddle: Block?) {
+      playOpenDo {
+         blockMiddle?.invoke()
+         onFinished = null
+         playClose()
+      }
+   }
 
-    fun playCloseDoOpenDo(blockMiddle: Block?, blockEnd: Block) {
-        playCloseDo {
-            blockMiddle?.invoke()
-            playOpenDo(blockEnd)
-        }
-    }
+   fun playCloseDoOpen(blockMiddle: Block?) {
+      playCloseDo {
+         blockMiddle?.invoke()
+         onFinished = null
+         playOpen()
+      }
+   }
 
-    /**
-     * Animation position transformers.
-     * Transform linear 0-1 animation position function into different 0-1 function to produce nonlinear animation.
-     */
-    class Interpolators {
+   fun playOpenDoCloseDo(blockMiddle: Block?, blockEnd: Block) {
+      playOpenDo {
+         blockMiddle?.invoke()
+         playCloseDo(blockEnd)
+      }
+   }
 
-        /** Denotes partial interpolator representing a part of a (probably) non-continuous interpolator. */
-        class Subrange(val fraction: Double, val interpolator: IF)
+   fun playCloseDoOpenDo(blockMiddle: Block?, blockEnd: Block) {
+      playCloseDo {
+         blockMiddle?.invoke()
+         playOpenDo(blockEnd)
+      }
+   }
 
-        private class Range(val start: Double, val end: Double, val interpolator: IF)
+   /**
+    * Animation position transformers.
+    * Transform linear 0-1 animation position function into different 0-1 function to produce nonlinear animation.
+    */
+   class Interpolators {
 
-        companion object {
+      /** Denotes partial interpolator representing a part of a (probably) non-continuous interpolator. */
+      class Subrange(val fraction: Double, val interpolator: IF)
 
-            /**
-             * Returns interpolator as sequential combination of interpolators. Use
-             * to achieve not continuous function by putting the interpolators
-             * one after another and then mapping the resulting f back to 0-1.
-             * The final interpolator will be divided into subranges in which each
-             * respective interpolator will be used with the input in the range
-             * mapped back to 0-1.
-             *
-             * For example pseudo code: of(0.2,x->0.5, 0.8,x->0.1) will
-             * produce interpolator returning 0.5 for x <=0.2 and 0.1 for x > 0.2
-             *
-             * @param subranges interpolators of ranges covering range 0-1 in an increasing order
-             * @throws RuntimeException if ranges do not give sum of 1
-             */
-            @S fun of(vararg subranges: Subrange): IF {
-                if (subranges.sumByDouble { it.fraction }!=1.0)
-                    throw RuntimeException("Sum of interpolator range must be 1.0")
+      private class Range(val start: Double, val end: Double, val interpolator: IF)
 
-                val ranges = ArrayList<Range>()
-                var p1 = 0.0
-                for (subrange in subranges) {
-                    ranges += Range(p1, p1 + subrange.fraction, subrange.interpolator)
-                    p1 += subrange.fraction
-                }
+      companion object {
 
-                return { at ->
-                    ranges.find { at>=it.start && at<=it.end }
-                        ?.let { it.interpolator((at - it.start)/(it.end - it.start)) }
-                        ?: throw RuntimeException("Combined interpolator out of value at: $at")
-                }
+         /**
+          * Returns interpolator as sequential combination of interpolators. Use
+          * to achieve not continuous function by putting the interpolators
+          * one after another and then mapping the resulting f back to 0-1.
+          * The final interpolator will be divided into subranges in which each
+          * respective interpolator will be used with the input in the range
+          * mapped back to 0-1.
+          *
+          * For example pseudo code: of(0.2,x->0.5, 0.8,x->0.1) will
+          * produce interpolator returning 0.5 for x <=0.2 and 0.1 for x > 0.2
+          *
+          * @param subranges interpolators of ranges covering range 0-1 in an increasing order
+          * @throws RuntimeException if ranges do not give sum of 1
+          */
+         @S fun of(vararg subranges: Subrange): IF {
+            if (subranges.sumByDouble { it.fraction }!=1.0)
+               throw RuntimeException("Sum of interpolator range must be 1.0")
+
+            val ranges = ArrayList<Range>()
+            var p1 = 0.0
+            for (subrange in subranges) {
+               ranges += Range(p1, p1 + subrange.fraction, subrange.interpolator)
+               p1 += subrange.fraction
             }
 
-            /** Returns reverse interpolator, which produces 1-interpolated_value. */
-            @S fun reverse(i: IF): IF = { 1 - i(it) }
-
-            /** Returns reverse interpolator, which produces 1-interpolated_value. */
-            @S fun reverse(i: Interpolator): IF = { 1 - i.interpolate(0.0, 1.0, it) }
-
-            @S fun isAround(proximity: Double, vararg points: Double): IF = { at ->
-                points.find { at>it - proximity && at<it + proximity }
-                    ?.let { 0.0 }
-                    ?: 1.0
+            return { at ->
+               ranges.find { at>=it.start && at<=it.end }
+                  ?.let { it.interpolator((at - it.start)/(it.end - it.start)) }
+                  ?: throw RuntimeException("Combined interpolator out of value at: $at")
             }
+         }
 
-            @S fun isAroundMin1(proximity: Double, vararg points: Double): IF = { at ->
-                if (at<points[0] - proximity) 0.0
-                else points.find { it>it - proximity && it<it + proximity }
-                    ?.let { 0.0 }
-                    ?: 1.0
-            }
+         /** Returns reverse interpolator, which produces 1-interpolated_value. */
+         @S fun reverse(i: IF): IF = { 1 - i(it) }
 
-            @S fun isAroundMin2(proximity: Double, vararg points: Double): IF = { at ->
-                if (at<points[0] - proximity) 0.0
-                else points.find { it>it - proximity && it<it + proximity }
-                    ?.let { abs((at - it + proximity)/(proximity*2) - 0.5) }
-                    ?: 1.0
-            }
+         /** Returns reverse interpolator, which produces 1-interpolated_value. */
+         @S fun reverse(i: Interpolator): IF = { 1 - i.interpolate(0.0, 1.0, it) }
 
-            @S fun isAroundMin3(proximity: Double, vararg points: Double): IF = { at ->
-                if (at<points[0] - proximity) 0.0
-                else points.find { it>it - proximity && it<it + proximity }
-                    ?.let { sqrt(abs((at - it + proximity)/(proximity*2) - 0.5)) }
-                    ?: 1.0
-            }
-        }
-    }
+         @S fun isAround(proximity: Double, vararg points: Double): IF = { at ->
+            points.find { at>it - proximity && at<it + proximity }
+               ?.let { 0.0 }
+               ?: 1.0
+         }
 
-    companion object {
+         @S fun isAroundMin1(proximity: Double, vararg points: Double): IF = { at ->
+            if (at<points[0] - proximity) 0.0
+            else points.find { it>it - proximity && it<it + proximity }
+               ?.let { 0.0 }
+               ?: 1.0
+         }
 
-        /** @return animation with specified frame rate and side effect called at every frame. */
-        @S fun anim(targetFPS: Double, sideEffect: (Double) -> Unit) = Anim(targetFPS, DoubleConsumer(sideEffect))
+         @S fun isAroundMin2(proximity: Double, vararg points: Double): IF = { at ->
+            if (at<points[0] - proximity) 0.0
+            else points.find { it>it - proximity && it<it + proximity }
+               ?.let { abs((at - it + proximity)/(proximity*2) - 0.5) }
+               ?: 1.0
+         }
 
-        /** @return animation with default frame rate and specified side effect called at every frame. */
-        @S fun anim(sideEffect: (Double) -> Unit) = Anim(DoubleConsumer(sideEffect))
+         @S fun isAroundMin3(proximity: Double, vararg points: Double): IF = { at ->
+            if (at<points[0] - proximity) 0.0
+            else points.find { it>it - proximity && it<it + proximity }
+               ?.let { sqrt(abs((at - it + proximity)/(proximity*2) - 0.5)) }
+               ?: 1.0
+         }
+      }
+   }
 
-        /** @return animation with default frame rate and specified duration and side effect called at every frame. */
-        @S fun anim(length: Duration, sideEffect: (Double) -> Unit) = Anim(length, DoubleConsumer(sideEffect))
+   companion object {
 
-        /** @return sequential animation playing the specified animations sequentially */
-        @S @O fun animSeq(vararg ts: Transition, init: SequentialTransition.() -> Unit = {}) = SequentialTransition(*ts).apply { init() }
+      /** @return animation with specified frame rate and side effect called at every frame. */
+      @S fun anim(targetFPS: Double, sideEffect: (Double) -> Unit) = Anim(targetFPS, DoubleConsumer(sideEffect))
 
-        /** @return sequential animation playing the specified animations sequentially */
-        @S @O fun animSeq(ts: Stream<Transition>, init: SequentialTransition.() -> Unit = {}) = animSeq(*ts.asArray()).apply { init() }
+      /** @return animation with default frame rate and specified side effect called at every frame. */
+      @S fun anim(sideEffect: (Double) -> Unit) = Anim(DoubleConsumer(sideEffect))
 
-        @S fun <T> animSeq(animated: List<T>, animFactory: (Int, T) -> Transition) = animSeq(animated.mapIndexed(animFactory).stream())
+      /** @return animation with default frame rate and specified duration and side effect called at every frame. */
+      @S fun anim(length: Duration, sideEffect: (Double) -> Unit) = Anim(length, DoubleConsumer(sideEffect))
 
-        /** @return parallel animation playing the specified animations in parallel */
-        @S @O fun animPar(ts: Stream<Transition>, init: ParallelTransition.() -> Unit = {}) = animPar(*ts.asArray()).apply { init() }
+      /** @return sequential animation playing the specified animations sequentially */
+      @S @O fun animSeq(vararg ts: Transition, init: SequentialTransition.() -> Unit = {}) = SequentialTransition(*ts).apply { init() }
 
-        /** @return parallel animation playing the specified animations in parallel */
-        @S @O fun animPar(vararg ts: Transition, init: ParallelTransition.() -> Unit = {}) = ParallelTransition(*ts).apply { init() }
+      /** @return sequential animation playing the specified animations sequentially */
+      @S @O fun animSeq(ts: Stream<Transition>, init: SequentialTransition.() -> Unit = {}) = animSeq(*ts.asArray()).apply { init() }
 
-        @S fun <T> animPar(animated: List<T>, animFactory: (Int, T) -> Transition) = animPar(animated.mapIndexed(animFactory).stream())
+      @S fun <T> animSeq(animated: List<T>, animFactory: (Int, T) -> Transition) = animSeq(animated.mapIndexed(animFactory).stream())
 
-        @S fun mapTo01(x: Double, from: Double, to: Double): Double = when {
-            x<=from -> 0.0
-            x>=to -> 1.0
-            else -> (x - from)/(to - from)
-        }
+      /** @return parallel animation playing the specified animations in parallel */
+      @S @O fun animPar(ts: Stream<Transition>, init: ParallelTransition.() -> Unit = {}) = animPar(*ts.asArray()).apply { init() }
 
-        @S fun map01To010(x: Double, right: Double): Double {
-            val left = 1 - right
-            return when {
-                x<=left -> mapTo01(x, 0.0, left)
-                x>=right -> 1 - mapTo01(x, right, 1.0)
-                else -> 1.0
-            }
-        }
+      /** @return parallel animation playing the specified animations in parallel */
+      @S @O fun animPar(vararg ts: Transition, init: ParallelTransition.() -> Unit = {}) = ParallelTransition(*ts).apply { init() }
 
-        @S fun mapConcave(x: Double): Double = 1 - abs(2*(x*x - 0.5))
+      @S fun <T> animPar(animated: List<T>, animFactory: (Int, T) -> Transition) = animPar(animated.mapIndexed(animFactory).stream())
 
-    }
+      @S fun mapTo01(x: Double, from: Double, to: Double): Double = when {
+         x<=from -> 0.0
+         x>=to -> 1.0
+         else -> (x - from)/(to - from)
+      }
+
+      @S fun map01To010(x: Double, right: Double): Double {
+         val left = 1 - right
+         return when {
+            x<=left -> mapTo01(x, 0.0, left)
+            x>=right -> 1 - mapTo01(x, right, 1.0)
+            else -> 1.0
+         }
+      }
+
+      @S fun mapConcave(x: Double): Double = 1 - abs(2*(x*x - 0.5))
+
+   }
 }

@@ -15,8 +15,8 @@ operator fun Dragboard.contains(format: DataFormat<*>) = hasContent(format.forma
 
 /** Equivalent to [Dragboard.getContent]. */
 operator fun Dragboard.get(format: DataFormatFX): Any? {
-    failIf(format !in this) { "No data of $format in dragboard." }
-    return getContent(format)
+   failIf(format !in this) { "No data of $format in dragboard." }
+   return getContent(format)
 }
 
 /** Equivalent to [Dragboard.getContent], but type safe. */
@@ -31,15 +31,15 @@ operator fun <T> Dragboard.set(format: DataFormat<out T>, data: T) = setContent(
 
 /** Type-safe data format for type-safe [Dragboard.get]. */
 class DataFormat<T>(val format: DataFormatFX) {
-    constructor(id: String): this(DataFormatFX(id))
+   constructor(id: String): this(DataFormatFX(id))
 }
 
 /** @return drag event handler that accepts drag with the specified conditions */
 fun handlerAccepting(acceptWhen: (DragEvent) -> Boolean, unless: (DragEvent) -> Boolean) = EventHandler<DragEvent> {
-    if (acceptWhen(it) && !unless(it)) {
-        it.acceptTransferModes(*ANY)
-        it.consume()
-    }
+   if (acceptWhen(it) && !unless(it)) {
+      it.acceptTransferModes(*ANY)
+      it.consume()
+   }
 }
 
 /** @return drag event handler that accepts drag with the specified conditions */

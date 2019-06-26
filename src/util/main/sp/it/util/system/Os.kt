@@ -35,32 +35,32 @@ package sp.it.util.system
 
 /** Operating system. */
 enum class Os {
-    WINDOWS,
-    OSX,
-    UNIX,
-    UNKNOWN;
+   WINDOWS,
+   OSX,
+   UNIX,
+   UNKNOWN;
 
-    val isCurrent get() = this==current
+   val isCurrent get() = this==current
 
-    companion object {
+   companion object {
 
-        /** @return the current operating system */
-        @JvmStatic val current: Os = run {
-            val prop = { propertyName: String -> System.getProperty(propertyName) }
-            val osName = prop("os.name").toLowerCase()
-            when {
-                osName.indexOf("win")!=-1 -> WINDOWS
-                osName.indexOf("mac")!=-1 -> OSX
-                osName.startsWith("SunOS") -> UNIX
-                osName.indexOf("nix")!=-1 -> UNIX
-                osName.indexOf("freebsd")!=-1 -> UNIX
-                osName.indexOf("nux")!=-1 && "android"!=prop("javafx.platform") && "Dalvik"!=prop("java.vm.name") -> {
-                    UNIX    // Linux without Android
-                }
-                else -> UNKNOWN
+      /** @return the current operating system */
+      @JvmStatic val current: Os = run {
+         val prop = { propertyName: String -> System.getProperty(propertyName) }
+         val osName = prop("os.name").toLowerCase()
+         when {
+            osName.indexOf("win")!=-1 -> WINDOWS
+            osName.indexOf("mac")!=-1 -> OSX
+            osName.startsWith("SunOS") -> UNIX
+            osName.indexOf("nix")!=-1 -> UNIX
+            osName.indexOf("freebsd")!=-1 -> UNIX
+            osName.indexOf("nux")!=-1 && "android"!=prop("javafx.platform") && "Dalvik"!=prop("java.vm.name") -> {
+               UNIX    // Linux without Android
             }
-        }
+            else -> UNKNOWN
+         }
+      }
 
-    }
+   }
 
 }

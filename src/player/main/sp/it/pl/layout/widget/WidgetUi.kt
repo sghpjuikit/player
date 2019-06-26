@@ -32,134 +32,134 @@ import sp.it.util.ui.removeFromParent
  * Maintains final 1:1 relationship with the widget, always contains exactly 1 final widget.
  */
 class WidgetUi: ComponentUiBase<Widget> {
-    /** Container this ui is associated with. */
-    @JvmField val container: Container<*>
-    /** Index of the child in the [container] */
-    @JvmField val index: Int
-    /** Widget this ui is associated with. Equivalent to [component]. */
-    val widget: Widget
-    override val root = AnchorPane()
-    @JvmField val contentRoot = AnchorPane()
-    val controls: WidgetUiControls
-    private val content = AnchorPane()
-    private val disposer = Disposer()
-    private var manualLoadPane: Placeholder? = null
+   /** Container this ui is associated with. */
+   @JvmField val container: Container<*>
+   /** Index of the child in the [container] */
+   @JvmField val index: Int
+   /** Widget this ui is associated with. Equivalent to [component]. */
+   val widget: Widget
+   override val root = AnchorPane()
+   @JvmField val contentRoot = AnchorPane()
+   val controls: WidgetUiControls
+   private val content = AnchorPane()
+   private val disposer = Disposer()
+   private var manualLoadPane: Placeholder? = null
 
-    /**
-     * Creates area for the container and its child widget at specified child position.
-     *
-     * @param container widget's parent container
-     * @param index index of the widget within the container
-     * @param widget widget that will be managed and displayed
-     */
-    constructor(container: Container<*>, index: Int, widget: Widget): super(widget) {
-        this.container = container.apply {
-            properties.getOrPut(Double::class.javaObjectType, "padding", 0.0)
-        }
-        this.index = index
-        this.widget = widget
-        this.widget.parentTemp = this.container
-        this.widget.uiTemp = this
+   /**
+    * Creates area for the container and its child widget at specified child position.
+    *
+    * @param container widget's parent container
+    * @param index index of the widget within the container
+    * @param widget widget that will be managed and displayed
+    */
+   constructor(container: Container<*>, index: Int, widget: Widget): super(widget) {
+      this.container = container.apply {
+         properties.getOrPut(Double::class.javaObjectType, "padding", 0.0)
+      }
+      this.index = index
+      this.widget = widget
+      this.widget.parentTemp = this.container
+      this.widget.uiTemp = this
 
-        root.id = "widget-ui"
-        root.layFullArea += contentRoot.apply {
-            id = "widget-ui-contentRoot"
-            styleClass += STYLECLASS
+      root.id = "widget-ui"
+      root.layFullArea += contentRoot.apply {
+         id = "widget-ui-contentRoot"
+         styleClass += STYLECLASS
 
-            layFullArea += content.apply {
-                id = "widget-ui-content"
-                styleClass += "widget-ui-content"
+         layFullArea += content.apply {
+            id = "widget-ui-content"
+            styleClass += "widget-ui-content"
+         }
+      }
+
+      controls = WidgetUiControls(this)
+      contentRoot.layFullArea += controls.root
+
+      installDrag(
+         root, IconFA.EXCHANGE, "Switch components",
+         { e -> Df.COMPONENT in e.dragboard },
+         { e -> e.dragboard[Df.COMPONENT].let { it==this.container || it==widget } },
+         { e -> e.dragboard[Df.COMPONENT].swapWith(this.container, this.index) }
+      )
+
+      // report component graphics changes
+      root.parentProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
+      root.layoutBoundsProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
+
+      loadWidget()
+      if (APP.ui.isLayoutMode) show() else hide()
+   }
+
+   private fun loadWidget(forceLoading: Boolean = false) {
+      disposer()
+
+      when {
+         widget.isLoaded || forceLoading || widget.loadType.value==AUTOMATIC -> {
+            manualLoadPane?.hide()
+            manualLoadPane = null
+
+            // load widget
+            animation.openAndDo(contentRoot, null)
+            content.children.clear()
+            content.layFullArea += widget.load()
+
+            // put controls to new widget
+            widget.custom_name syncTo controls.title.textProperty() on disposer
+            controls.propB.isDisable = widget.fields.isEmpty()
+
+            // workaround code
+            widget.lockedUnder.initLocked(container)
+            widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
+         }
+         widget.loadType.value==MANUAL -> {
+            AppAnimator.closeAndDo(contentRoot) {
+               content.children.clear()
+               animation.openAndDo(contentRoot, null)
+
+               // put controls to new widget
+               widget.custom_name syncTo controls.title.textProperty() on disposer
+               controls.propB.isDisable = widget.fields.isEmpty()
+
+               // workaround code
+               widget.lockedUnder.initLocked(container)
+               widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
+
+               manualLoadPane = buildManualLoadPane()
+               manualLoadPane?.showFor(content)
             }
-        }
+         }
+      }
+   }
 
-        controls = WidgetUiControls(this)
-        contentRoot.layFullArea += controls.root
+   fun isUnderLock(): Boolean = widget.lockedUnder.value
 
-        installDrag(
-            root, IconFA.EXCHANGE, "Switch components",
-            { e -> Df.COMPONENT in e.dragboard },
-            { e -> e.dragboard[Df.COMPONENT].let { it==this.container || it==widget } },
-            { e -> e.dragboard[Df.COMPONENT].swapWith(this.container, this.index) }
-        )
+   fun toggleLocked() = widget.locked.toggle()
 
-        // report component graphics changes
-        root.parentProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
-        root.layoutBoundsProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
+   fun getContent() = content
 
-        loadWidget()
-        if (APP.ui.isLayoutMode) show() else hide()
-    }
+   override fun show() = controls.show()
 
-    private fun loadWidget(forceLoading: Boolean = false) {
-        disposer()
+   override fun hide() = controls.hide()
 
-        when {
-            widget.isLoaded || forceLoading || widget.loadType.value==AUTOMATIC -> {
-                manualLoadPane?.hide()
-                manualLoadPane = null
+   fun setStandaloneStyle() {
+      contentRoot.styleClass.clear()
+      content.styleClass.clear()
+   }
 
-                // load widget
-                animation.openAndDo(contentRoot, null)
-                content.children.clear()
-                content.layFullArea += widget.load()
+   private fun buildManualLoadPane() = Placeholder(IconOC.UNFOLD, "") { loadWidget(true) }.apply {
+      styleClass += "widget-ui-load-placeholder"
+      info.text = "Unfold ${widget.custom_name.value} (LMB)"
+   }
 
-                // put controls to new widget
-                widget.custom_name syncTo controls.title.textProperty() on disposer
-                controls.propB.isDisable = widget.fields.isEmpty()
+   override fun dispose() {
+      disposer()
+      controls.root.removeFromParent()
+      nullify(::controls)
+   }
 
-                // workaround code
-                widget.lockedUnder.initLocked(container)
-                widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
-            }
-            widget.loadType.value==MANUAL -> {
-                AppAnimator.closeAndDo(contentRoot) {
-                    content.children.clear()
-                    animation.openAndDo(contentRoot, null)
-
-                    // put controls to new widget
-                    widget.custom_name syncTo controls.title.textProperty() on disposer
-                    controls.propB.isDisable = widget.fields.isEmpty()
-
-                    // workaround code
-                    widget.lockedUnder.initLocked(container)
-                    widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
-
-                    manualLoadPane = buildManualLoadPane()
-                    manualLoadPane?.showFor(content)
-                }
-            }
-        }
-    }
-
-    fun isUnderLock(): Boolean = widget.lockedUnder.value
-
-    fun toggleLocked() = widget.locked.toggle()
-
-    fun getContent() = content
-
-    override fun show() = controls.show()
-
-    override fun hide() = controls.hide()
-
-    fun setStandaloneStyle() {
-        contentRoot.styleClass.clear()
-        content.styleClass.clear()
-    }
-
-    private fun buildManualLoadPane() = Placeholder(IconOC.UNFOLD, "") { loadWidget(true) }.apply {
-        styleClass += "widget-ui-load-placeholder"
-        info.text = "Unfold ${widget.custom_name.value} (LMB)"
-    }
-
-    override fun dispose() {
-        disposer()
-        controls.root.removeFromParent()
-        nullify(::controls)
-    }
-
-    companion object {
-        private val animation = DelayAnimator()
-        const val STYLECLASS = "widget-ui"
-        @JvmField val PSEUDOCLASS_DRAGGED = pseudoclass("dragged")
-    }
+   companion object {
+      private val animation = DelayAnimator()
+      const val STYLECLASS = "widget-ui"
+      @JvmField val PSEUDOCLASS_DRAGGED = pseudoclass("dragged")
+   }
 }

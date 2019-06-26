@@ -36,13 +36,13 @@ fun ComponentFactory<*>.isUsableByUser() = APP.developerMode || !isExperimental(
  * @return true if parameter is valid skin file. False otherwise or if null.
  */
 fun File.isValidSkinFile(): Boolean {
-    val name = nameWithoutExtensionOrRoot
-    val skinFile = APP.DIR_SKINS/name/"$name.css"
-    return isValidFile(this) && path.endsWith(".css") && this==skinFile
+   val name = nameWithoutExtensionOrRoot
+   val skinFile = APP.DIR_SKINS/name/"$name.css"
+   return isValidFile(this) && path.endsWith(".css") && this==skinFile
 }
 
 fun File.isValidWidgetFile(): Boolean {
-    return isValidFile(this) && path.endsWith(".fxml") && parentFile?.parentFile==APP.DIR_WIDGETS
+   return isValidFile(this) && path.endsWith(".fxml") && parentFile?.parentFile==APP.DIR_WIDGETS
 }
 
 /** @return value scaled by current application font size (in [EM] units) and ceil-ed to nearest integer */
@@ -50,47 +50,47 @@ fun Number.scaleEM() = ceil(toDouble()*APP.ui.font.value.size.EM)
 
 /** Runs the specified block immediately or when application is [initialized](App.onStarted). */
 fun App.run1AppReady(block: () -> Unit) {
-    if (isInitialized.isOk) {
-        block()
-    } else {
-        onStarted += { run1AppReady(block) }
-    }
+   if (isInitialized.isOk) {
+      block()
+   } else {
+      onStarted += { run1AppReady(block) }
+   }
 }
 
 /** Invokes [File.runAsProgram] and if error occurs logs and reports using [sp.it.pl.gui.UiManager.messagePane]. */
 fun File.runAsAppProgram(actionName: String, vararg arguments: String, then: (ProcessBuilder) -> Unit = {}) {
-    fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"
-    fun doOnError(e: Throwable?, text: String?) {
-        logger.error(e) {
-            "$actionName failed.${text.wrap()}"
-        }
-        runFX {
-            APP.ui.messagePane.orBuild.show("$actionName failed.${text.wrap()}")
-        }
-    }
+   fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"
+   fun doOnError(e: Throwable?, text: String?) {
+      logger.error(e) {
+         "$actionName failed.${text.wrap()}"
+      }
+      runFX {
+         APP.ui.messagePane.orBuild.show("$actionName failed.${text.wrap()}")
+      }
+   }
 
-    runAsProgram(*arguments) {
-        it.redirectOutput(PIPE).redirectError(PIPE).apply(then)
-    }.onError(NEW) {
-        doOnError(it, it.message)
-    }.onOk(NEW) {
-        it.ifError {
-            doOnError(it, it.message)
-        }
-        it.ifOk { p ->
-            var stdout = ""
-            var stderr = ""
-            runNew(StreamGobbler(p.inputStream) { stdout = it.wrap() })
-            runNew(StreamGobbler(p.errorStream) { stderr = it.wrap() })
-            val success = p.waitFor()
-            if (success!=0)
-                doOnError(null, stdout + stderr)  // TODO: handle with timer (report optionally both p.start failure and p.exit failure)
-        }
-    }
+   runAsProgram(*arguments) {
+      it.redirectOutput(PIPE).redirectError(PIPE).apply(then)
+   }.onError(NEW) {
+      doOnError(it, it.message)
+   }.onOk(NEW) {
+      it.ifError {
+         doOnError(it, it.message)
+      }
+      it.ifOk { p ->
+         var stdout = ""
+         var stderr = ""
+         runNew(StreamGobbler(p.inputStream) { stdout = it.wrap() })
+         runNew(StreamGobbler(p.errorStream) { stderr = it.wrap() })
+         val success = p.waitFor()
+         if (success!=0)
+            doOnError(null, stdout + stderr)  // TODO: handle with timer (report optionally both p.start failure and p.exit failure)
+      }
+   }
 }
 
 private class StreamGobbler(private val inputStream: InputStream, private val consumeInputLine: (String) -> Unit): Runnable {
-    override fun run() {
-        inputStream.bufferedReader().readText().apply(consumeInputLine)
-    }
+   override fun run() {
+      inputStream.bufferedReader().readText().apply(consumeInputLine)
+   }
 }

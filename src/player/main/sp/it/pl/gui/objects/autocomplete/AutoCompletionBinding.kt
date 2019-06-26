@@ -51,88 +51,88 @@ import sp.it.util.ui.minPrefMaxWidth
  */
 abstract class AutoCompletionBinding<T> {
 
-    /** Auto-completion popup */
-    protected val popup = buildPopup()
-    protected val suggestionProviderEventReducer: EventReducer<String>
-    /** If true, all user input changes are ignored. Primary used to avoid self triggering while auto-completing. */
-    protected var ignoreInputChanges = false
-    /** Auto-completion handlers */
-    val onAutoCompleted = Handler1<T>()
-    /** Whether the auto-completion popup hides when suggestion is accepted. */
-    val hideOnSuggestion = v(true)
-    /** Whether the auto-completion popup hides when escape key is pressed while it focus. */
-    val isHideOnEscape = popup.isHideOnEscape
-    /** Maximum number of rows to be visible in the popup when it is showing. */
-    val visibleRowCount = popup.visibleRowCount
-    /** Target node for auto completion */
-    val completionTarget: Node
+   /** Auto-completion popup */
+   protected val popup = buildPopup()
+   protected val suggestionProviderEventReducer: EventReducer<String>
+   /** If true, all user input changes are ignored. Primary used to avoid self triggering while auto-completing. */
+   protected var ignoreInputChanges = false
+   /** Auto-completion handlers */
+   val onAutoCompleted = Handler1<T>()
+   /** Whether the auto-completion popup hides when suggestion is accepted. */
+   val hideOnSuggestion = v(true)
+   /** Whether the auto-completion popup hides when escape key is pressed while it focus. */
+   val isHideOnEscape = popup.isHideOnEscape
+   /** Maximum number of rows to be visible in the popup when it is showing. */
+   val visibleRowCount = popup.visibleRowCount
+   /** Target node for auto completion */
+   val completionTarget: Node
 
-    /**
-     * Creates a new AutoCompletionBinding
-     *
-     * @param completionTarget The target node to which auto-completion shall be added
-     * @param suggestionProvider The strategy to retrieve suggestions
-     * @param converter The converter to be used to convert suggestions to strings
-     */
-    protected constructor(completionTarget: Node, suggestionProvider: (String) -> Collection<T>, converter: StringConverter<T>) {
-        this.completionTarget = completionTarget
-        this.popup.converter = converter
-        this.suggestionProviderEventReducer = toLast(250.0) { text ->
-            runNew {
-                suggestionProvider(text)
-            } ui { suggestions ->
-                if (!suggestions.isEmpty()) {
-                    popup.suggestions setTo suggestions
-                    showAutoCompletePopup()
-                } else {
-                    hideAutoCompletePopup()
-                }
+   /**
+    * Creates a new AutoCompletionBinding
+    *
+    * @param completionTarget The target node to which auto-completion shall be added
+    * @param suggestionProvider The strategy to retrieve suggestions
+    * @param converter The converter to be used to convert suggestions to strings
+    */
+   protected constructor(completionTarget: Node, suggestionProvider: (String) -> Collection<T>, converter: StringConverter<T>) {
+      this.completionTarget = completionTarget
+      this.popup.converter = converter
+      this.suggestionProviderEventReducer = toLast(250.0) { text ->
+         runNew {
+            suggestionProvider(text)
+         } ui { suggestions ->
+            if (!suggestions.isEmpty()) {
+               popup.suggestions setTo suggestions
+               showAutoCompletePopup()
+            } else {
+               hideAutoCompletePopup()
             }
-        }
-        this.popup.onSuggestion += {
-            try {
-                ignoreInputChanges = true
-                runLater { acceptSuggestion(it) }
-                if (hideOnSuggestion.get()) hideAutoCompletePopup()
-                fireAutoCompletion(it)
-            } finally {
-                ignoreInputChanges = false
-            }
-        }
-    }
+         }
+      }
+      this.popup.onSuggestion += {
+         try {
+            ignoreInputChanges = true
+            runLater { acceptSuggestion(it) }
+            if (hideOnSuggestion.get()) hideAutoCompletePopup()
+            fireAutoCompletion(it)
+         } finally {
+            ignoreInputChanges = false
+         }
+      }
+   }
 
-    protected open fun buildPopup() = AutoCompletePopup<T>()
+   protected open fun buildPopup() = AutoCompletePopup<T>()
 
-    abstract fun dispose()
+   abstract fun dispose()
 
-    /** Set the current text the user has entered */
-    protected fun updateSuggestions(userText: String) {
-        if (!ignoreInputChanges)
-            suggestionProviderEventReducer.push(userText)
-    }
+   /** Set the current text the user has entered */
+   protected fun updateSuggestions(userText: String) {
+      if (!ignoreInputChanges)
+         suggestionProviderEventReducer.push(userText)
+   }
 
-    /** Consumes user selected suggestion. Normally when user clicks or presses ENTER key on given suggestion. */
-    protected abstract fun acceptSuggestion(suggestion: T)
+   /** Consumes user selected suggestion. Normally when user clicks or presses ENTER key on given suggestion. */
+   protected abstract fun acceptSuggestion(suggestion: T)
 
-    protected fun showAutoCompletePopup() {
-        popup.show(completionTarget)
-        popup.skin.node.minPrefMaxWidth = completionTarget.layoutBounds.width
-        popup.selectFirstSuggestion()
-    }
+   protected fun showAutoCompletePopup() {
+      popup.show(completionTarget)
+      popup.skin.node.minPrefMaxWidth = completionTarget.layoutBounds.width
+      popup.selectFirstSuggestion()
+   }
 
-    /** Hide the auto completion targets */
-    protected fun hideAutoCompletePopup(): Unit = popup.hide()
+   /** Hide the auto completion targets */
+   protected fun hideAutoCompletePopup(): Unit = popup.hide()
 
-    protected fun fireAutoCompletion(completion: T?) {
-        if (completion!=null) onAutoCompleted(completion)
-    }
+   protected fun fireAutoCompletion(completion: T?) {
+      if (completion!=null) onAutoCompleted(completion)
+   }
 
-    private fun AutoCompletePopup<*>.selectFirstSuggestion() {
-        skin.ifIs<AutoCompletePopupSkin<*>> {
-            val list = it.node
-            if (list.items!=null && list.items.isNotEmpty())
-                list.selectionModel.select(0)
-        }
-    }
+   private fun AutoCompletePopup<*>.selectFirstSuggestion() {
+      skin.ifIs<AutoCompletePopupSkin<*>> {
+         val list = it.node
+         if (list.items!=null && list.items.isNotEmpty())
+            list.selectionModel.select(0)
+      }
+   }
 
 }

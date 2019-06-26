@@ -71,182 +71,182 @@ import sp.it.util.validation.Constraint.FileActor
 import sp.it.pl.gui.objects.table.TableColumnInfo as ColumnState
 
 @Info(
-    author = "Martin Polakovic",
-    name = Widgets.SONG_TABLE,
-    description = "Provides access to database.",
-    howto = "Available actions:\n" +
-        "    Song left click : Selects item\n" +
-        "    Song right click : Opens context menu\n" +
-        "    Song double click : Plays item\n" +
-        "    Type : search & filter\n" +
-        "    Press ENTER : Plays item\n" +
-        "    Press ESC : Clear selection & filter\n" +
-        "    Scroll : Scroll table vertically\n" +
-        "    Scroll + SHIFT : Scroll table horizontally\n" +
-        "    Column drag : swap columns\n" +
-        "    Column right click: show column menu\n" +
-        "    Click column : Sort - ascending | descending | none\n" +
-        "    Click column + SHIFT : Sorts by multiple columns\n" +
-        "    Menu bar : Opens additional actions\n",
-    version = "1.0.0",
-    year = "2015",
-    group = LIBRARY
+   author = "Martin Polakovic",
+   name = Widgets.SONG_TABLE,
+   description = "Provides access to database.",
+   howto = "Available actions:\n" +
+      "    Song left click : Selects item\n" +
+      "    Song right click : Opens context menu\n" +
+      "    Song double click : Plays item\n" +
+      "    Type : search & filter\n" +
+      "    Press ENTER : Plays item\n" +
+      "    Press ESC : Clear selection & filter\n" +
+      "    Scroll : Scroll table vertically\n" +
+      "    Scroll + SHIFT : Scroll table horizontally\n" +
+      "    Column drag : swap columns\n" +
+      "    Column right click: show column menu\n" +
+      "    Click column : Sort - ascending | descending | none\n" +
+      "    Click column + SHIFT : Sorts by multiple columns\n" +
+      "    Menu bar : Opens additional actions\n",
+   version = "1.0.0",
+   year = "2015",
+   group = LIBRARY
 )
 class Library(widget: Widget): SimpleController(widget), SongReader {
 
-    private val table = FilteredTable(Metadata::class.java, Metadata.EMPTY.getMainField())
-    private val outputSelected = io.o.create<Metadata>("Selected", null)
-    private val inputItems = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
+   private val table = FilteredTable(Metadata::class.java, Metadata.EMPTY.getMainField())
+   private val outputSelected = io.o.create<Metadata>("Selected", null)
+   private val inputItems = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
 
-    @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    val tableOrient by cv(NodeOrientation.INHERIT) { Vo(APP.ui.tableOrient) }
-    @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    val tableZeropad by cv(true) { Vo(APP.ui.tableZeropad) }
-    @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    val tableOrigIndex by cv(true) { Vo(APP.ui.tableOrigIndex) }
-    @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    val tableShowHeader by cv(true) { Vo(APP.ui.tableShowHeader) }
-    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
-    val tableShowFooter by cv(true) { Vo(APP.ui.tableShowFooter) }
-    @IsConfig(name = "Last add songs browse location", editable = EditMode.APP)
-    private var lastAddFilesLocation by cn(APP.DIR_USERDATA).only(FileActor.ANY)
-    @IsConfig(name = "Last add directory browse location", editable = EditMode.APP)
-    private var lastAddDirLocation by cn(APP.DIR_USERDATA).only(FileActor.DIRECTORY)
+   @IsConfig(name = "Table orientation", info = "Orientation of the table.")
+   val tableOrient by cv(NodeOrientation.INHERIT) { Vo(APP.ui.tableOrient) }
+   @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
+   val tableZeropad by cv(true) { Vo(APP.ui.tableZeropad) }
+   @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
+   val tableOrigIndex by cv(true) { Vo(APP.ui.tableOrigIndex) }
+   @IsConfig(name = "Show table header", info = "Show table header with columns.")
+   val tableShowHeader by cv(true) { Vo(APP.ui.tableShowHeader) }
+   @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
+   val tableShowFooter by cv(true) { Vo(APP.ui.tableShowFooter) }
+   @IsConfig(name = "Last add songs browse location", editable = EditMode.APP)
+   private var lastAddFilesLocation by cn(APP.DIR_USERDATA).only(FileActor.ANY)
+   @IsConfig(name = "Last add directory browse location", editable = EditMode.APP)
+   private var lastAddDirLocation by cn(APP.DIR_USERDATA).only(FileActor.DIRECTORY)
 
-    init {
-        root.prefSize = 850.scaleEM() x 600.scaleEM()
-        root.consumeScrolling()
-        root.lay += table.root
+   init {
+      root.prefSize = 850.scaleEM() x 600.scaleEM()
+      root.consumeScrolling()
+      root.lay += table.root
 
-        // table properties
-        table.selectionModel.selectionMode = MULTIPLE
-        table.search.setColumn(TITLE)
-        table.nodeOrientationProperty() syncFrom tableOrient on onClose
-        table.zeropadIndex syncFrom tableZeropad on onClose
-        table.showOriginalIndex syncFrom tableOrigIndex on onClose
-        table.headerVisible syncFrom tableShowHeader on onClose
-        table.footerVisible syncFrom tableShowFooter on onClose
-        table.items_info.textFactory = { all, list ->
-            DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumByDouble { it.getLengthInMs() }.millis.toHMSMs()
-        }
+      // table properties
+      table.selectionModel.selectionMode = MULTIPLE
+      table.search.setColumn(TITLE)
+      table.nodeOrientationProperty() syncFrom tableOrient on onClose
+      table.zeropadIndex syncFrom tableZeropad on onClose
+      table.showOriginalIndex syncFrom tableOrigIndex on onClose
+      table.headerVisible syncFrom tableShowHeader on onClose
+      table.footerVisible syncFrom tableShowFooter on onClose
+      table.items_info.textFactory = { all, list ->
+         DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumByDouble { it.getLengthInMs() }.millis.toHMSMs()
+      }
 
-        // add more menu items
-        table.menuAdd.apply {
-            item("Add files") { addFiles() }
-            item("Add directory") { addDirectory() }
-        }
-        table.menuRemove.apply {
-            item("Remove selected songs from library") { APP.db.removeSongs(table.selectedItems) }
-            item("Remove all shown songs from library") { APP.db.removeSongs(table.items) }
-            item("Remove all songs from library") { APP.db.removeSongs(table.items) }
-            item("Remove missing songs from library") { removeInvalid() }
-        }
+      // add more menu items
+      table.menuAdd.apply {
+         item("Add files") { addFiles() }
+         item("Add directory") { addDirectory() }
+      }
+      table.menuRemove.apply {
+         item("Remove selected songs from library") { APP.db.removeSongs(table.selectedItems) }
+         item("Remove all shown songs from library") { APP.db.removeSongs(table.items) }
+         item("Remove all songs from library") { APP.db.removeSongs(table.items) }
+         item("Remove missing songs from library") { removeInvalid() }
+      }
 
-        // set up table columns
-        table.setColumnFactory { field ->
-            TableColumn<Metadata, Any?>(field.name()).apply {
-                @Suppress("UNCHECKED_CAST")
-                cellFactory = when (field) {
-                    RATING -> RatingCellFactory as Callback<TableColumn<Metadata, Any?>, TableCell<Metadata, Any?>>
-                    else -> Callback { table.buildDefaultCell(field) }
-                }
-                cellValueFactory = Callback { it.value?.net { PojoV(field.getOf(it)) } }
+      // set up table columns
+      table.setColumnFactory { field ->
+         TableColumn<Metadata, Any?>(field.name()).apply {
+            @Suppress("UNCHECKED_CAST")
+            cellFactory = when (field) {
+               RATING -> RatingCellFactory as Callback<TableColumn<Metadata, Any?>, TableCell<Metadata, Any?>>
+               else -> Callback { table.buildDefaultCell(field) }
             }
-        }
+            cellValueFactory = Callback { it.value?.net { PojoV(field.getOf(it)) } }
+         }
+      }
 
-        // column resizing
-        table.columnResizePolicy = Callback {
-            UNCONSTRAINED_RESIZE_POLICY(it).apply {
-                table.getColumn(ColumnField.INDEX).orNull()?.prefWidth = table.computeIndexColumnWidth()
+      // column resizing
+      table.columnResizePolicy = Callback {
+         UNCONSTRAINED_RESIZE_POLICY(it).apply {
+            table.getColumn(ColumnField.INDEX).orNull()?.prefWidth = table.computeIndexColumnWidth()
+         }
+      }
+
+      // row behavior
+      table.rowFactory = Callback { t ->
+         ImprovedTableRow<Metadata>().apply {
+            onLeftDoubleClick { r, _ -> PlaylistManager.use { it.setNplayFrom(table.items, r.index) } }
+            onRightSingleClick { r, e ->
+               // prep selection for context menu
+               if (!r.isSelected)
+                  t.selectionModel.clearAndSelect(r.index)
+
+               contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy))
+               contextMenuInstance.show(table, e)
             }
-        }
+            styleRuleAdd(pcPlaying) { Player.playingSong.value.same(it) }
+         }
+      }
+      Player.playingSong.onUpdate { table.updateStyleRules() } on onClose
 
-        // row behavior
-        table.rowFactory = Callback { t ->
-            ImprovedTableRow<Metadata>().apply {
-                onLeftDoubleClick { r, _ -> PlaylistManager.use { it.setNplayFrom(table.items, r.index) } }
-                onRightSingleClick { r, e ->
-                    // prep selection for context menu
-                    if (!r.isSelected)
-                        t.selectionModel.clearAndSelect(r.index)
+      table.defaultColumnInfo   // trigger menu initialization
+      table.columnState = widget.properties.getS("columns")?.net(ColumnState::fromString) ?: table.defaultColumnInfo
 
-                    contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy))
-                    contextMenuInstance.show(table, e)
-                }
-                styleRuleAdd(pcPlaying) { Player.playingSong.value.same(it) }
-            }
-        }
-        Player.playingSong.onUpdate { table.updateStyleRules() } on onClose
+      table.onEventDown(KEY_PRESSED, ENTER, false) {
+         if (!table.selectionModel.isEmpty) {
+            PlaylistManager.use { it.setNplayFrom(table.items, table.selectionModel.selectedIndex) }
+            it.consume()
+         }
+      }
+      table.onEventDown(KEY_PRESSED, DELETE, false) {
+         if (!table.selectionModel.isEmpty) {
+            APP.db.removeSongs(table.selectedItems)
+            it.consume()
+         }
+      }
+      table.onEventDown(DRAG_DETECTED, PRIMARY, false) {
+         if (!table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY))) {
+            table.startDragAndDrop(COPY).setSongsAndFiles(table.selectedItemsCopy)
+            it.consume()
+         }
+      }
 
-        table.defaultColumnInfo   // trigger menu initialization
-        table.columnState = widget.properties.getS("columns")?.net(ColumnState::fromString) ?: table.defaultColumnInfo
+      // sync outputs
+      table.selectionModel.selectedItemProperty() sync { outputSelected.value = it } on onClose
+      root.sync1IfInScene { inputItems.bindDefaultIf1stLoad(APP.db.songs.o) } on onClose
 
-        table.onEventDown(KEY_PRESSED, ENTER, false) {
-            if (!table.selectionModel.isEmpty) {
-                PlaylistManager.use { it.setNplayFrom(table.items, table.selectionModel.selectedIndex) }
-                it.consume()
-            }
-        }
-        table.onEventDown(KEY_PRESSED, DELETE, false) {
-            if (!table.selectionModel.isEmpty) {
-                APP.db.removeSongs(table.selectedItems)
-                it.consume()
-            }
-        }
-        table.onEventDown(DRAG_DETECTED, PRIMARY, false) {
-            if (!table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY))) {
-                table.startDragAndDrop(COPY).setSongsAndFiles(table.selectedItemsCopy)
-                it.consume()
-            }
-        }
+      // sync library comparator
+      table.itemsComparator syncTo APP.db.libraryComparator on onClose
 
-        // sync outputs
-        table.selectionModel.selectedItemProperty() sync { outputSelected.value = it } on onClose
-        root.sync1IfInScene { inputItems.bindDefaultIf1stLoad(APP.db.songs.o) } on onClose
+   }
 
-        // sync library comparator
-        table.itemsComparator syncTo APP.db.libraryComparator on onClose
+   override fun getFields(): Collection<Config<Any>> {
+      widget.properties["columns"] = table.columnState.toString()
+      return super.getFields()
+   }
 
-    }
+   override fun read(items: List<Song>?) {
+      if (items==null) return
+      table.setItemsRaw(items.map { it.toMeta() })
+   }
 
-    override fun getFields(): Collection<Config<Any>> {
-        widget.properties["columns"] = table.columnState.toString()
-        return super.getFields()
-    }
+   fun setItems(items: List<Metadata>?) {
+      if (items==null) return
+      table.setItemsRaw(items)
+   }
 
-    override fun read(items: List<Song>?) {
-        if (items==null) return
-        table.setItemsRaw(items.map { it.toMeta() })
-    }
+   private fun addDirectory() {
+      chooseFile("Add folder to library", DIRECTORY, lastAddDirLocation, root.scene.window).ifOk {
+         APP.ui.actionPane.orBuild.show(it)
+         lastAddDirLocation = it.parentFile
+      }
+   }
 
-    fun setItems(items: List<Metadata>?) {
-        if (items==null) return
-        table.setItemsRaw(items)
-    }
+   private fun addFiles() {
+      chooseFiles("Add files to library", lastAddFilesLocation, root.scene.window, audioExtensionFilter()).ifOk {
+         APP.ui.actionPane.orBuild.show(it)
+         lastAddFilesLocation = getCommonRoot(it)
+      }
+   }
 
-    private fun addDirectory() {
-        chooseFile("Add folder to library", DIRECTORY, lastAddDirLocation, root.scene.window).ifOk {
-            APP.ui.actionPane.orBuild.show(it)
-            lastAddDirLocation = it.parentFile
-        }
-    }
+   private fun removeInvalid() {
+      val task = Song.removeMissingFromLibTask()
+      runNew(task)
+      AppProgress.start(task)
+   }
 
-    private fun addFiles() {
-        chooseFiles("Add files to library", lastAddFilesLocation, root.scene.window, audioExtensionFilter()).ifOk {
-            APP.ui.actionPane.orBuild.show(it)
-            lastAddFilesLocation = getCommonRoot(it)
-        }
-    }
-
-    private fun removeInvalid() {
-        val task = Song.removeMissingFromLibTask()
-        runNew(task)
-        AppProgress.start(task)
-    }
-
-    companion object {
-        private val pcPlaying = pseudoclass("played")
-        private val contextMenuInstance by lazy { ValueContextMenu<MetadataGroup>() }
-    }
+   companion object {
+      private val pcPlaying = pseudoclass("played")
+      private val contextMenuInstance by lazy { ValueContextMenu<MetadataGroup>() }
+   }
 
 }

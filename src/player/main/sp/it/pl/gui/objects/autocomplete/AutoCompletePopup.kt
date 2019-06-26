@@ -40,40 +40,40 @@ import sp.it.util.reactive.Handler1
 
 /** Provides a list of available suggestions in order to complete current user input. */
 open class AutoCompletePopup<T>: PopupControl() {
-    /** Presented suggestions. */
-    val suggestions = observableArrayList<T>()!!
-    /** The converter used to turn a suggestion into a string  */
-    var converter: StringConverter<T>? = null
-    /** The maximum number of rows to be visible in the popup. Affects the height of the popup. By default 10. */
-    val visibleRowCount = v(10)
-    /** Suggestion handlers */
-    val onSuggestion = Handler1<T>()
+   /** Presented suggestions. */
+   val suggestions = observableArrayList<T>()!!
+   /** The converter used to turn a suggestion into a string  */
+   var converter: StringConverter<T>? = null
+   /** The maximum number of rows to be visible in the popup. Affects the height of the popup. By default 10. */
+   val visibleRowCount = v(10)
+   /** Suggestion handlers */
+   val onSuggestion = Handler1<T>()
 
-    init {
-        isAutoFix = true
-        isAutoHide = true
-        isHideOnEscape = true
-        styleClass += COMBO_BOX_STYLE_CLASS
-        styleClass += STYLE_CLASS
-    }
+   init {
+      isAutoFix = true
+      isAutoHide = true
+      isHideOnEscape = true
+      styleClass += COMBO_BOX_STYLE_CLASS
+      styleClass += STYLE_CLASS
+   }
 
-    /** Shows this popup right below the specified node. Node must be attached to scene graph in a window.  */
-    fun show(node: Node) {
-        if (isShowing) return
+   /** Shows this popup right below the specified node. Node must be attached to scene graph in a window.  */
+   fun show(node: Node) {
+      if (isShowing) return
 
-        val scene = node.scene ?: fail { "Can not show popup. The node must be attached to a scene." }
-        val window = scene.window ?: fail { "Can not show popup. The node must be attached to a window." }
-        this.show(
-            window,
-            node.localToScreen(node.boundsInLocal).minX,
-            node.localToScreen(node.boundsInLocal).maxY
-        )
-    }
+      val scene = node.scene ?: fail { "Can not show popup. The node must be attached to a scene." }
+      val window = scene.window ?: fail { "Can not show popup. The node must be attached to a window." }
+      this.show(
+         window,
+         node.localToScreen(node.boundsInLocal).minX,
+         node.localToScreen(node.boundsInLocal).maxY
+      )
+   }
 
-    override fun createDefaultSkin() = AutoCompletePopupSkin(this, 1)
+   override fun createDefaultSkin() = AutoCompletePopupSkin(this, 1)
 
-    companion object {
-        const val STYLE_CLASS = "auto-complete-popup"
-    }
+   companion object {
+      const val STYLE_CLASS = "auto-complete-popup"
+   }
 
 }

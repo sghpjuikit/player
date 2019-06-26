@@ -7,16 +7,16 @@ import sp.it.pl.main.APP
 /** Text field for [Font] with a picker. */
 class FontTextField: ValueTextField<Font>({ APP.converter.general.toS(it) }) {
 
-    init {
-        styleClass += STYLECLASS
-    }
+   init {
+      styleClass += STYLECLASS
+   }
 
-    override fun onDialogAction() {
-        FontSelectorDialog(value, { value = it }).showInCenterOf(this)
-    }
+   override fun onDialogAction() {
+      FontSelectorDialog(value, { value = it }).showInCenterOf(this)
+   }
 
-    companion object {
-        const val STYLECLASS = "font-text-field"
-    }
+   companion object {
+      const val STYLECLASS = "font-text-field"
+   }
 
 }

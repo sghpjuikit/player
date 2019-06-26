@@ -27,16 +27,16 @@ fun Song.write(setter: (MetadataWriter) -> Unit) = listOf(this).write(setter, {}
  */
 @ThreadSafe
 fun Collection<Song>.write(setter: (MetadataWriter) -> Unit, action: (List<Metadata>) -> Unit) {
-    if (PlayerConfiguration.readOnly) return
+   if (PlayerConfiguration.readOnly) return
 
-    runIO {
-        writeNoRefresh(setter)
-        val songs = asSequence().map { it.read() }.filter { !it.isEmpty() }.toList()
-        Player.refreshSongsWith(songs)
-        songs
-    } ui {
-        action(it)
-    }
+   runIO {
+      writeNoRefresh(setter)
+      val songs = asSequence().map { it.read() }.filter { !it.isEmpty() }.toList()
+      Player.refreshSongsWith(songs)
+      songs
+   } ui {
+      action(it)
+   }
 }
 
 /**
@@ -45,24 +45,24 @@ fun Collection<Song>.write(setter: (MetadataWriter) -> Unit, action: (List<Metad
  */
 @ThreadSafe
 fun Song.write(setter: (MetadataWriter) -> Unit, action: (Try<Boolean, Exception>) -> Unit) {
-    if (PlayerConfiguration.readOnly) return
+   if (PlayerConfiguration.readOnly) return
 
-    if (isFileBased()) {
-        runIO {
-            val w = MetadataWriter()
-            w.reset(this)
-            setter(w)
-            val success = w.write()
+   if (isFileBased()) {
+      runIO {
+         val w = MetadataWriter()
+         w.reset(this)
+         setter(w)
+         val success = w.write()
 
-            val m = read()
-            if (!m.isEmpty()) Player.refreshItemWith(m)
-            success
-        } ui {
-            action(it)
-        }
-    } else {
-        runFX { action(Try.error(Exception("Song is not a file: $uri"))) }
-    }
+         val m = read()
+         if (!m.isEmpty()) Player.refreshItemWith(m)
+         success
+      } ui {
+         action(it)
+      }
+   } else {
+      runFX { action(Try.error(Exception("Song is not a file: $uri"))) }
+   }
 }
 
 /**
@@ -76,26 +76,26 @@ fun Song.writeNoRefresh(setter: (MetadataWriter) -> Unit) = listOf(this).writeNo
  */
 @Blocks
 fun Collection<Song>.writeNoRefresh(setter: (MetadataWriter) -> Unit) {
-    failIfFxThread()
-    if (PlayerConfiguration.readOnly) return
+   failIfFxThread()
+   if (PlayerConfiguration.readOnly) return
 
-    val w = MetadataWriter()
-    forEach {
-        if (it.isFileBased()) {
-            w.reset(it)
-            setter(w)
-            w.write()
-        }
-    }
+   val w = MetadataWriter()
+   forEach {
+      if (it.isFileBased()) {
+         w.reset(it)
+         setter(w)
+         w.write()
+      }
+   }
 }
 
 /** Rates the song with <0-1> value representing percentage of the rating or null to remove the value altogether */
 @ThreadSafe
 fun Song.writeRating(rating: Double?) {
-    if (PlayerConfiguration.readOnly) return
+   if (PlayerConfiguration.readOnly) return
 
-    write({ it.setRatingPercent(rating ?: -1.0) }) {
-        if (it.isOk)
-            APP.plugins.use<Notifier> { it.showNotification(Rating(initialRating = rating), "Song rating changed ") }
-    }
+   write({ it.setRatingPercent(rating ?: -1.0) }) {
+      if (it.isOk)
+         APP.plugins.use<Notifier> { it.showNotification(Rating(initialRating = rating), "Song rating changed ") }
+   }
 }

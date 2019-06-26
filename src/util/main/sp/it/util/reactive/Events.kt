@@ -21,87 +21,87 @@ val SHORTCUT: KeyCode = if (Os.OSX.isCurrent) KeyCode.META else KeyCode.CONTROL
 
 /** Equivalent to [Window.addEventHandler]. */
 fun <T: Event> Window.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
-    val handler = eventHandler.eh
-    addEventHandler(eventType, handler)
-    return Subscription { removeEventHandler(eventType, handler) }
+   val handler = eventHandler.eh
+   addEventHandler(eventType, handler)
+   return Subscription { removeEventHandler(eventType, handler) }
 }
 
 /** Equivalent to [Window.addEventFilter]. */
 fun <T: Event> Window.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
-    val handler = eventHandler.eh
-    addEventFilter(eventType, handler)
-    return Subscription { removeEventFilter(eventType, handler) }
+   val handler = eventHandler.eh
+   addEventFilter(eventType, handler)
+   return Subscription { removeEventFilter(eventType, handler) }
 }
 
 /** Equivalent to [Node.addEventHandler]. */
 fun <T: Event> Node.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
-    val handler = eventHandler.eh
-    addEventHandler(eventType, handler)
-    return Subscription { removeEventHandler(eventType, handler) }
+   val handler = eventHandler.eh
+   addEventHandler(eventType, handler)
+   return Subscription { removeEventHandler(eventType, handler) }
 }
 
 /** Equivalent to [Node.addEventFilter]. */
 fun <T: MouseEvent> Node.onEventDown(eventType: EventType<T>, button: MouseButton, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventDown(eventType) {
-    if (it.button==button) {
-        eventHandler(it)
-        if (consume) it.consume()
-    }
+   if (it.button==button) {
+      eventHandler(it)
+      if (consume) it.consume()
+   }
 }
 
 fun <T: KeyEvent> Node.onEventDown(eventType: EventType<T>, key: KeyCode, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventDown(eventType, null, key, consume, eventHandler)
 
 fun <T: KeyEvent> Node.onEventDown(eventType: EventType<T>, modifier: KeyCode? = null, key: KeyCode, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventDown(eventType) {
-    val modifierMatches = modifier==null || when {
-        it.isAltDown -> modifier==KeyCode.ALT
-        it.isControlDown -> modifier==KeyCode.CONTROL
-        it.isMetaDown -> modifier==KeyCode.META
-        it.isShiftDown -> modifier==KeyCode.SHIFT
-        it.isShortcutDown -> modifier==SHORTCUT
-        else -> false
-    }
-    if (modifierMatches && it.code==key) {
-        eventHandler(it)
-        if (consume) it.consume()
-    }
+   val modifierMatches = modifier==null || when {
+      it.isAltDown -> modifier==KeyCode.ALT
+      it.isControlDown -> modifier==KeyCode.CONTROL
+      it.isMetaDown -> modifier==KeyCode.META
+      it.isShiftDown -> modifier==KeyCode.SHIFT
+      it.isShortcutDown -> modifier==SHORTCUT
+      else -> false
+   }
+   if (modifierMatches && it.code==key) {
+      eventHandler(it)
+      if (consume) it.consume()
+   }
 }
 
 /** Equivalent to [Node.addEventFilter]. */
 fun <T: Event> Node.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
-    val handler = eventHandler.eh
-    addEventFilter(eventType, handler)
-    return Subscription { removeEventFilter(eventType, handler) }
+   val handler = eventHandler.eh
+   addEventFilter(eventType, handler)
+   return Subscription { removeEventFilter(eventType, handler) }
 }
 
 /** Equivalent to [Node.addEventFilter]. */
 fun <T: MouseEvent> Node.onEventUp(eventType: EventType<T>, button: MouseButton, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventUp(eventType) {
-    if (it.button==button) {
-        eventHandler(it)
-        if (consume) it.consume()
-    }
+   if (it.button==button) {
+      eventHandler(it)
+      if (consume) it.consume()
+   }
 }
 
 fun <T: KeyEvent> Node.onEventUp(eventType: EventType<T>, key: KeyCode, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventUp(eventType, null, key, consume, eventHandler)
 
 fun <T: KeyEvent> Node.onEventUp(eventType: EventType<T>, modifier: KeyCode? = null, key: KeyCode, consume: Boolean = true, eventHandler: (T) -> Unit) = onEventUp(eventType) {
-    val modifierMatches = modifier==null || when {
-        it.isAltDown -> modifier==KeyCode.ALT
-        it.isControlDown -> modifier==KeyCode.CONTROL
-        it.isMetaDown -> modifier==KeyCode.META
-        it.isShiftDown -> modifier==KeyCode.SHIFT
-        it.isShortcutDown -> modifier==SHORTCUT
-        else -> false
-    }
-    if (modifierMatches && it.code==key) {
-        eventHandler(it)
-        if (consume) it.consume()
-    }
+   val modifierMatches = modifier==null || when {
+      it.isAltDown -> modifier==KeyCode.ALT
+      it.isControlDown -> modifier==KeyCode.CONTROL
+      it.isMetaDown -> modifier==KeyCode.META
+      it.isShiftDown -> modifier==KeyCode.SHIFT
+      it.isShortcutDown -> modifier==SHORTCUT
+      else -> false
+   }
+   if (modifierMatches && it.code==key) {
+      eventHandler(it)
+      if (consume) it.consume()
+   }
 }
 
 /** Equivalent to [TreeItem.addEventHandler]. */
 fun <R, T: Event> TreeItem<R>.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
-    val handler = eventHandler.eh
-    addEventHandler(eventType, handler)
-    return Subscription { removeEventHandler(eventType, handler) }
+   val handler = eventHandler.eh
+   addEventHandler(eventType, handler)
+   return Subscription { removeEventHandler(eventType, handler) }
 }
 
 /** Consume [ScrollEvent.ANY] events, e.g. to prevent certain scrollable JavaFx controls (table, tree, list, ...) from consuming non-deterministically. */
@@ -109,10 +109,10 @@ fun Node.consumeScrolling() = onEventDown(ScrollEvent.ANY) { it.consume() }
 
 /** Re-fire [KeyCode.ESCAPE] key events, e.g. to bypass consuming, which for example [TreeView] does by default. */
 fun TreeView<*>.propagateESCAPE() = onEventDown(KeyEvent.ANY) {
-    if (editingItem==null && it.code==KeyCode.ESCAPE) {
-        parent?.fireEvent(it)
-        it.consume()
-    }
+   if (editingItem==null && it.code==KeyCode.ESCAPE) {
+      parent?.fireEvent(it)
+      it.consume()
+   }
 }
 
 private val <T: Event> ((T) -> Unit).eh: EventHandler<T> get() = EventHandler { this(it) }

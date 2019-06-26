@@ -13,29 +13,29 @@ import sp.it.util.reactive.syncFrom
 /** Cell factory for cells displaying nullable <0,1> [Double] value in [Rating] control. */
 object RatingCellFactory: Callback<TableColumn<Metadata, Double?>, TableCell<Metadata, Double?>> {
 
-    override fun call(c: TableColumn<Metadata, Double?>) = object: TableCell<Metadata, Double?>() {
-        val r = Rating()
+   override fun call(c: TableColumn<Metadata, Double?>) = object: TableCell<Metadata, Double?>() {
+      val r = Rating()
 
-        init {
-            contentDisplay = GRAPHIC_ONLY
-            alignment = Pos.CENTER
-            r.icons syncFrom APP.ui.maxRating
-            r.partialRating syncFrom APP.ui.partialRating
-            r.editable.value = true
-            if (c.userData==Metadata.Field.RATING)
-                r.onRatingEdited = { c.tableView.items[index].writeRating(it) }
-        }
+      init {
+         contentDisplay = GRAPHIC_ONLY
+         alignment = Pos.CENTER
+         r.icons syncFrom APP.ui.maxRating
+         r.partialRating syncFrom APP.ui.partialRating
+         r.editable.value = true
+         if (c.userData==Metadata.Field.RATING)
+            r.onRatingEdited = { c.tableView.items[index].writeRating(it) }
+      }
 
-        override fun updateItem(item: Double?, empty: Boolean) {
-            super.updateItem(item, empty)
-            if (empty) {
-                graphic = null
-            } else {
-                r.rating.set(item)
-                if (graphic==null) graphic = r
-            }
-        }
+      override fun updateItem(item: Double?, empty: Boolean) {
+         super.updateItem(item, empty)
+         if (empty) {
+            graphic = null
+         } else {
+            r.rating.set(item)
+            if (graphic==null) graphic = r
+         }
+      }
 
-    }
+   }
 
 }

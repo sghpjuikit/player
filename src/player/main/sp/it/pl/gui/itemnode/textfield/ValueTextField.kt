@@ -20,46 +20,46 @@ import java.util.function.BiConsumer
  */
 abstract class ValueTextField<T>: DecoratedTextField, WritableValue<T> {
 
-    constructor(textValueConverter: (T) -> String): super() {
-        this.textValueConverter = textValueConverter
+   constructor(textValueConverter: (T) -> String): super() {
+      this.textValueConverter = textValueConverter
 
-        styleClass += STYLECLASS
-        isEditable = false
-        text = nullText
-        promptText = nullText
+      styleClass += STYLECLASS
+      isEditable = false
+      text = nullText
+      promptText = nullText
 
-        right.value = ArrowDialogButton().apply {
-            onEventDown(MOUSE_CLICKED, PRIMARY) { onDialogAction() }
-        }
-    }
+      right.value = ArrowDialogButton().apply {
+         onEventDown(MOUSE_CLICKED, PRIMARY) { onDialogAction() }
+      }
+   }
 
-    /** Value. */
-    protected var vl: T? = null
-    /** Behavior executing when value changes. */
-    var onValueChange: BiConsumer<T?, T?> = BiConsumer { _, _ -> }
-    /** Value to string converter. */
-    private val textValueConverter: (T) -> String
-    /** No value text. */
-    private val nullText = "<none>"
+   /** Value. */
+   protected var vl: T? = null
+   /** Behavior executing when value changes. */
+   var onValueChange: BiConsumer<T?, T?> = BiConsumer { _, _ -> }
+   /** Value to string converter. */
+   private val textValueConverter: (T) -> String
+   /** No value text. */
+   private val nullText = "<none>"
 
-    override fun setValue(value: T?) {
-        if (vl==value) return
+   override fun setValue(value: T?) {
+      if (vl==value) return
 
-        val valueOld = vl
-        vl = value
-        text = value?.let { textValueConverter(it) } ?: nullText
-        promptText = text
-        onValueChange(valueOld, value)
-    }
+      val valueOld = vl
+      vl = value
+      text = value?.let { textValueConverter(it) } ?: nullText
+      promptText = text
+      onValueChange(valueOld, value)
+   }
 
-    /** @return currently displayed value */
-    override fun getValue(): T? = vl
+   /** @return currently displayed value */
+   override fun getValue(): T? = vl
 
-    /** Behavior to be executed on dialog button click. Should invoke of an [.setValue]. */
-    protected abstract fun onDialogAction()
+   /** Behavior to be executed on dialog button click. Should invoke of an [.setValue]. */
+   protected abstract fun onDialogAction()
 
-    companion object {
-        const val STYLECLASS = "value-text-field"
-    }
+   companion object {
+      const val STYLECLASS = "value-text-field"
+   }
 
 }

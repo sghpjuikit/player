@@ -42,56 +42,56 @@ import sp.it.util.reactive.attach
  */
 open class AutoCompletion<T>: AutoCompletionBinding<T> {
 
-    /** String converter to be used to convert suggestions to strings. */
-    protected val converter: StringConverter<T>
-    /** [completionTarget] of more precise type. */
-    protected val completionTargetTyped: TextField
-    /** Disposer called on [dispose]. */
-    protected val disposer = Disposer()
+   /** String converter to be used to convert suggestions to strings. */
+   protected val converter: StringConverter<T>
+   /** [completionTarget] of more precise type. */
+   protected val completionTargetTyped: TextField
+   /** Disposer called on [dispose]. */
+   protected val disposer = Disposer()
 
-    /** Creates an auto-completion binding between the specified textField and suggestions. */
-    internal constructor(textField: TextField, allSuggestions: (String) -> Collection<T>, converter: StringConverter<T>): super(textField, allSuggestions, converter) {
-        this.completionTargetTyped = textField
-        this.converter = converter
+   /** Creates an auto-completion binding between the specified textField and suggestions. */
+   internal constructor(textField: TextField, allSuggestions: (String) -> Collection<T>, converter: StringConverter<T>): super(textField, allSuggestions, converter) {
+      this.completionTargetTyped = textField
+      this.converter = converter
 
-        textField.textProperty().attach(disposer) {
-            if (it!=null && completionTarget.isFocused)
-                updateSuggestions(it)
-        }
-        textField.focusedProperty().attach(disposer) {
-            if (!it)
-                hideAutoCompletePopup()
-        }
-    }
+      textField.textProperty().attach(disposer) {
+         if (it!=null && completionTarget.isFocused)
+            updateSuggestions(it)
+      }
+      textField.focusedProperty().attach(disposer) {
+         if (!it)
+            hideAutoCompletePopup()
+      }
+   }
 
-    override fun dispose() = disposer()
+   override fun dispose() = disposer()
 
-    override fun acceptSuggestion(suggestion: T) {
-        val newText = converter.toString(suggestion)
-        completionTargetTyped.text = newText
-        completionTargetTyped.positionCaret(newText.length)
-    }
+   override fun acceptSuggestion(suggestion: T) {
+      val newText = converter.toString(suggestion)
+      completionTargetTyped.text = newText
+      completionTargetTyped.positionCaret(newText.length)
+   }
 
-    companion object {
+   companion object {
 
-        @Suppress("UNCHECKED_CAST")
-        fun <T> defaultStringConverter() = object: StringConverter<T>() {
-            override fun toString(t: T?) = t?.toString()
-            override fun fromString(string: String) = string as T
-        }
+      @Suppress("UNCHECKED_CAST")
+      fun <T> defaultStringConverter() = object: StringConverter<T>() {
+         override fun toString(t: T?) = t?.toString()
+         override fun fromString(string: String) = string as T
+      }
 
-        fun <T> autoComplete(textField: TextField, allSuggestions: (String) -> Collection<T>, converter: StringConverter<T>): Subscription {
-            val a = AutoCompletion(textField, allSuggestions, converter)
-            return Subscription { a.dispose() }
-        }
+      fun <T> autoComplete(textField: TextField, allSuggestions: (String) -> Collection<T>, converter: StringConverter<T>): Subscription {
+         val a = AutoCompletion(textField, allSuggestions, converter)
+         return Subscription { a.dispose() }
+      }
 
-        fun <T> autoComplete(textField: TextField, allSuggestions: (String) -> Collection<T>) = autoComplete(textField, allSuggestions, defaultStringConverter())
+      fun <T> autoComplete(textField: TextField, allSuggestions: (String) -> Collection<T>) = autoComplete(textField, allSuggestions, defaultStringConverter())
 
-        fun <T> autoComplete(textField: TextField, allSuggestions: Collection<T>) = autoComplete(textField, { allSuggestions })
+      fun <T> autoComplete(textField: TextField, allSuggestions: Collection<T>) = autoComplete(textField, { allSuggestions })
 
-        @SafeVarargs
-        fun <T> autoComplete(textField: TextField, vararg allSuggestions: T) = autoComplete(textField, listOf(allSuggestions))
+      @SafeVarargs
+      fun <T> autoComplete(textField: TextField, vararg allSuggestions: T) = autoComplete(textField, listOf(allSuggestions))
 
-    }
+   }
 
 }

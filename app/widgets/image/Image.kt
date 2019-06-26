@@ -32,56 +32,56 @@ import sp.it.util.validation.Constraint.FileActor.FILE
 import java.io.File
 
 @Widget.Info(
-    author = "Martin Polakovic",
-    name = "Image",
-    description = "Shows a static image",
-    howto = "Available actions:\n    Drag & drop image : Set custom image",
-    version = "1.0.0",
-    year = "2015",
-    group = OTHER
+   author = "Martin Polakovic",
+   name = "Image",
+   description = "Shows a static image",
+   howto = "Available actions:\n    Drag & drop image : Set custom image",
+   version = "1.0.0",
+   year = "2015",
+   group = OTHER
 )
 class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
 
-    val inputImg = io.i.create<File>("To display", null) { showImageImpl(it) }
+   val inputImg = io.i.create<File>("To display", null) { showImageImpl(it) }
 
-    private val thumb = Thumbnail()
-    @IsConfig(name = "Custom image", info = "Image file to display.")
-    private var img by cn<File>(null).only(FILE)
-    @IsConfig(name = "Fit from", info = "Image fitting.")
-    private val fitFrom by cv(FitFrom.INSIDE)
+   private val thumb = Thumbnail()
+   @IsConfig(name = "Custom image", info = "Image file to display.")
+   private var img by cn<File>(null).only(FILE)
+   @IsConfig(name = "Fit from", info = "Image fitting.")
+   private val fitFrom by cv(FitFrom.INSIDE)
 
-    init {
-        root.prefSize = 400.scaleEM() x 400.scaleEM()
+   init {
+      root.prefSize = 400.scaleEM() x 400.scaleEM()
 
-        thumb.isBackgroundVisible = false
-        thumb.borderVisible = false
-        thumb.isDragEnabled = true
-        thumb.fitFrom syncFrom fitFrom on onClose
-        root.lay += thumb.pane
+      thumb.isBackgroundVisible = false
+      thumb.borderVisible = false
+      thumb.isDragEnabled = true
+      thumb.fitFrom syncFrom fitFrom on onClose
+      root.lay += thumb.pane
 
-        installDrag(
-            root, IconMD.DETAILS, "Display",
-            { e -> e.dragboard.hasImageFileOrUrl() },
-            { e -> img!=null && img==e.dragboard.getImageFile() },
-            { e -> e.dragboard.getImageFileOrUrl() ui { inputImg.value = it } }
-        )
-        root.onEventDown(KEY_PRESSED, ENTER) { img?.let { APP.actions.openImageFullscreen(it) } }
-        root.onEventDown(KEY_PRESSED, SPACE) { fitFrom.toggleNext() }
+      installDrag(
+         root, IconMD.DETAILS, "Display",
+         { e -> e.dragboard.hasImageFileOrUrl() },
+         { e -> img!=null && img==e.dragboard.getImageFile() },
+         { e -> e.dragboard.getImageFileOrUrl() ui { inputImg.value = it } }
+      )
+      root.onEventDown(KEY_PRESSED, ENTER) { img?.let { APP.actions.openImageFullscreen(it) } }
+      root.onEventDown(KEY_PRESSED, SPACE) { fitFrom.toggleNext() }
 
-        inputImg.value = img
-    }
+      inputImg.value = img
+   }
 
-    override fun showImage(imgFile: File?) {
-        inputImg.value = imgFile
-    }
+   override fun showImage(imgFile: File?) {
+      inputImg.value = imgFile
+   }
 
-    private fun showImageImpl(imgFile: File?) {
-        img = imgFile
+   private fun showImageImpl(imgFile: File?) {
+      img = imgFile
 
-        onClose += root.sync1IfInScene {
-            thumb.loadImage(img)
-            root.requestFocus()
-        }
-    }
+      onClose += root.sync1IfInScene {
+         thumb.loadImage(img)
+         root.requestFocus()
+      }
+   }
 
 }

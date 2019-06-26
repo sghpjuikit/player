@@ -99,316 +99,316 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.round
 
 @Widget.Info(
-    author = "Martin Polakovic",
-    name = "Dir Viewer",
-    description = "Displays directory hierarchy and files as thumbnails in a vertically scrollable grid. " + "Intended as simple library",
-    version = "0.7.0",
-    year = "2015",
-    group = OTHER
+   author = "Martin Polakovic",
+   name = "Dir Viewer",
+   description = "Displays directory hierarchy and files as thumbnails in a vertically scrollable grid. " + "Intended as simple library",
+   version = "0.7.0",
+   year = "2015",
+   group = OTHER
 )
 class DirViewer(widget: Widget): SimpleController(widget) {
 
-    private val inputFile = io.i.create<File>("Root directory", null) {
-        if (it!=null && it.isDirectory && it.exists())
-            files setToOne it
-    }
+   private val inputFile = io.i.create<File>("Root directory", null) {
+      if (it!=null && it.isDirectory && it.exists())
+         files setToOne it
+   }
 
-    @IsConfig(name = "Location", info = "Root directories of the content.")
-    private val files by cList<File>().only(FileActor.DIRECTORY)
-    private var filesMaterialized = files.materialize()
-    @IsConfig(name = "Location joiner", info = "Merges location files into a virtual view.")
-    private val fileFlatter by cv(FileFlatter.TOP_LVL)
+   @IsConfig(name = "Location", info = "Root directories of the content.")
+   private val files by cList<File>().only(FileActor.DIRECTORY)
+   private var filesMaterialized = files.materialize()
+   @IsConfig(name = "Location joiner", info = "Merges location files into a virtual view.")
+   private val fileFlatter by cv(FileFlatter.TOP_LVL)
 
-    @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-    private val cellSize by cv(NORMAL) attach { applyCellSize() }
-    @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-    private val cellSizeRatio by cv(Resolution.R_1x1) attach { applyCellSize() }
-    @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
-    private val fitFrom by cv(FitFrom.OUTSIDE)
+   @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
+   private val cellSize by cv(NORMAL) attach { applyCellSize() }
+   @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
+   private val cellSizeRatio by cv(Resolution.R_1x1) attach { applyCellSize() }
+   @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
+   private val fitFrom by cv(FitFrom.OUTSIDE)
 
-    @IsConfig(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")
-    private val coverLoadingUseComposedDirCover by cv(CoverStrategy.DEFAULT.useComposedDirCover)
-    @IsConfig(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
-    private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone)
+   @IsConfig(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")
+   private val coverLoadingUseComposedDirCover by cv(CoverStrategy.DEFAULT.useComposedDirCover)
+   @IsConfig(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
+   private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone)
 
-    private val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio + CELL_TEXT_HEIGHT, 5.0, 5.0)
-    private val imageLoader = Loader(burstTPExecutor(Runtime.getRuntime().availableProcessors()/2 max 1, 1.minutes, threadFactory("dirView-img-loader", true)))
-    private val visitId = AtomicLong(0)
-    private val placeholder = lazy {
-        Placeholder(FOLDER_PLUS, "Click to explore directory") {
-            chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, root.scene.window).ifOk { files setToOne it }
-        }
-    }
-    @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
-    private val filter by cv(FileFilters.filterPrimary.name) { FileFilters.toEnumerableValue(it) }
-    @IsConfig(name = "Sort", info = "Sorting effect.")
-    private val sort by cv(ASCENDING) attach { applySort() }
-    @IsConfig(name = "Sort first", info = "Group directories and files - files first, last or no separation.")
-    private val sortFile by cv(DIR_FIRST) attach { applySort() }
-    @IsConfig(name = "Sort seconds", info = "Sorting criteria.")
-    private val sortBy by cv<FileField<*>>(FileField.NAME).values(FileField.FIELDS) attach { applySort() }
-    @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
-    private var lastVisited by cn<File>(null).only(FileActor.DIRECTORY)
+   private val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio + CELL_TEXT_HEIGHT, 5.0, 5.0)
+   private val imageLoader = Loader(burstTPExecutor(Runtime.getRuntime().availableProcessors()/2 max 1, 1.minutes, threadFactory("dirView-img-loader", true)))
+   private val visitId = AtomicLong(0)
+   private val placeholder = lazy {
+      Placeholder(FOLDER_PLUS, "Click to explore directory") {
+         chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, root.scene.window).ifOk { files setToOne it }
+      }
+   }
+   @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
+   private val filter by cv(FileFilters.filterPrimary.name) { FileFilters.toEnumerableValue(it) }
+   @IsConfig(name = "Sort", info = "Sorting effect.")
+   private val sort by cv(ASCENDING) attach { applySort() }
+   @IsConfig(name = "Sort first", info = "Group directories and files - files first, last or no separation.")
+   private val sortFile by cv(DIR_FIRST) attach { applySort() }
+   @IsConfig(name = "Sort seconds", info = "Sorting criteria.")
+   private val sortBy by cv<FileField<*>>(FileField.NAME).values(FileField.FIELDS) attach { applySort() }
+   @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
+   private var lastVisited by cn<File>(null).only(FileActor.DIRECTORY)
 
-    private var item: Item? = null   // item, children of which are displayed
+   private var item: Item? = null   // item, children of which are displayed
 
-    @IsConfig(name = "Show navigation", info = "Whether breadcrumb navigation bar is visible.")
-    private val navigationVisible by cv(true)
-    private val navigationPane = StackPane()
-    private val navigation = Breadcrumbs<Item>(
-        {
-            when (it) {
-                is TopItem -> when (files.size) {
-                    0 -> "No location"
-                    1 -> files[0].absolutePath
-                    else -> "Location".pluralUnit(files.size)
-                }
-                else -> it.value.name
+   @IsConfig(name = "Show navigation", info = "Whether breadcrumb navigation bar is visible.")
+   private val navigationVisible by cv(true)
+   private val navigationPane = StackPane()
+   private val navigation = Breadcrumbs<Item>(
+      {
+         when (it) {
+            is TopItem -> when (files.size) {
+               0 -> "No location"
+               1 -> files[0].absolutePath
+               else -> "Location".pluralUnit(files.size)
             }
-        },
-        { visit(it) }
-    )
+            else -> it.value.name
+         }
+      },
+      { visit(it) }
+   )
 
-    init {
-        root.prefSize = 1000.scaleEM() x 700.scaleEM()
+   init {
+      root.prefSize = 1000.scaleEM() x 700.scaleEM()
 
-        grid.search.field = FileField.PATH
-        grid.primaryFilterField = FileField.NAME_FULL
-        grid.cellFactory = Callback { Cell() }
-        root.lay += layHeaderTop(0.0, Pos.CENTER_LEFT, navigationPane, grid)
+      grid.search.field = FileField.PATH
+      grid.primaryFilterField = FileField.NAME_FULL
+      grid.cellFactory = Callback { Cell() }
+      root.lay += layHeaderTop(0.0, Pos.CENTER_LEFT, navigationPane, grid)
 
-        grid.onEventDown(KEY_PRESSED, ENTER) {
-            val si = grid.selectedItem.value
-            if (si!=null) doubleClickItem(si, it.isShiftDown)
-        }
-        grid.onEventDown(KEY_PRESSED, BACK_SPACE) { visitUp() }
-        grid.onEventDown(MOUSE_CLICKED, SECONDARY) { visitUp() }
-        grid.onEventDown(MOUSE_CLICKED, BACK) { visitUp() }
-        grid.onEventUp(SCROLL) { e ->
-            if (e.isShortcutDown) {
-                e.consume()
-                val isInc = e.deltaY<0 || e.deltaX>0
-                val useFreeStyle = e.isShiftDown
-                if (useFreeStyle) {
-                    val preserveAspectRatio = true
-                    val scaleUnit = 1.2
-                    val w = grid.cellWidth
-                    val h = grid.cellHeight
-                    val nw = 50.0 max round(if (isInc) w*scaleUnit else w/scaleUnit)
-                    var nh = 50.0 max round(if (isInc) h*scaleUnit else h/scaleUnit)
-                    if (preserveAspectRatio) nh = nw/cellSizeRatio.value.ratio
-                    applyCellSize(nw, nh)
-                } else {
-                    if (isInc) cellSize.togglePrevious()
-                    else cellSize.toggleNext()
-                }
-            }
-        }
-
-        // drag & drop
-        installDrag(
-            root, FOLDER_PLUS, "Explore directory",
-            { e -> e.dragboard.hasFiles() },
-            { e ->
-                val fs = e.dragboard.files
-                files setTo if (fs.all { it.isDirectory }) fs else listOf(getCommonRoot(fs)!!)
-            }
-        )
-
-        coverLoadingUseComposedDirCover.attach { revisitCurrent() }
-        coverUseParentCoverIfNone.attach { revisitCurrent() }
-        fileFlatter attach { revisitCurrent() }
-        filter attach { revisitCurrent() }
-        navigationVisible sync {
-            if (it) navigationPane.children.add(0, navigation)
-            else navigationPane.children -= navigation
-        }
-        files.onChange { filesMaterialized = files.materialize() }
-        files.onChange { revisitTop() }
-        files.onChangeAndNow {
-            if (files.isEmpty()) placeholder.value.show(root, true)
-            else placeholder.orNull()?.hide()
-        }
-        onClose += { disposeItems() }
-        onClose += { imageLoader.shutdown() }
-
-        root.sync1IfInScene {
-            revisitCurrent()
-        }
-    }
-
-    private fun visitUp() {
-        item?.parent?.let {
-            item?.disposeChildrenContent()
-            visit(it)
-        }
-    }
-
-    private fun visit(dir: Item) {
-        item?.lastScrollPosition = grid.implGetSkin().position
-        if (item===dir) return
-        item?.takeIf { it.isHChildOf(dir) }?.disposeChildrenContent()
-        visitId.incrementAndGet()
-
-        item = dir
-        navigation.values setTo dir.traverse { it.parent }.toList().asReversed()
-        lastVisited = dir.value
-        runIO {
-            dir.children().sortedWith(buildSortComparator())
-        }.withAppProgress(
-            widget.custom_name.value + ": Fetching view"
-        ) ui {
-            grid.itemsRaw setTo it
-            grid.implGetSkin().position = dir.lastScrollPosition max 0.0
-            grid.requestFocus()
-        }
-    }
-
-    override fun focus() = grid.skinProperty().attach1IfNonNull { grid.implGetSkin().requestFocus() }.toUnit()
-
-    /** Visits top/root item. Rebuilds entire hierarchy. */
-    private fun revisitTop() {
-        disposeItems()
-        visit(TopItem())
-    }
-
-    /** Visits last visited item. Rebuilds entire hierarchy. */
-    private fun revisitCurrent() {
-        disposeItems()
-        val topItem = TopItem()
-        if (lastVisited==null) {
-            visit(topItem)
-        } else {
-
-            // Build stack of files representing the visited branch
-            val path = Stack<File>() // nested items we need to rebuild to get to last visited
-            var f = lastVisited
-            while (f!=null && topItem.children().none { it.value==f }) {
-                path.push(f)
-                f = f.parentFile
-            }
-            val tmpF = f
-            val success = topItem.children().any { it.value!=null && it.value==tmpF }
-            if (success) {
-                path.push(f)
-            }
-
-            // Visit the branch
-            if (success) {
-                runIO {
-                    var item: Item? = topItem
-                    while (!path.isEmpty()) {
-                        val tmp = path.pop()
-                        item = item?.children()?.find { tmp==it.value }
-                    }
-                    item ?: topItem
-                } ui {
-                    visit(it)
-                }
+      grid.onEventDown(KEY_PRESSED, ENTER) {
+         val si = grid.selectedItem.value
+         if (si!=null) doubleClickItem(si, it.isShiftDown)
+      }
+      grid.onEventDown(KEY_PRESSED, BACK_SPACE) { visitUp() }
+      grid.onEventDown(MOUSE_CLICKED, SECONDARY) { visitUp() }
+      grid.onEventDown(MOUSE_CLICKED, BACK) { visitUp() }
+      grid.onEventUp(SCROLL) { e ->
+         if (e.isShortcutDown) {
+            e.consume()
+            val isInc = e.deltaY<0 || e.deltaX>0
+            val useFreeStyle = e.isShiftDown
+            if (useFreeStyle) {
+               val preserveAspectRatio = true
+               val scaleUnit = 1.2
+               val w = grid.cellWidth
+               val h = grid.cellHeight
+               val nw = 50.0 max round(if (isInc) w*scaleUnit else w/scaleUnit)
+               var nh = 50.0 max round(if (isInc) h*scaleUnit else h/scaleUnit)
+               if (preserveAspectRatio) nh = nw/cellSizeRatio.value.ratio
+               applyCellSize(nw, nh)
             } else {
-                visit(topItem)
+               if (isInc) cellSize.togglePrevious()
+               else cellSize.toggleNext()
             }
-        }
-    }
+         }
+      }
 
-    private fun disposeItems() = item?.hRoot?.dispose()
+      // drag & drop
+      installDrag(
+         root, FOLDER_PLUS, "Explore directory",
+         { e -> e.dragboard.hasFiles() },
+         { e ->
+            val fs = e.dragboard.files
+            files setTo if (fs.all { it.isDirectory }) fs else listOf(getCommonRoot(fs)!!)
+         }
+      )
 
-    private fun doubleClickItem(i: Item, edit: Boolean) {
-        if (i.valType==DIRECTORY)
-            visit(i)
-        else {
-            if (edit) i.value.edit()
-            else i.value.open()
-        }
-    }
+      coverLoadingUseComposedDirCover.attach { revisitCurrent() }
+      coverUseParentCoverIfNone.attach { revisitCurrent() }
+      fileFlatter attach { revisitCurrent() }
+      filter attach { revisitCurrent() }
+      navigationVisible sync {
+         if (it) navigationPane.children.add(0, navigation)
+         else navigationPane.children -= navigation
+      }
+      files.onChange { filesMaterialized = files.materialize() }
+      files.onChange { revisitTop() }
+      files.onChangeAndNow {
+         if (files.isEmpty()) placeholder.value.show(root, true)
+         else placeholder.orNull()?.hide()
+      }
+      onClose += { disposeItems() }
+      onClose += { imageLoader.shutdown() }
 
-    private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
-        grid.setCellSize(width, height + CELL_TEXT_HEIGHT)
-        revisitCurrent()
-    }
+      root.sync1IfInScene {
+         revisitCurrent()
+      }
+   }
 
-    private fun applySort() {
-        fut(grid.itemsRaw.materialize()).then(IO) {
-            it.sortedWith(buildSortComparator())
-        } ui {
-            grid.itemsRaw setTo it
-        }
-    }
+   private fun visitUp() {
+      item?.parent?.let {
+         item?.disposeChildrenContent()
+         visit(it)
+      }
+   }
 
-    private fun buildSortComparator() = compareBy<Item> { 0 }
-        .thenBy { it.valType }.inSort(sortFile.value.sort)
-        .thenBy(sortBy.value.comparator<File> { it.inSort(sort.value).nullsLast() }) { it.value }
-        .thenBy { it.value.path }
+   private fun visit(dir: Item) {
+      item?.lastScrollPosition = grid.implGetSkin().position
+      if (item===dir) return
+      item?.takeIf { it.isHChildOf(dir) }?.disposeChildrenContent()
+      visitId.incrementAndGet()
 
-    private inner class Cell: GridFileThumbCell(imageLoader) {
-        private val disposer = Disposer()
+      item = dir
+      navigation.values setTo dir.traverse { it.parent }.toList().asReversed()
+      lastVisited = dir.value
+      runIO {
+         dir.children().sortedWith(buildSortComparator())
+      }.withAppProgress(
+         widget.custom_name.value + ": Fetching view"
+      ) ui {
+         grid.itemsRaw setTo it
+         grid.implGetSkin().position = dir.lastScrollPosition max 0.0
+         grid.requestFocus()
+      }
+   }
 
-        override fun computeCellTextHeight() = CELL_TEXT_HEIGHT
+   override fun focus() = grid.skinProperty().attach1IfNonNull { grid.implGetSkin().requestFocus() }.toUnit()
 
-        override fun computeGraphics() {
-            super.computeGraphics()
-            thumb.fitFrom syncFrom fitFrom on disposer
-            root install appTooltipForData { thumb.representant }
-        }
+   /** Visits top/root item. Rebuilds entire hierarchy. */
+   private fun revisitTop() {
+      disposeItems()
+      visit(TopItem())
+   }
 
-        override fun computeTask(r: Runnable) = onlyIfMatches(visitId, r)
+   /** Visits last visited item. Rebuilds entire hierarchy. */
+   private fun revisitCurrent() {
+      disposeItems()
+      val topItem = TopItem()
+      if (lastVisited==null) {
+         visit(topItem)
+      } else {
 
-        override fun onAction(i: Item, edit: Boolean) = doubleClickItem(i, edit)
+         // Build stack of files representing the visited branch
+         val path = Stack<File>() // nested items we need to rebuild to get to last visited
+         var f = lastVisited
+         while (f!=null && topItem.children().none { it.value==f }) {
+            path.push(f)
+            f = f.parentFile
+         }
+         val tmpF = f
+         val success = topItem.children().any { it.value!=null && it.value==tmpF }
+         if (success) {
+            path.push(f)
+         }
 
-        override fun dispose() {
-            disposer()
-            super.dispose()
-        }
-    }
-
-    private open inner class FItem(parent: Item?, value: File?, type: FileType?): Item(parent, value, type) {
-
-        override fun createItem(parent: Item, value: File, type: FileType) = FItem(parent, value, type)
-
-        override fun filterChildFile(f: File) = !f.isHidden && f.canRead() && filter.getValueAsFilter()(f, arrayOf())
-
-    }
-
-    private inner class TopItem: FItem(null, null, null) {
-
-        init {
-            coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value)
-        }
-
-        override fun childrenFiles() = fileFlatter.value.flatten(filesMaterialized).map { CachingFile(it) }
-
-        override fun getCoverFile() = children().firstOrNull()?.value?.parentFile?.let { getImageT(it, "cover") }
-
-    }
-
-    private class Breadcrumbs<T>(converter: (T) -> String, onClick: (T) -> Unit): HBox() {
-        val values = observableArrayList<T>()!!
-
-        init {
-            padding = Insets(10.0)
-            spacing = 10.0
-
-            values.onChange {
-                val cs = mutableListOf<Label>()
-                values.forEach { value ->
-                    cs += label(converter(value)) {
-                        val a = anim(150.millis) { setScaleXYByTo(it, 0.0, 5.0) }.intpl { it*it }
-                        onHoverOrDragStart { a.playOpen() }
-                        onHoverOrDragEnd { a.playClose() }
-                        onEventDown(MOUSE_CLICKED) { onClick(value) }
-                    }
-                    cs += label(">")
-                }
-                if (!cs.isEmpty()) cs.removeAt(cs.size - 1)
-
-                children setTo cs
+         // Visit the branch
+         if (success) {
+            runIO {
+               var item: Item? = topItem
+               while (!path.isEmpty()) {
+                  val tmp = path.pop()
+                  item = item?.children()?.find { tmp==it.value }
+               }
+               item ?: topItem
+            } ui {
+               visit(it)
             }
-        }
+         } else {
+            visit(topItem)
+         }
+      }
+   }
 
-    }
+   private fun disposeItems() = item?.hRoot?.dispose()
 
-    companion object {
-        private const val CELL_TEXT_HEIGHT = 20.0
-    }
+   private fun doubleClickItem(i: Item, edit: Boolean) {
+      if (i.valType==DIRECTORY)
+         visit(i)
+      else {
+         if (edit) i.value.edit()
+         else i.value.open()
+      }
+   }
+
+   private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
+      grid.setCellSize(width, height + CELL_TEXT_HEIGHT)
+      revisitCurrent()
+   }
+
+   private fun applySort() {
+      fut(grid.itemsRaw.materialize()).then(IO) {
+         it.sortedWith(buildSortComparator())
+      } ui {
+         grid.itemsRaw setTo it
+      }
+   }
+
+   private fun buildSortComparator() = compareBy<Item> { 0 }
+      .thenBy { it.valType }.inSort(sortFile.value.sort)
+      .thenBy(sortBy.value.comparator<File> { it.inSort(sort.value).nullsLast() }) { it.value }
+      .thenBy { it.value.path }
+
+   private inner class Cell: GridFileThumbCell(imageLoader) {
+      private val disposer = Disposer()
+
+      override fun computeCellTextHeight() = CELL_TEXT_HEIGHT
+
+      override fun computeGraphics() {
+         super.computeGraphics()
+         thumb.fitFrom syncFrom fitFrom on disposer
+         root install appTooltipForData { thumb.representant }
+      }
+
+      override fun computeTask(r: Runnable) = onlyIfMatches(visitId, r)
+
+      override fun onAction(i: Item, edit: Boolean) = doubleClickItem(i, edit)
+
+      override fun dispose() {
+         disposer()
+         super.dispose()
+      }
+   }
+
+   private open inner class FItem(parent: Item?, value: File?, type: FileType?): Item(parent, value, type) {
+
+      override fun createItem(parent: Item, value: File, type: FileType) = FItem(parent, value, type)
+
+      override fun filterChildFile(f: File) = !f.isHidden && f.canRead() && filter.getValueAsFilter()(f, arrayOf())
+
+   }
+
+   private inner class TopItem: FItem(null, null, null) {
+
+      init {
+         coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value)
+      }
+
+      override fun childrenFiles() = fileFlatter.value.flatten(filesMaterialized).map { CachingFile(it) }
+
+      override fun getCoverFile() = children().firstOrNull()?.value?.parentFile?.let { getImageT(it, "cover") }
+
+   }
+
+   private class Breadcrumbs<T>(converter: (T) -> String, onClick: (T) -> Unit): HBox() {
+      val values = observableArrayList<T>()!!
+
+      init {
+         padding = Insets(10.0)
+         spacing = 10.0
+
+         values.onChange {
+            val cs = mutableListOf<Label>()
+            values.forEach { value ->
+               cs += label(converter(value)) {
+                  val a = anim(150.millis) { setScaleXYByTo(it, 0.0, 5.0) }.intpl { it*it }
+                  onHoverOrDragStart { a.playOpen() }
+                  onHoverOrDragEnd { a.playClose() }
+                  onEventDown(MOUSE_CLICKED) { onClick(value) }
+               }
+               cs += label(">")
+            }
+            if (!cs.isEmpty()) cs.removeAt(cs.size - 1)
+
+            children setTo cs
+         }
+      }
+
+   }
+
+   companion object {
+      private const val CELL_TEXT_HEIGHT = 20.0
+   }
 
 }

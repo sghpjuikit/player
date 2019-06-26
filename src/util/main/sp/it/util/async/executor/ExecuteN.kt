@@ -9,11 +9,11 @@ import java.util.concurrent.atomic.AtomicLong
  * Guarantees maximum number of executions to be at most the specified times, after which [execute] does nothing.
  */
 class ExecuteN(max: Long): Executor {
-    private val max = max
-    private var executed = AtomicLong(0)
+   private val max = max
+   private var executed = AtomicLong(0)
 
-    override fun execute(r: Runnable) {
-        executed.incrementAndGet()
-        if (executed.get()<=max) r.run()
-    }
+   override fun execute(r: Runnable) {
+      executed.incrementAndGet()
+      if (executed.get()<=max) r.run()
+   }
 }

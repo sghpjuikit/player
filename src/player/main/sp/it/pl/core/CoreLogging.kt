@@ -14,42 +14,42 @@ import java.util.logging.LogManager
 
 class CoreLogging(val loggingConfigurationFile: File, val loggingOutputDir: File): Core {
 
-    override fun init() {
-        // redirect java util logging to sl4j
-        SLF4JBridgeHandler.removeHandlersForRootLogger()
-        SLF4JBridgeHandler.install()
+   override fun init() {
+      // redirect java util logging to sl4j
+      SLF4JBridgeHandler.removeHandlersForRootLogger()
+      SLF4JBridgeHandler.install()
 
-        // configure slf4 logging
-        val lc = LoggerFactory.getILoggerFactory() as LoggerContext
-        try {
-            JoranConfigurator().apply {
-                context = lc.apply {
-                    reset()
-                    putProperty("LOG_DIR", loggingOutputDir.path)
-                }
-                doConfigure(loggingConfigurationFile)    // override default configuration
+      // configure slf4 logging
+      val lc = LoggerFactory.getILoggerFactory() as LoggerContext
+      try {
+         JoranConfigurator().apply {
+            context = lc.apply {
+               reset()
+               putProperty("LOG_DIR", loggingOutputDir.path)
             }
-        } catch (ex: JoranException) {
-            logger.error { ex.message }
-        }
-        StatusPrinter.printInCaseOfErrorsOrWarnings(lc)
+            doConfigure(loggingConfigurationFile)    // override default configuration
+         }
+      } catch (ex: JoranException) {
+         logger.error { ex.message }
+      }
+      StatusPrinter.printInCaseOfErrorsOrWarnings(lc)
 
-        // log uncaught thread termination exceptions
-        Thread.setDefaultUncaughtExceptionHandler { _, e -> logger.error(e) { "Uncaught exception" } }
-    }
+      // log uncaught thread termination exceptions
+      Thread.setDefaultUncaughtExceptionHandler { _, e -> logger.error(e) { "Uncaught exception" } }
+   }
 
-    fun changeLogBackLoggerAppenderLevel(appenderName: String, level: Level) {
-        LogManager.getLogManager().reset()
+   fun changeLogBackLoggerAppenderLevel(appenderName: String, level: Level) {
+      LogManager.getLogManager().reset()
 
-        val logger = (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) ?: null)
-            as? ch.qos.logback.classic.Logger
-        val filter = logger
-            ?.getAppender(appenderName)
-            ?.copyOfAttachedFiltersList
-            ?.firstOrNull()
-            as? ch.qos.logback.classic.filter.ThresholdFilter
-        filter?.setLevel(level.toString())
-    }
+      val logger = (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) ?: null)
+         as? ch.qos.logback.classic.Logger
+      val filter = logger
+         ?.getAppender(appenderName)
+         ?.copyOfAttachedFiltersList
+         ?.firstOrNull()
+         as? ch.qos.logback.classic.filter.ThresholdFilter
+      filter?.setLevel(level.toString())
+   }
 
-    companion object: KLogging()
+   companion object: KLogging()
 }

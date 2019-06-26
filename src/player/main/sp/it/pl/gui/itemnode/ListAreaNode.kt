@@ -46,77 +46,77 @@ import java.util.function.Consumer
  */
 open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
-    private val root = vBox()
-    @JvmField protected val textArea = TextArea()
-    @JvmField val input = FXCollections.observableArrayList<Any?>()!!
-    /** The transformation chain. */
-    @JvmField val transforms = FChainItemNode({ Functors.pool.getI(it) })
-    /** Text of the text area and approximately concatenated [getVal]. Editable by user (ui) and programmatically. */
-    @JvmField val outputText = textArea.textProperty()!!
-    /**
-     * Value of this - a transformation output of the input list after transformation is applied to each
-     * element. The text of this area shows string representation of this list.
-     *
-     * Note that the area is editable, but the changes will (and possibly could) only be reflected in this list only
-     * if its type is [String], i.e., if the last transformation transforms into [String]. This is because this object
-     * is a [String] transformer.
-     *
-     * When [outputText] is edited, then if:
-     *  * output type is String: it is considered a transformation of that text and it will be
-     * reflected in this list, i.e., [getVal] and this will contain equal elements
-     *  * output type is not String: it is considered arbitrary user change of the text representation
-     * of transformation output (i.e., this list), but not the output itself.
-     *
-     * When further transforming the elements, the manual edit will always be ignored, i.e., only after-transformation
-     * text edit will be considered.
-     *
-     * When observing this list, changes of the text area will only be reflected in it (and fire
-     * list change events) when the output type is String. You may observe the text directly using
-     * [outputText]
-     */
-    @JvmField val output = FXCollections.observableArrayList<Any?>()!!
+   private val root = vBox()
+   @JvmField protected val textArea = TextArea()
+   @JvmField val input = FXCollections.observableArrayList<Any?>()!!
+   /** The transformation chain. */
+   @JvmField val transforms = FChainItemNode({ Functors.pool.getI(it) })
+   /** Text of the text area and approximately concatenated [getVal]. Editable by user (ui) and programmatically. */
+   @JvmField val outputText = textArea.textProperty()!!
+   /**
+    * Value of this - a transformation output of the input list after transformation is applied to each
+    * element. The text of this area shows string representation of this list.
+    *
+    * Note that the area is editable, but the changes will (and possibly could) only be reflected in this list only
+    * if its type is [String], i.e., if the last transformation transforms into [String]. This is because this object
+    * is a [String] transformer.
+    *
+    * When [outputText] is edited, then if:
+    *  * output type is String: it is considered a transformation of that text and it will be
+    * reflected in this list, i.e., [getVal] and this will contain equal elements
+    *  * output type is not String: it is considered arbitrary user change of the text representation
+    * of transformation output (i.e., this list), but not the output itself.
+    *
+    * When further transforming the elements, the manual edit will always be ignored, i.e., only after-transformation
+    * text edit will be considered.
+    *
+    * When observing this list, changes of the text area will only be reflected in it (and fire
+    * list change events) when the output type is String. You may observe the text directly using
+    * [outputText]
+    */
+   @JvmField val output = FXCollections.observableArrayList<Any?>()!!
 
-    init {
-        transforms.onItemChange = Consumer { transformation ->
-            val result = input.map(transformation)
-            if (transforms.typeOut!=String::class.java)
-                output setTo result
+   init {
+      transforms.onItemChange = Consumer { transformation ->
+         val result = input.map(transformation)
+         if (transforms.typeOut!=String::class.java)
+            output setTo result
 
-            textArea.text = result.asSequence().map { "$it" }.joinToString("\n")
-        }
-        textArea.textProperty() attach { text ->
-            val newVal = text.split("\n")
-            changeValue(newVal)
+         textArea.text = result.asSequence().map { "$it" }.joinToString("\n")
+      }
+      textArea.textProperty() attach { text ->
+         val newVal = text.split("\n")
+         changeValue(newVal)
 
-            if (transforms.typeOut==String::class.java)
-                output setTo newVal
-        }
-        textArea.onEventDown(KEY_PRESSED, CONTROL, V) { it.consume() }
+         if (transforms.typeOut==String::class.java)
+            output setTo newVal
+      }
+      textArea.onEventDown(KEY_PRESSED, CONTROL, V) { it.consume() }
 
-        root.lay(ALWAYS) += textArea
-        root.lay += transforms.getNode()
-    }
+      root.lay(ALWAYS) += textArea
+      root.lay += transforms.getNode()
+   }
 
-    /**
-     * Sets the input list.
-     * The input element type is determined to the best of the ability.
-     * Transformation chain is cleared if the type of list has changed.
-     * Updates text of the text area.
-     */
-    open fun setData(data: List<Any>) {
-        input setTo data
-        transforms.typeIn = data.getElementType()  // fires update
-    }
+   /**
+    * Sets the input list.
+    * The input element type is determined to the best of the ability.
+    * Transformation chain is cleared if the type of list has changed.
+    * Updates text of the text area.
+    */
+   open fun setData(data: List<Any>) {
+      input setTo data
+      transforms.typeIn = data.getElementType()  // fires update
+   }
 
-    /** Splits the specified text and [setData] with the result */
-    fun setData(text: String) = setData(text.split("\n"))
+   /** Splits the specified text and [setData] with the result */
+   fun setData(text: String) = setData(text.split("\n"))
 
-    /** @return the input that was last set or empty list if none */
-    fun getInput(): List<Any> = listOf(input)
+   /** @return the input that was last set or empty list if none */
+   fun getInput(): List<Any> = listOf(input)
 
-    override fun getNode() = root
+   override fun getNode() = root
 
-    /** @return the value as text = [outputText] */
-    fun getValAsText(): String = textArea.text
+   /** @return the value as text = [outputText] */
+   fun getValAsText(): String = textArea.text
 
 }

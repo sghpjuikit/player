@@ -1,18 +1,18 @@
 plugins {
-    kotlin("jvm")
+   kotlin("jvm")
 }
 
 sourceSets {
-    main {
-        java.srcDir("main")
-        resources.srcDir("main")
-    }
-    test {
-        java.srcDir("test")
-        resources.srcDir("test")
-    }
+   main {
+      java.srcDir("main")
+      resources.srcDir("main")
+   }
+   test {
+      java.srcDir("test")
+      resources.srcDir("test")
+   }
 }
 
 dependencies {
-    implementation(project(":util"))
+   implementation(project(":util"))
 }

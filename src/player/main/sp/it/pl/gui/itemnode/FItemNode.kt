@@ -28,71 +28,71 @@ import java.util.function.Supplier
  * @param <O> type of function output
  */
 class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): ValueNode<Ƒ1<in I, out O>?>(null) {
-    private val root = hBox(5, CENTER_LEFT).apply { id = "fItemNodeRoot" }
-    private val paramB = hBox(5, CENTER_LEFT).apply { id = "fItemNodeParamsRoot" }
-    private val configs = ArrayList<ConfigField<*>>()
-    private val fCB: ComboBox<PƑ<in I, out O>>
-    private var inconsistentState = false
+   private val root = hBox(5, CENTER_LEFT).apply { id = "fItemNodeRoot" }
+   private val paramB = hBox(5, CENTER_LEFT).apply { id = "fItemNodeParamsRoot" }
+   private val configs = ArrayList<ConfigField<*>>()
+   private val fCB: ComboBox<PƑ<in I, out O>>
+   private var inconsistentState = false
 
-    init {
-        val functions = functionPool.get()
+   init {
+      val functions = functionPool.get()
 
-        inconsistentState = true
-        fCB = ImprovedComboBox { it.name }
-        fCB.items setTo functions.asSequence().sortedBy { it.name }
-        fCB.value = functions.preferredOrFirst
-        fCB.valueProperty() sync { function ->
-            configs.clear()
-            paramB.children.clear()
-            function.parameters.forEachIndexed { i, p ->
-                val editor = p.toConfig { generateValue() }.toConfigField()
-                configs += editor
-                paramB.lay(if (i==0) ALWAYS else SOMETIMES) += editor.buildNode(false)
-            }
-            generateValue()
-        }
-        inconsistentState = false
-        generateValue()
+      inconsistentState = true
+      fCB = ImprovedComboBox { it.name }
+      fCB.items setTo functions.asSequence().sortedBy { it.name }
+      fCB.value = functions.preferredOrFirst
+      fCB.valueProperty() sync { function ->
+         configs.clear()
+         paramB.children.clear()
+         function.parameters.forEachIndexed { i, p ->
+            val editor = p.toConfig { generateValue() }.toConfigField()
+            configs += editor
+            paramB.lay(if (i==0) ALWAYS else SOMETIMES) += editor.buildNode(false)
+         }
+         generateValue()
+      }
+      inconsistentState = false
+      generateValue()
 
-        root.lay += fCB
-        root.lay(ALWAYS) += paramB
-    }
+      root.lay += fCB
+      root.lay(ALWAYS) += paramB
+   }
 
-    override fun getVal() = super.getVal()!!
+   override fun getVal() = super.getVal()!!
 
-    override fun getNode() = root
+   override fun getNode() = root
 
-    override fun focus() {
-        configs.firstOrNull()?.focusEditor()
-    }
+   override fun focus() {
+      configs.firstOrNull()?.focusEditor()
+   }
 
-    fun getTypeIn(): Class<*> = fCB.value?.`in` ?: Void::class.java
+   fun getTypeIn(): Class<*> = fCB.value?.`in` ?: Void::class.java
 
-    fun getTypeOut(): Class<*> = fCB.value?.out ?: Void::class.java
+   fun getTypeOut(): Class<*> = fCB.value?.out ?: Void::class.java
 
-    private fun generateValue() {
-        if (inconsistentState) return
-        val functionRaw = fCB.value
-        val parameters = configs.map { it.getConfigValue() }
-        val function = functionRaw.toƑ1(parameters)
-        changeValue(function)
-    }
+   private fun generateValue() {
+      if (inconsistentState) return
+      val functionRaw = fCB.value
+      val parameters = configs.map { it.configValue }
+      val function = functionRaw.toƑ1(parameters)
+      changeValue(function)
+   }
 
-    fun clear() {
-        inconsistentState = true
-        configs.forEach { it.setNapplyDefault() }
-        inconsistentState = false
-        generateValue()
-    }
+   fun clear() {
+      inconsistentState = true
+      configs.forEach { it.setNapplyDefault() }
+      inconsistentState = false
+      generateValue()
+   }
 
-    companion object {
+   companion object {
 
-        private fun <T> Config<T>.toConfigField() = ConfigField.create(this)
+      private fun <T> Config<T>.toConfigField() = ConfigField.create(this)
 
-        private fun <T> Functors.Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
-            val a = vn(defaultValue).apply { attach { onChange(it) } }
-            return AccessorConfig(type, name, description, Consumer { a.value = it }, Supplier { a.value })
-        }
+      private fun <T> Functors.Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
+         val a = vn(defaultValue).apply { attach { onChange(it) } }
+         return AccessorConfig(type, name, description, Consumer { a.value = it }, Supplier { a.value })
+      }
 
-    }
+   }
 }

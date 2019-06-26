@@ -11,71 +11,71 @@ import java.util.Comparator
  */
 interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
 
-    /**
-     * Returns whether this value has human readable string representation. This
-     * denotes, whether this type should be attempted to be displayed as text (not if it is String),
-     * e.g., when generating generic table columns.
-     *
-     * The type does not have to be String for this field to be string representable. Any type
-     * can be string representable as long as it provides a string converter producing human
-     * readable string (compact enough to be used in gui such as tables). Example of string field
-     * that is not string representable would be a fulltext field - field that is a concatenation
-     * of all string fields, used for fulltext search.
-     *
-     * Default implementation returns true.
-     *
-     * @return whether the field can be displayed as a human readable text in a gui
-     */
-    fun isTypeStringRepresentable(): Boolean = true
+   /**
+    * Returns whether this value has human readable string representation. This
+    * denotes, whether this type should be attempted to be displayed as text (not if it is String),
+    * e.g., when generating generic table columns.
+    *
+    * The type does not have to be String for this field to be string representable. Any type
+    * can be string representable as long as it provides a string converter producing human
+    * readable string (compact enough to be used in gui such as tables). Example of string field
+    * that is not string representable would be a fulltext field - field that is a concatenation
+    * of all string fields, used for fulltext search.
+    *
+    * Default implementation returns true.
+    *
+    * @return whether the field can be displayed as a human readable text in a gui
+    */
+   fun isTypeStringRepresentable(): Boolean = true
 
-    fun getOf(value: V): T?
+   fun getOf(value: V): T?
 
-    override fun getOfS(value: V, substitute: String): String = toS(getOf(value), substitute)
+   override fun getOfS(value: V, substitute: String): String = toS(getOf(value), substitute)
 
-    /** @return description of the field */
-    fun description(): String
+   /** @return description of the field */
+   fun description(): String
 
-    /** @return name of the field */
-    fun name(): String
+   /** @return name of the field */
+   fun name(): String
 
-    /**
-     * Used as string converter for fielded values. For example in tables.
-     * When the object signifies empty value, a substitute is returned.
-     */
-    fun toS(o: T?, substitute: String): String
+   /**
+    * Used as string converter for fielded values. For example in tables.
+    * When the object signifies empty value, a substitute is returned.
+    */
+   fun toS(o: T?, substitute: String): String
 
-    /**
-     * Returns a comparator comparing by the value extracted by this field or [sp.it.util.functional.Util.SAME] if
-     * this field does not extract [java.lang.Comparable] type.
-     *
-     * Note, that because value returned by [.getOf] can be null, comparator this method returns may
-     * be unsafe - throw [java.lang.NullPointerException] when comparing null values - and must be guarded, by
-     * providing transformer that makes it null safe.
-     *
-     * @param comparatorTransformer function that transforms the underlying null-unsafe comparator into null-safe one
-     */
-    @Suppress("UNCHECKED_CAST")
-    fun <C: Comparable<C>> comparator(comparatorTransformer: (Comparator<in C>) -> Comparator<in C?> = { it.nullsLast() }): Comparator<V?> {
-        return if (Comparable::class.java.isAssignableFrom(type))
-            by<V, C>({ o -> getOf(o) as C? }, comparatorTransformer)
-        else
-            sp.it.util.functional.Util.SAME as Comparator<V?>
-    }
+   /**
+    * Returns a comparator comparing by the value extracted by this field or [sp.it.util.functional.Util.SAME] if
+    * this field does not extract [java.lang.Comparable] type.
+    *
+    * Note, that because value returned by [.getOf] can be null, comparator this method returns may
+    * be unsafe - throw [java.lang.NullPointerException] when comparing null values - and must be guarded, by
+    * providing transformer that makes it null safe.
+    *
+    * @param comparatorTransformer function that transforms the underlying null-unsafe comparator into null-safe one
+    */
+   @Suppress("UNCHECKED_CAST")
+   fun <C: Comparable<C>> comparator(comparatorTransformer: (Comparator<in C>) -> Comparator<in C?> = { it.nullsLast() }): Comparator<V?> {
+      return if (Comparable::class.java.isAssignableFrom(type))
+         by<V, C>({ o -> getOf(o) as C? }, comparatorTransformer)
+      else
+         sp.it.util.functional.Util.SAME as Comparator<V?>
+   }
 
-    fun <C: Comparable<C>> comparator(): Comparator<V?> = comparator<C> { it.nullsLast() }
+   fun <C: Comparable<C>> comparator(): Comparator<V?> = comparator<C> { it.nullsLast() }
 
-    fun toS(v: V, o: T?, substitute: String): String = toS(o, substitute)
+   fun toS(v: V, o: T?, substitute: String): String = toS(o, substitute)
 
-    fun isTypeFilterable(): Boolean = true
+   fun isTypeFilterable(): Boolean = true
 
-    fun searchSupported(): Boolean = isTypeStringRepresentable()
+   fun searchSupported(): Boolean = isTypeStringRepresentable()
 
-    fun searchMatch(matcher: (String) -> Boolean): (V) -> Boolean = { matcher(getOfS(it, "")) }
+   fun searchMatch(matcher: (String) -> Boolean): (V) -> Boolean = { matcher(getOfS(it, "")) }
 
-    fun cWidth(): Double = 70.0
+   fun cWidth(): Double = 70.0
 
-    fun cVisible(): Boolean = true
+   fun cVisible(): Boolean = true
 
-    fun cOrder(): Int = if (this is Enum<*>) ordinal else 1
+   fun cOrder(): Int = if (this is Enum<*>) ordinal else 1
 
 }

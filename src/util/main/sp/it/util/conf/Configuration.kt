@@ -24,183 +24,183 @@ import kotlin.streams.asSequence
 /** Persistable [Configurable]. */
 open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${it.name}" }): Configurable<Any?> {
 
-    private val methodLookup = MethodHandles.lookup()
-    private val namePostMapper: (String) -> String = { s -> s.replace(' ', '_').toLowerCase() }
-    private val configToRawKeyMapper = nameMapper compose namePostMapper
-    private val properties = ConcurrentHashMap<String, String>()
-    private val configs: MapSet<String, Config<*>> = MapSet(ConcurrentHashMap(), configToRawKeyMapper)
+   private val methodLookup = MethodHandles.lookup()
+   private val namePostMapper: (String) -> String = { s -> s.replace(' ', '_').toLowerCase() }
+   private val configToRawKeyMapper = nameMapper compose namePostMapper
+   private val properties = ConcurrentHashMap<String, String>()
+   private val configs: MapSet<String, Config<*>> = MapSet(ConcurrentHashMap(), configToRawKeyMapper)
 
-    @Suppress("UNCHECKED_CAST")
-    override fun getField(name: String): Config<Any?> = configs.find { it.name==name } as Config<Any?>
+   @Suppress("UNCHECKED_CAST")
+   override fun getField(name: String): Config<Any?> = configs.find { it.name==name } as Config<Any?>
 
-    @Suppress("UNCHECKED_CAST")
-    override fun getFields(): Collection<Config<Any?>> = configs as Collection<Config<Any?>>
+   @Suppress("UNCHECKED_CAST")
+   override fun getFields(): Collection<Config<Any?>> = configs as Collection<Config<Any?>>
 
-    /**
-     * Returns raw key-value ([java.lang.String]) pairs representing the serialized configs.
-     *
-     * @return modifiable thread safe map of key-value property pairs
-     */
-    fun rawGetAll(): Map<String, String> = properties
+   /**
+    * Returns raw key-value ([java.lang.String]) pairs representing the serialized configs.
+    *
+    * @return modifiable thread safe map of key-value property pairs
+    */
+   fun rawGetAll(): Map<String, String> = properties
 
-    fun rawGet(key: String): String = properties[key]!!
+   fun rawGet(key: String): String = properties[key]!!
 
-    fun rawGet(config: Config<*>): String = properties[configToRawKeyMapper(config)]!!
+   fun rawGet(config: Config<*>): String = properties[configToRawKeyMapper(config)]!!
 
-    fun rawContains(config: String): Boolean = properties.containsKey(config)
+   fun rawContains(config: String): Boolean = properties.containsKey(config)
 
-    fun rawContains(config: Config<*>): Boolean = properties.containsKey(configToRawKeyMapper(config))
+   fun rawContains(config: Config<*>): Boolean = properties.containsKey(configToRawKeyMapper(config))
 
-    fun rawAdd(name: String, value: String) = properties.put(name, value)
+   fun rawAdd(name: String, value: String) = properties.put(name, value)
 
-    fun rawAdd(properties: Map<String, String>) = this.properties.putAll(properties)
+   fun rawAdd(properties: Map<String, String>) = this.properties.putAll(properties)
 
-    fun rawAdd(file: File) = file.readProperties().orNull().orEmpty().forEach { (name, value) -> rawAdd(name, value) }
+   fun rawAdd(file: File) = file.readProperties().orNull().orEmpty().forEach { (name, value) -> rawAdd(name, value) }
 
-    fun rawRemProperty(key: String) = properties.remove(key)
+   fun rawRemProperty(key: String) = properties.remove(key)
 
-    fun rawRemProperties(properties: Map<String, String>) = properties.forEach { (name, _) -> rawRemProperty(name) }
+   fun rawRemProperties(properties: Map<String, String>) = properties.forEach { (name, _) -> rawRemProperty(name) }
 
-    fun rawRem(file: File) = file.readProperties().orNull().orEmpty().forEach { (name, _) -> rawRemProperty(name) }
+   fun rawRem(file: File) = file.readProperties().orNull().orEmpty().forEach { (name, _) -> rawRemProperty(name) }
 
-    fun <C> collect(c: Configurable<C>) = collect(c.fields)
+   fun <C> collect(c: Configurable<C>) = collect(c.fields)
 
-    fun <C> collect(c: Collection<Config<C>>): Unit = c.forEach(::collect)
+   fun <C> collect(c: Collection<Config<C>>): Unit = c.forEach(::collect)
 
-    fun <C> collect(vararg cs: Configurable<C>): Unit = cs.forEach { collect(it) }
+   fun <C> collect(vararg cs: Configurable<C>): Unit = cs.forEach { collect(it) }
 
-    fun collectStatic(vararg notAnnotatedClasses: Class<*>): Unit = notAnnotatedClasses.asSequence().distinct()
-        .forEach {
-            collect(configsOf(it, null, true, false))
-        }
-
-
-    fun <C> collect(config: Config<C>) {
-        configs += config
-
-        // TODO disabled due to:
-        // 1 implemented only for boolean, while it should be for any enumerable config
-        // 2 unsolved ui (settings) spam, this creates lots of configs and they should be inline
-        // 3 the generated actions must be unregistered if config is dropped
-        @Suppress("UNCHECKED_CAST", "ConstantConditionIf")
-        if (false)
-            config.takeIf { it.type.isSubclassOf<Boolean>() && it.isEditable.isByUser }
-                ?.let { it as Config<Boolean> }
-                ?.let {
-                    val name = "${it.guiName} - toggle"
-                    val description = "Toggles value ${it.name} between true/false"
-                    val r = { if (it.isEditableByUserRightNow()) it.toggle() }
-                    val a = Action(name, r, description, it.group, "", false, false)
-                    rawSet(a)
-                    ActionRegistrar.getActions() += a
-                    configs += a
-                }
+   fun collectStatic(vararg notAnnotatedClasses: Class<*>): Unit = notAnnotatedClasses.asSequence().distinct()
+      .forEach {
+         collect(configsOf(it, null, true, false))
+      }
 
 
-        if (config is Action) {
-            ActionRegistrar.getActions() += config
-            config.register()
-        }
-    }
+   fun <C> collect(config: Config<C>) {
+      configs += config
 
-    fun installActions(vararg os: Any) {
-        os.asSequence().flatMap {
-            when (it) {
-                is Sequence<*> -> it
-                is Stream<*> -> it.asSequence()
-                is Optional<*> -> it.stream().asSequence()
-                is Array<*> -> os.asSequence()
-                is Collection<*> -> it.asSequence()
-                else -> sequenceOf(it)
+      // TODO disabled due to:
+      // 1 implemented only for boolean, while it should be for any enumerable config
+      // 2 unsolved ui (settings) spam, this creates lots of configs and they should be inline
+      // 3 the generated actions must be unregistered if config is dropped
+      @Suppress("UNCHECKED_CAST", "ConstantConditionIf")
+      if (false)
+         config.takeIf { it.type.isSubclassOf<Boolean>() && it.isEditable.isByUser }
+            ?.let { it as Config<Boolean> }
+            ?.let {
+               val name = "${it.guiName} - toggle"
+               val description = "Toggles value ${it.name} between true/false"
+               val r = { if (it.isEditableByUserRightNow()) it.toggle() }
+               val a = Action(name, r, description, it.group, "", false, false)
+               rawSet(a)
+               ActionRegistrar.getActions() += a
+               configs += a
             }
-        }.filterNotNull().forEach {
-            gatherActions(it)
-        }
-    }
 
-    fun gatherActions(o: Any) {
-        gatherActions(o.javaClass, o)
-    }
 
-    fun <T: Any> gatherActions(type: Class<T>, instance: T?) {
-        val useStatic = instance!=null
-        type.declaredMethods.asSequence()
-            .filter { isStatic(it.modifiers) xor useStatic && it.isAnnotationPresent(IsAction::class.java) }
-            .map {
-                failIf(it.parameters.isNotEmpty()) { "Action method=$it must have 0 parameters" }
+      if (config is Action) {
+         ActionRegistrar.getActions() += config
+         config.register()
+      }
+   }
 
-                val a = it.getAnnotation(IsAction::class.java)
-                val group = instance?.let { computeConfigGroup(it) } ?: obtainConfigGroup(null, type)
-                val r = Runnable {
-                    try {
-                        it.isAccessible = true
-                        it.invoke(instance)
-                    } catch (e: IllegalAccessException) {
-                        throw RuntimeException("Failed to run action=${a.name}", e)
-                    } catch (e: Throwable) {
-                        throw RuntimeException("Failed to run action=${a.name}", e)
-                    }
-                }
-                Action(a, group, r)
+   fun installActions(vararg os: Any) {
+      os.asSequence().flatMap {
+         when (it) {
+            is Sequence<*> -> it
+            is Stream<*> -> it.asSequence()
+            is Optional<*> -> it.stream().asSequence()
+            is Array<*> -> os.asSequence()
+            is Collection<*> -> it.asSequence()
+            else -> sequenceOf(it)
+         }
+      }.filterNotNull().forEach {
+         gatherActions(it)
+      }
+   }
+
+   fun gatherActions(o: Any) {
+      gatherActions(o.javaClass, o)
+   }
+
+   fun <T: Any> gatherActions(type: Class<T>, instance: T?) {
+      val useStatic = instance!=null
+      type.declaredMethods.asSequence()
+         .filter { isStatic(it.modifiers) xor useStatic && it.isAnnotationPresent(IsAction::class.java) }
+         .map {
+            failIf(it.parameters.isNotEmpty()) { "Action method=$it must have 0 parameters" }
+
+            val a = it.getAnnotation(IsAction::class.java)
+            val group = instance?.let { computeConfigGroup(it) } ?: obtainConfigGroup(null, type)
+            val r = Runnable {
+               try {
+                  it.isAccessible = true
+                  it.invoke(instance)
+               } catch (e: IllegalAccessException) {
+                  throw RuntimeException("Failed to run action=${a.name}", e)
+               } catch (e: Throwable) {
+                  throw RuntimeException("Failed to run action=${a.name}", e)
+               }
             }
-            .forEach { collect(it) }
-    }
+            Action(a, group, r)
+         }
+         .forEach { collect(it) }
+   }
 
-    fun <T> drop(config: Config<T>) {
-        configs.remove(config)
+   fun <T> drop(config: Config<T>) {
+      configs.remove(config)
 
-        if (config is Action) {
-            config.unregister()
-            ActionRegistrar.getActions() -= config
-        }
-    }
+      if (config is Action) {
+         config.unregister()
+         ActionRegistrar.getActions() -= config
+      }
+   }
 
-    @SafeVarargs
-    fun <T> drop(vararg configs: Config<T>) = configs.forEach { drop(it) }
+   @SafeVarargs
+   fun <T> drop(vararg configs: Config<T>) = configs.forEach { drop(it) }
 
-    fun <T> drop(configs: Collection<Config<T>>) = configs.forEach { drop(it) }
+   fun <T> drop(configs: Collection<Config<T>>) = configs.forEach { drop(it) }
 
-    /** Changes all config fields to their default value and applies them  */
-    fun toDefault() = fields.forEach { it.setDefaultValue() }
+   /** Changes all config fields to their default value and applies them  */
+   fun toDefault() = fields.forEach { it.setDefaultValue() }
 
-    /**
-     * Saves configuration to the file. The file is created if it does not exist,
-     * otherwise it is completely overwritten.
-     * Loops through Configuration fields and stores them all into file.
-     */
-    fun save(title: String, file: File) {
-        val propsRaw = properties.mapValues { Property(it.key, it.value, "") }
-        val propsCfg = configs.asSequence()
-            .filter { it.type!=Void::class.java }
-            .associate { c -> configToRawKeyMapper(c).let { it to Property(it, c.valueS, c.info) } }
+   /**
+    * Saves configuration to the file. The file is created if it does not exist,
+    * otherwise it is completely overwritten.
+    * Loops through Configuration fields and stores them all into file.
+    */
+   fun save(title: String, file: File) {
+      val propsRaw = properties.mapValues { Property(it.key, it.value, "") }
+      val propsCfg = configs.asSequence()
+         .filter { it.type!=Void::class.java }
+         .associate { c -> configToRawKeyMapper(c).let { it to Property(it, c.valueS, c.info) } }
 
-        file.writeProperties(title, (propsRaw + propsCfg).values)
-    }
+      file.writeProperties(title, (propsRaw + propsCfg).values)
+   }
 
-    /**
-     * Loads previously saved configuration file and set its values for this.
-     *
-     * Attempts to load all configuration fields from file. Fields might not be
-     * read either through I/O error or parsing errors. Parsing errors are
-     * recoverable, meaning corrupted fields will be ignored.
-     * Default values will be used for all unread fields.
-     *
-     * If field of given name does not exist it will be ignored as well.
-     */
-    fun rawSet() {
-        properties.forEach { (key, value) ->
-            val c = configs[namePostMapper(key)]
-            if (c!=null && c.isEditable.isByApp && !c.isReadOnlyRightNow())
-                c.valueS = value
-        }
-    }
+   /**
+    * Loads previously saved configuration file and set its values for this.
+    *
+    * Attempts to load all configuration fields from file. Fields might not be
+    * read either through I/O error or parsing errors. Parsing errors are
+    * recoverable, meaning corrupted fields will be ignored.
+    * Default values will be used for all unread fields.
+    *
+    * If field of given name does not exist it will be ignored as well.
+    */
+   fun rawSet() {
+      properties.forEach { (key, value) ->
+         val c = configs[namePostMapper(key)]
+         if (c!=null && c.isEditable.isByApp && !c.isReadOnlyRightNow())
+            c.valueS = value
+      }
+   }
 
-    fun rawSet(c: Config<*>) {
-        if (c.isEditable.isByApp && !c.isReadOnlyRightNow()) {
-            val key = configToRawKeyMapper(c)
-            if (properties.containsKey(key))
-                c.valueS = properties[key]
-        }
-    }
+   fun rawSet(c: Config<*>) {
+      if (c.isEditable.isByApp && !c.isReadOnlyRightNow()) {
+         val key = configToRawKeyMapper(c)
+         if (properties.containsKey(key))
+            c.valueS = properties[key]
+      }
+   }
 
 }

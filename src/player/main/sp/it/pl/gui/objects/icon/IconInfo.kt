@@ -15,28 +15,28 @@ import sp.it.util.ui.stackPane
  */
 class IconInfo(icon: GlyphIcons?, iconSize: Double): VBox(5.0) {
 
-    private val nameLabel = Label()
-    private val graphics: Icon
-    private var glyph: GlyphIcons? = icon
+   private val nameLabel = Label()
+   private val graphics: Icon
+   private var glyph: GlyphIcons? = icon
 
-    init {
-        alignment = CENTER
-        graphics = Icon(icon, iconSize)
-            .onClickDo { copyToSysClipboard(glyph?.name() ?: "") }
-            .styleclass("icon-info-icon")
-        lay(ALWAYS) += stackPane(graphics)
-        lay += nameLabel
-    }
+   init {
+      alignment = CENTER
+      graphics = Icon(icon, iconSize)
+         .onClickDo { copyToSysClipboard(glyph?.name() ?: "") }
+         .styleclass("icon-info-icon")
+      lay(ALWAYS) += stackPane(graphics)
+      lay += nameLabel
+   }
 
-    fun setGlyph(icon: GlyphIcons?) {
-        this.glyph = icon
-        nameLabel.text = icon?.name()?.toLowerCase()?.capitalize() ?: ""
-        graphics.icon(icon)
-        graphics.tooltip(if (icon==null) "" else "${icon.name()}\n${icon.unicodeToString()}\n${icon.fontFamily}")
-    }
+   fun setGlyph(icon: GlyphIcons?) {
+      this.glyph = icon
+      nameLabel.text = icon?.name()?.toLowerCase()?.capitalize() ?: ""
+      graphics.icon(icon)
+      graphics.tooltip(if (icon==null) "" else "${icon.name()}\n${icon.unicodeToString()}\n${icon.fontFamily}")
+   }
 
-    fun select(value: Boolean) {
-        graphics.select(value)
-    }
+   fun select(value: Boolean) {
+      graphics.select(value)
+   }
 
 }

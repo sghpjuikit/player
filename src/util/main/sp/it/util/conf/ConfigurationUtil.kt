@@ -16,41 +16,41 @@ fun <T> Config<T>.isReadOnlyRightNow() = constraints.asSequence().any { it is Co
 fun <T> Config<T>.isEditableByUserRightNow() = isEditable.isByUser && !isReadOnlyRightNow()
 
 fun computeConfigGroup(declaringRef: Any): String {
-    val groupDiscriminant = (declaringRef as? MultiConfigurable)
-        ?.configurableDiscriminant
-        ?.apply { failIf(isBlank()) { "Configurable discriminant is empty" } }
-        ?: ""
+   val groupDiscriminant = (declaringRef as? MultiConfigurable)
+      ?.configurableDiscriminant
+      ?.apply { failIf(isBlank()) { "Configurable discriminant is empty" } }
+      ?: ""
 
-    return if (groupDiscriminant.isEmpty()) {
-        obtainConfigGroup(null, declaringRef::class)
-    } else {
-        obtainConfigGroup(null, declaringRef::class, "").takeIf { it.isNotBlank() }
-            ?.let { "$it.$groupDiscriminant" }
-            ?: groupDiscriminant
-    }
+   return if (groupDiscriminant.isEmpty()) {
+      obtainConfigGroup(null, declaringRef::class)
+   } else {
+      obtainConfigGroup(null, declaringRef::class, "").takeIf { it.isNotBlank() }
+         ?.let { "$it.$groupDiscriminant" }
+         ?: groupDiscriminant
+   }
 }
 
 fun IsConfig?.computeConfigGroup(declaringRef: Any): String {
-    if (this!=null && group.isNotBlank()) return group
+   if (this!=null && group.isNotBlank()) return group
 
-    val groupDiscriminant = (declaringRef as? MultiConfigurable)
-        ?.configurableDiscriminant
-        ?.apply { failIf(isBlank()) { "Configurable discriminant is empty" } }
-        ?: ""
+   val groupDiscriminant = (declaringRef as? MultiConfigurable)
+      ?.configurableDiscriminant
+      ?.apply { failIf(isBlank()) { "Configurable discriminant is empty" } }
+      ?: ""
 
-    return if (groupDiscriminant.isEmpty()) {
-        obtainConfigGroup(this, declaringRef::class)
-    } else {
-        obtainConfigGroup(this, declaringRef::class, "").takeIf { it.isNotBlank() }
-            ?.let { "$it.$groupDiscriminant" }
-            ?: groupDiscriminant
-    }
+   return if (groupDiscriminant.isEmpty()) {
+      obtainConfigGroup(this, declaringRef::class)
+   } else {
+      obtainConfigGroup(this, declaringRef::class, "").takeIf { it.isNotBlank() }
+         ?.let { "$it.$groupDiscriminant" }
+         ?: groupDiscriminant
+   }
 }
 
 fun obtainConfigGroup(info: IsConfig?, type: KClass<*>, or: String = type.simpleName ?: type.jvmName): String = null
-    ?: info?.let { it.group.takeIf { it.isNotBlank() } }
-    ?: type.findAnnotation<IsConfigurable>()?.let { it.value.takeIf { it.isNotBlank() } }
-    ?: or
+   ?: info?.let { it.group.takeIf { it.isNotBlank() } }
+   ?: type.findAnnotation<IsConfigurable>()?.let { it.value.takeIf { it.isNotBlank() } }
+   ?: or
 
 fun obtainConfigGroup(info: IsConfig?, type: Class<*>): String = obtainConfigGroup(info, type.kotlin)
 
@@ -58,12 +58,12 @@ fun <T: Any> obtainConfigGroup(info: IsConfig?, type: Class<T>, instance: T?): S
 
 @Suppress("UNCHECKED_CAST")
 fun <T> obtainConfigConstraints(configType: Class<T>, annotations: List<Annotation>): Sequence<Constraint<T>> =
-    annotations.asSequence()
-        .filter { it.annotationClass.findAnnotation<Constraint.IsConstraint>()?.value?.isSuperclassOf(unPrimitivize(configType)) ?: false }
-        .map { Constraints.toConstraint<T>(it) } +
-        Constraints.IMPLICIT_CONSTRAINTS
-            .getElementsOfSuper(configType).asSequence()
-            .map { constraint -> constraint as Constraint<T> }
+   annotations.asSequence()
+      .filter { it.annotationClass.findAnnotation<Constraint.IsConstraint>()?.value?.isSuperclassOf(unPrimitivize(configType)) ?: false }
+      .map { Constraints.toConstraint<T>(it) } +
+      Constraints.IMPLICIT_CONSTRAINTS
+         .getElementsOfSuper(configType).asSequence()
+         .map { constraint -> constraint as Constraint<T> }
 
 fun obtainConfigId(configName: String, configGroup: String) = "$configName.$configGroup".replace(' ', '_').toLowerCase()
 

@@ -13,39 +13,39 @@ import sp.it.util.units.seconds
 import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 
 class PlayerConfiguration {
-    companion object: MultiConfigurableBase("Playback") {
+   companion object: MultiConfigurableBase("Playback") {
 
-        @IsConfig(name = "Remember playback state", info = "Continue last remembered playback when application starts.")
-        var continuePlaybackOnStart by c(true)
+      @IsConfig(name = "Remember playback state", info = "Continue last remembered playback when application starts.")
+      var continuePlaybackOnStart by c(true)
 
-        @IsConfig(name = "Pause playback on start", info = "Continue last remembered playback paused on application start.")
-        var continuePlaybackPaused by c(false)
+      @IsConfig(name = "Pause playback on start", info = "Continue last remembered playback paused on application start.")
+      var continuePlaybackPaused by c(false)
 
-        @IsConfig(name = "Seek time unit", info = "Time to jump by when seeking forward/backward.")
-        var seekUnitT by c(4.seconds)
+      @IsConfig(name = "Seek time unit", info = "Time to jump by when seeking forward/backward.")
+      var seekUnitT by c(4.seconds)
 
-        @IsConfig(name = "Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.")
-        var seekUnitP by c(0.05).between(0.0, 1.0)
+      @IsConfig(name = "Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.")
+      var seekUnitP by c(0.05).between(0.0, 1.0)
 
-        @IsConfig(name = "Player", info = "Exact player implementation currently in use.", editable = EditMode.NONE)
-        val playerInfo by cvro("<none>") { Player.player.pInfo }
+      @IsConfig(name = "Player", info = "Exact player implementation currently in use.", editable = EditMode.NONE)
+      val playerInfo by cvro("<none>") { Player.player.pInfo }
 
-        @IsConfig(name = "Vlc player location", editable = EditMode.APP)
-        val playerVlcLocation by cvn<String>(null)
+      @IsConfig(name = "Vlc player location", editable = EditMode.APP)
+      val playerVlcLocation by cvn<String>(null)
 
-        @IsConfig(name = "Last browse location")
-        var browse by c(APP.DIR_USERDATA).only(DIRECTORY)
+      @IsConfig(name = "Last browse location")
+      var browse by c(APP.DIR_USERDATA).only(DIRECTORY)
 
-        @IsConfig(name = "Last playlist export location")
-        var lastSavePlaylistLocation by c(APP.DIR_USERDATA).only(DIRECTORY)
+      @IsConfig(name = "Last playlist export location")
+      var lastSavePlaylistLocation by c(APP.DIR_USERDATA).only(DIRECTORY)
 
-        @IsConfig(
-            name = "No song modification",
-            info = "Disallow all song modifications by this application." +
-                "\n\nWhen true, app will be unable to change any song metadata" +
-                "\n\nAfter setting this to false, it is recommended to run `Update library` action"
-        )
-        var readOnly by c(true)
+      @IsConfig(
+         name = "No song modification",
+         info = "Disallow all song modifications by this application." +
+            "\n\nWhen true, app will be unable to change any song metadata" +
+            "\n\nAfter setting this to false, it is recommended to run `Update library` action"
+      )
+      var readOnly by c(true)
 
-    }
+   }
 }

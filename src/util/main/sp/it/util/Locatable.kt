@@ -5,14 +5,14 @@ import java.io.File
 
 interface Locatable {
 
-    val location: File
+   val location: File
 
-    val userLocation: File
+   val userLocation: File
 
-    @JvmDefault
-    fun getResource(path: String): File = location/path
+   @JvmDefault
+   fun getResource(path: String): File = location/path
 
-    @JvmDefault
-    fun getUserResource(path: String): File = userLocation/path
+   @JvmDefault
+   fun getUserResource(path: String): File = userLocation/path
 
 }

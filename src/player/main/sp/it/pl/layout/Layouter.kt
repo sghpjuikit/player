@@ -34,127 +34,127 @@ import sp.it.util.ui.lay
  */
 class Layouter: ComponentUi {
 
-    private val container: Container<*>
-    private val index: Int
+   private val container: Container<*>
+   private val index: Int
 
-    override val root = StackPane()
-    var onCancel: () -> Unit = {}
-    private var wasSelected = false
-    private val cp: ContainerPicker
-    private var isCpShown = false
-    private val disposer = Disposer()
+   override val root = StackPane()
+   var onCancel: () -> Unit = {}
+   private var wasSelected = false
+   private val cp: ContainerPicker
+   private var isCpShown = false
+   private val disposer = Disposer()
 
-    @JvmOverloads
-    constructor(container: Container<*>, index: Int, exitRoot: Pane? = null) {
-        this.container = container
-        this.index = index
-        this.cp = ContainerPicker({ showContainer(it) }, { showWidgetArea(it) }).apply {
-            onSelect = {
-                wasSelected = true
-                isCpShown = false
-                AppAnimator.closeAndDo(root) { it.onSelect() }
-            }
-            onCancel = {
-                if (!APP.ui.isLayoutMode)
-                    hide()
-            }
-            consumeCancelEvent = false
-            buildContent()
-        }
-        APP.widgetManager.widgets.separateWidgets attach { cp.buildContent() } on disposer
+   @JvmOverloads
+   constructor(container: Container<*>, index: Int, exitRoot: Pane? = null) {
+      this.container = container
+      this.index = index
+      this.cp = ContainerPicker({ showContainer(it) }, { showWidgetArea(it) }).apply {
+         onSelect = {
+            wasSelected = true
+            isCpShown = false
+            AppAnimator.closeAndDo(root) { it.onSelect() }
+         }
+         onCancel = {
+            if (!APP.ui.isLayoutMode)
+               hide()
+         }
+         consumeCancelEvent = false
+         buildContent()
+      }
+      APP.widgetManager.widgets.separateWidgets attach { cp.buildContent() } on disposer
 
-        root.lay += cp.root
+      root.lay += cp.root
 
-        AppAnimator.applyAt(cp.root, 0.0)
+      AppAnimator.applyAt(cp.root, 0.0)
 
-        installDrag(
-            root, IconFA.EXCHANGE, "Switch components",
-            { e -> Df.COMPONENT in e.dragboard },
-            { e -> e.dragboard[Df.COMPONENT]===container },
-            { e -> e.dragboard[Df.COMPONENT].swapWith(container, index) }
-        )
+      installDrag(
+         root, IconFA.EXCHANGE, "Switch components",
+         { e -> Df.COMPONENT in e.dragboard },
+         { e -> e.dragboard[Df.COMPONENT]===container },
+         { e -> e.dragboard[Df.COMPONENT].swapWith(container, index) }
+      )
 
-        // show cp on mouse click
-        root.onEventDown(MOUSE_CLICKED, PRIMARY, false) {
-            if (!container.lockedUnder.value) {
-                show()
-                it.consume()
-            }
-        }
+      // show cp on mouse click
+      root.onEventDown(MOUSE_CLICKED, PRIMARY, false) {
+         if (!container.lockedUnder.value) {
+            show()
+            it.consume()
+         }
+      }
 
-        // hide cp on mouse exit
-        val er = exitRoot ?: cp.root
-        er.onEventDown(MOUSE_EXITED) {
-            if (!wasSelected && !isSuppressedHiding(er)) {
-                cp.onCancel()
-                it.consume()
-            }
-        }
-    }
+      // hide cp on mouse exit
+      val er = exitRoot ?: cp.root
+      er.onEventDown(MOUSE_EXITED) {
+         if (!wasSelected && !isSuppressedHiding(er)) {
+            cp.onCancel()
+            it.consume()
+         }
+      }
+   }
 
-    override fun show() = showControls(true)
+   override fun show() = showControls(true)
 
-    override fun hide() = showControls(false)
+   override fun hide() = showControls(false)
 
-    override fun dispose() = disposer()
+   override fun dispose() = disposer()
 
-    fun hideAnd(onHidden: () -> Unit) = showControls(false) { onHidden() }
+   fun hideAnd(onHidden: () -> Unit) = showControls(false) { onHidden() }
 
-    private fun showControls(value: Boolean, onClosed: () -> Unit = {}) {
-        if (isCpShown==value) return
-        val isWpShown = root.children.size!=1
-        if (isWpShown) return
+   private fun showControls(value: Boolean, onClosed: () -> Unit = {}) {
+      if (isCpShown==value) return
+      val isWpShown = root.children.size!=1
+      if (isWpShown) return
 
-        isCpShown = value
-        if (value) {
-            AppAnimator.openAndDo(cp.root, null)
-        } else {
-            AppAnimator.closeAndDo(cp.root) {
-                if (!wasSelected) onCancel()
-                onClosed()
-            }
-        }
-    }
+      isCpShown = value
+      if (value) {
+         AppAnimator.openAndDo(cp.root, null)
+      } else {
+         AppAnimator.closeAndDo(cp.root) {
+            if (!wasSelected) onCancel()
+            onClosed()
+         }
+      }
+   }
 
-    private fun showContainer(c: Container<*>) {
-        container.addChild(index, c)
-        if (c is BiContainer) APP.actionStream("Divide layout")
-    }
+   private fun showContainer(c: Container<*>) {
+      container.addChild(index, c)
+      if (c is BiContainer) APP.actionStream("Divide layout")
+   }
 
-    private fun showWidgetArea(mode: WidgetPicker.Mode) {
-        val wp = WidgetPicker(mode)
-        wp.onSelect = { factory ->
-            wasSelected = false
-            AppAnimator.closeAndDo(wp.root) {
-                root.children -= wp.root
-                container.addChild(index, factory.create())
-                if (APP.ui.isLayoutMode) container.show()
-                APP.actionStream("New widget")
-            }
-        }
-        wp.onCancel = {
-            wasSelected = false
-            AppAnimator.closeAndDo(wp.root) {
-                root.children -= wp.root
-                if (root.containsMouse())
-                    showControls(true)
-            }
-        }
-        wp.buildContent()
-        wp.consumeCancelEvent = true // we need right click to not close container
+   private fun showWidgetArea(mode: WidgetPicker.Mode) {
+      val wp = WidgetPicker(mode)
+      wp.onSelect = { factory ->
+         wasSelected = false
+         AppAnimator.closeAndDo(wp.root) {
+            root.children -= wp.root
+            container.addChild(index, factory.create())
+            if (APP.ui.isLayoutMode) container.show()
+            APP.actionStream("New widget")
+         }
+      }
+      wp.onCancel = {
+         wasSelected = false
+         AppAnimator.closeAndDo(wp.root) {
+            root.children -= wp.root
+            if (root.containsMouse())
+               showControls(true)
+         }
+      }
+      wp.buildContent()
+      wp.consumeCancelEvent = true // we need right click to not close container
 
-        root.lay += wp.root
-        AppAnimator.openAndDo(wp.root, null)
-    }
+      root.lay += wp.root
+      AppAnimator.openAndDo(wp.root, null)
+   }
 
-    companion object {
-        private const val SUPPRESS_HIDING_KEY = "suppress"
+   companion object {
+      private const val SUPPRESS_HIDING_KEY = "suppress"
 
-        fun suppressHidingFor(node: Node, suppress: Boolean) {
-            if (suppress) node.properties[SUPPRESS_HIDING_KEY] = null
-            else node.properties.remove(SUPPRESS_HIDING_KEY)
-        }
+      fun suppressHidingFor(node: Node, suppress: Boolean) {
+         if (suppress) node.properties[SUPPRESS_HIDING_KEY] = null
+         else node.properties.remove(SUPPRESS_HIDING_KEY)
+      }
 
-        private fun isSuppressedHiding(node: Node) = node.properties.containsKey(SUPPRESS_HIDING_KEY)
-    }
+      private fun isSuppressedHiding(node: Node) = node.properties.containsKey(SUPPRESS_HIDING_KEY)
+   }
 }

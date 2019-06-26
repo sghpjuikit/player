@@ -23,10 +23,10 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
 
 val <T> KProperty0<T>.value: T
-    get() = get()
+   get() = get()
 var <T> KMutableProperty0<T>.value: T
-    get() = get()
-    set(value) = set(value)
+   get() = get()
+   set(value) = set(value)
 
 operator fun <T> ObservableValue<T>.getValue(thisRef: Any, property: KProperty<*>): T = value
 operator fun <T> Property<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) = setValue(value)
@@ -48,17 +48,17 @@ operator fun BooleanProperty.setValue(thisRef: Any, property: KProperty<*>, valu
 
 /** Sets value to negated value of current value. */
 fun WritableValue<Boolean>.toggle() {
-    value = !value
+   value = !value
 }
 
 /** Sets value to the enum value following the current value based on declaration order. Loop back to 1st value. */
 fun <T: Enum<T>> WritableValue<T>.toggleNext() {
-    value = Values.next(value)
+   value = Values.next(value)
 }
 
 /** Sets value to the enum value preceding the current value based on declaration order. Loop back to last value. */
 fun <T: Enum<T>> WritableValue<T>.togglePrevious() {
-    value = Values.previous(value)
+   value = Values.previous(value)
 }
 
 operator fun ObservableNumberValue.plus(other: ObservableNumberValue) = Bindings.add(this, other) as DoubleBinding
@@ -101,17 +101,17 @@ operator fun Int.div(other: ObservableNumberValue) = Bindings.divide(this, other
 
 @Experimental("untested")
 operator fun ObservableValue<Boolean>.not() = v(!this@not.value).apply {
-    this@not sync { value = !it }
+   this@not sync { value = !it }
 }
 
 @Experimental("untested")
 operator fun ObservableValue<Boolean>.plus(other: ObservableValue<Boolean>) = v(this@plus.value || other.value).apply {
-    this@plus sync { value = it || other.value }
-    other sync { value = this@plus.value || it }
+   this@plus sync { value = it || other.value }
+   other sync { value = this@plus.value || it }
 }
 
 @Experimental("untested")
 operator fun ObservableValue<Boolean>.times(other: ObservableValue<Boolean>) = v(this@times.value && other.value).apply {
-    this@times sync { value = it && other.value }
-    other sync { value = this@times.value && it }
+   this@times sync { value = it && other.value }
+   other sync { value = this@times.value && it }
 }

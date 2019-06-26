@@ -48,60 +48,60 @@ operator fun Executor.invoke(block: () -> Unit) = execute(block)
  */
 class NewThreadExecutor: Executor {
 
-    override fun execute(command: Runnable) {
-        thread(start = true, isDaemon = true, block = command.kt)
-    }
+   override fun execute(command: Runnable) {
+      thread(start = true, isDaemon = true, block = command.kt)
+   }
 
-    /**
-     * Executes the specified block immediately on a new daemon thread.
-     * Equivalent to:
-     * ```
-     * Thread thread = new Thread(action);
-     * thread.setDaemon(true);
-     * thread.setName(threadName);
-     * thread.start();
-     * ```
-     */
-    operator fun invoke(threadName: String) = Executor {
-        thread(start = true, isDaemon = true, name = threadName, block = it.kt)
-    }
+   /**
+    * Executes the specified block immediately on a new daemon thread.
+    * Equivalent to:
+    * ```
+    * Thread thread = new Thread(action);
+    * thread.setDaemon(true);
+    * thread.setName(threadName);
+    * thread.start();
+    * ```
+    */
+   operator fun invoke(threadName: String) = Executor {
+      thread(start = true, isDaemon = true, name = threadName, block = it.kt)
+   }
 
 }
 
 /** Executes the specified block on awt thread, immediately if called on awt thread, or using [EventQueue.invokeLater] otherwise. */
 class AwtExecutor: Executor {
-    override fun execute(command: Runnable) = if (EventQueue.isDispatchThread()) command() else EventQueue.invokeLater(command)
+   override fun execute(command: Runnable) = if (EventQueue.isDispatchThread()) command() else EventQueue.invokeLater(command)
 }
 
 /** Executes the specified block on fx thread, immediately if called on fx thread, or using [Platform.runLater] otherwise. */
 class FxExecutor: Executor {
-    override fun execute(command: Runnable) = if (Platform.isFxApplicationThread()) command() else Platform.runLater(command)
+   override fun execute(command: Runnable) = if (Platform.isFxApplicationThread()) command() else Platform.runLater(command)
 
-    /**
-     * Executes the specified block on fx thread after specified delay from now.
-     *
-     * If delay is
-     * * zero, block is invoked on [FX]
-     * * less than zero exception is thrown.
-     * * more than zero, blocked is invoked after the delay
-     */
-    operator fun invoke(delay: Duration) = when {
-        delay<ZERO -> fail()
-        delay>ZERO -> Executor {
-            val time = System.currentTimeMillis().toDouble()
-            runFX {
-                val diff = System.currentTimeMillis() - time
-                val duration = 0.0 max delay.toMillis() - diff
-                fxTimer(duration.millis, 1, it.kt).start()
-            }
-        }
-        else -> this
-    }
+   /**
+    * Executes the specified block on fx thread after specified delay from now.
+    *
+    * If delay is
+    * * zero, block is invoked on [FX]
+    * * less than zero exception is thrown.
+    * * more than zero, blocked is invoked after the delay
+    */
+   operator fun invoke(delay: Duration) = when {
+      delay<ZERO -> fail()
+      delay>ZERO -> Executor {
+         val time = System.currentTimeMillis().toDouble()
+         runFX {
+            val diff = System.currentTimeMillis() - time
+            val duration = 0.0 max delay.toMillis() - diff
+            fxTimer(duration.millis, 1, it.kt).start()
+         }
+      }
+      else -> this
+   }
 }
 
 /** Executes the specified block on fx thread using [Platform.runLater]. */
 class FxLaterExecutor: Executor {
-    override fun execute(command: Runnable) = Platform.runLater(command)
+   override fun execute(command: Runnable) = Platform.runLater(command)
 }
 
 /** Sleeps currently executing thread for specified duration. When interrupted, returns.  */
@@ -109,11 +109,11 @@ fun sleep(duration: Duration) = sleep(duration.toMillis().toLong())
 
 /** Sleeps currently executing thread for duration specified in milliseconds. When interrupted, returns.  */
 fun sleep(durationMillis: Long) {
-    try {
-        Thread.sleep(durationMillis)
-    } catch (e: InterruptedException) {
-        logger.error { "Thread interrupted while sleeping" }
-    }
+   try {
+      Thread.sleep(durationMillis)
+   } catch (e: InterruptedException) {
+      logger.error { "Thread interrupted while sleeping" }
+   }
 }
 
 /** Executes the specified block using the specified executor and return the result as [sp.it.util.async.future.Fut]. */
@@ -163,25 +163,25 @@ fun runIO(block: Runnable) = runIO(block.kt)
 
 /** Executes the specified block periodically with given time period (1st call is already delayed). */
 fun runPeriodic(period: Duration, block: () -> Unit): Subscription {
-    val t = fxTimer(period, Animation.INDEFINITE, block)
-    t.start()
-    return Subscription { t.stop() }
+   val t = fxTimer(period, Animation.INDEFINITE, block)
+   t.start()
+   return Subscription { t.stop() }
 }
 
 fun onlyIfMatches(counter: AtomicLong, r: () -> Unit): () -> Unit {
-    val c = counter.get()
-    return {
-        if (c==counter.get())
-            r()
-    }
+   val c = counter.get()
+   return {
+      if (c==counter.get())
+         r()
+   }
 }
 
 fun onlyIfMatches(counter: AtomicLong, r: Runnable): Runnable {
-    val c = counter.get()
-    return Runnable {
-        if (c==counter.get())
-            r()
-    }
+   val c = counter.get()
+   return Runnable {
+      if (c==counter.get())
+         r()
+   }
 }
 
 /** @return single thread executor using specified thread factory */
@@ -189,7 +189,7 @@ fun oneTPExecutor() = Executors.newSingleThreadExecutor(threadFactory(true))!!
 
 /** @return single thread executor keeping the thread alive for specified time and using specified thread factory */
 fun oneCachedTPExecutor(keepAliveTime: Duration, threadFactory: ThreadFactory) =
-    ThreadPoolExecutor(0, 1, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue<Runnable>(), threadFactory)
+   ThreadPoolExecutor(0, 1, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue<Runnable>(), threadFactory)
 
 /**
  * Resolves: https://stackoverflow.com/questions/19528304/how-to-get-the-threadpoolexecutor-to-increase-threads-to-max-before-queueing/19528305#19528305
@@ -198,27 +198,27 @@ fun oneCachedTPExecutor(keepAliveTime: Duration, threadFactory: ThreadFactory) =
  * @return single thread executor keeping the thread alive for specified time and using specified thread factory
  */
 fun burstTPExecutor(maxPoolSize: Int, keepAliveTime: Duration, threadFactory: ThreadFactory): ExecutorService {
-    return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue<Runnable>(), threadFactory).apply {
-        allowCoreThreadTimeOut(true)
-    }
+   return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue<Runnable>(), threadFactory).apply {
+      allowCoreThreadTimeOut(true)
+   }
 }
 
 fun threadFactory(daemon: Boolean): ThreadFactory {
-    return ThreadFactory { r ->
-        Thread(r).apply {
-            isDaemon = daemon
-            setUncaughtExceptionHandler { _, e -> logger.error(e) { "Uncaught exception" } }
-        }
-    }
+   return ThreadFactory { r ->
+      Thread(r).apply {
+         isDaemon = daemon
+         setUncaughtExceptionHandler { _, e -> logger.error(e) { "Uncaught exception" } }
+      }
+   }
 }
 
 fun threadFactory(nameBase: String, daemon: Boolean): ThreadFactory {
-    val id = AtomicLong(0)
-    return ThreadFactory { r ->
-        Thread(r).apply {
-            name = "$nameBase-${id.getAndIncrement()}"
-            isDaemon = daemon
-            setUncaughtExceptionHandler { _, e -> logger.error(e) { "Uncaught exception" } }
-        }
-    }
+   val id = AtomicLong(0)
+   return ThreadFactory { r ->
+      Thread(r).apply {
+         name = "$nameBase-${id.getAndIncrement()}"
+         isDaemon = daemon
+         setUncaughtExceptionHandler { _, e -> logger.error(e) { "Uncaught exception" } }
+      }
+   }
 }

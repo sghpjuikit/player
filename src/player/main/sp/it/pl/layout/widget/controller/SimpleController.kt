@@ -22,52 +22,52 @@ import java.util.HashMap
  */
 open class SimpleController(widget: Widget): Controller(widget), MultiConfigurable {
 
-    @JvmField val root = StackPane()
-    @JvmField val onClose = Disposer()
-    private val configs = HashMap<String, Config<Any?>>()
-    override val configurableDiscriminant = null as String?
-    override val configurableValueStore: ConfigValueSource by lazy {
-        object: ConfigValueSource {
+   @JvmField val root = StackPane()
+   @JvmField val onClose = Disposer()
+   private val configs = HashMap<String, Config<Any?>>()
+   override val configurableDiscriminant = null as String?
+   override val configurableValueStore: ConfigValueSource by lazy {
+      object: ConfigValueSource {
 
-            @Suppress("UNCHECKED_CAST")
-            override fun register(config: Config<*>) {
-                val key = Widget.configToRawKeyMapper(config)
-                configs[key] = config as Config<Any?>
+         @Suppress("UNCHECKED_CAST")
+         override fun register(config: Config<*>) {
+            val key = Widget.configToRawKeyMapper(config)
+            configs[key] = config as Config<Any?>
+         }
+
+         @Suppress("UNCHECKED_CAST")
+         override fun initialize(config: Config<*>) {
+            if (config.isEditable.isByApp) {
+               val source: Map<String, String> = widget.properties["configs"] as Map<String, String>? ?: mapOf()
+               val key = Widget.configToRawKeyMapper(config)
+               if (source.containsKey(key))
+                  config.valueS = source[key]
             }
+         }
+      }
+   }
 
-            @Suppress("UNCHECKED_CAST")
-            override fun initialize(config: Config<*>) {
-                if (config.isEditable.isByApp) {
-                    val source: Map<String, String> = widget.properties["configs"] as Map<String, String>? ?: mapOf()
-                    val key = Widget.configToRawKeyMapper(config)
-                    if (source.containsKey(key))
-                        config.valueS = source[key]
-                }
-            }
-        }
-    }
+   override fun loadFirstTime() = root
 
-    override fun loadFirstTime() = root
+   override fun focus() = root.requestFocus()
 
-    override fun focus() = root.requestFocus()
+   override fun close() {
+      onClose()
+      io.dispose()
+   }
 
-    override fun close() {
-        onClose()
-        io.dispose()
-    }
+   override fun getField(name: String) = configs.values.find { it.name==name }
 
-    override fun getField(name: String) = configs.values.find { it.name==name }
+   override fun getFields() = configs.values
 
-    override fun getFields() = configs.values
+   /** Invoke [bind][Input.bind] on this input and the specified output if this widget [has never been serialized][Widget.isDeserialized]. */
+   fun <T> Input<T>.bindIf1stLoad(output: Output<out T>) = if (widget.isDeserialized) Subscription() else bind(output)
 
-    /** Invoke [bind][Input.bind] on this input and the specified output if this widget [has never been serialized][Widget.isDeserialized]. */
-    fun <T> Input<T>.bindIf1stLoad(output: Output<out T>) = if (widget.isDeserialized) Subscription() else bind(output)
+   /** Invoke [bind][Input.bind] on this input and the specified output if [isBound(widget.id)][Input.isBound] is false. */
+   fun <T> Input<T>.bindDefault(output: Output<out T>) = if (isBound(widget.id)) Subscription() else bind(output)
 
-    /** Invoke [bind][Input.bind] on this input and the specified output if [isBound(widget.id)][Input.isBound] is false. */
-    fun <T> Input<T>.bindDefault(output: Output<out T>) = if (isBound(widget.id)) Subscription() else bind(output)
-
-    /** Invoke [bind][Input.bindDefault] on this input and the specified output if both [Input.isBound(widget.id)][Input.isBound] and [Widget.isDeserialized] is false. */
-    fun <T> Input<T>.bindDefaultIf1stLoad(output: Output<out T>) = if (isBound(widget.id)) Subscription() else bindIf1stLoad(output)
+   /** Invoke [bind][Input.bindDefault] on this input and the specified output if both [Input.isBound(widget.id)][Input.isBound] and [Widget.isDeserialized] is false. */
+   fun <T> Input<T>.bindDefaultIf1stLoad(output: Output<out T>) = if (isBound(widget.id)) Subscription() else bindIf1stLoad(output)
 
 }
 
@@ -76,5 +76,5 @@ annotation class LegacyController
 
 /** @return [ConventionFxmlLoader] with root [SimpleController.root], specified controller and location of fxml in widget's directory */
 fun fxmlLoaderForController(controller: SimpleController) = ConventionFxmlLoader(controller.root, controller).apply {
-    location = (controller.location/"${controller.javaClass.simpleName}.fxml").toURLOrNull()!!
+   location = (controller.location/"${controller.javaClass.simpleName}.fxml").toURLOrNull()!!
 }

@@ -16,45 +16,45 @@ import kotlin.streams.asSequence
 /** State of player. */
 class PlayerState {
 
-    @JvmField var playback: PlaybackState = PlaybackState.default()
-    @JvmField val playlists: MutableList<Playlist> = ArrayList()
-    @JvmField var playlistId: UUID? = null
+   @JvmField var playback: PlaybackState = PlaybackState.default()
+   @JvmField val playlists: MutableList<Playlist> = ArrayList()
+   @JvmField var playlistId: UUID? = null
 
-    constructor()
+   constructor()
 
-    constructor(s: PlayerStateDB) {
-        playlists += s.playlists.map { it.toDomain() }
-        playlistId = s.playlistId?.let { UUID.fromString(it) }
-        playback = s.playback.toDomain()
-    }
+   constructor(s: PlayerStateDB) {
+      playlists += s.playlists.map { it.toDomain() }
+      playlistId = s.playlistId?.let { UUID.fromString(it) }
+      playback = s.playback.toDomain()
+   }
 
-    @Blocks
-    fun serialize() {
-        playback.realTime.set(Player.player.realTime.get()) // TODO: remove
-        playlistId = PlaylistManager.active
+   @Blocks
+   fun serialize() {
+      playback.realTime.set(Player.player.realTime.get()) // TODO: remove
+      playlistId = PlaylistManager.active
 
-        val activePlaylists = APP.widgetManager.widgets.findAll(OPEN).asSequence()
-            .mapNotNull { (it.controller as? PlaylistFeature)?.playlist?.id }
-            .toSet()
-        playlists setTo PlaylistManager.playlists
-        playlists.removeIf { it.id !in activePlaylists }
+      val activePlaylists = APP.widgetManager.widgets.findAll(OPEN).asSequence()
+         .mapNotNull { (it.controller as? PlaylistFeature)?.playlist?.id }
+         .toSet()
+      playlists setTo PlaylistManager.playlists
+      playlists.removeIf { it.id !in activePlaylists }
 
-        CoreSerializer.useAtomically {
-            writeSingleStorage(PlayerStateDB(this@PlayerState))
-        }
-    }
+      CoreSerializer.useAtomically {
+         writeSingleStorage(PlayerStateDB(this@PlayerState))
+      }
+   }
 
-    companion object {
+   companion object {
 
-        @Blocks
-        @JvmStatic
-        fun deserialize() = CoreSerializer.readSingleStorage<PlayerStateDB>()
-            .let { it?.toDomain() ?: PlayerState() }
-            .also {
-                PlaylistManager.playlists += it.playlists
-                PlaylistManager.active = it.playlistId
-            }
+      @Blocks
+      @JvmStatic
+      fun deserialize() = CoreSerializer.readSingleStorage<PlayerStateDB>()
+         .let { it?.toDomain() ?: PlayerState() }
+         .also {
+            PlaylistManager.playlists += it.playlists
+            PlaylistManager.active = it.playlistId
+         }
 
-    }
+   }
 
 }

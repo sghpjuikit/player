@@ -19,25 +19,25 @@ fun Instant.toLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(this, ZON
 
 /** @return local date time from epoch millis or null if parameter exceeds the maximum or minimum [java.time.Instant] */
 fun Long.localDateTimeFromMillis(): LocalDateTime? =
-    try {
-        Instant.ofEpochMilli(this).toLocalDateTime()
-    } catch (e: DateTimeException) {
-        null
-    }
+   try {
+      Instant.ofEpochMilli(this).toLocalDateTime()
+   } catch (e: DateTimeException) {
+      null
+   }
 
 /** @return string of printed stacktrace of this throwable */
 val Throwable.stacktraceAsString: String
-    get() = StringWriter().also { printStackTrace(PrintWriter(it)) }.toString()
+   get() = StringWriter().also { printStackTrace(PrintWriter(it)) }.toString()
 
 /** @return human readable duration value in smallest possible units (millis if less than second, etc.)*/
 fun Duration.formatToSmallestUnit(): String {
-    val ms = toMillis()
-    return when {
-        ms<1000 -> "%.0f ms".format(ms)
-        ms<10000 -> "%.1f s".format(toSeconds())
-        ms<60000 -> "%.0f s".format(toSeconds())
-        ms<3600000 -> "%.1f m".format(toMinutes())
-        ms<86400000 -> "%.1f h".format(toHours())
-        else -> "${toHours().toInt()/24} d"
-    }
+   val ms = toMillis()
+   return when {
+      ms<1000 -> "%.0f ms".format(ms)
+      ms<10000 -> "%.1f s".format(toSeconds())
+      ms<60000 -> "%.0f s".format(toSeconds())
+      ms<3600000 -> "%.1f m".format(toMinutes())
+      ms<86400000 -> "%.1f h".format(toHours())
+      else -> "${toHours().toInt()/24} d"
+   }
 }

@@ -23,16 +23,16 @@ private val logger = KotlinLogging.logger {}
 @ThreadSafe
 @Blocks
 fun <T> Task<T>.runGet(): Result<T> {
-    failIfFxThread()
+   failIfFxThread()
 
-    run()
-    return try {
-        ResultOk<T>(get())
-    } catch (e: InterruptedException) {
-        logger.warn(e) { "Task execution failed" }
-        ResultInterrupted(e)
-    } catch (e: ExecutionException) {
-        logger.warn(e) { "Task execution failed" }
-        ResultFail(e)
-    }
+   run()
+   return try {
+      ResultOk<T>(get())
+   } catch (e: InterruptedException) {
+      logger.warn(e) { "Task execution failed" }
+      ResultInterrupted(e)
+   } catch (e: ExecutionException) {
+      logger.warn(e) { "Task execution failed" }
+      ResultFail(e)
+   }
 }

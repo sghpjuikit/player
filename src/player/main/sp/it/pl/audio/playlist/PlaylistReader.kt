@@ -24,65 +24,65 @@ private val logger = KotlinLogging.logger { }
 @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @Blocks
 fun readPlaylist(file: File): List<Song> {
-    failIfFxThread()
+   failIfFxThread()
 
-    val location = file.parentFile ?: fail { "File=$file is not a playlist file" }
-    val encoding = when {
-        file hasExtension "m3u" -> Charset.defaultCharset()
-        file hasExtension "m3u8" -> UTF_8
-        else -> fail { "File=$file is not a supported playlist file" }
-    }
+   val location = file.parentFile ?: fail { "File=$file is not a playlist file" }
+   val encoding = when {
+      file hasExtension "m3u" -> Charset.defaultCharset()
+      file hasExtension "m3u8" -> UTF_8
+      else -> fail { "File=$file is not a supported playlist file" }
+   }
 
-    return file.useLines(encoding) {
-        it.filter { !it.startsWith("#") && it.isNotEmpty() }
-            .flatMap {
-                null
-                    ?: it.toURIOrNull()?.net { sequenceOf(SimpleSong(it)) }
-                    ?: File(it).absoluteTo(location)
-                        ?.net {
-                            if (it.isPlaylistFile()) readPlaylist(it).asSequence()
-                            else sequenceOf(SimpleSong(it))
-                        }
-                    ?: sequenceOf()
-            }
-            .toList()
-    }
+   return file.useLines(encoding) {
+      it.filter { !it.startsWith("#") && it.isNotEmpty() }
+         .flatMap {
+            null
+               ?: it.toURIOrNull()?.net { sequenceOf(SimpleSong(it)) }
+               ?: File(it).absoluteTo(location)
+                  ?.net {
+                     if (it.isPlaylistFile()) readPlaylist(it).asSequence()
+                     else sequenceOf(SimpleSong(it))
+                  }
+               ?: sequenceOf()
+         }
+         .toList()
+   }
 }
 
 @Blocks
 fun writePlaylist(playlist: List<Song>, name: String, dir: File) {
-    failIfFxThread()
+   failIfFxThread()
 
-    val file = dir/"$name.m3u8"
-    runTry {
-        file.bufferedWriter(UTF_8).use { w ->
-            playlist.forEach {
-                w.appendln(it.uri.toString())
-            }
-        }
-    }.ifError {
-        logger.error(it) { "Failed to write playlist file=$file" }
-    }
+   val file = dir/"$name.m3u8"
+   runTry {
+      file.bufferedWriter(UTF_8).use { w ->
+         playlist.forEach {
+            w.appendln(it.uri.toString())
+         }
+      }
+   }.ifError {
+      logger.error(it) { "Failed to write playlist file=$file" }
+   }
 }
 
 fun File.isPlaylistFile() = hasExtension("m3u", "m3u8")
 
 private fun File.absoluteTo(dir: File): File? {
-    return if (isAbsolute) {
-        this
-    } else {
-        try {
-            File(dir, this.path).canonicalFile
-        } catch (e: IOException) {
-            logger.error(e) { "Failed to resolve relative path=$this to location=$dir" }
-            null
-        }
-    }
+   return if (isAbsolute) {
+      this
+   } else {
+      try {
+         File(dir, this.path).canonicalFile
+      } catch (e: IOException) {
+         logger.error(e) { "Failed to resolve relative path=$this to location=$dir" }
+         null
+      }
+   }
 }
 
 private fun String.toURIOrNull() =
-    try {
-        URI(this).takeIf { it.isAbsolute }
-    } catch (e: URISyntaxException) {
-        null
-    }
+   try {
+      URI(this).takeIf { it.isAbsolute }
+   } catch (e: URISyntaxException) {
+      null
+   }

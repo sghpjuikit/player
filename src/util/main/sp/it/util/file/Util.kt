@@ -17,7 +17,7 @@ private val logger = KotlinLogging.logger { }
 
 /** @return File.getName], but partition name for root directories, never empty string */
 val File.nameOrRoot: String
-    get() = name.takeUnless { it.isEmpty() } ?: toString()
+   get() = name.takeUnless { it.isEmpty() } ?: toString()
 
 /**
  * Returns [File.nameWithoutExtension] or [File.toString] if this is the root directory,
@@ -31,15 +31,15 @@ val File.nameWithoutExtensionOrRoot: String get() = nameWithoutExtension.takeUnl
 /** @return file itself if exists or its first existing parent or error if null or no parent exists */
 @Blocks
 fun File.find1stExistingParentFile(): Try<File, Nothing?> = when {
-    exists() -> Try.ok(this)
-    else -> parentFile?.find1stExistingParentFile() ?: Try.error()
+   exists() -> Try.ok(this)
+   else -> parentFile?.find1stExistingParentFile() ?: Try.error()
 }
 
 /** @return first existing directory in this file's hierarchy or error if no parent exists */
 @Blocks
 fun File.find1stExistingParentDir(): Try<File, Nothing?> = when {
-    exists() && isDirectory -> Try.ok(this)
-    else -> parentFile?.find1stExistingParentDir() ?: Try.error()
+   exists() && isDirectory -> Try.ok(this)
+   else -> parentFile?.find1stExistingParentDir() ?: Try.error()
 }
 
 /** Equivalent to [File.child]. Allows for intuitive `File(...)/"..."/"..."` notation for resolving Files. */
@@ -88,19 +88,19 @@ fun File.hasExtension(vararg suffixes: String) = suffixes.any { this hasExtensio
 /** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown */
 @Suppress("DEPRECATION")
 fun URI.toFileOrNull() =
-    try {
-        File(this)
-    } catch (e: IllegalArgumentException) {
-        null
-    }
+   try {
+      File(this)
+   } catch (e: IllegalArgumentException) {
+      null
+   }
 
 /** @return file denoting the resource of this uri or null if [MalformedURLException] is thrown */
 fun File.toURLOrNull() =
-    try {
-        toURI().toURL()
-    } catch (e: MalformedURLException) {
-        null
-    }
+   try {
+      toURI().toURL()
+   } catch (e: MalformedURLException) {
+      null
+   }
 
 /**
  * Error-safe [File.writeText]. Error can be:
@@ -166,45 +166,45 @@ fun File.readTextTry(charset: Charset = Charsets.UTF_8) = runTry { readText(char
 @Blocks
 fun File.writeSafely(block: (File) -> Try<*, Throwable>): Try<Nothing?, Throwable> {
 
-    fun File.tryRenameIfExists(to: File, message: () -> String) = if (!exists() || renameTo(to)) Try.ok() else Try.error(Exception(message()))
+   fun File.tryRenameIfExists(to: File, message: () -> String) = if (!exists() || renameTo(to)) Try.ok() else Try.error(Exception(message()))
 
-    fun File.tryDeleteIfExists(message: (Throwable) -> String) = runTry {
-        Files.deleteIfExists(toPath())
-    }.mapError {
-        Exception(message(it), it)
-    }
+   fun File.tryDeleteIfExists(message: (Throwable) -> String) = runTry {
+      Files.deleteIfExists(toPath())
+   }.mapError {
+      Exception(message(it), it)
+   }
 
-    val f = absoluteFile
-    val fW = f.resolveSibling("$name.w.tmp")
-    val fR = f.resolveSibling("$name.tmp")
+   val f = absoluteFile
+   val fW = f.resolveSibling("$name.w.tmp")
+   val fR = f.resolveSibling("$name.tmp")
 
-    return run {
-        run {
-            block(fW)
-        }.mapError {
-            Exception("Safe writing of `$f` failed. Data was not saved to temporary file=`$fW` as ${it.message}", it)
-        }.ifError {
-            fW.tryDeleteIfExists { "Deleting $fW failed" }
-        }
-    }.and {
-        fR.tryDeleteIfExists {
-            "Safe writing of $f failed. Data was saved to temporary file=`$fW`, but deleting temporary backup file=`$fR` failed"
-        }
-    }.and {
-        f.tryRenameIfExists(fR) {
-            "Safe writing of $f failed. Data was saved to temporary file=`$fW`, but renaming file=`$f` to temporary backup file=`$fR` failed"
-        }
-    }.and {
-        fW.tryRenameIfExists(f) {
-            "Safe writing of $f failed. Data was saved to temporary file=`$fW`, but renaming it to file=`$f` failed"
-        }.ifError {
-            fR.tryRenameIfExists(f) { "Renaming file=`$fR` to file=`$f` failed" }
-        }
-    }.and {
-        fR.tryDeleteIfExists {
-            "Safe writing of $f failed. Data was saved, but deleting temporary backup file=`$fR` failed"
-        }
-    }.map {
-        null
-    }
+   return run {
+      run {
+         block(fW)
+      }.mapError {
+         Exception("Safe writing of `$f` failed. Data was not saved to temporary file=`$fW` as ${it.message}", it)
+      }.ifError {
+         fW.tryDeleteIfExists { "Deleting $fW failed" }
+      }
+   }.and {
+      fR.tryDeleteIfExists {
+         "Safe writing of $f failed. Data was saved to temporary file=`$fW`, but deleting temporary backup file=`$fR` failed"
+      }
+   }.and {
+      f.tryRenameIfExists(fR) {
+         "Safe writing of $f failed. Data was saved to temporary file=`$fW`, but renaming file=`$f` to temporary backup file=`$fR` failed"
+      }
+   }.and {
+      fW.tryRenameIfExists(f) {
+         "Safe writing of $f failed. Data was saved to temporary file=`$fW`, but renaming it to file=`$f` failed"
+      }.ifError {
+         fR.tryRenameIfExists(f) { "Renaming file=`$fR` to file=`$f` failed" }
+      }
+   }.and {
+      fR.tryDeleteIfExists {
+         "Safe writing of $f failed. Data was saved, but deleting temporary backup file=`$fR` failed"
+      }
+   }.map {
+      null
+   }
 }

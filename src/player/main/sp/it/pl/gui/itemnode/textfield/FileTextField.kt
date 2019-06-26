@@ -19,32 +19,32 @@ import java.io.File
 
 /** Text field for [File] with file/dir constraint, drag & drop and picker. */
 class FileTextField(constraint: FileActor): ValueTextField<File>({ APP.converter.general.toS(it) }) {
-    private val type = v(if (constraint==FileActor.FILE) FILE else DIRECTORY)
+   private val type = v(if (constraint==FileActor.FILE) FILE else DIRECTORY)
 
-    init {
-        styleClass += STYLECLASS
+   init {
+      styleClass += STYLECLASS
 
-        if (constraint==FileActor.ANY) {
-            val b2 = right.value as ArrowDialogButton
-            val b1 = Icon(null, 7.0).onClickDo { type.toggleNext() }.tooltip("Switch mode between file and directory")
+      if (constraint==FileActor.ANY) {
+         val b2 = right.value as ArrowDialogButton
+         val b1 = Icon(null, 7.0).onClickDo { type.toggleNext() }.tooltip("Switch mode between file and directory")
 
-            right.value = layHorizontally(5.0, CENTER_RIGHT, b1, b2)
+         right.value = layHorizontally(5.0, CENTER_RIGHT, b1, b2)
 
-            type sync { b1.icon(if (it==FILE) IconFA.FILE else IconFA.FOLDER) }
-        }
-        addEventHandler(DRAG_OVER, handlerAccepting({ it.dragboard.hasFiles() && it.dragboard.files.any { constraint.isValid(it) } }))
-        addEventHandler(DRAG_DROPPED) { value = it.dragboard.files.find { constraint.isValid(it) } }
-    }
+         type sync { b1.icon(if (it==FILE) IconFA.FILE else IconFA.FOLDER) }
+      }
+      addEventHandler(DRAG_OVER, handlerAccepting({ it.dragboard.hasFiles() && it.dragboard.files.any { constraint.isValid(it) } }))
+      addEventHandler(DRAG_DROPPED) { value = it.dragboard.files.find { constraint.isValid(it) } }
+   }
 
-    override fun onDialogAction() {
-        val title = if (type.get()==DIRECTORY) "Choose directory" else "Choose file"
-        chooseFile(title, type.get(), vl, scene.window).ifOk {
-            value = it
-        }
-    }
+   override fun onDialogAction() {
+      val title = if (type.get()==DIRECTORY) "Choose directory" else "Choose file"
+      chooseFile(title, type.get(), vl, scene.window).ifOk {
+         value = it
+      }
+   }
 
-    companion object {
-        const val STYLECLASS = "file-text-field"
-    }
+   companion object {
+      const val STYLECLASS = "file-text-field"
+   }
 
 }

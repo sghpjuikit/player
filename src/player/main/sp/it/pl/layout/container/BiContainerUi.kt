@@ -45,206 +45,206 @@ import sp.it.util.ui.x2
 import kotlin.reflect.KProperty0
 
 class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
-    private val prop: PropertyMap<String>
-    private val root1 = AnchorPane()
-    private val root2 = AnchorPane()
-    private val splitPane = SplitPane(root1, root2)
-    private var ui1: ComponentUi? = null
-    private var ui2: ComponentUi? = null
+   private val prop: PropertyMap<String>
+   private val root1 = AnchorPane()
+   private val root2 = AnchorPane()
+   private val splitPane = SplitPane(root1, root2)
+   private var ui1: ComponentUi? = null
+   private var ui2: ComponentUi? = null
 
-    var absoluteSize: Int
-        get() = prop.getI("abs_size")
-        set(i) {
-            failIf(i<0 || i>2) { "Only values 0,1,2 allowed" }
+   var absoluteSize: Int
+      get() = prop.getI("abs_size")
+      set(i) {
+         failIf(i<0 || i>2) { "Only values 0,1,2 allowed" }
 
-            SplitPane.setResizableWithParent(root1, i!=1)
-            SplitPane.setResizableWithParent(root2, i!=2)
+         SplitPane.setResizableWithParent(root1, i!=1)
+         SplitPane.setResizableWithParent(root2, i!=2)
 
-            prop["abs_size"] = i
-            ui1?.asIf<WidgetUi>()?.controls?.updateAbsB()
-            ui2?.asIf<WidgetUi>()?.controls?.updateAbsB()
-            container.children[1]?.asIf<Container<*>>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
-            container.children[2]?.asIf<Container<*>>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
-        }
-    var collapsed: Int
-        get() = prop.getI("col")
-        set(i) {
-            prop["col"] = i
-            splitPane.orientationProperty().removeListener(collapsedL1)
-            if (i!=0) splitPane.orientationProperty().addListener(collapsedL1)
-            splitPane.removeEventFilter(MOUSE_RELEASED, collapsedL2)
-            if (i!=0) splitPane.addEventFilter(MOUSE_RELEASED, collapsedL2)
-            splitPane.removeEventFilter(MOUSE_DRAGGED, collapsedL3)
-            if (i!=0) splitPane.addEventFilter(MOUSE_DRAGGED, collapsedL3)
+         prop["abs_size"] = i
+         ui1?.asIf<WidgetUi>()?.controls?.updateAbsB()
+         ui2?.asIf<WidgetUi>()?.controls?.updateAbsB()
+         container.children[1]?.asIf<Container<*>>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
+         container.children[2]?.asIf<Container<*>>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
+      }
+   var collapsed: Int
+      get() = prop.getI("col")
+      set(i) {
+         prop["col"] = i
+         splitPane.orientationProperty().removeListener(collapsedL1)
+         if (i!=0) splitPane.orientationProperty().addListener(collapsedL1)
+         splitPane.removeEventFilter(MOUSE_RELEASED, collapsedL2)
+         if (i!=0) splitPane.addEventFilter(MOUSE_RELEASED, collapsedL2)
+         splitPane.removeEventFilter(MOUSE_DRAGGED, collapsedL3)
+         if (i!=0) splitPane.addEventFilter(MOUSE_DRAGGED, collapsedL3)
+         updateSplitPosition()
+      }
+   val isCollapsed: Boolean
+      get() = collapsed!=0
+
+   private val collapsedL1 = ChangeListener<Orientation> { _, _, _ -> updateSplitPosition() }
+   private val collapsedL2 = EventHandler<MouseEvent> {
+      if (it.clickCount==2 && it.button==PRIMARY && isCollapsed) {
+         val so = splitPane.orientation
+         val isGrabber = so==VERTICAL && collapsed==-1 && it.y<grabberSize ||
+            so==VERTICAL && collapsed==1 && it.y>splitPane.height - grabberSize ||
+            so==HORIZONTAL && collapsed==-1 && it.x<grabberSize ||
+            so==HORIZONTAL && collapsed==1 && it.x>splitPane.width - grabberSize
+
+         if (isGrabber)
+            collapsed = 0
+      }
+   }
+   private val collapsedL3 = EventHandler<MouseEvent> {
+      if (isCollapsed) {
+         val so = splitPane.orientation
+         val isGrabber = so==VERTICAL && collapsed==-1 && it.y<grabberSize ||
+            so==VERTICAL && collapsed==1 && it.y>splitPane.height - grabberSize ||
+            so==HORIZONTAL && collapsed==-1 && it.x<grabberSize ||
+            so==HORIZONTAL && collapsed==1 && it.x>splitPane.width - grabberSize
+
+         if (isGrabber)
+            collapsed = 0
+      }
+   }
+
+   init {
+      root.layFullArea += splitPane
+      root1.minSize = 0.x2
+      root2.minSize = 0.x2
+
+      prop = container.properties
+      prop.getOrPut(Double::class.javaObjectType, "pos", 0.5)
+      prop.getOrPut(Int::class.javaObjectType, "abs_size", 0)
+      prop.getOrPut(Int::class.javaObjectType, "col", 0)
+
+      container.orientation syncTo splitPane.orientationProperty()
+      absoluteSize = prop.getI("abs_size")
+      collapsed = prop.getI("col")
+
+      splitPane.onMouseClicked = root.onMouseClicked
+
+      // initialize position
+      splitPane.sync1IfInScene {
+         root.parentProperty() sync { updateSplitPosition() }
+      }
+
+      // maintain position in resize (SplitPane position is affected by distortion in case of small sizes)
+      splitPane.layoutBoundsProperty() sync {
+         if (prop.getI("abs_size")==0)
             updateSplitPosition()
-        }
-    val isCollapsed: Boolean
-        get() = collapsed!=0
+      }
 
-    private val collapsedL1 = ChangeListener<Orientation> { _, _, _ -> updateSplitPosition() }
-    private val collapsedL2 = EventHandler<MouseEvent> {
-        if (it.clickCount==2 && it.button==PRIMARY && isCollapsed) {
-            val so = splitPane.orientation
-            val isGrabber = so==VERTICAL && collapsed==-1 && it.y<grabberSize ||
-                so==VERTICAL && collapsed==1 && it.y>splitPane.height - grabberSize ||
-                so==HORIZONTAL && collapsed==-1 && it.x<grabberSize ||
-                so==HORIZONTAL && collapsed==1 && it.x>splitPane.width - grabberSize
+      val position = V(computeSplitPosition())
 
-            if (isGrabber)
-                collapsed = 0
-        }
-    }
-    private val collapsedL3 = EventHandler<MouseEvent> {
-        if (isCollapsed) {
-            val so = splitPane.orientation
-            val isGrabber = so==VERTICAL && collapsed==-1 && it.y<grabberSize ||
-                so==VERTICAL && collapsed==1 && it.y>splitPane.height - grabberSize ||
-                so==HORIZONTAL && collapsed==-1 && it.x<grabberSize ||
-                so==HORIZONTAL && collapsed==1 && it.x>splitPane.width - grabberSize
+      // remember position for persistence
+      splitPane.dividers[0].positionProperty() attach {
+         // only when the value changes manually - by user (hence the isPressed()).
+         // This way initialization and rounding errors will never affect the value
+         // and can not produce a domino effect. No matter how badly the value gets
+         // distorted when applying to the layout, its stored value will be always exact.
+         if (splitPane.isPressed)
+            position.value = it.toDouble()
+      }
 
-            if (isGrabber)
-                collapsed = 0
-        }
-    }
+      // apply/persist position (cant do this in positionProperty().addListener()) because it corrupts collapsed state restoration
+      splitPane.onEventUp(MOUSE_RELEASED) {
+         val v = position.value
+         if (v>0.01 && v<0.99) {
+            if (!isCollapsed)
+               prop["pos"] = v
+         } else {
+            val collapsedNew = if (v<0.5) -1 else 1
+            if (it.clickCount==1 && collapsed!=collapsedNew)
+               collapsed = collapsedNew
+         }
+      }
 
-    init {
-        root.layFullArea += splitPane
-        root1.minSize = 0.x2
-        root2.minSize = 0.x2
+      // maintain collapsed pseudoclass
+      position sync { splitPane.pseudoClassChanged("collapsed", it<0.01 || it>0.99) }
+   }
 
-        prop = container.properties
-        prop.getOrPut(Double::class.javaObjectType, "pos", 0.5)
-        prop.getOrPut(Int::class.javaObjectType, "abs_size", 0)
-        prop.getOrPut(Int::class.javaObjectType, "col", 0)
+   override fun buildControls() = super.buildControls().apply {
+      val orientB = Icon(MAGIC, -1.0, "Change orientation").addExtraIcon().onClickDo { container.orientation.toggleNext() }.styleclass("header-icon")
+      container.orientation sync { orientB.icon(if (it==VERTICAL) ELLIPSIS_V else ELLIPSIS_H) } on disposer
+   }
 
-        container.orientation syncTo splitPane.orientationProperty()
-        absoluteSize = prop.getI("abs_size")
-        collapsed = prop.getI("col")
+   private fun updateSplitPosition() {
+      splitPane.dividers[0].position = computeSplitPosition()
+      root1.maxSize = if (collapsed==-1) 0.x2 else (-1).x2
+      root2.maxSize = if (collapsed==+1) 0.x2 else (-1).x2
+   }
 
-        splitPane.onMouseClicked = root.onMouseClicked
+   private fun computeSplitPosition() = when (collapsed) {
+      -1 -> 0.0
+      0 -> prop.getD("pos")
+      1 -> 1.0
+      else -> failCase(collapsed)
+   }
 
-        // initialize position
-        splitPane.sync1IfInScene {
-            root.parentProperty() sync { updateSplitPosition() }
-        }
+   fun setComponent(i: Int, c: Component?) {
+      failIf(i!=1 && i!=2) { "Index must be 1 or 2" }
 
-        // maintain position in resize (SplitPane position is affected by distortion in case of small sizes)
-        splitPane.layoutBoundsProperty() sync {
-            if (prop.getI("abs_size")==0)
-                updateSplitPosition()
-        }
+      fun <T> T.closeUi(ui: KProperty0<ComponentUi?>) = apply { if (ui.value is Layouter || ui.value is WidgetUi) ui.value?.dispose() }
+      fun <T: AltState> T.showIfLM() = apply { if (APP.ui.isLayoutMode) show() }
 
-        val position = V(computeSplitPosition())
-
-        // remember position for persistence
-        splitPane.dividers[0].positionProperty() attach {
-            // only when the value changes manually - by user (hence the isPressed()).
-            // This way initialization and rounding errors will never affect the value
-            // and can not produce a domino effect. No matter how badly the value gets
-            // distorted when applying to the layout, its stored value will be always exact.
-            if (splitPane.isPressed)
-                position.value = it.toDouble()
-        }
-
-        // apply/persist position (cant do this in positionProperty().addListener()) because it corrupts collapsed state restoration
-        splitPane.onEventUp(MOUSE_RELEASED) {
-            val v = position.value
-            if (v>0.01 && v<0.99) {
-                if (!isCollapsed)
-                    prop["pos"] = v
-            } else {
-                val collapsedNew = if (v<0.5) -1 else 1
-                if (it.clickCount==1 && collapsed!=collapsedNew)
-                    collapsed = collapsedNew
+      val r = if (i==1) root1 else root2
+      val ui = if (i==1) ::ui1 else ::ui2
+      val n: Node = when (c) {
+         is Container<*> -> {
+            ui.value = null.closeUi(ui)
+            c.load(r).apply {
+               c.showIfLM()
             }
-        }
+         }
+         is Widget -> {
+            ui.value = ui.value.takeIf { it is WidgetUi && it.widget==c } ?: WidgetUi(container, i, c).closeUi(ui).showIfLM()
+            ui.value!!.root
+         }
+         null -> {
+            ui.value = ui.value.takeIf { it is Layouter } ?: Layouter(container, i).closeUi(ui).showIfLM()
+            ui.value!!.root
+         }
+         else -> failCase(c)
+      }
 
-        // maintain collapsed pseudoclass
-        position sync { splitPane.pseudoClassChanged("collapsed", it<0.01 || it>0.99) }
-    }
+      r.children.setToOne(n)
+      n.setAnchors(0.0)
+   }
 
-    override fun buildControls() = super.buildControls().apply {
-        val orientB = Icon(MAGIC, -1.0, "Change orientation").addExtraIcon().onClickDo { container.orientation.toggleNext() }.styleclass("header-icon")
-        container.orientation sync { orientB.icon(if (it==VERTICAL) ELLIPSIS_V else ELLIPSIS_H) } on disposer
-    }
+   /** Toggle fixed size between child1/child2/off. */
+   fun toggleAbsoluteSize() {
+      absoluteSize = absoluteSize.let { if (it==2) 0 else it + 1 }
+   }
 
-    private fun updateSplitPosition() {
-        splitPane.dividers[0].position = computeSplitPosition()
-        root1.maxSize = if (collapsed==-1) 0.x2 else (-1).x2
-        root2.maxSize = if (collapsed==+1) 0.x2 else (-1).x2
-    }
+   /** Toggle fixed size for specified children between true/false. */
+   fun toggleAbsoluteSizeFor(i: Int) {
+      absoluteSize = if (absoluteSize==i) 0 else i
+   }
 
-    private fun computeSplitPosition() = when (collapsed) {
-        -1 -> 0.0
-        0 -> prop.getD("pos")
-        1 -> 1.0
-        else -> failCase(collapsed)
-    }
+   /** Collapse on/off to the left or top depending on the orientation. */
+   fun toggleCollapsed1() {
+      collapsed = if (isCollapsed) 0 else -1
+   }
 
-    fun setComponent(i: Int, c: Component?) {
-        failIf(i!=1 && i!=2) { "Index must be 1 or 2" }
+   /** Collapse on/off to the right or bottom depending on the orientation. */
+   fun toggleCollapsed2() {
+      collapsed = if (isCollapsed) 0 else 1
+   }
 
-        fun <T> T.closeUi(ui: KProperty0<ComponentUi?>) = apply { if (ui.value is Layouter || ui.value is WidgetUi) ui.value?.dispose() }
-        fun <T: AltState> T.showIfLM() = apply { if (APP.ui.isLayoutMode) show() }
+   override fun show() {
+      super.show()
+      ui1.asIf<Layouter>()?.show()
+      ui2.asIf<Layouter>()?.show()
+   }
 
-        val r = if (i==1) root1 else root2
-        val ui = if (i==1) ::ui1 else ::ui2
-        val n: Node = when (c) {
-            is Container<*> -> {
-                ui.value = null.closeUi(ui)
-                c.load(r).apply {
-                    c.showIfLM()
-                }
-            }
-            is Widget -> {
-                ui.value = ui.value.takeIf { it is WidgetUi && it.widget==c } ?: WidgetUi(container, i, c).closeUi(ui).showIfLM()
-                ui.value!!.root
-            }
-            null -> {
-                ui.value = ui.value.takeIf { it is Layouter } ?: Layouter(container, i).closeUi(ui).showIfLM()
-                ui.value!!.root
-            }
-            else -> failCase(c)
-        }
+   override fun hide() {
+      super.hide()
+      ui1.asIf<Layouter>()?.hide()
+      ui2.asIf<Layouter>()?.hide()
+   }
 
-        r.children.setToOne(n)
-        n.setAnchors(0.0)
-    }
-
-    /** Toggle fixed size between child1/child2/off. */
-    fun toggleAbsoluteSize() {
-        absoluteSize = absoluteSize.let { if (it==2) 0 else it + 1 }
-    }
-
-    /** Toggle fixed size for specified children between true/false. */
-    fun toggleAbsoluteSizeFor(i: Int) {
-        absoluteSize = if (absoluteSize==i) 0 else i
-    }
-
-    /** Collapse on/off to the left or top depending on the orientation. */
-    fun toggleCollapsed1() {
-        collapsed = if (isCollapsed) 0 else -1
-    }
-
-    /** Collapse on/off to the right or bottom depending on the orientation. */
-    fun toggleCollapsed2() {
-        collapsed = if (isCollapsed) 0 else 1
-    }
-
-    override fun show() {
-        super.show()
-        ui1.asIf<Layouter>()?.show()
-        ui2.asIf<Layouter>()?.show()
-    }
-
-    override fun hide() {
-        super.hide()
-        ui1.asIf<Layouter>()?.hide()
-        ui2.asIf<Layouter>()?.hide()
-    }
-
-    companion object {
-        private const val grabberSize = 20.0
-    }
+   companion object {
+      private const val grabberSize = 20.0
+   }
 
 }

@@ -28,45 +28,45 @@ import javax.swing.filechooser.FileSystemView
  * http://stackoverflow.com/questions/26192832/java-javafx-set-swing-icon-for-javafx-label
  */
 object IconExtractor {
-    private val dirTmp = File(System.getProperty("java.io.tmpdir"))
-    private val helperFileSystemView by lazy { FileSystemView.getFileSystemView() }
-    private val mapOfFileExtToSmallIcon = ConcurrentHashMap<String, Image?>()
+   private val dirTmp = File(System.getProperty("java.io.tmpdir"))
+   private val helperFileSystemView by lazy { FileSystemView.getFileSystemView() }
+   private val mapOfFileExtToSmallIcon = ConcurrentHashMap<String, Image?>()
 
-    @JvmStatic fun getFileIcon(file: File): Image? {
+   @JvmStatic fun getFileIcon(file: File): Image? {
 
-        val ext = Util.getSuffix(file.path).toLowerCase()
+      val ext = Util.getSuffix(file.path).toLowerCase()
 
-        // shortcuts have icons of files they refer to
-        if (lnk==ext)
-            return WindowsShortcut.targetedFile(file).map(::getFileIcon).orNull()
+      // shortcuts have icons of files they refer to
+      if (lnk==ext)
+         return WindowsShortcut.targetedFile(file).map(::getFileIcon).orNull()
 
-        // Handle windows executable files (we need to handle each individually)
-        val isExe = exe==ext
-        val key = if (isExe) file.nameWithoutExtensionOrRoot else ext
+      // Handle windows executable files (we need to handle each individually)
+      val isExe = exe==ext
+      val key = if (isExe) file.nameWithoutExtensionOrRoot else ext
 
-        return mapOfFileExtToSmallIcon.computeIfAbsent(key) {
-            val iconFile = file.takeIf { it.exists() } ?: runIf(!isExe) {
-                val f = dirTmp/"file_type_icons.$it"
-                f.takeIf { it.exists() || it.writeTextTry("").isOk }
-            }
-            iconFile?.getSwingIconFromFileSystem()?.toImage()
-        }
-    }
+      return mapOfFileExtToSmallIcon.computeIfAbsent(key) {
+         val iconFile = file.takeIf { it.exists() } ?: runIf(!isExe) {
+            val f = dirTmp/"file_type_icons.$it"
+            f.takeIf { it.exists() || it.writeTextTry("").isOk }
+         }
+         iconFile?.getSwingIconFromFileSystem()?.toImage()
+      }
+   }
 
-    private fun File.getSwingIconFromFileSystem(): Icon? = when (Os.current) {
-        Os.WINDOWS -> helperFileSystemView.getSystemIcon(this)
-        // TODO: implement
-        // Os.OSX -> {
-        //     final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
-        //     return icon = fc.getUI().getFileView(fc).getIcon(file);
-        // }
-        else -> null
-    }
+   private fun File.getSwingIconFromFileSystem(): Icon? = when (Os.current) {
+      Os.WINDOWS -> helperFileSystemView.getSystemIcon(this)
+      // TODO: implement
+      // Os.OSX -> {
+      //     final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
+      //     return icon = fc.getUI().getFileView(fc).getIcon(file);
+      // }
+      else -> null
+   }
 
-    private fun Icon.toImage(): Image? {
-        val image = BufferedImage(this.iconWidth, this.iconHeight, TYPE_INT_ARGB)
-        paintIcon(null, image.graphics, 0, 0)
-        return image.toFX(null)
-    }
+   private fun Icon.toImage(): Image? {
+      val image = BufferedImage(this.iconWidth, this.iconHeight, TYPE_INT_ARGB)
+      paintIcon(null, image.graphics, 0, 0)
+      return image.toFX(null)
+   }
 
 }

@@ -58,210 +58,210 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 
 object AppProgress {
-    private val tasksActive = ConcurrentHashMap<String, AppTask>()
-    private val tasks = observableArrayList<AppTask>()!!
-    val progress = v(1.0)
-    val loop = Loop(Runnable { tasksActive.values.forEach { it.updateTimeActive() } }).start()
+   private val tasksActive = ConcurrentHashMap<String, AppTask>()
+   private val tasks = observableArrayList<AppTask>()!!
+   val progress = v(1.0)
+   val loop = Loop(Runnable { tasksActive.values.forEach { it.updateTimeActive() } }).start()
 
-    /**
-     * The task starts as [SCHEDULED], immediately transitions to [ACTIVE] and completes on
-     * [reportDone][StartAppTaskHandle.reportDone].
-     *
-     * @return handle to control the created task
-     */
-    fun start(name: String): StartAppTaskHandle = start(AppTask(name, null, null)).apply { reportActive() }
+   /**
+    * The task starts as [SCHEDULED], immediately transitions to [ACTIVE] and completes on
+    * [reportDone][StartAppTaskHandle.reportDone].
+    *
+    * @return handle to control the created task
+    */
+   fun start(name: String): StartAppTaskHandle = start(AppTask(name, null, null)).apply { reportActive() }
 
-    /**
-     * The task starts as [SCHEDULED], transitions to [ACTIVE] on [reportActive][ScheduleAppTaskHandle.reportActive]
-     * and completes on [reportDone][StartAppTaskHandle.reportDone].
-     *
-     * @return handle to control the created task
-     */
-    fun schedule(name: String): ScheduleAppTaskHandle = start(AppTask(name, null, null))
+   /**
+    * The task starts as [SCHEDULED], transitions to [ACTIVE] on [reportActive][ScheduleAppTaskHandle.reportActive]
+    * and completes on [reportDone][StartAppTaskHandle.reportDone].
+    *
+    * @return handle to control the created task
+    */
+   fun schedule(name: String): ScheduleAppTaskHandle = start(AppTask(name, null, null))
 
-    /**
-     * Registers the specified task in [AppProgress] using [AppProgress.schedule] with the task's title as name.
-     *
-     * If specified task is already completed, this method is a noop.
-     */
-    fun start(task: Task<*>) {
+   /**
+    * Registers the specified task in [AppProgress] using [AppProgress.schedule] with the task's title as name.
+    *
+    * If specified task is already completed, this method is a noop.
+    */
+   fun start(task: Task<*>) {
 
-        fun Task<*>.toApp() = AppTask(title, messageProperty(), { cancel() })
-        fun Task<*>.doOn(vararg state: State, block: (State) -> Unit) = stateProperty().sync1If({ it in state }, block)
+      fun Task<*>.toApp() = AppTask(title, messageProperty(), { cancel() })
+      fun Task<*>.doOn(vararg state: State, block: (State) -> Unit) = stateProperty().sync1If({ it in state }, block)
 
-        when (task.state!!) {
-            State.READY -> {
-                task.doOn(State.SCHEDULED) {
-                    start(task)
-                }
+      when (task.state) {
+         State.READY -> {
+            task.doOn(State.SCHEDULED) {
+               start(task)
             }
-            State.SCHEDULED, State.RUNNING -> {
-                val t = start(task.toApp())
-                task.doOn(State.RUNNING) {
-                    t.reportActive()
-                }
-                task.doOn(State.SUCCEEDED, State.CANCELLED, State.FAILED) {
-                    t.reportDone(
-                        when (it) {
-                            State.SUCCEEDED -> ResultOk(null)
-                            State.CANCELLED -> ResultInterrupted(InterruptedException("Cancelled"))
-                            State.FAILED -> ResultFail(task.exception)
-                            else -> failCase(it)
+         }
+         State.SCHEDULED, State.RUNNING -> {
+            val t = start(task.toApp())
+            task.doOn(State.RUNNING) {
+               t.reportActive()
+            }
+            task.doOn(State.SUCCEEDED, State.CANCELLED, State.FAILED) {
+               t.reportDone(
+                  when (it) {
+                     State.SUCCEEDED -> ResultOk(null)
+                     State.CANCELLED -> ResultInterrupted(InterruptedException("Cancelled"))
+                     State.FAILED -> ResultFail(task.exception)
+                     else -> failCase(it)
+                  }
+               )
+            }
+         }
+         State.SUCCEEDED, State.CANCELLED, State.FAILED -> Unit
+      }
+   }
+
+   private fun start(task: AppTask): ScheduleAppTaskHandle {
+      val id = uuid().toString() + task.name
+      runFX {
+         tasks += task
+      }
+      return object: ScheduleAppTaskHandle {
+         private var runInvoked by atomic(false)
+         private var doneInvoked by atomic(false)
+
+         override fun reportActive() {
+            failIf(runInvoked) { "Task can only be activated once" }
+            runInvoked = true
+
+            tasksActive[id] = task
+            runFX {
+               task.activate()
+               progress.value = if (tasksActive.isEmpty()) 1.0 else -1.0
+            }
+         }
+
+         override fun reportDone(result: Result<*>) {
+            failIf(!runInvoked) { "Task can only be finished if it was activated" }
+            failIf(doneInvoked) { "Task can only be finished once" }
+            doneInvoked = true
+
+            tasksActive -= id
+            runFX {
+               task.finish(result)
+               progress.value = if (tasksActive.isEmpty()) 1.0 else -1.0
+            }
+         }
+      }
+   }
+
+   fun showTasks(target: Node) {
+      val layout = anchorPane {
+         lay(10) += scrollPane {
+            hbarPolicy = NEVER
+            vbarPolicy = AS_NEEDED
+            isFitToWidth = true
+            content = vBox(5.0) {
+               fun AppTask.toInfo() = vBox {
+                  minPrefMaxWidth = USE_COMPUTED_SIZE
+                  minPrefMaxHeight = USE_COMPUTED_SIZE
+                  prefWidth = 450.0
+
+                  lay += borderPane {
+                     left = hBox(10, CENTER_LEFT) {
+                        lay += label(name).apply {
+                           padding = Insets(0.0, 50.0, 0.0, 0.0)
                         }
-                    )
-                }
-            }
-            State.SUCCEEDED, State.CANCELLED, State.FAILED -> Unit
-        }
-    }
-
-    private fun start(task: AppTask): ScheduleAppTaskHandle {
-        val id = uuid().toString() + task.name
-        runFX {
-            tasks += task
-        }
-        return object: ScheduleAppTaskHandle {
-            private var runInvoked by atomic(false)
-            private var doneInvoked by atomic(false)
-
-            override fun reportActive() {
-                failIf(runInvoked) { "Task can only be activated once" }
-                runInvoked = true
-
-                tasksActive[id] = task
-                runFX {
-                    task.activate()
-                    progress.value = if (tasksActive.isEmpty()) 1.0 else -1.0
-                }
-            }
-
-            override fun reportDone(result: Result<*>) {
-                failIf(!runInvoked) { "Task can only be finished if it was activated" }
-                failIf(doneInvoked) { "Task can only be finished once" }
-                doneInvoked = true
-
-                tasksActive -= id
-                runFX {
-                    task.finish(result)
-                    progress.value = if (tasksActive.isEmpty()) 1.0 else -1.0
-                }
-            }
-        }
-    }
-
-    fun showTasks(target: Node) {
-        val layout = anchorPane {
-            lay(10) += scrollPane {
-                hbarPolicy = NEVER
-                vbarPolicy = AS_NEEDED
-                isFitToWidth = true
-                content = vBox(5.0) {
-                    fun AppTask.toInfo() = vBox {
-                        minPrefMaxWidth = USE_COMPUTED_SIZE
-                        minPrefMaxHeight = USE_COMPUTED_SIZE
-                        prefWidth = 450.0
-
-                        lay += borderPane {
-                            left = hBox(10, CENTER_LEFT) {
-                                lay += label(name).apply {
-                                    padding = Insets(0.0, 50.0, 0.0, 0.0)
-                                }
-                            }
-                            right = hBox(10, CENTER_RIGHT) {
-                                lay += label {
-                                    state sync { isVisible = it!=SCHEDULED }
-                                    timeActive sync { text = it.formatToSmallestUnit() }
-                                }
-                                lay += Icon().apply {
-                                    isMouseTransparent = true
-
-                                    fun updateIcon() {
-                                        icon(when (state.value) {
-                                            SCHEDULED -> IconMD.ROTATE_RIGHT
-                                            ACTIVE -> IconFA.REPEAT
-                                            DONE_OK -> IconFA.CHECK
-                                            DONE_ERROR -> IconFA.CLOSE
-                                            DONE_CANCEL -> IconFA.BAN
-                                        })
-                                    }
-
-                                    val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(ElasticInterpolator())
-                                    updateIcon()
-                                    state attach { a.playCloseDoOpen(::updateIcon) }
-                                }
-                            }
+                     }
+                     right = hBox(10, CENTER_RIGHT) {
+                        lay += label {
+                           state sync { isVisible = it!=SCHEDULED }
+                           timeActive sync { text = it.formatToSmallestUnit() }
                         }
-                        lay += supplyIf(message!=null) {
-                            borderPane {
-                                right = hBox(10, CENTER_RIGHT) {
-                                    lay += label {
-                                        maxWidth = 500.0
-                                        textProperty() syncFrom message!!
-                                    }
-                                    lay += Icon(IconFA.BAN).apply {
-                                        isVisible = cancel!=null
-                                        if (cancel!=null) state.sync1If({ it!=ACTIVE }) { isVisible = false }
-                                        onClickDo { cancel?.invoke() }
-                                    }
-                                }
-                            }
+                        lay += Icon().apply {
+                           isMouseTransparent = true
+
+                           fun updateIcon() {
+                              icon(when (state.value) {
+                                 SCHEDULED -> IconMD.ROTATE_RIGHT
+                                 ACTIVE -> IconFA.REPEAT
+                                 DONE_OK -> IconFA.CHECK
+                                 DONE_ERROR -> IconFA.CLOSE
+                                 DONE_CANCEL -> IconFA.BAN
+                              })
+                           }
+
+                           val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(ElasticInterpolator())
+                           updateIcon()
+                           state attach { a.playCloseDoOpen(::updateIcon) }
                         }
-                    }
-                    tasks.onItemSync {
-                        children.add(0, it.toInfo())
-                    }
-                }
+                     }
+                  }
+                  lay += supplyIf(message!=null) {
+                     borderPane {
+                        right = hBox(10, CENTER_RIGHT) {
+                           lay += label {
+                              maxWidth = 500.0
+                              textProperty() syncFrom message!!
+                           }
+                           lay += Icon(IconFA.BAN).apply {
+                              isVisible = cancel!=null
+                              if (cancel!=null) state.sync1If({ it!=ACTIVE }) { isVisible = false }
+                              onClickDo { cancel?.invoke() }
+                           }
+                        }
+                     }
+                  }
+               }
+               tasks.onItemSync {
+                  children.add(0, it.toInfo())
+               }
             }
-        }
-        PopOver(layout).apply {
-            title.value = "Tasks"
-            detached.value = false
-            detachable.value = false
-            isHideOnEscape = false
-            arrowSize.value = 0.0
-            arrowIndent.value = 0.0
-            cornerRadius.value = 0.0
-            isAutoFix = false
-            isAutoHide = true
-            show(target, NodePos.RIGHT_UP)
-        }
-    }
+         }
+      }
+      PopOver(layout).apply {
+         title.value = "Tasks"
+         detached.value = false
+         detachable.value = false
+         isHideOnEscape = false
+         arrowSize.value = 0.0
+         arrowIndent.value = 0.0
+         cornerRadius.value = 0.0
+         isAutoFix = false
+         isAutoHide = true
+         show(target, NodePos.RIGHT_UP)
+      }
+   }
 }
 
 interface StartAppTaskHandle {
-    fun reportDone(result: Result<*>)
+   fun reportDone(result: Result<*>)
 }
 
 interface ScheduleAppTaskHandle: StartAppTaskHandle {
-    fun reportActive()
+   fun reportActive()
 }
 
 private class AppTask(val name: String, val message: ReadOnlyProperty<String>?, val cancel: (() -> Unit)?) {
-    val state = v(SCHEDULED)
-    val timeActive = v(0.millis)
-    private var timeStart = 0L
+   val state = v(SCHEDULED)
+   val timeActive = v(0.millis)
+   private var timeStart = 0L
 
-    fun updateTimeActive() {
-        if (state.value==ACTIVE)
-            timeActive.value = (System.currentTimeMillis() - timeStart).millis
-    }
+   fun updateTimeActive() {
+      if (state.value==ACTIVE)
+         timeActive.value = (System.currentTimeMillis() - timeStart).millis
+   }
 
-    fun activate() {
-        timeStart = System.currentTimeMillis()
-        state.value = ACTIVE
-        updateTimeActive()
-    }
+   fun activate() {
+      timeStart = System.currentTimeMillis()
+      state.value = ACTIVE
+      updateTimeActive()
+   }
 
-    fun finish(result: Result<*>) {
-        updateTimeActive()
-        state.value = when (result) {
-            is ResultOk<*> -> DONE_OK
-            is ResultInterrupted -> DONE_CANCEL
-            is ResultFail -> DONE_ERROR
-        }
-    }
+   fun finish(result: Result<*>) {
+      updateTimeActive()
+      state.value = when (result) {
+         is ResultOk<*> -> DONE_OK
+         is ResultInterrupted -> DONE_CANCEL
+         is ResultFail -> DONE_ERROR
+      }
+   }
 
-    enum class State { SCHEDULED, ACTIVE, DONE_OK, DONE_CANCEL, DONE_ERROR }
+   enum class State { SCHEDULED, ACTIVE, DONE_OK, DONE_CANCEL, DONE_ERROR }
 }
 
 /**
@@ -273,14 +273,14 @@ private class AppTask(val name: String, val message: ReadOnlyProperty<String>?, 
  * Note that the task will immediately become [ACTIVE], if scheduling should be reported, use [Fut.thenWithAppProgress].
  */
 fun <T> Fut<T>.withAppProgress(name: String) = apply {
-    var t: StartAppTaskHandle? = null
-    FX {
-        if (!isDone())
-            t = AppProgress.start(name)
-    }
-    onDone(FX) {
-        t?.reportDone(it)
-    }
+   var t: StartAppTaskHandle? = null
+   FX {
+      if (!isDone())
+         t = AppProgress.start(name)
+   }
+   onDone(FX) {
+      t?.reportDone(it)
+   }
 }
 
 /**
@@ -291,18 +291,18 @@ fun <T> Fut<T>.withAppProgress(name: String) = apply {
  * [StartAppTaskHandle.reportDone] when block finishes executing.
  */
 fun <T, R> Fut<T>.thenWithAppProgress(executor: Executor, name: String, block: (T) -> R): Fut<R> = run {
-    lateinit var t: ScheduleAppTaskHandle
-    FX {
-        t = AppProgress.schedule(name)
-    }
-    then(executor) {
-        FX {
-            t.reportActive()
-        }
-        block(it)
-    }.onDone(FX) {
-        t.reportDone(it)
-    }
+   lateinit var t: ScheduleAppTaskHandle
+   FX {
+      t = AppProgress.schedule(name)
+   }
+   then(executor) {
+      FX {
+         t.reportActive()
+      }
+      block(it)
+   }.onDone(FX) {
+      t.reportDone(it)
+   }
 }
 
 /**
@@ -310,13 +310,13 @@ fun <T, R> Fut<T>.thenWithAppProgress(executor: Executor, name: String, block: (
  * The progress is immediately set to 1 if done or -1 otherwise and to 1 once this future completes.
  */
 fun <T> Fut<T>.withProgress(progressIndicator: ProgressIndicator) = apply {
-    runFX {
-        if (!isDone())
-            progressIndicator.progress = if (isDone()) 1.0 else -1.0
-    }
-    onDone {
-        runFX {
-            progressIndicator.progress = 1.0
-        }
-    }
+   runFX {
+      if (!isDone())
+         progressIndicator.progress = if (isDone()) 1.0 else -1.0
+   }
+   onDone {
+      runFX {
+         progressIndicator.progress = 1.0
+      }
+   }
 }

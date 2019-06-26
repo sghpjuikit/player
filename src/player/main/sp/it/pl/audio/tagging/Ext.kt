@@ -22,11 +22,11 @@ private val logger = KotlinLogging.logger {}
 
 /** @return maximal rating value */
 val Tag.ratingMax: Int
-    get() = when (this) {
-        is AbstractID3Tag -> 255
-        is VorbisCommentTag -> 100
-        else -> 100
-    }
+   get() = when (this) {
+      is AbstractID3Tag -> 255
+      is VorbisCommentTag -> 100
+      else -> 100
+   }
 
 /** @return minimal rating value */
 val Tag.ratingMin: Int get() = 0
@@ -36,25 +36,25 @@ fun Tag.clipRating(v: Double): Double = v.clip(ratingMin.toDouble(), ratingMax.t
 
 /** @return audio file or error if fails */
 fun File.readAudioFile(): Try<AudioFile, Exception> {
-    val onError = { e: Exception ->
-        logger.error(e) { "Reading metadata failed for file $this" }
-        Try.error(e)
-    }
-    return try {
-        Try.ok(AudioFileIO.read(this))
-    } catch (e: CannotReadVideoException) {
-        onError(e)
-    } catch (e: CannotReadException) {
-        onError(e)
-    } catch (e: IOException) {
-        onError(e)
-    } catch (e: TagException) {
-        onError(e)
-    } catch (e: ReadOnlyFileException) {
-        onError(e)
-    } catch (e: InvalidAudioFrameException) {
-        onError(e)
-    }
+   val onError = { e: Exception ->
+      logger.error(e) { "Reading metadata failed for file $this" }
+      Try.error(e)
+   }
+   return try {
+      Try.ok(AudioFileIO.read(this))
+   } catch (e: CannotReadVideoException) {
+      onError(e)
+   } catch (e: CannotReadException) {
+      onError(e)
+   } catch (e: IOException) {
+      onError(e)
+   } catch (e: TagException) {
+      onError(e)
+   } catch (e: ReadOnlyFileException) {
+      onError(e)
+   } catch (e: InvalidAudioFrameException) {
+      onError(e)
+   }
 }
 
 /** @return new metadata taking the data from this audio file */
@@ -62,14 +62,14 @@ fun AudioFile.toMetadata() = Metadata(this)
 
 /** @return cover image or null if none or error */
 val Artwork.imageOrNull: BufferedImage?
-    get() = try {
-        // jaudiotagger bug, Artwork.getImage() can throw NullPointerException sometimes
-        // at java.io.ByteArrayInputStream.<init>(ByteArrayInputStream.java:106) ~[na:na]
-        // at org.jaudiotagger.tag.images.StandardArtwork.getImage(StandardArtwork.java:95) ~[jaudiotagger-2.2.6-SNAPSHOT.jar:na]
-        image as? BufferedImage?
-    } catch (e: NullPointerException) {
-        null
-    }
+   get() = try {
+      // jaudiotagger bug, Artwork.getImage() can throw NullPointerException sometimes
+      // at java.io.ByteArrayInputStream.<init>(ByteArrayInputStream.java:106) ~[na:na]
+      // at org.jaudiotagger.tag.images.StandardArtwork.getImage(StandardArtwork.java:95) ~[jaudiotagger-2.2.6-SNAPSHOT.jar:na]
+      image as? BufferedImage?
+   } catch (e: NullPointerException) {
+      null
+   }
 
 /** @return cover information */
 val Artwork.info: String? get() = "$description $mimeType ${width}x$height"

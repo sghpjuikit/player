@@ -12,36 +12,36 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.units.millis
 
 class Search {
-    val sources = HashSet<() -> Sequence<ConfigSearch.Entry>>()
-    val history = ConfigSearch.History()
+   val sources = HashSet<() -> Sequence<ConfigSearch.Entry>>()
+   val history = ConfigSearch.History()
 
-    fun buildUi(onAutoCompleted: (ConfigSearch.Entry) -> Unit = {}): Node {
-        val tf = DecoratedTextField().apply {
-            val clearB = Icon().also {
-                it.styleClass += "search-clear-button"
-                it.opacity = 0.0
-                it.onEventDown(MOUSE_RELEASED) { clear() }
-                it.managedProperty() syncFrom editableProperty()
-                it.visibleProperty() syncFrom editableProperty()
-            }
-            val signB = Icon().also {
-                it.styleclass("search-icon-sign")
-                it.isMouseTransparent = true
-            }
-            val fade = anim(200.millis) { clearB.opacity = it }.applyNow()
+   fun buildUi(onAutoCompleted: (ConfigSearch.Entry) -> Unit = {}): Node {
+      val tf = DecoratedTextField().apply {
+         val clearB = Icon().also {
+            it.styleClass += "search-clear-button"
+            it.opacity = 0.0
+            it.onEventDown(MOUSE_RELEASED) { clear() }
+            it.managedProperty() syncFrom editableProperty()
+            it.visibleProperty() syncFrom editableProperty()
+         }
+         val signB = Icon().also {
+            it.styleclass("search-icon-sign")
+            it.isMouseTransparent = true
+         }
+         val fade = anim(200.millis) { clearB.opacity = it }.applyNow()
 
-            styleClass += "search"
-            right.value = clearB
-            left.value = signB
-            textProperty() attach { fade.playFromDir(!it.isNullOrBlank()) }
-        }
+         styleClass += "search"
+         right.value = clearB
+         left.value = signB
+         textProperty() attach { fade.playFromDir(!it.isNullOrBlank()) }
+      }
 
-        ConfigSearch(tf, history, { sources.asSequence().flatMap { it() } }).apply {
-            this.hideOnSuggestion.value = true
-            this.onAutoCompleted += onAutoCompleted
-        }
+      ConfigSearch(tf, history, { sources.asSequence().flatMap { it() } }).apply {
+         this.hideOnSuggestion.value = true
+         this.onAutoCompleted += onAutoCompleted
+      }
 
-        return tf
-    }
+      return tf
+   }
 
 }

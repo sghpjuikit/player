@@ -27,16 +27,16 @@ fun <T> ObservableValue<T>.printOnChange(name: String = "") = attach { println("
 
 /** Prints the time it takes to execute specified block in milliseconds. */
 fun <T> printExecutionTime(block: () -> T): T {
-    val time = System.currentTimeMillis()
-    val t = block()
-    println(System.currentTimeMillis() - time)
-    return t
+   val time = System.currentTimeMillis()
+   val t = block()
+   println(System.currentTimeMillis() - time)
+   return t
 }
 
 /** @return stacktrace as string, in the same format as [Exception#printStackTrace]. */
 fun Exception.stackTraceAsString(): String {
-    val sw = StringWriter()
-    val pw = PrintWriter(sw)
-    printStackTrace(pw)
-    return sw.toString()
+   val sw = StringWriter()
+   val pw = PrintWriter(sw)
+   printStackTrace(pw)
+   return sw.toString()
 }

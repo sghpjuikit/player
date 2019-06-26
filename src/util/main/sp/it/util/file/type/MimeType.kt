@@ -11,25 +11,25 @@ package sp.it.util.file.type
  *
  */
 class MimeType(val name: String, vararg extensions: String) {
-    val extensions: Array<out String>
-    val group: String
-    val extension: String?
+   val extensions: Array<out String>
+   val group: String
+   val extension: String?
 
-    init {
-        this.group = name.substringBefore("/")
-        this.extension = extensions.firstOrNull()
-        this.extensions = extensions
-    }
+   init {
+      this.group = name.substringBefore("/")
+      this.extension = extensions.firstOrNull()
+      this.extensions = extensions
+   }
 
-    fun getMimeType() = name
+   fun getMimeType() = name
 
-    fun isOfType(extension: String): Boolean = extension in extensions
+   fun isOfType(extension: String): Boolean = extension in extensions
 
-    override fun toString() = name
+   override fun toString() = name
 
-    companion object {
+   companion object {
 
-        val UNKNOWN = MimeType("Unknown")
-    }
+      val UNKNOWN = MimeType("Unknown")
+   }
 
 }

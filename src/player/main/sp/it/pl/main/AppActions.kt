@@ -80,335 +80,335 @@ import java.net.URISyntaxException
 @IsConfigurable("Shortcuts")
 class AppActions {
 
-    @IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
-    fun openAppGithubPage() {
-        APP.uriGithub.browse()
-    }
+   @IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
+   fun openAppGithubPage() {
+      APP.uriGithub.browse()
+   }
 
-    @IsAction(name = "Open app directory", desc = "Opens directory from which this application is running from.")
-    fun openAppLocation() {
-        APP.DIR_APP.open()
-    }
+   @IsAction(name = "Open app directory", desc = "Opens directory from which this application is running from.")
+   fun openAppLocation() {
+      APP.DIR_APP.open()
+   }
 
-    @IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
-    fun openCssGuide() {
-        URI.create("http://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html").browse()
-    }
+   @IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
+   fun openCssGuide() {
+      URI.create("http://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html").browse()
+   }
 
-    @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
-    fun openIconViewer() {
-        val iconSize = 120.0
-        val iconsView = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize + 30, 5.0, 5.0).apply {
-            search.field = StringGetter.of { value, _ -> value.name() }
-            selectOn setTo listOf(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS)
-            cellFactory = Callback {
-                object: GridCell<GlyphIcons, GlyphIcons>() {
+   @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
+   fun openIconViewer() {
+      val iconSize = 120.0
+      val iconsView = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize + 30, 5.0, 5.0).apply {
+         search.field = StringGetter.of { value, _ -> value.name() }
+         selectOn setTo listOf(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS)
+         cellFactory = Callback {
+            object: GridCell<GlyphIcons, GlyphIcons>() {
 
-                    init {
-                        styleClass += "icon-grid-cell"
-                        isPickOnBounds = true
-                    }
+               init {
+                  styleClass += "icon-grid-cell"
+                  isPickOnBounds = true
+               }
 
-                    public override fun updateItem(icon: GlyphIcons, empty: Boolean) {
-                        super.updateItem(icon, empty)
+               public override fun updateItem(icon: GlyphIcons, empty: Boolean) {
+                  super.updateItem(icon, empty)
 
-                        if (empty || item==null) {
-                            graphic = null
-                        } else {
-                            val iconInfo = graphic as? IconInfo
-                                ?: IconInfo(null, iconSize).apply { isMouseTransparent = true }
-                            iconInfo.setGlyph(if (empty) null else icon)
-                            graphic = iconInfo
-                        }
-                    }
+                  if (empty || item==null) {
+                     graphic = null
+                  } else {
+                     val iconInfo = graphic as? IconInfo
+                        ?: IconInfo(null, iconSize).apply { isMouseTransparent = true }
+                     iconInfo.setGlyph(if (empty) null else icon)
+                     graphic = iconInfo
+                  }
+               }
 
-                    override fun updateSelected(selected: Boolean) {
-                        super.updateSelected(selected)
+               override fun updateSelected(selected: Boolean) {
+                  super.updateSelected(selected)
 
-                        graphic.asIf<IconInfo>()?.select(selected)
-                    }
-
-                }
-            }
-        }
-        val groupsView = listView<Class<GlyphIcons>> {
-            minPrefMaxWidth = 200.0
-            cellFactory = listViewCellFactory { group, empty ->
-                text = if (empty) null else group.simpleName
-            }
-            selectionModel.selectionMode = SINGLE
-            selectionModel.selectedItemProperty() sync {
-                iconsView.itemsRaw setTo it?.net { getEnumConstants<GlyphIcons>(it) }.orEmpty()
-            }
-            items setTo Icon.GLYPH_TYPES
-        }
-        val layout = hBox(20, CENTER) {
-            setPrefSize(900.0, 700.0)
-            lay += groupsView
-            lay(ALWAYS) += stackPane(iconsView)
-        }
-
-        PopOver(layout).show(ScreenPos.APP_CENTER)
-        if (!groupsView.items.isEmpty()) groupsView.selectionModel.select(0)
-    }
-
-    // TODO: make into a plugin
-    @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
-    fun openLauncher() {
-        val f = File(APP.DIR_LAYOUTS, "AppMainLauncher.fxwl")
-        val c = null
-            ?: APP.windowManager.instantiateComponent(f)
-            ?: APP.widgetManager.factories.getFactoryByGuiName(Widgets.APP_LAUNCHER).orNull()?.create()
-
-        if (c!=null) {
-            val op = object: OverlayPane<Void>() {
-                override fun show(data: Void?) {
-                    val componentRoot = c.load() as Pane
-                    // getChildren().add(componentRoot);   // alternatively for borderless/fullscreen experience // TODO investigate & use | remove
-                    content = anchorPane {
-                        lay(20) += componentRoot
-                    }
-                    if (c is Widget) {
-                        val parent = this
-                        c.controller.getFieldOrThrow("closeOnLaunch").value = true
-                        c.controller.getFieldOrThrow("closeOnRightClick").value = true
-                        c.uiTemp = object: ComponentUi {
-                            override val root = parent
-                            override fun show() {}
-                            override fun hide() {}
-                            override fun dispose() = root.hide()    // TODO: make sure there is no leak, + turn this into WidgetLoader
-                        }
-                    }
-                    super.show()
-                }
-
-                override fun hide() {
-                    super.hide()
-                    c.exportFxwl(f)
-                    c.close()
-                    removeFromParent()
-                }
-            }
-            op.display.value = SCREEN_OF_MOUSE
-            op.displayBgr.value = APP.ui.viewDisplayBgr.value
-            op.show(null)
-            op.makeResizableByUser()
-            c.load().apply {
-                prefWidth(900.0)
-                prefHeight(700.0)
-            }
-            c.focus()
-        }
-    }
-
-    @IsAction(name = "Open settings", desc = "Opens application settings.")
-    fun openSettings() {
-        APP.widgetManager.widgets.use<ConfiguringFeature>(NO_LAYOUT) { it.configure(APP.configuration) }
-    }
-
-    @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
-    fun openActions() {
-        APP.ui.actionPane.orBuild.show(APP)
-    }
-
-    @IsAction(name = "Open...", desc = "Display all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
-    fun openOpen() {
-        APP.ui.actionPane.orBuild.show(AppOpen)
-    }
-
-    @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "COMMA")
-    fun showShortcuts() {
-        APP.ui.shortcutPane.orBuild.show(ActionRegistrar.getActions())
-    }
-
-    @IsAction(name = "Show system info", desc = "Display system information.")
-    fun showSysInfo() {
-        APP.ui.infoPane.orBuild.show(null)
-    }
-
-    @IsAction(name = "Show overlay", desc = "Display screen overlay.")
-    fun showOverlay() {
-        val overlays = ArrayList<OverlayPane<Unit>>()
-        fun <T> List<T>.forEachDelayed(block: (T) -> Unit) = forEachIndexed { i, it -> runFX(200.millis*i) { block(it) } }
-        var canHide = false
-        val showAll = {
-            overlays.forEachDelayed { it.show(Unit) }
-        }
-        val hideAll = {
-            canHide = true
-            overlays.forEachDelayed { it.hide() }
-        }
-        overlays += Screen.getScreens().asSequence().sortedBy { it.bounds.minX }.map {
-            object: OverlayPane<Unit>() {
-
-                init {
-                    content = stackPane()
-                    display.value = object: ScreenGetter {
-                        override fun computeScreen() = it
-                    }
-                }
-
-                override fun show(data: Unit?) {
-                    super.show()
-                }
-
-                override fun hide() {
-                    if (canHide) super.hide()
-                    else hideAll()
-                }
+                  graphic.asIf<IconInfo>()?.select(selected)
+               }
 
             }
-        }
-        showAll()
-    }
+         }
+      }
+      val groupsView = listView<Class<GlyphIcons>> {
+         minPrefMaxWidth = 200.0
+         cellFactory = listViewCellFactory { group, empty ->
+            text = if (empty) null else group.simpleName
+         }
+         selectionModel.selectionMode = SINGLE
+         selectionModel.selectedItemProperty() sync {
+            iconsView.itemsRaw setTo it?.net { getEnumConstants<GlyphIcons>(it) }.orEmpty()
+         }
+         items setTo Icon.GLYPH_TYPES
+      }
+      val layout = hBox(20, CENTER) {
+         setPrefSize(900.0, 700.0)
+         lay += groupsView
+         lay(ALWAYS) += stackPane(iconsView)
+      }
 
-    @IsAction(name = "Run garbage collector", desc = "Runs java's garbage collector using 'System.gc()'.")
-    fun runGarbageCollector() {
-        System.gc()
-    }
+      PopOver(layout).show(ScreenPos.APP_CENTER)
+      if (!groupsView.items.isEmpty()) groupsView.selectionModel.select(0)
+   }
 
-    @IsAction(name = "Search", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
-    fun showSearchPosScreen() {
-        showSearch(ScreenPos.SCREEN_CENTER)
-    }
+   // TODO: make into a plugin
+   @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
+   fun openLauncher() {
+      val f = File(APP.DIR_LAYOUTS, "AppMainLauncher.fxwl")
+      val c = null
+         ?: APP.windowManager.instantiateComponent(f)
+         ?: APP.widgetManager.factories.getFactoryByGuiName(Widgets.APP_LAUNCHER).orNull()?.create()
 
-    fun showSearch(pos: ScreenPos) {
-        val p = PopOver<Node>()
-        p.contentNode.value = APP.search.buildUi { p.hide() }
-        p.title.set("Search for an action or option")
-        p.isAutoHide = true
-        p.show(pos)
-    }
-
-    @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)
-    fun runCommand() {
-        configureString("Run system command", "Command") {
-            runCommand(it)
-        }
-    }
-
-    @IsAction(name = "Run as app argument", desc = "Equivalent of launching this application with the command as a parameter.")
-    fun runAppCommand() {
-        configureString("Run app command", "Command") {
-            APP.parameterProcessor.process(listOf(it))
-        }
-    }
-
-    @IsAction(name = "Open web search", desc = "Opens website or search engine result for given phrase", keys = "CTRL + SHIFT + W", global = true)
-    fun openWebBar() {
-        // TODO: use URI validator
-        configureString("Open on web...", "Website or phrase") {
-            val uriString = WebBarInterpreter.toUrlString(it, DuckDuckGoQBuilder)
-            try {
-                val uri = URI(uriString)
-                uri.browse()
-            } catch (e: URISyntaxException) {
-                logger.warn(e) { "$uriString is not a valid URI" }
+      if (c!=null) {
+         val op = object: OverlayPane<Void>() {
+            override fun show(data: Void?) {
+               val componentRoot = c.load() as Pane
+               // getChildren().add(componentRoot);   // alternatively for borderless/fullscreen experience // TODO investigate & use | remove
+               content = anchorPane {
+                  lay(20) += componentRoot
+               }
+               if (c is Widget) {
+                  val parent = this
+                  c.controller.getFieldOrThrow("closeOnLaunch").value = true
+                  c.controller.getFieldOrThrow("closeOnRightClick").value = true
+                  c.uiTemp = object: ComponentUi {
+                     override val root = parent
+                     override fun show() {}
+                     override fun hide() {}
+                     override fun dispose() = root.hide()    // TODO: make sure there is no leak, + turn this into WidgetLoader
+                  }
+               }
+               super.show()
             }
-        }
-    }
 
-    @IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
-    fun openDictionary() {
-        configureString("Look up in dictionary...", "Word") {
-            URI.create("http://www.thefreedictionary.com/${urlEncodeUtf8(it)}").browse()
-        }
-    }
-
-    @JvmOverloads
-    fun openImageFullscreen(image: File, screen: Screen = getScreenForMouse()) {
-        APP.widgetManager.widgets.use<ImageDisplayFeature>(NEW(WINDOW_FULLSCREEN(screen))) { f ->
-            val w = f.asIs<Controller>().widget
-            val window = w.graphics.scene.window
-            val root = window.scene.root
-
-            window.scene.fill = BLACK
-            root.asIf<Pane>()?.background = bgr(BLACK)
-
-            root.onEventUp(KEY_PRESSED, ENTER) { window.hide() }
-            root.onEventUp(KEY_PRESSED, ESCAPE) { window.hide() }
-
-            window.showingProperty().sync1If({ it }) {
-                f.showImage(image)
+            override fun hide() {
+               super.hide()
+               c.exportFxwl(f)
+               c.close()
+               removeFromParent()
             }
-        }
-    }
+         }
+         op.display.value = SCREEN_OF_MOUSE
+         op.displayBgr.value = APP.ui.viewDisplayBgr.value
+         op.show(null)
+         op.makeResizableByUser()
+         c.load().apply {
+            prefWidth(900.0)
+            prefHeight(700.0)
+         }
+         c.focus()
+      }
+   }
 
-    /**
-     * The check whether file exists, is accessible or of correct type/format is left on the caller and behavior in
-     * such cases is undefined.
-     */
-    @Blocks
-    fun printAllImageFileMetadata(file: File) {
-        failIfFxThread()
+   @IsAction(name = "Open settings", desc = "Opens application settings.")
+   fun openSettings() {
+      APP.widgetManager.widgets.use<ConfiguringFeature>(NO_LAYOUT) { it.configure(APP.configuration) }
+   }
 
-        val title = "Metadata of " + file.path
-        val text = try {
-            val sb = StringBuilder()
-            ImageMetadataReader.readMetadata(file)
-                .directories
-                .forEach {
-                    sb.append("\nName: ").append(it.name)
-                    it.tags.forEach { tag -> sb.append("\n\t").append(tag.toString()) }
-                }
-            title + sb.toString()
-        } catch (e: IOException) {
-            "$title\n$" + e.stackTraceAsString()
-        } catch (e: ImageProcessingException) {
-            "$title\n$" + e.stackTraceAsString()
-        }
-        runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
-    }
+   @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
+   fun openActions() {
+      APP.ui.actionPane.orBuild.show(APP)
+   }
 
-    @Blocks
-    fun printAllAudioItemMetadata(song: Song) {
-        failIfFxThread()
+   @IsAction(name = "Open...", desc = "Display all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
+   fun openOpen() {
+      APP.ui.actionPane.orBuild.show(AppOpen)
+   }
 
-        if (song.isFileBased()) {
-            printAllAudioFileMetadata(song.getFile()!!)
-        } else {
-            val text = "Metadata of ${song.uri}\n<only supported for files>"
-            runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
-        }
-    }
+   @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "COMMA")
+   fun showShortcuts() {
+      APP.ui.shortcutPane.orBuild.show(ActionRegistrar.getActions())
+   }
 
-    /**
-     * The check whether file exists, is accessible or of correct type/format is left on the caller and behavior in
-     * such cases is undefined.
-     */
-    @Blocks
-    fun printAllAudioFileMetadata(file: File) {
-        failIfFxThread()
+   @IsAction(name = "Show system info", desc = "Display system information.")
+   fun showSysInfo() {
+      APP.ui.infoPane.orBuild.show(null)
+   }
 
-        val title = "Metadata of ${file.path}"
-        val content = file.readAudioFile()
-            .map { af ->
-                "\nHeader:\n" +
-                    af.audioHeader.toString().split("\n").joinToString("\n\t") +
-                    "\nTag:" +
-                    if (af.tag==null) " <none>" else af.tag.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" }
+   @IsAction(name = "Show overlay", desc = "Display screen overlay.")
+   fun showOverlay() {
+      val overlays = ArrayList<OverlayPane<Unit>>()
+      fun <T> List<T>.forEachDelayed(block: (T) -> Unit) = forEachIndexed { i, it -> runFX(200.millis*i) { block(it) } }
+      var canHide = false
+      val showAll = {
+         overlays.forEachDelayed { it.show(Unit) }
+      }
+      val hideAll = {
+         canHide = true
+         overlays.forEachDelayed { it.hide() }
+      }
+      overlays += Screen.getScreens().asSequence().sortedBy { it.bounds.minX }.map {
+         object: OverlayPane<Unit>() {
+
+            init {
+               content = stackPane()
+               display.value = object: ScreenGetter {
+                  override fun computeScreen() = it
+               }
             }
-            .getOrSupply { "\n${it.stackTraceAsString()}" }
-        val text = title + content
-        runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
-    }
 
-    @IsAction(name = "Print running java processes")
-    fun printJavaProcesses() {
-        val text = VirtualMachine.list().joinToString("") {
-            "\nVM:\n\tid: ${it.id()}\n\tdisplayName: ${it.displayName()}\n\tprovider: ${it.provider()}"
-        }
-        runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
-    }
+            override fun show(data: Unit?) {
+               super.show()
+            }
 
-    fun browseMultipleFiles(files: Sequence<File>) {
-        val fs = files.asSequence().toSet()
-        when {
-            fs.isEmpty() -> Unit
-            fs.size==1 -> fs.firstOrNull()?.browse()
-            else -> APP.ui.actionPane.orBuild.show(MultipleFiles(fs))
-        }
-    }
+            override fun hide() {
+               if (canHide) super.hide()
+               else hideAll()
+            }
 
-    companion object: KLogging()
+         }
+      }
+      showAll()
+   }
+
+   @IsAction(name = "Run garbage collector", desc = "Runs java's garbage collector using 'System.gc()'.")
+   fun runGarbageCollector() {
+      System.gc()
+   }
+
+   @IsAction(name = "Search", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
+   fun showSearchPosScreen() {
+      showSearch(ScreenPos.SCREEN_CENTER)
+   }
+
+   fun showSearch(pos: ScreenPos) {
+      val p = PopOver<Node>()
+      p.contentNode.value = APP.search.buildUi { p.hide() }
+      p.title.set("Search for an action or option")
+      p.isAutoHide = true
+      p.show(pos)
+   }
+
+   @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)
+   fun runCommand() {
+      configureString("Run system command", "Command") {
+         runCommand(it)
+      }
+   }
+
+   @IsAction(name = "Run as app argument", desc = "Equivalent of launching this application with the command as a parameter.")
+   fun runAppCommand() {
+      configureString("Run app command", "Command") {
+         APP.parameterProcessor.process(listOf(it))
+      }
+   }
+
+   @IsAction(name = "Open web search", desc = "Opens website or search engine result for given phrase", keys = "CTRL + SHIFT + W", global = true)
+   fun openWebBar() {
+      // TODO: use URI validator
+      configureString("Open on web...", "Website or phrase") {
+         val uriString = WebBarInterpreter.toUrlString(it, DuckDuckGoQBuilder)
+         try {
+            val uri = URI(uriString)
+            uri.browse()
+         } catch (e: URISyntaxException) {
+            logger.warn(e) { "$uriString is not a valid URI" }
+         }
+      }
+   }
+
+   @IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
+   fun openDictionary() {
+      configureString("Look up in dictionary...", "Word") {
+         URI.create("http://www.thefreedictionary.com/${urlEncodeUtf8(it)}").browse()
+      }
+   }
+
+   @JvmOverloads
+   fun openImageFullscreen(image: File, screen: Screen = getScreenForMouse()) {
+      APP.widgetManager.widgets.use<ImageDisplayFeature>(NEW(WINDOW_FULLSCREEN(screen))) { f ->
+         val w = f.asIs<Controller>().widget
+         val window = w.graphics.scene.window
+         val root = window.scene.root
+
+         window.scene.fill = BLACK
+         root.asIf<Pane>()?.background = bgr(BLACK)
+
+         root.onEventUp(KEY_PRESSED, ENTER) { window.hide() }
+         root.onEventUp(KEY_PRESSED, ESCAPE) { window.hide() }
+
+         window.showingProperty().sync1If({ it }) {
+            f.showImage(image)
+         }
+      }
+   }
+
+   /**
+    * The check whether file exists, is accessible or of correct type/format is left on the caller and behavior in
+    * such cases is undefined.
+    */
+   @Blocks
+   fun printAllImageFileMetadata(file: File) {
+      failIfFxThread()
+
+      val title = "Metadata of " + file.path
+      val text = try {
+         val sb = StringBuilder()
+         ImageMetadataReader.readMetadata(file)
+            .directories
+            .forEach {
+               sb.append("\nName: ").append(it.name)
+               it.tags.forEach { tag -> sb.append("\n\t").append(tag.toString()) }
+            }
+         title + sb.toString()
+      } catch (e: IOException) {
+         "$title\n$" + e.stackTraceAsString()
+      } catch (e: ImageProcessingException) {
+         "$title\n$" + e.stackTraceAsString()
+      }
+      runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
+   }
+
+   @Blocks
+   fun printAllAudioItemMetadata(song: Song) {
+      failIfFxThread()
+
+      if (song.isFileBased()) {
+         printAllAudioFileMetadata(song.getFile()!!)
+      } else {
+         val text = "Metadata of ${song.uri}\n<only supported for files>"
+         runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
+      }
+   }
+
+   /**
+    * The check whether file exists, is accessible or of correct type/format is left on the caller and behavior in
+    * such cases is undefined.
+    */
+   @Blocks
+   fun printAllAudioFileMetadata(file: File) {
+      failIfFxThread()
+
+      val title = "Metadata of ${file.path}"
+      val content = file.readAudioFile()
+         .map { af ->
+            "\nHeader:\n" +
+               af.audioHeader.toString().split("\n").joinToString("\n\t") +
+               "\nTag:" +
+               if (af.tag==null) " <none>" else af.tag.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" }
+         }
+         .getOrSupply { "\n${it.stackTraceAsString()}" }
+      val text = title + content
+      runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
+   }
+
+   @IsAction(name = "Print running java processes")
+   fun printJavaProcesses() {
+      val text = VirtualMachine.list().joinToString("") {
+         "\nVM:\n\tid: ${it.id()}\n\tdisplayName: ${it.displayName()}\n\tprovider: ${it.provider()}"
+      }
+      runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
+   }
+
+   fun browseMultipleFiles(files: Sequence<File>) {
+      val fs = files.asSequence().toSet()
+      when {
+         fs.isEmpty() -> Unit
+         fs.size==1 -> fs.firstOrNull()?.browse()
+         else -> APP.ui.actionPane.orBuild.show(MultipleFiles(fs))
+      }
+   }
+
+   companion object: KLogging()
 }

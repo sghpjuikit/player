@@ -10,7 +10,7 @@ inline fun fail(message: () -> String = { "" }): Nothing = throw AssertionError(
 /** Throw runtime exception with the specified message if specified condition is true. */
 @JvmOverloads
 inline fun failIf(condition: Boolean, message: () -> String = { "" }) {
-    if (condition) fail { "Requirement condition not met: ${message()}" }
+   if (condition) fail { "Requirement condition not met: ${message()}" }
 }
 
 /** Throw runtime exception with the specified message if specified condition is false. */
@@ -35,7 +35,7 @@ fun failIfNotFinal(field: Field) = failIf(!Modifier.isFinal(field.modifiers)) { 
 /** Invokes [Thread.interrupted] and if the result is true, throws [InterruptedException]. */
 @Throws(InterruptedException::class)
 fun failIfInterrupted() {
-    if (Thread.interrupted()) throw InterruptedException()
+   if (Thread.interrupted()) throw InterruptedException()
 }
 
 /**

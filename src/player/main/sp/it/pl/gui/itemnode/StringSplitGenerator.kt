@@ -5,18 +5,18 @@ import sp.it.util.reactive.attach
 import sp.it.util.text.StringSplitParser
 
 class StringSplitGenerator: ValueNode<StringSplitParser>(StringSplitParser.singular()) {
-    private val node = TextField()
+   private val node = TextField()
 
-    init {
-        node.promptText = "expression"
-        node.text = value.expression
-        node.textProperty() attach { generateValue(it) }
-    }
+   init {
+      node.promptText = "expression"
+      node.text = value.expression
+      node.textProperty() attach { generateValue(it) }
+   }
 
-    override fun getNode() = node
+   override fun getNode() = node
 
-    private fun generateValue(s: String) {
-        StringSplitParser.fromString(s).ifOk(this::changeValue)
-    }
+   private fun generateValue(s: String) {
+      StringSplitParser.fromString(s).ifOk(this::changeValue)
+   }
 
 }

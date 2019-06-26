@@ -16,10 +16,10 @@ import kotlin.reflect.KClass
 @Retention(RUNTIME)
 @Target(CLASS)
 annotation class Feature(
-    /** Identifies the feature. Not necessarily unique. */
-    val name: String = "",
-    /** Description of the feature. */
-    val description: String = "",
-    /** Identifies the feature exactly. Must be unique and must be the class of the annotated interface. */
-    val type: KClass<*>
+   /** Identifies the feature. Not necessarily unique. */
+   val name: String = "",
+   /** Description of the feature. */
+   val description: String = "",
+   /** Identifies the feature exactly. Must be unique and must be the class of the annotated interface. */
+   val type: KClass<*>
 )

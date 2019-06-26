@@ -14,5 +14,5 @@ import java.lang.reflect.Type
  *
  */
 abstract class TypeToken<T> {
-    val type: Type get() = this::class.java.genericSuperclass?.asIf<ParameterizedType>()!!.actualTypeArguments[0]!!
+   val type: Type get() = this::class.java.genericSuperclass?.asIf<ParameterizedType>()!!.actualTypeArguments[0]!!
 }

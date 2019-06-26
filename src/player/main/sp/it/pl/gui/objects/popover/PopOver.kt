@@ -148,599 +148,599 @@ import java.util.ArrayList
 open class PopOver<N: Node>(): PopupControl() {
 
 
-    /** Content of this popover. */
-    @JvmField val contentNode = SimpleObjectProperty<N>()
-    /**
-     * If true, this popover closes on mouse click. Default false.
-     *
-     * The content of the popover can prevent this behavior by consumes the [MouseEvent.MOUSE_CLICKED] event.
-     *
-     * Tip: It should only be used when content is static and does not react
-     * on mouse events - for example in case of informative popups.
-     * Also, it is recommended to use this in conjunction with [.setAutoHide]
-     * but with inverted value. One might want to have a popup with reactive
-     * content auto-closing when clicked anywhere but on it, or static popup
-     * displaying information hovering above its owner, while the owner can be
-     * used with the popup open but conveniently closing on mouse click.
-     */
-    var isHideOnClick: Boolean
-        get() = hideOnClick!=null
-        set(value) {
-            if (value && hideOnClick==null) {
-                hideOnClick = EventHandler { if (it.isStillSincePress) hideStrong() }   // close only if was not dragged
-                scene.addEventHandler(MOUSE_CLICKED, hideOnClick!!)
+   /** Content of this popover. */
+   @JvmField val contentNode = SimpleObjectProperty<N>()
+   /**
+    * If true, this popover closes on mouse click. Default false.
+    *
+    * The content of the popover can prevent this behavior by consumes the [MouseEvent.MOUSE_CLICKED] event.
+    *
+    * Tip: It should only be used when content is static and does not react
+    * on mouse events - for example in case of informative popups.
+    * Also, it is recommended to use this in conjunction with [.setAutoHide]
+    * but with inverted value. One might want to have a popup with reactive
+    * content auto-closing when clicked anywhere but on it, or static popup
+    * displaying information hovering above its owner, while the owner can be
+    * used with the popup open but conveniently closing on mouse click.
+    */
+   var isHideOnClick: Boolean
+      get() = hideOnClick!=null
+      set(value) {
+         if (value && hideOnClick==null) {
+            hideOnClick = EventHandler { if (it.isStillSincePress) hideStrong() }   // close only if was not dragged
+            scene.addEventHandler(MOUSE_CLICKED, hideOnClick!!)
+         }
+         if (!value && hideOnClick!=null) {
+            scene.removeEventHandler(MOUSE_CLICKED, hideOnClick!!)
+            hideOnClick = null
+         }
+      }
+   private val disposersOnHide = Disposer()
+
+   private var hideOnClick: EventHandler<MouseEvent>? = null
+   /** Focus this popover on shown event to receive input events. Use true for interactive content. Default true. */
+   @JvmField val focusOnShow = v(true)
+   /** Whether this the popover can be detached. */
+   @JvmField val detachable = v(true)
+   /** Whether this popover is detached so it no longer displays an arrow pointing at the owner node. Default false */
+   @JvmField val detached = v(false)
+   /** Header visibility. Header contains title and icons. Default true. */
+   @JvmField val headerVisible = v(true)
+   /** Title text. Default "". */
+   @JvmField val title = v("")
+
+   /**
+    * Modifiable list of the Nodes displayed in the header.
+    * Order is respected (from left to right). Changes will be immediately reflected visually.
+    * Use to customize header for example by adding icon or buttons for controlling the content of the popup.
+    */
+   val headerIcons by lazy { observableArrayList<Node>()!! }
+
+   /** Whether resizing by user is allowed. */
+   @JvmField val userResizable = v(true)
+   @JvmField var screenPreference = APP_WINDOW
+   /**
+    * Controls the size of the arrow. 0 effectively disables arrow. Default 12.0.
+    *
+    * Disabling arrow has an effect of not positioning the popover so the arrow points to the
+    * specific point. Rather the popover's upper left corner will.
+    */
+   @JvmField val arrowSize = SimpleDoubleProperty(9.0)    // TODO: make styleable
+   /** Controls the distance between the arrow and the corners of the pop over. Default 12.0. */
+   @JvmField val arrowIndent = SimpleDoubleProperty(12.0)   // TODO: make styleable
+   /** Returns the corner radius property for the pop over. Default 6.0. */
+   @JvmField val cornerRadius = SimpleDoubleProperty(6.0)  // TODO: make styleable
+   /** Preferred arrow location. Default [ArrowLocation.LEFT_TOP].*/
+   @JvmField val arrowLocation = v(LEFT_TOP)
+
+   /** Whether show/hide is animated. */
+   @JvmField var animated = v(true)
+   /** Show/hide animation duration. */
+   @JvmField var animationDuration = v(300.millis)
+   /** Show/hide animation. */
+   private val animation = lazy {
+      anim {
+         skinn.node.opacity = it*it
+         // skinn.node.setScaleXYByTo(it, -20.0, 0.0)  // TODO: causes slight position shift sometimes
+      }
+   }
+
+   /**
+    *  Safely change generic type of this popover. Previous content is cleared.
+    *
+    * @return this popup with different content type.
+    */
+   @Suppress("UNCHECKED_CAST")
+   fun <T: Node> changeContentType(): PopOver<T> = apply { contentNode.set(null) } as PopOver<T>
+
+   /** Concrete skin implementation (unlike [PopOver.getSkin]). */
+   val skinn: PopOverSkin
+      get() = skin as? PopOverSkin ?: fail { "Skin must extend ${PopOverSkin::class}" }
+
+   init {
+      fun initCloseWithOwner() {
+         // JavaFX bug may result in owner being closed before the child (this) -> we need to close immediately
+         val d = Disposer()
+         disposersOnHide += d
+         ownerWindowProperty() sync {
+            d()
+            if (it!=null) {
+               it.onEventUp(WindowEvent.WINDOW_HIDING) { if (isShowing) hideImmediately() } on d
+               it.onEventUp(WindowEvent.WINDOW_CLOSE_REQUEST) { if (isShowing) hideImmediately() } on d
             }
-            if (!value && hideOnClick!=null) {
-                scene.removeEventHandler(MOUSE_CLICKED, hideOnClick!!)
-                hideOnClick = null
+         }
+      }
+
+      styleClass += STYLE_CLASS
+      consumeAutoHidingEvents = false
+      isAutoFix = false
+      skin = createDefaultSkin()
+      initCloseWithOwner()
+
+      // TODO: fix on Linux/Mac and move out (along with WindowBase.fixJavaFxNonDecoratedMinimization)
+      fun fixJavaFxPopupAlwaysOnTop() = showingProperty().sync1If({ it }) {
+
+         when (Os.current) {
+            Os.WINDOWS -> {
+               fun Window.hwnd(): WinDef.HWND {
+                  val peer = Util.invokeMethodP0(this, "getPeer") // requires --add-opens javafx.graphics/javafx.stage=ALL-UNNAMED
+                  val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow") // requires --add-opens javafx.graphics/com.sun.javafx.tk.quantum=ALL-UNNAMED
+                  Util.invokeMethodP1(peerPlatformWindow, "setLevel", Int::class.javaPrimitiveType, 1)
+                  val hwndLong = Util.invokeMethodP0(peerPlatformWindow, "getRawHandle") as Long
+                  val hwnd = WinDef.HWND(Pointer(hwndLong))
+                  return hwnd
+               }
+
+               val hwnd = hwnd()
+               val SWP_NOSIZE = 0x0001
+               val SWP_NOMOVE = 0x0002
+               val SWP_SHOWWINDOW = 0x0040
+               User32.INSTANCE.SetWindowPos(hwnd, WinDef.HWND(Pointer.createConstant(-2)), 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_SHOWWINDOW)
             }
-        }
-    private val disposersOnHide = Disposer()
+            else -> {
+               // kotlin.run {
+               //     val peer = Util.invokeMethodP0(this, "getPeer")
+               //     Util.invokeMethodP1(peer, "setAlwaysOnTop", Boolean::class.javaPrimitiveType, false)
+               //     Util.invokeMethodP0(peer, "needsUpdateWindow")
+               // }
 
-    private var hideOnClick: EventHandler<MouseEvent>? = null
-    /** Focus this popover on shown event to receive input events. Use true for interactive content. Default true. */
-    @JvmField val focusOnShow = v(true)
-    /** Whether this the popover can be detached. */
-    @JvmField val detachable = v(true)
-    /** Whether this popover is detached so it no longer displays an arrow pointing at the owner node. Default false */
-    @JvmField val detached = v(false)
-    /** Header visibility. Header contains title and icons. Default true. */
-    @JvmField val headerVisible = v(true)
-    /** Title text. Default "". */
-    @JvmField val title = v("")
+               // kotlin.run {
+               //     val peer = Util.invokeMethodP0(ownerWindow, "getPeer")
+               //     val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow")
+               //     Util.invokeMethodP1(peerPlatformWindow, "setLevel", Int::class.javaPrimitiveType, 1)
+               // }
 
-    /**
-     * Modifiable list of the Nodes displayed in the header.
-     * Order is respected (from left to right). Changes will be immediately reflected visually.
-     * Use to customize header for example by adding icon or buttons for controlling the content of the popup.
-     */
-    val headerIcons by lazy { observableArrayList<Node>()!! }
-
-    /** Whether resizing by user is allowed. */
-    @JvmField val userResizable = v(true)
-    @JvmField var screenPreference = APP_WINDOW
-    /**
-     * Controls the size of the arrow. 0 effectively disables arrow. Default 12.0.
-     *
-     * Disabling arrow has an effect of not positioning the popover so the arrow points to the
-     * specific point. Rather the popover's upper left corner will.
-     */
-    @JvmField val arrowSize = SimpleDoubleProperty(9.0)    // TODO: make styleable
-    /** Controls the distance between the arrow and the corners of the pop over. Default 12.0. */
-    @JvmField val arrowIndent = SimpleDoubleProperty(12.0)   // TODO: make styleable
-    /** Returns the corner radius property for the pop over. Default 6.0. */
-    @JvmField val cornerRadius = SimpleDoubleProperty(6.0)  // TODO: make styleable
-    /** Preferred arrow location. Default [ArrowLocation.LEFT_TOP].*/
-    @JvmField val arrowLocation = v(LEFT_TOP)
-
-    /** Whether show/hide is animated. */
-    @JvmField var animated = v(true)
-    /** Show/hide animation duration. */
-    @JvmField var animationDuration = v(300.millis)
-    /** Show/hide animation. */
-    private val animation = lazy {
-        anim {
-            skinn.node.opacity = it*it
-            // skinn.node.setScaleXYByTo(it, -20.0, 0.0)  // TODO: causes slight position shift sometimes
-        }
-    }
-
-    /**
-     *  Safely change generic type of this popover. Previous content is cleared.
-     *
-     * @return this popup with different content type.
-     */
-    @Suppress("UNCHECKED_CAST")
-    fun <T: Node> changeContentType(): PopOver<T> = apply { contentNode.set(null) } as PopOver<T>
-
-    /** Concrete skin implementation (unlike [PopOver.getSkin]). */
-    val skinn: PopOverSkin
-        get() = skin as? PopOverSkin ?: fail { "Skin must extend ${PopOverSkin::class}" }
-
-    init {
-        fun initCloseWithOwner() {
-            // JavaFX bug may result in owner being closed before the child (this) -> we need to close immediately
-            val d = Disposer()
-            disposersOnHide += d
-            ownerWindowProperty() sync {
-                d()
-                if (it!=null) {
-                    it.onEventUp(WindowEvent.WINDOW_HIDING) { if (isShowing) hideImmediately() } on d
-                    it.onEventUp(WindowEvent.WINDOW_CLOSE_REQUEST) { if (isShowing) hideImmediately() } on d
-                }
+               // kotlin.run {
+               //     val peer = Util.invokeMethodP0(this, "getPeerListener")
+               //     Util.invokeMethodP1(peer, "changedAlwaysOnTop", Boolean::class.javaPrimitiveType, false)
+               // }
             }
-        }
+         }
+      }
+      fixJavaFxPopupAlwaysOnTop()
+   }
 
-        styleClass += STYLE_CLASS
-        consumeAutoHidingEvents = false
-        isAutoFix = false
-        skin = createDefaultSkin()
-        initCloseWithOwner()
+   /**
+    * Creates a pop over with the given node as the content node.
+    * Sets autoFix and consumeAutoHidingEvents to false.
+    *
+    * @param content shown by the pop over
+    */
+   constructor(content: N): this() {
+      contentNode.value = content
+   }
 
-        // TODO: fix on Linux/Mac and move out (along with WindowBase.fixJavaFxNonDecoratedMinimization)
-        fun fixJavaFxPopupAlwaysOnTop() = showingProperty().sync1If({ it }) {
+   /**
+    * Creates a pop over with the given node as the content node and provided
+    * title text.
+    * Sets autoFix and consumeAutoHidingEvents to false.
+    *
+    * @param content shown by the pop over
+    */
+   constructor(titleText: String, content: N): this() {
+      title.value = titleText
+      contentNode.value = content
+   }
 
-            when (Os.current) {
-                Os.WINDOWS -> {
-                    fun Window.hwnd(): WinDef.HWND {
-                        val peer = Util.invokeMethodP0(this, "getPeer") // requires --add-opens javafx.graphics/javafx.stage=ALL-UNNAMED
-                        val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow") // requires --add-opens javafx.graphics/com.sun.javafx.tk.quantum=ALL-UNNAMED
-                        Util.invokeMethodP1(peerPlatformWindow, "setLevel", Int::class.javaPrimitiveType, 1)
-                        val hwndLong = Util.invokeMethodP0(peerPlatformWindow, "getRawHandle") as Long
-                        val hwnd = WinDef.HWND(Pointer(hwndLong))
-                        return hwnd
-                    }
+   public override fun createDefaultSkin() = PopOverSkin(this)
 
-                    val hwnd = hwnd()
-                    val SWP_NOSIZE = 0x0001
-                    val SWP_NOMOVE = 0x0002
-                    val SWP_SHOWWINDOW = 0x0040
-                    User32.INSTANCE.SetWindowPos(hwnd, WinDef.HWND(Pointer.createConstant(-2)), 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_SHOWWINDOW)
-                }
-                else -> {
-                    // kotlin.run {
-                    //     val peer = Util.invokeMethodP0(this, "getPeer")
-                    //     Util.invokeMethodP1(peer, "setAlwaysOnTop", Boolean::class.javaPrimitiveType, false)
-                    //     Util.invokeMethodP0(peer, "needsUpdateWindow")
-                    // }
+   /**
+    * Hides this popup if it is not detached. Otherwise does nothing.
+    * Equivalent to: if (!isDetached()) hideStrong();
+    * @implNote implementation should not close detached popup
+    */
+   override fun hide() {
+      if (!detached.value) hideStrong()
+   }
 
-                    // kotlin.run {
-                    //     val peer = Util.invokeMethodP0(ownerWindow, "getPeer")
-                    //     val peerPlatformWindow = Util.invokeMethodP0(peer, "getPlatformWindow")
-                    //     Util.invokeMethodP1(peerPlatformWindow, "setLevel", Int::class.javaPrimitiveType, 1)
-                    // }
+   /**
+    * Hides this popup. If is animated, the hiding animation will be set off,
+    * otherwise happens immediately.
+    */
+   fun hideStrong() {
+      if (animated.value) fadeOut()
+      else hideImmediately()
+   }
 
-                    // kotlin.run {
-                    //     val peer = Util.invokeMethodP0(this, "getPeerListener")
-                    //     Util.invokeMethodP1(peer, "changedAlwaysOnTop", Boolean::class.javaPrimitiveType, false)
-                    // }
-                }
-            }
-        }
-        fixJavaFxPopupAlwaysOnTop()
-    }
+   /**
+    * Hides this popup immediately.
+    * Use when the hiding animation is not desired (regardless the set value)
+    * or could cause problems such as delaying application exit.
+    *
+    * This contains the actual hide implementation, defined, but not contained in [hide], which first animates.
+    */
+   fun hideImmediately() {
+      animation.orNull()?.stop()
+      disposersOnHide()
+      active_popups.remove(this)
+      uninstallMoveWith()
+      super.hide()
+      if (properties.containsKey(KEY_CLOSE_OWNER)) ownerWindow?.hide()
+      properties.remove(KEY_CLOSE_OWNER)
+   }
 
-    /**
-     * Creates a pop over with the given node as the content node.
-     * Sets autoFix and consumeAutoHidingEvents to false.
-     *
-     * @param content shown by the pop over
-     */
-    constructor(content: N): this() {
-        contentNode.value = content
-    }
+   private fun showThis(ownerNode: Node?, ownerWindow: Window) {
+      val s = ownerWindow.centre.getScreen()
+      maxWidth = s.bounds.width
+      maxHeight = s.bounds.height
 
-    /**
-     * Creates a pop over with the given node as the content node and provided
-     * title text.
-     * Sets autoFix and consumeAutoHidingEvents to false.
-     *
-     * @param content shown by the pop over
-     */
-    constructor(titleText: String, content: N): this() {
-        title.value = titleText
-        contentNode.value = content
-    }
+      // we must set the owners so moving with owner behavior knows which mode should be done
+      if (ownerNode!=null) {
+         this.ownerMNode = ownerNode
+         this.ownerMWindow = ownerNode.scene.window
+      } else {
+         this.ownerMWindow = ownerWindow
+      }
 
-    public override fun createDefaultSkin() = PopOverSkin(this)
+      detached.set(false)
 
-    /**
-     * Hides this popup if it is not detached. Otherwise does nothing.
-     * Equivalent to: if (!isDetached()) hideStrong();
-     * @implNote implementation should not close detached popup
-     */
-    override fun hide() {
-        if (!detached.value) hideStrong()
-    }
+      // show the popup
+      super.show(ownerWindow, 0.0, 0.0)
+      active_popups.add(this)
 
-    /**
-     * Hides this popup. If is animated, the hiding animation will be set off,
-     * otherwise happens immediately.
-     */
-    fun hideStrong() {
-        if (animated.value) fadeOut()
-        else hideImmediately()
-    }
+      // initialize moving with owner behavior to respect set value
+      initializeMovingBehavior(isMoveWithOwner)
 
-    /**
-     * Hides this popup immediately.
-     * Use when the hiding animation is not desired (regardless the set value)
-     * or could cause problems such as delaying application exit.
-     *
-     * This contains the actual hide implementation, defined, but not contained in [hide], which first animates.
-     */
-    fun hideImmediately() {
-        animation.orNull()?.stop()
-        disposersOnHide()
-        active_popups.remove(this)
-        uninstallMoveWith()
-        super.hide()
-        if (properties.containsKey(KEY_CLOSE_OWNER)) ownerWindow?.hide()
-        properties.remove(KEY_CLOSE_OWNER)
-    }
+      // hideOnESC calls hide(), so there is no effect in detached mode, fix here
+      scene.root.onEventDown(KEY_PRESSED, ESCAPE, false) {
+         if (isHideOnEscape) {
+            hideStrong()
+            it.consume()
+         }
+      }
 
-    private fun showThis(ownerNode: Node?, ownerWindow: Window) {
-        val s = ownerWindow.centre.getScreen()
-        maxWidth = s.bounds.width
-        maxHeight = s.bounds.height
+      if (animated.value) fadeIn()
+   }
 
-        // we must set the owners so moving with owner behavior knows which mode should be done
-        if (ownerNode!=null) {
-            this.ownerMNode = ownerNode
-            this.ownerMWindow = ownerNode.scene.window
-        } else {
-            this.ownerMWindow = ownerWindow
-        }
+   private fun position(position: () -> P) {
+      var p = position()
+      if (arrowSize.value>0)
+         p = p.plus(adjustWindowLocation())
 
-        detached.set(false)
+      x = p.x
+      y = p.y
+      deltaThisX = p.x
+      deltaThisY = p.y
+   }
 
-        // show the popup
-        super.show(ownerWindow, 0.0, 0.0)
-        active_popups.add(this)
+   /**
+    * Show popup. Makes the pop over visible at the give location and associates it with the specified owner node.
+    * The position will be the target location of the arrow of the pop over.
+    *
+    * @param owner the owning node, which must have a non null getScene().getWindow()
+    * @param x the x coordinate for the pop over arrow tip
+    * @param y the y coordinate for the pop over arrow tip
+    */
+   override fun show(owner: Node, x: Double, y: Double) {
+      showThis(owner, owner.scene.window)
+      position { owner.localToScreen(x, y).toP() + owner.layoutBounds.size/2.0 }
+   }
 
-        // initialize moving with owner behavior to respect set value
-        initializeMovingBehavior(isMoveWithOwner)
+   /** Show popup. Equivalent to: show(owner, 0, 0). */
+   fun showInCenterOf(owner: Node) = show(owner, owner.layoutBounds.width/2, owner.layoutBounds.height/2)
 
-        // hideOnESC calls hide(), so there is no effect in detached mode, fix here
-        scene.root.onEventDown(KEY_PRESSED, ESCAPE, false) {
-            if (isHideOnEscape) {
-                hideStrong()
-                it.consume()
-            }
-        }
+   /** Show popup at specified designated position relative to node. */
+   fun show(owner: Node, pos: NodePos) {
+      showThis(owner, owner.scene.window)
 
-        if (animated.value) fadeIn()
-    }
+      position({ pos.computeXY(owner, this) })
+      x = pos.computeXY(owner, this).x
+      y = pos.computeXY(owner, this).y
+   }
 
-    private fun position(position: () -> P) {
-        var p = position()
-        if (arrowSize.value>0)
-            p = p.plus(adjustWindowLocation())
+   /** Show popup at specified screen coordinates. */
+   override fun show(window: Window, x: Double, y: Double) {
+      showThis(null, window)
+      position({ P(x, y) })
+   }
 
-        x = p.x
-        y = p.y
-        deltaThisX = p.x
-        deltaThisY = p.y
-    }
+   /** Show popup at specified screen coordinates. */
+   fun show(window: Window, position: P) = show(window, position.x, position.y)
 
-    /**
-     * Show popup. Makes the pop over visible at the give location and associates it with the specified owner node.
-     * The position will be the target location of the arrow of the pop over.
-     *
-     * @param owner the owning node, which must have a non null getScene().getWindow()
-     * @param x the x coordinate for the pop over arrow tip
-     * @param y the y coordinate for the pop over arrow tip
-     */
-    override fun show(owner: Node, x: Double, y: Double) {
-        showThis(owner, owner.scene.window)
-        position { owner.localToScreen(x, y).toP() + owner.layoutBounds.size/2.0 }
-    }
+   /** Show popup at specified screen position. */
+   open fun show(pos: ScreenPos) {
 
-    /** Show popup. Equivalent to: show(owner, 0, 0). */
-    fun showInCenterOf(owner: Node) = show(owner, owner.layoutBounds.width/2, owner.layoutBounds.height/2)
+      fun ScreenPos.normalize(owner: Window?) = takeIf { owner!=null } ?: toScreenCentric()
 
-    /** Show popup at specified designated position relative to node. */
-    fun show(owner: Node, pos: NodePos) {
-        showThis(owner, owner.scene.window)
+      fun grabFocus() {
+         ownerWindow?.requestFocus()
+         requestFocus()
+      }
 
-        position({ pos.computeXY(owner, this) })
-        x = pos.computeXY(owner, this).x
-        y = pos.computeXY(owner, this).y
-    }
+      fun fixWrongCoordinatesWhenShownWithDifferentContentWhenShowing() {
+         if (isShowing) {
+            // This solution works but introduces a visual glitch
+            // hideImmediately()
 
-    /** Show popup at specified screen coordinates. */
-    override fun show(window: Window, x: Double, y: Double) {
-        showThis(null, window)
-        position({ P(x, y) })
-    }
+            skin.node.applyCss()
+            (skin.node as? Pane)?.requestLayout()
+            (skin.node as? Pane)?.layout()
+            skin.node.autosize()
+         }
+      }
 
-    /** Show popup at specified screen coordinates. */
-    fun show(window: Window, position: P) = show(window, position.x, position.y)
+      arrowSize.value = 0.0
+      val ownerF: Window? = APP.windowManager.getFocused().orNull()?.takeIf { pos.isAppCentric() }?.stage
+      val ownerS: Window? = ownerF ?: ownerWindow?.takeIf { it.isShowing }
+      val owner: Window = ownerS ?: if (focusOnShow.value) APP.windowManager.createStageOwner() else UNFOCUSED_OWNER
+      val wasOwnerCreated = ownerS==null && focusOnShow.value
+      val position = pos.normalize(ownerF)
 
-    /** Show popup at specified screen position. */
-    open fun show(pos: ScreenPos) {
+      fixWrongCoordinatesWhenShownWithDifferentContentWhenShowing()
+      showThis(null, owner)
+      position({ position.computeXY(this) })
 
-        fun ScreenPos.normalize(owner: Window?) = takeIf { owner!=null } ?: toScreenCentric()
+      if (focusOnShow.value) grabFocus()
+      if (!position.isAppCentric()) uninstallMoveWith()
+      if (wasOwnerCreated) properties[KEY_CLOSE_OWNER] = KEY_CLOSE_OWNER
+   }
 
-        fun grabFocus() {
-            ownerWindow?.requestFocus()
-            requestFocus()
-        }
+   override fun show(window: Window) {
+      showThis(null, window)
+      uninstallMoveWith()
+   }
 
-        fun fixWrongCoordinatesWhenShownWithDifferentContentWhenShowing() {
+   // TODO: fix this computing wrong coordinates
+   /* Move the window so that the arrow will end up pointing at the target coordinates. */
+   private fun adjustWindowLocation(): P {
+      val bounds = this@PopOver.skin.node.layoutBounds
+      return when (arrowLocation.value) {
+         TOP_CENTER, TOP_LEFT, TOP_RIGHT -> P(
+            computeXOffset(),
+            0.0
+         )
+         LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM -> P(
+            +bounds.minX + arrowSize.value,
+            +bounds.minY - computeYOffset()
+         )
+         BOTTOM_CENTER, BOTTOM_LEFT, BOTTOM_RIGHT -> P(
+            +bounds.minX - computeXOffset(),
+            -bounds.minY - bounds.maxY - 1.0
+         )
+         RIGHT_TOP, RIGHT_BOTTOM, RIGHT_CENTER -> P(
+            -bounds.minX - bounds.maxX - 1.0,
+            +bounds.minY - computeYOffset()
+         )
+      }
+   }
+
+   fun computeArrowMarginX(): Double = when (arrowLocation.value) {
+      LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM -> -arrowSize.value
+      RIGHT_TOP, RIGHT_CENTER, RIGHT_BOTTOM -> arrowSize.value
+      else -> 0.0
+   }
+
+   fun computeArrowMarginY(): Double = when (arrowLocation.value) {
+      TOP_LEFT, TOP_CENTER, TOP_RIGHT -> -arrowSize.value
+      BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT -> arrowSize.value
+      else -> 0.0
+   }
+
+   private fun computeXOffset(): Double = when (arrowLocation.value) {
+      TOP_LEFT, BOTTOM_LEFT -> arrowIndent.value + arrowSize.value
+      TOP_CENTER, BOTTOM_CENTER -> -this@PopOver.skin.node.layoutBounds.width/2
+      //				return getContentNode().prefWidth(-1)/2 + arrowSize.value + arrowIndent.value;
+      TOP_RIGHT, BOTTOM_RIGHT -> contentNode.value.prefWidth(-1.0) - arrowIndent.value - arrowSize.value
+      else -> 0.0
+   }
+
+   private fun computeYOffset(): Double = when (arrowLocation.value) {
+      LEFT_TOP, RIGHT_TOP -> arrowIndent.value + arrowSize.value
+      LEFT_CENTER, RIGHT_CENTER -> contentNode.value.prefHeight(-1.0)/2 + arrowSize.value + arrowIndent.value
+      LEFT_BOTTOM, RIGHT_BOTTOM -> contentNode.value.prefHeight(-1.0) - arrowIndent.value - arrowSize.value
+      else -> 0.0
+   }
+
+   private fun fadeIn() {
+      animation.value.apply {
+         applyNow()
+         dur(animationDuration.value)
+         playOpenDo(null)
+      }
+   }
+
+   private fun fadeOut() {
+      animation.value.apply {
+         applyNow()
+         dur(animationDuration.value)
+         playCloseDo { hideImmediately() }
+      }
+   }
+
+   /* --------------------- MOVE WITH OWNER ---------------------------------------------------------------------------- */
+
+   /**
+    * Sets moving with owner behavior on or off. Default on (true).
+    *
+    * This functionality is characterized by the popup moving with the owning
+    * Window or Node - its positioning relative to its owner becomes absolute.
+    *
+    * There are two 'modes' decided automatically depending on the way this
+    * popover was shown. The position can be absolute relative to the Node or
+    * relative to the Window (or none). The first will reposition this popup
+    * in order for it to stay with the Node (even when the Node only changes
+    * its position within the Window that remained static). Second simply
+    * follows the Window and the third does nothing.
+    *
+    * The 'mode' is decided based on the parameters of the show method that was
+    * called.
+    * Must never be called before the popover is shown.
+    */
+   var isMoveWithOwner = true
+      set(value) {
+         if (value!=isMoveWithOwner) {
+            field = value
             if (isShowing) {
-                // This solution works but introduces a visual glitch
-                // hideImmediately()
-
-                skin.node.applyCss()
-                (skin.node as? Pane)?.requestLayout()
-                (skin.node as? Pane)?.layout()
-                skin.node.autosize()
+               initializeMovingBehavior(value)
             }
-        }
+         }
+      }
 
-        arrowSize.value = 0.0
-        val ownerF: Window? = APP.windowManager.getFocused().orNull()?.takeIf { pos.isAppCentric() }?.stage
-        val ownerS: Window? = ownerF ?: ownerWindow?.takeIf { it.isShowing }
-        val owner: Window = ownerS ?: if (focusOnShow.value) APP.windowManager.createStageOwner() else UNFOCUSED_OWNER
-        val wasOwnerCreated = ownerS==null && focusOnShow.value
-        val position = pos.normalize(ownerF)
+   // owners
+   private var ownerMNode: Node? = null
+   private var ownerMWindow: Window? = null
 
-        fixWrongCoordinatesWhenShownWithDifferentContentWhenShowing()
-        showThis(null, owner)
-        position({ position.computeXY(this) })
+   // variables for dragging behavior
+   private var deltaX = 0.0
+   private var deltaY = 0.0
+   private var deltaThisX = 0.0
+   private var deltaThisY = 0.0
+   private var deltaThisLock = false
 
-        if (focusOnShow.value) grabFocus()
-        if (!position.isAppCentric()) uninstallMoveWith()
-        if (wasOwnerCreated) properties[KEY_CLOSE_OWNER] = KEY_CLOSE_OWNER
-    }
+   // listeners for relocating
+   private val xListener = ChangeListener<Number> { _, _, _ ->
+      if (ownerMNode!=null)
+         x = deltaThisX + ownerMNode!!.localToScreen(0.0, 0.0).x - deltaX
+   }
+   private val yListener = ChangeListener<Number> { _, _, _ ->
+      if (ownerMNode!=null)
+         y = deltaThisY + ownerMNode!!.localToScreen(0.0, 0.0).y - deltaY
+   }
+   private val winXListener = ChangeListener<Number> { _, _, _ ->
+      if (ownerMWindow!=null)
+         x = deltaThisX + ownerMWindow!!.x - deltaX
+   }
+   private val winYListener = ChangeListener<Number> { _, _, _ ->
+      if (ownerMWindow!=null)
+         y = deltaThisY + ownerMWindow!!.y - deltaY
+   }
+   private val winHideListener = EventHandler<WindowEvent> { visibilityListener.changed(null, null, null) }
 
-    override fun show(window: Window) {
-        showThis(null, window)
-        uninstallMoveWith()
-    }
+   // monitoring ----------
+   // turn lock on/off to prevent dragging to change state
+   private var lockOnHandler = EventHandler<MouseEvent> { deltaThisLock = true }
+   private var lockOffHandler = EventHandler<MouseEvent> { deltaThisLock = false }
+   // remember position for dragging functionality
+   private var deltaXListener = InvalidationListener { if (deltaThisLock) deltaThisX = x }
+   private var deltaYListener = InvalidationListener { if (deltaThisLock) deltaThisY = y }
+   // hide on scene change
+   private var visibilityListener = ChangeListener<Scene?> { _, _, _ ->
+      uninstallMoveWith()
+      hideStrong()
+   }
+   // hide on node owner setVisible(false)
+   private var visibilityListener2 = ChangeListener<Boolean> { _, _, _ ->
+      uninstallMoveWith()
+      hideStrong()
+   }
 
-    // TODO: fix this computing wrong coordinates
-    /* Move the window so that the arrow will end up pointing at the target coordinates. */
-    private fun adjustWindowLocation(): P {
-        val bounds = this@PopOver.skin.node.layoutBounds
-        return when (arrowLocation.value) {
-            TOP_CENTER, TOP_LEFT, TOP_RIGHT -> P(
-                computeXOffset(),
-                0.0
-            )
-            LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM -> P(
-                +bounds.minX + arrowSize.value,
-                +bounds.minY - computeYOffset()
-            )
-            BOTTOM_CENTER, BOTTOM_LEFT, BOTTOM_RIGHT -> P(
-                +bounds.minX - computeXOffset(),
-                -bounds.minY - bounds.maxY - 1.0
-            )
-            RIGHT_TOP, RIGHT_BOTTOM, RIGHT_CENTER -> P(
-                -bounds.minX - bounds.maxX - 1.0,
-                +bounds.minY - computeYOffset()
-            )
-        }
-    }
+   private fun initializeMovingBehavior(value: Boolean) {
+      if (value) {
+         uninstallSoftMoveWith()
+         if (ownerMNode!=null) installMoveWithNode(ownerMNode!!)
+         else installMoveWithWindow(ownerMWindow!!)
+      } else {
+         uninstallMoveWith()
+      }
+   }
 
-    fun computeArrowMarginX(): Double = when (arrowLocation.value) {
-        LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM -> -arrowSize.value
-        RIGHT_TOP, RIGHT_CENTER, RIGHT_BOTTOM -> arrowSize.value
-        else -> 0.0
-    }
+   private fun installMoveWithWindow(owner: Window) {
+      if (scene.properties.containsKey(KEY_MOVE_WITH_OWNER_WINDOW)) fail { "'Move with window' already installed" }
+      scene.properties[KEY_MOVE_WITH_OWNER_WINDOW] = KEY_MOVE_WITH_OWNER_WINDOW
 
-    fun computeArrowMarginY(): Double = when (arrowLocation.value) {
-        TOP_LEFT, TOP_CENTER, TOP_RIGHT -> -arrowSize.value
-        BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT -> arrowSize.value
-        else -> 0.0
-    }
+      ownerMNode = null
+      ownerMWindow = owner
+      ownerMWindow!!.xProperty().addListener(winXListener)
+      ownerMWindow!!.yProperty().addListener(winYListener)
+      ownerMWindow!!.widthProperty().addListener(winXListener)
+      ownerMWindow!!.heightProperty().addListener(winYListener)
+      // uninstall just before window gets hidden to prevent possible illegal states
+      ownerMWindow!!.addEventFilter(WINDOW_HIDING, winHideListener)
+      // remember owner's position to monitor its position change
+      deltaX = owner.x
+      deltaY = owner.y
+      installMonitoring()
+   }
 
-    private fun computeXOffset(): Double = when (arrowLocation.value) {
-        TOP_LEFT, BOTTOM_LEFT -> arrowIndent.value + arrowSize.value
-        TOP_CENTER, BOTTOM_CENTER -> -this@PopOver.skin.node.layoutBounds.width/2
-        //				return getContentNode().prefWidth(-1)/2 + arrowSize.value + arrowIndent.value;
-        TOP_RIGHT, BOTTOM_RIGHT -> contentNode.value.prefWidth(-1.0) - arrowIndent.value - arrowSize.value
-        else -> 0.0
-    }
+   private fun installMoveWithNode(owner: Node) {
+      if (scene.properties.containsKey(KEY_MOVE_WITH_OWNER_NODE)) fail { "'Move with node' already installed" }
+      scene.properties[KEY_MOVE_WITH_OWNER_NODE] = KEY_MOVE_WITH_OWNER_NODE
 
-    private fun computeYOffset(): Double = when (arrowLocation.value) {
-        LEFT_TOP, RIGHT_TOP -> arrowIndent.value + arrowSize.value
-        LEFT_CENTER, RIGHT_CENTER -> contentNode.value.prefHeight(-1.0)/2 + arrowSize.value + arrowIndent.value
-        LEFT_BOTTOM, RIGHT_BOTTOM -> contentNode.value.prefHeight(-1.0) - arrowIndent.value - arrowSize.value
-        else -> 0.0
-    }
+      ownerMNode = owner
+      ownerMWindow = owner.scene.window
+      ownerMWindow!!.xProperty().addListener(xListener)
+      ownerMWindow!!.yProperty().addListener(yListener)
+      ownerMWindow!!.widthProperty().addListener(xListener)
+      ownerMWindow!!.heightProperty().addListener(yListener)
+      ownerMNode!!.layoutXProperty().addListener(xListener)
+      ownerMNode!!.layoutYProperty().addListener(yListener)
+      // uninstall when Node is disconnected from scene graph to prevent possible illegal states
+      ownerMNode!!.sceneProperty().addListener(visibilityListener)
+      ownerMNode!!.visibleProperty().addListener(visibilityListener2)
+      // remember owner's position to monitor its position change
+      deltaX = ownerMNode!!.localToScreen(0.0, 0.0).x
+      deltaY = ownerMNode!!.localToScreen(0.0, 0.0).y
+      installMonitoring()
+   }
 
-    private fun fadeIn() {
-        animation.value.apply {
-            applyNow()
-            dur(animationDuration.value)
-            playOpenDo(null)
-        }
-    }
+   private fun uninstallSoftMoveWith() {
+      if (ownerMWindow!=null) {
+         ownerMWindow!!.xProperty().removeListener(winXListener)
+         ownerMWindow!!.yProperty().removeListener(winYListener)
+         ownerMWindow!!.widthProperty().removeListener(winXListener)
+         ownerMWindow!!.heightProperty().removeListener(winYListener)
+         ownerMWindow!!.removeEventFilter(WINDOW_HIDING, winHideListener)
+      }
+      if (ownerMNode!=null) {
+         ownerMNode!!.layoutXProperty().removeListener(xListener)
+         ownerMNode!!.layoutYProperty().removeListener(yListener)
+         ownerMWindow!!.xProperty().removeListener(xListener)
+         ownerMWindow!!.yProperty().removeListener(yListener)
+         ownerMWindow!!.widthProperty().removeListener(xListener)
+         ownerMWindow!!.heightProperty().removeListener(yListener)
+         ownerMNode!!.sceneProperty().removeListener(visibilityListener)
+         ownerMNode!!.visibleProperty().removeListener(visibilityListener2)
+      }
+      scene.properties.remove(KEY_MOVE_WITH_OWNER_NODE)
+      scene.properties.remove(KEY_MOVE_WITH_OWNER_WINDOW)
+      uninstallMonitoring()
+   }
 
-    private fun fadeOut() {
-        animation.value.apply {
-            applyNow()
-            dur(animationDuration.value)
-            playCloseDo { hideImmediately() }
-        }
-    }
+   private fun uninstallMoveWith() {
+      uninstallSoftMoveWith()
+      ownerMNode = null
+      ownerMWindow = null
+   }
 
-    /* --------------------- MOVE WITH OWNER ---------------------------------------------------------------------------- */
+   private fun installMonitoring() {
+      // this should have been handled like this:
+      //     deltaThisX.bind(Bindings.when(deltaThisLock).then(xProperty()).otherwise(deltaThisX));
+      // but the binding doesn't seem to allow binding to itself or simply 'not
+      // do' anything in the 'otherwise' part - there we need to maintain the
+      // current value but it does not seem possible - it would really clean
+      // this up a bit (way too many listeners for my taste)
 
-    /**
-     * Sets moving with owner behavior on or off. Default on (true).
-     *
-     * This functionality is characterized by the popup moving with the owning
-     * Window or Node - its positioning relative to its owner becomes absolute.
-     *
-     * There are two 'modes' decided automatically depending on the way this
-     * popover was shown. The position can be absolute relative to the Node or
-     * relative to the Window (or none). The first will reposition this popup
-     * in order for it to stay with the Node (even when the Node only changes
-     * its position within the Window that remained static). Second simply
-     * follows the Window and the third does nothing.
-     *
-     * The 'mode' is decided based on the parameters of the show method that was
-     * called.
-     * Must never be called before the popover is shown.
-     */
-    var isMoveWithOwner = true
-        set(value) {
-            if (value!=isMoveWithOwner) {
-                field = value
-                if (isShowing) {
-                    initializeMovingBehavior(value)
-                }
-            }
-        }
+      // maintain lock to prevent illegal position monitoring
+      scene.addEventHandler(MOUSE_PRESSED, lockOnHandler)
+      scene.addEventHandler(MOUSE_RELEASED, lockOffHandler)
+      // monitor this' position for change if lock allows
+      xProperty().addListener(deltaXListener)
+      yProperty().addListener(deltaYListener)
+      // fire listeners to initialize the values (listeners dont get fired when added)
+      deltaXListener.invalidated(null)
+      deltaYListener.invalidated(null)
+      deltaThisX = x
+      deltaThisY = y
+   }
 
-    // owners
-    private var ownerMNode: Node? = null
-    private var ownerMWindow: Window? = null
+   private fun uninstallMonitoring() {
+      scene.removeEventHandler(MOUSE_PRESSED, lockOnHandler)
+      scene.removeEventHandler(MOUSE_RELEASED, lockOffHandler)
+      xProperty().removeListener(deltaXListener)
+      yProperty().removeListener(deltaYListener)
+   }
 
-    // variables for dragging behavior
-    private var deltaX = 0.0
-    private var deltaY = 0.0
-    private var deltaThisX = 0.0
-    private var deltaThisY = 0.0
-    private var deltaThisLock = false
+   /* ------------------------------------------------------------------------------------------------------------------ */
 
-    // listeners for relocating
-    private val xListener = ChangeListener<Number> { _, _, _ ->
-        if (ownerMNode!=null)
-            x = deltaThisX + ownerMNode!!.localToScreen(0.0, 0.0).x - deltaX
-    }
-    private val yListener = ChangeListener<Number> { _, _, _ ->
-        if (ownerMNode!=null)
-            y = deltaThisY + ownerMNode!!.localToScreen(0.0, 0.0).y - deltaY
-    }
-    private val winXListener = ChangeListener<Number> { _, _, _ ->
-        if (ownerMWindow!=null)
-            x = deltaThisX + ownerMWindow!!.x - deltaX
-    }
-    private val winYListener = ChangeListener<Number> { _, _, _ ->
-        if (ownerMWindow!=null)
-            y = deltaThisY + ownerMWindow!!.y - deltaY
-    }
-    private val winHideListener = EventHandler<WindowEvent> { visibilityListener.changed(null, null, null) }
+   companion object {
 
-    // monitoring ----------
-    // turn lock on/off to prevent dragging to change state
-    private var lockOnHandler = EventHandler<MouseEvent> { deltaThisLock = true }
-    private var lockOffHandler = EventHandler<MouseEvent> { deltaThisLock = false }
-    // remember position for dragging functionality
-    private var deltaXListener = InvalidationListener { if (deltaThisLock) deltaThisX = x }
-    private var deltaYListener = InvalidationListener { if (deltaThisLock) deltaThisY = y }
-    // hide on scene change
-    private var visibilityListener = ChangeListener<Scene?> { _, _, _ ->
-        uninstallMoveWith()
-        hideStrong()
-    }
-    // hide on node owner setVisible(false)
-    private var visibilityListener2 = ChangeListener<Boolean> { _, _, _ ->
-        uninstallMoveWith()
-        hideStrong()
-    }
+      val active_popups = observableArrayList(ArrayList<PopOver<*>>())!!
+      private val KEY_CLOSE_OWNER = Any()
+      private val KEY_MOVE_WITH_OWNER_NODE = Any()
+      private val KEY_MOVE_WITH_OWNER_WINDOW = Any()
+      private const val STYLE_CLASS = "popover"
 
-    private fun initializeMovingBehavior(value: Boolean) {
-        if (value) {
-            uninstallSoftMoveWith()
-            if (ownerMNode!=null) installMoveWithNode(ownerMNode!!)
-            else installMoveWithWindow(ownerMWindow!!)
-        } else {
-            uninstallMoveWith()
-        }
-    }
+      private val UNFOCUSED_OWNER by lazy { APP.windowManager.createStageOwner() }
 
-    private fun installMoveWithWindow(owner: Window) {
-        if (scene.properties.containsKey(KEY_MOVE_WITH_OWNER_WINDOW)) fail { "'Move with window' already installed" }
-        scene.properties[KEY_MOVE_WITH_OWNER_WINDOW] = KEY_MOVE_WITH_OWNER_WINDOW
-
-        ownerMNode = null
-        ownerMWindow = owner
-        ownerMWindow!!.xProperty().addListener(winXListener)
-        ownerMWindow!!.yProperty().addListener(winYListener)
-        ownerMWindow!!.widthProperty().addListener(winXListener)
-        ownerMWindow!!.heightProperty().addListener(winYListener)
-        // uninstall just before window gets hidden to prevent possible illegal states
-        ownerMWindow!!.addEventFilter(WINDOW_HIDING, winHideListener)
-        // remember owner's position to monitor its position change
-        deltaX = owner.x
-        deltaY = owner.y
-        installMonitoring()
-    }
-
-    private fun installMoveWithNode(owner: Node) {
-        if (scene.properties.containsKey(KEY_MOVE_WITH_OWNER_NODE)) fail { "'Move with node' already installed" }
-        scene.properties[KEY_MOVE_WITH_OWNER_NODE] = KEY_MOVE_WITH_OWNER_NODE
-
-        ownerMNode = owner
-        ownerMWindow = owner.scene.window
-        ownerMWindow!!.xProperty().addListener(xListener)
-        ownerMWindow!!.yProperty().addListener(yListener)
-        ownerMWindow!!.widthProperty().addListener(xListener)
-        ownerMWindow!!.heightProperty().addListener(yListener)
-        ownerMNode!!.layoutXProperty().addListener(xListener)
-        ownerMNode!!.layoutYProperty().addListener(yListener)
-        // uninstall when Node is disconnected from scene graph to prevent possible illegal states
-        ownerMNode!!.sceneProperty().addListener(visibilityListener)
-        ownerMNode!!.visibleProperty().addListener(visibilityListener2)
-        // remember owner's position to monitor its position change
-        deltaX = ownerMNode!!.localToScreen(0.0, 0.0).x
-        deltaY = ownerMNode!!.localToScreen(0.0, 0.0).y
-        installMonitoring()
-    }
-
-    private fun uninstallSoftMoveWith() {
-        if (ownerMWindow!=null) {
-            ownerMWindow!!.xProperty().removeListener(winXListener)
-            ownerMWindow!!.yProperty().removeListener(winYListener)
-            ownerMWindow!!.widthProperty().removeListener(winXListener)
-            ownerMWindow!!.heightProperty().removeListener(winYListener)
-            ownerMWindow!!.removeEventFilter(WINDOW_HIDING, winHideListener)
-        }
-        if (ownerMNode!=null) {
-            ownerMNode!!.layoutXProperty().removeListener(xListener)
-            ownerMNode!!.layoutYProperty().removeListener(yListener)
-            ownerMWindow!!.xProperty().removeListener(xListener)
-            ownerMWindow!!.yProperty().removeListener(yListener)
-            ownerMWindow!!.widthProperty().removeListener(xListener)
-            ownerMWindow!!.heightProperty().removeListener(yListener)
-            ownerMNode!!.sceneProperty().removeListener(visibilityListener)
-            ownerMNode!!.visibleProperty().removeListener(visibilityListener2)
-        }
-        scene.properties.remove(KEY_MOVE_WITH_OWNER_NODE)
-        scene.properties.remove(KEY_MOVE_WITH_OWNER_WINDOW)
-        uninstallMonitoring()
-    }
-
-    private fun uninstallMoveWith() {
-        uninstallSoftMoveWith()
-        ownerMNode = null
-        ownerMWindow = null
-    }
-
-    private fun installMonitoring() {
-        // this should have been handled like this:
-        //     deltaThisX.bind(Bindings.when(deltaThisLock).then(xProperty()).otherwise(deltaThisX));
-        // but the binding doesn't seem to allow binding to itself or simply 'not
-        // do' anything in the 'otherwise' part - there we need to maintain the
-        // current value but it does not seem possible - it would really clean
-        // this up a bit (way too many listeners for my taste)
-
-        // maintain lock to prevent illegal position monitoring
-        scene.addEventHandler(MOUSE_PRESSED, lockOnHandler)
-        scene.addEventHandler(MOUSE_RELEASED, lockOffHandler)
-        // monitor this' position for change if lock allows
-        xProperty().addListener(deltaXListener)
-        yProperty().addListener(deltaYListener)
-        // fire listeners to initialize the values (listeners dont get fired when added)
-        deltaXListener.invalidated(null)
-        deltaYListener.invalidated(null)
-        deltaThisX = x
-        deltaThisY = y
-    }
-
-    private fun uninstallMonitoring() {
-        scene.removeEventHandler(MOUSE_PRESSED, lockOnHandler)
-        scene.removeEventHandler(MOUSE_RELEASED, lockOffHandler)
-        xProperty().removeListener(deltaXListener)
-        yProperty().removeListener(deltaYListener)
-    }
-
-    /* ------------------------------------------------------------------------------------------------------------------ */
-
-    companion object {
-
-        val active_popups = observableArrayList(ArrayList<PopOver<*>>())!!
-        private val KEY_CLOSE_OWNER = Any()
-        private val KEY_MOVE_WITH_OWNER_NODE = Any()
-        private val KEY_MOVE_WITH_OWNER_WINDOW = Any()
-        private const val STYLE_CLASS = "popover"
-
-        private val UNFOCUSED_OWNER by lazy { APP.windowManager.createStageOwner() }
-
-    }
+   }
 }

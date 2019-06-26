@@ -16,33 +16,33 @@ import sp.it.util.units.seconds
 
 fun Window.installStartLayoutPlaceholder() {
 
-    fun showStartLayoutPlaceholder() {
-        var action = {}
-        val p = Placeholder(IconFA.FOLDER, "Start with a simple click\n\nIf you are 1st timer, choose ${ContainerPicker.choiceForTemplate} > ${initialTemplateFactory.nameGui()}") { action() }
-        action = {
-            runFX(300.millis) {
-                AppAnimator.closeAndDo(p) {
-                    runFX(500.millis) {
-                        p.hide()
-                        Robot().apply {
-                            mouseMove(root.localToScreen(root.layoutBounds).centre.toPoint2D())
-                            mouseClick(MouseButton.PRIMARY)
-                        }
-                    }
-                }
+   fun showStartLayoutPlaceholder() {
+      var action = {}
+      val p = Placeholder(IconFA.FOLDER, "Start with a simple click\n\nIf you are 1st timer, choose ${ContainerPicker.choiceForTemplate} > ${initialTemplateFactory.nameGui()}") { action() }
+      action = {
+         runFX(300.millis) {
+            AppAnimator.closeAndDo(p) {
+               runFX(500.millis) {
+                  p.hide()
+                  Robot().apply {
+                     mouseMove(root.localToScreen(root.layoutBounds).centre.toPoint2D())
+                     mouseClick(MouseButton.PRIMARY)
+                  }
+               }
             }
-        }
-        AppAnimator.applyAt(p, 0.0)
-        p.showFor(content)
-        AppAnimator.openAndDo(p) {}
-    }
+         }
+      }
+      AppAnimator.applyAt(p, 0.0)
+      p.showFor(content)
+      AppAnimator.openAndDo(p) {}
+   }
 
-    s.showingProperty().sync1If({ it }) {
-        runFX(1.seconds) {
-            if (topContainer?.children?.isEmpty()==true) {
-                showStartLayoutPlaceholder()
-            }
-        }
-    }
+   s.showingProperty().sync1If({ it }) {
+      runFX(1.seconds) {
+         if (topContainer?.children?.isEmpty()==true) {
+            showStartLayoutPlaceholder()
+         }
+      }
+   }
 
 }

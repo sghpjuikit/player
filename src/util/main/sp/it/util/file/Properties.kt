@@ -29,14 +29,14 @@ data class Property(val key: String, val value: String, val comment: String)
  */
 @Blocks
 fun File.readProperties(): Try<Map<String, String>, Throwable> {
-    return runTry {
-        useLines(UTF_8) {
-            it.filterNot { it.isEmpty() || it.startsWith('#') || it.startsWith('!') || '=' !in it }
-                .associate { it.substringBefore("=") to it.substringAfter('=') }
-        }
-    }.ifError {
-        logger.error(it) { "Failed to read properties file= $this" }
-    }
+   return runTry {
+      useLines(UTF_8) {
+         it.filterNot { it.isEmpty() || it.startsWith('#') || it.startsWith('!') || '=' !in it }
+            .associate { it.substringBefore("=") to it.substringAfter('=') }
+      }
+   }.ifError {
+      logger.error(it) { "Failed to read properties file= $this" }
+   }
 }
 
 /**
@@ -51,7 +51,7 @@ fun File.readProperties(): Try<Map<String, String>, Throwable> {
  */
 @Blocks
 fun File.writeProperties(title: String, properties: Collection<Property>): Try<Unit, Throwable> {
-    val header = """
+   val header = """
         |name: $title
         |type: property file
         |last auto-modified: ${LocalDateTime.now()}
@@ -69,24 +69,24 @@ fun File.writeProperties(title: String, properties: Collection<Property>): Try<U
         |Some properties may be read-only or have value constraints. Unfit values may be ignored.
         """.trimMargin()
 
-    fun Appendable.appendComment(comment: CharSequence) = apply {
-        if (comment.isNotBlank())
-            comment.split("\n").forEach { line -> append("# ").appendln(line) }
-    }
+   fun Appendable.appendComment(comment: CharSequence) = apply {
+      if (comment.isNotBlank())
+         comment.split("\n").forEach { line -> append("# ").appendln(line) }
+   }
 
-    return runTry {
-        bufferedWriter(UTF_8).use {
-            it.appendComment(header)
-            it.appendln()
-            it.appendln()
-            properties.asSequence().sortedBy { it.key }.forEach { (name, value, comment) ->
-                it.appendComment(comment)
-                it.append(name)
-                it.append("=")
-                it.appendln(value)
-            }
-        }
-    }.ifError {
-        logger.error(it) { "Failed to write properties file= $this" }
-    }
+   return runTry {
+      bufferedWriter(UTF_8).use {
+         it.appendComment(header)
+         it.appendln()
+         it.appendln()
+         properties.asSequence().sortedBy { it.key }.forEach { (name, value, comment) ->
+            it.appendComment(comment)
+            it.append(name)
+            it.append("=")
+            it.appendln(value)
+         }
+      }
+   }.ifError {
+      logger.error(it) { "Failed to write properties file= $this" }
+   }
 }

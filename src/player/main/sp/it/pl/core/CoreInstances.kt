@@ -15,19 +15,19 @@ import kotlin.reflect.KClass
 
 object CoreInstances: InstanceMap(), Core {
 
-    @Suppress("RemoveExplicitTypeArguments")
-    override fun init() {
-        addInstances<SearchUriBuilder>(
-            DuckDuckGoQBuilder,
-            DuckDuckGoImageQBuilder,
-            WikipediaQBuilder,
-            BingImageSearchQBuilder,
-            GoogleImageQBuilder
-        )
-        addInstances<KClass<out Skin<Rating>>>(
-            RatingSkinStar::class,
-            RatingSkinNumber::class
-        )
-    }
+   @Suppress("RemoveExplicitTypeArguments")
+   override fun init() {
+      addInstances<SearchUriBuilder>(
+         DuckDuckGoQBuilder,
+         DuckDuckGoImageQBuilder,
+         WikipediaQBuilder,
+         BingImageSearchQBuilder,
+         GoogleImageQBuilder
+      )
+      addInstances<KClass<out Skin<Rating>>>(
+         RatingSkinStar::class,
+         RatingSkinNumber::class
+      )
+   }
 
 }

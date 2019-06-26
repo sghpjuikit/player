@@ -11,21 +11,21 @@ import sp.it.util.file.div
 /** Plugin is configurable start/stoppable component. */
 interface Plugin: Configurable<Any>, MultiConfigurable, Locatable {
 
-    val name: String
-    override val configurableDiscriminant get() = "${Settings.Plugin.name}.$name"
-    override val location get() = APP.DIR_APP/"plugins"/name
-    override val userLocation get() = APP.DIR_USERDATA/"plugins"/name
+   val name: String
+   override val configurableDiscriminant get() = "${Settings.Plugin.name}.$name"
+   override val location get() = APP.DIR_APP/"plugins"/name
+   override val userLocation get() = APP.DIR_USERDATA/"plugins"/name
 
-    @Idempotent
-    fun start()
+   @Idempotent
+   fun start()
 
-    @Idempotent
-    fun stop()
+   @Idempotent
+   fun stop()
 
-    fun isRunning(): Boolean
+   fun isRunning(): Boolean
 
-    fun activate(active: Boolean) = if (active) start() else stop()
+   fun activate(active: Boolean) = if (active) start() else stop()
 
-    fun isSupported() = true
+   fun isSupported() = true
 
 }

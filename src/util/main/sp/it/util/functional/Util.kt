@@ -260,8 +260,8 @@ fun <T: Any> T.traverse(next: (T) -> T?) = generateSequence(this, next)
 
 /** @return lazy sequence yielded recursively in depth-first order starting with this as first element */
 fun <T> T.recurse(children: (T) -> Iterable<T>): Sequence<T> = sequence {
-    yield(this@recurse)
-    children(this@recurse).forEach { it.recurse(children).forEach { yield(it) } }
+   yield(this@recurse)
+   children(this@recurse).forEach { it.recurse(children).forEach { yield(it) } }
 }
 
 /** @return an array containing all elements */

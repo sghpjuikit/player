@@ -11,15 +11,15 @@ import sp.it.util.conf.ConfigValueSource.Companion.SimpleConfigValueStore
  */
 @Suppress("LeakingThis")
 open class ConfigurableBase<T>: SimpleConfigValueStore<T>(), MultiConfigurable, Configurable<T> {
-    override val configurableDiscriminant: Nothing? = null
-    override val configurableValueStore = this
+   override val configurableDiscriminant: Nothing? = null
+   override val configurableValueStore = this
 
-    companion object {
-        private fun sample() {
-            object: ConfigurableBase<Boolean>() {
-                val orderCount by cv(10)
-                val orderId by cv("myOrder")
-            }
-        }
-    }
+   companion object {
+      private fun sample() {
+         object: ConfigurableBase<Boolean>() {
+            val orderCount by cv(10)
+            val orderId by cv("myOrder")
+         }
+      }
+   }
 }

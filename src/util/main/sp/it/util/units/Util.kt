@@ -28,25 +28,25 @@ val Duration.javafx: Dur get() = toMillis().millis
 @Dependency("sp.it.util.units.Util.durationOfHMSMs")
 @JvmOverloads
 fun Dur.toHMSMs(include_zeros: Boolean = true): String {
-    val secondsTotal = toMillis()/1000
-    val seconds = secondsTotal.toInt()%60
-    val minutes = ((secondsTotal - seconds)/60).toInt()%60
-    val hours = (secondsTotal - seconds.toDouble() - (60*minutes).toDouble()).toInt()/3600
-    return if (include_zeros) {
-        when {
-            hours>99 -> String.format("%d:%02d:%02d", hours, minutes, seconds)
-            hours>0 -> String.format("%02d:%02d:%02d", hours, minutes, seconds)
-            minutes>0 -> String.format("%02d:%02d", minutes, seconds)
-            else -> String.format("00:%02d", seconds)
-        }
-    } else {
-        when {
-            hours>99 -> String.format("%3d:%2d:%2d", hours, minutes, seconds)
-            hours>0 -> String.format("%2d:%2d:%2d", hours, minutes, seconds)
-            minutes>0 -> String.format("%2d:%2d", minutes, seconds)
-            else -> String.format("%2d", seconds)
-        }
-    }
+   val secondsTotal = toMillis()/1000
+   val seconds = secondsTotal.toInt()%60
+   val minutes = ((secondsTotal - seconds)/60).toInt()%60
+   val hours = (secondsTotal - seconds.toDouble() - (60*minutes).toDouble()).toInt()/3600
+   return if (include_zeros) {
+      when {
+         hours>99 -> String.format("%d:%02d:%02d", hours, minutes, seconds)
+         hours>0 -> String.format("%02d:%02d:%02d", hours, minutes, seconds)
+         minutes>0 -> String.format("%02d:%02d", minutes, seconds)
+         else -> String.format("00:%02d", seconds)
+      }
+   } else {
+      when {
+         hours>99 -> String.format("%3d:%2d:%2d", hours, minutes, seconds)
+         hours>0 -> String.format("%2d:%2d:%2d", hours, minutes, seconds)
+         minutes>0 -> String.format("%2d:%2d", minutes, seconds)
+         else -> String.format("%2d", seconds)
+      }
+   }
 }
 
 /** Returns duration with this number of milliseconds. */

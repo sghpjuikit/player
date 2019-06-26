@@ -42,101 +42,101 @@ import java.util.ArrayList
 
 @Suppress("MemberVisibilityCanBePrivate")
 @Widget.Info(
-    author = "Martin Polakovic",
-    name = "Settings",
-    description = "Provides access to application settings",
-    howto = "Available actions:\n"
-        + "    Select category\n"
-        + "    Change setting value: Automatically takes change\n"
-        + "    Default : Set default value for this setting\n",
-    notes = "To do: generate active widget settings",
-    version = "0.9.0",
-    year = "2016",
-    group = Widget.Group.APP
+   author = "Martin Polakovic",
+   name = "Settings",
+   description = "Provides access to application settings",
+   howto = "Available actions:\n"
+      + "    Select category\n"
+      + "    Change setting value: Automatically takes change\n"
+      + "    Default : Set default value for this setting\n",
+   notes = "To do: generate active widget settings",
+   version = "0.9.0",
+   year = "2016",
+   group = Widget.Group.APP
 )
 class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature {
 
-    private val inputValue = io.i.create<Configurable<Any>>("To configure") { configure(it) }
-    @FXML private lateinit var groups: TreeView<Name>
-    @FXML private lateinit var controls: Pane
-    @FXML private lateinit var configsRootPane: AnchorPane
-    private val configsPane = ConfigPane<Any>()
-    private val configs = ArrayList<Config<*>>()
-    private val configSelectionName = "app.settings.selected_group"
-    private var configSelectionAvoid = false
-    private val appConfigurable = APP.configuration
+   private val inputValue = io.i.create<Configurable<Any>>("To configure") { configure(it) }
+   @FXML private lateinit var groups: TreeView<Name>
+   @FXML private lateinit var controls: Pane
+   @FXML private lateinit var configsRootPane: AnchorPane
+   private val configsPane = ConfigPane<Any>()
+   private val configs = ArrayList<Config<*>>()
+   private val configSelectionName = "app.settings.selected_group"
+   private var configSelectionAvoid = false
+   private val appConfigurable = APP.configuration
 
-    @IsConfig(editable = EditMode.APP)
-    var showsAppSettings by c(true)
-
-
-    init {
-        root.prefSize = 800.scaleEM() x 600.scaleEM()
-        root.consumeScrolling()
+   @IsConfig(editable = EditMode.APP)
+   var showsAppSettings by c(true)
 
 
-        fxmlLoaderForController(this).loadNoEx<Any>()
+   init {
+      root.prefSize = 800.scaleEM() x 600.scaleEM()
+      root.consumeScrolling()
 
-        configsRootPane.layFullArea += configsPane
 
-        root.lay(TOP_LEFT) += hBox(10, TOP_RIGHT) {
-            isPickOnBounds = false
+      fxmlLoaderForController(this).loadNoEx<Any>()
 
-            lay += Icon(IconFA.RECYCLE, 13.0, "Set all to default").onClickDo { defaults() }
-            lay += Icon().blank()
-            lay += Icon(IconFA.HOME, 13.0, "App settings").onClickDo { configure(appConfigurable) }
-            lay += Icon().blank()
-        }
+      configsRootPane.layFullArea += configsPane
 
-        groups.selectionModel.selectionMode = SINGLE
-        groups.cellFactory = Callback { buildTreeCell(it) }
-        groups.propagateESCAPE()
-        groups.selectionModel.selectedItemProperty() attach { storeAppSettingsSelection(it) } on onClose
-        groups.selectionModel.selectedItemProperty() attach { showConfigs(it?.value) } on onClose
+      root.lay(TOP_LEFT) += hBox(10, TOP_RIGHT) {
+         isPickOnBounds = false
 
-        refresh()
-    }
+         lay += Icon(IconFA.RECYCLE, 13.0, "Set all to default").onClickDo { defaults() }
+         lay += Icon().blank()
+         lay += Icon(IconFA.HOME, 13.0, "App settings").onClickDo { configure(appConfigurable) }
+         lay += Icon().blank()
+      }
 
-    /** Set and apply values. */
-    fun apply() = configsPane.getConfigFields().forEach { it.apply() }
+      groups.selectionModel.selectionMode = SINGLE
+      groups.cellFactory = Callback { buildTreeCell(it) }
+      groups.propagateESCAPE()
+      groups.selectionModel.selectedItemProperty() attach { storeAppSettingsSelection(it) } on onClose
+      groups.selectionModel.selectedItemProperty() attach { showConfigs(it?.value) } on onClose
 
-    /** Set default app settings. */
-    fun defaults() = configs.forEach { it.value = it.defaultValue }
+      refresh()
+   }
 
-    fun refresh() {
-        if (showsAppSettings) configure(appConfigurable)
-        else refreshConfigs()
-    }
+   /** Set and apply values. */
+   fun apply() = configsPane.getConfigFields().forEach { it.apply() }
 
-    override fun configure(configurable: Configurable<*>?) {
-        val configurableFields = configurable?.fields.orEmpty()
+   /** Set default app settings. */
+   fun defaults() = configs.forEach { it.value = it.defaultValue }
 
-        showsAppSettings = configurable==appConfigurable
-        configs setTo configurableFields
-        configSelectionAvoid = true
-        groups.isShowRoot = !showsAppSettings
-        groups.root = tree(Name.treeOfPaths("All", configurableFields.map { it.group }))
-        groups.root.isExpanded = true
-        configSelectionAvoid = false
-        groups.expandToRootAndSelect(restoreAppSettingsSelection() ?: groups.root)
-    }
+   fun refresh() {
+      if (showsAppSettings) configure(appConfigurable)
+      else refreshConfigs()
+   }
 
-    private fun showConfigs(group: Name?) = showConfigs(configs.filter { c -> c.group==group?.pathUp })
+   override fun configure(configurable: Configurable<*>?) {
+      val configurableFields = configurable?.fields.orEmpty()
 
-    private fun showConfigs(configs: Collection<Config<*>>) = configsPane.configure(configs)
+      showsAppSettings = configurable==appConfigurable
+      configs setTo configurableFields
+      configSelectionAvoid = true
+      groups.isShowRoot = !showsAppSettings
+      groups.root = tree(Name.treeOfPaths("All", configurableFields.map { it.group }))
+      groups.root.isExpanded = true
+      configSelectionAvoid = false
+      groups.expandToRootAndSelect(restoreAppSettingsSelection() ?: groups.root)
+   }
 
-    private fun refreshConfigs() = configsPane.getConfigFields().forEach { it.refreshItem() }
+   private fun showConfigs(group: Name?) = showConfigs(configs.filter { c -> c.group==group?.pathUp })
 
-    private fun storeAppSettingsSelection(item: TreeItem<Name>?) {
-        if (!showsAppSettings || configSelectionAvoid) return
-        val selectedGroupPath = item?.value?.pathUp ?: ""
-        appConfigurable.rawAdd(configSelectionName, selectedGroupPath)
-    }
+   private fun showConfigs(configs: Collection<Config<*>>) = configsPane.configure(configs)
 
-    private fun restoreAppSettingsSelection(): TreeItem<Name>? {
-        if (!showsAppSettings) return null
-        val selectedGroupPath = appConfigurable.rawGetAll()[configSelectionName]
-        return groups.root.recurse { it.children }.find { it.value.pathUp==selectedGroupPath; }
-    }
+   private fun refreshConfigs() = configsPane.getConfigFields().forEach { it.refreshItem() }
+
+   private fun storeAppSettingsSelection(item: TreeItem<Name>?) {
+      if (!showsAppSettings || configSelectionAvoid) return
+      val selectedGroupPath = item?.value?.pathUp ?: ""
+      appConfigurable.rawAdd(configSelectionName, selectedGroupPath)
+   }
+
+   private fun restoreAppSettingsSelection(): TreeItem<Name>? {
+      if (!showsAppSettings) return null
+      val selectedGroupPath = appConfigurable.rawGetAll()[configSelectionName]
+      return groups.root.recurse { it.children }.find { it.value.pathUp==selectedGroupPath; }
+   }
 
 }

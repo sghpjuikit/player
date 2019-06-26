@@ -33,72 +33,72 @@ import sp.it.util.ui.size
  */
 open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () -> Unit): StackPane() {
 
-    @JvmField val icon = Icon()
-    @JvmField val info = Text()
-    private var s: Subscription? = null
+   @JvmField val icon = Icon()
+   @JvmField val info = Text()
+   private var s: Subscription? = null
 
-    init {
-        styleClass += STYLECLASS
-        info.text = actionName
-        info.textAlignment = TextAlignment.CENTER
+   init {
+      styleClass += STYLECLASS
+      info.text = actionName
+      info.textAlignment = TextAlignment.CENTER
 
-        icon.styleclass(STYLECLASS_ICON)
-        icon.icon(actionIcon)
-        icon.onClick(action)
-        icon.isMouseTransparent = true
-        icon.isFocusTraversable = true
-        hoverProperty() sync { icon.select(it) }
+      icon.styleclass(STYLECLASS_ICON)
+      icon.icon(actionIcon)
+      icon.onClick(action)
+      icon.isMouseTransparent = true
+      icon.isFocusTraversable = true
+      hoverProperty() sync { icon.select(it) }
 
-        onEventDown(MOUSE_CLICKED, PRIMARY) { action() }
-        onEventDown(KEY_PRESSED, ENTER) { action() }
-        parentProperty() sync {
-            if (it!=null && it.scene?.window?.isShowing==true && it.containsMouse())
-                pseudoClassChanged("hover", true)
-        }
+      onEventDown(MOUSE_CLICKED, PRIMARY) { action() }
+      onEventDown(KEY_PRESSED, ENTER) { action() }
+      parentProperty() sync {
+         if (it!=null && it.scene?.window?.isShowing==true && it.containsMouse())
+            pseudoClassChanged("hover", true)
+      }
 
-        lay += layHeaderBottom(8.0, Pos.CENTER, icon, info)
-        isVisible = false
-    }
+      lay += layHeaderBottom(8.0, Pos.CENTER, icon, info)
+      isVisible = false
+   }
 
-    /** Shows this placeholder so it is topmost child of specified node (or its first [Pane] parent), [visible] is true and [icon].[focused] is true. */
-    fun showFor(n: Node) {
-        val p = n.traverse { it.parent }.filterIsInstance<Pane>().firstOrNull()
-        if (p!=null && this !in p.children) {
-            p.lay += this
-            s?.unsubscribe()
-            s = n.layoutBoundsProperty().sync {
-                minSize = it.size
-                prefSize = it.size
-                maxSize = it.size
-                resizeRelocate(it.minX, it.minY, it.width, it.height)
-            }
-            toFront()
-            isVisible = true
-            requestFocus()
-        }
-    }
+   /** Shows this placeholder so it is topmost child of specified node (or its first [Pane] parent), [visible] is true and [icon].[focused] is true. */
+   fun showFor(n: Node) {
+      val p = n.traverse { it.parent }.filterIsInstance<Pane>().firstOrNull()
+      if (p!=null && this !in p.children) {
+         p.lay += this
+         s?.unsubscribe()
+         s = n.layoutBoundsProperty().sync {
+            minSize = it.size
+            prefSize = it.size
+            maxSize = it.size
+            resizeRelocate(it.minX, it.minY, it.width, it.height)
+         }
+         toFront()
+         isVisible = true
+         requestFocus()
+      }
+   }
 
-    override fun requestFocus() {
-        icon.requestFocus()
-    }
+   override fun requestFocus() {
+      icon.requestFocus()
+   }
 
-    /** Hides this placeholder so it is not a child of any node and [visible] is false. */
-    fun hide() {
-        s?.unsubscribe()
-        s = null
-        removeFromParent()
-        isVisible = false
-    }
+   /** Hides this placeholder so it is not a child of any node and [visible] is false. */
+   fun hide() {
+      s?.unsubscribe()
+      s = null
+      removeFromParent()
+      isVisible = false
+   }
 
-    /** Calls [show] if specified visibility is true and [hide] otherwise. */
-    fun show(n: Node, visible: Boolean) {
-        if (visible) showFor(n)
-        else hide()
-    }
+   /** Calls [show] if specified visibility is true and [hide] otherwise. */
+   fun show(n: Node, visible: Boolean) {
+      if (visible) showFor(n)
+      else hide()
+   }
 
-    companion object {
-        private const val STYLECLASS = "placeholder-pane"
-        private const val STYLECLASS_ICON = "placeholder-pane-icon"
-    }
+   companion object {
+      private const val STYLECLASS = "placeholder-pane"
+      private const val STYLECLASS_ICON = "placeholder-pane-icon"
+   }
 
 }

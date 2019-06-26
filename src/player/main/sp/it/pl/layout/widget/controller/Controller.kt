@@ -46,59 +46,59 @@ import sp.it.util.units.millis
  */
 abstract class Controller(widget: Widget): Configurable<Any>, Locatable {
 
-    /** Widget owning this controller. */
-    @JvmField val widget = widget
-    @JvmField val io = IO(widget.id)
-    override val location get() = widget.location
-    override val userLocation get() = widget.userLocation
+   /** Widget owning this controller. */
+   @JvmField val widget = widget
+   @JvmField val io = IO(widget.id)
+   override val location get() = widget.location
+   override val userLocation get() = widget.userLocation
 
-    /** @return the ui root of this Controller */
-    @Throws(Exception::class)
-    abstract fun loadFirstTime(): Pane
+   /** @return the ui root of this Controller */
+   @Throws(Exception::class)
+   abstract fun loadFirstTime(): Pane
 
-    /** Focuses the content. */
-    abstract fun focus()
+   /** Focuses the content. */
+   abstract fun focus()
 
-    /**
-     * Stops all behavior and disposes any resources so that this controller can be garbage collected.
-     * Executes when [widget] has [Widget.close] invoked.
-     */
-    abstract fun close()
+   /**
+    * Stops all behavior and disposes any resources so that this controller can be garbage collected.
+    * Executes when [widget] has [Widget.close] invoked.
+    */
+   abstract fun close()
 
-    /** @return all implemented features */
-    fun getFeatures(): List<Feature> = widget.factory.getFeatures()
+   /** @return all implemented features */
+   fun getFeatures(): List<Feature> = widget.factory.getFeatures()
 
 }
 
 /** Controller for [Widget] with no [sp.it.pl.layout.widget.WidgetFactory]. */
 class NoFactoryController(widget: Widget): SimpleController(widget) {
-    init {
-        root.lay += vBox(5, CENTER) {
-            lay += label("Widget ${widget.name} is not recognized")
-            lay += compileInfoUi()
-        }
-    }
+   init {
+      root.lay += vBox(5, CENTER) {
+         lay += label("Widget ${widget.name} is not recognized")
+         lay += compileInfoUi()
+      }
+   }
 }
 
 /** Controller for [Widget] that fails to instantiate its controller. */
 class LoadErrorController(widget: Widget): SimpleController(widget) {
-    init {
-        root.lay += vBox(5, CENTER) {
-            lay += label("Widget ${widget.name} failed to load properly")
-            lay += compileInfoUi()
-        }
-    }
+   init {
+      root.lay += vBox(5, CENTER) {
+         lay += label("Widget ${widget.name} failed to load properly")
+         lay += compileInfoUi()
+      }
+   }
 }
 
 private fun SimpleController.compileInfoUi(): Node {
-    val isCompiling = widget.factory.isCompiling(onClose)
-    return hBox(10, CENTER) {
-        lay += label("Compiling...").apply {
-            val a = anim { setScaleXY(it*it) }.delay(500.millis).dur(500.millis).intpl(ElasticInterpolator()).applyNow()
-            isCompiling sync { if (it) a.playOpen() else a.playClose() } on onClose
-        }
-        lay += appProgressIndicator().apply {
-            isCompiling sync { progress = if (it) -1.0 else 1.0 } on onClose
-        }
-    }
+   val isCompiling = widget.factory.isCompiling(onClose)
+   return hBox(10, CENTER) {
+      lay += label("Compiling...").apply {
+         val a = anim { setScaleXY(it*it) }.delay(500.millis).dur(500.millis).intpl(ElasticInterpolator()).applyNow()
+         isCompiling sync { if (it) a.playOpen() else a.playClose() } on onClose
+      }
+      lay += appProgressIndicator().apply {
+         isCompiling sync { progress = if (it) -1.0 else 1.0 } on onClose
+      }
+   }
 }

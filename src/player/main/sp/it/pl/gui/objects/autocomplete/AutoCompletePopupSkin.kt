@@ -49,51 +49,51 @@ import sp.it.util.type.nullify
 import sp.it.util.ui.listView
 
 open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
-    private val control: AutoCompletePopup<T>
-    private val list: ListView<T>
-    private val onDispose = Disposer()
+   private val control: AutoCompletePopup<T>
+   private val list: ListView<T>
+   private val onDispose = Disposer()
 
-    constructor(skinnable: AutoCompletePopup<T>, activationClickCount: Int = 1) {
-        control = skinnable
-        list = listView {
-            items = control.suggestions
+   constructor(skinnable: AutoCompletePopup<T>, activationClickCount: Int = 1) {
+      control = skinnable
+      list = listView {
+         items = control.suggestions
 
-            cellFactory = Callback { buildListCell(it) }
-            syncTo(control.visibleRowCount, items.sizes(), fixedCellSizeProperty()) { rowCount, itemCount, cellSize ->
-                prefHeight = snappedTopInset() + snappedBottomInset() + cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
-            } on onDispose
+         cellFactory = Callback { buildListCell(it) }
+         syncTo(control.visibleRowCount, items.sizes(), fixedCellSizeProperty()) { rowCount, itemCount, cellSize ->
+            prefHeight = snappedTopInset() + snappedBottomInset() + cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
+         } on onDispose
 
-            onEventDown(MOUSE_CLICKED, PRIMARY, false) {
-                if (it.clickCount==activationClickCount) {
-                    chooseSuggestion()
-                    it.consume()
-                }
+         onEventDown(MOUSE_CLICKED, PRIMARY, false) {
+            if (it.clickCount==activationClickCount) {
+               chooseSuggestion()
+               it.consume()
             }
-            onEventDown(KEY_PRESSED, ENTER) { chooseSuggestion() }
-            onEventDown(KEY_PRESSED, ESCAPE, false) {
-                if (control.isHideOnEscape) {
-                    control.hide()
-                    it.consume()
-                }
+         }
+         onEventDown(KEY_PRESSED, ENTER) { chooseSuggestion() }
+         onEventDown(KEY_PRESSED, ESCAPE, false) {
+            if (control.isHideOnEscape) {
+               control.hide()
+               it.consume()
             }
-        }
-    }
+         }
+      }
+   }
 
-    override fun getNode() = list
+   override fun getNode() = list
 
-    override fun getSkinnable() = control
+   override fun getSkinnable() = control
 
-    override fun dispose() {
-        onDispose()
-        list.items = null
-        nullify(::list)
-        nullify(::control)
-    }
+   override fun dispose() {
+      onDispose()
+      list.items = null
+      nullify(::list)
+      nullify(::control)
+   }
 
-    private fun chooseSuggestion(suggestion: T? = list.selectionModel.selectedItem) {
-        if (suggestion!=null)
-            control.onSuggestion(suggestion)
-    }
+   private fun chooseSuggestion(suggestion: T? = list.selectionModel.selectedItem) {
+      if (suggestion!=null)
+         control.onSuggestion(suggestion)
+   }
 
-    protected open fun buildListCell(listView: ListView<T>): ListCell<T> = TextFieldListCell.forListView(control.converter)(listView)
+   protected open fun buildListCell(listView: ListView<T>): ListCell<T> = TextFieldListCell.forListView(control.converter)(listView)
 }

@@ -42,235 +42,235 @@ import sp.it.util.ui.stackPane
 import java.util.ArrayList
 
 class ConfigSearch: AutoCompletion<Entry> {
-    private val textField: TextField
-    private val history: History
-    private var ignoreEvent = false
+   private val textField: TextField
+   private val history: History
+   private var ignoreEvent = false
 
-    constructor(textField: TextField, history: History = History(), entries: () -> Sequence<Entry>): super(
-        textField,
-        { text ->
-            if (text.isEmpty())
-                listOf()
-            else {
-                val phrases = text.split(" ").toList()
-                entries()
-                    .filter { phrases.all { phrase -> it.searchText.contains(phrase, true) } }
-                    .sortedBy { it.name }
-                    .toList()
-            }
-        },
-        defaultStringConverter()
-    ) {
-        this.textField = textField
-        this.textField.prefWidth = 550.0.scaleEM() // affects the popup width
-        this.history = history
+   constructor(textField: TextField, history: History = History(), entries: () -> Sequence<Entry>): super(
+      textField,
+      { text ->
+         if (text.isEmpty())
+            listOf()
+         else {
+            val phrases = text.split(" ").toList()
+            entries()
+               .filter { phrases.all { phrase -> it.searchText.contains(phrase, true) } }
+               .sortedBy { it.name }
+               .toList()
+         }
+      },
+      defaultStringConverter()
+   ) {
+      this.textField = textField
+      this.textField.prefWidth = 550.0.scaleEM() // affects the popup width
+      this.history = history
 
-        this.textField.onEventUp(KEY_PRESSED, CONTROL, UP) { history.up(this) }
-        this.textField.onEventUp(KEY_PRESSED, CONTROL, DOWN) { history.down(this) }
-    }
+      this.textField.onEventUp(KEY_PRESSED, CONTROL, UP) { history.up(this) }
+      this.textField.onEventUp(KEY_PRESSED, CONTROL, DOWN) { history.down(this) }
+   }
 
-    override fun buildPopup() = object: AutoCompletePopup<Entry>() {
+   override fun buildPopup() = object: AutoCompletePopup<Entry>() {
 
-        override fun createDefaultSkin(): AutoCompletePopupSkin<Entry> {
-            return object: AutoCompletePopupSkin<Entry>(this, 2) {
+      override fun createDefaultSkin(): AutoCompletePopupSkin<Entry> {
+         return object: AutoCompletePopupSkin<Entry>(this, 2) {
 
-                init {
+            init {
 
-                    // set keys & allow typing
-                    skinnable.onEventUp(KEY_PRESSED) {
-                        if (!ignoreEvent)
-                            if (it.isControlDown && (it.code==UP || it.code==DOWN)) {
-                                when (it.code) {
-                                    UP -> history.up(this@ConfigSearch)
-                                    DOWN -> history.down(this@ConfigSearch)
-                                    else -> Unit
-                                }
-                                it.consume()
-                            } else if (it.code==BACK_SPACE) {
-                                textField.deletePreviousChar()
-                                it.consume()
-                            } else if (it.code==DELETE) {
-                                textField.deleteNextChar()
-                                it.consume()
-                            } else if (!it.code.isNavigationKey) {
-                                // We re-fire event on text field so we can type even though it
-                                // does not have focus. This causes event stack overflow, so we
-                                // defend with a flag.
-                                if (!textField.isFocused) {
-                                    ignoreEvent = true
-                                    completionTarget.fireEvent(it)
-                                }
-                            }
-                        ignoreEvent = false
-                    }
-                    node.onEventUp(KEY_PRESSED) {
-                        if (!ignoreEvent)
-                            if (it.isControlDown && (it.code==UP || it.code==DOWN)) {
-                                when (it.code) {
-                                    UP -> history.up(this@ConfigSearch)
-                                    DOWN -> history.down(this@ConfigSearch)
-                                    else -> Unit
-                                }
-                                it.consume()
-                            } else if (it.isControlDown && it.code==A) {
-                                textField.selectAll()
-                                it.consume()
-                                // TODO:
-                                // else if (e.getCode()==KeyCode.BACK_SPACE) {
-                                //     textField.deletePreviousChar(); // doesn't work here
-                                //     e.consume();
-                            } else if (it.code==END) {
-                                if (it.isShiftDown) textField.selectEnd() else textField.positionCaret(textField.length)
-                                it.consume()
-                            } else if (it.code==HOME) {
-                                if (it.isShiftDown) textField.selectHome() else textField.positionCaret(0)
-                                it.consume()
-                            } else if (it.code==LEFT) {
-                                if (it.isControlDown) textField.selectPreviousWord() else textField.selectBackward()
-                                if (!it.isShiftDown) textField.deselect()
-                                it.consume()
-                            } else if (it.code==RIGHT) {
-                                if (it.isControlDown) textField.selectNextWord() else textField.selectForward()
-                                if (!it.isShiftDown) textField.deselect()
-                                it.consume()
-                            }
-                        // TODO: else if (!e.getCode().isNavigationKey()) {}
-                        ignoreEvent = false
-                    }
-                }
-
-                override fun buildListCell(listView: ListView<Entry>) = EntryListCell()
-            }
-        }
-    }
-
-    override fun acceptSuggestion(suggestion: Entry) {
-        suggestion.run()
-        history.add(suggestion)
-    }
-
-    class History {
-        private var historyIndex = 0
-        private val history = ArrayList<String>()
-
-        fun up(search: ConfigSearch) {
-            if (history.isEmpty()) return
-            historyIndex = if (historyIndex==0) history.size - 1 else historyIndex - 1
-            search.completionTargetTyped.text = history[historyIndex]
-        }
-
-        fun down(search: ConfigSearch) {
-            if (history.isEmpty()) return
-            historyIndex = if (historyIndex==history.size - 1) 0 else historyIndex + 1
-            search.completionTargetTyped.text = history[historyIndex]
-        }
-
-        fun add(suggestion: Entry) {
-            val curr = suggestion.name
-            val isDiff = history.isEmpty() || !history.last().equals(curr, ignoreCase = true)
-            if (isDiff) {
-                history += curr
-                historyIndex = history.size - 1
-            }
-        }
-    }
-
-    @Suppress("NonAsciiCharacters", "ClassName")
-    interface Entry: Runnable {
-        val name: String
-        val searchText: String get() = name
-        val info: String get() = name
-        val graphics: Node? get() = null
-
-        class ΛEntry(nameΛ: () -> String, infoΛ: () -> String, searchTextΛ: () -> String, graphicsΛ: () -> Node, private val runΛ: () -> Unit): Entry {
-            override val name = nameΛ()
-            override val info = infoΛ()
-            override val searchText = searchTextΛ()
-            override val graphics = graphicsΛ()
-            override fun run() = runΛ()
-        }
-
-        class SimpleEntry constructor(override val name: String, infoΛ: () -> String, private val runΛ: () -> Unit): Entry {
-            override fun run() = runΛ()
-            override val info = infoΛ()
-        }
-
-        class ConfigEntry constructor(private val config: Config<*>): Entry {
-            override val name = "${if (config is Runnable) "Run " else ""}${config.group}.${config.guiName}"
-            override val searchText = if (config is Action) name + config.keys else name
-            override val info by lazy { "$name\n\n${config.info}" }
-            override val graphics by lazy {
-                when {
-                    config is Action && config.hasKeysAssigned() -> {
-                        label(config.keys) {
-                            textAlignment = TextAlignment.RIGHT
+               // set keys & allow typing
+               skinnable.onEventUp(KEY_PRESSED) {
+                  if (!ignoreEvent)
+                     if (it.isControlDown && (it.code==UP || it.code==DOWN)) {
+                        when (it.code) {
+                           UP -> history.up(this@ConfigSearch)
+                           DOWN -> history.down(this@ConfigSearch)
+                           else -> Unit
                         }
-                    }
-                    config.type.isSubclassOf<Boolean>() || config.isTypeEnumerable -> ConfigField.create(config).editor
-                    else -> null
-                }
+                        it.consume()
+                     } else if (it.code==BACK_SPACE) {
+                        textField.deletePreviousChar()
+                        it.consume()
+                     } else if (it.code==DELETE) {
+                        textField.deleteNextChar()
+                        it.consume()
+                     } else if (!it.code.isNavigationKey) {
+                        // We re-fire event on text field so we can type even though it
+                        // does not have focus. This causes event stack overflow, so we
+                        // defend with a flag.
+                        if (!textField.isFocused) {
+                           ignoreEvent = true
+                           completionTarget.fireEvent(it)
+                        }
+                     }
+                  ignoreEvent = false
+               }
+               node.onEventUp(KEY_PRESSED) {
+                  if (!ignoreEvent)
+                     if (it.isControlDown && (it.code==UP || it.code==DOWN)) {
+                        when (it.code) {
+                           UP -> history.up(this@ConfigSearch)
+                           DOWN -> history.down(this@ConfigSearch)
+                           else -> Unit
+                        }
+                        it.consume()
+                     } else if (it.isControlDown && it.code==A) {
+                        textField.selectAll()
+                        it.consume()
+                        // TODO:
+                        // else if (e.getCode()==KeyCode.BACK_SPACE) {
+                        //     textField.deletePreviousChar(); // doesn't work here
+                        //     e.consume();
+                     } else if (it.code==END) {
+                        if (it.isShiftDown) textField.selectEnd() else textField.positionCaret(textField.length)
+                        it.consume()
+                     } else if (it.code==HOME) {
+                        if (it.isShiftDown) textField.selectHome() else textField.positionCaret(0)
+                        it.consume()
+                     } else if (it.code==LEFT) {
+                        if (it.isControlDown) textField.selectPreviousWord() else textField.selectBackward()
+                        if (!it.isShiftDown) textField.deselect()
+                        it.consume()
+                     } else if (it.code==RIGHT) {
+                        if (it.isControlDown) textField.selectNextWord() else textField.selectForward()
+                        if (!it.isShiftDown) textField.deselect()
+                        it.consume()
+                     }
+                  // TODO: else if (!e.getCode().isNavigationKey()) {}
+                  ignoreEvent = false
+               }
             }
 
-            @Suppress("UNCHECKED_CAST")
-            override fun run() {
-                val value = config.value
-                when {
-                    config is Runnable -> config.run()
-                    value is Runnable -> value.run()
-                    value is Boolean -> (config as Config<Boolean?>).value = !value
-                }
+            override fun buildListCell(listView: ListView<Entry>) = EntryListCell()
+         }
+      }
+   }
+
+   override fun acceptSuggestion(suggestion: Entry) {
+      suggestion.run()
+      history.add(suggestion)
+   }
+
+   class History {
+      private var historyIndex = 0
+      private val history = ArrayList<String>()
+
+      fun up(search: ConfigSearch) {
+         if (history.isEmpty()) return
+         historyIndex = if (historyIndex==0) history.size - 1 else historyIndex - 1
+         search.completionTargetTyped.text = history[historyIndex]
+      }
+
+      fun down(search: ConfigSearch) {
+         if (history.isEmpty()) return
+         historyIndex = if (historyIndex==history.size - 1) 0 else historyIndex + 1
+         search.completionTargetTyped.text = history[historyIndex]
+      }
+
+      fun add(suggestion: Entry) {
+         val curr = suggestion.name
+         val isDiff = history.isEmpty() || !history.last().equals(curr, ignoreCase = true)
+         if (isDiff) {
+            history += curr
+            historyIndex = history.size - 1
+         }
+      }
+   }
+
+   @Suppress("NonAsciiCharacters", "ClassName")
+   interface Entry: Runnable {
+      val name: String
+      val searchText: String get() = name
+      val info: String get() = name
+      val graphics: Node? get() = null
+
+      class ΛEntry(nameΛ: () -> String, infoΛ: () -> String, searchTextΛ: () -> String, graphicsΛ: () -> Node, private val runΛ: () -> Unit): Entry {
+         override val name = nameΛ()
+         override val info = infoΛ()
+         override val searchText = searchTextΛ()
+         override val graphics = graphicsΛ()
+         override fun run() = runΛ()
+      }
+
+      class SimpleEntry constructor(override val name: String, infoΛ: () -> String, private val runΛ: () -> Unit): Entry {
+         override fun run() = runΛ()
+         override val info = infoΛ()
+      }
+
+      class ConfigEntry constructor(private val config: Config<*>): Entry {
+         override val name = "${if (config is Runnable) "Run " else ""}${config.group}.${config.guiName}"
+         override val searchText = if (config is Action) name + config.keys else name
+         override val info by lazy { "$name\n\n${config.info}" }
+         override val graphics by lazy {
+            when {
+               config is Action && config.hasKeysAssigned() -> {
+                  label(config.keys) {
+                     textAlignment = TextAlignment.RIGHT
+                  }
+               }
+               config.type.isSubclassOf<Boolean>() || config.isTypeEnumerable -> ConfigField.create(config).editor
+               else -> null
             }
-        }
+         }
 
-        companion object {
+         @Suppress("UNCHECKED_CAST")
+         override fun run() {
+            val value = config.value
+            when {
+               config is Runnable -> config.run()
+               value is Runnable -> value.run()
+               value is Boolean -> (config as Config<Boolean?>).value = !value
+            }
+         }
+      }
 
-            fun of(nameΛ: () -> String, infoΛ: () -> String = { "" }, searchTextΛ: () -> String = nameΛ, graphicsΛ: () -> Node, runΛ: () -> Unit) = ΛEntry(nameΛ, infoΛ, searchTextΛ, graphicsΛ, runΛ)
+      companion object {
 
-            fun of(config: Config<*>) = ConfigEntry(config)
+         fun of(nameΛ: () -> String, infoΛ: () -> String = { "" }, searchTextΛ: () -> String = nameΛ, graphicsΛ: () -> Node, runΛ: () -> Unit) = ΛEntry(nameΛ, infoΛ, searchTextΛ, graphicsΛ, runΛ)
 
-        }
-    }
+         fun of(config: Config<*>) = ConfigEntry(config)
 
-    private class EntryListCell: ListCell<Entry>() {
-        private val text = Label()
-        private val configNodeRoot = stackPane()
-        private val root = stackPane {
-            lay(CENTER_LEFT) += text
-            lay(CENTER_RIGHT) += configNodeRoot
-        }
-        private val rootTooltip = appTooltip()
+      }
+   }
 
-        init {
-            text.textAlignment = TextAlignment.LEFT
-            text.textOverrun = OverrunStyle.CENTER_ELLIPSIS
-            text.setMinPrefMaxSize(USE_COMPUTED_SIZE)
-            text.prefWidthProperty() syncFrom root.widthProperty() - configNodeRoot.widthProperty() - 10
-            text.minWidth = 200.0
-            text.maxWidthProperty() syncFrom root.widthProperty() - 100
-            text.padding = Insets(5.0, 0.0, 0.0, 10.0)
-            root install rootTooltip
-        }
+   private class EntryListCell: ListCell<Entry>() {
+      private val text = Label()
+      private val configNodeRoot = stackPane()
+      private val root = stackPane {
+         lay(CENTER_LEFT) += text
+         lay(CENTER_RIGHT) += configNodeRoot
+      }
+      private val rootTooltip = appTooltip()
 
-        override fun updateItem(item: Entry?, empty: Boolean) {
-            super.updateItem(item, empty)
+      init {
+         text.textAlignment = TextAlignment.LEFT
+         text.textOverrun = OverrunStyle.CENTER_ELLIPSIS
+         text.setMinPrefMaxSize(USE_COMPUTED_SIZE)
+         text.prefWidthProperty() syncFrom root.widthProperty() - configNodeRoot.widthProperty() - 10
+         text.minWidth = 200.0
+         text.maxWidthProperty() syncFrom root.widthProperty() - 100
+         text.padding = Insets(5.0, 0.0, 0.0, 10.0)
+         root install rootTooltip
+      }
 
-            if (empty || item==null) {
-                text.text = ""
-                graphic = null
+      override fun updateItem(item: Entry?, empty: Boolean) {
+         super.updateItem(item, empty)
+
+         if (empty || item==null) {
+            text.text = ""
+            graphic = null
+         } else {
+            graphic = root
+            rootTooltip.text = item.info
+            text.text = item.name
+
+            val node = item.graphics
+            if (node is HBox) node.alignment = CENTER_RIGHT
+            if (node==null) {
+               configNodeRoot.children.clear()
             } else {
-                graphic = root
-                rootTooltip.text = item.info
-                text.text = item.name
-
-                val node = item.graphics
-                if (node is HBox) node.alignment = CENTER_RIGHT
-                if (node==null) {
-                    configNodeRoot.children.clear()
-                } else {
-                    configNodeRoot.children setToOne node
-                    StackPane.setAlignment(node, CENTER_RIGHT)
-                }
+               configNodeRoot.children setToOne node
+               StackPane.setAlignment(node, CENTER_RIGHT)
             }
-        }
-    }
+         }
+      }
+   }
 }

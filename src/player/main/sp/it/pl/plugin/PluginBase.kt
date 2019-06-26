@@ -11,47 +11,47 @@ import sp.it.util.functional.ifFalse
 
 abstract class PluginBase(override val name: String, isEnabledByDefault: Boolean): Plugin {
 
-    @IsConfig(name = "Enable", info = "Enable/disable this plugin")
-    private val enabled by cv(isEnabledByDefault) sync { APP.run1AppReady { enable(it) } }
-    private var isRunning = false
+   @IsConfig(name = "Enable", info = "Enable/disable this plugin")
+   private val enabled by cv(isEnabledByDefault) sync { APP.run1AppReady { enable(it) } }
+   private var isRunning = false
 
-    private fun enable(isToBeRunning: Boolean) {
-        val wasRunning = isRunning()
-        if (wasRunning==isToBeRunning) return
+   private fun enable(isToBeRunning: Boolean) {
+      val wasRunning = isRunning()
+      if (wasRunning==isToBeRunning) return
 
-        if (isToBeRunning && isSupported()) {
-            logger.info { "Plugin $name starting..." }
+      if (isToBeRunning && isSupported()) {
+         logger.info { "Plugin $name starting..." }
 
-            val canBeRunning = isSupported() && sequenceOf(location, userLocation).all { isValidatedDirectory(it) }
-                .ifFalse { APP.ui.messagePane.orBuild.show("Directory $location or $userLocation can not be used.") }
+         val canBeRunning = isSupported() && sequenceOf(location, userLocation).all { isValidatedDirectory(it) }
+            .ifFalse { APP.ui.messagePane.orBuild.show("Directory $location or $userLocation can not be used.") }
 
-            if (canBeRunning) start()
-            else logger.error { "Plugin $name could not start..." }
-        }
-        if (!isToBeRunning) {
-            logger.info { "Plugin $name stopping..." }
-            stop()
-        }
-    }
+         if (canBeRunning) start()
+         else logger.error { "Plugin $name could not start..." }
+      }
+      if (!isToBeRunning) {
+         logger.info { "Plugin $name stopping..." }
+         stop()
+      }
+   }
 
-    @Idempotent
-    override fun start() {
-        if (!isRunning()) onStart()
-        isRunning = true
-    }
+   @Idempotent
+   override fun start() {
+      if (!isRunning()) onStart()
+      isRunning = true
+   }
 
-    @Idempotent
-    override fun stop() {
-        val wasRunning = isRunning
-        isRunning = false
-        if (wasRunning) onStop()
-    }
+   @Idempotent
+   override fun stop() {
+      val wasRunning = isRunning
+      isRunning = false
+      if (wasRunning) onStop()
+   }
 
-    open fun onStart() = Unit
+   open fun onStart() = Unit
 
-    open fun onStop() = Unit
+   open fun onStop() = Unit
 
-    override fun isRunning() = isRunning
+   override fun isRunning() = isRunning
 
-    companion object: KLogging()
+   companion object: KLogging()
 }

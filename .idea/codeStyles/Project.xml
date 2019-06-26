@@ -166,7 +166,7 @@
       </arrangement>
     </codeStyleSettings>
     <codeStyleSettings language="kotlin">
-      <option name="RIGHT_MARGIN" value="160" />
+      <option name="RIGHT_MARGIN" value="120" />
       <option name="KEEP_FIRST_COLUMN_COMMENT" value="false" />
       <option name="SPACE_AROUND_EQUALITY_OPERATORS" value="false" />
       <option name="SPACE_AROUND_RELATIONAL_OPERATORS" value="false" />
@@ -174,7 +174,9 @@
       <option name="METHOD_ANNOTATION_WRAP" value="0" />
       <option name="FIELD_ANNOTATION_WRAP" value="0" />
       <indentOptions>
-        <option name="CONTINUATION_INDENT_SIZE" value="4" />
+        <option name="INDENT_SIZE" value="3" />
+        <option name="CONTINUATION_INDENT_SIZE" value="3" />
+        <option name="TAB_SIZE" value="3" />
       </indentOptions>
     </codeStyleSettings>
   </code_scheme>

@@ -1,6 +1,9 @@
 package appLauncher
 
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS
+import com.sun.jna.Native
+import com.sun.jna.platform.win32.Shell32
+import com.sun.jna.platform.win32.ShlObj
+import com.sun.jna.platform.win32.WinDef
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.SECONDARY
@@ -14,18 +17,17 @@ import sp.it.pl.gui.objects.grid.GridView.SelectionOn.KEY_PRESS
 import sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_CLICK
 import sp.it.pl.gui.objects.grid.GridView.SelectionOn.MOUSE_HOVER
 import sp.it.pl.gui.objects.hierarchy.Item
-import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.scaleEM
 import sp.it.pl.main.withAppProgress
 import sp.it.util.Sort.ASCENDING
+import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.async.IO
 import sp.it.util.async.future.Fut.Companion.fut
@@ -34,7 +36,6 @@ import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
-import sp.it.util.collections.setToOne
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
@@ -45,18 +46,17 @@ import sp.it.util.dev.Dependency
 import sp.it.util.file.FileSort.DIR_FIRST
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.FILE
+import sp.it.util.file.div
 import sp.it.util.functional.net
 import sp.it.util.functional.nullsLast
-import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
 import sp.it.util.inSort
 import sp.it.util.math.max
 import sp.it.util.reactive.attach1IfNonNull
 import sp.it.util.reactive.onChange
-import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync1IfInScene
-import sp.it.util.system.chooseFile
+import sp.it.util.system.Os
 import sp.it.util.system.open
 import sp.it.util.ui.Resolution
 import sp.it.util.ui.image.FitFrom
@@ -93,11 +93,6 @@ class AppLauncher(widget: Widget): SimpleController(widget) {
     private val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio+CELL_TEXT_HEIGHT, 5.0, 5.0)
     private val imageLoader = Loader(oneTPExecutor())
     private val visitId = AtomicLong(0)
-    private val placeholder = lazy {
-        Placeholder(FOLDER_PLUS, "Click to add launcher or drag & drop a file") {
-            chooseFile("Choose program or file", FILE, APP.DIR_HOME, root.scene.window).ifOk { files setToOne it }
-        }
-    }
 
     private var item: Item? = null   // item, children of which are displayed
 
@@ -143,23 +138,18 @@ class AppLauncher(widget: Widget): SimpleController(widget) {
 
         files.onChange { filesMaterialized = files.materialize() }
         files.onChange { visit() }
-        files.onChangeAndNow {
-            if (files.isEmpty()) placeholder.value.show(root, true)
-            else placeholder.orNull()?.hide()
-        }
-        onClose += { disposeItems() }
+        onClose += { disposeItem() }
         onClose += { imageLoader.shutdown() }
 
         root.sync1IfInScene {
             applyCellSize()
-            visit()
         }
     }
 
     override fun focus() = grid.skinProperty().attach1IfNonNull { grid.implGetSkin().requestFocus() }.toUnit()
 
     private fun visit() {
-        disposeItems()
+        disposeItem()
         val i = TopItem()
         item = i
         visitId.incrementAndGet()
@@ -174,7 +164,10 @@ class AppLauncher(widget: Widget): SimpleController(widget) {
         }
     }
 
-    private fun disposeItems() = item?.hRoot?.dispose()
+    private fun disposeItem() {
+        item?.dispose()
+        item = null
+    }
 
     private fun doubleClickItem(i: Item?) {
         if (closeOnLaunch) {
@@ -220,7 +213,7 @@ class AppLauncher(widget: Widget): SimpleController(widget) {
 
     private inner class TopItem: FItem(null, null, null) {
 
-        override fun childrenFiles() = filesMaterialized.asSequence().distinct()
+        override fun childrenFiles() = (filesMaterialized.asSequence()+startMenuPrograms()).distinct()
 
         override fun getCoverFile() = null
 
@@ -231,6 +224,20 @@ class AppLauncher(widget: Widget): SimpleController(widget) {
         private const val CELL_TEXT_HEIGHT = 20.0
 
         fun File.getPortableAppExe(type: FileType) = if (type==FileType.DIRECTORY) File(this, "$name.exe") else null
+
+        fun startMenuPrograms(): Sequence<File> = when (Os.current) {
+            Os.WINDOWS -> windowsAppData().walk()
+                    .filter { '.' in it.name && !it.name.contains("uninstall", true) }
+                    .map { CachingFile(it) }
+            else -> sequenceOf()
+        }
+
+        fun windowsAppData(): File {
+            val pszPath = CharArray(WinDef.MAX_PATH)
+            Shell32.INSTANCE.SHGetFolderPath(null, ShlObj.CSIDL_APPDATA, null, ShlObj.SHGFP_TYPE_CURRENT, pszPath)
+            val path = Native.toString(pszPath)
+            return File(path)/"Microsoft"/"Windows"/"Start Menu"/"Programs"
+        }
 
     }
 }

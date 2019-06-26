@@ -68,6 +68,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.listView
 import sp.it.util.ui.listViewCellFactory
 import sp.it.util.ui.minPrefMaxWidth
+import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.stackPane
 import sp.it.util.units.millis
 import sp.it.util.units.times
@@ -184,6 +185,7 @@ class AppActions {
                     super.hide()
                     c.exportFxwl(f)
                     c.close()
+                    removeFromParent()
                 }
             }
             op.display.value = SCREEN_OF_MOUSE

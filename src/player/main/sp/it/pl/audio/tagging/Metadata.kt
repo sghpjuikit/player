@@ -54,7 +54,6 @@ import java.time.DateTimeException
 import java.time.LocalDateTime
 import java.time.Year
 import java.util.HashSet
-import java.util.Objects
 import kotlin.collections.set
 import kotlin.reflect.KClass
 import kotlin.jvm.JvmField as F
@@ -694,7 +693,7 @@ class Metadata: Song, Serializable {
 
    override fun equals(other: Any?) = this===other || other is Metadata && id==other.id
 
-   override fun hashCode() = 79*7 + Objects.hashCode(this.id)
+   override fun hashCode() = id.hashCode()
 
    /**
     * Compares by attributes in the exact order:

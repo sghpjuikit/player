@@ -760,7 +760,7 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 
 		@Override
 		public void setValueS(String s) {
-			ofS(s).ifOkUse(a.list::setAll);
+			ofS(s).ifOkUse(a.list::setAll).ifErrorUse(e -> LOGGER.warn("Unable to set config={} value from text={}, reason={}", getName(), s, e));
 		}
 
 		@Override

@@ -344,7 +344,6 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 				TableRow<T> row = empty ? null : getTableRow();
 				T rowItem = row==null ? null : row.getItem();
 				setText(rowItem==null  ? "" : f.toS(rowItem, item, ""));
-				if (row!=null) row.setPadding(Insets.EMPTY);
 			}
 		};
 		cell.setAlignment(f.getType()==String.class ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);

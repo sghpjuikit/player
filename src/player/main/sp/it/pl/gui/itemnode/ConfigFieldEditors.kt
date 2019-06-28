@@ -42,7 +42,7 @@ open class EnumerableCF<T>: ConfigField<T> {
          is ObservableList<*> -> {
             val source = enumeration as ObservableList<T>
             val list = observableArrayList<T>()
-            val listSorted = if (isSortable) list.sorted(by<T, String> { c.toS(it) }) else list
+            val listSorted = if (isSortable) list.sorted(by(converter)) else list
             n.setItems(listSorted)
 
             list setTo enumeration
@@ -57,7 +57,7 @@ open class EnumerableCF<T>: ConfigField<T> {
          is ObservableSet<*> -> {
             val source = enumeration as ObservableSet<T>
             val list = observableArrayList<T>()
-            val listSorted = if (isSortable) list.sorted(by<T, String> { c.toS(it) }) else list
+            val listSorted = if (isSortable) list.sorted(by(converter)) else list
             n.setItems(listSorted)
 
             list setTo enumeration
@@ -72,7 +72,7 @@ open class EnumerableCF<T>: ConfigField<T> {
          is Observable -> {
             val source = enumeration as Observable
             val list = observableArrayList<T>()
-            val listSorted = if (isSortable) list.sorted(by<T, String> { c.toS(it) }) else list
+            val listSorted = if (isSortable) list.sorted(by(converter)) else list
             n.setItems(listSorted)
 
             list setTo enumeration
@@ -85,7 +85,7 @@ open class EnumerableCF<T>: ConfigField<T> {
             }
          }
          else -> {
-            n.items setTo if (isSortable) enumeration.sortedBy { c.toS(it) } else enumeration
+            n.items setTo if (isSortable) enumeration.sortedBy(converter) else enumeration
          }
       }
 

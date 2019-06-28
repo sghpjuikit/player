@@ -23,7 +23,6 @@ import static sp.it.util.functional.Util.stream;
 public interface Parsers {
 
     ConverterDefault DEFAULT = new ConverterDefault();
-    Converter FX = new ConverterFX();
 
     static Method getValueOfStatic(Class<?> type) {
         if (type.getEnclosingClass()!=null && type.getEnclosingClass().isEnum())

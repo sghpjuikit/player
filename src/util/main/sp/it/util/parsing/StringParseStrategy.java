@@ -57,18 +57,6 @@ public @interface StringParseStrategy {
 	enum From {
 		/** {@link ParsesFromString} annotation decides responsible method. */
 		ANNOTATED_METHOD,
-		/**
-		 * Will use fx parser. The string format of the fx parser is subject to change and should
-		 * not be relied on and will not be disclosed here.
-		 * <p/>
-		 * Should be used in combination with {#link StringParseStrategy.To#FX }.
-		 * <p/>
-		 * Instance will be created by invoking the public no-arg constructor (fails if not
-		 * accessible) of the exact class, name of which is in the string.
-		 * Converter then uses available name-value pairs and sets the values to appropriate
-		 * javafx property beans of the instance.
-		 */
-		FX,
 		/** Parses consistently into the same instance defined as public static final INSTANCE field of the class. */
 		SINGLETON,
 		/** Parsing strategy undefined. */
@@ -83,16 +71,6 @@ public @interface StringParseStrategy {
 		ANNOTATED_METHOD,
 		/** Parses consistently into the same string value defined in. {@link StringParseStrategy#constant() } */
 		CONSTANT,
-		/**
-		 * Will use fx parser. The string format of the fx parser is subject to change and should
-		 * not be relied on and will not be disclosed here.
-		 * <p/>
-		 * Should be used in combination with {#link StringParseStrategy.From#FX }.
-		 * <p/>
-		 * The parsed string contains exact class and name-value pairs of all
-		 * javafx property beans.
-		 */
-		FX,
 		/** Parses consistently into a constant identifying the object class. */
 		SINGLETON,
 		/** Parsing strategy undefined. */

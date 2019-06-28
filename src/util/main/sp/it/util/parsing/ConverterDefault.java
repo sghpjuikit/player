@@ -202,8 +202,6 @@ public class ConverterDefault extends Converter {
                     throw new IllegalArgumentException("Failed to create from string converter. Responsible method was not found");
 
                 ofS = parserOfI(invokable, String.class, type, a, ParseDir.OFS);
-            } else if (strategy==From.FX) {
-                ofS = text -> Parsers.FX.ofS(type, text);
             } else {
                 throw new SwitchException(strategy);
             }
@@ -258,8 +256,6 @@ public class ConverterDefault extends Converter {
                 return noExWrap(m, a, ParseDir.TOS, f);
             } else if (strategy==To.TO_STRING_METHOD) {
                 return (Function) defaultTos.andThen(Try.Java::ok);
-            } else if (strategy==To.FX) {
-                return in -> ok(Parsers.FX.toS(in));
             } else {
                 throw new SwitchException(strategy);
             }

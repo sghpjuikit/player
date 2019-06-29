@@ -27,6 +27,7 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
+import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.recurse
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
@@ -130,12 +131,12 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    private fun storeAppSettingsSelection(item: TreeItem<Name>?) {
       if (!showsAppSettings || configSelectionAvoid) return
       val selectedGroupPath = item?.value?.pathUp ?: ""
-      appConfigurable.rawAdd(configSelectionName, selectedGroupPath)
+      appConfigurable.rawAdd(configSelectionName, PropVal1(selectedGroupPath))
    }
 
    private fun restoreAppSettingsSelection(): TreeItem<Name>? {
       if (!showsAppSettings) return null
-      val selectedGroupPath = appConfigurable.rawGetAll()[configSelectionName]
+      val selectedGroupPath = appConfigurable.rawGetAll()[configSelectionName]?.val1
       return groups.root.recurse { it.children }.find { it.value.pathUp==selectedGroupPath; }
    }
 

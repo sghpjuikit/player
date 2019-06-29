@@ -142,7 +142,6 @@ public class ConfigurationUtil {
 		}
 	}
 
-	// TODO: support annotations
 	@SuppressWarnings("unchecked")
 	private static <T> Config<T> newFromConfig(Field f, Object instance) {
 		try {

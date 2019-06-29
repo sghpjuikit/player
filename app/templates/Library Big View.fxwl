@@ -12,23 +12,23 @@
       <map>
         <entry>
           <string>tablezeropad</string>
-          <string>false</string>
+          <val1><value>false</value></val1>
         </entry>
         <entry>
           <string>tableorigindex</string>
-          <string>false</string>
+          <val1><value>false</value></val1>
         </entry>
         <entry>
           <string>tableshowheader</string>
-          <string>true</string>
+          <val1><value>true</value></val1>
         </entry>
         <entry>
           <string>tableshowfooter</string>
-          <string>true</string>
+          <val1><value>true</value></val1>
         </entry>
         <entry>
           <string>tableorient</string>
-          <string>INHERIT</string>
+          <val1><value>INHERIT</value></val1>
         </entry>
       </map>
       <string>ioTo display</string>

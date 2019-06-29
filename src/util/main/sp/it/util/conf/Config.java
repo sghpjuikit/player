@@ -23,29 +23,31 @@ import sp.it.util.access.V;
 import sp.it.util.access.Vo;
 import sp.it.util.conf.Config.VarList.Elements;
 import sp.it.util.dev.Dependency;
+import sp.it.util.file.properties.PropVal;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.functional.Try;
-import sp.it.util.parsing.Converter;
-import sp.it.util.parsing.ConverterString;
 import sp.it.util.parsing.Parsers;
 import sp.it.util.type.Util;
 import sp.it.util.validation.Constraint;
 import sp.it.util.validation.Constraint.HasNonNullElements;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
+import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.conf.Config.VarList.NULL_SUPPLIER;
 import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.dev.FailKt.failIf;
+import static sp.it.util.file.properties.PropVal.PropVal1;
+import static sp.it.util.file.properties.PropVal.PropValN;
 import static sp.it.util.functional.Try.Java.error;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.Util.firstNotNull;
 import static sp.it.util.functional.Util.forEachBoth;
 import static sp.it.util.functional.Util.list;
+import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.setRO;
 import static sp.it.util.functional.Util.split;
-import static sp.it.util.functional.Util.stream;
-import static sp.it.util.functional.UtilKt.orNull;
 import static sp.it.util.type.Util.getEnumConstants;
 import static sp.it.util.type.Util.getValueFromFieldMethodHandle;
 import static sp.it.util.type.Util.isEnum;
@@ -70,7 +72,7 @@ import static sp.it.util.type.UtilKt.toRaw;
  *
  * @param <T> type of value of this config
  */
-public abstract class Config<T> implements WritableValue<T>, Configurable<T>, ConverterString<T>, TypedValue<T>, EnumerableValue<T> {
+public abstract class Config<T> implements WritableValue<T>, Configurable<T>, TypedValue<T>, EnumerableValue<T> {
 
 	private static final Logger LOGGER = logger(Config.class);
 
@@ -132,58 +134,30 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 
 /******************************* default value ********************************/
 
-	/**
-	 * Get default value for this config. It is the first value this config
-	 * contained.
-	 *
-	 * @return default value. Never null.
-	 */
+	/** @return default value of this config (it is the first value of this config) */
 	abstract public T getDefaultValue();
 
-	public void setDefaultValue() {
+	public void setValueToDefault() {
 		setValue(getDefaultValue());
 	}
 
 /******************************** converting **********************************/
 
-	/**
-	 * Converts the value to String utilizing generic {@link Converter}.
-	 * Use for serialization or filling out guis.
-	 */
-	public String getValueS() {
-		return toS(getValue());
+	public PropVal getValueAsProperty() {
+		return new PropVal1(Parsers.DEFAULT.toS(getValue()));
 	}
 
-	/**
-	 * Sets value converted from string. Does nothing if conversion fails.
-	 * Equivalent to: {@code fromS(str).ifOk(this::setValue);}
-	 *
-	 * @param s string to parse
-	 */
-	public void setValueS(String s) {
-		ofS(s).ifOkUse(this::setValue).ifErrorUse(e -> LOGGER.warn("Unable to set config={} value from text={}, reason={}", getName(), s, e));
+	public void setValueAsProperty(PropVal property) {
+		var s = property.getVal1();
+		if (s!=null)
+			convertValueFromString(this, s)
+				.ifOkUse(this::setValue)
+				.ifErrorUse(e -> LOGGER.warn("Unable to set config={} value from text={}, reason={}", getName(), s, e));
 	}
 
-	/**
-	 * This method is inherited from {@link sp.it.util.parsing.ConverterString} for compatibility & convenience reasons.
-	 * Note: invoking this method produces no effects on this config instance. Consider this method static.
-	 * <p/>
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String toS(T v) {
-		return Parsers.DEFAULT.toS(v);
-	}
-
-	/**
-	 * This method is inherited from {@link sp.it.util.parsing.ConverterString} for compatibility & convenience reasons.
-	 * Note: invoking this method produces no effects on this config instance. Consider this method static.
-	 * <p/>
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Try<T,String> ofS(String s) {
-		if (isTypeEnumerable()) {
+	/** Helper method. Expert API. */
+	public static <T> Try<T,String> convertValueFromString(Config<T> config, String s) {
+		if (config.isTypeEnumerable()) {
 			// 1 Notice we are traversing all enumerated values to look up the one which we want to
 			//   deserialize.
 			//   We do this by converting each value to string and compare. This is potentially
@@ -198,13 +172,13 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 			//   rather than Config.toS/fromS. This is also dangerous. Of course we could fix this
 			//   by having OverridableConfig provide its own implementation, but I don't want to
 			//   spread problematic code such as this around. Not till 1 gets fixed up.
-			for (T v : enumerateValues())
+			for (T v : config.enumerateValues())
 				if (Parsers.DEFAULT.toS(v).equalsIgnoreCase(s)) return ok(v);
 
-			logger(Config.class).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", s, getGuiName());
+			logger(Config.class).warn("Cant parse '{}'. No enumerable value for: {}. Using default value.", s, config.getGuiName());
 			return error("Value does not correspond to any value of the enumeration.");
 		} else {
-			return Parsers.DEFAULT.ofS(getType(), s);
+			return Parsers.DEFAULT.ofS(config.getType(), s);
 		}
 	}
 
@@ -338,9 +312,9 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 		if (property instanceof Vo)
 			return new OverridablePropertyConfig<>(type, name, (Vo<T>) property);
 		if (property instanceof WritableValue)
-			return new PropertyConfig<>(type, name, (WritableValue<T>) property);
+			return new PropertyConfig<>(type, name, (WritableValue<T>) property, "");
 		if (property instanceof ObservableValue)
-			return new ReadOnlyPropertyConfig<>(type, name, (ObservableValue<T>) property);
+			return new ReadOnlyPropertyConfig<>(type, name, (ObservableValue<T>) property, "");
 		return null;
 	}
 
@@ -527,14 +501,6 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 
 		/**
 		 * @param property WritableValue to wrap. Mostly a {@link Property}.
-		 * @throws IllegalStateException if the property field is not final
-		 */
-		public PropertyConfig(Class<T> propertyType, String name, WritableValue<T> property) {
-			this(propertyType, name, name, property, "", "", EditMode.USER);
-		}
-
-		/**
-		 * @param property WritableValue to wrap. Mostly a {@link Property}.
 		 * @param info description, for tooltip for example
 		 * @throws IllegalStateException if the property field is not final
 		 */
@@ -596,14 +562,6 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 
 		/**
 		 * @param property WritableValue to wrap. Mostly a {@link Property}.
-		 * @throws IllegalStateException if the property field is not final
-		 */
-		public ReadOnlyPropertyConfig(Class<T> property_type, String name, ObservableValue<T> property) {
-			this(property_type, name, name, property, "", "");
-		}
-
-		/**
-		 * @param property WritableValue to wrap. Mostly a {@link Property}.
 		 * @param info description, for tooltip for example
 		 * @throws IllegalStateException if the property field is not final
 		 */
@@ -638,10 +596,6 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 			this(property_type, name, name, property, "", "", EditMode.USER);
 		}
 
-		public OverridablePropertyConfig(Class<T> property_type, String name, Vo<T> property, String info) {
-			this(property_type, name, name, property, "", info, EditMode.USER);
-		}
-
 		public OverridablePropertyConfig(Class<T> property_type, String name, String gui_name, Vo<T> property, String category, String info, EditMode editable) {
 			super(property_type, name, gui_name, property, category, info, editable);
 			Util.setField(this, "defaultValue", property.real.getValue());
@@ -657,61 +611,25 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 			return defaultOverride_value;
 		}
 
-		public void setDefaultValue() {
+		public void setValueToDefault() {
 			getProperty().override.setValue(defaultOverride_value);
 			setValue(getDefaultValue());
 		}
 
-		///**
-		// * Converts the value to String utilizing generic {@link Converter}.
-		// * Use for serialization or filling out guis.
-		// */
-		//@Override
-		//public String getValueS() {
-		//    String prefix = value instanceof Ѵo ? "overrides:"+((Ѵo)value).override.getValue()+", " : "";
-		//    return prefix + super.toS(getValue());
-		//}
-
-		/**
-		 * Sets value converted from string.
-		 * Equivalent to: return setValue(fromS(str));
-		 */
 		@Override
-		public void setValueS(String s) {
-			ofS(s).ifOkUse(getProperty().real::setValue);
-		}
-
-		/**
-		 * Inherited method from {@link sp.it.util.parsing.ConverterString}
-		 * Note: this config remains intact.
-		 * <p/>
-		 * {@inheritDoc}
-		 */
-		@Override
-		public String toS(T v) {
-			return "overrides:" + ((Vo) value).override.getValue() + ", " + ((Vo) value).real.getValue();
-		}
-
-		/**
-		 * Inherited method from {@link sp.it.util.parsing.ConverterString}
-		 * Note: this config remains intact.
-		 * <p/>
-		 * {@inheritDoc}
-		 */
-		@Override
-		public Try<T,String> ofS(String str) {
-			String s = str;
-			if (s.contains("overrides:true, ")) {
-				getProperty().override.setValue(true);
-				s = s.replace("overrides:true, ", "");
+		public void setValueAsProperty(PropVal property) {
+			var s = property.getVal1();
+			if (s!=null) {
+				if (s.contains("overrides:true, ")) {
+					getProperty().override.setValue(true);
+					s = s.replace("overrides:true, ", "");
+				}
+				if (s.contains("overrides:false, ")) {
+					getProperty().override.setValue(false);
+					s = s.replace("overrides:false, ", "");
+				}
 			}
-			if (s.contains("overrides:false, ")) {
-				getProperty().override.setValue(false);
-				s = s.replace("overrides:false, ", "");
-			}
-			return super.ofS(s);
 		}
-
 	}
 
 	// TODO: handle unmodifiable lists properly, including at deserialization
@@ -751,48 +669,42 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Co
 		@Override
 		public void setValue(ObservableList<T> val) {}
 
-		//************************* string converting
-
 		@Override
-		public String getValueS() {
-			return toS(getValue());
-		}
-
-		@Override
-		public void setValueS(String s) {
-			ofS(s).ifOkUse(a.list::setAll).ifErrorUse(e -> LOGGER.warn("Unable to set config={} value from text={}, reason={}", getName(), s, e));
-		}
-
-		@Override
-		public String toS(ObservableList<T> v) {
-			// we convert every item of the list to string joining with ';;' delimiter
-			// we convert items by converting all their fields, joining with ';' delimiter
-			return stream(v)
-					.map(t -> stream(a.toConfigurable.apply(t).getFields()).map(Config::getValueS).collect(joining(";")))
-					.collect(joining(";;"));
+		public PropVal getValueAsProperty() {
+			return new PropValN(
+				map(
+					getValue(),
+					t -> a.toConfigurable.apply(t).getFields().stream()
+						.map(c -> {
+							var p = c.getValueAsProperty();
+							failIf(p.getValN().size()!=1, () -> "Only single-value within multi value is supported"); // TODO: support multi-value
+							return p.getVal1();
+						})
+						.collect(joining(";"))
+				)
+			);
 		}
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public Try<ObservableList<T>,String> ofS(String str) {
-			ObservableList<T> l = observableArrayList();
+		public void setValueAsProperty(PropVal property) {
 			boolean isFixedSizeAndHasConfigurableItems = a.factory==NULL_SUPPLIER;
 			AtomicInteger i = isFixedSizeAndHasConfigurableItems ? new AtomicInteger(0) : null;
-			split(str, ";;", x -> x).stream()
-					.map(s -> {
-						T t = isFixedSizeAndHasConfigurableItems ? a.list.get(i.getAndIncrement()) : a.factory.get();
-						List<Config> configs = list(a.toConfigurable.apply(t).getFields());
-						List<String> values = split(s, ";");
-						if (configs.size()==values.size())
-							forEachBoth(configs, values, (c, v) -> c.setValue(orNull(c.ofS(v)))); // TODO: wtf
+			var values = property.getValN().stream()
+				.map(s -> {
+					T t = isFixedSizeAndHasConfigurableItems ? a.list.get(i.getAndIncrement()) : a.factory.get();
+					List<Config> configs = list(a.toConfigurable.apply(t).getFields());
+					List<String> cValues = split(s, ";");
+					if (configs.size()==cValues.size())
+						forEachBoth(configs, cValues, (c, v) -> c.setValueAsProperty(new PropVal1(v))); // TODO: support multi-value
 
-						return (T) (a.itemType.isAssignableFrom(configs.get(0).getType()) ? configs.get(0).getValue() : t);
-					})
-					.filter(a.nullElements==Elements.NOT_NULL ? (it -> it!=null) : (it -> true))
-					.forEach(l::add);
-
-			return ok(l);
+					return (T) (a.itemType.isAssignableFrom(configs.get(0).getType()) ? configs.get(0).getValue() : t);
+				})
+				.filter(a.nullElements==Elements.NOT_NULL ? (it -> it!=null) : (it -> true))
+				.collect(toList());
+			setTo(getValue(), values);
 		}
+
 	}
 
 	public static class VarList<T> extends V<ObservableList<T>> {

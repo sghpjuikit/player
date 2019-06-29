@@ -7,9 +7,10 @@ import sp.it.util.action.IsAction
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.ConfigurationUtil.configsOf
 import sp.it.util.dev.failIf
-import sp.it.util.file.Property
-import sp.it.util.file.readProperties
-import sp.it.util.file.writeProperties
+import sp.it.util.file.properties.PropVal
+import sp.it.util.file.properties.Property
+import sp.it.util.file.properties.readProperties
+import sp.it.util.file.properties.writeProperties
 import sp.it.util.functional.compose
 import sp.it.util.functional.orNull
 import sp.it.util.type.isSubclassOf
@@ -27,7 +28,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
    private val methodLookup = MethodHandles.lookup()
    private val namePostMapper: (String) -> String = { s -> s.replace(' ', '_').toLowerCase() }
    private val configToRawKeyMapper = nameMapper compose namePostMapper
-   private val properties = ConcurrentHashMap<String, String>()
+   private val properties = ConcurrentHashMap<String, PropVal>()
    private val configs: MapSet<String, Config<*>> = MapSet(ConcurrentHashMap(), configToRawKeyMapper)
 
    @Suppress("UNCHECKED_CAST")
@@ -41,25 +42,25 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
     *
     * @return modifiable thread safe map of key-value property pairs
     */
-   fun rawGetAll(): Map<String, String> = properties
+   fun rawGetAll(): Map<String, PropVal> = properties
 
-   fun rawGet(key: String): String = properties[key]!!
+   fun rawGet(key: String): PropVal = properties[key]!!
 
-   fun rawGet(config: Config<*>): String = properties[configToRawKeyMapper(config)]!!
+   fun rawGet(config: Config<*>): PropVal = properties[configToRawKeyMapper(config)]!!
 
    fun rawContains(config: String): Boolean = properties.containsKey(config)
 
    fun rawContains(config: Config<*>): Boolean = properties.containsKey(configToRawKeyMapper(config))
 
-   fun rawAdd(name: String, value: String) = properties.put(name, value)
+   fun rawAdd(name: String, value: PropVal) = properties.put(name, value)
 
-   fun rawAdd(properties: Map<String, String>) = this.properties.putAll(properties)
+   fun rawAdd(properties: Map<String, PropVal>) = this.properties.putAll(properties)
 
    fun rawAdd(file: File) = file.readProperties().orNull().orEmpty().forEach { (name, value) -> rawAdd(name, value) }
 
    fun rawRemProperty(key: String) = properties.remove(key)
 
-   fun rawRemProperties(properties: Map<String, String>) = properties.forEach { (name, _) -> rawRemProperty(name) }
+   fun rawRemProperties(properties: Map<String, *>) = properties.forEach { (name, _) -> rawRemProperty(name) }
 
    fun rawRem(file: File) = file.readProperties().orNull().orEmpty().forEach { (name, _) -> rawRemProperty(name) }
 
@@ -161,7 +162,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
    fun <T> drop(configs: Collection<Config<T>>) = configs.forEach { drop(it) }
 
    /** Changes all config fields to their default value and applies them  */
-   fun toDefault() = fields.forEach { it.setDefaultValue() }
+   fun toDefault() = fields.forEach { it.setValueToDefault() }
 
    /**
     * Saves configuration to the file. The file is created if it does not exist,
@@ -172,7 +173,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
       val propsRaw = properties.mapValues { Property(it.key, it.value, "") }
       val propsCfg = configs.asSequence()
          .filter { it.type!=Void::class.java }
-         .associate { c -> configToRawKeyMapper(c).let { it to Property(it, c.valueS, c.info) } }
+         .associate { c -> configToRawKeyMapper(c).let { it to Property(it, c.valueAsProperty, c.info) } }
 
       file.writeProperties(title, (propsRaw + propsCfg).values)
    }
@@ -191,7 +192,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
       properties.forEach { (key, value) ->
          val c = configs[namePostMapper(key)]
          if (c!=null && c.isEditable.isByApp && !c.isReadOnlyRightNow())
-            c.valueS = value
+            c.valueAsProperty = value
       }
    }
 
@@ -199,7 +200,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
       if (c.isEditable.isByApp && !c.isReadOnlyRightNow()) {
          val key = configToRawKeyMapper(c)
          if (properties.containsKey(key))
-            c.valueS = properties[key]
+            c.valueAsProperty = properties[key]
       }
    }
 

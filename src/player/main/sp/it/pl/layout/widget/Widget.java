@@ -39,6 +39,7 @@ import sp.it.util.conf.Configuration;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.IsConfig;
 import sp.it.util.dev.Dependency;
+import sp.it.util.file.properties.PropVal;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.reactive.Disposer;
 import sp.it.util.type.Util;
@@ -48,7 +49,7 @@ import static java.util.Objects.deepEquals;
 import static kotlin.io.FilesKt.deleteRecursively;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.util.file.PropertiesKt.readProperties;
+import static sp.it.util.file.properties.PropertiesKt.readProperties;
 import static sp.it.util.file.UtilKt.writeTextTry;
 import static sp.it.util.functional.Util.ISNTØ;
 import static sp.it.util.functional.Util.filter;
@@ -392,6 +393,11 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		);
 	}
 
+	@SuppressWarnings("unchecked")
+	public Map<String,PropVal> getFieldsRaw() {
+		return (Map) properties.computeIfAbsent("configs", key -> new HashMap<>());
+	}
+
 /******************************************************************************/
 
 	@Override
@@ -476,23 +482,21 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		// 3) easy optimization
 		if (controller==null) return;
 
-		@SuppressWarnings("unchecked")
-		Map<String,String> serialized_configs = (Map) properties.computeIfAbsent("configs", key -> new HashMap<>());
-		controller.getFields().forEach(c -> serialized_configs.put(configToRawKeyMapper.apply(c), c.getValueS()));
+		var configsRaw = getFieldsRaw();
+		controller.getFields().forEach(c -> configsRaw.put(configToRawKeyMapper.apply(c), c.getValueAsProperty()));
 	}
 
 	private void restoreConfigs() {
-		@SuppressWarnings("unchecked")
-		Map<String,String> deserialized_configs = (Map) properties.get("configs");
-		if (deserialized_configs!=null) {
+		var configsRaw = getFieldsRaw();
+		if (!configsRaw.isEmpty()) {
 			getFields().forEach(c -> {
 				String key = configToRawKeyMapper.apply(c);
-				if (deserialized_configs.containsKey(key)) {
-					c.setValueS(deserialized_configs.get(key));
+				if (configsRaw.containsKey(key)) {
+					c.setValueAsProperty(configsRaw.get(key));
 				}
 			});
 
-			properties.remove("configs"); // restoration can only ever happen once
+			configsRaw.clear(); // restoration can only ever happen once
 		}
 	}
 
@@ -507,11 +511,10 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		configuration.save("Custom default widget settings", configFile);
 	}
 
-	@SuppressWarnings("unchecked")
 	private void restoreDefaultConfigs() {
 		File configFile = new File(getUserLocation(), "default.properties");
 		if (configFile.exists()) {
-			var configsRaw = (Map<String,String>) properties.computeIfAbsent("configs", key -> new HashMap<>());
+			var configsRaw = getFieldsRaw();
 			readProperties(configFile).ifOkUse(it -> it.forEach(configsRaw::putIfAbsent));
 		}
 	}

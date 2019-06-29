@@ -9,6 +9,7 @@ import javafx.scene.control.ComboBox
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox
+import sp.it.pl.main.APP
 import sp.it.util.Util.enumToHuman
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
@@ -27,7 +28,7 @@ open class EnumerableCF<T>: ConfigField<T> {
    constructor(c: Config<T>, enumeration: Collection<T> = c.enumerateValues()): super(c) {
       val converter: (T) -> String = c.constraints.filterIsInstance<Constraint.UiConverter<T>>()
          .firstOrNull()?.converter
-         ?: { enumToHuman(c.toS(it)) }
+         ?: { enumToHuman(APP.converter.general.toS(it)) }
 
       n = ImprovedComboBox(converter)
       n.styleClass += "combobox-field-config"

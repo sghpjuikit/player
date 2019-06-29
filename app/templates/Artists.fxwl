@@ -12,31 +12,31 @@
       <map>
         <entry>
           <string>fieldfilter</string>
-          <string>Artist</string>
+          <val1><value>Artist</value></val1>
         </entry>
         <entry>
           <string>tablezeropad</string>
-          <string>false</string>
+          <val1><value>false</value></val1>
         </entry>
         <entry>
           <string>tableorigindex</string>
-          <string>false</string>
+          <val1><value>false</value></val1>
         </entry>
         <entry>
           <string>tableshowheader</string>
-          <string>true</string>
+          <val1><value>true</value></val1>
         </entry>
         <entry>
           <string>sellast</string>
-          <string>&lt;any&gt;</string>
+          <val1><value>&lt;any&gt;</value></val1>
         </entry>
         <entry>
           <string>tableshowfooter</string>
-          <string>true</string>
+          <val1><value>true</value></val1>
         </entry>
         <entry>
           <string>tableorient</string>
-          <string>INHERIT</string>
+          <val1><value>INHERIT</value></val1>
         </entry>
       </map>
       <string>ioTo display</string>

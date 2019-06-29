@@ -3,6 +3,7 @@ package sp.it.pl.gui.itemnode;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import java.io.File;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -62,6 +63,7 @@ import static java.nio.charset.StandardCharsets.UTF_16;
 import static java.nio.charset.StandardCharsets.UTF_16BE;
 import static java.nio.charset.StandardCharsets.UTF_16LE;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
@@ -75,6 +77,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.conf.ConfigurationUtilKt.isEditableByUserRightNow;
@@ -435,7 +438,7 @@ abstract public class ConfigField<T> {
 
             n.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             n.setPromptText(c.getGuiName());
-            n.setText(c.getValueS());
+            n.setText(toS(getConfigValue()));
 
             n.focusedProperty().addListener((o,ov,nv) -> {
                 if (!nv) refreshItem();
@@ -483,12 +486,12 @@ abstract public class ConfigField<T> {
 
         @Override
         public Try<T,String> get() {
-            return config.ofS(n.getText());
+            return Config.convertValueFromString(config, n.getText());
         }
 
         @Override
         public void refreshItem() {
-            n.setText(config.getValueS());
+            n.setText(toS(getConfigValue()));
             showOkButton(false);
             showWarnButton(ok());
         }
@@ -521,6 +524,18 @@ abstract public class ConfigField<T> {
         private void showWarnButton(boolean val) {
             n.right.setValue(val ? warnB : null);
             warnB.setVisible(val);
+        }
+
+        private String toS(Object o) {
+            if (o instanceof Collection<?>) {
+                return ((Collection<?>) o).stream().map(x -> toS(x)).collect(joining(", ", "[", "]"));
+            } else if (o instanceof Map<?,?>) {
+                return ((Map<?,?>) o).entrySet().stream()
+                    .map(x -> toS(x.getKey()) + " -> " + toS(x.getValue()))
+                    .collect(joining(", ", "[", "]"));
+            } else {
+                return APP.converter.general.toS(getConfigValue());
+            }
         }
 
     }
@@ -1098,7 +1113,7 @@ abstract public class ConfigField<T> {
 
         @Override
         public void setNapplyDefault() {
-            config.setDefaultValue();
+            config.setValueToDefault();
         }
 
         @Override

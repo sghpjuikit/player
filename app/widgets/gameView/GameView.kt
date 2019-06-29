@@ -74,10 +74,11 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.only
 import sp.it.util.dev.failIf
 import sp.it.util.file.FileType
+import sp.it.util.file.properties.PropVal
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.parentDirOrRoot
-import sp.it.util.file.readProperties
+import sp.it.util.file.properties.readProperties
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.getOr
 import sp.it.util.functional.net
@@ -254,22 +255,20 @@ class GameView(widget: Widget): SimpleController(widget) {
       val infoFile = location/"play-howto.md"
       /** Cover. */
       val cover by lazy { FileCover(location.findImage("cover_big") ?: location.findImage("cover"), "") }
-      val settings: Map<String, String> by lazy { (location/"game.properties").readProperties().orNull().orEmpty() }
+      val settings: Map<String, PropVal> by lazy { (location/"game.properties").readProperties().orNull().orEmpty() }
 
       fun exeFile(): File? = null
          ?: (location/"play.lnk").takeIf { it.exists() }
          ?: (location/"play.bat").takeIf { it.exists() }
-         ?: settings["pathAbs"]?.net { File(it) }
-         ?: settings["path"]?.net { location/it }
+         ?: settings["pathAbs"]?.val1?.net { File(it) }
+         ?: settings["path"]?.val1?.net { location/it }
 
       fun play() {
          val file = exeFile()
          if (file==null) {
             APP.ui.messagePane.orBuild.show("No launcher is set up.")
          } else {
-            val arguments = settings["arguments"]
-               ?.let { it.replace(", ", ",").split(",").filter { it.isNotBlank() }.map { "-$it" } }
-               .orEmpty()
+            val arguments = settings["arguments"]?.valN.orEmpty().filter { it.isNotBlank() }
             file.runAsProgram(*arguments.toTypedArray()) ui {
                it.ifError { APP.ui.messagePane.orBuild.show("Unable to launch program $file. Reason: ${it.message}") }
             }

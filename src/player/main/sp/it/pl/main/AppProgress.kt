@@ -89,7 +89,7 @@ object AppProgress {
       fun Task<*>.toApp() = AppTask(title, messageProperty(), { cancel() })
       fun Task<*>.doOn(vararg state: State, block: (State) -> Unit) = stateProperty().sync1If({ it in state }, block)
 
-      when (task.state) {
+      when (task.state!!) {
          State.READY -> {
             task.doOn(State.SCHEDULED) {
                start(task)

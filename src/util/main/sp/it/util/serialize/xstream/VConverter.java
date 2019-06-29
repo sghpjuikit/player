@@ -31,4 +31,5 @@ public class VConverter extends AbstractPropertyConverter<Object> implements Con
 		writer.addAttribute("propertyClass", propertyClass);
 		context.convertAnother(value);
 	}
+
 }

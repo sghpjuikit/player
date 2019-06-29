@@ -35,13 +35,12 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
             configs[key] = config as Config<Any?>
          }
 
-         @Suppress("UNCHECKED_CAST")
          override fun initialize(config: Config<*>) {
             if (config.isEditable.isByApp) {
-               val source: Map<String, String> = widget.properties["configs"] as Map<String, String>? ?: mapOf()
                val key = Widget.configToRawKeyMapper(config)
+               val source = widget.fieldsRaw
                if (source.containsKey(key))
-                  config.valueS = source[key]
+                  config.valueAsProperty = source[key]
             }
          }
       }

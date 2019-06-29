@@ -25,6 +25,8 @@ import sp.it.pl.layout.container.SwitchContainer;
 import sp.it.pl.layout.container.UniContainer;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.util.dev.Blocks;
+import sp.it.util.file.properties.PropVal.PropVal1;
+import sp.it.util.file.properties.PropVal.PropValN;
 import sp.it.util.functional.Try;
 import sp.it.util.serialize.xstream.BooleanPropertyConverter;
 import sp.it.util.serialize.xstream.DoublePropertyConverter;
@@ -54,9 +56,8 @@ public final class CoreSerializerXml implements Core {
 		// configure security
 		XStream.setupDefaultSecurity(x);
 		x.allowTypeHierarchy(Observable.class);
-		x.allowTypesByWildcard(new String[] {
-			sp.it.pl.PackageInfo.class.getPackageName()+".**"
-		});
+		x.allowTypesByWildcard(new String[] { sp.it.pl.PackageInfo.class.getPackageName()+".**" });
+		x.allowTypesByWildcard(new String[] { sp.it.util.PackageInfo.class.getPackageName()+".**" });
 
 		// configure serialization
 		Mapper xm = x.getMapper();
@@ -81,6 +82,8 @@ public final class CoreSerializerXml implements Core {
 		x.alias("Widget", Widget.class);
 		x.alias("Loading", Widget.LoadType.class);
 		x.alias("Orientation", Orientation.class);
+		x.alias("val1", PropVal1.class);
+		x.alias("valN", PropValN.class);
 		x.useAttributeFor(Component.class, "id");
 		x.useAttributeFor(Widget.class, "name");
 	}

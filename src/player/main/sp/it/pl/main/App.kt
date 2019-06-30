@@ -198,7 +198,7 @@ class App: Application(), Configurable<Any> {
    @F val className = ClassName()
    @F val instanceName = InstanceName()
    @F val instanceInfo = InstanceInfo()
-   @F val classFields = ObjectFieldMap()
+   @F val classFields = ObjectFieldMap.DEFAULT
    @F val contextMenus = CoreMenus
    @F val mouse = CoreMouse
    @F val functors = CoreFunctors

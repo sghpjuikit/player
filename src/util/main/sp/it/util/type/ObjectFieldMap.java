@@ -3,6 +3,7 @@ package sp.it.util.type;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.collections.map.ClassMap;
 import static java.util.stream.Collectors.toSet;
@@ -36,8 +37,8 @@ public class ObjectFieldMap {
 		noNull(c);
 		noNull(fields);
 		fields.computeIfAbsent(c, key -> new HashSet<>()).add(field);
-		cache.remove(c);
-		cache2.remove(c);
+		cache.keySet().removeIf(c::isAssignableFrom);
+		cache2.keySet().removeIf(c::isAssignableFrom);
 	}
 
 	@SuppressWarnings({"unchecked", "RedundantCast"})
@@ -54,4 +55,5 @@ public class ObjectFieldMap {
 			fields.getElementsOf(key).stream().flatMap(Set::stream).collect(toSet()));
 	}
 
+	public static final @NotNull ObjectFieldMap DEFAULT = new ObjectFieldMap();
 }

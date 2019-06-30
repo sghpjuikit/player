@@ -38,7 +38,7 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
 
    override fun configure(configurable: Configurable<*>?) {
       needsLabel = configurable !is Config<*>
-      fields = configurable?.fields.orEmpty().asSequence()
+      fields = configurable?.getFields().orEmpty().asSequence()
          .sortedWith(configOrder)
          .map {
             ConfigField.create(it).apply {

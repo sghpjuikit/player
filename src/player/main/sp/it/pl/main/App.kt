@@ -391,7 +391,7 @@ class App: Application(), Configurable<Any> {
 
    private fun Search.initForApp() {
       sources += {
-         configuration.fields.asSequence().map { Entry.of(it) }
+         configuration.getFields().asSequence().map { Entry.of(it) }
       }
       sources += {
          ui.skins.asSequence().map {

@@ -98,7 +98,6 @@ import sp.it.util.conf.Config.ConfigurableVarList;
 import sp.it.util.conf.Configurable;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.IsConfig;
-import sp.it.util.conf.ListConfigurable;
 import sp.it.util.functional.Functors.Ƒ0;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.functional.Functors.Ƒ5;
@@ -196,6 +195,7 @@ import static sp.it.util.Util.clip;
 import static sp.it.util.Util.pyth;
 import static sp.it.util.animation.Anim.map01To010;
 import static sp.it.util.animation.Anim.mapTo01;
+import static sp.it.util.conf.ConfigurableKt.toConfigurableByReflect;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.findFirstInt;
@@ -283,7 +283,7 @@ public class Comet extends SimpleController {
 				new Icon(MaterialDesignIcon.NUMERIC_7_BOX_OUTLINE,15,"Start 7 player game",() -> game.start(7)),
 				new Icon(MaterialDesignIcon.NUMERIC_8_BOX_OUTLINE,15,"Start 8 player game",() -> game.start(8)),
 				new Icon(null,16){{ syncC(game.paused, it -> icon(it ? MaterialDesignIcon.PLAY : MaterialDesignIcon.PAUSE)); }}.onClick(() -> game.pause(!game.paused.get())),
-				new Icon(FontAwesomeIcon.GEARS,14,"Settings").onClick(e -> APP.windowManager.showSettings(new ListConfigurable<>(Configurable.configsFromFieldsOf(this)),e)),
+				new Icon(FontAwesomeIcon.GEARS,14,"Settings").onClick(e -> APP.windowManager.showSettings(toConfigurableByReflect(this),e)),
 				new Icon(FontAwesomeIcon.INFO,14,"How to play").onClick(() -> new HowToPane().show(game))
 			),
 			0d,0d,null,0d,

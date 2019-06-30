@@ -27,6 +27,7 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
+import sp.it.util.conf.toListConfigurable
 import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.recurse
 import sp.it.util.reactive.attach
@@ -110,7 +111,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    }
 
    override fun configure(configurable: Configurable<*>?) {
-      val configurableFields = configurable?.fields.orEmpty()
+      val configurableFields = configurable?.getFields().orEmpty()
 
       showsAppSettings = configurable==appConfigurable
       configs setTo configurableFields
@@ -122,9 +123,9 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
       groups.expandToRootAndSelect(restoreAppSettingsSelection() ?: groups.root)
    }
 
-   private fun showConfigs(group: Name?) = showConfigs(configs.filter { c -> c.group==group?.pathUp })
-
-   private fun showConfigs(configs: Collection<Config<*>>) = configsPane.configure(configs)
+   private fun showConfigs(group: Name?) = configsPane.configure(
+      configs.filter { it.group==group?.pathUp }.toListConfigurable()
+   )
 
    private fun refreshConfigs() = configsPane.getConfigFields().forEach { it.refreshItem() }
 

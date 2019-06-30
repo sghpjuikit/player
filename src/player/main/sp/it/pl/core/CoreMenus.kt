@@ -31,11 +31,11 @@ import sp.it.pl.main.writeImage
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.util.async.runNew
 import sp.it.util.conf.Configurable
-import sp.it.util.conf.Configurable.configsFromFxPropertiesOf
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
 import sp.it.util.conf.only
+import sp.it.util.conf.toConfigurableFx
 import sp.it.util.file.div
 import sp.it.util.functional.ifFalse
 import sp.it.util.system.browse
@@ -123,7 +123,7 @@ object CoreMenus: Core {
             menu("Inspect ui properties in") {
                widgetItems<ConfiguringFeature> { w ->
                   runNew {
-                     configsFromFxPropertiesOf(selected)
+                     selected.toConfigurableFx()
                   } ui {
                      w.configure(it)
                   }
@@ -134,7 +134,7 @@ object CoreMenus: Core {
             menu("Inspect ui properties in") {
                widgetItems<ConfiguringFeature> { w ->
                   runNew {
-                     configsFromFxPropertiesOf(selected)
+                     selected.toConfigurableFx()
                   } ui {
                      w.configure(it)
                   }

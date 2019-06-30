@@ -27,7 +27,7 @@ import sp.it.pl.gui.objects.picker.Picker
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
-import sp.it.util.conf.Configurable.configsFromFxPropertiesOf
+import sp.it.util.conf.toConfigurableFx
 import sp.it.util.functional.net
 import sp.it.util.type.ClassName
 import sp.it.util.ui.Util.layHorizontally
@@ -93,7 +93,7 @@ class EffectTextField: ValueTextField<Effect> {
    }
 
    private fun openProperties(me: MouseEvent) {
-      if (vl!=null) APP.windowManager.showSettings(configsFromFxPropertiesOf(vl), me)
+      vl?.let { APP.windowManager.showSettings(it.toConfigurableFx(), me) }
       me.consume()
    }
 

@@ -58,7 +58,7 @@ import sp.it.util.async.invoke
 import sp.it.util.collections.getElementType
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Configurable
-import sp.it.util.conf.Configurable.configsFromFxPropertiesOf
+import sp.it.util.conf.toConfigurableFx
 import sp.it.util.dev.fail
 import sp.it.util.file.FileType
 import sp.it.util.file.children
@@ -151,7 +151,7 @@ fun treeApp(): TreeItem<Any> {
       ),
       tree("Location", APP.DIR_APP),
       tree("File system", File.listRoots().map { FileTreeItem(it) }),
-      tree(Name.treeOfPaths("Settings", APP.configuration.fields.map { it.group }))
+      tree(Name.treeOfPaths("Settings", APP.configuration.getFields().map { it.group }))
    )
 }
 
@@ -332,8 +332,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
 
 private fun doAction(o: Any?, otherwise: () -> Unit) {
    when (o) {
-      is Node -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
-      is WindowFX -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(configsFromFxPropertiesOf(o)) }
+      is Node -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(o.toConfigurableFx()) }
+      is WindowFX -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(o.toConfigurableFx()) }
       is File -> o.open()
       is Configurable<*> -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(o) }
       is TreeItem<*> -> doAction(o.value, otherwise)

@@ -1,7 +1,7 @@
 package sp.it.util.parsing
 
 import mu.KLogging
-import sp.it.util.conf.Configurable
+import sp.it.util.conf.toConfigurableFx
 import sp.it.util.file.properties.PropVal.PropValN
 import sp.it.util.functional.Try
 import sp.it.util.type.isSuperclassOf
@@ -23,7 +23,7 @@ class ConverterFX: Converter() {
          when {
             type.isSuperclassOf(valueType) -> {
                val v = (valueType.kotlin.createInstance() as T)!!
-               val c = v.toConfigurable()
+               val c = v.toConfigurableFx()
                values64.split(delimiter1).forEach { value64 ->
                   if (value64.count { it==delimiter2 }==1) {
                      val (cName64, cValues64) = value64.split2(delimiter2)
@@ -51,7 +51,7 @@ class ConverterFX: Converter() {
       null -> Parsers.DEFAULT.stringNull
       else -> {
          val v = o as Any
-         val values = v.toConfigurable().fields.joinToString(delimiter1) {
+         val values = v.toConfigurableFx().getFields().joinToString(delimiter1) {
             it.name.toBase64() + delimiter2 + it.valueAsProperty.valN.joinToString(delimiter3) { it.toBase64() }
          }
          v::class.java.name.toBase64() + delimiter1 + values
@@ -63,7 +63,6 @@ class ConverterFX: Converter() {
       private const val delimiter1 = "-"
       private const val delimiter2 = ':'
       private const val delimiter3 = "|"
-      private fun Any.toConfigurable() = Configurable.configsFromFxPropertiesOf(this)
       private fun String.toBase64() = Base64.getEncoder().encodeToString(toByteArray(UTF_8))
       private fun String.fromBase64() = String(Base64.getDecoder().decode(this), UTF_8)
       private fun String.split2(delimiter: Char) = substringBefore(delimiter) to substringAfter(delimiter)

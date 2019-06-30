@@ -888,7 +888,7 @@ abstract public class ConfigField<T> {
 
         private ConfigurableCF(Config<Configurable<?>> c) {
             super(c);
-            configPane.configure(c.getValue().getFields());
+            configPane.configure(c.getValue());
         }
 
         @Override

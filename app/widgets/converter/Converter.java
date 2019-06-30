@@ -75,6 +75,7 @@ import static sp.it.util.Util.filenamizeString;
 import static sp.it.util.async.AsyncKt.IO;
 import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.async.future.Fut.fut;
+import static sp.it.util.conf.ConfigurableKt.toListConfigurable;
 import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.file.UtilKt.writeTextTry;
 import static sp.it.util.functional.Util.equalBy;
@@ -591,10 +592,12 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         InsSimple(Act<?> a) {
             ins = new ConfigPane<>();
             ins.configure(
-                map(a.names.get(), name -> {
-                    V<EditArea> input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in), tas);
-                    return Config.forProperty(EditArea.class, name, input);
-                })
+                toListConfigurable(
+                    map(a.names.get(), name -> {
+                        V<EditArea> input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in), tas);
+                        return Config.forProperty(EditArea.class, name, input);
+                    })
+                )
             );
         }
 

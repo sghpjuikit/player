@@ -105,7 +105,7 @@ class WidgetUi: ComponentUiBase<Widget> {
 
             // put controls to new widget
             widget.custom_name syncTo controls.title.textProperty() on disposer
-            controls.propB.isDisable = widget.fields.isEmpty()
+            controls.propB.isDisable = widget.getFields().isEmpty()
 
             // workaround code
             widget.lockedUnder.initLocked(container)
@@ -118,7 +118,7 @@ class WidgetUi: ComponentUiBase<Widget> {
 
                // put controls to new widget
                widget.custom_name syncTo controls.title.textProperty() on disposer
-               controls.propB.isDisable = widget.fields.isEmpty()
+               controls.propB.isDisable = widget.getFields().isEmpty()
 
                // workaround code
                widget.lockedUnder.initLocked(container)

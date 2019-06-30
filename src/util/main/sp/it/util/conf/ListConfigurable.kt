@@ -1,6 +1,6 @@
 package sp.it.util.conf
 
-/** [Configurable] implemented as [List]. Hence [getFields] retains the order. */
+/** [Configurable] backed by [List]. Hence [getFields] retains the order. */
 class ListConfigurable<T>: Configurable<T> {
 
    private val configs: List<Config<T>>
@@ -16,6 +16,6 @@ class ListConfigurable<T>: Configurable<T> {
 
    override fun getFields() = configs
 
-   override fun getField(name: String) = configs.find { c -> name==c.name }
+   override fun getField(name: String) = configs.find { name==it.name }
 
 }

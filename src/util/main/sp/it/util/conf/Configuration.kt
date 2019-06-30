@@ -64,7 +64,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
 
    fun rawRem(file: File) = file.readProperties().orNull().orEmpty().forEach { (name, _) -> rawRemProperty(name) }
 
-   fun <C> collect(c: Configurable<C>) = collect(c.fields)
+   fun <C> collect(c: Configurable<C>): Unit = collect(c.getFields())
 
    fun <C> collect(c: Collection<Config<C>>): Unit = c.forEach(::collect)
 
@@ -162,7 +162,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
    fun <T> drop(configs: Collection<Config<T>>) = configs.forEach { drop(it) }
 
    /** Changes all config fields to their default value and applies them  */
-   fun toDefault() = fields.forEach { it.setValueToDefault() }
+   fun toDefault() = getFields().forEach { it.setValueToDefault() }
 
    /**
     * Saves configuration to the file. The file is created if it does not exist,

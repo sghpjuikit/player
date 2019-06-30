@@ -37,7 +37,7 @@ import sp.it.pl.main.Widgets
 import sp.it.pl.main.audioExtensionFilter
 import sp.it.pl.main.scaleEM
 import sp.it.pl.main.setSongsAndFiles
-import sp.it.util.access.Vo
+import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.async.runNew
 import sp.it.util.conf.Config
@@ -99,15 +99,15 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
    private val inputItems = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
 
    @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-   val tableOrient by cv(NodeOrientation.INHERIT) { Vo(APP.ui.tableOrient) }
+   val tableOrient by cv(NodeOrientation.INHERIT) { OrV(APP.ui.tableOrient) }
    @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-   val tableZeropad by cv(true) { Vo(APP.ui.tableZeropad) }
+   val tableZeropad by cv(true) { OrV(APP.ui.tableZeropad) }
    @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-   val tableOrigIndex by cv(true) { Vo(APP.ui.tableOrigIndex) }
+   val tableOrigIndex by cv(true) { OrV(APP.ui.tableOrigIndex) }
    @IsConfig(name = "Show table header", info = "Show table header with columns.")
-   val tableShowHeader by cv(true) { Vo(APP.ui.tableShowHeader) }
+   val tableShowHeader by cv(true) { OrV(APP.ui.tableShowHeader) }
    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
-   val tableShowFooter by cv(true) { Vo(APP.ui.tableShowFooter) }
+   val tableShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
    @IsConfig(name = "Last add songs browse location", editable = EditMode.APP)
    private var lastAddFilesLocation by cn(APP.DIR_USERDATA).only(FileActor.ANY)
    @IsConfig(name = "Last add directory browse location", editable = EditMode.APP)

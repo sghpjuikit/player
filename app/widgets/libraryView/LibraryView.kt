@@ -41,7 +41,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.scaleEM
 import sp.it.pl.main.setSongsAndFiles
-import sp.it.util.access.Vo
+import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.async.executor.EventReducer
@@ -107,15 +107,15 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    private val outputSelectedSongs = io.io.mapped(outputSelectedGroup, "As Songs") { filterList(inputItems.value, true) }
 
    @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-   val tableOrient by cv(NodeOrientation.INHERIT) { Vo(APP.ui.tableOrient) }
+   val tableOrient by cv(NodeOrientation.INHERIT) { OrV(APP.ui.tableOrient) }
    @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-   val tableZeropad by cv(true) { Vo(APP.ui.tableZeropad) }
+   val tableZeropad by cv(true) { OrV(APP.ui.tableZeropad) }
    @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-   val tableOrigIndex by cv(true) { Vo(APP.ui.tableOrigIndex) }
+   val tableOrigIndex by cv(true) { OrV(APP.ui.tableOrigIndex) }
    @IsConfig(name = "Show table header", info = "Show table header with columns.")
-   val tableShowHeader by cv(true) { Vo(APP.ui.tableShowHeader) }
+   val tableShowHeader by cv(true) { OrV(APP.ui.tableShowHeader) }
    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
-   val tableShowFooter by cv(true) { Vo(APP.ui.tableShowFooter) }
+   val tableShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
    @IsConfig(name = "Field")
    val fieldFilter by cv<MField<*>>(CATEGORY).values(MField.FIELDS.filter { it.isTypeStringRepresentable() }) attach {
       applyData()

@@ -19,11 +19,9 @@ open class VarEnum<T>: V<T>, EnumerableValue<T> {
 
    override fun enumerateValues() = valueEnumerator()
 
+   @Suppress("UNUSED_PARAMETER")
    companion object {
-
-      @Suppress("UNUSED_PARAMETER")
       private fun <T> valOrFirst(v: T, enumerator: () -> Collection<T>) = v
-
    }
 
 }

@@ -24,7 +24,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.PLAYLIST
 import sp.it.pl.main.scaleEM
-import sp.it.util.access.Vo
+import sp.it.util.access.OrV
 import sp.it.util.access.toggle
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
@@ -92,15 +92,15 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
    private var outputPlaying = io.o.create<PlaylistSong>("Playing", null)
 
    @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-   val tableOrient by cv(INHERIT) { Vo(APP.ui.tableOrient) }
+   val tableOrient by cv(INHERIT) { OrV(APP.ui.tableOrient) }
    @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-   val tableZeropad by cv(true) { Vo(APP.ui.tableZeropad) }
+   val tableZeropad by cv(true) { OrV(APP.ui.tableZeropad) }
    @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-   val tableOrigIndex by cv(true) { Vo(APP.ui.tableOrigIndex) }
+   val tableOrigIndex by cv(true) { OrV(APP.ui.tableOrigIndex) }
    @IsConfig(name = "Show table header", info = "Show table header with columns.")
-   val tableShowHeader by cv(true) { Vo(APP.ui.tableShowHeader) }
+   val tableShowHeader by cv(true) { OrV(APP.ui.tableShowHeader) }
    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
-   val tableShowFooter by cv(true) { Vo(APP.ui.tableShowFooter) }
+   val tableShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
    @IsConfig(name = "Scroll to playing", info = "Scroll table to playing item when it changes.")
    val scrollToPlaying by cv(true)
    @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")

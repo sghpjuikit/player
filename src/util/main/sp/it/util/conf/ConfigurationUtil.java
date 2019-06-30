@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
-import sp.it.util.access.Vo;
+import sp.it.util.access.OrV;
 import sp.it.util.conf.Config.ConfigBase;
 import sp.it.util.conf.Config.FieldConfig;
 import sp.it.util.conf.Config.ListConfig;
@@ -118,8 +118,8 @@ public class ConfigurationUtil {
 				Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
 				return new ListConfig<>(name, annotation, (VarList) f.get(instance), group, constraints);
 			}
-			if (Vo.class.isAssignableFrom(f.getType())) {
-				Vo<T> property = (Vo) f.get(instance);
+			if (OrV.class.isAssignableFrom(f.getType())) {
+				OrV<T> property = (OrV) f.get(instance);
 				Class<T> property_type = getRawGenericPropertyType(f.getGenericType());
 				Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
 				return new OverridablePropertyConfig<>(property_type, name, annotation, constraints, property, group);

@@ -38,7 +38,7 @@ import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.textfield.DecoratedTextField;
 import sp.it.pl.gui.pane.ConfigPane;
-import sp.it.util.access.Vo;
+import sp.it.util.access.OrV;
 import sp.it.util.action.Action;
 import sp.it.util.animation.Anim;
 import sp.it.util.conf.Config;
@@ -1081,21 +1081,21 @@ abstract public class ConfigField<T> {
 
         public OverriddenCF(OverridablePropertyConfig<T> c) {
             super(c);
-            Vo<T> vo = c.getProperty();
+            OrV<T> orV = c.getProperty();
 
 //            root.setMinSize(100,20);
 //            root.setPrefSize(-1,-1);
 //            root.setMaxSize(-1,-1);
 
-            BoolCF bf = new OverriddenBoolCF(Config.forProperty(Boolean.class, "Override", vo.override)) {
+            BoolCF bf = new OverriddenBoolCF(Config.forProperty(Boolean.class, "Override", orV.override)) {
                 @Override
                 public void setNapplyDefault() {
-                    vo.override.setValue(c.getDefaultOverrideValue());
+                    orV.override.setValue(c.getDefaultOverrideValue());
                 }
             };
-            ConfigField cf = create(Config.forProperty(c.getType(),"", vo.real));
+            ConfigField cf = create(Config.forProperty(c.getType(),"", orV.real));
             Util.setField(cf.config, "defaultValue", c.getDefaultValue());
-            syncC(vo.override, it -> cf.getEditor().setDisable(!it));
+            syncC(orV.override, it -> cf.getEditor().setDisable(!it));
             root.getChildren().addAll(cf.buildNode(),bf.buildNode());
         }
         @Override

@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import sp.it.util.access.EnumerableValue;
 import sp.it.util.access.TypedValue;
 import sp.it.util.access.V;
-import sp.it.util.access.Vo;
+import sp.it.util.access.OrV;
 import sp.it.util.conf.Config.VarList.Elements;
 import sp.it.util.dev.Dependency;
 import sp.it.util.file.properties.PropVal;
@@ -309,8 +309,8 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Ty
 			return (Config<T>) property;
 		if (property instanceof VarList)
 			return new ListConfig(name, (VarList) property);
-		if (property instanceof Vo)
-			return new OverridablePropertyConfig<>(type, name, (Vo<T>) property);
+		if (property instanceof OrV)
+			return new OverridablePropertyConfig<>(type, name, (OrV<T>) property);
 		if (property instanceof WritableValue)
 			return new PropertyConfig<>(type, name, (WritableValue<T>) property, "");
 		if (property instanceof ObservableValue)
@@ -586,25 +586,25 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Ty
 	public static class OverridablePropertyConfig<T> extends PropertyConfig<T> {
 		private final boolean defaultOverride_value;
 
-		public OverridablePropertyConfig(Class<T> property_type, String name, IsConfig c, Set<Constraint<? super T>> constraints, Vo<T> property, String category) {
+		public OverridablePropertyConfig(Class<T> property_type, String name, IsConfig c, Set<Constraint<? super T>> constraints, OrV<T> property, String category) {
 			super(property_type, name, c, constraints, property, category);
 			Util.setField(this, "defaultValue", property.real.getValue());
 			defaultOverride_value = property.override.getValue();
 		}
 
-		public OverridablePropertyConfig(Class<T> property_type, String name, Vo<T> property) {
+		public OverridablePropertyConfig(Class<T> property_type, String name, OrV<T> property) {
 			this(property_type, name, name, property, "", "", EditMode.USER);
 		}
 
-		public OverridablePropertyConfig(Class<T> property_type, String name, String gui_name, Vo<T> property, String category, String info, EditMode editable) {
+		public OverridablePropertyConfig(Class<T> property_type, String name, String gui_name, OrV<T> property, String category, String info, EditMode editable) {
 			super(property_type, name, gui_name, property, category, info, editable);
 			Util.setField(this, "defaultValue", property.real.getValue());
 			defaultOverride_value = property.override.getValue();
 		}
 
 		@SuppressWarnings("unchecked")
-		public Vo<T> getProperty() {
-			return (Vo) value;
+		public OrV<T> getProperty() {
+			return (OrV) value;
 		}
 
 		public boolean getDefaultOverrideValue() {

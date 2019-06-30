@@ -298,7 +298,7 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Ty
 		return firstNotNull(
 			() -> forPropertyImpl(type, name, property),
 			() -> {
-				throw new RuntimeException("Must be WritableValue or ReadOnlyValue, but is " + property.getClass());
+				throw new RuntimeException("Property " + name + " must be WritableValue or ReadOnlyValue, but is " + property.getClass());
 			}
 		);
 	}
@@ -831,7 +831,6 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Ty
 	 * Functional implementation of {@link sp.it.util.conf.Config} that does not store nor wrap the
 	 * value, instead contains the getter and setter which call the code that
 	 * provides the actual value. This can be thought of some kind of intermediary.
-	 * See {@link sp.it.util.access.FAccessor} which this config implements.
 	 * <p/>
 	 * Use when wrapping the value is not desired, rather it is defined by a means
 	 * of accessing it.

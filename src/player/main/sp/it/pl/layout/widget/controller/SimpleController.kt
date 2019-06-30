@@ -65,7 +65,6 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
    private fun <T> T.initializeLegacyConfigs() = apply {
       if (hasLegacyConfigs && !isLegacyConfigsInitialized) {
          isLegacyConfigsInitialized = true
-         println(super.getFields().joinToString(",   ") { it.name })
          configs.putAll(super.getFields().associateBy(Widget.configToRawKeyMapper))
       }
    }

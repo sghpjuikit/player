@@ -44,7 +44,7 @@ import sp.it.util.units.millis
  * it is strongly recommended to simply make all persistable state configurable, as all configurable state is persisted
  * automatically. Note that it is not auto-restored. For that either use [SimpleController] or [LegacyController].
  */
-abstract class Controller(widget: Widget): Configurable<Any>, Locatable {
+abstract class Controller(widget: Widget): Configurable<Any?>, Locatable {
 
    /** Widget owning this controller. */
    @JvmField val widget = widget

@@ -13,6 +13,7 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.ui.fxml.ConventionFxmlLoader
 import java.util.HashMap
+import kotlin.reflect.full.findAnnotation
 
 /**
  * Base controller implementation that provides
@@ -24,6 +25,8 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
 
    @JvmField val root = StackPane()
    @JvmField val onClose = Disposer()
+   private var isLegacyConfigsInitialized = false
+   private val hasLegacyConfigs = this::class.findAnnotation<LegacyController>()!=null
    private val configs = HashMap<String, Config<Any?>>()
    override val configurableDiscriminant = null as String?
    override val configurableValueStore: ConfigValueSource by lazy {
@@ -55,9 +58,18 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
       io.dispose()
    }
 
-   override fun getField(name: String) = configs.values.find { it.name==name }
+   override fun getField(name: String) = configs.initializeLegacyConfigs().values.find { it.name==name }
 
-   override fun getFields(): Collection<Config<Any?>> = configs.values
+   override fun getFields(): Collection<Config<Any?>> = configs.initializeLegacyConfigs().values
+
+   private fun <T> T.initializeLegacyConfigs() = apply {
+      if (hasLegacyConfigs && !isLegacyConfigsInitialized) {
+         isLegacyConfigsInitialized = true
+         println(super.getFields().joinToString(",   ") { it.name })
+         configs.putAll(super.getFields().associateBy(Widget.configToRawKeyMapper))
+      }
+   }
+
 
    /** Invoke [bind][Input.bind] on this input and the specified output if this widget [has never been serialized][Widget.isDeserialized]. */
    fun <T> Input<T>.bindIf1stLoad(output: Output<out T>) = if (widget.isDeserialized) Subscription() else bind(output)

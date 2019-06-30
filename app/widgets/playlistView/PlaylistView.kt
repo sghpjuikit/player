@@ -113,6 +113,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       root.consumeScrolling()
 
       playlist.playingSong sync { outputPlaying.value = it } on onClose
+      playlist.duration attach { table.items_info.updateText() } on onClose
       Player.onSongRefresh { ms ->
          outputPlaying.value?.let { ms.ifHasK(it.uri, Consumer { outputPlaying.value = it.toPlaylist() }) }
          outputSelected.value?.let { ms.ifHasK(it.uri, Consumer { outputSelected.value = it.toPlaylist() }) }

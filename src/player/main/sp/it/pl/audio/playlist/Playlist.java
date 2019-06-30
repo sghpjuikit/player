@@ -31,6 +31,7 @@ import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.popover.PopOver;
 import sp.it.pl.gui.objects.popover.ScreenPos;
 import sp.it.pl.gui.objects.window.stage.WindowBase;
+import sp.it.util.async.executor.EventReducer;
 import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.conf.Config;
 import sp.it.util.conf.ValueConfig;
@@ -43,6 +44,7 @@ import static sp.it.pl.main.AppBuildersKt.helpPopOver;
 import static sp.it.pl.main.AppFileKt.audioExtensionFilter;
 import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.dev.FailKt.noNull;
@@ -51,6 +53,8 @@ import static sp.it.util.file.Util.getFilesR;
 import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.toS;
 import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.system.EnvironmentKt.browse;
 import static sp.it.util.system.EnvironmentKt.chooseFile;
 import static sp.it.util.system.EnvironmentKt.chooseFiles;
@@ -60,6 +64,14 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	public final UUID id;
 	private final ReadOnlyObjectWrapper<PlaylistSong> playingSongWrapper = new ReadOnlyObjectWrapper<>(null);
 	public final ReadOnlyObjectProperty<PlaylistSong> playingSong = playingSongWrapper.getReadOnlyProperty();
+	private final ReadOnlyObjectWrapper<Duration> durationWrapper = new ReadOnlyObjectWrapper<>(Duration.ZERO);
+	public final ReadOnlyObjectProperty<Duration> duration = durationWrapper.getReadOnlyProperty();
+
+	/**
+	 * Needs to be invoked when {@link PlaylistSong#update()} on any song in this playlist is invoked.
+	 * Prefer {@link #updateItem(sp.it.pl.audio.Song)} and {@link #updateItems()}.
+	 */
+	public final EventReducer<Void> durationUpdater = EventReducer.toLast(50, d -> durationWrapper.setValue(computeDuration()));
 
 	public Playlist() {
 		this(UUID.randomUUID());
@@ -68,6 +80,8 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	public Playlist(UUID id) {
 		super(observableArrayList());
 		this.id = id;
+
+		onChange(getValue(), runnable(() -> durationUpdater.push(null)));
 	}
 
 	public void updatePlayingItem(int i) {
@@ -93,8 +107,8 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-	/** Returns total playlist duration - a sum of all playlist song lengths. */
-	public Duration getLength() {
+	/** @return total playlist duration - a sum of all playlist song durations. */
+	public Duration computeDuration() {
 		double sum = stream()
 				.map(PlaylistSong::getTime)
 				.filter(d -> !d.isIndefinite() && !d.isUnknown())
@@ -102,6 +116,8 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 				.sum();
 		return millis(sum);
 	}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
 
 	/**
 	 * Returns true if specified song is playing song on the playlist. There can
@@ -326,7 +342,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 */
 	public void updateItem(Song song) {
 		stream().filter(song::same).forEach(PlaylistSong::update);
-		// TODO: this needs to fire duration update
+		durationUpdater.push(null);
 	}
 
 	/**
@@ -345,8 +361,9 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 				if (Thread.interrupted()) return;
 				if (!i.isUpdated()) i.update();
 			}
-		});
-		// TODO: this needs to fire duration update
+		}).useBy(FX, it ->
+			durationUpdater.push(null)
+		);
 	}
 
 	/**

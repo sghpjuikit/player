@@ -47,7 +47,7 @@ class TableInfo<E>: NodeInfo<TableView<E>> {
       listMonitorDisposer = bindable.itemsProperty().syncNonNullWhile {
          val listAll = it
          val listSelected = bindable.selectionModel.selectedItems
-         updateText = { updateText(bindable.items, listSelected) }
+         updateText = { updateTextImpl(bindable.items, listSelected) }
 
          updateText()
          val s1 = listAll.onChange(updateText)
@@ -61,17 +61,15 @@ class TableInfo<E>: NodeInfo<TableView<E>> {
       updateText = {}
    }
 
-   /**
-    * Updates the text of the node using the text factory.
-    *
-    * @param allItems all items of the table
-    * @param selectedItems selected items of the table
-    */
-   fun updateText(allItems: List<E>, selectedItems: List<E>) {
+   /** Updates the text of the node using the current state of the table. */
+   fun updateText() = updateText.invoke()
+
+   private fun updateTextImpl(allItems: List<E>, selectedItems: List<E>) {
       val isAll = selectedItems.isEmpty()
       val items = if (isAll) allItems else selectedItems
       node.text = textFactory(isAll, items)
    }
+
 
    companion object {
 

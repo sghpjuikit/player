@@ -1,5 +1,6 @@
 package iconBox;
 
+import de.jensd.fx.glyphs.GlyphIcons;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.layout.FlowPane;
@@ -10,8 +11,8 @@ import sp.it.pl.layout.widget.Widget.Info;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.feature.HorizontalDock;
-import sp.it.util.access.FAccessor;
 import sp.it.util.access.VarAction;
+import sp.it.util.access.VarEnum;
 import sp.it.util.conf.Config;
 import sp.it.util.conf.Config.VarList;
 import sp.it.util.conf.IsConfig;
@@ -37,7 +38,7 @@ public class IconBox extends SimpleController implements HorizontalDock {
     @IsConfig(name = "Icon size", info = "Size of each icon")
     private final DoubleProperty icon_size = new SimpleDoubleProperty(13);
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("RedundantCast")
     @IsConfig(name = "Icons", info = "List of icons to show")
     private final VarList<Icon> icons = new VarList<>(
         Icon.class,
@@ -46,8 +47,8 @@ public class IconBox extends SimpleController implements HorizontalDock {
             syncC(icon_size, v -> i.size(v.doubleValue()));
             return i;
         },
-        i -> new ListConfigurable<>(
-            (Config) Config.forProperty(Icon.class, "Icon", new FAccessor<>(i::icon, i::getGlyph)),
+        i -> new ListConfigurable<Object>(
+            (Config) Config.forProperty(GlyphIcons.class, "Icon", new VarEnum<>(i.getGlyph(), Icon.GLYPHS).initAttachC(i::icon)),
             (Config) Config.forProperty(String.class, "Action", new VarAction(i.getOnClickAction(), consumer(i::onClick)))
         )
     );

@@ -3,6 +3,7 @@ package sp.it.pl.audio.tagging
 import javafx.util.Duration
 import sp.it.pl.audio.Player
 import sp.it.util.access.fieldvalue.ObjectFieldBase
+import sp.it.util.access.fieldvalue.ObjectFieldRegistry
 import sp.it.util.dev.failCase
 import sp.it.util.units.FileSize
 import sp.it.util.units.RangeYear
@@ -69,9 +70,7 @@ class MetadataGroup {
 
    class Field<T: Any>: ObjectFieldBase<MetadataGroup, T> {
 
-      internal constructor(type: KClass<T>, extractor: (MetadataGroup) -> T?, name: String, description: String): super(type, extractor, name, description) {
-         FIELDS_IMPL.add(this)
-      }
+      private constructor(type: KClass<T>, extractor: (MetadataGroup) -> T?, name: String, description: String): super(type, extractor, name, description)
 
       fun toString(group: MetadataGroup): String = toString(group.field)
 
@@ -105,41 +104,31 @@ class MetadataGroup {
 
       override fun cWidth(): Double = if (this===VALUE) 250.0 else 70.0
 
-      companion object {
-         private val FIELDS_IMPL = HashSet<Field<*>>()
-         @JvmField val FIELDS: Set<Field<*>> = FIELDS_IMPL
-         @JvmField val VALUE = Field(Any::class, { it.value }, "Value", "Song field to group by")
-         @JvmField val ITEMS = Field(Long::class, { it.itemCount }, "Items", "Number of songs in the group")
-         @JvmField val ALBUMS = Field(Long::class, { it.albumCount }, "Albums", "Number of albums in the group")
-         @JvmField val LENGTH = Field(Duration::class, { it.getLength() }, "Length", "Total length of the group")
-         @JvmField val SIZE = Field(FileSize::class, { it.getFileSize() }, "Size", "Total file size of the group")
-         @JvmField val AVG_RATING = Field(Double::class, { it.avgRating }, "Avg rating", "Average rating of the group = sum(rating)/items")
-         @JvmField val W_RATING = Field(Double::class, { it.weighRating }, "W rating", "Weighted rating of the group = sum(rating) = avg_rating*items")
-         @JvmField val YEAR = Field(RangeYear::class, { it.year }, "Year", "Year or years of songs in the group")
+      companion object: ObjectFieldRegistry<MetadataGroup, Field<*>>(MetadataGroup::class) {
+         @JvmField val VALUE = this + Field(Any::class, { it.value }, "Value", "Song field to group by")
+         @JvmField val ITEMS = this + Field(Long::class, { it.itemCount }, "Items", "Number of songs in the group")
+         @JvmField val ALBUMS = this + Field(Long::class, { it.albumCount }, "Albums", "Number of albums in the group")
+         @JvmField val LENGTH = this + Field(Duration::class, { it.getLength() }, "Length", "Total length of the group")
+         @JvmField val SIZE = this + Field(FileSize::class, { it.getFileSize() }, "Size", "Total file size of the group")
+         @JvmField val AVG_RATING = this + Field(Double::class, { it.avgRating }, "Avg rating", "Average rating of the group = sum(rating)/items")
+         @JvmField val W_RATING = this + Field(Double::class, { it.weighRating }, "W rating", "Weighted rating of the group = sum(rating) = avg_rating*items")
+         @JvmField val YEAR = this + Field(RangeYear::class, { it.year }, "Year", "Year or years of songs in the group")
 
-         @JvmStatic fun valueOf(s: String): Field<*> = when (s) {
-            ITEMS.name() -> ITEMS
-            ALBUMS.name() -> ALBUMS
-            LENGTH.name() -> LENGTH
-            SIZE.name() -> SIZE
-            AVG_RATING.name() -> AVG_RATING
-            W_RATING.name() -> W_RATING
-            YEAR.name() -> YEAR
-            else -> VALUE
-         }
-
+         @JvmStatic override fun valueOf(text: String) = super.valueOf(text) ?: VALUE
       }
 
    }
 
    companion object {
 
-      @JvmStatic fun groupOfUnrelated(ms: Collection<Metadata>) = MetadataGroup(Metadata.Field.ALBUM, true, null, ms)
+      @JvmStatic
+      fun groupOfUnrelated(ms: Collection<Metadata>) = MetadataGroup(Metadata.Field.ALBUM, true, null, ms)
 
       @JvmStatic
       fun groupOf(f: Metadata.Field<*>, ms: Collection<Metadata>) = MetadataGroup(f, true, getAllValue(f), ms)
 
-      @JvmStatic fun groupsOf(f: Metadata.Field<*>, ms: Collection<Metadata>): Stream<MetadataGroup> {
+      @JvmStatic
+      fun groupsOf(f: Metadata.Field<*>, ms: Collection<Metadata>): Stream<MetadataGroup> {
          val getGroupedOf = f.getGroupedOf()
          return ms.asSequence().groupBy { getGroupedOf(it) }
             .entries.stream()

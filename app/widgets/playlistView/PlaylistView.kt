@@ -176,7 +176,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       }
       table.menuOrder.apply {
          menu("Order by") {
-            items(Field.FIELDS.asSequence(), { it.name() }) { table.sortBy(it) }
+            items(Field.all.asSequence(), { it.name() }) { table.sortBy(it) }
          }
          item("Order reverse") { playlist.reverse() }
          item("Order randomly") { playlist.randomize() }

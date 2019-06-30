@@ -5,7 +5,6 @@ import com.drew.imaging.ImageProcessingException
 import com.drew.metadata.Schema
 import com.drew.metadata.xmp.XmpDirectory
 import mu.KotlinLogging
-import sp.it.util.dev.failCase
 import sp.it.util.file.FileType
 import sp.it.util.file.nameOrRoot
 import sp.it.util.file.nameWithoutExtensionOrRoot
@@ -34,16 +33,11 @@ private val logger = KotlinLogging.logger { }
 
 class FileField<T: Any>: ObjectFieldBase<File, T> {
 
-   private constructor(name: String, description: String, type: KClass<T>, extractor: (File) -> T?): super(type, extractor, name, description) {
-      FIELDS_IMPL += this
-   }
+   private constructor(name: String, description: String, type: KClass<T>, extractor: (File) -> T?): super(type, extractor, name, description)
 
    override fun toS(o: T?, substitute: String) = o?.toString() ?: substitute
 
-   companion object {
-      private val FIELDS_IMPL = HashSet<FileField<*>>()
-      @F val FIELDS: Set<FileField<*>> = FIELDS_IMPL
-
+   companion object: ObjectFieldRegistry<File, FileField<*>>(File::class) {
       @F val PATH = FileField("Path", "Path", String::class) { it.path }
       @F val NAME = FileField("Name", "Name", String::class) { it.nameWithoutExtensionOrRoot }
       @F val NAME_FULL = FileField("Filename", "Filename", String::class) { it.nameOrRoot }
@@ -55,21 +49,6 @@ class FileField<T: Any>: ObjectFieldBase<File, T> {
       @F val TYPE = FileField("Type", "Type", FileType::class) { FileType(it) }
       @F val MIME = FileField("Mime Type", "Mime Type", MimeType::class) { it.mimeType() }
       @F val MIME_GROUP = FileField("Mime Group", "Mime Group", String::class) { it.mimeType().group }
-
-      fun valueOf(s: String): FileField<*> = when (s) {
-         PATH.name() -> PATH
-         NAME.name() -> NAME
-         NAME_FULL.name() -> NAME_FULL
-         EXTENSION.name() -> EXTENSION
-         SIZE.name() -> SIZE
-         TIME_ACCESSED.name() -> TIME_ACCESSED
-         TIME_MODIFIED.name() -> TIME_MODIFIED
-         TIME_CREATED.name() -> TIME_CREATED
-         TYPE.name() -> TYPE
-         MIME.name() -> MIME
-         MIME_GROUP.name() -> MIME_GROUP
-         else -> failCase(s)
-      }
    }
 
 }

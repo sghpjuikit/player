@@ -32,6 +32,7 @@ import sp.it.pl.gui.objects.image.cover.ImageCover
 import sp.it.pl.main.APP
 import sp.it.pl.main.isImage
 import sp.it.util.access.fieldvalue.ObjectFieldBase
+import sp.it.util.access.fieldvalue.ObjectFieldRegistry
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
@@ -53,8 +54,7 @@ import java.net.URI
 import java.time.DateTimeException
 import java.time.LocalDateTime
 import java.time.Year
-import java.util.HashSet
-import kotlin.collections.set
+import kotlin.math.pow
 import kotlin.reflect.KClass
 import kotlin.jvm.JvmField as F
 
@@ -445,8 +445,8 @@ class Metadata: Song, Serializable {
     */
    fun isEmpty(): Boolean = this===EMPTY
 
-   /** @return comprehensive information about all string representable tag fields of this */
-   fun getInfo(): String = Field.FIELDS.asSequence()
+   /** @return comprehensive information about all string representable tag fields of this song */
+   fun getInfo(): String = Field.all.asSequence()
       .filter { it.isTypeStringRepresentable() }
       .map { "${it.name()}: ${getField(it)}" }
       .joinToString("\n")
@@ -597,9 +597,9 @@ class Metadata: Song, Serializable {
       failIfFxThread()
 
       return when (source) {
-         Cover.CoverSource.TAG -> readCoverFromTag() ?: Cover.EMPTY
-         Cover.CoverSource.DIRECTORY -> readCoverFromDir() ?: Cover.EMPTY
-         Cover.CoverSource.ANY -> sequenceOf(CoverSource.TAG, CoverSource.DIRECTORY)
+         CoverSource.TAG -> readCoverFromTag() ?: Cover.EMPTY
+         CoverSource.DIRECTORY -> readCoverFromDir() ?: Cover.EMPTY
+         CoverSource.ANY -> sequenceOf(CoverSource.TAG, CoverSource.DIRECTORY)
             .mapNotNull { getCover(it) }
             .firstOrNull { !it.isEmpty }
             ?: Cover.EMPTY
@@ -638,7 +638,7 @@ class Metadata: Song, Serializable {
       custom2?.let {
          it.split(SEPARATOR_CHAPTER)
             .asSequence()
-            .filter { !it.isEmpty() }
+            .filter { it.isNotEmpty() }
             .mapNotNull { chapter(it) orNull { logger.error { it } } }
             .sorted()
             .toList()
@@ -708,9 +708,9 @@ class Metadata: Song, Serializable {
       if (r!=0) return r
       r = (album ?: "").compareTo(m.album ?: "")
       if (r!=0) return r
-      r = Integer.compare(disc ?: -1, m.disc ?: -1)
+      r = (disc ?: -1).compareTo(m.disc ?: -1)
       if (r!=0) return r
-      r = Integer.compare(track ?: -1, m.track ?: -1)
+      r = (track ?: -1).compareTo(m.track ?: -1)
       if (r!=0) return r
       r = (title ?: "").compareTo(m.title ?: "")
       return r
@@ -785,7 +785,7 @@ class Metadata: Song, Serializable {
       }
 
       @Suppress("UNCHECKED_CAST")
-      private val FIELDS_FULLTEXT: List<Field<String>> = Field.FIELDS.asSequence()
+      private val FIELDS_FULLTEXT: List<Field<String>> = Field.all.asSequence()
          .filter { String::class.java==it.type }
          .map { it as Field<String> }
          .toList()
@@ -816,7 +816,7 @@ class Metadata: Song, Serializable {
          else -> { m -> getOf(m) }
       }
 
-      fun isFieldEmpty(m: Metadata): Boolean = getOf(m)==getOf(Metadata.EMPTY)
+      fun isFieldEmpty(m: Metadata): Boolean = getOf(m)==getOf(EMPTY)
 
       override fun isTypeNumberNoNegative(): Boolean = true
 
@@ -827,7 +827,7 @@ class Metadata: Song, Serializable {
             RATING -> String.format("%.2f", o as Double)
             LENGTH -> (o as Duration).toHMSMs()
             else -> if (this===DISC || this===DISCS_TOTAL || this===TRACK || this===TRACKS_TOTAL || this===PLAYCOUNT) {
-               if (getOf(Metadata.EMPTY)==o) substitute
+               if (getOf(EMPTY)==o) substitute
                else o.toString()
             } else {
                o.toString()
@@ -839,65 +839,54 @@ class Metadata: Song, Serializable {
 
       override fun cWidth(): Double = if (this===PATH || this===TITLE) 160.0 else 60.0
 
-      companion object {
-
-         private val FIELDS_IMPL: MutableSet<Field<*>> = HashSet()
-         private val FIELDS_BY_NAME = HashMap<String, Field<*>>()
-         private val FIELD_NAMES_IMPL: MutableSet<String> = HashSet()
-         @F val FIELDS: Set<Field<*>> = FIELDS_IMPL
-         @F val FIELD_NAMES: Set<String> = FIELD_NAMES_IMPL
-
-         @F val PATH = field({ it.getPathAsString() }, "Path", "Song location")
-         @F val FILENAME = field({ it.getFilename() }, "Filename", "Song file name without suffix")
-         @F val FORMAT = field({ it.getFormat() }, "Format", "Song file type ")
-         @F val FILESIZE = field({ it.getFileSize() }, "Filesize", "Song file size")
-         @F val ENCODING = field({ it.encodingType }, "Encoding", "Song encoding")
-         @F val BITRATE = field({ it.getBitrate() }, "Bitrate", "Number of kb per second of the song - quality aspect.")
-         @F val ENCODER = field({ it.encoder }, "Encoder", "Song encoder")
-         @F val CHANNELS = field({ it.channels }, "Channels", "Number of channels")
-         @F val SAMPLE_RATE = field({ it.sampleRate }, "Sample rate", "Sample frequency")
-         @F val LENGTH = field({ it.getLength() }, "Length", "Song length")
-         @F val TITLE = field({ it.title }, "Title", "Song title")
-         @F val ALBUM = field({ it.album }, "Album", "Song album")
-         @F val ARTIST = field({ it.artist }, "Artist", "Artist of the song")
-         @F val ALBUM_ARTIST = field({ it.albumArtist }, "Album artist", "Artist of the song album")
-         @F val COMPOSER = field({ it.composer }, "Composer", "Composer of the song")
-         @F val PUBLISHER = field({ it.publisher }, "Publisher", "Publisher of the album")
-         @F val TRACK = field({ it.track }, "Track", "Song number within album")
-         @F val TRACKS_TOTAL = field({ it.tracksTotal }, "Tracks total", "Number of songs in the album")
-         @F val TRACK_INFO = field({ it.getTrackInfo() }, "Track info", "Complete song number in format: track/track total")
-         @F val DISC = field({ it.disc }, "Disc", "Disc number within album")
-         @F val DISCS_TOTAL = field({ it.discsTotal }, "Discs total", "Number of discs in the album")
-         @F val DISCS_INFO = field({ it.getDiscInfo() }, "Discs info", "Complete disc number in format: disc/disc total")
-         @F val GENRE = field({ it.genre }, "Genre", "Genre of the song")
-         @F val YEAR = field({ it.getYear() }, "Year", "Year the album was published")
-         @F val COVER = field({ it.readCoverFromTag() }, "Cover", "Cover of the song")
-         @F val RATING = field({ it.getRatingPercent() }, "Rating", "Song rating in 0-1 range")
-         @F val RATING_RAW = field({ it.rating }, "Rating raw", "Song rating tag value. Depends on tag type")
-         @F val PLAYCOUNT = field({ it.getPlaycount() }, "Playcount", "Number of times the song was played.")
-         @F val CATEGORY = field({ it.category }, "Category", "Category of the song. Arbitrary")
-         @F val COMMENT = field({ it.comment }, "Comment", "User comment of the song. Arbitrary")
-         @F val LYRICS = field({ it.lyrics }, "Lyrics", "Lyrics for the song")
-         @F val MOOD = field({ it.mood }, "Mood", "Mood the song evokes")
-         @F val COLOR = field({ it.getColor() }, "Color", "Color the song evokes")
-         @F val TAGS = field({ it.tags }, "Tags", "Tags associated with this song")
-         @F val CHAPTERS = field({ it.getChapters() }, "Chapters", "Comments at specific time points of the song")
-         @F val FULLTEXT = field({ it.getFulltext() }, "Fulltext", "All possible fields merged into single text. Use for searching.")
-         @F val CUSTOM1 = field({ it.custom1 }, "Custom1", "Custom field 1. Reserved for chapters.")
-         @F val CUSTOM2 = field({ it.custom2 }, "Custom2", "Custom field 2. Reserved for color.")
-         @F val CUSTOM3 = field({ it.custom3 }, "Custom3", "Custom field 3. Reserved for playback.")
-         @F val CUSTOM4 = field({ it.custom4 }, "Custom4", "Custom field 4")
-         @F val CUSTOM5 = field({ it.custom5 }, "Custom5", "Custom field 5")
-         @F val FIRST_PLAYED = field({ it.getTimePlayedFirst() }, "First played", "Marks time the song was played the first time.")
-         @F val LAST_PLAYED = field({ it.getTimePlayedLast() }, "Last played", "Marks time the song was played the last time.")
-         @F val ADDED_TO_LIBRARY = field({ it.getTimeLibraryAdded() }, "Added to library", "Marks time the song was added to the library.")
+      companion object: ObjectFieldRegistry<Metadata, Field<*>>(Metadata::class) {
+         @F val PATH = this + field({ it.getPathAsString() }, "Path", "Song location")
+         @F val FILENAME = this + field({ it.getFilename() }, "Filename", "Song file name without suffix")
+         @F val FORMAT = this + field({ it.getFormat() }, "Format", "Song file type ")
+         @F val FILESIZE = this + field({ it.getFileSize() }, "Filesize", "Song file size")
+         @F val ENCODING = this + field({ it.encodingType }, "Encoding", "Song encoding")
+         @F val BITRATE = this + field({ it.getBitrate() }, "Bitrate", "Number of kb per second of the song - quality aspect.")
+         @F val ENCODER = this + field({ it.encoder }, "Encoder", "Song encoder")
+         @F val CHANNELS = this + field({ it.channels }, "Channels", "Number of channels")
+         @F val SAMPLE_RATE = this + field({ it.sampleRate }, "Sample rate", "Sample frequency")
+         @F val LENGTH = this + field({ it.getLength() }, "Length", "Song length")
+         @F val TITLE = this + field({ it.title }, "Title", "Song title")
+         @F val ALBUM = this + field({ it.album }, "Album", "Song album")
+         @F val ARTIST = this + field({ it.artist }, "Artist", "Artist of the song")
+         @F val ALBUM_ARTIST = this + field({ it.albumArtist }, "Album artist", "Artist of the song album")
+         @F val COMPOSER = this + field({ it.composer }, "Composer", "Composer of the song")
+         @F val PUBLISHER = this + field({ it.publisher }, "Publisher", "Publisher of the album")
+         @F val TRACK = this + field({ it.track }, "Track", "Song number within album")
+         @F val TRACKS_TOTAL = this + field({ it.tracksTotal }, "Tracks total", "Number of songs in the album")
+         @F val TRACK_INFO = this + field({ it.getTrackInfo() }, "Track info", "Complete song number in format: track/track total")
+         @F val DISC = this + field({ it.disc }, "Disc", "Disc number within album")
+         @F val DISCS_TOTAL = this + field({ it.discsTotal }, "Discs total", "Number of discs in the album")
+         @F val DISCS_INFO = this + field({ it.getDiscInfo() }, "Discs info", "Complete disc number in format: disc/disc total")
+         @F val GENRE = this + field({ it.genre }, "Genre", "Genre of the song")
+         @F val YEAR = this + field({ it.getYear() }, "Year", "Year the album was published")
+         @F val COVER = this + field({ it.readCoverFromTag() }, "Cover", "Cover of the song")
+         @F val RATING = this + field({ it.getRatingPercent() }, "Rating", "Song rating in 0-1 range")
+         @F val RATING_RAW = this + field({ it.rating }, "Rating raw", "Song rating tag value. Depends on tag type")
+         @F val PLAYCOUNT = this + field({ it.getPlaycount() }, "Playcount", "Number of times the song was played.")
+         @F val CATEGORY = this + field({ it.category }, "Category", "Category of the song. Arbitrary")
+         @F val COMMENT = this + field({ it.comment }, "Comment", "User comment of the song. Arbitrary")
+         @F val LYRICS = this + field({ it.lyrics }, "Lyrics", "Lyrics for the song")
+         @F val MOOD = this + field({ it.mood }, "Mood", "Mood the song evokes")
+         @F val COLOR = this + field({ it.getColor() }, "Color", "Color the song evokes")
+         @F val TAGS = this + field({ it.tags }, "Tags", "Tags associated with this song")
+         @F val CHAPTERS = this + field({ it.getChapters() }, "Chapters", "Comments at specific time points of the song")
+         @F val FULLTEXT = this + field({ it.getFulltext() }, "Fulltext", "All possible fields merged into single text. Use for searching.")
+         @F val CUSTOM1 = this + field({ it.custom1 }, "Custom1", "Custom field 1. Reserved for chapters.")
+         @F val CUSTOM2 = this + field({ it.custom2 }, "Custom2", "Custom field 2. Reserved for color.")
+         @F val CUSTOM3 = this + field({ it.custom3 }, "Custom3", "Custom field 3. Reserved for playback.")
+         @F val CUSTOM4 = this + field({ it.custom4 }, "Custom4", "Custom field 4")
+         @F val CUSTOM5 = this + field({ it.custom5 }, "Custom5", "Custom field 5")
+         @F val FIRST_PLAYED = this + field({ it.getTimePlayedFirst() }, "First played", "Marks time the song was played the first time.")
+         @F val LAST_PLAYED = this + field({ it.getTimePlayedLast() }, "Last played", "Marks time the song was played the last time.")
+         @F val ADDED_TO_LIBRARY = this + field({ it.getTimeLibraryAdded() }, "Added to library", "Marks time the song was added to the library.")
 
          private inline fun <reified T: Any> field(noinline extractor: (Metadata) -> T?, name: String, description: String) =
-            Field(T::class, extractor, name, description).apply {
-               FIELDS_IMPL += this
-               FIELD_NAMES_IMPL += name
-               FIELDS_BY_NAME[name] = this
-            }
+            Field(T::class, extractor, name, description)
 
          private val AUTO_COMPLETABLE = setOf<Field<*>>(
             ENCODER, ALBUM, ALBUM_ARTIST, COMPOSER, PUBLISHER, GENRE, CATEGORY, MOOD
@@ -913,15 +902,13 @@ class Metadata: Song, Serializable {
          private val GROUPS_FILESIZE = Array(65) {
             when (it) {
                0 -> FileSize(1)
-               in 1..62 -> FileSize(Math.pow(2.0, it.toDouble()).toLong())
+               in 1..62 -> FileSize(2.0.pow(it.toDouble()).toLong())
                63 -> FileSize(Long.MAX_VALUE)
                64 -> FileSize(0)
                else -> failCase(it)
             }
          }
          private val GROUPS_RATING = (0..20).map { it*5/100.0 }.toDoubleArray()
-
-         @JvmStatic fun valueOf(s: String): Field<*> = FIELDS_BY_NAME[s] ?: failCase(s)
       }
 
    }

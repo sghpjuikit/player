@@ -120,7 +120,7 @@ public class AlbumView extends SimpleController {
 			Metadata.Field<String> f = ALBUM;
 			view.implGetSkin().filter.inconsistent_state = true;
 			view.implGetSkin().filter.setPrefTypeSupplier(() -> PredicateData.ofField(VALUE));
-			view.implGetSkin().filter.setData(map(MetadataGroup.Field.FIELDS, mgf -> new PredicateData<ObjectField<MetadataGroup,Object>>(mgf.toString(f), mgf.getType(f), (MetadataGroup.Field) mgf)));
+			view.implGetSkin().filter.setData(map(MetadataGroup.Field.Companion.getAll(), mgf -> new PredicateData<ObjectField<MetadataGroup,Object>>(mgf.toString(f), mgf.getType(f), (MetadataGroup.Field) mgf)));
 			view.implGetSkin().filter.shrinkTo(0);
 			view.implGetSkin().filter.growTo1();
 			view.implGetSkin().filter.clear();

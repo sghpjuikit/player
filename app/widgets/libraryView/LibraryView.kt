@@ -117,7 +117,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
    val tableShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
    @IsConfig(name = "Field")
-   val fieldFilter by cv<MField<*>>(CATEGORY).values(MField.FIELDS.filter { it.isTypeStringRepresentable() }) attach {
+   val fieldFilter by cv<MField<*>>(CATEGORY).values(MField.all.filter { it.isTypeStringRepresentable() }) attach {
       applyData()
    }
 
@@ -207,7 +207,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       table.columnMenu.onEventDown(WINDOW_HIDDEN) { fieldMenu.items.clear() }
       table.columnMenu.onEventDown(WINDOW_SHOWING) {
          fieldMenu.items setTo buildSingleSelectionMenu(
-            list(MField.FIELDS), fieldFilter.value,
+            list(MField.all), fieldFilter.value,
             { it.name() },
             { fieldFilter.setValue(it) }
          )
@@ -276,7 +276,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       val f = fieldFilter.value
       table.filterPane.inconsistent_state = true
       table.filterPane.setPrefTypeSupplier { PredicateData.ofField(VALUE) }
-      table.filterPane.data = MgField.FIELDS.map { PredicateData(it.toString(f), it.getType(f), it as ObjectField<MetadataGroup, Any>) }
+      table.filterPane.data = MgField.all.map { PredicateData(it.toString(f), it.getType(f), it as ObjectField<MetadataGroup, Any>) }
       if (table.filterVisible.value) {
          table.filterPane.shrinkTo(0)
          table.filterPane.growTo1()

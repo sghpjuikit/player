@@ -206,30 +206,43 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         // class, the first added action will become 'default' and show up as selected when data is
         // set.
         // Therefore, the order below matters.
-        acts.accumulate(new Act<>("Rename files", File.class, 1, list("Filename"), (file, data) -> {
-            String name = data.get("Filename");
-            Util.renameFileNoSuffix(file, name);
-        }));
-        acts.accumulate(new Act<>("Rename files (and extension)", File.class, 1, list("Filename"), (file, data) -> {
-            String name = data.get("Filename");
-            Util.renameFile(file, name);
-        }));
-        acts.accumulate(new Act<>("Edit song tags", Song.class, 100, () -> map(Metadata.Field.FIELDS, f -> f.name()), data -> {
-            List<Song> songs = source.stream().filter(Song.class::isInstance).map(Song.class::cast).collect(toList());
-            if (songs.isEmpty()) return;
-            withAppProgress(
-                runIO(() -> {
-                    for (int i=0; i<songs.size(); i++) {
-                        int j = i;
-                        writeNoRefresh(songs.get(i), consumer(w -> data.forEach((field, values) -> w.setFieldS(Metadata.Field.valueOf(field), values.get(j)))));
-                    }
+        acts.accumulate(
+            new Act<>("Rename files", File.class, 1, list("Filename"), (file, data) -> {
+                String name = data.get("Filename");
+                Util.renameFileNoSuffix(file, name);
+            })
+        );
+        acts.accumulate(
+            new Act<>("Rename files (and extension)", File.class, 1, list("Filename"), (file, data) -> {
+                String name = data.get("Filename");
+                Util.renameFile(file, name);
+            })
+        );
+        acts.accumulate(
+            new Act<>("Edit song tags", Song.class, 100, () -> map(Metadata.Field.Companion.getAll(), f -> f.name()), data -> {
+                List<Song> songs = source.stream().filter(Song.class::isInstance).map(Song.class::cast).collect(toList());
+                if (songs.isEmpty()) return;
+                withAppProgress(
+                    runIO(() -> {
+                        for (int i=0; i<songs.size(); i++) {
+                            int j = i;
+                            writeNoRefresh(
+                                songs.get(i),
+                                consumer(w ->
+                                    data.forEach((field, values) ->
+                                        w.setFieldS(Metadata.Field.Companion.valueOf(field), values.get(j))
+                                    )
+                                )
+                            );
+                        }
 
-                    Player.refreshSongsWith(stream(songs).map(SongReadingKt::read).filter(m -> !m.isEmpty()).collect(toList()));
-                    return null;
-                }),
-                widget.custom_name.getValue() + "Editing song tags"
-            );
-        }));
+                        Player.refreshSongsWith(stream(songs).map(SongReadingKt::read).filter(m -> !m.isEmpty()).collect(toList()));
+                        return null;
+                    }),
+                    widget.custom_name.getValue() + "Editing song tags"
+                );
+            })
+        );
         acts.accumulate(new WriteFileAct());
         acts.accumulate(new ActCreateDirs());
 

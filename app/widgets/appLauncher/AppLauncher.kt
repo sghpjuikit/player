@@ -101,7 +101,7 @@ class AppLauncher(widget: Widget): SimpleController(widget) {
    @IsConfig(name = "Sort first", info = "Group directories and files - files first, last or no separation.")
    private val sortFile by cv(DIR_FIRST) attach { applySort() }
    @IsConfig(name = "Sort seconds", info = "Sorting criteria.")
-   private val sortBy by cv<FileField<*>>(FileField.NAME).values(FileField.FIELDS) attach { applySort() }
+   private val sortBy by cv<FileField<*>>(FileField.NAME).values(FileField.all) attach { applySort() }
    @Dependency("Must be Config. Accessed in the application by name")
    @IsConfig(name = "Close on launch", info = "Close this widget when it launches a program.")
    private var closeOnLaunch by c(false)

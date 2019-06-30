@@ -3,9 +3,6 @@ package sp.it.pl.core
 import javafx.util.Duration
 import org.atteo.evo.inflector.English
 import sp.it.pl.audio.Song
-import sp.it.pl.audio.playlist.PlaylistSong
-import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.util.Util.StringDirection
 import sp.it.util.Util.StringDirection.FROM_START
 import sp.it.util.Util.addText
@@ -214,13 +211,6 @@ object CoreFunctors: Core {
          addPredicatesComparable(Long::class.java, 0L)
          addPredicatesComparable(Double::class.java, 0.0)
          addPredicatesComparable(Float::class.java, 0f)
-
-         @Suppress("UNCHECKED_CAST")
-         for (f in Metadata.Field.FIELDS) add(f.name(), Metadata::class.java, f.type as Class<Any?>, { f.getOf(it) })
-         @Suppress("UNCHECKED_CAST")
-         for (f in PlaylistSong.Field.FIELDS) add(f.name(), PlaylistSong::class.java, f.type as Class<Any?>, { f.getOf(it) })
-         @Suppress("UNCHECKED_CAST")
-         for (f in MetadataGroup.Field.FIELDS) add(f.name(), MetadataGroup::class.java, f.type as Class<Any?>, { f.getOf(it) })
       }
    }
 

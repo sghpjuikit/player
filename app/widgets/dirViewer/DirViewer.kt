@@ -146,7 +146,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    @IsConfig(name = "Sort first", info = "Group directories and files - files first, last or no separation.")
    private val sortFile by cv(DIR_FIRST) attach { applySort() }
    @IsConfig(name = "Sort seconds", info = "Sorting criteria.")
-   private val sortBy by cv<FileField<*>>(FileField.NAME).values(FileField.FIELDS) attach { applySort() }
+   private val sortBy by cv<FileField<*>>(FileField.NAME).values(FileField.all) attach { applySort() }
    @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
    private var lastVisited by cn<File>(null).only(FileActor.DIRECTORY)
 

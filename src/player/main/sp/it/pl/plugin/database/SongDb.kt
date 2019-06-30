@@ -116,7 +116,7 @@ class SongDb {
 
    private fun updateSongValues() {
       itemUniqueValuesByField.clear()
-      Metadata.Field.FIELDS.asSequence()
+      Metadata.Field.all.asSequence()
          .filter { it.isAutoCompletable() }
          .forEach { f ->
             itemUniqueValuesByField[f] = songsById.asSequence()

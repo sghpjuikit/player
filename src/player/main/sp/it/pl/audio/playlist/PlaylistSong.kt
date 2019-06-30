@@ -11,6 +11,7 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.main.APP
 import sp.it.util.access.fieldvalue.ObjectFieldBase
+import sp.it.util.access.fieldvalue.ObjectFieldRegistry
 import sp.it.util.async.runFX
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failCase
@@ -19,7 +20,6 @@ import sp.it.util.functional.orNull
 import sp.it.util.identityHashCode
 import sp.it.util.units.toHMSMs
 import java.net.URI
-import java.util.HashSet
 import kotlin.reflect.KClass
 
 /**
@@ -186,9 +186,7 @@ class PlaylistSong: Song {
 
    class Field<T: Any>: ObjectFieldBase<PlaylistSong, T> {
 
-      internal constructor(type: KClass<T>, name: String, description: String, extractor: (PlaylistSong) -> T?): super(type, extractor, name, description) {
-         FIELDS_IMPL.add(this)
-      }
+      private constructor(type: KClass<T>, name: String, description: String, extractor: (PlaylistSong) -> T?): super(type, extractor, name, description)
 
       override fun isTypeNumberNoNegative(): Boolean = true
 
@@ -205,29 +203,16 @@ class PlaylistSong: Song {
 
       override fun cVisible(): Boolean = this===NAME || this===LENGTH
 
-      companion object {
-
-         private val FIELDS_IMPL: MutableSet<Field<*>> = HashSet()
-         @JvmField val FIELDS: Set<Field<*>> = FIELDS_IMPL
-         @JvmField val NAME = Field(String::class, "Name", "'Song artist' - 'Song title'") { it.name }
-         @JvmField val TITLE = Field(String::class, "Title", "Song title") { it.title }
-         @JvmField val ARTIST = Field(String::class, "Artist", "Song artist") { it.artist }
-         @JvmField val LENGTH = Field(Duration::class, "Time", "Song length") { it.time }
-         @JvmField val PATH = Field(String::class, "Path", "Song file path") { it.getPathAsString() }
-         @JvmField val FORMAT = Field(AudioFileFormat::class, "Format", "Song file type") { it.getFormat() }
-
-         fun valueOf(s: String): Field<*> = when (s) {
-            NAME.name() -> NAME
-            TITLE.name() -> TITLE
-            ARTIST.name() -> ARTIST
-            LENGTH.name() -> LENGTH
-            PATH.name() -> PATH
-            FORMAT.name() -> FORMAT
-            else -> failCase(s)
-         }
-
+      companion object: ObjectFieldRegistry<PlaylistSong, Field<*>>(PlaylistSong::class) {
+         @JvmField val NAME = this + Field(String::class, "Name", "'Song artist' - 'Song title'") { it.name }
+         @JvmField val TITLE = this + Field(String::class, "Title", "Song title") { it.title }
+         @JvmField val ARTIST = this + Field(String::class, "Artist", "Song artist") { it.artist }
+         @JvmField val LENGTH = this + Field(Duration::class, "Time", "Song length") { it.time }
+         @JvmField val PATH = this + Field(String::class, "Path", "Song file path") { it.getPathAsString() }
+         @JvmField val FORMAT = this + Field(AudioFileFormat::class, "Format", "Song file type") { it.getFormat() }
       }
 
    }
 
 }
+

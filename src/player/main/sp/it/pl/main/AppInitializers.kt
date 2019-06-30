@@ -16,7 +16,6 @@ import sp.it.pl.layout.widget.controller.io.Input
 import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.plugin.Plugin
-import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.dev.fail
 import sp.it.util.file.FileType
@@ -31,10 +30,12 @@ import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceInfo
 import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
+import sp.it.util.type.Util.getRawGenericPropertyType
 import sp.it.util.ui.image.getImageDim
 import sp.it.util.units.FileSize
 import java.io.File
 import java.util.function.Consumer
+import kotlin.reflect.KClass
 
 fun File.verify() {
    if (!isAbsolute)
@@ -49,11 +50,12 @@ fun AppInstanceComm.initApp() {
 }
 
 fun ObjectFieldMap.initApp() {
-   add(PlaylistSong::class.java, PlaylistSong.Field.FIELDS)
-   add(Metadata::class.java, Metadata.Field.FIELDS)
-   add(MetadataGroup::class.java, MetadataGroup.Field.FIELDS)
-   add(Any::class.java, ColumnField.FIELDS)
-   add(File::class.java, FileField.FIELDS)
+   infix fun KClass<*>.touch(unit: Unit) = unit
+   PlaylistSong::class touch Unit
+   Metadata::class touch Unit
+   MetadataGroup::class touch Unit
+   Any::class touch Unit
+   File::class touch Unit
 }
 
 fun ClassName.initApp() {
@@ -90,7 +92,7 @@ fun InstanceName.initApp() {
    add(Output::class.java) { it.name }
    add(InOutput::class.java) { it.o.name }
    add(Collection::class.java) {
-      val eType = sp.it.util.type.Util.getRawGenericPropertyType(it.javaClass)
+      val eType = getRawGenericPropertyType(it.javaClass)
       val eName = if (eType==it.javaClass || eType==null || eType==Any::class.java) "Item" else APP.className[eType]
       it.size.toString() + " " + English.plural(eName, it.size)
    }
@@ -120,12 +122,12 @@ fun InstanceInfo.initApp() {
    add(App::class.java) { v, map -> map["Name"] = v.name }
    add(Component::class.java) { v, map -> map["Name"] = v.exportName }
    add(Metadata::class.java) { m, map ->
-      Metadata.Field.FIELDS.asSequence()
+      Metadata.Field.all.asSequence()
          .filter { it.isTypeStringRepresentable() && !it.isFieldEmpty(m) }
          .forEach { map[it.name()] = it.getOfS(m, "<none>") }
    }
    add(PlaylistSong::class.java) { p, map ->
-      PlaylistSong.Field.FIELDS.asSequence()
+      PlaylistSong.Field.all.asSequence()
          .filter { it.isTypeStringRepresentable() }
          .forEach { map[it.name()] = it.getOfS(p, "<none>") }
    }

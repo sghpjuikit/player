@@ -49,7 +49,7 @@ fun IsConfig?.computeConfigGroup(declaringRef: Any): String {
 
 fun obtainConfigGroup(info: IsConfig?, type: KClass<*>, or: String = type.simpleName ?: type.jvmName): String = null
    ?: info?.let { it.group.takeIf { it.isNotBlank() } }
-   ?: type.findAnnotation<IsConfigurable>()?.let { it.value.takeIf { it.isNotBlank() } }
+   ?: type.findAnnotation<IsConfigurable>()?.let { it.groupPrefix.takeIf { it.isNotBlank() } }
    ?: or
 
 fun obtainConfigGroup(info: IsConfig?, type: Class<*>): String = obtainConfigGroup(info, type.kotlin)

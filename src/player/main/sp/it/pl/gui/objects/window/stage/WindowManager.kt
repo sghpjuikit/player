@@ -89,7 +89,7 @@ import java.util.HashSet
 import java.util.Optional
 import javafx.stage.Window as WindowFX
 
-@IsConfigurable(value = Settings.Ui.Window.name)
+@IsConfigurable(Settings.Ui.Window.name)
 class WindowManager {
 
    @JvmField var screenMaxScaling = 0.0

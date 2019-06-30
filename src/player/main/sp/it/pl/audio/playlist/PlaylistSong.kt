@@ -12,6 +12,7 @@ import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.main.APP
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.async.runFX
+import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.functional.orNull
@@ -19,7 +20,6 @@ import sp.it.util.identityHashCode
 import sp.it.util.units.toHMSMs
 import java.net.URI
 import java.util.HashSet
-import java.util.function.Consumer
 import kotlin.reflect.KClass
 
 /**
@@ -53,7 +53,7 @@ class PlaylistSong: Song {
     *
     * If false, update() can be called.
     */
-   var isUpdated: Boolean = false
+   @Volatile var isUpdated: Boolean = false
       private set
    /**
     * Returns true if this item was marked corrupt last time it was checked to be corrupted. This doesn't necessarily
@@ -63,7 +63,7 @@ class PlaylistSong: Song {
     *
     * @return cached corrupted value
     */
-   var isCorruptCached = false
+   @Volatile var isCorruptCached = false
       internal set
 
    /** New not updated item */
@@ -104,15 +104,17 @@ class PlaylistSong: Song {
     * prevents not updated songs from ever updating. Never use {@link AppActions#toMeta} where full
     * metadata object is required.
     */
+   @ThreadSafe
    fun update() {
       if (isUpdated || isCorrupt()) return
       isUpdated = true
 
-      // if library contains the item, use it & avoid I/O
-      // improves performance almost 100-fold when item in library
-      val id = id
-      if (APP.db.songsById.containsKey(id)) {
-         APP.db.songsById.ifHasK(id, Consumer { update(it) })
+      // if library contains the item, use it & avoid I/O, improves performance 100-fold when song is in library
+      val m = APP.db.songsById[id]
+      if (m!=null) {
+         runFX {
+            update(m)
+         }
          return
       }
 

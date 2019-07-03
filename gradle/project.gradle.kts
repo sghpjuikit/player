@@ -92,14 +92,10 @@ allprojects {
             os.isWindows -> "win"
             else -> failIO { "Unable to determine javafx dependency classifier due to unfamiliar system=$os" }
          }
-         implementation("org.openjfx:javafx-base:$version:$classifier")
-         implementation("org.openjfx:javafx-controls:$version:$classifier")
-         implementation("org.openjfx:javafx-graphics:$version:$classifier")
-         implementation("org.openjfx:javafx-fxml:$version:$classifier")
-         implementation("org.openjfx:javafx-media:$version:$classifier")
-         implementation("org.openjfx:javafx-swing:$version:$classifier")
-         implementation("org.openjfx:javafx-web:$version:$classifier")
-
+         val jfxLibs = arrayOf("base", "controls", "graphics", "fxml", "media", "swing", "web")
+         for(lib in jfxLibs) {
+            implementation("org.openjfx", "javafx-$lib", version, classifier = classifier)
+         }
          implementation("de.jensd", "fontawesomefx", "8.9")
       }
       "Logging" group {

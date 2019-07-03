@@ -93,7 +93,7 @@ allprojects {
             else -> failIO { "Unable to determine javafx dependency classifier due to unfamiliar system=$os" }
          }
          val jfxLibs = arrayOf("base", "controls", "graphics", "fxml", "media", "swing", "web")
-         for(lib in jfxLibs) {
+         for (lib in jfxLibs) {
             implementation("org.openjfx", "javafx-$lib", version, classifier = classifier)
          }
          implementation("de.jensd", "fontawesomefx", "8.9")
@@ -207,48 +207,51 @@ tasks {
    }
 
    val kotlinc by creating(Download::class) {
+      group = "build setup"
+      val kotlincDir = dirApp/"kotlinc"
+      description = "Downloads the kotlin compiler into $kotlincDir"
+
       val os = org.gradle.internal.os.OperatingSystem.current()
       val useExperimentalKotlinc = "player.kotlinc.experimental".prjProp?.toBoolean() ?: true
-      val dirKotlinc = dirApp/"kotlinc"
-      val fileKotlinVersion = dirKotlinc/"build.txt"
-      val nameKotlinc = when {
+      val kotlinVersionFile = kotlincDir/"version"
+      val kotlinExperimentalVersion = kotlinVersion.substringBeforeLast('.')
+      val kotlincZipName = when {
          !useExperimentalKotlinc -> "kotlin-compiler-$kotlinVersion.zip"
-         os.isLinux -> "kotlin-native-linux-1.3.tar.gz\n"
-         os.isMacOsX -> "kotlin-native-macos-1.3.tar.gz"
-         os.isWindows -> "kotlin-native-windows-1.3.zip"
+         os.isLinux -> "kotlin-native-linux-$kotlinExperimentalVersion.tar.gz"
+         os.isMacOsX -> "kotlin-native-macos-$kotlinExperimentalVersion.tar.gz"
+         os.isWindows -> "kotlin-native-windows-$kotlinExperimentalVersion.zip"
          else -> failIO { "Unable to determine kotlinc version due to unfamiliar system=$os" }
       }
-      val fileKotlinc = dirKotlinc/"bin"/"kotlinc"
-      val zipKotlinc = dirKotlinc/nameKotlinc
-      val eKotlinc = dirKotlinc/"experimental"
-      group = "build setup"
-      description = "Downloads the kotlin compiler into $dirKotlinc"
-      onlyIf { !fileKotlinVersion.exists() || !fileKotlinVersion.readText().startsWith(kotlinVersion) || eKotlinc.exists()!=useExperimentalKotlinc }
-      src("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/$nameKotlinc")
-      dest(dirKotlinc)
+      val kotlincBinary = kotlincDir/"bin"/"kotlinc"
+      val kotlincZip = kotlincDir/kotlincZipName
+
       doFirst {
          println("Obtaining Kotlin compiler experimental=$useExperimentalKotlinc from=$src")
-
-         if (dirKotlinc.exists()) {
+         if (kotlincDir.exists()) {
             println("Deleting obsolete version of Kotlin compiler...")
-            dirKotlinc.deleteRecursively().orFailIO { "Failed to remove Kotlin compiler, location=$dirKotlinc" }
+            kotlincDir.deleteRecursively().orFailIO { "Failed to remove Kotlin compiler, location=$kotlincDir" }
          }
-
-         if (!dirKotlinc.exists()) {
-            dirKotlinc.mkdir().orFailIO { "Failed to create directory=$dirKotlinc" }
+         if (!kotlincDir.exists()) {
+            kotlincDir.mkdirs().orFailIO { "Failed to create directory=$kotlincDir" }
          }
-
          println("Downloading...")
       }
+
+      src("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/$kotlincZipName")
+      dest(kotlincDir)
+      setOnlyIf { !kotlinVersionFile.exists() || kotlinVersionFile.readText() != src.toString() }
+
       doLast {
          copy {
-            from(zipTree(zipKotlinc))
-            into(dirApp)
+            from(if (kotlincZipName.endsWith("zip")) zipTree(kotlincZip) else tarTree(kotlincZip)) {
+               eachFile { relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray()) }
+               includeEmptyDirs = false
+            }
+            into(kotlincDir)
          }
-         fileKotlinc.setExecutable(true).orFailIO { "Failed to make file=$fileKotlinc executable" }
-         zipKotlinc.delete().orFailIO { "Failed to delete file=$zipKotlinc" } // clean up downloaded file
-         zipKotlinc.createNewFile()  // allows running this task in offline mode
-         if (useExperimentalKotlinc) eKotlinc.createNewFile()
+         kotlincBinary.setExecutable(true).orFailIO { "Failed to make file=$kotlincBinary executable" }
+         kotlincZip.delete().orFailIO { "Failed to clean up downloaded file=$kotlincZip" }
+         kotlinVersionFile.writeText(src.toString())
       }
    }
 

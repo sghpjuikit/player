@@ -38,17 +38,17 @@ class FileField<T: Any>: ObjectFieldBase<File, T> {
    override fun toS(o: T?, substitute: String) = o?.toString() ?: substitute
 
    companion object: ObjectFieldRegistry<File, FileField<*>>(File::class) {
-      @F val PATH = FileField("Path", "Path", String::class) { it.path }
-      @F val NAME = FileField("Name", "Name", String::class) { it.nameWithoutExtensionOrRoot }
-      @F val NAME_FULL = FileField("Filename", "Filename", String::class) { it.nameOrRoot }
-      @F val EXTENSION = FileField("Extension", "Extension", String::class) { it.extension }
-      @F val SIZE = FileField("Size", "Size", FileSize::class) { FileSize(it) }
-      @F val TIME_ACCESSED = FileField("Time Accessed", "Time Accessed", FileTime::class) { if (it is CachingFile) it.timeAccessed else it.readTimeAccessed() }
-      @F val TIME_MODIFIED = FileField("Time Modified", "Time Modified", LocalDateTime::class) { if (it is CachingFile) it.timeModified else it.readTimeModified() }
-      @F val TIME_CREATED = FileField("Time Created", "Time Created", FileTime::class) { if (it is CachingFile) it.timeCreated else it.readTimeCreated() }
-      @F val TYPE = FileField("Type", "Type", FileType::class) { FileType(it) }
-      @F val MIME = FileField("Mime Type", "Mime Type", MimeType::class) { it.mimeType() }
-      @F val MIME_GROUP = FileField("Mime Group", "Mime Group", String::class) { it.mimeType().group }
+      @F val PATH = this + FileField("Path", "Path", String::class) { it.path }
+      @F val NAME = this + FileField("Name", "Name", String::class) { it.nameWithoutExtensionOrRoot }
+      @F val NAME_FULL = this + FileField("Filename", "Filename", String::class) { it.nameOrRoot }
+      @F val EXTENSION = this + FileField("Extension", "Extension", String::class) { it.extension }
+      @F val SIZE = this + FileField("Size", "Size", FileSize::class) { FileSize(it) }
+      @F val TIME_ACCESSED = this + FileField("Time Accessed", "Time Accessed", FileTime::class) { if (it is CachingFile) it.timeAccessed else it.readTimeAccessed() }
+      @F val TIME_MODIFIED = this + FileField("Time Modified", "Time Modified", LocalDateTime::class) { if (it is CachingFile) it.timeModified else it.readTimeModified() }
+      @F val TIME_CREATED = this + FileField("Time Created", "Time Created", FileTime::class) { if (it is CachingFile) it.timeCreated else it.readTimeCreated() }
+      @F val TYPE = this + FileField("Type", "Type", FileType::class) { FileType(it) }
+      @F val MIME = this + FileField("Mime Type", "Mime Type", MimeType::class) { it.mimeType() }
+      @F val MIME_GROUP = this + FileField("Mime Group", "Mime Group", String::class) { it.mimeType().group }
    }
 
 }

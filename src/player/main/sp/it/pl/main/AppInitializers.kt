@@ -16,6 +16,7 @@ import sp.it.pl.layout.widget.controller.io.Input
 import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.plugin.Plugin
+import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.dev.fail
 import sp.it.util.file.FileType
@@ -35,7 +36,6 @@ import sp.it.util.ui.image.getImageDim
 import sp.it.util.units.FileSize
 import java.io.File
 import java.util.function.Consumer
-import kotlin.reflect.KClass
 
 fun File.verify() {
    if (!isAbsolute)
@@ -50,12 +50,12 @@ fun AppInstanceComm.initApp() {
 }
 
 fun ObjectFieldMap.initApp() {
-   infix fun KClass<*>.touch(unit: Unit) = unit
-   PlaylistSong::class touch Unit
-   Metadata::class touch Unit
-   MetadataGroup::class touch Unit
-   Any::class touch Unit
-   File::class touch Unit
+   infix fun Any.touch(unit: Unit) = unit
+   PlaylistSong.Field touch Unit
+   Metadata.Field touch Unit
+   MetadataGroup.Field touch Unit
+   ColumnField touch Unit
+   FileField touch Unit
 }
 
 fun ClassName.initApp() {

@@ -204,25 +204,26 @@ tasks {
 
    val kotlinc by creating(Download::class) {
       group = "build setup"
-      val kotlincDir = dirApp/"kotlinc"
-      description = "Downloads the kotlin compiler into $kotlincDir"
+      description = "Downloads required version of the kotlin compiler"
 
       val os = org.gradle.internal.os.OperatingSystem.current()
       val useExperimentalKotlinc = "player.kotlinc.experimental".prjProp?.toBoolean() ?: true
-      val kotlinVersionFile = kotlincDir/"version"
-      val kotlinExperimentalVersion = kotlinVersion.substringBeforeLast('.')
+      val kotlincDir = dirApp/"kotlinc"
+      val kotlincVersionFile = kotlincDir/"version"
       val kotlincZipName = when {
          !useExperimentalKotlinc -> "kotlin-compiler-$kotlinVersion.zip"
-         os.isLinux -> "kotlin-native-linux-$kotlinExperimentalVersion.tar.gz"
-         os.isMacOsX -> "kotlin-native-macos-$kotlinExperimentalVersion.tar.gz"
-         os.isWindows -> "kotlin-native-windows-$kotlinExperimentalVersion.zip"
+         os.isLinux -> "experimental-kotlin-compiler-linux-x64.zip"
+         os.isMacOsX -> "experimental-kotlin-compiler-macos-x64.zip"
+         os.isWindows -> "experimental-kotlin-compiler-windows-x64.zip"
          else -> failIO { "Unable to determine kotlinc version due to unfamiliar system=$os" }
       }
       val kotlincBinary = kotlincDir/"bin"/"kotlinc"
       val kotlincZip = kotlincDir/kotlincZipName
+      val kotlincLinkVersion = if (!useExperimentalKotlinc) kotlinVersion else "1.3.31"
+      val kotlincLink = "https://github.com/JetBrains/kotlin/releases/download/v$kotlincLinkVersion/$kotlincZipName"
 
       doFirst {
-         println("Obtaining Kotlin compiler experimental=$useExperimentalKotlinc from=$src")
+         println("Obtaining Kotlin compiler experimental=$useExperimentalKotlinc from=$kotlincLink")
          if (kotlincDir.exists()) {
             println("Deleting obsolete version of Kotlin compiler...")
             kotlincDir.deleteRecursively().orFailIO { "Failed to remove Kotlin compiler, location=$kotlincDir" }
@@ -233,9 +234,9 @@ tasks {
          println("Downloading...")
       }
 
-      src("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/$kotlincZipName")
+      src(kotlincLink)
       dest(kotlincDir)
-      setOnlyIf { !kotlinVersionFile.exists() || kotlinVersionFile.readText() != src.toString() }
+      setOnlyIf { !kotlincVersionFile.exists() || kotlincVersionFile.readText() != src.toString() }
 
       doLast {
          copy {
@@ -247,7 +248,7 @@ tasks {
          }
          kotlincBinary.setExecutable(true).orFailIO { "Failed to make file=$kotlincBinary executable" }
          kotlincZip.delete().orFailIO { "Failed to clean up downloaded file=$kotlincZip" }
-         kotlinVersionFile.writeText(src.toString())
+         kotlincVersionFile.writeText(src.toString())
       }
    }
 

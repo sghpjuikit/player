@@ -32,7 +32,7 @@ class EmptyWidget(widget: Widget): Controller(widget) {
 
 }
 
-val emptyWidgetFactory = WidgetFactory(EmptyWidget::class, APP.DIR_WIDGETS/"Empty", null)
+val emptyWidgetFactory = WidgetFactory(EmptyWidget::class, APP.location.widgets/"Empty", null)
 
 val initialTemplateFactory = TemplateFactory("Playback + Playlist") {
    BiContainer(VERTICAL).apply {

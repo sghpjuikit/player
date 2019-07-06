@@ -116,7 +116,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Open file chooser to open an exported widget",
          IconMA.WIDGETS,
          ap.converting {
-            chooseFile("Open widget...", FILE, APP.DIR_LAYOUTS, ap.scene?.window, ExtensionFilter("Component", "*.fxwl"))
+            chooseFile("Open widget...", FILE, APP.location.user.layouts, ap.scene?.window, ExtensionFilter("Component", "*.fxwl"))
                .map { APP.windowManager.launchComponent(it) }
          }
       ),
@@ -125,7 +125,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Open file chooser to find a skin",
          IconMA.BRUSH,
          ap.converting {
-            chooseFile("Open skin...", FILE, APP.DIR_SKINS, ap.scene?.window, ExtensionFilter("Skin", "*.css"))
+            chooseFile("Open skin...", FILE, APP.location.skins, ap.scene?.window, ExtensionFilter("Skin", "*.css"))
                .map { APP.ui.setSkin(it) }
          }
       ),
@@ -134,7 +134,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Open file chooser to find a audio files",
          IconMD.MUSIC_NOTE,
          {
-            chooseFiles("Open audio...", APP.DIR_HOME, ap.scene?.window, audioExtensionFilter())
+            chooseFiles("Open audio...", APP.locationHome, ap.scene?.window, audioExtensionFilter())
                .map { runLater { APP.ui.actionPane.orBuild.show(it) } }   // may auto-close on finish, delay show()
          }
       )
@@ -147,7 +147,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             "as if it were a standalone application.",
          IconMD.EXPORT,
          { w ->
-            saveFile("Export to...", APP.DIR_LAYOUTS, w.exportName, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
+            saveFile("Export to...", APP.location.user.layouts, w.exportName, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
                .ifOk { w.exportFxwl(it) }
          }
       )
@@ -160,7 +160,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             "as if it were a standalone application. ",
          IconMD.EXPORT,
          { w ->
-            saveFile("Export to...", APP.DIR_LAYOUTS, w.exportName, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
+            saveFile("Export to...", APP.location.user.layouts, w.exportName, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
                .ifOk { w.exportFxwlDefault(it) }
          }
       ),

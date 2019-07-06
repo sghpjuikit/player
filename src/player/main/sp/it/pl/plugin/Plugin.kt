@@ -13,8 +13,8 @@ interface Plugin: Configurable<Any>, MultiConfigurable, Locatable {
 
    val name: String
    override val configurableDiscriminant get() = "${Settings.Plugin.name}.$name"
-   override val location get() = APP.DIR_APP/"plugins"/name
-   override val userLocation get() = APP.DIR_USERDATA/"plugins"/name
+   override val location get() = APP.location.plugins/name
+   override val userLocation get() = APP.location.user.plugins/name
 
    @Idempotent
    fun start()

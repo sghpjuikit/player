@@ -68,7 +68,7 @@ class VlcPlayer: GeneralPlayer.Play {
 
    override fun createPlayback(song: Song, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit) {
       val pf = playerFactory
-         ?: MediaPlayerFactory(discoverVlc(APP.DIR_APP/"vlc"), "--quiet", "--intf=dummy", "--novideo", "--no-metadata-network-access")
+         ?: MediaPlayerFactory(discoverVlc(APP.location/"vlc"), "--quiet", "--intf=dummy", "--novideo", "--no-metadata-network-access")
       playerFactory = pf
 
       if (PlayerConfiguration.playerVlcLocation.value==null) {

@@ -51,7 +51,6 @@ import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.dev.fail
 import sp.it.util.file.Util.isValidatedDirectory
-import sp.it.util.file.child
 import sp.it.util.file.div
 import sp.it.util.file.type.MimeTypes
 import sp.it.util.functional.Try
@@ -98,10 +97,8 @@ fun main(args: Array<String>) {
 }
 
 /** Application. Represents the program. */
-@Suppress("unused")
 @IsConfigurable("General")
 class App: Application(), Configurable<Any> {
-
 
    init {
       APP = this.takeUnless { ::APP.isInitialized } ?: fail { "Multiple application instances disallowed" }
@@ -113,32 +110,14 @@ class App: Application(), Configurable<Any> {
    @F val version = "0.7"
    /** Application code encoding. Useful for compilation during runtime. */
    @F val encoding = UTF_8
+   /** Absolute file of location of this app. Working directory of the project. `new File("").getAbsoluteFile()`. */
+   @F val location = AppFiles
+   /** Temporary directory of the os as seen by this application. */
+   @F val locationTmp = File(System.getProperty("java.io.tmpdir")) apply_ verify
+   /** Home directory of the os. */
+   @F val locationHome = File(System.getProperty("user.home")) apply_ verify
    /** Uri for github website for project of this application. */
    @F val uriGithub = URI.create("https://www.github.com/sghpjuikit/player/")
-   /** Absolute file of location of this app. Working directory of the project. new File("").getAbsoluteFile(). */
-   @F val DIR_APP = File("").absoluteFile
-   /** Temporary directory of the os. */
-   @F val DIR_TEMP = File(System.getProperty("java.io.tmpdir")) apply_ verify
-   /** Home directory of the os. */
-   @F val DIR_HOME = File(System.getProperty("user.home")) apply_ verify
-   /** Directory containing widgets - source files, class files and widget's resources. */
-   @F val DIR_WIDGETS = DIR_APP/"widgets" apply_ verify
-   /** Directory containing application resources. */
-   @F val DIR_RESOURCES = DIR_APP/"resources" apply_ verify
-   /** Directory containing skins. */
-   @F val DIR_SKINS = DIR_APP/"skins" apply_ verify
-   /** Directory containing user data created by application usage, such as customizations, song library, etc. */
-   @F val DIR_USERDATA = DIR_APP/"user" apply_ verify
-   /** Directory containing library database. */
-   @F val DIR_LIBRARY = DIR_USERDATA/"library" apply_ verify
-   /** Directory containing persisted user ui. */
-   @F val DIR_LAYOUTS_INIT = DIR_APP/"templates" apply_ verify
-   /** Directory containing initial templates - persisted user ui bundled with the application. */
-   @F val DIR_LAYOUTS = DIR_USERDATA/"layouts" apply_ verify
-   /** Directory for application logging. */
-   @F val DIR_LOG = DIR_USERDATA/"log" apply_ verify
-   /** File for application configuration. */
-   @F val FILE_SETTINGS = DIR_USERDATA/"application.properties"
 
    /** Rank this application instance started with. [MASTER] if started as the first instance, [SLAVE] otherwise. */
    val rankAtStart: Rank = if (getInstances()>1) SLAVE else MASTER
@@ -157,7 +136,7 @@ class App: Application(), Configurable<Any> {
       private set
    /** Various actions for the application */
    val actions = AppActions()
-   /** Global event bus. Usage: simply push an event or observe. Use of event constants and === is advised. */
+   /** Global event bus. Usage: simply push an event or observe. Use of event constants/objects is advised. */
    val actionStream = Handler1<Any>()
    /** Allows sending and receiving [java.lang.String] messages to and from other instances of this application. */
    val appCommunicator = AppInstanceComm()
@@ -171,6 +150,7 @@ class App: Application(), Configurable<Any> {
    val parameterProcessor = AppCli()
 
    init {
+      location.user.layouts
       parameterProcessor.process(fetchArguments())
 
       if (rankAtStart==SLAVE) {
@@ -186,10 +166,10 @@ class App: Application(), Configurable<Any> {
    }
 
    // cores (always active, mostly singletons)
-   @F val configuration = MainConfiguration.apply { rawAdd(FILE_SETTINGS) }
-   @F val logging = CoreLogging(DIR_RESOURCES.child("log_configuration.xml"), DIR_LOG)
+   @F val configuration = MainConfiguration.apply { rawAdd(location.user.`application properties`) }
+   @F val logging = CoreLogging(location.resources/"log_configuration.xml", location.user.log)
    @F val env = CoreEnv.apply { init() }
-   @F val imageIo = CoreImageIO(DIR_TEMP.child("imageio"))
+   @F val imageIo = CoreImageIO(locationTmp/"imageio")
    @F val converter = CoreConverter().apply { init() }
    @F val serializerXml = CoreSerializerXml()
    @F val serializer = CoreSerializer
@@ -225,10 +205,10 @@ class App: Application(), Configurable<Any> {
    val actionSettingsReset by cr { configuration.toDefault() }
 
    @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
-   val actionSettingsSave by cr { configuration.save(name, FILE_SETTINGS) }
+   val actionSettingsSave by cr { configuration.save(name, location.user.`application properties`) }
 
    /** Manages ui. */
-   @F val ui = UiManager(DIR_SKINS)
+   @F val ui = UiManager(location.skins)
    /** Guide containing tips and useful information. */
    @F val guide = Guide(actionStream)
    /** Application search */
@@ -236,7 +216,7 @@ class App: Application(), Configurable<Any> {
    /** Manages persistence and in-memory storage. */
    @F val db = SongDb()
    /** Manages widgets. */
-   @F val widgetManager = WidgetManager({ ui.messagePane.orBuild.show(it) })
+   @F val widgetManager = WidgetManager { ui.messagePane.orBuild.show(it) }
    /** Manages windows. */
    @F val windowManager = WindowManager()
    /** Manages plugins. */
@@ -294,7 +274,7 @@ class App: Application(), Configurable<Any> {
 
             MessagePane().initApp().apply { onHidden += { close() } }.show(
                "Application did not start successfully and will close." +
-                  "\nPlease fill an issue at $uriGithub providing the logs in $DIR_LOG." +
+                  "\nPlease fill an issue at $uriGithub providing the logs in ${location.user.log}." +
                   "\nThe exact problem was:\n ${it.stacktraceAsString}"
             )
          }
@@ -345,7 +325,7 @@ class App: Application(), Configurable<Any> {
       if (isInitialized.isOk) {
          if (rank==MASTER && isStateful) Player.state.serialize()
          if (rank==MASTER && isStateful) windowManager.serialize()
-         if (rank==MASTER) configuration.save(name, FILE_SETTINGS)
+         if (rank==MASTER) configuration.save(name, location.user.`application properties`)
          plugins.getAll().forEach { if (it.isRunning()) it.stop() }  // TODO: implement Plugin.store() and avoid stop() here
       }
    }
@@ -413,7 +393,7 @@ class App: Application(), Configurable<Any> {
                "Open widget ${c.nameGui()} (in new process)",
                { "Open widget ${c.nameGui()}\n\nOpens the widget in new process." },
                {
-                  val f = APP.DIR_APP/(if (Os.WINDOWS.isCurrent) "PlayerFX.exe" else "PlayerFX.sh")
+                  val f = location/(if (Os.WINDOWS.isCurrent) "PlayerFX.exe" else "PlayerFX.sh")
                   f.runAsAppProgram(
                      "Launching component ${c.nameGui()} in new process",
                      "--singleton=false", "--stateless=true", "open-component", "\"${c.nameGui()}\""

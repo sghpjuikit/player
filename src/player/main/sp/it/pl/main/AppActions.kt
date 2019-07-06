@@ -48,6 +48,7 @@ import sp.it.util.conf.IsConfigurable
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.stackTraceAsString
+import sp.it.util.file.div
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
@@ -87,7 +88,7 @@ class AppActions {
 
    @IsAction(name = "Open app directory", desc = "Opens directory from which this application is running from.")
    fun openAppLocation() {
-      APP.DIR_APP.open()
+      APP.location.open()
    }
 
    @IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
@@ -152,10 +153,10 @@ class AppActions {
       if (!groupsView.items.isEmpty()) groupsView.selectionModel.select(0)
    }
 
-   // TODO: make into a plugin
+   // TODO: make into a plugin, merge with AppLauncher widget?
    @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
    fun openLauncher() {
-      val f = File(APP.DIR_LAYOUTS, "AppMainLauncher.fxwl")
+      val f = APP.location.user.layouts/"AppMainLauncher.fxwl"
       val c = null
          ?: APP.windowManager.instantiateComponent(f)
          ?: APP.widgetManager.factories.getFactoryByGuiName(Widgets.APP_LAUNCHER).orNull()?.create()

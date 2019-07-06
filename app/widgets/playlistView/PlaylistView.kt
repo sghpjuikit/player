@@ -52,6 +52,7 @@ import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import sp.it.util.validation.Constraint.FileActor.DIRECTORY
+import java.io.File
 import java.util.UUID
 import java.util.function.Consumer
 import java.util.function.UnaryOperator
@@ -106,7 +107,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
    @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
    val playVisible by cv(false)
    @IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.", editable = EditMode.APP)
-   var lastSavePlaylistLocation by cn(APP.DIR_USERDATA).only(DIRECTORY)
+   var lastSavePlaylistLocation by cn<File>(APP.location.user).only(DIRECTORY)
 
    init {
       root.prefSize = 450.scaleEM() x 600.scaleEM()

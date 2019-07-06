@@ -496,7 +496,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     private class WriteFileAct extends Act<Void> {
         V<String> nam = new V<>("new_file");
         V<String> ext = new V<>("txt");
-        V<File> loc = new V<>(APP.DIR_APP);
+        V<File> loc = new V<>(APP.location);
 
         public WriteFileAct() {
             super("Write file", Void.class, 1, list("Contents"), (Consumer<Map<String,List<? extends String>>>) null);
@@ -521,7 +521,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     }
     private class ActCreateDirs extends Act<Void> {
         V<Boolean> use_loc = new V<>(false);
-        V<File> loc = new V<>(APP.DIR_HOME);
+        V<File> loc = new V<>(APP.locationHome);
 
         public ActCreateDirs() {
             super("Create directories", Void.class, 1, list("Names (Paths)"), (Consumer<Map<String,List<? extends String>>>) null);

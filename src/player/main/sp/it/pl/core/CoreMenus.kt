@@ -106,7 +106,7 @@ object CoreMenus: Core {
             item("Delete from disc") { selected.recycle() }
             item("Copy as ...") {
                object: ConfigurableBase<Any?>() {
-                  @IsConfig(name = "File") val file by cv(APP.DIR_APP).only(DIRECTORY)
+                  @IsConfig(name = "File") val file by cv(APP.location).only(DIRECTORY)
                   @IsConfig(name = "Overwrite") val overwrite by cv(false)
                   @IsConfig(name = "On error") val onError by cv(OnErrorAction.SKIP)
                }.configure("Copy as...") {
@@ -197,7 +197,7 @@ object CoreMenus: Core {
             if (selected.image!=null)
                menu("Cover") {
                   item("Save image as ...") {
-                     saveFile("Save image as...", APP.DIR_APP, selected.iFile?.name
+                     saveFile("Save image as...", APP.location, selected.iFile?.name
                         ?: "new_image", contextMenu.ownerWindow, imageWriteExtensionFilter()).ifOk {
                         writeImage(selected.image, it).ifError { e ->
                            APP.ui.messagePane.orBuild.show("Saving image $it failed\n\nReason: ${e.message}")

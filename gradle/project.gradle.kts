@@ -1,17 +1,31 @@
+
 import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Paths
 import kotlin.text.Charsets.UTF_8
 
-// Note: the plugins block is evaluated before the script itself, so no variables can be used
+// ----- plugin block; evaluated before the script itself
+
 plugins {
    kotlin("jvm") version "1.3.40"
    application
    id("com.github.ben-manes.versions") version "0.20.0"
    id("de.undercouch.download") version "3.4.3"
 }
+
+// ----- util block; defined first to help IDE with syntax checking for erroneous code
+
+val String.prjProp: String?
+   get() = properties[this]?.toString()
+
+fun Project.tests(configuration: Test.() -> Unit) {
+   tasks {
+      test {
+         configuration()
+      }
+   }
+}
+
+// ----- build block
 
 /** Working directory of the application */
 val dirApp = file("app")
@@ -185,29 +199,11 @@ tasks {
       into(dirApp/"lib")
    }
 
-   val linkJdk by creating {
+   val linkJdk by creating(LinkJDK::class) {
       group = "build setup"
-      description = "Links $dirJdk to JDK"
-      onlyIf { !dirJdk.exists() }
-      doFirst {
-         dirJdk.delete() // delete invalid symbolic link
-         println("Making JDK locally accessible...")
-         val jdkPath = "java.home".sysProp?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
-         try {
-            Files.createSymbolicLink(dirJdk.toPath(), jdkPath)
-         } catch (e: Exception) {
-            println("Couldn't create a symbolic link from $dirJdk to $jdkPath: $e")
-            if ("os.name".sysProp?.startsWith("Windows")==true) {
-               println("Trying junction...")
-               val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$dirJdk" "$jdkPath"""")
-               val exitValue = process.waitFor()
-               if (exitValue==0 && dirJdk.exists()) println("Junction successful!")
-               else failIO(e) { "Unable to make JDK locally accessible!\nmklink exit code: $exitValue" }
-            } else {
-               failIO(e) { "Unable to make JDK locally accessible!" }
-            }
-         }
-      }
+      description = "Links JDK to project relative directory"
+      linkDir = dirJdk
+      jdkVersion = javaVersion
    }
 
    val kotlinc by creating(Download::class) {
@@ -225,6 +221,7 @@ tasks {
       val fileKotlinc = dirKotlinc/"bin"/"kotlinc"
       val zipKotlinc = dirKotlinc/nameKotlinc
       val eKotlinc = dirKotlinc/"experimental"
+
       group = "build setup"
       description = "Downloads the kotlin compiler into $dirKotlinc"
       onlyIf { !fileKotlinVersion.exists() || !fileKotlinVersion.readText().startsWith(kotlinVersion) || eKotlinc.exists()!=useExperimentalKotlinc }
@@ -256,8 +253,18 @@ tasks {
       }
    }
 
+   val generateFileHierarchy by creating(FileHierarchyInfo::class) {
+      group = "build setup"
+      description = "Generates file hierarchy class and documentation"
+      inFileHierarchy = project.rootDir/"file-info"
+      outFileHierarchy = project.rootDir/"src"/"player"/"main"/"sp"/"it"/"pl"/"main"/"AppFiles.kt"
+      outPackage = "sp.it.pl.main"
+      outIndent = "   "
+      outRootPath = """File("").absolutePath"""
+   }
+
    val jar by getting(Jar::class) {
-      dependsOn(copyLibs, kotlinc)
+      dependsOn(copyLibs, kotlinc, generateFileHierarchy)
       group = main
       destinationDirectory.set(dirApp)
       archiveFileName.set("PlayerFX.jar")
@@ -317,27 +324,4 @@ application {
       "--add-opens", "javafx.graphics/com.sun.prism=ALL-UNNAMED",
       "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED"
    )
-}
-
-
-operator fun File.div(childName: String) = this.resolve(childName)
-
-val String.prjProp: String?
-   get() = properties[this]?.toString()
-
-val String.sysProp: String?
-   get() = System.getProperty(this)?.takeIf { it.isNotBlank() }
-
-infix fun String.group(block: () -> Unit) = block()
-
-fun failIO(cause: Throwable? = null, message: () -> String): Nothing = throw IOException(message(), cause)
-
-fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, message) }
-
-fun Project.tests(configuration: Test.() -> Unit) {
-   tasks {
-      test {
-         configuration()
-      }
-   }
 }

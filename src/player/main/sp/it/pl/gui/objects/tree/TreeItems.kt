@@ -149,7 +149,7 @@ fun treeApp(): TreeItem<Any> {
          tree("Windows", FilteredList(Stage.getWindows()) { it !is Tooltip && it !is ContextMenu }),
          tree("Layouts", { APP.widgetManager.layouts.findAllActive().sortedBy { it.name } })
       ),
-      tree("Location", APP.DIR_APP),
+      tree("Location", APP.location),
       tree("File system", File.listRoots().map { FileTreeItem(it) }),
       tree(Name.treeOfPaths("Settings", APP.configuration.getFields().map { it.group }))
    )
@@ -272,9 +272,9 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
 
          val type = if (treeItem.isLeaf) FileType.FILE else FileType(p)
 
-         if (type==FileType.DIRECTORY && APP.DIR_SKINS==p.parentFile || p.isValidSkinFile())
+         if (type==FileType.DIRECTORY && APP.location.skins==p.parentFile || p.isValidSkinFile())
             createIcon(IconFA.PAINT_BRUSH, 8.0)
-         if (type==FileType.DIRECTORY && APP.DIR_WIDGETS==p.parentFile || p.isValidWidgetFile())
+         if (type==FileType.DIRECTORY && APP.location.widgets==p.parentFile || p.isValidWidgetFile())
             createIcon(IconFA.GE, 8.0)
 
          if (type==FileType.FILE) createIcon(IconFA.FILE, 8.0)

@@ -19,11 +19,10 @@ import sp.it.util.async.runNew
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.setTo
 import sp.it.util.dev.ThreadSafe
-import sp.it.util.file.div
+import sp.it.util.file.readTextTry
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.functional.orNull
-import sp.it.util.functional.runTry
 import sp.it.util.units.uuid
 import java.net.URI
 import java.util.Collections.synchronizedMap
@@ -54,9 +53,8 @@ class SongDb {
    fun init() {
       if (running) return
       running = true
-      moods = runTry { (APP.DIR_RESOURCES/"moods.txt").useLines { it.toSet() } }
-         .ifError { logger.error(it) { "Unable to read moods from file" } }
-         .orNull() ?: setOf()
+
+      moods = APP.location.resources.`moods txt`.readTextTry().orNull().orEmpty().lineSequence().toSet()
       runNew { updateInMemoryDbFromPersisted() }.withAppProgress("Loading song database")
    }
 

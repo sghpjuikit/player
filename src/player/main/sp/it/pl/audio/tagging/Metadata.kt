@@ -749,9 +749,6 @@ class Metadata: Song, Serializable {
        */
       @F val EMPTY = Metadata(SimpleSong(URI.create("empty://empty")))
 
-      @JvmStatic
-      fun metadataID(u: URI): String = u.toString()
-
       private fun String?.orNull() = takeUnless { it.isNullOrBlank() }
 
       private fun Metadata.loadAsString(tag: Tag, f: FieldKey): String? =

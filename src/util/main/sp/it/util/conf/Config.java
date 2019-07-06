@@ -702,7 +702,7 @@ public abstract class Config<T> implements WritableValue<T>, Configurable<T>, Ty
 				})
 				.filter(a.nullElements==Elements.NOT_NULL ? (it -> it!=null) : (it -> true))
 				.collect(toList());
-			setTo(getValue(), values);
+			setTo(a.list, values);
 		}
 
 	}

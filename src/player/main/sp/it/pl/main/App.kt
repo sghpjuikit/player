@@ -105,19 +105,19 @@ class App: Application(), Configurable<Any> {
    }
 
    /** Name of this application. */
-   @F val name = "PlayerFX"
+   val name = "PlayerFX"
    /** Version of this application. */
-   @F val version = "0.7"
+   val version = "0.7"
    /** Application code encoding. Useful for compilation during runtime. */
-   @F val encoding = UTF_8
+   val encoding = UTF_8
    /** Absolute file of location of this app. Working directory of the project. `new File("").getAbsoluteFile()`. */
-   @F val location = AppLocation
+   val location = AppLocation
    /** Temporary directory of the os as seen by this application. */
-   @F val locationTmp = File(System.getProperty("java.io.tmpdir")) apply_ verify
+   val locationTmp = File(System.getProperty("java.io.tmpdir")) apply_ verify
    /** Home directory of the os. */
-   @F val locationHome = File(System.getProperty("user.home")) apply_ verify
+   val locationHome = File(System.getProperty("user.home")) apply_ verify
    /** Uri for github website for project of this application. */
-   @F val uriGithub = URI.create("https://www.github.com/sghpjuikit/player/")
+   val uriGithub = URI.create("https://www.github.com/sghpjuikit/player/")
 
    /** Rank this application instance started with. [MASTER] if started as the first instance, [SLAVE] otherwise. */
    val rankAtStart: Rank = if (getInstances()>1) SLAVE else MASTER

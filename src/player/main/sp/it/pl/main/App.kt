@@ -111,7 +111,7 @@ class App: Application(), Configurable<Any> {
    /** Application code encoding. Useful for compilation during runtime. */
    @F val encoding = UTF_8
    /** Absolute file of location of this app. Working directory of the project. `new File("").getAbsoluteFile()`. */
-   @F val location = AppFiles
+   @F val location = AppLocation
    /** Temporary directory of the os as seen by this application. */
    @F val locationTmp = File(System.getProperty("java.io.tmpdir")) apply_ verify
    /** Home directory of the os. */

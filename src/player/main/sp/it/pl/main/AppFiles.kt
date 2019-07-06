@@ -1,4 +1,4 @@
-@file:Suppress("RemoveRedundantBackticks", "unused")
+@file:Suppress("RemoveRedundantBackticks", "unused", "ClassName", "ObjectPropertyName", "SpellCheckingInspection")
 
 package sp.it.pl.main
 
@@ -20,16 +20,15 @@ open class Dir(path: String): File(path) {
    override fun isFile() = false
 }
 
-/** Directory child [`AppFiles`]. */
-val `appfiles` = `AppFiles`
+/** Directory child [`AppLocation`]. */
+val `applocation` = `AppLocation`
 
 /**
  * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
  * 
- * 
  * Application location. Working directory of the project.
  */
-object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
+object `AppLocation`: Dir(File("").absolutePath + separator + "app") {
 
    /** Same as [getName]. Compile-time constant. `app`.*/
    const val fileName: String = """app"""
@@ -41,7 +40,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
    
    /**
     * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
     * 
     * Directory containing application documentation.
     */
@@ -59,7 +57,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
    /**
     * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
     * 
-    * 
     * Directory containing Java Development Kit (JDK).
     */
    object `Java`: Dir(File("").absolutePath + separator + "java") {
@@ -75,7 +72,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
    
    /**
     * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
     * 
     * Directory containing Kotlin compiler.
     */
@@ -93,7 +89,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
    /**
     * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
     * 
-    * 
     * Directory containing application libraries.
     */
    object `Lib`: Dir(File("").absolutePath + separator + "lib") {
@@ -109,7 +104,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
    
    /**
     * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
     * 
     * Directory containing application plugins.
     */
@@ -127,7 +121,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
    /**
     * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
     * 
-    * 
     * Directory containing application resources.
     */
    object `Resources`: Dir(File("").absolutePath + separator + "resources") {
@@ -142,7 +135,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
       
       /**
        * Compile-time object representing file `File("").absolutePath/"resources"`, usable in annotations.
-       * 
        * 
        * File containing predefined audio mood tag values. Value per line. UTF8.
        */
@@ -161,7 +153,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
       /**
        * Compile-time object representing directory `File("").absolutePath/"resources"`, usable in annotations.
        * 
-       * 
        * Directory containing application icons.
        */
       object `Icons`: Dir(File("").absolutePath + separator + "resources" + separator + "icons") {
@@ -176,7 +167,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
          
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
-          * 
           * 
           * Icon, 16px.
           */
@@ -195,7 +185,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
           * 
-          * 
           * Icon, 24px.
           */
          object `Icon24 png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon24.png") {
@@ -212,7 +201,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
          
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
-          * 
           * 
           * Icon, 32px.
           */
@@ -231,7 +219,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
           * 
-          * 
           * Icon, 48px.
           */
          object `Icon48 png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon48.png") {
@@ -248,7 +235,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
          
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
-          * 
           * 
           * Icon, 128px.
           */
@@ -267,7 +253,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
           * 
-          * 
           * Icon, 256px.
           */
          object `Icon256 png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon256.png") {
@@ -285,7 +270,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
           * 
-          * 
           * Icon, 512px.
           */
          object `Icon512 png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.png") {
@@ -302,7 +286,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
          
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
-          * 
           * 
           * Icon, 512px.
           */
@@ -323,7 +306,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
    /**
     * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
     * 
-    * 
     * Directory containing application skins.
     */
    object `Skins`: Dir(File("").absolutePath + separator + "skins") {
@@ -340,7 +322,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
    /**
     * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
     * 
-    * 
     * Directory containing initial ui templates - persisted user ui bundled with the application.
     */
    object `Templates`: Dir(File("").absolutePath + separator + "templates") {
@@ -356,7 +337,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
    
    /**
     * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
-    * 
     * 
     * Directory containing all user data created by application use; such as settings, customizations, library, etc.
     * 
@@ -376,7 +356,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
       /**
        * Compile-time object representing directory `File("").absolutePath/"user"`, usable in annotations.
        * 
-       * 
        * Directory containing persisted user ui and custom templates.
        */
       object `Layouts`: Dir(File("").absolutePath + separator + "user" + separator + "layouts") {
@@ -391,7 +370,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
          
          /**
           * Compile-time object representing directory `File("").absolutePath/"user"/"layouts"`, usable in annotations.
-          * 
           * 
           * Last persisted application ui state.
           */
@@ -410,7 +388,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
       /**
        * Compile-time object representing directory `File("").absolutePath/"user"`, usable in annotations.
        * 
-       * 
        * Directory containing libraries. I.e., audio library, playlists, etc.
        */
       object `Library`: Dir(File("").absolutePath + separator + "user" + separator + "library") {
@@ -426,7 +403,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
       
       /**
        * Compile-time object representing directory `File("").absolutePath/"user"`, usable in annotations.
-       * 
        * 
        * Directory for application logging output.
        */
@@ -444,7 +420,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
       /**
        * Compile-time object representing directory `File("").absolutePath/"user"`, usable in annotations.
        * 
-       * 
        * Directory for plugin user data.
        */
       object `Plugins`: Dir(File("").absolutePath + separator + "user" + separator + "plugins") {
@@ -460,7 +435,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
       
       /**
        * Compile-time object representing directory `File("").absolutePath/"user"`, usable in annotations.
-       * 
        * 
        * Both temporary and home directory (`java.io.tmpdir` and `user.home` redirect here).
        * 
@@ -480,7 +454,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
       /**
        * Compile-time object representing directory `File("").absolutePath/"user"`, usable in annotations.
        * 
-       * 
        * Directory for widget user data.
        */
       object `Widgets`: Dir(File("").absolutePath + separator + "user" + separator + "widgets") {
@@ -496,7 +469,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
       
       /**
        * Compile-time object representing file `File("").absolutePath/"user"`, usable in annotations.
-       * 
        * 
        * File for application configuration.
        */
@@ -516,7 +488,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
    /**
     * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
     * 
-    * 
     * Optional directory containing Vlc player installation.
     */
    object `Vlc`: Dir(File("").absolutePath + separator + "vlc") {
@@ -533,7 +504,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
    /**
     * Compile-time object representing directory `File("").absolutePath`, usable in annotations.
     * 
-    * 
     * Directory containing widgets - source files, class files and widget's resources.
     */
    object `Widgets`: Dir(File("").absolutePath + separator + "widgets") {
@@ -549,7 +519,6 @@ object `AppFiles`: Dir(File("").absolutePath + separator + "app") {
    
    /**
     * Compile-time object representing file `File("").absolutePath`, usable in annotations.
-    * 
     * 
     * File containing application source code and main class. Executed by java.exe when started.
     */

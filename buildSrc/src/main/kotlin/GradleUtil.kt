@@ -69,7 +69,7 @@ open class FileHierarchyInfo: DefaultTask() {
    @TaskAction
    fun generateInfo() {
       val header = """
-            @file:Suppress("RemoveRedundantBackticks", "unused")
+            @file:Suppress("RemoveRedundantBackticks", "unused", "ClassName", "ObjectPropertyName", "SpellCheckingInspection")
             
             package $outPackage
             
@@ -122,7 +122,7 @@ open class FileHierarchyInfo: DefaultTask() {
                val isFile = !l.endsWith('{')
                val descDoc = descriptionLines.joinToString("\n") { " * $it" }
                val descVal = descriptionLines.map { it.trim() }.filter { it.isNotBlank() }.joinToString(" ")
-               val defName = if (hierarchy.isEmpty()) """`${name.capitalize()}Files`""" else """`${name.capitalize().replace('.', ' ')}`"""
+               val defName = if (hierarchy.isEmpty()) """`${name.capitalize()}Location`""" else """`${name.capitalize().replace('.', ' ')}`"""
                val defType = if (isFile) "Fil" else "Dir"
                val defTypeName = if (isFile) "file" else "directory"
                val path = (paths + sequenceOf("\"$name\"")).joinToString(""" + separator + """)
@@ -132,7 +132,6 @@ open class FileHierarchyInfo: DefaultTask() {
                   |
                   |/**
                   | * Compile-time object representing $defTypeName `${paths.joinToString("/")}`, usable in annotations.
-                  | * 
                   | * 
                   |$descDoc
                   | */

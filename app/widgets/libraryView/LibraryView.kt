@@ -53,8 +53,6 @@ import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.values
-import sp.it.util.functional.Util.list
-import sp.it.util.functional.Util.stream
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.reactive.consumeScrolling
@@ -69,12 +67,13 @@ import sp.it.util.ui.menuItem
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoclass
 import sp.it.util.ui.x
-import kotlin.streams.asSequence
 import kotlin.streams.toList
 import sp.it.pl.audio.tagging.Metadata.Field as MField
 import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
 import sp.it.pl.gui.objects.table.TableColumnInfo as ColumnState
 
+private typealias Metadatas = List<Metadata>
+private typealias MetadataGroups = List<MetadataGroup>
 private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, TableCell<MetadataGroup, T>>
 
 @Suppress("UNCHECKED_CAST")
@@ -102,8 +101,8 @@ private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, Table
 class LibraryView(widget: Widget): SimpleController(widget) {
 
    private val table = FilteredTable(MetadataGroup::class.java, VALUE)
-   private val inputItems = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
-   private val outputSelectedGroup = io.o.create<List<MetadataGroup>>("Selected", listOf())
+   private val inputItems = io.i.create("To display", listOf<Metadata>()) { setItems(it) }
+   private val outputSelectedGroup = io.o.create("Selected", listOf<MetadataGroup>())
    private val outputSelectedSongs = io.io.mapped(outputSelectedGroup, "As Songs") { filterList(inputItems.value, true) }
 
    @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -207,7 +206,8 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       table.columnMenu.onEventDown(WINDOW_HIDDEN) { fieldMenu.items.clear() }
       table.columnMenu.onEventDown(WINDOW_SHOWING) {
          fieldMenu.items setTo buildSingleSelectionMenu(
-            list(MField.all), fieldFilter.value,
+            MField.all,
+            fieldFilter.value,
             { it.name() },
             { fieldFilter.setValue(it) }
          )
@@ -286,12 +286,12 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    }
 
    /** Populates metadata groups to table from metadata list. */
-   private fun setItems(list: List<Metadata>?) {
+   private fun setItems(list: Metadatas?) {
       if (list==null) return
 
       val f = fieldFilter.value
       runNew {
-         stream(MetadataGroup.groupOf(f, list), MetadataGroup.groupsOf(f, list)).asSequence().toList()
+         listOf(MetadataGroup.groupOf(f, list)) + MetadataGroup.groupsOf(f, list).toList()
       } ui {
          if (it.isNotEmpty()) {
             selectionStore()
@@ -301,7 +301,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       }
    }
 
-   private fun filterList(list: List<Metadata>?, orAll: Boolean): List<Metadata> = when {
+   private fun filterList(list: Metadatas?, orAll: Boolean): Metadatas = when {
       list==null -> listOf()
       list.isEmpty() -> listOf()
       else -> {
@@ -313,11 +313,11 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       }
    }
 
-   private fun filerSortInputList(): List<Metadata> = filterList(inputItems.value, false).sortedWith(APP.db.libraryComparator.value)
+   private fun filerSortInputList() = filterList(inputItems.value, false).sortedWith(APP.db.libraryComparator.value)
 
    private fun playSelected() = play(filerSortInputList())
 
-   private fun play(items: List<Metadata>) {
+   private fun play(items: Metadatas) {
       if (items.isNotEmpty())
          PlaylistManager.use { it.setNplay(items) }
    }

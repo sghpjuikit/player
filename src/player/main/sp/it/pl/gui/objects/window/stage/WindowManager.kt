@@ -339,7 +339,7 @@ class WindowManager {
 
    fun serialize() {
       // make sure directory is accessible
-      val dir = File(APP.DIR_LAYOUTS, "current")
+      val dir = APP.location.user.layouts.current
       if (!isValidatedDirectory(dir)) {
          logger.error { "Serialization of windows and layouts failed. $dir not accessible." }
          return
@@ -368,7 +368,7 @@ class WindowManager {
    fun deserialize() {
       val ws = mutableSetOf<Window>()
       if (APP.isStateful) {
-         val dir = File(APP.DIR_LAYOUTS, "current")
+         val dir = APP.location.user.layouts.current
          if (isValidatedDirectory(dir)) {
             val fs = dir.children().filter { it.path.endsWith(".ws") }.toList()
             ws += fs.mapNotNull { APP.serializerXml.fromXML(WindowState::class.java, it).orNull()?.toWindow() }

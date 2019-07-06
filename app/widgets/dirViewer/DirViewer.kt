@@ -136,7 +136,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    private val visitId = AtomicLong(0)
    private val placeholder = lazy {
       Placeholder(FOLDER_PLUS, "Click to explore directory") {
-         chooseFile("Choose directory", DIRECTORY, APP.DIR_HOME, root.scene.window).ifOk { files setToOne it }
+         chooseFile("Choose directory", DIRECTORY, APP.locationHome, root.scene.window).ifOk { files setToOne it }
       }
    }
    @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")

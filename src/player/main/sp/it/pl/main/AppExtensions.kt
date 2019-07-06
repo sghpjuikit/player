@@ -37,12 +37,12 @@ fun ComponentFactory<*>.isUsableByUser() = APP.developerMode || !isExperimental(
  */
 fun File.isValidSkinFile(): Boolean {
    val name = nameWithoutExtensionOrRoot
-   val skinFile = APP.DIR_SKINS/name/"$name.css"
+   val skinFile = APP.location.skins/name/"$name.css"
    return isValidFile(this) && path.endsWith(".css") && this==skinFile
 }
 
 fun File.isValidWidgetFile(): Boolean {
-   return isValidFile(this) && path.endsWith(".fxml") && parentFile?.parentFile==APP.DIR_WIDGETS
+   return isValidFile(this) && path.endsWith(".fxml") && parentFile?.parentFile==APP.location.widgets
 }
 
 /** @return value scaled by current application font size (in [EM] units) and ceil-ed to nearest integer */

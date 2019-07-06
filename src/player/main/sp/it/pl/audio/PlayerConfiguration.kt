@@ -11,6 +11,7 @@ import sp.it.util.conf.cvro
 import sp.it.util.conf.only
 import sp.it.util.units.seconds
 import sp.it.util.validation.Constraint.FileActor.DIRECTORY
+import java.io.File
 
 class PlayerConfiguration {
    companion object: MultiConfigurableBase("Playback") {
@@ -34,10 +35,10 @@ class PlayerConfiguration {
       val playerVlcLocation by cvn<String>(null)
 
       @IsConfig(name = "Last browse location")
-      var browse by c(APP.DIR_USERDATA).only(DIRECTORY)
+      var browse by c<File>(APP.location.user).only(DIRECTORY)
 
       @IsConfig(name = "Last playlist export location")
-      var lastSavePlaylistLocation by c(APP.DIR_USERDATA).only(DIRECTORY)
+      var lastSavePlaylistLocation by c<File>(APP.location.user).only(DIRECTORY)
 
       @IsConfig(
          name = "No song modification",

@@ -117,17 +117,17 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
    fun init() {
       if (initialized) return
 
-      if (!(APP.DIR_APP/"java"/"bin").exists())
-         logger.error { "Java development kit is missing. Please install JDK in ${APP.DIR_APP/"java"}" }
-      if (!(APP.DIR_APP/"kotlinc"/"bin").exists())
-         logger.error { "Kotlin compiler is missing. Please install kotlinc in ${APP.DIR_APP/"kotlinc"}" }
+      if (!(APP.location/"java"/"bin").exists())
+         logger.error { "Java development kit is missing. Please install JDK in ${APP.location/"java"}" }
+      if (!(APP.location/"kotlinc"/"bin").exists())
+         logger.error { "Kotlin compiler is missing. Please install kotlinc in ${APP.location/"kotlinc"}" }
 
       // internal factories
       registerFactory(emptyWidgetFactory)
       registerFactory(initialTemplateFactory)
 
       // external factories
-      val dirW = APP.DIR_WIDGETS
+      val dirW = APP.location.widgets
       if (!isValidatedDirectory(dirW)) {
          logger.error { "External widgets registration failed: $dirW is not a valid directory." }
       } else {
@@ -156,8 +156,8 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
       }
 
       // external factories for .fxwl widgets - serialized widgets
-      val dirL = APP.DIR_LAYOUTS
-      val dirLinit = APP.DIR_LAYOUTS_INIT
+      val dirL = APP.location.user.layouts
+      val dirLinit = APP.location.templates
       if (!isValidatedDirectory(dirL)) {
          logger.error { "External .fxwl widgets registration failed." }
       } else {
@@ -217,10 +217,10 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
       private fun findLibFiles() = widgetDir.children().filterSourceJars()
 
-      private fun findAppLibFiles() = APP.DIR_APP.child("lib").children().filterSourceJars()
+      private fun findAppLibFiles() = APP.location.child("lib").children().filterSourceJars()
 
       private fun getAppJarFile(): Sequence<String> {
-         val mainJarFile = APP.DIR_APP/"PlayerFX.jar"
+         val mainJarFile = APP.location/"PlayerFX.jar"
          return if (mainJarFile.exists()) {
             sequenceOf(mainJarFile.relativeToApp())
          } else {
@@ -388,13 +388,13 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
       private fun compileKotlin(kotlinSrcFiles: Sequence<File>): Try<Nothing?, String> {
          try {
             val compilerFile = when (Os.current) {
-               Os.UNIX -> APP.DIR_APP/"kotlinc"/"bin"/"kotlinc"
-               else -> APP.DIR_APP/"kotlinc"/"bin"/"kotlinc.bat"
+               Os.UNIX -> APP.location/"kotlinc"/"bin"/"kotlinc"
+               else -> APP.location/"kotlinc"/"bin"/"kotlinc.bat"
             }
             val command = listOf(
-               compilerFile.absolutePath,
+               compilerFile.relativeToApp(),
                "-d", compileDir.relativeToApp(),
-               "-jdk-home", APP.DIR_APP.child("java").relativeToApp(),
+               "-jdk-home", APP.location.child("java").relativeToApp(),
                "-jvm-target", "12",
                "-cp", computeClassPath(),
                kotlinSrcFiles.joinToString(" ") { it.relativeToApp() }
@@ -403,7 +403,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
             logger.info("Compiling with command=${command.joinToString(" ")} ")
 
             val process = ProcessBuilder(command)
-               .directory(APP.DIR_APP)
+               .directory(APP.location)
                .redirectOutput(Redirect.PIPE)
                .redirectError(Redirect.PIPE)
                .start()
@@ -596,7 +596,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
       /** @return layouts found in layout folder and sets them as available layouts */
       fun findPersisted() {
-         val dir = APP.DIR_LAYOUTS
+         val dir = APP.location.user.layouts
          if (!isValidatedDirectory(dir)) {
             logger.error { "Layout directory=$dir not accessible" }
             return
@@ -654,7 +654,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
 
       private infix fun Collection<File>.modifiedAfter(that: Collection<File>) = (this.lastModifiedMax() ?: 0)>=(that.lastModifiedMax() ?: 0)
 
-      private fun File.relativeToApp() = relativeTo(APP.DIR_APP).path
+      private fun File.relativeToApp() = relativeTo(APP.location).path
 
       private fun String.prettifyCompilerOutput() = if (isNullOrBlank()) "" else "\n$this"
 

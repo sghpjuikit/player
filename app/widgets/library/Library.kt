@@ -68,6 +68,7 @@ import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import sp.it.util.validation.Constraint.FileActor
+import java.io.File
 import sp.it.pl.gui.objects.table.TableColumnInfo as ColumnState
 
 @Info(
@@ -109,9 +110,9 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
    val tableShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
    @IsConfig(name = "Last add songs browse location", editable = EditMode.APP)
-   private var lastAddFilesLocation by cn(APP.DIR_USERDATA).only(FileActor.ANY)
+   private var lastAddFilesLocation by cn<File>(APP.location.user).only(FileActor.ANY)
    @IsConfig(name = "Last add directory browse location", editable = EditMode.APP)
-   private var lastAddDirLocation by cn(APP.DIR_USERDATA).only(FileActor.DIRECTORY)
+   private var lastAddDirLocation by cn<File>(APP.location.user).only(FileActor.DIRECTORY)
 
    init {
       root.prefSize = 850.scaleEM() x 600.scaleEM()

@@ -50,7 +50,7 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
       this.name = ClassName.of(controllerType.java)
       this.controllerType = controllerType.java
       this.location = location
-      this.locationUser = APP.DIR_USERDATA/"widgets"/location.nameOrRoot
+      this.locationUser = APP.location.user.widgets/location.nameOrRoot
       this.externalWidgetData = externalWidgetData
       this.nameGui = if (i.name.isEmpty()) name else i.name
       this.description = i.description
@@ -110,7 +110,7 @@ class DeserializingFactory: ComponentFactory<Component> {
 
 }
 
-class NoFactoryFactory(val name: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.DIR_WIDGETS/name, null) {
+class NoFactoryFactory(val name: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.location.widgets/name, null) {
    override fun name() = name
 
    override fun nameGui() = name

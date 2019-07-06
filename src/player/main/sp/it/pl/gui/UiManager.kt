@@ -149,7 +149,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
    val ratingSkin by cvn<KClass<out Skin<Rating>>>(null).valuesIn(APP.instances).uiConverter {
       it?.simpleName ?: "<none> (App skin decides)"
    } sync {
-      val f = APP.DIR_TEMP/"user-rating-skin.css"
+      val f = APP.locationTmp/"user-rating-skin.css"
       additionalStylesheets -= f
       it?.let {
          f.writeTextTry(""".rating { -fx-skin: "${it.jvmName}"; }""", Charsets.UTF_8)

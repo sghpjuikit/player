@@ -135,9 +135,9 @@ class PlaylistSong: Song {
          }
       } else {
          try {
-            val m = Media(uri.toString())
+            val media = Media(uri.toString())
             setATN("", "")
-            timeP.set(Duration(m.duration.toMillis()))
+            timeP.value = media.duration
          } catch (e: IllegalArgumentException) {
             isCorruptCached = true   // mark as corrupted on error
          } catch (e: NullPointerException) {

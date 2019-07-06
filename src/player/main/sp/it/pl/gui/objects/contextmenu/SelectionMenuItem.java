@@ -1,5 +1,6 @@
 package sp.it.pl.gui.objects.contextmenu;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.property.Property;
@@ -110,7 +111,7 @@ public class SelectionMenuItem extends Menu {
 		icon.setOnMouseClicked(e -> h.run());
 	}
 
-	public static <I> List<MenuItem> buildSingleSelectionMenu(List<I> inputs, I selected, Ƒ1<I,String> toText, Consumer<I> action) {
+	public static <I> List<MenuItem> buildSingleSelectionMenu(Collection<I> inputs, I selected, Ƒ1<I,String> toText, Consumer<I> action) {
 		List<MenuItem> ms = map(inputs,
 				input -> {
 					SelectionMenuItem m = new SelectionMenuItem(toText.apply(input), input==selected);

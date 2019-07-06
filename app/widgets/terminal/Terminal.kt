@@ -65,7 +65,7 @@ class Terminal(widget: Widget): SimpleController(widget) {
       tConfig.setForegroundColor(rgb(240, 240, 240))
       tConfig.setCursorColor(rgb(255, 0, 0, 0.1))
       tConfig.isScrollbarVisible = false
-      tConfig.webViewUserDataDirectory = APP.DIR_TEMP/".terminalFx"/"webView"
+      tConfig.webViewUserDataDirectory = APP.locationTmp/".terminalFx"/"webView"
       tabPane.tabClosingPolicy = TabClosingPolicy.ALL_TABS
 
       root.onEventUp(KEY_PRESSED, SHORTCUT, W) { closeActiveTab() }

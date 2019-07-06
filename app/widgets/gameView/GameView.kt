@@ -145,7 +145,7 @@ class GameView(widget: Widget): SimpleController(widget) {
    val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio + CELL_TEXT_HEIGHT, 10.0, 10.0)
    val imageLoader = Loader(burstTPExecutor(Runtime.getRuntime().availableProcessors()/2 max 1, 1.minutes, threadFactory("gameView-img-loader", true)))
    val placeholder = Placeholder(IconMD.FOLDER_PLUS, "Click to add directory to library") {
-      chooseFile("Choose directory", FileType.DIRECTORY, APP.DIR_HOME, root.scene.window)
+      chooseFile("Choose directory", FileType.DIRECTORY, APP.locationHome, root.scene.window)
          .ifOk { files += it }
    }
 

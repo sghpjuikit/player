@@ -43,7 +43,7 @@ class ThumbnailWithAdd @JvmOverloads constructor(dragIcon: GlyphIcons = DETAILS,
 
       // add image on click
       root.onEventDown(MOUSE_CLICKED, PRIMARY) {
-         chooseFile("Select image to add to tag", FILE, APP.DIR_APP, root.scene.window).ifOk {
+         chooseFile("Select image to add to tag", FILE, APP.location, root.scene.window).ifOk {
             onFileDropped(fut(it))
          }
       }

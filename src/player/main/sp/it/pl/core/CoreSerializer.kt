@@ -46,7 +46,7 @@ object CoreSerializer: Core {
     */
    @Blocks
    inline fun <reified T: Serializable> readSingleStorage(): T? {
-      val f = APP.DIR_LIBRARY/(T::class.simpleName ?: T::class.jvmName)
+      val f = APP.location.user.library/(T::class.simpleName ?: T::class.jvmName)
 
       if (!f.exists()) return null
 
@@ -69,7 +69,7 @@ object CoreSerializer: Core {
    inline fun <reified T: Serializable> writeSingleStorage(o: T): Try<Nothing?, Throwable> {
       if (APP.rank==SLAVE) return Try.ok()
 
-      val f = APP.DIR_LIBRARY/(T::class.simpleName ?: T::class.jvmName)
+      val f = APP.location.user.library/(T::class.simpleName ?: T::class.jvmName)
       return f.writeSafely {
          runTry {
             ObjectOutputStream(it.outputStream()).use {

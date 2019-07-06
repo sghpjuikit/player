@@ -21,7 +21,6 @@ import sp.it.util.conf.EditMode
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
-import sp.it.util.file.div
 import sp.it.util.functional.Try
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.Disposer
@@ -51,8 +50,8 @@ class TrayPlugin: PluginBase("Tray", true) {
    private val onEnd = Disposer()
 
    private var tray: SystemTray? = null
-   private val trayIconImageDefault = APP.DIR_RESOURCES/"icons"/"icon24.png"
-   private var trayIconImage = trayIconImageDefault
+   private val trayIconImageDefault: File = APP.location.resources.icons.`icon24 png`
+   private var trayIconImage: File = trayIconImageDefault
    private var trayIcon: TrayIcon? = null
    private val onClickDefault: (MouseEvent) -> Unit = { APP.ui.toggleMinimize() }
    private var onClick = onClickDefault

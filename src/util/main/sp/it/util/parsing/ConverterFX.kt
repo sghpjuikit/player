@@ -18,7 +18,7 @@ class ConverterFX: Converter() {
          return Try.ok(null)
 
       return try {
-         val (valueType64, values64) = text.split2(delimiter1.toInt().toChar())
+         val (valueType64, values64) = text.split2(delimiter1[0])
          val valueType = Class.forName(valueType64.fromBase64())
          when {
             type.isSuperclassOf(valueType) -> {

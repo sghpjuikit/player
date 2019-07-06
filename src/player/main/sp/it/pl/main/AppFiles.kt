@@ -28,7 +28,7 @@ val `applocation` = `AppLocation`
  * 
  * Application location. Working directory of the project.
  */
-object `AppLocation`: Dir(File("").absolutePath + separator + "app") {
+object `AppLocation`: Dir(File("").absolutePath) {
 
    /** Same as [getName]. Compile-time constant. `app`.*/
    const val fileName: String = """app"""

@@ -125,7 +125,7 @@ open class FileHierarchyInfo: DefaultTask() {
                val defName = if (hierarchy.isEmpty()) """`${name.capitalize()}Location`""" else """`${name.capitalize().replace('.', ' ')}`"""
                val defType = if (isFile) "Fil" else "Dir"
                val defTypeName = if (isFile) "file" else "directory"
-               val path = (paths + sequenceOf("\"$name\"")).joinToString(""" + separator + """)
+               val path = if (isRoot) paths.peek() else (paths + sequenceOf("\"$name\"")).joinToString(""" + separator + """)
                val def = """
                   |/** ${defTypeName.capitalize()} child [$defName]. */
                   |val ${defName.toLowerCase()} = $defName

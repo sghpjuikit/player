@@ -392,7 +392,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
                else -> APP.location/"kotlinc"/"bin"/"kotlinc.bat"
             }
             val command = listOf(
-               compilerFile.absolutePath,
+               compilerFile.relativeToApp(),
                "-d", compileDir.relativeToApp(),
                "-jdk-home", APP.location.child("java").relativeToApp(),
                "-jvm-target", "12",

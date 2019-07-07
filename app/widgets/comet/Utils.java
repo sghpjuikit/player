@@ -21,6 +21,9 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIcon;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -108,6 +111,7 @@ import static javafx.util.Duration.millis;
 import static javafx.util.Duration.minutes;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
 import static sp.it.util.Util.pyth;
 import static sp.it.util.dev.FailKt.failIf;
@@ -136,6 +140,14 @@ import static sp.it.util.units.UtilKt.toHMSMs;
 @SuppressWarnings({"unused","UnnecessaryLocalVariable"})
 interface Utils {
 
+	private static Font loadUiFont() {
+		try {
+			return Font.loadFont(new FileInputStream(new File(APP.getLocation().getWidgets(), "Comet/Tele-Marines.TTF")), 12.0);
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	// superscript 	⁰ 	¹ 	²	³	⁴ 	⁵ 	⁶ 	⁷ 	⁸ 	⁹ 	⁺ 	⁻ 	⁼ 	⁽ 	⁾ 	ⁿ
 	// subscript 	₀ 	₁ 	₂ 	₃ 	₄ 	₅ 	₆ 	₇ 	₈ 	₉ 	₊ 	₋ 	₌ 	₍ 	₎
 
@@ -155,9 +167,7 @@ interface Utils {
 	double[] degSinMemo = IntStream.rangeClosed(-UNITS,UNITS).mapToDouble(i -> i/(double)precision).map(angle -> Math.sin(rad(angle))).toArray();
 	double[] degCosMemo = IntStream.rangeClosed(-UNITS,UNITS).mapToDouble(i -> i/(double)precision).map(angle -> Math.cos(rad(angle))).toArray();
 	Random RAND = new Random();
-	// Tele-Marines is packed with windows 8.1, but to be sure it works on any version and
-	// platform it is packed with the widget.
-	Font FONT_UI = Font.loadFont(Utils.class.getResourceAsStream("Tele-Marines.TTF"), 12.0);
+	Font FONT_UI = loadUiFont();
 	Font FONT_PLACEHOLDER = Font.font(FONT_UI.getName(), 12);
 	double HUD_DOT_GAP = 3;
 	double HUD_DOT_DIAMETER = 1;

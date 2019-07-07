@@ -73,7 +73,6 @@ import java.net.URLConnection
 import kotlin.system.exitProcess
 import kotlin.text.Charsets.UTF_8
 import sp.it.util.conf.IsConfig as C
-import kotlin.jvm.JvmField as F
 
 lateinit var APP: App
 private val verify = File::verify
@@ -166,22 +165,22 @@ class App: Application(), Configurable<Any> {
    }
 
    // cores (always active, mostly singletons)
-   @F val configuration = MainConfiguration.apply { rawAdd(location.user.`application properties`) }
-   @F val logging = CoreLogging(location.resources/"log_configuration.xml", location.user.log)
-   @F val env = CoreEnv.apply { init() }
-   @F val imageIo = CoreImageIO(locationTmp/"imageio")
-   @F val converter = CoreConverter().apply { init() }
-   @F val serializerXml = CoreSerializerXml()
-   @F val serializer = CoreSerializer
-   @F val instances = CoreInstances
-   @F val mimeTypes = MimeTypes
-   @F val className = ClassName()
-   @F val instanceName = InstanceName()
-   @F val instanceInfo = InstanceInfo()
-   @F val classFields = ObjectFieldMap.DEFAULT
-   @F val contextMenus = CoreMenus
-   @F val mouse = CoreMouse
-   @F val functors = CoreFunctors
+   @JvmField val configuration = MainConfiguration.apply { rawAdd(location.user.`application properties`) }
+   @JvmField val logging = CoreLogging(location.resources/"log_configuration.xml", location.user.log)
+   @JvmField val env = CoreEnv.apply { init() }
+   @JvmField val imageIo = CoreImageIO(locationTmp/"imageio")
+   @JvmField val converter = CoreConverter().apply { init() }
+   @JvmField val serializerXml = CoreSerializerXml()
+   @JvmField val serializer = CoreSerializer
+   @JvmField val instances = CoreInstances
+   @JvmField val mimeTypes = MimeTypes
+   @JvmField val className = ClassName()
+   @JvmField val instanceName = InstanceName()
+   @JvmField val instanceInfo = InstanceInfo()
+   @JvmField val classFields = ObjectFieldMap.DEFAULT
+   @JvmField val contextMenus = CoreMenus
+   @JvmField val mouse = CoreMouse
+   @JvmField val functors = CoreFunctors
 
    @C(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")
    val logLevelConsole by cv(Level.INFO).values(logLevels).uiNoOrder() sync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
@@ -208,19 +207,19 @@ class App: Application(), Configurable<Any> {
    val actionSettingsSave by cr { configuration.save(name, location.user.`application properties`) }
 
    /** Manages ui. */
-   @F val ui = UiManager(location.skins)
+   @JvmField val ui = UiManager(location.skins)
    /** Guide containing tips and useful information. */
-   @F val guide = Guide(actionStream)
+   @JvmField val guide = Guide(actionStream)
    /** Application search */
-   @F val search = Search()
+   @JvmField val search = Search()
    /** Manages persistence and in-memory storage. */
-   @F val db = SongDb()
+   @JvmField val db = SongDb()
    /** Manages widgets. */
-   @F val widgetManager = WidgetManager { ui.messagePane.orBuild.show(it) }
+   @JvmField val widgetManager = WidgetManager { ui.messagePane.orBuild.show(it) }
    /** Manages windows. */
-   @F val windowManager = WindowManager()
+   @JvmField val windowManager = WindowManager()
    /** Manages plugins. */
-   @F val plugins = PluginManager()
+   @JvmField val plugins = PluginManager()
 
    override fun init() {
       logging.init()

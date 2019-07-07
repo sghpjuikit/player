@@ -13,13 +13,12 @@ import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
 import sp.it.util.access.OrV;
-import sp.it.util.conf.Config.ConfigBase;
-import sp.it.util.conf.Config.FieldConfig;
-import sp.it.util.conf.Config.ListConfig;
-import sp.it.util.conf.Config.OverridablePropertyConfig;
-import sp.it.util.conf.Config.PropertyConfig;
-import sp.it.util.conf.Config.ReadOnlyPropertyConfig;
-import sp.it.util.conf.Config.VarList;
+import sp.it.util.conf.ConfigImpl.ConfigBase;
+import sp.it.util.conf.ConfigImpl.FieldConfig;
+import sp.it.util.conf.ConfigImpl.ListConfig;
+import sp.it.util.conf.ConfigImpl.PropertyConfig;
+import sp.it.util.conf.ConfigImpl.ReadOnlyPropertyConfig;
+import sp.it.util.conf.OrPropertyConfig.OrValue;
 import sp.it.util.validation.Constraint;
 import sp.it.util.validation.Constraint.IsConstraint;
 import sp.it.util.validation.Constraints;
@@ -92,7 +91,7 @@ public class ConfigurationUtil {
 		Class<T> type = (Class) f.getType();
 		if (Config.class.isAssignableFrom(type)) {
 			return newFromConfig(f, instance);
-		} else if (WritableValue.class.isAssignableFrom(type) || ReadOnlyProperty.class.isAssignableFrom(type)) {
+		} else if (ConfList.class.isAssignableFrom(type) || WritableValue.class.isAssignableFrom(type) || ReadOnlyProperty.class.isAssignableFrom(type)) {
 			return newFromProperty(f, instance, name, annotation, group);
 		} else {
 			try {
@@ -108,33 +107,33 @@ public class ConfigurationUtil {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "Convert2Diamond"})
 	private static <T> Config<T> newFromProperty(Field f, T instance, String name, IsConfig annotation, String group) {
 		try {
 			failIfNotFinal(f);
 			f.setAccessible(true);
-			if (VarList.class.isAssignableFrom(f.getType())) {
-				Class<T> property_type = getRawGenericPropertyType(f.getGenericType());
-				Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
-				return new ListConfig<>(name, annotation, (VarList) f.get(instance), group, constraints);
+			if (ConfList.class.isAssignableFrom(f.getType())) {
+				Class<T> propertyType = getRawGenericPropertyType(f.getGenericType());
+				Set<Constraint<? super T>> constraints = constraintsOf(propertyType, f.getAnnotations());
+				return (Config<T>) new ListConfig<T>(name, annotation, (ConfList) f.get(instance), group, constraints);
 			}
 			if (OrV.class.isAssignableFrom(f.getType())) {
 				OrV<T> property = (OrV) f.get(instance);
-				Class<T> property_type = getRawGenericPropertyType(f.getGenericType());
-				Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
-				return new OverridablePropertyConfig<>(property_type, name, annotation, constraints, property, group);
+				Class<T> propertyType = getRawGenericPropertyType(f.getGenericType());
+				Set<Constraint<? super OrValue<T>>> constraints = constraintsOf((Class) OrValue.class, f.getAnnotations());
+				return (Config<T>) new OrPropertyConfig<T>(propertyType, name, annotation, constraints, property, group);
 			}
 			if (WritableValue.class.isAssignableFrom(f.getType())) {
 				WritableValue<T> property = (WritableValue) f.get(instance);
-				Class<T> property_type = getRawGenericPropertyType(f.getGenericType());
-				Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
-				return new PropertyConfig<T>(property_type, name, annotation, constraints, property, group);
+				Class<T> propertyType = getRawGenericPropertyType(f.getGenericType());
+				Set<Constraint<? super T>> constraints = constraintsOf(propertyType, f.getAnnotations());
+				return new PropertyConfig<T>(propertyType, name, annotation, constraints, property, group);
 			}
 			if (ReadOnlyProperty.class.isAssignableFrom(f.getType())) {
 				ReadOnlyProperty<T> property = (ReadOnlyProperty) f.get(instance);
-				Class<T> property_type = getRawGenericPropertyType(f.getGenericType());
-				Set<Constraint<? super T>> constraints = constraintsOf(property_type, f.getAnnotations());
-				return new ReadOnlyPropertyConfig<T>(property_type, name, annotation, constraints, property, group);
+				Class<T> propertyType = getRawGenericPropertyType(f.getGenericType());
+				Set<Constraint<? super T>> constraints = constraintsOf(propertyType, f.getAnnotations());
+				return new ReadOnlyPropertyConfig<T>(propertyType, name, annotation, constraints, property, group);
 			}
 			throw new IllegalArgumentException("Wrong class");
 		} catch (IllegalAccessException|SecurityException e) {

@@ -13,13 +13,15 @@ import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.feature.HorizontalDock;
 import sp.it.util.access.VarAction;
 import sp.it.util.access.VarEnum;
+import sp.it.util.conf.ConfList;
 import sp.it.util.conf.Config;
-import sp.it.util.conf.Config.VarList;
 import sp.it.util.conf.IsConfig;
 import sp.it.util.conf.ListConfigurable;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
 import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.reactive.UtilKt.syncC;
 
 @Info(
@@ -40,7 +42,7 @@ public class IconBox extends SimpleController implements HorizontalDock {
 
     @SuppressWarnings("RedundantCast")
     @IsConfig(name = "Icons", info = "List of icons to show")
-    private final VarList<Icon> icons = new VarList<>(
+    private final ConfList<Icon> icons = new ConfList<>(
         Icon.class,
         () -> {
             Icon i = new Icon(BUS);
@@ -50,7 +52,8 @@ public class IconBox extends SimpleController implements HorizontalDock {
         i -> new ListConfigurable<Object>(
             (Config) Config.forProperty(GlyphIcons.class, "Icon", new VarEnum<>(i.getGlyph(), Icon.GLYPHS).initAttachC(i::icon)),
             (Config) Config.forProperty(String.class, "Action", new VarAction(i.getOnClickAction(), consumer(i::onClick)))
-        )
+        ),
+        false
     );
 
     public IconBox(Widget widget) {
@@ -60,7 +63,7 @@ public class IconBox extends SimpleController implements HorizontalDock {
         FlowPane box = new FlowPane(5,5);
         root.getChildren().add(new VBox(30,box));
 
-        icons.onListInvalid(box.getChildren()::setAll);
+        onChange(icons.list, runnable(() -> box.getChildren().setAll(icons.list)));
     }
 
 }

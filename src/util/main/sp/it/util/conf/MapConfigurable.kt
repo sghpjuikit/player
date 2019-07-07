@@ -1,6 +1,6 @@
 package sp.it.util.conf
 
-/** [Configurable] implemented as [Map], where key is [Config.getName]. */
+/** [Configurable] implemented as [Map], where key is [Config.name]. */
 class MapConfigurable<T>: Configurable<T> {
 
    private var configs: Map<String, Config<T>>

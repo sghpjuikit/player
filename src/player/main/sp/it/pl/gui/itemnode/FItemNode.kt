@@ -5,11 +5,11 @@ import javafx.scene.control.ComboBox
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.SOMETIMES
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox
-import sp.it.util.access.vn
+import sp.it.util.access.vx
 import sp.it.util.collections.list.PrefList
 import sp.it.util.collections.setTo
+import sp.it.util.conf.AccessConfig
 import sp.it.util.conf.Config
-import sp.it.util.conf.Config.AccessorConfig
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Functors.PƑ
 import sp.it.util.functional.Functors.Ƒ1
@@ -18,7 +18,6 @@ import sp.it.util.reactive.sync
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import java.util.ArrayList
-import java.util.function.Consumer
 import java.util.function.Supplier
 
 /**
@@ -62,9 +61,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): Value
 
    override fun getNode() = root
 
-   override fun focus() {
-      configs.firstOrNull()?.focusEditor()
-   }
+   override fun focus() = configs.firstOrNull()?.focusEditor() ?: Unit
 
    fun getTypeIn(): Class<*> = fCB.value?.`in` ?: Void::class.java
 
@@ -90,8 +87,8 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): Value
       private fun <T> Config<T>.toConfigField() = ConfigField.create(this)
 
       private fun <T> Functors.Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
-         val a = vn(defaultValue).apply { attach { onChange(it) } }
-         return AccessorConfig(type, name, description, Consumer { a.value = it }, Supplier { a.value })
+         val a = vx(defaultValue).apply { attach { onChange(it) } }
+         return AccessConfig<T>(type, name, description, { a.value = it }, { a.value })
       }
 
    }

@@ -200,7 +200,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
       if (c.isEditable.isByApp && !c.isReadOnlyRightNow()) {
          val key = configToRawKeyMapper(c)
          if (properties.containsKey(key))
-            c.valueAsProperty = properties[key]
+            c.valueAsProperty = properties[key]!!
       }
    }
 

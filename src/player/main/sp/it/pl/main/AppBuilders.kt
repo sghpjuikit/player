@@ -151,8 +151,8 @@ fun <T, C: Configurable<T>> C.configure(title: String, action: (C) -> Unit) {
 }
 
 fun configureString(title: String, inputName: String, action: (String) -> Unit) {
-   ValueConfig(String::class.java, inputName, "")
-      .constraints(Constraint.StringNonEmpty())
+   ValueConfig(String::class.java, inputName, "", "")
+      .addConstraints(Constraint.StringNonEmpty())
       .configure(title) { action(it.value) }
 }
 

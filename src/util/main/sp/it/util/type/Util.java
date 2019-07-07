@@ -21,7 +21,6 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -37,7 +36,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import sp.it.util.collections.mapset.MapSet;
-import sp.it.util.conf.Config.VarList;
 import sp.it.util.functional.Functors;
 import sp.it.util.functional.TriConsumer;
 import static kotlin.text.StringsKt.substringBeforeLast;
@@ -424,17 +422,12 @@ public interface Util {
 		return gpt;
 	}
 
+	// TODO: handle types defining generic property type indirectly, like: X extends Property<T>
 	private static Class<?> getRawGenericPropertyTypeImpl(Type t) {
-
-		// TODO: handle types defining generic property type indirectly, like: X extends Property<T>
-		String typename = t.getTypeName();
-		if (typename.contains(VarList.class.getSimpleName())) return ObservableList.class;
-
 		if (t instanceof ParameterizedType) {
 			Type[] genericTypes = ((ParameterizedType) t).getActualTypeArguments();
 			return genericTypes.length==0 ? null : toRaw(genericTypes[0]);
 		}
-
 		if (t instanceof Class) {
 			// recursively traverse class hierarchy until we find ParameterizedType and return result if not null.
 			Type supertype = ((Class) t).getGenericSuperclass();
@@ -452,7 +445,6 @@ public interface Util {
 				}
 			}
 		}
-
 		return null;
 	}
 
@@ -461,13 +453,11 @@ public interface Util {
 			boolean isProperty = ObservableValue.class.isAssignableFrom((Class<?>) t);
 			if (!isProperty) return unPrimitivize((Class<?>) t);
 		}
-
 		if (t instanceof ParameterizedType) {
 			Type rawType = ((ParameterizedType) t).getRawType();
 			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
 			if (!isProperty) return t;
 		}
-
 		if (t instanceof WildcardType) {
 			var wt = (WildcardType) t;
 			Type rawType = wt.getLowerBounds().length==0 ? wt.getUpperBounds()[0] : wt.getLowerBounds()[0];
@@ -489,17 +479,12 @@ public interface Util {
 		return gpt;
 	}
 
+	// TODO: handle types defining generic property type indirectly, like: X extends Property<T>
 	private static Type getGenericPropertyTypeImpl(Type t) {
-
-		// TODO: handle types defining generic property type indirectly, like: X extends Property<T>
-		String typename = t.getTypeName();
-		if (typename.contains(VarList.class.getSimpleName())) return ObservableList.class;
-
 		if (t instanceof ParameterizedType) {
 			Type[] genericTypes = ((ParameterizedType) t).getActualTypeArguments();
 			return genericTypes.length==0 ? null : genericTypes[0];
 		}
-
 		if (t instanceof Class) {
 			// recursively traverse class hierarchy until we find ParameterizedType and return result if not null.
 			Type supertype = ((Class) t).getGenericSuperclass();
@@ -517,7 +502,6 @@ public interface Util {
 				}
 			}
 		}
-
 		return null;
 	}
 

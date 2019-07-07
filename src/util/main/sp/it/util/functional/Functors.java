@@ -18,8 +18,8 @@ import kotlin.jvm.functions.Function4;
 import kotlin.jvm.functions.Function5;
 import kotlin.jvm.functions.Function6;
 import sp.it.util.access.V;
+import sp.it.util.conf.AccessConfig;
 import sp.it.util.conf.Config;
-import sp.it.util.conf.Config.AccessorConfig;
 import sp.it.util.conf.Configurable;
 import sp.it.util.dev.SwitchException;
 import static sp.it.util.dev.FailKt.noNull;
@@ -31,6 +31,7 @@ import static sp.it.util.functional.Util.ISØ;
 import static sp.it.util.functional.Util.isAny;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.listRO;
+import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.type.Util.unPrimitivize;
 
 @SuppressWarnings({"unchecked", "unused","NonAsciiCharacters"})
@@ -812,7 +813,7 @@ public interface Functors {
 			this.pf = pf;
 			pf.getParameters().forEach(p -> {
 				V<Object> a = new V<>(p.defaultValue);
-				cs.add(new AccessorConfig(p.type, p.name, p.description, a::setValue, a::getValue));
+				cs.add(new AccessConfig(p.type, p.name, p.description, consumer(a::setValue), a::getValue));
 			});
 		}
 

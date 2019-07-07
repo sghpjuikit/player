@@ -43,7 +43,7 @@ open class SimpleController(widget: Widget): Controller(widget), MultiConfigurab
                val key = Widget.configToRawKeyMapper(config)
                val source = widget.fieldsRaw
                if (source.containsKey(key))
-                  config.valueAsProperty = source[key]
+                  config.valueAsProperty = source[key]!!
             }
          }
       }

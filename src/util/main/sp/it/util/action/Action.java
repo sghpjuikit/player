@@ -331,13 +331,13 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	}
 
 	@Override
-	public Set<Constraint<? super Action>> getConstraints() {
+	public Set<Constraint<Action>> getConstraints() {
 		return setRO();
 	}
 
 	@SafeVarargs
 	@Override
-	public final Config<Action> constraints(Constraint<? super Action>... constraints) {
+	public final Config<Action> addConstraints(Constraint<? super Action>... constraints) {
 		return this;
 	}
 

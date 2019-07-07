@@ -10,6 +10,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -42,17 +44,17 @@ import sp.it.util.access.OrV;
 import sp.it.util.action.Action;
 import sp.it.util.animation.Anim;
 import sp.it.util.conf.Config;
-import sp.it.util.conf.Config.ListConfig;
-import sp.it.util.conf.Config.OverridablePropertyConfig;
-import sp.it.util.conf.Config.PropertyConfig;
-import sp.it.util.conf.Config.ReadOnlyPropertyConfig;
+import sp.it.util.conf.ConfigImpl.ListConfig;
+import sp.it.util.conf.ConfigImpl.PropertyConfig;
+import sp.it.util.conf.ConfigImpl.ReadOnlyPropertyConfig;
 import sp.it.util.conf.Configurable;
+import sp.it.util.conf.OrPropertyConfig;
+import sp.it.util.conf.OrPropertyConfig.OrValue;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.functional.Try;
 import sp.it.util.functional.TryKt;
 import sp.it.util.reactive.Subscription;
 import sp.it.util.text.Password;
-import sp.it.util.type.Util;
 import sp.it.util.validation.Constraint;
 import sp.it.util.validation.Constraint.HasNonNullElements;
 import sp.it.util.validation.Constraint.NumberMinMax;
@@ -90,6 +92,7 @@ import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onItemSyncWhile;
+import static sp.it.util.reactive.UtilKt.syncBiFrom;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
@@ -132,6 +135,7 @@ abstract public class ConfigField<T> {
         put(Color.class, ColorCF::new);
         put(File.class, FileCF::new);
         put(Font.class, FontCF::new);
+        put(OrValue.class, config -> config instanceof OrPropertyConfig ? new OrCF((OrPropertyConfig) config) : new GeneralCF(config));
         put(Effect.class, config -> new EffectCF(config, Effect.class));
         put(Password.class, PasswordCF::new);
         put(Charset.class, charset -> new EnumerableCF<>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
@@ -154,8 +158,7 @@ abstract public class ConfigField<T> {
     public static <T> @NotNull ConfigField<T> create(Config<T> config) {
         Config c = config;
         ConfigField cf;
-        if (c instanceof OverridablePropertyConfig) cf = new OverriddenCF((OverridablePropertyConfig) c);
-        else if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeCF(c) : new EnumerableCF(c);
+        if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeCF(c) : new EnumerableCF(c);
         else if (isMinMax(c)) cf = new SliderCF(c);
         else cf = CF_BUILDERS.computeIfAbsent(c.getType(), key -> GeneralCF::new).apply(c);
 
@@ -572,8 +575,8 @@ abstract public class ConfigField<T> {
                 graphics.selected.setValue(config.getValue());
         }
     }
-    private static class OverriddenBoolCF extends BoolCF {
-        private OverriddenBoolCF(Config<Boolean> c) {
+    private static class OrBoolCF extends BoolCF {
+        private OrBoolCF(Config<Boolean> c) {
             super(c);
             graphics.styleclass("override-config-field");
             graphics.tooltip(overTooltip);
@@ -1001,7 +1004,7 @@ abstract public class ConfigField<T> {
                         isSyntheticSetEvent = false;
                     }
                 });
-                pane.configure(lc.toConfigurable.apply(this.value));
+                pane.configure(lc.toConfigurable.invoke(this.value));
             }
 
             @Override
@@ -1076,35 +1079,32 @@ abstract public class ConfigField<T> {
         @Override
         public void refreshItem() {}
     }
-    private static class OverriddenCF<T> extends ConfigField<T> {
+    private static class OrCF<T> extends ConfigField<OrValue<T>> {
         final FlowPane root = new FlowPane(5,5);
 
-        public OverriddenCF(OverridablePropertyConfig<T> c) {
+        public OrCF(OrPropertyConfig<T> c) {
             super(c);
             OrV<T> orV = c.getProperty();
 
-//            root.setMinSize(100,20);
-//            root.setPrefSize(-1,-1);
-//            root.setMaxSize(-1,-1);
+            var op = new SimpleBooleanProperty(c.getDefaultValue().getOverride());
+            var oc = new OrBoolCF(Config.forProperty(Boolean.class, "Override", op));
+            syncBiFrom(orV.override, op);
 
-            BoolCF bf = new OverriddenBoolCF(Config.forProperty(Boolean.class, "Override", orV.override)) {
-                @Override
-                public void setNapplyDefault() {
-                    orV.override.setValue(c.getDefaultOverrideValue());
-                }
-            };
-            ConfigField cf = create(Config.forProperty(c.getType(),"", orV.real));
-            Util.setField(cf.config, "defaultValue", c.getDefaultValue());
-            syncC(orV.override, it -> cf.getEditor().setDisable(!it));
-            root.getChildren().addAll(cf.buildNode(),bf.buildNode());
+            var vp = new SimpleObjectProperty<>(c.getDefaultValue().getValue());
+            var vc = create(Config.forProperty(c.getValueType(), "", vp));
+            syncBiFrom(orV.real, vp);
+
+            syncC(orV.override, it -> vc.getEditor().setDisable(!it));
+            root.getChildren().addAll(vc.buildNode(), oc.buildNode());
         }
+
         @Override
         public Node getEditor() {
             return root;
         }
 
         @Override
-        protected Try<T,String> get() {
+        protected Try<OrValue<T>,String> get() {
             return ok(config.getValue());
         }
 
@@ -1118,8 +1118,7 @@ abstract public class ConfigField<T> {
 
         @Override
         protected String getTooltipText() {
-            return config.getInfo() + "\n\nThis value must override global "
-                    + "value to take effect.";
+            return config.getInfo() + "\n\nThis value must override global value to take effect.";
         }
     }
 

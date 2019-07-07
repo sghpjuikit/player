@@ -10,7 +10,6 @@ import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.input.DragEvent
 import javafx.scene.layout.Pane
-import sp.it.util.conf.Config.VarList
 import sp.it.util.type.Util.getRawGenericPropertyType
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
@@ -24,7 +23,6 @@ class TypeUtilTest: FreeSpec({
 
          val o1 = Pane()
          val o2 = object: Any() {
-            fun f1(): VarList<Int>? = null
             fun f2(): List<Int>? = null
             fun f3(): MutableList<in Int>? = null
             fun f4(): MutableList<out Int>? = null
@@ -48,7 +46,6 @@ class TypeUtilTest: FreeSpec({
             rowProp<ObservableList<Node?>>(o1::getChildren),
             rowProp<ObservableList<Node?>>(o1::getChildrenUnmodifiable),
             rowProp<ObservableMap<Any?, Any?>>(o1::getProperties),
-            rowProp<ObservableList<Int?>>(o2::f1),
             rowProp<List<*>>(o2::f2),
             rowProp<List<*>>(o2::f3),
             rowProp<List<*>>(o2::f4)

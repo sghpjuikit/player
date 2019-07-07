@@ -29,7 +29,7 @@ interface Configurable<T> {
    @JvmDefault
    fun getFields(): Collection<Config<T>> = configsOf(javaClass, this, false, true) as Collection<Config<T>>
 
-   /** @return config with given [Config.getName] or null if does not exist */
+   /** @return config with given [Config.name] or null if does not exist */
    @Suppress("UNCHECKED_CAST")
    @JvmDefault
    fun getField(name: String): Config<T>? {
@@ -44,7 +44,7 @@ interface Configurable<T> {
       }
    }
 
-   /** @return config with given [Config.getName] or throw exception if does not exist */
+   /** @return config with given [Config.name] or throw exception if does not exist */
    @JvmDefault
    fun getFieldOrThrow(name: String): Config<T> = getField(name) ?: fail { "Config field '$name' not found." }
 
@@ -69,7 +69,7 @@ fun Any.toConfigurableByReflect(fieldNamePrefix: String, category: String): Conf
 /** @return configurable of configs representing all javafx properties of this object */
 fun Any.toConfigurableFx(): Configurable<*> {
    val cs = ArrayList<Config<Any?>>()
-   forEachJavaFXProperty(this) { p, name, type -> cs.add(Config.forValue<Any?>(type, name, p)) }
+   forEachJavaFXProperty(this) { p, name, type -> cs.add(Config.forValue(type, name, p)) }
    return ListConfigurable(cs)
 }
 

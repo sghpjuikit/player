@@ -41,5 +41,8 @@ open class V<T>(value: T): SimpleObjectProperty<T>(value) {
 /** @return new [V] value disallowing null values, initialized to the specified value */
 fun <T: Any> v(value: T): V<T> = V(value)
 
-/** @return new [V] value allowing null values, initialized to the specified value or null if no specified */
-fun <T: Any?> vn(value: T? = null): V<T?> = V(value)
+/** @return new [V] value allowing null values, initialized to the specified value */
+fun <T: Any?> vn(value: T?): V<T?> = V(value)
+
+/** @return new [V] value with specified nullability, initialized to the specified value, same as `V(value)` */
+fun <T: Any?> vx(value: T): V<T> = V(value)

@@ -10,6 +10,9 @@ import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.action.Action
 import sp.it.util.action.IsAction
+import sp.it.util.conf.ConfigImpl.ListConfig
+import sp.it.util.conf.ConfigImpl.PropertyConfig
+import sp.it.util.conf.ConfigImpl.ReadOnlyPropertyConfig
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.functional.asIf
@@ -30,7 +33,7 @@ import kotlin.reflect.jvm.javaType
 
 fun <T: Any> c(initialValue: T): ConfS<T> = ConfS(initialValue).but(Constraint.ObjectNonNull)
 fun <T: Any> cn(initialValue: T?): ConfS<T?> = ConfS(initialValue)
-fun <T: Any> cv(initialValue: T): ConfV<T, V<T>> = ConfV<T, V<T>>(initialValue, { v(it) }).but(Constraint.ObjectNonNull)
+fun <T: Any> cv(initialValue: T): ConfV<T, V<T>> = ConfV(initialValue, { v(it) }).but(Constraint.ObjectNonNull)
 fun <T: Any, W: WritableValue<T>> cv(initialValue: T, valueSupplier: (T) -> W): ConfV<T, W> = ConfV(initialValue, valueSupplier).but(Constraint.ObjectNonNull)
 fun <T: Any, W: ObservableValue<T>> cvro(initialValue: T, valueSupplier: (T) -> W): ConfVRO<T, W> = ConfVRO(initialValue, valueSupplier).but(Constraint.ObjectNonNull)
 fun <T: Any> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(it) })
@@ -242,11 +245,11 @@ class ConfL<T: Any?>(val type: Class<T>, val isNullable: Boolean): Conf<T>() {
       val isFinal = property !is KMutableProperty
       failIf(!isFinal) { "Property must be immutable" }
 
-      val list = Config.VarList<T>(type, if (isNullable) Config.VarList.Elements.NULLABLE else Config.VarList.Elements.NOT_NULL)
-      val c = Config.ListConfig(property.name, info, list, group, constraints)
+      val list = ConfList(type, isNullable)
+      val c = ListConfig(property.name, info, list, group, constraints)
       obtainConfigValueStore(ref).initialize(c)
 
-      return object: Config.ListConfig<T>(property.name, info, list, group, constraints), ReadOnlyProperty<Any, ObservableList<T>> {
+      return object: ListConfig<T>(property.name, info, list, group, constraints), ReadOnlyProperty<Any, ObservableList<T>> {
          override fun getValue(thisRef: Any, property: KProperty<*>) = list.list
       }.registerConfig(ref)
    }
@@ -265,11 +268,11 @@ class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
       val isFinal = property !is KMutableProperty
       failIf(isFinal xor (info.editable===EditMode.NONE)) { "Property mutability does not correspond to specified editability=${info.editable}" }
 
-      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
+      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
       obtainConfigValueStore(ref).initialize(c)
       validateValue(c.value)
 
-      return object: Config.PropertyConfig<T>(type, property.name, info, constraints, vn(c.value), initialValue, group), ReadOnlyProperty<Any, T>, ReadWriteProperty<Any, T> {
+      return object: PropertyConfig<T>(type, property.name, info, constraints, vn(c.value), initialValue, group), ReadOnlyProperty<Any, T>, ReadWriteProperty<Any, T> {
          override fun getValue(thisRef: Any, property: KProperty<*>) = getValue()
          override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
             setValue(value)
@@ -310,11 +313,11 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyPrope
       val isFinal = property !is KMutableProperty
       failIf(!isFinal) { "Property must be immutable" }
 
-      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
+      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
       obtainConfigValueStore(ref).initialize(c)
       validateValue(c.value)
 
-      return object: Config.PropertyConfig<T>(type, property.name, info, constraints, v(c.value), initialValue, group), ReadOnlyProperty<Any?, W> {
+      return object: PropertyConfig<T>(type, property.name, info, constraints, v(c.value), initialValue, group), ReadOnlyProperty<Any?, W> {
          override fun getValue(thisRef: Any?, property: KProperty<*>): W = this.property as W
       }.registerConfig(ref)
    }
@@ -354,10 +357,10 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyP
       failIf(!isFinal) { "Property must be immutable" }
       failIf(info.editable!==EditMode.NONE) { "Property mutability requires usage of ${EditMode.NONE}" }
 
-      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).constraints(constraints)
+      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
       validateValue(c.value)
 
-      return object: Config.ReadOnlyPropertyConfig<T>(type, property.name, info, constraints, v(c.value), group), ReadOnlyProperty<Any?, W> {
+      return object: ReadOnlyPropertyConfig<T>(type, property.name, info, constraints, v(c.value), group), ReadOnlyProperty<Any?, W> {
          override fun getValue(thisRef: Any?, property: KProperty<*>): W = this.property as W
       }.registerConfig(ref)
    }

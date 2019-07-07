@@ -94,9 +94,9 @@ import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.util.access.V;
 import sp.it.util.access.VarEnum;
 import sp.it.util.animation.Anim;
-import sp.it.util.conf.Config.ConfigurableVarList;
 import sp.it.util.conf.Configurable;
 import sp.it.util.conf.EditMode;
+import sp.it.util.conf.FixedConfList;
 import sp.it.util.conf.IsConfig;
 import sp.it.util.functional.Functors.Ƒ0;
 import sp.it.util.functional.Functors.Ƒ1;
@@ -460,7 +460,7 @@ public class Comet extends SimpleController {
 	final V<PlayerSpawn> spawning = new V<>(PlayerSpawn.CIRCLE);
 	final ObservableList<Integer> gamepadIds = FXCollections.observableArrayList();
 	@IsConfig(name = "Players")
-	final ConfigurableVarList<Player> PLAYERS = new ConfigurableVarList<>(Player.class,
+	final FixedConfList<Player> PLAYERS = new FixedConfList<>(Player.class,
 		new Player(1, Color.CORNFLOWERBLUE, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL),
 		new Player(2, Color.GREY, KeyCode.M, KeyCode.UP, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.N, PLAYER_ABILITY_INITIAL),
 		new Player(3, Color.GREEN, KeyCode.T, KeyCode.G, KeyCode.F, KeyCode.H, KeyCode.R, PLAYER_ABILITY_INITIAL),

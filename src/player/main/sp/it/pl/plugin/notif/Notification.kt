@@ -13,6 +13,7 @@ import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.collections.setToOne
 import sp.it.util.functional.invoke
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.onEventUp
 import sp.it.util.ui.stackPane
 import sp.it.util.units.seconds
 
@@ -50,8 +51,8 @@ class Notification: PopOver<Node>() {
       contentNode.value = root.apply {
          onEventDown(MOUSE_CLICKED, PRIMARY) { lClickAction() }
          onEventDown(MOUSE_CLICKED, SECONDARY) { rClickAction() }
-         onEventDown(MOUSE_ENTERED) { closer.pause() }
-         onEventDown(MOUSE_EXITED) { closer.unpause() }
+         onEventUp(MOUSE_ENTERED) { closer.pause() }
+         onEventUp(MOUSE_EXITED) { closer.unpause() }
       }
    }
 
@@ -61,10 +62,9 @@ class Notification: PopOver<Node>() {
    }
 
    fun setContent(content: Node, titleText: String) {
-      headerVisible.value = !titleText.isEmpty()
+      headerVisible.value = titleText.isNotEmpty()
       title.value = titleText
       root.children setToOne content
-      content.isMouseTransparent = true
    }
 
 }
